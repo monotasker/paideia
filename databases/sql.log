@@ -1,0 +1,133 @@
+timestamp: 2011-09-15T12:13:46.707284
+CREATE TABLE auth_user(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    first_name CHAR(128),
+    last_name CHAR(128),
+    email CHAR(512),
+    password CHAR(512),
+    registration_key CHAR(512),
+    reset_password_key CHAR(512)
+);
+success!
+timestamp: 2011-09-15T12:13:46.721838
+CREATE TABLE auth_group(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    role CHAR(512),
+    description TEXT
+);
+success!
+timestamp: 2011-09-15T12:13:46.728944
+CREATE TABLE auth_membership(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    group_id INTEGER REFERENCES auth_group(id) ON DELETE CASCADE
+);
+success!
+timestamp: 2011-09-15T12:13:46.738718
+CREATE TABLE auth_permission(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    group_id INTEGER REFERENCES auth_group(id) ON DELETE CASCADE,
+    name CHAR(512),
+    table_name CHAR(512),
+    record_id INTEGER
+);
+success!
+timestamp: 2011-09-15T12:13:46.748721
+CREATE TABLE auth_event(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    time_stamp TIMESTAMP,
+    client_ip CHAR(512),
+    user_id INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    origin CHAR(512),
+    description TEXT
+);
+success!
+timestamp: 2011-09-15T12:13:46.762854
+CREATE TABLE auth_cas(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    created_on TIMESTAMP,
+    url CHAR(512),
+    uuid CHAR(512)
+);
+success!
+timestamp: 2011-09-15T12:13:46.772762
+CREATE TABLE categories(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    category CHAR(512),
+    description CHAR(512)
+);
+success!
+timestamp: 2011-09-15T12:13:46.780376
+CREATE TABLE tags(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tag CHAR(512)
+);
+success!
+timestamp: 2011-09-15T12:13:46.789544
+CREATE TABLE questions(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    question TEXT,
+    answer CHAR(512),
+    value DOUBLE,
+    readable_answer CHAR(512),
+    answer2 CHAR(512),
+    value2 DOUBLE,
+    answer3 CHAR(512),
+    value3 DOUBLE,
+    frequency DOUBLE,
+    tags TEXT
+);
+success!
+timestamp: 2011-09-15T12:13:46.801804
+CREATE TABLE quizzes(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    quiz CHAR(512),
+    length CHAR(512),
+    tags TEXT,
+    frequency CHAR(512),
+    groups TEXT,
+    start_date DATE,
+    end_date DATE
+);
+success!
+timestamp: 2011-09-15T12:17:29.029672
+CREATE TABLE question_records(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    question INTEGER REFERENCES questions(id) ON DELETE CASCADE,
+    times_right DOUBLE,
+    times_wrong DOUBLE,
+    last_right DATE,
+    last_wrong DATE,
+    category INTEGER REFERENCES categories(id) ON DELETE CASCADE
+);
+success!
+timestamp: 2011-09-15T12:17:29.045732
+CREATE TABLE quiz_records(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    quiz INTEGER REFERENCES quizzes(id) ON DELETE CASCADE,
+    score DOUBLE,
+    date_taken DATE
+);
+success!
+timestamp: 2011-09-24T20:57:27.910181
+CREATE TABLE q_bugs(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    question INTEGER REFERENCES questions(id) ON DELETE CASCADE,
+    a_submitted CHAR(512),
+    name INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    date_submitted DATE
+);
+success!
+timestamp: 2011-09-30T12:03:04.972298
+CREATE TABLE news(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    story TEXT,
+    title CHAR(512),
+    name INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    date_submitted TIMESTAMP,
+    last_edit TIMESTAMP
+);
+success!

@@ -1,0 +1,7 @@
+<ul>
+{{for bug in bugs:}}
+<li>
+{{=A(bug.a_submitted, _href=URL(c='editing', f='bug.load', args=[bug.id]), cid='modal_frame', _class="bug")}}
+</li>
+{{pass}}
+</ul>

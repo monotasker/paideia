@@ -1,0 +1,24 @@
+{{left_sidebar_enabled=right_sidebar_enabled=False}}
+
+{{extend 'layout.html'}}
+
+
+<h2>Welcome!</h2>
+
+<section id='updates'>
+<h3>News and Updates</h3>
+<p>Sept. 26th, 2011 -- Over the last couple of days I've been able to make a few updates that should improve people's experience quite a bit. First, I was able (knock on wood!) to finally fix the bug that was allowing the same question to be repeated within a session. Second, I loaded in several more questions, which should also help with the repetition problem. Finally, I added a one-click bug reporting system that should relieve students' anxiety when a question seems to be evaluated incorrectly and should streamline the process of fixing those questions on my end. This coming week should see many more questions loaded in and some further refinements of the algorithm used to select questions for each student.</p>
+</section>
+
+<section id='greeting'>
+<p><i>Paideia</i> is an online space for learning New Testament Greek. To get started register for an account and then click the link below to "start exploring."</p> 
+
+<p>This is an early "alpha" version for use in my courses at Tyndale Seminary. It is not polished and I am hoping to expand the site's functionality over the coming months. Feel free to follow the link, though, to get a sense of what the project is about. </p>
+</section>
+
+{{=A("start exploring", _href=URL('exploring', 'index'), _class='button-green-grad')}}
+
+
+{{block left_sidebar}}New Left Sidebar Content{{end}}
+
+{{block right_sidebar}}New Right Sidebar Content{{end}}

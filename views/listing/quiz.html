@@ -1,0 +1,6 @@
+{{extend 'layout.html'}}
+
+<h2>Quizzes</h2>
+<div id="viewpane">
+{{=LOAD('listing','quiz.load',ajax=True,target='viewpane')}}
+</div>

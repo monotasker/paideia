@@ -1,0 +1,174 @@
+# -*- coding: utf-8 -*-
+# this file is released under public domain and you can use without limitations##
+#######################################################################
+##This is a samples controller
+##- index is the default action of any application
+## - user is required for authentication and authorization
+## - download is for downloading files uploaded in the db (does streaming)
+## - call exposes all registered services (none by default)
+#########################################################################
+
+import random,re
+
+def index():    
+    """
+    example action using the internationalization operator T and flash
+    rendered by views/default/index.html or views/generic.html
+    """            
+    return dict(message=T('Welcome to Paideia'))
+
+def user():
+    """
+        exposes:
+            http://..../[app]/default/user/login
+            http://..../[app]/default/user/logout
+            http://..../[app]/default/user/register
+            http://..../[app]/default/user/profile
+            http://..../[app]/default/user/retrieve_password
+            http://..../[app]/default/user/change_password
+        use @auth.requires_login()        
+        @auth.requires_membership('group name')        
+        @auth.requires_permission('read','table name',record_id)    
+        to decorate functions that need access control
+    """
+    return dict(form=auth())
+    
+def download():
+    """
+    allows downloading of uploaded files
+    http://..../[app]/default/download/[filename]
+    """
+    return response.download(request,db)
+    
+def call():
+    """
+    exposes services. for example:
+        http://..../[app]/default/call/jsonrpc
+        decorate with @services.jsonrpc the functions to expose    
+        supports xml, json, xmlrpc, jsonrpc, amfrpc, rss, csv    
+    """
+    return service()
+    
+@auth.requires_signature()    
+def data():
+    """
+    http://..../[app]/default/data/tables
+    http://..../[app]/default/data/create/[table]
+    http://..../[app]/default/data/read/[table]/[id]
+    http://..../[app]/default/data/update/[table]/[id]
+    http://..../[app]/default/data/delete/[table]/[id[
+    http://..../[app]/default/data/select/[table]
+    http://..../[app]/default/data/search/[table]
+    but URLs bust be signed, i.e. linked with
+    A('table',_href=URL('data/tables',user_signature=True))
+    or with the signed load operator
+    LOAD('default','data.load',args='tables',ajax=True,user_signature=True)
+    """
+    return dict(form=crud())
+    
+@auth.requires_login()
+def ask():
+    #Evaluate answer, update records, and redirect to 'respond' page if a response is being submitted
+    if request.vars.user_response:
+        #include this question in the number of questions attempted in this session
+        if session.q_counter:        
+            session.q_counter += 1        
+        else:        
+            session.q_counter = 1       
+        #get the question that was asked     
+        q_ID = session.qID    
+        the_q = db(db.question_records.question==q_ID).select()
+        #see whether answer matches any of the three answer fields           
+        if re.match(session.answer,request.vars.user_response):        
+            session.response = 'correct' 
+            rightCount = 1
+            wrongCount = 0
+            if the_q:
+                wrongDate = the_q[0].last_wrong
+            else:
+                wrongDate = request.now
+            rightDate = request.now
+            session.score = 1
+        elif re.match(session.answer2,request.vars.user_response) and session.answer2 != 'null':
+            session.response = 'partial'
+            rightCount = 0
+            wrongCount = 0
+            if the_q:
+                wrongDate = the_q[0].last_wrong
+                rightDate = the_q[0].last_right
+            else:
+                wrongDate = request.now
+                rightDate = request.now
+            session.score = 0.5
+        elif re.match(session.answer3,request.vars.user_response) and session.answer2 != 'null':
+            session.response = 'partial'
+            rightCount = 0
+            wrongCount = 0
+            if the_q:
+                wrongDate = the_q[0].last_wrong
+                rightDate = the_q[0].last_right
+            else:
+                wrongDate = request.now
+                rightDate = request.now            
+            session.score = 0.3
+        else:        
+            session.response = "wrong"
+            wrongCount = 1
+            rightCount = 0        
+            if the_q:
+                rightDate = the_q[0].last_right
+            else:
+                rightDate = request.now
+            wrongDate = request.now
+            session.score = 0
+        #If the user has already attempted this question once, update their record for this question    
+        if db((db.question_records.name==auth.user_id)&(db.question_records.question==q_ID)).select():                     
+            timesR = the_q[0].times_right            
+            timesW = the_q[0].times_wrong
+            newTimesR = int(timesR) + int(rightCount)            
+            newTimesW = int(timesW) + int(wrongCount)            
+            db(db.question_records.question==q_ID).update(times_right=newTimesR, times_wrong=newTimesW, last_right=rightDate, last_wrong=wrongDate)    
+        #if the user hasn't attempted this question, create a new record for it        
+        else:            
+            db.question_records.insert(question=q_ID, times_right=rightCount, times_wrong=wrongCount)        
+        #display the answer page    
+        redirect(URL('respond'))     
+    #Present question and answer form if no answer has been submitted           
+    else:
+        questions = db().select(db.questions.ALL, orderby=db.questions.question)        
+        question_count = len(questions) - 1        
+        question_index = random.randint(0,question_count)        
+        session.qID = questions[question_index].id        
+        question_text = questions[question_index].question            
+        session.answer = questions[question_index].answer    
+        session.answer2 = questions[question_index].answer2
+        session.answer3 = questions[question_index].answer3    
+    return dict(question=question_text, answer=session.answer, counter=session.q_counter, qID=session.qID, userID=auth.user_id)
+        
+@auth.requires_login()           
+def respond():    
+    #if not request.function=='ask':    
+    #    redirect(URL('ask'))    
+    if session.response == 'correct':
+        the_reply = "Right. Κάλη."  
+    elif session.response == 'partial':
+        the_reply = "Οὐ κάκος. You're close."  
+    else:        
+        the_reply = "Incorrect. Try again!"     
+    the_answer = session.answer    
+    return dict(reply=the_reply, answer=the_answer, score=session.score)
+
+def list_question():
+    questions = db().select(db.questions.ALL, orderby = db.questions.question)
+    return dict(questions = questions)
+    
+def tag_question():
+    q_ID = request.args(0) or redirect(URL('list_question'))
+    the_q = db(db.questions.id==q_ID).select()
+    question = the_q[0].question
+    answer = the_q[0].answer
+    chosen_tags = db(db.taggings.question==q_ID).select()
+    return dict(question, answer, chosen_tags)
+
+def clear_records():
+    db.question_records.truncate()

@@ -1,0 +1,3 @@
+{{extend 'layout.html'}}
+<h1>This is the creating/quiz.html template</h1>
+{{=form}}

@@ -1,0 +1,13 @@
+{{=form}}
+<span class='q_counter'>{{=len(questions)}} questions in total</span>
+<ul>
+{{for question in questions:}}
+<li>
+{{=A(question.question, _href=URL(c='editing', f='question.load', args=[question.id]), cid='viewpane')}}
+{{bugs = db(db.q_bugs.question == question.id).select()}}
+{{if bugs:}}
+{{=A(len(bugs), _href=URL(c='listing', f='bug.load', args=[question.id]), _class='bug_listing_link', cid='viewpane')}}
+{{pass}}
+</li>
+{{pass}}
+</ul>
