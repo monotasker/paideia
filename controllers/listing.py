@@ -1,0 +1,26 @@
+# coding: utf8
+
+@auth.requires_membership(role='administrators')
+def question():
+    questions = db().select(db.questions.ALL, orderby = db.questions.question)
+    return dict(questions = questions)
+
+@auth.requires_membership(role='administrators')    
+def quiz():
+    quizzes = db().select(db.quizzes.ALL, orderby = db.quizzes.quiz)
+    return dict(quizzes = quizzes)
+
+@auth.requires_membership(role='administrators')    
+def user():
+    users = db().select(db.auth_user.ALL, orderby = db.auth_user.last_name)
+    return dict(users = users)
+
+@auth.requires_membership(role='administrators')    
+def tags():
+    tags = db().select(db.tags.ALL, orderby = db.tags.tag)
+    return dict(tags = tags)
+
+@auth.requires_membership(role='administrators')    
+def bug():
+    bugs = db().select(db.q_bugs.ALL)
+    return dict(bugs = bugs)

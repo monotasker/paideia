@@ -1,0 +1,10 @@
+{{extend 'layout.html'}}
+<h2>All Questions</h2>
+{{=A('Create a new tag', _href=URL(c='creating', f='tag.load'), _class='tag_create_link button-yellow-grad', cid='modal_frame')}}
+{{=A('Create a new question', _href=URL(c='creating', f='question.load'), _class='question_create_link button-green-grad', cid='viewpane')}}
+
+
+<div id="viewpane"></div>
+<div id="list_pane">
+{{=LOAD('listing','question.load',ajax=True)}}    
+</div>
