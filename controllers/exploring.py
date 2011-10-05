@@ -35,30 +35,34 @@ def get_question():
     # (db.question_records.last_right != datetime.date.today()) removes questions gotten right today
     q_not_today =  db((db.questions.id == db.question_records.question) & (db.question_records.name==auth.user_id) & (db.question_records.last_right != datetime.date.today())).select()
 
-    #finds questions that haven't yet been tried by this user
-    old_list = db(db.question_records.name==auth.user_id).select()
-    q_fresh = db(~db.questions.id.belongs(old_list)).select()
+    #finds questions that haven't yet been tried by this user (using left join)
+    q_fresh = db(db.question_records.question==None).select(db.questions.ALL, db.question_records.ALL, left=db.question_records.on(db.questions.id==db.question_records.question))
 
-    if q_not_today:
+    #old_list = db(db.question_records.name==auth.user_id).select()
+    #q_fresh = db(~db.questions.id.belongs(old_list)).select()
+
+    the_switch = random.randint(0,1)
+    #randomly choose between review (haven't answered correct today) and totally new
+    if q_not_today and the_switch == 0:
         questions = q_not_today
         session.quiz_type = "regular review (haven't gotten correct today)"
         question_count = len(questions) - 1
-        question_index = random.randint(0,question_count)    
-        question_obj = questions[question_index].questions        
+        question_index = random.randint(0,question_count)
+        question_obj = questions[question_index].questions
     elif q_fresh:
         questions = q_fresh
-        session.quiz_type = "fresh questions (first try)"        
+        session.quiz_type = "fresh questions (first try)"
         question_count = len(questions) - 1
         question_index = random.randint(0,question_count)
-        question_obj = questions[question_index]
-    #fallback is totally random review (in case all have been tried and gotten correct today)    
+        question_obj = questions[question_index].questions
+    #fallback is totally random review (in case all have been tried and gotten correct today)
     else:
         questions = db(db.questions.id > 0).select()
         session.quiz_type = "random"
         question_count = len(questions) - 1
-        question_index = random.randint(0,question_count)      
+        question_index = random.randint(0,question_count)
         question_obj = questions[question_index]
-    
+
     session.qID = question_obj.id
     session.question_text = question_obj.question
     session.answer = question_obj.answer
