@@ -1,6 +1,6 @@
 # coding: utf8
 
-import random,re,datetime
+import random,re,datetime,string
 
 def set_path():
     #set the quiz and retrieve its data
@@ -95,7 +95,8 @@ def index():
         q_ID = session.qID
         the_q = db(db.question_records.question==q_ID).select()
         #see whether answer matches any of the three answer fields
-        if re.match(session.answer, session.response, re.I):
+        the_response = string.strip(session.response)
+        if re.match(session.answer, the_response, re.I):
             session.eval = 'correct'
             rightCount = 1
             wrongCount = 0
