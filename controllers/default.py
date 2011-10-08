@@ -67,3 +67,16 @@ def data():
       LOAD('default','data.load',args='tables',ajax=True,user_signature=True)
     """
     return dict(form=crud())
+
+@auth.requires_membership(role='administrators')
+def send_mail():
+	addr = db(db.auth_user.id == session.the_student).select(db.auth_user.email)
+	subj = session.mail_subject
+	msg = session.mail_message
+	
+	if mail.send(to=addr, subject=subj, message=msg):
+		response.flash('mail sent successfully')
+	else:
+		response.flash('There was a problem sending the mail.')
+		
+	return 

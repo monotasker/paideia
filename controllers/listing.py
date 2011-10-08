@@ -22,5 +22,6 @@ def tags():
 
 @auth.requires_membership(role='administrators')    
 def bug():
-    bugs = db().select(db.q_bugs.ALL)
-    return dict(bugs = bugs)
+	the_q = request.args[0]
+	bugs = db(db.q_bugs.question == the_q).select()
+	return dict(bugs = bugs)
