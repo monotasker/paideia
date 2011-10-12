@@ -1,0 +1,16 @@
+
+{{=H3('News and Updates')}}
+
+{{=button}}
+
+{{for story in newslist:}}
+<article>
+{{=H4(story.title)}}
+{{=SPAN(story.name)}}
+{{=SPAN(story.date_submitted)}}
+{{=P(story.story)}}
+</article>
+{{pass}}
+
+
+
