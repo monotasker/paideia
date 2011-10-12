@@ -403,7 +403,7 @@ nav {
     border-right:48px solid #F8F0E5;
     border-left:48px solid #F8F0E5;
     min-height:400px;
-    background:#9ccfff url('../images/woman1.png') no-repeat -50px 10px;
+    background:#9ccfff;
 }
 
 #page .npc {
@@ -467,6 +467,10 @@ footer a {
     width:50%;
     background:#efefef;
     padding:12px;
+}
+
+#page.exploring {
+  background:#9ccfff url('../images/woman1.png') no-repeat -50px 10px;
 }
 
 #page.exploring .guidelines,
