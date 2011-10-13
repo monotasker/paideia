@@ -27,9 +27,9 @@ def bug():
     return dict(bugs = bugs)
 
 def news():
-    newslist = db(db.news).select()
+    newslist = db(db.news).select(orderby = ~db.news.date_submitted)
     if db((db.auth_membership.user_id == auth.user_id) & (db.auth_membership.group_id == 1)).select():
-        button = A('new story', _href=URL('creating', 'story.load'), cid='modal_frame')
+        button = A('new story', _href=URL('creating', 'news.load'), cid='modal_frame', _class='create_link news_create_link')
     else:
         button = ''
     return dict(newslist = newslist, button = button)

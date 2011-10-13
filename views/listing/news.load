@@ -1,4 +1,4 @@
-
+{{import datetime}}
 {{=H3('News and Updates')}}
 
 {{=button}}
@@ -7,8 +7,9 @@
 <article>
 {{=H4(story.title)}}
 {{=SPAN(story.name)}}
-{{=SPAN(story.date_submitted)}}
+{{=SPAN(story.date_submitted.strftime('%A, %B %d, %Y'))}}
 {{=P(story.story)}}
+{{=A('[edit]', _href=URL('editing', 'news.load', args=[story.id]), cid='modal_frame', _class='create_link edit_news_link')}}
 </article>
 {{pass}}
 
