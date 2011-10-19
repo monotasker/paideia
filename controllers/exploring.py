@@ -70,32 +70,9 @@ def get_question():
     session.answer3 = question_obj.answer3
     session.readable_answer = question_obj.readable_answer
 
-@auth.requires_login()
-def index():
-
-    #after user selects quiz (or 'next question')
-    if request.args(0) == 'ask':
-        if not request.vars.response:
-            set_path()
-            set_counter()
-            get_question()
-
-        form = SQLFORM.factory(
-            Field('response', 'string', requires=IS_NOT_EMPTY())
-        )
-        if form.accepts(request.vars,session):
-            session.response = request.vars.response
-            redirect(URL('index', args=['reply']))
-
-        return dict(question=session.question_text, form=form)
-
-    #after submitting answer
-    elif request.args(0) == 'reply':
-        #get the question that was asked
-        q_ID = session.qID
-        the_q = db(db.question_records.question==q_ID).select()
-        #see whether answer matches any of the three answer fields
-        the_response = string.strip(session.response)
+def eval_response(the_q):
+    the_response = string.strip(session.response)
+    try:
         if re.match(session.answer, the_response, re.I):
             session.eval = 'correct'
             rightCount = 1
@@ -138,16 +115,49 @@ def index():
                 rightDate = request.now
             wrongDate = request.now
             session.score = 0
+        return dict(the_q = the_q, rightDate = rightDate, wrongDate = wrongDate, rightCount = rightCount, wrongCount = wrongCount)
+    except re.error:
+        redirect(URL('index', args=['error', 'regex']))
+    else:
+        redirect(URL('index', args=['error', 'unknown']))
+
+@auth.requires_login()
+def index():
+
+    #after user selects quiz (or 'next question')
+    if request.args(0) == 'ask':
+        if not request.vars.response:
+            set_path()
+            set_counter()
+            get_question()
+
+        form = SQLFORM.factory(
+            Field('response', 'string', requires=IS_NOT_EMPTY())
+        )
+        if form.accepts(request.vars,session):
+            session.response = request.vars.response
+            redirect(URL('index', args=['reply']))
+
+        return dict(question=session.question_text, form=form)
+
+    #after submitting answer
+    elif request.args(0) == 'reply':
+        #get the question that was asked
+        q_ID = session.qID
+        the_q = db(db.question_records.question==q_ID).select()
+        #see whether answer matches any of the three answer fields
+        the_eval = eval_response(the_q)
+        #update or create database record for
         #If the user has already attempted this question once, update their record for this question
         if db((db.question_records.name==auth.user_id)&(db.question_records.question==q_ID)).select():
             timesR = the_q[0].times_right
             timesW = the_q[0].times_wrong
-            newTimesR = int(timesR) + int(rightCount)
-            newTimesW = int(timesW) + int(wrongCount)
-            db(db.question_records.question==q_ID).update(times_right=newTimesR, times_wrong=newTimesW, last_right=rightDate, last_wrong=wrongDate)
+            newTimesR = int(timesR) + int(the_eval['rightCount'])
+            newTimesW = int(timesW) + int(the_eval['wrongCount'])
+            db(db.question_records.question==q_ID).update(times_right=newTimesR, times_wrong=newTimesW, last_right=the_eval['rightDate'], last_wrong=the_eval['wrongDate'])
         #if the user hasn't attempted this question, create a new record for it
         else:
-            db.question_records.insert(question=q_ID, times_right=rightCount, times_wrong=wrongCount)
+            db.question_records.insert(question=q_ID, times_right=the_eval['rightCount'], times_wrong=the_eval['wrongCount'])
 
         #build response to user
         if session.eval == 'correct':
@@ -158,6 +168,18 @@ def index():
             the_reply = "Incorrect. Try again!"
         the_answer = session.readable_answer
         return dict(reply=the_reply, answer=the_answer, raw_answer=session.answer, score=session.score)
+
+    #if there's an error thrown after submitting an answer
+    elif request.args(0) == 'error':
+        if request.args(1) == 'unknown':
+            db.q_bugs.insert(question=session.qID, a_submitted=request.vars.answer)
+        if request.args(1) == 'regex':
+            db.q_bugs.insert(question=session.qID, a_submitted=request.vars.answer)
+        message = "Oops! Something about that question confused me, and I'm not sure whether your answer was right. Let's try another one."
+        button = A('continue', _href=URL('index', args=['ask']), _class='button-green-grad next_q', cid=request.cid)
+        #don't include this question in counting the number attempted
+        session.q_counter -= 1
+        return dict(message = message, button = button)
 
     #when first arrive at start page
     else:
