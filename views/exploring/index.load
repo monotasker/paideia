@@ -2,7 +2,11 @@
     <section class="npc">
         <p>Well done. You've finished this path. You don't have to stop here, though. If you want to continue exploring, {{=A('click here', _href=URL('index.load'), cid='page')}}</p>
     </section>
-
+{{elif request.args(0) == 'error':}}
+    <section class='npc'>
+        {{=message}}
+        {{=button}}
+    </section>
 {{elif request.args(0) == 'start' or not request.args:}}
     <div class='npc'>Let's get started. Here are the paths you can take today: {{#'}}</div>
     <ul>

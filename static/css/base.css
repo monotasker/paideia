@@ -256,10 +256,22 @@ ol { list-style-type: decimal; }
 /* Remove margins for navigation lists */
 nav ul, nav li { margin: 0; }
 
-/* Remove larger left-margin from lists in .npc bubbles */
-.npc ul, .npc li {
-  margin-left:48px;
+#page.exploring ul{
+    margin-left:300px;
+    margin-top:48px;
+    font-size:18px;
 }
+
+/* Remove larger left-margin from lists in .npc bubbles */
+#page.exploring .npc ul{
+  margin-left:0;
+  margin-top:12px;
+}
+
+#page.exploring .npc li {
+  margin-left:24px;
+}
+
 
 /*************/
 /* Tables */
@@ -334,6 +346,12 @@ input[type=submit], input[type=button], button {
 fieldset { border: 1px solid #dedede; padding: 6px; }
 legend { font-weight: bold; }
 input:focus, textarea:focus { background: #fafafa; }
+
+#page.exploring form{
+    margin-left:300px;
+    margin-top:48px;
+    font-size:18px;
+}
 
 /*************/
 /* Images */
@@ -486,15 +504,9 @@ footer a {
     }
 
 
-#page.exploring form,
-#page.exploring ul,
 #page.exploring .next_q {
     margin-left:300px;
     margin-top:48px;
-}
-
-#page.exploring form {
-    font-size:18px;
 }
 
 #page.listing {
