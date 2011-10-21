@@ -62,7 +62,10 @@ def get_question():
         question_count = len(questions) - 1
         question_index = random.randint(0,question_count)
         question_obj = questions[question_index]
-
+    
+    if question_obj.status == 1:
+        get_question()
+        
     session.qID = question_obj.id
     session.question_text = question_obj.question
     session.answer = question_obj.answer
