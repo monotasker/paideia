@@ -51,6 +51,14 @@ db.define_table('question_records',
     Field('category', db.categories)
     )
 
+db.define_table('attempt_log',
+    Field('name', db.auth_user, default=auth.user_id),
+    Field('question', db.questions),
+    Field('score', 'double'),
+    Field('quiz', db.quizzes),
+    Field('date_attempted', 'date', default=request.now)
+    )
+
 db.define_table('quiz_records',
     Field('name', db.auth_user, default=auth.user_id),
     Field('quiz', db.quizzes),
