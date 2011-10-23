@@ -131,3 +131,15 @@ CREATE TABLE news(
     last_edit TIMESTAMP
 );
 success!
+timestamp: 2011-10-21T15:41:02.552636
+ALTER TABLE questions ADD status INTEGER;
+timestamp: 2011-10-21T15:41:02.683438
+CREATE TABLE attempt_log(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    question INTEGER REFERENCES questions(id) ON DELETE CASCADE,
+    score DOUBLE,
+    quiz INTEGER REFERENCES quizzes(id) ON DELETE CASCADE,
+    date_attempted DATE
+);
+success!
