@@ -62,10 +62,10 @@ def get_question():
         question_count = len(questions) - 1
         question_index = random.randint(0,question_count)
         question_obj = questions[question_index]
-    
+
     if question_obj.status == 1:
         get_question()
-        
+
     session.qID = question_obj.id
     session.question_text = question_obj.question
     session.answer = question_obj.answer
@@ -85,7 +85,7 @@ def eval_response(the_q):
             else:
                 wrongDate = request.now
             rightDate = request.now
-            session.score = 1
+            score = 1
         elif re.match(session.answer2,session.response) and session.answer2 != 'null':
             session.eval = 'partial'
             rightCount = 0
@@ -96,7 +96,7 @@ def eval_response(the_q):
             else:
                 wrongDate = request.now
                 rightDate = request.now
-            session.score = 0.5
+            score = 0.5
         elif re.match(session.answer3,session.response) and session.answer3 != 'null':
             session.eval = 'partial'
             rightCount = 0
@@ -107,7 +107,7 @@ def eval_response(the_q):
             else:
                 wrongDate = request.now
                 rightDate = request.now
-            session.score = 0.3
+            score = 0.3
         else:
             session.eval = "wrong"
             wrongCount = 1
@@ -117,8 +117,8 @@ def eval_response(the_q):
             else:
                 rightDate = request.now
             wrongDate = request.now
-            session.score = 0
-        return dict(the_q = the_q, rightDate = rightDate, wrongDate = wrongDate, rightCount = rightCount, wrongCount = wrongCount)
+            score = 0
+        return dict(the_q = the_q, rightDate = rightDate, wrongDate = wrongDate, rightCount = rightCount, wrongCount = wrongCount, score = score)
     except re.error:
         redirect(URL('index', args=['error', 'regex']))
     else:
@@ -170,14 +170,17 @@ def index():
         else:
             the_reply = "Incorrect. Try again!"
         the_answer = session.readable_answer
+        db.attempt_log.insert(question=q_ID, score=the_eval['score'], quiz=session.path_id)
         return dict(reply=the_reply, answer=the_answer, raw_answer=session.answer, score=session.score)
 
     #if there's an error thrown after submitting an answer
     elif request.args(0) == 'error':
         if request.args(1) == 'unknown':
             db.q_bugs.insert(question=session.qID, a_submitted=request.vars.answer)
+            db(db.questions.id==session.qID).update(status=1);
         if request.args(1) == 'regex':
             db.q_bugs.insert(question=session.qID, a_submitted=request.vars.answer)
+            db(db.questions.id==session.qID).update(status=1);
         message = "Oops! Something about that question confused me, and I'm not sure whether your answer was right. Let's try another one."
         button = A('continue', _href=URL('index', args=['ask']), _class='button-green-grad next_q', cid=request.cid)
         #don't include this question in counting the number attempted

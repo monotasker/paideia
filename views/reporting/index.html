@@ -1,0 +1,7 @@
+{{extend 'layout.html'}}
+<h2>Available Reports</h2>
+<ul>
+{{for report in reports:}}
+<li>{{=A(report, _href=URL('reporting', report))}}</li>
+{{pass}}
+</ul>
