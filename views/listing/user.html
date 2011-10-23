@@ -1,0 +1,6 @@
+{{extend 'layout.html'}}
+<ul>
+{{for user in users:}}
+<li>{{=A(user.last_name + ',' + user.first_name, _href=URL('reporting', 'user', args=[user.id]))}}</li>
+{{pass}}
+</ul>
