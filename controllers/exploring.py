@@ -83,8 +83,8 @@ def eval_response(the_q):
             if the_q:
                 wrongDate = the_q[0].last_wrong
             else:
-                wrongDate = request.now
-            rightDate = request.now
+                wrongDate = datetime.date.today()
+            rightDate = datetime.date.today()
             score = 1
         elif re.match(session.answer2,session.response) and session.answer2 != 'null':
             session.eval = 'partial'
@@ -94,8 +94,8 @@ def eval_response(the_q):
                 wrongDate = the_q[0].last_wrong
                 rightDate = the_q[0].last_right
             else:
-                wrongDate = request.now
-                rightDate = request.now
+                wrongDate = datetime.date.today()
+                rightDate = datetime.date.today()
             score = 0.5
         elif re.match(session.answer3,session.response) and session.answer3 != 'null':
             session.eval = 'partial'
@@ -105,8 +105,8 @@ def eval_response(the_q):
                 wrongDate = the_q[0].last_wrong
                 rightDate = the_q[0].last_right
             else:
-                wrongDate = request.now
-                rightDate = request.now
+                wrongDate = datetime.date.today()
+                rightDate = datetime.date.today()
             score = 0.3
         else:
             session.eval = "wrong"
@@ -115,8 +115,8 @@ def eval_response(the_q):
             if the_q:
                 rightDate = the_q[0].last_right
             else:
-                rightDate = request.now
-            wrongDate = request.now
+                rightDate = datetime.date.today()
+            wrongDate = datetime.date.today()
             score = 0
         return dict(the_q = the_q, rightDate = rightDate, wrongDate = wrongDate, rightCount = rightCount, wrongCount = wrongCount, score = score)
     except re.error:
@@ -157,7 +157,24 @@ def index():
             timesW = the_q[0].times_wrong
             newTimesR = int(timesR) + int(the_eval['rightCount'])
             newTimesW = int(timesW) + int(the_eval['wrongCount'])
-            db(db.question_records.question==q_ID).update(times_right=newTimesR, times_wrong=newTimesW, last_right=the_eval['rightDate'], last_wrong=the_eval['wrongDate'])
+            last_right = the_eval['rightDate']
+            last_wrong = the_eval['wrongDate']
+            #figure out how the student is doing with this question
+            now_date = datetime.date.today()
+            right_dur = now_date-last_right
+            wrong_dur = now_date-last_wrong
+            rightWrong_dur = last_right - last_wrong
+            #categorize this question based on student's performance
+            if right_dur < wrong_dur:
+                if (right_dur < rightWrong_dur) and (right_dur < datetime.timedelta(days=170)):
+                    cat = 3
+                else:
+                    cat = 2
+            else:
+                cat = 1
+
+            #update the db record
+            db(db.question_records.question==q_ID).update(times_right=newTimesR, times_wrong=newTimesW, last_right=last_right, last_wrong=last_wrong, category=cat)
         #if the user hasn't attempted this question, create a new record for it
         else:
             db.question_records.insert(question=q_ID, times_right=the_eval['rightCount'], times_wrong=the_eval['wrongCount'])
@@ -170,7 +187,10 @@ def index():
         else:
             the_reply = "Incorrect. Try again!"
         the_answer = session.readable_answer
+
+        #add a record for this attempt in db.attempt_log
         db.attempt_log.insert(question=q_ID, score=the_eval['score'], quiz=session.path_id)
+
         return dict(reply=the_reply, answer=the_answer, raw_answer=session.answer, score=session.score)
 
     #if there's an error thrown after submitting an answer
