@@ -167,7 +167,10 @@ def index():
             #categorize this question based on student's performance
             if right_dur < wrong_dur:
                 if (right_dur < rightWrong_dur) and (right_dur < datetime.timedelta(days=170)):
-                    cat = 3
+                    if rightWrong_dur > datetime.timedelta(days=14):
+                        cat = 4
+                    else:
+                        cat = 3
                 else:
                     cat = 2
             else:

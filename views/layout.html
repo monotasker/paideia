@@ -141,7 +141,11 @@
       <div style="clear: both;"></div><!-- Clear the divs -->
       {{end}}
     </footer>
-
+    <section id='debug'>
+        {{if session.debug:}}
+        {{=session.debug}}
+        {{pass}}
+    </section>
     <!--[if lt IE 7 ]>
     <script src="{{=URL('static','js/dd_belatedpng.js')}}"></script>
     <script> DD_belatedPNG.fix('img, .png_bg'); //fix any <img> or .png_bg background-images </script>
