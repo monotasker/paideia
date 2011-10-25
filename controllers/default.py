@@ -32,50 +32,10 @@ def user():
         @auth.requires_permission('read','table name',record_id)
     to decorate functions that need access control
     """
-    try:
-        attempts = db(db.attempt_log.name == auth.user_id).select()
-        s=db.attempt_log.score.sum()
-        row = db(db.attempt_log.name == auth.user_id).select(s).first()
-        answer = row[s]
-        score_avg = answer/len(attempts)*100
-    except:
-        score_avg = "Can't calculate average"
+    # create instance of paideia_stats class from models
+    stats = paideia_stats(auth.user_id)
 
-    # get statistics for different classes of questions
-    the_records = db(db.question_records.name == auth.user_id).select()
-    total_len = float(len(the_records))
-
-    try:
-        cat1 = db((db.question_records.name == auth.user_id) & (db.question_records.category == 1)).select()
-        total_cat1 = len(cat1)
-        percent_cat1 = round((int(total_cat1)/total_len)*100, 1)
-    except:
-        total_cat1 = "Can't calculate number"
-        percent_cat1 = ""
-    try:
-        cat2 = db((db.question_records.name == auth.user_id) & (db.question_records.category == 2)).select()
-        total_cat2 = len(cat2)
-        percent_cat2 = round((int(total_cat2)/total_len)*100, 1)
-    except:
-        total_cat2 = "Can't calculate number"
-        percent_cat2 = ""
-    try:
-        cat3 = db((db.question_records.name == auth.user_id) & (db.question_records.category == 3)).select()
-        total_cat3 = len(cat3)
-        percent_cat3 = round((int(total_cat3)/total_len)*100, 1)
-    except:
-        total_cat3 = "Can't calculate number"
-        percent_cat3 = ""
-    try:
-        cat4 = db((db.question_records.name == auth.user_id) & (db.question_records.category == 3)).select()
-        total_cat4 = len(cat4)
-        percent_cat4 = round((int(total_cat4)/total_len)*100, 1)
-    except:
-        total_cat4 = "Can't calculate number"
-        percent_cat4 = ""
-
-    return dict(form=auth(), score_avg=score_avg, total_len = total_len, total_cat1 = total_cat1, total_cat2 = total_cat2, total_cat3 = total_cat3, percent_cat1 = percent_cat1, percent_cat2 = percent_cat2, percent_cat3 = percent_cat3, total_cat4 = total_cat4, percent_cat4 = percent_cat4)
-
+    return dict(form=auth(), score_avg=stats.score_avg, total_len = stats.total_len, total_cat1 = stats.total_cat1, total_cat2 = stats.total_cat2, total_cat3 = stats.total_cat3, percent_cat1 = stats.percent_cat1, percent_cat2 = stats.percent_cat2, percent_cat3 = stats.percent_cat3, total_cat4 = stats.total_cat4, percent_cat4 = stats.percent_cat4)
 
 def download():
     """
@@ -140,7 +100,7 @@ def bulk_cat_qs():
         #categorize this question based on student's performance
         if right_dur < wrong_dur:
             if (right_dur < rightWrong_dur) and (right_dur < datetime.timedelta(days=170)):
-                if rightWrong_dur > datetime.timedelta(days=14):
+                if right_dur > datetime.timedelta(days=14):
                     cat = 4
                 else:
                     cat = 3
