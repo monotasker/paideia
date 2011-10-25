@@ -12,46 +12,12 @@ def attempts():
 
 @auth.requires_membership(role='administrators')
 def user():
+    # get student's user id and name
     the_user = db.auth_user[request.args[0]]
     the_name = the_user.last_name + ', ' + the_user.first_name
-    try:
-        attempts = db(db.attempt_log.name == request.args[0]).select()
-        s=db.attempt_log.score.sum()
-        row = db(db.attempt_log.name == request.args[0]).select(s).first()
-        answer = row[s]
-        score_avg = answer/len(attempts)*100
-    except:
-        score_avg = "Can't calculate average"
-
-    # get statistics for different classes of questions
-    the_records = db(db.question_records.name == request.args[0]).select()
-    total_len = float(len(the_records))
-
-    try:
-        cat1 = db((db.question_records.name == request.args[0]) & (db.question_records.category == 1)).select()
-        total_cat1 = len(cat1)
-        percent_cat1 = (total_cat1/total_len)*100
-    except:
-        total_cat1 = "Can't calculate number"
-    try:
-        cat2 = db((db.question_records.name == request.args[0]) & (db.question_records.category == 2)).select()
-        total_cat2 = len(cat2)
-        percent_cat2 = (int(total_cat2)/total_len)*100
-    except:
-        total_cat2 = "Can't calculate number"
-    try:
-        cat3 = db((db.question_records.name == request.args[0]) & (db.question_records.category == 3)).select()
-        total_cat3 = len(cat3)
-        percent_cat3 = (total_cat3/total_len)*100
-    except:
-        total_cat3 = "Can't calculate number"
-    try:
-        cat4 = db((db.question_records.name == request.args[0]) & (db.question_records.category == 3)).select()
-        total_cat4 = len(cat4)
-        percent_cat4 = (total_cat4/total_len)*100
-    except:
-        total_cat4 = "Can't calculate number"
-
+    # create instance of paideia_stats class to calculate student performance
+    stats = paideia_stats(request.args[0])
+    # create dynamic grid to display list of all question attempts
     form = SQLFORM.grid(db.attempt_log.name == request.args[0])
 
-    return dict(form=form, score_avg=score_avg, the_name = the_name, total_len = total_len, total_cat1 = total_cat1, total_cat2 = total_cat2, total_cat3 = total_cat3, percent_cat1 = percent_cat1, percent_cat2 = percent_cat2, percent_cat3 = percent_cat3, total_cat4 = total_cat4, percent_cat4 = percent_cat4)
+    return dict(form=auth(), the_user = the_user, score_avg=stats.score_avg, total_len = stats.total_len, total_cat1 = stats.total_cat1, total_cat2 = stats.total_cat2, total_cat3 = stats.total_cat3, percent_cat1 = stats.percent_cat1, percent_cat2 = stats.percent_cat2, percent_cat3 = stats.percent_cat3, total_cat4 = stats.total_cat4, percent_cat4 = stats.percent_cat4)
