@@ -23,7 +23,7 @@ db.define_table('questions',
     Field('value3', 'double', default=0.3),
     Field('frequency', 'double'),
     Field('tags', 'list:reference db.tags'),
-    Field('status', 'integer'),
+    Field('q_status', 'integer'),
     format='%(question)s')
 
 db.questions.tags.requires = IS_IN_DB(db, 'tags.id', db.tags._format, multiple = True)
