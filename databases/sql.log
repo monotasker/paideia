@@ -143,3 +143,5 @@ CREATE TABLE attempt_log(
     date_attempted DATE
 );
 success!
+timestamp: 2011-10-25T17:39:24.658529
+ALTER TABLE questions ADD q_status INTEGER;

@@ -60,10 +60,10 @@ def get_question():
         questions = db(db.questions.id > 0).select()
         session.quiz_type = "random"
         question_count = len(questions) - 1
-        question_index = random.randint(0,question_count)
+        question_index = random.randint(0, question_count)
         question_obj = questions[question_index]
 
-    if question_obj.status == 1:
+    if question_obj.q_status == 1:
         get_question()
 
     session.qID = question_obj.id
@@ -200,10 +200,10 @@ def index():
     elif request.args(0) == 'error':
         if request.args(1) == 'unknown':
             db.q_bugs.insert(question=session.qID, a_submitted=request.vars.answer)
-            db(db.questions.id==session.qID).update(status=1);
+            db(db.questions.id==session.qID).update(q_status=1);
         if request.args(1) == 'regex':
             db.q_bugs.insert(question=session.qID, a_submitted=request.vars.answer)
-            db(db.questions.id==session.qID).update(status=1);
+            db(db.questions.id==session.qID).update(q_status=1);
         message = "Oops! Something about that question confused me, and I'm not sure whether your answer was right. Let's try another one."
         button = A('continue', _href=URL('index', args=['ask']), _class='button-green-grad next_q', cid=request.cid)
         #don't include this question in counting the number attempted
