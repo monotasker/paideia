@@ -48,27 +48,31 @@ def user():
     try:
         cat1 = db((db.question_records.name == auth.user_id) & (db.question_records.category == 1)).select()
         total_cat1 = len(cat1)
-        percent_cat1 = (total_cat1/total_len)*100
+        percent_cat1 = round((int(total_cat1)/total_len)*100, 1)
     except:
         total_cat1 = "Can't calculate number"
+        percent_cat1 = ""
     try:
         cat2 = db((db.question_records.name == auth.user_id) & (db.question_records.category == 2)).select()
         total_cat2 = len(cat2)
-        percent_cat2 = (int(total_cat2)/total_len)*100
+        percent_cat2 = round((int(total_cat2)/total_len)*100, 1)
     except:
         total_cat2 = "Can't calculate number"
+        percent_cat2 = ""
     try:
         cat3 = db((db.question_records.name == auth.user_id) & (db.question_records.category == 3)).select()
         total_cat3 = len(cat3)
-        percent_cat3 = (total_cat3/total_len)*100
+        percent_cat3 = round((int(total_cat3)/total_len)*100, 1)
     except:
         total_cat3 = "Can't calculate number"
+        percent_cat3 = ""
     try:
         cat4 = db((db.question_records.name == auth.user_id) & (db.question_records.category == 3)).select()
         total_cat4 = len(cat4)
-        percent_cat4 = (total_cat4/total_len)*100
+        percent_cat4 = round((int(total_cat4)/total_len)*100, 1)
     except:
         total_cat4 = "Can't calculate number"
+        percent_cat4 = ""
 
     return dict(form=auth(), score_avg=score_avg, total_len = total_len, total_cat1 = total_cat1, total_cat2 = total_cat2, total_cat3 = total_cat3, percent_cat1 = percent_cat1, percent_cat2 = percent_cat2, percent_cat3 = percent_cat3, total_cat4 = total_cat4, percent_cat4 = percent_cat4)
 

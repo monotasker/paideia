@@ -12,6 +12,7 @@
 {{pass}}
 </div>
 
+{{if request.args(0) == 'profile':}}
 <h3>How Am I Doing?</h3>
 <ul>
     <li>You have attempted {{=total_len}} questions so far.</li>
@@ -19,10 +20,11 @@
         <li>Questions mastered: {{=total_cat4}} ({{=percent_cat4}}% of questions tried)</li>
         <li>Making very good progress: {{=total_cat3}} ({{=percent_cat3}}% of questions tried)</li>
         <li>Working on it: {{=total_cat2}} ({{=percent_cat2}}% of questions tried)</li>
-        <li>Need some more attention: {{=total_cat1}} ({{=percent_cat2}}% of questions tried)</li>
+        <li>Need some more attention: {{=total_cat1}} ({{=percent_cat1}}% of questions tried)</li>
     </ul>
     <li>Average score so far: {{=score_avg}}</li>
 </ul>
+{{pass}}
 
 <script language="javascript">
 <!--
