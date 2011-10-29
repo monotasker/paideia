@@ -1,0 +1,213 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "controllers/default.py",
+			"settings":
+			{
+				"buffer_size": 4438,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"contents": "import calendar, datetime\n\nclass paideia_stats:\n    # calculates stats for paideia student performance\n    Name = \"paideia_stats\"\n    \n    \n    def __init__(self, user_id):\n        \"\"\"\n        Collects and returns student performance statistics based on scores earned on attempted questions.\n\n        This function returns the following attributes:\n        score_avg -- Straightforward average of scores, presented as a percentage.\n        \"\"\"\n        self.user_id = user_id\n        try:\n            attempts = db(db.attempt_log.name == self.user_id).select()\n            s=db.attempt_log.score.sum()\n            row = db(db.attempt_log.name == self.user_id).select(s).first()\n            answer = row[s]\n            self.score_avg = round(answer/len(attempts)*100, 1)\n        except:\n            self.score_avg = \"Can't calculate average\"\n\nclass paideia_timestats:\n    def __init__(self, user_id):\n        \"\"\"\n        Collects and returns student performance statistics based on question categories and time relationships between the present, the last successful attempt, and the last unsuccessful attempt.\n\n        This function returns the vollowing attributes:\n        total_len -- The total number of questions that have been attempted by the current student\n        total_cat1 -- Total number of questions attempted that are currently in category 1\n        total_cat2 -- Total number of questions attempted that are currently in category 2\n        total_cat3 --  Total number of questions attempted that are currently in category 3\n        total_cat4 --  Total number of questions attempted that are currently in category 4\n        percent_cat1 -- Percentage of questions attempted that are currently in category 1\n        percent_cat2 -- Percentage of questions attempted that are currently in category 2\n        percent_cat3 -- Percentage of questions attempted that are currently in category 3\n        percent_cat4 -- Percentage of questions attempted that are currently in category 4\n        \"\"\"\n\n        # get statistics for different classes of questions\n        self.user_id = user_id\n        the_records = db(db.question_records.name == self.user_id).select()\n        self.total_len = float(len(the_records))        \n        try:\n            cat1 = db((db.question_records.name == self.user_id) & (db.question_records.category == 1)).select()\n            self.total_cat1 = len(cat1)\n            self.percent_cat1 = round((int(self.total_cat1)/self.total_len)*100, 1)\n        except:\n            self.total_cat1 = \"Can't calculate number\"\n            self.percent_cat1 = \"\"\n        try:\n            cat2 = db((db.question_records.name == self.user_id) & (db.question_records.category == 2)).select()\n            self.total_cat2 = len(cat2)\n            self.percent_cat2 = round((int(self.total_cat2)/self.total_len)*100, 1)\n        except:\n            self.total_cat2 = \"Can't calculate number\"\n            self.percent_cat2 = \"\"\n        try:\n            cat3 = db((db.question_records.name == self.user_id) & (db.question_records.category == 3)).select()\n            self.total_cat3 = len(cat3)\n            self.percent_cat3 = round((int(self.total_cat3)/self.total_len)*100, 1)\n        except:\n            self.total_cat3 = \"Can't calculate number\"\n            self.percent_cat3 = \"\"\n        try:\n            cat4 = db((db.question_records.name == self.user_id) & (db.question_records.category == 4)).select()\n            self.total_cat4 = len(cat4)\n            self.percent_cat4 = round((int(self.total_cat4)/self.total_len)*100, 1)\n        except:\n            self.total_cat4 = \"Can't calculate number\"\n            self.percent_cat4 = \"\"\n\nclass paideia_weeklycount:\n    def __init__(self, user_id):\n        \"\"\"\n        Collect and return the number of questions attempted per day and per week\n\n        returns the following variables:\n        dateset -- a list of tuples, each of which contains three values: month, first day of week, number attempted\n        \"\"\"\n        self.user_id = user_id\n        logs = db(db.attempt_log.name == self.user_id).select(db.attempt_log.date_attempted)\n\n        loglist = dict()\n\n        for log in logs:\n            if log.date_attempted in loglist:\n                loglist[log.date_attempted] += 1\n            else:\n                loglist[log.date_attempted] = 1\n\n        nms = calendar.month_name\n        this_year = datetime.date.today().year\n        self.dateset = []\n        for month in range(1,12):\n            mc = calendar.monthcalendar(this_year, month)\n            for week in mc:\n                for k, v in loglist.items():\n                    if k.month == month and k.day in week:\n                        for d in self.dateset:\n                            if week[0] in d:\n                                dc = d[the_counts]\n                                dc.append(tuple(k.day, v))\n                            else:\n                                the_dict = dict(the_month = nms[month], the_week = week[0], the_counts = [tuple(k.day, v)])\n                                self.dateset.append(the_dict)\n        session.debug = self.dateset",
+			"file": "models/paideia_stats.py",
+			"file_size": 5104,
+			"file_write_time": 1319811893000000,
+			"settings":
+			{
+				"buffer_size": 5108,
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 61.0
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/home/ian/web2py/applications/places/controllers/default.py",
+		"/home/ian/web2py/applications/places/views/default/index.html",
+		"/home/ian/web2py/applications/places/views/default/index.load",
+		"/home/ian/web2py/applications/places/static/css/base.css",
+		"/home/ian/web2py/applications/places/static/css/anytime.css"
+	],
+	"find":
+	{
+		"height": 0.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 1,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "controllers/default.py",
+					"settings":
+					{
+						"buffer_size": 4438,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1479,
+								1479
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 462.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "models/paideia_stats.py",
+					"settings":
+					{
+						"buffer_size": 5108,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								5072,
+								5072
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1786.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 0.0
+	},
+	"input":
+	{
+		"height": 0.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"replace":
+	{
+		"height": 0.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 137.0,
+	"status_bar_visible": true
+}

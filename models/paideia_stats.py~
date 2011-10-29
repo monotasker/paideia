@@ -18,7 +18,7 @@ class paideia_stats:
             s=db.attempt_log.score.sum()
             row = db(db.attempt_log.name == self.user_id).select(s).first()
             answer = row[s]
-            self.score_avg = round(answer/len(attempts)*100)
+            self.score_avg = round(answer/len(attempts)*100, 1)
         except:
             self.score_avg = "Can't calculate average"
 
@@ -93,18 +93,17 @@ class paideia_weeklycount:
 
         nms = calendar.month_name
         this_year = datetime.date.today().year
-        self.dateset = {}
+        self.dateset = []
         for month in range(1,12):
             mc = calendar.monthcalendar(this_year, month)
-            m = nms[month]
             for week in mc:
-                w = week[0]
                 for k, v in loglist.items():
                     if k.month == month and k.day in week:
-                        if m in self.dateset:
-                            if w in self.dateset[m]:
-                                d = self.dateset[m]
-                                d[w] += v 
-                        else:
-                            self.dateset[m] = {w:v}
+                        for d in self.dateset:
+                            if week[0] in d:
+                                dc = d[the_counts]
+                                
+                            else:
+                                the_dict = dict(the_month = nms[month], the_week = week[0], the_counts = [tuple(k.day, v)])
+                                self.dateset.append(the_dict)
         session.debug = self.dateset
