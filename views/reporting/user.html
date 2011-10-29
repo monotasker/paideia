@@ -3,19 +3,19 @@
 <h3>Summary Statistics</h3>
 <table cellspacing='0' class='summary_stats'>
     <tr>
-    	<td class='total_len'>{{=total_len}}</td>
-    	<td>distinct questions attempted so far.</td>
+        <td class='total_len'>{{=total_len}}</td>
+        <td>distinct questions attempted so far.</td>
     </tr>
     <tr>
         <td class='total_cat4'>{{=total_cat4}}</td>
         <td>questions mastered (<span class='percent_cat4'>{{=percent_cat4}}</span>% of questions tried)</td>
     </tr>
     <tr>
-    	<td class='total_cat3'>{{=total_cat3}}</td> 
-    	<td>making very good progress (<span class='percent_cat3'>{{=percent_cat3}}</span>% of questions tried)</td>
+        <td class='total_cat3'>{{=total_cat3}}</td>
+        <td>making very good progress (<span class='percent_cat3'>{{=percent_cat3}}</span>% of questions tried)</td>
     </tr>
-   	<tr>
-   		<td class='total_cat2'>{{=total_cat2}}</td> 
+    <tr>
+        <td class='total_cat2'>{{=total_cat2}}</td>
         <td>have made a good start (<span class='percent_cat2'>{{=percent_cat2}}</span>% of questions tried)</td>
     </tr>
     <tr>
@@ -23,10 +23,10 @@
         <td>need some more attention (<span class='percent_cat1'>{{=percent_cat1}}</span>% of questions tried)</td>
     </tr>
     <tr>
-    	<td colspan='2'>Average score <span class='score_avg'>{{=score_avg}}%</span></td>
+        <td colspan='2'>Average score <span class='score_avg'>{{=score_avg}}%</span></td>
     </tr>
 </table>
 
-<h3>How Many Questions Have I Attempted?</h3>
+<h3>Questions Attempted</h3>
 
 {{=XML(htmlcal)}}

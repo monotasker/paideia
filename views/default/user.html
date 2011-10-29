@@ -13,30 +13,38 @@
 </div>
 
 {{if request.args(0) == 'profile':}}
-<h3>How Am I Doing?</h3>
-<ul>
-    <li>You have attempted {{=total_len}} questions so far.</li>
-    <ul>
-        <li>Questions mastered: {{=total_cat4}} ({{=percent_cat4}}% of questions tried)</li>
-        <li>Making very good progress: {{=total_cat3}} ({{=percent_cat3}}% of questions tried)</li>
-        <li>Working on it: {{=total_cat2}} ({{=percent_cat2}}% of questions tried)</li>
-        <li>Need some more attention: {{=total_cat1}} ({{=percent_cat1}}% of questions tried)</li>
-    </ul>
-    <li>Average score so far: {{=score_avg}}</li>
-</ul>
-<h3>How Many Questions Have I Attempted?</h3>
-<table>
 
-{{for k, v in dateset.items():}}
-{{=H4(k)}}
-<table class='weeklycount'>
-{{for wk, wv in v.items():}}
-<tr>
-<td class='weeklabel'>Week of {{=k}} {{=wk}}</td><td class='weekcount'>{{=v[wk]}} questions</td>
-</tr>
-{{pass}}
+<h3>How Am I Doing?</h3>
+
+<table cellspacing='0' class='summary_stats'>
+    <tr>
+        <td class='total_len'>{{=total_len}}</td>
+        <td>distinct questions attempted so far.</td>
+    </tr>
+    <tr>
+        <td class='total_cat4'>{{=total_cat4}}</td>
+        <td>questions mastered (<span class='percent_cat4'>{{=percent_cat4}}</span>% of questions tried)</td>
+    </tr>
+    <tr>
+        <td class='total_cat3'>{{=total_cat3}}</td>
+        <td>making very good progress (<span class='percent_cat3'>{{=percent_cat3}}</span>% of questions tried)</td>
+    </tr>
+    <tr>
+        <td class='total_cat2'>{{=total_cat2}}</td>
+        <td>have made a good start (<span class='percent_cat2'>{{=percent_cat2}}</span>% of questions tried)</td>
+    </tr>
+    <tr>
+        <td class='total_cat1'>{{=total_cat1}}</td>
+        <td>need some more attention (<span class='percent_cat1'>{{=percent_cat1}}</span>% of questions tried)</td>
+    </tr>
+    <tr>
+        <td colspan='2'>Average score <span class='score_avg'>{{=score_avg}}%</span></td>
+    </tr>
 </table>
-{{pass}}
+
+<h3>How Many Questions Have I Attempted?</h3>
+
+{{=XML(htmlcal)}}
 
 {{pass}}
 

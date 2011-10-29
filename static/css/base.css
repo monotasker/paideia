@@ -273,6 +273,19 @@ nav ul, nav li { margin: 0; }
 }
 
 
+#page.listing ul li{
+    list-style-type:disc;
+}
+
+#viewpane {
+    float:right;
+    width:55%;
+    clear:both;
+}
+#viewpane ul{
+    width:100%;
+}
+
 /*************/
 /* Tables */
 /*************/
@@ -281,7 +294,7 @@ td, td img { vertical-align:top; }
 th, td { padding: 0.1em 0.5em 0.1em 0.5em;}
 thead th { text-align: center; border-bottom: 1px solid #444; }
 label {white-space: nowrap;}
-label, b, th {    font-weight: bold;}
+label, b, th {    font-weight: normal;}
 table { padding: 6px 12px; }
 
 /* specific tables */
@@ -290,16 +303,17 @@ table.summary_stats {border-collapse:separate; border-spacing:6px;}
 table.summary_stats td{vertical-align:middle;}
 
 td.total_cat1, td.total_cat2, td.total_cat3, td.total_cat4{
-  height:40px; 
-  width:40px; 
-  color:#fff; 
-  height:40px;
-  text-align:center;
-  font-size:20px;
-  padding:0;
-  border:3px solid #fff;
-  font-family:"Droid Sans";
-  margin:3px;
+    height:40px;
+    width:40px;
+    color:#fff;
+    height:40px;
+    text-align:center;
+    font-size:20px;
+    padding:0;
+    border:3px solid #fff;
+    font-family:"Droid Sans";
+    margin:3px;
+    text-shadow:0px 1px 3px rgba(0,0,0,0.3);
 }
 td.total_len{color:#aaa; font-size:14px;}
 td.total_cat4{background-color:#809240;}
@@ -308,17 +322,18 @@ td.total_cat2{background-color:#EBFC97;}
 td.total_cat1{background-color:#852625;}
 
 span.score_avg{
-  background:#f5f5f5; 
-  border:3px solid #eee; 
-  display:inline-block; 
-  height:48px; 
-  width:48px; 
-  border-radius:28px; 
-  font-size:14px; 
-  color:#aaa; 
-  line-height:48px; 
-  text-align:center;
-}
+    background:#f5f5f5;
+    border:3px solid #eee;
+    display:inline-block;
+    height:48px;
+    width:48px;
+    border-radius:28px;
+    font-size:14px;
+    color:#aaa;
+    line-height:48px;
+    text-align:center;
+    box-shadow:0px 2px 6px rgba(0,0,0,0.3);
+    }
 
 table.weeklycount{
   border-collapse:separate;
@@ -338,12 +353,21 @@ table.weeklycount td{
 table.weeklycount td span.cal_num{
   position:relative;
   top:-6px;
-  left:-2px;  
+  left:-2px;
 }
 
 table.weeklycount span.cal_count{
-  font-size:16px;
-  color:#809240;
+    position:relative;
+    font-size:16px;
+    color:#fff;
+    top:10px;
+    left:6px;
+    width:24px;
+    height:24px;
+    line-height:24px;
+    text-align:center;
+    display:inline-block;
+    background-color:#809240;
 }
 
 /**********/
@@ -405,13 +429,17 @@ input[type=submit], input[type=button], button {
     border-radius: 2px;
 }
 fieldset { border: 1px solid #dedede; padding: 6px; }
-legend { font-weight: bold; }
+legend { font-weight: normal; }
 input:focus, textarea:focus { background: #fafafa; }
 
 #page.exploring form{
     margin-left:300px;
     margin-top:48px;
     font-size:18px;
+}
+
+#page.listing form{
+    margin:0;
 }
 
 /*************/
@@ -592,25 +620,8 @@ footer a {
     list-style-type:disc;
 }
 
-#page.listing ul li{
-    list-style-type:disc;
-}
-
-#viewpane {
-    float:right;
-    width:55%;
-    clear:both;
-}
-#viewpane ul{
-    width:100%;
-}
-
-
-#page.listing form{
-    margin:0;
-}
-
-#page.reporting {background-color:#fff;}
+#page.reporting,
+#page.default.user {background-color:#fff;}
 
 /* MODAL FRAME */
 

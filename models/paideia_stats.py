@@ -3,8 +3,8 @@ import calendar, datetime
 class paideia_stats:
     # calculates stats for paideia student performance
     Name = "paideia_stats"
-    
-    
+
+
     def __init__(self, user_id):
         """
         Collects and returns student performance statistics based on scores earned on attempted questions.
@@ -42,7 +42,7 @@ class paideia_timestats:
         # get statistics for different classes of questions
         self.user_id = user_id
         the_records = db(db.question_records.name == self.user_id).select()
-        self.total_len = float(len(the_records))        
+        self.total_len = float(len(the_records))
         try:
             cat1 = db((db.question_records.name == self.user_id) & (db.question_records.category == 1)).select()
             self.total_cat1 = len(cat1)
@@ -108,7 +108,7 @@ class paideia_weeklycount:
                             if w in self.dateset[m]:
                                 d = self.dateset[m]
                                 the_week = d[w]
-                                the_week[day] = v 
+                                the_week[day] = v
                         else:
                             self.dateset[m] = {w:{day:v}}
             #now build html calendar as string with stats embedded
@@ -130,8 +130,8 @@ class paideia_weeklycount:
                         for day in week:
                             self.htmlcal+= '<td>'
                             self.htmlcal+= '<span class="cal_num">' + str(day) + '</span>'
-                            self.htmlcal+= '</td>'   
+                            self.htmlcal+= '</td>'
                     self.htmlcal += '</tr>'
                 self.htmlcal += '</table>'
-
-        
+            #TODO: Add a legend row to each month table listing day names
+            #TODO: Add weekly summary counts to the end of each table row (from self.dateset)
