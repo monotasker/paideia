@@ -29,13 +29,4 @@
 
 <h3>How Many Questions Have I Attempted?</h3>
 
-{{for k, v in dateset.items():}}
-{{=H4(k)}}
-<table cellspacing='0' class='weeklycount'>
-{{for wk, wv in v.items():}}
-<tr>
-<td class='weeklabel'>Week of {{=k}} {{=wk}}</td><td class='weekcount'>{{=v[wk]}} questions</td>
-</tr>
-{{pass}}
-</table>
-{{pass}}
+{{=XML(htmlcal)}}

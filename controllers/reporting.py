@@ -23,4 +23,4 @@ def user():
     #form = SQLFORM.grid(db.attempt_log.name == request.args[0])
     #place form=auth() in returned values
 
-    return dict(the_name = the_name, score_avg=s.score_avg, total_len = t.total_len, total_cat1 = t.total_cat1, total_cat2 = t.total_cat2, total_cat3 = t.total_cat3, percent_cat1 = t.percent_cat1, percent_cat2 = t.percent_cat2, percent_cat3 = t.percent_cat3, total_cat4 = t.total_cat4, percent_cat4 = t.percent_cat4, dateset = w.dateset)
+    return dict(the_name = the_name, score_avg=s.score_avg, total_len = t.total_len, total_cat1 = t.total_cat1, total_cat2 = t.total_cat2, total_cat3 = t.total_cat3, percent_cat1 = t.percent_cat1, percent_cat2 = t.percent_cat2, percent_cat3 = t.percent_cat3, total_cat4 = t.total_cat4, percent_cat4 = t.percent_cat4, dateset = w.dateset, htmlcal = w.htmlcal)
