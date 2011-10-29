@@ -94,17 +94,44 @@ class paideia_weeklycount:
         nms = calendar.month_name
         this_year = datetime.date.today().year
         self.dateset = {}
+        self.htmlcal = ''
         for month in range(1,12):
             mc = calendar.monthcalendar(this_year, month)
             m = nms[month]
+            #build dict containing stats organized into weeks
             for week in mc:
                 w = week[0]
                 for k, v in loglist.items():
                     if k.month == month and k.day in week:
+                        day = k.day
                         if m in self.dateset:
                             if w in self.dateset[m]:
                                 d = self.dateset[m]
-                                d[w] += v 
+                                the_week = d[w]
+                                the_week[day] = v 
                         else:
-                            self.dateset[m] = {w:v}
-        session.debug = self.dateset
+                            self.dateset[m] = {w:{day:v}}
+            #now build html calendar as string with stats embedded
+            for dk,dm in self.dateset.items():
+                self.htmlcal += '<h4>' + m + '</h4><table class="weeklycount">'
+                for week in mc:
+                    w = week[0]
+                    self.htmlcal += '<tr>'
+                    if (m in self.dateset) and (w in self.dateset[m]):
+                        the_m = self.dateset[m]
+                        the_w = the_m[w]
+                        for day in week:
+                            self.htmlcal+= '<td>'
+                            self.htmlcal+= '<span class="cal_num">' + str(day) + '</span>'
+                            if day in the_w:
+                                self.htmlcal+='<span class="cal_count">' + str(the_w[day]) + '</span>'
+                            self.htmlcal+= '</td>'
+                    else:
+                        for day in week:
+                            self.htmlcal+= '<td>'
+                            self.htmlcal+= '<span class="cal_num">' + str(day) + '</span>'
+                            self.htmlcal+= '</td>'   
+                    self.htmlcal += '</tr>'
+                self.htmlcal += '</table>'
+
+        

@@ -320,6 +320,32 @@ span.score_avg{
   text-align:center;
 }
 
+table.weeklycount{
+  border-collapse:separate;
+  border-spacing:3px;
+}
+
+table.weeklycount td{
+  width:36px;
+  height:36px;
+  background-color:#f5f5f5;
+  border:1px solid #eee;
+  color:#aaa;
+  font-size:10px;
+  position:relative;
+}
+
+table.weeklycount td span.cal_num{
+  position:relative;
+  top:-6px;
+  left:-2px;  
+}
+
+table.weeklycount span.cal_count{
+  font-size:16px;
+  color:#809240;
+}
+
 /**********/
 /* Forms */
 /*************/
