@@ -16,8 +16,11 @@ def user():
     the_user = db.auth_user[request.args[0]]
     the_name = the_user.last_name + ', ' + the_user.first_name
     # create instance of paideia_stats class to calculate student performance
-    stats = paideia_stats(request.args[0])
+    s = paideia_stats(request.args[0])
+    t = paideia_timestats(request.args[0])
+    w = paideia_weeklycount(request.args[0])
     # create dynamic grid to display list of all question attempts
-    form = SQLFORM.grid(db.attempt_log.name == request.args[0])
+    #form = SQLFORM.grid(db.attempt_log.name == request.args[0])
+    #place form=auth() in returned values
 
-    return dict(form=auth(), the_user = the_user, score_avg=stats.score_avg, total_len = stats.total_len, total_cat1 = stats.total_cat1, total_cat2 = stats.total_cat2, total_cat3 = stats.total_cat3, percent_cat1 = stats.percent_cat1, percent_cat2 = stats.percent_cat2, percent_cat3 = stats.percent_cat3, total_cat4 = stats.total_cat4, percent_cat4 = stats.percent_cat4)
+    return dict(the_name = the_name, score_avg=s.score_avg, total_len = t.total_len, total_cat1 = t.total_cat1, total_cat2 = t.total_cat2, total_cat3 = t.total_cat3, percent_cat1 = t.percent_cat1, percent_cat2 = t.percent_cat2, percent_cat3 = t.percent_cat3, total_cat4 = t.total_cat4, percent_cat4 = t.percent_cat4, dateset = w.dateset)

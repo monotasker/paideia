@@ -278,12 +278,47 @@ nav ul, nav li { margin: 0; }
 /*************/
 strong, th { font-weight: bold; }
 td, td img { vertical-align:top; }
-/*********** add bottom line to table rows ***********/
 th, td { padding: 0.1em 0.5em 0.1em 0.5em;}
 thead th { text-align: center; border-bottom: 1px solid #444; }
 label {white-space: nowrap;}
 label, b, th {    font-weight: bold;}
 table { padding: 6px 12px; }
+
+/* specific tables */
+
+table.summary_stats {border-collapse:separate; border-spacing:6px;}
+table.summary_stats td{vertical-align:middle;}
+
+td.total_cat1, td.total_cat2, td.total_cat3, td.total_cat4{
+  height:40px; 
+  width:40px; 
+  color:#fff; 
+  height:40px;
+  text-align:center;
+  font-size:20px;
+  padding:0;
+  border:3px solid #fff;
+  font-family:"Droid Sans";
+  margin:3px;
+}
+td.total_len{color:#aaa; font-size:14px;}
+td.total_cat4{background-color:#809240;}
+td.total_cat3{background-color:#AAE557;}
+td.total_cat2{background-color:#EBFC97;}
+td.total_cat1{background-color:#852625;}
+
+span.score_avg{
+  background:#f5f5f5; 
+  border:3px solid #eee; 
+  display:inline-block; 
+  height:48px; 
+  width:48px; 
+  border-radius:28px; 
+  font-size:14px; 
+  color:#aaa; 
+  line-height:48px; 
+  text-align:center;
+}
 
 /**********/
 /* Forms */
@@ -548,6 +583,8 @@ footer a {
 #page.listing form{
     margin:0;
 }
+
+#page.reporting {background-color:#fff;}
 
 /* MODAL FRAME */
 

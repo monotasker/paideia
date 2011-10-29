@@ -24,6 +24,20 @@
     </ul>
     <li>Average score so far: {{=score_avg}}</li>
 </ul>
+<h3>How Many Questions Have I Attempted?</h3>
+<table>
+
+{{for k, v in dateset.items():}}
+{{=H4(k)}}
+<table class='weeklycount'>
+{{for wk, wv in v.items():}}
+<tr>
+<td class='weeklabel'>Week of {{=k}} {{=wk}}</td><td class='weekcount'>{{=v[wk]}} questions</td>
+</tr>
+{{pass}}
+</table>
+{{pass}}
+
 {{pass}}
 
 <script language="javascript">
