@@ -275,12 +275,22 @@ nav ul, nav li { margin: 0; }
 
 #page.listing ul li{
     list-style-type:disc;
+    padding:6px 12px;
+}
+
+#page.listing #listpane ul li {
+    background-color:#fff;
+}
+
+#page.listing #listpane ul li:nth-child(2n){
+    background-color:#f5f5f5;
 }
 
 #viewpane {
     float:right;
-    width:55%;
+    width:60%;
     clear:both;
+    overflow:auto;
 }
 #viewpane ul{
     width:100%;
@@ -373,7 +383,22 @@ table.weeklycount span.cal_count{
 /**********/
 /* Forms */
 /*************/
-form { padding: 6px 12px; }
+form { padding: 6px 12px 6px 0; line-height:24px;}
+form table {border-collapse:separate;
+    border-spacing:0 3px;
+    padding:0;}
+form tr {margin:3px 0;}
+form td {
+    padding:0; vertical-align:middle;
+}
+form tr td:first-child {
+    background-color:#f5f5f5;
+    border:1px solid #eee;
+    color:#aaa;
+}
+form label {
+padding-left:12px; height:24px; line-height:24px;
+    }
 textarea { overflow: auto; } /* www.sitepoint.com/blogs/2010/08/20/ie-remove-textarea-scrollbars/ */
 .ie6 legend, .ie7 legend { margin-left: -7px; }
 /* align inputs with label tjkdesign.com/ez-css/css/base.css  */
@@ -387,7 +412,6 @@ button, input, select, textarea { margin: 0; } /* webkit browsers add 2px margin
 /* colors for form validity */
 input:valid, textarea:valid   {  }
 input:invalid, textarea:invalid {
-      border-radius: 1px;
     -moz-box-shadow: 0px 0px 5px red;
  -webkit-box-shadow: 0px 0px 5px red;
          box-shadow: 0px 0px 5px red;
@@ -406,8 +430,8 @@ input:invalid, textarea:invalid {
 button {  width: auto; overflow: visible; }
 
 input[type=text], input[type=password], textarea, select {
-    margin: 3px 12px 3px 6px;
-    width: 280px;
+    margin: 0;
+    width: 100%;
     background: #fff;
     color: #555;
     border: 1px solid #dedede;
@@ -415,7 +439,7 @@ input[type=text], input[type=password], textarea, select {
     -webkit-border-radius: 2px;
     border-radius: 2px;
 }
-input[type=text], input[type=password] { height: 16px;}
+input[type=text], input[type=password] { height: 24px;}
 select[multiple=multiple] {height: 90px;}
 input[type=submit], input[type=button], button {
     margin: 0px;
@@ -424,11 +448,8 @@ input[type=submit], input[type=button], button {
     background: #eaeaea;
     color: #555;
     border: 1px solid #dedede;
-    -moz-border-radius: 2px;
-    -webkit-border-radius: 2px;
-    border-radius: 2px;
 }
-fieldset { border: 1px solid #dedede; padding: 6px; }
+fieldset { border: 1px solid #dedede; padding: 0px; }
 legend { font-weight: normal; }
 input:focus, textarea:focus { background: #fafafa; }
 
@@ -586,7 +607,6 @@ footer a {
     display:block;
     bottom:0;
     left:130px;
-    height:24px;
     background:#efefef;
     margin:0;
     padding:12px;
@@ -601,6 +621,7 @@ footer a {
 #page.listing {
     overflow:auto;
     height:60%;
+    background-color:#fff;
 }
 
 #listpane {
@@ -612,10 +633,10 @@ footer a {
     width:100%;
     height:400px;
     max-height:50%;
-    padding-right:24px;
+    padding-right:0;
     margin-left:0;
     overflow:auto;
-    margin-bottom:72px;
+    margin-bottom:36px;
     margin-left:0;
     list-style-type:disc;
 }
