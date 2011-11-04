@@ -67,11 +67,19 @@ db.define_table('quiz_records',
     Field('date_taken', 'date', default=request.now)
     )
 
+db.define_table('bug_status',
+    Field('status_label'),
+    format='%(status_label)s')
+
 db.define_table('q_bugs',
     Field('question', db.questions),
     Field('a_submitted'),
     Field('name', db.auth_user, default=auth.user_id),
     Field('date_submitted', 'date', default=request.now),
+    Field('bug_status', db.bug_status,  default=0),
+    Field('admin_comment',  'text'),
+    Field('prev_lastright',  'date'),
+    Field('prev_lastwrong'),
     format='%(question)s')
 
 db.define_table('news',

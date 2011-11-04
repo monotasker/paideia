@@ -27,9 +27,12 @@ def tag():
 
 @auth.requires_login()
 def q_bug():
-    db.q_bugs.insert(question=session.qID, a_submitted=request.vars.answer)
-    response.flash = 'Thanks for reporting this potential bug.'
-    return dict(message = 'If this turns out to be a bug it will be taken into account as we track your learning.')
+    """creates new bug report
+    session.qID identifies the question against which bug is logged
+    request.vars.answer identifies the answer that was submitted prior to report
+    """
+    b = paideia_bugs()
+    return dict(b.lognew(session.qID, request.vars.answer))
 
 @auth.requires_membership(role='administrators')
 def news():

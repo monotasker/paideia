@@ -145,3 +145,17 @@ timestamp: 2011-10-25T02:01:17.635270
 ALTER TABLE questions ADD status INTEGER;
 timestamp: 2011-10-25T02:03:53.694809
 ALTER TABLE questions ADD q_status INTEGER;
+timestamp: 2011-11-01T15:01:22.451643
+ALTER TABLE q_bugs ADD admin_comment TEXT;
+timestamp: 2011-11-01T15:01:22.546310
+ALTER TABLE q_bugs ADD prev_lastright DATE;
+timestamp: 2011-11-01T15:01:22.631399
+ALTER TABLE q_bugs ADD bug_status INTEGER;
+timestamp: 2011-11-01T15:01:22.714922
+ALTER TABLE q_bugs ADD prev_lastwrong CHAR(512);
+timestamp: 2011-11-01T15:04:57.107049
+CREATE TABLE bug_status(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    status_label CHAR(512)
+);
+success!
