@@ -2,13 +2,13 @@
 S'q_status'
 p2
 (dp3
-S'sortable'
+S'type'
 p4
-I12
-sS'type'
-p5
 S'integer'
+p5
+sS'sortable'
 p6
+I12
 sS'sql'
 p7
 S'INTEGER'

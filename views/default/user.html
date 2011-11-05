@@ -14,6 +14,8 @@
 
 {{if request.args(0) == 'profile':}}
 
+<section>
+
 <h3>How Am I Doing?</h3>
 
 <table cellspacing='0' class='summary_stats'>
@@ -42,10 +44,15 @@
     </tr>
 </table>
 
+</section>
+
+<section class='tab' id='calendar'>
 <h3>How Many Questions Have I Attempted?</h3>
 
 {{=XML(htmlcal)}}
+</section>
 
+<section class='tab' id='bug reports'>
 <h3>My Bug Reports</h3>
 
 <table>
@@ -58,14 +65,19 @@
 </tr>
 {{for b in blist:}}
 <tr>
-{{for k,v in b.items():}}
-    {{=v}}
+{{for v in b:}}
+    <td>{{=v}}</td>
 {{pass}}
 </tr>
 {{pass}}
 </table>
 
+</section>
+
+
 {{pass}}
+
+
 
 <script language="javascript">
 <!--

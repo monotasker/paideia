@@ -175,25 +175,82 @@ S'for me; for my sake'
 p71
 sS'debug'
 p72
-I61
-sS'_formkey[profile]'
-p73
-S'649bbc45-9513-4e29-a8d5-88b4e6e6ae27'
-p74
-sS'_formkey[questions/61]'
+(lp73
+(lp74
+S'What does \xce\xba\xce\xb1\xcf\x84\xe1\xbd\xb0 \xce\xb4\xcf\x8d\xce\xbf \xe1\xbc\xa1\xce\xbc\xce\xad\xcf\x81\xce\xb1\xcf\x82 mean?'
 p75
-S'46bdd17576c11d6c194270670342acd7'
+aS'for two days'
 p76
-sS'_formkey[questions/82]'
+acdatetime
+date
 p77
-S'8f06eac8638cdee66e49f3116fd737e0'
-p78
-sS'_formkey[q_bugs/144]'
-p79
-S'a26b418496ee777b9269595296899355'
+(S'\x07\xdb\t\x19'
+tRp78
+aNaNaa(lp79
+S'If \xcf\x80\xe1\xbe\xb6\xcf\x82 \xe1\xbc\x84\xce\xbd\xce\xb8\xcf\x81\xcf\x89\xcf\x80\xce\xbf\xcf\x82 has gone to the market for a festival, who will you find there?'
 p80
-sS'_formkey[questions/28]'
+aS'each man'
 p81
+ag77
+(S'\x07\xdb\n\x01'
+tRp82
+aNaNaa(lp83
+S'What does \xce\xb4\xcf\x8d\xce\xbd\xce\xb1\xce\xbc\xce\xb1\xce\xb9 mean?'
+p84
+aNag77
+(S'\x07\xdb\n\x13'
+tRp85
+aNaNaa(lp86
+S'Who is \xe1\xbd\x91\xce\xb9\xcf\x8c\xcf\x82 \xce\xb1\xe1\xbd\x90\xcf\x84\xce\xae\xcf\x82?'
+p87
+aS'hi'
+p88
+ag77
+(S'\x07\xdb\x0b\x01'
+tRp89
+acgluon.dal
+Reference_unpickler
+p90
+(S'i\x00\x00\x00\x00'
+tRp91
+aNaa(lp92
+S'What does \xe1\xbc\x91\xce\xb1\xcf\x85\xcf\x84\xce\xbf\xe1\xbf\xa6 mean?'
+p93
+aS'r'
+ag77
+(S'\x07\xdb\x0b\x01'
+tRp94
+ag90
+(S'i\x00\x00\x00\x00'
+tRp95
+aNaa(lp96
+S'I am no god, but my father made an offering \xce\xb5\xe1\xbc\xb4\xcf\x82 \xe1\xbc\x90\xce\xbc\xce\xbf\xe1\xbf\xa6. How would we translate this last phrase?'
+p97
+aS'w'
+ag77
+(S'\x07\xdb\x0b\x01'
+tRp98
+ag90
+(S'i\x00\x00\x00\x00'
+tRp99
+aNaasS'_formkey[profile]'
+p100
+S'734ff903-27f0-4b3f-a5b4-57c9905678d0'
+p101
+sS'_formkey[questions/61]'
+p102
+S'46bdd17576c11d6c194270670342acd7'
+p103
+sS'_formkey[questions/82]'
+p104
+S'8f06eac8638cdee66e49f3116fd737e0'
+p105
+sS'_formkey[q_bugs/144]'
+p106
+S'a26b418496ee777b9269595296899355'
+p107
+sS'_formkey[questions/28]'
+p108
 S'73c6c22876c47e7d86cb53135a7aee33'
-p82
+p109
 s.

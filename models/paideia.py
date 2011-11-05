@@ -1,5 +1,15 @@
 # coding: utf8
 
+#hack for PyDev error checking and debugging
+if 0:
+    from gluon import current, IS_IN_DB
+    from gluon.dal import DAL, Field
+    from gluon.tools import Auth
+    auth = Auth()
+    db = DAL()
+    request = current.request
+    from applications.paideia.modules.plugin_multiselect_widget import hmultiselect_widget, vmultiselect_widget
+
 #plugin from http://dev.s-cubism.com/plugin_multiselect_widget
 from plugin_multiselect_widget import hmultiselect_widget, vmultiselect_widget
 
@@ -76,7 +86,7 @@ db.define_table('q_bugs',
     Field('a_submitted'),
     Field('name', db.auth_user, default=auth.user_id),
     Field('date_submitted', 'date', default=request.now),
-    Field('bug_status', db.bug_status,  default=0),
+    Field('bug_status', db.bug_status, default=1),
     Field('admin_comment',  'text'),
     Field('prev_lastright',  'date'),
     Field('prev_lastwrong'),
