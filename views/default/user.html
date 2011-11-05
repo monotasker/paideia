@@ -46,6 +46,25 @@
 
 {{=XML(htmlcal)}}
 
+<h3>My Bug Reports</h3>
+
+<table>
+<tr>
+<th>question</th>
+<th>your answer</th>
+<th>submitted</th>
+<th>evaluation</th>
+<th>instructor's comments</th>
+</tr>
+{{for b in blist:}}
+<tr>
+{{for k,v in b.items():}}
+    {{=v}}
+{{pass}}
+</tr>
+{{pass}}
+</table>
+
 {{pass}}
 
 <script language="javascript">
