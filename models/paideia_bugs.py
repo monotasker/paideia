@@ -1,5 +1,14 @@
 import datetime
 
+#hack to get imports for PyDev ide
+if 0:
+    from gluon import TD
+    from gluon.tools import current
+    from gluon.dal import DAL
+    db = DAL()   
+    session = current.session
+    response = current.response
+
 class paideia_bugs:
     """This class handles the creation, manipulation, and reporting of bug reports for paideia."""
     def __init__(self, qID = 0):
@@ -16,11 +25,11 @@ class paideia_bugs:
         bugs = db((db.questions.id == db.q_bugs.question) & (db.q_bugs.name == u)).select()
         l = []
         for b in bugs:
-            d = {}
-            d['question'] = TD(b.questions.question)
-            d['answer'] = TD(b.q_bugs.a_submitted)
-            d['date'] = TD(b.q_bugs.date_submitted)
-            d['status'] = TD(b.q_bugs.bug_status)
-            d ['comment'] = TD(b.q_bugs.admin_comment)
+            d = []
+            d.append(b.questions.question)
+            d.append(b.q_bugs.a_submitted)
+            d.append(b.q_bugs.date_submitted)
+            d.append(b.q_bugs.bug_status)
+            d.append(b.q_bugs.admin_comment)
             l.append(d)
-        return bugs
+        return l
