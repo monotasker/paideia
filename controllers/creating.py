@@ -28,11 +28,14 @@ def tag():
 @auth.requires_login()
 def q_bug():
     """creates new bug report
+    Two arguments are necessary to create the bug report:
     session.qID identifies the question against which bug is logged
     request.vars.answer identifies the answer that was submitted prior to report
+
+    the .lognew() method of paideia_bugs class also returns a response message to the user, and this function passes that message along to the view.
     """
-    b = paideia_bugs()
-    return dict(b.lognew(session.qID, request.vars.answer))
+    b = paideia_bugs(session.qID)
+    return dict(b.lognew(request.vars.answer))
 
 @auth.requires_membership(role='administrators')
 def news():
