@@ -11,6 +11,19 @@
 
 import datetime
 
+if 0:
+    from gluon import current
+    from gluon.tools import Auth
+    from gluon.dal import DAL
+    db = DAL()
+    auth = Auth()
+    response = current.response
+    session = current.session
+    request = current.request
+    from applications.paideia.models.paideia_stats import *
+    from applications.paideia.models.paideia_bugs import *
+    
+
 def index():
     """
     example action using the internationalization operator T and flash

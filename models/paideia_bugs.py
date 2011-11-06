@@ -19,7 +19,13 @@ class paideia_bugs:
         db.q_bugs.insert(question=self.qID, a_submitted=answer)
         response.flash = 'Thanks for reporting this potential bug.'
         return dict(message = 'If this turns out to be a bug it will be taken into account as we track your learning.')
-    # def updatebug(self):
+    
+    def updatebug(self):
+        """provides form and page components to update an existing bug and handles the  """
+        edit_form = crud.update(db.q_bugs, request.args[0])
+        closer = A('close', _href=URL('#'), _class='close_link')
+        the_title = H3('Reviewing Bug Report for Question')
+    
     def bugresponse(self, the_user):
         u = the_user
         bugs = db((db.questions.id == db.q_bugs.question) & (db.q_bugs.name == u)).select()
