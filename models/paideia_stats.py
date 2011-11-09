@@ -86,10 +86,11 @@ class paideia_weeklycount:
         loglist = {}
 
         for log in logs:
-            if log.date_attempted in loglist:
-                loglist[log.date_attempted] += 1
+            newdate = log.date_attempted - datetime.timedelta(hours=14)
+            if newdate in loglist:
+                loglist[newdate] += 1
             else:
-                loglist[log.date_attempted] = 1
+                loglist[newdate] = 1
 
         nms = calendar.month_name
         this_year = datetime.date.today().year
