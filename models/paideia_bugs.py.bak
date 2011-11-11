@@ -35,13 +35,7 @@ class paideia_bugs:
             d.append(b.questions.question)
             d.append(b.q_bugs.a_submitted)
             d.append(b.q_bugs.date_submitted)
-            #get status label instead of raw status reference
-            s = b.q_bugs.bug_status
-            if s == None:
-                s = 5
-            st = db(db.bug_status.id == s).select().first()
-            status = st.status_label
-            d.append(status)
+            d.append(b.q_bugs.bug_status)
             d.append(b.q_bugs.admin_comment)
             l.append(d)
         return l

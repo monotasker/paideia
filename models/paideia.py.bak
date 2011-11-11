@@ -1,15 +1,25 @@
 # coding: utf8
 
+#hack for PyDev error checking and debugging
+if 0:
+    from gluon import current, IS_IN_DB
+    from gluon.dal import DAL, Field
+    from gluon.tools import Auth
+    auth = Auth()
+    db = DAL()
+    request = current.request
+    from applications.paideia.modules.plugin_multiselect_widget import hmultiselect_widget, vmultiselect_widget
+
 #plugin from http://dev.s-cubism.com/plugin_multiselect_widget
 from plugin_multiselect_widget import hmultiselect_widget, vmultiselect_widget
 
-db.define_table('categories', 
-    Field('category'), 
+db.define_table('categories',
+    Field('category'),
     Field ('description'),
     format='%(category)s')
 
-db.define_table('tags', 
-    Field('tag', 'string'), 
+db.define_table('tags',
+    Field('tag', 'string'),
     format='%(tag)s')
 
 db.define_table('questions',
@@ -23,6 +33,10 @@ db.define_table('questions',
     Field('value3', 'double', default=0.3),
     Field('frequency', 'double'),
     Field('tags', 'list:reference db.tags'),
+    #Field('status', 'integer'),
+    #Field('q_status', 'integer'),
+    #Field('qq_status', 'integer'),
+    Field('qqq_status', 'integer'),
     format='%(question)s')
 
 db.questions.tags.requires = IS_IN_DB(db, 'tags.id', db.tags._format, multiple = True)
@@ -38,9 +52,9 @@ db.define_table('quizzes',
     Field('end_date', 'date'),
     format='%(quiz)s')
 
-db.quizzes.tags.requires = IS_IN_DB(db, 'tags.id', db.tags._format, multiple = True)    
-db.quizzes.groups.requires = IS_IN_DB(db, 'auth_group.id', db.auth_group._format, multiple = True)   
-   
+db.quizzes.tags.requires = IS_IN_DB(db, 'tags.id', db.tags._format, multiple = True)
+db.quizzes.groups.requires = IS_IN_DB(db, 'auth_group.id', db.auth_group._format, multiple = True)
+
 db.define_table('question_records',
     Field('name', db.auth_user, default=auth.user_id),
     Field('question', db.questions),
@@ -50,7 +64,15 @@ db.define_table('question_records',
     Field('last_wrong', 'date', default=request.now),
     Field('category', db.categories)
     )
-    
+
+db.define_table('attempt_log',
+    Field('name', db.auth_user, default=auth.user_id),
+    Field('question', db.questions),
+    Field('score', 'double'),
+    Field('quiz', db.quizzes),
+    Field('date_attempted', 'date', default=request.now)
+    )
+
 db.define_table('quiz_records',
     Field('name', db.auth_user, default=auth.user_id),
     Field('quiz', db.quizzes),
@@ -58,17 +80,27 @@ db.define_table('quiz_records',
     Field('date_taken', 'date', default=request.now)
     )
 
+db.define_table('bug_status',
+    Field('status_label'),
+    format='%(status_label)s')
+
 db.define_table('q_bugs',
     Field('question', db.questions),
     Field('a_submitted'),
     Field('name', db.auth_user, default=auth.user_id),
-    Field('date_submitted', 'date', default=request.now)
-    )
+    Field('date_submitted', 'date', default=request.now),
+    #Field('bug_status', db.bug_status, default=1),
+    Field('bug_status', db.bug_status2, default=1),
+    #Field('admin_comment',  'text'),
+    Field('admin_comment2', 'text'),
+    #Field('prev_lastright',  'date'),
+    #Field('prev_lastwrong'),
+    format='%(question)s')
 
 db.define_table('news',
     Field('story', 'text'),
     Field('title', 'string'),
     Field('name', db.auth_user, default=auth.user_id),
-    Field('date_submitted', 'datetime', default=request.now)
-    Field('last_edit', 'datetime', default=request.now)
-    )
+    Field('date_submitted', 'datetime', default=request.now),
+    Field('last_edit', 'datetime', default=request.now),
+    format='%(title)s')

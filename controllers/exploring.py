@@ -32,13 +32,9 @@ def index():
 
     #after submitting answer
     elif request.args(0) == 'reply':
-        #get the question that was asked
-        q_ID = session.qID
-        the_q = db(db.question_records.question==q_ID).select()
         #see whether answer matches any of the three answer fields
         q = question()
-        the_eval = q.evalq(the_q)
-        q.recordq(the_q, the_eval, q_ID)
+        the_eval = q.evalq()
         
         #build response to user
         if session.eval == 'correct':
@@ -47,21 +43,21 @@ def index():
             the_reply = "Οὐ κάκος. You're close."
         else:
             the_reply = "Incorrect. Try again!"
-        the_answer = session.readable_answer
 
         #add a record for this attempt in db.attempt_log
-        db.attempt_log.insert(question=q_ID, score=the_eval['score'], quiz=session.path_id)
+        db.attempt_log.insert(question=session.q_ID, score=q.score, quiz=session.path_id)
 
-        return dict(reply=the_reply, answer=the_answer, raw_answer=session.answer, score=session.score)
+        return dict(reply=the_reply, answer=session.readable_answer, raw_answer=session.answer, score=session.score)
 
     #if there's an error thrown after submitting an answer
     elif request.args(0) == 'error':
         if request.args(1) == 'unknown':
             db.q_bugs.insert(question=session.qID, a_submitted=request.vars.answer)
-            db(db.questions.id==session.qID).update(q_status=1);
+            #TODO: fix problem with changing column name for status
+            #db(db.questions.id==session.qID).update(qqq_status=1);
         if request.args(1) == 'regex':
             db.q_bugs.insert(question=session.qID, a_submitted=request.vars.answer)
-            db(db.questions.id==session.qID).update(q_status=1);
+            #db(db.questions.id==session.qID).update(qqq_status=1);
         message = "Oops! Something about that question confused me, and I'm not sure whether your answer was right. Let's try another one."
         button = A('continue', _href=URL('index', args=['ask']), _class='button-green-grad next_q', cid=request.cid)
         #don't include this question in counting the number attempted
