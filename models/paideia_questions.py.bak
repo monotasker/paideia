@@ -47,13 +47,13 @@ class question:
 
         d = str(datetime.date.today())
         d = string.replace(d, ',', '-')
-        session.debug = d
         
-        q_not_today =  db((db.questions.id == db.question_records.question) & (db.question_records.name==auth.user_id) & (db.question_records.tlast_right != d)).select()
-        q_cat1 = db((db.questions.id == db.question_records.question) & (db.question_records.name==auth.user_id) & (db.question_records.category==1) & (db.question_records.tlast_right != d)).select()
-        q_cat2 = db((db.questions.id == db.question_records.question) & (db.question_records.name==auth.user_id) & (db.question_records.category==2) & (db.question_records.tlast_right != d)).select()
-        q_cat3 = db((db.questions.id == db.question_records.question) & (db.question_records.name==auth.user_id) & (db.question_records.category==3) & (db.question_records.tlast_right != d)).select()
-        q_cat4 = db((db.questions.id == db.question_records.question) & (db.question_records.name==auth.user_id) & (db.question_records.category==4) & (db.question_records.tlast_right != d)).select()
+        
+        q_not_today =  db((db.questions.id == db.question_records.question) & (db.question_records.name==auth.user_id) & (db.question_records.last_right != d)).select()
+        q_cat1 = db((db.questions.id == db.question_records.question) & (db.question_records.name==auth.user_id) & (db.question_records.category==1) & (db.question_records.last_right != d)).select()
+        q_cat2 = db((db.questions.id == db.question_records.question) & (db.question_records.name==auth.user_id) & (db.question_records.category==2) & (db.question_records.last_right != d)).select()
+        q_cat3 = db((db.questions.id == db.question_records.question) & (db.question_records.name==auth.user_id) & (db.question_records.category==3) & (db.question_records.last_right != d)).select()
+        q_cat4 = db((db.questions.id == db.question_records.question) & (db.question_records.name==auth.user_id) & (db.question_records.category==4) & (db.question_records.last_right != d)).select()
         q_fresh = db(db.question_records.question==None).select(db.questions.ALL, db.question_records.ALL, left=db.question_records.on(db.questions.id==db.question_records.question))
         
         session.debug = datetime.date.today()
@@ -116,32 +116,32 @@ class question:
                 self.rightCount = 1
                 self.wrongCount = 0
                 if self.the_q:
-                    self.wrongDate = self.the_q.tlast_wrong
+                    self.wrongDate = self.the_q.last_wrong
                 else:
-                    self.wrongDate = datetime.datetime.utcnow()
-                self.rightDate = datetime.datetime.utcnow()
+                    self.wrongDate = datetime.date.today()
+                self.rightDate = datetime.date.today()
                 self.score = 1
             elif re.match(session.answer2,session.response) and session.answer2 != 'null':
                 session.eval = 'partial'
                 self.rightCount = 0
                 self.wrongCount = 0
                 if the_q:
-                    self.wrongDate = self.the_q.tlast_wrong
-                    self.rightDate = self.the_q.tlast_right
+                    self.wrongDate = self.the_q.last_wrong
+                    self.rightDate = self.the_q.last_right
                 else:
-                    self.wrongDate = datetime.datetime.utcnow()
-                    self.rightDate = datetime.datetime.utcnow()
+                    self.wrongDate = datetime.date.today()
+                    self.rightDate = datetime.date.today()
                 self.score = 0.5
             elif re.match(session.answer3,session.response) and session.answer3 != 'null':
                 session.eval = 'partial'
                 self.rightCount = 0
                 self.wrongCount = 0
                 if self.the_q:
-                    self.wrongDate = self.the_q.tlast_wrong
-                    self.rightDate = self.the_q.tlast_right
+                    self.wrongDate = self.the_q.last_wrong
+                    self.rightDate = self.the_q.last_right
                 else:
-                    self.wrongDate = datetime.datetime.utcnow()
-                    self.rightDate = datetime.datetime.utcnow()
+                    self.wrongDate = datetime.date.today()
+                    self.rightDate = datetime.date.today()
                 #TODO: Get this score value from the db instead of hard coding it here.
                 self.score = 0.3
             else:
@@ -149,10 +149,10 @@ class question:
                 self.wrongCount = 1
                 self.rightCount = 0
                 if self.the_q:
-                    self.rightDate = self.the_q.tlast_right
+                    self.rightDate = self.the_q.last_right
                 else:
-                    self.rightDate = datetime.datetime.utcnow()
-                self.wrongDate = datetime.datetime.utcnow()
+                    self.rightDate = datetime.date.today()
+                self.wrongDate = datetime.date.today()
                 self.score = 0           
             
             self.recordq()
@@ -174,7 +174,7 @@ class question:
             last_right = self.rightDate
             last_wrong = self.wrongDate
             #figure out how the student is doing with this question
-            now_date = datetime.datetime.utcnow()
+            now_date = datetime.date.today()
             right_dur = now_date-last_right
             wrong_dur = now_date-last_wrong
             rightWrong_dur = last_right - last_wrong

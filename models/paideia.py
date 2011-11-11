@@ -12,6 +12,9 @@ if 0:
 
 #plugin from http://dev.s-cubism.com/plugin_multiselect_widget
 from plugin_multiselect_widget import hmultiselect_widget, vmultiselect_widget
+import datetime
+
+dtnow = datetime.datetime.utcnow()
 
 db.define_table('categories',
     Field('category'),
@@ -33,7 +36,7 @@ db.define_table('questions',
     Field('value3', 'double', default=0.3),
     Field('frequency', 'double'),
     Field('tags', 'list:reference db.tags'),
-    Field('q_status', 'integer'),
+    Field('status', 'integer'),
     format='%(question)s')
 
 db.questions.tags.requires = IS_IN_DB(db, 'tags.id', db.tags._format, multiple = True)
@@ -45,7 +48,7 @@ db.define_table('quizzes',
     Field('tags', 'list:reference db.tags'),
     Field('frequency'),
     Field('groups', 'list:reference db.auth_group'),
-    Field('start_date', 'date', default=request.now),
+    Field('start_date', 'date', default=dtnow),
     Field('end_date', 'date'),
     format='%(quiz)s')
 
@@ -57,8 +60,8 @@ db.define_table('question_records',
     Field('question', db.questions),
     Field('times_right', 'double'),
     Field('times_wrong', 'double'),
-    Field('last_right', 'date', default=request.now),
-    Field('last_wrong', 'date', default=request.now),
+    Field('tlast_wrong', 'datetime', default=dtnow),
+    Field('tlast_right', 'datetime', default=dtnow),
     Field('category', db.categories)
     )
 
@@ -67,14 +70,14 @@ db.define_table('attempt_log',
     Field('question', db.questions),
     Field('score', 'double'),
     Field('quiz', db.quizzes),
-    Field('date_attempted', 'date', default=request.now)
+    Field('dt_attempted', 'datetime', default=dtnow)
     )
 
 db.define_table('quiz_records',
     Field('name', db.auth_user, default=auth.user_id),
     Field('quiz', db.quizzes),
     Field('score', 'double'),
-    Field('date_taken', 'date', default=request.now)
+    Field('date_taken', 'datetime', default=dtnow)
     )
 
 db.define_table('bug_status',
@@ -85,17 +88,17 @@ db.define_table('q_bugs',
     Field('question', db.questions),
     Field('a_submitted'),
     Field('name', db.auth_user, default=auth.user_id),
-    Field('date_submitted', 'date', default=request.now),
+    Field('submitted', 'datetime', default=dtnow),    
     Field('bug_status', db.bug_status, default=1),
     Field('admin_comment',  'text'),
-    Field('prev_lastright',  'date'),
-    Field('prev_lastwrong'),
+    Field('prev_lastright',  'datetime'),
+    Field('prev_lastwrong', 'datetime'),
     format='%(question)s')
 
 db.define_table('news',
     Field('story', 'text'),
     Field('title', 'string'),
     Field('name', db.auth_user, default=auth.user_id),
-    Field('date_submitted', 'datetime', default=request.now),
-    Field('last_edit', 'datetime', default=request.now),
+    Field('date_submitted', 'datetime', default=dtnow),
+    Field('last_edit', 'datetime', default=dtnow),
     format='%(title)s')
