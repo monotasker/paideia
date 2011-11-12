@@ -1,5 +1,19 @@
 import calendar, datetime
 
+if 0:
+    from gluon import current, SQLFORM, redirect, A, URL
+    from gluon.tools import Auth, Crud
+    from gluon.dal import DAL
+    db = DAL()
+    auth = Auth()
+    cache=current.cache
+    T = current.t
+    response = current.response
+    service = current.service
+    request = current.request
+    session = current.session
+    crud = Crud()
+
 class paideia_stats:
     # calculates stats for paideia student performance
     Name = "paideia_stats"
@@ -81,58 +95,65 @@ class paideia_weeklycount:
         dateset -- a list of tuples, each of which contains three values: month, first day of week, number attempted
         """
         self.user_id = user_id
-        logs = db(db.attempt_log.name == self.user_id).select(db.attempt_log.date_attempted)
+        logs = db(db.attempt_log.name == self.user_id).select(db.attempt_log.dt_attempted)
 
         loglist = {}
 
+        #offset from utc time used to generate and store time stamps
+        utcvar = int(-5)
+
         for log in logs:
-            newdate = log.date_attempted - datetime.timedelta(hours=14)
+            newdatetime = log.dt_attempted - datetime.timedelta(hours=utcvar)
+            newdate = datetime.date(newdatetime.year, newdatetime.month, newdatetime.day)
             if newdate in loglist:
                 loglist[newdate] += 1
             else:
                 loglist[newdate] = 1
 
-        nms = calendar.month_name
         this_year = datetime.date.today().year
         self.dateset = {}
         self.htmlcal = ''
         for month in range(1,12):
-            mc = calendar.monthcalendar(this_year, month)
-            m = nms[month]
+            monthcal = calendar.monthcalendar(this_year, month)
+            
             #build dict containing stats organized into weeks
-            for week in mc:
-                w = week[0]
-                for k, v in loglist.items():
-                    if k.month == month and k.day in week:
-                        day = k.day
-                        if m in self.dateset:
-                            if w in self.dateset[m]:
-                                d = self.dateset[m]
-                                the_week = d[w]
-                                the_week[day] = v
-                        else:
-                            self.dateset[m] = {w:{day:v}}
+            if month not in self.dateset:
+                self.dateset[month] = {}
+                m = self.dateset[month]
+            for week in monthcal:
+                weekday = week[0]
+                if weekday not in self.dateset[month]:
+                    m[weekday] = {}
+                    w = m[weekday]
+                for day in week:
+                    w[day] = ''
+                     
+                for dt, count in loglist.items():
+                    if dt.month == month and dt.day in week:
+                        w[dt.day] = count
+            
             #now build html calendar as string with stats embedded
-            for dk,dm in self.dateset.items():
-                self.htmlcal += '<h4>' + m + '</h4><table class="weeklycount">'
-                for week in mc:
-                    w = week[0]
-                    self.htmlcal += '<tr>'
-                    if (m in self.dateset) and (w in self.dateset[m]):
-                        the_m = self.dateset[m]
-                        the_w = the_m[w]
-                        for day in week:
-                            self.htmlcal+= '<td>'
-                            self.htmlcal+= '<span class="cal_num">' + str(day) + '</span>'
-                            if day in the_w:
-                                self.htmlcal+='<span class="cal_count">' + str(the_w[day]) + '</span>'
-                            self.htmlcal+= '</td>'
-                    else:
-                        for day in week:
-                            self.htmlcal+= '<td>'
-                            self.htmlcal+= '<span class="cal_num">' + str(day) + '</span>'
-                            self.htmlcal+= '</td>'
-                    self.htmlcal += '</tr>'
-                self.htmlcal += '</table>'
-            #TODO: Add a legend row to each month table listing day names
+            nms = calendar.month_name
+            monthname = nms[month]
+            self.htmlcal += '<h4>' + monthname + '</h4><table class="weeklycount">'
+            for week in monthcal:
+                w = week[0]
+                self.htmlcal += '<tr>'
+                if (month in self.dateset) and (w in self.dateset[month]):
+                    the_m = self.dateset[month]
+                    the_w = the_m[w]
+                    for day in week:
+                        self.htmlcal+= '<td>'
+                        self.htmlcal+= '<span class="cal_num">' + str(day) + '</span>'
+                        if day in the_w:
+                            self.htmlcal+='<span class="cal_count">' + str(the_w[day]) + '</span>'
+                        self.htmlcal+= '</td>'
+                else:
+                    for day in week:
+                        self.htmlcal+= '<td>'
+                        self.htmlcal+= '<span class="cal_num">' + str(day) + '</span>'
+                        self.htmlcal+= '</td>'
+                self.htmlcal += '</tr>'
+            self.htmlcal += '</table>'
             #TODO: Add weekly summary counts to the end of each table row (from self.dateset)
+            
