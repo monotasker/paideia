@@ -125,7 +125,7 @@ class question:
                 session.eval = 'partial'
                 self.rightCount = 0
                 self.wrongCount = 0
-                if the_q:
+                if self.the_q:
                     self.wrongDate = self.the_q.tlast_wrong
                     self.rightDate = self.the_q.tlast_right
                 else:
@@ -191,7 +191,7 @@ class question:
                 cat = 1
 
             #update the db record
-            db(db.question_records.question==session.q_ID).update(times_right=newTimesR, times_wrong=newTimesW, last_right=last_right, last_wrong=last_wrong, category=cat)
+            db(db.question_records.question==session.q_ID).update(times_right=newTimesR, times_wrong=newTimesW, tlast_right=last_right, tlast_wrong=last_wrong, category=cat)
         #if the user hasn't attempted this question, create a new record for it
         else:
             db.question_records.insert(question=session.q_ID, times_right=self.rightCount, times_wrong=self.wrongCount)
