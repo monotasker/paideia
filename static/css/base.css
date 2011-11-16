@@ -174,7 +174,7 @@ h6 {font-size: 12px; line-height:24px; font-weight: bold;}
 /* Accessible focus treatment: people.opera.com/patrickl/experiments/keyboard/test */
 a:hover, a:active { outline: none; }
 a, a:active, a:visited { color:#607890; text-decoration:none;}
-a:hover { color:#036; }
+a:hover { color:#036; text-decoration:none;}
 a.button-green-grad {
     display:block;
     color:#fff;
@@ -369,32 +369,55 @@ table.weeklycount td span.cal_num{
 table.weeklycount span.cal_count{
     position:relative;
     font-size:16px;
-    color:#fff;
+    font-weight:bold;
     top:10px;
     left:6px;
-    width:24px;
-    height:24px;
-    line-height:24px;
-    text-align:center;
-    display:inline-block;
-    background-color:#809240;
+    color:#809240;
 }
+
+/*** bug reports on user profile ***/
+
+#tab_bug_reports table{
+    text-align:left;
+    border-collapse:separate;
+    border-spacing:3px;
+}
+
+#tab_bug_reports table th{
+    font-weight:bold;
+    background-color:#efefef;
+    border:1px solid #eee;
+    vertical-align:middle;
+    text-align:center;
+}
+
+#tab_bug_reports table tr td{
+    min-width:140px;
+    background-color:#f5f5f5;
+}
+
+#tab_bug_reports table tr td:nth-child(3){
+    min-width:100px;
+    background-color:#f5f5f5;
+    border:1px solid #eee;
+}
+
 
 /**********/
 /* Forms */
 /*************/
 form { padding: 6px 12px 6px 0; line-height:24px;}
 form table {border-collapse:separate;
-    border-spacing:0 3px;
+    border-spacing:0 7px;
     padding:0;}
 form tr {margin:3px 0;}
 form td {
     padding:0; vertical-align:middle;
 }
 form tr td:first-child {
-    background-color:#f5f5f5;
-    border:1px solid #eee;
     color:#aaa;
+    text-align:right;
+    padding-right:7px;
 }
 form label {
 padding-left:12px; height:24px; line-height:24px;
@@ -408,6 +431,15 @@ input[type="checkbox"] { vertical-align: bottom; }
 .ie6 input { vertical-align: text-bottom; }
 label, input[type=button], input[type=submit], button { cursor: pointer; } /* cursor on clickable elements */
 button, input, select, textarea { margin: 0; } /* webkit browsers add 2px margin */
+
+input[type='text'] {
+    height:28px;
+    -moz-box-shadow:0px 1px 3px rgba(0,0,0,0.3) inset;
+    -webkit-box-shadow:0px 1px 3px rgba(0,0,0,0.3) inset;
+    -o-box-shadow:0px 1px 3px rgba(0,0,0,0.3) inset;
+    -ms-box-shadow:0px 1px 3px rgba(0,0,0,0.3) inset;
+    box-shadow:0px 1px 3px rgba(0,0,0,0.3) inset;
+}
 
 /* colors for form validity */
 input:valid, textarea:valid   {  }
@@ -570,6 +602,8 @@ nav {
     bottom:0;
 }
 
+/*** footer styles ***/
+
 footer {
     display:block;
     margin: 0 auto;
@@ -642,7 +676,7 @@ footer a {
 }
 
 #page.reporting,
-#page.default.user {background-color:#fff;}
+#page.default.user {background-color:#fff}
 
 /* MODAL FRAME */
 
