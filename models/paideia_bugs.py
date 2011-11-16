@@ -34,7 +34,7 @@ class paideia_bugs:
             d = []
             d.append(b.questions.question)
             d.append(b.q_bugs.a_submitted)
-            d.append(b.q_bugs.date_submitted)
+            d.append(b.q_bugs.submitted)
             #get status label instead of raw status reference
             s = b.q_bugs.bug_status
             if s == None:

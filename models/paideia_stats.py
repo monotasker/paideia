@@ -81,12 +81,12 @@ class paideia_weeklycount:
         dateset -- a list of tuples, each of which contains three values: month, first day of week, number attempted
         """
         self.user_id = user_id
-        logs = db(db.attempt_log.name == self.user_id).select(db.attempt_log.date_attempted)
+        logs = db(db.attempt_log.name == self.user_id).select(db.attempt_log.dt_attempted)
 
         loglist = {}
 
         for log in logs:
-            newdate = log.date_attempted - datetime.timedelta(hours=14)
+            newdate = log.dt_attempted - datetime.timedelta(hours=14)
             if newdate in loglist:
                 loglist[newdate] += 1
             else:
