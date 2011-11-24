@@ -103,8 +103,12 @@ class paideia_weeklycount:
         utcvar = int(-5)
 
         for log in logs:
+<<<<<<< HEAD
+            newdate = log.dt_attempted - datetime.timedelta(hours=14)
+=======
             newdatetime = log.dt_attempted - datetime.timedelta(hours=utcvar)
             newdate = datetime.date(newdatetime.year, newdatetime.month, newdatetime.day)
+>>>>>>> 5663459b496352d8bfa148f9fcaf29f82c173b8e
             if newdate in loglist:
                 loglist[newdate] += 1
             else:

@@ -1,23 +1,29 @@
 {{extend 'layout.html'}}
-<h2>{{=T( request.args(0).replace('_',' ').capitalize() )}}</h2>
-<div id="web2py_user_form">
+
+<div id='user_profile_tabs' class="tabs">
+
+<ul class="tab_row">
+    <li><a href="#web2py_user_form">My info</a></li>
+    <li><a href="#tab_stats">How am I doing?</a></li>
+    <li><a href="#tab_calendar">My activity</a></li>
+    <li><a href="#tab_bug_reports">My bug reports</a></li>
+</ul>
+
+<div id="web2py_user_form" class="tab active">
 {{=form}}
 {{if request.args(0)=='login':}}
-{{if not 'register' in auth.settings.actions_disabled:}}
-<br/><a href="{{=URL(r=request,args='register')}}">register</a>
-{{pass}}
-{{if not 'request_reset_password' in auth.settings.actions_disabled:}}
-<br/><a href="{{=URL(r=request,args='request_reset_password')}}">lost password</a>
-{{pass}}
+    {{if not 'register' in auth.settings.actions_disabled:}}
+        <br/><a href="{{=URL(r=request,args='register')}}">register</a>
+    {{pass}}
+    {{if not 'request_reset_password' in auth.settings.actions_disabled:}}
+        <br/><a href="{{=URL(r=request,args='request_reset_password')}}">lost password</a>
+    {{pass}}
 {{pass}}
 </div>
 
 {{if request.args(0) == 'profile':}}
 
-<section>
-
-<h3>How Am I Doing?</h3>
-
+<div id='tab_stats' class="tab">
 <table cellspacing='0' class='summary_stats'>
     <tr>
         <td class='total_len'>{{=total_len}}</td>
@@ -44,16 +50,15 @@
     </tr>
 </table>
 
-</section>
+</div>
 
-<section class='tab' id='calendar'>
-<h3>How Many Questions Have I Attempted?</h3>
+<div class='tab' id='tab_calendar'>
+Questions answered each day:
 
 {{=XML(htmlcal)}}
-</section>
+</div>
 
-<section class='tab' id='bug reports'>
-<h3>My Bug Reports</h3>
+<div class='tab' id='tab_bug_reports'>
 
 <table>
 <tr>
@@ -72,15 +77,27 @@
 {{pass}}
 </table>
 
-</section>
+</div>
 
 
 {{pass}}
 
-
+</div>
 
 <script language="javascript">
 <!--
  jQuery("#web2py_user_form input:visible:enabled:first").focus();
+ $('.tab_row a').click(function(){
+     l = $(this).attr('href')
+    $('.tabs .tab').each(function(){
+        $(this).hide();
+    })      
+    $('.tabs .tab' + l).show();
+    $('.tab_row li').each(function(){
+        $(this).removeClass('active');
+    });
+    $(this).parents('li').addClass('active'); 
+    return false;
+ })
 //-->
 </script>
