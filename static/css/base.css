@@ -220,6 +220,55 @@ a.bug_listing_link {
     -moz-box-shadow:0 2px 4px rgba(0,0,0,0.3);
 }
 
+a.bug2_listing_link {
+    background-color:orange;
+    display:inline-block;
+    width:24px;
+    height:24px;
+    padding:0;
+    text-align:center;
+    border-radius:14px;
+    color:#fff;
+    -moz-box-shadow:0 2px 4px rgba(0,0,0,0.3);
+}
+
+a.bug3_listing_link {
+    background-color:purple;
+    display:inline-block;
+    width:24px;
+    height:24px;
+    padding:0;
+    text-align:center;
+    border-radius:14px;
+    color:#fff;
+    -moz-box-shadow:0 2px 4px rgba(0,0,0,0.3);
+}
+
+a.bug4_listing_link {
+    background-color:green;
+    display:inline-block;
+    width:24px;
+    height:24px;
+    padding:0;
+    text-align:center;
+    border-radius:14px;
+    color:#fff;
+    -moz-box-shadow:0 2px 4px rgba(0,0,0,0.3);
+}
+
+
+a.bug5_listing_link {
+    background-color:blue;
+    display:inline-block;
+    width:24px;
+    height:24px;
+    padding:0;
+    text-align:center;
+    border-radius:14px;
+    color:#fff;
+    -moz-box-shadow:0 2px 4px rgba(0,0,0,0.3);
+}
+
 .tag_create_link,
 .question_create_link{
     float:right;

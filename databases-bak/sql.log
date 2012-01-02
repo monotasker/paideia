@@ -175,19 +175,3 @@ timestamp: 2011-11-11T11:36:14.116352
 ALTER TABLE q_bugs ADD prev_lastwrong TIMESTAMP;
 timestamp: 2011-11-11T11:40:57.041448
 ALTER TABLE question_records ADD tlast_wrong TIMESTAMP;
-timestamp: 2011-11-11T13:10:01.430297
-ALTER TABLE question_records ADD tlast_right TIMESTAMP;
-timestamp: 2011-11-11T13:36:29.254911
-ALTER TABLE attempt_log ADD dt_attempted TIMESTAMP;
-timestamp: 2011-11-11T13:41:53.918674
-ALTER TABLE q_bugs ADD dt_submitted DATE;
-timestamp: 2011-11-11T13:45:56.337800
-ALTER TABLE q_bugs ADD submitted TIMESTAMP;
-timestamp: 2012-01-02T15:06:32.694097
-ALTER TABLE auth_user ADD registration_id CHAR(512);
-timestamp: 2012-01-02T15:06:32.790289
-ALTER TABLE auth_cas ADD service CHAR(512);
-timestamp: 2012-01-02T15:06:32.855821
-ALTER TABLE auth_cas ADD renew CHAR(1);
-timestamp: 2012-01-02T15:06:32.930196
-ALTER TABLE auth_cas ADD ticket CHAR(512);
