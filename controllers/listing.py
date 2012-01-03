@@ -23,7 +23,11 @@ def tags():
 @auth.requires_membership(role='administrators')
 def bug():
     the_q = request.args[0]
-    bugs = db(db.q_bugs.question == the_q).select()
+    the_status = request.args[1]
+    if the_status == 1:
+        bugs = db((db.q_bugs.question == the_q) & ((db.q_bugs.bug_status == the_status) | (db.q_bugs.bug_status == None))).select()
+    else:
+        bugs = db((db.q_bugs.question == the_q) & (db.q_bugs.bug_status == the_status)).select()
     return dict(bugs = bugs)
 
 def news():

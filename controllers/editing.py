@@ -26,7 +26,9 @@ def tag():
 
 @auth.requires_membership(role='administrators')
 def bug():
-    
+    edit_form = crud.update(db.q_bugs, request.args[0])
+    closer = A('close', _href=URL('#'), _class='close_link')
+    the_title = H3('Editing Bug Report')
     return dict(form = edit_form, closer=closer, the_title=the_title)
 
 @auth.requires_membership(role='administrators')

@@ -110,19 +110,10 @@ class paideia_weeklycount:
             else:
                 loglist[newdate] = 1
         session.debug = loglist
-        #get the current year
         this_year = datetime.date.today().year
-        #get the months during the current year in which questions were attempted
-        monthlist = []
-        for k,v in loglist.items():
-            if k.month in monthlist:
-                pass
-            else:
-                monthlist.append(k.month)
-                
         self.dateset = {}
         self.htmlcal = ''
-        for month in monthlist:
+        for month in range(1,12):
             monthcal = calendar.monthcalendar(this_year, month)
             
             #build dict containing stats organized into weeks

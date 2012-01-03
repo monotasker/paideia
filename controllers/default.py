@@ -51,7 +51,6 @@ def user():
     w = paideia_weeklycount(auth.user_id)
     b = paideia_bugs()
     blist = b.bugresponse(auth.user_id)
-    session.debug = blist
     return dict(form=auth(), score_avg=s.score_avg, total_len = t.total_len, total_cat1 = t.total_cat1, total_cat2 = t.total_cat2, total_cat3 = t.total_cat3, percent_cat1 = t.percent_cat1, percent_cat2 = t.percent_cat2, percent_cat3 = t.percent_cat3, total_cat4 = t.total_cat4, percent_cat4 = t.percent_cat4, htmlcal = w.htmlcal, blist = blist)
 
 def download():
