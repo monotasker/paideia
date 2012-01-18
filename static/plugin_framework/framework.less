@@ -4,7 +4,7 @@
 @minpagewidth:640px;
 
 /* text dimensions */
-@typeheight: 14px;
+@typeheight: 16px;
 @lineheight: @typeheight * 1.5;
 @typeheight2: @typeheight * 1.5;
 @lineheight2: @lineheight * 1.5;
@@ -16,7 +16,7 @@
 @warning:#a40000;
 @wine:#701;
 @cranberry:#852625;
-@cinnamon:#845852;
+@cinnamon:#845852; /* paideia */
 
 @orange:#FF9700;
 @tangerine:#dd4814; /* ubuntu */
@@ -28,7 +28,7 @@
 @green:#5BA917;
 @grass1:#96BC44; /* ocp */
 @grass2:#690; /* ocp */
-@moss:#809240;
+@moss:#809240; /* paideia */
 @spring-green:#AAE557;
 
 @mist:#E4EDF7;
@@ -53,8 +53,9 @@
 
 @mdn-beige1:#F6F6F1;
 @mdn-beige2:#E0E0D5;
-@cream:#F8F0E5;
-@tapioca:#F2E5D4;
+@cream:#F8F0E5; /* paideia */
+@tapioca:#F2E5D4; /* paideia */
+
 @yellow-beige1:#EBFC97;
 @ocp-beige1:#F5F3EA;
 @ocp-beige2:#E3E1D3;
@@ -368,6 +369,32 @@ div.error {
     background-image: -o-radial-gradient(@h @v, ellipse closest-side, @hue1, @hue2 100%);
     background-image: -ms-radial-gradient(@h @v, ellipse closest-side, @hue1, @hue2 100%);
     background-image: radial-gradient(@h @v, ellipse closest-side, @hue1, @hue2 100%);
+}
+
+.speech-bubble(@br:@lineheight2) {
+    position:relative;
+    border-radius:@br;
+    padding:@br;
+    margin-left:260px;
+    background:#fff;
+    min-height:100px;
+    box-shadow:0 2px 6px rgba(0,0,0,0.3);
+
+    :after {
+        content:"<div></div>";
+        position:absolute;
+        left:-15px;
+        top:50%;
+        width:0px;
+        height:0px;
+        border-bottom:15px solid transparent;  /* left arrow slant */
+        border-top:15px solid transparent; /* right arrow slant */
+        border-right:15px solid #fff; /* bottom, add background color here */
+        font-size:0px;
+        line-height:0px;
+        background:transparent;
+    }
+
 }
 
 .button {
