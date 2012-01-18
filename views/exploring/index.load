@@ -1,36 +1,46 @@
+<!--when path completed-->
 {{if request.args(0) == 'end':}}
     <section class="npc">
         <p>Well done. You've finished this path. You don't have to stop here, though. If you want to continue exploring, {{=A('click here', _href=URL('index.load'), cid='page')}}</p>
     </section>
+
+<!--when an error is raised-->
 {{elif request.args(0) == 'error':}}
     <section class='npc'>
         {{=message}}
         {{=button}}
     </section>
-{{elif request.args(0) == 'start' or not request.args:}}
-    <div class='npc'>Let's get started. Here are the paths you can take today: {{#'}}</div>
-    <ul>
-    {{for quiz in quizzes:}}
-    {{=LI(A(quiz.quiz, _href=URL('index.load', args=['ask'], vars=dict(path=quiz.id)), cid=request.cid))}}
-    {{pass}}
-    </ul>
-    <span class="q_counter">Question {{=session.q_counter}} of {{=session.path_length}}</span>
 
+<!--path selection-->
+{{elif request.args(0) == 'start' or not request.args:}}
+    <div class='npc'>Let's get started. Here are the paths you can take today: {{#'}}
+        <ul>
+            {{for quiz in quizzes:}}
+            {{=LI(A(quiz.quiz, _href=URL('index.load', args=['ask'],
+                vars=dict(path=quiz.id)), cid=request.cid))}}
+            {{pass}}
+        </ul>
+    </div>
+    <div class='npc'>This will be <span class="q_counter">question {{=session.q_counter}} of {{=session.path_length}}</span> on today\'s path</div>
+
+<!--step start-->
 {{elif request.args(0) == 'ask' and not request.vars.user_response:}}
-    <section class="npc">{{=XML(question)}}</section>
-    {{=form}}
+    <div class='speaker'></div>
+    <div class="npc">{{=XML(question)}}</div>
+    <div class='responder'>{{=form}}</div>
     <span class="quiz_type">{{=session.quiz_type}}</span>
     <p class="guidelines">Remember to only give <strong>one</strong> translation (not a list of different possibilities) and to give a <strong>translation</strong> (so not "keep" but "I keep").</p>
     <span class="q_counter">Question {{=session.q_counter}} of {{=session.path_length}}</span>
 
+<!--step feedback-->
 {{else:}}
     <section class="npc">
         <p>{{=reply}}</p>
         <p>Correct answers would include "{{=XML(answer)}}"</p>
+        <span class="q_counter">Question {{=session.q_counter}} of {{=session.path_length}}</span>
     </section>
-    {{=A("Next Question", _href=URL('index', args=['ask']), cid='page', _class='button-green-grad next_q')}}
-    <span class="q_counter">Question {{=session.q_counter}} of {{=session.path_length}}</span>
-    <span id="bug_reporter">If you think your answer should have been correct, {{=A('click here', _href=URL('creating', 'q_bug.load', vars=dict(answer=session.response, question=session.q_ID)), cid='bug_reporter')}} to submit a bug report for this question</span>
+    <div class='responder'>{{=A("Next Question", _href=URL('index', args=['ask']), cid='page', _class='button-green-grad next_q')}}</div>
+    <div class='npc'><span id="bug_reporter">If you think your answer should have been correct, {{=A('click here', _href=URL('creating', 'q_bug.load', vars=dict(answer=session.response, question=session.q_ID)), cid='bug_reporter')}} to submit a bug report for this question</span></div>
 
 {{pass}}
 

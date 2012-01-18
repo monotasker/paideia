@@ -170,6 +170,24 @@ nav {
 
     }
 
+    #updates {
+        width:@typeheight * 20;
+        float: right;
+    }
+
+    .npc {
+        .speech-bubble(@lineheight);
+        margin-top: @lineheight;
+        margin-right: -@lineheight;
+    }
+
+    .responder {
+        .speech-bubble(@lineheight);
+        margin-top: @lineheight;
+        margin-right: -@lineheight;
+        background: @greyf5;
+    }
+
     .comments{
         padding: 0;
         margin-top: @lineheight3;
@@ -236,11 +254,16 @@ nav {
 
     }
 
-    #viewpane, #listpane {
-        position:relative;
-        padding:0;
-    }
+}
 
+#page.exploring {
+        background:@mist url('../static/images/woman1.png') no-repeat -50px 10px;
+        overflow: visible;
+}
+
+#viewpane, #listpane {
+    position:relative;
+    padding:0;
 }
 
 #listpane {
