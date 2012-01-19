@@ -1,12 +1,12 @@
 import random,re,datetime,string
+from custom_import import track_changes
 
-if 0:
-    from gluon import current, redirect, URL
-    from gluon.dal import DAL
-    from gluon.tools import Auth
-    request,session,response,T,cache=current.request,current.session,current.response,current.t,current.cache
-    db = DAL()
-    auth = Auth() 
+from gluon import current, redirect, URL
+from gluon.dal import DAL
+from gluon.tools import Auth
+
+db = DAL()
+
 
 class question:
     """
@@ -44,6 +44,8 @@ class question:
         # (db.questions.id == db.question_records.question) joins questions to records
         # (db.question_records.name==auth.user_id) filters based on current user
         # (db.question_records.last_right != datetime.date.today()) removes questions gotten right today
+
+        session, auth = current.session, current.auth
 
         d = str(datetime.date.today())
         d = string.replace(d, ',', '-')
@@ -107,6 +109,9 @@ class question:
         session.readable_answer = question_obj.readable_answer
 
     def evalq(self):
+
+        session = current.session
+
         the_response = string.strip(session.response)
         self.the_q = db(db.question_records.question==session.q_ID).select().first()
         
@@ -165,6 +170,9 @@ class question:
         """
         update or create database record for question attempt after it's evaluated.
         """
+
+        session = current.session
+
         #If the user has already attempted this question once, update their record for this question
         if db((db.question_records.name==auth.user_id)&(db.question_records.question==session.q_ID)).select():
             timesR = self.the_q.times_right

@@ -1,16 +1,16 @@
+from gluon import current, URL, redirect, custom_import
+from gluon.dal import DAL
+db = DAL()
 
-if 0:
-    from gluon import current, URL, redirect 
-    from gluon.dal import DAL
-    from gluon.tools import Auth
-    request,session,response,T,cache=current.request,current.session,current.response,current.t,current.cache
-    db = DAL()
-    auth = Auth()
 
 class activepath:
 
     def __init__(self):
         """set the path a student is exploring, retrieve its data, and store the data in the session object"""
+
+        #current object must be accessed at runtime, so can't be global variable
+        session, request, auth = current.session, current.request
+
         if not session.path_length:
             the_path = db(db.quizzes.id == request.vars.path).select()
             session.path_id = the_path[0].id
@@ -24,6 +24,10 @@ class counter:
     
     def __init__(self):
         """include this question in the count for this quiz, send to 'end' if quiz is finished"""
+
+        #current object must be accessed at runtime, so can't be global variable
+        session, request = current.session, current.request
+
         if session.q_counter:
             if int(session.q_counter) >= int(session.path_length):
                 session.q_counter = 0

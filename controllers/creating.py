@@ -9,6 +9,8 @@ if 0:
     db = DAL()
     auth = Auth()
 
+from paideia_bugs import paideia_bugs
+
 @auth.requires_membership(role="administrators")
 def question():
     edit_form = crud.create(db.questions)

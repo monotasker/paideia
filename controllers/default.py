@@ -1,15 +1,8 @@
 # -*- coding: utf-8 -*-
-# this file is released under public domain and you can use without limitations
-
-#########################################################################
-## This is a samples controller
-## - index is the default action of any application
-## - user is required for authentication and authorization
-## - download is for downloading files uploaded in the db (does streaming)
-## - call exposes all registered services (none by default)
-#########################################################################
 
 import datetime
+from paideia_stats import paideia_stats, paideia_timestats, paideia_weeklycount
+from paideia_bugs import paideia_bugs
 
 if 0:
     from gluon import current
@@ -17,12 +10,10 @@ if 0:
     from gluon.dal import DAL
     db = DAL()
     auth = Auth()
-    response = current.response
-    session = current.session
-    request = current.request
-    from applications.paideia.models.paideia_stats import *
-    from applications.paideia.models.paideia_bugs import *
-    
+    response, session, request, T, service = current.response, current.session, current.request, current.T, current.service
+
+
+
 
 def index():
     """

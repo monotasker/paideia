@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 # this file is released under public domain and you can use without limitations
 
+#TODO: set track changes to false when dev is finished
+from gluon.custom_import import track_changes
+track_changes(True)
+
 #########################################################################
 ## This scaffolding model makes your app work on Google App Engine too
 #########################################################################
