@@ -1,14 +1,19 @@
 # coding: utf8
 
 if 0:
-    from gluon import current, redirect, URL, SQLFORM, A
+    from gluon import current, redirect, URL, SQLFORM, A, Field, IS_NOT_EMPTY
     from gluon.dal import DAL
     from gluon.tools import Auth
-    request,session,response,T,cache=current.request,current.session,current.response,current.t,current.cache
+    request,session,response,T,cache=current.request,current.session,current.response,current.T,current.cache
     db = DAL()
     auth = Auth()
-    from applications.paideia.models.paideia_questions import *
-    from applications.paideia.models.paideia_exploring import *
+    from modules.paideia_exploring import activepath, counter
+    from modules.paideia_questions import question
+
+
+from paideia_exploring import activepath, counter
+from paideia_questions import question
+
 
 @auth.requires_login()
 def index():

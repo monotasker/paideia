@@ -1,14 +1,25 @@
 # coding: utf8
 
+if 0:
+    from gluon import current, Auth, SQLFORM
+    from gluon.dal import DAL
+    auth = Auth()
+    db = DAL()
+    request = current.request
+
+from paideia_stats import paideia_stats, paideia_timestats, paideia_weeklycount
+
 @auth.requires_membership(role='administrators')
 def index():
     reports = dict(attempts='Attemps Log',)
     return dict(reports=reports)
 
+
 @auth.requires_membership(role='administrators')
 def attempts():
     form = SQLFORM.grid(db.attempt_log)
-    return dict(form = form)
+    return dict(form=form)
+
 
 @auth.requires_membership(role='administrators')
 def user():
@@ -23,4 +34,10 @@ def user():
     #form = SQLFORM.grid(db.attempt_log.name == request.args[0])
     #place form=auth() in returned values
 
-    return dict(the_name = the_name, score_avg=s.score_avg, total_len = t.total_len, total_cat1 = t.total_cat1, total_cat2 = t.total_cat2, total_cat3 = t.total_cat3, percent_cat1 = t.percent_cat1, percent_cat2 = t.percent_cat2, percent_cat3 = t.percent_cat3, total_cat4 = t.total_cat4, percent_cat4 = t.percent_cat4, dateset = w.dateset, htmlcal = w.htmlcal)
+    return dict(the_name=the_name, score_avg=s.score_avg,
+        total_len=t.total_len, total_cat1=t.total_cat1,
+        total_cat2=t.total_cat2, total_cat3=t.total_cat3,
+        percent_cat1=t.percent_cat1, percent_cat2 = t.percent_cat2,
+        percent_cat3 = t.percent_cat3, total_cat4 = t.total_cat4,
+        percent_cat4 = t.percent_cat4, dateset = w.dateset,
+        htmlcal = w.htmlcal)

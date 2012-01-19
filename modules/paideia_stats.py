@@ -1,18 +1,11 @@
 import calendar, datetime
 
-if 0:
-    from gluon import current, SQLFORM, redirect, A, URL
-    from gluon.tools import Auth, Crud
-    from gluon.dal import DAL
-    db = DAL()
-    auth = Auth()
-    cache=current.cache
-    T = current.t
-    response = current.response
-    service = current.service
-    request = current.request
-    session = current.session
-    crud = Crud()
+from gluon import current
+from gluon.tools import Auth, Crud
+from gluon.dal import DAL
+db = DAL()
+crud = Crud()
+
 
 class paideia_stats:
     # calculates stats for paideia student performance
@@ -39,7 +32,8 @@ class paideia_stats:
 class paideia_timestats:
     def __init__(self, user_id):
         """
-        Collects and returns student performance statistics based on question categories and time relationships between the present, the last successful attempt, and the last unsuccessful attempt.
+        Collects and returns student performance statistics based on question categories and time relationships
+        between the present, the last successful attempt, and the last unsuccessful attempt.
 
         This function returns the vollowing attributes:
         total_len -- The total number of questions that have been attempted by the current student
@@ -94,6 +88,9 @@ class paideia_weeklycount:
         returns the following variables:
         dateset -- a list of tuples, each of which contains three values: month, first day of week, number attempted
         """
+
+        session = current.session
+
         self.user_id = user_id
         logs = db(db.attempt_log.name == self.user_id).select(db.attempt_log.dt_attempted)
 

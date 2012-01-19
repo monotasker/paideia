@@ -14,6 +14,12 @@ if 0:
 from plugin_multiselect_widget import hmultiselect_widget, vmultiselect_widget
 import datetime
 
+#make auth available to modules in current.
+auth = Auth(db)
+from gluon import current
+current.auth = auth
+
+
 dtnow = datetime.datetime.utcnow()
 
 db.define_table('categories',
