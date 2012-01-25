@@ -1,18 +1,11 @@
 import random,re,datetime,string
-from custom_import import track_changes
-
 from gluon import current, redirect, URL
-from gluon.dal import DAL
-from gluon.tools import Auth
-
-db = DAL()
-
 
 class question:
     """
     handles selection, presentation, and evaluation of one active question
     methods: selectq, evalq, recordq
-    
+
     """
     def __init__(self):
         self.the_q = '' #the row object holding the selected question
@@ -22,19 +15,19 @@ class question:
         self.rightCount = ''
         self.wrongCount = ''
         self.score = ''
-   
+
     def selectq(self):
         """
         selects the question to present to a user at the start of a step in any path
-        
-        q_not_today -- questions the student hasn't attempted today 
+
+        q_not_today -- questions the student hasn't attempted today
         q_fresh -- questions the student hasn't ever attempted
         q_cat1 -- questions that are in category1 for this student
         q_cat2 -- questions that are in category2 for this student
         q_cat3 -- questions that are in category3 for this student
         q_cat4 -- questions that are in category4 for this student
 
-        TODO: still need to code following conditions 1) include only tags for this quiz; 2) include only frequency for this quiz        
+        TODO: still need to code following conditions 1) include only tags for this quiz; 2) include only frequency for this quiz
         TODO: add a session counter dict that counts the number of times each question is failed today -- qID:#
         TODO: handle browser refresh more intelligently (to next q rather than path selection)
         TODO: handle system errors gracefully
@@ -45,21 +38,21 @@ class question:
         # (db.question_records.name==auth.user_id) filters based on current user
         # (db.question_records.last_right != datetime.date.today()) removes questions gotten right today
 
-        session, auth = current.session, current.auth
+        session, auth, db = current.session, current.auth, current.db
 
         d = str(datetime.date.today())
         d = string.replace(d, ',', '-')
         session.debug = d
-        
+
         q_not_today =  db((db.questions.id == db.question_records.question) & (db.question_records.name==auth.user_id) & (db.question_records.tlast_right != d)).select()
         q_cat1 = db((db.questions.id == db.question_records.question) & (db.question_records.name==auth.user_id) & (db.question_records.category==1) & (db.question_records.tlast_right != d)).select()
         q_cat2 = db((db.questions.id == db.question_records.question) & (db.question_records.name==auth.user_id) & (db.question_records.category==2) & (db.question_records.tlast_right != d)).select()
         q_cat3 = db((db.questions.id == db.question_records.question) & (db.question_records.name==auth.user_id) & (db.question_records.category==3) & (db.question_records.tlast_right != d)).select()
         q_cat4 = db((db.questions.id == db.question_records.question) & (db.question_records.name==auth.user_id) & (db.question_records.category==4) & (db.question_records.tlast_right != d)).select()
         q_fresh = db(db.question_records.question==None).select(db.questions.ALL, db.question_records.ALL, left=db.question_records.on(db.questions.id==db.question_records.question))
-        
+
         session.debug = datetime.date.today()
-       
+
         the_switch = random.randint(0,9)
         #randomly choose between review (haven't answered correct today) and totally new
         if the_switch in range(3,9):
@@ -92,29 +85,29 @@ class question:
             session.quiz_type = "fresh questions (first try)"
             question_count = len(questions) - 1
             question_index = random.randint(0,question_count)
-            question_obj = questions[question_index].questions       
+            question_obj = questions[question_index].questions
         #fallback is totally random review (in case all have been tried and gotten correct today)
-        else:        
+        else:
             questions = q_not_today
             session.quiz_type = "random"
             question_count = len(questions) - 1
             question_index = random.randint(0, question_count)
             question_obj = questions[question_index].questions
-      
+
         session.qID = question_obj.id
         session.question_text = question_obj.question
-        session.answer = question_obj.answer        
+        session.answer = question_obj.answer
         session.answer2 = question_obj.answer2
         session.answer3 = question_obj.answer3
         session.readable_answer = question_obj.readable_answer
 
     def evalq(self):
 
-        session = current.session
+        session, db, auth = current.session, current.db, current.auth
 
         the_response = string.strip(session.response)
         self.the_q = db(db.question_records.question==session.q_ID).select().first()
-        
+
         try:
             if re.match(session.answer, the_response, re.I):
                 session.eval = 'correct'
@@ -158,20 +151,21 @@ class question:
                 else:
                     self.rightDate = datetime.datetime.utcnow()
                 self.wrongDate = datetime.datetime.utcnow()
-                self.score = 0           
-            
+                self.score = 0
+
             self.recordq()
-            
-        #handle errors if the response cannot be evaluated        
+            self.recordtag(session.q_ID)
+
+        #handle errors if the response cannot be evaluated
         except re.error:
             redirect(URL('index', args=['error', 'regex']))
-        
+
     def recordq(self):
         """
-        update or create database record for question attempt after it's evaluated.
+        update or create database record for this question after the attempt is evaluated.
         """
 
-        session = current.session
+        session, db, auth = current.session, current.db, current.auth
 
         #If the user has already attempted this question once, update their record for this question
         if db((db.question_records.name==auth.user_id)&(db.question_records.question==session.q_ID)).select():
@@ -203,3 +197,20 @@ class question:
         #if the user hasn't attempted this question, create a new record for it
         else:
             db.question_records.insert(question=session.q_ID, times_right=self.rightCount, times_wrong=self.wrongCount)
+
+    def recordtag(self, q_ID):
+        """
+        update or create database record for this question after the attempt is evaluated.
+        """
+
+        #get web2py objects from current
+        session, db, auth = current.session, current.db, current.auth
+
+        tags = db(db.questions.id == session.q_ID).select(db.questions.tags)
+        print q_ID
+        for tag in tags:
+            print tag
+            if db((db.tag_records.name==auth.user_id)&(db.tag_records.tag==the_tag)).select():
+                pass
+            else:
+                db.tag_records.insert(question=session.q_ID, times_right=self.rightCount, times_wrong=self.wrongCount)

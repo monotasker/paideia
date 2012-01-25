@@ -191,3 +191,37 @@ timestamp: 2012-01-02T15:06:32.855821
 ALTER TABLE auth_cas ADD renew CHAR(1);
 timestamp: 2012-01-02T15:06:32.930196
 ALTER TABLE auth_cas ADD ticket CHAR(512);
+timestamp: 2012-01-20T14:01:56.795083
+CREATE TABLE locations(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    location CHAR(512)
+);
+success!
+timestamp: 2012-01-20T14:01:56.918623
+CREATE TABLE npcs(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name CHAR(512),
+    location TEXT,
+    image CHAR(512)
+);
+success!
+timestamp: 2012-01-20T14:01:57.032515
+ALTER TABLE questions ADD tags_secondary TEXT;
+timestamp: 2012-01-20T14:01:57.128950
+ALTER TABLE questions ADD npcs TEXT;
+timestamp: 2012-01-20T14:01:57.231310
+ALTER TABLE questions ADD next TEXT;
+timestamp: 2012-01-20T14:01:57.362411
+CREATE TABLE tag_records(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    question INTEGER REFERENCES questions(id) ON DELETE CASCADE,
+    times_right DOUBLE,
+    times_wrong DOUBLE,
+    tlast_wrong TIMESTAMP,
+    tlast_right TIMESTAMP,
+    category INTEGER REFERENCES categories(id) ON DELETE CASCADE
+);
+success!
+timestamp: 2012-01-20T22:28:17.677060
+ALTER TABLE tag_records ADD tag INTEGER REFERENCES tags(id) ON DELETE CASCADE;

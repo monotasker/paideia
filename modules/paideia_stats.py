@@ -1,16 +1,10 @@
 import calendar, datetime
-
 from gluon import current
-from gluon.tools import Auth, Crud
-from gluon.dal import DAL
-db = DAL()
-crud = Crud()
 
 
 class paideia_stats:
     # calculates stats for paideia student performance
     Name = "paideia_stats"
-
 
     def __init__(self, user_id):
         """
@@ -19,11 +13,12 @@ class paideia_stats:
         This function returns the following attributes:
         score_avg -- Straightforward average of scores, presented as a percentage.
         """
-        self.user_id = user_id
+        db = current.db
+
         try:
-            attempts = db(db.attempt_log.name == self.user_id).select()
+            attempts = db(db.attempt_log.name == user_id).select()
             s=db.attempt_log.score.sum()
-            row = db(db.attempt_log.name == self.user_id).select(s).first()
+            row = db(db.attempt_log.name == user_id).select(s).first()
             answer = row[s]
             self.score_avg = round(answer/len(attempts)*100)
         except:
@@ -47,33 +42,34 @@ class paideia_timestats:
         percent_cat4 -- Percentage of questions attempted that are currently in category 4
         """
 
+        db = current.db
+
         # get statistics for different classes of questions
-        self.user_id = user_id
-        the_records = db(db.question_records.name == self.user_id).select()
+        the_records = db(db.question_records.name == user_id).select()
         self.total_len = float(len(the_records))
         try:
-            cat1 = db((db.question_records.name == self.user_id) & (db.question_records.category == 1)).select()
+            cat1 = db((db.question_records.name == user_id) & (db.question_records.category == 1)).select()
             self.total_cat1 = len(cat1)
             self.percent_cat1 = round((int(self.total_cat1)/self.total_len)*100, 1)
         except:
             self.total_cat1 = "Can't calculate number"
             self.percent_cat1 = ""
         try:
-            cat2 = db((db.question_records.name == self.user_id) & (db.question_records.category == 2)).select()
+            cat2 = db((db.question_records.name == user_id) & (db.question_records.category == 2)).select()
             self.total_cat2 = len(cat2)
             self.percent_cat2 = round((int(self.total_cat2)/self.total_len)*100, 1)
         except:
             self.total_cat2 = "Can't calculate number"
             self.percent_cat2 = ""
         try:
-            cat3 = db((db.question_records.name == self.user_id) & (db.question_records.category == 3)).select()
+            cat3 = db((db.question_records.name == user_id) & (db.question_records.category == 3)).select()
             self.total_cat3 = len(cat3)
             self.percent_cat3 = round((int(self.total_cat3)/self.total_len)*100, 1)
         except:
             self.total_cat3 = "Can't calculate number"
             self.percent_cat3 = ""
         try:
-            cat4 = db((db.question_records.name == self.user_id) & (db.question_records.category == 4)).select()
+            cat4 = db((db.question_records.name == user_id) & (db.question_records.category == 4)).select()
             self.total_cat4 = len(cat4)
             self.percent_cat4 = round((int(self.total_cat4)/self.total_len)*100, 1)
         except:
@@ -81,6 +77,7 @@ class paideia_timestats:
             self.percent_cat4 = ""
 
 class paideia_weeklycount:
+
     def __init__(self, user_id):
         """
         Collect and return the number of questions attempted per day and per week
@@ -89,14 +86,14 @@ class paideia_weeklycount:
         dateset -- a list of tuples, each of which contains three values: month, first day of week, number attempted
         """
 
-        session = current.session
+        session, db = current.session, current.db
 
-        self.user_id = user_id
-        logs = db(db.attempt_log.name == self.user_id).select(db.attempt_log.dt_attempted)
+        logs = db(db.attempt_log.name == user_id).select(db.attempt_log.dt_attempted)
 
         loglist = {}
 
         #offset from utc time used to generate and store time stamps
+        #TODO: Get utc time offset dynamically from user's locale
         utcvar = -5
 
         for log in logs:
@@ -116,12 +113,12 @@ class paideia_weeklycount:
                 pass
             else:
                 monthlist.append(k.month)
-                
+
         self.dateset = {}
         self.htmlcal = ''
         for month in monthlist:
             monthcal = calendar.monthcalendar(this_year, month)
-            
+
             #build dict containing stats organized into weeks
             if month not in self.dateset:
                 self.dateset[month] = {}
@@ -133,11 +130,11 @@ class paideia_weeklycount:
                     w = m[weekday]
                 for day in week:
                     w[day] = ''
-                     
+
                 for dt, count in loglist.items():
                     if dt.month == month and dt.day in week:
                         w[dt.day] = count
-            
+
             #now build html calendar as string with stats embedded
             nms = calendar.month_name
             monthname = nms[month]

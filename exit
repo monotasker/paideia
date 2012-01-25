@@ -1,0 +1,338 @@
+[33mcommit 8b713204bf688970b32fe301367548b11529723f[m
+Merge: ce115df 4f54dfa
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Mon Jan 16 11:40:58 2012 -0500
+
+    using remove version of databases/storage.sqlite
+
+[33mcommit ce115dfec9df95f0aebd2e6bc6453884deb5f652[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Mon Jan 16 11:03:06 2012 -0500
+
+    Adding images for UI
+
+[33mcommit 4f54dfa5a25b8dab2a04636f49787be0470eae9d[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Mon Jan 16 10:51:34 2012 -0500
+
+    Committing pycharm project files
+
+[33mcommit 92bfe9fd17894e01009d08774f0ef5706048323a[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Mon Jan 16 10:50:16 2012 -0500
+
+    Just changes to session files and db
+
+[33mcommit d009dd697273fe242af6758e7cbc0c55148a5e3e[m
+Merge: 72140ac b9e1ba0
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Tue Jan 3 17:47:09 2012 -0500
+
+    Merge branch 'master' of github.com:monotasker/paideia
+
+[33mcommit 72140ac29453e4c24da85c3f835748614113ef2f[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Tue Jan 3 17:46:52 2012 -0500
+
+    misc
+
+[33mcommit b9e1ba0e5f3ef2dcefcbd3ae6d43415302914ab5[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Mon Jan 2 15:11:28 2012 -0500
+
+    Adding svg draft of new logo
+
+[33mcommit f363566dff215f0b45ccb4335c388352e5a9c96c[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Mon Jan 2 15:07:44 2012 -0500
+
+    Updating with new data and bug fixes from live site
+
+[33mcommit e1b3fcce1b727ad8104e65234ef11853d9bde6ae[m
+Merge: 8709f4a f444317
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Thu Nov 24 15:58:31 2011 -0500
+
+    Merge branch 'master' of github.com:monotasker/paideia
+
+[33mcommit 8709f4a65e3374b8b2c671176075bc98e07b46f8[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Thu Nov 24 15:58:18 2011 -0500
+
+    cleaning up directories
+
+[33mcommit f444317d8a0ecb5e7a6cfd5cca12b5a02c584b47[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Thu Nov 24 15:56:33 2011 -0500
+
+    deleted some unused files as cleanup
+
+[33mcommit ff2bb0c9e9a0105544189c255e9c9b93419cfc5e[m
+Merge: 3a5c744 5663459
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Wed Nov 16 10:58:53 2011 -0500
+
+    integrating jQuery UI
+
+[33mcommit 3a5c744e3ae1422ec9c49a439af981d9412e6e34[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Wed Nov 16 10:26:51 2011 -0500
+
+    Integrating jQuery UI library, adding its tab functionality to user profile view, and minor tweaks to bug tracking and question listing controllers/models
+
+[33mcommit 5663459b496352d8bfa148f9fcaf29f82c173b8e[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Sat Nov 12 01:08:11 2011 -0500
+
+    "Recording and reporting of questions attempted per day is now working. Dates are now recorded in UTC time and adjusted for EST (Toronto) time."
+
+[33mcommit 6586d901d5fcaf29d244cc0e75257f1423d1ebf9[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Fri Nov 11 13:50:59 2011 -0500
+
+    "Substantial changes to model files. I've finally resolved the problem of junk columns remaining in the sqlite database, and the db model has been cleaned accordingly. Date handling in the db is now based on datetime (not date) and utcnow() rather than server time. Also improvements to question selection algorithm. There is more cleaning up to do, updating field names in various controllers and models. Also, I need to update paideia_stats model to add time-zone adaptation to the weekly count reporting."
+
+[33mcommit c06c84661512da2bdac515ab084a412fcf3e67d6[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Wed Nov 9 15:32:53 2011 -0500
+
+    "no significant changes"
+
+[33mcommit e77afe64061d85edfb57aeb3b37c0305ce770fd2[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Sat Nov 5 21:40:43 2011 -0400
+
+    "part-way through implementing handling of score corrections for confirmed bug report"
+
+[33mcommit 96956e1d227bee4771b31a7e6cdad42a124e0d1d[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Sat Nov 5 17:39:08 2011 -0400
+
+    "Modified the view listing/question.load so that bug warnings are only shown where the bug hasn't yet been handled."
+
+[33mcommit b0d753cd060154cc6004b8aad6a2ac5ff7b2868a[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Sat Nov 5 17:15:10 2011 -0400
+
+    "Finished implementing a basic bug-report response system and interface in the user profile page. This still needs to be styled properly and the dates need to be adjusted for time zone."
+
+[33mcommit 306dbd94364bc3233df7d9b64c9ee83d44825cea[m
+Merge: 4dc688d 2aef45b
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Sat Nov 5 14:55:34 2011 -0400
+
+    Merge branch 'master' of github.com:monotasker/paideia
+
+[33mcommit 4dc688da400db053f1b9794f8076c77d564f83d5[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Sat Nov 5 14:54:40 2011 -0400
+
+    "working on system to give feedback when bug report filed"
+
+[33mcommit 2aef45beea098328b51a0c14347c78c07a8f85e6[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Sat Nov 5 11:01:00 2011 -0400
+
+    "Moved quite a bit of the business logic from the controller exploring.py to classes in two new models paideia_questions.py, paideia_exploring.py. Also added preference for some questions in selection algorithm based on time-based categories."
+
+[33mcommit 82b6926acb4229a2806f74321c5b51b6ea5f5db8[m
+Merge: 5bfc046 a523969
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Fri Nov 4 18:28:59 2011 -0400
+
+    Merge branch 'master' of github.com:monotasker/paideia
+    
+    Conflicts:
+    	databases/storage.sqlite
+
+[33mcommit 5bfc0465c03c86b87693b98419024194a2eeb21d[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Fri Nov 4 17:39:03 2011 -0400
+
+    "local changes to questions db"
+
+[33mcommit a5239697f3baad49e2d900c0c82464ca129c3880[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Tue Nov 1 15:54:22 2011 -0400
+
+    "Tweaked css for listing/questions.html view and for admin forms in general. This has created a few unintended uglinesses in the exploring views which will need to be fixed. Also added a new class models/paideia_bugs.py which now handles the creation of new bug reports (logic removed from controller)."
+    	# with '#' will be ignored, and an empty message aborts the commit.
+
+[33mcommit d2ec65f35f1274fd43c6fae963389f00f68a613d[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Sat Oct 29 17:43:29 2011 -0400
+
+    "Added display of calendar with # of questions attempted to default/user view and tweaked the associated styles in base.css. Also added project files for the ERIC IDE."
+
+[33mcommit 998ecfe72a40b38e5baf8c1b361cfb65ee8369dd[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Sat Oct 29 02:02:25 2011 -0400
+
+    "Improved class for collecting daily and weekly activity data, which now builds an html calendar for inclusion in reports. The calendar is already included in the reporting/user view, but still needs to be included in the default/user view. More changes to base.css and controller files to facilitate these improvements."
+
+[33mcommit 1dd83f7efca61ec47b439491e14faf626463c6d7[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Fri Oct 28 23:22:09 2011 -0400
+
+    "Added two new classes in models/paideia_stats.py to provide student performance statistics. One of these classes now provides statistics on the number of questions attempted per week. I also fixed the bug producing a 404 error when accessing the reporting/user view. Finally, base.css has been altered to provide more attractive formatting of statistics reports."
+
+[33mcommit b5da98db6463c4570f9f2fb7b74eb35e9272193b[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Thu Oct 27 20:38:25 2011 -0400
+
+    "Added private/scratch_calendar with a rough demo function for grouping datetime objects by week."
+
+[33mcommit 72c19509fa839e6a625f79f3b1e9b827b783e43a[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Tue Oct 25 21:21:31 2011 -0400
+
+    "Fixed quiz listing/creation admin interface. This included adding two new views: editing/quiz.load and creating/quiz.load. Also some minor css and naming changes to the listing/question.html view and base.css."
+
+[33mcommit c5d084562c7e79a832c03e7f77fdeec560890782[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Tue Oct 25 17:50:45 2011 -0400
+
+    "Changed the 'status' field of db.questions to 'q_status'. This seems to eliminate a 'duplicate field name' error. The name was changed in models/paideia.py and in controllers/exploring.py"
+
+[33mcommit 0b6e3bfa683bec857e05eac81081aaa391f9f0c1[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Mon Oct 24 21:46:40 2011 -0400
+
+    "Moved business logic for calculating student performance statistics from exploring.py and default.py controllers (where it was duplicated) to a new class paideia_stats, located in a new model file, paideia_stats.py. Also fixed some typos in the associated views."
+
+[33mcommit a536a2c2b22061f9496510363b7ad1b518b3471c[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Mon Oct 24 20:19:23 2011 -0400
+
+    "fixed user profile to round percentages in user statistics"
+
+[33mcommit b6e6bdd0704d57be1a4305ec2d8f0506ee1f0c99[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Mon Oct 24 16:54:46 2011 -0400
+
+    "Adjustments integrating newer database content after merge problems with the fluxflex deployment repo"
+
+[33mcommit 441e9b01a8dd56b3f3dc46d07cecd156f9fc453f[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Mon Oct 24 11:20:57 2011 -0400
+
+    "Implemented basic categorization of questions based on student performance and reporting of this information. Reports are now available to administrators via the Admin/Users page or to each student on their profile page."
+
+[33mcommit 6bbd991e5da2a29b5f2d8d62f5fcb40a0898b045[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Sun Oct 23 00:25:48 2011 -0400
+
+    "Added date-based tracking and categorization of student performance in controllers/exploring.py, recorded in db.question_records.category"
+
+[33mcommit c53c0f4b6fd6c17e4a708f97f91be8cb52531c04[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Sat Oct 22 23:19:19 2011 -0400
+
+    "Fixed display of user's average question score in user report"
+
+[33mcommit abdb94de722f18bd60d2fe09910969d8ce13c232[m
+Merge: c8fb045 83d8205
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Sat Oct 22 22:40:16 2011 -0400
+
+    Merge branch 'master' of github.com:monotasker/paideia
+
+[33mcommit c8fb0452bd919d4d7641da0a0d56053f97b680af[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Sat Oct 22 22:39:22 2011 -0400
+
+    "adding session and error files to prepare for pull"
+
+[33mcommit 4e745e947db6b289b2e49de2a223c8c05e745b06[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Sat Oct 22 22:30:53 2011 -0400
+
+    "fixing merge problems"
+
+[33mcommit 83d8205e45ee9c8852ad27e07b69dafb7d1dd9dd[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Sat Oct 22 21:43:49 2011 -0400
+
+    "Began adding controllers and views for student performance reporting."
+
+[33mcommit 806fd379eef03e469b94a5ca34eb35e835aa9210[m
+Merge: 3eb2b7f 8fb2ceb
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Fri Oct 21 15:39:27 2011 -0400
+
+    Merge branch 'master' of github.com:monotasker/paideia
+
+[33mcommit 3eb2b7f3841a09b2cc0d20de8f2a9c4ad4b5a365[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Fri Oct 21 15:38:22 2011 -0400
+
+    "added a new table (attempt_log) to the paideia.py model file. This will pave the way for better score tracking.)
+
+[33mcommit 8fb2ceb9ce6da85941351f5fda89fe89f786dff2[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Thu Oct 20 22:14:22 2011 -0400
+
+    "Added a flag field to the paideia.py module file to allow marking of a question for different purposes. Then added a filter in exploring.py to ignore questions with the value 1 when selecting for quizzing. This allows questions to be taken out of circulation for correction."
+    
+     entee the commit message for your changes. Lines starting
+
+[33mcommit 76e3667fe01d83634ea5a73a8a7a39f7f48b0ffa[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Wed Oct 19 11:48:30 2011 -0400
+
+    "1. Added error handling for evaluation of questions in exploring. This included creating a new 'error' view to present to the user and making sure that the question creating the error wasn't counted in the number of questions attempted. 2. Also fixed list positioning in the css."
+
+[33mcommit a86f6f6009e53460323c9d14459d952449a5ff99[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Thu Oct 13 14:23:48 2011 -0400
+
+    "Finished implementing news and updates blog with modal (ajax) creation and editing of stories."
+
+[33mcommit 9082a16afda4e6eb395471afaf7a506950523733[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Wed Oct 12 15:08:18 2011 -0400
+
+    "Fixed a few bugs and added the start of a functioning blog system for the front-page news and updates"
+
+[33mcommit 3d57ae87959533c148ec5d472f27fbb912630617[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Wed Oct 12 12:02:22 2011 -0400
+
+    "Added the first character image (static/images/woman1.png) and updated css file to display it"
+
+[33mcommit 25e939541c60c7070b8a2c09dcaa1689d0a16b4b[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Fri Oct 7 23:54:28 2011 -0400
+
+    1. controllers/default.py -- added utility email function in preparation for adding email responses into bug management; 2. controllers/listing.py -- added a restriction to bug() so that only the bug reports for the selected question are displayed.
+
+[33mcommit 33690129cf914c7492619d8bb2279643031ae6f5[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Fri Oct 7 16:22:47 2011 -0400
+
+    "in controllers/exploring.py -- added stripping of leading and trailing whitespace from submitted answers before they are evaluated against the regex;
+    in databases/storage.sqlite -- several new and corrected questions"
+
+[33mcommit 9984b05c4ee54ea9775d493c954dca9ccadb562c[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Wed Oct 5 12:16:17 2011 -0400
+
+    "improved question selection algorithm"
+
+[33mcommit 429d9f38420ea8fdb10d7d821b05eadddde04045[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Tue Oct 4 21:46:16 2011 -0400
+
+    "added text to the README file"
+
+[33mcommit 52cc4f9f0616f9843da15f074b11f13eb2b02e6c[m
+Author: Ian W. Scott <iscott@tyndale.ca>
+Date:   Tue Oct 4 15:42:10 2011 -0400
+
+    "first commit of actual app files to github"
+
+[33mcommit 0b58320a92f9df2fe177634ef740f6acf2f0c1c5[m
+Author: monotasker <scottianw@gmail.com>
+Date:   Tue Oct 4 15:37:20 2011 -0400
+
+    first commit to github

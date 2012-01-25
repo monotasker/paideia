@@ -24,6 +24,10 @@ else:                                         # else use a normal relational dat
 # none otherwise. a pattern can be 'controller/function.extension'
 response.generic_patterns = ['*'] if request.is_local else []
 
+# add db to current object so that it can be accessed from modules
+from gluon.globals import current
+current.db = db
+
 #########################################################################
 ## Here is sample code if you need for
 ## - email capabilities
@@ -35,17 +39,17 @@ response.generic_patterns = ['*'] if request.is_local else []
 #########################################################################
 
 from gluon.tools import Mail, Auth, Crud, Service, PluginManager, prettydate
-mail = Mail()                                  # mailer
-auth = Auth(db)                                # authentication/authorization
 crud = Crud(db)                                # for CRUD helpers using auth
 service = Service()                            # for json, xml, jsonrpc, xmlrpc, amfrpc
 plugins = PluginManager()                      # for configuring plugins
 
+mail = Mail()                                  # mailer
 mail.settings.server = 'logging' or 'smtp.gmail.com:587'  # your SMTP server
-mail.settings.sender = 'you@gmail.com'         # your email
+mail.settings.sender = 'scottianw@gmail.com'         # your email
 mail.settings.login = 'username:password'      # your credentials or None
 
-auth.settings.hmac_key = 'sha512:c54d15af-368c-42ab-a500-2b185d53a969'   # before define_tables()
+auth = Auth(db, hmac_key=Auth.get_or_create_key()) # authentication/authorization
+auth.settings.hmac_key = 'sha512:c54d15af-368c-42ab-a500-2b185d53a969'
 auth.define_tables()                           # creates all needed tables
 auth.settings.mailer = mail                    # for user email verification
 auth.settings.registration_requires_verification = False
@@ -53,6 +57,7 @@ auth.settings.registration_requires_approval = False
 auth.messages.verify_email = 'Click on the link http://'+request.env.http_host+URL('default','user',args=['verify_email'])+'/%(key)s to verify your email'
 auth.settings.reset_password_requires_verification = True
 auth.messages.reset_password = 'Click on the link http://'+request.env.http_host+URL('default','user',args=['reset_password'])+'/%(key)s to reset your password'
+current.auth = auth
 
 #enable recaptcha anti-spam for selected actions
 from gluon.tools import Recaptcha
@@ -60,8 +65,6 @@ auth.settings.login_captcha = None
 auth.settings.register_captcha = Recaptcha(request, '6Ley58cSAAAAAAFpawl9roIBqjk_WKqdPz3eH4Tq', '6Ley58cSAAAAAJ4Wy-k-ixP1bmzNJl0xZom8BuRT')
 auth.settings.retrieve_username_captcha = Recaptcha(request, '6Ley58cSAAAAAAFpawl9roIBqjk_WKqdPz3eH4Tq', '6Ley58cSAAAAAJ4Wy-k-ixP1bmzNJl0xZom8BuRT')
 auth.settings.retrieve_password_captcha = Recaptcha(request, '6Ley58cSAAAAAAFpawl9roIBqjk_WKqdPz3eH4Tq', '6Ley58cSAAAAAJ4Wy-k-ixP1bmzNJl0xZom8BuRT')
-
-
 
 #########################################################################
 ## If you need to use OpenID, Facebook, MySpace, Twitter, Linkedin, etc.

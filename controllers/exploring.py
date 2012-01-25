@@ -1,5 +1,4 @@
 # coding: utf8
-
 if 0:
     from gluon import current, redirect, URL, SQLFORM, A, Field, IS_NOT_EMPTY
     from gluon.dal import DAL
@@ -10,10 +9,8 @@ if 0:
     from modules.paideia_exploring import activepath, counter
     from modules.paideia_questions import question
 
-
 from paideia_exploring import activepath, counter
 from paideia_questions import question
-
 
 @auth.requires_login()
 def index():
@@ -40,7 +37,7 @@ def index():
         #see whether answer matches any of the three answer fields
         q = question()
         the_eval = q.evalq()
-        
+
         #build response to user
         if session.eval == 'correct':
             the_reply = "Right. Κάλη."

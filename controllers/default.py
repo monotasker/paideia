@@ -12,15 +12,9 @@ if 0:
     auth = Auth()
     response, session, request, T, service = current.response, current.session, current.request, current.T, current.service
 
-
-
-
 def index():
-    """
-    example action using the internationalization operator T and flash
-    rendered by views/default/index.html or views/generic.html
-    """
-    return dict(message=T('Hello World'))
+    """    """
+    return dict()
 
 def user():
     """

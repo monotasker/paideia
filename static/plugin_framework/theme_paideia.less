@@ -1,0 +1,403 @@
+/* Paideia theme */
+/* a sub-theme for the "framework" layout plugin for web2py */
+/* copyright Ian W. Scott, 2011-2012 */
+/* licensed under GPL 3.0 as a free, open-source resource */
+
+@import "framework";
+
+@font-face{
+    font-family: 'MyWebFont';
+    src: url('fonts/websymbols-regular-webfont.eot');
+    src: url('fonts/websymbols-regular-webfont.eot?#iefix') format('embedded-opentype'), url('fonts/websymbols-regular-webfont.woff') format('woff'), url('fonts/websymbols-regular-webfont.ttf') format('truetype'), url('fonts/websymbols-regular-webfont.svg#websymbols-regular-webfont') format('svg');
+}
+
+body {
+    background-color: @cream;
+    background-image: url('/paideia/static/images/mosaic_texture1.png');
+    background-repeat: repeat;
+    z-index:1;
+    font-family: @fonts2;
+}
+
+header {
+    position:relative;
+    display:block;
+    height:@lineheight3;
+    background:transparent;
+    z-index:99;
+    padding:0;
+
+    h1 a {
+        margin:0;
+        color: @moss;
+        font-size:@typeheight3;
+        font-family:@fonts1;
+        text-transform: uppercase;
+        font-weight:bold;
+        letter-spacing: 2px;
+    }
+
+}
+
+nav {
+    background-color:transparent;
+    padding: 0;
+    margin:0;
+    height:100%;
+    border-left:1px solid rgba(0,0,0,0.1);
+
+    .sf-menu {
+        li {
+            background-color:transparent;
+            height:@lineheight3;
+            line-height:@lineheight3;
+
+            a, a:link, a:visited {
+                color:@cranberry;
+                font-weight:bold;
+                padding:0 @typeheight;
+            }
+            a:hover, a:active, a:focus {
+                .linear-gradient(rgba(270,270,270,0.1), rgba(270,270,270,0));
+            }
+        }
+        li:hover, li.sfHover {
+            background-color:transparent;
+
+            li {
+                line-height: @lineheight2;
+                height: @lineheight2;
+                background-color:@grey3;
+                font-weight:normal;
+                a:hover {
+                    color:@sky;
+                }
+            }
+        }
+
+        li:last-child {
+            font-family: 'MyWebFont';
+
+            a {
+                border-right:none;
+                padding-l:@lineheight2;
+            }
+
+            li {
+                font-family: @fonts2;
+            }
+        }
+    }
+
+}
+
+.auth_navbar {
+    color:@cranberry;
+    height:@lineheight3;
+    line-height:@lineheight3;
+    display:block;
+    font-weight:bold;
+
+    a, a:link, a:visited {
+        height:@lineheight3;
+        line-height:@lineheight3;
+        color:@cranberry;
+        padding:0 @typeheight;
+        display:block;
+        float:right;
+    }
+    a:hover, a:active, a:focus {
+    }
+    a:last-child {
+        margin-left: @typeheight;
+    }
+}
+
+#page {
+    background-color:@white;
+    z-index:1;
+    border:@lineheight double @grey6; /* keep children's margins from pushing page down */
+
+    h2 {
+        padding-left: @lineheight3;
+        margin-top: @lineheight2;
+        color: @greya;
+        text-shadow:0 0 6px #fff;
+    }
+
+    div, aside {
+        padding:0;
+    }
+
+    article {
+        padding-left:@lineheight3;
+        padding-right:@lineheight3;
+        text-align:justify;
+        -moz-hyphens:auto;
+        -webkit-hyphens:auto;
+        font-family:prociono;
+        color:#666;
+
+        .date_created {
+            display:block;
+            color:@sky;
+        }
+
+        .article_wrapper {
+            padding:0;
+        }
+
+        p {
+            margin:0;
+            text-indent: @lineheight2;
+        }
+
+        li {
+            line-height: @lineheight2;
+            border-bottom: 1px solid @greye5;
+        }
+
+        a, a:link, a:visited {
+            color: @dusky-blue1;
+        }
+
+        a:hover {
+            color: @dusky-blue2;
+        }
+
+    }
+
+    #updates {
+        margin-top: @lineheight3;
+
+        h3 {
+            margin-left: @lineheight3;
+        }
+
+        .news_create_link {
+            float: right;
+            margin-right: @lineheight3;
+            color: @moss;
+        }
+
+    }
+
+    .npc {
+        .speech-bubble(@lineheight);
+        margin-top: @lineheight;
+        margin-right: -@lineheight;
+    }
+
+    .responder {
+        .speech-bubble(@lineheight);
+        margin-top: @lineheight;
+        margin-right: -@lineheight;
+        background: @greyf5;
+    }
+
+    .comments{
+        padding: 0;
+        margin-top: @lineheight3;
+
+        .comment {
+            padding: 0;
+            padding-bottom: @lineheight;
+            margin-bottom: @lineheight;
+            border-bottom: 1px solid #e6e6e6;
+            color: #888;
+
+            .comment_author{
+                color: @red;
+            }
+            .comment_date {
+                color: #aaa;
+                display: block;
+                float: right;
+            }
+            .comment_body {
+                display: block;
+            }
+        }
+
+        textarea {
+            border: 1px solid #ccc;
+        }
+    }
+
+    #left_sidebar, #right_sidebar {
+        padding:@lineheight3;
+        width:30%;
+        float:right;
+        border-left:1px solid #e6e6e6;
+        clear:right;
+        margin-left:@lineheight3;
+        font-family:prociono;
+
+        h2 {
+            font-family: Arial;
+            text-transform: uppercase;
+            font-size: @typeheight;
+            letter-spacing: 2px;
+            font-weight: normal;
+            color: #aaa;
+        }
+
+        a, a:link, a:visited {
+            color:@red;
+        }
+
+        div {
+            height: @lineheight;
+            overflow: hidden;
+            padding: 0;
+            -moz-transition: 300ms all;
+        }
+
+        div:hover {
+            height:auto;
+            -moz-transition: 300ms all;
+            transition: 300ms all;
+        }
+
+    }
+
+}
+
+#page.exploring {
+        background:@mist url('../static/images/woman1.png') no-repeat -50px 10px;
+        overflow: visible;
+
+    .next_q {
+    }
+
+}
+
+#viewpane, #listpane {
+    position:relative;
+    padding:0;
+}
+
+#listpane {
+
+    width:@typeheight * 19;
+
+    li {
+        display:block;
+        height:@lineheight2;
+        line-height:@lineheight2;
+        overflow:hidden;
+        padding-left:@lineheight;
+        .linear-gradient(#f5f5f5, #eeeeee);
+        border-bottom: @greyc;
+
+        a, a:link, a:visited {
+            color:@dusky-blue1;
+        }
+        a:hover {
+            color:@dusky-blue2;
+        }
+    }
+}
+
+#listpane:after {
+    content:' ';
+}
+
+#listpane:before {
+    content:' ';
+    .tapered-shadow;
+}
+
+#viewpane {
+    width: @typeheight * 40;
+    padding-top: @lineheight2;
+
+    table {
+        width: 100%;
+
+        a {
+            float: right;
+        }
+
+    }
+
+    textarea {
+        width: 90%;
+    }
+
+}
+
+#viewpane:before {
+    content:' ';
+    .tapered-shadow;
+
+    form {
+        padding:0;
+        margin:0;
+    }
+}
+
+footer {
+    background-color:transparent;
+    color:@dusky-blue2;
+    .text-shadow();
+}
+
+.flash {
+    position:absolute;
+    width:280px;
+    left:50%;
+    top:0;
+    margin-left:-140px;
+    z-index:100;
+}
+
+/* ================= iPad in portrait ================= */
+@media all and (orientation:portrait){
+}
+
+/* ================= iPad in landscape ================= */
+@media all and (orientation:landscape){
+}
+
+/* ================= iPhone4 (retina screen) ================= */
+@media only screen
+and (-webkit-min-device-pixel-ratio: 2)
+and (max-device-width: 480px){
+}
+
+/* ================= Intermediate browser viewing area (480px+)================= */
+@media screen
+and (max-width: 480px){
+
+#left_sidebar, #right_sidebar {
+    padding:0;
+    width:20px;
+    overflow: hidden;
+}
+
+#left_sidebar:hover, #right_sidebar:hover {
+    padding:@lineheight3;
+    width:30%;
+}
+
+
+}
+
+/* ================= Wide browser viewing area (768px +) ==================== */
+@media only screen
+and (max-width: 768px) {
+
+
+
+}
+
+/* ================= Max browser viewing area (1140px +) ==================== */
+@media only screen and (min-width: 1140px) {
+
+}
+
+/* ============================================================================= Print styles. Inlined to avoid required HTTP connection: www.phpied.com/delay-loading-your-print-css/ ========================================================================== */
+@media print {
+
+}
