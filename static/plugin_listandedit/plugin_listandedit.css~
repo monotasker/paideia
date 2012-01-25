@@ -1,0 +1,41 @@
+/**structure**/
+
+#viewpane {
+    float:right;
+    width:65%;
+    overflow:auto;
+}
+
+#listpane {
+    width:30%;
+    height:600px;
+    overflow:auto;
+    min-width:140px;
+}
+
+/**theme**/
+
+#listpane {
+    background:#f5f5f5;
+    border:1px solid #eee;
+}
+
+#listpane ul {
+    margin-left:0;
+}
+
+#listpane li {
+    background-color:#fff;
+    list-style-type:none;
+    line-height:20px;
+    padding-left:14px;
+}
+
+#listpane li:nth-child(2n){
+    background-color:#eee;
+}
+
+#viewpane {
+    background:#f5f5f5;
+    border:1px solid #eee;
+}

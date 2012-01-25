@@ -1,0 +1,12 @@
+{{=widget}}
+
+<script>
+    {{#TODO: derive the linktable names dynamically from the id of the clicked link. Then move this to separate js file.}}
+    $('#{{=linktable}}_add_trigger').live('click', function(event){
+        $('#{{=linktable}}_adder_form').dialog({
+            height:200,
+            width:500,
+            title:'Add new {{=linktable}}'
+        });
+    });
+</script>

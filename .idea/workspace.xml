@@ -2,24 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="050d7a90-643a-4a13-a27f-9963ca10f430" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/static/plugin_framework/theme_paideia.less" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/databases/c8b669d15150d7109e5f7ab36744a5b7_questions.table" afterPath="$PROJECT_DIR$/databases/c8b669d15150d7109e5f7ab36744a5b7_questions.table" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/databases/storage.sqlite" afterPath="$PROJECT_DIR$/databases/storage.sqlite" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sessions/127.0.0.1-e39bb56e-30eb-4da5-9f4e-559a6c22ef0d" afterPath="$PROJECT_DIR$/sessions/127.0.0.1-e39bb56e-30eb-4da5-9f4e-559a6c22ef0d" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/images/mosaic_texture.svg" afterPath="$PROJECT_DIR$/static/images/mosaic_texture.svg" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/images/mosaic_texture1.png" afterPath="$PROJECT_DIR$/static/images/mosaic_texture1.png" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/controllers/default.py" afterPath="$PROJECT_DIR$/controllers/default.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/controllers/exploring.py" afterPath="$PROJECT_DIR$/controllers/exploring.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/databases/sql.log" afterPath="$PROJECT_DIR$/databases/sql.log" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/models/db.py" afterPath="$PROJECT_DIR$/models/db.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/models/paideia.py" afterPath="$PROJECT_DIR$/models/paideia.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/modules/paideia_bugs.py" afterPath="$PROJECT_DIR$/modules/paideia_bugs.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/modules/paideia_exploring.py" afterPath="$PROJECT_DIR$/modules/paideia_exploring.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/modules/paideia_questions.py" afterPath="$PROJECT_DIR$/modules/paideia_questions.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/modules/paideia_stats.py" afterPath="$PROJECT_DIR$/modules/paideia_stats.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/plugin_framework/theme.less" afterPath="$PROJECT_DIR$/static/plugin_framework/theme.less" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/views/default/index.html" afterPath="$PROJECT_DIR$/views/default/index.html" />
     </list>
     <ignored path="paideia.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -44,7 +28,16 @@
       <file leaf-file-name="paideia.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/models/paideia.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="84" column="0" selection-start="2925" selection-end="2925" vertical-scroll-proportion="0.0">
+            <state line="80" column="52" selection-start="2828" selection-end="2828" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="plugin_listandedit.py" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/controllers/plugin_listandedit.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -77,14 +70,12 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="paideia_questions.py" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="paideia_questions.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/modules/paideia_questions.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="162" column="22" selection-start="7990" selection-end="7990" vertical-scroll-proportion="0.10333864">
+            <state line="162" column="22" selection-start="7990" selection-end="7990" vertical-scroll-proportion="0.0">
               <folding>
                 <element signature="e#0#32#0" expanded="true" />
-                <element signature="e#7999#8105#1" expanded="true" />
-                <element signature="e#9847#9953#1" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -146,10 +137,10 @@
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="-1" />
-    <option name="y" value="-10" />
-    <option name="width" value="1368" />
-    <option name="height" value="779" />
+    <option name="x" value="58" />
+    <option name="y" value="119" />
+    <option name="width" value="1390" />
+    <option name="height" value="913" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
     <OptionsSetting value="true" id="Add" />
@@ -165,7 +156,7 @@
     <option name="STATE" value="0" />
   </component>
   <component name="ProjectView">
-    <navigator proportions="" version="1" splitterProportion="0.5">
+    <navigator currentView="ProjectPane" proportions="" version="1" splitterProportion="0.5">
       <flattenPackages />
       <showMembers />
       <showModules />
@@ -176,16 +167,66 @@
       <autoscrollFromSource />
       <sortByType />
     </navigator>
-    <panes />
+    <panes>
+      <pane id="Scope" />
+      <pane id="ProjectPane">
+        <subPane>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="paideia" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="paideia" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="paideia" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="paideia" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="paideia" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="modules" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="paideia" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="paideia" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="controllers" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+        </subPane>
+      </pane>
+    </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="options.splitter.main.proportions" value="0.3" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="options.lastSelected" value="editor.preferences.tabs" />
     <property name="recentsLimit" value="5" />
+    <property name="options.lastSelected" value="reference.settings.ide.settings.web.browsers" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/views" />
-    <property name="options.splitter.details.proportions" value="0.2" />
     <property name="options.searchVisible" value="true" />
+    <property name="options.splitter.details.proportions" value="0.2" />
   </component>
   <component name="PyConsoleOptionsProvider">
     <option name="myPythonConsoleState">
@@ -296,17 +337,17 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-1" y="-10" width="1368" height="779" extended-state="6" />
+    <frame x="58" y="119" width="1390" height="913" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Data Sources" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.30944625" sideWeight="0.49473685" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="true" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.24885145" sideWeight="0.60084033" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.24848942" sideWeight="0.60084033" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.39915967" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.30664653" sideWeight="0.49605262" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.30533335" sideWeight="0.49605262" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32899022" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
@@ -382,11 +423,6 @@
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/views/exploring/index.load">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="9" column="20" selection-start="399" selection-end="399" vertical-scroll-proportion="0.0" />
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/controllers/creating.py">
       <provider selected="true" editor-type-id="text-editor">
         <state line="12" column="0" selection-start="333" selection-end="333" vertical-scroll-proportion="0.0" />
@@ -427,11 +463,6 @@
         <state line="5" column="6" selection-start="103" selection-end="103" vertical-scroll-proportion="0.039933443" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/models/paideia.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="84" column="0" selection-start="2925" selection-end="2925" vertical-scroll-proportion="0.0" />
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/controllers/default.py">
       <provider selected="true" editor-type-id="text-editor">
         <state line="38" column="21" selection-start="1233" selection-end="1233" vertical-scroll-proportion="0.0" />
@@ -449,9 +480,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/modules/paideia_stats.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="162" column="0" selection-start="7102" selection-end="7102" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
+        <state line="162" column="0" selection-start="7102" selection-end="7102" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/modules/paideia_bugs.py">
@@ -461,12 +490,24 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/modules/paideia_questions.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="162" column="22" selection-start="7990" selection-end="7990" vertical-scroll-proportion="0.10333864">
+        <state line="162" column="22" selection-start="7990" selection-end="7990" vertical-scroll-proportion="0.0">
           <folding>
             <element signature="e#0#32#0" expanded="true" />
-            <element signature="e#7999#8105#1" expanded="true" />
-            <element signature="e#9847#9953#1" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/models/paideia.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="80" column="52" selection-start="2828" selection-end="2828" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/controllers/plugin_listandedit.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
+          <folding />
         </state>
       </provider>
     </entry>

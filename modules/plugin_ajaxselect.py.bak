@@ -1,0 +1,115 @@
+from gluon import sqlhtml, current, SPAN, A
+from gluon.custom_import import track_changes
+from gluon.html import URL
+from gluon.sqlhtml import OptionsWidget
+
+session = current.session
+request = current.request
+
+#TODO: set track changes to false when dev is finished
+track_changes(True)
+
+class AjaxSelect:
+    """
+    Creates a select widget wrapped that can be refreshed via ajax without resetting
+    the entire form,
+
+    Usage: In a web2py model file, import this class and then apply it as
+    the widget-factory for one or more db fields. To do this for a field named
+    'author' from a table named 'notes' you would add this line somewhere in
+    the model file:
+
+    db.notes.author.widget = lambda field, value: AjaxSelect(field, value, 'authors', {optional argument}).widget()
+
+    Note that the third argument passed to AjaxSelect should be the name of the
+    table *referenced by the current field*. In this example, the field 'author'
+    references the table 'authors'. So the third argument in this case is 'authors'.
+
+    Optional arguments:
+    refresher (True/False; defaults to True):a button to manually refresh the select
+    widget via ajax.
+
+    adder (True/False; defaults to True): a button to add a new record to the linked
+    table that populates the select widget.
+
+    restricted ({fieldname}): adds a dynamic constraint on the records displayed in the
+    select widget. When the specified form field (within the same form) has its value
+    changed, this select will be refreshed and its displayed records filtered
+    accordingly. Note that this is only useful if {fieldname} references values shared
+    with the linked table.
+
+    restrictor ({fieldname}): makes this select widget acts as a constraint on the content
+    of another select widget in the same table. When the value of this select is
+    changed, the available values in the {fieldname} widget will be filtered and that
+    widget updated via ajax.
+
+    """
+    #TODO: Implement boolean adder switch
+
+    def __init__(self, field, value, linktable, refresher = True, restricted = "None", restrictor = "None"):
+        self.field = field
+        self.value = value
+        self.linktable = linktable
+        self.refresher = refresher
+        self.restricted = restricted
+        self.restrictor = restrictor
+        self.tablename = ""
+        self.fieldname = ""
+        self.wrappername = ""
+        self.comp_url = ""
+        self.add_url = ""
+        self.adder_id = ""
+        self.wrapper = ""
+        self.w = ""
+
+
+    def get_fieldset(self):
+        #get field and tablenames for element id's
+        fieldset = str(self.field).split('.')
+        self.tablename = fieldset[0]
+        self.fieldname = fieldset[1]
+
+    def build_info(self):
+        #build name for the span that will wrap the select widget
+        self.wrappername = '%s_%s_loader' %(self.tablename, self.fieldname)
+
+        #URL to reload widget via ajax
+        self.comp_url = URL('plugin_ajaxselect', 'set_widget.load', args=[self.tablename, self.fieldname, self.value, self.linktable, self.wrappername])
+
+        #URL to load form for linking table via ajax
+        self.add_url = URL('plugin_ajaxselect', 'set_form_wrapper.load', args=[self.tablename, self.fieldname, self.value, self.linktable, self.wrappername])
+
+    def create_widget(self):
+        #create the select widget
+        self.adder_id = '%s_add_trigger' % self.linktable
+        self.w = OptionsWidget.widget(self.field, self.value)
+
+    def create_wrapper(self):
+        #create the span wrapper and place the select widget inside, along with buttons to add and refresh if necessary
+        s = SPAN(self.w, _id=self.wrappername)
+        refresher = A('refresh', _href=self.comp_url, cid=self.wrappername)
+        f = '%s_adder_form' % self.linktable
+        adder = A('add new', _href=self.add_url, _id=self.adder_id, cid=f)
+        dialog = DIV('', _id=f)
+
+        if not self.refresher:
+            self.wrapper = s, adder, dialog
+        else:
+            self.wrapper = s, refresher, adder, dialog
+
+    def widget(self):
+        """
+        Returns a select widget that can be refreshed (via Ajax) by clicking the
+        accompanying button. This allows updating of the select's contents without
+        refreshing the whole form.
+        """
+
+        self.get_fieldset()
+
+        self.build_info()
+
+        self.create_widget()
+
+        self.create_wrapper()
+
+        return self.wrapper
