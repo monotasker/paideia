@@ -94,6 +94,7 @@ class question:
             question_index = random.randint(0, question_count)
             question_obj = questions[question_index].questions
 
+        print question_obj.id
         session.qID = question_obj.id
         session.question_text = question_obj.question
         session.answer = question_obj.answer
@@ -105,8 +106,10 @@ class question:
 
         session, db, auth = current.session, current.db, current.auth
 
+        print session.qID
+
         the_response = string.strip(session.response)
-        self.the_q = db(db.question_records.question==session.q_ID).select().first()
+        self.the_q = db(db.question_records.question==session.qID).select().first()
 
         try:
             if re.match(session.answer, the_response, re.I):
@@ -154,7 +157,7 @@ class question:
                 self.score = 0
 
             self.recordq()
-            self.recordtag(session.q_ID)
+            self.recordtag(session.qID)
 
         #handle errors if the response cannot be evaluated
         except re.error:
@@ -168,7 +171,7 @@ class question:
         session, db, auth = current.session, current.db, current.auth
 
         #If the user has already attempted this question once, update their record for this question
-        if db((db.question_records.name==auth.user_id)&(db.question_records.question==session.q_ID)).select():
+        if db((db.question_records.name==auth.user_id)&(db.question_records.question==session.qID)).select():
             timesR = self.the_q.times_right
             timesW = self.the_q.times_wrong
             newTimesR = int(timesR) + int(self.rightCount)
@@ -193,12 +196,12 @@ class question:
                 cat = 1
 
             #update the db record
-            db(db.question_records.question==session.q_ID).update(times_right=newTimesR, times_wrong=newTimesW, tlast_right=last_right, tlast_wrong=last_wrong, category=cat)
+            db(db.question_records.question==session.qID).update(times_right=newTimesR, times_wrong=newTimesW, tlast_right=last_right, tlast_wrong=last_wrong, category=cat)
         #if the user hasn't attempted this question, create a new record for it
         else:
-            db.question_records.insert(question=session.q_ID, times_right=self.rightCount, times_wrong=self.wrongCount)
+            db.question_records.insert(question=session.qID, times_right=self.rightCount, times_wrong=self.wrongCount)
 
-    def recordtag(self, q_ID):
+    def recordtag(self, qID):
         """
         update or create database record for this question after the attempt is evaluated.
         """
@@ -206,11 +209,12 @@ class question:
         #get web2py objects from current
         session, db, auth = current.session, current.db, current.auth
 
-        tags = db(db.questions.id == session.q_ID).select(db.questions.tags)
-        print q_ID
-        for tag in tags:
-            print tag
-            if db((db.tag_records.name==auth.user_id)&(db.tag_records.tag==the_tag)).select():
-                pass
-            else:
-                db.tag_records.insert(question=session.q_ID, times_right=self.rightCount, times_wrong=self.wrongCount)
+        tags = db(db.questions.id == session.qID).select(db.questions.tags).first()
+
+        for k, v in tags.items():
+            for tag in v:
+                print 'tag # %s recorded in db.tag_records' % tag
+                if db((db.tag_records.name==auth.user_id)&(db.tag_records.tag==tag)).select():
+                    pass
+                else:
+                    db.tag_records.insert(tag=tag, times_right=self.rightCount, times_wrong=self.wrongCount)
