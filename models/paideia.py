@@ -14,12 +14,6 @@ if 0:
 from plugin_multiselect_widget import hmultiselect_widget, vmultiselect_widget
 import datetime
 
-#make auth available to modules in current.
-auth = Auth(db)
-from gluon import current
-current.auth = auth
-
-
 dtnow = datetime.datetime.utcnow()
 
 db.define_table('categories',
@@ -30,6 +24,16 @@ db.define_table('categories',
 db.define_table('tags',
     Field('tag', 'string'),
     format='%(tag)s')
+
+db.define_table('locations',
+    Field('location'),
+    format='%(location)s')
+
+db.define_table('npcs',
+    Field('name', 'string'),
+    Field('location', 'list:reference db.locations'),
+    Field('image', 'string'),
+    format='%(name)s')
 
 db.define_table('questions',
     Field('question', 'text'),
@@ -42,11 +46,19 @@ db.define_table('questions',
     Field('value3', 'double', default=0.3),
     Field('frequency', 'double'),
     Field('tags', 'list:reference db.tags'),
+    Field('tags_secondary', 'list:reference db.tags'),
     Field('status', 'integer'),
+    Field('npcs', 'list:reference db.npcs'),
+    Field('next', 'list:reference db.questions'),
     format='%(question)s')
 
+db.questions.tags.requires = IS_IN_DB(db, 'questions.id', db.questions._format, multiple = True)
+db.questions.npcs.requires = IS_IN_DB(db, 'npcs.id', db.npcs._format, multiple = True)
+db.questions.npcs.widget = vmultiselect_widget
 db.questions.tags.requires = IS_IN_DB(db, 'tags.id', db.tags._format, multiple = True)
 db.questions.tags.widget = vmultiselect_widget
+db.questions.tags_secondary.requires = IS_IN_DB(db, 'tags.id', db.tags._format, multiple = True)
+db.questions.tags_secondary.widget = vmultiselect_widget
 
 db.define_table('quizzes',
     Field('quiz'),
@@ -64,6 +76,16 @@ db.quizzes.groups.requires = IS_IN_DB(db, 'auth_group.id', db.auth_group._format
 db.define_table('question_records',
     Field('name', db.auth_user, default=auth.user_id),
     Field('question', db.questions),
+    Field('times_right', 'double'),
+    Field('times_wrong', 'double'),
+    Field('tlast_wrong', 'datetime', default=dtnow),
+    Field('tlast_right', 'datetime', default=dtnow),
+    Field('category', db.categories)
+    )
+
+db.define_table('tag_records',
+    Field('name', db.auth_user, default=auth.user_id),
+    Field('tag', db.tags),
     Field('times_right', 'double'),
     Field('times_wrong', 'double'),
     Field('tlast_wrong', 'datetime', default=dtnow),
@@ -94,7 +116,7 @@ db.define_table('q_bugs',
     Field('question', db.questions),
     Field('a_submitted'),
     Field('name', db.auth_user, default=auth.user_id),
-    Field('submitted', 'datetime', default=dtnow),    
+    Field('submitted', 'datetime', default=dtnow),
     Field('bug_status', db.bug_status, default=1),
     Field('admin_comment',  'text'),
     Field('prev_lastright',  'datetime'),

@@ -2,20 +2,17 @@
 
 {{extend 'layout.html'}}
 
-
 <h2>Welcome!</h2>
 
-<div id='updates'>
-{{=LOAD('listing', 'news.load',ajax=True) }}
-</div>
+<article id='intro'>
+    <p>Paideia is an online space for learning New Testament Greek. To get started register for an account and then click the link below to "start exploring."</p>
+    <p>This is an early "alpha" version for use in my courses at Tyndale Seminary. It is not polished and I am hoping to expand the site's functionality over the coming months. Feel free to follow the link, though, to get a sense of what the project is about.</p>
+    {{=A("start exploring", _href=URL('exploring', 'index'), _class='button-green-grad')}}
+</article>
 
-<article id='intro'>Paideia is an online space for learning New Testament Greek. To get started register for an account and then click the link below to "start exploring."
-
-This is an early "alpha" version for use in my courses at Tyndale Seminary. It is not polished and I am hoping to expand the site's functionality over the coming months. Feel free to follow the link, though, to get a sense of what the project is about.</article>
-
-
-{{=A("start exploring", _href=URL('exploring', 'index'), _class='button-green-grad')}}
-
+<aside id='updates'>
+    {{=LOAD('listing', 'news.load',ajax=True) }}
+</aside>
 
 {{block left_sidebar}}New Left Sidebar Content{{end}}
 
