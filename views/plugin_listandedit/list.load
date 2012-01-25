@@ -1,0 +1,5 @@
+<ul>
+    {{for l in listset:}}
+    <li>{{=l}}</li>
+    {{pass}}
+</ul>

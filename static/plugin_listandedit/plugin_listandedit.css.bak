@@ -1,0 +1,22 @@
+/**structure**/
+
+#viewpane {
+    float:right;
+    width:300px;
+}
+
+#listpane {
+    width:300px;
+    height:600px;
+    overflow:scroll;
+}
+
+/**theme**/
+
+#listpane {
+    background:#ffffff;
+}
+
+#viewpane {
+    background:#ffffff;
+}
