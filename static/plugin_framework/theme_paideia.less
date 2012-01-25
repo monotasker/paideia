@@ -272,6 +272,40 @@ nav {
 
 }
 
+/* for plugin_listandedit */
+
+#page .list_control{
+    padding:0;
+    background: @greya;
+    border-right:1px solid @grey8;
+    border-left:1px solid @grey8;
+
+    h2 {
+        font-weight:normal;
+        color:@greye;
+        margin-right:@lineheight;
+        margin-left:@lineheight;
+        margin-top:0;
+        line-height: @lineheight3;
+        display:inline-block;
+        height:@lineheight3;
+        font-size:@typeheight2;
+        .text-shadow(0,0,3px, rgba(0,0,0,0.1));
+    }
+    a {
+        float:right;
+        color:@mist;
+        display:block;
+        line-height:@lineheight3;
+        height:@lineheight3;
+        margin-right:@lineheight;
+    }
+    a:hover {
+                color:@white;
+                .text-shadow(0);
+    }
+}
+
 #viewpane, #listpane {
     position:relative;
     padding:0;

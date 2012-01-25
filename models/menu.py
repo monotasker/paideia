@@ -40,8 +40,8 @@ response.menu+=[(T('Admin'), False, None,
     (T('Design'), False, URL('admin', 'default', 'index')),
     (T('Database'), False, URL('appadmin', 'index')),   
     (T('Users'), False, URL('listing', 'user')),
-    (T('Questions'), False, URL('listing', 'question')),
-    (T('Quizzes'), False, URL('listing', 'quiz')),
-    (T('Tags'), False, URL('listing', 'tag')),
+    (T('Questions'), False, URL('plugin_listandedit', 'list.html', args=['questions'])),
+    (T('Quizzes'), False, URL('plugin_listandedit', 'list.html', args=['quizzes'])),
+    (T('Tags'), False, URL('plugin_listandedit', 'list.html', args=['tags'])),
     ]
    )]

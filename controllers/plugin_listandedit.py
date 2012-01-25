@@ -13,10 +13,14 @@ def list():
     response.files.append(URL('static', 'plugin_listandedit/plugin_listandedit.js'))
 
     tablename = request.args[0]
-    restrictor = request.args[1]
-    session.restrictor = restrictor
-    rname_row = db(db.projects.id == restrictor).select(db.projects.projectname).first()
-    rname = rname_row.projectname
+    if len(request.args) > 1:
+        restrictor = request.args[1]
+        session.restrictor = restrictor
+        rname_row = db(db.projects.id == restrictor).select().first()
+        rname = rname_row.projectname
+    else:
+        restrictor = None
+        rname = None
     fieldnames = request.vars['fields']
 
     rowlist = ''
@@ -25,14 +29,17 @@ def list():
     else:
         tb = db[tablename]
         #TODO: Get tables and fields programmatically
-        rowlist = db((tb.author == db.authors.id) & (tb.work == db.works.id) & (tb.project == restrictor)).select()
+        if restrictor:
+            rowlist = db((tb.author == db.authors.id) & (tb.work == db.works.id) & (tb.project == restrictor)).select()
+        else:
+            rowlist = db(tb.id > 0).select()
 
     listset = []
     for r in rowlist:
         #FIXME: I need to get these values programmatically from vars['fields']
-        listformat = r.authors.name, ', ', r.works.title, ', ', r.notes.reference
+        listformat = r.question
 
-        i = A(listformat, _href=URL('plugin_listandedit', 'edit.load', args=[tablename, r.notes.id]), _class='plugin_listandedit_list', cid='viewpane')
+        i = A(listformat, _href=URL('plugin_listandedit', 'edit.load', args=[tablename, r.id]), _class='plugin_listandedit_list', cid='viewpane')
         listset.append(i)
 
     adder = A('Add new', _href=URL('plugin_listandedit', 'edit.load', args=[tablename]), _class='plugin_listandedit_list', cid='viewpane')
@@ -64,7 +71,10 @@ def edit():
 
         form = SQLFORM(db[tablename], separator='', showid=False)
         if form.process(formname=formname).accepted:
-            the_url = URL('plugin_listandedit', 'list.load', args=[tablename, session.restrictor])
+            arglist = [tablename]
+            if session.restrictor:
+                arglist.append(session.restrictor)
+            the_url = URL('plugin_listandedit', 'list.load', args=arglist)
             response.js = "web2py_component('%s', 'listpane');" %  the_url
             response.flash = 'New record successfully created.'
         elif form.errors:
