@@ -2,16 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="050d7a90-643a-4a13-a27f-9963ca10f430" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/databases/c8b669d15150d7109e5f7ab36744a5b7_attempt_log.table" afterPath="$PROJECT_DIR$/databases/c8b669d15150d7109e5f7ab36744a5b7_attempt_log.table" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/databases/c8b669d15150d7109e5f7ab36744a5b7_auth_cas.table" afterPath="$PROJECT_DIR$/databases/c8b669d15150d7109e5f7ab36744a5b7_auth_cas.table" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/databases/c8b669d15150d7109e5f7ab36744a5b7_q_bugs.table" afterPath="$PROJECT_DIR$/databases/c8b669d15150d7109e5f7ab36744a5b7_q_bugs.table" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/databases/c8b669d15150d7109e5f7ab36744a5b7_question_records.table" afterPath="$PROJECT_DIR$/databases/c8b669d15150d7109e5f7ab36744a5b7_question_records.table" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/databases/c8b669d15150d7109e5f7ab36744a5b7_questions.table" afterPath="$PROJECT_DIR$/databases/c8b669d15150d7109e5f7ab36744a5b7_questions.table" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/databases/c8b669d15150d7109e5f7ab36744a5b7_tag_records.table" afterPath="$PROJECT_DIR$/databases/c8b669d15150d7109e5f7ab36744a5b7_tag_records.table" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/databases/storage.sqlite" afterPath="$PROJECT_DIR$/databases/storage.sqlite" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sessions/127.0.0.1-2edda130-d654-4b0f-a819-06652e443aa6" afterPath="$PROJECT_DIR$/sessions/127.0.0.1-2edda130-d654-4b0f-a819-06652e443aa6" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sessions/127.0.0.1-e39bb56e-30eb-4da5-9f4e-559a6c22ef0d" afterPath="$PROJECT_DIR$/sessions/127.0.0.1-e39bb56e-30eb-4da5-9f4e-559a6c22ef0d" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/modules/paideia_questions.py" afterPath="$PROJECT_DIR$/modules/paideia_questions.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/plugin_framework/framework.less" afterPath="$PROJECT_DIR$/static/plugin_framework/framework.less" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/plugin_framework/theme_paideia.less" afterPath="$PROJECT_DIR$/static/plugin_framework/theme_paideia.less" />
     </list>
     <ignored path="paideia.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -45,25 +41,25 @@
       <file leaf-file-name="exploring.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/controllers/exploring.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="57" column="25" selection-start="2094" selection-end="2096" vertical-scroll-proportion="-20.096775">
+            <state line="57" column="25" selection-start="2094" selection-end="2096" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="paideia_exploring.py" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/modules/paideia_exploring.py">
+      <file leaf-file-name="framework.less" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/static/plugin_framework/framework.less">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="28" column="54" selection-start="1098" selection-end="1099" vertical-scroll-proportion="-13.548388">
+            <state line="416" column="0" selection-start="8255" selection-end="8255" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="paideia_questions.py" pinned="false" current="true" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/modules/paideia_questions.py">
+      <file leaf-file-name="theme_paideia.less" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/static/plugin_framework/theme_paideia.less">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="215" column="65" selection-start="10328" selection-end="10328" vertical-scroll-proportion="0.7942643">
+            <state line="119" column="33" selection-start="2927" selection-end="2927" vertical-scroll-proportion="0.54462934">
               <folding />
             </state>
           </provider>
@@ -72,7 +68,7 @@
       <file leaf-file-name="paideia_stats.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/modules/paideia_stats.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="30" column="22" selection-start="1042" selection-end="1044" vertical-scroll-proportion="35.129032">
+            <state line="30" column="22" selection-start="1042" selection-end="1044" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -83,6 +79,28 @@
           <provider selected="true" editor-type-id="text-editor">
             <state line="9" column="0" selection-start="278" selection-end="278" vertical-scroll-proportion="0.0">
               <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="paideia_exploring.py" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/modules/paideia_exploring.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="37" column="0" selection-start="1348" selection-end="1348" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="paideia_questions.py" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/modules/paideia_questions.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="211" column="0" selection-start="10206" selection-end="10206" vertical-scroll-proportion="0.0">
+              <folding>
+                <element signature="e#8048#8138#1" expanded="true" />
+                <element signature="e#8531#8637#1" expanded="true" />
+                <element signature="e#10099#10205#1" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -105,7 +123,6 @@
   <component name="IdeDocumentHistory">
     <option name="changedFiles">
       <list>
-        <option value="$PROJECT_DIR$/controllers/creating.py" />
         <option value="$PROJECT_DIR$/controllers/reporting.py" />
         <option value="$PROJECT_DIR$/views/default/index.html" />
         <option value="$PROJECT_DIR$/static/plugin_framework/theme.less" />
@@ -119,16 +136,17 @@
         <option value="$PROJECT_DIR$/controllers/plugin_listandedit.py" />
         <option value="$PROJECT_DIR$/views/plugin_listandedit/list.html" />
         <option value="$PROJECT_DIR$/models/menu.py" />
-        <option value="$PROJECT_DIR$/static/plugin_framework/theme_paideia.less" />
         <option value="$PROJECT_DIR$/modules/paideia_questions.py" />
+        <option value="$PROJECT_DIR$/static/plugin_framework/framework.less" />
+        <option value="$PROJECT_DIR$/static/plugin_framework/theme_paideia.less" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="65" />
-    <option name="y" value="119" />
-    <option name="width" value="1376" />
-    <option name="height" value="906" />
+    <option name="x" value="1366" />
+    <option name="y" value="-10" />
+    <option name="width" value="1366" />
+    <option name="height" value="778" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
     <OptionsSetting value="true" id="Add" />
@@ -156,7 +174,6 @@
       <sortByType />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -223,16 +240,17 @@
           </PATH>
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="options.splitter.main.proportions" value="0.3" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="options.lastSelected" value="reference.settingsdialog.IDE.editor.colors.Font" />
     <property name="recentsLimit" value="5" />
+    <property name="options.lastSelected" value="reference.settingsdialog.IDE.editor.colors.Custom" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/views" />
-    <property name="options.splitter.details.proportions" value="0.2" />
     <property name="options.searchVisible" value="true" />
+    <property name="options.splitter.details.proportions" value="0.2" />
   </component>
   <component name="PyConsoleOptionsProvider">
     <option name="myPythonConsoleState">
@@ -343,15 +361,14 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="65" y="119" width="1376" height="906" extended-state="6" />
+    <frame x="1366" y="-10" width="1366" height="778" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Data Sources" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.30944625" sideWeight="0.49473685" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32891566" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="true" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.16957788" sideWeight="0.67108434" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.16845329" sideWeight="0.67108434" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.39915967" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.30533335" sideWeight="0.49605262" order="7" side_tool="true" content_ui="tabs" />
@@ -360,6 +377,7 @@
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32891566" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32899022" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
@@ -449,14 +467,26 @@
         <state line="5" column="6" selection-start="103" selection-end="103" vertical-scroll-proportion="0.039933443" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/controllers/plugin_listandedit.py">
+    <entry file="file://$PROJECT_DIR$/models/menu.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="73" column="33" selection-start="3141" selection-end="3141" vertical-scroll-proportion="1.5962099" />
+        <state line="44" column="78" selection-start="1789" selection-end="1789" vertical-scroll-proportion="0.8082976" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/views/plugin_listandedit/list.load">
+    <entry file="file://$PROJECT_DIR$/controllers/default.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" />
+        <state line="47" column="0" selection-start="1723" selection-end="1723" vertical-scroll-proportion="0.16832918" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/models/paideia.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="92" column="36" selection-start="3253" selection-end="3253" vertical-scroll-proportion="0.0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/controllers/exploring.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="57" column="25" selection-start="2094" selection-end="2096" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/modules/paideia_bugs.py">
@@ -464,65 +494,41 @@
         <state line="9" column="0" selection-start="278" selection-end="278" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/models/menu.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="44" column="78" selection-start="1789" selection-end="1789" vertical-scroll-proportion="0.8082976">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/static/plugin_framework/theme_paideia.less">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="271" column="0" selection-start="5908" selection-end="5908" vertical-scroll-proportion="0.22593068">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/views/plugin_listandedit/list.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="12" column="23" selection-start="363" selection-end="363" vertical-scroll-proportion="0.23968042">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/controllers/default.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="47" column="0" selection-start="1723" selection-end="1723" vertical-scroll-proportion="0.16832918">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/modules/paideia_stats.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="30" column="22" selection-start="1042" selection-end="1044" vertical-scroll-proportion="35.129032">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/controllers/exploring.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="57" column="25" selection-start="2094" selection-end="2096" vertical-scroll-proportion="-20.096775">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/modules/paideia_exploring.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="28" column="54" selection-start="1098" selection-end="1099" vertical-scroll-proportion="-13.548388">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/models/paideia.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="92" column="36" selection-start="3253" selection-end="3253" vertical-scroll-proportion="0.0">
+        <state line="30" column="22" selection-start="1042" selection-end="1044" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/modules/paideia_questions.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="215" column="65" selection-start="10328" selection-end="10328" vertical-scroll-proportion="0.7942643">
+        <state line="211" column="0" selection-start="10206" selection-end="10206" vertical-scroll-proportion="0.0">
+          <folding>
+            <element signature="e#8048#8138#1" expanded="true" />
+            <element signature="e#8531#8637#1" expanded="true" />
+            <element signature="e#10099#10205#1" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/modules/paideia_exploring.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="37" column="0" selection-start="1348" selection-end="1348" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/static/plugin_framework/framework.less">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="416" column="0" selection-start="8255" selection-end="8255" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/static/plugin_framework/theme_paideia.less">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="119" column="33" selection-start="2927" selection-end="2927" vertical-scroll-proportion="0.54462934">
           <folding />
         </state>
       </provider>
