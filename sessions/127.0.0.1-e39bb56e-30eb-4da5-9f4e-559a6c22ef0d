@@ -5,29 +5,29 @@ S'Tyndale - Greek Exegesis I - Week 1'
 p3
 sS'q_counter'
 p4
-I8
+I10
 sS'path_length'
 p5
 S'20'
 p6
 sS'qID'
 p7
-I31
+I1
 sS'answer3'
 p8
 S'null'
 p9
 sS'answer2'
 p10
-S'null'
+S'command|commandment|statute|decree'
 p11
 sS'answer'
 p12
-S'^(because of |as a result of |due to |on account of )(the )*(bread)(.)*$'
+S'^(a |the )?(command|commandment|statute|decree|injunction)(.)?$'
 p13
 sS'question_text'
 p14
-S'What does \xce\xb4\xce\xb9\xe1\xbd\xb0 \xcf\x84\xe1\xbd\xb8\xce\xbd \xe1\xbc\x84\xcf\x81\xcf\x84\xce\xbf\xce\xbd mean?'
+S'What does \xe1\xbc\x90\xce\xbd\xcf\x84\xce\xbf\xce\xbb\xce\xae mean?'
 p15
 sS'auth'
 p16
@@ -74,24 +74,24 @@ S'Scott'
 p33
 sS'registration_id'
 p34
-NsS'email'
+NsS'id'
 p35
-S'scottianw@gmail.com'
-p36
-sS'reset_password_key'
-p37
-S'1327083713-2cc5b0bb-81c6-473e-adeb-2160a9624c63'
-p38
-sS'password'
-p39
-S'19738f1e9a2c8eaac81936a86bf608a1a6995e02f527fa31723cb88a2e513a1efae33471354a02805bf25ea2ea17a59c025a5fc8eca6b3bb2137bda74e538737'
-p40
-sS'registration_key'
-p41
-S''
-sS'id'
-p42
 I2
+sS'reset_password_key'
+p36
+S'1327083713-2cc5b0bb-81c6-473e-adeb-2160a9624c63'
+p37
+sS'password'
+p38
+S'19738f1e9a2c8eaac81936a86bf608a1a6995e02f527fa31723cb88a2e513a1efae33471354a02805bf25ea2ea17a59c025a5fc8eca6b3bb2137bda74e538737'
+p39
+sS'registration_key'
+p40
+S''
+sS'email'
+p41
+S'scottianw@gmail.com'
+p42
 stRp43
 (dp44
 g30
@@ -100,15 +100,15 @@ sg32
 g33
 sg34
 Nsg35
-g36
-sg37
-g38
-sg39
-g40
-sg41
-S''
-sg42
 I2
+sg36
+g37
+sg38
+g39
+sg40
+S''
+sg41
+g42
 sbstRp45
 (dp46
 g21
@@ -135,7 +135,7 @@ S'70'
 p52
 sS'response'
 p53
-S'because of the bread'
+S'a command'
 p54
 sS'_formkey[login]'
 p55
@@ -151,7 +151,7 @@ aI8
 aI9
 asS'last_query'
 p59
-S'(db.attempt_log.id>0) & (db.attempt_log.name==2)'
+S'db.tag_records.id>0'
 p60
 sS'_formkey[register]'
 p61
@@ -170,21 +170,18 @@ S'19c0a38d-2ca5-40f6-8d2a-5c5470527191'
 p67
 sS'readable_answer'
 p68
-S'because of the bread'
+S'a command, a commandment, a decree'
 p69
 sS'debug'
 p70
-cdatetime
-date
+S'2012-01-27'
 p71
-(S'\x07\xdc\x01\x14'
-tRp72
 sS'_formkey[no_table/create]'
+p72
+S'f9e085d3-54f7-4aa3-ad29-e46375880918'
 p73
-S'e89ef812-235d-4405-a965-0f5c5ba6b6d7'
-p74
 sS'_formkey[reset_password]'
-p75
+p74
 S'783cbf1f-6d9b-452b-86c9-40ac9b389d31'
-p76
+p75
 s.

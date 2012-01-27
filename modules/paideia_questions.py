@@ -51,8 +51,6 @@ class question:
         q_cat4 = db((db.questions.id == db.question_records.question) & (db.question_records.name==auth.user_id) & (db.question_records.category==4) & (db.question_records.tlast_right != d)).select()
         q_fresh = db(db.question_records.question==None).select(db.questions.ALL, db.question_records.ALL, left=db.question_records.on(db.questions.id==db.question_records.question))
 
-        session.debug = datetime.date.today()
-
         the_switch = random.randint(0,9)
         #randomly choose between review (haven't answered correct today) and totally new
         if the_switch in range(3,9):
@@ -163,13 +161,28 @@ class question:
         except re.error:
             redirect(URL('index', args=['error', 'regex']))
 
+    def categorize(self, right_dur, wrong_dur, rightWrong_dur):
+        """
+        given time data, categorize performance on a given question or tag
+        """
+        if right_dur < wrong_dur:
+            if (right_dur < rightWrong_dur) and (right_dur < datetime.timedelta(days=170)):
+                if right_dur > datetime.timedelta(days=14):
+                    cat = 4
+                else:
+                    cat = 3
+            else:
+                cat = 2
+        else:
+            cat = 1
+
+        return cat
+
     def recordq(self):
         """
         update or create database record for this question after the attempt is evaluated.
         """
-
         session, db, auth = current.session, current.db, current.auth
-
         #If the user has already attempted this question once, update their record for this question
         if db((db.question_records.name==auth.user_id)&(db.question_records.question==session.qID)).select():
             timesR = self.the_q.times_right
@@ -184,16 +197,7 @@ class question:
             wrong_dur = now_date-last_wrong
             rightWrong_dur = last_right - last_wrong
             #categorize this question based on student's performance
-            if right_dur < wrong_dur:
-                if (right_dur < rightWrong_dur) and (right_dur < datetime.timedelta(days=170)):
-                    if right_dur > datetime.timedelta(days=14):
-                        cat = 4
-                    else:
-                        cat = 3
-                else:
-                    cat = 2
-            else:
-                cat = 1
+            cat = self.categorize(now_date, last_right, last_wrong, right_dur, wrong_dur, rightWrong_dur)
 
             #update the db record
             db(db.question_records.question==session.qID).update(times_right=newTimesR, times_wrong=newTimesW, tlast_right=last_right, tlast_wrong=last_wrong, category=cat)
@@ -214,7 +218,25 @@ class question:
         for k, v in tags.items():
             for tag in v:
                 print 'tag # %s recorded in db.tag_records' % tag
-                if db((db.tag_records.name==auth.user_id)&(db.tag_records.tag==tag)).select():
-                    pass
+                # select record for this user on this tag
+                trecord = db((db.tag_records.name==auth.user_id)&(db.tag_records.tag==tag)).select()
+                # if the user has already tried this tag, update the record
+                if trecord:
+                    timesR = trecord.times_right
+                    timesW = trecord.times_wrong
+                    newTimesR = int(timesR) + int(self.rightCount)
+                    newTimesW = int(timesW) + int(self.wrongCount)
+                    #figure out time-based stats for this tag
+                    last_right = trecord.last_right
+                    last_wrong = trecord.last_wrong
+                    now_date = datetime.datetime.utcnow()
+                    right_dur = now_date-last_right
+                    wrong_dur = now_date-last_wrong
+                    rightWrong_dur = last_right - last_wrong
+                    #categorize tag based on this performance
+                    cat = self.categorize(right_dur, wrong_dur, rightWrong_dur)
+                    #update the db record
+                    db(db.question_records.question==session.qID).update(times_right=newTimesR, times_wrong=newTimesW) #tlast_right=last_right, tlast_wrong=last_wrong, category=cat
+                # if this is the user's first time for this tag, create a new record
                 else:
                     db.tag_records.insert(tag=tag, times_right=self.rightCount, times_wrong=self.wrongCount)

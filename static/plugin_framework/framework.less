@@ -407,6 +407,14 @@ div.error {
     color:#fff;
 }
 
+.border-image(@img, @a, @b, @c, @d) {
+    border-width: @a @b @c @d;
+    -moz-border-image: url(@img) @a @b @c @d repeat;
+    -webkit-border-image: url(@img) @a @b @c @d repeat;
+    -o-border-image: url(@img) @a @b @c @d repeat;
+    border-image: url(@img) @a @b @c @d repeat;
+}
+
 .button-green-grad {
     .button;
     .linear-gradient(#84C63C, #489615);
