@@ -1,15 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="050d7a90-643a-4a13-a27f-9963ca10f430" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/static/images/Drawing 15.png" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/databases/storage.sqlite" afterPath="$PROJECT_DIR$/databases/storage.sqlite" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sessions/127.0.0.1-e39bb56e-30eb-4da5-9f4e-559a6c22ef0d" afterPath="$PROJECT_DIR$/sessions/127.0.0.1-e39bb56e-30eb-4da5-9f4e-559a6c22ef0d" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/modules/paideia_questions.py" afterPath="$PROJECT_DIR$/modules/paideia_questions.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/plugin_framework/framework.less" afterPath="$PROJECT_DIR$/static/plugin_framework/framework.less" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/plugin_framework/theme_paideia.less" afterPath="$PROJECT_DIR$/static/plugin_framework/theme_paideia.less" />
-    </list>
+    <list default="true" id="050d7a90-643a-4a13-a27f-9963ca10f430" name="Default" comment="" />
     <ignored path="paideia.iws" />
     <ignored path=".idea/workspace.xml" />
     <option name="TRACKING_ENABLED" value="true" />
