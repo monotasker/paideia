@@ -5,29 +5,29 @@ S'Tyndale - Greek Exegesis I - Week 1'
 p3
 sS'q_counter'
 p4
-I10
+I8
 sS'path_length'
 p5
 S'20'
 p6
 sS'qID'
 p7
-I1
+I100
 sS'answer3'
 p8
-S'null'
+S'man|house'
 p9
 sS'answer2'
 p10
-S'command|commandment|statute|decree'
+S'((house)(.)*(man)(.)*(this|that)*)|((this|that)*(man)(.)*(house)(.)*)'
 p11
 sS'answer'
 p12
-S'^(a |the )?(command|commandment|statute|decree|injunction)(.)?$'
+S"^((the house )(of |belonging to )(this man))|(this man's house)(.)?$"
 p13
 sS'question_text'
 p14
-S'What does \xe1\xbc\x90\xce\xbd\xcf\x84\xce\xbf\xce\xbb\xce\xae mean?'
+S'What is \xe1\xbd\x81 o\xe1\xbc\xb4\xce\xba\xce\xbf\xcf\x82 \xcf\x84\xce\xbf\xe1\xbd\xba \xe1\xbc\x80\xce\xbd\xce\xb4\xcf\x81\xe1\xbd\xb8\xcf\x82 \xcf\x84\xce\xbf\xcf\x8d\xcf\x84\xce\xbf\xcf\x85?'
 p15
 sS'auth'
 p16
@@ -127,7 +127,7 @@ S'correct'
 p48
 sS'quiz_type'
 p49
-S'random'
+S'category 1'
 p50
 sS'path_freq'
 p51
@@ -135,7 +135,7 @@ S'70'
 p52
 sS'response'
 p53
-S'a command'
+S"this man's house"
 p54
 sS'_formkey[login]'
 p55
@@ -170,7 +170,7 @@ S'19c0a38d-2ca5-40f6-8d2a-5c5470527191'
 p67
 sS'readable_answer'
 p68
-S'a command, a commandment, a decree'
+S"this man's house"
 p69
 sS'debug'
 p70
@@ -178,7 +178,7 @@ S'2012-01-27'
 p71
 sS'_formkey[no_table/create]'
 p72
-S'f9e085d3-54f7-4aa3-ad29-e46375880918'
+S'450d652b-c2f2-459b-a9df-afd826e7dc3e'
 p73
 sS'_formkey[reset_password]'
 p74
