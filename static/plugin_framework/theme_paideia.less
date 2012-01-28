@@ -116,8 +116,8 @@ nav {
 #page {
     background-color:@white;
     z-index:1;
-    border:@lineheight double @grey6; /* keep children's margins from pushing page down */
-    .border-image('static/images/');
+    .border-image('../static/images/page_border.png', 171, 170, 170, 171);
+    border-width:85px;
 
     h2 {
         padding-left: @lineheight3;
