@@ -225,3 +225,7 @@ CREATE TABLE tag_records(
 success!
 timestamp: 2012-01-20T22:28:17.677060
 ALTER TABLE tag_records ADD tag INTEGER REFERENCES tags(id) ON DELETE CASCADE;
+timestamp: 2012-02-01T16:35:00.182021
+ALTER TABLE locations ADD background CHAR(512);
+timestamp: 2012-02-01T16:35:00.438232
+ALTER TABLE questions ADD audio CHAR(512);
