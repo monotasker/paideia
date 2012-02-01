@@ -10,6 +10,8 @@ if 0:
     request = current.request
     from applications.paideia.modules.plugin_multiselect_widget import hmultiselect_widget, vmultiselect_widget
 
+#os module needed for setting upload folders for images and audio
+import os
 #plugin from http://dev.s-cubism.com/plugin_multiselect_widget
 from plugin_multiselect_widget import hmultiselect_widget, vmultiselect_widget
 import datetime
@@ -27,12 +29,13 @@ db.define_table('tags',
 
 db.define_table('locations',
     Field('location'),
+    Field('background', 'upload', uploadfolder=os.path.join(request.folder, "static/images")),
     format='%(location)s')
 
 db.define_table('npcs',
     Field('name', 'string'),
     Field('location', 'list:reference db.locations'),
-    Field('image', 'string'),
+    Field('image', 'upload', uploadfolder=os.path.join(request.folder,"static/images")),
     format='%(name)s')
 
 db.define_table('questions',
@@ -50,6 +53,7 @@ db.define_table('questions',
     Field('status', 'integer'),
     Field('npcs', 'list:reference db.npcs'),
     Field('next', 'list:reference db.questions'),
+    Field('audio', 'upload', uploadfolder=os.path.join(request.folder, "static/audio")),
     format='%(question)s')
 
 db.questions.tags.requires = IS_IN_DB(db, 'questions.id', db.questions._format, multiple = True)
