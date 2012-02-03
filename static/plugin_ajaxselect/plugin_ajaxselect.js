@@ -23,7 +23,7 @@ $('.restrictor').live('change', function(event){
            //get name of field represented by target widget
            field = item.substring(4);
            //assemble name for target wrapper span
-           var span_id = table + '_' + field + '_loader'           
+           var span_id = table + '_' + field + '_loader'
            //assemble url to use for refreshing the widget
            var r_url = $('#' + span_id).next().attr('href')
            r_url += '/' + new_val + '/' + linktable;

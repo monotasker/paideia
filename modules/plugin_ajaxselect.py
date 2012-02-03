@@ -1,7 +1,7 @@
 from gluon import sqlhtml, current, SPAN, A, DIV
 from gluon.custom_import import track_changes
 from gluon.html import URL
-from gluon.sqlhtml import OptionsWidget
+from gluon.sqlhtml import OptionsWidget, ListWidget, MultipleOptionsWidget
 from plugin_multiselect_widget import vmultiselect_widget, hmultiselect_widget
 
 session, request, response = current.session, current.request, current.response
@@ -56,8 +56,6 @@ class AjaxSelect:
     db.notes.author.widget = lambda field, value: AjaxSelect(field, value, 'authors', restrictor='work').widget()
 
     """
-    #TODO: Implement boolean adder switch
-    #TODO: Change refresher hiding so that it is style based
     #TODO: allow for restrictor argument to take list and filter multiple other fields
 
     def __init__(self, field, value, linktable, refresher = False, adder = True, restricted = "None", restrictor = "None", multi = False):
@@ -79,6 +77,9 @@ class AjaxSelect:
         self.w = ""
         self.classes = ""
         self.multi = multi
+        self.clean_val = self.value
+        if self.multi:
+            self.clean_val = '-'.join(map(str, self.value))
 
     def get_fieldset(self):
         #get field and tablenames for element id's
@@ -97,19 +98,19 @@ class AjaxSelect:
             self.classes += '%s restrictor for_%s' % (self.linktable, self.restrictor)
 
         #URL to reload widget via ajax
-        self.comp_url = URL('plugin_ajaxselect', 'set_widget.load', args=[self.tablename, self.fieldname, self.value, self.linktable, self.wrappername])
+        self.comp_url = URL('plugin_ajaxselect', 'set_widget.load', args=[self.tablename, self.fieldname, self.clean_val, self.linktable, self.wrappername], vars=dict(multi=self.multi))
 
         #URL to load form for linking table via ajax
-        self.add_url = URL('plugin_ajaxselect', 'set_form_wrapper.load', args=[self.tablename, self.fieldname, self.value, self.linktable, self.wrappername])
+        self.add_url = URL('plugin_ajaxselect', 'set_form_wrapper.load', args=[self.tablename, self.fieldname, self.clean_val, self.linktable, self.wrappername])
 
     def create_widget(self):
         #create the select widget
         self.adder_id = '%s_add_trigger' % self.linktable
         self.refresher_id = '%s_refresh_trigger' % self.linktable
         if self.multi == 'v':
-            self.w = vmultiselect_widget(self.field, self.value)
+            self.w = MultipleOptionsWidget.widget(self.field, self.value)
         elif self.multi == 'h':
-            self.w = vmultiselect_widget(self.field, self.value)
+            self.w = ListWidget.widget(self.field, self.value)
         else:
             self.w = OptionsWidget.widget(self.field, self.value)
 
