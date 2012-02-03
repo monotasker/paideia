@@ -151,7 +151,7 @@ class question:
             #update the db record
             #PRINT - for debugging purposes
             print '\n\n', 'question (update)', qID, 'times_right', self.newTimesR[indx], 'times_wrong', self.newTimesW[indx], 'tlast_right', self.last_right[indx], 'tlast_wrong', self.last_wrong[indx], 'cat', self.cat[indx], '\n'
-            db(db.question_records.question == qID).update(
+            qrecord.update_record(
                 times_right = self.newTimesR[indx],
                 times_wrong = self.newTimesW[indx],
                 tlast_right = self.last_right[indx],
@@ -215,6 +215,8 @@ class question:
             print indx
         #set times right and times wrong
         timesR = record.times_right or 0
+        #PRINT - debugging
+        print 'timesR is ', timesR
         timesW = record.times_wrong or 0
         self.newTimesR[indx] = int(timesR) + int(self.rightCount)
         self.newTimesW[indx] = int(timesW) + int(self.wrongCount)
@@ -228,6 +230,7 @@ class question:
             self.last_wrong[indx] = record.tlast_wrong or now_date
         else:
             self.last_right[indx] = record.tlast_right or now_date
+            self.last_wrong[indx] = now_date
             self.wrongDate = now_date
         #figure out time-based stats for this q or tag
         right_dur = now_date - self.last_right[indx]
