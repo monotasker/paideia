@@ -14,6 +14,7 @@ if 0:
 import os
 #plugin from http://dev.s-cubism.com/plugin_multiselect_widget
 from plugin_multiselect_widget import hmultiselect_widget, vmultiselect_widget
+from plugin_ajaxselect import AjaxSelect
 import datetime
 
 dtnow = datetime.datetime.utcnow()
@@ -60,7 +61,7 @@ db.questions.tags.requires = IS_IN_DB(db, 'questions.id', db.questions._format, 
 db.questions.npcs.requires = IS_IN_DB(db, 'npcs.id', db.npcs._format, multiple = True)
 db.questions.npcs.widget = vmultiselect_widget
 db.questions.tags.requires = IS_IN_DB(db, 'tags.id', db.tags._format, multiple = True)
-db.questions.tags.widget = vmultiselect_widget
+db.questions.tags.widget = lambda field, value: AjaxSelect(field, value, 'tags').widget() #vmultiselect_widget
 db.questions.tags_secondary.requires = IS_IN_DB(db, 'tags.id', db.tags._format, multiple = True)
 db.questions.tags_secondary.widget = vmultiselect_widget
 

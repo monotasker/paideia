@@ -2,9 +2,9 @@ from gluon import sqlhtml, current, SPAN, A, DIV
 from gluon.custom_import import track_changes
 from gluon.html import URL
 from gluon.sqlhtml import OptionsWidget
+from plugin_multiselect_widget import vmultiselect_widget, hmultiselect_widget
 
 session, request, response = current.session, current.request, current.response
-
 response.files.append(URL('static','plugin_ajaxselect/plugin_ajaxselect.js'))
 
 #TODO: set track changes to false when dev is finished
@@ -51,7 +51,7 @@ class AjaxSelect:
     changed, this select will be refreshed and its displayed records filtered
     accordingly. Note that this is only useful if {fieldname} references values shared
     with the linked table.
-    
+
     e.g., to make the select constrain the widget for the 'works' table:
     db.notes.author.widget = lambda field, value: AjaxSelect(field, value, 'authors', restrictor='work').widget()
 
@@ -60,11 +60,12 @@ class AjaxSelect:
     #TODO: Change refresher hiding so that it is style based
     #TODO: allow for restrictor argument to take list and filter multiple other fields
 
-    def __init__(self, field, value, linktable, refresher = True, restricted = "None", restrictor = "None"):
+    def __init__(self, field, value, linktable, refresher = False, adder = True, restricted = "None", restrictor = "None", multi = False):
         self.field = field
         self.value = value
         self.linktable = linktable
         self.refresher = refresher
+        self.adder = adder
         self.restricted = restricted
         self.restrictor = restrictor
         self.tablename = ""
@@ -77,6 +78,7 @@ class AjaxSelect:
         self.wrapper = ""
         self.w = ""
         self.classes = ""
+        self.multi = multi
 
     def get_fieldset(self):
         #get field and tablenames for element id's
@@ -104,20 +106,30 @@ class AjaxSelect:
         #create the select widget
         self.adder_id = '%s_add_trigger' % self.linktable
         self.refresher_id = '%s_refresh_trigger' % self.linktable
-        self.w = OptionsWidget.widget(self.field, self.value)
+        if self.multi == 'v':
+            self.w = vmultiselect_widget(self.field, self.value)
+        elif self.multi == 'h':
+            self.w = vmultiselect_widget(self.field, self.value)
+        else:
+            self.w = OptionsWidget.widget(self.field, self.value)
 
     def create_wrapper(self):
         #create the span wrapper and place the select widget inside, along with buttons to add and refresh if necessary
         span = SPAN(self.w, _id=self.wrappername, _class = self.classes)
-        refresher = A('refresh', _href=self.comp_url, _id=self.refresher_id, cid=self.wrappername)
+        if self.refresher is False:
+            rstyle = 'display:none'
+        else:
+            rstyle = ''
+        refresh_a = A('refresh', _href=self.comp_url, _id=self.refresher_id, cid=self.wrappername, _style=rstyle)
         form_name= '%s_adder_form' % self.linktable
         adder = A('add new', _href=self.add_url, _id=self.adder_id, _class='add_trigger', cid=form_name)
+        #TODO: Is this dialog element still necessary?
         dialog = DIV('', _id=form_name)
 
-        if not self.refresher:
-            self.wrapper = span, adder, dialog
+        if not self.adder:
+            self.wrapper = span, refresh_a, dialog
         else:
-            self.wrapper = span, refresher, adder, dialog
+            self.wrapper = span, refresh_a, adder, dialog
 
     def widget(self):
         """
