@@ -59,11 +59,11 @@ db.define_table('questions',
 
 db.questions.tags.requires = IS_IN_DB(db, 'questions.id', db.questions._format, multiple = True)
 db.questions.npcs.requires = IS_IN_DB(db, 'npcs.id', db.npcs._format, multiple = True)
-db.questions.npcs.widget = vmultiselect_widget
+db.questions.npcs.widget = lambda field, value: AjaxSelect(field, value, 'tags', multi = 'v').widget()
 db.questions.tags.requires = IS_IN_DB(db, 'tags.id', db.tags._format, multiple = True)
-db.questions.tags.widget = lambda field, value: AjaxSelect(field, value, 'tags').widget() #vmultiselect_widget
+db.questions.tags.widget = lambda field, value: AjaxSelect(field, value, 'tags', refresher = True, multi = 'v').widget() #vmultiselect_widget
 db.questions.tags_secondary.requires = IS_IN_DB(db, 'tags.id', db.tags._format, multiple = True)
-db.questions.tags_secondary.widget = vmultiselect_widget
+db.questions.tags_secondary.widget = lambda field, value: AjaxSelect(field, value, 'tags', multi = 'v').widget()
 
 db.define_table('quizzes',
     Field('quiz'),

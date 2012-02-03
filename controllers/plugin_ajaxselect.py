@@ -3,7 +3,7 @@ if 0:
     from gluon.DAL import db
     request, response = current.request, current.response
 
-from gluon.sqlhtml import OptionsWidget
+from gluon.sqlhtml import OptionsWidget, MultipleOptionsWidget
 
 def set_widget():
     """
@@ -13,9 +13,25 @@ def set_widget():
     #get variables to build widget for the proper field, with proper current value
     table = request.args[0]
     field = request.args[1]
-    value = request.args[2]
+    valstring = request.args[2]
     linktable = request.args[3]
     #args[4] is the wrappername, but is not used in this function
+    multi = request.vars['multi']
+    #restore value to list since it was converted to string for url
+    value = valstring.split('-')
+
+    if multi == 'v':
+        widg = MultipleOptionsWidget()
+        mval = True;
+        sval = '5'
+    elif multi == 'h':
+        widg = MultipleOptionsWidget()
+        mval = True;
+        sval = '5'
+    else:
+        widg = OptionsWidget()
+        mval = False;
+        sval = '1'
 
     the_table = db[table]
     the_field = the_table[field]
@@ -37,10 +53,10 @@ def set_widget():
         #build the name for the refreshed select widget
         n = table + '_' + field
         #create the widget with filtered options
-        w = SELECT(_id=n, _class='generic-widget', _name=field, *[OPTION(e[rep], _value=e.id) for e in rows])
+        w = SELECT(_id=n, _class='generic-widget', _name=field, _multiple=mval, size=sval, *[OPTION(e[rep], _value=e.id) for e in rows])
     else:
         #refresh using ordinary widget if no filter constraints
-        w = OptionsWidget.widget(the_field, value)
+        w = widg.widget(the_field, value)
 
     return dict(widget = w, linktable = linktable)
 
