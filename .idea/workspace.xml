@@ -3,15 +3,15 @@
   <component name="ChangeListManager">
     <list default="true" id="050d7a90-643a-4a13-a27f-9963ca10f430" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/databases/c8b669d15150d7109e5f7ab36744a5b7_attempt_log.table" afterPath="$PROJECT_DIR$/databases/c8b669d15150d7109e5f7ab36744a5b7_attempt_log.table" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/databases/c8b669d15150d7109e5f7ab36744a5b7_auth_cas.table" afterPath="$PROJECT_DIR$/databases/c8b669d15150d7109e5f7ab36744a5b7_auth_cas.table" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/databases/c8b669d15150d7109e5f7ab36744a5b7_q_bugs.table" afterPath="$PROJECT_DIR$/databases/c8b669d15150d7109e5f7ab36744a5b7_q_bugs.table" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/databases/c8b669d15150d7109e5f7ab36744a5b7_question_records.table" afterPath="$PROJECT_DIR$/databases/c8b669d15150d7109e5f7ab36744a5b7_question_records.table" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/databases/c8b669d15150d7109e5f7ab36744a5b7_questions.table" afterPath="$PROJECT_DIR$/databases/c8b669d15150d7109e5f7ab36744a5b7_questions.table" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/databases/c8b669d15150d7109e5f7ab36744a5b7_tag_records.table" afterPath="$PROJECT_DIR$/databases/c8b669d15150d7109e5f7ab36744a5b7_tag_records.table" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/databases/storage.sqlite" afterPath="$PROJECT_DIR$/databases/storage.sqlite" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sessions/127.0.0.1-e39bb56e-30eb-4da5-9f4e-559a6c22ef0d" afterPath="$PROJECT_DIR$/sessions/127.0.0.1-e39bb56e-30eb-4da5-9f4e-559a6c22ef0d" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/models/paideia.py" afterPath="$PROJECT_DIR$/models/paideia.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/modules/paideia_questions.py" afterPath="$PROJECT_DIR$/modules/paideia_questions.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/plugin_framework/theme_paideia.less" afterPath="$PROJECT_DIR$/static/plugin_framework/theme_paideia.less" />
     </list>
     <ignored path="paideia.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -33,10 +33,10 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="paideia.py" pinned="false" current="false" current-in-tab="false">
+      <file leaf-file-name="paideia.py" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/models/paideia.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="98" column="0" selection-start="3579" selection-end="3579" vertical-scroll-proportion="0.0">
+            <state line="63" column="110" selection-start="2367" selection-end="2367" vertical-scroll-proportion="0.83732057">
               <folding />
             </state>
           </provider>
@@ -63,21 +63,30 @@
       <file leaf-file-name="theme_paideia.less" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/static/plugin_framework/theme_paideia.less">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="118" column="72" selection-start="2875" selection-end="2875" vertical-scroll-proportion="0.0">
+            <state line="342" column="0" selection-start="7317" selection-end="7317" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="paideia_questions.py" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="paideia_questions.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/modules/paideia_questions.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="161" column="16" selection-start="8538" selection-end="8538" vertical-scroll-proportion="0.4256757">
+            <state line="227" column="24" selection-start="11881" selection-end="11881" vertical-scroll-proportion="0.0">
               <folding>
                 <element signature="e#640#1617#1" expanded="true" />
                 <element signature="e#7191#7297#1" expanded="true" />
                 <element signature="e#8929#9035#1" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="sqlhtml.py" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../../gluon/sqlhtml.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="232" column="25" selection-start="6147" selection-end="6147" vertical-scroll-proportion="0.0">
+              <folding />
             </state>
           </provider>
         </entry>
@@ -114,8 +123,8 @@
         <option value="$PROJECT_DIR$/models/menu.py" />
         <option value="$PROJECT_DIR$/static/plugin_framework/framework.less" />
         <option value="$PROJECT_DIR$/static/plugin_framework/theme_paideia.less" />
-        <option value="$PROJECT_DIR$/models/paideia.py" />
         <option value="$PROJECT_DIR$/modules/paideia_questions.py" />
+        <option value="$PROJECT_DIR$/models/paideia.py" />
       </list>
     </option>
   </component>
@@ -158,14 +167,16 @@
               <option name="myItemId" value="paideia" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
             </PATH_ELEMENT>
-          </PATH>
-          <PATH>
             <PATH_ELEMENT>
-              <option name="myItemId" value="paideia" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+              <option name="myItemId" value="External Libraries" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="paideia" />
+              <option name="myItemId" value="&lt; Python 2.7.2+ (/usr/bin/python2.7) &gt;" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.NamedLibraryElementNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="web2py" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -175,25 +186,19 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="paideia" />
+              <option name="myItemId" value="External Libraries" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="&lt; Python 2.7.2+ (/usr/bin/python2.7) &gt;" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.NamedLibraryElementNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="web2py" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="views" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="paideia" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="paideia" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="static" />
+              <option name="myItemId" value="gluon" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -203,15 +208,21 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
+              <option name="myItemId" value="External Libraries" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="&lt; Python 2.7.2+ (/usr/bin/python2.7) &gt;" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.NamedLibraryElementNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
               <option name="myItemId" value="paideia" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="static" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="plugin_framework" />
+              <option name="myItemId" value="paideia" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -223,11 +234,11 @@
   <component name="PropertiesComponent">
     <property name="options.splitter.main.proportions" value="0.3" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="options.lastSelected" value="preferences.toDoOptions" />
     <property name="recentsLimit" value="5" />
+    <property name="options.lastSelected" value="com.jetbrains.python.configuration.PythonSdkConfigurable" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/views" />
-    <property name="options.splitter.details.proportions" value="0.2" />
     <property name="options.searchVisible" value="true" />
+    <property name="options.splitter.details.proportions" value="0.2" />
   </component>
   <component name="PyConsoleOptionsProvider">
     <option name="myPythonConsoleState">
@@ -339,13 +350,13 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="24" width="1382" height="752" extended-state="7" />
-    <editor active="true" />
+    <editor active="false" />
     <layout>
       <window_info id="Data Sources" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.30944625" sideWeight="0.49473685" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.057427257" sideWeight="0.33383685" order="1" side_tool="true" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.1906585" sideWeight="0.6555891" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.24425727" sideWeight="0.4592145" order="1" side_tool="true" content_ui="tabs" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.24425727" sideWeight="0.5302115" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.39915967" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.30533335" sideWeight="0.49605262" order="7" side_tool="true" content_ui="tabs" />
@@ -424,19 +435,9 @@
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/views/default/index.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="11" column="0" selection-start="649" selection-end="649" vertical-scroll-proportion="0.5618729" />
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/models/db.py">
       <provider selected="true" editor-type-id="text-editor">
         <state line="48" column="41" selection-start="2475" selection-end="2475" vertical-scroll-proportion="0.42402828" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/static/css/base.css">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="572" column="46" selection-start="15179" selection-end="15179" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/controllers/reporting.py">
@@ -469,11 +470,9 @@
         <state line="29" column="37" selection-start="1149" selection-end="1149" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/models/paideia.py">
+    <entry file="file://$PROJECT_DIR$/static/css/base.css">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="98" column="0" selection-start="3579" selection-end="3579" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
+        <state line="346" column="0" selection-start="8987" selection-end="8987" vertical-scroll-proportion="0.15733737" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/controllers/exploring.py">
@@ -488,17 +487,45 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/static/plugin_framework/theme_paideia.less">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="118" column="72" selection-start="2875" selection-end="2875" vertical-scroll-proportion="0.0" />
+        <state line="342" column="0" selection-start="7317" selection-end="7317" vertical-scroll-proportion="0.0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../gluon/dal.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../gluon/html.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/modules/paideia_questions.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="161" column="16" selection-start="8538" selection-end="8538" vertical-scroll-proportion="0.4256757">
+        <state line="227" column="24" selection-start="11881" selection-end="11881" vertical-scroll-proportion="0.0">
           <folding>
             <element signature="e#640#1617#1" expanded="true" />
             <element signature="e#7191#7297#1" expanded="true" />
             <element signature="e#8929#9035#1" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../gluon/sqlhtml.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="232" column="25" selection-start="6147" selection-end="6147" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/models/paideia.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="63" column="110" selection-start="2367" selection-end="2367" vertical-scroll-proportion="0.83732057">
+          <folding />
         </state>
       </provider>
     </entry>
