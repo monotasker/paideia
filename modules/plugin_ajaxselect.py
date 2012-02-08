@@ -1,7 +1,8 @@
-from gluon import current, SPAN, A, DIV #sqlhtml
+from gluon import current, SPAN, A, DIV
 from gluon.custom_import import track_changes
 from gluon.html import URL
-from gluon.sqlhtml import OptionsWidget, MultipleOptionsWidget #TODO: add ListWidget as another option?
+from gluon.sqlhtml import OptionsWidget, MultipleOptionsWidget 
+#TODO: add ListWidget as another option?
 
 #TODO: Move the current calls to within the methods
 session, request, response = current.session, current.request, current.response
