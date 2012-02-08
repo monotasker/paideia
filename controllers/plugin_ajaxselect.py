@@ -1,7 +1,6 @@
 if 0:
-    from gluon import current, SELECT, OPTION, SQLFORM, URL, DAL
-    db = DAL()
-    request, response = current.request, current.response
+    from gluon import current, SELECT, OPTION, SQLFORM, URL, LOAD
+    request, response, db = current.request, current.response, current.db
 
 from gluon.sqlhtml import OptionsWidget, MultipleOptionsWidget
 
@@ -11,20 +10,32 @@ def set_widget():
     gluon.sqlhtml and returns the result to re-populate the ajax LOAD field
     """
 
-    #get variables to build widget for the proper field, with proper current value
+    #get variables to build widget for the proper field
+    #TODO: Can I get the table from db[field]._table or something like that?
     table = request.args[0]
     field = request.args[1]
-    valstring = request.args[2]
-    linktable = request.args[3]
-    #args[4] is the wrappername, but is not used in this function
-    multi = request.vars['multi']
-    #restore value to list since it was converted to string for url
-    value = valstring.split('-')
+    #args[2] is the wrappername, but is not used in this function
 
-    if multi == 'basic':
-        widg = MultipleOptionsWidget()
-        mval = True;
-        sval = '5'
+    #get name of table linked to this reference field
+    linktable = request.vars['linktable']
+    #get current value of field to be selected in refreshed widget
+    if 'fieldval' in request.vars:
+        valstring = request.vars['fieldval']
+        #restore value to list since it was converted to string for url
+        if valstring:
+            value = valstring.split('-')
+        else:
+            value = None
+    else:
+        value = None
+    print value
+        
+    #find out whether widget should be single select widget or multiselect
+    if 'multi' in request.vars:
+        if request.vars['multi'] == 'basic':
+            widg = MultipleOptionsWidget()
+            mval = True;
+            sval = '5'
     else:
         widg = OptionsWidget()
         mval = False;
@@ -34,12 +45,13 @@ def set_widget():
     the_field = the_table[field]
     the_linktable = db[linktable]
 
-    #testing for the extra argument added by javascript in plugin_ajaxselect.js when refresh is triggered by change in another select value
-    if len(request.args) > 5:
+    #testing for the extra argument added by javascript in plugin_ajaxselect.js 
+    #when refresh is triggered by change in another select value
+    if 'rval' in request.vars:
         #get the value from the restricting select box to use in filtering this one
-        filter_val = request.args[5]
+        filter_val = request.vars['rval']
         #find the table behind the constraining widget
-        filter_t = request.args[6]
+        filter_t = request.vars['rtable']
         #find the corresponding field in this select's linked table
         ref = 'reference %s' % filter_t
         cf = [f for f in the_linktable.fields if the_linktable[f].type == ref][0]
@@ -50,7 +62,9 @@ def set_widget():
         #build the name for the refreshed select widget
         n = table + '_' + field
         #create the widget with filtered options
-        w = SELECT(_id = n, _class = 'generic-widget', _name = field, _multiple = mval, size = sval, *[OPTION(e[rep], _value = e.id) for e in rows])
+        w = SELECT(_id = n, _class = 'generic-widget', _name = field, 
+                   _multiple = mval, size = sval, 
+                   *[OPTION(e[rep], _value = e.id) for e in rows])
     else:
         #refresh using ordinary widget if no filter constraints
         w = widg.widget(the_field, value)
@@ -63,12 +77,12 @@ def set_form_wrapper():
     """
     tablename = request.args[0]
     fieldname = request.args[1]
-    value = request.args[2]
-    linktable = request.args[3]
-    wrappername = request.args[4]
-
-
-    formwrapper = LOAD('plugin_ajaxselect', 'linked_create_form.load', args = [tablename, fieldname, value, linktable, wrappername], ajax = True)
+    wrappername = request.args[2]
+    
+    formwrapper = LOAD('plugin_ajaxselect', 'linked_create_form.load', 
+                       args = [tablename, fieldname, wrappername],
+                       vars = request.vars, 
+                       ajax = True)
 
     return dict(formwrapper = formwrapper)
 
@@ -80,13 +94,14 @@ def linked_create_form():
 
     tablename = request.args[0]
     fieldname = request.args[1]
-    value = request.args[2]
-    linktable = request.args[3]
-    wrappername = request.args[4]
+    wrappername = request.args[2]
 
+    linktable = request.vars['linktable']
     form = SQLFORM(db[linktable])
 
-    comp_url = URL('plugin_ajaxselect', 'set_widget.load', args = [tablename, fieldname, value, linktable, wrappername])
+    comp_url = URL('plugin_ajaxselect', 'set_widget.load', 
+                   args = [tablename, fieldname, wrappername],
+                   vars = request.vars)
 
     if form.process().accepted:
         response.flash = 'form accepted'
