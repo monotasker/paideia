@@ -1,5 +1,6 @@
-//open modal dialog (using jquery-ui dialog) for 
+
 $('.add_trigger').live('click', function(event){
+//open modal dialog (using jquery-ui dialog) for adder form
     var the_id = $(this).attr('id');
     var parts = the_id.split('_');
     var linktable = parts[0];
@@ -11,7 +12,9 @@ $('.add_trigger').live('click', function(event){
     });
 });
 
+
 $('.restrictor').live('change', function(event){
+//constrain and refresh appropriate select widgets if restrictor widget's value is changed
 	//get selected value of the restrictor widget to use in constraining the target widget
     var new_val = $(this).find('option:selected').val();
 
