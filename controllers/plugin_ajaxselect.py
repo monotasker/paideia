@@ -28,7 +28,6 @@ def set_widget():
             value = None
     else:
         value = None
-    print value
         
     #find out whether widget should be single select widget or multiselect
     if 'multi' in request.vars:
