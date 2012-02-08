@@ -144,11 +144,13 @@ class AjaxSelect:
         """
         #create the span wrapper and place the select widget inside
         span = SPAN(self.w, _id = self.wrappername, _class = self.classes)
+        
         #prepare to hide 'refresh' button via CSS if necessary
         if self.refresher is False:
             rstyle = 'display:none'
         else:
             rstyle = ''
+
         #create 'add new' button
         refresh_a = A('refresh', _href = self.comp_url, 
                       _id = self.refresher_id, cid = self.wrappername, _style = rstyle)
@@ -159,10 +161,8 @@ class AjaxSelect:
                   _class = 'add_trigger', cid = form_name)       
         #create hidden div to hold form (to be displayed via modal dialog, 
         #dialog triggered in static/plugin_ajaxselect.js
-        
-        
-        
         dialog = DIV('', _id = form_name)
+
         #assemble these newly created components of the widget set,
         #leave out 'add new' button if desired
         if not self.adder:

@@ -60,10 +60,23 @@ def set_widget():
         rep = the_linktable.fields[1]
         #build the name for the refreshed select widget
         n = table + '_' + field
+        
+        #build list of current field values
+        taglist = ''
+        if request.vars['multi'] is not None:
+            if isinstance(value, list):
+                for v in value:
+                    itm = db(the_linktable.id == v).select().first()
+                    taglist += SPAN(itm, _class = 'select-tag')
+            else:
+                itm = db(the_linktable.id == value).select().first()
+                taglist += SPAN(itm, _class = 'select-tag')
+        print taglist
+        
         #create the widget with filtered options
         w = SELECT(_id = n, _class = 'generic-widget', _name = field, 
                    _multiple = mval, size = sval, 
-                   *[OPTION(e[rep], _value = e.id) for e in rows])
+                   *[OPTION(e[rep], _value = e.id) for e in rows]), taglist
     else:
         #refresh using ordinary widget if no filter constraints
         w = widg.widget(the_field, value)
