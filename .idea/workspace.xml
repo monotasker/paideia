@@ -1,19 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="050d7a90-643a-4a13-a27f-9963ca10f430" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/databases/c8b669d15150d7109e5f7ab36744a5b7_attempt_log.table" afterPath="$PROJECT_DIR$/databases/c8b669d15150d7109e5f7ab36744a5b7_attempt_log.table" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/databases/c8b669d15150d7109e5f7ab36744a5b7_q_bugs.table" afterPath="$PROJECT_DIR$/databases/c8b669d15150d7109e5f7ab36744a5b7_q_bugs.table" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/databases/c8b669d15150d7109e5f7ab36744a5b7_question_records.table" afterPath="$PROJECT_DIR$/databases/c8b669d15150d7109e5f7ab36744a5b7_question_records.table" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/databases/c8b669d15150d7109e5f7ab36744a5b7_questions.table" afterPath="$PROJECT_DIR$/databases/c8b669d15150d7109e5f7ab36744a5b7_questions.table" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/databases/c8b669d15150d7109e5f7ab36744a5b7_tag_records.table" afterPath="$PROJECT_DIR$/databases/c8b669d15150d7109e5f7ab36744a5b7_tag_records.table" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sessions/127.0.0.1-e39bb56e-30eb-4da5-9f4e-559a6c22ef0d" afterPath="$PROJECT_DIR$/sessions/127.0.0.1-e39bb56e-30eb-4da5-9f4e-559a6c22ef0d" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/controllers/plugin_ajaxselect.py" afterPath="$PROJECT_DIR$/controllers/plugin_ajaxselect.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/models/paideia.py" afterPath="$PROJECT_DIR$/models/paideia.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/modules/plugin_ajaxselect.py" afterPath="$PROJECT_DIR$/modules/plugin_ajaxselect.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/plugin_ajaxselect/plugin_ajaxselect.js" afterPath="$PROJECT_DIR$/static/plugin_ajaxselect/plugin_ajaxselect.js" />
-    </list>
+    <list default="true" id="050d7a90-643a-4a13-a27f-9963ca10f430" name="Default" comment="" />
     <ignored path="paideia.iws" />
     <ignored path=".idea/workspace.xml" />
     <option name="TRACKING_ENABLED" value="true" />
