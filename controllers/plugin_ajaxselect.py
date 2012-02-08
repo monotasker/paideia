@@ -1,13 +1,14 @@
 if 0:
-    from gluon import current, SELECT, OPTION, SQLFORM, URL
-    from gluon.DAL import db
+    from gluon import current, SELECT, OPTION, SQLFORM, URL, DAL
+    db = DAL()
     request, response = current.request, current.response
 
 from gluon.sqlhtml import OptionsWidget, MultipleOptionsWidget
 
 def set_widget():
     """
-    creates a replacement instance of the OptionsWidget class defined in gluon.sqlhtml and returns the result to re-populate the ajax LOAD field
+    creates a replacement instance of the OptionsWidget class defined in 
+    gluon.sqlhtml and returns the result to re-populate the ajax LOAD field
     """
 
     #get variables to build widget for the proper field, with proper current value
@@ -20,11 +21,7 @@ def set_widget():
     #restore value to list since it was converted to string for url
     value = valstring.split('-')
 
-    if multi == 'v':
-        widg = MultipleOptionsWidget()
-        mval = True;
-        sval = '5'
-    elif multi == 'h':
+    if multi == 'basic':
         widg = MultipleOptionsWidget()
         mval = True;
         sval = '5'
@@ -53,7 +50,7 @@ def set_widget():
         #build the name for the refreshed select widget
         n = table + '_' + field
         #create the widget with filtered options
-        w = SELECT(_id=n, _class='generic-widget', _name=field, _multiple=mval, size=sval, *[OPTION(e[rep], _value=e.id) for e in rows])
+        w = SELECT(_id = n, _class = 'generic-widget', _name = field, _multiple = mval, size = sval, *[OPTION(e[rep], _value = e.id) for e in rows])
     else:
         #refresh using ordinary widget if no filter constraints
         w = widg.widget(the_field, value)
@@ -71,7 +68,7 @@ def set_form_wrapper():
     wrappername = request.args[4]
 
 
-    formwrapper = LOAD('plugin_ajaxselect', 'linked_create_form.load', args=[tablename, fieldname, value, linktable, wrappername], ajax=True)
+    formwrapper = LOAD('plugin_ajaxselect', 'linked_create_form.load', args = [tablename, fieldname, value, linktable, wrappername], ajax = True)
 
     return dict(formwrapper = formwrapper)
 
@@ -89,7 +86,7 @@ def linked_create_form():
 
     form = SQLFORM(db[linktable])
 
-    comp_url = URL('plugin_ajaxselect', 'set_widget.load', args=[tablename, fieldname, value, linktable, wrappername])
+    comp_url = URL('plugin_ajaxselect', 'set_widget.load', args = [tablename, fieldname, value, linktable, wrappername])
 
     if form.process().accepted:
         response.flash = 'form accepted'
