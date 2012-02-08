@@ -85,7 +85,7 @@ class AjaxSelect:
         self.classes = ""
         self.multi = multi
         self.clean_val = self.value
-        if self.multi:
+        if self.multi and isinstance(self.value, list):
             self.clean_val = '-'.join(map(str, self.value))
 
     def get_fieldset(self):
