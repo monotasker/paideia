@@ -106,12 +106,13 @@ class AjaxSelect:
 
         #URL to reload widget via ajax
         self.comp_url = URL('plugin_ajaxselect', 'set_widget.load',
-            args = [self.tablename, self.fieldname, self.clean_val, self.linktable, self.wrappername],
-            vars = dict(multi = self.multi))
+            args = [self.tablename, self.fieldname, self.linktable, self.wrappername],
+            vars = dict(fieldval = self.clean_val, multi = self.multi))
 
         #URL to load form for linking table via ajax
         self.add_url = URL('plugin_ajaxselect', 'set_form_wrapper.load',
-            args = [self.tablename, self.fieldname, self.clean_val, self.linktable, self.wrappername])
+            args = [self.tablename, self.fieldname, self.linktable, self.wrappername], 
+            vars = dict(fieldval = self.clean_val, multi = self.multi))
 
     def create_widget(self):
         #create the select widget
