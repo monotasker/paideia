@@ -229,3 +229,5 @@ timestamp: 2012-02-01T16:35:00.182021
 ALTER TABLE locations ADD background CHAR(512);
 timestamp: 2012-02-01T16:35:00.438232
 ALTER TABLE questions ADD audio CHAR(512);
+timestamp: 2012-02-09T14:12:57.862506
+ALTER TABLE npcs ADD notes TEXT;
