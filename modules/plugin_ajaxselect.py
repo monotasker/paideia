@@ -117,21 +117,20 @@ class AjaxSelect:
             self.classes += '%s restrictor for_%s' % (self.linktable, self.restrictor)
 
         #vars (params) for urls
-        uvars = dict(multi = self.multi, fieldval = self.clean_val, linktable = self.linktable)
+        uvars = dict(multi = self.multi, fieldval = self.clean_val, 
+                     linktable = self.linktable)
         #args for urls
         uargs = [self.tablename, self.fieldname, self.wrappername]
 
         #URL to refresh widget via ajax
-        self.comp_url = URL('plugin_ajaxselect', 'set_widget.load', args = uargs, vars = uvars)
+        self.comp_url = URL('plugin_ajaxselect', 'set_widget.load', 
+                            args = uargs, vars = uvars)
         #URL to load form for linking table via ajax
-        self.add_url = URL('plugin_ajaxselect', 'set_form_wrapper.load', args = uargs, vars = uvars)
+        self.add_url = URL('plugin_ajaxselect', 'set_form_wrapper.load', 
+                           args = uargs, vars = uvars)
 
-
-
-    #create the select widget
-    def create_widget(self):
-        
-        #create either a single select widget or multiselect widget
+    def create_widget(self):       
+        """create either a single select widget or multiselect widget"""
         if self.multi == 'basic':
             self.w = MultipleOptionsWidget.widget(self.field, self.value)
         else:

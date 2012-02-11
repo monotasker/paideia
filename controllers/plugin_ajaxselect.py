@@ -1,5 +1,5 @@
 if 0:
-    from gluon import current, SELECT, OPTION, SQLFORM, URL, LOAD
+    from gluon import current, SELECT, OPTION, SQLFORM, URL, LOAD, SPAN
     request, response, db = current.request, current.response, current.db
 
 from gluon.sqlhtml import OptionsWidget, MultipleOptionsWidget
@@ -21,7 +21,7 @@ def set_widget():
     #get current value of field to be selected in refreshed widget
     if 'fieldval' in request.vars:
         valstring = request.vars['fieldval']
-        #restore value to list since it was converted to string for url
+        #restore value to listing since it was converted to string for url
         if valstring:
             value = valstring.split('-')
         else:
@@ -44,6 +44,26 @@ def set_widget():
     the_field = the_table[field]
     the_linktable = db[linktable]
 
+    #build listing of current field values
+    taglist = []
+    #FIXME: Move these styles into a separate stylesheet
+    #FIXME: Add this capacity to the initial loading of the widget 
+    # (probably means having module class instantiate widget via this controller rather 
+    # than having separate instantiation in the class code--easier db access). 
+    tagstyle = 'display:inline-block; padding:3px; border-radius:0 6px 6px 0; background-color:#ccc;'
+    
+    if request.vars['multi'] == 'basic':
+        fn = the_linktable.fields[1]
+        if isinstance(value, list):
+            print fn
+            for v in value:
+                itm = db(the_linktable.id == v).select(fn).first()                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+                taglist.append(SPAN(itm[fn], _class = 'selected_item', _style = tagstyle))
+        else:
+            itm = db(the_linktable.id == value).select(fn).first()
+            taglist.append(SPAN(itm[fn], _class = 'selected_item', _style = tagstyle))
+    print taglist
+
     #testing for the extra argument added by javascript in plugin_ajaxselect.js 
     #when refresh is triggered by change in another select value
     if 'rval' in request.vars:
@@ -60,28 +80,16 @@ def set_widget():
         rep = the_linktable.fields[1]
         #build the name for the refreshed select widget
         n = table + '_' + field
-        
-        #build list of current field values
-        taglist = ''
-        if request.vars['multi'] is not None:
-            if isinstance(value, list):
-                for v in value:
-                    itm = db(the_linktable.id == v).select().first()
-                    taglist += SPAN(itm, _class = 'select-tag')
-            else:
-                itm = db(the_linktable.id == value).select().first()
-                taglist += SPAN(itm, _class = 'select-tag')
-        print taglist
-        
+               
         #create the widget with filtered options
-        w = SELECT(_id = n, _class = 'generic-widget', _name = field, 
-                   _multiple = mval, size = sval, 
-                   *[OPTION(e[rep], _value = e.id) for e in rows]), taglist
+        w = SELECT(_id = n, _class = 'generic-widget plugin_ajaxselect multi_basic', 
+                   _name = field, _multiple = mval, size = sval, 
+                   *[OPTION(e[rep], _value = e.id) for e in rows])
     else:
         #refresh using ordinary widget if no filter constraints
         w = widg.widget(the_field, value)
 
-    return dict(widget = w, linktable = linktable)
+    return dict(widget = w, taglist = taglist, linktable = linktable)
 
 def set_form_wrapper():
     """

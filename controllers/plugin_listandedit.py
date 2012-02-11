@@ -1,16 +1,22 @@
 # coding: utf8
 if 0:
-    import current, URL, A
-    from sqlhtml import SQLFORM
+    from gluon import current, URL, A
+    from gluon.sqlhtml import SQLFORM
     response, request, db, session = current.response, current.request, current.db, current.session
 
-def list():
+def listing():
     """
-    API: Takes two required arguments. The first is the name of the table being listed, and the second is the id of the project.
-    Takes one required variable in the URL request: a dictionary with at least one item with the index 'fields'. The value of request.vars[fields] provides the fields to be used to represent each record in the list.
+    API: Takes two required arguments. The first is the name of the 
+    table being listed, and the second is the id of the project.
+    Takes one required variable in the URL request: a dictionary with at 
+    least one item with the index 'fields'. The value of 
+    request.vars[fields] provides the fields to be used to represent each 
+    record in the listing.
     """
-    response.files.append(URL('static', 'plugin_listandedit/plugin_listandedit.css'))
-    response.files.append(URL('static', 'plugin_listandedit/plugin_listandedit.js'))
+    response.files.append(URL('static', 
+            'plugin_listandedit/plugin_listandedit.css'))
+    response.files.append(URL('static', 
+            'plugin_listandedit/plugin_listandedit.js'))
 
     tablename = request.args[0]
     if len(request.args) > 1:
@@ -25,7 +31,8 @@ def list():
 
     rowlist = ''
     if not tablename in db.tables():
-        response.flash = 'Sorry, you are trying to list entries from a table that does not exist in the database.'
+        response.flash = '''Sorry, you are trying to list 
+        entries from a table that does not exist in the database.'''
     else:
         tb = db[tablename]
         #TODO: Get tables and fields programmatically
@@ -54,7 +61,7 @@ def edit():
 
         #TODO: Set value of "project" field programatically
         #TODO: Fix widget of "tags" field (adder and multi-select)
-        #TODO: re-load list component on form submit
+        #TODO: re-load listing component on form submit
         form = SQLFORM(db[tablename], rowid, separator='', showid=False)
         if form.process(formname=formname).accepted:
             response.flash = 'The changes were recorded successfully.'
@@ -74,7 +81,7 @@ def edit():
             arglist = [tablename]
             if session.restrictor:
                 arglist.append(session.restrictor)
-            the_url = URL('plugin_listandedit', 'list.load', args=arglist)
+            the_url = URL('plugin_listandedit', 'listing.load', args=arglist)
             response.js = "web2py_component('%s', 'listpane');" %  the_url
             response.flash = 'New record successfully created.'
         elif form.errors:
@@ -85,6 +92,6 @@ def edit():
             pass
 
     else:
-        response.flash = 'Sorry, you need to specify a type of record before I can list the records.'
+        response.flash = 'Sorry, you need to specify a type of record before I can listing the records.'
 
     return dict(form = form)
