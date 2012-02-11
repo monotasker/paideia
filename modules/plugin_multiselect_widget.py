@@ -5,7 +5,7 @@ from gluon import *
 
 def multiselect_widget(field, value, **attributes):
     requires = field.requires
-    if not isinstance(requires, (list, tuple)):
+    if not isinstance(requires, (listing, tuple)):
         requires = [requires]
     if requires:
         if hasattr(requires[0], 'options'):

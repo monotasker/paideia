@@ -1,4 +1,6 @@
-#Tue Feb 07 17:25:41 EST 2012
+#Fri Feb 10 17:08:06 EST 2012
 eclipse.preferences.version=1
 encoding//controllers/exploring.py=utf8
+encoding//controllers/plugin_listandedit.py=utf8
+encoding//models/menu.py=utf-8
 encoding//models/paideia.py=utf8
