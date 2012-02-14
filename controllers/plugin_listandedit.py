@@ -44,7 +44,9 @@ def listing():
     listset = []
     for r in rowlist:
         #FIXME: I need to get these values programmatically from vars['fields']
-        listformat = r.question
+        fieldname = db[tablename].fields[1]
+        listformat = r[fieldname]
+        print r.id
 
         i = A(listformat, _href=URL('plugin_listandedit', 'edit.load', args=[tablename, r.id]), _class='plugin_listandedit_list', cid='viewpane')
         listset.append(i)
@@ -81,7 +83,7 @@ def edit():
             arglist = [tablename]
             if session.restrictor:
                 arglist.append(session.restrictor)
-            the_url = URL('plugin_listandedit', 'listing.load', args=arglist)
+            the_url = URL('plugin_listandedit', 'list.load', args=arglist)
             response.js = "web2py_component('%s', 'listpane');" %  the_url
             response.flash = 'New record successfully created.'
         elif form.errors:

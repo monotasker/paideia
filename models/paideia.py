@@ -38,7 +38,7 @@ db.define_table('npcs',
     Field('image', 'upload', uploadfolder = os.path.join(request.folder, "static/images")),
     Field('notes', 'text'),
     format = '%(name)s')
-
+db.npcs.id.represent = lambda id, row: 'hi'
 db.npcs.location.requires = IS_IN_DB(db, 'locations.id', db.locations._format, multiple = True)
 db.npcs.location.widget = lambda field, value: AjaxSelect(field, value, 'locations', multi = 'basic').widget()
 

@@ -17,6 +17,13 @@ def index():
 
     #after user selects quiz (or 'next question')
     if request.args(0) == 'ask':
+        
+        #check to see whether a path is active and determines the next step
+        if request.vars['path']:
+            pass
+        
+        #if not, initiate new path 
+        
         if not request.vars.response:
             set_path = activepath()
             set_counter = counter()
@@ -68,5 +75,7 @@ def index():
 
     #when first arrive at start page
     else:
-        the_quizzes = db().select(db.quizzes.ALL, orderby=db.quizzes.quiz)
-        return dict(quizzes = the_quizzes)
+        locs = db().select(db.locations.ALL, orderby=db.locations.location)
+        map_image = 'static/images/map.svg'
+        
+        return dict(locs = locs)
