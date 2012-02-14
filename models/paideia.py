@@ -128,7 +128,6 @@ db.define_table('attempt_log',
     Field('name', db.auth_user, default = auth.user_id),
     Field('question', db.questions),
     Field('score', 'double'),
-    Field('quiz', db.quizzes),
     Field('dt_attempted', 'datetime', default = dtnow)
     )
 
