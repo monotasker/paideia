@@ -8,7 +8,7 @@ if 0:
     auth = Auth()
     db = DAL()
     request = current.request
-    from applications.paideia.modules import plugin_ajaxselect
+    from applications.paideia.modules.plugin_ajaxselect import AjaxSelect
 
 #os module needed for setting upload folders for images and audio
 import os
@@ -38,7 +38,6 @@ db.define_table('npcs',
     Field('image', 'upload', uploadfolder = os.path.join(request.folder, "static/images")),
     Field('notes', 'text'),
     format = '%(name)s')
-
 db.npcs.location.requires = IS_IN_DB(db, 'locations.id', db.locations._format, multiple = True)
 db.npcs.location.widget = lambda field, value: AjaxSelect(field, value, 'locations', multi = 'basic').widget()
 
@@ -128,7 +127,6 @@ db.define_table('attempt_log',
     Field('name', db.auth_user, default = auth.user_id),
     Field('question', db.questions),
     Field('score', 'double'),
-    Field('quiz', db.quizzes),
     Field('dt_attempted', 'datetime', default = dtnow)
     )
 

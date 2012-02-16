@@ -4,54 +4,88 @@ if 0:
     from gluon.sqlhtml import SQLFORM
     response, request, db, session = current.response, current.request, current.db, current.session
 
+import ast
+
 def listing():
     """
-    API: Takes two required arguments. The first is the name of the 
-    table being listed, and the second is the id of the project.
-    Takes one required variable in the URL request: a dictionary with at 
-    least one item with the index 'fields'. The value of 
-    request.vars[fields] provides the fields to be used to represent each 
-    record in the listing.
+    This plugin creates a large widget to display, edit, and add entries
+    to one database table.  
+    
+    LIST FORMAT
+    By default the table rows are listed using either the "format" property 
+    of the table definition in the db model (if their is one), or the contents
+    of the first table field (after the auto-generated id).
+    
+    ARGUMENTS 
+    Takes one required argument, the name of the table to be listed. 
+    
+    VARIABLES
+    An optional variable "restrictor" can be used to filter the displayed 
+    records. This variable must be a dictionary in which the keys are the names 
+    of fields in the table and the values are the values to be allowed in those 
+    fields when generating the list.
     """
     response.files.append(URL('static', 
             'plugin_listandedit/plugin_listandedit.css'))
     response.files.append(URL('static', 
             'plugin_listandedit/plugin_listandedit.js'))
-
+    
+    #get table to be listed
     tablename = request.args[0]
-    if len(request.args) > 1:
-        restrictor = request.args[1]
-        session.restrictor = restrictor
-        rname_row = db(db.projects.id == restrictor).select().first()
-        rname = rname_row.projectname
+    #pass that name on to be used as a title for the widget
+    rname = tablename
+    
+    #get filtering values if any
+    if 'restrictor' in request.vars:
+        restr = request.vars['restrictor']
+        # convert the string from the URL to a python dictionary object
+        restrictor = ast.literal_eval(restr)
     else:
         restrictor = None
-        rname = None
-    fieldnames = request.vars['fields']
+    session.restrictor = restrictor
 
-    rowlist = ''
+    #check to make sure the required argument names a table in the db
     if not tablename in db.tables():
         response.flash = '''Sorry, you are trying to list 
         entries from a table that does not exist in the database.'''
     else:
         tb = db[tablename]
-        #TODO: Get tables and fields programmatically
+        #select all rows in the table
+        
+        #filter that set based on any provided field-value pairs in request.vars.restrictor
         if restrictor:
-            rowlist = db((tb.author == db.authors.id) & (tb.work == db.works.id) & (tb.project == restrictor)).select()
+            for k, v in restrictor.items():
+                filter_select = db(tb[k] == v)._select(tb.id)
+                rowlist = db(tb.id.belongs(filter_select)).select()
         else:
             rowlist = db(tb.id > 0).select()
 
+    # build html list from the selected rows 
     listset = []
     for r in rowlist:
-        #FIXME: I need to get these values programmatically from vars['fields']
-        listformat = r.question
+        fieldname = db[tablename].fields[1]
+        # use format string from db table definition to list entries (if available)
+        listformat = db[tablename]._format % r
+        print r.id
 
         i = A(listformat, _href=URL('plugin_listandedit', 'edit.load', args=[tablename, r.id]), _class='plugin_listandedit_list', cid='viewpane')
         listset.append(i)
 
+    # create a link for adding a new row to the table
     adder = A('Add new', _href=URL('plugin_listandedit', 'edit.load', args=[tablename]), _class='plugin_listandedit_list', cid='viewpane')
 
     return dict(listset = listset, adder = adder, rname = rname)
+
+def makeurl(tablename):
+    if session.restrictor:
+        rstring = '{'
+        for k, v in session.restrictor:
+            rstring += "'%s':'%s'" % k, v
+        rstring += '}'
+    else:
+        rstring = ''
+    the_url = URL('plugin_listandedit', 'list.load', args=tablename, vars=rstring)
+    return the_url
 
 def edit():
     tablename = request.args[0]
@@ -60,10 +94,11 @@ def edit():
         formname = '%s/%s' % (tablename, rowid)
 
         #TODO: Set value of "project" field programatically
-        #TODO: Fix widget of "tags" field (adder and multi-select)
         #TODO: re-load listing component on form submit
         form = SQLFORM(db[tablename], rowid, separator='', showid=False)
         if form.process(formname=formname).accepted:
+            the_url = makeurl(tablename)
+            response.js = "web2py_component('%s', 'listpane');" %  the_url
             response.flash = 'The changes were recorded successfully.'
         elif form.errors:
             print form.vars
@@ -78,10 +113,7 @@ def edit():
 
         form = SQLFORM(db[tablename], separator='', showid=False)
         if form.process(formname=formname).accepted:
-            arglist = [tablename]
-            if session.restrictor:
-                arglist.append(session.restrictor)
-            the_url = URL('plugin_listandedit', 'listing.load', args=arglist)
+            the_url = makeurl(tablename)
             response.js = "web2py_component('%s', 'listpane');" %  the_url
             response.flash = 'New record successfully created.'
         elif form.errors:
