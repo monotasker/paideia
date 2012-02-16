@@ -1,107 +1,57 @@
 # -*- coding: utf-8 -*-
 # this file is released under public domain and you can use without limitations
 
+if 0:
+    from gluon import DAL, URL
+
 #TODO: set track changes to false when dev is finished
 from gluon.custom_import import track_changes
+from gluon.tools import Recaptcha, Mail, Auth, Crud, Service, PluginManager
+from gluon.globals import current
+response, request = current.response, current.request
+
+#set to re-load modules instead of using cached versions
 track_changes(True)
 
-#########################################################################
-## This scaffolding model makes your app work on Google App Engine too
-#########################################################################
-
-if request.env.web2py_runtime_gae:            # if running on Google App Engine
-    db = DAL('google:datastore')              # connect to Google BigTable
-                                              # optional DAL('gae://namespace')
-    session.connect(request, response, db = db) # and store sessions and tickets there
-    ### or use the following lines to store sessions in Memcache
-    # from gluon.contrib.memdb import MEMDB
-    # from google.appengine.api.memcache import Client
-    # session.connect(request, response, db = MEMDB(Client()))
-else:                                         # else use a normal relational database
-    db = DAL('sqlite://storage.sqlite')       # if not, use SQLite or other DB
+# define database storage
+db = DAL('sqlite://storage.sqlite')
+# add db to current object so that it can be accessed from modules
+current.db = db
 
 # by default give a view/generic.extension to all actions from localhost
 # none otherwise. a pattern can be 'controller/function.extension'
 response.generic_patterns = ['*'] if request.is_local else []
 
-# add db to current object so that it can be accessed from modules
-from gluon.globals import current
-current.db = db
-
-#########################################################################
-## Here is sample code if you need for
-## - email capabilities
-## - authentication (registration, login, logout, ... )
-## - authorization (role based authorization)
-## - services (xml, csv, json, xmlrpc, jsonrpc, amf, rss)
-## - crud actions
-## (more options discussed in gluon/tools.py)
-#########################################################################
-
-from gluon.tools import Mail, Auth, Crud, Service, PluginManager, prettydate
 crud = Crud(db)                                # for CRUD helpers using auth
 service = Service()                            # for json, xml, jsonrpc, xmlrpc, amfrpc
 plugins = PluginManager()                      # for configuring plugins
 
+#configure mail
 mail = Mail()                                  # mailer
 mail.settings.server = 'logging' or 'smtp.gmail.com:587'  # your SMTP server
 mail.settings.sender = 'scottianw@gmail.com'         # your email
 mail.settings.login = 'username:password'      # your credentials or None
 
+#configure authorization
 auth = Auth(db, hmac_key=Auth.get_or_create_key()) # authentication/authorization
 auth.settings.hmac_key = 'sha512:c54d15af-368c-42ab-a500-2b185d53a969'
+
 auth.define_tables()                           # creates all needed tables
+
 auth.settings.mailer = mail                    # for user email verification
 auth.settings.registration_requires_verification = False
 auth.settings.registration_requires_approval = False
 auth.messages.verify_email = 'Click on the link http://'+request.env.http_host+URL('default','user',args=['verify_email'])+'/%(key)s to verify your email'
 auth.settings.reset_password_requires_verification = True
 auth.messages.reset_password = 'Click on the link http://'+request.env.http_host+URL('default','user',args=['reset_password'])+'/%(key)s to reset your password'
+#place auth in current so it can be imported by modules
 current.auth = auth
 
 #enable recaptcha anti-spam for selected actions
-from gluon.tools import Recaptcha
 auth.settings.login_captcha = None
 auth.settings.register_captcha = Recaptcha(request, '6Ley58cSAAAAAAFpawl9roIBqjk_WKqdPz3eH4Tq', '6Ley58cSAAAAAJ4Wy-k-ixP1bmzNJl0xZom8BuRT')
 auth.settings.retrieve_username_captcha = Recaptcha(request, '6Ley58cSAAAAAAFpawl9roIBqjk_WKqdPz3eH4Tq', '6Ley58cSAAAAAJ4Wy-k-ixP1bmzNJl0xZom8BuRT')
 auth.settings.retrieve_password_captcha = Recaptcha(request, '6Ley58cSAAAAAAFpawl9roIBqjk_WKqdPz3eH4Tq', '6Ley58cSAAAAAJ4Wy-k-ixP1bmzNJl0xZom8BuRT')
 
-#########################################################################
-## If you need to use OpenID, Facebook, MySpace, Twitter, Linkedin, etc.
-## register with janrain.com, uncomment and customize following
-# from gluon.contrib.login_methods.rpx_account import RPXAccount
-# auth.settings.actions_disabled = \
-#    ['register','change_password','request_reset_password']
-# auth.settings.login_form = RPXAccount(request, api_key='...',domain='...',
-#    url = "http://localhost:8000/%s/default/user/login" % request.application)
-## other login methods are in gluon/contrib/login_methods
-#########################################################################
-
 crud.settings.auth = None        # =auth to enforce authorization on crud
 
-#set up select-or-add widget from http://www.web2pyslices.com/slices/take_slice/121
-def create_crud():
-    add_option = SELECT_OR_ADD_OPTION(form_title="Add new tag", controller="creating", function="tag", button_text = "Add tag")
-#assign widget to field
-    db.questions.tags.widget = add_option.widget
-    form = crud.create(db.questions)
-#you need jquery for the widget to work, include here or just put in your master layout.html
-    response.files.append("http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.js")
-    response.files.append("http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/themes/smoothness/jquery-ui.css")
-    return dict(form = form)
-#########################################################################
-## Define your tables below (or better in another model file) for example
-##
-## >>> db.define_table('mytable',Field('myfield','string'))
-##
-## Fields can be 'string','text','password','integer','double','boolean'
-##       'date','time','datetime','blob','upload', 'reference TABLENAME'
-## There is an implicit 'id integer autoincrement' field
-## Consult manual for more options, validators, etc.
-##
-## More API examples for controllers:
-##
-## >>> db.mytable.insert(myfield='value')
-## >>> rows=db(db.mytable.myfield=='value').select(db.mytable.ALL)
-## >>> for row in rows: print row.id, row.myfield
-#########################################################################

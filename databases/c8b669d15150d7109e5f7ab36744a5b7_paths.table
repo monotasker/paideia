@@ -1,0 +1,46 @@
+(dp1
+S'npcs'
+p2
+(dp3
+S'type'
+p4
+S'list:reference db.npcs'
+p5
+sS'sortable'
+p6
+I4
+sS'sql'
+p7
+S'TEXT'
+p8
+ssS'steps'
+p9
+(dp10
+g4
+S'list:reference db.steps'
+p11
+sg6
+I2
+sg7
+g8
+ssS'id'
+p12
+(dp13
+g4
+g12
+sg6
+I1
+sg7
+S'INTEGER PRIMARY KEY AUTOINCREMENT'
+p14
+ssS'locations'
+p15
+(dp16
+g4
+S'list:reference db.locations'
+p17
+sg6
+I3
+sg7
+g8
+ss.

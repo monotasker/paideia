@@ -43,8 +43,8 @@ nav {
     background-color:transparent;
     padding: 0;
     margin:0;
-    height:100%;
-    border-left:1px solid rgba(0,0,0,0.1);
+    height:100%;    text-transform:uppercase;
+    font-size:@typeheight * .8;
 
     .sf-menu {
         li {
@@ -56,10 +56,17 @@ nav {
                 color:@cranberry;
                 font-weight:bold;
                 padding:0 @typeheight;
+                border:0;
+                text-transform:uppercase;
             }
             a:hover, a:active, a:focus {
                 .linear-gradient(rgba(270,270,270,0.1), rgba(270,270,270,0));
             }
+            
+            li a {
+              color:@white;
+            }
+            
         }
         li:hover, li.sfHover {
             background-color:transparent;
@@ -69,24 +76,15 @@ nav {
                 height: @lineheight2;
                 background-color:@grey3;
                 font-weight:normal;
+                a {
+                    color:@white;
+                }
                 a:hover {
                     color:@sky;
                 }
             }
         }
 
-        li:last-child {
-            font-family: 'MyWebFont';
-
-            a {
-                border-right:none;
-                padding-l:@lineheight2;
-            }
-
-            li {
-                font-family: @fonts2;
-            }
-        }
     }
 
 }
@@ -97,6 +95,8 @@ nav {
     line-height:@lineheight3;
     display:block;
     font-weight:bold;
+    text-transform:uppercase;  
+    font-size:@typeheight * .8;  
 
     a, a:link, a:visited {
         height:@lineheight3;
@@ -116,8 +116,8 @@ nav {
 #page {
     background-color:@white;
     z-index:1;
-    .border-image('../static/images/page_border.png', 171, 170, 170, 171);
-    border-width:85px;
+    .border-image('/paideia/static/images/page_border.png', 171, 170, 170, 171);
+    border-width:65px;
 
     h2 {
         padding-left: @lineheight3;

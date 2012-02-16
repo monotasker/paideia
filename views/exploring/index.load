@@ -13,11 +13,11 @@
 
 <!--path selection-->
 {{elif request.args(0) == 'start' or not request.args:}}
-    <div class='npc'>Let's get started. Here are the paths you can take today: {{#'}}
+    <div class='npc'>Let's get started. Where would you like to go today: {{#'}}
         <ul>
-            {{for quiz in quizzes:}}
-            {{=LI(A(quiz.quiz, _href=URL('index.load', args=['ask'],
-                vars=dict(path=quiz.id)), cid=request.cid))}}
+            {{for loc in locs:}}
+            {{=LI(A(loc.location, _href=URL('index.load', args=['ask'],
+                vars=dict()), cid=request.cid))}}
             {{pass}}
         </ul>
     </div>
