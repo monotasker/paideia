@@ -2,11 +2,11 @@
 # this file is released under public domain and you can use without limitations
 
 if 0:
-    from gluon import DAL
+    from gluon import DAL, URL
 
 #TODO: set track changes to false when dev is finished
 from gluon.custom_import import track_changes
-from gluon.tools import Recaptcha, Mail, Auth, Crud, Service, PluginManager, prettydate
+from gluon.tools import Recaptcha, Mail, Auth, Crud, Service, PluginManager
 from gluon.globals import current
 response, request = current.response, current.request
 
