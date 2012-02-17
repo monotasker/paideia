@@ -102,7 +102,7 @@
 
     </header>
 
-    <div id="page" class="{{=request.controller}} {{=request.function}}">
+    <div id="page" class="{{=request.controller}} {{=request.function}} {{if request.args:}}{{=request.args[0]}}{{pass}}">
 
         <!-- left_sidebar -->
         {{if left_sidebar_enabled:}}
