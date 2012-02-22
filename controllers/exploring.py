@@ -14,9 +14,9 @@ from paideia_questions import question
 
 def startpath():
     locs = db().select(db.locations.ALL, orderby=db.locations.location)
-    map_image = 'static/images/town_map.svg'
+    map_image = '/paideia/static/images/town_map.svg'
         
-    return dict(locs = locs)
+    return dict(locs = locs, map_image = map_image)
 
 def stepask():
     #check to see whether a path is active and determines the next step
