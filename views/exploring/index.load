@@ -13,6 +13,7 @@
 
 <!--path selection-->
 {{elif request.args(0) == 'start' or not request.args:}}
+	<img src='{{=map_image}}' />
     <div class='npc'>Let's get started. Where would you like to go today: {{#'}}
         <ul>
             {{for loc in locs:}}
