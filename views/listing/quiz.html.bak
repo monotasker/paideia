@@ -1,4 +1,0 @@
-
-{{extend 'layout.html'}}
-<h1>This is the listing/quiz.html template</h1>
-{{=BEAUTIFY(response._vars)}}

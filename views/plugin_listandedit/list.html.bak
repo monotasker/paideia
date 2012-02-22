@@ -1,5 +1,0 @@
-{{extend 'layout.html'}}
-<h1></h1>
-{{for l in listset:}}
-    {{=l}}
-{{pass}}
