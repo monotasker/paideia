@@ -46,6 +46,38 @@
      inkscape:window-y="24"
      inkscape:window-maximized="1"
      inkscape:current-layer="svg2" />
+  
+  <script type="text/javascript">
+  <![CDATA[    
+  
+    function init(evt){
+        pulse_in();
+    }
+    
+    function go_there(evt){
+        var tobj = evt.currentTarget;
+        var oname = tobj.getAttribute('id');
+        curloc = '../../exploring/index.load';
+        newloc = curloc + '?loc=' + oname;
+        alert(newloc);
+        window.location = newloc;
+    }
+    
+    function pulse_in(evt){
+        var tobj = evt.currentTarget;       
+        bbox =  tobj.getBBox();
+        dX = bbox.width * (-.05);
+        dY = bbox.height * (-.1);
+        tobj.setAttribute('transform', 'scale(1.1), translate(' + dX + ', ' + dY + ')');
+    }
+    
+    function pulse_out(evt){
+        var tobj = evt.currentTarget;
+        tobj.setAttribute('transform', 'scale(1), translate(0)');
+    }
+  // ]]>
+  </script>
+  
   <defs
      id="defs4">
     <linearGradient
@@ -830,7 +862,8 @@
   </g>
   <g
      id="agora_stoa"
-     onmouseover="{fill-opacity:0.4;}">
+     onmouseover="pulse_in(evt)" 
+     onmouseout="pulse_out(evt)">
     <title
        id="title3474">agora_stoa</title>
     <path
@@ -1036,21 +1069,24 @@
        opacity="1" />
   </g>
   <g
-       inkscape:label="insula1"
-       id="insula1">
-      <animate
+       id="insula1"
+       onmouseover="pulse_in(evt)" 
+       onmouseout="pulse_out(evt)"
+       onclick="go_there(evt)"
+       inkscape:label="insula1">
+      <!-- <animate
       	attributeName="opacity"
       	attributeType="css"
       	from="0" to="1"
       	begin="0s" dur="2s"
-      />
-      <animateTransform
+      /> -->
+      <!-- <animateTransform
       	attributeName="transform"
       	attributeType="XML"
       	type="scale"
-      	from="1" to="2 2"
-      	begin="0s" dur="2s"
-      />
+      	from="1" to="2"
+      	begin="go.click" dur="1s"
+      /> -->
       <title
          id="title3582">insula1</title>
       <g
