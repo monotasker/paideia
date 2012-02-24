@@ -6,10 +6,10 @@ if 0:
     request,session,response,T,cache=current.request,current.session,current.response,current.T,current.cache
     db = DAL()
     auth = Auth()
-    from applications.paideia.modules.paideia_exploring import activepath, counter
+    from applications.paideia.modules.paideia_exploring import paideia_path, counter
     from applications.paideia.modules.paideia_questions import question
 
-from paideia_exploring import activepath, counter
+from paideia_exploring import paideia_path, counter
 from paideia_questions import question
 
 def startpath():
@@ -25,7 +25,7 @@ def stepask():
     
     #if not, initiate new path 
     if not request.vars.response:
-        set_path = activepath()
+        set_path = paideia_path()
         set_counter = counter()
         the_question = question()
         the_question.selectq()

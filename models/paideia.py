@@ -18,6 +18,11 @@ import datetime
 
 dtnow = datetime.datetime.utcnow()
 
+db.define_table('app_settings',
+    Field('paths_per_day', 'integer', default=10),
+    Field('days_per_week', 'integer', default=5)    
+    )
+
 db.define_table('categories',
     Field('category'),
     Field ('description'),
