@@ -23,6 +23,11 @@ db.define_table('app_settings',
     Field('days_per_week', 'integer', default=5)    
     )
 
+db.define_table('journals',
+    Field('user', db.auth_user, default=auth.user_id),
+    Field('days_per_week', 'integer', default=5),
+    format = '%(user)s')
+
 db.define_table('categories',
     Field('category'),
     Field ('description'),
