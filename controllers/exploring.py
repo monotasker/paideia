@@ -9,14 +9,21 @@ if 0:
     from applications.paideia.modules.paideia_exploring import paideia_path, counter
     from applications.paideia.modules.paideia_questions import question
 
-from paideia_exploring import paideia_path, counter
+from applications.paideia.modules.paideia_exploring import paideia_path, counter, map
 from paideia_questions import question
 
-def startpath():
-    locs = db().select(db.locations.ALL, orderby=db.locations.location)
-    map_image = '/paideia/static/images/town_map.svg'
-        
-    return dict(locs = locs, map_image = map_image)
+def stepinit():
+    #find out what location has been entered
+    curr_loc = request.vars['loc']
+    
+    #find out what paths (if any) are currently active
+    paths = session.active_path or None
+    
+    #check to see whether any constraints are in place (globally or for this location)
+    
+    # 
+    return dict()
+    
 
 def stepask():
     #check to see whether a path is active and determines the next step
@@ -77,9 +84,15 @@ def patherror():
 @auth.requires_login()
 def index():
 
-    #when user begins exploring
-    if request.args(0) == 'start':
-        return startpath()
+    #when user begins exploring (also default)
+    if (request.args(0) == 'start') or (not request.args):
+        the_map = map()
+        for i in ['blocks', 'active_path', 'completed_paths']:
+            if not session[i]:
+                print i
+                session[i] = None
+             
+        return dict(locs = the_map.locs, map_image = the_map.image)
 
     #after user selects quiz (or 'next question')
     elif request.args(0) == 'ask':
@@ -91,9 +104,5 @@ def index():
     
     elif request.args(0) == 'error':
         return patherror()
-
-    #default
-    else:
-        return startpath()
         
     

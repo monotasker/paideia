@@ -118,6 +118,12 @@ nav {
     z-index:1;
     .border-image('/paideia/static/images/page_border.png', 171, 170, 170, 171);
     border-width:65px;
+    background:@mist;
+    overflow: hidden;
+
+    #page #page {
+        .border-image('', 0, 0, 0, 0);
+    }
 
     h2 {
         padding-left: @lineheight3;
@@ -181,6 +187,11 @@ nav {
             color: @moss;
         }
 
+    }
+
+    #town_map, #town_map_mask {
+        position:absolute;
+        width:800px;
     }
 
     .npc {
@@ -265,8 +276,8 @@ nav {
 }
 
 #page.start {
-        background:@mist url('/paideia/static/images/town_map.svg') no-repeat -50px 10px;
-        overflow: visible;
+        background:@mist;
+        overflow: hidden;
 
     .next_q {
     }
