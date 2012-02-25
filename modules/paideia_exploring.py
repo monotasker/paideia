@@ -61,6 +61,18 @@ class counter:
             session.q_counter = 1
 
     def set(self):
+        pass
         
     def clear(self):
+        pass
         
+class map:
+    
+    def __init__(self):
+                
+        #current object must be accessed at runtime, so can't be global variable
+        db = current.db
+        
+        #prepare map interface for user to select a place to go
+        self.locs = db().select(db.locations.ALL, orderby=db.locations.location)
+        self.image = '/paideia/static/images/town_map.svg'
