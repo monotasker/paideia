@@ -7,5 +7,5 @@ function init(evt){
 function go_there(evt){
     var tobj = evt.currentTarget;
     var oname = tobj.getAttribute('id');
-    window.parent.web2py_component("/paideia/exploring/index.load?loc=" + oname,"page")
+    window.parent.web2py_component("/paideia/exploring/index.load/ask?loc=" + oname,"page")
 }
