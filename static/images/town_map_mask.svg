@@ -15,6 +15,18 @@
    id="svg2"
    inkscape:version="0.48.2 r9819"
    sodipodi:docname="town_map_mask.svg">
+   <style>
+        #domusA path {
+            opacity:0;
+            fill-opacity:0.01;
+            -moz-transition:opacity 200ms linear;
+        }
+        #domusA:hover path{
+            opacity:1;
+            -moz-transition:opacity 200ms linear;
+            cursor:pointer;
+        }        
+   </style>
   <metadata
      id="metadata2216">
     <rdf:RDF>
@@ -2093,29 +2105,18 @@
   </defs>
   <g
      id="domusA"
-     onmouseover="pulse_in(evt)"
-     onmouseout="pulse_out(evt)"
      onclick="go_there(evt)"
      inkscape:label="#domusA"
-     opacity="1"
-     stroke-opacity="0" 
-     style="fill:none;">
-     
-     <!-- <animate
-        attributeName="opacity"
-        attributeType="css"
-        from="0" to="1"
-        begin="0s" dur="2s"
-      /> -->
+     style="fill:#fff;">
      
     <path
        sodipodi:nodetypes="ccccccccccccc"
        inkscape:connector-curvature="0"
        id="path6478"
        d="m 137.3914,367.61305 0,-14.40627 16.01368,-13.20571 13.51617,-1.05045 5.2889,4.20183 34.23113,-17.10744 61.55723,48.17088 0,10.20441 -27.90048,13.6837 -9.75871,0.76997 -12.43871,10.30705 -16.16058,8.40364 z"
-       style="fill:none;stroke:#7d7d7d;stroke-width:2.8814888;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none" />
+       style="stroke:#7d7d7d;stroke-width:2.8814888;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none" />
     <path
-       style="fill:none;stroke:#4d4d4d;stroke-width:1.9304;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none"
+       style="stroke:#4d4d4d;stroke-width:1.9304;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none"
        d="m 138.57581,367.71526 0,-13.74815 15.60985,-12.60246 13.17531,-1.00247 5.15555,4.00988 33.36787,-16.32592 60.00488,45.97033 0,9.73827 -27.19689,13.05861 -9.51262,0.73478 -12.12501,9.83621 -15.75307,8.01975 z"
        id="path6476"
        inkscape:connector-curvature="0"
@@ -2125,6 +2126,6 @@
        inkscape:connector-curvature="0"
        id="domus1"
        d="m 139.37075,367.76532 0,-13.57645 15.41492,-12.44508 13.01077,-0.98995 5.09117,3.9598 32.95118,-16.12204 59.25554,45.39626 0,9.61665 -26.85726,12.89554 -9.39383,0.7256 -11.97359,9.71338 -15.55635,7.9196 z"
-       style="fill:none;stroke:#000000;stroke-width:0.80000001px;stroke-linecap:butt;stroke-linejoin:miter;" />
+       style="stroke:#000000;stroke-width:0.80000001px;stroke-linecap:butt;stroke-linejoin:miter;" />
   </g>
 </svg>
