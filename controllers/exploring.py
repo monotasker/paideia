@@ -21,7 +21,7 @@ def stepinit():
     
     #check to see whether any constraints are in place (globally or for this location)
     
-    # 
+    #if no constraints and no active path start new path
     return dict()
     
 
@@ -96,7 +96,7 @@ def index():
 
     #after user selects quiz (or 'next question')
     elif request.args(0) == 'ask':
-        return stepask()
+        return stepinit()
 
     #after submitting answer
     elif request.args(0) == 'reply':
