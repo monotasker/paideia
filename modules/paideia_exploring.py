@@ -8,6 +8,8 @@ class paideia_path:
         #current object must be accessed at runtime, so can't be global variable
         session, request, auth, db = current.session, current.request, current.auth, current.db
 
+    def categorize_tags():
+
     def check(self):
         """Find out whether to introduce another step, free the user for movement, or continue with
         the current step."""
@@ -21,12 +23,12 @@ class paideia_path:
             rsetting = db(db.app_settings.id == 1).select().first()
             required = rsetting.paths_per_day
             if todays >= required:
-                return('done')
+                return ['done']
                 pass
 
         #is there any blocking state in effect?
         if session.block:
-            return('blocked')
+            return ['blocked']
             pass
 
         #check to see whether there are any paths active for this location
@@ -43,6 +45,13 @@ class paideia_path:
                 steps = db((db.paths.steps == db.steps.id) & (db.paths.id == p)).select()
                 #check to see whether the step can be completed in this location
 
+        #if not, check to see whether max number of tags are active
+        #(or should this be blocking condition?)
+        
+        #otherwise, choose a new path
+        else:
+            self.pick()
+            return('new')
 
     def pick(self):
         """Choose a new path for the user, based on tag performance"""
