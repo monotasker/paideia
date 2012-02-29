@@ -13,8 +13,9 @@
 
 <!--path selection-->
 {{elif request.args(0) == 'start' or not request.args:}}
-	<embed src='{{=map_image}}' type='image/svg+xml' />
-    <div class='npc'>Let's get started. Where would you like to go today: {{#'}}
+	<img id='town_map' src='{{=map_image}}' />
+	<embed id='town_map_mask' src='/paideia/static/images/town_map_mask.svg' type='image/svg+xml' />
+    <!-- <div class='npc'>Let's get started. Where would you like to go today: {{#'}}
         <ul>
             {{for loc in locs:}}
             {{=LI(A(loc.location, _href=URL('index.load', args=['ask'],
@@ -23,15 +24,16 @@
         </ul>
     </div>
     <div class='npc'>This will be <span class="q_counter">question {{=session.q_counter}} of {{=session.path_length}}</span> on today\'s path</div>
+    -->
 
 <!--step start-->
 {{elif request.args(0) == 'ask' and not request.vars.user_response:}}
     <div class='speaker'></div>
-    <div class="npc">{{=XML(question)}}</div>
-    <div class='responder'>{{=form}}</div>
-    <span class="quiz_type">{{=session.quiz_type}}</span>
+    <div class="npc">{{#=XML(question)}}</div>
+    <div class='responder'>{{#=form}}</div>
+    <span class="quiz_type">{{#=session.quiz_type}}</span>
     <p class="guidelines">Remember to only give <strong>one</strong> translation (not a list of different possibilities) and to give a <strong>translation</strong> (so not "keep" but "I keep").</p>
-    <span class="q_counter">Question {{=session.q_counter}} of {{=session.path_length}}</span>
+    <span class="q_counter">Question {{#=session.q_counter}} of {{#=session.path_length}}</span>
 
 <!--step feedback-->
 {{else:}}

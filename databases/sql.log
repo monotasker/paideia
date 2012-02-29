@@ -272,3 +272,23 @@ CREATE TABLE paths(
     npcs TEXT
 );
 success!
+timestamp: 2012-02-24T13:21:11.086403
+CREATE TABLE app_settings(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    paths_per_day INTEGER,
+    days_per_week INTEGER
+);
+success!
+timestamp: 2012-02-24T13:21:11.190105
+CREATE TABLE journals(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    pages TEXT
+);
+success!
+timestamp: 2012-02-24T13:21:11.261619
+CREATE TABLE pages(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    page TEXT
+);
+success!

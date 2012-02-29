@@ -140,6 +140,8 @@
         {{end}}
     </footer>
 
+    {{=BEAUTIFY(session)}}
+
     {{if session.debug:}}
         {{=DIV(session.debug, _class="debug")}}
     {{pass}}

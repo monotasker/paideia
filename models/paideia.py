@@ -18,6 +18,21 @@ import datetime
 
 dtnow = datetime.datetime.utcnow()
 
+#TODO:Allow for different class profiles with different settings  
+db.define_table('app_settings',
+    Field('paths_per_day', 'integer', default=10),
+    Field('days_per_week', 'integer', default=5)    
+    )
+
+db.define_table('journals',
+    Field('user', db.auth_user, default=auth.user_id),
+    Field('pages', 'list:reference db.pages'),
+    format = '%(user)s')
+
+db.define_table('pages',
+    Field('page', 'text'),
+    format = '%(page)s')
+
 db.define_table('categories',
     Field('category'),
     Field ('description'),
@@ -150,6 +165,10 @@ db.define_table('paths',
     Field('locations', 'list:reference db.locations'), #list of locations where path can start
     Field('npcs', 'list:reference db.npcs') #list of npcs who can begin the path            
     )
+db.paths.steps.requires = IS_IN_DB(db, 'steps.id', db.steps._format, multiple = True)
+db.paths.steps.widget = lambda field, value: AjaxSelect(field, value, 'steps', multi = 'basic').widget()
+db.paths.locations.requires = IS_IN_DB(db, 'locations.id', db.locations._format, multiple = True)
+db.paths.npcs.requires = IS_IN_DB(db, 'npcs.id', db.npcs._format, multiple = True)
 
 db.define_table('news',
     Field('story', 'text'),
