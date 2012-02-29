@@ -167,8 +167,7 @@ db.define_table('paths',
     Field('npcs', 'list:reference db.npcs'), #list of npcs who can begin the path
     format = '%(label)s')
 db.paths.steps.requires = IS_IN_DB(db, 'steps.id', db.steps._format, multiple = True)
-db.paths.steps.widget = lambda field, value: AjaxSelect(field, value, 'steps',
-                                                        refresher = True, 
+db.paths.steps.widget = lambda field, value: AjaxSelect(field, value, 'steps', 
                                                         multi = 'basic', 
                                                         editlist = True).widget()
 db.paths.locations.requires = IS_IN_DB(db, 'locations.id', db.locations._format, 

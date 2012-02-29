@@ -1,7 +1,6 @@
-<span class="taglist" style="display:block;">
-    {{for t in taglist:}}
-        {{=t}}
+<div id="{{=divid}}" class="{{=divclasses}}">
+    {{for c in divcontent:}}
+        {{=c}}
     {{pass}}
-</span>
-{{=widget}}
+</div>
 

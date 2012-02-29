@@ -292,3 +292,5 @@ CREATE TABLE pages(
     page TEXT
 );
 success!
+timestamp: 2012-02-29T12:28:25.889202
+ALTER TABLE paths ADD label CHAR(512);

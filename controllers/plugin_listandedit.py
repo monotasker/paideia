@@ -65,8 +65,10 @@ def listing():
     for r in rowlist:
         fieldname = db[tablename].fields[1]
         # use format string from db table definition to list entries (if available)
-        listformat = db[tablename]._format % r
-        print r.id
+        if db[tablename]._format:
+            listformat = db[tablename]._format % r
+        else:
+            listformat = r[fieldname]
 
         i = A(listformat, _href=URL('plugin_listandedit', 'edit.load', args=[tablename, r.id]), _class='plugin_listandedit_list', cid='viewpane')
         listset.append(i)
@@ -84,7 +86,7 @@ def makeurl(tablename):
         rstring += '}'
     else:
         rstring = ''
-    the_url = URL('plugin_listandedit', 'list.load', args=tablename, vars=rstring)
+    the_url = URL('plugin_listandedit', 'listing.load', args=tablename, vars=rstring)
     return the_url
 
 def edit():

@@ -30,9 +30,8 @@ def set_widget():
             restrictor = request.vars['restrictor'], 
             multi = request.vars['multi'], 
             editlist = request.vars['editlist']).widget()
-            
-    return dict(divcontent = w['content'], divclasses = w['classes'], 
-                divid = w['wrappername'], linktable = request.vars['linktable'])
+
+    return dict(widget = w, linktable = request.vars['linktable'])
 
 
 def set_form_wrapper():
