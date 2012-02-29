@@ -9,6 +9,7 @@ class paideia_path:
         session, request, auth, db = current.session, current.request, current.auth, current.db
 
     def categorize_tags():
+        pass
 
     def check(self):
         """Find out whether to introduce another step, free the user for movement, or continue with
