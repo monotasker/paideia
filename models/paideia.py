@@ -165,6 +165,10 @@ db.define_table('paths',
     Field('locations', 'list:reference db.locations'), #list of locations where path can start
     Field('npcs', 'list:reference db.npcs') #list of npcs who can begin the path            
     )
+db.paths.steps.requires = IS_IN_DB(db, 'steps.id', db.steps._format, multiple = True)
+db.paths.steps.widget = lambda field, value: AjaxSelect(field, value, 'steps', multi = 'basic').widget()
+db.paths.locations.requires = IS_IN_DB(db, 'locations.id', db.locations._format, multiple = True)
+db.paths.npcs.requires = IS_IN_DB(db, 'npcs.id', db.npcs._format, multiple = True)
 
 db.define_table('news',
     Field('story', 'text'),
