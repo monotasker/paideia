@@ -22,6 +22,10 @@ def stepinit():
     #check to see whether any constraints are in place (globally or for this location)
     
     #if no constraints and no active path start new path
+    #find paths with tags open to student
+    #look for tags with high priority
+    #if none look for tags with medium priority
+    #if none,  
     return dict()
     
 
