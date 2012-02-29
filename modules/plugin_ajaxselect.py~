@@ -192,7 +192,7 @@ class AjaxSelect:
         dialog = DIV('', _id = form_name)
 
         #assemble these newly created components of the widget set
-        self.content = SPAN(self.w), refresh_a, adder, dialog
+        self.content = SPAN(self.w) + refresh_a + adder + dialog
 
     def widget(self):
         """
