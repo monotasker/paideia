@@ -174,26 +174,42 @@ class AjaxSelect:
         #load db from current object
         db = current.db
               
+        
+        #assemble these newly created components of the widget set
+        self.wrapper = [SPAN(self.w, 
+                        _id = self.wrappername, 
+                        _classes = self.classes)]
+
+    def add_extras(self):
+
         #prepare to hide 'refresh' button via CSS if necessary
         if self.refresher is False:
             rstyle = 'display:none'
         else:
             rstyle = ''
 
-        #create 'add new' button
+        #create 'refresh' button
         refresh_a = A('refresh', _href = self.comp_url, 
-                      _id = self.refresher_id, cid = self.wrappername, _style = rstyle)
-        #create name for form to create new entry in linked table
-        form_name = '%s_adder_form' % self.linktable
-        #create 'add new' button to open form
-        adder = A('add new', _href = self.add_url, _id = self.adder_id, 
-                  _class = 'add_trigger', cid = form_name)       
-        #create hidden div to hold form (to be displayed via modal dialog, 
-        #dialog triggered in static/plugin_ajaxselect.js
-        dialog = DIV('', _id = form_name)
+                      _id = self.refresher_id, 
+                      cid = self.wrappername, 
+                      _style = rstyle)
 
-        #assemble these newly created components of the widget set
-        self.content = SPAN(self.w), refresh_a, adder, dialog
+        #append the 'refresh' button to the wrapper object
+        self.wrapper.append(refresh_a)
+
+        if self.adder:
+            #create name for form to create new entry in linked table
+            form_name = '%s_adder_form' % self.linktable
+            #create 'add new' button to open form
+            add_a = A('add new', _href = self.add_url, _id = self.adder_id, 
+                  _class = 'add_trigger', cid = form_name)       
+            #create hidden div to hold form (to be displayed via modal dialog, 
+            #dialog triggered in static/plugin_ajaxselect.js
+            dialog = DIV('', _id = form_name)
+
+            self.wrapper.append(add_a)
+            self.wrapper.append(dialog)
+
 
     def widget(self):
         """
@@ -210,4 +226,22 @@ class AjaxSelect:
 
         self.create_wrapper()
 
-        return dict(content = self.content, wrappername = self.wrappername, classes = self.classes)
+        self.add_extras()
+
+        return self.wrapper
+
+    def refresh(self):
+        """
+        Method to re-create widget (without ancillary buttons and dialogs) 
+        on ajax refresh
+        """
+
+        self.get_fieldset()
+
+        self.build_info()
+
+        self.create_widget()
+
+        self.create_wrapper()
+
+        return self.wrapper
