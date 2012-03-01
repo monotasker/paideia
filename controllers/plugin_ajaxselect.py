@@ -1,9 +1,8 @@
-if 0:
-    from gluon import current, SQLFORM, URL, LOAD
-    request, response, db = current.request, current.response, current.db
+#if 0:
+#    from gluon import current, SQLFORM, URL, LOAD
+#    request, response, db = current.request, current.response, current.db
 
 from plugin_ajaxselect import AjaxSelect
-
 
 def set_widget():
     """
@@ -29,10 +28,9 @@ def set_widget():
             restricted = request.vars['restricted'], 
             restrictor = request.vars['restrictor'], 
             multi = request.vars['multi'], 
-            editlist = request.vars['editlist']).widget()
+            editlist = request.vars['editlist']).refresh()
             
-    return dict(divcontent = w['content'], divclasses = w['classes'], 
-                divid = w['wrappername'], linktable = request.vars['linktable'])
+    return dict(wrapper = w, linktable = request.vars['linktable'])
 
 
 def set_form_wrapper():

@@ -1,6 +1,4 @@
-<div id="{{=divid}}" class="{{=divclasses}}">
-    {{for c in divcontent:}}
-        {{=c}}
-    {{pass}}
-</div>
+{{for w in wrapper:}}
+    {{=w}}
+{{pass}}
 
