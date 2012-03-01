@@ -4,14 +4,13 @@
 if 0:
     from gluon import DAL, URL
 
-#TODO: set track changes to false when dev is finished
-from gluon.custom_import import track_changes
 from gluon.tools import Recaptcha, Mail, Auth, Crud, Service, PluginManager
 from gluon.globals import current
 response, request = current.response, current.request
 
-#set to re-load modules instead of using cached versions
-track_changes(True)
+if request.is_local: #disable in production enviroment
+    from gluon.custom_import import track_changes
+    track_changes(True)
 
 # define database storage
 db = DAL('sqlite://storage.sqlite')

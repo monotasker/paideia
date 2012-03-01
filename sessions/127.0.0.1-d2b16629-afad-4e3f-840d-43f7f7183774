@@ -108,7 +108,7 @@ S'2012-02-28'
 p39
 sS'_formkey[steps/create]'
 p40
-S'db0aa428-df62-4020-9b76-ee3ca7ff3f45'
+S'b2d82ab2-3b63-4808-9834-7a94f1f7d671'
 p41
 sS'answer3'
 p42
@@ -118,34 +118,38 @@ sS'quiz_type'
 p44
 S'category 1'
 p45
-sS'_formkey[paths/create]'
+sS'_formkey[paths/2]'
 p46
-S'0dd34dcd-b5e5-4c61-b058-c77a2d65c8bd'
+S'55d957db-c140-443f-91c9-c74944fa28b0'
 p47
-sS'_formkey[login]'
+sS'_formkey[paths/create]'
 p48
-S'a8fb66da-0034-444d-b6ed-3b913a1024c6'
+S'0dd34dcd-b5e5-4c61-b058-c77a2d65c8bd'
 p49
-sS'question_text'
+sS'_formkey[login]'
 p50
-S'Our neighbour is Egyptian. \xce\xa4\xce\xaf\xcf\x82 \xe1\xbd\x81 \xce\xb1\xe1\xbd\x90\xcf\x84\xe1\xbd\xb4\xcf\x82 \xce\xbb\xce\xac\xce\xbf\xcf\x82;'
+S'a8fb66da-0034-444d-b6ed-3b913a1024c6'
 p51
-sS'_auth_next'
+sS'question_text'
 p52
-S'/paideia/exploring/index'
+S'Our neighbour is Egyptian. \xce\xa4\xce\xaf\xcf\x82 \xe1\xbd\x81 \xce\xb1\xe1\xbd\x90\xcf\x84\xe1\xbd\xb4\xcf\x82 \xce\xbb\xce\xac\xce\xbf\xcf\x82;'
 p53
-sS'completed_paths'
+sS'_auth_next'
 p54
-NsS'_formkey[no_table/create]'
+S'/paideia/exploring/index'
 p55
-S'f127cfbf-e35a-492d-8af7-83e62f70d04e'
+sS'completed_paths'
 p56
-sS'readable_answer'
+NsS'_formkey[no_table/create]'
 p57
-S'Egypt; the egyptians'
+S'f127cfbf-e35a-492d-8af7-83e62f70d04e'
 p58
-sS'answer'
+sS'readable_answer'
 p59
-S'^(the)?(egypt)(ian)?(s)?( people| nation)?(.)?$'
+S'Egypt; the egyptians'
 p60
+sS'answer'
+p61
+S'^(the)?(egypt)(ian)?(s)?( people| nation)?(.)?$'
+p62
 s.
