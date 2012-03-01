@@ -4,6 +4,7 @@ from gluon.html import URL
 from gluon.sqlhtml import OptionsWidget, MultipleOptionsWidget 
 #TODO: add ListWidget as another option?
 
+response = current.response
 response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.js'))
 
 #TODO: set track changes to false when dev is finished
