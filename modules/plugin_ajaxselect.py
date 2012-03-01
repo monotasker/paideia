@@ -1,14 +1,7 @@
-from gluon import current, SPAN, A, DIV, SQLFORM, XML
-from gluon.custom_import import track_changes
+from gluon import current, SPAN, A, DIV, SQLFORM
 from gluon.html import URL
 from gluon.sqlhtml import OptionsWidget, MultipleOptionsWidget 
 #TODO: add ListWidget as another option?
-
-response = current.response
-response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.js'))
-
-#TODO: set track changes to false when dev is finished
-track_changes(True)
 
 class AjaxSelect:
     """
@@ -136,14 +129,16 @@ class AjaxSelect:
             self.classes += '%s restrictor for_%s' % (self.linktable, self.restrictor)
 
     def create_widget(self):       
-
-        response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.js'))
         
         """create either a single select widget or multiselect widget"""
         if self.multi == 'basic':
             self.wrapper = [MultipleOptionsWidget.widget(self.field, self.value)]
         else:
             self.wrapper = [OptionsWidget.widget(self.field, self.value)]
+
+        for v in self.value:
+            self.wrapper.append(SPAN(v, _class = 'taglist'))
+
 
     def add_extras(self):
 

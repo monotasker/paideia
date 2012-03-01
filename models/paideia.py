@@ -12,6 +12,8 @@
 
 from plugin_ajaxselect import AjaxSelect
 import datetime, os
+#js file necessary for AjaxSelect widget
+response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.js'))
 
 dtnow = datetime.datetime.utcnow()
 

@@ -6,7 +6,7 @@ $('.add_trigger').live('click', function(event){
     var linktable = parts[0];
 
     $('#' + linktable + '_adder_form').dialog({
-        height:200,
+        height:400,
         width:500,
         title:'Add new '
     });
