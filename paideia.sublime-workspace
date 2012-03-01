@@ -3,6 +3,30 @@
 	{
 		"selected_items":
 		[
+			[
+				"aja",
+				"ajaxselect_value"
+			],
+			[
+				"sele",
+				"selected"
+			],
+			[
+				"wra",
+				"wrappername"
+			],
+			[
+				"fields",
+				"fieldset"
+			],
+			[
+				"fun",
+				"function"
+			],
+			[
+				"plugin",
+				"plugin_ajaxselect"
+			]
 		]
 	},
 	"buffers":
@@ -19,7 +43,7 @@
 			"file": "modules/plugin_ajaxselect.py",
 			"settings":
 			{
-				"buffer_size": 9583,
+				"buffer_size": 9168,
 				"line_ending": "Unix"
 			}
 		},
@@ -27,7 +51,7 @@
 			"file": "controllers/plugin_ajaxselect.py",
 			"settings":
 			{
-				"buffer_size": 2421,
+				"buffer_size": 2550,
 				"line_ending": "Unix"
 			}
 		},
@@ -36,6 +60,14 @@
 			"settings":
 			{
 				"buffer_size": 43,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "static/plugin_ajaxselect/plugin_ajaxselect.js",
+			"settings":
+			{
+				"buffer_size": 2233,
 				"line_ending": "Unix"
 			}
 		}
@@ -76,6 +108,7 @@
 	},
 	"file_history":
 	[
+		"/home/iscott/web/web2py/applications/paideia/modules/plugin_ajaxselect.py",
 		"/home/ian/.config/sublime-text-2/Packages/SublimeCodeIntel/Base File.sublime-settings",
 		"/home/ian/web/web2py/applications/paideia/views/plugin_ajaxselect/set_form_wrapper.load",
 		"/home/ian/web/web2py/applications/paideia/views/plugin_ajaxselect/linked_create_form.load",
@@ -115,6 +148,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"() + ', ';",
 			"response",
 			"page",
 			"tables"
@@ -171,15 +205,15 @@
 					"file": "modules/plugin_ajaxselect.py",
 					"settings":
 					{
-						"buffer_size": 9583,
+						"buffer_size": 9168,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								7859,
-								7859
+								4877,
+								4877
 							]
 						],
 						"settings":
@@ -189,7 +223,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 2508.0,
+						"translation.y": 1071.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -199,15 +233,15 @@
 					"file": "controllers/plugin_ajaxselect.py",
 					"settings":
 					{
-						"buffer_size": 2421,
+						"buffer_size": 2550,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1183,
-								1183
+								1364,
+								1364
 							]
 						],
 						"settings":
@@ -217,7 +251,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 462.0,
+						"translation.y": 102.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -241,6 +275,34 @@
 						"settings":
 						{
 							"syntax": "Packages/HTML/HTML.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "static/plugin_ajaxselect/plugin_ajaxselect.js",
+					"settings":
+					{
+						"buffer_size": 2233,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								571,
+								571
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,

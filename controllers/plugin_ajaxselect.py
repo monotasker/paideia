@@ -16,6 +16,7 @@ def set_widget():
     fieldname = request.args[1]
     table = db[tablename]
     field = table[fieldname]
+    print 'controller args: ', request.args
 
     #get current value of widget
     valstring = request.vars['value']
@@ -32,6 +33,9 @@ def set_widget():
             
     return dict(wrapper = w, linktable = request.vars['linktable'])
 
+def setval():
+    session.ajaxselect_value = 'hi'
+    print session.ajaxselect_value
 
 def set_form_wrapper():
     """

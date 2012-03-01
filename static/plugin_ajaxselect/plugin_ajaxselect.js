@@ -13,6 +13,19 @@ $('.add_trigger').live('click', function(event){
 });
 
 
+/*$('.plugin_ajaxselect select').live('change', function(event){
+    alert('hi');
+    var theid = $(this).attr('id');
+    var theval = '[';
+    $(this).find('option:selected').each(function(){
+        theval += $(this).val() + ', ';
+    });
+    var theval += ']';
+    alert(theval);
+    ajax('/paideia/plugin_ajaxselect/setval', theval, ':eval');
+});*/
+
+
 $('.restrictor').live('change', function(event){
 //constrain and refresh appropriate select widgets if restrictor widget's value is changed
 	//get selected value of the restrictor widget to use in constraining the target widget
