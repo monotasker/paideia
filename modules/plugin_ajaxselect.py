@@ -89,6 +89,12 @@ class AjaxSelect:
         #arguments passed from instantiation in model
         self.field = field
         self.value = value
+        #get name strings from field and value
+        self.fieldset = str(self.field).split('.')
+        
+        #build name for the span that will wrap the select widget
+        self.wrappername = '%s_%s_loader' % (self.fieldset[0], self.fieldset[1])
+
         self.linktable = linktable
         self.refresher = refresher
         self.adder = adder
@@ -96,15 +102,17 @@ class AjaxSelect:
         self.restrictor = restrictor
         self.multi = multi
         self.editlist = editlist
+
+        #use value stored in session if changes to widget haven't been sent to db
+        if session.ajaxselect_value and (self.wrappername in session.ajaxselect_value):
+            self.value = session.ajaxselect_value[self.wrappername]
+
         self.clean_val = self.value
         #remove problematic pipe characters or commas from the field value 
         #in case of list:reference fields
         if self.multi and isinstance(self.value, list):
             self.clean_val = '-'.join(map(str, self.value))
         #utility variables to pass information from one method to the next
-        self.tablename = ""
-        self.fieldname = ""
-        self.wrappername = ""
         self.comp_url = ""
         self.add_url = ""
         self.adder_id = ""
@@ -113,20 +121,9 @@ class AjaxSelect:
         self.w = ""
         self.classes = ""
 
-    def get_fieldset(self):
-        """get field and tablenames for the id's of the widget and associated 
-        elements"""
-        #TODO: Why is this in a separate method? Move to _init_?
-        fieldset = str(self.field).split('.')
-        self.tablename = fieldset[0]
-        self.fieldname = fieldset[1]
-
     def build_info(self):
         """Prepare information to be used in building widget and associated 
         elements"""
-        
-        #build name for the span that will wrap the select widget
-        self.wrappername = '%s_%s_loader' % (self.tablename, self.fieldname)
 
         #create ids for the "refresh" and "add new" buttons
         self.adder_id = '%s_add_trigger' % self.linktable
@@ -134,9 +131,27 @@ class AjaxSelect:
 
         #classes for wrapper span to indicate filtering relationships
         if self.restrictor == 'None':
-            self.classes += ''
+            self.classes += 'plugin_ajaxselect'
         else:
             self.classes += '%s restrictor for_%s' % (self.linktable, self.restrictor)
+
+    def create_widget(self):       
+
+        response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.js'))
+        
+        """create either a single select widget or multiselect widget"""
+        if self.multi == 'basic':
+            self.wrapper = [MultipleOptionsWidget.widget(self.field, self.value)]
+        else:
+            self.wrapper = [OptionsWidget.widget(self.field, self.value)]
+
+    def add_extras(self):
+
+        #prepare to hide 'refresh' button via CSS if necessary
+        if self.refresher is False:
+            rstyle = 'display:none'
+        else:
+            rstyle = ''
 
         #vars (params) for urls
         uvars = dict(value = self.clean_val, 
@@ -150,49 +165,21 @@ class AjaxSelect:
                     editlist = self.editlist
                     )
         #args for urls
-        uargs = [self.tablename, self.fieldname]
+        uargs = self.fieldset
 
         #URL to refresh widget via ajax
         self.comp_url = URL('plugin_ajaxselect', 'set_widget.load', 
                             args = uargs, vars = uvars)
         #URL to load form for linking table via ajax
-        self.add_url = URL('plugin_ajaxselect', 'set_form_wrapper.load', 
+        self.add_url = URL('plugin_ajaxselect', 'set_form_wrapper.load',
                            args = uargs, vars = uvars)
-
-    def create_widget(self):       
-        """create either a single select widget or multiselect widget"""
-        if self.multi == 'basic':
-            self.w = MultipleOptionsWidget.widget(self.field, self.value)
-        else:
-            self.w = OptionsWidget.widget(self.field, self.value)
-
-    def create_wrapper(self):
-        """
-        Create wrapper element and associated buttons, forms, etc. 
-        Place the new widget inside.
-        """
-        #load db from current object
-        db = current.db
-              
-        
-        #assemble these newly created components of the widget set
-        self.wrapper = [SPAN(self.w, 
-                        _id = self.wrappername, 
-                        _classes = self.classes)]
-
-    def add_extras(self):
-
-        #prepare to hide 'refresh' button via CSS if necessary
-        if self.refresher is False:
-            rstyle = 'display:none'
-        else:
-            rstyle = ''
 
         #create 'refresh' button
         refresh_a = A('refresh', _href = self.comp_url, 
                       _id = self.refresher_id, 
                       cid = self.wrappername, 
                       _style = rstyle)
+        print self.wrappername
 
         #append the 'refresh' button to the wrapper object
         self.wrapper.append(refresh_a)
@@ -218,15 +205,13 @@ class AjaxSelect:
         take any arguments since they are all provided at class instantiation.
         """
 
-        self.get_fieldset()
-
         self.build_info()
 
         self.create_widget()
 
-        self.create_wrapper()
-
         self.add_extras()
+
+        self.wrapper[0] = SPAN(self.wrapper[0], _id = self.wrappername, _class = self.classes)
 
         return self.wrapper
 
@@ -236,12 +221,6 @@ class AjaxSelect:
         on ajax refresh
         """
 
-        self.get_fieldset()
-
-        self.build_info()
-
         self.create_widget()
-
-        self.create_wrapper()
 
         return self.wrapper

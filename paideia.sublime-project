@@ -3,6 +3,9 @@
 	[
 		{
 			"path": "/home/ian/web/web2py/applications/paideia"
+		},
+		{
+			"path": "/home/iscott/web/web2py/applications/paideia"
 		}
 	]
 }
