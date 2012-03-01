@@ -1,20 +1,17 @@
 # coding: utf8
 
 #hack for PyDev error checking and debugging
-if 0:
-    from gluon import current, IS_IN_DB
-    from gluon.dal import DAL, Field
-    from gluon.tools import Auth
-    auth = Auth()
-    db = DAL()
-    request = current.request
-    from applications.paideia.modules.plugin_ajaxselect import AjaxSelect
+#if 0:
+    #from gluon import current, IS_IN_DB
+    #from gluon.dal import DAL, Field
+    #from gluon.tools import Auth
+    #auth = Auth()
+    #db = DAL()
+    #request = current.request
+    #from applications.paideia.modules.plugin_ajaxselect import AjaxSelect
 
-#os module needed for setting upload folders for images and audio
-import os
-#plugin from http://dev.s-cubism.com/plugin_multiselect_widget
 from plugin_ajaxselect import AjaxSelect
-import datetime
+import datetime, os
 
 dtnow = datetime.datetime.utcnow()
 
