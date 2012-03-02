@@ -1,3 +1,8 @@
+//add custom selector textEquals
+$.extend($.expr[':'].textEquals = function(a, i, m) {
+  return $(a).text().match("^" + m[3] + "$");
+});
+
 
 $('.add_trigger').live('click', function(event){
 //open modal dialog (using jquery-ui dialog) for adder form
@@ -12,19 +17,25 @@ $('.add_trigger').live('click', function(event){
     });
 });
 
+$('.plugin_ajaxselect select').live('change', function(event){
+    var $p = $(this).parents('span');
+    var theid = $p.attr('id');   
+    var theinput = theid + '_input';
+    var theval = '';
 
-/*$('.plugin_ajaxselect select').live('change', function(event){
-    alert('hi');
-    var theid = $(this).attr('id');
-    var theval = '[';
-    $(this).find('option:selected').each(function(){
-        theval += $(this).val() + ', ';
+    $(this).find('option:selected').each(function(event){
+        var theref = $(this).val();
+        //TODO: fix dynamic adding of tags for selected items
+        if($p.next('.taglist:textEquals(' + theref + ')')){}
+        else{
+            $p.append('<span class="taglist">' + theref + '</span>')
+        }
+        theval += theref 
+        theval += '-';
     });
-    var theval += ']';
-    alert(theval);
-    ajax('/paideia/plugin_ajaxselect/setval', theval, ':eval');
-});*/
-
+    $('#' + theinput).val(theval);
+    ajax('/paideia/plugin_ajaxselect/setval/' + theinput, ['"' + theinput + '"'], ':eval');
+});
 
 $('.restrictor').live('change', function(event){
 //constrain and refresh appropriate select widgets if restrictor widget's value is changed
