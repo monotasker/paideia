@@ -118,9 +118,9 @@ sS'quiz_type'
 p44
 S'category 1'
 p45
-sS'_formkey[paths/2]'
+sS'ajaxselect_value'
 p46
-S'e0dbbffd-8b52-4518-a2db-eafb1cc539b5'
+S'3-'
 p47
 sS'_formkey[paths/create]'
 p48
@@ -134,9 +134,9 @@ sS'question_text'
 p52
 S'Our neighbour is Egyptian. \xce\xa4\xce\xaf\xcf\x82 \xe1\xbd\x81 \xce\xb1\xe1\xbd\x90\xcf\x84\xe1\xbd\xb4\xcf\x82 \xce\xbb\xce\xac\xce\xbf\xcf\x82;'
 p53
-sS'_auth_next'
+sS'_formkey[paths/2]'
 p54
-S'/paideia/exploring/index'
+S'0b4093d1-64b8-4a6b-b091-3668e3d867d0'
 p55
 sS'completed_paths'
 p56
@@ -148,8 +148,12 @@ sS'readable_answer'
 p59
 S'Egypt; the egyptians'
 p60
-sS'debug'
+sS'_auth_next'
 p61
-S'2012-02-28'
+S'/paideia/exploring/index'
 p62
+sS'debug'
+p63
+S'2012-02-28'
+p64
 s.

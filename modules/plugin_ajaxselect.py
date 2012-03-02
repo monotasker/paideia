@@ -139,7 +139,7 @@ class AjaxSelect:
         for v in self.value:
             self.wrapper.append(SPAN(v, _class = 'taglist'))
         inputid = self.wrappername + '_input'
-        self.wrapper.append(INPUT(_id = inputid, _type = 'hidden', _value = ''))
+        self.wrapper.append(INPUT(_id = inputid, _name = inputid, _type = 'hidden', _value = ''))
 
     def add_extras(self):
 
