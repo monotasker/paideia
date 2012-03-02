@@ -11,8 +11,8 @@ $('.add_trigger').live('click', function(event){
     var linktable = parts[0];
 
     $('#' + linktable + '_adder_form').dialog({
-        height:400,
-        width:500,
+        height:600,
+        width:600,
         title:'Add new '
     });
 });
@@ -21,20 +21,18 @@ $('.plugin_ajaxselect select').live('change', function(event){
     var $p = $(this).parents('span');
     var theid = $p.attr('id');   
     var theinput = theid + '_input';
-    var theval = '';
+    var theval = $(this).val();
 
+    var $taglist = $p.parents('td').find('.taglist');
+    $taglist.html('');
     $(this).find('option:selected').each(function(event){
-        var theref = $(this).val();
-        //TODO: fix dynamic adding of tags for selected items
-        if($p.next('.taglist:textEquals(' + theref + ')')){}
-        else{
-            $p.append('<span class="taglist">' + theref + '</span>')
-        }
-        theval += theref 
-        theval += '-';
+        var theref = $(this).text();
+        $taglist.append('<span class="tag">' + theref + '</span>');
     });
     $('#' + theinput).val(theval);
     ajax('/paideia/plugin_ajaxselect/setval/' + theinput, ['"' + theinput + '"'], ':eval');
+    // empty input that stores the current value
+    $('#' + theinput).val(null);
 });
 
 $('.restrictor').live('change', function(event){
