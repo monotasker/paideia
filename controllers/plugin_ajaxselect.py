@@ -28,7 +28,7 @@ def set_widget():
             restricted = request.vars['restricted'], 
             restrictor = request.vars['restrictor'], 
             multi = request.vars['multi'], 
-            editlist = request.vars['editlist']).refresh()
+            lister = request.vars['lister']).refresh()
             
     return dict(wrapper = w, linktable = request.vars['linktable'])
 
@@ -56,13 +56,27 @@ def set_form_wrapper():
     tablename = request.args[0]
     fieldname = request.args[1]
 
-    formwrapper = LOAD('plugin_ajaxselect', 'linked_create_form.load',
+    if 'id' in request.vars:
+        form_maker = 'linked_edit_form.load'
+    else:
+        form_maker = 'linked_create_form.load'
+
+    formwrapper = LOAD('plugin_ajaxselect', form_maker,
                        args = [tablename, fieldname],
                        vars = request.vars,
                        ajax = True)
 
     return dict(formwrapper = formwrapper)
 
+
+def linked_edit_form():
+    """
+    creates a form to edit, update, or delete an intry in the linked table which 
+    populates the AjaxSelect widget.
+    """
+    tablename = request.args[0]
+    fieldname = request.args[1]
+    
 
 def linked_create_form():
     """

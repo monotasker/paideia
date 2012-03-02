@@ -27,7 +27,7 @@ $('.plugin_ajaxselect select').live('change', function(event){
     $taglist.html('');
     $(this).find('option:selected').each(function(event){
         var theref = $(this).text();
-        $taglist.append('<span class="tag">' + theref + '</span>');
+        $taglist.append('<li class="tag">' + theref + '</li>');
     });
     $('#' + theinput).val(theval);
     ajax('/paideia/plugin_ajaxselect/setval/' + theinput, ['"' + theinput + '"'], ':eval');
