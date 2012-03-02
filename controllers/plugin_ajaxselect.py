@@ -34,8 +34,10 @@ def set_widget():
     return dict(wrapper = w, linktable = request.vars['linktable'])
 
 def setval():
-    session.ajaxselect_value = 'hi'
-    print session.ajaxselect_value
+    theinput = request.args[0]
+    print 'in setval(), theinput = ', theinput
+    session.ajaxselect_value = request.vars[theinput]
+    print 'in setval(), request.vars[theinput] = ', session.ajaxselect_value
 
 def set_form_wrapper():
     """

@@ -1,4 +1,4 @@
-from gluon import current, SPAN, A, DIV, SQLFORM
+from gluon import current, SPAN, A, DIV, SQLFORM, INPUT
 from gluon.html import URL
 from gluon.sqlhtml import OptionsWidget, MultipleOptionsWidget 
 #TODO: add ListWidget as another option?
@@ -138,7 +138,8 @@ class AjaxSelect:
 
         for v in self.value:
             self.wrapper.append(SPAN(v, _class = 'taglist'))
-
+        inputid = self.wrappername + '_input'
+        self.wrapper.append(INPUT(_id = inputid, _type = 'hidden', _value = ''))
 
     def add_extras(self):
 
