@@ -97,14 +97,23 @@ class AjaxSelect:
         self.editlist = editlist
 
         #use value stored in session if changes to widget haven't been sent to db
-        if session.ajaxselect_value and (self.wrappername in session.ajaxselect_value):
-            self.value = session.ajaxselect_value[self.wrappername]
+        if (self.wrappername in session) and (session[self.wrappername]):
+            self.value = session[self.wrappername]
+            print 'session value being used in module: '
+            session[self.wrappername] = None
+        else:
+            print 'db value being used in module'
+            session[self.wrappername] = None
 
         self.clean_val = self.value
         #remove problematic pipe characters or commas from the field value 
         #in case of list:reference fields
         if self.multi and isinstance(self.value, list):
             self.clean_val = '-'.join(map(str, self.value))
+        print 'module self.value = ', self.value
+        print 'module self.clean_val', self.clean_val
+
+
         #utility variables to pass information from one method to the next
         self.comp_url = ""
         self.add_url = ""
@@ -135,11 +144,20 @@ class AjaxSelect:
             self.wrapper = [MultipleOptionsWidget.widget(self.field, self.value)]
         else:
             self.wrapper = [OptionsWidget.widget(self.field, self.value)]
-
-        for v in self.value:
-            self.wrapper.append(SPAN(v, _class = 'taglist'))
+        #hidden input to help send unsaved changes via ajax so that they're 
+        #preserved through a widget refresh
         inputid = self.wrappername + '_input'
         self.wrapper.append(INPUT(_id = inputid, _name = inputid, _type = 'hidden', _value = ''))
+
+    def add_taglist(self):
+
+        self.wrapper.append(SPAN(self.add_tags(), _class = 'taglist'))
+
+    def add_tags(self):
+        tags = []
+        for v in self.value:
+            tags.append(SPAN(v, _class = 'tag'))
+        return tags
 
     def add_extras(self):
 
@@ -204,6 +222,8 @@ class AjaxSelect:
         self.build_info()
 
         self.create_widget()
+
+        self.add_taglist()
 
         self.add_extras()
 

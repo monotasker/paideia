@@ -16,7 +16,6 @@ def set_widget():
     fieldname = request.args[1]
     table = db[tablename]
     field = table[fieldname]
-    print 'controller args: ', request.args
 
     #get current value of widget
     valstring = request.vars['value']
@@ -34,10 +33,20 @@ def set_widget():
     return dict(wrapper = w, linktable = request.vars['linktable'])
 
 def setval():
+    """Called when user changes value of AjaxSelect widget. Stores the current 
+    widget state in a session object to be used if the widget is refreshed before
+    the form is processed."""
     theinput = request.args[0]
-    print 'in setval(), theinput = ', theinput
-    session.ajaxselect_value = request.vars[theinput]
-    print 'in setval(), request.vars[theinput] = ', session.ajaxselect_value
+    wrappername = theinput.replace('_input', '')
+    curval = request.vars[theinput]
+    print 'in setval() raw: ', curval
+    # error handling to deal with strange occasional conversion of returned val to list
+    if type(curval) == list:
+        curval = curval[0]
+    curval = str(curval).split(',')
+    print 'insetval() processed: ', curval
+    session[wrappername] = curval
+    print 'in setval(), session.wrappername = ', session[wrappername]
 
 def set_form_wrapper():
     """
