@@ -182,20 +182,25 @@ class AjaxSelect:
         elif self.lister == 'editlinks':
             try:
                 form_name = '%s_editlist_form' % self.linktable
-                print 'form_name is ', form_name
 
                 for v in self.value:       
                     the_row = db(db[self.linktable].id == v).select().first()
                     f = db[self.linktable]._format % the_row
-                    print 'formatstring is ', f
                     edit_trigger_id = '%s_editlist_trigger_%i' % (self.linktable, v)
-                    print 'id is ', edit_trigger_id
-
+                    
+                    linkargs = self.uargs
+                    #add the id of this row as a third url argument
+                    linkargs.append(v)
+                    print 'linkargs = ', linkargs
+                    
                     tags.append(LI(A(f, _href=URL('plugin_ajaxselect', 'set_form_wrapper.load', 
-                                                    args = self.uargs, vars = dict(id = str(v))),   
+                                                    args = linkargs, vars = self.uvars),   
                                         _id = edit_trigger_id,
                                         _class = 'edit_trigger editlink tag', 
                                         cid = form_name), _class = 'editlink tag'))
+                    #remove this value from linkargs so that the values don't pile up
+                    linkargs.remove(v)
+
                 tags.append(DIV('', _id = form_name))
             except Exception, err:
                 print 'error in module add_tags(): ', err
