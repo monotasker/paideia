@@ -53,21 +53,18 @@ def set_form_wrapper():
     Creates the LOAD helper to hold the modal form for creating a new item in
     the linked table
     """
-    tablename = request.args[0]
-    fieldname = request.args[1]
 
-    if 'id' in request.vars:
+    if len(request.args) > 2:
         form_maker = 'linked_edit_form.load'
     else:
         form_maker = 'linked_create_form.load'
 
     formwrapper = LOAD('plugin_ajaxselect', form_maker,
-                       args = [tablename, fieldname],
+                       args = request.args,
                        vars = request.vars,
                        ajax = True)
 
     return dict(formwrapper = formwrapper)
-
 
 def linked_edit_form():
     """
@@ -76,6 +73,23 @@ def linked_edit_form():
     """
     tablename = request.args[0]
     fieldname = request.args[1]
+    this_row = request.args[2]
+    wrappername = request.vars['wrappername']
+
+    linktable = request.vars['linktable']
+    form = SQLFORM(db[linktable], this_row)
+
+    comp_url = URL('plugin_ajaxselect', 'set_widget.load',
+                   args = [tablename, fieldname],
+                   vars = request.vars)
+
+    if form.process().accepted:
+        response.flash = 'form accepted'
+        response.js = "web2py_component('%s', '%s');" % (comp_url, wrappername)
+    else:
+        response.error = 'form was not processed'
+
+    return dict(form = form)
     
 
 def linked_create_form():

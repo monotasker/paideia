@@ -3,98 +3,6 @@
 	{
 		"selected_items":
 		[
-			[
-				"aja",
-				"AjaxSelect"
-			],
-			[
-				"form",
-				"form_name"
-			],
-			[
-				"blo",
-				"blockletter"
-			],
-			[
-				"gree",
-				"green"
-			],
-			[
-				"blocklett",
-				"blockletter-small"
-			],
-			[
-				"green",
-				"spring-green"
-			],
-			[
-				"dusk",
-				"dusky-blue1"
-			],
-			[
-				"dus",
-				"dusky-blue1"
-			],
-			[
-				"edit_tri",
-				"edit_trigger_id"
-			],
-			[
-				"multi",
-				"multiselect"
-			],
-			[
-				"fonts",
-				"fonts1"
-			],
-			[
-				"type",
-				"typeheight"
-			],
-			[
-				"line",
-				"lineheight"
-			],
-			[
-				"add_ta",
-				"add_taglist"
-			],
-			[
-				"ajax",
-				"ajaxselect_value"
-			],
-			[
-				"process",
-				"processed"
-			],
-			[
-				"wrap",
-				"wrappername"
-			],
-			[
-				"text",
-				"textEquals"
-			],
-			[
-				"sele",
-				"selected"
-			],
-			[
-				"wra",
-				"wrappername"
-			],
-			[
-				"fields",
-				"fieldset"
-			],
-			[
-				"fun",
-				"function"
-			],
-			[
-				"plugin",
-				"plugin_ajaxselect"
-			]
 		]
 	},
 	"buffers":
@@ -108,26 +16,18 @@
 			}
 		},
 		{
+			"file": "modules/plugin_ajaxselect.py",
+			"settings":
+			{
+				"buffer_size": 11380,
+				"line_ending": "Unix"
+			}
+		},
+		{
 			"file": "controllers/plugin_ajaxselect.py",
 			"settings":
 			{
-				"buffer_size": 3450,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "static/plugin_framework/theme_paideia.less",
-			"settings":
-			{
-				"buffer_size": 12037,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "static/plugin_framework/framework.less",
-			"settings":
-			{
-				"buffer_size": 9764,
+				"buffer_size": 3934,
 				"line_ending": "Unix"
 			}
 		},
@@ -135,18 +35,7 @@
 			"file": "static/plugin_ajaxselect/plugin_ajaxselect.js",
 			"settings":
 			{
-				"buffer_size": 2678,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"contents": "from gluon import current, SPAN, A, DIV, SQLFORM, INPUT, UL, LI\nfrom gluon.html import URL\nfrom gluon.sqlhtml import OptionsWidget, MultipleOptionsWidget \n#TODO: add ListWidget as another option?\n\nclass AjaxSelect:\n    \"\"\"\n    This plugin creates a select widget wrapped that can be refreshed via ajax \n    without resetting the entire form. It also provides an \"add new\" button \n    that allows users to add a new item to the table that populates the select \n    widget via ajax. The widget is then automatically refreshed via ajax so that \n    the new item is visible as a select option and can be chosen. All of this\n    happens without a page or form refresh so that data entered in other fields \n    is not lost or submitted.\n\n    Installation:\n    1. download the plugin file;\n    2. In the web2py online ide (design view for your app) scroll to the bottom \n    section labeled \"Plugins\";\n    3. At the bottom of that section is a widget to \"upload plugin file\". Click \n    \"Browse\".\n    4. In the file selection window that opens, navigate to the downloaded \n    plugin file, select it, and click \"open\". The file selection window should \n    close.\n    5. Click the \"upload\" button.\n    The plugin should now be installed and ready to use.\n\n    Usage:\n    In a web2py model file, import this class and then apply it as\n    the widget-factory for one or more db fields. To do this for a field named\n    'author' from a table named 'notes' you would add this line somewhere in\n    the model file:\n\n    db.notes.author.widget = lambda field, value: AjaxSelect(field, value, \n    'authors', {optional arguments}).widget()\n\n    Note that the third argument passed to AjaxSelect should be the name of the\n    table *referenced by the current field*. In this example, the field 'author'\n    references the table 'authors'. So the third argument in this case is \n    'authors'.\n\n    Optional arguments:\n    refresher (True/False; defaults to True):a button to manually refresh the \n    select widget via ajax.\n\n    adder (True/False; defaults to True): a button to add a new record to the \n    linked table that populates the select widget.\n\n    restrictor ({form field name}): adds a dynamic constraint on the records \n    displayed in the named field's widget. When the specified form field \n    (within the same form) has its value changed, this select will be refreshed \n    and its displayed records filtered accordingly. Note that this is only \n    useful if {fieldname} references values shared with the linked table.\n\n    e.g., to make the select constrain the widget for the 'works' table:\n    db.notes.author.widget = lambda field, value: AjaxSelect(field, value, \n    'authors', restrictor='work').widget()\n\n    multi (basic/False; defaults to False): Instead of displaying a single \n    select widget, the 'basic' value displays a standard multiselect widget (an \n    html select widget with a size greater than 1). This will only work \n    properly if the database field type is defined as \"list:reference\" in the \n    model. \n\n    lister (False/'simple'/'editlinks'; defaults to False): 'normal' adds a \n    list of the widget's currently selected values below a multiselect widget. If \n    set to 'editlinks' these passive list items become links opening edit forms\n    for the linked items in a modal window.\n\n    \"\"\"\n    \"\"\"TODO: Get restriction to happen on initial widget creation, not just \n    refresh maybe by moving all widget creation to the controller? but still \n    have to get restrictor field val\n    TODO: allow for restrictor argument to take list and filter multiple other \n    fields\"\"\"\n\n    def __init__(self, field, value, linktable, refresher = False, adder = True,\n                 restricted = \"None\", restrictor = \"None\", multi = False, \n                 lister = False):\n        \n        session, request, response = current.session, current.request, current.response\n        \n        #arguments passed from instantiation in model\n        self.field = field\n        self.value = value\n        #get name strings from field and value\n        self.fieldset = str(self.field).split('.')\n        \n        #build name for the span that will wrap the select widget\n        self.wrappername = '%s_%s_loader' % (self.fieldset[0], self.fieldset[1])\n\n        self.linktable = linktable\n        self.refresher = refresher\n        self.adder = adder\n        self.restricted = restricted\n        self.restrictor = restrictor\n        self.multi = multi\n        self.lister = lister\n\n        #use value stored in session if changes to widget haven't been sent to db\n        if (self.wrappername in session) and (session[self.wrappername]):\n            self.value = session[self.wrappername]\n            print 'session value being used in module: '\n            session[self.wrappername] = None\n        else:\n            print 'db value being used in module'\n            session[self.wrappername] = None\n\n        self.clean_val = self.value\n        #remove problematic pipe characters or commas from the field value \n        #in case of list:reference fields\n        if self.multi and isinstance(self.value, list):\n            self.clean_val = '-'.join(map(str, self.value))\n        print 'module self.value = ', self.value\n        print 'module self.clean_val', self.clean_val\n\n\n        #utility variables to pass information from one method to the next\n        self.comp_url = \"\"\n        self.add_url = \"\"\n        self.adder_id = \"\"\n        self.refresher_id = \"\"\n        self.wrapper = \"\"\n        self.w = \"\"\n        self.classes = \"\"\n        #vars (params) for urls\n        self.uvars = dict(value = self.clean_val, \n                    linktable = self.linktable, \n                    wrappername = self.wrappername, \n                    refresher = self.refresher,\n                    adder = self.adder,\n                    restricted = self.restricted,\n                    restrictor = self.restrictor,\n                    multi = self.multi,\n                    lister = self.lister\n                    )\n        #args for urls\n        self.uargs = self.fieldset\n\n\n    def build_info(self):\n        \"\"\"Prepare information to be used in building widget and associated \n        elements\"\"\"\n\n        #create ids for the \"refresh\" and \"add new\" buttons\n        self.adder_id = '%s_add_trigger' % self.linktable\n        self.refresher_id = '%s_refresh_trigger' % self.linktable\n\n        #classes for wrapper span to indicate filtering relationships\n        if self.restrictor == 'None':\n            self.classes += 'plugin_ajaxselect'\n        else:\n            self.classes += '%s restrictor for_%s' % (self.linktable, self.restrictor)\n\n    def create_widget(self):       \n        \n        \"\"\"create either a single select widget or multiselect widget\"\"\"\n        if self.multi == 'basic':\n            self.wrapper = [MultipleOptionsWidget.widget(self.field, self.value)]\n        else:\n            self.wrapper = [OptionsWidget.widget(self.field, self.value)]\n        #hidden input to help send unsaved changes via ajax so that they're \n        #preserved through a widget refresh\n        inputid = self.wrappername + '_input'\n        self.wrapper.append(INPUT(_id = inputid, _name = inputid, _type = 'hidden', _value = ''))\n\n    def add_taglist(self):\n\n        self.wrapper.append(UL(self.add_tags(), _class = 'taglist'))\n\n    def add_tags(self):\n        db = current.db\n        tags = []\n\n        \n        if self.lister == 'normal':\n            for v in self.value:\n                the_row = db(db[self.linktable].id == v).select().first()\n                f = db[self.linktable]._format % the_row\n                tags.append(LI(f, _class = 'tag'))\n\n        elif self.lister == 'editlinks':\n            try:\n                form_name = '%s_editlist_form' % self.linktable\n                for v in self.value:       \n                    the_row = db(db[self.linktable].id == v).select().first()\n                    f = db[self.linktable]._format % the_row\n                    edit_trigger_id = '%s_editlist_trigger_%i' % (self.linktable, v)\n\n                    tags.append(LI(A(f, _href=URL('plugin_ajaxselect', 'set_form_wrapper.load', \n                                                    args = self.uargs, vars = dict(id = str(v))),   \n                                        _id = edit_trigger_id,\n                                        _class = 'edit_trigger editlink tag', \n                                        cid = form_name), _class = 'editlink tag'))\n                tags.append(DIV('', _id = form_name))\n            except Exception, err:\n                print 'error in module add_tags(): ', err\n\n        return tags\n\n    def add_extras(self):\n\n        #prepare to hide 'refresh' button via CSS if necessary\n        if self.refresher is False:\n            rstyle = 'display:none'\n        else:\n            rstyle = ''\n\n        #URL to refresh widget via ajax\n        self.comp_url = URL('plugin_ajaxselect', 'set_widget.load', \n                            args = self.uargs, vars = self.uvars)\n        #URL to load form for linking table via ajax\n        self.add_url = URL('plugin_ajaxselect', 'set_form_wrapper.load',\n                           args = self.uargs, vars = self.uvars)\n\n        #create 'refresh' button\n        refresh_a = A('r', _href = self.comp_url, \n                      _id = self.refresher_id, \n                      _class = 'refresh_trigger',\n                      cid = self.wrappername, \n                      _style = rstyle)\n\n        #append the 'refresh' button to the wrapper object\n        self.wrapper.append(refresh_a)\n\n        if self.adder:\n            #create name for form to create new entry in linked table\n            form_name = '%s_adder_form' % self.linktable\n            #create 'add new' button to open form\n            add_a = A('+', _href = self.add_url, _id = self.adder_id, \n                  _class = 'add_trigger', cid = form_name)       \n            #create hidden div to hold form (to be displayed via modal dialog, \n            #dialog triggered in static/plugin_ajaxselect.js\n            dialog = DIV('', _id = form_name)\n\n            self.wrapper.append(add_a)\n            self.wrapper.append(dialog)\n\n\n    def widget(self):\n        \"\"\"\n        Main method to create the ajaxselect widget. Calls helper methods and returns\n        the wrapper element containing all associated elements. This method doesn't\n        take any arguments since they are all provided at class instantiation.\n        \"\"\"\n\n        self.build_info()\n\n        self.create_widget()\n\n        self.add_extras()\n\n        if self.lister:\n            self.add_taglist()\n        else:\n            print 'no list asked for'\n\n        self.wrapper[0] = SPAN(self.wrapper[0], _id = self.wrappername, _class = self.classes)\n\n        return self.wrapper\n\n    def refresh(self):\n        \"\"\"\n        Method to re-create widget (without ancillary buttons and dialogs) \n        on ajax refresh\n        \"\"\"\n\n        self.create_widget()\n\n        return self.wrapper\n",
-			"file": "modules/plugin_ajaxselect.py",
-			"file_size": 11172,
-			"file_write_time": 1330727120000000,
-			"settings":
-			{
-				"buffer_size": 11022,
+				"buffer_size": 2877,
 				"line_ending": "Unix"
 			}
 		}
@@ -154,7 +43,7 @@
 	"build_system": "",
 	"command_palette":
 	{
-		"height": 369.0,
+		"height": 392.0,
 		"selected_items":
 		[
 			[
@@ -170,7 +59,7 @@
 				"Package Control: Discover Packages"
 			]
 		],
-		"width": 620.0
+		"width": 449.0
 	},
 	"console":
 	{
@@ -188,9 +77,6 @@
 	"file_history":
 	[
 		"/home/ian/web/web2py/applications/paideia/views/plugin_ajaxselect/set_widget.load",
-		"/home/ian/.config/sublime-text-2/Packages/Default/Default (Linux).sublime-keymap",
-		"/home/ian/web/web2py/applications/paideia/models/db.py",
-		"/home/iscott/web/web2py/applications/paideia/modules/plugin_ajaxselect.py",
 		"/home/ian/.config/sublime-text-2/Packages/SublimeCodeIntel/Base File.sublime-settings",
 		"/home/ian/web/web2py/applications/paideia/views/plugin_ajaxselect/set_form_wrapper.load",
 		"/home/ian/web/web2py/applications/paideia/views/plugin_ajaxselect/linked_create_form.load",
@@ -230,10 +116,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
-			"editlis",
 			"print",
-			"browser",
-			"() + ', ';",
 			"response",
 			"page",
 			"tables"
@@ -254,7 +137,7 @@
 	"groups":
 	[
 		{
-			"selected": 1,
+			"selected": 3,
 			"sheets":
 			[
 				{
@@ -269,8 +152,8 @@
 						"selection":
 						[
 							[
-								7045,
-								7045
+								0,
+								0
 							]
 						],
 						"settings":
@@ -280,25 +163,25 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 2796.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "controllers/plugin_ajaxselect.py",
+					"file": "modules/plugin_ajaxselect.py",
 					"settings":
 					{
-						"buffer_size": 3450,
+						"buffer_size": 11380,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								3364,
-								3364
+								8480,
+								8480
 							]
 						],
 						"settings":
@@ -308,87 +191,53 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1284.0,
+						"translation.y": 3952.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 2,
-					"file": "static/plugin_framework/theme_paideia.less",
+					"file": "controllers/plugin_ajaxselect.py",
 					"settings":
 					{
-						"buffer_size": 12037,
+						"buffer_size": 3934,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								10230,
-								10230
+								2804,
+								2804
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/LESS/LESS.tmLanguage",
+							"syntax": "Packages/Python/Python.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 8304.0,
+						"translation.y": 1555.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 3,
-					"file": "static/plugin_framework/framework.less",
-					"settings":
-					{
-						"buffer_size": 9764,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								9638,
-								9638
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/LESS/LESS.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 7646.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				}
-			]
-		},
-		{
-			"selected": 1,
-			"sheets":
-			[
-				{
-					"buffer": 4,
 					"file": "static/plugin_ajaxselect/plugin_ajaxselect.js",
 					"settings":
 					{
-						"buffer_size": 2678,
+						"buffer_size": 2877,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								912,
-								912
+								584,
+								584
 							]
 						],
 						"settings":
@@ -398,35 +247,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 306.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 5,
-					"file": "modules/plugin_ajaxselect.py",
-					"settings":
-					{
-						"buffer_size": 11022,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								7799,
-								7799
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 3060.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -451,12 +272,6 @@
 				0,
 				1,
 				1
-			],
-			[
-				0,
-				1,
-				1,
-				2
 			]
 		],
 		"cols":
@@ -467,7 +282,6 @@
 		"rows":
 		[
 			0.0,
-			0.5,
 			1.0
 		]
 	},
@@ -496,7 +310,7 @@
 	"show_minimap": true,
 	"show_open_files": true,
 	"show_tabs": true,
-	"side_bar_visible": true,
+	"side_bar_visible": false,
 	"side_bar_width": 249.0,
 	"status_bar_visible": true
 }
