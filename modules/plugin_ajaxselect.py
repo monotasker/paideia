@@ -172,7 +172,6 @@ class AjaxSelect:
         db = current.db
         tags = []
 
-        
         if self.lister == 'normal':
             for v in self.value:
                 the_row = db(db[self.linktable].id == v).select().first()

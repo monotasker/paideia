@@ -27,13 +27,13 @@ p12
 ssS'date_attempted'
 p13
 (dp14
-S'sortable'
+S'type'
 p15
-I6
-sS'type'
-p16
 S'date'
+p16
+sS'sortable'
 p17
+I6
 sS'sql'
 p18
 S'DATE'
@@ -74,13 +74,13 @@ p31
 ssS'quiz'
 p32
 (dp33
-S'sortable'
+S'type'
 p34
-I5
-sS'type'
-p35
 S'reference quizzes'
+p35
+sS'sortable'
 p36
+I5
 sS'sql'
 p37
 S'INTEGER REFERENCES quizzes(id) ON DELETE CASCADE'

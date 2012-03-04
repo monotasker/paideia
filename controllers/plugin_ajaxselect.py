@@ -53,7 +53,7 @@ def set_form_wrapper():
     Creates the LOAD helper to hold the modal form for creating a new item in
     the linked table
     """
-
+    print 'hi there'
     if len(request.args) > 2:
         form_maker = 'linked_edit_form.load'
     else:
