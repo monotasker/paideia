@@ -147,10 +147,13 @@ class AjaxSelect:
         self.refresher_id = '%s_refresh_trigger' % self.linktable
 
         #classes for wrapper span to indicate filtering relationships
-        if self.restrictor == 'None':
-            self.classes += 'plugin_ajaxselect'
-        else:
-            self.classes += '%s restrictor for_%s' % (self.linktable, self.restrictor)
+        self.classes += 'plugin_ajaxselect '
+        if self.restrictor and self.restrictor != None:
+            self.classes += '%s restrictor for_%s ' % (self.linktable, self.restrictor)
+        if self.lister == 'simple':
+            self.classes += 'lister_simple '
+        elif self.lister == 'editlinks':
+            self.classes += 'lister_editlinks '
 
     def create_widget(self):       
         
@@ -172,7 +175,7 @@ class AjaxSelect:
         db = current.db
         tags = []
 
-        if self.lister == 'normal':
+        if self.lister == 'simple':
             for v in self.value:
                 the_row = db(db[self.linktable].id == v).select().first()
                 f = db[self.linktable]._format % the_row
