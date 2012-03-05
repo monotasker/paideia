@@ -5,6 +5,7 @@ $('.add_trigger').live('click', function(event){
     var parts = the_id.split('_');
     var linktable = parts[0];
 
+    $('#' + linktable + '_adder_form').html('');
     $('#' + linktable + '_adder_form').dialog({
         height:600,
         width:600,
@@ -18,6 +19,7 @@ $('.edit_trigger').live('click', function(event){
     var parts = the_id.split('_');
     var linktable = parts[0];
 
+    $('#' + linktable + '_adder_form').html('');
     $('#' + linktable + '_editlist_form').dialog({
         height:600,
         width:600,
@@ -47,20 +49,29 @@ $('.plugin_ajaxselect select').live('change', function(event){
     var formname = linktable + '_editlist_form';
 
     n = ''
-    $(this).find('option:selected').each(function(event){
-        var theref = $(this).text();
-        var link_url = link_base + url_args + '/' + theval + '?' + url_vars;
-        var script_string = "web2py_component('" + link_url + "', '" + formname + "')";
+    if($p.hasClass('lister_editlinks')){
+        $(this).find('option:selected').each(function(event){
+            var theref = $(this).text();
+            var thisval = $(this).val();
+            var link_url = link_base + url_args + '/' + thisval + '?' + url_vars;
+            var script_string = "web2py_component('" + link_url + "', '" + formname + "')";
 
-        n += '<li class="editlink tag">';
-        n += '<a id="' + linktable + '_editlist_trigger_' + theval + '" ';
-        n += 'class="edit_trigger editlink tag" ';
-        n += 'href="' + link_url + '" ';
-        n += 'onclick="' + script_string + '; return false;">';
-        n += theref + '</a></li>';
-    });
-    n += '<div id="' + formname + '"></div>';
-    $taglist.append(n);
+            n += '<li class="editlink tag">';
+            n += '<a id="' + linktable + '_editlist_trigger_' + thisval + '" ';
+            n += 'class="edit_trigger editlink tag" ';
+            n += 'href="' + link_url + '" ';
+            n += 'onclick="' + script_string + '; return false;">';
+            n += theref + '</a></li>';
+        });
+        $taglist.append(n);
+    }
+    if($p.hasClass('lister_simple')){
+        $(this).find('option:selected').each(function(event){
+            var theref = $(this).text();
+            n += '<li class="tag">' + theref + '</li>';
+        });
+        $taglist.append(n);
+    }
 
     $('#' + theinput).val(theval);
     ajax('/' + appname + '/plugin_ajaxselect/setval/' + theinput, ['"' + theinput + '"'], ':eval');

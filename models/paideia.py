@@ -173,6 +173,10 @@ db.paths.steps.widget = lambda field, value: AjaxSelect(field, value, 'steps',
 db.paths.locations.requires = IS_IN_DB(db, 'locations.id', db.locations._format, 
                                        multiple = True)
 db.paths.npcs.requires = IS_IN_DB(db, 'npcs.id', db.npcs._format, multiple = True)
+db.paths.npcs.widget = lambda field, value: AjaxSelect(field, value, 'steps',
+                                                        refresher = True, 
+                                                        multi = 'basic', 
+                                                        lister = 'editlinks').widget()
 
 db.define_table('news',
     Field('story', 'text'),
