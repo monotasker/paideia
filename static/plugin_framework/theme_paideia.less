@@ -43,7 +43,8 @@ nav {
     background-color:transparent;
     padding: 0;
     margin:0;
-    height:100%;    text-transform:uppercase;
+    height:100%;
+    text-transform:uppercase;
     font-size:@typeheight * .8;
 
     .sf-menu {
@@ -284,6 +285,43 @@ nav {
 
 }
 
+/* for admin ui */
+
+.taglist, #viewpane table .taglist{
+    width:85%;
+
+    li {
+        background-color:#eee;
+        border:solid 1px #ccc;
+        padding-left:@lineheight;
+        .transition();
+        z-index:1;
+    }
+
+    li.editlink:hover {
+        .box-shadow();
+        .transition();
+        z-index:10;
+    }
+
+    a.editlink {
+        background-color:transparent;
+        background-image:none;
+        float: none;
+        color: @dusky-blue1;
+        margin:0;
+        box-shadow:none;
+        width:100%;
+    }
+    a.editlink:hover {
+        background-color:transparent;
+        background-image:none;
+        float: none;
+        color: @dusky-blue2;
+        margin:0;
+    }
+}
+
 /* for profile pages */
 
 table.summary_stats {border-collapse:separate; border-spacing:6px;}
@@ -453,17 +491,29 @@ table.weeklycount span.cal_count{
     width: 65%;
     padding-top: @lineheight2;
 
+
+    form label {
+        color:@cranberry;
+    }
+
+    input, select {
+        width:85%;
+    }
+
     table {
         width: 100%;
 
-        a {
+        a.add_trigger, a.refresh_trigger {
             float: right;
+            .sticker();
+            background-color:@dusky-blue1;
+            color: @white;
         }
 
     }
 
     textarea {
-        width: 90%;
+        width: 85%;
     }
 
     form form {

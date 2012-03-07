@@ -1,14 +1,7 @@
-from gluon import current, SPAN, A, DIV, SQLFORM, XML
-from gluon.custom_import import track_changes
+from gluon import current, SPAN, A, DIV, SQLFORM, INPUT, UL, LI
 from gluon.html import URL
 from gluon.sqlhtml import OptionsWidget, MultipleOptionsWidget 
 #TODO: add ListWidget as another option?
-
-response = current.response
-response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.js'))
-
-#TODO: set track changes to false when dev is finished
-track_changes(True)
 
 class AjaxSelect:
     """
@@ -69,9 +62,10 @@ class AjaxSelect:
     properly if the database field type is defined as "list:reference" in the 
     model. 
 
-    editlist (True/False; defaults to False): Adds a persistent edit form below 
-    the select widget for the currently selected value. If multi is not False, 
-    one edit form is provided for each selected value. 
+    lister (False/'simple'/'editlinks'; defaults to False): 'normal' adds a 
+    list of the widget's currently selected values below a multiselect widget. If 
+    set to 'editlinks' these passive list items become links opening edit forms
+    for the linked items in a modal window.
 
     """
     """TODO: Get restriction to happen on initial widget creation, not just 
@@ -82,7 +76,7 @@ class AjaxSelect:
 
     def __init__(self, field, value, linktable, refresher = False, adder = True,
                  restricted = "None", restrictor = "None", multi = False, 
-                 editlist = False):
+                 lister = False):
         
         session, request, response = current.session, current.request, current.response
         
@@ -101,17 +95,26 @@ class AjaxSelect:
         self.restricted = restricted
         self.restrictor = restrictor
         self.multi = multi
-        self.editlist = editlist
+        self.lister = lister
 
         #use value stored in session if changes to widget haven't been sent to db
-        if session.ajaxselect_value and (self.wrappername in session.ajaxselect_value):
-            self.value = session.ajaxselect_value[self.wrappername]
+        if (self.wrappername in session) and (session[self.wrappername]):
+            self.value = session[self.wrappername]
+            print 'session value being used in module: '
+            session[self.wrappername] = None
+        else:
+            print 'db value being used in module'
+            session[self.wrappername] = None
 
         self.clean_val = self.value
         #remove problematic pipe characters or commas from the field value 
         #in case of list:reference fields
         if self.multi and isinstance(self.value, list):
             self.clean_val = '-'.join(map(str, self.value))
+        print 'module self.value = ', self.value
+        print 'module self.clean_val', self.clean_val
+
+
         #utility variables to pass information from one method to the next
         self.comp_url = ""
         self.add_url = ""
@@ -120,6 +123,20 @@ class AjaxSelect:
         self.wrapper = ""
         self.w = ""
         self.classes = ""
+        #vars (params) for urls
+        self.uvars = dict(value = self.clean_val, 
+                    linktable = self.linktable, 
+                    wrappername = self.wrappername, 
+                    refresher = self.refresher,
+                    adder = self.adder,
+                    restricted = self.restricted,
+                    restrictor = self.restrictor,
+                    multi = self.multi,
+                    lister = self.lister
+                    )
+        #args for urls
+        self.uargs = self.fieldset
+
 
     def build_info(self):
         """Prepare information to be used in building widget and associated 
@@ -130,20 +147,67 @@ class AjaxSelect:
         self.refresher_id = '%s_refresh_trigger' % self.linktable
 
         #classes for wrapper span to indicate filtering relationships
-        if self.restrictor == 'None':
-            self.classes += 'plugin_ajaxselect'
-        else:
-            self.classes += '%s restrictor for_%s' % (self.linktable, self.restrictor)
+        self.classes += 'plugin_ajaxselect '
+        if self.restrictor and self.restrictor != None:
+            self.classes += '%s restrictor for_%s ' % (self.linktable, self.restrictor)
+        if self.lister == 'simple':
+            self.classes += 'lister_simple '
+        elif self.lister == 'editlinks':
+            self.classes += 'lister_editlinks '
 
     def create_widget(self):       
-
-        response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.js'))
         
         """create either a single select widget or multiselect widget"""
         if self.multi == 'basic':
             self.wrapper = [MultipleOptionsWidget.widget(self.field, self.value)]
         else:
             self.wrapper = [OptionsWidget.widget(self.field, self.value)]
+        #hidden input to help send unsaved changes via ajax so that they're 
+        #preserved through a widget refresh
+        inputid = self.wrappername + '_input'
+        self.wrapper.append(INPUT(_id = inputid, _name = inputid, _type = 'hidden', _value = ''))
+
+    def add_taglist(self):
+
+        self.wrapper.append(UL(self.add_tags(), _class = 'taglist'))
+
+    def add_tags(self):
+        db = current.db
+        tags = []
+
+        if self.lister == 'simple':
+            for v in self.value:
+                the_row = db(db[self.linktable].id == v).select().first()
+                f = db[self.linktable]._format % the_row
+                tags.append(LI(f, _class = 'tag'))
+
+        elif self.lister == 'editlinks':
+            try:
+                form_name = '%s_editlist_form' % self.linktable
+
+                for v in self.value:       
+                    the_row = db(db[self.linktable].id == v).select().first()
+                    f = db[self.linktable]._format % the_row
+                    edit_trigger_id = '%s_editlist_trigger_%i' % (self.linktable, v)
+                    
+                    linkargs = self.uargs
+                    #add the id of this row as a third url argument
+                    linkargs.append(v)
+                    print 'linkargs = ', linkargs
+                    
+                    tags.append(LI(A(f, _href=URL('plugin_ajaxselect', 'set_form_wrapper.load', 
+                                                    args = linkargs, vars = self.uvars),   
+                                        _id = edit_trigger_id,
+                                        _class = 'edit_trigger editlink tag', 
+                                        cid = form_name), _class = 'editlink tag'))
+                    #remove this value from linkargs so that the values don't pile up
+                    linkargs.remove(v)
+
+                tags.append(DIV('', _id = form_name))
+            except Exception, err:
+                print 'error in module add_tags(): ', err
+
+        return tags
 
     def add_extras(self):
 
@@ -153,33 +217,19 @@ class AjaxSelect:
         else:
             rstyle = ''
 
-        #vars (params) for urls
-        uvars = dict(value = self.clean_val, 
-                    linktable = self.linktable, 
-                    wrappername = self.wrappername, 
-                    refresher = self.refresher,
-                    adder = self.adder,
-                    restricted = self.restricted,
-                    restrictor = self.restrictor,
-                    multi = self.multi,
-                    editlist = self.editlist
-                    )
-        #args for urls
-        uargs = self.fieldset
-
         #URL to refresh widget via ajax
         self.comp_url = URL('plugin_ajaxselect', 'set_widget.load', 
-                            args = uargs, vars = uvars)
+                            args = self.uargs, vars = self.uvars)
         #URL to load form for linking table via ajax
         self.add_url = URL('plugin_ajaxselect', 'set_form_wrapper.load',
-                           args = uargs, vars = uvars)
+                           args = self.uargs, vars = self.uvars)
 
         #create 'refresh' button
-        refresh_a = A('refresh', _href = self.comp_url, 
+        refresh_a = A('r', _href = self.comp_url, 
                       _id = self.refresher_id, 
+                      _class = 'refresh_trigger',
                       cid = self.wrappername, 
                       _style = rstyle)
-        print self.wrappername
 
         #append the 'refresh' button to the wrapper object
         self.wrapper.append(refresh_a)
@@ -188,7 +238,7 @@ class AjaxSelect:
             #create name for form to create new entry in linked table
             form_name = '%s_adder_form' % self.linktable
             #create 'add new' button to open form
-            add_a = A('add new', _href = self.add_url, _id = self.adder_id, 
+            add_a = A('+', _href = self.add_url, _id = self.adder_id, 
                   _class = 'add_trigger', cid = form_name)       
             #create hidden div to hold form (to be displayed via modal dialog, 
             #dialog triggered in static/plugin_ajaxselect.js
@@ -210,6 +260,11 @@ class AjaxSelect:
         self.create_widget()
 
         self.add_extras()
+
+        if self.lister:
+            self.add_taglist()
+        else:
+            print 'no list asked for'
 
         self.wrapper[0] = SPAN(self.wrapper[0], _id = self.wrappername, _class = self.classes)
 

@@ -4,8 +4,92 @@
 		"selected_items":
 		[
 			[
+				"url_",
+				"url_args"
+			],
+			[
+				"url",
+				"url_args_vars"
+			],
+			[
+				"link_",
+				"link_base"
+			],
+			[
+				"the",
+				"theval"
+			],
+			[
 				"aja",
+				"AjaxSelect"
+			],
+			[
+				"form",
+				"form_name"
+			],
+			[
+				"blo",
+				"blockletter"
+			],
+			[
+				"gree",
+				"green"
+			],
+			[
+				"blocklett",
+				"blockletter-small"
+			],
+			[
+				"green",
+				"spring-green"
+			],
+			[
+				"dusk",
+				"dusky-blue1"
+			],
+			[
+				"dus",
+				"dusky-blue1"
+			],
+			[
+				"edit_tri",
+				"edit_trigger_id"
+			],
+			[
+				"multi",
+				"multiselect"
+			],
+			[
+				"fonts",
+				"fonts1"
+			],
+			[
+				"type",
+				"typeheight"
+			],
+			[
+				"line",
+				"lineheight"
+			],
+			[
+				"add_ta",
+				"add_taglist"
+			],
+			[
+				"ajax",
 				"ajaxselect_value"
+			],
+			[
+				"process",
+				"processed"
+			],
+			[
+				"wrap",
+				"wrappername"
+			],
+			[
+				"text",
+				"textEquals"
 			],
 			[
 				"sele",
@@ -35,15 +119,7 @@
 			"file": "models/paideia.py",
 			"settings":
 			{
-				"buffer_size": 7430,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "modules/plugin_ajaxselect.py",
-			"settings":
-			{
-				"buffer_size": 9168,
+				"buffer_size": 7869,
 				"line_ending": "Unix"
 			}
 		},
@@ -51,15 +127,31 @@
 			"file": "controllers/plugin_ajaxselect.py",
 			"settings":
 			{
-				"buffer_size": 2550,
+				"buffer_size": 3954,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "views/plugin_ajaxselect/set_widget.load",
+			"file": "modules/plugin_ajaxselect.py",
 			"settings":
 			{
-				"buffer_size": 43,
+				"buffer_size": 11543,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "static/plugin_framework/theme_paideia.less",
+			"settings":
+			{
+				"buffer_size": 12037,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "static/plugin_framework/framework.less",
+			"settings":
+			{
+				"buffer_size": 9764,
 				"line_ending": "Unix"
 			}
 		},
@@ -67,7 +159,7 @@
 			"file": "static/plugin_ajaxselect/plugin_ajaxselect.js",
 			"settings":
 			{
-				"buffer_size": 2233,
+				"buffer_size": 4423,
 				"line_ending": "Unix"
 			}
 		}
@@ -75,7 +167,7 @@
 	"build_system": "",
 	"command_palette":
 	{
-		"height": 372.0,
+		"height": 285.0,
 		"selected_items":
 		[
 			[
@@ -91,7 +183,7 @@
 				"Package Control: Discover Packages"
 			]
 		],
-		"width": 575.0
+		"width": 449.0
 	},
 	"console":
 	{
@@ -108,6 +200,11 @@
 	},
 	"file_history":
 	[
+		"/home/ian/.config/sublime-text-2/Packages/sublime-V8/JSHINT.sublime-settings",
+		"/home/ian/.config/sublime-text-2/Packages/Default/Preferences.sublime-settings",
+		"/home/ian/web/web2py/applications/paideia/views/plugin_ajaxselect/set_widget.load",
+		"/home/ian/.config/sublime-text-2/Packages/Default/Default (Linux).sublime-keymap",
+		"/home/ian/web/web2py/applications/paideia/models/db.py",
 		"/home/iscott/web/web2py/applications/paideia/modules/plugin_ajaxselect.py",
 		"/home/ian/.config/sublime-text-2/Packages/SublimeCodeIntel/Base File.sublime-settings",
 		"/home/ian/web/web2py/applications/paideia/views/plugin_ajaxselect/set_form_wrapper.load",
@@ -148,6 +245,9 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"editlis",
+			"print",
+			"browser",
 			"() + ', ';",
 			"response",
 			"page",
@@ -169,7 +269,7 @@
 	"groups":
 	[
 		{
-			"selected": 1,
+			"selected": 0,
 			"sheets":
 			[
 				{
@@ -177,15 +277,15 @@
 					"file": "models/paideia.py",
 					"settings":
 					{
-						"buffer_size": 7430,
+						"buffer_size": 7869,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								419,
-								419
+								7504,
+								7504
 							]
 						],
 						"settings":
@@ -195,25 +295,25 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 2694.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "modules/plugin_ajaxselect.py",
+					"file": "controllers/plugin_ajaxselect.py",
 					"settings":
 					{
-						"buffer_size": 9168,
+						"buffer_size": 3954,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								4877,
-								4877
+								2312,
+								2312
 							]
 						],
 						"settings":
@@ -223,25 +323,25 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1071.0,
+						"translation.y": 774.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 2,
-					"file": "controllers/plugin_ajaxselect.py",
+					"file": "modules/plugin_ajaxselect.py",
 					"settings":
 					{
-						"buffer_size": 2550,
+						"buffer_size": 11543,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1364,
-								1364
+								6832,
+								6832
 							]
 						],
 						"settings":
@@ -251,61 +351,97 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 102.0,
+						"translation.y": 2279.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 3,
-					"file": "views/plugin_ajaxselect/set_widget.load",
+					"file": "static/plugin_framework/theme_paideia.less",
 					"settings":
 					{
-						"buffer_size": 43,
+						"buffer_size": 12037,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								41,
-								41
+								10230,
+								10230
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/HTML/HTML.tmLanguage"
+							"syntax": "Packages/LESS/LESS.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 8304.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 4,
-					"file": "static/plugin_ajaxselect/plugin_ajaxselect.js",
+					"file": "static/plugin_framework/framework.less",
 					"settings":
 					{
-						"buffer_size": 2233,
+						"buffer_size": 9764,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								571,
-								571
+								9638,
+								9638
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
-							"tab_size": 2,
+							"syntax": "Packages/LESS/LESS.tmLanguage",
+							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 7646.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
+			]
+		},
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 5,
+					"file": "static/plugin_ajaxselect/plugin_ajaxselect.js",
+					"settings":
+					{
+						"buffer_size": 4423,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3307,
+								3307
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/jQuery/Syntaxes/jQuery (JavaScript).tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1350.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -330,6 +466,12 @@
 				0,
 				1,
 				1
+			],
+			[
+				0,
+				1,
+				1,
+				2
 			]
 		],
 		"cols":
@@ -340,6 +482,7 @@
 		"rows":
 		[
 			0.0,
+			0.5,
 			1.0
 		]
 	},
@@ -365,10 +508,10 @@
 		],
 		"width": 0.0
 	},
-	"show_minimap": true,
+	"show_minimap": false,
 	"show_open_files": true,
 	"show_tabs": true,
-	"side_bar_visible": true,
+	"side_bar_visible": false,
 	"side_bar_width": 249.0,
 	"status_bar_visible": true
 }

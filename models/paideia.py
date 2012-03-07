@@ -12,6 +12,8 @@
 
 from plugin_ajaxselect import AjaxSelect
 import datetime, os
+#js file necessary for AjaxSelect widget
+response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.js'))
 
 dtnow = datetime.datetime.utcnow()
 
@@ -167,10 +169,14 @@ db.paths.steps.requires = IS_IN_DB(db, 'steps.id', db.steps._format, multiple = 
 db.paths.steps.widget = lambda field, value: AjaxSelect(field, value, 'steps',
                                                         refresher = True, 
                                                         multi = 'basic', 
-                                                        editlist = True).widget()
+                                                        lister = 'editlinks').widget()
 db.paths.locations.requires = IS_IN_DB(db, 'locations.id', db.locations._format, 
                                        multiple = True)
 db.paths.npcs.requires = IS_IN_DB(db, 'npcs.id', db.npcs._format, multiple = True)
+db.paths.npcs.widget = lambda field, value: AjaxSelect(field, value, 'steps',
+                                                        refresher = True, 
+                                                        multi = 'basic', 
+                                                        lister = 'editlinks').widget()
 
 db.define_table('news',
     Field('story', 'text'),
