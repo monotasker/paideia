@@ -5,26 +5,79 @@ $('.add_trigger').live('click', function(event){
     var parts = the_id.split('_');
     var linktable = parts[0];
 
+    $('#' + linktable + '_adder_form').html('');
     $('#' + linktable + '_adder_form').dialog({
-        height:200,
-        width:500,
+        height:600,
+        width:600,
         title:'Add new '
     });
 });
 
+$('.edit_trigger').live('click', function(event){
+//open modal dialog (using jquery-ui dialog) for edit form
+    var the_id = $(this).attr('id');
+    var parts = the_id.split('_');
+    var linktable = parts[0];
 
-/*$('.plugin_ajaxselect select').live('change', function(event){
-    alert('hi');
-    var theid = $(this).attr('id');
-    var theval = '[';
-    $(this).find('option:selected').each(function(){
-        theval += $(this).val() + ', ';
+    $('#' + linktable + '_adder_form').html('');
+    $('#' + linktable + '_editlist_form').dialog({
+        height:600,
+        width:600,
+        title:'Edit '
     });
-    var theval += ']';
-    alert(theval);
-    ajax('/paideia/plugin_ajaxselect/setval', theval, ':eval');
-});*/
+});
 
+$('.plugin_ajaxselect select').live('change', function(event){
+    //when select value is changed, update 
+    var $p = $(this).parents('span');
+    var $td = $p.parents('td');
+    var theid = $p.attr('id');   
+    var theinput = theid + '_input';
+    var theval = $(this).val();
+
+    var $taglist = $td.find('.taglist');
+    $taglist.html('');
+    //get url from beginning of request.args, and separate args from vars
+    var r_url = $td.find('a.refresh_trigger').attr('href');
+    var url_frag = r_url.match(/set_widget.load(.*)/);
+    var url_args_vars = url_frag[1].split('?');
+    var url_args = url_args_vars[0];
+    var url_vars = url_args_vars[1];
+    var appname = r_url.split('/')[1];
+    var linktable = url_vars.split('&')[1].replace('linktable=', '');
+    var link_base = '/' + appname + '/plugin_ajaxselect/set_form_wrapper.load';
+    var formname = linktable + '_editlist_form';
+
+    n = ''
+    if($p.hasClass('lister_editlinks')){
+        $(this).find('option:selected').each(function(event){
+            var theref = $(this).text();
+            var thisval = $(this).val();
+            var link_url = link_base + url_args + '/' + thisval + '?' + url_vars;
+            var script_string = "web2py_component('" + link_url + "', '" + formname + "')";
+
+            n += '<li class="editlink tag">';
+            n += '<a id="' + linktable + '_editlist_trigger_' + thisval + '" ';
+            n += 'class="edit_trigger editlink tag" ';
+            n += 'href="' + link_url + '" ';
+            n += 'onclick="' + script_string + '; return false;">';
+            n += theref + '</a></li>';
+        });
+        $taglist.append(n);
+    }
+    if($p.hasClass('lister_simple')){
+        $(this).find('option:selected').each(function(event){
+            var theref = $(this).text();
+            n += '<li class="tag">' + theref + '</li>';
+        });
+        $taglist.append(n);
+    }
+
+    $('#' + theinput).val(theval);
+    ajax('/' + appname + '/plugin_ajaxselect/setval/' + theinput, ['"' + theinput + '"'], ':eval');
+    // empty input that stores the current value
+    $('#' + theinput).val(null);
+});
 
 $('.restrictor').live('change', function(event){
 //constrain and refresh appropriate select widgets if restrictor widget's value is changed

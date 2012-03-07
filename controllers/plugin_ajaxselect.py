@@ -16,7 +16,6 @@ def set_widget():
     fieldname = request.args[1]
     table = db[tablename]
     field = table[fieldname]
-    print 'controller args: ', request.args
 
     #get current value of widget
     valstring = request.vars['value']
@@ -29,29 +28,69 @@ def set_widget():
             restricted = request.vars['restricted'], 
             restrictor = request.vars['restrictor'], 
             multi = request.vars['multi'], 
-            editlist = request.vars['editlist']).refresh()
+            lister = request.vars['lister']).refresh()
             
     return dict(wrapper = w, linktable = request.vars['linktable'])
 
 def setval():
-    session.ajaxselect_value = 'hi'
-    print session.ajaxselect_value
+    """Called when user changes value of AjaxSelect widget. Stores the current 
+    widget state in a session object to be used if the widget is refreshed before
+    the form is processed."""
+    theinput = request.args[0]
+    wrappername = theinput.replace('_input', '')
+    curval = request.vars[theinput]
+    print 'in setval() raw: ', curval
+    # error handling to deal with strange occasional conversion of returned val to list
+    if type(curval) == list:
+        curval = curval[0]
+    curval = str(curval).split(',')
+    print 'insetval() processed: ', curval
+    session[wrappername] = curval
+    print 'in setval(), session.wrappername = ', session[wrappername]
 
 def set_form_wrapper():
     """
     Creates the LOAD helper to hold the modal form for creating a new item in
     the linked table
     """
-    tablename = request.args[0]
-    fieldname = request.args[1]
+    print 'hi there'
+    if len(request.args) > 2:
+        form_maker = 'linked_edit_form.load'
+    else:
+        form_maker = 'linked_create_form.load'
 
-    formwrapper = LOAD('plugin_ajaxselect', 'linked_create_form.load',
-                       args = [tablename, fieldname],
+    formwrapper = LOAD('plugin_ajaxselect', form_maker,
+                       args = request.args,
                        vars = request.vars,
                        ajax = True)
 
     return dict(formwrapper = formwrapper)
 
+def linked_edit_form():
+    """
+    creates a form to edit, update, or delete an intry in the linked table which 
+    populates the AjaxSelect widget.
+    """
+    tablename = request.args[0]
+    fieldname = request.args[1]
+    this_row = request.args[2]
+    wrappername = request.vars['wrappername']
+
+    linktable = request.vars['linktable']
+    form = SQLFORM(db[linktable], this_row)
+
+    comp_url = URL('plugin_ajaxselect', 'set_widget.load',
+                   args = [tablename, fieldname],
+                   vars = request.vars)
+
+    if form.process().accepted:
+        response.flash = 'form accepted'
+        response.js = "web2py_component('%s', '%s');" % (comp_url, wrappername)
+    else:
+        response.error = 'form was not processed'
+
+    return dict(form = form)
+    
 
 def linked_create_form():
     """
