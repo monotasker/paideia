@@ -78,11 +78,15 @@ class AjaxSelect:
                  restricted = "None", restrictor = "None", multi = False, 
                  lister = False):
         
-        session, request, response = current.session, current.request, current.response
+        session, request = current.session, current.request
+        response = current.response
         
+        print '\n starting modules/plugin_ajaxselect __init__'
         #arguments passed from instantiation in model
         self.field = field
+        print 'field: ', field
         self.value = value
+        print 'value: ', value
         #get name strings from field and value
         self.fieldset = str(self.field).split('.')
         
@@ -113,7 +117,6 @@ class AjaxSelect:
             self.clean_val = '-'.join(map(str, self.value))
         print 'module self.value = ', self.value
         print 'module self.clean_val', self.clean_val
-
 
         #utility variables to pass information from one method to the next
         self.comp_url = ""
@@ -175,6 +178,8 @@ class AjaxSelect:
         db = current.db
         tags = []
 
+        print '\n starting models/plugin_ajaxselect add_tags'
+        print 'self.value: ', self.value
         if self.lister == 'simple':
             for v in self.value:
                 the_row = db(db[self.linktable].id == v).select().first()
@@ -187,6 +192,7 @@ class AjaxSelect:
 
                 for v in self.value:       
                     the_row = db(db[self.linktable].id == v).select().first()
+                    print 'a the_row: ', the_row
                     f = db[self.linktable]._format % the_row
                     edit_trigger_id = '%s_editlist_trigger_%i' % (self.linktable, v)
                     
@@ -205,7 +211,8 @@ class AjaxSelect:
 
                 tags.append(DIV('', _id = form_name))
             except Exception, err:
-                print 'error in module add_tags(): ', err
+                print 'error in modules/plugin_ajaxselect add_tags(): ', err, \
+                        '\n', self.linktable
 
         return tags
 

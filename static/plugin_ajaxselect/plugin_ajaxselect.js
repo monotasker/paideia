@@ -28,7 +28,7 @@ $('.edit_trigger').live('click', function(event){
 });
 
 $('.plugin_ajaxselect select').live('change', function(event){
-    //when select value is changed, update 
+//when select value is changed, update 
     var $p = $(this).parents('span');
     var $td = $p.parents('td');
     var theid = $p.attr('id');   
@@ -80,7 +80,8 @@ $('.plugin_ajaxselect select').live('change', function(event){
 });
 
 $('.restrictor').live('change', function(event){
-//constrain and refresh appropriate select widgets if restrictor widget's value is changed
+//constrain and refresh appropriate select widgets if restrictor widget's 
+//value is changed
 	//get selected value of the restrictor widget to use in constraining the target widget
     var new_val = $(this).find('option:selected').val();
 
