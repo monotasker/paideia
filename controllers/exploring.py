@@ -1,33 +1,59 @@
 # coding: utf8
-if 0:
-    from gluon import current, redirect, URL, SQLFORM, A, Field, IS_NOT_EMPTY
-    from gluon.dal import DAL
-    from gluon.tools import Auth
-    request,session,response,T,cache=current.request,current.session,current.response,current.T,current.cache
-    db = DAL()
-    auth = Auth()
-    from applications.paideia.modules.paideia_exploring import paideia_path, counter
-    from applications.paideia.modules.paideia_questions import question
-
-from applications.paideia.modules.paideia_exploring import paideia_path, counter, map
+from paideia_exploring import paideia_path, paideia_tag, counter, map
 from paideia_questions import question
+import pprint
 
-def stepinit():
+def session_init():
+    print 'calling session_init'
+    #categorize paths for today
+    tags = paideia_tag()
+    session.tagset = tags.categorize_tags()
+    print 'returned categorized tags'
+    print 'session.tagset: ', pprint.pprint(session.tagset)
+    #add paths that weren't finished during last session
+    path = paideia_path()
+    session.active_paths = path.find_unfinished()
+    print 'returned unfinished paths'
+    print 'session active_paths: ', session.active_paths
+
+def step_init():
+    print '\n calling step_init()'
     #find out what location has been entered
-    curr_loc = request.vars['loc']
+    curr_loc = db(db.locations.alias == request.vars['loc']).select().first()
+    print 'current location: ', curr_loc.alias, curr_loc.id
+
+    #check to see whether any constraints are in place 
+    if 'blocks' in session:
+        print 'active block conditions: ', session.blocks
+        #TODO: Add logic here to handle blocking conditions
+    else:
+        print 'no blocking conditions'
     
     #find out what paths (if any) are currently active
-    paths = session.active_path or None
+    a_paths = session.active_path or None
+    print 'active paths: ', a_paths
     
-    #check to see whether any constraints are in place (globally or for this location)
+    #if an active path has a step here, initiate that step
+    if a_paths:
+        pathsteps = db((db.paths.steps.contains(a_paths)) 
+                       & (db.paths.locations.contains(curr_loc.id))).select()
+        p = pathsteps.first()
+
+    if 'pathsteps' in locals():
+        print 'continuing active path ', p
+    else:
+        print 'no active paths here'
+        print 'selecting new path . . .'
     
-    #if no constraints and no active path start new path
-    #find paths with tags open to student
-    #look for tags with high priority
+        #look for tags with high priority    
+        cat1tags = session.tagset[1]
+        print 'category 1 tags: ', cat1tags
+        cat1paths = db(db.paths.tags.contains(cat1tags)).select()
+        print db(db.paths.tags.contains(cat1tags)).count()
+    
     #if none look for tags with medium priority
     #if none,  
-    return dict()
-    
+        return dict()
 
 def stepask():
     #check to see whether a path is active and determines the next step
@@ -49,7 +75,6 @@ def stepask():
         redirect(URL('index', args=['reply']))
 
     return dict(question=session.question_text, form=form)
-
 
 def stepreply():
     #see whether answer matches any of the three answer fields
@@ -84,14 +109,16 @@ def patherror():
     session.q_counter -= 1
     return dict(message = message, button = button)
 
-
 @auth.requires_login()
 def index():
+    #check to see whether this user session has been initialized
+    if not session.tagset:
+        session_init()
 
-    #when user begins exploring (also default)
+    #when user begins exploring (also default) present map
     if (request.args(0) == 'start') or (not request.args):
         the_map = map()
-        for i in ['blocks', 'active_path', 'completed_paths']:
+        for i in ['blocks', 'active_paths', 'completed_paths']:
             if not session[i]:
                 print i
                 session[i] = None
@@ -100,7 +127,7 @@ def index():
 
     #after user selects quiz (or 'next question')
     elif request.args(0) == 'ask':
-        return stepinit()
+        return step_init()
 
     #after submitting answer
     elif request.args(0) == 'reply':

@@ -1,10 +1,5 @@
 # coding: utf8
-if 0:
-    from gluon import current, URL, A
-    from gluon.sqlhtml import SQLFORM
-    response, request, db, session = current.response, current.request, current.db, current.session
-
-import ast
+import ast, pprint
 
 def listing():
     """
@@ -90,24 +85,30 @@ def makeurl(tablename):
     return the_url
 
 def edit():
+    print '\n starting controllers/plugin_listandedit edit()'
     tablename = request.args[0]
     if len(request.args) > 1:
         rowid = request.args[1]
         formname = '%s/%s' % (tablename, rowid)
+        print 'formname: ', formname
 
         #TODO: Set value of "project" field programatically
         #TODO: re-load listing component on form submit
         form = SQLFORM(db[tablename], rowid, separator='', showid=False)
+        pprint.pprint(form.vars)
         if form.process(formname=formname).accepted:
             the_url = makeurl(tablename)
             response.js = "web2py_component('%s', 'listpane');" %  the_url
             response.flash = 'The changes were recorded successfully.'
+            print form.vars
         elif form.errors:
             print form.vars
+            print hi
             response.flash = 'Sorry, there was an error processing ' \
                              'the form. The changes have not been recorded.'
         else:
             #TODO: Why is this line being run when a record is first selected?
+            print form.vars
             pass
 
     elif len(request.args) == 1:
