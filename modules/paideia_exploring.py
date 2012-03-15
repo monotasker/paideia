@@ -1,24 +1,25 @@
 from gluon import current, URL, redirect
 import datetime
 
+
 class paideia_tag:
 
     def __init__(self):
         """
-        set the path a student is exploring, retrieve its data, and store 
+        set the path a student is exploring, retrieve its data, and store
         the data in the session object
         """
 
     def introduce_tags(self):
         """
-        checks the user's performance and, if appropriate, introduces one or 
+        checks the user's performance and, if appropriate, introduces one or
         more new tags to the active set for selecting paths
 
-        this method is called by categorize_tags if no tags are categorized 
+        this method is called by categorize_tags if no tags are categorized
         1 (needing immediate review).
         """
         new_tag = ''
-        #TODO: add logic to introduce new tag, based on student's current 
+        #TODO: add logic to introduce new tag, based on student's current
         #position in the tag progression (tags.position)
 
         return new_tag
@@ -26,13 +27,13 @@ class paideia_tag:
     def categorize_tags(self):
         """
         use stored statistics for current user to categorize the grammatical
-        tags based on the user's success and the time since the user last 
+        tags based on the user's success and the time since the user last
         used the tag.
 
-        The categories range from 1 (need immediate review) to 4 (no review 
+        The categories range from 1 (need immediate review) to 4 (no review
         needed).
 
-        this method is called at the start of each user session so that 
+        this method is called at the start of each user session so that
         time-based statistics can be updated.
         """
         #TODO: Factor in how many times a tag has been successful or not

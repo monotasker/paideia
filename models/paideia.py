@@ -128,7 +128,7 @@ db.questions.tags.widget = lambda field, value: \
                             AjaxSelect(field, value, 'tags', 
                                        refresher = True, 
                                        multi = 'basic').widget()
-db.questions.tags_secondary.requires = IS_IN_DB(db, 'tags.id', 
+db.questions.tags_secondary.requires = IS_IN_DB(db, 'tags.id',
                                                 db.tags._format, multiple = True)
 db.questions.tags_secondary.widget = lambda field, value: \
                                         AjaxSelect(field, value, 'tags', 

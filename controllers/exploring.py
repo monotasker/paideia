@@ -5,16 +5,16 @@ import pprint
 
 def session_init():
     print 'calling session_init'
+
     #categorize paths for today
     tags = paideia_tag()
     session.tagset = tags.categorize_tags()
     print 'returned categorized tags'
-    print 'session.tagset: ', pprint.pprint(session.tagset)
+
     #add paths that weren't finished during last session
     path = paideia_path()
     session.active_paths = path.find_unfinished()
     print 'returned unfinished paths'
-    print 'session active_paths: ', session.active_paths
 
 def step_init():
     print '\n calling step_init()'
@@ -32,10 +32,10 @@ def step_init():
     #find out what paths (if any) are currently active
     a_paths = session.active_path or None
     print 'active paths: ', a_paths
-    
+
     #if an active path has a step here, initiate that step
     if a_paths:
-        pathsteps = db((db.paths.steps.contains(a_paths)) 
+        pathsteps = db((db.paths.steps.contains(a_paths))
                        & (db.paths.locations.contains(curr_loc.id))).select()
         p = pathsteps.first()
 
@@ -44,23 +44,41 @@ def step_init():
     else:
         print 'no active paths here'
         print 'selecting new path . . .'
-    
-        #look for tags with high priority    
-        cat1tags = session.tagset[1]
-        print 'category 1 tags: ', cat1tags
-        cat1paths = db(db.paths.tags.contains(cat1tags)).select()
-        print db(db.paths.tags.contains(cat1tags)).count()
-    
-    #if none look for tags with medium priority
-    #if none,  
-        return dict()
+
+    #TODO: randomize switch
+    switch = 1
+    #look for tags with high priority and not completed today
+    paths = find_paths(switch, curr_loc)
+    path_count = len(paths.as_list())
+    print 'selected ', path_count, ' paths from category: \n', paths
+
+    return dict()
+
+def find_paths(cat, curr_loc):
+    """
+    Find paths for this location that are due in the specified category 
+    (in argument 'cat') and filter out paths that have been completed already
+    today.
+    """
+    catXtags = session.tagset[cat]        
+    catXpaths = db((db.paths.tags.contains(catXtags))
+                   & (db.paths.locations.contains(curr_loc.id))
+                ).select()
+    print len(catXpaths.as_list()), ' paths in category ', cat
+    #filter out any of these completed already today
+    if session.completed_paths:
+        comp = session.completed_paths
+        catXpaths = catXpaths.exclude(lambda row: row.id in comp)        
+        print 'filtered out paths done today'
+        print len(catXpaths.as_list()), ' left'
+    return catXpaths
 
 def stepask():
     #check to see whether a path is active and determines the next step
     if session.active_path:
         pass
-    
-    #if not, initiate new path 
+
+    #if not, initiate new path
     if not request.vars.response:
         set_path = paideia_path()
         set_counter = counter()
@@ -70,11 +88,12 @@ def stepask():
     form = SQLFORM.factory(
         Field('response', 'string', requires=IS_NOT_EMPTY())
     )
-    if form.accepts(request.vars,session):
+    if form.accepts(request.vars,  session):
         session.response = request.vars.response
         redirect(URL('index', args=['reply']))
 
     return dict(question=session.question_text, form=form)
+
 
 def stepreply():
     #see whether answer matches any of the three answer fields
@@ -107,7 +126,9 @@ def patherror():
     button = A('continue', _href=URL('index', args=['ask']), _class='button-green-grad next_q', cid=request.cid)
     #don't include this question in counting the number attempted
     session.q_counter -= 1
-    return dict(message = message, button = button)
+
+    return dict(message=message, button=button)
+
 
 @auth.requires_login()
 def index():
@@ -122,8 +143,8 @@ def index():
             if not session[i]:
                 print i
                 session[i] = None
-             
-        return dict(locs = the_map.locs, map_image = the_map.image)
+
+        return dict(locs=the_map.locs, map_image=the_map.image)
 
     #after user selects quiz (or 'next question')
     elif request.args(0) == 'ask':
@@ -132,8 +153,6 @@ def index():
     #after submitting answer
     elif request.args(0) == 'reply':
         return stepreply()
-    
+
     elif request.args(0) == 'error':
         return patherror()
-        
-    
