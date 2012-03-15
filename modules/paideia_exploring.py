@@ -1,5 +1,5 @@
 from gluon import current, URL, redirect
-import datetime
+import datetime, random
 
 
 class paideia_tag:
@@ -118,12 +118,10 @@ class paideia_path:
             required = rsetting.paths_per_day
             if todays >= required:
                 return ['done']
-                pass
 
         #is there any blocking state in effect?
         if session.block:
             return ['blocked']
-            pass
 
         #check to see whether there are any paths active for this location
         if session.active_paths:
@@ -149,6 +147,113 @@ class paideia_path:
 
     def pick(self):
         """Choose a new path for the user, based on tag performance"""
+        request, session = current.request, current.session
+        db, auth = current.db, current.auth
+
+        print '\ncalling modules/paideia_path.pick()'
+        
+        #find out what location has been entered
+        curr_loc = db(db.locations.alias == request.vars['loc']).select().first()
+        print 'current location: ', curr_loc.alias, curr_loc.id
+
+        #check to see whether any constraints are in place 
+        if 'blocks' in session:
+            print 'active block conditions: ', session.blocks
+            #TODO: Add logic here to handle blocking conditions
+        else:
+            print 'no blocking conditions'
+        
+        #find out what paths (if any) are currently active
+        a_paths = session.active_path or None
+        print 'active paths: ', a_paths
+
+        #if an active path has a step here, initiate that step
+        #FIXME: this is wrong -- it confuses paths and steps
+        if a_paths:
+            pathsteps = db((db.paths.id in a_paths)
+                           & (db.paths.locations.contains(curr_loc.id))).select()
+            p = pathsteps.first()
+
+        if 'pathsteps' in locals():
+            print 'continuing active path ', p
+        else:
+            print 'no active paths here'
+            print 'selecting new path . . .'
+
+        #choose category for path randomly but with weighting
+        switch = random.randrange(1,101)
+        print 'the switch is ', switch
+        if switch in range(1,75):
+            cat = 1
+        elif switch in range(75,90):
+            cat = 2
+        elif switch in range(90,98):
+            cat = 3
+        else:
+            cat = 4
+
+        #find a new path to begin, starting with selected category
+        p = self.find_paths(cat, curr_loc)
+        category = p['c']
+        paths = p['catXpaths']
+        path_count = len(paths.as_list())
+        print 'selected ', path_count, ' paths from category ', \
+            category, ': \n\n', paths
+        the_path = paths[random.randrange(1,path_count+1)]
+        print 'activating path: ', the_path.id
+        the_step = the_path.steps[0]
+        print 'activating step: ', the_step     
+
+        return dict(path = the_path, step = the_step)
+
+    def find_paths(self, cat, curr_loc):
+        """
+        Find paths for this location that are due in the specified category 
+        (in argument 'cat') and filter out paths that have been completed already
+        today. If no tags in that category, move on to the next.
+        """
+        print '\ncalling modules/paideia_path.find_paths()'
+        db, session = current.db, current.session
+
+        #start with the category of tags, but loop through the categories
+        #until some available paths are found
+        cats = [1,2,3,4]
+        for c in cats[cats.index(cat):] + cats[:cats.index(cat)]:
+            #if any tags in this category, look for paths with these tags
+            #that can be started in this location.
+            paths = db(db.paths.id > 0).select()
+
+            if len(session.tagset[c]) > 0:
+                catXtags = session.tagset[c]
+                print len(catXtags), ' active tags in category ', c
+                catXpaths = paths.find(lambda row: 
+                                (set(row.tags).intersection(set(catXtags)))
+                                and (curr_loc.id in row.locations))
+                """
+                TODO: see whether the virtual fields approach above is slower 
+                than some version of query approach below
+
+                catXpaths = db((db.paths.tags.contains(catXtags))
+                                & (db.paths.locations.contains(curr_loc.id))
+                            ).select()
+                """
+                #filter out any of these completed already today
+                if session.completed_paths:
+                    comp = session.completed_paths
+                    catXpaths = catXpaths.exclude(lambda row: row.id in comp)        
+                    print 'filtered out paths done today'
+                catXsize = len(catXpaths.as_list())
+                print catXsize, ' paths not completed today in category ', c
+                if catXsize < 1:
+                    continue
+                else:
+                    break
+            else:
+                print 'no active tags in category ', c
+                continue
+        #TODO: work in a fallback in case no categories return any possible
+        #paths
+        return dict(catXpaths = catXpaths, c = c)
 
     def set(self):
         #current object must be accessed at runtime, so can't be global variable

@@ -2,13 +2,13 @@
 S'npcs'
 p2
 (dp3
-S'type'
+S'sortable'
 p4
-S'list:reference db.npcs'
-p5
-sS'sortable'
-p6
 I5
+sS'type'
+p5
+S'list:reference db.npcs'
+p6
 sS'sql'
 p7
 S'TEXT'
@@ -16,53 +16,57 @@ p8
 ssS'steps'
 p9
 (dp10
-g4
-S'list:reference db.steps'
+S'type'
 p11
-sg6
-I3
-sg7
-g8
-ssS'tags'
+S'list:reference db.steps'
 p12
-(dp13
-g4
-S'list:reference db.tags'
+sS'sortable'
+p13
+I3
+sS'sql'
 p14
-sg6
+S'TEXT'
+p15
+ssS'tags'
+p16
+(dp17
+g4
 I6
+sg5
+S'list:reference db.tags'
+p18
 sg7
 g8
 ssS'id'
-p15
-(dp16
-g4
-S'id'
-p17
-sg6
-I1
-sg7
-S'INTEGER PRIMARY KEY AUTOINCREMENT'
-p18
-ssS'locations'
 p19
 (dp20
-g4
-S'list:reference db.locations'
+g11
+S'id'
 p21
-sg6
+sg13
+I1
+sg14
+S'INTEGER PRIMARY KEY AUTOINCREMENT'
+p22
+ssS'locations'
+p23
+(dp24
+g4
 I4
+sg5
+S'list:reference db.locations'
+p25
 sg7
 g8
 ssS'label'
-p22
-(dp23
-g4
+p26
+(dp27
+g11
 S'string'
-p24
-sg6
+p28
+sg13
 I2
-sg7
+sg14
 S'CHAR(512)'
-p25
+p29
 ss.

@@ -4,12 +4,40 @@
 		"selected_items":
 		[
 			[
-				"paths",
-				"completed_paths"
+				"catX",
+				"catXpaths"
 			],
 			[
-				"complete",
-				"completed_paths"
+				"today",
+				"today"
+			],
+			[
+				"location",
+				"locations"
+			],
+			[
+				"s",
+				"switch"
+			],
+			[
+				"cat",
+				"catXpaths"
+			],
+			[
+				"find",
+				"find_paths"
+			],
+			[
+				"paidei",
+				"paideia_path"
+			],
+			[
+				"ste",
+				"step"
+			],
+			[
+				"this",
+				"this_path"
 			],
 			[
 				"form",
@@ -180,18 +208,34 @@
 	"buffers":
 	[
 		{
-			"file": "models/paideia.py",
-			"settings":
-			{
-				"buffer_size": 9645,
-				"line_ending": "Unix"
-			}
-		},
-		{
 			"file": "modules/paideia_stats.py",
 			"settings":
 			{
 				"buffer_size": 7102,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "modules/paideia_exploring.py",
+			"settings":
+			{
+				"buffer_size": 11876,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "models/paideia.py",
+			"settings":
+			{
+				"buffer_size": 9289,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "controllers/exploring.py",
+			"settings":
+			{
+				"buffer_size": 3364,
 				"line_ending": "Unix"
 			}
 		},
@@ -202,22 +246,6 @@
 				"buffer_size": 13556,
 				"line_ending": "Unix"
 			}
-		},
-		{
-			"file": "modules/paideia_exploring.py",
-			"settings":
-			{
-				"buffer_size": 7429,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "controllers/exploring.py",
-			"settings":
-			{
-				"buffer_size": 5440,
-				"line_ending": "Unix"
-			}
 		}
 	],
 	"build_system": "",
@@ -226,22 +254,6 @@
 		"height": 32.0,
 		"selected_items":
 		[
-			[
-				"sett",
-				"Preferences: Settings - Default"
-			],
-			[
-				"dis",
-				"Package Control: Disable Package"
-			],
-			[
-				"setti",
-				"Preferences: Settings - Default"
-			],
-			[
-				"packag",
-				"Package Control: List Packages"
-			],
 			[
 				"packa",
 				"Preferences: Browse Packages"
@@ -263,7 +275,7 @@
 				"Package Control: Discover Packages"
 			]
 		],
-		"width": 449.0
+		"width": 422.0
 	},
 	"console":
 	{
@@ -280,10 +292,9 @@
 	},
 	"file_history":
 	[
-		"/home/ian/.config/sublime-text-2/Packages/SublimeCodeIntel/Base File.sublime-settings",
-		"/home/ian/.config/sublime-text-2/Packages/Default/Preferences.sublime-settings",
 		"/home/ian/web/web2py/applications/paideia/modules/plugin_ajaxselect.py",
 		"/home/ian/web/web2py/applications/paideia/controllers/plugin_listandedit.py",
+		"/home/ian/.config/sublime-text-2/Packages/Default/Preferences.sublime-settings",
 		"/home/ian/.config/sublime-text-2/Packages/Prevu/Prevu.sublime-settings",
 		"/home/ian/web/web2py/applications/paideia/static/plugin_ajaxselect/plugin_ajaxselect.js",
 		"/home/ian/web/web2py/applications/paideia/static/plugin_framework/theme.less",
@@ -296,6 +307,7 @@
 		"/home/ian/.config/sublime-text-2/Packages/Default/Default (Linux).sublime-keymap",
 		"/home/ian/web/web2py/applications/paideia/models/db.py",
 		"/home/iscott/web/web2py/applications/paideia/modules/plugin_ajaxselect.py",
+		"/home/ian/.config/sublime-text-2/Packages/SublimeCodeIntel/Base File.sublime-settings",
 		"/home/ian/web/web2py/applications/paideia/views/plugin_ajaxselect/set_form_wrapper.load",
 		"/home/ian/web/web2py/applications/paideia/views/plugin_ajaxselect/linked_create_form.load",
 		"/home/ian/web2py/applications/topoi/views/plugin_listandedit/list.html",
@@ -359,39 +371,11 @@
 	"groups":
 	[
 		{
-			"selected": 4,
+			"selected": 1,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "models/paideia.py",
-					"settings":
-					{
-						"buffer_size": 9645,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								5335,
-								5335
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 2671.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 1,
 					"file": "modules/paideia_stats.py",
 					"settings":
 					{
@@ -419,47 +403,19 @@
 					"type": "text"
 				},
 				{
-					"buffer": 2,
-					"file": "modules/paideia_questions.py",
-					"settings":
-					{
-						"buffer_size": 13556,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								10985,
-								10985
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 2964.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 3,
+					"buffer": 1,
 					"file": "modules/paideia_exploring.py",
 					"settings":
 					{
-						"buffer_size": 7429,
+						"buffer_size": 11876,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								2076,
-								2076
+								7197,
+								7197
 							]
 						],
 						"settings":
@@ -473,36 +429,97 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 880.0,
+						"translation.y": 2212.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
-				},
+				}
+			]
+		},
+		{
+			"selected": 0,
+			"sheets":
+			[
 				{
-					"buffer": 4,
-					"file": "controllers/exploring.py",
+					"buffer": 2,
+					"file": "models/paideia.py",
 					"settings":
 					{
-						"buffer_size": 5440,
+						"buffer_size": 9289,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1781,
-								1781
+								7614,
+								7614
 							]
 						],
 						"settings":
 						{
-							"sublimelinter": false,
 							"syntax": "Packages/Python/Python.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 617.0,
+						"translation.y": 2826.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "controllers/exploring.py",
+					"settings":
+					{
+						"buffer_size": 3364,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								504,
+								504
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 270.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "modules/paideia_questions.py",
+					"settings":
+					{
+						"buffer_size": 13556,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3447,
+								3447
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 966.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -527,6 +544,12 @@
 				0,
 				1,
 				1
+			],
+			[
+				0,
+				1,
+				1,
+				2
 			]
 		],
 		"cols":
@@ -537,6 +560,7 @@
 		"rows":
 		[
 			0.0,
+			0.819062181448,
 			1.0
 		]
 	},

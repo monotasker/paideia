@@ -17,70 +17,14 @@ def session_init():
     print 'returned unfinished paths'
 
 def step_init():
-    print '\n calling step_init()'
-    #find out what location has been entered
-    curr_loc = db(db.locations.alias == request.vars['loc']).select().first()
-    print 'current location: ', curr_loc.alias, curr_loc.id
-
-    #check to see whether any constraints are in place 
-    if 'blocks' in session:
-        print 'active block conditions: ', session.blocks
-        #TODO: Add logic here to handle blocking conditions
-    else:
-        print 'no blocking conditions'
-    
-    #find out what paths (if any) are currently active
-    a_paths = session.active_path or None
-    print 'active paths: ', a_paths
-
-    #if an active path has a step here, initiate that step
-    if a_paths:
-        pathsteps = db((db.paths.steps.contains(a_paths))
-                       & (db.paths.locations.contains(curr_loc.id))).select()
-        p = pathsteps.first()
-
-    if 'pathsteps' in locals():
-        print 'continuing active path ', p
-    else:
-        print 'no active paths here'
-        print 'selecting new path . . .'
-
-    #TODO: randomize switch
-    switch = 1
-    #look for tags with high priority and not completed today
-    paths = find_paths(switch, curr_loc)
-    path_count = len(paths.as_list())
-    print 'selected ', path_count, ' paths from category: \n', paths
-
-    return dict()
-
-def find_paths(cat, curr_loc):
-    """
-    Find paths for this location that are due in the specified category 
-    (in argument 'cat') and filter out paths that have been completed already
-    today.
-    """
-    catXtags = session.tagset[cat]        
-    catXpaths = db((db.paths.tags.contains(catXtags))
-                   & (db.paths.locations.contains(curr_loc.id))
-                ).select()
-    print len(catXpaths.as_list()), ' paths in category ', cat
-    #filter out any of these completed already today
-    if session.completed_paths:
-        comp = session.completed_paths
-        catXpaths = catXpaths.exclude(lambda row: row.id in comp)        
-        print 'filtered out paths done today'
-        print len(catXpaths.as_list()), ' left'
-    return catXpaths
+    path = paideia_path()
+    path_result = path.pick()
+    return dict(path = path_result['path'], step = path_result['step'])
 
 def stepask():
-    #check to see whether a path is active and determines the next step
-    if session.active_path:
-        pass
-
+    
     #if not, initiate new path
     if not request.vars.response:
-        set_path = paideia_path()
         set_counter = counter()
         the_question = question()
         the_question.selectq()
