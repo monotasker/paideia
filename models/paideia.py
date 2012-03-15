@@ -1,16 +1,7 @@
 # coding: utf8
 
-#hack for PyDev error checking and debugging
-#if 0:
-    #from gluon import current, IS_IN_DB
-    #from gluon.dal import DAL, Field
-    #from gluon.tools import Auth
-    #auth = Auth()
-    #db = DAL()
-    #request = current.request
-    #from applications.paideia.modules.plugin_ajaxselect import AjaxSelect
-
 from plugin_ajaxselect import AjaxSelect
+from itertools import chain
 import datetime, os
 #js file necessary for AjaxSelect widget
 response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.js'))
@@ -100,9 +91,11 @@ db.questions.tags_secondary.widget = lambda field, value: AjaxSelect(field, valu
 #TODO: transfer all questions data over to steps table
 db.define_table('steps',                
     Field('prompt', 'text'),
-    Field('prompt_audio', 'upload', uploadfolder = os.path.join(request.folder, "static/audio")),
+    Field('prompt_audio', 'upload',
+          uploadfolder = os.path.join(request.folder, "static/audio")),
     Field('widget_type'),
-    Field('widget_image', 'upload', uploadfolder = os.path.join(request.folder, "static/images")),
+    Field('widget_image', 'upload',
+          uploadfolder = os.path.join(request.folder, "static/images")),
     Field('response1'),
     Field('readable_response'),
     Field('outcome1', default = 'null'),
@@ -113,27 +106,32 @@ db.define_table('steps',
     Field('tags', 'list:reference db.tags'),
     Field('tags_secondary', 'list:reference db.tags'),
     Field('npcs', 'list:reference db.npcs'),
+    Field('locations', 'list:reference db.locations'),
     Field('status', 'integer'),
     format = '%(prompt)s')
-db.questions.tags.requires = IS_IN_DB(db, 'questions.id', 
-                                      db.questions._format, multiple = True)
-db.questions.npcs.requires = IS_IN_DB(db, 'npcs.id', 
+db.steps.npcs.requires = IS_IN_DB(db, 'npcs.id', 
                                       db.npcs._format, multiple = True)
-db.questions.npcs.widget = lambda field, value: \
+db.steps.npcs.widget = lambda field, value: \
                             AjaxSelect(field, value, 'npcs', 
                                        multi = 'basic').widget()
-db.questions.tags.requires = IS_IN_DB(db, 'tags.id', 
+db.steps.tags.requires = IS_IN_DB(db, 'tags.id', 
                                       db.tags._format, multiple = True)
-db.questions.tags.widget = lambda field, value: \
+db.steps.tags.widget = lambda field, value: \
                             AjaxSelect(field, value, 'tags', 
                                        refresher = True, 
                                        multi = 'basic').widget()
-db.questions.tags_secondary.requires = IS_IN_DB(db, 'tags.id',
-                                                db.tags._format, multiple = True)
-db.questions.tags_secondary.widget = lambda field, value: \
+db.steps.tags_secondary.requires = IS_IN_DB(db, 'tags.id',
+                                                db.tags._format, 
+                                                multiple = True)
+db.steps.tags_secondary.widget = lambda field, value: \
                                         AjaxSelect(field, value, 'tags', 
                                                    multi = 'basic').widget()
-
+db.steps.locations.requires = IS_IN_DB(db, 'locations.id',
+                                                db.locations._format, 
+                                                multiple = True)
+db.steps.locations.widget = lambda field, value: \
+                                        AjaxSelect(field, value, 'locations', 
+                                                   multi = 'basic').widget()
 #this table is deprecated
 #TODO: do we need an equivalent for steps? The same data could be retrieved as 
 # needed from the attempts_log table.
@@ -154,7 +152,6 @@ db.define_table('tag_records',
     Field('times_wrong', 'double'),
     Field('tlast_wrong', 'datetime', default = dtnow),
     Field('tlast_right', 'datetime', default = dtnow),
-    Field('category', db.categories)
     )
 
 db.define_table('tag_progress',
@@ -165,9 +162,6 @@ db.define_table('tag_progress',
 db.define_table('paths',                
     Field('label'),                
     Field('steps', 'list:reference db.steps'), 
-    Field('locations', 'list:reference db.locations'), 
-    Field('npcs', 'list:reference db.npcs'),
-    Field('tags', 'list:reference db.tags'),
     format = '%(label)s')
 db.paths.steps.requires = IS_IN_DB(db, 'steps.id', 
                                    db.steps._format, multiple = True)
@@ -176,17 +170,15 @@ db.paths.steps.widget = lambda field, value: \
                                         refresher = True, 
                                         multi = 'basic', 
                                         lister = 'editlinks').widget()
-db.paths.locations.requires = IS_IN_DB(db, 'locations.id', 
-                                       db.locations._format, multiple = True)
-db.paths.npcs.requires = IS_IN_DB(db, 'npcs.id', 
-                                  db.npcs._format, multiple = True)
-db.paths.npcs.widget = lambda field, value: \
-                            AjaxSelect(field, value, 'npcs', 
-                                        refresher = True, 
-                                        multi = 'basic', 
-                                        lister = 'editlinks').widget()
-db.paths.tags.requires = IS_IN_DB(db, 'tags.id', 
-                                  db.tags._format, multiple = True)
+class PathsVirtualFields(object):
+    def locations(self):
+        steprows = db(db.steps.id.belongs(self.paths.steps)).select().first()
+        return steprows.locations
+    def tags(self):
+        steprows = db(db.steps.id.belongs(self.paths.steps)).select()
+        nlists = [s.locations for s in steprows]
+        return list(chain.from_iterable(nlists))
+db.paths.virtualfields.append(PathsVirtualFields())
 
 db.define_table('path_log',
     Field('name', db.auth_user, default = auth.user_id),

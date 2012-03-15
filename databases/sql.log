@@ -321,3 +321,5 @@ CREATE TABLE tag_progress(
     latest_new INTEGER REFERENCES tags(id) ON DELETE CASCADE
 );
 success!
+timestamp: 2012-03-15T15:43:55.582175
+ALTER TABLE steps ADD locations TEXT;
