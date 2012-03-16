@@ -168,27 +168,62 @@ class paideia_path:
         print 'active paths: ', a_paths
 
         #if an active path has a step here, initiate that step
-        #TODO: add tests to see whether active is actually here and 
-        # to see whether last completed step was last in the path. 
         if a_paths:
-            activepaths = db(db.paths.id.belongs(a_paths.keys())).select()
+            activepaths = db((db.paths.id.belongs(a_paths.keys()))
+                             & ~(db.paths.id.belongs(session.completed_paths))
+                             ).select()
             activehere = activepaths.find(lambda row: 
                                           curr_loc.id in row.locations)
-            the_path = activehere[0]
-            print 'active path in this location: ', the_path.id
-            pathsteps = the_path.steps
-            laststep = a_paths[the_path.id]
-            print 'last step finished in this path: ', laststep
-            stepindex = pathsteps.index(laststep)
-            the_stepid = pathsteps[stepindex + 1]
-            print 'next step in this path: ', the_stepid
-            session.active_paths[the_path.id] = the_stepid
+            if len(activepaths.as_list()) > 0:
+                the_path = activehere[0]
+                print 'active path in this location: ', the_path.id
+                pathsteps = the_path.steps
+                laststep = a_paths[the_path.id]
+                print 'last step finished in this path: ', laststep
+                stepindex = pathsteps.index(laststep)
+                #if the last completed step was not the final in the path
+                if len(pathsteps) > (stepindex + 1):
+                    the_stepid = pathsteps[stepindex + 1]
+                    print 'next step in this path: ', the_stepid
+                    #set session flag for this active path
+                    self.update_session('active_paths', (the_path.id, the_stepid), 'ins')
+                    #update attempt log 
+                    self.log_attempt(the_path.id, the_stepid, 1)
+                    return dict(path = the_path, step = the_stepid)
+                #if the last step in the path has already been completed
+                else:
+                    print 'there are no more steps to complete in this path'
+                    self.update_session('active_paths', the_path.id, 'del')
+                    self.update_session('completed_paths', the_path.id, 'ins')
 
-            return dict(path = the_path, step = the_stepid)
+
         #if no active path here . . .
         print 'no active paths here'
-        print 'selecting new path . . .'
-        #choose category for path randomly but with weighting
+        #choose a new one
+        cat = self.path_switch()
+        p = self.find_paths(cat, curr_loc)
+        category = p['c']
+        paths = p['catXpaths']
+        path_count = len(paths.as_list())
+        print 'selected ', path_count, ' paths from category ', \
+            category, ': \n\n', paths
+        the_path = paths[random.randrange(0,path_count)]
+        print 'activating path: ', the_path.id
+        the_stepid = the_path.steps[0]
+        print 'activating step: ', the_stepid     
+
+        #set session flag showing that this path is now active
+        self.update_session('active_paths', (the_path.id, the_stepid), 'ins')
+        #log this attempt of the step
+        self.log_attempt(the_path.id, the_stepid, 0)
+
+        return dict(path = the_path, step = the_stepid)
+
+    def path_switch(self):
+        """
+        choose one of four categories with a random factor but a heavy 
+        weighting toward category 1
+        """
         switch = random.randrange(1,101)
         print 'the switch is ', switch
         if switch in range(1,75):
@@ -199,38 +234,46 @@ class paideia_path:
             cat = 3
         else:
             cat = 4
-        #find a new path to begin, starting with selected category
-        p = self.find_paths(cat, curr_loc)
-        category = p['c']
-        paths = p['catXpaths']
-        path_count = len(paths.as_list())
-        print 'selected ', path_count, ' paths from category ', \
-            category, ': \n\n', paths
-        the_path = paths[random.randrange(1,path_count+1)]
-        print 'activating path: ', the_path.id
-        the_stepid = the_path.steps[0]
-        print 'activating step: ', the_stepid     
-        #set session flag showing that this path is now active
-        if session.active_paths:
-            session.active_paths[the_path.id] = the_stepid
+        return cat
+
+    def update_session(self, session_index, val, switch):
+        """insert, update, or delete property of the session object"""
+        session = current.session
+
+        print '\ncalling modules/paideia_path.update_session()'
+        if switch == 'del':
+            if type(val) == tuple:
+                val = val[0]
+            if session_index in session and val in session[session_index]:
+                del session[session_index][val]
+                print 'removing session.', session_index, '[', val, ']'
+            print 'nothing to remove'
         else:
-            session.active_paths = {the_path.id:the_stepid}
-        #log this attempt of the step
-        self.log_attempt(the_path.id, the_stepid, 0)
-
-        return dict(path = the_path, step = the_stepid)
-
+            if session_index in session and session[session_index] is not None:
+                if type(val) == tuple:
+                    session[session_index][val[0]] = val[1]
+                else:
+                    session[session_index].append(val)
+            else:
+                if type(val) == tuple:
+                    session[session_index] = {val[0]:val[1]}
+                else:
+                    session[session_index] = [val]
+            print 'session.', session_index, ': ', session[session_index]
 
     def log_attempt(self, pathid, stepid, update_switch):
+        """either create or update entries in the attempt_log table"""
+        print '\ncalling modules/paideia_path.log_attempt()'
+        db = current.db
+
         if update_switch == 1:
             logs = db(db.path_log.path == pathid).select()
             logdate = max(l.dt_started for l in logs)
-            log = logs.find(lambda row: row.datetime == logdate).first()
+            log = logs.find(lambda row: row.dt_started == logdate).first()
             log.update_record(last_step = stepid)
         else:
             db.path_log.insert(path = pathid, last_step = stepid)
         db.attempt_log.insert(step = stepid)
-
 
     def find_paths(self, cat, curr_loc):
         """
@@ -248,13 +291,13 @@ class paideia_path:
             #if any tags in this category, look for paths with these tags
             #that can be started in this location.
             paths = db(db.paths.id > 0).select()
-
             if len(session.tagset[c]) > 0:
                 catXtags = session.tagset[c]
                 print len(catXtags), ' active tags in category ', c
                 catXpaths = paths.find(lambda row: 
                                 (set(row.tags).intersection(set(catXtags)))
                                 and (curr_loc.id in row.locations))
+                print 'raw catXpaths = ', catXpaths
                 """
                 TODO: see whether the virtual fields approach above is slower 
                 than some version of query approach below
@@ -264,10 +307,11 @@ class paideia_path:
                             ).select()
                 """
                 #filter out any of these completed already today
-                if session.completed_paths:
+                if 'completed_paths' in session:
                     comp = session.completed_paths
-                    catXpaths = catXpaths.exclude(lambda row: row.id in comp)        
+                    catXpaths = catXpaths.exclude(lambda row: row.id not in comp)
                     print 'filtered out paths done today'
+                    print catXpaths
                 catXsize = len(catXpaths.as_list())
                 print catXsize, ' paths not completed today in category ', c
                 if catXsize < 1:
@@ -280,18 +324,6 @@ class paideia_path:
         #TODO: work in a fallback in case no categories return any possible
         #paths
         return dict(catXpaths = catXpaths, c = c)
-
-    def set(self):
-        #current object must be accessed at runtime, so can't be global variable
-        session, request, auth, db = current.session, current.request, current.auth, current.db
-
-        if not session.path_length:
-            the_path = db(db.quizzes.id == request.vars.path).select()
-            session.path_id = the_path[0].id
-            session.path_length = the_path[0].length
-            session.path_name = the_path[0].quiz
-            session.path_freq = the_path[0].frequency
-            session.path_tags = the_path[0].tags
 
     def end(self):
         #current object must be accessed at runtime, so can't be global variable
@@ -325,6 +357,7 @@ class counter:
         pass
 
 class map:
+    """returns information needed to present the navigation map"""
 
     def __init__(self):
 
