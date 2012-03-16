@@ -168,6 +168,8 @@ class paideia_path:
         print 'active paths: ', a_paths
 
         #if an active path has a step here, initiate that step
+        #TODO: add tests to see whether active is actually here and 
+        # to see whether last completed step was last in the path. 
         if a_paths:
             activepaths = db(db.paths.id.belongs(a_paths.keys())).select()
             activehere = activepaths.find(lambda row: 
@@ -181,11 +183,11 @@ class paideia_path:
             the_stepid = pathsteps[stepindex + 1]
             print 'next step in this path: ', the_stepid
             session.active_paths[the_path.id] = the_stepid
-            return dict(path = the_path, step = the_stepid)
 
+            return dict(path = the_path, step = the_stepid)
+        #if no active path here . . .
         print 'no active paths here'
         print 'selecting new path . . .'
-
         #choose category for path randomly but with weighting
         switch = random.randrange(1,101)
         print 'the switch is ', switch
@@ -213,8 +215,22 @@ class paideia_path:
             session.active_paths[the_path.id] = the_stepid
         else:
             session.active_paths = {the_path.id:the_stepid}
+        #log this attempt of the step
+        self.log_attempt(the_path.id, the_stepid, 0)
 
         return dict(path = the_path, step = the_stepid)
+
+
+    def log_attempt(self, pathid, stepid, update_switch):
+        if update_switch == 1:
+            logs = db(db.path_log.path == pathid).select()
+            logdate = max(l.dt_started for l in logs)
+            log = logs.find(lambda row: row.datetime == logdate).first()
+            log.update_record(last_step = stepid)
+        else:
+            db.path_log.insert(path = pathid, last_step = stepid)
+        db.attempt_log.insert(step = stepid)
+
 
     def find_paths(self, cat, curr_loc):
         """
