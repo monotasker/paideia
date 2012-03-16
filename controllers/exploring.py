@@ -19,6 +19,8 @@ def session_init():
 def step_init():
     path = paideia_path()
     path_result = path.pick()
+    print 'returned to controller step_init():\npath ', path_result['path'] \
+        , '\nstep ', path_result['step']
     return dict(path = path_result['path'], step = path_result['step'])
 
 def stepask():
