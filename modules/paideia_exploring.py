@@ -164,21 +164,27 @@ class paideia_path:
             print 'no blocking conditions'
         
         #find out what paths (if any) are currently active
-        a_paths = session.active_path or None
+        a_paths = session.active_paths or None
         print 'active paths: ', a_paths
 
         #if an active path has a step here, initiate that step
-        #FIXME: this is wrong -- it confuses paths and steps
         if a_paths:
-            pathsteps = db((db.paths.id in a_paths)
-                           & (db.paths.locations.contains(curr_loc.id))).select()
-            p = pathsteps.first()
+            activepaths = db(db.paths.id.belongs(a_paths.keys())).select()
+            activehere = activepaths.find(lambda row: 
+                                          curr_loc.id in row.locations)
+            the_path = activehere[0]
+            print 'active path in this location: ', the_path.id
+            pathsteps = the_path.steps
+            laststep = a_paths[the_path.id]
+            print 'last step finished in this path: ', laststep
+            stepindex = pathsteps.index(laststep)
+            the_stepid = pathsteps[stepindex + 1]
+            print 'next step in this path: ', the_stepid
+            session.active_paths[the_path.id] = the_stepid
+            return dict(path = the_path, step = the_stepid)
 
-        if 'pathsteps' in locals():
-            print 'continuing active path ', p
-        else:
-            print 'no active paths here'
-            print 'selecting new path . . .'
+        print 'no active paths here'
+        print 'selecting new path . . .'
 
         #choose category for path randomly but with weighting
         switch = random.randrange(1,101)
@@ -191,7 +197,6 @@ class paideia_path:
             cat = 3
         else:
             cat = 4
-
         #find a new path to begin, starting with selected category
         p = self.find_paths(cat, curr_loc)
         category = p['c']
@@ -201,10 +206,15 @@ class paideia_path:
             category, ': \n\n', paths
         the_path = paths[random.randrange(1,path_count+1)]
         print 'activating path: ', the_path.id
-        the_step = the_path.steps[0]
-        print 'activating step: ', the_step     
+        the_stepid = the_path.steps[0]
+        print 'activating step: ', the_stepid     
+        #set session flag showing that this path is now active
+        if session.active_paths:
+            session.active_paths[the_path.id] = the_stepid
+        else:
+            session.active_paths = {the_path.id:the_stepid}
 
-        return dict(path = the_path, step = the_step)
+        return dict(path = the_path, step = the_stepid)
 
     def find_paths(self, cat, curr_loc):
         """
