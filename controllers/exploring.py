@@ -19,19 +19,15 @@ def session_init():
 def step_init():
     path = paideia_path()
     path_result = path.pick()
+    path_id = path_result['path'].id
+    step_id = path_result['step']
     print 'returned to controller step_init():'
-    print 'path ', path_result['path']
-    print 'step ', path_result['step']
-    return dict(path = path_result['path'], step = path_result['step'])
+    print 'path ', path_id
+    print 'step ', step_id
+    return path.prompt(path_id, step_id)
 
 def stepask():
     
-    #if not, initiate new path
-    if not request.vars.response:
-        set_counter = counter()
-        the_question = question()
-        the_question.selectq()
-
     form = SQLFORM.factory(
         Field('response', 'string', requires=IS_NOT_EMPTY())
     )
@@ -40,7 +36,6 @@ def stepask():
         redirect(URL('index', args=['reply']))
 
     return dict(question=session.question_text, form=form)
-
 
 def stepreply():
     #see whether answer matches any of the three answer fields
@@ -59,7 +54,6 @@ def stepreply():
     db.attempt_log.insert(question=session.q_ID, score=q.score, quiz=session.path_id)
 
     return dict(reply=the_reply, answer=session.readable_answer, raw_answer=session.answer, score=session.score)
-
 
 def patherror():
     if request.args(1) == 'unknown':
@@ -89,6 +83,8 @@ def clear_session():
 @auth.requires_login()
 def index():
 
+    print '===================================================='
+    print 'new action ', datetime.datetime.utcnow()
     #check to see whether this user session has been initialized
     if not session.tagset:
         session_init()
@@ -96,7 +92,7 @@ def index():
     #when user begins exploring (also default) present map
     if (request.args(0) == 'start') or (not request.args):
         the_map = map()
-        clear_session()
+        #clear_session()
 
         return dict(locs=the_map.locs, map_image=the_map.image)
 
