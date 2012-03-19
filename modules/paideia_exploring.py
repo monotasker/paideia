@@ -1,4 +1,4 @@
-from gluon import current, URL, redirect
+from gluon import current, URL, redirect, IMG
 import datetime, random
 
 
@@ -79,12 +79,18 @@ class paideia_tag:
         return cat
 
 class paideia_path:
+    """
+    set the path a student is exploring, retrieve its data, and store 
+    the data in the session object
+
+    session:
+    session.location
+    session.active_paths
+    session.completed_paths
+    session.tagset
+    """
 
     def __init__(self):
-        """
-        set the path a student is exploring, retrieve its data, and store 
-        the data in the session object
-        """
 
         #current object must be accessed at runtime, so can't be global variable
         session, request, auth, db = current.session, current.request, current.auth, current.db
@@ -155,8 +161,12 @@ class paideia_path:
         print '\ncalling modules/paideia_path.pick()'
         
         #find out what location has been entered
-        curr_loc = db(db.locations.alias == request.vars['loc']
-                      ).select().first()
+        if 'loc' in request.vars:
+            curr_loc = db(db.locations.alias == request.vars['loc']
+                          ).select().first()
+            session.location = curr_loc.id
+        else:
+            curr_loc = session.location
         print 'current location: ', curr_loc.alias, curr_loc.id
 
         #check to see whether any constraints are in place 
@@ -352,6 +362,24 @@ class paideia_path:
         #TODO: work in a fallback in case no categories return any possible
         #paths
         return dict(catXpaths = catXpaths, c = c)
+
+    def prompt(self, path_id, step_id):
+        db, session = current.db, current.session
+
+        print '\ncalling modules/paideia_exploring/paideia_path.prompt()'
+        s = db.steps[step_id]
+        prompt = s.prompt 
+        npcs = s.npcs
+        npcs_here = [n for n in npcs if (session.location in db.npcs[n].location)]
+        print 'npcs in this location: ', npcs_here
+        if len(npcs_here) > 1:
+            the_npc = db.npcs[random.randrange(1,len(npcs_here))]
+        else:
+            the_npc = db.npcs[npcs_here[0]]
+        print 'selected npc: ', the_npc
+        session.npc == the_npc.id
+        npc_img = IMG(_src=URL('default', 'download', args=db.npcs[n].image))
+        return dict(npc_img = npc_img, prompt = prompt)
 
     def end(self):
         #current object must be accessed at runtime, so can't be global variable
