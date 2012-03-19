@@ -153,7 +153,8 @@ class paideia_path:
         print '\ncalling modules/paideia_path.pick()'
         
         #find out what location has been entered
-        curr_loc = db(db.locations.alias == request.vars['loc']).select().first()
+        curr_loc = db(db.locations.alias == request.vars['loc']
+                      ).select().first()
         print 'current location: ', curr_loc.alias, curr_loc.id
 
         #check to see whether any constraints are in place 
@@ -169,11 +170,14 @@ class paideia_path:
 
         #if an active path has a step here, initiate that step
         if a_paths:
-            activepaths = db((db.paths.id.belongs(a_paths.keys()))
-                             & ~(db.paths.id.belongs(session.completed_paths))
-                             ).select()
+            activepaths = db(db.paths.id.belongs(a_paths.keys())).select()
             activehere = activepaths.find(lambda row: 
-                                          curr_loc.id in row.locations)
+                                           curr_loc.id in row.locations)
+            if 'completed_paths' in session and \
+                    session.completed_paths is not None:
+                activepaths.exclude(lambda row: 
+                                    row.id in session.completed_paths) 
+
             if len(activepaths.as_list()) > 0:
                 the_path = activehere[0]
                 print 'active path in this location: ', the_path.id
@@ -186,13 +190,15 @@ class paideia_path:
                     the_stepid = pathsteps[stepindex + 1]
                     print 'next step in this path: ', the_stepid
                     #set session flag for this active path
-                    self.update_session('active_paths', (the_path.id, the_stepid), 'ins')
+                    self.update_session('active_paths', 
+                                        (the_path.id, the_stepid), 'ins')
                     #update attempt log 
                     self.log_attempt(the_path.id, the_stepid, 1)
                     return dict(path = the_path, step = the_stepid)
                 #if the last step in the path has already been completed
                 else:
                     print 'there are no more steps to complete in this path'
+                    # why isn't this finding anything in active_paths to remove?
                     self.update_session('active_paths', the_path.id, 'del')
                     self.update_session('completed_paths', the_path.id, 'ins')
 
