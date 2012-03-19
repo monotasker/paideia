@@ -4,6 +4,14 @@
 		"selected_items":
 		[
 			[
+				"active",
+				"activepaths	(local, instance)"
+			],
+			[
+				"activ",
+				"activepaths	(local, instance)"
+			],
+			[
 				"step",
 				"stepid	(local, instance)"
 			],
@@ -38,10 +46,6 @@
 			[
 				"init",
 				"__init__"
-			],
-			[
-				"active",
-				"active_here"
 			],
 			[
 				"cur",
@@ -223,7 +227,7 @@
 			"file": "modules/paideia_exploring.py",
 			"settings":
 			{
-				"buffer_size": 13221,
+				"buffer_size": 15030,
 				"line_ending": "Unix"
 			}
 		},
@@ -239,9 +243,13 @@
 	"build_system": "",
 	"command_palette":
 	{
-		"height": 52.0,
+		"height": 232.0,
 		"selected_items":
 		[
+			[
+				"inst",
+				"Package Control: Install Package"
+			],
 			[
 				"remo",
 				"Package Control: Remove Package"
@@ -273,10 +281,6 @@
 			[
 				"Package Control: ",
 				"Package Control: Disable Package"
-			],
-			[
-				"inst",
-				"Package Control: Install Package"
 			],
 			[
 				"disco",
@@ -471,15 +475,15 @@
 					"file": "modules/paideia_exploring.py",
 					"settings":
 					{
-						"buffer_size": 13221,
+						"buffer_size": 15030,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								6576,
-								6576
+								8151,
+								8151
 							]
 						],
 						"settings":
@@ -493,7 +497,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 3277.0,
+						"translation.y": 3620.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -510,8 +514,8 @@
 						"selection":
 						[
 							[
-								504,
-								504
+								893,
+								893
 							]
 						],
 						"settings":
@@ -522,7 +526,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 117.0,
+						"translation.y": 297.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
