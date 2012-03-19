@@ -76,9 +76,19 @@ def patherror():
 
     return dict(message=message, button=button)
 
+def clear_session():
+    if response.vars and 'session_var' in response.vars:
+        session_vars = response.vars['session_var']
+    else:
+        session_vars = 'all'
+    path = paideia_path()
+    path.clear_session(session_vars)
+    print 'clearing session vars: ', session_vars
+    print session
 
 @auth.requires_login()
 def index():
+
     #check to see whether this user session has been initialized
     if not session.tagset:
         session_init()
@@ -86,10 +96,7 @@ def index():
     #when user begins exploring (also default) present map
     if (request.args(0) == 'start') or (not request.args):
         the_map = map()
-        for i in ['blocks', 'active_paths', 'completed_paths']:
-            if not session[i]:
-                print i
-                session[i] = None
+        clear_session()
 
         return dict(locs=the_map.locs, map_image=the_map.image)
 

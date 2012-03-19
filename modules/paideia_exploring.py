@@ -134,8 +134,10 @@ class paideia_path:
 
             for p in active:
                 #find the next incomplete step in the active path
-                steps = db((db.paths.steps == db.steps.id) & (db.paths.id == p)).select()
-                #check to see whether the step can be completed in this location
+                steps = db((db.paths.steps == db.steps.id) & 
+                    (db.paths.id == p)).select()
+                #check to see whether the step can be 
+                #completed in this location
 
         #if not, check to see whether max number of tags are active
         #(or should this be blocking condition?)
@@ -165,7 +167,7 @@ class paideia_path:
             print 'no blocking conditions'
         
         #find out what paths (if any) are currently active
-        a_paths = session.active_paths or None
+        a_paths = {} #session.active_paths or None
         print 'active paths: ', a_paths
 
         #if an active path has a step here, initiate that step
@@ -242,11 +244,27 @@ class paideia_path:
             cat = 4
         return cat
 
+    def clear_session(self, session_vars):
+        session = current.session
+
+        if type(session_vars) is not list:
+            session_vars = list(session_vars)
+        if session_vars == 'all':
+            session_vars = ['active_paths', 'answer', 'answer2', 'answer3', 
+            'blocks', 'completed_paths', 'debug', 'last_query', 'path_freq', 
+            'eval', 'path_freq', 'path_id', 'path_length', 'path_name', 
+            'path_tags', 'qID', 'q_counter', 'question_text', 'quiz_type', 
+            'readable_answer', 'response', 'tagset']
+        for s in session_vars:
+            if s in session:
+                session[s] = None
+
     def update_session(self, session_index, val, switch):
         """insert, update, or delete property of the session object"""
         session = current.session
 
         print '\ncalling modules/paideia_path.update_session()'
+        print 'val = ', val
         if switch == 'del':
             if type(val) == tuple:
                 val = val[0]
@@ -256,8 +274,10 @@ class paideia_path:
             print 'nothing to remove'
         else:
             if session_index in session and session[session_index] is not None:
-                if type(val) == tuple:
+                if type(val) == tuple and (val[0] in session[session_index]):
                     session[session_index][val[0]] = val[1]
+                elif type(val) == tuple:
+                    session[session_index] = {val[0]:val[1]}
                 else:
                     session[session_index].append(val)
             else:
@@ -313,9 +333,11 @@ class paideia_path:
                             ).select()
                 """
                 #filter out any of these completed already today
-                if 'completed_paths' in session:
+                if ('completed_paths' in session) and \
+                        (session.completed_paths is not None):
                     comp = session.completed_paths
-                    catXpaths = catXpaths.exclude(lambda row: row.id not in comp)
+                    catXpaths = catXpaths.exclude(lambda row: 
+                        row.id not in comp)
                     print 'filtered out paths done today'
                     print catXpaths
                 catXsize = len(catXpaths.as_list())

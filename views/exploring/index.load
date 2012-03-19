@@ -1,3 +1,8 @@
+<form style='z-index:99'>
+    <input type='text' value='all' name='session_var' id='session_var' />
+    <a id='session_clear' href='#'>Clear session</a> 
+</form>
+
 <!--when path completed-->
 {{if request.args(0) == 'end':}}
     <section class="npc">
@@ -51,3 +56,11 @@
 {{#=BEAUTIFY(response._vars)}}
 {{#=BEAUTIFY(session)}}
 {{#pass}}
+
+<script>
+$('#session_clear').click(function(event){
+    ajax('clear_session', ['session_var'], ':eval');
+    event.preventDefault();
+});
+
+</script>
