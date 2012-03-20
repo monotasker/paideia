@@ -1,8 +1,9 @@
-from gluon import current, URL, redirect, IMG
+from gluon import current, URL, redirect, IMG, SQLFORM, SPAN, Field
+from gluon import IS_NOT_EMPTY
 import datetime, random
 
 
-class paideia_tag:
+class tag:
 
     def __init__(self):
         """
@@ -78,7 +79,7 @@ class paideia_tag:
 
         return cat
 
-class paideia_path:
+class path:
     """
     set the path a student is exploring, retrieve its data, and store 
     the data in the session object
@@ -88,6 +89,7 @@ class paideia_path:
     session.active_paths
     session.completed_paths
     session.tagset
+    session.npc
     """
 
     def __init__(self):
@@ -347,7 +349,7 @@ class paideia_path:
                         (session.completed_paths is not None):
                     comp = session.completed_paths
                     catXpaths = catXpaths.exclude(lambda row: 
-                        row.id not in comp)
+                        row.id in comp)
                     print 'filtered out paths done today'
                     print catXpaths
                 catXsize = len(catXpaths.as_list())
@@ -363,29 +365,85 @@ class paideia_path:
         #paths
         return dict(catXpaths = catXpaths, c = c)
 
-    def prompt(self, path_id, step_id):
-        db, session = current.db, current.session
-
-        print '\ncalling modules/paideia_exploring/paideia_path.prompt()'
-        s = db.steps[step_id]
-        prompt = s.prompt 
-        npcs = s.npcs
-        npcs_here = [n for n in npcs if (session.location in db.npcs[n].location)]
-        print 'npcs in this location: ', npcs_here
-        if len(npcs_here) > 1:
-            the_npc = db.npcs[random.randrange(1,len(npcs_here))]
-        else:
-            the_npc = db.npcs[npcs_here[0]]
-        print 'selected npc: ', the_npc
-        session.npc == the_npc.id
-        npc_img = IMG(_src=URL('default', 'download', args=db.npcs[n].image))
-        return dict(npc_img = npc_img, prompt = prompt)
-
     def end(self):
         #current object must be accessed at runtime, so can't be global variable
         session, request, auth, db = current.session, current.request, current.auth, current.db
 
         pass
+
+class step:
+
+    def __init__(self, sid):
+        db = current.db
+
+        print '\ncreating instance of step class'
+        self.sid = sid
+        self.s = db.steps[sid]
+        self.ns = None
+        self.n = None
+
+    def ask(self):
+        """Public method. Returns the html helpers to create the view 
+        for the 'ask' state of the user interface."""
+        print '\ncalling ask() method of step class'
+        self.n = self.npc()
+        print self.n
+        img = self.img()
+        print img
+        prompt = self.prompt()
+        print prompt
+        responder = self.responder()
+
+        return dict(npc_img = img, prompt = prompt, responder = responder)
+
+    def npc(self):
+        """Given a set of npcs for this step (in self.ns) select one of 
+        the npcs at random, store the id in a session variable, and return
+        the corresponding db row object"""
+        db, session = current.db, current.session
+        print '\ncalling npc() method of step class'
+
+        nrows = db((db.npcs.id > 0)
+                        & (db.npcs.location.contains(session.location))
+                    ).select()
+
+        ns_here = [n.id for n in nrows]
+        print 'npcs in this location: ', ns_here
+        if len(ns_here) > 1:
+            nrow = nrows[random.randrange(1,len(ns_here)) - 1]
+        else:
+            nrow = nrows[ns_here[0]]
+        print 'selected npc: ', nrow.id
+        #store the id of the active npc as a session variable
+        session.npc = nrow.id
+        self.n = nrow
+        return nrow
+
+    def img(self):
+        db = current.db
+
+        n_img = IMG(_src=URL('default', 'download', 
+                        args=db.npcs[self.n.id].image))
+        return n_img
+
+    def prompt(self):
+        prompt = SPAN(self.s.prompt)
+        return prompt
+
+    def responder(self):
+        """
+        create and return the form to receive user response for this 
+        step
+        """
+        session, request = current.session, current.request
+
+        form = SQLFORM.factory(
+        Field('response', 'string', requires=IS_NOT_EMPTY()))
+        if form.accepts(request.vars,  session):
+            session.response = request.vars.response
+            redirect(URL('index', args=['response']))
+
+        return form
 
 class counter:
 

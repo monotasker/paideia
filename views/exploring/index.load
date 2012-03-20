@@ -34,12 +34,11 @@
 <!--step start-->
 {{elif request.args(0) == 'ask' and not request.vars.user_response:}}
     <div class='speaker'>{{=npc_img}}</div>
-    <div class="npc prompt">{{#=XML(question)}}</div>
-    <div class='responder'>{{#=form}}</div>
-    <span class="quiz_type">{{#=session.quiz_type}}</span>
+    <div class="npc prompt">{{=prompt}}</div>
+    <div class='responder'>{{=responder}}</div>
     <p class="guidelines">Remember to only give <strong>one</strong> translation (not a list of different possibilities) and to give a <strong>translation</strong> (so not "keep" but "I keep").</p>
     <span class='back_to_map'>{{=A("Map", _href=URL('index'), cid='page', _class='button-yellow-grad back_to_map')}}</span>
-    <span class="q_counter">Question {{#=session.q_counter}} of {{#=session.path_length}}</span>
+    <span class="q_counter">Question {{#=session.q_counter}}</span>
 
 <!--step feedback-->
 {{else:}}
