@@ -1,41 +1,7 @@
 # coding: utf8
-from paideia_exploring import paideia_path, paideia_tag, counter, map
+from paideia_exploring import path, tag, step, counter, map
 from paideia_questions import question
 import pprint
-
-def session_init():
-    print 'calling session_init'
-
-    #categorize paths for today
-    tags = paideia_tag()
-    session.tagset = tags.categorize_tags()
-    print 'returned categorized tags'
-
-    #add paths that weren't finished during last session
-    path = paideia_path()
-    session.active_paths = path.find_unfinished()
-    print 'returned unfinished paths'
-
-def step_init():
-    path = paideia_path()
-    path_result = path.pick()
-    path_id = path_result['path'].id
-    step_id = path_result['step']
-    print 'returned to controller step_init():'
-    print 'path ', path_id
-    print 'step ', step_id
-    return path.prompt(path_id, step_id)
-
-def stepask():
-    
-    form = SQLFORM.factory(
-        Field('response', 'string', requires=IS_NOT_EMPTY())
-    )
-    if form.accepts(request.vars,  session):
-        session.response = request.vars.response
-        redirect(URL('index', args=['reply']))
-
-    return dict(question=session.question_text, form=form)
 
 def stepreply():
     #see whether answer matches any of the three answer fields
@@ -82,27 +48,57 @@ def clear_session():
 
 @auth.requires_login()
 def index():
+    """
+    Main method for presenting various states of the user interface. 
+    The states are determined by the first url argument. Processed 
+    initially by the view in views/exploring/index.html. The #page 
+    region is then refreshed via ajax using the view in views/
+    exploring/index.load
+
+    user must be logged in to access this controller. Otherwise s/he 
+    will be redirected to the default login form.
+    """
 
     print '===================================================='
-    print 'new action ', datetime.datetime.utcnow()
+    print 'new state in controller exploring/index', datetime.datetime.utcnow()
     #check to see whether this user session has been initialized
     if not session.tagset:
-        session_init()
+        print '\ninitializing new user session'
+        #categorize paths for today
+        t = tag()
+        session.tagset = t.categorize_tags()
+        print 'stored categorized tags in session.tagset'
+        #re-activate paths that weren't finished during last session
+        p = path()
+        session.active_paths = p.find_unfinished()
+        print 'restored unfinished paths to session.active_paths'
 
     #when user begins exploring (also default) present map
     if (request.args(0) == 'start') or (not request.args):
-        the_map = map()
-        #clear_session()
+        print '\nstart state'
+        m = map()
+        '\n returned to controller exploring/index:'
 
-        return dict(locs=the_map.locs, map_image=the_map.image)
+        return dict(locs=m.locs, map_image=m.image)
 
     #after user selects quiz (or 'next question')
     elif request.args(0) == 'ask':
-        return step_init()
+        print '\nask state'
+        p = path()
+        p_result = p.pick()
+        pid = p_result['path'].id
+        sid = p_result['step']
+        print '\nreturned to controller exploring/index:'
+        print 'path ', pid, '; step ', sid
+        s = step(sid)
+        return s.ask()
 
-    #after submitting answer
+    #after submitting response
     elif request.args(0) == 'reply':
-        return stepreply()
+        print '\nreply state'
+        return s.reply()
 
+    #if user response results in an error
     elif request.args(0) == 'error':
+        print '\nerror state'
         return patherror()
