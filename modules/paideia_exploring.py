@@ -1,6 +1,7 @@
+# coding: utf8
 from gluon import current, URL, redirect, IMG, SQLFORM, SPAN, Field
 from gluon import IS_NOT_EMPTY
-import datetime, random, pprint
+import datetime, random, pprint, re, string
 
 
 class tag:
@@ -79,17 +80,28 @@ class tag:
 
         return cat
 
+
 class path:
     """
     set the path a student is exploring, retrieve its data, and store 
     the data in the session object
 
-    session:
+    ## session variables available:
+    ### This first set is used to track information about a user's session that persists
+    beyond a single step execution.
+
     session.location
     session.active_paths
     session.completed_paths
     session.tagset
+
+    ### This second set should be used exclusively to preserve current data during 
+    execution of a single step (i.e., retrieve the results of path.pick() in step.process()).
+    By the end of step.process() they should be returned to a value of None
+
     session.npc
+    session.step
+    session.path
     """
 
     def __init__(self):
@@ -148,6 +160,9 @@ class path:
         if 'blocks' in session:
             print 'active block conditions: ', session.blocks
             #TODO: Add logic here to handle blocking conditions
+            #TODO: One blocking condition should be a started step that doesn't have a 
+            #processed user response -- force either repeating of the step prompt or 
+            #logging of an error report.
             return True
         else:
             print 'no blocking conditions'
@@ -253,8 +268,16 @@ class path:
         category = p['c']
         paths = p['catXpaths']
         path_count = len(paths.as_list())
-        print 'selected ', path_count, ' paths from category ', \
-            category, ': \n\n', paths
+        if path_count < 1:
+            print 'no available paths, so reviewing some already completed today'
+            session.completed_paths = None
+            p = self.find_paths(cat, curr_loc)
+            category = p['c']
+            paths = p['catXpaths']
+            path_count = len(paths.as_list())
+        else:
+            print 'selected ', path_count, ' paths from category ', \
+                category, ': \n\n', paths
         the_path = paths[random.randrange(0,path_count)]
         print 'activating path: ', the_path.id
         the_stepid = the_path.steps[0]
@@ -262,6 +285,8 @@ class path:
 
         #set session flag showing that this path is now active
         self.update_session('active_paths', (the_path.id, the_stepid), 'ins')
+        session.path = the_path.id
+        session.step = the_stepid
         #log this attempt of the step
         self.log_attempt(the_path.id, the_stepid, 0)
 
@@ -417,9 +442,10 @@ class path:
 class step:
 
     def __init__(self, sid):
-        db = current.db
+        db, session = current.db, current.session
 
         print '\ncreating instance of step class'
+        self.pid = session.path
         self.sid = sid
         self.s = db.steps[sid]
         self.ns = None
@@ -438,6 +464,61 @@ class step:
         responder = self.responder()
 
         return dict(npc_img = img, prompt = prompt, responder = responder)
+
+    def process(self):
+        """
+        handles the user's response to the step prompt. In this base 'step' class this 
+        involves comparing the user's typed response with the regular expressions provided 
+        for the step. The evaluation is then logged and stored in the db, and the appropriate 
+        information presented to the user.
+        """
+        session, db, auth = current.session, current.db, current.auth
+
+        print '\ncalling process() method of step class'
+        # get the student's response to the question
+        r = string.strip(session.response)
+        # get the correct answer information from db
+        print self.s
+        answer = self.s.response1
+        answer2 = self.s.response2
+        answer3 = self.s.response3
+        readable = self.s.readable_response
+        
+        # compare the student's response to the regular expressions
+        try:
+            if re.match(answer, r, re.I):
+                score = 1
+                reply = "Right. Κάλη."
+            elif re.match(answer2, r, re.I) and answer2 != 'null':
+                score = 0.5
+                #TODO: Get this score value from the db instead of hard coding it here.
+                reply = "Οὐ κάκος. You're close."
+                #TODO: Vary the replies
+            elif re.match(answer3, r, re.I) and answer3 != 'null':
+                #TODO: Get this score value from the db instead of hard coding it here.
+                score = 0.3
+            else:
+                score = 0
+                reply = "Incorrect. Try again!"
+            # record the results in statistics for this step and this tag
+            self.record(score)
+
+        #handle errors if the student's response cannot be evaluated
+        except re.error:
+            redirect(URL('index', args=['error', 'regex']))
+
+        return dict(reply=reply, readable=readable)
+
+    def record(self, score):
+        db = current.db
+
+        #log this step attempt
+        db.attempt_log.insert(question=self.sid, score=score, quiz=self.pid)
+        #log this tag attempt for each tag in the step
+        #update the path log for this attempt
+
+        #check to see whether this is the last step in the path and if so remove from 
+        #active_paths and add to completed_paths
 
     def npc(self):
         """Given a set of npcs for this step (in self.ns) select one of 
@@ -484,7 +565,7 @@ class step:
         Field('response', 'string', requires=IS_NOT_EMPTY()))
         if form.accepts(request.vars,  session):
             session.response = request.vars.response
-            redirect(URL('index', args=['response']))
+            redirect(URL('index', args=['reply']))
 
         return form
 

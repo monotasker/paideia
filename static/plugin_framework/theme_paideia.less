@@ -118,8 +118,52 @@ body #page {
     background:@mist;
     overflow: hidden;
 
-    #page #page {
+    #page {
         .border-image('', 0, 0, 0, 0);
+    }
+
+    #utils {
+        background-color:#666;
+        color: #fff;
+        .inset-text;
+        position: absolute;
+        display: block;
+        width:300px;
+        left:-300px;
+        .transition();
+        z-index:99;
+        min-height:200px;
+        padding: @typeheight;
+
+        input{
+            width:@lineheight3;
+            margin-right:@typeheight;
+        }
+        a {
+            color: #fff;
+
+            :hover {
+                color: yellow;
+            }
+        }
+
+    }
+
+    #utils:after {
+        content:'S';
+        font-family:"Websymbol";
+        display: block;
+        position: absolute;
+        left:300px;
+        background-color:#666;
+        padding: @typeheight/2;
+        .border-radius(0, @typeheight/2, @typeheight/2, 0);
+    }
+
+    #utils:hover {
+        left:0;
+        .box-shadow();
+        .transition();
     }
 
     h2 {
