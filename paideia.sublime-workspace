@@ -4,6 +4,10 @@
 		"selected_items":
 		[
 			[
+				"di",
+				"display	display: block"
+			],
+			[
 				"active",
 				"activepaths	(local, instance)"
 			],
@@ -203,7 +207,7 @@
 			"file": "models/paideia.py",
 			"settings":
 			{
-				"buffer_size": 9289,
+				"buffer_size": 9369,
 				"line_ending": "Unix"
 			}
 		},
@@ -238,14 +242,50 @@
 				"buffer_size": 3490,
 				"line_ending": "Unix"
 			}
+		},
+		{
+			"file": "controllers/plugin_ajaxselect.py",
+			"settings":
+			{
+				"buffer_size": 3954,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "modules/plugin_ajaxselect.py",
+			"settings":
+			{
+				"buffer_size": 12178,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "static/plugin_ajaxselect/plugin_ajaxselect.js",
+			"settings":
+			{
+				"buffer_size": 4422,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "static/plugin_ajaxselect/plugin_ajaxselect.css",
+			"settings":
+			{
+				"buffer_size": 1160,
+				"line_ending": "Unix"
+			}
 		}
 	],
 	"build_system": "",
 	"command_palette":
 	{
-		"height": 232.0,
+		"height": 392.0,
 		"selected_items":
 		[
+			[
+				"col",
+				"Color picker"
+			],
 			[
 				"inst",
 				"Package Control: Install Package"
@@ -287,7 +327,7 @@
 				"Package Control: Discover Packages"
 			]
 		],
-		"width": 449.0
+		"width": 620.0
 	},
 	"console":
 	{
@@ -391,15 +431,15 @@
 					"file": "models/paideia.py",
 					"settings":
 					{
-						"buffer_size": 9289,
+						"buffer_size": 9369,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								0,
-								0
+								306,
+								306
 							]
 						],
 						"settings":
@@ -409,7 +449,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 3540.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -497,7 +537,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 3620.0,
+						"translation.y": 6560.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -532,6 +572,124 @@
 					"type": "text"
 				}
 			]
+		},
+		{
+			"selected": 3,
+			"sheets":
+			[
+				{
+					"buffer": 5,
+					"file": "controllers/plugin_ajaxselect.py",
+					"settings":
+					{
+						"buffer_size": 3954,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "modules/plugin_ajaxselect.py",
+					"settings":
+					{
+						"buffer_size": 12178,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1532,
+								1532
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 120.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "static/plugin_ajaxselect/plugin_ajaxselect.js",
+					"settings":
+					{
+						"buffer_size": 4422,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 480.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "static/plugin_ajaxselect/plugin_ajaxselect.css",
+					"settings":
+					{
+						"buffer_size": 1160,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								331,
+								331
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/CSS/CSS.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
+			]
 		}
 	],
 	"incremental_find":
@@ -540,7 +698,7 @@
 	},
 	"input":
 	{
-		"height": 0.0
+		"height": 36.0
 	},
 	"layout":
 	{
@@ -551,6 +709,12 @@
 				0,
 				1,
 				1
+			],
+			[
+				0,
+				1,
+				1,
+				2
 			]
 		],
 		"cols":
@@ -561,6 +725,7 @@
 		"rows":
 		[
 			0.0,
+			0.931034482759,
 			1.0
 		]
 	},
@@ -589,7 +754,7 @@
 	"show_minimap": false,
 	"show_open_files": true,
 	"show_tabs": true,
-	"side_bar_visible": false,
+	"side_bar_visible": true,
 	"side_bar_width": 249.0,
 	"status_bar_visible": true
 }

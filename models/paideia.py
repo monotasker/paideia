@@ -5,6 +5,7 @@ from itertools import chain
 import datetime, os
 #js file necessary for AjaxSelect widget
 response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.js'))
+response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.css'))
 
 dtnow = datetime.datetime.utcnow()
 
