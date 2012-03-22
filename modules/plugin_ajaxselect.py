@@ -23,6 +23,11 @@ class AjaxSelect:
     plugin file, select it, and click "open". The file selection window should 
     close.
     5. Click the "upload" button.
+    6. Add the following two lines to the top of a module file to include the 
+    js and css files for the plugin:
+    response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.css'))
+    response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.js'))
+
     The plugin should now be installed and ready to use.
 
     Usage:
