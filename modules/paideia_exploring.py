@@ -1,8 +1,9 @@
-from gluon import current, URL, redirect
+from gluon import current, URL, redirect, IMG, SQLFORM, SPAN, Field
+from gluon import IS_NOT_EMPTY
 import datetime, random
 
 
-class paideia_tag:
+class tag:
 
     def __init__(self):
         """
@@ -78,13 +79,20 @@ class paideia_tag:
 
         return cat
 
-class paideia_path:
+class path:
+    """
+    set the path a student is exploring, retrieve its data, and store 
+    the data in the session object
+
+    session:
+    session.location
+    session.active_paths
+    session.completed_paths
+    session.tagset
+    session.npc
+    """
 
     def __init__(self):
-        """
-        set the path a student is exploring, retrieve its data, and store 
-        the data in the session object
-        """
 
         #current object must be accessed at runtime, so can't be global variable
         session, request, auth, db = current.session, current.request, current.auth, current.db
@@ -134,8 +142,10 @@ class paideia_path:
 
             for p in active:
                 #find the next incomplete step in the active path
-                steps = db((db.paths.steps == db.steps.id) & (db.paths.id == p)).select()
-                #check to see whether the step can be completed in this location
+                steps = db((db.paths.steps == db.steps.id) & 
+                    (db.paths.id == p)).select()
+                #check to see whether the step can be 
+                #completed in this location
 
         #if not, check to see whether max number of tags are active
         #(or should this be blocking condition?)
@@ -153,8 +163,12 @@ class paideia_path:
         print '\ncalling modules/paideia_path.pick()'
         
         #find out what location has been entered
-        curr_loc = db(db.locations.alias == request.vars['loc']
-                      ).select().first()
+        if 'loc' in request.vars:
+            curr_loc = db(db.locations.alias == request.vars['loc']
+                          ).select().first()
+            session.location = curr_loc.id
+        else:
+            curr_loc = session.location
         print 'current location: ', curr_loc.alias, curr_loc.id
 
         #check to see whether any constraints are in place 
@@ -165,7 +179,7 @@ class paideia_path:
             print 'no blocking conditions'
         
         #find out what paths (if any) are currently active
-        a_paths = session.active_paths or None
+        a_paths = {} #session.active_paths or None
         print 'active paths: ', a_paths
 
         #if an active path has a step here, initiate that step
@@ -242,11 +256,27 @@ class paideia_path:
             cat = 4
         return cat
 
+    def clear_session(self, session_vars):
+        session = current.session
+
+        if type(session_vars) is not list:
+            session_vars = list(session_vars)
+        if session_vars == 'all':
+            session_vars = ['active_paths', 'answer', 'answer2', 'answer3', 
+            'blocks', 'completed_paths', 'debug', 'last_query', 'path_freq', 
+            'eval', 'path_freq', 'path_id', 'path_length', 'path_name', 
+            'path_tags', 'qID', 'q_counter', 'question_text', 'quiz_type', 
+            'readable_answer', 'response', 'tagset']
+        for s in session_vars:
+            if s in session:
+                session[s] = None
+
     def update_session(self, session_index, val, switch):
         """insert, update, or delete property of the session object"""
         session = current.session
 
         print '\ncalling modules/paideia_path.update_session()'
+        print 'val = ', val
         if switch == 'del':
             if type(val) == tuple:
                 val = val[0]
@@ -256,8 +286,10 @@ class paideia_path:
             print 'nothing to remove'
         else:
             if session_index in session and session[session_index] is not None:
-                if type(val) == tuple:
+                if type(val) == tuple and (val[0] in session[session_index]):
                     session[session_index][val[0]] = val[1]
+                elif type(val) == tuple:
+                    session[session_index] = {val[0]:val[1]}
                 else:
                     session[session_index].append(val)
             else:
@@ -313,9 +345,11 @@ class paideia_path:
                             ).select()
                 """
                 #filter out any of these completed already today
-                if 'completed_paths' in session:
+                if ('completed_paths' in session) and \
+                        (session.completed_paths is not None):
                     comp = session.completed_paths
-                    catXpaths = catXpaths.exclude(lambda row: row.id not in comp)
+                    catXpaths = catXpaths.exclude(lambda row: 
+                        row.id in comp)
                     print 'filtered out paths done today'
                     print catXpaths
                 catXsize = len(catXpaths.as_list())
@@ -336,6 +370,80 @@ class paideia_path:
         session, request, auth, db = current.session, current.request, current.auth, current.db
 
         pass
+
+class step:
+
+    def __init__(self, sid):
+        db = current.db
+
+        print '\ncreating instance of step class'
+        self.sid = sid
+        self.s = db.steps[sid]
+        self.ns = None
+        self.n = None
+
+    def ask(self):
+        """Public method. Returns the html helpers to create the view 
+        for the 'ask' state of the user interface."""
+        print '\ncalling ask() method of step class'
+        self.n = self.npc()
+        print self.n
+        img = self.img()
+        print img
+        prompt = self.prompt()
+        print prompt
+        responder = self.responder()
+
+        return dict(npc_img = img, prompt = prompt, responder = responder)
+
+    def npc(self):
+        """Given a set of npcs for this step (in self.ns) select one of 
+        the npcs at random, store the id in a session variable, and return
+        the corresponding db row object"""
+        db, session = current.db, current.session
+        print '\ncalling npc() method of step class'
+
+        nrows = db((db.npcs.id > 0)
+                        & (db.npcs.location.contains(session.location))
+                    ).select()
+
+        ns_here = [n.id for n in nrows]
+        print 'npcs in this location: ', ns_here
+        if len(ns_here) > 1:
+            nrow = nrows[random.randrange(1,len(ns_here)) - 1]
+        else:
+            nrow = nrows[ns_here[0]]
+        print 'selected npc: ', nrow.id
+        #store the id of the active npc as a session variable
+        session.npc = nrow.id
+        self.n = nrow
+        return nrow
+
+    def img(self):
+        db = current.db
+
+        n_img = IMG(_src=URL('default', 'download', 
+                        args=db.npcs[self.n.id].image))
+        return n_img
+
+    def prompt(self):
+        prompt = SPAN(self.s.prompt)
+        return prompt
+
+    def responder(self):
+        """
+        create and return the form to receive user response for this 
+        step
+        """
+        session, request = current.session, current.request
+
+        form = SQLFORM.factory(
+        Field('response', 'string', requires=IS_NOT_EMPTY()))
+        if form.accepts(request.vars,  session):
+            session.response = request.vars.response
+            redirect(URL('index', args=['response']))
+
+        return form
 
 class counter:
 
