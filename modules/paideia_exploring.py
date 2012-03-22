@@ -1,6 +1,6 @@
 from gluon import current, URL, redirect, IMG, SQLFORM, SPAN, Field
 from gluon import IS_NOT_EMPTY
-import datetime, random
+import datetime, random, pprint
 
 
 class tag:
@@ -93,67 +93,140 @@ class path:
     """
 
     def __init__(self):
-
-        #current object must be accessed at runtime, so can't be global variable
-        session, request, auth, db = current.session, current.request, current.auth, current.db
+        self.curr_loc = None
 
     def find_unfinished(self):
         """
         Check for any paths that have been started but not finished by the
-        current user.
+        current user. Expects finished paths to have a 'last_step' value of 0.
         """
-        auth, db = current.auth, current.db
-        unfinished = [l.path for l in db(
-                                    (db.path_log.name == auth.user_id) & 
-                                    (db.path_log.last_step != 0)).select()]
-        print 'found unfinished step from last time: ', unfinished
-        return unfinished
+        auth, db, session = current.auth, current.db, current.session
 
-    def check(self):
-        """
-        Find out whether to introduce another step, free the user for 
-        movement, or continue with the current step.
-        """
+        print '\ncalling paideia_path.find_unfinished()'
+        mylogs = db((db.path_log.name == auth.user_id) & 
+                                    (db.path_log.last_step != 0)).select()
+        unfinished = [l.path for l in mylogs]
 
+        #get only most recent log for each unique path
+        ukeys = {}
+        for e in unfinished:
+            newt = mylogs[e].dt_started
+            if e in ukeys:
+                if newt > ukeys[e]:
+                    ukeys[e] = newt
+                else:
+                    pass
+            else:
+                ukeys[e] = newt
+
+        #build dict with last completed step for each unique path
+        adict = {}
+        for u in ukeys:
+            myrow = mylogs.find(lambda row: (row.id == u)).first()
+            adict[u] = myrow.last_step
+        print 'found ', len(adict.keys()), ' unfinished step from last time: '
+        print adict
+
+        #add unfinished to session.active_paths
+        try: 
+            for k, v in adict.items():
+                session.active_paths[k] = v
+        except Exception, err:
+            print Exception, err
+
+        return adict
+
+    def check_blocks(self):
+        """
+        Find out whether any blocking conditions are in place and trigger 
+        appropriate responses.
+        """
         #current object must be accessed at runtime
-        session, request = current.session, current.request
-        auth, db = current.auth, current.db
+        session = current.session
 
-        #has the user completed enough paths for today?
-        if session.completed_paths:
-            todays = len(session.completed_paths)
-            rsetting = db(db.app_settings.id == 1).select().first()
-            required = rsetting.paths_per_day
-            if todays >= required:
-                return ['done']
-
-        #is there any blocking state in effect?
-        if session.block:
-            return ['blocked']
-
-        #check to see whether there are any paths active for this location
-        if session.active_paths:
-            #find list of active paths
-            active = session.active_paths
-            #TODO: find out last completed step in path
-
-            #find current location
-            loc = request.vars[loc]
-
-            for p in active:
-                #find the next incomplete step in the active path
-                steps = db((db.paths.steps == db.steps.id) & 
-                    (db.paths.id == p)).select()
-                #check to see whether the step can be 
-                #completed in this location
-
-        #if not, check to see whether max number of tags are active
-        #(or should this be blocking condition?)
-        
-        #otherwise, choose a new path
+        #check to see whether any constraints are in place 
+        if 'blocks' in session:
+            print 'active block conditions: ', session.blocks
+            #TODO: Add logic here to handle blocking conditions
+            return True
         else:
-            self.pick()
-            return('new')
+            print 'no blocking conditions'
+            return False
+
+    def get_loc(self):
+        """find out what location has been entered"""
+        request, session = current.request, current.session
+        db = current.db
+
+        if 'loc' in request.vars:
+            curr_loc = db(db.locations.alias == request.vars['loc']
+                          ).select().first()
+            session.location = curr_loc.id
+            self.curr_loc = curr_loc.id
+        else:
+            curr_loc = db.locations[session.location]
+            self.curr_loc = session.location
+        print 'current location: ', curr_loc.alias, curr_loc.id    
+        return curr_loc    
+
+    def continue_active(self):
+        """
+        check for an active path in this location and make sure 
+        it has another step to begin. If so return a dict containing the
+        id for the path ('path') and the step ('step'). If not return False.
+        """
+        session, db = current.session, current.db
+
+        a_paths = session.active_paths or None
+        if a_paths:
+            activepaths = db(db.paths.id.belongs(a_paths.keys())).select()
+            activehere = activepaths.find(lambda row: 
+                                           self.curr_loc in row.locations)
+            if 'completed_paths' in session \
+                    and session.completed_paths is not None:
+                activepaths.exclude(lambda row: 
+                                    row.id in session.completed_paths) 
+
+            if len(activepaths.as_list()) > 0:
+                for p in activehere:
+                    print 'active path in this location: ', p.id
+                    psteps = p.steps
+                    last = a_paths[p.id]
+                    print 'last step finished in this path: ', last
+                    try: sindex = psteps.index(last)
+                    #if impossible step id is given in active_paths
+                    except ValueError, err: 
+                        #remove this path from active paths
+                        self.update_session('active_paths', 
+                                            (p.id, 0), 'del')
+                        #set the log for this attempt as if path completed
+                        self.log_attempt(p.id, 0, 1)
+                        print err
+                        continue
+
+                    #if the last completed step was not the final in the path
+                    if len(psteps) > (sindex + 1):
+                        sid = psteps[sindex + 1]
+                        print 'next step in this path: ', sid
+                        #set session flag for this active path
+                        self.update_session('active_paths', (p.id, sid), 'ins')
+                        #update attempt log 
+                        self.log_attempt(p.id, sid, 1)
+                        return dict(path = p, step = sid)
+
+                    #if the last step in the path has already been completed
+                    else:
+                        print 'there are no more steps to complete in this path'
+                        # why isn't this finding anything in active_paths to remove?
+                        self.update_session('active_paths', p.id, 'del')
+                        self.update_session('completed_paths', p.id, 'ins')
+                        continue
+                else:
+                    return False
+            else:
+                return False
+        else:
+            return False
 
     def pick(self):
         """Choose a new path for the user, based on tag performance"""
@@ -161,65 +234,20 @@ class path:
         db, auth = current.db, current.auth
 
         print '\ncalling modules/paideia_path.pick()'
-        
-        #find out what location has been entered
-        if 'loc' in request.vars:
-            curr_loc = db(db.locations.alias == request.vars['loc']
-                          ).select().first()
-            session.location = curr_loc.id
+        # find current location in game world
+        curr_loc = self.get_loc()
+        # check for active blocking conditions
+        # TODO: Implement logic to do something with True result here
+        if self.check_blocks() == True:
+            print 'block in place'
+        # if possible, continue an active path whose next step is here
+        a = self.continue_active()
+        if a == False:
+            print 'no active paths here'
+            pass
         else:
-            curr_loc = session.location
-        print 'current location: ', curr_loc.alias, curr_loc.id
-
-        #check to see whether any constraints are in place 
-        if 'blocks' in session:
-            print 'active block conditions: ', session.blocks
-            #TODO: Add logic here to handle blocking conditions
-        else:
-            print 'no blocking conditions'
-        
-        #find out what paths (if any) are currently active
-        a_paths = {} #session.active_paths or None
-        print 'active paths: ', a_paths
-
-        #if an active path has a step here, initiate that step
-        if a_paths:
-            activepaths = db(db.paths.id.belongs(a_paths.keys())).select()
-            activehere = activepaths.find(lambda row: 
-                                           curr_loc.id in row.locations)
-            if 'completed_paths' in session and \
-                    session.completed_paths is not None:
-                activepaths.exclude(lambda row: 
-                                    row.id in session.completed_paths) 
-
-            if len(activepaths.as_list()) > 0:
-                the_path = activehere[0]
-                print 'active path in this location: ', the_path.id
-                pathsteps = the_path.steps
-                laststep = a_paths[the_path.id]
-                print 'last step finished in this path: ', laststep
-                stepindex = pathsteps.index(laststep)
-                #if the last completed step was not the final in the path
-                if len(pathsteps) > (stepindex + 1):
-                    the_stepid = pathsteps[stepindex + 1]
-                    print 'next step in this path: ', the_stepid
-                    #set session flag for this active path
-                    self.update_session('active_paths', 
-                                        (the_path.id, the_stepid), 'ins')
-                    #update attempt log 
-                    self.log_attempt(the_path.id, the_stepid, 1)
-                    return dict(path = the_path, step = the_stepid)
-                #if the last step in the path has already been completed
-                else:
-                    print 'there are no more steps to complete in this path'
-                    # why isn't this finding anything in active_paths to remove?
-                    self.update_session('active_paths', the_path.id, 'del')
-                    self.update_session('completed_paths', the_path.id, 'ins')
-
-
-        #if no active path here . . .
-        print 'no active paths here'
-        #choose a new one
+            return a                    
+        #otherwise choose a new path
         cat = self.path_switch()
         p = self.find_paths(cat, curr_loc)
         category = p['c']
@@ -256,20 +284,32 @@ class path:
             cat = 4
         return cat
 
-    def clear_session(self, session_vars):
-        session = current.session
+    def clear_session(self):
+        session, response = current.session, current.response
 
-        if type(session_vars) is not list:
-            session_vars = list(session_vars)
+        print '\ncalling path.clear_session()'
+
+        if response.vars and ('session_var' in response.vars):
+            session_vars = response.vars['session_var']
+        else:
+            session_vars = 'all'
+            
         if session_vars == 'all':
             session_vars = ['active_paths', 'answer', 'answer2', 'answer3', 
             'blocks', 'completed_paths', 'debug', 'last_query', 'path_freq', 
             'eval', 'path_freq', 'path_id', 'path_length', 'path_name', 
             'path_tags', 'qID', 'q_counter', 'question_text', 'quiz_type', 
             'readable_answer', 'response', 'tagset']
+        if type(session_vars) is not list:
+            session_vars = list(session_vars)
+        print 'clearing session vars: ', session_vars
+
         for s in session_vars:
             if s in session:
                 session[s] = None
+                print 'cleared session.', s
+
+        print pprint.pprint(session)
 
     def update_session(self, session_index, val, switch):
         """insert, update, or delete property of the session object"""

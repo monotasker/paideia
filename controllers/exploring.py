@@ -37,14 +37,8 @@ def patherror():
     return dict(message=message, button=button)
 
 def clear_session():
-    if response.vars and 'session_var' in response.vars:
-        session_vars = response.vars['session_var']
-    else:
-        session_vars = 'all'
-    path = paideia_path()
-    path.clear_session(session_vars)
-    print 'clearing session vars: ', session_vars
-    print session
+    the_path = path()
+    the_path.clear_session()
 
 @auth.requires_login()
 def index():
