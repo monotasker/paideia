@@ -3,24 +3,6 @@ from paideia_exploring import path, tag, step, counter, map
 from paideia_questions import question
 import pprint
 
-def stepreply():
-    #see whether answer matches any of the three answer fields
-    q = question()
-    the_eval = q.evalq()
-
-    #build response to user
-    if session.eval == 'correct':
-        the_reply = "Right. Κάλη."
-    elif session.eval == 'partial':
-        the_reply = "Οὐ κάκος. You're close."
-    else:
-        the_reply = "Incorrect. Try again!"
-
-    #add a record for this attempt in db.attempt_log
-    db.attempt_log.insert(question=session.q_ID, score=q.score, quiz=session.path_id)
-
-    return dict(reply=the_reply, answer=session.readable_answer, raw_answer=session.answer, score=session.score)
-
 def patherror():
     if request.args(1) == 'unknown':
         db.q_bugs.insert(question=session.qID, a_submitted=request.vars.answer)
@@ -71,8 +53,6 @@ def index():
     if (request.args(0) == 'start') or (not request.args):
         print '\nstart state'
         m = map()
-        '\n returned to controller exploring/index:'
-
         return dict(locs=m.locs, map_image=m.image)
 
     #after user selects quiz (or 'next question')
@@ -90,7 +70,9 @@ def index():
     #after submitting response
     elif request.args(0) == 'reply':
         print '\nreply state'
-        return s.reply()
+        sid = session.step
+        s = step(sid)
+        return s.process()
 
     #if user response results in an error
     elif request.args(0) == 'error':

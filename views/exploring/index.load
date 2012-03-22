@@ -1,7 +1,10 @@
-<form style='z-index:99'>
+
+<div id='utils'>
+<form style='z-index:99' id='clear_session'>
     <input type='text' value='all' name='session_var' id='session_var' />
     <a id='session_clear' href='#'>Clear session</a> 
 </form>
+</div>
 
 <!--when path completed-->
 {{if request.args(0) == 'end':}}
