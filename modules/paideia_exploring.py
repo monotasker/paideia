@@ -316,8 +316,8 @@ class path:
     def find_paths(self, cat, curr_loc):
         """
         Find paths for this location that are due in the specified category 
-        (in argument 'cat') and filter out paths that have been completed already
-        today. If no tags in that category, move on to the next.
+        (in argument 'cat') and filter out paths that have been completed 
+        already today. If no tags in that category, move on to the next.
         """
         print '\ncalling modules/paideia_path.find_paths()'
         db, session = current.db, current.session
@@ -348,8 +348,9 @@ class path:
                 if ('completed_paths' in session) and \
                         (session.completed_paths is not None):
                     comp = session.completed_paths
-                    catXpaths = catXpaths.exclude(lambda row: 
-                        row.id in comp)
+                    print 'completed paths: ', comp
+                    catXpaths = catXpaths.find(lambda row: 
+                        row.id not in comp)
                     print 'filtered out paths done today'
                     print catXpaths
                 catXsize = len(catXpaths.as_list())
@@ -367,9 +368,11 @@ class path:
 
     def end(self):
         #current object must be accessed at runtime, so can't be global variable
-        session, request, auth, db = current.session, current.request, current.auth, current.db
+        session, request, auth, db = current.session, current.request
+        auth, db = current.auth, current.db
 
         pass
+
 
 class step:
 
@@ -406,13 +409,13 @@ class step:
         nrows = db((db.npcs.id > 0)
                         & (db.npcs.location.contains(session.location))
                     ).select()
-
+        nrows = nrows.exclude(lambda row: row.id in self.s.npcs)
         ns_here = [n.id for n in nrows]
         print 'npcs in this location: ', ns_here
         if len(ns_here) > 1:
             nrow = nrows[random.randrange(1,len(ns_here)) - 1]
         else:
-            nrow = nrows[ns_here[0]]
+            nrow = nrows.find(lambda row: row.id in ns_here)[0]
         print 'selected npc: ', nrow.id
         #store the id of the active npc as a session variable
         session.npc = nrow.id
