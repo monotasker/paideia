@@ -19,22 +19,22 @@ body {
     font-family: @fonts2;
 }
 
-header {
+body header {
     position:relative;
     display:block;
-    height:@lineheight3;
+    height:@lineheight2;
     background:transparent;
     z-index:99;
     padding:0;
 
-    h1 a {
+    h1, h1 a {
         margin:0;
         color: @moss;
-        font-size:@typeheight3;
+        .blockletter();
+        font-size:@typeheight2;
+        height:@typeheight2;
+        line-height:@lineheight2;
         font-family:@fonts1;
-        text-transform: uppercase;
-        font-weight:bold;
-        letter-spacing: 2px;
     }
 
 }
@@ -43,14 +43,14 @@ nav {
     background-color:transparent;
     padding: 0;
     margin:0;
-    height:100%;    text-transform:uppercase;
-    font-size:@typeheight * .8;
+    height:@lineheight2;
+    .blockletter-small();
 
     .sf-menu {
         li {
             background-color:transparent;
-            height:@lineheight3;
-            line-height:@lineheight3;
+            height:@lineheight2;
+            line-height:@lineheight2;
 
             a, a:link, a:visited {
                 color:@cranberry;
@@ -91,16 +91,20 @@ nav {
 
 .auth_navbar {
     color:@cranberry;
-    height:@lineheight3;
-    line-height:@lineheight3;
+    height:@lineheight2;
+    line-height:@lineheight2;
     display:block;
     font-weight:bold;
     text-transform:uppercase;  
     font-size:@typeheight * .8;  
 
+    li{
+        float: right;
+    }
+
     a, a:link, a:visited {
-        height:@lineheight3;
-        line-height:@lineheight3;
+        height:@lineheight2;
+        line-height:@lineheight2;
         color:@cranberry;
         padding:0 @typeheight;
         display:block;
@@ -113,7 +117,8 @@ nav {
     }
 }
 
-#page {
+body #page {
+    margin-top:-@lineheight2;
     background-color:@white;
     z-index:1;
     .border-image('/paideia/static/images/page_border.png', 171, 170, 170, 171);
@@ -194,19 +199,6 @@ nav {
         width:800px;
     }
 
-    .npc {
-        .speech-bubble(@lineheight);
-        margin-top: @lineheight;
-        margin-right: -@lineheight;
-    }
-
-    .responder {
-        .speech-bubble(@lineheight);
-        margin-top: @lineheight;
-        margin-right: -@lineheight;
-        background: @greyf5;
-    }
-
     .comments{
         padding: 0;
         margin-top: @lineheight3;
@@ -276,12 +268,34 @@ nav {
 }
 
 #page.start {
-        background:@mist;
-        overflow: hidden;
+    background:@mist;
+    overflow: hidden;
 
-    .next_q {
+}
+
+#page.exploring {
+    overflow: hidden;
+    .speaker {
+        position: absolute;
+        z-index:1;
+        left:-40px;
+    }
+    .prompt, .responder, .quiz_type, .guidelines, 
+    .q_counter, .back_to_map {
+        z-index:10;
+        width:50%;
+        float: right;
+        clear:both;
     }
 
+    .prompt, .responder {
+        .speech-bubble(@lineheight);
+        margin-top: @lineheight;
+    }
+
+    .responder {
+        background: @greyf5;
+    }
 }
 
 /* for profile pages */
@@ -482,10 +496,14 @@ table.weeklycount span.cal_count{
     }
 }
 
-footer {
+body footer {
     background-color:transparent;
     color:@dusky-blue2;
     .text-shadow();
+
+    #poweredby {
+        float: right;
+    }
 }
 
 .flash {
