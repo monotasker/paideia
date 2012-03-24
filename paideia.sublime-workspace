@@ -4,120 +4,68 @@
 		"selected_items":
 		[
 			[
-				"margin-",
-				"margin-top"
+				"lr",
+				"lr"
 			],
 			[
-				"line",
-				"lineheight2"
+				"tl",
+				"tlast_right"
 			],
 			[
-				"typ",
-				"typeheight2"
+				"tla",
+				"tlast_wrong"
 			],
 			[
-				"the_",
-				"the_npc"
+				"times",
+				"times_wrong"
 			],
 			[
-				"npc",
-				"npcs_here"
+				"last_",
+				"last_wrong"
 			],
 			[
-				"rand",
-				"randrange"
+				"last",
+				"last_right"
 			],
 			[
-				"tags",
-				"tagset"
+				"update_",
+				"update_record"
 			],
 			[
-				"act",
-				"active_paths"
-			],
-			[
-				"curr",
-				"curr_loc"
-			],
-			[
-				"loca",
-				"location"
-			],
-			[
-				"step_",
-				"step_id"
-			],
-			[
-				"sess",
-				"session"
-			],
-			[
-				"step",
-				"stepid"
-			],
-			[
-				"path",
-				"pathid"
+				"di",
+				"display	display: block"
 			],
 			[
 				"active",
-				"activepaths"
+				"activepaths	(local, instance)"
 			],
 			[
-				"update",
-				"update_session"
+				"activ",
+				"activepaths	(local, instance)"
 			],
 			[
-				"the",
-				"the_path"
+				"step",
+				"stepid	(local, instance)"
 			],
 			[
-				"upda",
-				"update_session"
+				"the_",
+				"the_step	(local, instance)"
 			],
 			[
-				"complet",
+				"active_path",
+				"active_paths"
+			],
+			[
+				"next",
+				"nextstep	(local, instance)"
+			],
+			[
+				"paths",
 				"completed_paths"
 			],
 			[
-				"log",
-				"log_attempt"
-			],
-			[
-				"catX",
-				"catXpaths"
-			],
-			[
-				"today",
-				"today"
-			],
-			[
-				"location",
-				"locations"
-			],
-			[
-				"s",
-				"switch"
-			],
-			[
-				"cat",
-				"catXpaths"
-			],
-			[
-				"find",
-				"find_paths"
-			],
-			[
-				"paidei",
-				"paideia_path"
-			],
-			[
-				"ste",
-				"step"
-			],
-			[
-				"this",
-				"this_path"
+				"complete",
+				"completed_paths"
 			],
 			[
 				"form",
@@ -188,6 +136,10 @@
 				"link_base"
 			],
 			[
+				"the",
+				"theval"
+			],
+			[
 				"aja",
 				"AjaxSelect"
 			],
@@ -230,6 +182,10 @@
 			[
 				"type",
 				"typeheight"
+			],
+			[
+				"line",
+				"lineheight"
 			],
 			[
 				"add_ta",
@@ -276,10 +232,10 @@
 	"buffers":
 	[
 		{
-			"file": "modules/paideia_stats.py",
+			"file": "models/paideia.py",
 			"settings":
 			{
-				"buffer_size": 7102,
+				"buffer_size": 9472,
 				"line_ending": "Unix"
 			}
 		},
@@ -287,23 +243,7 @@
 			"file": "modules/paideia_exploring.py",
 			"settings":
 			{
-				"buffer_size": 19951,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "modules/paideia_questions.py",
-			"settings":
-			{
-				"buffer_size": 13556,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "models/paideia.py",
-			"settings":
-			{
-				"buffer_size": 9369,
+				"buffer_size": 25568,
 				"line_ending": "Unix"
 			}
 		},
@@ -311,26 +251,47 @@
 			"file": "controllers/exploring.py",
 			"settings":
 			{
-				"buffer_size": 3669,
+				"buffer_size": 3053,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"contents": "\n<div class='utils'>\n<form style='z-index:99' id='clear_session'>\n    <input type='text' value='all' name='session_var' id='session_var' />\n    <a id='session_clear' href='#'>Clear session</a> \n</form>\n</div>\n\n<!--when path completed-->\n{{if request.args(0) == 'end':}}\n    <section class=\"npc\">\n        <p>Well done. You've finished this path. You don't have to stop here, though. If you want to continue exploring, {{=A('click here', _href=URL('index.load'), cid='page')}}</p>\n    </section>\n\n<!--when an error is raised-->\n{{elif request.args(0) == 'error':}}\n    <section class='npc'>\n        {{=message}}\n        {{=button}}\n    </section>\n\n<!--path selection-->\n{{elif request.args(0) == 'start' or not request.args:}}\n	<img id='town_map' src='{{=map_image}}' />\n	<embed id='town_map_mask' src='/paideia/static/images/town_map_mask.svg' type='image/svg+xml' />\n    <!-- <div class='npc'>Let's get started. Where would you like to go today: {{#'}}\n        <ul>\n            {{for loc in locs:}}\n            {{=LI(A(loc.location, _href=URL('index.load', args=['ask'],\n                vars=dict()), cid=request.cid))}}\n            {{pass}}\n        </ul>\n    </div>\n    <div class='npc'>This will be <span class=\"q_counter\">question {{=session.q_counter}} of {{=session.path_length}}</span> on today\\'s path</div>\n    -->\n\n<!--step start-->\n{{elif request.args(0) == 'ask' and not request.vars.user_response:}}\n    <div class='speaker'>{{=npc_img}}</div>\n    <div class=\"npc prompt\">{{=prompt}}</div>\n    <div class='responder'>{{=responder}}</div>\n    <p class=\"guidelines\">Remember to only give <strong>one</strong> translation (not a list of different possibilities) and to give a <strong>translation</strong> (so not \"keep\" but \"I keep\").</p>\n    <span class='back_to_map'>{{=A(\"Map\", _href=URL('index'), cid='page', _class='button-yellow-grad back_to_map')}}</span>\n    <span class=\"q_counter\">Question {{#=session.q_counter}}</span>\n\n<!--step feedback-->\n{{else:}}\n    <section class=\"npc\">\n        <p>{{=reply}}</p>\n        <p>Correct answers would include \"{{=XML(answer)}}\"</p>\n        <span class=\"q_counter\">Question {{=session.q_counter}} of {{=session.path_length}}</span>\n    </section>\n    <div class='responder'>{{=A(\"Next Question\", _href=URL('index', args=['ask']), cid='page', _class='button-green-grad next_q')}}</div>\n    <div class='npc'><span id=\"bug_reporter\">If you think your answer should have been correct, {{=A('click here', _href=URL('creating', 'q_bug.load', vars=dict(answer=session.response, question=session.q_ID)), cid='bug_reporter')}} to submit a bug report for this question</span></div>\n\n{{pass}}\n\n{{#if auth.user_id==2:}}\n{{#=BEAUTIFY(response._vars)}}\n{{#=BEAUTIFY(session)}}\n{{#pass}}\n\n<script>\n$('#session_clear').click(function(event){\n    ajax('clear_session', ['session_var'], ':eval');\n    event.preventDefault();\n});\n\n</script>\n",
-			"file": "views/exploring/index.load",
-			"file_size": 2841,
-			"file_write_time": 1332444046000000,
+			"file": "modules/paideia_questions.py",
 			"settings":
 			{
-				"buffer_size": 2877,
+				"buffer_size": 6040,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "static/plugin_framework/theme_paideia.less",
+			"file": "controllers/plugin_ajaxselect.py",
 			"settings":
 			{
-				"buffer_size": 10922,
+				"buffer_size": 3954,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "modules/plugin_ajaxselect.py",
+			"settings":
+			{
+				"buffer_size": 12178,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "static/plugin_ajaxselect/plugin_ajaxselect.js",
+			"settings":
+			{
+				"buffer_size": 4422,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "static/plugin_ajaxselect/plugin_ajaxselect.css",
+			"settings":
+			{
+				"buffer_size": 1160,
 				"line_ending": "Unix"
 			}
 		}
@@ -338,31 +299,55 @@
 	"build_system": "",
 	"command_palette":
 	{
-		"height": 252.0,
+		"height": 332.0,
 		"selected_items":
 		[
 			[
 				"packa",
-				"Preferences: Browse Packages"
+				"Package Control: Remove Package"
 			],
 			[
-				"pack",
-				"Package Control: Disable Package"
-			],
-			[
-				"Package Control: ",
-				"Package Control: Disable Package"
+				"col",
+				"Color picker"
 			],
 			[
 				"inst",
 				"Package Control: Install Package"
 			],
 			[
+				"remo",
+				"Package Control: Remove Package"
+			],
+			[
+				"pack",
+				"Package Control: Remove Package"
+			],
+			[
+				"sett",
+				"Preferences: Settings - Default"
+			],
+			[
+				"dis",
+				"Package Control: Disable Package"
+			],
+			[
+				"setti",
+				"Preferences: Settings - Default"
+			],
+			[
+				"packag",
+				"Package Control: List Packages"
+			],
+			[
+				"Package Control: ",
+				"Package Control: Disable Package"
+			],
+			[
 				"disco",
 				"Package Control: Discover Packages"
 			]
 		],
-		"width": 422.0
+		"width": 449.0
 	},
 	"console":
 	{
@@ -379,14 +364,11 @@
 	},
 	"file_history":
 	[
-		"/home/ian/web/web2py/applications/grammateus3/static/docs/1En.xml",
-		"/home/ian/web/web2py/applications/grammateus3/static/docs/2Bar.xml",
-		"/home/ian/web/web2py/applications/grammateus3/static/docs/3Bar.xml",
-		"/home/ian/web/web2py/applications/grammateus3/static/docs/2Bar-Syr.xml",
-		"/home/ian/web/web2py/applications/paideia/modules/paideia_exploring.py",
+		"/home/ian/web/web2py/applications/paideia/modules/paideia_stats.py",
+		"/home/ian/.config/sublime-text-2/Packages/SublimeCodeIntel/Base File.sublime-settings",
+		"/home/ian/.config/sublime-text-2/Packages/Default/Preferences.sublime-settings",
 		"/home/ian/web/web2py/applications/paideia/modules/plugin_ajaxselect.py",
 		"/home/ian/web/web2py/applications/paideia/controllers/plugin_listandedit.py",
-		"/home/ian/.config/sublime-text-2/Packages/Default/Preferences.sublime-settings",
 		"/home/ian/.config/sublime-text-2/Packages/Prevu/Prevu.sublime-settings",
 		"/home/ian/web/web2py/applications/paideia/static/plugin_ajaxselect/plugin_ajaxselect.js",
 		"/home/ian/web/web2py/applications/paideia/static/plugin_framework/theme.less",
@@ -399,7 +381,6 @@
 		"/home/ian/.config/sublime-text-2/Packages/Default/Default (Linux).sublime-keymap",
 		"/home/ian/web/web2py/applications/paideia/models/db.py",
 		"/home/iscott/web/web2py/applications/paideia/modules/plugin_ajaxselect.py",
-		"/home/ian/.config/sublime-text-2/Packages/SublimeCodeIntel/Base File.sublime-settings",
 		"/home/ian/web/web2py/applications/paideia/views/plugin_ajaxselect/set_form_wrapper.load",
 		"/home/ian/web/web2py/applications/paideia/views/plugin_ajaxselect/linked_create_form.load",
 		"/home/ian/web2py/applications/topoi/views/plugin_listandedit/list.html",
@@ -438,7 +419,6 @@
 		"case_sensitive": false,
 		"find_history":
 		[
-			"npc",
 			"package",
 			"editlis",
 			"print",
@@ -449,7 +429,7 @@
 			"tables"
 		],
 		"highlight": true,
-		"in_selection": true,
+		"in_selection": false,
 		"preserve_case": false,
 		"regex": false,
 		"replace_history":
@@ -469,18 +449,18 @@
 			[
 				{
 					"buffer": 0,
-					"file": "modules/paideia_stats.py",
+					"file": "models/paideia.py",
 					"settings":
 					{
-						"buffer_size": 7102,
+						"buffer_size": 9472,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								0,
-								0
+								6383,
+								6383
 							]
 						],
 						"settings":
@@ -490,7 +470,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 2900.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -500,71 +480,76 @@
 					"file": "modules/paideia_exploring.py",
 					"settings":
 					{
-						"buffer_size": 19951,
+						"buffer_size": 25568,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								0,
-								0
+								22402,
+								22402
 							]
 						],
 						"settings":
 						{
+							"rulers":
+							[
+								78
+							],
 							"syntax": "Packages/Python/Python.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 540.0,
+						"translation.y": 10362.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 2,
-					"file": "modules/paideia_questions.py",
+					"file": "controllers/exploring.py",
 					"settings":
 					{
-						"buffer_size": 13556,
+						"buffer_size": 3053,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								3447,
-								3447
+								2580,
+								2580
 							]
 						],
 						"settings":
 						{
+							"sublimelinter": false,
 							"syntax": "Packages/Python/Python.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 966.0,
+						"translation.y": 1077.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 3,
-					"file": "models/paideia.py",
+					"file": "modules/paideia_questions.py",
 					"settings":
 					{
-						"buffer_size": 9369,
+						"buffer_size": 6040,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								0,
-								0
+								4409,
+								4409
 							]
 						],
 						"settings":
@@ -574,7 +559,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 720.0,
+						"translation.y": 1338.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -582,15 +567,15 @@
 			]
 		},
 		{
-			"selected": 1,
+			"selected": 3,
 			"sheets":
 			[
 				{
 					"buffer": 4,
-					"file": "controllers/exploring.py",
+					"file": "controllers/plugin_ajaxselect.py",
 					"settings":
 					{
-						"buffer_size": 3669,
+						"buffer_size": 3954,
 						"regions":
 						{
 						},
@@ -615,38 +600,38 @@
 				},
 				{
 					"buffer": 5,
-					"file": "views/exploring/index.load",
+					"file": "modules/plugin_ajaxselect.py",
 					"settings":
 					{
-						"buffer_size": 2877,
+						"buffer_size": 12178,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1,
-								208
+								1532,
+								1532
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/HTML/HTML.tmLanguage",
+							"syntax": "Packages/Python/Python.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 120.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 6,
-					"file": "static/plugin_framework/theme_paideia.less",
+					"file": "static/plugin_ajaxselect/plugin_ajaxselect.js",
 					"settings":
 					{
-						"buffer_size": 10922,
+						"buffer_size": 4422,
 						"regions":
 						{
 						},
@@ -659,12 +644,40 @@
 						],
 						"settings":
 						{
-							"syntax": "Packages/LESS/LESS.tmLanguage",
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 216.0,
+						"translation.y": 480.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "static/plugin_ajaxselect/plugin_ajaxselect.css",
+					"settings":
+					{
+						"buffer_size": 1160,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								331,
+								331
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/CSS/CSS.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -678,7 +691,7 @@
 	},
 	"input":
 	{
-		"height": 0.0
+		"height": 36.0
 	},
 	"layout":
 	{
@@ -705,7 +718,7 @@
 		"rows":
 		[
 			0.0,
-			0.27847645568,
+			0.931034482759,
 			1.0
 		]
 	},
