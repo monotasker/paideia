@@ -195,11 +195,13 @@ db.path_log.last_step.requires = IS_IN_DB(db, 'steps.id', db.steps._format)
 db.define_table('attempt_log',
     Field('name', db.auth_user, default = auth.user_id),
     Field('step', db.steps),
+    Field('path', db.paths),
     Field('score', 'double'),
     Field('dt_attempted', 'datetime', default = dtnow)
     )
 db.attempt_log.name.requires = IS_IN_DB(db, 'auth_user.id', db.auth_user._format)
 db.attempt_log.step.requires = IS_IN_DB(db, 'steps.id', db.steps._format)
+db.attempt_log.path.requires = IS_IN_DB(db, 'paths.id', db.paths._format)
 
 db.define_table('bug_status',
     Field('status_label'),

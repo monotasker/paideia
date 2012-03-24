@@ -124,21 +124,3 @@ class question:
         #categorize q or tag based on this performance
         self.cat[indx] = self.categorize(right_dur, wrong_dur, rightWrong_dur)
 
-    def categorize(self, right_dur, wrong_dur, rightWrong_dur):
-        """
-        given time data, categorize performance on a given question or tag
-        """
-        #PRINT
-        print 'r ', right_dur, 'w ', wrong_dur, 'rw ', rightWrong_dur
-        if right_dur < wrong_dur:
-            #TODO, problem here is that because measured against last attempt, doesn't change when more time passes. Need to generate categories at selection, not recording. Need to generate categories for report dynamically at display. OR categorize once a day at the beginning of user's session (use session var with datetime object = now as switch).
-            if (right_dur < rightWrong_dur) and (right_dur < datetime.timedelta(days=170)) and (rightWrong_dur.days >= 7):
-                if right_dur.days > 30:
-                    cat = 4
-                else:
-                    cat = 3
-            else:
-                cat = 2
-        else:
-            cat = 1
-        return cat

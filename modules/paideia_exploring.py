@@ -510,15 +510,58 @@ class step:
         return dict(reply=reply, readable=readable)
 
     def record(self, score):
-        db = current.db
+        """Record the results of this step in db tables attempt_log and 
+        tag_records"""
+        db, auth = current.db, current.auth
+
+        print '\ncalling step.record()'
 
         #log this step attempt
-        db.attempt_log.insert(question=self.sid, score=score, quiz=self.pid)
-        #log this tag attempt for each tag in the step
-        #update the path log for this attempt
+        db.attempt_log.insert(step=self.sid, score=score, path=self.pid)
+        print 'recorded in db.attempt_log:'
+        print db(db.attempt_log.id > 0).select().last()
 
-        #check to see whether this is the last step in the path and if so remove from 
-        #active_paths and add to completed_paths
+        #log this tag attempt for each tag in the step
+        trows = db(db.tag_records.id > 0).select()
+        #calculate record info
+        for t in self.s.tags:
+            lr = datetime.datetime.utcnow()
+            lw = datetime.datetime.utcnow()
+            nscore = 0
+            # try to update an existing record for this tag
+            try: trow = trows.find(lambda row: (row.id == t) 
+                                            and (row.name == auth.user_id))
+                if score == 1:
+                    lw = trow.tlast_wrong
+                elif score == 0:
+                    nscore = 1                    
+                    lr = trow.tlast_right
+                    lw = utcnow
+                else:                    
+                    score = 0
+                    lw = utcnow
+                    lr = utcnow
+                    tr = trow.times_right + score
+                    tw = trow.times_wrong + nscore
+                trow.update_record(tlast_right = lr, tlast_wrong = lw, 
+                                        times_right = tr, times_wrong = tw, 
+                                        path = self.pid)
+                print 'updating existing tag record for ', trow.tag
+            # if none exists, insert a new one
+            except KeyError:
+                if score < 1: nscore = 1
+                db.tag_records.insert(tag = self.sid, 
+                                        times_right = self.rightCount,
+                                        times_wrong = self.wrongCount,
+                                        path = self.pid)
+                print 'inserting new tag record for ', self.sid
+            # print any other error that is thrown
+            except Error, err:
+                print err
+
+        #TODO: update the path log for this attempt
+        #TODO: check to see whether this is the last step in the path and if so 
+        #remove from active_paths and add to completed_paths
 
     def npc(self):
         """Given a set of npcs for this step (in self.ns) select one of 
@@ -544,6 +587,7 @@ class step:
         return nrow
 
     def img(self):
+        """Get the image to present as a depiction of the current npc"""
         db = current.db
 
         n_img = IMG(_src=URL('default', 'download', 
@@ -551,12 +595,15 @@ class step:
         return n_img
 
     def prompt(self):
+        """Get the prompt text to be presented from the npc to start the 
+        step interaction"""
         prompt = SPAN(self.s.prompt)
+        #TODO: get audio file for prompt text as well.
         return prompt
 
     def responder(self):
         """
-        create and return the form to receive user response for this 
+        create and return the form to receive the user's response for this 
         step
         """
         session, request = current.session, current.request
