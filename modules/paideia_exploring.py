@@ -102,6 +102,7 @@ class path:
     session.npc
     session.step
     session.path
+    session.image
     """
 
     def __init__(self):
@@ -500,20 +501,27 @@ class step:
             else:
                 score = 0
                 reply = "Incorrect. Try again!"
+            # set the increment value for times wrong, depending on score
+            if score < 1: nscore = 1
+            else: nscore = 0
             # record the results in statistics for this step and this tag
-            self.record(score)
+            self.record(score, nscore)
 
         #handle errors if the student's response cannot be evaluated
         except re.error:
             redirect(URL('index', args=['error', 'regex']))
 
-        return dict(reply=reply, readable=readable)
+        img = session.image
 
-    def record(self, score):
+        return dict(reply=reply, readable=readable, npc_img = img)
+
+    def record(self, score, nscore):
         """Record the results of this step in db tables attempt_log and 
-        tag_records"""
+        tag_records. score gives the increment to add to 'times right' in 
+        records. nscore gives the opposite value to add to 'times wrong' 
+        (i.e., negative score)."""
         db, auth = current.db, current.auth
-
+        utcnow = datetime.datetime.utcnow()
         print '\ncalling step.record()'
 
         #log this step attempt
@@ -525,38 +533,38 @@ class step:
         trows = db(db.tag_records.id > 0).select()
         #calculate record info
         for t in self.s.tags:
-            lr = datetime.datetime.utcnow()
-            lw = datetime.datetime.utcnow()
-            nscore = 0
+            lr = utcnow
+            lw = utcnow
             # try to update an existing record for this tag
-            try: trow = trows.find(lambda row: (row.id == t) 
-                                            and (row.name == auth.user_id))
+            try: 
+                trow = trows.find(lambda row: (row.tag == t) &
+                                            (row.name == auth.user_id)).first()
                 if score == 1:
                     lw = trow.tlast_wrong
-                elif score == 0:
-                    nscore = 1                    
+                elif score == 0:              
                     lr = trow.tlast_right
                     lw = utcnow
                 else:                    
                     score = 0
                     lw = utcnow
                     lr = utcnow
-                    tr = trow.times_right + score
-                    tw = trow.times_wrong + nscore
+                tr = trow.times_right + score
+                tw = trow.times_wrong + nscore
                 trow.update_record(tlast_right = lr, tlast_wrong = lw, 
                                         times_right = tr, times_wrong = tw, 
                                         path = self.pid)
                 print 'updating existing tag record for ', trow.tag
             # if none exists, insert a new one
-            except KeyError:
-                if score < 1: nscore = 1
-                db.tag_records.insert(tag = self.sid, 
-                                        times_right = self.rightCount,
-                                        times_wrong = self.wrongCount,
+            except AttributeError:
+                db.tag_records.insert(tag = t, 
+                                        times_right = score,
+                                        times_wrong = nscore,
                                         path = self.pid)
-                print 'inserting new tag record for ', self.sid
+                print 'inserting new tag record for ', t
             # print any other error that is thrown
-            except Error, err:
+            except Exception, err:
+                print 'unidentified error:'
+                print type(err)
                 print err
 
         #TODO: update the path log for this attempt
@@ -588,10 +596,11 @@ class step:
 
     def img(self):
         """Get the image to present as a depiction of the current npc"""
-        db = current.db
+        db, session = current.db, current.session
 
         n_img = IMG(_src=URL('default', 'download', 
                         args=db.npcs[self.n.id].image))
+        session.image = n_img
         return n_img
 
     def prompt(self):
@@ -619,10 +628,11 @@ class step:
 class counter:
 
     def __init__(self):
-        """include this question in the count for this quiz, send to 'end' if quiz is finished"""
+        """include this question in the count for this quiz, send to 'end' 
+        if quiz is finished"""
 
     def check(self):
-        #current object must be accessed at runtime, so can't be global variable
+        #current object must be accessed at runtime
         session, request = current.session, current.request
 
         if session.q_counter:
@@ -646,9 +656,10 @@ class map:
 
     def __init__(self):
 
-        #current object must be accessed at runtime, so can't be global variable
+        #current object must be accessed at runtime
         db = current.db
 
         #prepare map interface for user to select a place to go
-        self.locs = db().select(db.locations.ALL, orderby=db.locations.location)
+        self.locs = db().select(db.locations.ALL, 
+                                        orderby=db.locations.location)
         self.image = '/paideia/static/images/town_map.svg'
