@@ -1,8 +1,16 @@
 
 <div id='utils'>
 <form style='z-index:99' id='clear_session'>
-    <input type='text' value='all' name='session_var' id='session_var' />
-    <a id='session_clear' href='#'>Clear session</a> 
+    <ul>
+        <li>
+            <input type='text' value='all' name='session_var' id='session_var' />
+            <a id='session_clear' href='#'>Clear session</a> 
+        </li>
+        {{for s in ('active_paths', 'completed_paths', 'location', 'path', 'step'):}}
+            {{if s in session:}}
+                <li>{{=s}}: {{=session[s]}}</li>
+            {{pass}}
+        {{pass}}
 </form>
 </div>
 
@@ -45,13 +53,17 @@
 
 <!--step feedback-->
 {{else:}}
-    <section class="npc">
+    <div class='speaker'>{{=npc_img}}</div>
+    <section class="npc prompt">
         <p>{{=reply}}</p>
-        <p>Correct answers would include "{{=XML(answer)}}"</p>
-        <span class="q_counter">Question {{=session.q_counter}} of {{=session.path_length}}</span>
+        <p>Correct answers would include "{{=readable}}"</p>
+        <span class="q_counter">Currently working on {{=len(session.active_paths.keys() or 0)}} paths; {{=len(session.completed_paths or 0)}} paths already complete today.</span>
     </section>
-    <div class='responder'>{{=A("Next Question", _href=URL('index', args=['ask']), cid='page', _class='button-green-grad next_q')}}</div>
-    <div class='npc'><span id="bug_reporter">If you think your answer should have been correct, {{=A('click here', _href=URL('creating', 'q_bug.load', vars=dict(answer=session.response, question=session.q_ID)), cid='bug_reporter')}} to submit a bug report for this question</span></div>
+    <div class='responder'>
+        {{=A("Continue", _href=URL('index', args=['ask']), cid='page', _class='button-green-grad next_q')}}
+        <span class='back_to_map'>{{=A("Map", _href=URL('index'), cid='page', _class='button-yellow-grad back_to_map')}}</span>
+    </div>
+    <div class='npc prompt'><span id="bug_reporter">If you think your answer should have been correct, {{=A('click here', _href=URL('creating', 'q_bug.load', vars=dict(answer=session.response, question=session.step)), cid='bug_reporter')}} to submit a bug report for this question</span></div>
 
 {{pass}}
 

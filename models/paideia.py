@@ -146,15 +146,6 @@ db.define_table('question_records',
     Field('category', db.categories)
     )
 
-db.define_table('tag_records',
-    Field('name', db.auth_user, default = auth.user_id),
-    Field('tag', db.tags),
-    Field('times_right', 'double'),
-    Field('times_wrong', 'double'),
-    Field('tlast_wrong', 'datetime', default = dtnow),
-    Field('tlast_right', 'datetime', default = dtnow),
-    )
-
 db.define_table('tag_progress',
     Field('name', db.auth_user, default = auth.user_id),
     Field('latest_new', db.tags),
@@ -202,6 +193,21 @@ db.define_table('attempt_log',
 db.attempt_log.name.requires = IS_IN_DB(db, 'auth_user.id', db.auth_user._format)
 db.attempt_log.step.requires = IS_IN_DB(db, 'steps.id', db.steps._format)
 db.attempt_log.path.requires = IS_IN_DB(db, 'paths.id', db.paths._format)
+
+db.define_table('tag_records',
+    Field('name', db.auth_user, default = auth.user_id),
+    Field('tag', db.tags),
+    Field('times_right', 'double'),
+    Field('times_wrong', 'double'),
+    Field('tlast_wrong', 'datetime', default = dtnow),
+    Field('tlast_right', 'datetime', default = dtnow),
+    Field('path', db.paths),
+    Field('step', db.steps)
+    )
+db.tag_records.name.requires = IS_IN_DB(db, 'auth_user.id', db.auth_user._format)
+db.tag_records.tag.requires = IS_IN_DB(db, 'tags.id', db.tags._format)
+db.tag_records.step.requires = IS_IN_DB(db, 'steps.id', db.steps._format)
+db.tag_records.path.requires = IS_IN_DB(db, 'paths.id', db.paths._format)
 
 db.define_table('bug_status',
     Field('status_label'),

@@ -1,6 +1,8 @@
 import random,re,datetime,string
 from gluon import current, redirect, URL
 
+"""THIS FILE IS DEPRECATED"""
+
 class question:
     """
     handles selection, presentation, and evaluation of one active question

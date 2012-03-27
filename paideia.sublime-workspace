@@ -4,6 +4,10 @@
 		"selected_items":
 		[
 			[
+				"ns",
+				"nscore"
+			],
+			[
 				"lr",
 				"lr"
 			],
@@ -235,7 +239,7 @@
 			"file": "models/paideia.py",
 			"settings":
 			{
-				"buffer_size": 9472,
+				"buffer_size": 9830,
 				"line_ending": "Unix"
 			}
 		},
@@ -243,7 +247,7 @@
 			"file": "modules/paideia_exploring.py",
 			"settings":
 			{
-				"buffer_size": 25568,
+				"buffer_size": 25965,
 				"line_ending": "Unix"
 			}
 		},
@@ -256,10 +260,10 @@
 			}
 		},
 		{
-			"file": "modules/paideia_questions.py",
+			"file": "views/exploring/index.load",
 			"settings":
 			{
-				"buffer_size": 6040,
+				"buffer_size": 3404,
 				"line_ending": "Unix"
 			}
 		},
@@ -303,6 +307,10 @@
 		"selected_items":
 		[
 			[
+				"pack",
+				"Package Control: List Packages"
+			],
+			[
 				"packa",
 				"Package Control: Remove Package"
 			],
@@ -316,10 +324,6 @@
 			],
 			[
 				"remo",
-				"Package Control: Remove Package"
-			],
-			[
-				"pack",
 				"Package Control: Remove Package"
 			],
 			[
@@ -347,7 +351,7 @@
 				"Package Control: Discover Packages"
 			]
 		],
-		"width": 449.0
+		"width": 575.0
 	},
 	"console":
 	{
@@ -364,9 +368,12 @@
 	},
 	"file_history":
 	[
+		"/home/ian/web/web2py/applications/paideia/modules/paideia_questions.py",
+		"/home/ian/.config/sublime-text-2/Packages/User/Preferences.sublime-settings",
+		"/home/ian/.config/sublime-text-2/Packages/Default/Preferences.sublime-settings",
+		"/home/ian/.config/sublime-text-2/Packages/SideBarEnhancements/Side Bar.sublime-settings",
 		"/home/ian/web/web2py/applications/paideia/modules/paideia_stats.py",
 		"/home/ian/.config/sublime-text-2/Packages/SublimeCodeIntel/Base File.sublime-settings",
-		"/home/ian/.config/sublime-text-2/Packages/Default/Preferences.sublime-settings",
 		"/home/ian/web/web2py/applications/paideia/modules/plugin_ajaxselect.py",
 		"/home/ian/web/web2py/applications/paideia/controllers/plugin_listandedit.py",
 		"/home/ian/.config/sublime-text-2/Packages/Prevu/Prevu.sublime-settings",
@@ -444,7 +451,7 @@
 	"groups":
 	[
 		{
-			"selected": 1,
+			"selected": 3,
 			"sheets":
 			[
 				{
@@ -452,15 +459,15 @@
 					"file": "models/paideia.py",
 					"settings":
 					{
-						"buffer_size": 9472,
+						"buffer_size": 9830,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								6383,
-								6383
+								8400,
+								8400
 							]
 						],
 						"settings":
@@ -470,7 +477,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 2900.0,
+						"translation.y": 3010.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -480,15 +487,15 @@
 					"file": "modules/paideia_exploring.py",
 					"settings":
 					{
-						"buffer_size": 25568,
+						"buffer_size": 25965,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								22402,
-								22402
+								25538,
+								25538
 							]
 						],
 						"settings":
@@ -502,7 +509,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 10362.0,
+						"translation.y": 216.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -531,35 +538,35 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1077.0,
+						"translation.y": 588.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 3,
-					"file": "modules/paideia_questions.py",
+					"file": "views/exploring/index.load",
 					"settings":
 					{
-						"buffer_size": 6040,
+						"buffer_size": 3404,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								4409,
-								4409
+								464,
+								464
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/Python/Python.tmLanguage",
+							"syntax": "Packages/HTML/HTML.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1338.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -718,7 +725,7 @@
 		"rows":
 		[
 			0.0,
-			0.931034482759,
+			0.949031600408,
 			1.0
 		]
 	},
@@ -748,6 +755,6 @@
 	"show_open_files": true,
 	"show_tabs": true,
 	"side_bar_visible": false,
-	"side_bar_width": 249.0,
+	"side_bar_width": 257.0,
 	"status_bar_visible": true
 }
