@@ -6,11 +6,12 @@
             <input type='text' value='all' name='session_var' id='session_var' />
             <a id='session_clear' href='#'>Clear session</a> 
         </li>
-        {{for s in ('active_paths', 'completed_paths', 'location', 'path', 'step'):}}
+        {{for s in ('active_paths', 'completed_paths', 'location', 'path', 'step', 'tagset'):}}
             {{if s in session:}}
                 <li>{{=s}}: {{=session[s]}}</li>
             {{pass}}
         {{pass}}
+    </ul>
 </form>
 </div>
 
@@ -52,7 +53,7 @@
     <span class="q_counter">Question {{#=session.q_counter}}</span>
 
 <!--step feedback-->
-{{else:}}
+{{elif request.args(0) == 'reply':}}
     <div class='speaker'>{{=npc_img}}</div>
     <section class="npc prompt">
         <p>{{=reply}}</p>
@@ -77,5 +78,8 @@ $('#session_clear').click(function(event){
     ajax('clear_session', ['session_var'], ':eval');
     event.preventDefault();
 });
-
+$('#responder_submit').click(function(event){
+    window.parent.web2py_component("/paideia/exploring/index.load/reply?loc=" + {{=session.location}},"page"); 
+    event.preventDefault();
+});
 </script>
