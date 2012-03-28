@@ -1,5 +1,5 @@
 # coding: utf8
-from gluon import current, URL, redirect, IMG, SQLFORM, SPAN, Field
+from gluon import current, URL, redirect, IMG, SQLFORM, SPAN, Field, INPUT, A
 from gluon import IS_NOT_EMPTY
 import datetime, random, pprint, re, string
 
@@ -468,10 +468,11 @@ class step:
 
     def process(self):
         """
-        handles the user's response to the step prompt. In this base 'step' class this 
-        involves comparing the user's typed response with the regular expressions provided 
-        for the step. The evaluation is then logged and stored in the db, and the appropriate 
-        information presented to the user.
+        handles the user's response to the step prompt. In this base 'step' 
+        class this involves comparing the user's typed response with the 
+        regular expressions provided for the step. The evaluation is then 
+        logged and stored in the db, and the appropriate information 
+        presented to the user.
         """
         session, db, auth = current.session, current.db, current.auth
 
@@ -616,12 +617,14 @@ class step:
         step
         """
         session, request = current.session, current.request
+        response = current.response
 
-        form = SQLFORM.factory(
-        Field('response', 'string', requires=IS_NOT_EMPTY()))
-        if form.accepts(request.vars,  session):
-            session.response = request.vars.response
-            redirect(URL('index', args=['reply']))
+        """ 
+        old respond form -- problems with double submission
+        """
+        form = SPAN(INPUT(_id='response', name='response'), 
+                A('submit', _id='responder_submit'))
+        session.response = request.vars.response
 
         return form
 
