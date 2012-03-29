@@ -1,5 +1,5 @@
 # coding: utf8
-from paideia_exploring import path, tag, step, counter, map
+from paideia_exploring import path, tag, step, step_multipleChoice, counter, map
 from paideia_questions import question
 import pprint
 
@@ -21,6 +21,12 @@ def patherror():
 def clear_session():
     the_path = path()
     the_path.clear_session()
+
+def set_value():
+    query = db(db.steps.id > 0).select()
+    for q in query:
+        q.update_record(widget_type = 1)
+    print 'updated ', len(query), ' records'
 
 @auth.requires_login()
 def index():
@@ -52,10 +58,39 @@ def index():
     #when user begins exploring (also default) present map
     if (request.args(0) == 'start') or (not request.args):
         print '\nstart state'
+        session.location = None #clear in preparation for new loc
         m = map()
         return dict(locs=m.locs, map_image=m.image)
 
-    #after user selects quiz (or 'next question')
+    #this and the following function are for testing a specific step
+    if (request.args(0) == 'test_step') and ('response' in request.vars):
+        s = step(request.args(0))
+        return s.process()
+
+    if (request.args(0) == 'test_step'):
+        sid = request.args(1)
+        pid = db(db.paths.steps.contains(sid)).select().first().id
+        session.path = pid
+        session.active_paths = {pid:sid}
+        session.location = 1
+        w = db.steps[sid].widget_type.step_class
+        session.widget_type = w
+        if w == 'step_multipleChoice':
+            s = step_multipleChoice(sid)
+        else:
+            s = step(sid)
+        return s.ask()
+
+    #after user submits response to step prompt
+    #evaluate response and present feedback via npc reply
+    elif ('response' in request.vars) and (request.args(0) == 'ask'):
+        print '\nreply state'
+        sid = session.step
+        s = step(sid)
+        return s.process()
+
+    #after enters location or has completed step in this location
+    #pick a path and present the prompt for the appropriate step
     elif request.args(0) == 'ask':
         print '\nask state'
         p = path()
@@ -67,14 +102,8 @@ def index():
         s = step(sid)
         return s.ask()
 
-    #after submitting response
-    elif request.args(0) == 'reply':
-        print '\nreply state'
-        sid = session.step
-        s = step(sid)
-        return s.process()
-
     #if user response results in an error
     elif request.args(0) == 'error':
         print '\nerror state'
         return patherror()
+

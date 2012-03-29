@@ -89,14 +89,21 @@ db.questions.tags.widget = lambda field, value: AjaxSelect(field, value, 'tags',
 db.questions.tags_secondary.requires = IS_IN_DB(db, 'tags.id', db.tags._format, multiple = True)
 db.questions.tags_secondary.widget = lambda field, value: AjaxSelect(field, value, 'tags', multi = 'basic').widget()
 
+db.define_table('step_types',
+    Field('type'),
+    Field('widget'),
+    Field('step_class'),
+    format = '%(type)s')
+
 #TODO: transfer all questions data over to steps table
 db.define_table('steps',                
     Field('prompt', 'text'),
     Field('prompt_audio', 'upload',
           uploadfolder = os.path.join(request.folder, "static/audio")),
-    Field('widget_type', default = 'textresponse'),
+    Field('widget_type', db.step_types, default = 1),
     Field('widget_image', 'upload',
           uploadfolder = os.path.join(request.folder, "static/images")),
+    Field('options', 'list:string'),
     Field('response1'),
     Field('readable_response'),
     Field('outcome1', default = 'null'),
@@ -110,6 +117,7 @@ db.define_table('steps',
     Field('locations', 'list:reference db.locations'),
     Field('status', 'integer'),
     format = '%(prompt)s')
+db.steps.options.widget = SQLFORM.widgets.list.widget
 db.steps.npcs.requires = IS_IN_DB(db, 'npcs.id', 
                                       db.npcs._format, multiple = True)
 db.steps.npcs.widget = lambda field, value: \
