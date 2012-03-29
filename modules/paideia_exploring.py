@@ -1,6 +1,6 @@
 # coding: utf8
 from gluon import current, URL, redirect, IMG, SQLFORM, SPAN, Field, INPUT, A
-from gluon import IS_NOT_EMPTY
+from gluon import IS_NOT_EMPTY, IS_IN_SET
 import datetime, random, pprint, re, string
 
 
@@ -90,18 +90,20 @@ class path:
     ### This first set is used to track information about a user's session that persists
     beyond a single step execution.
 
-    session.location
-    session.active_paths
-    session.completed_paths
-    session.tagset
+    session.location (list: id, alias)
+    session.active_paths (dict: id:last active step)
+    session.completed_paths (list: int for path id)
+    session.tagset (dict: each of four categories is a key, list of tag 
+        ids as its value)
 
-    ### This second set should be used exclusively to preserve current data during 
-    execution of a single step (i.e., retrieve the results of path.pick() in step.process()).
-    By the end of step.process() they should be returned to a value of None
+    ### This second set should be used exclusively to preserve current data 
+    during execution of a single step (i.e., retrieve the results of 
+    path.pick() in step.process()). By the end of step.process() they 
+    should be returned to a value of None:
 
     session.npc
-    session.step
-    session.path
+    session.step (single int)
+    session.path (single int)
     session.image
     """
 
@@ -177,7 +179,7 @@ class path:
         if 'loc' in request.vars:
             curr_loc = db(db.locations.alias == request.vars['loc']
                           ).select().first()
-            session.location = curr_loc.id
+            session.location = [curr_loc.id,curr_loc.alias]
             self.curr_loc = curr_loc.id
         else:
             curr_loc = db.locations[session.location]
@@ -617,16 +619,34 @@ class step:
         step
         """
         session, request = current.session, current.request
-        response = current.response
 
-        """ 
-        old respond form -- problems with double submission
-        """
-        form = SPAN(INPUT(_id='response', name='response'), 
-                A('submit', _id='responder_submit'))
-        session.response = request.vars.response
+        form = SQLFORM.factory(
+                   Field('response', 'string', requires=IS_NOT_EMPTY()))
+        if form.process().accepted:
+            session.response = request.vars.response
 
         return form
+
+
+class step_multipleChoice(step):
+    def responder(self):
+        """
+        create and return the form to receive the user's response for this 
+        step
+        """
+        session, request = current.session, current.request
+
+        vals = self.s.options
+        form = SQLFORM.factory(
+                   Field('response', 'string', 
+                    requires=IS_IN_SET(vals), 
+                    widget = SQLFORM.widgets.radio.widget))
+        if form.process().accepted:
+            session.response = request.vars.response
+
+        return form
+
+
 
 class counter:
 
@@ -653,6 +673,7 @@ class counter:
 
     def clear(self):
         pass
+
 
 class map:
     """returns information needed to present the navigation map"""

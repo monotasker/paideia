@@ -329,3 +329,13 @@ timestamp: 2012-03-27T17:01:51.243096
 ALTER TABLE tag_records ADD step INTEGER REFERENCES steps(id) ON DELETE CASCADE;
 timestamp: 2012-03-27T17:01:51.368051
 ALTER TABLE tag_records ADD path INTEGER REFERENCES paths(id) ON DELETE CASCADE;
+timestamp: 2012-03-29T11:29:58.112223
+ALTER TABLE steps ADD options TEXT;
+timestamp: 2012-03-29T11:40:37.826789
+CREATE TABLE step_types(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    type CHAR(512),
+    widget CHAR(512),
+    step_class CHAR(512)
+);
+success!
