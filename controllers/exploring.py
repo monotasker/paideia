@@ -40,7 +40,8 @@ def index():
     user must be logged in to access this controller. Otherwise s/he 
     will be redirected to the default login form.
     """
-
+    #TODO: prevent business logic from loading except via ajax, or move business
+    #logic to a different function so that it's not called by index.html
     print '===================================================='
     print 'new state in controller exploring/index', datetime.datetime.utcnow()
     #check to see whether this user session has been initialized
@@ -52,7 +53,7 @@ def index():
         cat = t.categorize()
         #if there are no tags needing immediate review, introduce new one
         if len(cat[1]) < 1:
-            cat = t.introduce_tags(cat)
+            cat = t.introduce(cat)
         #store categorized tag list in session object
         session.tagset = cat               
         print 'stored categorized tags in session.tagset'
@@ -60,7 +61,7 @@ def index():
         #re-activate paths that weren't finished during last session
         p = path()
         session.path = p
-        session.active_paths = p.find_unfinished()
+        session.active = p.unfinished()
         print 'restored unfinished paths to session.active_paths'
 
     #when user begins exploring (also default) present map
@@ -79,10 +80,10 @@ def index():
         sid = request.args(1)
         pid = db(db.paths.steps.contains(sid)).select().first().id
         session.path = pid
-        session.active_paths = {pid:sid}
+        session.active = {pid:sid}
         session.location = 1
         w = db.steps[sid].widget_type.step_class
-        session.widget_type = w
+        session.widget = w
         if w == 'step_multipleChoice':
             s = step_multipleChoice(sid)
         else:
