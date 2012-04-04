@@ -1,4 +1,5 @@
 #!/usr/bin/python
+#found when running python web2py.py -S paideia -M -R testRunner.py
 
 import unittest
 from gluon.globals import Request, Session, Storage, Response

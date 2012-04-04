@@ -6,13 +6,14 @@ import datetime, random, pprint, re, string
 
 class tag:
 
-    def __init__(self):
+    def __init__(self, record_list):
         """
         set the path a student is exploring, retrieve its data, and store
         the data in the session object
         """
+        self.record_list = record_list
 
-    def introduce_tags(self):
+    def introduce(self):
         """
         checks the user's performance and, if appropriate, introduces one or
         more new tags to the active set for selecting paths
@@ -26,7 +27,7 @@ class tag:
 
         return new_tag
 
-    def categorize_tags(self):
+    def categorize(self):
         """
         use stored statistics for current user to categorize the grammatical
         tags based on the user's success and the time since the user last
@@ -37,16 +38,14 @@ class tag:
 
         this method is called at the start of each user session so that
         time-based statistics can be updated.
+
         """
         #TODO: Factor in how many times a tag has been successful or not
         print 'calling paideia_path.categorize_tags'
-        # retrieve db at runtime from the current object
-        db, auth = current.db, current.auth
-        # query the db table for performance records
-        record_list = db(db.tag_records.name == auth.user_id).select()
+        
         # create new dictionary to hold categorized results
         cat = {1:[], 2:[], 3:[], 4:[]}
-        for r in record_list:
+        for r in self.record_list:
             indx = r.tag
             #get success statistics for this tag
             timesR = r.times_right or 0
@@ -73,10 +72,6 @@ class tag:
             else:
                 c = 1 # spaced repitition requires review
             cat[c].append(indx)
-
-        if len(cat[1]) < 1:
-            #if there are no tags needing immediate review, introduce new one
-            self.introduce_tags()
 
         return cat
 

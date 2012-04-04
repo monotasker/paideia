@@ -339,3 +339,260 @@ CREATE TABLE step_types(
     step_class CHAR(512)
 );
 success!
+timestamp: 2012-04-04T14:36:11.238040
+CREATE TABLE auth_user(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    first_name CHAR(128),
+    last_name CHAR(128),
+    email CHAR(512),
+    password CHAR(512),
+    registration_key CHAR(512),
+    reset_password_key CHAR(512),
+    registration_id CHAR(512)
+);
+success!
+timestamp: 2012-04-04T14:36:11.350670
+CREATE TABLE auth_group(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    role CHAR(512),
+    description TEXT
+);
+success!
+timestamp: 2012-04-04T14:36:11.451364
+CREATE TABLE auth_membership(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    group_id INTEGER REFERENCES auth_group(id) ON DELETE CASCADE
+);
+success!
+timestamp: 2012-04-04T14:36:11.552430
+CREATE TABLE auth_permission(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    group_id INTEGER REFERENCES auth_group(id) ON DELETE CASCADE,
+    name CHAR(512),
+    table_name CHAR(512),
+    record_id INTEGER
+);
+success!
+timestamp: 2012-04-04T14:36:11.670987
+CREATE TABLE auth_event(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    time_stamp TIMESTAMP,
+    client_ip CHAR(512),
+    user_id INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    origin CHAR(512),
+    description TEXT
+);
+success!
+timestamp: 2012-04-04T14:36:11.771562
+CREATE TABLE auth_cas(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    created_on TIMESTAMP,
+    service CHAR(512),
+    ticket CHAR(512),
+    renew CHAR(1)
+);
+success!
+timestamp: 2012-04-04T14:36:11.904042
+CREATE TABLE app_settings(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    paths_per_day INTEGER,
+    days_per_week INTEGER
+);
+success!
+timestamp: 2012-04-04T14:36:11.997049
+CREATE TABLE journals(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    pages TEXT
+);
+success!
+timestamp: 2012-04-04T14:36:12.114010
+CREATE TABLE pages(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    page TEXT
+);
+success!
+timestamp: 2012-04-04T14:36:12.206464
+CREATE TABLE categories(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    category CHAR(512),
+    description CHAR(512)
+);
+success!
+timestamp: 2012-04-04T14:36:12.298759
+CREATE TABLE tags(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tag CHAR(512),
+    position INTEGER
+);
+success!
+timestamp: 2012-04-04T14:36:12.392395
+CREATE TABLE locations(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    location CHAR(512),
+    alias CHAR(512),
+    background CHAR(512)
+);
+success!
+timestamp: 2012-04-04T14:36:12.484043
+CREATE TABLE npcs(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name CHAR(512),
+    location TEXT,
+    image CHAR(512),
+    notes TEXT
+);
+success!
+timestamp: 2012-04-04T14:36:12.583970
+CREATE TABLE inv_items(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    item_name CHAR(512)
+);
+success!
+timestamp: 2012-04-04T14:36:12.676559
+CREATE TABLE inventory(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    owner INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    items_held TEXT
+);
+success!
+timestamp: 2012-04-04T14:36:12.763339
+CREATE TABLE questions(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    question TEXT,
+    answer CHAR(512),
+    value DOUBLE,
+    readable_answer CHAR(512),
+    answer2 CHAR(512),
+    value2 DOUBLE,
+    answer3 CHAR(512),
+    value3 DOUBLE,
+    frequency DOUBLE,
+    tags TEXT,
+    tags_secondary TEXT,
+    status INTEGER,
+    npcs TEXT,
+    next TEXT,
+    audio CHAR(512)
+);
+success!
+timestamp: 2012-04-04T14:36:12.861615
+CREATE TABLE step_types(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    type CHAR(512),
+    widget CHAR(512),
+    step_class CHAR(512)
+);
+success!
+timestamp: 2012-04-04T14:36:12.974748
+CREATE TABLE steps(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    prompt TEXT,
+    prompt_audio CHAR(512),
+    widget_type INTEGER REFERENCES step_types(id) ON DELETE CASCADE,
+    widget_image CHAR(512),
+    options TEXT,
+    response1 CHAR(512),
+    readable_response CHAR(512),
+    outcome1 CHAR(512),
+    response2 CHAR(512),
+    outcome2 CHAR(512),
+    response3 CHAR(512),
+    outcome3 CHAR(512),
+    tags TEXT,
+    tags_secondary TEXT,
+    npcs TEXT,
+    locations TEXT,
+    status INTEGER
+);
+success!
+timestamp: 2012-04-04T14:36:13.073709
+CREATE TABLE question_records(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    question INTEGER REFERENCES questions(id) ON DELETE CASCADE,
+    times_right DOUBLE,
+    times_wrong DOUBLE,
+    tlast_wrong TIMESTAMP,
+    tlast_right TIMESTAMP,
+    category INTEGER REFERENCES categories(id) ON DELETE CASCADE
+);
+success!
+timestamp: 2012-04-04T14:36:13.172824
+CREATE TABLE tag_progress(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    latest_new INTEGER REFERENCES tags(id) ON DELETE CASCADE
+);
+success!
+timestamp: 2012-04-04T14:36:13.264690
+CREATE TABLE paths(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    label CHAR(512),
+    steps TEXT
+);
+success!
+timestamp: 2012-04-04T14:36:13.366454
+CREATE TABLE path_log(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    path INTEGER REFERENCES paths(id) ON DELETE CASCADE,
+    dt_started TIMESTAMP,
+    last_step INTEGER REFERENCES steps(id) ON DELETE CASCADE,
+    dt_completed TIMESTAMP
+);
+success!
+timestamp: 2012-04-04T14:36:13.458850
+CREATE TABLE attempt_log(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    step INTEGER REFERENCES steps(id) ON DELETE CASCADE,
+    path INTEGER REFERENCES paths(id) ON DELETE CASCADE,
+    score DOUBLE,
+    dt_attempted TIMESTAMP
+);
+success!
+timestamp: 2012-04-04T14:36:13.551713
+CREATE TABLE tag_records(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    tag INTEGER REFERENCES tags(id) ON DELETE CASCADE,
+    times_right DOUBLE,
+    times_wrong DOUBLE,
+    tlast_wrong TIMESTAMP,
+    tlast_right TIMESTAMP,
+    path INTEGER REFERENCES paths(id) ON DELETE CASCADE,
+    step INTEGER REFERENCES steps(id) ON DELETE CASCADE
+);
+success!
+timestamp: 2012-04-04T14:36:13.642292
+CREATE TABLE bug_status(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    status_label CHAR(512)
+);
+success!
+timestamp: 2012-04-04T14:36:13.744448
+CREATE TABLE q_bugs(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    question INTEGER REFERENCES questions(id) ON DELETE CASCADE,
+    a_submitted CHAR(512),
+    name INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    submitted TIMESTAMP,
+    bug_status INTEGER REFERENCES bug_status(id) ON DELETE CASCADE,
+    admin_comment TEXT,
+    prev_lastright TIMESTAMP,
+    prev_lastwrong TIMESTAMP
+);
+success!
+timestamp: 2012-04-04T14:36:13.836070
+CREATE TABLE news(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    story TEXT,
+    title CHAR(512),
+    name INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    date_submitted TIMESTAMP,
+    last_edit TIMESTAMP
+);
+success!
