@@ -4,12 +4,78 @@ from gluon import IS_NOT_EMPTY, IS_IN_SET
 import datetime, random, pprint, re, string
 
 
-class tag:
+class Utils(object):
+    """
+    Miscellaneous utility functions, gathered in a class for convenience.
+    """
+    def __init__(self):
+        pass
+
+    def clear_session(self):
+        session, response = current.session, current.response
+
+        print '\ncalling path.clear_session()'
+
+        if response.vars and ('session_var' in response.vars):
+            session_vars = response.vars['session_var']
+        else:
+            session_vars = 'all'
+            
+        if session_vars == 'all':
+            session_vars = ['active_paths', 'answer', 'answer2', 'answer3', 
+            'blocks', 'completed_paths', 'debug', 'last_query', 'path_freq', 
+            'eval', 'path_freq', 'path_id', 'path_length', 'path_name', 
+            'path_tags', 'qID', 'q_counter', 'question_text', 'quiz_type', 
+            'readable_answer', 'response', 'tagset']
+        if type(session_vars) is not list:
+            session_vars = list(session_vars)
+        print 'clearing session vars: ', session_vars
+
+        for s in session_vars:
+            if s in session:
+                session[s] = None
+                print 'cleared session.', s
+
+        print pprint.pprint(session)
+
+    def update_session(self, session_index, val, switch):
+        """insert, update, or delete property of the session object"""
+        session = current.session
+
+        print '\ncalling modules/paideia_path.update_session()'
+        print 'val = ', val
+        if switch == 'del':
+            if type(val) == tuple:
+                val = val[0]
+            if session_index in session and val in session[session_index]:
+                del session[session_index][val]
+                print 'removing session.', session_index, '[', val, ']'
+            print 'nothing to remove'
+        else:
+            if session_index in session and session[session_index] is not None:
+                if type(val) == tuple and (val[0] in session[session_index]):
+                    session[session_index][val[0]] = val[1]
+                elif type(val) == tuple:
+                    session[session_index] = {val[0]:val[1]}
+                else:
+                    session[session_index].append(val)
+            else:
+                if type(val) == tuple:
+                    session[session_index] = {val[0]:val[1]}
+                else:
+                    session[session_index] = [val]
+            print 'session.', session_index, ': ', session[session_index]
+
+
+class Tag(object):
 
     def __init__(self, record_list):
         """
-        set the path a student is exploring, retrieve its data, and store
-        the data in the session object
+        :param record_list: rows (gluon.storage) object containing the db 
+        records from tag_records table that belong to the current user.
+
+        implemented in:
+        controllers/index.py
         """
         self.record_list = record_list
 
@@ -76,36 +142,16 @@ class tag:
         return cat
 
 
-class path:
+class Walk(object):
     """
-    set the path a student is exploring, retrieve its data, and store 
-    the data in the session object
-
-    ## session variables available:
-    ### This first set is used to track information about a user's session that persists
-    beyond a single step execution.
-
-    session.location (list: id, alias)
-    session.active_paths (dict: id:last active step)
-    session.completed_paths (list: int for path id)
-    session.tagset (dict: each of four categories is a key, list of tag 
-        ids as its value)
-
-    ### This second set should be used exclusively to preserve current data 
-    during execution of a single step (i.e., retrieve the results of 
-    path.pick() in step.process()). By the end of step.process() they 
-    should be returned to a value of None:
-
-    session.npc
-    session.step (single int)
-    session.path (single int)
-    session.image
+    A class handling the "movement" of a user from one path or step to the 
+    next (i.e., transitions between states outside a single step).
     """
 
     def __init__(self):
-        self.curr_loc = None
+        pass
 
-    def find_unfinished(self):
+    def unfinished(self):
         """
         Check for any paths that have been started but not finished by the
         current user. Expects finished paths to have a 'last_step' value of 0.
@@ -146,7 +192,7 @@ class path:
 
         return adict
 
-    def check_blocks(self):
+    def blocks(self):
         """
         Find out whether any blocking conditions are in place and trigger 
         appropriate responses.
@@ -166,23 +212,7 @@ class path:
             print 'no blocking conditions'
             return False
 
-    def get_loc(self):
-        """find out what location has been entered"""
-        request, session = current.request, current.session
-        db = current.db
-
-        if 'loc' in request.vars:
-            curr_loc = db(db.locations.alias == request.vars['loc']
-                          ).select().first()
-            session.location = [curr_loc.id,curr_loc.alias]
-            self.curr_loc = curr_loc.id
-        else:
-            curr_loc = db.locations[session.location]
-            self.curr_loc = session.location
-        print 'current location: ', curr_loc.alias, curr_loc.id    
-        return curr_loc    
-
-    def continue_active(self):
+    def active(self):
         """
         check for an active path in this location and make sure 
         it has another step to begin. If so return a dict containing the
@@ -241,6 +271,41 @@ class path:
         else:
             return False
 
+    def loc(self):
+        """find out what location has been entered"""
+        
+        return Location()    
+
+
+class Path(object):
+    """
+    set the path a student is exploring, retrieve its data, and store 
+    the data in the session object
+
+    ## session variables available:
+    ### This first set is used to track information about a user's session that persists
+    beyond a single step execution.
+
+    session.location (list: id, alias)
+    session.active_paths (dict: id:last active step)
+    session.completed_paths (list: int for path id)
+    session.tagset (dict: each of four categories is a key, list of tag 
+        ids as its value)
+
+    ### This second set should be used exclusively to preserve current data 
+    during execution of a single step (i.e., retrieve the results of 
+    path.pick() in step.process()). By the end of step.process() they 
+    should be returned to a value of None:
+
+    session.npc
+    session.step (single int)
+    session.path (single int)
+    session.image
+    """
+
+    def __init__(self):
+        self.curr_loc = None
+
     def pick(self):
         """Choose a new path for the user, based on tag performance"""
         request, session = current.request, current.session
@@ -248,28 +313,28 @@ class path:
 
         print '\ncalling modules/paideia_path.pick()'
         # find current location in game world
-        curr_loc = self.get_loc()
+        curr_loc = self.loc()
         # check for active blocking conditions
         # TODO: Implement logic to do something with True result here
-        if self.check_blocks() == True:
+        if self.blocks() == True:
             print 'block in place'
         # if possible, continue an active path whose next step is here
-        a = self.continue_active()
+        a = self.active()
         if a == False:
             print 'no active paths here'
             pass
         else:
             return a                    
         #otherwise choose a new path
-        cat = self.path_switch()
-        p = self.find_paths(cat, curr_loc)
+        cat = self.switch()
+        p = self.find(cat, curr_loc)
         category = p['c']
         paths = p['catXpaths']
         path_count = len(paths.as_list())
         if path_count < 1:
             print 'no available paths, so reviewing some already completed today'
-            session.completed_paths = None
-            p = self.find_paths(cat, curr_loc)
+            session.completed = None
+            p = self.find(cat, curr_loc)
             category = p['c']
             paths = p['catXpaths']
             path_count = len(paths.as_list())
@@ -290,7 +355,7 @@ class path:
 
         return dict(path = the_path, step = the_stepid)
 
-    def path_switch(self):
+    def switch(self):
         """
         choose one of four categories with a random factor but a heavy 
         weighting toward category 1
@@ -307,62 +372,7 @@ class path:
             cat = 4
         return cat
 
-    def clear_session(self):
-        session, response = current.session, current.response
-
-        print '\ncalling path.clear_session()'
-
-        if response.vars and ('session_var' in response.vars):
-            session_vars = response.vars['session_var']
-        else:
-            session_vars = 'all'
-            
-        if session_vars == 'all':
-            session_vars = ['active_paths', 'answer', 'answer2', 'answer3', 
-            'blocks', 'completed_paths', 'debug', 'last_query', 'path_freq', 
-            'eval', 'path_freq', 'path_id', 'path_length', 'path_name', 
-            'path_tags', 'qID', 'q_counter', 'question_text', 'quiz_type', 
-            'readable_answer', 'response', 'tagset']
-        if type(session_vars) is not list:
-            session_vars = list(session_vars)
-        print 'clearing session vars: ', session_vars
-
-        for s in session_vars:
-            if s in session:
-                session[s] = None
-                print 'cleared session.', s
-
-        print pprint.pprint(session)
-
-    def update_session(self, session_index, val, switch):
-        """insert, update, or delete property of the session object"""
-        session = current.session
-
-        print '\ncalling modules/paideia_path.update_session()'
-        print 'val = ', val
-        if switch == 'del':
-            if type(val) == tuple:
-                val = val[0]
-            if session_index in session and val in session[session_index]:
-                del session[session_index][val]
-                print 'removing session.', session_index, '[', val, ']'
-            print 'nothing to remove'
-        else:
-            if session_index in session and session[session_index] is not None:
-                if type(val) == tuple and (val[0] in session[session_index]):
-                    session[session_index][val[0]] = val[1]
-                elif type(val) == tuple:
-                    session[session_index] = {val[0]:val[1]}
-                else:
-                    session[session_index].append(val)
-            else:
-                if type(val) == tuple:
-                    session[session_index] = {val[0]:val[1]}
-                else:
-                    session[session_index] = [val]
-            print 'session.', session_index, ': ', session[session_index]
-
-    def log_attempt(self, pathid, stepid, update_switch):
+    def log(self, pathid, stepid, update_switch):
         """either create or update entries in the attempt_log table"""
         print '\ncalling modules/paideia_path.log_attempt()'
         db = current.db
@@ -376,7 +386,7 @@ class path:
             db.path_log.insert(path = pathid, last_step = stepid)
         db.attempt_log.insert(step = stepid)
 
-    def find_paths(self, cat, curr_loc):
+    def find(self, cat, curr_loc):
         """
         Find paths for this location that are due in the specified category 
         (in argument 'cat') and filter out paths that have been completed 
@@ -437,7 +447,7 @@ class path:
         pass
 
 
-class step:
+class Step(object):
 
     def __init__(self, sid):
         db, session = current.db, current.session
@@ -569,7 +579,74 @@ class step:
         #TODO: check to see whether this is the last step in the path and if so 
         #remove from active_paths and add to completed_paths
 
-    def npc(self):
+    def prompt(self):
+        """Get the prompt text to be presented from the npc to start the 
+        step interaction"""
+        prompt = SPAN(self.s.prompt)
+        #TODO: get audio file for prompt text as well.
+        return prompt
+
+    def responder(self):
+        """
+        create and return the form to receive the user's response for this 
+        step
+        """
+        session, request = current.session, current.request
+
+        form = SQLFORM.factory(
+                   Field('response', 'string', requires=IS_NOT_EMPTY()))
+        if form.process().accepted:
+            session.response = request.vars.response
+
+        return form
+
+
+class StepMultipleChoice(Step):
+    def responder(self):
+        """
+        create and return the form to receive the user's response for this 
+        step
+        """
+        session, request = current.session, current.request
+
+        vals = self.s.options
+        form = SQLFORM.factory(
+                   Field('response', 'string', 
+                    requires=IS_IN_SET(vals), 
+                    widget = SQLFORM.widgets.radio.widget))
+        if form.process().accepted:
+            session.response = request.vars.response
+
+        return form
+
+    def process(self):
+        pass
+
+
+class StepStub(Step):
+    """A step type that does not require significant user response. Useful for
+    giving the user information and then freeing her/him up to perform a task.
+    """
+    
+    def responder(self):
+        pass
+
+    def process(self):
+        pass
+
+
+class StepEnd(Step):
+    """A Step type that closes off a multi-step path."""
+    def __init__(self):
+        pass
+
+        
+class Npc(object):
+    
+    def __init__(self):
+        pass
+
+    def pick(self):
         """Given a set of npcs for this step (in self.ns) select one of 
         the npcs at random, store the id in a session variable, and return
         the corresponding db row object"""
@@ -601,49 +678,9 @@ class step:
         session.image = n_img
         return n_img
 
-    def prompt(self):
-        """Get the prompt text to be presented from the npc to start the 
-        step interaction"""
-        prompt = SPAN(self.s.prompt)
-        #TODO: get audio file for prompt text as well.
-        return prompt
 
-    def responder(self):
-        """
-        create and return the form to receive the user's response for this 
-        step
-        """
-        session, request = current.session, current.request
-
-        form = SQLFORM.factory(
-                   Field('response', 'string', requires=IS_NOT_EMPTY()))
-        if form.process().accepted:
-            session.response = request.vars.response
-
-        return form
-
-
-class step_multipleChoice(step):
-    def responder(self):
-        """
-        create and return the form to receive the user's response for this 
-        step
-        """
-        session, request = current.session, current.request
-
-        vals = self.s.options
-        form = SQLFORM.factory(
-                   Field('response', 'string', 
-                    requires=IS_IN_SET(vals), 
-                    widget = SQLFORM.widgets.radio.widget))
-        if form.process().accepted:
-            session.response = request.vars.response
-
-        return form
-
-
-
-class counter:
+class Counter(object):
+    """This class is deprecated"""
 
     def __init__(self):
         """include this question in the count for this quiz, send to 'end' 
@@ -670,7 +707,33 @@ class counter:
         pass
 
 
-class map:
+class Location(object):
+    """docstring for Location"""
+    def __init__(self, arg):
+        pass
+
+    def find(self):
+        """Determine what location has just been entered and retrieve its 
+        details from db"""
+        request, session = current.request, current.session
+        db = current.db
+
+        if 'loc' in request.vars:
+            curr_loc = db(db.locations.alias == request.vars['loc']
+                          ).select().first()
+            session.location = [curr_loc.id,curr_loc.alias]
+            self.curr_loc = curr_loc.id
+        else:
+            curr_loc = db.locations[session.location]
+            self.curr_loc = session.location
+        print 'current location: ', curr_loc.alias, curr_loc.id    
+        return curr_loc
+        
+    def img(self):
+        pass
+
+
+class Map(object):
     """returns information needed to present the navigation map"""
 
     def __init__(self):
