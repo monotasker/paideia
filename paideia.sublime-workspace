@@ -264,18 +264,37 @@
 			}
 		},
 		{
-			"file": "modules/paideia_exploring.py",
+			"file": "/home/iscott/web/web2py/testRunner.py",
 			"settings":
 			{
-				"buffer_size": 26706,
+				"buffer_size": 4504,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "views/exploring/index.load",
+			"file": "tests/modules/paideia_exploring.py",
 			"settings":
 			{
-				"buffer_size": 4147,
+				"buffer_size": 944,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"contents": "#!/usr/bin/python\n#found when running python web2py.py -S paideia -M -R testRunner.py \n\nimport unittest\nfrom gluon.globals import Request, Session, Storage, Response\nfrom gluon.contrib.test_helpers import form_postvars\n\nclass ExploringController(unittest.TestCase):\n	def setUp(self):\n		pass\n\n	def testIndex(self):\n		#form_postvars()\n		self.assertEquals(2,3)\n		self.assertEquals(2,2)",
+			"file": "tests/controllers/exploring.py",
+			"file_size": 313,
+			"file_write_time": 1333553487000000,
+			"settings":
+			{
+				"buffer_size": 382,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "modules/paideia_exploring.py",
+			"settings":
+			{
+				"buffer_size": 26706,
 				"line_ending": "Unix"
 			}
 		},
@@ -392,11 +411,14 @@
 	},
 	"file_history":
 	[
+		"/home/iscott/web/web2py/applications/paideia/views/exploring/index.load",
+		"/home/iscott/web/web2py/applications/paideia/tests/test_paideia.py",
+		"/home/iscott/web/web2py/gluon/contrib/test_helpers.py",
+		"/home/iscott/web/web2py/applications/paideia/private/test_paideia.py",
 		"/home/iscott/web/web2py/applications/paideia/controllers/exploring.py",
 		"/home/iscott/web/web2py/applications/paideia/modules/paideia_questions.py",
 		"/home/iscott/web/web2py/applications/paideia/static/images/town_map_mask.svg",
 		"/home/iscott/web/web2py/applications/paideia/modules/paideia_exploring.py",
-		"/home/iscott/web/web2py/applications/paideia/views/exploring/index.load",
 		"/home/iscott/web/web2py/applications/paideia/modules/paideia_stats.py",
 		"/home/ian/.config/sublime-text-2/Packages/SublimeCodeIntel/Base File.sublime-settings",
 		"/home/ian/.config/sublime-text-2/Packages/Default/Preferences.sublime-settings",
@@ -478,7 +500,7 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 3,
 			"sheets":
 			[
 				{
@@ -493,8 +515,8 @@
 						"selection":
 						[
 							[
-								4581,
-								4581
+								4964,
+								4964
 							]
 						],
 						"settings":
@@ -511,29 +533,75 @@
 				},
 				{
 					"buffer": 1,
-					"file": "modules/paideia_exploring.py",
+					"file": "/home/iscott/web/web2py/testRunner.py",
 					"settings":
 					{
-						"buffer_size": 26706,
+						"buffer_size": 4504,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								25032,
-								25032
+								4504,
+								4504
 							]
 						],
 						"settings":
 						{
-							"rulers":
+							"syntax": "Packages/Python/Python.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 714.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "tests/modules/paideia_exploring.py",
+					"settings":
+					{
+						"buffer_size": 944,
+						"regions":
+						{
+						},
+						"selection":
+						[
 							[
-								78
-							],
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
+								22,
+								22
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "tests/controllers/exploring.py",
+					"settings":
+					{
+						"buffer_size": 382,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								382,
+								382
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage"
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
@@ -548,19 +616,19 @@
 			"sheets":
 			[
 				{
-					"buffer": 2,
-					"file": "views/exploring/index.load",
+					"buffer": 4,
+					"file": "modules/paideia_exploring.py",
 					"settings":
 					{
-						"buffer_size": 4147,
+						"buffer_size": 26706,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								3943,
-								3943
+								180,
+								180
 							]
 						],
 						"settings":
@@ -569,18 +637,18 @@
 							[
 								78
 							],
-							"syntax": "Packages/HTML/HTML.tmLanguage",
+							"syntax": "Packages/Python/Python.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1326.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
-					"buffer": 3,
+					"buffer": 5,
 					"file": "controllers/exploring.py",
 					"settings":
 					{
@@ -591,8 +659,8 @@
 						"selection":
 						[
 							[
-								1003,
-								1003
+								1256,
+								1256
 							]
 						],
 						"settings":
@@ -608,7 +676,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 4,
+					"buffer": 6,
 					"file": "views/exploring/index.html",
 					"settings":
 					{
@@ -634,7 +702,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 5,
+					"buffer": 7,
 					"file": "static/plugin_framework/theme_paideia.less",
 					"settings":
 					{
@@ -662,7 +730,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 6,
+					"buffer": 8,
 					"file": "static/plugin_framework/framework.less",
 					"settings":
 					{
@@ -690,7 +758,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 7,
+					"buffer": 9,
 					"file": "views/plugin_framework/plugin_framework.html",
 					"settings":
 					{
@@ -718,7 +786,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 8,
+					"buffer": 10,
 					"file": "static/js/svg_interactions.js",
 					"settings":
 					{
@@ -752,7 +820,7 @@
 	},
 	"input":
 	{
-		"height": 0.0
+		"height": 33.0
 	},
 	"layout":
 	{
