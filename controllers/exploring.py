@@ -47,11 +47,19 @@ def index():
     if not session.tagset:
         print '\ninitializing new user session'
         #categorize paths for today
-        t = tag()
-        session.tagset = t.categorize_tags()
+        record_list = db(db.tag_records.name == auth.user_id).select()
+        t = tag(record_list)
+        cat = t.categorize()
+        #if there are no tags needing immediate review, introduce new one
+        if len(cat[1]) < 1:
+            cat = t.introduce_tags(cat)
+        #store categorized tag list in session object
+        session.tagset = cat               
         print 'stored categorized tags in session.tagset'
+
         #re-activate paths that weren't finished during last session
         p = path()
+        session.path = p
         session.active_paths = p.find_unfinished()
         print 'restored unfinished paths to session.active_paths'
 
