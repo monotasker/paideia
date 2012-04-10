@@ -66,7 +66,7 @@ class Utils(object):
                     session[session_index] = [val]
             print 'session.', session_index, ': ', session[session_index]
 
-
+ 
 class Tag(object):
 
     def __init__(self, record_list):
@@ -311,7 +311,7 @@ class Path(object):
         request, session = current.request, current.session
         db, auth = current.db, current.auth
 
-        print '\ncalling modules/paideia_path.pick()'
+        print '\ncalling Path.pick()'
         # find current location in game world
         curr_loc = self.loc()
         # check for active blocking conditions

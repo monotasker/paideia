@@ -1,6 +1,5 @@
 # coding: utf8
-from paideia_exploring import path, tag, step, step_multipleChoice, counter, map
-from paideia_questions import question
+from paideia_exploring import Path, Walk, Tag, Step, StepMultipleChoice, Counter, Map
 import pprint
 
 def patherror():
@@ -49,7 +48,7 @@ def index():
         print '\ninitializing new user session'
         #categorize paths for today
         record_list = db(db.tag_records.name == auth.user_id).select()
-        t = tag(record_list)
+        t = Tag(record_list)
         cat = t.categorize()
         #if there are no tags needing immediate review, introduce new one
         if len(cat[1]) < 1:
@@ -59,21 +58,19 @@ def index():
         print 'stored categorized tags in session.tagset'
 
         #re-activate paths that weren't finished during last session
-        p = path()
-        session.path = p
-        session.active = p.unfinished()
+        session.active = Walk().unfinished()
         print 'restored unfinished paths to session.active_paths'
 
     #when user begins exploring (also default) present map
     if (request.args(0) == 'start') or (not request.args):
         print '\nstart state'
         session.location = None #clear in preparation for new loc
-        m = map()
+        m = Map()
         return dict(locs=m.locs, map_image=m.image)
 
     #this and the following function are for testing a specific step
     if (request.args(0) == 'test_step') and ('response' in request.vars):
-        s = step(request.args(0))
+        s = Step(request.args(0))
         return s.process()
 
     if (request.args(0) == 'test_step'):
@@ -85,9 +82,9 @@ def index():
         w = db.steps[sid].widget_type.step_class
         session.widget = w
         if w == 'step_multipleChoice':
-            s = step_multipleChoice(sid)
+            s = StepMultipleChoice(sid)
         else:
-            s = step(sid)
+            s = Step(sid)
         return s.ask()
 
     #after user submits response to step prompt
@@ -95,20 +92,20 @@ def index():
     elif ('response' in request.vars) and (request.args(0) == 'ask'):
         print '\nreply state'
         sid = session.step
-        s = step(sid)
+        s = Step(sid)
         return s.process()
 
     #after enters location or has completed step in this location
     #pick a path and present the prompt for the appropriate step
     elif request.args(0) == 'ask':
         print '\nask state'
-        p = path()
+        p = Path()
         p_result = p.pick()
         pid = p_result['path'].id
         sid = p_result['step']
         print '\nreturned to controller exploring/index:'
         print 'path ', pid, '; step ', sid
-        s = step(sid)
+        s = Step(sid)
         return s.ask()
 
     #if user response results in an error
