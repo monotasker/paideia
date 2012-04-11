@@ -12,9 +12,15 @@ class Utils(object):
         pass
 
     def clear_session(self):
+        """
+        Utility method to empty (set value to None) the web2py session object 
+        of the specified properties. Gets the list of properties to clear 
+        from a url variable called "session_var" (via web2py's response 
+        object). If no list is provided, defaults to a list defined below.
+        """
         session, response = current.session, current.response
 
-        print '\ncalling path.clear_session()'
+        print '\ncalling Path.clear_session()'
 
         if response.vars and ('session_var' in response.vars):
             session_vars = response.vars['session_var']
@@ -22,8 +28,8 @@ class Utils(object):
             session_vars = 'all'
             
         if session_vars == 'all':
-            session_vars = ['active_paths', 'answer', 'answer2', 'answer3', 
-            'blocks', 'completed_paths', 'debug', 'last_query', 'path_freq', 
+            session_vars = ['active', 'answer', 'answer2', 'answer3', 
+            'blocks', 'completed', 'debug', 'last_query', 'path_freq', 
             'eval', 'path_freq', 'path_id', 'path_length', 'path_name', 
             'path_tags', 'qID', 'q_counter', 'question_text', 'quiz_type', 
             'readable_answer', 'response', 'tagset']
@@ -39,10 +45,12 @@ class Utils(object):
         print pprint.pprint(session)
 
     def update_session(self, session_index, val, switch):
-        """insert, update, or delete property of the session object"""
+        """Intended to work as a utility method to solve some common 
+        problems in writing to session objects (like type checking and 
+        navigating the create/update choice). Not sure whether it's more 
+        trouble than it's worth"""
         session = current.session
 
-        print '\ncalling modules/paideia_path.update_session()'
         print 'val = ', val
         if switch == 'del':
             if type(val) == tuple:
@@ -71,11 +79,13 @@ class Tag(object):
 
     def __init__(self, record_list):
         """
+        Class to handle tasks related to category tagging of steps.
+
         :param record_list: rows (gluon.storage) object containing the db 
         records from tag_records table that belong to the current user.
 
         implemented in:
-        controllers/index.py
+        controllers/exploring.walk (start state)
         """
         self.record_list = record_list
 
@@ -84,8 +94,11 @@ class Tag(object):
         checks the user's performance and, if appropriate, introduces one or
         more new tags to the active set for selecting paths
 
-        this method is called by categorize_tags if no tags are categorized
+        this method is called by Tags().categorize if no tags are categorized
         1 (needing immediate review).
+
+        implemented in:
+        paideia_path.Tag.categorize()
         """
         new_tag = ''
         #TODO: add logic to introduce new tag, based on student's current
@@ -95,16 +108,20 @@ class Tag(object):
 
     def categorize(self):
         """
-        use stored statistics for current user to categorize the grammatical
-        tags based on the user's success and the time since the user last
-        used the tag.
+        This this method is called at the start of each user session so that
+        performance-based categorization of the user's active content tags 
+        can be updated for the current session. This method provides the main 
+        algorithm for enforcing individualized spaced repetition on each user, 
+        since the categorizations are then used to determine which paths are 
+        presented to the user. The categories range from 1 (need immediate 
+        review) to 4 (no review needed).
 
-        The categories range from 1 (need immediate review) to 4 (no review
-        needed).
+        Returns a four-member dictionary in which the keys are integers 
+        representing the four categories and the values are lists of the tags 
+        (by id) that fall into each category for this user.
 
-        this method is called at the start of each user session so that
-        time-based statistics can be updated.
-
+        implemented in:
+        controllers/exploring.walk (start state)
         """
         #TODO: Factor in how many times a tag has been successful or not
         print 'calling paideia_path.categorize_tags'
@@ -139,6 +156,10 @@ class Tag(object):
                 c = 1 # spaced repitition requires review
             cat[c].append(indx)
 
+        #if there are no tags needing immediate review, introduce new one
+        if len(cat[1]) < 1:
+            cat = self.introduce(cat)
+
         return cat
 
 
@@ -154,11 +175,28 @@ class Walk(object):
     def unfinished(self):
         """
         Check for any paths that have been started but not finished by the
-        current user. Expects finished paths to have a 'last_step' value of 0.
+        current user in a previous session. The method relies on the table 
+        db.path_log which logs each of a user's attempts at a given path and 
+        records the most recent step s/he completed in that path in the field 
+        db.path_log.last_step. That value should be set to int(0) when a user 
+        completes the last step of a path, so this method looks for 
+        log entries that have a non-zero 'last_step' value.
+
+        Returns a dictionary containing the ids of any unfinished paths 
+        (as keys) and the id of the last completed step in each path (as 
+        values). This dictionary is structured the same way as the 
+        session.active attribute to facilitate easy transfer of the unfinished 
+        paths into session.active.
+
+        This method should only be called at the start of a new user session.
+
+        implemented in:
+        controllers/exploring.walk()
         """
+
         auth, db, session = current.auth, current.db, current.session
 
-        print '\ncalling paideia_path.find_unfinished()'
+        print '\ncalling Path.find_unfinished()'
         mylogs = db((db.path_log.name == auth.user_id) & 
                                     (db.path_log.last_step != 0)).select()
         unfinished = [l.path for l in mylogs]
@@ -192,10 +230,20 @@ class Walk(object):
 
         return adict
 
-    def blocks(self):
+    def blocks(self, blocks):
         """
-        Find out whether any blocking conditions are in place and trigger 
-        appropriate responses.
+        When a user enters a new location or completes a step in the current 
+        location, this method checks to see whether any blocking conditions 
+        are active and triggers appropriate responses. Blocking conditions are 
+        stored in session.blocks.
+
+        Returns a boolean (True/False)
+
+        Currently no blocking conditions are actually implemented--this is 
+        just the scaffolding for the method.
+
+        implemented in:
+        paideia_path.Path.pick()
         """
         #current object must be accessed at runtime
         session = current.session
@@ -209,7 +257,6 @@ class Walk(object):
             #logging of an error report.
             return True
         else:
-            print 'no blocking conditions'
             return False
 
     def active(self):
@@ -217,6 +264,9 @@ class Walk(object):
         check for an active path in this location and make sure 
         it has another step to begin. If so return a dict containing the
         id for the path ('path') and the step ('step'). If not return False.
+
+        implemented in:
+        paideia_path.Path.pick()
         """
         session, db = current.session, current.db
 

@@ -50,9 +50,6 @@ def index():
         record_list = db(db.tag_records.name == auth.user_id).select()
         t = Tag(record_list)
         cat = t.categorize()
-        #if there are no tags needing immediate review, introduce new one
-        if len(cat[1]) < 1:
-            cat = t.introduce(cat)
         #store categorized tag list in session object
         session.tagset = cat               
         print 'stored categorized tags in session.tagset'
