@@ -139,6 +139,10 @@ class Tag(object):
                 c = 1 # spaced repitition requires review
             cat[c].append(indx)
 
+        #if there are no tags needing immediate review, introduce new one
+        if len(cat[1]) < 1:
+            cat = t.introduce(cat)
+        
         return cat
 
 
@@ -730,6 +734,8 @@ class Location(object):
         return curr_loc
         
     def img(self):
+        #TODO: Put logic here to get from db the background image for the 
+        #current location
         pass
 
 
@@ -745,3 +751,7 @@ class Map(object):
         self.locs = db().select(db.locations.ALL, 
                                         orderby=db.locations.location)
         self.image = '/paideia/static/images/town_map.svg'
+
+    def info()
+
+        return dict(locs=self.locs, map_image=self.image)

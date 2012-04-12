@@ -43,30 +43,52 @@ def index():
     #logic to a different function so that it's not called by index.html
     print '===================================================='
     print 'new state in controller exploring/index', datetime.datetime.utcnow()
+
     #check to see whether this user session has been initialized
     if not session.tagset:
         print '\ninitializing new user session'
-        #categorize paths for today
+        #categorize available tags for this student, store in session
         record_list = db(db.tag_records.name == auth.user_id).select()
-        t = Tag(record_list)
-        cat = t.categorize()
-        #if there are no tags needing immediate review, introduce new one
-        if len(cat[1]) < 1:
-            cat = t.introduce(cat)
-        #store categorized tag list in session object
-        session.tagset = cat               
-        print 'stored categorized tags in session.tagset'
+        session.tagset = Tag(record_list).categorize()       
 
         #re-activate paths that weren't finished during last session
         session.active = Walk().unfinished()
-        print 'restored unfinished paths to session.active_paths'
 
+    return None
+
+def walk():
     #when user begins exploring (also default) present map
     if (request.args(0) == 'start') or (not request.args):
         print '\nstart state'
         session.location = None #clear in preparation for new loc
         m = Map()
+
         return dict(locs=m.locs, map_image=m.image)
+
+    #after user submits response to step prompt
+    #evaluate response and present feedback via npc reply
+    elif ('response' in request.vars) and (request.args(0) == 'ask'):
+        print '\nreply state'
+        sid = session.step
+        s = Step(sid)
+
+        return s.process()
+
+    #after enters location or has completed step in this location
+    #pick a path and present the prompt for the appropriate step
+    elif request.args(0) == 'ask':
+        print '\nask state'
+        p = Path().pick()
+        session.path = p #store current path
+        s = Step(p['step'])
+        session.step = s #store current step
+
+        return s.ask()
+
+    #if user response results in an error
+    elif request.args(0) == 'error':
+        print '\nerror state'
+        return patherror()
 
     #this and the following function are for testing a specific step
     if (request.args(0) == 'test_step') and ('response' in request.vars):
@@ -86,30 +108,4 @@ def index():
         else:
             s = Step(sid)
         return s.ask()
-
-    #after user submits response to step prompt
-    #evaluate response and present feedback via npc reply
-    elif ('response' in request.vars) and (request.args(0) == 'ask'):
-        print '\nreply state'
-        sid = session.step
-        s = Step(sid)
-        return s.process()
-
-    #after enters location or has completed step in this location
-    #pick a path and present the prompt for the appropriate step
-    elif request.args(0) == 'ask':
-        print '\nask state'
-        p = Path()
-        p_result = p.pick()
-        pid = p_result['path'].id
-        sid = p_result['step']
-        print '\nreturned to controller exploring/index:'
-        print 'path ', pid, '; step ', sid
-        s = Step(sid)
-        return s.ask()
-
-    #if user response results in an error
-    elif request.args(0) == 'error':
-        print '\nerror state'
-        return patherror()
 
