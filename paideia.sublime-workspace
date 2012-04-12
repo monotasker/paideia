@@ -255,7 +255,7 @@
 			"file": "modules/paideia_exploring.py",
 			"settings":
 			{
-				"buffer_size": 27945,
+				"buffer_size": 27810,
 				"line_ending": "Unix"
 			}
 		},
@@ -263,7 +263,7 @@
 			"file": "controllers/exploring.py",
 			"settings":
 			{
-				"buffer_size": 4165,
+				"buffer_size": 4098,
 				"line_ending": "Unix"
 			}
 		},
@@ -271,7 +271,7 @@
 			"file": "views/exploring/index.html",
 			"settings":
 			{
-				"buffer_size": 70,
+				"buffer_size": 69,
 				"line_ending": "Unix"
 			}
 		},
@@ -282,14 +282,38 @@
 				"buffer_size": 3660,
 				"line_ending": "Unix"
 			}
+		},
+		{
+			"file": "static/js/svg_interactions.js",
+			"settings":
+			{
+				"buffer_size": 270,
+				"line_ending": "Unix"
+			}
 		}
 	],
 	"build_system": "",
 	"command_palette":
 	{
-		"height": 332.0,
+		"height": 306.0,
 		"selected_items":
 		[
+			[
+				"ch",
+				"ChangeQuotes"
+			],
+			[
+				"chan",
+				"ChangeQuotes"
+			],
+			[
+				"chang",
+				"ChangeQuotes"
+			],
+			[
+				"inst",
+				"Package Control: Install Package"
+			],
 			[
 				"pack",
 				"Package Control: List Packages"
@@ -301,10 +325,6 @@
 			[
 				"col",
 				"Color picker"
-			],
-			[
-				"inst",
-				"Package Control: Install Package"
 			],
 			[
 				"remo",
@@ -335,7 +355,7 @@
 				"Package Control: Discover Packages"
 			]
 		],
-		"width": 575.0
+		"width": 449.0
 	},
 	"console":
 	{
@@ -443,7 +463,7 @@
 	"groups":
 	[
 		{
-			"selected": 2,
+			"selected": 1,
 			"sheets":
 			[
 				{
@@ -469,7 +489,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 3010.0,
+						"translation.y": 310.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -479,15 +499,15 @@
 					"file": "modules/paideia_exploring.py",
 					"settings":
 					{
-						"buffer_size": 27945,
+						"buffer_size": 27810,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								24359,
-								24359
+								15946,
+								15947
 							]
 						],
 						"settings":
@@ -501,7 +521,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 702.0,
+						"translation.y": 2348.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -511,15 +531,15 @@
 					"file": "controllers/exploring.py",
 					"settings":
 					{
-						"buffer_size": 4165,
+						"buffer_size": 4098,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								3483,
-								3483
+								3164,
+								3164
 							]
 						],
 						"settings":
@@ -530,7 +550,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1016.0,
+						"translation.y": 756.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -540,15 +560,15 @@
 					"file": "views/exploring/index.html",
 					"settings":
 					{
-						"buffer_size": 70,
+						"buffer_size": 69,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								70,
-								70
+								25,
+								25
 							]
 						],
 						"settings":
@@ -584,7 +604,33 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 702.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "static/js/svg_interactions.js",
+					"settings":
+					{
+						"buffer_size": 270,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								270,
+								270
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
