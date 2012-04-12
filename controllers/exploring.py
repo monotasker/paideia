@@ -54,7 +54,7 @@ def index():
         #re-activate paths that weren't finished during last session
         session.active = Walk().unfinished()
 
-    return None
+    return dict(active = session.active)
 
 def walk():
     #when user begins exploring (also default) present map
