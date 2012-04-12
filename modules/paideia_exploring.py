@@ -752,6 +752,6 @@ class Map(object):
                                         orderby=db.locations.location)
         self.image = '/paideia/static/images/town_map.svg'
 
-    def info()
+    def info(self):
 
         return dict(locs=self.locs, map_image=self.image)
