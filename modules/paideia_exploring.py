@@ -81,11 +81,11 @@ class Tag(object):
 
     def introduce(self, cat):
         """
-        checks the user's performance and, if appropriate, introduces one or
-        more new tags to the active set for selecting paths
-
-        this method is called by categorize_tags if no tags are categorized
-        1 (needing immediate review).
+        This method checks the user's performance and, if appropriate, 
+        introduces one or more new tags to the active set for selecting paths.
+        This method is intended as private, to be called by categorize() 
+        if that method yields an initial result with no tags in category 1 
+        (needing immediate review).
 
         :param cat:dict()
         """
@@ -99,7 +99,7 @@ class Tag(object):
 
     def categorize(self):
         """
-        use stored statistics for current user to categorize the grammatical
+        This method uses stored statistics for current user to categorize the grammatical
         tags based on the user's success and the time since the user last
         used the tag.
 
@@ -108,6 +108,7 @@ class Tag(object):
 
         this method is called at the start of each user session so that
         time-based statistics can be updated.
+
 
         """
         #TODO: Factor in how many times a tag has been successful or not
@@ -153,7 +154,9 @@ class Tag(object):
 class Walk(object):
     """
     A class handling the "movement" of a user from one path or step to the 
-    next (i.e., transitions between states outside a single step).
+    next (i.e., transitions between states outside a single step). In other 
+    words, this class prepares path-related information needed immediately 
+    before path selection.
     """
 
     def __init__(self):
@@ -161,8 +164,13 @@ class Walk(object):
 
     def unfinished(self):
         """
-        Check for any paths that have been started but not finished by the
-        current user. Expects finished paths to have a 'last_step' value of 0.
+        This public method checks for any paths that have been started but not 
+        finished by the current user. It expects finished paths to have a 
+        'last_step' value of 0 in its most recent entry in the db table 
+        path_log.
+
+        implemented by:
+
         """
         auth, db, session = current.auth, current.db, current.session
 
@@ -212,9 +220,11 @@ class Walk(object):
         if 'blocks' in session:
             print 'active block conditions: ', session.blocks
             #TODO: Add logic here to handle blocking conditions
-            #TODO: One blocking condition should be a started step that 
-            #doesn't have a processed user response -- force either 
-            #repeating of the step prompt or logging of an error report.
+            #TODO: First priority is to add a blocking condition should be a 
+            #when the user has been presented with the prompt for a step but 
+            #has not submitted any response for processing. The blocking 
+            #condition should force the user either to return to the step 
+            #prompt or to submit a bug report.
             return True
         else:
             print 'no blocking conditions'
