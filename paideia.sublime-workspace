@@ -255,7 +255,7 @@
 			"file": "modules/paideia_exploring.py",
 			"settings":
 			{
-				"buffer_size": 27810,
+				"buffer_size": 28277,
 				"line_ending": "Unix"
 			}
 		},
@@ -499,15 +499,15 @@
 					"file": "modules/paideia_exploring.py",
 					"settings":
 					{
-						"buffer_size": 27810,
+						"buffer_size": 28277,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								15946,
-								15947
+								7738,
+								7738
 							]
 						],
 						"settings":
@@ -521,7 +521,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 2348.0,
+						"translation.y": 1754.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
