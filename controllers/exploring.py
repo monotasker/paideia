@@ -1,9 +1,5 @@
 # coding: utf8
-<<<<<<< HEAD
 from paideia_exploring import Walk, Npc, Path, Tag, Step, StepMultipleChoice, Counter, Map
-=======
-from paideia_exploring import Path, Walk, Tag, Step, StepMultipleChoice, Counter, Map
->>>>>>> 3effee6b0f54e83d7d4091e583ad47520b034365
 import pprint
 
 def patherror():
