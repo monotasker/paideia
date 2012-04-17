@@ -1,6 +1,5 @@
 # coding: utf8
-from paideia_exploring import path, tag, step, step_multipleChoice, counter, map
-from paideia_questions import question
+from paideia_exploring import Walk, Npc, Path, Tag, Step, StepMultipleChoice, Counter, Map
 import pprint
 
 def patherror():
