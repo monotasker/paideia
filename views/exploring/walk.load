@@ -31,7 +31,7 @@
 <!--when path completed-->
 {{if request.args(0) == 'end':}}
     <section class="npc">
-        <p>Well done. You've finished this path. You don't have to stop here, though. If you want to continue exploring, {{=A('click here', _href=URL('index.load'), cid='page')}}</p>
+        <p>Well done. You've finished this path. You don't have to stop here, though. If you want to continue exploring, {{=A('click here', _href=URL('walk.load'), cid='page')}}</p>
     </section>
 
 <!--when an error is raised-->
@@ -45,19 +45,7 @@
 {{elif request.args(0) == 'start' or not request.args:}}
 	<img id='town_map' src='{{=map_image}}' />
 	<embed id='town_map_mask' src='/paideia/static/images/town_map_mask.svg' type='image/svg+xml' />
-    <!-- 
-    deprecated template
-    <div class='npc'>Let's get started. Where would you like to go today: {{#'}}
-        <ul>
-            {{for loc in locs:}}
-            {{=LI(A(loc.location, _href=URL('index.load', args=['ask'],
-                vars=dict()), cid=request.cid))}}
-            {{pass}}
-        </ul>
-    </div>
-    <div class='npc'>This will be <span class="q_counter">question {{=session.q_counter}} of {{=session.path_length}}</span> on today\'s path</div>
-    -->
-
+    
 <!--present npc reply for user's response to step prompt-->
 {{elif 'response' in request.vars:}}
     <div class='speaker'>{{=npc_img}}</div>
@@ -67,8 +55,8 @@
         <span class="q_counter">Currently working on {{=len(session.active_paths.keys() or 0)}} paths; {{=len(session.completed_paths or 0)}} paths already complete today.</span>
     </section>
     <div class='responder'>
-        {{=A("Continue", _href=URL('index', args=['ask']), cid='page', _class='button-green-grad next_q')}}
-        <span class='back_to_map'>{{=A("Map", _href=URL('index'), cid='page', _class='button-yellow-grad back_to_map')}}</span>
+        {{=A("Continue", _href=URL('walk', args=['ask']), cid='page', _class='button-green-grad next_q')}}
+        <span class='back_to_map'>{{=A("Map", _href=URL('walk'), cid='page', _class='button-yellow-grad back_to_map')}}</span>
     </div>
     <div class='npc prompt'><span id="bug_reporter">If you think your answer should have been correct, {{=A('click here', _href=URL('creating', 'q_bug.load', vars=dict(answer=session.response, question=session.step)), cid='bug_reporter')}} to submit a bug report for this question</span></div>
 
@@ -78,7 +66,7 @@
     <div class="npc prompt">{{=prompt}}</div>
     <div class='responder'>{{=responder}}</div>
     <p class="guidelines">Remember to only give <strong>one</strong> translation (not a list of different possibilities) and to give a <strong>translation</strong> (so not "keep" but "I keep").</p>
-    <span class='back_to_map'>{{=A("Map", _href=URL('index'), cid='page', _class='button-yellow-grad back_to_map')}}</span>
+    <span class='back_to_map'>{{=A("Map", _href=URL('walk'), cid='page', _class='button-yellow-grad back_to_map')}}</span>
     <span class="q_counter">Question {{#=session.q_counter}}</span>
 
 {{pass}}
@@ -95,11 +83,11 @@ $('#session_clear').click(function(event){
 });
 $('#test_this_step').click(function(event){
     val = $(this).parent('li').find('#test_step').val()
-    window.parent.web2py_component("/paideia/exploring/index.load/test_step/" + val,"page");
+    window.parent.web2py_component("/paideia/exploring/walk.load/test_step/" + val,"page");
     event.preventDefault();
 });
 $('#responder_submit').click(function(event){
-    window.parent.web2py_component("/paideia/exploring/index.load/reply","page"); 
+    window.parent.web2py_component("/paideia/exploring/walk.load/reply","page"); 
     event.preventDefault();
 });
 </script>
