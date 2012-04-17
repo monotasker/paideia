@@ -66,7 +66,7 @@ class Utils(object):
                     session[session_index] = [val]
             print 'session.', session_index, ': ', session[session_index]
 
-
+ 
 class Tag(object):
 
     def __init__(self, record_list):
@@ -79,23 +79,27 @@ class Tag(object):
         """
         self.record_list = record_list
 
-    def introduce(self):
+    def introduce(self, cat):
         """
-        checks the user's performance and, if appropriate, introduces one or
-        more new tags to the active set for selecting paths
+        This method checks the user's performance and, if appropriate, 
+        introduces one or more new tags to the active set for selecting paths.
+        This method is intended as private, to be called by categorize() 
+        if that method yields an initial result with no tags in category 1 
+        (needing immediate review).
 
-        this method is called by categorize_tags if no tags are categorized
-        1 (needing immediate review).
+        :param cat:dict()
         """
-        new_tag = ''
+        newtag = ''
         #TODO: add logic to introduce new tag, based on student's current
         #position in the tag progression (tags.position)
 
-        return new_tag
+        cat[1] = [newtag] # add new tag to cat before returning it
+
+        return cat
 
     def categorize(self):
         """
-        use stored statistics for current user to categorize the grammatical
+        This method uses stored statistics for current user to categorize the grammatical
         tags based on the user's success and the time since the user last
         used the tag.
 
@@ -104,6 +108,7 @@ class Tag(object):
 
         this method is called at the start of each user session so that
         time-based statistics can be updated.
+
 
         """
         #TODO: Factor in how many times a tag has been successful or not
@@ -139,13 +144,19 @@ class Tag(object):
                 c = 1 # spaced repitition requires review
             cat[c].append(indx)
 
+        #if there are no tags needing immediate review, introduce new one
+        if len(cat[1]) < 1:
+            cat = t.introduce(cat)
+        
         return cat
 
 
 class Walk(object):
     """
     A class handling the "movement" of a user from one path or step to the 
-    next (i.e., transitions between states outside a single step).
+    next (i.e., transitions between states outside a single step). In other 
+    words, this class prepares path-related information needed immediately 
+    before path selection.
     """
 
     def __init__(self):
@@ -153,8 +164,13 @@ class Walk(object):
 
     def unfinished(self):
         """
-        Check for any paths that have been started but not finished by the
-        current user. Expects finished paths to have a 'last_step' value of 0.
+        This public method checks for any paths that have been started but not 
+        finished by the current user. It expects finished paths to have a 
+        'last_step' value of 0 in its most recent entry in the db table 
+        path_log.
+
+        implemented by:
+
         """
         auth, db, session = current.auth, current.db, current.session
 
@@ -204,9 +220,11 @@ class Walk(object):
         if 'blocks' in session:
             print 'active block conditions: ', session.blocks
             #TODO: Add logic here to handle blocking conditions
-            #TODO: One blocking condition should be a started step that doesn't have a 
-            #processed user response -- force either repeating of the step prompt or 
-            #logging of an error report.
+            #TODO: First priority is to add a blocking condition should be a 
+            #when the user has been presented with the prompt for a step but 
+            #has not submitted any response for processing. The blocking 
+            #condition should force the user either to return to the step 
+            #prompt or to submit a bug report.
             return True
         else:
             print 'no blocking conditions'
@@ -269,12 +287,7 @@ class Walk(object):
             else:
                 return False
         else:
-            return False
-
-    def loc(self):
-        """find out what location has been entered"""
-        
-        return Location()    
+            return False  
 
 
 class Path(object):
@@ -286,9 +299,8 @@ class Path(object):
     ### This first set is used to track information about a user's session that persists
     beyond a single step execution.
 
-    session.location (list: id, alias)
-    session.active_paths (dict: id:last active step)
-    session.completed_paths (list: int for path id)
+    session.active (dict: id:last active step)
+    session.completed (list: int for path id)
     session.tagset (dict: each of four categories is a key, list of tag 
         ids as its value)
 
@@ -297,23 +309,20 @@ class Path(object):
     path.pick() in step.process()). By the end of step.process() they 
     should be returned to a value of None:
 
-    session.npc
     session.step (single int)
     session.path (single int)
     session.image
     """
 
-    def __init__(self):
-        self.curr_loc = None
+    def __init__(self, loc):
+        self.loc = loc
 
     def pick(self):
         """Choose a new path for the user, based on tag performance"""
         request, session = current.request, current.session
         db, auth = current.db, current.auth
 
-        print '\ncalling modules/paideia_path.pick()'
-        # find current location in game world
-        curr_loc = self.loc()
+        print '\ncalling Path.pick()'
         # check for active blocking conditions
         # TODO: Implement logic to do something with True result here
         if self.blocks() == True:
@@ -327,7 +336,7 @@ class Path(object):
             return a                    
         #otherwise choose a new path
         cat = self.switch()
-        p = self.find(cat, curr_loc)
+        p = self.find(cat, loc.id)
         category = p['c']
         paths = p['catXpaths']
         path_count = len(paths.as_list())
@@ -634,12 +643,6 @@ class StepStub(Step):
     def process(self):
         pass
 
-
-class StepEnd(Step):
-    """A Step type that closes off a multi-step path."""
-    def __init__(self):
-        pass
-
         
 class Npc(object):
     
@@ -708,33 +711,39 @@ class Counter(object):
 
 
 class Location(object):
-    """docstring for Location"""
-    def __init__(self, arg):
+    """
+    This class finds and returns information on the student's current 
+    'location' within the town, based on the url variable 'loc' which 
+    is accessed via the web2py request object.
+
+    implemented in:
+    controllers/exploring.walk()
+    """
+    def __init__(self):
         pass
 
-    def find(self):
-        """Determine what location has just been entered and retrieve its 
-        details from db"""
-        request, session = current.request, current.session
-        db = current.db
+    def info(self):
+        """
+        Determine what location has just been entered and retrieve its 
+        details from db. Returns a dictionary with the keys 'id', 'alias', 
+        and 'img'.
+        """
+        request, db = current.request, current.db
 
-        if 'loc' in request.vars:
-            curr_loc = db(db.locations.alias == request.vars['loc']
-                          ).select().first()
-            session.location = [curr_loc.id,curr_loc.alias]
-            self.curr_loc = curr_loc.id
-        else:
-            curr_loc = db.locations[session.location]
-            self.curr_loc = session.location
-        print 'current location: ', curr_loc.alias, curr_loc.id    
-        return curr_loc
+        try:
+            loc = db(db.locations.alias == request.vars['loc']
+                                                          ).select().first()
+            img = IMG(_src=URL('default', 'download', 
+                                args=db.locations[loc.id].background))
         
-    def img(self):
-        pass
+        except Exception, err:
+            print 'Exception raised in Location.find: ', err
 
+        return dict(id=loc.id, alias=loc.alias, img=img)
+        
 
 class Map(object):
-    """returns information needed to present the navigation map"""
+    """This class returns information needed to present the navigation map"""
 
     def __init__(self):
 
@@ -745,3 +754,7 @@ class Map(object):
         self.locs = db().select(db.locations.ALL, 
                                         orderby=db.locations.location)
         self.image = '/paideia/static/images/town_map.svg'
+
+    def info(self):
+
+        return dict(locs=self.locs, map_image=self.image)

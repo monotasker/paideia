@@ -4,6 +4,10 @@
 		"selected_items":
 		[
 			[
+				"__",
+				"__init__"
+			],
+			[
 				"tag",
 				"tag_records"
 			],
@@ -251,7 +255,11 @@
 			"file": "modules/paideia_exploring.py",
 			"settings":
 			{
+<<<<<<< HEAD
 				"buffer_size": 27638,
+=======
+				"buffer_size": 28277,
+>>>>>>> 3effee6b0f54e83d7d4091e583ad47520b034365
 				"line_ending": "Unix"
 			}
 		},
@@ -259,22 +267,35 @@
 			"file": "controllers/exploring.py",
 			"settings":
 			{
+<<<<<<< HEAD
 				"buffer_size": 4589,
+=======
+				"buffer_size": 4098,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "tests/controllers/exploring.py",
+			"file": "views/exploring/index.html",
 			"settings":
 			{
-				"buffer_size": 381,
+				"buffer_size": 69,
+>>>>>>> 3effee6b0f54e83d7d4091e583ad47520b034365
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "tests/modules/paideia_exploring.py",
+			"file": "views/exploring/walk.load",
 			"settings":
 			{
+				"buffer_size": 3660,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "static/js/svg_interactions.js",
+			"settings":
+			{
+<<<<<<< HEAD
 				"buffer_size": 991,
 				"line_ending": "Unix"
 			}
@@ -284,6 +305,9 @@
 			"settings":
 			{
 				"buffer_size": 4545,
+=======
+				"buffer_size": 270,
+>>>>>>> 3effee6b0f54e83d7d4091e583ad47520b034365
 				"line_ending": "Unix"
 			}
 		}
@@ -291,9 +315,25 @@
 	"build_system": "",
 	"command_palette":
 	{
-		"height": 332.0,
+		"height": 306.0,
 		"selected_items":
 		[
+			[
+				"ch",
+				"ChangeQuotes"
+			],
+			[
+				"chan",
+				"ChangeQuotes"
+			],
+			[
+				"chang",
+				"ChangeQuotes"
+			],
+			[
+				"inst",
+				"Package Control: Install Package"
+			],
 			[
 				"pack",
 				"Package Control: List Packages"
@@ -305,10 +345,6 @@
 			[
 				"col",
 				"Color picker"
-			],
-			[
-				"inst",
-				"Package Control: Install Package"
 			],
 			[
 				"remo",
@@ -339,7 +375,7 @@
 				"Package Control: Discover Packages"
 			]
 		],
-		"width": 575.0
+		"width": 449.0
 	},
 	"console":
 	{
@@ -356,8 +392,14 @@
 	},
 	"file_history":
 	[
+<<<<<<< HEAD
 		"/home/ian/.config/sublime-text-2/Packages/Default/Preferences.sublime-settings",
 		"/home/ian/web/web2py/gluon/contrib/test_helpers.py",
+=======
+		"/home/ian/Dropbox/Programming/simplenote.py",
+		"/home/ian/web/web2py/applications/paideia/tests/controllers/exploring.py",
+		"/home/ian/web/web2py/applications/paideia/tests/modules/paideia_exploring.py",
+>>>>>>> 3effee6b0f54e83d7d4091e583ad47520b034365
 		"/home/ian/web/web2py/applications/paideia/static/plugin_ajaxselect/plugin_ajaxselect.css",
 		"/home/ian/web/web2py/applications/paideia/static/plugin_ajaxselect/plugin_ajaxselect.js",
 		"/home/ian/web/web2py/applications/paideia/modules/plugin_ajaxselect.py",
@@ -469,7 +511,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 3010.0,
+						"translation.y": 310.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -479,15 +521,24 @@
 					"file": "modules/paideia_exploring.py",
 					"settings":
 					{
+<<<<<<< HEAD
 						"buffer_size": 27638,
+=======
+						"buffer_size": 28277,
+>>>>>>> 3effee6b0f54e83d7d4091e583ad47520b034365
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
+<<<<<<< HEAD
 								201,
 								201
+=======
+								7738,
+								7738
+>>>>>>> 3effee6b0f54e83d7d4091e583ad47520b034365
 							]
 						],
 						"settings":
@@ -501,7 +552,11 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
+<<<<<<< HEAD
 						"translation.y": 0.0,
+=======
+						"translation.y": 1754.0,
+>>>>>>> 3effee6b0f54e83d7d4091e583ad47520b034365
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -511,15 +566,24 @@
 					"file": "controllers/exploring.py",
 					"settings":
 					{
+<<<<<<< HEAD
 						"buffer_size": 4589,
+=======
+						"buffer_size": 4098,
+>>>>>>> 3effee6b0f54e83d7d4091e583ad47520b034365
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
+<<<<<<< HEAD
 								106,
 								106
+=======
+								3164,
+								3164
+>>>>>>> 3effee6b0f54e83d7d4091e583ad47520b034365
 							]
 						],
 						"settings":
@@ -530,30 +594,34 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
+<<<<<<< HEAD
 						"translation.y": 0.0,
+=======
+						"translation.y": 756.0,
+>>>>>>> 3effee6b0f54e83d7d4091e583ad47520b034365
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 3,
-					"file": "tests/controllers/exploring.py",
+					"file": "views/exploring/index.html",
 					"settings":
 					{
-						"buffer_size": 381,
+						"buffer_size": 69,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								381,
-								381
+								25,
+								25
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/Python/Python.tmLanguage"
+							"syntax": "Packages/HTML/HTML.tmLanguage"
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
@@ -563,25 +631,66 @@
 				},
 				{
 					"buffer": 4,
-					"file": "tests/modules/paideia_exploring.py",
+					"file": "views/exploring/walk.load",
 					"settings":
 					{
-						"buffer_size": 991,
+						"buffer_size": 3660,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								232,
-								232
+								3660,
+								3660
 							]
 						],
 						"settings":
 						{
+							"syntax": "Packages/HTML/HTML.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "static/js/svg_interactions.js",
+					"settings":
+					{
+<<<<<<< HEAD
+						"buffer_size": 991,
+=======
+						"buffer_size": 270,
+>>>>>>> 3effee6b0f54e83d7d4091e583ad47520b034365
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+<<<<<<< HEAD
+								232,
+								232
+=======
+								270,
+								270
+>>>>>>> 3effee6b0f54e83d7d4091e583ad47520b034365
+							]
+						],
+						"settings":
+						{
+<<<<<<< HEAD
 							"syntax": "Packages/Python/Python.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
+=======
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage"
+>>>>>>> 3effee6b0f54e83d7d4091e583ad47520b034365
 						},
 						"translation.x": 0.0,
 						"translation.y": 60.0,
