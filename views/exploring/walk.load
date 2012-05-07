@@ -43,8 +43,7 @@
 
 <!--path selection-->
 {{elif request.args(0) == 'start' or not request.args:}}
-	<img id='town_map' src='{{=map_image}}' />
-	<embed id='town_map_mask' src='/paideia/static/images/town_map_mask.svg' type='image/svg+xml' />
+	<embed id='town_map' src='{{=map_image}}' type='image/svg+xml' />
     
 <!--present npc reply for user's response to step prompt-->
 {{elif 'response' in request.vars:}}
@@ -77,6 +76,20 @@
 {{#pass}}
 
 <script>
+
+function go_there(evt){
+    var tobj = evt.currentTarget;
+    var oname = tobj.getAttribute('id');
+    window.parent.web2py_component("/paideia/exploring/walk.load/ask?loc=" + oname,"page");
+}
+
+function mask_other(evt){
+    var tobj = evt.currentTarget;
+    var tname = tobj.getAttribute('id');
+    var maskname = '#' + tname + '_mask';
+    JQuery(maskname).show();
+}
+
 $('#session_clear').click(function(event){
     ajax('clear_session', ['session_var'], ':eval');
     event.preventDefault();

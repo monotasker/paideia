@@ -8,9 +8,9 @@ from gluon.tools import Recaptcha, Mail, Auth, Crud, Service, PluginManager
 from gluon.globals import current
 response, request = current.response, current.request
 
-if request.is_local: #disable in production enviroment
-    from gluon.custom_import import track_changes
-    track_changes(True)
+#if request.is_local: #disable in production enviroment
+from gluon.custom_import import track_changes
+track_changes(True)
 
 # define database storage
 db = DAL('sqlite://storage.sqlite')
