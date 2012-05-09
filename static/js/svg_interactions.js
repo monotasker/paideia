@@ -1,7 +1,11 @@
-function init(evt){
-    //pulse_in();
-    //pulse_out();
-    //go_there();
+window.onload = function(){
+    var locs = ['domus_A', 'bath', 'ne_stoa', 'agora', 'gymnasion', 'synagogue']
+    for (var i = 0; i < locs.length; i++) {
+        var loc = document.getElementById(locs[i]);
+        loc.addEventListener('mouseover', mask_other, false);
+        loc.addEventListener('mouseout', show_other, false);
+        loc.addEventListener('click', go_there, false);
+    };
 }
 
 function go_there(evt){
@@ -14,7 +18,24 @@ function mask_other(evt){
     var tobj = evt.currentTarget;
     var tname = tobj.getAttribute('id');
     var maskname = tname + '_mask';
-    document.getElementById(maskname).style.display = 'block';
-    document.getElementById(maskname).style.opacity = '1';
-
+    var mask = document.getElementById(maskname);
+    mask.style.display = 'inline';
+    mask.style.opacity = '0.4';
+    var tipname = tname + '_tip';
+    var tip = document.getElementById(tipname);
+    tip.style.display = 'inline';
 }
+
+function show_other(evt){
+    var tobj = evt.currentTarget;
+    var tname = tobj.getAttribute('id');
+    var maskname = tname + '_mask';
+    var mask = document.getElementById(maskname);
+    mask.style.display = 'none';
+    mask.style.opacity = '0.4';
+    var tipname = tname + '_tip';
+    var tip = document.getElementById(tipname);
+    tip.style.display = 'none';
+}
+
+
