@@ -27,6 +27,7 @@ $('.edit_trigger').live('click', function(event){
     });
 });
 
+
 $('.plugin_ajaxselect select').live('change', function(event){
 //when select value is changed, update 
     var $p = $(this).parents('span');
@@ -44,10 +45,10 @@ $('.plugin_ajaxselect select').live('change', function(event){
     var url_args = url_args_vars[0];
     var url_vars = url_args_vars[1];
     var appname = r_url.split('/')[1];
-    var linktable = url_vars.split('&')[1].replace('linktable=', '');
-    var link_base = '/' + appname + '/plugin_ajaxselect/set_form_wrapper.load';
+    var linktable = '{=linktable}';
+    var link_base = '/' + appname + '/views/plugin_ajaxselect/set_form_wrapper.load';
     var formname = linktable + '_editlist_form';
-
+    
     n = ''
     if($p.hasClass('lister_editlinks')){
         $(this).find('option:selected').each(function(event){
@@ -79,10 +80,11 @@ $('.plugin_ajaxselect select').live('change', function(event){
     $('#' + theinput).val(null);
 });
 
-$('.restrictor').live('change', function(event){
+$('.restrictor select').live('change', function(event){
 //constrain and refresh appropriate select widgets if restrictor widget's 
 //value is changed
-	//get selected value of the restrictor widget to use in constraining the target widget
+
+    //get selected value of the restrictor widget to use in constraining the target widget
     var new_val = $(this).find('option:selected').val();
 
     //get table of the current form from id of restrictor widget
@@ -91,9 +93,10 @@ $('.restrictor').live('change', function(event){
     //get field of the restrictor widget, again from its id
     var r_field = parts[1];
 
-    var classlist = $(this).attr('class').split(/\s+/);
-    var linktable = classlist[0]
-	//constrain and refresh each widget with a corresponding 'for_' class on the restrictor widget
+    var classlist = $(this).parents('span').attr('class').split(/\s+/);
+    var linktable = classlist[1]
+    //constrain and refresh each widget with a corresponding 'for_' class on the restrictor widget
+    //TODO: add logic in module to insert a for_ class for multiple constrained fields
     $.each(classlist, function(index,item){
        if(item.substring(0,4) == 'for_'){
            //get name of field for widget to be constrained, from the restrictor's classes
@@ -103,10 +106,13 @@ $('.restrictor').live('change', function(event){
            //assemble url to use for refreshing the constrained widget 
            //from url set in modules/plugin_ajaxselect.py for adder
            //this should include the vars (url params) 'fieldval' and 'multi'
-           var r_url = $('#' + span_id).next().attr('href')
-           r_url += 'restrictor=' + new_val + 'rtable' + linktable;
+           var r_url = $('#' + span_id + ' .refresh_trigger').attr('href');
+           r_url += '&rval=' + new_val + '&rtable=' + linktable;
+           alert(r_url);
            //refresh the widget by refreshing the contents of the wrapper component
            web2py_component(r_url, span_id);
        }
     });
 });
+
+

@@ -1,4 +1,7 @@
 *.pyc
 *.bak
+*.swp
+*.swo
+*~
 errors/*
 sessions/*
