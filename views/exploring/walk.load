@@ -1,5 +1,5 @@
 {{if request.is_local:}}
-    {{=response.toolbar()}}
+    {{#=response.toolbar()}}
 {{pass}}
 
 <div id='utils'>
@@ -76,19 +76,6 @@
 {{#pass}}
 
 <script>
-
-function go_there(evt){
-    var tobj = evt.currentTarget;
-    var oname = tobj.getAttribute('id');
-    window.parent.web2py_component("/paideia/exploring/walk.load/ask?loc=" + oname,"page");
-}
-
-function mask_other(evt){
-    var tobj = evt.currentTarget;
-    var tname = tobj.getAttribute('id');
-    var maskname = '#' + tname + '_mask';
-    JQuery(maskname).show();
-}
 
 $('#session_clear').click(function(event){
     ajax('clear_session', ['session_var'], ':eval');
