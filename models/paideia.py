@@ -134,25 +134,29 @@ db.steps.npcs.requires = IS_IN_DB(db, 'npcs.id',
                                       db.npcs._format, multiple=True)
 db.steps.npcs.widget = lambda field, value: AjaxSelect().widget(
                                                 field, value, 'npcs',
-                                                multi='basic')
+                                                multi='basic',
+                                                lister='editlinks')
 db.steps.tags.requires = IS_IN_DB(db, 'tags.id',
                                       db.tags._format, multiple=True)
 db.steps.tags.widget = lambda field, value: AjaxSelect().widget(
                                                 field, value, 'tags',
                                                 refresher=True,
-                                                multi='basic')
+                                                multi='basic',
+                                                lister='editlinks')
 db.steps.tags_secondary.requires = IS_IN_DB(db, 'tags.id',
                                                 db.tags._format,
                                                 multiple=True)
 db.steps.tags_secondary.widget = lambda field, value: AjaxSelect().widget(
                                                 field, value, 'tags',
-                                                multi='basic')
+                                                multi='basic',
+                                                lister='editlinks')
 db.steps.locations.requires = IS_IN_DB(db, 'locations.id',
                                                 db.locations._format,
                                                 multiple=True)
 db.steps.locations.widget = lambda field, value: AjaxSelect().widget(
                                                 field, value, 'locations',
-                                                multi='basic')
+                                                multi='basic',
+                                                lister='editlinks')
 #this table is deprecated
 #TODO: do we need an equivalent for steps? The same data could be retrieved as
 # needed from the attempts_log table.
