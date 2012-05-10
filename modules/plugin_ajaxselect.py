@@ -59,7 +59,7 @@ class AjaxSelect(object):
     db.notes.author.widget = lambda field, value: AjaxSelect(field, value,
     'authors', restrictor='work').widget()
 
-    :param multi (basic/False; defaults to False): Instead of displaying a single
+    :param multi ('basic'/False; defaults to False): Instead of displaying a single
     select widget, the 'basic' value displays a standard multiselect widget (an
     html select widget with a size greater than 1). This will only work
     properly if the database field type is defined as "list:reference" in the
@@ -170,11 +170,16 @@ class AjaxSelect(object):
             session[wrappername] = None
         #make sure strings are converted to int and lenth-1 lists to single val
         if type(val) == list:
-            val = [int(v) for v in val]
             try:
-                if len(val) < 2: val = val[0]
+                val = [int(v) for v in val]
+            except ValueError, e:
+                print e
+                val = None #to handle a blank string being passed to int(v)
+
+            try:
+                if val and len(val) < 2: val = val[0]
             except IndexError, e:
-                val = None
+                val = None #to handle an empty list
 
         return val
 
@@ -289,26 +294,29 @@ class AjaxSelect(object):
         #create list to hold linked tags
         ll = UL(_class='taglist editlist')
 
-        if type(value) != list:
-            value = [value]
         #append the currently selected items to the list
-        for v in value:
-            myrow = db(db[linktable].id == v).select().first()
+        if value:
+            if type(value) != list:
+                value = [value]
 
-            formatted = db[linktable]._format % myrow
-            edit_trigger_id = '%s_editlist_trigger_%i' % (linktable, v)
-            linkargs = uargs[:] #slice for new obj so vals don't pile up
-            linkargs.append(v)
+            for v in value:
+                myrow = db(db[linktable].id == v).select().first()
 
-            ll.append(LI(A(formatted,
-                            _href=URL('plugin_ajaxselect',
-                                        'set_form_wrapper.load',
-                                        args=linkargs,
-                                        vars=uvars),
-                            _id = edit_trigger_id,
-                            _class = 'edit_trigger editlink tag',
-                            cid = form_name),
-                        _class = 'editlink tag'))
+                formatted = db[linktable]._format % myrow
+                edit_trigger_id = '%s_editlist_trigger_%i' % (linktable, v)
+                linkargs = uargs[:] #slice for new obj so vals don't pile up
+                linkargs.append(v)
+
+                ll.append(LI(A(formatted,
+                                _href=URL('plugin_ajaxselect',
+                                            'set_form_wrapper.load',
+                                            args=linkargs,
+                                            vars=uvars),
+                                _id = edit_trigger_id,
+                                _class = 'edit_trigger editlink tag',
+                                cid = form_name),
+                            _class = 'editlink tag'))
+
         #append an empty div to hold the modal form
         ll.append(DIV('', _id = form_name))
 
