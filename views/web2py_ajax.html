@@ -2,6 +2,7 @@
 response.files.insert(0,URL('static','js/jquery.js'))
 response.files.insert(1,URL('static','css/calendar.css'))
 response.files.insert(2,URL('static','js/calendar.js'))
+response.files.insert(3,URL('static','plugin_framework/jquery.form.js'))
 for _item in response.meta or []:}}
      <meta name="{{=_item}}" content="{{=response.meta[_item]}}" />{{
 pass

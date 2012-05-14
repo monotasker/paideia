@@ -100,12 +100,12 @@ ssS'prompt_audio'
 p36
 (dp37
 g4
-S'upload'
+S'reference audio'
 p38
 sg6
 I3
 sg7
-S'CHAR(512)'
+S'INTEGER REFERENCES audio(id) ON DELETE CASCADE'
 p39
 ssS'response2'
 p40
@@ -153,25 +153,26 @@ ssS'widget_image'
 p54
 (dp55
 g4
-g38
+S'reference images'
+p56
 sg6
 I5
 sg7
-S'CHAR(512)'
-p56
-ssS'readable_response'
+S'INTEGER REFERENCES images(id) ON DELETE CASCADE'
 p57
-(dp58
+ssS'readable_response'
+p58
+(dp59
 g4
 g15
 sg6
 I8
 sg7
 S'CHAR(512)'
-p59
-ssS'tags'
 p60
-(dp61
+ssS'tags'
+p61
+(dp62
 g4
 g22
 sg6
@@ -179,14 +180,14 @@ I14
 sg7
 g23
 ssS'options'
-p62
-(dp63
+p63
+(dp64
 g4
 S'list:string'
-p64
+p65
 sg6
 I6
 sg7
 S'TEXT'
-p65
+p66
 ss.

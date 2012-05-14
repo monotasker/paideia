@@ -16,6 +16,20 @@ db.define_table('app_settings',
     Field('days_per_week', 'integer', default=5)
     )
 
+db.define_table('images',
+    Field('image', 'upload',
+          uploadfolder=os.path.join(request.folder, "static/images")),
+    Field('title', 'string'),
+    Field('description', 'string'),
+    format='%(title)s')
+
+db.define_table('audio',
+    Field('clip', 'upload',
+          uploadfolder=os.path.join(request.folder, "static/audio")),
+    Field('title', 'string'),
+    Field('description', 'string'),
+    format='%(title)s')
+
 db.define_table('journals',
     Field('user', db.auth_user, default=auth.user_id),
     Field('pages', 'list:reference db.pages'),
@@ -38,15 +52,13 @@ db.define_table('tags',
 db.define_table('locations',
     Field('location'),
     Field('alias'),
-    Field('background', 'upload',
-        uploadfolder=os.path.join(request.folder, "static/images")),
+    Field('bg_image', db.images),
     format='%(location)s')
 
 db.define_table('npcs',
     Field('name', 'string'),
     Field('location', 'list:reference db.locations'),
-    Field('image', 'upload',
-        uploadfolder=os.path.join(request.folder, "static/images")),
+    Field('npc_image', db.images),
     Field('notes', 'text'),
     format='%(name)s')
 db.npcs.location.requires = IS_IN_DB(db, 'locations.id',
@@ -57,6 +69,7 @@ db.npcs.location.widget = lambda field, value: \
 
 db.define_table('inv_items',
     Field('item_name', 'string'),
+    Field('item_image', db.images),
     format='%(item_name)s')
 
 db.define_table('inventory',
@@ -110,11 +123,9 @@ db.define_table('step_types',
 #TODO: transfer all questions data over to steps table
 db.define_table('steps',
     Field('prompt', 'text'),
-    Field('prompt_audio', 'upload',
-          uploadfolder=os.path.join(request.folder, "static/audio")),
+    Field('prompt_audio', db.audio, default=0),
     Field('widget_type', db.step_types, default=1),
-    Field('widget_image', 'upload',
-          uploadfolder=os.path.join(request.folder, "static/images")),
+    Field('widget_image', db.images, default=0),
     Field('options', 'list:string'),
     Field('response1'),
     Field('readable_response'),
