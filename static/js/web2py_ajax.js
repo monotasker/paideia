@@ -18,7 +18,7 @@ function ajax(u,s,t) {
         }
         if (pcs.length>0){query = pcs.join("&");}
     }
-    jQuery.ajax({type: "POST", url: u, data: query, success: function(msg) { if(t) { if(t==':eval') eval(msg); else jQuery("#" + t).html(msg); } } }); 
+    jQuery.ajax({type: "POST", url: u, data: query, success: function(msg) { if(t) { if(t==':eval') eval(msg); else jQuery("#" + t).html(msg); } } });
 }
 
 String.prototype.reverse = function () { return this.split('').reverse().join('');};
@@ -40,28 +40,42 @@ function web2py_ajax_init() {
      inputField:this, ifFormat:datetime_format, showsTime: true,timeFormat: "24"
   }); }); } catch(e) {};
 
-  jQuery("input.time").live('focus', function() { var el = jQuery(this); 
-          if (!el.hasClass('hasTimeEntry')) try { el.timeEntry(); } catch(e) {}; 
+  jQuery("input.time").live('focus', function() { var el = jQuery(this);
+          if (!el.hasClass('hasTimeEntry')) try { el.timeEntry(); } catch(e) {};
   });
 };
 
-jQuery(function() {   
+jQuery(function() {
    var flash = jQuery('.flash');
    flash.hide();
    if(flash.html()) flash.slideDown();
    web2py_ajax_init();
 });
+
 function web2py_trap_form(action,target) {
-   jQuery('#'+target+' form').each(function(i){
-      var form=jQuery(this);
-      if(!form.hasClass('no_trap'))
-        form.submit(function(obj){
-         jQuery('.flash').hide().html('');
-         web2py_ajax_page('post',action,form.serialize(),target);
-         return false;
+  jQuery('#'+target+' form').each(function(i){
+    var form=jQuery(this);
+    if(!form.hasClass('no_trap'))
+      if(form.find('.upload').length>0) {
+        form.ajaxForm({
+          url: action,
+          success: function(data, statusText, xhr) {
+            jQuery('#'+target).html(xhr.responseText);
+            web2py_trap_form(action,target);
+            web2py_ajax_init();
+            }
+          });
+        } else {
+          form.submit(function(e){
+            jQuery('.flash').hide().html('');
+            web2py_ajax_page('post',action,form.serialize(),target);
+            e.preventDefault();
+          });
+        }
       });
-   });
 }
+
+
 function web2py_ajax_page(method,action,data,target) {
   jQuery.ajax({'type':method,'url':action,'data':data,
     'beforeSend':function(xhr) {
@@ -69,15 +83,15 @@ function web2py_ajax_page(method,action,data,target) {
       xhr.setRequestHeader('web2py-component-element',target);},
     'complete':function(xhr,text){
       var html=xhr.responseText;
-      var content=xhr.getResponseHeader('web2py-component-content'); 
+      var content=xhr.getResponseHeader('web2py-component-content');
       var command=xhr.getResponseHeader('web2py-component-command');
       var flash=xhr.getResponseHeader('web2py-component-flash');
       var t = jQuery('#'+target);
-      if(content=='prepend') t.prepend(html); 
+      if(content=='prepend') t.prepend(html);
       else if(content=='append') t.append(html);
-      else if(content!='hide') t.html(html);  
+      else if(content!='hide') t.html(html);
       web2py_trap_form(action,target);
-      web2py_ajax_init();      
+      web2py_ajax_init();
       if(command) eval(command);
       if(flash) jQuery('.flash').html(flash).slideDown();
       }

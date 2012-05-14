@@ -596,3 +596,25 @@ CREATE TABLE news(
     last_edit TIMESTAMP
 );
 success!
+timestamp: 2012-05-11T17:14:04.666675
+CREATE TABLE images(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    image CHAR(512),
+    title CHAR(512),
+    description CHAR(512)
+);
+success!
+timestamp: 2012-05-11T17:14:04.820042
+CREATE TABLE audio(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    clip CHAR(512),
+    title CHAR(512),
+    description CHAR(512)
+);
+success!
+timestamp: 2012-05-11T17:23:33.857082
+ALTER TABLE inv_items ADD item_image INTEGER REFERENCES images(id) ON DELETE CASCADE;
+timestamp: 2012-05-11T17:25:40.643059
+ALTER TABLE locations ADD bg_image INTEGER REFERENCES images(id) ON DELETE CASCADE;
+timestamp: 2012-05-11T17:25:40.776425
+ALTER TABLE npcs ADD npc_image INTEGER REFERENCES images(id) ON DELETE CASCADE;

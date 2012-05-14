@@ -4,32 +4,33 @@ import ast, pprint
 def listing():
     """
     This plugin creates a large widget to display, edit, and add entries
-    to one database table.  
-    
+    to one database table.
+
     LIST FORMAT
-    By default the table rows are listed using either the "format" property 
+    By default the table rows are listed using either the "format" property
     of the table definition in the db model (if their is one), or the contents
     of the first table field (after the auto-generated id).
-    
-    ARGUMENTS 
-    Takes one required argument, the name of the table to be listed. 
-    
+
+    ARGUMENTS
+    Takes one required argument, the name of the table to be listed.
+
     VARIABLES
-    An optional variable "restrictor" can be used to filter the displayed 
-    records. This variable must be a dictionary in which the keys are the names 
-    of fields in the table and the values are the values to be allowed in those 
+    An optional variable "restrictor" can be used to filter the displayed
+    records. This variable must be a dictionary in which the keys are the names
+    of fields in the table and the values are the values to be allowed in those
     fields when generating the list.
     """
-    response.files.append(URL('static', 
+    response.files.append(URL('static',
             'plugin_listandedit/plugin_listandedit.css'))
-    response.files.append(URL('static', 
+    response.files.append(URL('static',
             'plugin_listandedit/plugin_listandedit.js'))
-    
+
     #get table to be listed
     tablename = request.args[0]
+    print tablename
     #pass that name on to be used as a title for the widget
     rname = tablename
-    
+
     #get filtering values if any
     if 'restrictor' in request.vars:
         restr = request.vars['restrictor']
@@ -41,21 +42,23 @@ def listing():
 
     #check to make sure the required argument names a table in the db
     if not tablename in db.tables():
-        response.flash = '''Sorry, you are trying to list 
+        response.flash = '''Sorry, you are trying to list
         entries from a table that does not exist in the database.'''
     else:
         tb = db[tablename]
         #select all rows in the table
-        
+
         #filter that set based on any provided field-value pairs in request.vars.restrictor
         if restrictor:
             for k, v in restrictor.items():
                 filter_select = db(tb[k] == v)._select(tb.id)
                 rowlist = db(tb.id.belongs(filter_select)).select()
         else:
+            print tb
             rowlist = db(tb.id > 0).select()
+            print rowlist
 
-    # build html list from the selected rows 
+    # build html list from the selected rows
     listset = []
     for r in rowlist:
         fieldname = db[tablename].fields[1]
@@ -84,9 +87,39 @@ def makeurl(tablename):
     the_url = URL('plugin_listandedit', 'listing.load', args=tablename, vars=rstring)
     return the_url
 
+
+def dupAndEdit():
+    """Duplicate a db row and open the new copy for editing."""
+    print 'starting plugin_listandedit.dupAndEdit ******************'
+    tablename = request.args[0]
+    rowid = request.args[1]
+    formname = '%s/%s/dup' % (tablename, rowid)
+
+    src = db(db[tablename].id == rowid).select().first()
+    print src
+    form = SQLFORM(db[tablename], separator='', showid=True)
+
+    for v in db[tablename].fields:
+        if v != 'id' and v in src:
+            form.vars[v] = src[v]
+
+    if form.process(formname=formname).accepted:
+        the_url = makeurl(tablename)
+        response.js = "web2py_component('%s', 'listpane');" %  the_url
+        response.flash = 'New record successfully created.'
+    elif form.errors:
+        print form.vars
+        response.flash = 'Sorry, there was an error processing '\
+                         'the form. The new record has not been created.'
+    else:
+        pass
+
+    return dict(form=form)
+
 def edit():
     print '\n starting controllers/plugin_listandedit edit()'
     tablename = request.args[0]
+    duplink = ''
     if len(request.args) > 1:
         rowid = request.args[1]
         formname = '%s/%s' % (tablename, rowid)
@@ -94,7 +127,7 @@ def edit():
 
         #TODO: Set value of "project" field programatically
         #TODO: re-load listing component on form submit
-        form = SQLFORM(db[tablename], rowid, separator='', showid=False)
+        form = SQLFORM(db[tablename], rowid, separator='', showid=True)
         pprint.pprint(form.vars)
         if form.process(formname=formname).accepted:
             the_url = makeurl(tablename)
@@ -111,10 +144,17 @@ def edit():
             print form.vars
             pass
 
+        # create a link for adding a new row to the table
+        duplink = A('Duplicate', _href=URL('plugin_listandedit',
+            'dupAndEdit.load', args=[tablename, rowid]),
+            _class='plugin_listandedit_list', cid='viewpane')
+
+
+
     elif len(request.args) == 1:
         formname = '%s/create' % (tablename)
 
-        form = SQLFORM(db[tablename], separator='', showid=False)
+        form = SQLFORM(db[tablename], separator='', showid=True)
         if form.process(formname=formname).accepted:
             the_url = makeurl(tablename)
             response.js = "web2py_component('%s', 'listpane');" %  the_url
@@ -127,6 +167,7 @@ def edit():
             pass
 
     else:
-        response.flash = 'Sorry, you need to specify a type of record before I can listing the records.'
+        response.flash = 'Sorry, you need to specify a type of record before \
+                I can list the records.'
 
-    return dict(form = form)
+    return dict(form=form, duplink=duplink)
