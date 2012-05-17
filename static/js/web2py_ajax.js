@@ -55,7 +55,7 @@ jQuery(function() {
 function web2py_trap_form(action,target) {
   jQuery('#'+target+' form').each(function(i){
     var form=jQuery(this);
-    if(!form.hasClass('no_trap'))
+    if(!form.hasClass('no_trap')){
       if(form.find('.upload').length>0) {
         form.ajaxForm({
           url: action,
@@ -72,9 +72,9 @@ function web2py_trap_form(action,target) {
             e.preventDefault();
           });
         }
-      });
+    }
+  });
 }
-
 
 function web2py_ajax_page(method,action,data,target) {
   jQuery.ajax({'type':method,'url':action,'data':data,
@@ -97,9 +97,11 @@ function web2py_ajax_page(method,action,data,target) {
       }
     });
 }
+
 function web2py_component(action,target) {
   jQuery(function(){ web2py_ajax_page('get',action,null,target); });
 }
+
 function web2py_comet(url,onmessage,onopen,onclose) {
   if ("WebSocket" in window) {
     var ws = new WebSocket(url);
