@@ -1,5 +1,7 @@
 # coding: utf8
-import ast, pprint
+import ast
+import pprint
+
 
 def listing():
     """
@@ -48,7 +50,8 @@ def listing():
         tb = db[tablename]
         #select all rows in the table
 
-        #filter that set based on any provided field-value pairs in request.vars.restrictor
+        #filter that set based on any provided field-value pairs in
+        #request.vars.restrictor
         if restrictor:
             for k, v in restrictor.items():
                 filter_select = db(tb[k] == v)._select(tb.id)
@@ -62,19 +65,27 @@ def listing():
     listset = []
     for r in rowlist:
         fieldname = db[tablename].fields[1]
-        # use format string from db table definition to list entries (if available)
+        # use format string from db table definition to list entries (if
+        #available)
         if db[tablename]._format:
             listformat = db[tablename]._format % r
         else:
             listformat = r[fieldname]
 
-        i = A(listformat, _href=URL('plugin_listandedit', 'edit.load', args=[tablename, r.id]), _class='plugin_listandedit_list', cid='viewpane')
+        i = A(listformat, _href=URL('plugin_listandedit', 'edit.load',
+                                args=[tablename, r.id]),
+                                _class='plugin_listandedit_list',
+                                cid='viewpane')
         listset.append(i)
 
     # create a link for adding a new row to the table
-    adder = A('Add new', _href=URL('plugin_listandedit', 'edit.load', args=[tablename]), _class='plugin_listandedit_list', cid='viewpane')
+    adder = A('Add new', _href=URL('plugin_listandedit', 'edit.load',
+                                args=[tablename]),
+                                _class='plugin_listandedit_list',
+                                cid='viewpane')
 
-    return dict(listset = listset, adder = adder, rname = rname)
+    return dict(listset=listset, adder=adder, rname=rname)
+
 
 def makeurl(tablename):
     if session.restrictor:
@@ -84,7 +95,8 @@ def makeurl(tablename):
         rstring += '}'
     else:
         rstring = ''
-    the_url = URL('plugin_listandedit', 'listing.load', args=tablename, vars=rstring)
+    the_url = URL('plugin_listandedit', 'listing.load', args=tablename,
+                vars=rstring)
     return the_url
 
 
@@ -105,7 +117,7 @@ def dupAndEdit():
 
     if form.process(formname=formname).accepted:
         the_url = makeurl(tablename)
-        response.js = "web2py_component('%s', 'listpane');" %  the_url
+        response.js = "web2py_component('%s', 'listpane');" % the_url
         response.flash = 'New record successfully created.'
     elif form.errors:
         print form.vars
@@ -115,6 +127,7 @@ def dupAndEdit():
         pass
 
     return dict(form=form)
+
 
 def edit():
     print '\n starting controllers/plugin_listandedit edit()'
@@ -131,7 +144,7 @@ def edit():
         pprint.pprint(form.vars)
         if form.process(formname=formname).accepted:
             the_url = makeurl(tablename)
-            response.js = "web2py_component('%s', 'listpane');" %  the_url
+            response.js = "web2py_component('%s', 'listpane');" % the_url
             response.flash = 'The changes were recorded successfully.'
             print form.vars
         elif form.errors:
@@ -149,15 +162,13 @@ def edit():
             'dupAndEdit.load', args=[tablename, rowid]),
             _class='plugin_listandedit_list', cid='viewpane')
 
-
-
     elif len(request.args) == 1:
         formname = '%s/create' % (tablename)
 
         form = SQLFORM(db[tablename], separator='', showid=True)
         if form.process(formname=formname).accepted:
             the_url = makeurl(tablename)
-            response.js = "web2py_component('%s', 'listpane');" %  the_url
+            response.js = "web2py_component('%s', 'listpane');" % the_url
             response.flash = 'New record successfully created.'
         elif form.errors:
             print form.vars
