@@ -262,7 +262,7 @@ class AjaxSelect(object):
         '''create hidden div to hold form (to be displayed via modal dialog,
         dialog triggered in static/plugin_ajaxselect.js'''
 
-        dialog = DIV('', _id = form_name)
+        dialog = ''#DIV('', _id = form_name, _class='ajaxselect_dialog')
 
         return dialog
 
@@ -318,7 +318,7 @@ class AjaxSelect(object):
                             _class = 'editlink tag'))
 
         #append an empty div to hold the modal form
-        ll.append(DIV('', _id = form_name))
+        #ll.append(DIV('', _id = form_name))
 
         return ll
 
@@ -362,7 +362,10 @@ class FilteredAjaxSelect(AjaxSelect):
             w = MultipleOptionsWidget.widget(field, value)
             #TODO: Create filtered multiple options widget class
         else:
-            w = FilteredOptionsWidget.widget(field, value, restricted, rval)
+            if rval:
+                w = FilteredOptionsWidget.widget(field, value, restricted, rval)
+            else:
+                w = OptionsWidget.widget(field, value)
 
         return w
 
