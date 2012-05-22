@@ -1,16 +1,24 @@
-
 $('.add_trigger').live('click', function(event){
 //open modal dialog (using jquery-ui dialog) for adder form
     var the_id = $(this).attr('id');
     var parts = the_id.split('_');
     var linktable = parts[0];
 
-    $('#' + linktable + '_adder_form').html('');
-    $('#' + linktable + '_adder_form').dialog({
-        height:600,
-        width:600,
-        title:'Add new '
-    });
+    var dlname = linktable + '_adder_form';
+    if($('#' + dlname).length){
+        $('#' + dlname).html('').dialog('open');
+    } else {
+        var newd = $('<div id="' + dlname + '" class="ajaxselect_dialog"></div>');
+        newd.dialog({
+            autoOpen:false,
+            closeOnEscape:false,
+            height:600,
+            width:700,
+            title:'Edit ',
+        });
+        $('#' + dlname).dialog('open');
+    }
+    return false
 });
 
 $('.edit_trigger').live('click', function(event){
@@ -18,21 +26,29 @@ $('.edit_trigger').live('click', function(event){
     var the_id = $(this).attr('id');
     var parts = the_id.split('_');
     var linktable = parts[0];
-
-    $('#' + linktable + '_adder_form').html('');
-    $('#' + linktable + '_editlist_form').dialog({
-        height:600,
-        width:600,
-        title:'Edit '
-    });
+    var dlname = linktable + '_editlist_form';
+    if($('#' + dlname).length){
+        $('#' + dlname).html('').dialog('open');
+    } else {
+        var newd = $('<div id="' + dlname + '" class="ajaxselect_dialog"></div>');
+        newd.dialog({
+            autoOpen:false,
+            closeOnEscape:false,
+            height:600,
+            width:700,
+            title:'Edit ',
+        });
+        $('#' + dlname).dialog('open');
+    }
+    return false
 });
 
 
 $('.plugin_ajaxselect select').live('change', function(event){
-//when select value is changed, update 
+//when select value is changed, update
     var $p = $(this).parents('span');
     var $td = $p.parents('td');
-    var theid = $p.attr('id');   
+    var theid = $p.attr('id');
     var theinput = theid + '_input';
     var theval = $(this).val();
 
@@ -48,7 +64,7 @@ $('.plugin_ajaxselect select').live('change', function(event){
     var linktable = '{=linktable}';
     var link_base = '/' + appname + '/views/plugin_ajaxselect/set_form_wrapper.load';
     var formname = linktable + '_editlist_form';
-    
+
     n = ''
     if($p.hasClass('lister_editlinks')){
         $(this).find('option:selected').each(function(event){
@@ -81,7 +97,7 @@ $('.plugin_ajaxselect select').live('change', function(event){
 });
 
 $('.restrictor select').live('change', function(event){
-//constrain and refresh appropriate select widgets if restrictor widget's 
+//constrain and refresh appropriate select widgets if restrictor widget's
 //value is changed
 
     //get selected value of the restrictor widget to use in constraining the target widget
@@ -103,12 +119,11 @@ $('.restrictor select').live('change', function(event){
            field = item.substring(4);
            //assemble name for span wrapping the widget to be constrained
            var span_id = table + '_' + field + '_loader'
-           //assemble url to use for refreshing the constrained widget 
+           //assemble url to use for refreshing the constrained widget
            //from url set in modules/plugin_ajaxselect.py for adder
            //this should include the vars (url params) 'fieldval' and 'multi'
            var r_url = $('#' + span_id + ' .refresh_trigger').attr('href');
            r_url += '&rval=' + new_val + '&rtable=' + linktable;
-           alert(r_url);
            //refresh the widget by refreshing the contents of the wrapper component
            web2py_component(r_url, span_id);
        }
