@@ -464,65 +464,6 @@ table.weeklycount span.cal_count{
     }
 }
 
-#viewpane, #listpane {
-    position:relative;
-    padding:0;
-}
-
-#listpane {
-
-    width:35%;
-
-    li {
-        display:block;
-        height:@lineheight2;
-        line-height:@lineheight2;
-        overflow:hidden;
-        padding-left:@lineheight;
-        .linear-gradient(#f5f5f5, #eeeeee);
-        border-bottom: @greyc;
-
-        a, a:link, a:visited {
-            color:@dusky-blue1;
-        }
-        a:hover {
-            color:@dusky-blue2;
-        }
-    }
-}
-
-#listpane:after {
-    content:' ';
-}
-
-#listpane:before {
-    content:' ';
-    .tapered-shadow;
-}
-
-#viewpane {
-    width: 65%;
-    padding-top: @lineheight2;
-
-    table {
-        width: 100%;
-
-        a {
-            float: right;
-        }
-
-    }
-
-    textarea {
-        width: 90%;
-    }
-
-    form form {
-      background-color:#eee;
-    }
-
-}
-
 #viewpane:before {
     content:' ';
     .tapered-shadow;

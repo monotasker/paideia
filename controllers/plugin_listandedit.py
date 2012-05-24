@@ -109,7 +109,7 @@ def dupAndEdit():
 
     src = db(db[tablename].id == rowid).select().first()
     print src
-    form = SQLFORM(db[tablename], separator='', showid=True)
+    form = SQLFORM(db[tablename], separator='', showid=True, formstyle='ul')
 
     for v in db[tablename].fields:
         if v != 'id' and v in src:
@@ -139,9 +139,10 @@ def edit():
         print 'formname: ', formname
 
         #TODO: Set value of "project" field programatically
-        #TODO: re-load listing component on form submit
-        form = SQLFORM(db[tablename], rowid, separator='', showid=True)
-        pprint.pprint(form.vars)
+        form = SQLFORM(db[tablename], rowid, separator='',
+                deletable=True,
+                showid=True,
+                formstyle='ul')
         if form.process(formname=formname).accepted:
             the_url = makeurl(tablename)
             response.js = "web2py_component('%s', 'listpane');" % the_url
@@ -158,14 +159,16 @@ def edit():
             pass
 
         # create a link for adding a new row to the table
-        duplink = A('Duplicate', _href=URL('plugin_listandedit',
+        duplink = A('Make a copy of this record', _href=URL('plugin_listandedit',
             'dupAndEdit.load', args=[tablename, rowid]),
             _class='plugin_listandedit_list', cid='viewpane')
 
     elif len(request.args) == 1:
         formname = '%s/create' % (tablename)
 
-        form = SQLFORM(db[tablename], separator='', showid=True)
+        form = SQLFORM(db[tablename], separator='',
+                        showid=True,
+                        formstyle='ul')
         if form.process(formname=formname).accepted:
             the_url = makeurl(tablename)
             response.js = "web2py_component('%s', 'listpane');" % the_url
