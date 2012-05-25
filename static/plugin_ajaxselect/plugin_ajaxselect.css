@@ -1,37 +1,35 @@
 .refresh_trigger, .add_trigger {
     display: block;
-    float: left;
+    float: right;
     width:30px;
     height:30px;
-    background-color:#7C81A4;
+    background-color:#607890;
     color:#fff;
     font-weight:bold;
     text-align:center;
     line-height:30px;
     border-radius:16px;
-    border:1px solid #626891;
-    margin-left:1em;
     margin-bottom:.5em;
-    clear:right;
+    /*clear:right;*/
     text-decoration:none;
     -moz-transition:all 100ms ease-in;    
 }
 
 .refresh_trigger:hover, .refresh_trigger:active, 
 .add_trigger:hover, .add_trigger:active {
-    background-color:#626891;
+    background-color:#003366;
     -moz-transition:all 100ms ease-in;
 }
 
 ul.taglist {
-    float: left;
+    display:block;
+    clear:both;
 }
 
 li.tag {
     font-size:.8em;
-    float: right;
-    margin-left:0;
-    margin-right:.5em;
+    display:inline-block;
+    margin: .25em .25em 0 0;
 }
 
 span.tag, a.tag {
@@ -39,18 +37,15 @@ span.tag, a.tag {
     color: #fff;
     height:2em;
     line-height:2em;
-    background-color: #7C81A4;
-    border:1px solid #626891;
-    padding:0 1em 0 .5em;
-    border-radius:0 1em 1em 0;
+    background-color: #607890;
+    padding:0 .5em;
     line-height:2em;
-    text-transform:uppercase;
     font-family:Ubuntu, Arial, Helvetica, sans-serif;
     text-decoration:none;
     -moz-transition:all 100ms ease-in;
 }
 
 a.tag:hover {
-    background-color:#626891;
+    background-color:#003366;
     -moz-transition:all 100ms ease-in;
 }
