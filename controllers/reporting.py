@@ -1,4 +1,5 @@
 # coding: utf8
+import pprint
 
 if 0:
     from gluon import current, Auth, SQLFORM
@@ -13,6 +14,25 @@ from paideia_stats import paideia_stats, paideia_timestats, paideia_weeklycount
 def index():
     reports = dict(attempts='Attemps Log',)
     return dict(reports=reports)
+
+@auth.requires_membership(role='administrators')
+def paths_by_tag():
+    tags = db(db.tags.id > 0).select()
+    taglist = []
+    for t in tags:
+        steps = db(db.steps.tags.contains(str(t.id))).select()
+        pathlist = []
+        for s in steps:
+            print s.id
+            paths = db(db.paths.steps.contains(s.id)).select()
+            pathlist += [p.id for p in paths]
+        pathlist = list(set(pathlist))
+        tagdict = dict(id=t.id, name=t.tag, position=t.position, paths=pathlist, count=len(pathlist))
+        taglist.append(tagdict)
+
+    taglist = sorted(taglist, key = lambda k: k['position'])
+
+    return dict(taglist=taglist)
 
 
 @auth.requires_membership(role='administrators')
