@@ -1,0 +1,14 @@
+{{extend 'layout.html'}}
+
+<h2>Number of paths in DB for each tag</h2>
+<table>
+{{for t in taglist:}}
+{{if t['position']:}}
+<tr>
+    <td>{{=t['position']}}</td>
+    <td>{{=t['name']}}</td>
+    <td>{{=t['count']}}</td>
+</tr>
+{{pass}}    
+{{pass}}    
+</table>
