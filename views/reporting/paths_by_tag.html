@@ -9,6 +9,16 @@
     <td>{{=t['name']}}</td>
     <td>{{=t['count']}}</td>
 </tr>
+<tr>
+    <td></td>
+    <td colspan='2'>
+        <ul>
+            {{for p in t['pathset']:}}
+            <li>{{=p.id}}: {{=p.label}}</li>
+            {{pass}}
+        </ul>
+    </td>
+</tr>
 {{pass}}    
 {{pass}}    
 </table>
