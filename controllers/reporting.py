@@ -1,5 +1,4 @@
 # coding: utf8
-import pprint
 
 if 0:
     from gluon import current, Auth, SQLFORM
@@ -10,10 +9,12 @@ if 0:
 
 from paideia_stats import paideia_stats, paideia_timestats, paideia_weeklycount
 
+
 @auth.requires_membership(role='administrators')
 def index():
     reports = dict(attempts='Attemps Log',)
     return dict(reports=reports)
+
 
 @auth.requires_membership(role='administrators')
 def paths_by_tag():
@@ -27,10 +28,12 @@ def paths_by_tag():
             paths = db(db.paths.steps.contains(s.id)).select()
             pathlist += [p.id for p in paths]
         pathlist = list(set(pathlist))
-        tagdict = dict(id=t.id, name=t.tag, position=t.position, paths=pathlist, count=len(pathlist))
+        pathset = db(db.paths.id.belongs(pathlist)).select()
+        tagdict = dict(id=t.id, name=t.tag, position=t.position,
+                        pathset=pathset, count=len(pathlist))
         taglist.append(tagdict)
 
-    taglist = sorted(taglist, key = lambda k: k['position'])
+    taglist = sorted(taglist, key=lambda k: k['position'])
 
     return dict(taglist=taglist)
 
@@ -57,7 +60,7 @@ def user():
     return dict(the_name=the_name, score_avg=s.score_avg,
         total_len=t.total_len, total_cat1=t.total_cat1,
         total_cat2=t.total_cat2, total_cat3=t.total_cat3,
-        percent_cat1=t.percent_cat1, percent_cat2 = t.percent_cat2,
-        percent_cat3 = t.percent_cat3, total_cat4 = t.total_cat4,
-        percent_cat4 = t.percent_cat4, dateset = w.dateset,
-        htmlcal = w.htmlcal)
+        percent_cat1=t.percent_cat1, percent_cat2=t.percent_cat2,
+        percent_cat3=t.percent_cat3, total_cat4=t.total_cat4,
+        percent_cat4=t.percent_cat4, dateset=w.dateset,
+        htmlcal=w.htmlcal)
