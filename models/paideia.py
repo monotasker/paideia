@@ -4,11 +4,40 @@ from plugin_ajaxselect import AjaxSelect
 from itertools import chain
 import datetime
 import os
+import re
+
+if 0:
+    from gluon import URL, current, Field, IS_IN_DB, SQLFORM
+    response = current.response
+    request = current.request
+    auth = current.auth
+    db = current.db
+
 #js file necessary for AjaxSelect widget
 response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.js'))
 response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.css'))
 
 dtnow = datetime.datetime.utcnow()
+
+class IS_VALID_REGEX(object):
+    """
+    custom validator to check regex in step definitions against the given
+    readable responses.
+    """
+    def __init__(self):
+        self.error_message='Given answers do not satisfy regular expression.'
+
+    def __call__(self, value):
+        request = current.request
+        try:
+            answers = request.vars.readable_response
+            alist = answers.split('|')
+            regex = value
+            for a in alist:
+                re.match(a.strip(), regex, re.I)
+            return (value, None)
+        except:
+            return (value, self.error_message)
 
 #TODO:Allow for different class profiles with different settings
 db.define_table('app_settings',
@@ -141,6 +170,7 @@ db.define_table('steps',
     Field('status', 'integer'),
     format='%(prompt)s')
 db.steps.options.widget = SQLFORM.widgets.list.widget
+db.steps.response1.requires = IS_VALID_REGEX()
 db.steps.npcs.requires = IS_IN_DB(db, 'npcs.id',
                                       db.npcs._format, multiple=True)
 db.steps.npcs.widget = lambda field, value: AjaxSelect().widget(
