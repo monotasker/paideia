@@ -1,7 +1,11 @@
 # coding: utf8
 import ast
-import pprint
-
+if 0:
+    from gluon import current, URL, SQLFORM, A
+    response = current.response
+    request = current.request
+    db = current.db
+    session = current.session
 
 def listing():
     """
@@ -147,12 +151,11 @@ def edit():
             the_url = makeurl(tablename)
             response.js = "web2py_component('%s', 'listpane');" % the_url
             response.flash = 'The changes were recorded successfully.'
-            print form.vars
         elif form.errors:
-            print form.vars
-            print hi
+            print form.errors
             response.flash = 'Sorry, there was an error processing ' \
                              'the form. The changes have not been recorded.'
+
         else:
             #TODO: Why is this line being run when a record is first selected?
             print form.vars
