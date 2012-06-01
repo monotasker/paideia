@@ -29,15 +29,18 @@ class IS_VALID_REGEX(object):
 
     def __call__(self, value):
         request = current.request
-        try:
-            answers = request.vars.readable_response
-            alist = answers.split('|')
-            regex = value
-            for a in alist:
-                re.match(a.strip(), regex, re.I)
-            return (value, None)
-        except:
-            return (value, self.error_message)
+        answers = request.vars.readable_response
+        alist = answers.split('|')
+        regex = value.encode('string-escape')
+        for a in alist:
+            if re.match(a.strip(), regex, re.I):
+                print a.strip()
+                print 'it matched!'
+            else:
+                print 'answer ', a, ' did not match the regular expression provided.'
+                print regex
+                return (value, self.error_message)
+        return (value, None)
 
 #TODO:Allow for different class profiles with different settings
 db.define_table('app_settings',
@@ -170,7 +173,7 @@ db.define_table('steps',
     Field('status', 'integer'),
     format='%(prompt)s')
 db.steps.options.widget = SQLFORM.widgets.list.widget
-db.steps.response1.requires = IS_VALID_REGEX()
+#db.steps.response1.requires = IS_VALID_REGEX()
 db.steps.npcs.requires = IS_IN_DB(db, 'npcs.id',
                                       db.npcs._format, multiple=True)
 db.steps.npcs.widget = lambda field, value: AjaxSelect().widget(
