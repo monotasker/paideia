@@ -47,7 +47,7 @@ $('.edit_trigger').live('click', function(event){
 $('.plugin_ajaxselect select').live('change', function(event){
     //when select value is changed, update
     var $p = $(this).parents('span');
-    var $td = $p.parents('li');
+    var $td = $p.parents('td, li, div');
     var theid = $p.attr('id');
     var theinput = theid + '_input';
     var theval = $(this).val();
