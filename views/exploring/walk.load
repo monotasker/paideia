@@ -43,7 +43,7 @@
 
 <!--path selection-->
 {{elif request.args(0) == 'start' or not request.args:}}
-	<img id='town_map' src='{{=map_image}}' />
+	<img id='town_map' src='{{=map.image}}' />
 	<embed id='town_map_mask' src='/paideia/static/images/town_map_mask.svg' type='image/svg+xml' />
     
 <!--present npc reply for user's response to step prompt-->

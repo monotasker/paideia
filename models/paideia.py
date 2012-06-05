@@ -9,15 +9,15 @@ response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.css'))
 
 dtnow = datetime.datetime.utcnow()
 
-#TODO:Allow for different class profiles with different settings  
+#TODO:Allow for different class profiles with different settings
 db.define_table('app_settings',
     Field('paths_per_day', 'integer', default=10),
-    Field('days_per_week', 'integer', default=5)    
+    Field('days_per_week', 'integer', default=5)
     )
 
 db.define_table('journals',
     Field('user', db.auth_user, default=auth.user_id),
-    Field('pages', 'list:reference db.pages'),
+    Field('pages', 'list:reference pages'),
     format = '%(user)s')
 
 db.define_table('pages',
@@ -37,21 +37,21 @@ db.define_table('tags',
 db.define_table('locations',
     Field('location'),
     Field('alias'),
-    Field('background', 'upload', uploadfolder = 
+    Field('background', 'upload', uploadfolder =
           os.path.join(request.folder, "static/images")),
     format = '%(location)s')
 
 db.define_table('npcs',
     Field('name', 'string'),
-    Field('location', 'list:reference db.locations'),
-    Field('image', 'upload', uploadfolder = 
+    Field('location', 'list:reference locations'),
+    Field('image', 'upload', uploadfolder =
           os.path.join(request.folder, "static/images")),
     Field('notes', 'text'),
     format = '%(name)s')
-db.npcs.location.requires = IS_IN_DB(db, 'locations.id', 
+db.npcs.location.requires = IS_IN_DB(db, 'locations.id',
                                      db.locations._format, multiple = True)
 db.npcs.location.widget = lambda field, value: \
-                         AjaxSelect(field, value, 'locations', 
+                         AjaxSelect(field, value, 'locations',
                                     multi = 'basic').widget()
 
 db.define_table('inv_items',
@@ -60,7 +60,7 @@ db.define_table('inv_items',
 
 db.define_table('inventory',
     Field('owner', db.auth_user, default = auth.user_id),
-    Field('items_held', 'list:reference db.inv_items'),
+    Field('items_held', 'list:reference inv_items'),
     format = '%(owner)s inventory')
 
 #this table is deprecated
@@ -75,11 +75,11 @@ db.define_table('questions',
     Field('answer3', default = 'null'),
     Field('value3', 'double', default = 0.3),
     Field('frequency', 'double'),
-    Field('tags', 'list:reference db.tags'),
-    Field('tags_secondary', 'list:reference db.tags'),
+    Field('tags', 'list:reference tags'),
+    Field('tags_secondary', 'list:reference tags'),
     Field('status', 'integer'),
-    Field('npcs', 'list:reference db.npcs'),
-    Field('next', 'list:reference db.questions'),
+    Field('npcs', 'list:reference npcs'),
+    Field('next', 'list:reference questions'),
     Field('audio', 'upload', uploadfolder = os.path.join(request.folder, "static/audio")),
     format = '%(question)s')
 db.questions.npcs.requires = IS_IN_DB(db, 'npcs.id', db.npcs._format, multiple = True)
@@ -96,7 +96,7 @@ db.define_table('step_types',
     format = '%(type)s')
 
 #TODO: transfer all questions data over to steps table
-db.define_table('steps',                
+db.define_table('steps',
     Field('prompt', 'text'),
     Field('prompt_audio', 'upload',
           uploadfolder = os.path.join(request.folder, "static/audio")),
@@ -111,38 +111,38 @@ db.define_table('steps',
     Field('outcome2', default = 'null'),
     Field('response3', default = 'null'),
     Field('outcome3', default = 'null'),
-    Field('tags', 'list:reference db.tags'),
-    Field('tags_secondary', 'list:reference db.tags'),
-    Field('npcs', 'list:reference db.npcs'),
-    Field('locations', 'list:reference db.locations'),
+    Field('tags', 'list:reference tags'),
+    Field('tags_secondary', 'list:reference tags'),
+    Field('npcs', 'list:reference npcs'),
+    Field('locations', 'list:reference locations'),
     Field('status', 'integer'),
     format = '%(prompt)s')
 db.steps.options.widget = SQLFORM.widgets.list.widget
-db.steps.npcs.requires = IS_IN_DB(db, 'npcs.id', 
+db.steps.npcs.requires = IS_IN_DB(db, 'npcs.id',
                                       db.npcs._format, multiple = True)
 db.steps.npcs.widget = lambda field, value: \
-                            AjaxSelect(field, value, 'npcs', 
+                            AjaxSelect(field, value, 'npcs',
                                        multi = 'basic').widget()
-db.steps.tags.requires = IS_IN_DB(db, 'tags.id', 
+db.steps.tags.requires = IS_IN_DB(db, 'tags.id',
                                       db.tags._format, multiple = True)
 db.steps.tags.widget = lambda field, value: \
-                            AjaxSelect(field, value, 'tags', 
-                                       refresher = True, 
+                            AjaxSelect(field, value, 'tags',
+                                       refresher = True,
                                        multi = 'basic').widget()
 db.steps.tags_secondary.requires = IS_IN_DB(db, 'tags.id',
-                                                db.tags._format, 
+                                                db.tags._format,
                                                 multiple = True)
 db.steps.tags_secondary.widget = lambda field, value: \
-                                        AjaxSelect(field, value, 'tags', 
+                                        AjaxSelect(field, value, 'tags',
                                                    multi = 'basic').widget()
 db.steps.locations.requires = IS_IN_DB(db, 'locations.id',
-                                                db.locations._format, 
+                                                db.locations._format,
                                                 multiple = True)
 db.steps.locations.widget = lambda field, value: \
-                                        AjaxSelect(field, value, 'locations', 
+                                        AjaxSelect(field, value, 'locations',
                                                    multi = 'basic').widget()
 #this table is deprecated
-#TODO: do we need an equivalent for steps? The same data could be retrieved as 
+#TODO: do we need an equivalent for steps? The same data could be retrieved as
 # needed from the attempts_log table.
 db.define_table('question_records',
     Field('name', db.auth_user, default = auth.user_id),
@@ -156,19 +156,19 @@ db.define_table('question_records',
 
 db.define_table('tag_progress',
     Field('name', db.auth_user, default = auth.user_id),
-    Field('latest_new', db.tags),
+    Field('latest_new', 'integer'),
     format = '%(name)s, %(latest_new)s')
 
-db.define_table('paths',                
-    Field('label'),                
-    Field('steps', 'list:reference db.steps'), 
+db.define_table('paths',
+    Field('label'),
+    Field('steps', 'list:reference steps'),
     format = '%(label)s')
-db.paths.steps.requires = IS_IN_DB(db, 'steps.id', 
+db.paths.steps.requires = IS_IN_DB(db, 'steps.id',
                                    db.steps._format, multiple = True)
 db.paths.steps.widget = lambda field, value: \
-                            AjaxSelect(field, value, 'steps', 
-                                        refresher = True, 
-                                        multi = 'basic', 
+                            AjaxSelect(field, value, 'steps',
+                                        refresher = True,
+                                        multi = 'basic',
                                         lister = 'editlinks').widget()
 class PathsVirtualFields(object):
     def locations(self):
@@ -176,7 +176,7 @@ class PathsVirtualFields(object):
         return steprows.locations
     def tags(self):
         steprows = db(db.steps.id.belongs(self.paths.steps)).select()
-        nlists = [s.locations for s in steprows]
+        nlists = [s.tags for s in steprows]
         return list(chain.from_iterable(nlists))
 db.paths.virtualfields.append(PathsVirtualFields())
 
