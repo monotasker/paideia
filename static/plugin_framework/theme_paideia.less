@@ -351,6 +351,35 @@ body #page {
     }
 }
 
+#page.listing {
+    #viewpane {
+        background-color:@chalk;
+
+        input[type=text], textarea {
+            width:100%;
+        }
+        select {
+            width:100%;
+        }
+        .plugin_ajaxselect select[multiple=multiple] {
+            height:300px;
+        }
+        label {
+            color:@moss;
+            line-height:@lineheight;
+        }
+        .w2p_fl {
+            margin-top:@lineheight;
+        }
+        li#steps_id_row, #delete_record_row, #submit_row {
+            div.w2p_fl, div.w2p_fw {
+                display:inline-block;
+                float:left;
+            }
+        }
+    }
+}
+
 /* for profile pages */
 
 table.summary_stats {border-collapse:separate; border-spacing:6px;}

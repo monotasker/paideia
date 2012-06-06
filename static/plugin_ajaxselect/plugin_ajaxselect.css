@@ -1,3 +1,8 @@
+.plugin_ajaxselect select {
+    display:block;
+    float:left;
+}
+
 .refresh_trigger, .add_trigger {
     display: block;
     float: right;
@@ -10,18 +15,20 @@
     line-height:30px;
     border-radius:16px;
     margin-bottom:.5em;
-    /*clear:right;*/
     text-decoration:none;
     -moz-transition:all 100ms ease-in;    
+    -webkit-transition:all 100ms ease-in;    
 }
 
 .refresh_trigger:hover, .refresh_trigger:active, 
 .add_trigger:hover, .add_trigger:active {
     background-color:#003366;
     -moz-transition:all 100ms ease-in;
+    -webkit-transition:all 100ms ease-in;
 }
 
 ul.taglist {
+    padding-top:0.5em;
     display:block;
     clear:both;
 }
@@ -43,9 +50,11 @@ span.tag, a.tag {
     font-family:Ubuntu, Arial, Helvetica, sans-serif;
     text-decoration:none;
     -moz-transition:all 100ms ease-in;
+    -webkit-transition:all 100ms ease-in;
 }
 
 a.tag:hover {
     background-color:#003366;
     -moz-transition:all 100ms ease-in;
+    -webkit-transition:all 100ms ease-in;
 }

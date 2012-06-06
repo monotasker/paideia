@@ -162,9 +162,10 @@ def edit():
             pass
 
         # create a link for adding a new row to the table
-        duplink = A('Make a copy of this record', _href=URL('plugin_listandedit',
-            'dupAndEdit.load', args=[tablename, rowid]),
-            _class='plugin_listandedit_list', cid='viewpane')
+        duplink = A('Make a copy of this record',
+                    _href=URL('plugin_listandedit',
+                    'dupAndEdit.load', args=[tablename, rowid]),
+                    _class='plugin_listandedit_duplicate', cid='viewpane')
 
     elif len(request.args) == 1:
         formname = '%s/create' % (tablename)
