@@ -1,4 +1,4 @@
-from gluon import current, SPAN, A, DIV, INPUT, UL, LI, OPTION, SELECT
+from gluon import current, SPAN, A, INPUT, UL, LI, OPTION, SELECT
 from gluon.html import URL
 from gluon.sqlhtml import OptionsWidget, MultipleOptionsWidget
 #TODO: add ListWidget as another option?
@@ -119,7 +119,6 @@ class AjaxSelect(object):
         wrapper.append(self.refresher(wrappername, linktable, uargs, uvars))
         wrapper.append(self.adder(wrappername, linktable,
                                 uargs, uvars, form_name))
-        wrapper.append(self.dialog(form_name))
         if multi and lister == 'simple':
             wrapper.append(self.taglist(value, linktable))
         elif multi and lister == 'editlinks':
@@ -257,14 +256,6 @@ class AjaxSelect(object):
                     _class='add_trigger', cid=form_name)
 
         return add_a
-
-    def dialog(self, form_name):
-        '''create hidden div to hold form (to be displayed via modal dialog,
-        dialog triggered in static/plugin_ajaxselect.js'''
-
-        dialog = ''#DIV('', _id = form_name, _class='ajaxselect_dialog')
-
-        return dialog
 
     def taglist(self, value, linktable):
         """Build a list of selected widget options to be displayed as a
