@@ -1,4 +1,4 @@
-
+# coding: utf8
 #!/usr/bin/python
 #found when running python2.7 web2py.py -S paideia -M -R test_runner.py
 
@@ -41,6 +41,7 @@ def create_and_login_test_user(db, first_name, last_name, email, password):
     )
 
     db.commit()
+
     session.auth = Storage(
         user=user_id,
         expiration=auth.settings.expiration,
@@ -67,10 +68,6 @@ class Paideia_exploringModule(unittest.TestCase):
     def setUp(self):
 
         # Create a test user and log in
-        users = self.db(self.db.auth_user.id==19).select()
-        for u in users:
-            progress = self.db(self.db.tag_progress.name == u.id).select()
-
         create_and_login_test_user(
             db=self.db,
             first_name='Test',
@@ -93,7 +90,10 @@ class Paideia_exploringModule(unittest.TestCase):
         # Remove user's game history
         users = self.db(self.db.auth_user.id == self.walk.user.id)
         for u in users.select():
-            progress = self.db(self.db.tag_progress.name == u.id).delete()
+            self.db(self.db.tag_records.name == u.id).delete()
+            self.db(self.db.tag_progress.name == u.id).delete()
+            self.db(self.db.path_log.name == u.id).delete()
+            self.db(self.db.attempt_log.name == u.id).delete()
 
     ##### Utility methods
 
@@ -148,11 +148,19 @@ class Paideia_exploringModule(unittest.TestCase):
             'Test user has path logs (should have none)'
         )
 
+        # Attempt logs
+        attempt_logs = self.db(self.db.attempt_log.name==self.walk.user.id).select()
+        self.assertEqual(
+            len(attempt_logs),
+            0,
+            'Test user has attempt logs (should have none)'
+        )
+
         return True
 
     def get_location(self, alias):
         '''
-        Return a location object given it's alias.
+        Return a location object given its alias.
         '''
 
         location = self.db(self.db.locations.alias == alias).select().first()
@@ -160,9 +168,12 @@ class Paideia_exploringModule(unittest.TestCase):
             _src=URL('default', 'download',
                      args=self.db.locations[location.id].background)
         )
+
         return Location(location, image)
 
     ##### Test cases
+
+    ### Walk
 
     def test_categorize_tags_new_user(self):
         '''
@@ -255,9 +266,9 @@ class Paideia_exploringModule(unittest.TestCase):
 
         expected_path = expected_paths[expected_path_ids.index(self.walk.path.id)]
         self.assertEqual(
-            self.walk.step,
+            self.walk.step.step.id,
             expected_path.steps[0],
-            'Picked incorrect step: expected %s got %s' % (expected_path.steps[0], self.walk.step)
+            'Picked incorrect step: expected %s got %s' % (expected_path.steps[0], self.walk.step.step.id)
         )
 
     def test_find_paths(self):
@@ -286,5 +297,92 @@ class Paideia_exploringModule(unittest.TestCase):
                 expected[1],
                 'Found incorrect category: expected %s got %s' % (expected[1], category)
             )
+
+    ### Step
+
+    def test_get_npc_no_active_location(self):
+        '''
+        Test Step.get_npc() where there is no active location.
+        '''
+
+        self.walk.active_location = None
+
+        step = Step(1)
+
+        npc = step.get_npc()
+
+        self.assertIsNone(
+            npc,
+            'NPC should be none - got %s' % npc
+        )
+
+    def test_get_npc_active_location(self):
+        '''
+        Test Step.get_npc() where there is an active location.
+        '''
+
+        self.walk.active_location = self.get_location('domusA')
+
+        step = Step(1)
+
+        npc = step.get_npc()
+
+        expected_ids = (2, 3, 8, 14, 17, 31, 40)
+        expected = self.db(self.db.npcs.id.belongs(expected_ids)).select()
+
+        self.assertIn(
+            npc.npc,
+            expected,
+            'Picked incorrect NPC: %s is not in %s' % (
+                npc.npc.name, [n.name for n in expected])
+        )
+
+        # Session should be updated
+        self.assertEqual(
+            step,
+            session.walk.step,
+            'Session incorrectly updated: expected %s got %s' % (
+                session.walk.step, step)
+        )
+
+    def test_prompt(self):
+        '''
+        Test Step.prompt.
+
+        TODO: Test audio prompt when it's implemented
+        '''
+
+        step = Step(1)
+
+        prompt = step.prompt()
+
+        expected = '<span>How could you write the word &quot;mat&quot; using Greek letters?</span>'
+
+        self.assertEqual(
+            str(prompt),
+            expected,
+            'Incorrect prompt:\n\texpected: %s\n\tactual:   %s' % (expected, prompt)
+        )
+
+    ### NPC
+
+    def test_npc(self):
+        '''
+        Test npc creation.
+        '''
+
+        npc_id = 2
+
+        npc = self.db(self.db.npcs.id == npc_id).select().first()
+
+        npc_obj = Npc(npc)
+
+        expected = '<img src="/paideia/default/download/npcs.image.a5da29fa3962ad01.776f6d616e312e706e67.png" />'
+
+        self.assertEqual(
+            str(npc_obj.image),
+            expected,
+            'Incorrect image:\n\texpected: %s\n\tactual:   %s' % (expected, npc_obj.image)
+        )
 
 

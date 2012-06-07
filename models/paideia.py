@@ -7,7 +7,7 @@ import datetime, os
 response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.js'))
 response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.css'))
 
-dtnow = datetime.datetime.utcnow()
+dtnow = datetime.datetime.utcnow
 
 #TODO:Allow for different class profiles with different settings
 db.define_table('app_settings',

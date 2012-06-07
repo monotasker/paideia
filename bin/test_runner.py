@@ -1,6 +1,6 @@
 #!/usr/bin/python
 """
-Copy or symlink this fileto web2py's bin directory before running.
+Copy or symlink this file to web2py's bin directory before running.
 
 Execute with:
 >   python web2py.py -S app_name -M -R test_runner.py to run the doctests and unittests
@@ -61,7 +61,6 @@ from gluon.utils import web2py_uuid
 
 
 DB_URI = 'sqlite:memory:'
-DB_DIR = os.path.join(os.getcwd(), 'applications/paideia/databases')
 
 
 def showfeedback():
@@ -122,7 +121,7 @@ else:
 
 if w2p_models:
     # Export the data from the live database
-    # TODO: Put this in a seperate script sp that we don't have to do this
+    # TODO: Put this in a seperate script so that we don't have to do this
     # every time we run tests
     csv_file = os.path.join(
         'applications',
@@ -147,6 +146,9 @@ if w2p_models:
             test_db.import_from_csv_file(open(csv_file, 'r'))
 
         db = test_db
+
+        # Simplify db access in unit tests
+        current.db = db
 
         # Switch auth to the test db
         current.auth.db = db
