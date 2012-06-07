@@ -36,9 +36,9 @@ def get_paths():
 
 # TODO: Deprecate eventually
 class Utils(object):
-    """
+    '''
     Miscellaneous utility functions, gathered in a class for convenience.
-    """
+    '''
 
     def clear_session(self):
         session, response = current.session, current.response
@@ -68,7 +68,7 @@ class Utils(object):
         print pprint.pprint(session)
 
     def update_session(self, session_index, val, switch):
-        """insert, update, or delete property of the session object"""
+        '''insert, update, or delete property of the session object'''
         session = current.session
 
         print '\ncalling modules/paideia_path.update_session()'
@@ -97,12 +97,12 @@ class Utils(object):
 
 
 class Walk(object):
-    """
+    '''
     A class handling the "movement" of a user from one path or step to the
     next (i.e., transitions between states outside a single step). In other
     words, this class prepares path-related information needed immediately
     before path selection.
-    """
+    '''
 
     def __init__(self, user):
 
@@ -116,7 +116,7 @@ class Walk(object):
         self.user = user
 
     def _introduce(self):
-        """
+        '''
         This method checks the user's performance and, if appropriate,
         introduces one or more new tags to the active set for selecting paths.
         This method is intended as private, to be called by categorize()
@@ -127,7 +127,7 @@ class Walk(object):
 
         JEFF: By convention, private methods in Python are prefixed with an underscore
               (see http://docs.python.org/tutorial/classes.html#private-variables)
-        """
+        '''
 
         db = current.db
 
@@ -149,7 +149,7 @@ class Walk(object):
         return tags
 
     def categorize_tags(self):
-        """
+        '''
         This method uses stored statistics for current user to categorize the grammatical
         tags based on the user's success and the time since the user last
         used the tag.
@@ -161,7 +161,7 @@ class Walk(object):
         time-based statistics can be updated.
 
 
-        """
+        '''
         #TODO: Factor in how many times a tag has been successful or not
         print 'calling paideia_path.categorize_tags'
         db = current.db
@@ -202,7 +202,7 @@ class Walk(object):
         self.tag_set = categories
 
     def unfinished(self):
-        """
+        '''
         This public method checks for any paths that have been started but not
         finished by the current user. It expects finished paths to have a
         'last_step' value of 0 in its most recent entry in the db table
@@ -210,7 +210,7 @@ class Walk(object):
 
         implemented by:
 
-        """
+        '''
 
         db = current.db
 
@@ -227,23 +227,23 @@ class Walk(object):
             self.active_paths[path] = log.last_step
 
     def pick_path(self, location):
-        """Choose a new path for the user, based on tag performance"""
+        '''Choose a new path for the user, based on tag performance'''
 
         print '\ncalling Path.pick()'
 
-        # check for active blocking conditions
+        # Check for active blocking conditions
         # TODO: Implement logic to do something with True result here
         if self.get_blocks():
             print 'block in place'
 
-        # if possible, continue an active path whose next step is here
+        # If possible, continue an active path whose next step is here
         active_paths = location.active_paths(self)
         if not active_paths:
             print 'no active paths here'
         else:
             return active_paths
 
-        #otherwise choose a new path
+        # Otherwise choose a new path
         db = current.db
 
         category = self.get_category()
@@ -275,16 +275,16 @@ class Walk(object):
         self.path = path#.id
         self.step = Step(step_id)
 
-        #log this attempt of the step
-        self.log(path.id, step_id, 0)
+        # Log this attempt of the step
+        self.update_path_log(path.id, step_id, 0)
 
 #        return dict(path = path, step = the_stepid)
 
     def get_category(self):
-        """
+        '''
         choose one of four categories with a random factor but a heavy
         weighting toward category 1
-        """
+        '''
         switch = random.randrange(1,101)
         print 'the switch is ', switch
         if switch in range(1,75):
@@ -298,11 +298,11 @@ class Walk(object):
         return category
 
     def find_paths(self, cat, location, paths):
-        """
+        '''
         Find paths for this location that are due in the specified category
         (in argument 'cat') and filter out paths that have been completed
         already today. If no tags in that category, move on to the next.
-        """
+        '''
         print '\ncalling modules/paideia_path.find_paths()'
 
         #start with the category of tags, but loop through the categories
@@ -321,14 +321,14 @@ class Walk(object):
                     (location.location.id in row['locations'])
                 ))
                 print 'raw category_paths = ', category_paths
-                """
+                '''
                 TODO: see whether the virtual fields approach above is slower
                 than some version of query approach below
 
                 catXpaths = db((db.paths.tags.contains(tags))
                                 & (db.paths.locations.contains(curr_loc.id))
                             ).select()
-                """
+                '''
                 #filter out any of these completed already today
                 if self.completed_paths is not None:
                     print 'completed paths: ', self.completed_paths
@@ -349,10 +349,10 @@ class Walk(object):
         return (category_paths, category)
 
     def get_blocks(self):
-        """
+        '''
         Find out whether any blocking conditions are in place and trigger
         appropriate responses.
-        """
+        '''
         #current object must be accessed at runtime
         session = current.session
 
@@ -370,23 +370,25 @@ class Walk(object):
             print 'no blocking conditions'
             return False
 
-    def log(self, pathid, stepid, update_switch):
-        """either create or update entries in the attempt_log table"""
+    def update_path_log(self, path_id, step_id, update_switch):
+        '''
+        Create or update entries in the path_log table.
+        '''
+
         print '\ncalling modules/paideia_path.log_attempt()'
         db = current.db
 
-        if update_switch == 1:
-            logs = db(db.path_log.path == pathid).select()
-            logdate = max(l.dt_started for l in logs)
-            log = logs.find(lambda row: row.dt_started == logdate).first()
-            log.update_record(last_step = stepid)
+        if update_switch:
+            query = db.path_log.path == path_id & db.path_log.name == self.user.id
+            log = db(query).select(orderby=~db.path_log.dt_started).first()
+            log.update_record(path=path_id, last_step=step_id)
         else:
-            db.path_log.insert(path = pathid, last_step = stepid)
-        db.attempt_log.insert(step = stepid)
+            db.path_log.insert(path=path_id, last_step=step_id)
+
 
 # TODO: Deprecate eventually
 class Path(object):
-    """
+    '''
     set the path a student is exploring, retrieve its data, and store
     the data in the session object
 
@@ -407,7 +409,7 @@ class Path(object):
     session.step (single int)
     session.path (single int)
     session.image
-    """
+    '''
 
     def __init__(self, loc):
         self.loc = loc
@@ -422,186 +424,233 @@ class Path(object):
 
 class Step(object):
 
-    def __init__(self, sid):
+    def __init__(self, step_id):
         db, session = current.db, current.session
 
         print '\ncreating instance of step class'
-        self.pid = session.walk.path
-        self.sid = sid
-        self.s = db.steps[sid]
-        self.ns = None
-        self.n = None
+        self.path = session.walk.path
+        self.step = db.steps[step_id]
+        self.npc = None
 
     def ask(self):
-        """Public method. Returns the html helpers to create the view
-        for the 'ask' state of the user interface."""
+        '''
+        Public method. Returns the html helpers to create the view
+        for the 'ask' state of the user interface.
+        '''
+
         print '\ncalling ask() method of step class'
-        self.n = self.npc()
-        print self.n
-        img = self.img()
-        print img
+        self.npc = self.get_npc()
+        print self.npc
+#        img = self.get_npc_img()
+#        print img
         prompt = self.prompt()
         print prompt
         responder = self.responder()
 
-        return dict(npc_img = img, prompt = prompt, responder = responder)
+        return dict(npc_img = self.npc.image, prompt = prompt, responder = responder)
 
-    def npc(self):
-        """Given a set of npcs for this step (in self.ns) select one of
-        the npcs at random, store the id in a session variable, and return
-        the corresponding db row object"""
+    def get_npc(self):
+        '''
+        Given a set of npcs for this step select one of the npcs at random and
+        return the corresponding Npc object.
+        '''
+
+        print '\ncalling get_npc() method of step class'
         db, session = current.db, current.session
-        print '\ncalling npc() method of step class'
+
         if session.walk.active_location is None:
-            return   # TODO: return what?
-        nrows = db((db.npcs.id > 0)
-                        & (db.npcs.location.contains(session.walk.active_location.location.id))
-                    ).select()
-        nrows = nrows.exclude(lambda row: row.id in self.s.npcs)
-        ns_here = [n.id for n in nrows]
-        print 'npcs in this location: ', ns_here
-        if len(ns_here) > 1:
-            nrow = nrows[random.randrange(1,len(ns_here)) - 1]
+            return   # TODO: maybe we return a 404 here (or in ask()and other callers?)
+
+        location_id = session.walk.active_location.location.id
+
+        npcs = db(
+            (db.npcs.id.belongs(self.step.npcs)) &
+            (db.npcs.location.contains(location_id))
+        ).select()
+#        ).exclude(lambda row: row.id in self.step.npcs)
+        npc_count = len(npcs)
+        print 'npcs in this location: ', npcs
+
+        if npc_count > 1:
+            npc = npcs[random.randrange(1, npc_count) - 1]
         else:
-            nrow = nrows.find(lambda row: row.id in ns_here)[0]
-        print 'selected npc: ', nrow.id
+            npc = npcs.first()
+        print 'selected npc: ', npc.id
         #store the id of the active npc as a session variable
-        session.npc = nrow.id
-        self.n = nrow
-        return nrow
+#        session.npc = nrow.id
+        self.npc = Npc(npc)
 
-    def img(self):
-        """Get the image to present as a depiction of the current npc"""
-        db, session = current.db, current.session
+        session.walk.step = self
 
-        n_img = IMG(_src=URL('default', 'download',
-                        args=db.npcs[self.n.id].image))
-        session.image = n_img
-        return n_img
+        return self.npc
+
+#    def get_npc_img(self):
+#        '''
+#        Get the image to present as a depiction of the current npc.
+#        '''
+#
+#        db, session = current.db, current.session
+#
+#        n_img = IMG(_src=URL('default', 'download',
+#                        args=db.npcs[self.npc.id].image))
+#        session.image = n_img
+#        return n_img
 
 
     def process(self):
-        """
-        handles the user's response to the step prompt. In this base 'step'
-        class this involves comparing the user's typed response with the
-        regular expressions provided for the step. The evaluation is then
-        logged and stored in the db, and the appropriate information
-        presented to the user.
-        """
+        '''
+        Handles the user's response to the step prompt.
+
+        In this base 'step' class this involves comparing the user's typed
+        response with the regular expressions provided for the step. The
+        evaluation is then logged and stored in the db, and the appropriate
+        information presented to the user.
+        '''
+
         session, db, auth = current.session, current.db, current.auth
 
         print '\ncalling process() method of step class'
-        # get the student's response to the question
-        r = string.strip(session.response)
-        # get the correct answer information from db
-        print self.s
-        answer = self.s.response1
-        answer2 = self.s.response2
-        answer3 = self.s.response3
-        readable = self.s.readable_response
+        # Get the student's response to the question
+        response = string.strip(session.response)
 
-        # compare the student's response to the regular expressions
+        # Get the correct answer information from db
+        print self.step
+        answer1 = self.step.response1
+        answer2 = self.step.response2
+        answer3 = self.step.response3
+        readable = self.step.readable_response
+
+        # Compare the student's response to the regular expressions
         try:
-            if re.match(answer, r, re.I):
+            if re.match(answer1, response, re.I):
                 score = 1
                 reply = "Right. Κάλη."
-            elif re.match(answer2, r, re.I) and answer2 != 'null':
+            elif answer2 != 'null' and re.match(answer2, response, re.I):
                 score = 0.5
                 #TODO: Get this score value from the db instead of hard coding it here.
                 reply = "Οὐ κάκος. You're close."
                 #TODO: Vary the replies
-            elif re.match(answer3, r, re.I) and answer3 != 'null':
+            elif answer3 != 'null' and re.match(answer3, response, re.I):
                 #TODO: Get this score value from the db instead of hard coding it here.
                 score = 0.3
             else:
                 score = 0
                 reply = "Incorrect. Try again!"
-            # set the increment value for times wrong, depending on score
-            if score < 1: nscore = 1
-            else: nscore = 0
-            # record the results in statistics for this step and this tag
-            self.record(score, nscore)
 
-        #handle errors if the student's response cannot be evaluated
+            # Set the increment value for times wrong, depending on score
+            if score < 1:
+                times_wrong = 1
+            else:
+                times_wrong = 0
+
+            # Record the results in statistics for this step and this tag
+            self.record(score, times_wrong)
+
+        # Handle errors if the student's response cannot be evaluated
         except re.error:
             redirect(URL('index', args=['error', 'regex']))
 
-        img = session.image
+        image = self.npc.image
 
-        return dict(reply=reply, readable=readable, npc_img = img)
+        return dict(reply=reply, readable=readable, npc_img=image)
 
-    def record(self, score, nscore):
-        """Record the results of this step in db tables attempt_log and
+    def record(self, score, times_wrong_incr):
+        '''
+        Record the results of this step in db tables attempt_log and
         tag_records. score gives the increment to add to 'times right' in
-        records. nscore gives the opposite value to add to 'times wrong'
-        (i.e., negative score)."""
+        records. times_wrong gives the opposite value to add to 'times wrong'
+        (i.e., negative score).
+        '''
+
         db, auth = current.db, current.auth
-        utcnow = datetime.datetime.utcnow()
+
+        utc_now = datetime.datetime.utcnow()
         print '\ncalling step.record()'
 
-        #log this step attempt
-        db.attempt_log.insert(step=self.sid, score=score, path=self.pid)
+        # Log this step attempt
+        db.attempt_log.insert(step=self.step.step, score=score, path=self.path)
         print 'recorded in db.attempt_log:'
         print db(db.attempt_log.id > 0).select().last()
 
-        #log this tag attempt for each tag in the step
-        trows = db(db.tag_records.id > 0).select()
-        #calculate record info
-        for t in self.s.tags:
-            lr = utcnow
-            lw = utcnow
-            # try to update an existing record for this tag
+        # Log this tag attempt for each tag in the step
+        tag_records = db(db.tag_records.id > 0).select()
+        # Calculate record info
+        time_last_right = utc_now
+        time_last_wrong = utc_now
+        for tag in self.step.step.tags:
+            # Try to update an existing record for this tag
+            # TODO: Use update_or_insert instead?
             try:
-                trow = trows.find(lambda row: (row.tag == t) &
-                                            (row.name == auth.user_id)).first()
+                tag_record = tag_records.find(
+                    lambda row: (row.tag == tag) & (row.name == auth.user_id)
+                ).select().first()
+
                 if score == 1:
-                    lw = trow.tlast_wrong
+                    time_last_wrong = tag_record.tlast_wrong
                 elif score == 0:
-                    lr = trow.tlast_right
-                    lw = utcnow
+                    time_last_right = tag_record.tlast_right
                 else:
                     score = 0
-                    lw = utcnow
-                    lr = utcnow
-                tr = trow.times_right + score
-                tw = trow.times_wrong + nscore
-                trow.update_record(tlast_right = lr, tlast_wrong = lw,
-                                        times_right = tr, times_wrong = tw,
-                                        path = self.pid)
-                print 'updating existing tag record for ', trow.tag
-            # if none exists, insert a new one
-            except AttributeError:
-                db.tag_records.insert(tag = t,
-                                        times_right = score,
-                                        times_wrong = nscore,
-                                        path = self.pid)
-                print 'inserting new tag record for ', t
-            # print any other error that is thrown
+                    time_last_right = tag_record.tlast_right
+
+                times_right = tag_record.times_right + score
+                times_wrong = tag_record.times_wrong + times_wrong_incr
+
+                tag_record.update_or_insert(
+                    db.tag_records.tag == tag & db.tag_record.name == auth.user_id,
+                    tlast_right = time_last_right,
+                    tlast_wrong = time_last_wrong,
+                    times_right = times_right,
+                    times_wrong = times_wrong,
+                    path = self.path,
+                    step = self.step
+                )
+                print 'updating/inserting existing tag record for ', tag_record.tag
+#            # If none exists, insert a new one
+#            except AttributeError:
+#                # TODO: Insert tlast_right and tlastwrong as well?
+#                #       Is dtnow UTC or local time?
+#                db.tag_records.insert(
+#                    tag = tag,
+#                    times_right = score,
+#                    times_wrong = wrong_score,
+#                    path = self.path
+#                )
+#                print 'inserting new tag record for ', tag
+            # Print any other error that is thrown
+            # TODO: Put this in a server log instead/as well or create a ticket
             except Exception, err:
                 print 'unidentified error:'
                 print type(err)
                 print err
 
-        #TODO: update the path log for this attempt
-        #TODO: check to see whether this is the last step in the path and if so
-        #remove from active_paths and add to completed_paths
+        #TODO: Update the path log for this attempt
+
+        #TODO: Check to see whether this is the last step in the path and if so
+        #      remove from active_paths and add to completed_paths
 
     def prompt(self):
-        """Get the prompt text to be presented from the npc to start the
-        step interaction"""
-        prompt = SPAN(self.s.prompt)
+        '''
+        Get the prompt text to be presented from the npc to start the step
+        interaction.
+        '''
+        text = SPAN(self.step.prompt)
+
         #TODO: get audio file for prompt text as well.
-        return prompt
+        audio = ''
+
+        return text#, audio
 
     def responder(self):
-        """
-        create and return the form to receive the user's response for this
-        step
-        """
+        '''
+        Create and return the form to receive the user's response for this step.
+        '''
+
         session, request = current.session, current.request
 
         form = SQLFORM.factory(
-                   Field('response', 'string', requires=IS_NOT_EMPTY()))
+                   Field('response', 'string', requires=IS_NOT_EMPTY())
+               )
         if form.process().accepted:
             session.response = request.vars.response
 
@@ -610,13 +659,13 @@ class Step(object):
 
 class StepMultipleChoice(Step):
     def responder(self):
-        """
+        '''
         create and return the form to receive the user's response for this
         step
-        """
+        '''
         session, request = current.session, current.request
 
-        vals = self.s.options
+        vals = self.step.options
         form = SQLFORM.factory(
                    Field('response', 'string',
                     requires=IS_IN_SET(vals),
@@ -631,9 +680,9 @@ class StepMultipleChoice(Step):
 
 
 class StepStub(Step):
-    """A step type that does not require significant user response. Useful for
+    '''A step type that does not require significant user response. Useful for
     giving the user information and then freeing her/him up to perform a task.
-    """
+    '''
 
     def responder(self):
         pass
@@ -644,48 +693,53 @@ class StepStub(Step):
 
 class Npc(object):
 
-    def __init__(self):
-        pass
+    def __init__(self, npc):
 
-    def pick(self):
-        """Given a set of npcs for this step (in self.ns) select one of
-        the npcs at random, store the id in a session variable, and return
-        the corresponding db row object"""
-        db, session = current.db, current.session
-        print '\ncalling npc() method of step class'
+        self.npc = npc
+        self.image = self.get_image()
 
-        nrows = db((db.npcs.id > 0)
-                        & (db.npcs.location.contains(session.location))
-                    ).select()
-        nrows = nrows.exclude(lambda row: row.id in self.s.npcs)
-        ns_here = [n.id for n in nrows]
-        print 'npcs in this location: ', ns_here
-        if len(ns_here) > 1:
-            nrow = nrows[random.randrange(1,len(ns_here)) - 1]
-        else:
-            nrow = nrows.find(lambda row: row.id in ns_here)[0]
-        print 'selected npc: ', nrow.id
-        #store the id of the active npc as a session variable
-        session.npc = nrow.id
-        self.n = nrow
-        return nrow
+#    def pick(self):
+#        '''Given a set of npcs for this step (in self.ns) select one of
+#        the npcs at random, store the id in a session variable, and return
+#        the corresponding db row object'''
+#        db, session = current.db, current.session
+#        print '\ncalling npc() method of step class'
+#
+#        nrows = db((db.npcs.id > 0)
+#                        & (db.npcs.location.contains(session.location))
+#                    ).select()
+#        nrows = nrows.exclude(lambda row: row.id in self.s.npcs)
+#        ns_here = [n.id for n in nrows]
+#        print 'npcs in this location: ', ns_here
+#        if len(ns_here) > 1:
+#            nrow = nrows[random.randrange(1,len(ns_here)) - 1]
+#        else:
+#            nrow = nrows.find(lambda row: row.id in ns_here)[0]
+#        print 'selected npc: ', nrow.id
+#        #store the id of the active npc as a session variable
+#        session.npc = nrow.id
+#        self.n = nrow
+#        return nrow
 
-    def img(self):
-        """Get the image to present as a depiction of the current npc"""
-        db, session = current.db, current.session
+    def get_image(self):
+        '''
+        Get the image to present as a depiction of the npc.
+        '''
 
-        n_img = IMG(_src=URL('default', 'download',
-                        args=db.npcs[self.n.id].image))
-        session.image = n_img
-        return n_img
+        db = current.db
+
+        image = IMG(_src=URL('default', 'download',
+                             args=db.npcs[self.npc.id].image))
+        print 'DEBUG: image =', image
+        return image
 
 
 class Counter(object):
-    """This class is deprecated"""
+    '''This class is deprecated'''
 
     def __init__(self):
-        """include this question in the count for this quiz, send to 'end'
-        if quiz is finished"""
+        '''include this question in the count for this quiz, send to 'end'
+        if quiz is finished'''
 
     def check(self):
         #current object must be accessed at runtime
@@ -709,25 +763,25 @@ class Counter(object):
 
 
 class Location(object):
-    """
+    '''
     This class finds and returns information on the student's current
     'location' within the town, based on the url variable 'loc' which
     is accessed via the web2py request object.
 
     implemented in:
     controllers/exploring.walk()
-    """
+    '''
     def __init__(self, location, image):
 
         self.location = location
         self.image = image
 
     def info(self):
-        """
+        '''
         Determine what location has just been entered and retrieve its
         details from db. Returns a dictionary with the keys 'id', 'alias',
         and 'img'.
-        """
+        '''
 
         info = {
             'id': self.location.id,
@@ -738,11 +792,11 @@ class Location(object):
         return info
 
     def active_paths(self, walk):
-        """
+        '''
         check for an active path in this location and make sure
         it has another step to begin. If so return a dict containing the
         id for the path ('path') and the step ('step'). If not return False.
-        """
+        '''
         session, db = current.session, current.db
 
         if walk.active_paths:
@@ -796,7 +850,7 @@ class Location(object):
 
 
 class Map(object):
-    """This class returns information needed to present the navigation map"""
+    '''This class returns information needed to present the navigation map'''
 
     def __init__(self):
 
