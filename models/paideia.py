@@ -97,7 +97,8 @@ db.npcs.location.requires = IS_IN_DB(db, 'locations.id',
                                      db.locations._format, multiple=True)
 db.npcs.location.widget = lambda field, value: \
                          AjaxSelect().widget(field, value, 'locations',
-                                    multi='basic')
+                                    multi='basic',
+                                    lister='editlinks')
 
 db.define_table('inv_items',
     Field('item_name', 'string'),
