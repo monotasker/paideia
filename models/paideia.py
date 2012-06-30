@@ -14,7 +14,7 @@ if 0:
     db = current.db
 
 #js file necessary for AjaxSelect widget
-response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.js'))
+response.files.insert(5,URL('static', 'plugin_ajaxselect/plugin_ajaxselect.js'))
 response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.css'))
 
 dtnow = datetime.datetime.utcnow()
@@ -222,7 +222,7 @@ db.define_table('tag_progress',
 
 db.define_table('paths',
     Field('label'),
-    Field('steps', 'list:reference db.steps'),
+    Field('steps', 'list:reference steps'),
     format='%(label)s')
 db.paths.steps.requires = IS_IN_DB(db, 'steps.id',
                                    db.steps._format, multiple=True)
@@ -230,7 +230,8 @@ db.paths.steps.widget = lambda field, value: AjaxSelect().widget(
                                         field, value, 'steps',
                                         refresher=True,
                                         multi='basic',
-                                        lister='editlinks')
+                                        lister='simple',
+                                        sortable='true')
 
 
 class PathsVirtualFields(object):

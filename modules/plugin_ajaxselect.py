@@ -8,10 +8,10 @@ class AjaxSelect(object):
     This plugin creates a select widget wrapped that can be refreshed via ajax
     without resetting the entire form. It also provides an "add new" button
     that allows users to add a new item to the table that populates the select
-    widget via ajax. The widget is then automatically refreshed via ajax so that
-    the new item is visible as a select option and can be chosen. All of this
-    happens without a page or form refresh so that data entered in other fields
-    is not lost or submitted.
+    widget via ajax. The widget is then automatically refreshed via ajax so
+    that the new item is visible as a select option and can be chosen. All of
+    this happens without a page or form refresh so that data entered in other
+    fields is not lost or submitted.
 
     Installation:
     1. download the plugin file;
@@ -26,10 +26,11 @@ class AjaxSelect(object):
     6. Add the following three lines to the top of a module file to make db
     available in the 'current' object and to include the js and css files for
     the plugin:
-        from gluon import current
-        current.db = db
-        response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.css'))
-        response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.js'))
+
+    from gluon import current
+    current.db = db
+    response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.css'))
+    response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.js'))
 
     The plugin should now be installed and ready to use.
 
@@ -43,36 +44,55 @@ class AjaxSelect(object):
     {optional arguments}).widget()
 
     Optional arguments:
-    :param refresher (True/False; defaults to True):a button to manually refresh the
-    select widget via ajax.
+    :param refresher (True/False; defaults to True):a button to manually
+    refresh the select widget via ajax.
 
-    :param adder (True/False; defaults to True): a button to add a new record to the
-    linked table that populates the select widget.
+    :param adder (True/False; defaults to True): a button to add a new record
+    to the linked table that populates the select widget.
 
-    :param restrictor ({form field name}): adds a dynamic constraint on the records
-    displayed in the named field's widget. When the specified form field
-    (within the same form) has its value changed, this select will be refreshed
-    and its displayed records filtered accordingly. Note that this is only
-    useful if {fieldname} references values shared with the linked table.
+    :param restrictor ({form field name}): adds a dynamic constraint on the
+    records displayed in the named field's widget. When the specified form
+    field (within the same form) has its value changed, this select will be
+    refreshed and its displayed records filtered accordingly. Note that this
+    is only useful if {fieldname} references values shared with the linked
+    table.
 
     e.g., to make the select constrain the widget for the 'works' table:
     db.notes.author.widget = lambda field, value: AjaxSelect(field, value,
     'authors', restrictor='work').widget()
 
-    :param multi ('basic'/False; defaults to False): Instead of displaying a single
-    select widget, the 'basic' value displays a standard multiselect widget (an
-    html select widget with a size greater than 1). This will only work
-    properly if the database field type is defined as "list:reference" in the
-    model.
+    :param multi ('basic'/False; defaults to False): Instead of displaying a
+    single select widget, the 'basic' value displays a standard multiselect
+    widget (an html select widget with a size greater than 1). This will only
+    work properly if the database field type is defined as "list:reference" in
+    the model.
 
-    :lister (False/'simple'/'editlinks'; defaults to False): 'normal' adds a
-    list of the widget's currently selected values below a multiselect widget. If
-    set to 'editlinks' these passive list items become links opening edit forms
-    for the linked items in a modal window.
+    :param lister (False/'simple'/'editlinks'; defaults to False): 'normal'
+    adds a list of the widget's currently selected values below a multiselect
+    widget. If set to 'editlinks' these passive list items become links opening
+    edit forms for the linked items in a modal window.
 
+    :param sortable (True/False): 'True' allows for drag-and-drop sorting of
+    widget values (using jQuery-ui sortable). The sorted order is preserved in
+    the database value for the field. In this mode the tags are also displayed
+    in a single column rather than wrapping.
+
+    Note that in order to use the 'sortable' parameter on a list that is
+    created after page load (i.e., in a component), you will also need to add
+    this short script to the bottom of the component view in which the list is
+    created:
+
+    <script>
+    $('#my-sortable-id').sortable();
+    $('#my-sortable-id').disableSelection();
+    </script>
+
+    This should instantiate the sortable object after the list has been
+    created. If you wish to set any parameters on the sortable it should be
+    done in this script.
     """
-    """TODO: allow for restrictor argument to take list and filter multiple other
-    fields"""
+    """TODO: allow for restrictor argument to take list and filter multiple
+    other fields"""
 
     def __init__(self):
         print '------------------------------------------------'
@@ -80,20 +100,25 @@ class AjaxSelect(object):
         print 'starting modules/plugin_ajaxselect __init__'
 
     def widget(self, field, value, restricted=None, refresher=False,
-                adder=True, restrictor=None, multi=False, lister=False, rval=None):
+                adder=True, restrictor=None, multi=False, lister=False,
+                rval=None, sortable=False):
         """
         Main method to create the ajaxselect widget. Calls helper methods
         and returns the wrapper element containing all associated elements
         """
         session, request = current.session, current.request
 
-        print '-------------------------------------------------'
-        print 'starting AjaxSelect.widget() for ,', field
+        verbose = 0
+        if verbose == 1:
+            print '-------------------------------------------------'
+            print 'starting AjaxSelect.widget() for ,', field
+
         if multi == 'False':
             multi = False
         elif multi == 'True':
             multi = True
-        print multi, type(multi)
+        if verbose == 1:
+            print multi, type(multi)
         #assemble information first
         fieldset = str(field).split('.')
         wrappername = self.wrappername(fieldset)
@@ -107,24 +132,27 @@ class AjaxSelect(object):
                     wrappername=wrappername, refresher=refresher,
                     adder=adder, restrictor=restrictor,
                     multi=multi, lister=lister,
-                    restricted=restricted) #vars for add and refresh urls
+                    restricted=restricted,
+                    sortable=sortable) #vars for add and refresh urls
 
         #create and assemble elements of widget
         wrapper = SPAN(_id = wrappername,
                     _class = self.classes(linktable, restricted,
                                         restrictor, lister))
         wrapper.append(self.create_widget(field, value, clean_val,
-                                        multi, restricted, rval))
-        wrapper.append(self.hidden_ajax_field(wrappername))
+                                        multi, restricted, rval, sortable))
+        wrapper.append(self.hidden_ajax_field(wrappername, clean_val))
         wrapper.append(self.refresher(wrappername, linktable, uargs, uvars))
         wrapper.append(self.adder(wrappername, linktable,
                                 uargs, uvars, form_name))
         if multi and lister == 'simple':
-            wrapper.append(self.taglist(value, linktable))
+            wrapper.append(self.taglist(value, linktable, sortable))
         elif multi and lister == 'editlinks':
-            wrapper.append(self.linklist(value, linktable, uargs, uvars))
+            wrapper.append(self.linklist(value, linktable, uargs, uvars,
+                sortable))
         else:
-            print 'did not request list of tags'
+            if verbose == 1:
+                print 'did not request list of tags'
 
         return wrapper
 
@@ -155,20 +183,26 @@ class AjaxSelect(object):
         Use value stored in session if changes to widget haven't been sent to
         db session val must be reset to None each time it is checked.
         """
-        print '---------------'
-        print 'starting modules/plugin_ajaxselect choose_val'
+        verbose = 0
+        if verbose == 1:
+            print '---------------'
+            print 'starting modules/plugin_ajaxselect choose_val'
 
         session = current.session
 
         if (wrappername in session) and (session[wrappername]):
             val = session[wrappername]
-            print 'session value being used in module: %s' % val
+            if verbose == 1:
+                print 'session value being used in module: %s' % val
             session[wrappername] = None
         else:
-            print 'db value being used in module: %s' % val
+            if verbose == 1:
+                print 'db value being used in module: %s' % val
             session[wrappername] = None
         #make sure strings are converted to int and lenth-1 lists to single val
         if type(val) == list:
+            if val[0] == '':
+                del val[0]
             try:
                 val = [int(v) for v in val]
             except ValueError, e:
@@ -183,13 +217,15 @@ class AjaxSelect(object):
         return val
 
     def clean(self, value, multi):
+        verbose = 1
         clean = value
         #remove problematic pipe characters or commas from the field value
         #in case of list:reference fields
         if multi and multi != 'False' and isinstance(value, list):
-            clean = '-'.join(map(str, value))
-        print 'value = ', value, type(value)
-        print 'clean = ', clean, type(clean)
+            clean = ','.join(map(str, value))
+        if verbose == 1:
+            print 'value = ', value, type(value)
+            print 'clean = ', clean, type(clean)
 
         return clean
 
@@ -199,12 +235,15 @@ class AjaxSelect(object):
 
         return None
 
-    def create_widget(self, field, value, clean_val, multi, restricted, rval):
+    def create_widget(self, field, value, clean_val, multi, restricted, rval,
+            sortable):
         """
         create either a single select widget or multiselect widget
         """
+        verbose = 0
+        if verbose == 1:
+            print 'starting create_widget()'
 
-        print 'starting create_widget()'
         if multi and multi != 'False':
             w = MultipleOptionsWidget.widget(field, value)
         else:
@@ -212,12 +251,13 @@ class AjaxSelect(object):
 
         return w
 
-    def hidden_ajax_field(self, wrappername):
+    def hidden_ajax_field(self, wrappername, clean_val):
         """hidden input to help send unsaved changes via ajax so that they're
         preserved through a widget refresh"""
 
         inputid = wrappername + '_input'
-        i = INPUT(_id = inputid, _name = inputid, _type = 'hidden', _value = '')
+        i = INPUT(_id = inputid, _name = inputid, _type = 'hidden',
+                _value = clean_val)
 
         return i
 
@@ -257,33 +297,51 @@ class AjaxSelect(object):
 
         return add_a
 
-    def taglist(self, value, linktable):
+    def taglist(self, value, linktable, sortable):
         """Build a list of selected widget options to be displayed as a
         list of 'tags' below the widget."""
-        print '----------------------------------------------'
-        print 'starting models/plugin_ajaxselect add_tags'
+        verbose = 0
+
+        if verbose == 1:
+            print '----------------------------------------------'
+            print 'starting models/plugin_ajaxselect add_tags'
+            print self.value
 
         db = current.db
 
-        tl = UL(_class='taglist')
-        for v in self.value:
+        classes = 'taglist'
+        if sortable:
+            classes += ' sortable'
+        tl = UL(_class=classes)
+        if type(value) != list:
+            value = [value]
+        for v in value:
             the_row = db(db[linktable].id == v).select().first()
             f = db[linktable]._format % the_row
-            tl.append(LI(f, _class='tag'))
+            ln = LI(f, _id=v, _class='tag')
+            ln.insert(0, A('X', _class='tag_remover'))
+            tl.append(ln)
 
         return tl
 
-    def linklist(self, value, linktable, uargs, uvars):
+    def linklist(self, value, linktable, uargs, uvars, sortable):
         """Build a list of selected widget options to be displayed as a
         list of 'tags' below the widget."""
-        print '----------------------------------------------'
-        print 'starting models/plugin_ajaxselect add_tags'
+
+        verbose = 1
+        if verbose == 1:
+            print '----------------------------------------------'
+            print 'starting models/plugin_ajaxselect add_tags'
+            print value
 
         db = current.db
         form_name = '%s_editlist_form' % linktable
 
         #create list to hold linked tags
-        ll = UL(_class='taglist editlist')
+        ul_classes = 'taglist editlist'
+        if sortable:
+            ul_classes += ' sortable'
+        ll = UL(_class=ul_classes)
 
         #append the currently selected items to the list
         if value:
@@ -297,20 +355,18 @@ class AjaxSelect(object):
                 edit_trigger_id = '%s_editlist_trigger_%i' % (linktable, v)
                 linkargs = uargs[:] #slice for new obj so vals don't pile up
                 linkargs.append(v)
-
-                ll.append(LI(A(formatted,
+                ln = LI(A(formatted,
                                 _href=URL('plugin_ajaxselect',
                                             'set_form_wrapper.load',
                                             args=linkargs,
                                             vars=uvars),
-                                _id = edit_trigger_id,
-                                _class = 'edit_trigger editlink tag',
-                                cid = form_name),
-                            _class = 'editlink tag'))
-
-        #append an empty div to hold the modal form
-        #ll.append(DIV('', _id = form_name))
-
+                                _id=edit_trigger_id,
+                                _class='edit_trigger editlink tag',
+                                cid=form_name),
+                            _id=v,
+                            _class='editlink tag')
+                ln.insert(0, A('X', _class='tag_remover'))
+                ll.append(ln)
         return ll
 
     def classes(self, linktable, restricted, restrictor, lister):
@@ -362,11 +418,11 @@ class FilteredAjaxSelect(AjaxSelect):
 
 class FilteredOptionsWidget(OptionsWidget):
     """
-    Overrides the gluon.sqlhtml.OptionsWidget class to filter the list of options.
-
-    The initial list of options comes via field.requires.options(). This furnishes
-    a list of tuples, each of which contains the id and format string for one option
-    from the referenced field.
+    Overrides the gluon.sqlhtml.OptionsWidget class to filter the list of
+    options.
+    The initial list of options comes via field.requires.options(). This
+    furnishes a list of tuples, each of which contains the id and format
+    string for one option from the referenced field.
     """
 
     @classmethod
@@ -374,9 +430,9 @@ class FilteredOptionsWidget(OptionsWidget):
         """
         generates a SELECT tag, including OPTIONs (only 1 option allowed)
 
-        This method takes one argument more than OptionsWidget.widget. The restricted
-        argument identifies the form field whose value constrains the values to be
-        included as available options for this widget.
+        This method takes one argument more than OptionsWidget.widget. The
+        restricted argument identifies the form field whose value constrains
+        the values to be included as available options for this widget.
 
         see also:
             :meth:`FormWidget.widget`
