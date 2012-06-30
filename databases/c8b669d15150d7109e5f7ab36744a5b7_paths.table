@@ -18,7 +18,7 @@ p9
 (dp10
 S'type'
 p11
-S'list:reference db.steps'
+S'list:reference steps'
 p12
 sS'sortable'
 p13
