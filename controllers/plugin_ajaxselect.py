@@ -9,7 +9,7 @@ def set_widget():
     creates a replacement select widget using the AjaxSelect or
     FilteredAjaxSelect classes and returns the new widget via ajax.
     """
-    verbose = 1
+    verbose = 0
     if verbose == 1:
         print '========================================'
         print 'starting controller set_widget()'
@@ -67,7 +67,7 @@ def setval():
     widget state in a session object to be used if the widget is refreshed
     before the form is processed."""
 
-    verbose = 0
+    verbose = 1
 
     theinput = request.args[0]
     wrappername = theinput.replace('_input', '')

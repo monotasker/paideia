@@ -183,7 +183,7 @@ class AjaxSelect(object):
         Use value stored in session if changes to widget haven't been sent to
         db session val must be reset to None each time it is checked.
         """
-        verbose = 0
+        verbose = 1
         if verbose == 1:
             print '---------------'
             print 'starting modules/plugin_ajaxselect choose_val'
@@ -246,6 +246,25 @@ class AjaxSelect(object):
 
         if multi and multi != 'False':
             w = MultipleOptionsWidget.widget(field, value)
+
+            #place selected items at end of sortable select widget
+            #TODO: reorder options in widget based on value
+            if sortable:
+                try:
+                    for v in value:
+                        opt = w.element(_value=v)
+                        i = w.elements().index(opt)
+                        w.append(opt)
+                        del w[i-1]
+                        if verbose == 1:
+                            print 'removed', opt
+                            print 'index', i
+                except ValueError:
+                        print ValueError
+                        print 'could not remove', opt
+                except TypeError:
+                        print TypeError
+
         else:
             w = OptionsWidget.widget(field, value)
 
@@ -355,17 +374,16 @@ class AjaxSelect(object):
                 edit_trigger_id = '%s_editlist_trigger_%i' % (linktable, v)
                 linkargs = uargs[:] #slice for new obj so vals don't pile up
                 linkargs.append(v)
-                ln = LI(A(formatted,
+                ln = LI(SPAN(formatted), _id=v, _class='editlink tag')
+                ln.insert(0, A('X', _class='tag_remover'))
+                ln.insert(1, A('edit',
                                 _href=URL('plugin_ajaxselect',
                                             'set_form_wrapper.load',
                                             args=linkargs,
                                             vars=uvars),
                                 _id=edit_trigger_id,
                                 _class='edit_trigger editlink tag',
-                                cid=form_name),
-                            _id=v,
-                            _class='editlink tag')
-                ln.insert(0, A('X', _class='tag_remover'))
+                                cid=form_name))
                 ll.append(ln)
         return ll
 

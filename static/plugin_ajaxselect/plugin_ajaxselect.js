@@ -1,8 +1,3 @@
-//TODO:substitute value of hidden form field for value of sortable field
-$('form').live('submit', function(event){
-
-});
-
 $('.add_trigger').live('click', function(event){
 //open modal dialog (using jquery-ui dialog) for adder form
     var the_id = $(this).attr('id');
@@ -99,13 +94,14 @@ $('.plugin_ajaxselect select option').live('click', function(event){
         newtag += 'class="edit_trigger editlink tag" ';
         newtag += 'href="' + link_url + '" ';
         newtag += 'onclick="' + script_string + '; return false;">';
-        newtag += newtext + '</a></li>';
+        newtag += 'edit' + '</a>';
+        newtag += newtext + '</li>';
     }
     //case for simple tags
     else if($p.hasClass('lister_simple')){
         newtag += '<li class="tag" id="' + newval + '">';
         newtag += '<a class="tag_remover">X</a>';
-        newtag += newtext + '</li>';
+        newtag += '<span>' + newtext + '</span>' + '</li>';
     }
     $taglist.append(newtag);
 
