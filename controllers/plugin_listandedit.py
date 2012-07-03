@@ -105,19 +105,34 @@ def makeurl(tablename):
 
 
 def dupAndEdit():
-    """Duplicate a db row and open the new copy for editing."""
-    print 'starting plugin_listandedit.dupAndEdit ******************'
+    """Create and process a form to insert a new record, pre-populated
+    with field values copied from an existing record."""
+
+    verbose = 0
+    if verbose == 1:
+        print 'starting plugin_listandedit.dupAndEdit ******************'
+
     tablename = request.args[0]
     rowid = request.args[1]
     formname = '%s/%s/dup' % (tablename, rowid)
 
     src = db(db[tablename].id == rowid).select().first()
-    print src
+    #print src
     form = SQLFORM(db[tablename], separator='', showid=True, formstyle='ul')
 
     for v in db[tablename].fields:
         if v != 'id' and v in src:
             form.vars[v] = src[v]
+            #TODO: somehow have the widget refreshed with the pre-populated
+            #value. maybe this would work by pre-creating a session value for
+            #the new form?
+            #somehow test to see if the field is AjaxSelect widget
+            #if so, set session value for field
+            wrappername = tablename + '_' + v + '_loader'
+            if verbose == 1:
+                print 'wrappername:', wrappername
+                print 'source record value:', src[v]
+            session[wrappername] = src[v]
 
     if form.process(formname=formname).accepted:
         the_url = makeurl(tablename)
@@ -134,13 +149,27 @@ def dupAndEdit():
 
 
 def edit():
-    print '\n starting controllers/plugin_listandedit edit()'
+    """create and proccess the form to either edit and update one of the listed
+    records or insert a new record into the db table.
+
+    returns a dictionary with two values:
+        form: a web2py SQLFORM() helper object
+        duplink: a web2py A() helper that will trigger the dupAndEdit()
+            function of this controller, opening a form to insert a new record
+            and pre-populating it with data copied from the current record.
+    """
+
+    verbose = 0
+    if verbose == 1:
+        print '\n starting controllers/plugin_listandedit edit()'
+
     tablename = request.args[0]
     duplink = ''
     if len(request.args) > 1:
         rowid = request.args[1]
         formname = '%s/%s' % (tablename, rowid)
-        print 'formname: ', formname
+        if verbose == 1:
+            print 'formname: ', formname
 
         #TODO: Set value of "project" field programatically
         form = SQLFORM(db[tablename], rowid, separator='',
@@ -151,6 +180,8 @@ def edit():
             the_url = makeurl(tablename)
             response.js = "web2py_component('%s', 'listpane');" % the_url
             response.flash = 'The changes were recorded successfully.'
+            if verbose == 1:
+                print "submitted form vars", form.vars
         elif form.errors:
             print form.errors
             response.flash = 'Sorry, there was an error processing ' \
