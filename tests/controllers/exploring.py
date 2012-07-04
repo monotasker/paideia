@@ -6,6 +6,14 @@ from gluon.globals import Request, Session, Storage, Response
 from gluon.contrib.test_helpers import form_postvars
 
 class ExploringController(unittest.TestCase):
+    def __init__(self, p):
+        global auth, session, request
+        unittest.TestCase.__init__(self, p)
+        self.session = pickle.dumps(current.session)
+        current.request.application = 'welcome'
+        current.request.controller = 'default'
+        self.request = pickle.dumps(current.request)
+
 	def setUp(self):
 		pass
 

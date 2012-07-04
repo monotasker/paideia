@@ -1,56 +1,51 @@
 # coding: utf8
 from gluon import current, URL, redirect, IMG, SQLFORM, SPAN, Field, INPUT, A
 from gluon import IS_NOT_EMPTY, IS_IN_SET
-import datetime, random, pprint, re, string
+from gluon.sql import Row, Rows
+
+import datetime, random, pprint, re, traceback
 
 
+### Utility functions
+
+### End utility functions
+
+# TODO: Deprecate eventually
 class Utils(object):
-    """
+    '''
     Miscellaneous utility functions, gathered in a class for convenience.
-    """
-    def __init__(self):
-        pass
+    '''
 
     def clear_session(self):
         session, response = current.session, current.response
-
-        print '\ncalling path.clear_session()'
 
         if response.vars and ('session_var' in response.vars):
             session_vars = response.vars['session_var']
         else:
             session_vars = 'all'
-            
+
         if session_vars == 'all':
-            session_vars = ['active_paths', 'answer', 'answer2', 'answer3', 
-            'blocks', 'completed_paths', 'debug', 'last_query', 'path_freq', 
-            'eval', 'path_freq', 'path_id', 'path_length', 'path_name', 
-            'path_tags', 'qID', 'q_counter', 'question_text', 'quiz_type', 
+            session_vars = ['active_paths', 'answer', 'answer2', 'answer3',
+            'blocks', 'completed_paths', 'debug', 'last_query', 'path_freq',
+            'eval', 'path_freq', 'path_id', 'path_length', 'path_name',
+            'path_tags', 'qID', 'q_counter', 'question_text', 'quiz_type',
             'readable_answer', 'response', 'tagset']
         if type(session_vars) is not list:
             session_vars = list(session_vars)
-        print 'clearing session vars: ', session_vars
 
         for s in session_vars:
             if s in session:
-                session[s] = None
-                print 'cleared session.', s
-
-        print pprint.pprint(session)
+                del session[s]
 
     def update_session(self, session_index, val, switch):
-        """insert, update, or delete property of the session object"""
+        '''insert, update, or delete property of the session object'''
         session = current.session
 
-        print '\ncalling modules/paideia_path.update_session()'
-        print 'val = ', val
         if switch == 'del':
             if type(val) == tuple:
                 val = val[0]
             if session_index in session and val in session[session_index]:
                 del session[session_index][val]
-                print 'removing session.', session_index, '[', val, ']'
-            print 'nothing to remove'
         else:
             if session_index in session and session[session_index] is not None:
                 if type(val) == tuple and (val[0] in session[session_index]):
@@ -64,41 +59,125 @@ class Utils(object):
                     session[session_index] = {val[0]:val[1]}
                 else:
                     session[session_index] = [val]
-            print 'session.', session_index, ': ', session[session_index]
 
- 
-class Tag(object):
+class Walk(object):
+    '''
+    A class handling the "movement" of a user from one path or step to the
+    next (i.e., transitions between states outside a single step). In other
+    words, this class prepares path-related information needed immediately
+    before path selection.
+    '''
 
-    def __init__(self, record_list):
-        """
-        :param record_list: rows (gluon.storage) object containing the db 
-        records from tag_records table that belong to the current user.
+    def __init__(self):
 
-        implemented in:
-        controllers/index.py
-        """
-        self.record_list = record_list
+        session = current.session
 
-    def introduce(self, cat):
-        """
-        This method checks the user's performance and, if appropriate, 
+        if not session.walk:
+            self.active_location = None
+            self.path = None
+            self.active_paths = {}
+            self.completed_paths = set()
+            self.step = None
+            self.tag_set = []
+
+        else:
+            self.get_session_data()
+
+        self.map = Map()
+
+    def save_session_data(self):
+        '''
+        Save attributes in session.
+        '''
+
+        session = current.session
+
+        session_data = {}
+
+        if self.path:
+            session_data['path'] = self.path.id
+        else:
+            session_data['path'] = None
+
+        session_data['active_paths'] = self.active_paths
+        session_data['completed_paths'] = self.completed_paths
+        if self.active_location:
+            session_data['active_location'] = self.active_location.location.alias
+        else:
+            session_data['active_location'] = None
+        session_data['tag_set'] = self.tag_set
+
+        try:
+            session.walk.update(session_data)
+
+        except AttributeError:
+            session.walk = session_data
+
+        if self.step:
+            self.step.save_session_data()
+
+    def get_session_data(self):
+        '''
+        Get the walk attributes from the session.
+        '''
+
+        db, session = current.db, current.session
+
+        path = session.walk['path']
+        if path:
+            self.path = db.paths(path)
+        else:
+            self.path = None
+
+        location_alias = session.walk['active_location']
+
+        if location_alias:
+            self.active_location = Location(location_alias)
+        else:
+            self.active_location = None
+        self.active_paths = session.walk['active_paths']
+        self.completed_paths = session.walk['completed_paths']
+        self.tag_set = session.walk['tag_set']
+
+        if 'step' in session.walk:
+            self.step = Step()
+        else:
+            self.step = None
+
+    def _introduce(self):
+        '''
+        This method checks the user's performance and, if appropriate,
         introduces one or more new tags to the active set for selecting paths.
-        This method is intended as private, to be called by categorize() 
-        if that method yields an initial result with no tags in category 1 
+        This method is intended as private, to be called by categorize()
+        if that method yields an initial result with no tags in category 1
         (needing immediate review).
 
         :param cat:dict()
-        """
-        newtag = ''
-        #TODO: add logic to introduce new tag, based on student's current
-        #position in the tag progression (tags.position)
 
-        cat[1] = [newtag] # add new tag to cat before returning it
+        JEFF: By convention, private methods in Python are prefixed with an underscore
+              (see http://docs.python.org/tutorial/classes.html#private-variables)
+        '''
 
-        return cat
+        auth, db = current.auth, current.db
 
-    def categorize(self):
-        """
+        tag_progress = db(db.tag_progress.name == auth.user_id).select().first()
+        # TODO: Check we aren't at the end
+        if tag_progress:
+            latest = tag_progress.latest_new + 1
+
+            tag_progress.update(name=auth.user_id, latest_new=latest)
+
+        else:
+            latest = 1
+
+            db.tag_progress.insert(name=auth.user_id, latest_new=latest)
+
+        tags = [t.id for t in db(db.tags.position == latest).select()]
+
+        return tags
+
+    def categorize_tags(self):
+        '''
         This method uses stored statistics for current user to categorize the grammatical
         tags based on the user's success and the time since the user last
         used the tag.
@@ -110,343 +189,247 @@ class Tag(object):
         time-based statistics can be updated.
 
 
-        """
+        '''
         #TODO: Factor in how many times a tag has been successful or not
-        print 'calling paideia_path.categorize_tags'
-        
+        auth, db = current.auth, current.db
+
         # create new dictionary to hold categorized results
-        cat = {1:[], 2:[], 3:[], 4:[]}
-        for r in self.record_list:
-            indx = r.tag
-            #get success statistics for this tag
-            timesR = r.times_right or 0
-            timesW = r.times_wrong or 0
+        categories = dict((x, []) for x in xrange(1, 5))
+
+        record_list = db(db.tag_records.name == auth.user_id).select()
+
+        for record in record_list:
             #get time-based statistics for this tag
             #note: the arithmetic operations yield datetime.timedelta objects
             now_date = datetime.datetime.utcnow()
-            right_dur = now_date - r.tlast_right
-            wrong_dur = now_date - r.tlast_wrong
-            rightWrong_dur = r.tlast_right - r.tlast_wrong
-            #categorize q or tag based on this performance
-            if right_dur < rightWrong_dur:          
-                if rightWrong_dur.days >= 7:
-                    if rightWrong_dur.days > 30:
-                        if rightWrong_dur > datetime.timedelta(days=180):
-                        #not due, but not attempted for 6 months
-                            c = 1
+            right_dur = now_date - record.tlast_right
+            wrong_dur = now_date - record.tlast_wrong
+            right_wrong_dur = record.tlast_right - record.tlast_wrong
+
+            # Categorize q or tag based on this performance
+            if right_dur < right_wrong_dur:
+                if right_wrong_dur.days >= 7:
+                    if right_wrong_dur.days > 30:
+                        if right_wrong_dur > datetime.timedelta(days=180):
+                            category = 1 # Not due, but not attempted for 6 months
                         else:
-                            c = 4 #not due, delta more than a month
+                            category = 4 # Not due, delta more than a month
                     else:
-                        c = 3 #not due, delta between a week and a month 
+                        category = 3 # Not due, delta between a week and a month
                 else:
-                    c = 2 # not due but delta is a week or less
+                    category = 2 # Not due but delta is a week or less
             else:
-                c = 1 # spaced repitition requires review
-            cat[c].append(indx)
+                category = 1 # Spaced repetition requires review
+            categories[category].append(record.tag.id)
 
-        #if there are no tags needing immediate review, introduce new one
-        if len(cat[1]) < 1:
-            cat = t.introduce(cat)
-        
-        return cat
+        # If there are no tags needing immediate review, introduce new one
+        if not categories[1]:
+            categories[1] = self._introduce()
 
-
-class Walk(object):
-    """
-    A class handling the "movement" of a user from one path or step to the 
-    next (i.e., transitions between states outside a single step). In other 
-    words, this class prepares path-related information needed immediately 
-    before path selection.
-    """
-
-    def __init__(self):
-        pass
+        self.tag_set = categories
 
     def unfinished(self):
-        """
-        This public method checks for any paths that have been started but not 
-        finished by the current user. It expects finished paths to have a 
-        'last_step' value of 0 in its most recent entry in the db table 
+        '''
+        This public method checks for any paths that have been started but not
+        finished by the current user. It expects finished paths to have a
+        'last_step' value of 0 in its most recent entry in the db table
         path_log.
 
         implemented by:
 
-        """
-        auth, db, session = current.auth, current.db, current.session
+        '''
 
-        print '\ncalling paideia_path.find_unfinished()'
-        mylogs = db((db.path_log.name == auth.user_id) & 
-                                    (db.path_log.last_step != 0)).select()
-        unfinished = [l.path for l in mylogs]
+        auth, db = current.auth, current.db
 
-        #get only most recent log for each unique path
-        ukeys = {}
-        for e in unfinished:
-            newt = mylogs[e].dt_started
-            if e in ukeys:
-                if newt > ukeys[e]:
-                    ukeys[e] = newt
-                else:
-                    pass
+        path_logs = db(
+            (db.path_log.name == auth.user_id) &
+            (db.path_log.last_step != 0)
+        ).select()
+
+        # Get only most recent log for each unique path
+        self.active_paths = {}
+        for path in set(log.path for log in path_logs):
+            log = max((p.dt_started, p) for p in path_logs if p.path == path)[1]
+            self.active_paths[path.id] = log.last_step
+
+    def pick_path(self, location):
+        '''
+        Choose a new path for the user, based on tag performance.
+        '''
+
+        # Check for active blocking conditions
+        # TODO: Implement logic to do something with True result here
+
+        # If possible, continue an active path whose next step is here
+        active_paths = location.active_paths(self)
+        if active_paths:
+            return active_paths
+
+        # Otherwise choose a new path
+        db = current.db
+
+        category = self.get_category()
+        paths, category = self.find_paths(category, location, self.get_paths())
+
+        path_count = len(paths)
+
+        if not len(paths):
+            print 'No available paths, so reviewing some already completed today'
+            self.completed_paths = set()
+            paths, category = self.find_paths(category, location, self.get_paths())
+
+        path = paths[random.randrange(0, len(paths))]
+
+        step_id = path.steps[0]
+        print 'activating step: ', step_id
+
+        #set session flag showing that this path is now active
+        self.path = path
+        self.save_session_data()
+
+        self.step = Step(step_id)
+
+        # Log this attempt of the step
+        self.update_path_log(path.id, step_id, 0)
+
+    def get_category(self):
+        '''
+        Choose one of four categories with a random factor but a heavy
+        weighting toward category 1
+        '''
+        switch = random.randrange(1,101)
+
+        if switch in range(1,75):
+            category = 1
+        elif switch in range(75,90):
+            category = 2
+        elif switch in range(90,98):
+            category = 3
+        else:
+            category = 4
+        return category
+
+    def get_paths(self):
+        '''
+        Return all paths in the game.
+        '''
+
+        db = current.db
+        cache = current.cache
+
+        # TODO: Review cache time
+        return db().select(db.paths.ALL,
+                        orderby=db.paths.id,
+                        cache=(cache.ram, 60*60))
+
+    def find_paths(self, cat, location, paths):
+        '''
+        Find paths for this location that are due in the specified category
+        (in argument 'cat') and filter out paths that have been completed
+        already today. If no tags in that category, move on to the next.
+        '''
+
+        #start with the category of tags, but loop through the categories
+        #until some available paths are found
+        categories = [1, 2, 3, 4]
+        index = categories.index(cat)
+        category_paths = None
+        for category in categories[index:] + categories[:index]:
+            # If any tags in this category, look for paths with these tags
+            # that can be started in this location.
+            tags = set(self.tag_set[category])
+            if len(tags) > 0:
+                category_paths = paths.find(lambda row: (
+                    set(row['tags']).intersection(tags) and
+                    (location.location.id in row['locations'])
+                ))
+
+                '''
+                TODO: see whether the virtual fields approach above is slower
+                than some version of query approach below
+
+                catXpaths = db((db.paths.tags.contains(tags))
+                                & (db.paths.locations.contains(curr_loc.id))
+                            ).select()
+                '''
+                # Filter out any of these completed already today
+                if self.completed_paths:
+                    category_paths = category_paths.find(
+                        lambda row: row.id not in self.completed_paths
+                    )
+
+                if category_paths:
+                    break
             else:
-                ukeys[e] = newt
+                continue
 
-        #build dict with last completed step for each unique path
-        adict = {}
-        for u in ukeys:
-            myrow = mylogs.find(lambda row: (row.id == u)).first()
-            adict[u] = myrow.last_step
-        print 'found ', len(adict.keys()), ' unfinished step from last time: '
-        print adict
+        #TODO: work in a fallback in case no categories return any possible
+        #      paths (do this in pick_path?)
+        return (category_paths, category)
 
-        #add unfinished to session.active_paths
-        try: 
-            for k, v in adict.items():
-                session.active_paths[k] = v
-        except Exception, err:
-            print Exception, err
-
-        return adict
-
-    def blocks(self):
-        """
-        Find out whether any blocking conditions are in place and trigger 
+    def get_blocks(self):
+        '''
+        Find out whether any blocking conditions are in place and trigger
         appropriate responses.
-        """
-        #current object must be accessed at runtime
+        '''
+
+        # Current object must be accessed at runtime
         session = current.session
 
-        #check to see whether any constraints are in place 
+        # Check to see whether any constraints are in place
         if 'blocks' in session:
-            print 'active block conditions: ', session.blocks
             #TODO: Add logic here to handle blocking conditions
-            #TODO: First priority is to add a blocking condition should be a 
-            #when the user has been presented with the prompt for a step but 
-            #has not submitted any response for processing. The blocking 
-            #condition should force the user either to return to the step 
+            #TODO: First priority is to add a blocking condition should be a
+            #when the user has been presented with the prompt for a step but
+            #has not submitted any response for processing. The blocking
+            #condition should force the user either to return to the step
             #prompt or to submit a bug report.
             return True
         else:
-            print 'no blocking conditions'
             return False
 
-    def active(self):
-        """
-        check for an active path in this location and make sure 
-        it has another step to begin. If so return a dict containing the
-        id for the path ('path') and the step ('step'). If not return False.
-        """
-        session, db = current.session, current.db
+    def update_path_log(self, path_id, step_id, update_switch):
+        '''
+        Create or update entries in the path_log table.
+        '''
 
-        a_paths = session.active_paths or None
-        if a_paths:
-            activepaths = db(db.paths.id.belongs(a_paths.keys())).select()
-            activehere = activepaths.find(lambda row: 
-                                           self.curr_loc in row.locations)
-            if 'completed_paths' in session \
-                    and session.completed_paths is not None:
-                activepaths.exclude(lambda row: 
-                                    row.id in session.completed_paths) 
+        auth, db = current.auth, current.db
 
-            if len(activepaths.as_list()) > 0:
-                for p in activehere:
-                    print 'active path in this location: ', p.id
-                    psteps = p.steps
-                    last = a_paths[p.id]
-                    print 'last step finished in this path: ', last
-                    try: sindex = psteps.index(last)
-                    #if impossible step id is given in active_paths
-                    except ValueError, err: 
-                        #remove this path from active paths
-                        self.update_session('active_paths', 
-                                            (p.id, 0), 'del')
-                        #set the log for this attempt as if path completed
-                        self.log_attempt(p.id, 0, 1)
-                        print err
-                        continue
-
-                    #if the last completed step was not the final in the path
-                    if len(psteps) > (sindex + 1):
-                        sid = psteps[sindex + 1]
-                        print 'next step in this path: ', sid
-                        #set session flag for this active path
-                        self.update_session('active_paths', (p.id, sid), 'ins')
-                        #update attempt log 
-                        self.log_attempt(p.id, sid, 1)
-                        return dict(path = p, step = sid)
-
-                    #if the last step in the path has already been completed
-                    else:
-                        print 'there are no more steps to complete in this path'
-                        # why isn't this finding anything in active_paths to remove?
-                        self.update_session('active_paths', p.id, 'del')
-                        self.update_session('completed_paths', p.id, 'ins')
-                        continue
-                else:
-                    return False
-            else:
-                return False
+        if update_switch:
+            query = db.path_log.path == path_id & db.path_log.name == auth.user_id
+            log = db(query).select(orderby=~db.path_log.dt_started).first()
+            log.update_record(path=path_id, last_step=step_id)
         else:
-            return False  
+            db.path_log.insert(path=path_id, last_step=step_id)
 
 
+# TODO: Deprecate eventually
 class Path(object):
-    """
-    set the path a student is exploring, retrieve its data, and store 
+    '''
+    set the path a student is exploring, retrieve its data, and store
     the data in the session object
 
     ## session variables available:
     ### This first set is used to track information about a user's session that persists
     beyond a single step execution.
 
-    session.active (dict: id:last active step)
+    session.active_paths (dict: id:last active step)
     session.completed (list: int for path id)
-    session.tagset (dict: each of four categories is a key, list of tag 
+    session.tag_set (dict: each of four categories is a key, list of tag
         ids as its value)
 
-    ### This second set should be used exclusively to preserve current data 
-    during execution of a single step (i.e., retrieve the results of 
-    path.pick() in step.process()). By the end of step.process() they 
+    ### This second set should be used exclusively to preserve current data
+    during execution of a single step (i.e., retrieve the results of
+    path.pick() in step.process()). By the end of step.process() they
     should be returned to a value of None:
 
     session.step (single int)
     session.path (single int)
     session.image
-    """
+    '''
 
     def __init__(self, loc):
         self.loc = loc
-
-    def pick(self):
-        """Choose a new path for the user, based on tag performance"""
-        request, session = current.request, current.session
-        db, auth = current.db, current.auth
-
-        print '\ncalling Path.pick()'
-        # check for active blocking conditions
-        # TODO: Implement logic to do something with True result here
-        if self.blocks() == True:
-            print 'block in place'
-        # if possible, continue an active path whose next step is here
-        a = self.active()
-        if a == False:
-            print 'no active paths here'
-            pass
-        else:
-            return a                    
-        #otherwise choose a new path
-        cat = self.switch()
-        p = self.find(cat, loc.id)
-        category = p['c']
-        paths = p['catXpaths']
-        path_count = len(paths.as_list())
-        if path_count < 1:
-            print 'no available paths, so reviewing some already completed today'
-            session.completed = None
-            p = self.find(cat, curr_loc)
-            category = p['c']
-            paths = p['catXpaths']
-            path_count = len(paths.as_list())
-        else:
-            print 'selected ', path_count, ' paths from category ', \
-                category, ': \n\n', paths
-        the_path = paths[random.randrange(0,path_count)]
-        print 'activating path: ', the_path.id
-        the_stepid = the_path.steps[0]
-        print 'activating step: ', the_stepid     
-
-        #set session flag showing that this path is now active
-        self.update_session('active_paths', (the_path.id, the_stepid), 'ins')
-        session.path = the_path.id
-        session.step = the_stepid
-        #log this attempt of the step
-        self.log_attempt(the_path.id, the_stepid, 0)
-
-        return dict(path = the_path, step = the_stepid)
-
-    def switch(self):
-        """
-        choose one of four categories with a random factor but a heavy 
-        weighting toward category 1
-        """
-        switch = random.randrange(1,101)
-        print 'the switch is ', switch
-        if switch in range(1,75):
-            cat = 1
-        elif switch in range(75,90):
-            cat = 2
-        elif switch in range(90,98):
-            cat = 3
-        else:
-            cat = 4
-        return cat
-
-    def log(self, pathid, stepid, update_switch):
-        """either create or update entries in the attempt_log table"""
-        print '\ncalling modules/paideia_path.log_attempt()'
-        db = current.db
-
-        if update_switch == 1:
-            logs = db(db.path_log.path == pathid).select()
-            logdate = max(l.dt_started for l in logs)
-            log = logs.find(lambda row: row.dt_started == logdate).first()
-            log.update_record(last_step = stepid)
-        else:
-            db.path_log.insert(path = pathid, last_step = stepid)
-        db.attempt_log.insert(step = stepid)
-
-    def find(self, cat, curr_loc):
-        """
-        Find paths for this location that are due in the specified category 
-        (in argument 'cat') and filter out paths that have been completed 
-        already today. If no tags in that category, move on to the next.
-        """
-        print '\ncalling modules/paideia_path.find_paths()'
-        db, session = current.db, current.session
-
-        #start with the category of tags, but loop through the categories
-        #until some available paths are found
-        cats = [1,2,3,4]
-        for c in cats[cats.index(cat):] + cats[:cats.index(cat)]:
-            #if any tags in this category, look for paths with these tags
-            #that can be started in this location.
-            paths = db(db.paths.id > 0).select()
-            if len(session.tagset[c]) > 0:
-                catXtags = session.tagset[c]
-                print len(catXtags), ' active tags in category ', c
-                catXpaths = paths.find(lambda row: 
-                                (set(row.tags).intersection(set(catXtags)))
-                                and (curr_loc.id in row.locations))
-                print 'raw catXpaths = ', catXpaths
-                """
-                TODO: see whether the virtual fields approach above is slower 
-                than some version of query approach below
-
-                catXpaths = db((db.paths.tags.contains(catXtags))
-                                & (db.paths.locations.contains(curr_loc.id))
-                            ).select()
-                """
-                #filter out any of these completed already today
-                if ('completed_paths' in session) and \
-                        (session.completed_paths is not None):
-                    comp = session.completed_paths
-                    print 'completed paths: ', comp
-                    catXpaths = catXpaths.find(lambda row: 
-                        row.id not in comp)
-                    print 'filtered out paths done today'
-                    print catXpaths
-                catXsize = len(catXpaths.as_list())
-                print catXsize, ' paths not completed today in category ', c
-                if catXsize < 1:
-                    continue
-                else:
-                    break
-            else:
-                print 'no active tags in category ', c
-                continue
-        #TODO: work in a fallback in case no categories return any possible
-        #paths
-        return dict(catXpaths = catXpaths, c = c)
 
     def end(self):
         #current object must be accessed at runtime, so can't be global variable
@@ -458,170 +441,277 @@ class Path(object):
 
 class Step(object):
 
-    def __init__(self, sid):
+    def __init__(self, step=None):
+
         db, session = current.db, current.session
 
-        print '\ncreating instance of step class'
-        self.pid = session.path
-        self.sid = sid
-        self.s = db.steps[sid]
-        self.ns = None
-        self.n = None
+        if step is not None:
+            self.path = db.paths(session.walk['path'])
+            self.step = db.steps(step)
+
+            self.npc = None
+            self.save_session_data()
+        else:
+            self.get_session_data()
+
+    def save_session_data(self):
+        '''
+        Save attributes in session.
+        '''
+
+        session = current.session
+
+        session_data = {}
+
+        session_data['step'] = self.step.id
+
+        session.walk.update(session_data)
+
+        if self.npc:
+            self.npc.save_session_data()
+
+    def get_session_data(self):
+        '''
+        Get the step attributes from the session.
+        '''
+
+        db, session = current.db, current.session
+
+        try:
+            self.path = db.paths(session.walk['path'])
+            self.step = db.steps(session.walk['step'])
+            self.npc = Npc()
+
+        except KeyError:
+            self.path = db.paths(session.walk['path'])
+            self.step = None
+            self.npc = None
 
     def ask(self):
-        """Public method. Returns the html helpers to create the view 
-        for the 'ask' state of the user interface."""
-        print '\ncalling ask() method of step class'
-        self.n = self.npc()
-        print self.n
-        img = self.img()
-        print img
-        prompt = self.prompt()
-        print prompt
-        responder = self.responder()
+        '''
+        Public method. Returns the html helpers to create the view
+        for the 'ask' state of the user interface.
+        '''
 
-        return dict(npc_img = img, prompt = prompt, responder = responder)
+        npc = self.get_npc()
+        prompt = self.get_prompt()
+        responder = self.get_responder()
 
-    def process(self):
-        """
-        handles the user's response to the step prompt. In this base 'step' 
-        class this involves comparing the user's typed response with the 
-        regular expressions provided for the step. The evaluation is then 
-        logged and stored in the db, and the appropriate information 
-        presented to the user.
-        """
+        self.save_session_data()
+
+        session = current.session
+
+        return dict(npc_img=npc.image, prompt=prompt, responder=responder)
+
+    def get_npc(self):
+        '''
+        Given a set of npcs for this step select one of the npcs at random and
+        return the corresponding Npc object.
+        '''
+
+        db, session = current.db, current.session
+
+        if session.walk['active_location'] is None:
+            return   # TODO: maybe we return a 404 here (or in ask()and other callers?)
+
+        location = Location(session.walk['active_location'])
+
+        npcs = db(
+            (db.npcs.id.belongs(self.step.npcs)) &
+            (db.npcs.location.contains(location.location.id))
+        ).select()
+
+        npc_count = len(npcs)
+
+        if npc_count > 1:
+            npc = npcs[random.randrange(1, npc_count) - 1]
+        else:
+            npc = npcs.first()
+
+        self.npc = Npc(npc)
+
+        return self.npc
+
+    def process(self, user_response):
+        '''
+        Handles the user's response to the step prompt.
+
+        In this base 'step' class this involves comparing the user's typed
+        response with the regular expressions provided for the step. The
+        evaluation is then logged and stored in the db, and the appropriate
+        information presented to the user.
+        '''
+
         session, db, auth = current.session, current.db, current.auth
 
-        print '\ncalling process() method of step class'
-        # get the student's response to the question
-        r = string.strip(session.response)
-        # get the correct answer information from db
-        print self.s
-        answer = self.s.response1
-        answer2 = self.s.response2
-        answer3 = self.s.response3
-        readable = self.s.readable_response
-        
-        # compare the student's response to the regular expressions
+        # Get the student's response to the question
+        user_response = user_response.strip()
+
+        # Get the correct answer information from db
+        answer1 = self.step.response1
+        answer2 = self.step.response2
+        answer3 = self.step.response3
+        readable = self.step.readable_response
+
+        # Compare the student's response to the regular expressions
         try:
-            if re.match(answer, r, re.I):
+            if re.match(answer1, user_response, re.I):
                 score = 1
                 reply = "Right. Κάλη."
-            elif re.match(answer2, r, re.I) and answer2 != 'null':
+            elif answer2 != 'null' and re.match(answer2, user_response, re.I):
                 score = 0.5
                 #TODO: Get this score value from the db instead of hard coding it here.
                 reply = "Οὐ κάκος. You're close."
                 #TODO: Vary the replies
-            elif re.match(answer3, r, re.I) and answer3 != 'null':
+            elif answer3 != 'null' and re.match(answer3, user_response, re.I):
                 #TODO: Get this score value from the db instead of hard coding it here.
                 score = 0.3
             else:
                 score = 0
                 reply = "Incorrect. Try again!"
-            # set the increment value for times wrong, depending on score
-            if score < 1: nscore = 1
-            else: nscore = 0
-            # record the results in statistics for this step and this tag
-            self.record(score, nscore)
 
-        #handle errors if the student's response cannot be evaluated
+            # Set the increment value for times wrong, depending on score
+            if score < 1:
+                times_wrong = 1
+            else:
+                times_wrong = 0
+
+            # Record the results in statistics for this step and this tag
+            self.record(score, times_wrong)
+
+        # Handle errors if the student's response cannot be evaluated
         except re.error:
             redirect(URL('index', args=['error', 'regex']))
 
-        img = session.image
+        return dict(reply=reply, readable=readable, npc_img=self.npc.image)
 
-        return dict(reply=reply, readable=readable, npc_img = img)
+    def record(self, score, times_wrong_incr):
+        '''
+        Record the results of this step in db tables attempt_log and
+        tag_records. score gives the increment to add to 'times right' in
+        records. times_wrong gives the opposite value to add to 'times wrong'
+        (i.e., negative score).
+        '''
 
-    def record(self, score, nscore):
-        """Record the results of this step in db tables attempt_log and 
-        tag_records. score gives the increment to add to 'times right' in 
-        records. nscore gives the opposite value to add to 'times wrong' 
-        (i.e., negative score)."""
-        db, auth = current.db, current.auth
-        utcnow = datetime.datetime.utcnow()
-        print '\ncalling step.record()'
+        db, auth, session = current.db, current.auth, current.session
 
-        #log this step attempt
-        db.attempt_log.insert(step=self.sid, score=score, path=self.pid)
-        print 'recorded in db.attempt_log:'
-        print db(db.attempt_log.id > 0).select().last()
+        utc_now = datetime.datetime.utcnow()
 
-        #log this tag attempt for each tag in the step
-        trows = db(db.tag_records.id > 0).select()
-        #calculate record info
-        for t in self.s.tags:
-            lr = utcnow
-            lw = utcnow
-            # try to update an existing record for this tag
-            try: 
-                trow = trows.find(lambda row: (row.tag == t) &
-                                            (row.name == auth.user_id)).first()
-                if score == 1:
-                    lw = trow.tlast_wrong
-                elif score == 0:              
-                    lr = trow.tlast_right
-                    lw = utcnow
-                else:                    
-                    score = 0
-                    lw = utcnow
-                    lr = utcnow
-                tr = trow.times_right + score
-                tw = trow.times_wrong + nscore
-                trow.update_record(tlast_right = lr, tlast_wrong = lw, 
-                                        times_right = tr, times_wrong = tw, 
-                                        path = self.pid)
-                print 'updating existing tag record for ', trow.tag
-            # if none exists, insert a new one
-            except AttributeError:
-                db.tag_records.insert(tag = t, 
-                                        times_right = score,
-                                        times_wrong = nscore,
-                                        path = self.pid)
-                print 'inserting new tag record for ', t
-            # print any other error that is thrown
+        # Log this step attempt
+        db.attempt_log.insert(step=self.step.id, score=score, path=self.path.id)
+
+        # Log this tag attempt for each tag in the step
+        tag_records = db(db.tag_records.name == auth.user_id).select()
+
+        # Calculate record info
+        time_last_right = utc_now
+        time_last_wrong = utc_now
+
+        times_right = score
+        times_wrong = times_wrong_incr
+
+        for tag in self.step.tags:
+            # Try to update an existing record for this tag
+            try:
+                tag_records = tag_records.find(lambda row: row.tag == tag)
+
+                if tag_records:
+                    tag_record = tag_records[0]
+
+                    if score == 1:
+                        time_last_wrong = tag_record.tlast_wrong
+                    elif score == 0:
+                        time_last_right = tag_record.tlast_right
+                    else:
+                        score = 0
+                        time_last_right = tag_record.tlast_right
+
+                    times_right += tag_record.times_right
+                    times_wrong += tag_record.times_wrong
+
+                    tag_record.update_record(
+                        tlast_right=time_last_right,
+                        tlast_wrong=time_last_wrong,
+                        times_right=times_right,
+                        times_wrong=times_wrong,
+                        path=self.path.id,
+                        step=self.step.id
+                    )
+
+                else:
+                    val = db.tag_records.insert(
+                        tag=tag,
+                        tlast_right=time_last_right,
+                        tlast_wrong=time_last_wrong,
+                        times_right=times_right,
+                        times_wrong=times_wrong,
+                        path=self.path.id,
+                        step=self.step.id
+                    )
+
+            # Print any other error that is thrown
+            # TODO: Put this in a server log instead/as well or create a ticket
+            # TODO: Do we want to rollback the transaction?
             except Exception, err:
                 print 'unidentified error:'
                 print type(err)
                 print err
+                print traceback.format_exc()
 
-        #TODO: update the path log for this attempt
-        #TODO: check to see whether this is the last step in the path and if so 
-        #remove from active_paths and add to completed_paths
+        # DONE: Update the path log for this attempt
+        # TODO: Merge this with Walk.update_path_log()
+        query = (db.path_log.path == self.path.id) & (db.path_log.name == auth.user_id)
+        log = db(query).select(orderby=~db.path_log.dt_started).first()
+        if log:
+            log.update_record(path=self.path.id, last_step=self.step.id)
+        else:   # We should already have an existing path_log but in case we don't...
+            db.path_log.insert(path=self.path.id, last_step=self.step.id)
 
-    def prompt(self):
-        """Get the prompt text to be presented from the npc to start the 
-        step interaction"""
-        prompt = SPAN(self.s.prompt)
+        # Check to see whether this is the last step in the path and if so
+        # remove from active_paths and add to completed_paths
+        if self.path.steps[-1] == self.step:
+            del session.walk['active_paths'][self.path.id]
+            session.walk['completed_paths'].add(self.path.id)
+
+    def get_prompt(self):
+        '''
+        Get the prompt text to be presented from the npc to start the step
+        interaction.
+        '''
+
+        text = SPAN(self.step.prompt)
+
         #TODO: get audio file for prompt text as well.
-        return prompt
+        audio = ''
 
-    def responder(self):
-        """
-        create and return the form to receive the user's response for this 
-        step
-        """
-        session, request = current.session, current.request
+        return text#, audio
+
+    def get_responder(self):
+        '''
+        Create and return the form to receive the user's response for this step.
+        '''
+
+        session, request, response = current.session, current.request, current.response
 
         form = SQLFORM.factory(
-                   Field('response', 'string', requires=IS_NOT_EMPTY()))
-        if form.process().accepted:
-            session.response = request.vars.response
+                   Field('response', 'string', requires=IS_NOT_EMPTY())
+               )
 
         return form
 
 
 class StepMultipleChoice(Step):
-    def responder(self):
-        """
-        create and return the form to receive the user's response for this 
+    def get_responder(self):
+        '''
+        create and return the form to receive the user's response for this
         step
-        """
+        '''
         session, request = current.session, current.request
 
-        vals = self.s.options
+        vals = self.step.options
         form = SQLFORM.factory(
-                   Field('response', 'string', 
-                    requires=IS_IN_SET(vals), 
+                   Field('response', 'string',
+                    requires=IS_IN_SET(vals),
                     widget = SQLFORM.widgets.radio.widget))
         if form.process().accepted:
             session.response = request.vars.response
@@ -633,61 +723,77 @@ class StepMultipleChoice(Step):
 
 
 class StepStub(Step):
-    """A step type that does not require significant user response. Useful for
+    '''A step type that does not require significant user response. Useful for
     giving the user information and then freeing her/him up to perform a task.
-    """
-    
-    def responder(self):
+    '''
+
+    def get_responder(self):
         pass
 
     def process(self):
         pass
 
-        
+
 class Npc(object):
-    
-    def __init__(self):
-        pass
 
-    def pick(self):
-        """Given a set of npcs for this step (in self.ns) select one of 
-        the npcs at random, store the id in a session variable, and return
-        the corresponding db row object"""
-        db, session = current.db, current.session
-        print '\ncalling npc() method of step class'
+    def __init__(self, npc=None):
 
-        nrows = db((db.npcs.id > 0)
-                        & (db.npcs.location.contains(session.location))
-                    ).select()
-        nrows = nrows.exclude(lambda row: row.id in self.s.npcs)
-        ns_here = [n.id for n in nrows]
-        print 'npcs in this location: ', ns_here
-        if len(ns_here) > 1:
-            nrow = nrows[random.randrange(1,len(ns_here)) - 1]
+        if npc is not None:
+            self.npc = npc
+            self.image = self.get_image()
+
+            self.save_session_data()
+
         else:
-            nrow = nrows.find(lambda row: row.id in ns_here)[0]
-        print 'selected npc: ', nrow.id
-        #store the id of the active npc as a session variable
-        session.npc = nrow.id
-        self.n = nrow
-        return nrow
+            self.get_session_data()
 
-    def img(self):
-        """Get the image to present as a depiction of the current npc"""
+    def save_session_data(self):
+        '''
+        Save attributes in session.
+        '''
+
+        session = current.session
+
+        session_data = {}
+
+        session_data['npc'] = self.npc.id
+        session_data['npc_image'] = self.image
+
+        session.walk.update(session_data)
+
+    def get_session_data(self):
+        '''
+        Get the walk attributes from the session.
+        '''
+
         db, session = current.db, current.session
 
-        n_img = IMG(_src=URL('default', 'download', 
-                        args=db.npcs[self.n.id].image))
-        session.image = n_img
-        return n_img
+        if 'npc' in session.walk:
+            self.npc = db.npcs(session.walk['npc'])
+            self.image = session.walk['npc_image']
+
+        else:
+            self.npc = None
+            self.image = None
+
+    def get_image(self):
+        '''
+        Get the image to present as a depiction of the npc.
+        '''
+
+        db = current.db
+
+        image = IMG(_src=URL('default', 'download', args=self.npc.image))
+
+        return image
 
 
 class Counter(object):
-    """This class is deprecated"""
+    '''This class is deprecated'''
 
     def __init__(self):
-        """include this question in the count for this quiz, send to 'end' 
-        if quiz is finished"""
+        '''include this question in the count for this quiz, send to 'end'
+        if quiz is finished'''
 
     def check(self):
         #current object must be accessed at runtime
@@ -711,50 +817,116 @@ class Counter(object):
 
 
 class Location(object):
-    """
-    This class finds and returns information on the student's current 
-    'location' within the town, based on the url variable 'loc' which 
+    '''
+    This class finds and returns information on the student's current
+    'location' within the town, based on the url variable 'loc' which
     is accessed via the web2py request object.
 
     implemented in:
     controllers/exploring.walk()
-    """
-    def __init__(self):
-        pass
+    '''
 
-    def info(self):
-        """
-        Determine what location has just been entered and retrieve its 
-        details from db. Returns a dictionary with the keys 'id', 'alias', 
-        and 'img'.
-        """
-        request, db = current.request, current.db
+    def __init__(self, alias):
 
-        try:
-            loc = db(db.locations.alias == request.vars['loc']
-                                                          ).select().first()
-            img = IMG(_src=URL('default', 'download', 
-                                args=db.locations[loc.id].background))
-        
-        except Exception, err:
-            print 'Exception raised in Location.find: ', err
-
-        return dict(id=loc.id, alias=loc.alias, img=img)
-        
-
-class Map(object):
-    """This class returns information needed to present the navigation map"""
-
-    def __init__(self):
-
-        #current object must be accessed at runtime
         db = current.db
 
-        #prepare map interface for user to select a place to go
-        self.locs = db().select(db.locations.ALL, 
-                                        orderby=db.locations.location)
-        self.image = '/paideia/static/images/town_map.svg'
+        self.location = db(db.locations.alias == alias).select().first()
+        self.image = IMG(
+            _src=URL('default', 'download', args=self.location.background)
+        )
 
     def info(self):
+        '''
+        Determine what location has just been entered and retrieve its
+        details from db. Returns a dictionary with the keys 'id', 'alias',
+        and 'img'.
+        '''
 
-        return dict(locs=self.locs, map_image=self.image)
+        info = {
+            'id': self.location.id,
+            'alias': self.location.alias,
+            'img': self.image
+        }
+
+        return info
+
+    def active_paths(self, walk):
+        '''
+        Check for an active path in this location and make sure
+        it has another step to begin. If so return a dict containing the
+        id for the path ('path') and the step ('step').
+        '''
+        session, db = current.session, current.db
+
+        if walk.active_paths:
+            active_paths = db(db.paths.id.belongs(walk.active_paths.keys())).select()
+            active_here = active_paths.find(lambda row: self.location.id in row.locations)
+            # TODO: Do we need this - shouldn't a path be moved from active_paths to completed_paths when it's ended?
+            if walk.completed_paths:
+                active_paths.exclude(lambda row: row.id in walk.completed_paths)
+
+            if len(active_paths):
+                for path in active_here:
+                    last = walk.active_paths[path.id]
+
+                    try:
+                        step_index = path.steps.index(last)
+
+                    # If impossible step id is given in active_paths
+                    except ValueError, err:
+                        # Remove this path from active paths
+                        del walk.active_paths[path.id]
+                        walk.save_session_data()
+
+                        # Set the log for this attempt as if path completed
+                        self.log_attempt(path.id, 0, 1)
+                        # TODO: Log error instead/as well
+                        print err
+                        continue
+
+                    # If the last completed step was not the final in the path
+                    if len(path.steps) > (step_index + 1):
+                        step_id = path.steps[step_index + 1]
+
+                        # Set session flag for this active path
+                        walk.active_paths[path.id] = step_id
+                        walk.save_session_data()
+
+                        # Update attempt log
+                        self.log_attempt(path.id, step_id, 1)
+
+                        return dict(path=path, step=step_id)
+
+                    # If the last step in the path has already been completed
+                    else:
+                        del walk.active_paths[path.id]
+                        walk.completed_paths.add(path.id)
+                        walk.save_session_data()
+
+                        continue
+
+class Map(object):
+    '''This class returns information needed to present the navigation map'''
+
+    def __init__(self):
+
+        # Prepare map interface for user to select a place to go
+        self.locations = self.get_locations()
+
+        # TODO: Define this in a setting or somewhere
+        self.image = '/paideia/static/images/town_map.svg'
+
+    def get_locations(self):
+        '''
+        Return all locations in the game.
+        '''
+
+        db = current.db
+        cache = current.cache
+
+        # TODO: Review cache time
+        return db().select(db.locations.ALL,
+                           orderby=db.locations.location,
+                           cache=(cache.ram, 60*60)).as_list()
+
+

@@ -17,7 +17,7 @@ if 0:
 response.files.insert(5,URL('static', 'plugin_ajaxselect/plugin_ajaxselect.js'))
 response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.css'))
 
-dtnow = datetime.datetime.utcnow()
+dtnow = datetime.datetime.utcnow
 
 class IS_VALID_REGEX(object):
     """
@@ -64,8 +64,8 @@ db.define_table('audio',
 
 db.define_table('journals',
     Field('user', db.auth_user, default=auth.user_id),
-    Field('pages', 'list:reference db.pages'),
-    format='%(user)s')
+    Field('pages', 'list:reference pages'),
+    format = '%(user)s')
 
 db.define_table('pages',
     Field('page', 'text'),
@@ -84,13 +84,13 @@ db.define_table('tags',
 db.define_table('locations',
     Field('location'),
     Field('alias'),
-    Field('bg_image', db.images),
+    Field('bg_image', images),
     format='%(location)s')
 
 db.define_table('npcs',
     Field('name', 'string'),
-    Field('location', 'list:reference db.locations'),
-    Field('npc_image', db.images),
+    Field('location', 'list:reference locations'),
+    Field('npc_image', images),
     Field('notes', 'text'),
     format='%(name)s')
 db.npcs.location.requires = IS_IN_DB(db, 'locations.id',
@@ -107,7 +107,7 @@ db.define_table('inv_items',
 
 db.define_table('inventory',
     Field('owner', db.auth_user, default=auth.user_id),
-    Field('items_held', 'list:reference db.inv_items'),
+    Field('items_held', 'list:reference inv_items'),
     format='%(owner)s inventory')
 
 #this table is deprecated
@@ -122,11 +122,11 @@ db.define_table('questions',
     Field('answer3', default='null'),
     Field('value3', 'double', default=0.3),
     Field('frequency', 'double'),
-    Field('tags', 'list:reference db.tags'),
-    Field('tags_secondary', 'list:reference db.tags'),
+    Field('tags', 'list:reference tags'),
+    Field('tags_secondary', 'list:reference tags'),
     Field('status', 'integer'),
-    Field('npcs', 'list:reference db.npcs'),
-    Field('next', 'list:reference db.questions'),
+    Field('npcs', 'list:reference npcs'),
+    Field('next', 'list:reference questions'),
     Field('audio', 'upload', uploadfolder=os.path.join(request.folder,
         "static/audio")),
     format='%(question)s')
@@ -162,15 +162,15 @@ db.define_table('steps',
     Field('options', 'list:string'),
     Field('response1'),
     Field('readable_response'),
-    Field('outcome1', default='null'),
-    Field('response2', default='null'),
-    Field('outcome2', default='null'),
-    Field('response3', default='null'),
-    Field('outcome3', default='null'),
-    Field('tags', 'list:reference db.tags'),
-    Field('tags_secondary', 'list:reference db.tags'),
-    Field('npcs', 'list:reference db.npcs'),
-    Field('locations', 'list:reference db.locations'),
+    Field('outcome1', default=None),
+    Field('response2', default=None),
+    Field('outcome2', default=None),
+    Field('response3', default=None),
+    Field('outcome3', default=None),
+    Field('tags', 'list:reference tags'),
+    Field('tags_secondary', 'list:reference tags'),
+    Field('npcs', 'list:reference npcs'),
+    Field('locations', 'list:reference locations'),
     Field('status', 'integer'),
     format='%(prompt)s')
 db.steps.options.widget = SQLFORM.widgets.list.widget
@@ -202,6 +202,7 @@ db.steps.locations.widget = lambda field, value: AjaxSelect().widget(
                                                 field, value, 'locations',
                                                 multi='basic',
                                                 lister='editlinks')
+
 #this table is deprecated
 #TODO: do we need an equivalent for steps? The same data could be retrieved as
 # needed from the attempts_log table.
@@ -217,7 +218,7 @@ db.define_table('question_records',
 
 db.define_table('tag_progress',
     Field('name', db.auth_user, default=auth.user_id),
-    Field('latest_new', db.tags),
+    Field('latest_new', 'integer'),
     format='%(name)s, %(latest_new)s')
 
 db.define_table('paths',
@@ -233,15 +234,15 @@ db.paths.steps.widget = lambda field, value: AjaxSelect().widget(
                                         lister='simple',
                                         sortable='true')
 
-
 class PathsVirtualFields(object):
     def locations(self):
+        # TODO: This only gets locations from one of the steps in the path
         steprows = db(db.steps.id.belongs(self.paths.steps)).select().first()
         return steprows.locations
 
     def tags(self):
         steprows = db(db.steps.id.belongs(self.paths.steps)).select()
-        nlists = [s.locations for s in steprows]
+        nlists = [s.tags for s in steprows]
         return list(chain.from_iterable(nlists))
 db.paths.virtualfields.append(PathsVirtualFields())
 
@@ -306,3 +307,4 @@ db.define_table('news',
     Field('date_submitted', 'datetime', default=dtnow),
     Field('last_edit', 'datetime', default=dtnow),
     format='%(title)s')
+
