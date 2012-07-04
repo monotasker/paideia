@@ -17,7 +17,7 @@ ssS'tags'
 p9
 (dp10
 g4
-S'list:reference db.tags'
+S'list:reference tags'
 p11
 sg6
 I11
@@ -58,7 +58,7 @@ ssS'npcs'
 p22
 (dp23
 g4
-S'list:reference db.npcs'
+S'list:reference npcs'
 p24
 sg6
 I14
@@ -111,7 +111,7 @@ ssS'next'
 p40
 (dp41
 g4
-S'list:reference db.questions'
+S'list:reference questions'
 p42
 sg6
 I15
@@ -171,13 +171,13 @@ p58
 ssS'qqq_status'
 p59
 (dp60
-S'sortable'
+S'type'
 p61
-I12
-sS'type'
-p62
 S'integer'
+p62
+sS'sortable'
 p63
+I12
 sS'sql'
 p64
 S'INTEGER'

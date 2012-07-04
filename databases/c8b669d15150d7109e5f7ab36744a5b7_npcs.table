@@ -13,7 +13,7 @@ sS'sql'
 p7
 S'CHAR(512)'
 p8
-ssS'image'
+ssS'notes'
 p9
 (dp10
 S'type'
@@ -34,7 +34,7 @@ g4
 S'text'
 p18
 sg6
-I5
+I3
 sg7
 S'TEXT'
 p19
@@ -67,7 +67,7 @@ g4
 S'list:reference db.locations'
 p30
 sg6
-I3
+I4
 sg7
 S'TEXT'
 p31

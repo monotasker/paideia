@@ -17,7 +17,7 @@ ssS'items_held'
 p9
 (dp10
 g4
-S'list:reference db.inv_items'
+S'list:reference inv_items'
 p11
 sg6
 I3
@@ -28,10 +28,11 @@ ssS'id'
 p13
 (dp14
 g4
-g13
+S'id'
+p15
 sg6
 I1
 sg7
 S'INTEGER PRIMARY KEY AUTOINCREMENT'
-p15
+p16
 ss.

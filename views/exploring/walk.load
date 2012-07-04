@@ -55,8 +55,8 @@
         <p>{{=reply}}</p>
         <p>Correct answers would include "{{=readable}}"</p>
         <span class="q_counter">Currently working on 
-            {{=len(session.active_paths.keys() or 0)}} paths; 
-            {{=len(session.completed_paths or 0)}} 
+            {{=len(session.walk['active_paths'].keys())}} paths; 
+            {{=len(session.walk['completed_paths'])}} 
         paths already complete today.</span>
     </section>
     <div class='responder'>

@@ -4,34 +4,35 @@ p2
 (dp3
 S'type'
 p4
-S'reference tags'
+S'integer'
 p5
 sS'sortable'
 p6
 I3
 sS'sql'
 p7
-S'INTEGER REFERENCES tags(id) ON DELETE CASCADE'
+S'INTEGER'
 p8
 ssS'id'
 p9
 (dp10
 g4
-g9
+S'id'
+p11
 sg6
 I1
 sg7
 S'INTEGER PRIMARY KEY AUTOINCREMENT'
-p11
-ssS'name'
 p12
-(dp13
+ssS'name'
+p13
+(dp14
 g4
 S'reference auth_user'
-p14
+p15
 sg6
 I2
 sg7
 S'INTEGER REFERENCES auth_user(id) ON DELETE CASCADE'
-p15
+p16
 ss.

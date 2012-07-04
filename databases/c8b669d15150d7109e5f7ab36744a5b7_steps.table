@@ -49,7 +49,7 @@ ssS'tags_secondary'
 p20
 (dp21
 g4
-S'list:reference db.tags'
+S'list:reference tags'
 p22
 sg6
 I15
@@ -60,7 +60,7 @@ ssS'locations'
 p24
 (dp25
 g4
-S'list:reference db.locations'
+S'list:reference locations'
 p26
 sg6
 I17
@@ -90,7 +90,7 @@ ssS'npcs'
 p33
 (dp34
 g4
-S'list:reference db.npcs'
+S'list:reference npcs'
 p35
 sg6
 I16
