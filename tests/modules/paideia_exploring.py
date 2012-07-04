@@ -11,7 +11,7 @@ from gluon import current
 from gluon.contrib.test_helpers import form_postvars
 from gluon.shell import exec_environment
 
-from applications.paideia.modules.paideia_exploring import get_paths
+#from applications.paideia.modules.paideia_exploring import get_paths
 
 
 def create_and_login_test_user(db, first_name, last_name, email, password):
@@ -67,8 +67,10 @@ class Paideia_exploringModule(unittest.TestCase):
 
     def setUp(self):
 
+        session = current.session
+
         # Create a test user and log in
-        create_and_login_test_user(
+        user = create_and_login_test_user(
             db=self.db,
             first_name='Test',
             last_name='User',
@@ -78,7 +80,8 @@ class Paideia_exploringModule(unittest.TestCase):
 
         execfile('applications/paideia/controllers/exploring.py', globals())
 
-        self.walk = _init_walk()
+        self.walk = Walk()
+        self.walk.save_session_data()
 
         # Make sure we're starting with a user with no previous game history
         self._verify_walk_start()
@@ -87,13 +90,15 @@ class Paideia_exploringModule(unittest.TestCase):
 
         session.walk = None
 
-        # Remove user's game history
-        users = self.db(self.db.auth_user.id == self.walk.user.id)
-        for u in users.select():
-            self.db(self.db.tag_records.name == u.id).delete()
-            self.db(self.db.tag_progress.name == u.id).delete()
-            self.db(self.db.path_log.name == u.id).delete()
-            self.db(self.db.attempt_log.name == u.id).delete()
+        # Remove user
+        path_logs = self.db(self.db.path_log.name == auth.user_id).select()
+
+        self.db(self.db.tag_records.name == auth.user_id).delete()
+        self.db(self.db.tag_progress.name == auth.user_id).delete()
+        self.db(self.db.path_log.name == auth.user_id).delete()
+        self.db(self.db.attempt_log.name == auth.user_id).delete()
+
+        self.db.commit()
 
     ##### Utility methods
 
@@ -103,7 +108,7 @@ class Paideia_exploringModule(unittest.TestCase):
         game history.
         '''
 
-        email = self.walk.user.email
+        email = auth.user.email
         expected_email = 'test_user@test.com'
         self.assertEqual(
             email,
@@ -111,13 +116,33 @@ class Paideia_exploringModule(unittest.TestCase):
             'Invalid test user - got %s (expected %s)' % (email, expected_email)
         )
 
-        for attr in ('active_location', 'path', 'active_paths',
-                     'completed_paths', 'step', 'tag_set'):
+        for attr in ('active_location', 'path', 'step'):
             value = getattr(self.walk, attr)
             self.assertIsNone(
                 value,
                 "walk.%s should be None (got %s)" % (attr, value)
             )
+
+        # Active paths
+        self.assertEqual(
+            self.walk.active_paths,
+            {},
+            "walk.active_paths should be empty (got %s)" % self.walk.active_paths
+        )
+
+        # Tag sets
+        self.assertEqual(
+            self.walk.tag_set,
+            [],
+            "walk.tag_set should be empty (got %s)" % self.walk.tag_set
+        )
+
+        # Completed paths
+        self.assertEqual(
+            self.walk.completed_paths,
+            set(),
+            "walk.completed_paths should be empty (got %s)" % self.walk.completed_paths
+        )
 
         self.assertGreater(
             len(self.walk.map.locations),
@@ -126,7 +151,7 @@ class Paideia_exploringModule(unittest.TestCase):
         )
 
         # Tag records
-        record_count = len(self.db(self.db.tag_records.name==self.walk.user.id).select())
+        record_count = len(self.db(self.db.tag_records.name == auth.user.id).select())
         self.assertEqual(
             record_count,
             0,
@@ -134,14 +159,14 @@ class Paideia_exploringModule(unittest.TestCase):
         )
 
         # Tag progress
-        tag_progress = self.db(self.db.tag_progress.name==self.walk.user.id).select().first()
+        tag_progress = self.db(self.db.tag_progress.name==auth.user.id).select().first()
         self.assertIsNone(
             tag_progress,
             'Test user has tag progress (should have none)'
         )
 
         # Path logs
-        path_logs = self.db(self.db.path_log.name==self.walk.user.id).select()
+        path_logs = self.db(self.db.path_log.name==auth.user.id).select()
         self.assertEqual(
             len(path_logs),
             0,
@@ -149,14 +174,12 @@ class Paideia_exploringModule(unittest.TestCase):
         )
 
         # Attempt logs
-        attempt_logs = self.db(self.db.attempt_log.name==self.walk.user.id).select()
+        attempt_logs = self.db(self.db.attempt_log.name==auth.user.id).select()
         self.assertEqual(
             len(attempt_logs),
             0,
             'Test user has attempt logs (should have none)'
         )
-
-        return True
 
     def get_location(self, alias):
         '''
@@ -187,19 +210,21 @@ class Paideia_exploringModule(unittest.TestCase):
                 self.assertEqual(
                     len(value),
                     1,
-                    'There should be no tags in category %s (got %s)' % (category, len(value))
+                    'There should be only one tag in category %s (got %s)' % (category, len(value))
                 )
 
+                tag = db.tags(value[0])
+
                 self.assertEqual(
-                    value[0].id,
+                    tag.id,
                     61,
-                    'The only tag in category 1 should have id = 61 (got id %s)' % value[0].id
+                    'The only tag in category 1 should have id = 61 (got id %s)' % tag.id
                 )
 
                 self.assertEqual(
-                    value[0].position,
+                    tag.position,
                     1,
-                    'The tags in category 1 should have position 1 (got %s)' % value[0].position
+                    'The tags in category 1 should have position 1 (got %s)' % tag.position
                 )
 
             else:
@@ -223,9 +248,9 @@ class Paideia_exploringModule(unittest.TestCase):
         )
 
         self.assertEqual(
-            tags[0].id,
+            tags[0],
             61,
-            'The only introduced tag should have id = 61 (got id %s)' % tags[0].id
+            'The only introduced tag should have id = 61 (got id %s)' % tags[0]
         )
 
     def test_unfinished_new_user(self):
@@ -249,7 +274,7 @@ class Paideia_exploringModule(unittest.TestCase):
         self.walk.categorize_tags()
         self.walk.unfinished()
 
-        location = self.get_location('domusA')
+        location = Location('domusA')
         self.walk.pick_path(location)
         self.walk.active_location = location
 
@@ -261,7 +286,7 @@ class Paideia_exploringModule(unittest.TestCase):
         self.assertIn(
             self.walk.path.id,
             expected_path_ids,
-            'Picked incorrect path: %s is not in %s' % (self.walk.path, expected_paths)
+            'Picked incorrect path: %s is not in %s' % (self.walk.path.id, expected_paths)
         )
 
         expected_path = expected_paths[expected_path_ids.index(self.walk.path.id)]
@@ -281,21 +306,21 @@ class Paideia_exploringModule(unittest.TestCase):
         self.walk.categorize_tags()
         self.walk.unfinished()
 
-        location = self.get_location('domusA')
+        location = Location('domusA')
 
         for category in (1, 2, 3, 4):
-            category_paths, category = self.walk.find_paths(category, location, get_paths())
+            category_paths, category = self.walk.find_paths(category, location, self.walk.get_paths())
 
             self.assertEqual(
                 tuple(p.id for p in category_paths),
                 expected[0],
-                'Found incorrect paths: expected %s got %s' % (expected[0], category_paths)
+                'Category %s: Found incorrect paths:\n\texpected %s\n\tgot %s' % (category, expected[0], category_paths)
             )
 
             self.assertEqual(
                 category,
                 expected[1],
-                'Found incorrect category: expected %s got %s' % (expected[1], category)
+                'Category %s: Found incorrect category:\n\texpected %s\n\tgot %s' % (category, expected[1], category)
             )
 
     ### Step
@@ -306,6 +331,7 @@ class Paideia_exploringModule(unittest.TestCase):
         '''
 
         self.walk.active_location = None
+        self.walk.save_session_data()
 
         step = Step(1)
 
@@ -321,7 +347,8 @@ class Paideia_exploringModule(unittest.TestCase):
         Test Step.get_npc() where there is an active location.
         '''
 
-        self.walk.active_location = self.get_location('domusA')
+        self.walk.active_location = Location('domusA')
+        self.walk.save_session_data()
 
         step = Step(1)
 
@@ -331,18 +358,18 @@ class Paideia_exploringModule(unittest.TestCase):
         expected = self.db(self.db.npcs.id.belongs(expected_ids)).select()
 
         self.assertIn(
-            npc.npc,
-            expected,
+            npc.npc.id,
+            expected_ids,
             'Picked incorrect NPC: %s is not in %s' % (
-                npc.npc.name, [n.name for n in expected])
+                npc.npc, [n.id for n in expected])
         )
 
         # Session should be updated
         self.assertEqual(
-            step,
-            session.walk.step,
+            step.step.id,
+            session.walk['step'],
             'Session incorrectly updated: expected %s got %s' % (
-                session.walk.step, step)
+                step.step.id, session.walk['step'])
         )
 
     def test_prompt(self):
@@ -354,7 +381,7 @@ class Paideia_exploringModule(unittest.TestCase):
 
         step = Step(1)
 
-        prompt = step.prompt()
+        prompt = step.get_prompt()
 
         expected = '<span>How could you write the word &quot;mat&quot; using Greek letters?</span>'
 
@@ -363,6 +390,13 @@ class Paideia_exploringModule(unittest.TestCase):
             expected,
             'Incorrect prompt:\n\texpected: %s\n\tactual:   %s' % (expected, prompt)
         )
+
+    def ___test_responder(self):
+        '''
+        Test Step.responder().
+        '''
+
+        pass
 
     ### NPC
 
@@ -373,7 +407,7 @@ class Paideia_exploringModule(unittest.TestCase):
 
         npc_id = 2
 
-        npc = self.db(self.db.npcs.id == npc_id).select().first()
+        npc = self.db.npcs(npc_id)
 
         npc_obj = Npc(npc)
 

@@ -163,19 +163,6 @@ def set_value():
         q.update_record(widget_type = 1)
     print 'updated ', len(query), ' records'
 
-def _init_walk():
-    '''
-    Initialise a Walk instance.
-    '''
-
-    if session.walk:
-        walk = session.walk
-    else:
-        walk = Walk(session.auth.user)
-        session.walk = walk
-
-    return walk
-
 @auth.requires_login()
 def index():
     """
@@ -188,7 +175,7 @@ def index():
     :Permissions: user must be logged in.
     """
 
-    walk = _init_walk()
+    walk = Walk()
 
     # Check to see whether this user session has been initialized
     if not walk.tag_set:
@@ -199,7 +186,7 @@ def index():
         walk.unfinished()
 
         # Update the session
-        session.walk = walk
+        walk.save_session_data()
 
     return dict(active = walk.active_paths)
 
@@ -226,45 +213,30 @@ def walk():
     element of exploring/index.html.
     """
 
-    print '===================================================='
-    print 'new state in controller exploring/index', datetime.datetime.utcnow()
-
-    walk = _init_walk()
+    walk = Walk()
 
     # When user begins exploring (also default) present map
     if (request.args(0) == 'start') or (not request.args):
-        print '\nstart state'
         walk.active_location = None #clear in preparation for new location
-        session.walk = walk
+        walk.save_session_data()
 
         return {'map': walk.map}
 
-    #after user submits response to step prompt
-    #evaluate response and present feedback via npc reply
+    # After user submits response to step prompt
+    # Evaluate response and present feedback via npc reply
     elif ('response' in request.vars) and (request.args(0) == 'ask'):
-        print '\nreply state'
 
-        data = walk.active_step.process()
-
-        return data
+        return walk.step.process(request.vars.response)
 
     #after enters location or has completed step in this location
     #pick a path and present the prompt for the appropriate step
     elif request.args(0) == 'ask':
-        location = db(
-            db.locations.alias == request.vars['loc']
-        ).select().first()
-        image = IMG(
-            _src=URL('default', 'download',
-                        args=db.locations[location.id].background)
-        )
-        location = Location(location, image)
-        print '\nask state'
-        walk.pick_path(location)
+        location = Location(request.vars['loc'])
         walk.active_location = location
-        session.walk = walk
-
+        walk.pick_path(location)
+        step = walk.step
         data = walk.step.ask()
+        walk.save_session_data()
 
         return data
 
