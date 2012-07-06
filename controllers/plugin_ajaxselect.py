@@ -9,7 +9,7 @@ def set_widget():
     creates a replacement select widget using the AjaxSelect or
     FilteredAjaxSelect classes and returns the new widget via ajax.
     """
-    verbose = 0
+    verbose = 1
     if verbose == 1:
         print '========================================'
         print 'starting controller set_widget()'
@@ -32,13 +32,21 @@ def set_widget():
         print 'linked to table |', linktable, '|'
 
     #get current value of widget
-    valstring = request.vars['value']
-    #restore value to list since it was converted to string for url
-    value = valstring.split(',')
+    wrp = request.vars['wrappername']
+    if wrp in session and session[wrp] != None:
+        value = session[request.vars['wrappername']]
+    else:
+        valstring = request.vars['value']
+        #restore value to list since it was converted to string for url
+        value = valstring.split(',')
+
     if 'rval' in request.vars:
         rval = request.vars['rval']
     else:
         rval = None
+
+    if verbose == 1:
+        print 'value:', value
 
     if request.vars['restricted'] in (None, 'None'):
         w = AjaxSelect().widget(field, value,

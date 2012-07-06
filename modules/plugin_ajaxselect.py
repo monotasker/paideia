@@ -72,10 +72,10 @@ class AjaxSelect(object):
     widget. If set to 'editlinks' these passive list items become links opening
     edit forms for the linked items in a modal window.
 
-    :param sortable (True/False): 'True' allows for drag-and-drop sorting of
-    widget values (using jQuery-ui sortable). The sorted order is preserved in
-    the database value for the field. In this mode the tags are also displayed
-    in a single column rather than wrapping.
+    :param sortable (True/False; defaults to False): 'True' allows for
+    drag-and-drop sorting of widget values (using jQuery-ui sortable). The
+    sorted order is preserved in the database value for the field. In this
+    mode the tags are also displayed in a single column rather than wrapping.
 
     Note that in order to use the 'sortable' parameter on a list that is
     created after page load (i.e., in a component), you will also need to add
@@ -91,13 +91,14 @@ class AjaxSelect(object):
     created. If you wish to set any parameters on the sortable it should be
     done in this script.
     """
-    """TODO: allow for restrictor argument to take list and filter multiple
-    other fields"""
+    #TODO: allow for restrictor argument to take list and filter multiple
+    #other fields
 
     def __init__(self):
-        print '------------------------------------------------'
-        print '------------------------------------------------'
-        print 'starting modules/plugin_ajaxselect __init__'
+        verbose = 0
+        if verbose == 1:
+            print '------------------------------------------------'
+            print 'starting modules/plugin_ajaxselect __init__'
 
     def widget(self, field, value, restricted=None, refresher=False,
                 adder=True, restrictor=None, multi=False, lister=False,
@@ -128,17 +129,18 @@ class AjaxSelect(object):
         clean_val = self.clean(value, multi)
         uargs = fieldset #args for add and refresh urls
         restricted = self.restricted(restricted) #isolate setting of this param
-        uvars = dict(value=clean_val, linktable=linktable,
+        uvars = dict(linktable=linktable,
                     wrappername=wrappername, refresher=refresher,
                     adder=adder, restrictor=restrictor,
                     multi=multi, lister=lister,
                     restricted=restricted,
-                    sortable=sortable) #vars for add and refresh urls
+                    sortable=sortable,
+                    value=clean_val) #vars for add and refresh urls
 
         #create and assemble elements of widget
         wrapper = SPAN(_id = wrappername,
                     _class = self.classes(linktable, restricted,
-                                        restrictor, lister))
+                                        restrictor, lister, sortable))
         wrapper.append(self.create_widget(field, value, clean_val,
                                         multi, restricted, rval, sortable))
         wrapper.append(self.hidden_ajax_field(wrappername, clean_val))
@@ -217,7 +219,7 @@ class AjaxSelect(object):
         return val
 
     def clean(self, value, multi):
-        verbose = 1
+        verbose = 0
         clean = value
         #remove problematic pipe characters or commas from the field value
         #in case of list:reference fields
@@ -248,7 +250,6 @@ class AjaxSelect(object):
             w = MultipleOptionsWidget.widget(field, value)
 
             #place selected items at end of sortable select widget
-            #TODO: reorder options in widget based on value
             if sortable:
                 try:
                     for v in value:
@@ -347,7 +348,7 @@ class AjaxSelect(object):
         """Build a list of selected widget options to be displayed as a
         list of 'tags' below the widget."""
 
-        verbose = 1
+        verbose = 0
         if verbose == 1:
             print '----------------------------------------------'
             print 'starting models/plugin_ajaxselect add_tags'
@@ -387,7 +388,7 @@ class AjaxSelect(object):
                 ll.append(ln)
         return ll
 
-    def classes(self, linktable, restricted, restrictor, lister):
+    def classes(self, linktable, restricted, restrictor, lister, sortable):
         """
         build classes for wrapper span to indicate filtering relationships
         """
@@ -401,6 +402,8 @@ class AjaxSelect(object):
             c += 'lister_simple '
         elif lister == 'editlinks':
             c += 'lister_editlinks '
+        if sortable:
+            c += 'sortable '
 
         return c
 
