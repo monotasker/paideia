@@ -1,3 +1,10 @@
+//TODO: Continuing bug -- reordering is only saved to db if widget is refreshed before the form is submitted. Maybe the session value isn't being set properly by the selectEnd function?
+//TODO: Continuing bug -- changes to the value appear to be reversed after form submission, but clicking on the item in the list (i.e., refreshing the form) makes the changed values appear. Debug output from module suggests that *both* values are coming from the db!!
+$('form').live('submit', function(){
+    console.log('ouch!');
+    //TODO: clear the session value on submit (showing old value)
+});
+
 $('.add_trigger').live('click', function(event){
 //open modal dialog (using jquery-ui dialog) for adder form
     var the_id = $(this).attr('id');
@@ -45,156 +52,133 @@ $('.edit_trigger').live('click', function(event){
 });
 
 //TODO: Bind a separate function to the select if multi=False or no taglist
+//when select value is changed, update
 $('.plugin_ajaxselect select option').live('click', function(event){
-    //when select value is changed, update
-
-    //get landmarks to navigate dom
-    var $select = $(this).parents('select');
+    //COMMON get landmarks to navigate dom =====================
     var $p = $(this).parents('span');
-    var $td = $p.parents('li, td');
-    var theid = $p.attr('id');
-    var theinput = theid + '_input';
-    var $theinput = $('#' + theid + '_input');
-    var $taglist = $td.find('.taglist');
+    //get $select, wrappername, $theinput, theinput, $td in info object
+    var myinfo = info($p);
+
+    //GENERATING NEW VALUE ======================================
     var newval = $(this).val();
     var newtext = $(this).text();
-    //set the option to selected
-    $(this).attr('selected', 'selected');
-
-    //add option to stored value in hidden input
-    var theval = $theinput.val();
+    var theval = myinfo.$theinput.val();
     theval += ',' + newval;
-    $theinput.val(theval);
-    $select.val(theval.split(','));
-    //alert($select.val());
 
-    //get url from beginning of request.args, and separate args from vars
-    var r_url = $td.find('a.refresh_trigger').attr('href');
-    var url_frag = r_url.match(/set_widget.load(.*)/);
-    var url_args_vars = url_frag[1].split('?');
-    var url_args = url_args_vars[0];
-    var url_vars = url_args_vars[1];
-    var appname = r_url.split('/')[1];
-    var linktable_raw = url_vars.split('&')[1];
-    var linktable = linktable_raw.replace('linktable=', '');
-    var link_base = '/' + appname;
-    link_base += '/views/plugin_ajaxselect/set_form_wrapper.load';
-    var formname = linktable + '_editlist_form';
+    //COMMON VALUE UPDATING ======================================
+    //get url, args, vars, and appname in geturl object
+    var r_url = geturl(myinfo.$td);
+    //update value in url variables
+    var url_vars = update_vars(r_url.vars, theval);
+    update_refresher(r_url.url, url_vars, myinfo.wrappername);
+    //set the hidden input and select widget to the new value
+    myinfo.$theinput.val(theval);
+    myinfo.$select.val(theval.split(','));
+    //update back end via ajax
+    setval(r_url.appname, myinfo.theinput);
 
+    //MODIFY TAG ELEMENTS =========================================
+    //set the clicked option to selected
+    $(this).attr('selected', 'selected');
     //add tag for this option to taglist
-    var newtag = ''
-    //case where tags have edit links
+    var $taglist = myinfo.$td.find('.taglist');
+    var mylinkinfo = linkinfo(r_url.url, url_vars);
     if($p.hasClass('lister_editlinks')){
-        var link_url = link_base + url_args + '/' + newval + '?' + url_vars;
-        var script_string = "web2py_component('" + link_url + "', '" + formname + "')";
-
-        newtag += '<li class="editlink tag" id="' + newval + '">';
-        newtag += '<a class="tag_remover">X</a>';
-        newtag += '<a id="' + linktable + '_editlist_trigger_' + newval + '" ';
-        newtag += 'class="edit_trigger editlink tag" ';
-        newtag += 'href="' + link_url + '" ';
-        newtag += 'onclick="' + script_string + '; return false;">';
-        newtag += 'edit' + '</a>';
-        newtag += newtext + '</li>';
+        var newtag = editlink(mylinkinfo, r_url.args, url_vars,
+                                    newval, newtext);
+        $taglist.append(newtag);
     }
-    //case for simple tags
     else if($p.hasClass('lister_simple')){
-        newtag += '<li class="tag" id="' + newval + '">';
-        newtag += '<a class="tag_remover">X</a>';
-        newtag += '<span>' + newtext + '</span>' + '</li>';
+        var newtag = tag(newval, newtext);
+        $taglist.append(newtag);
     }
-    $taglist.append(newtag);
-
     //make sure newly added tag is added to sortable binding
     $('ul.sortable').sortable('refresh');
 
-    //update back end via ajax
-    ajax('/' + appname + '/plugin_ajaxselect/setval/' + theinput,
-                                        ['"' + theinput + '"'], ':eval');
-
+    //CLEAN UP ====================================================
     //prevent default behaviour, so that other options aren't de-selected
     return false
 });
+
 //TODO: move binding of sortable here from set_widget.load and
 //listandedit/edit.load using plugin to provide 'create' event.
 
-//TODO: Add stop: function(event, ui){ ... } param to sortable setup to
-//copy new order to hidden input
-//update the widget value when someone reorders tags in taglist
 function whenSortStops($taglist){
+    //COMMON get landmarks to navigate dom =====================
     var $p = $taglist.first().parents('span');
-    var $select = $p.find('select');
-    var $theinput = $p.find('input');
-    var $td = $p.parents('li, td');
+    //get $select, wrappername, $theinput, theinput, $td in info object
+    var myinfo = info($p);
 
-    vals = new Array();
+    //GENERATING NEW VALUE ======================================
+    var vals = new Array();
     $taglist.each(function(){
         var theid = $(this).attr('id');
         vals.push(theid);
     });
-    valstring = String(vals.join(','));
-    alert(valstring);
+    var theval = vals.join(',');
 
-    //set the hidden input to the newly ordered value
-    $theinput.val(valstring);
-    theinput = $theinput.attr('id');
-
-    //set the select widget to the newly ordered value
-    $select.val(vals);
-
-    //get app name from URL stored on refresh_trigger link
-    var r_url = $td.find('a.refresh_trigger').attr('href');
-    var appname = r_url.split('/')[1];
+    //COMMON VALUE UPDATING ======================================
+    //get url, args, vars, and appname in geturl object
+    var r_url = geturl(myinfo.$td);
+    //update value in url variables
+    var url_vars = update_vars(r_url.vars, theval);
+    update_refresher(r_url.url, url_vars, myinfo.wrappername);
+    //set hidden input and select widget to the new value
+    myinfo.$theinput.val(theval);
+    myinfo.$select.val(vals);
     //update back end via ajax
-    ajax('/' + appname + '/plugin_ajaxselect/setval/' + theinput,
-                                        ['"' + theinput + '"'], ':eval');
-
+    setval(r_url.appname, myinfo.theinput);
 }
+//TODO: change values in tag links? in adder link?
 
 //remove an option by clicking on the remover icon in a tag
 $('.tag_remover').live('click', function(event){
-    var $prnt = $(this).parent('li');
+    //COMMON get landmarks to navigate dom =====================
     var $p = $(this).parents('span');
-    var $td = $p.parents('li, td');
-    var $select = $p.find('select');
+    //get $select, wrappername, $theinput, theinput, $td in info object
+    var myinfo = info($p);
+
+    //GENERATING NEW VALUE ======================================
+    //get value of removed option
+    var $prnt = $(this).parent('li');
     var val = $prnt.attr('id');
-    //remove the actual DOM element for the tag
-    $prnt.remove();
-    var $theinput = $p.find('input');
-    startval = $theinput.val()
+    //remove option from list of selected values
+    var startval = myinfo.$theinput.val()
     var vlist = startval.split(',');
     if (vlist.length > 1){
         var i = vlist.indexOf(val);
         vlist.splice(i, 1);
-        var newval = vlist.join();
+        var theval = vlist.join();
     }
     //if the last item is being removed
     else {
-        var newval = null;
+        var theval = null;
     }
 
-    //set the hidden input to the new value
-    $theinput.val(newval);
-    theinput = $theinput.attr('id');
-
-    //set the select widget to the new value
-    $select.val(newval.split(','));
-
-    //get app name from URL stored on refresh_trigger link
-    var r_url = $td.find('a.refresh_trigger').attr('href');
-    var appname = r_url.split('/')[1];
+    //COMMON VALUE UPDATING ======================================
+    //get url, its arguments, and its variables
+    var r_url = geturl(myinfo.$td);
+    //update value in url variables and update refresher link
+    var url_vars = update_vars(r_url.vars, theval);
+    update_refresher(r_url.url, url_vars, myinfo.wrappername);
+    //set the hidden input and select widget to the new value
+    myinfo.$theinput.val(theval);
+    myinfo.$select.val(theval.split(','));
     //update back end via ajax
-    ajax('/' + appname + '/plugin_ajaxselect/setval/' + theinput,
-                                        ['"' + theinput + '"'], ':eval');
+    setval(r_url.appname, myinfo.theinput);
 
+    //MODIFY TAG ELEMENTS =========================================
+    //remove the actual DOM element for the tag
+    $prnt.remove();
+
+    //CLEAN UP ====================================================
+    //prevent default behaviour so that the link doesn't trigger navigation
     event.preventDefault();
-
 });
 
 $('.restrictor select').live('change', function(event){
 //constrain and refresh appropriate select widgets if restrictor widget's
 //value is changed
-
     //get selected value of the restrictor widget to use in constraining the
     //target widget
     var new_val = $(this).find('option:selected').val();
@@ -231,6 +215,99 @@ $('.restrictor select').live('change', function(event){
     });
 });
 
+//utility - update stored web2py session value via ajax
+function setval(appname, inputname){
+    ajax('/' + appname + '/plugin_ajaxselect/setval/' + inputname,
+                                        ['"' + inputname + '"'], ':eval');
+}
+
+//utility - determine whether a string contains 'value='
+function isValue(x){
+    re = /^(?!value=).*$/;
+    return String(x).match(re);
+}
+
+//utility - get basic landmarks for traversing dom
+function info($p){
+    var wrappername = $p.attr('id');
+    var $select = $p.find('select');
+    var $theinput = $p.find('input');
+    var theinput = $theinput.attr('id');
+    var $td = $p.parents('li, td');
+    return {'wrappername':wrappername, '$select':$select,
+            '$theinput':$theinput, 'theinput':theinput, '$td':$td}
+}
+
+//utility - get url, a string with its args, and a string with its vars
+function geturl($td){
+    var r_url = $td.find('a.refresh_trigger').attr('href');
+    var url_frag = r_url.match(/set_widget.load(.*)/);
+    var url_args_vars = url_frag[1].split('?');
+    var url_args = url_args_vars[0];
+    var url_vars_raw = url_args_vars[1];
+    var appname = r_url.split('/')[1];
+    console.log(url_vars_raw);
+    return {'url':r_url, 'args':url_args,
+            'vars':url_vars_raw, 'appname':appname}
+}
+
+//utility - update the 'value' attribute of a vars string
+// returns an array with the new vars
+function update_vars(vars, val){
+    var vlist = vars.split('&');
+    vlist = vlist.filter(isValue);
+    vlist = vlist.concat('value=' + val);
+    vars = vlist.join('&');
+    console.log(vars);
+    return vars
+}
+
+//utility - get misc info from r_url
+function linkinfo(url, vlist){
+    var appname = url.split('/')[1];
+    var linktable_raw = vlist[1];
+    var linktable = linktable_raw.replace('linktable=', '');
+    var linkbase = '/' + appname;
+    linkbase += '/views/plugin_ajaxselect/set_form_wrapper.load';
+    var formname = linktable + '_editlist_form';
+    return {'linktable':linktable, 'linkbase':linkbase, 'formname':formname}
+}
+
+//utility - update the 'value' attribute of refresh_trigger link
+function update_refresher(url, vars, wrappername){
+    var refresh_url = url.split('?')[0] + '?' + vars;
+    $('a.refresh_trigger').attr('href', refresh_url);
+    $('a.refresh_trigger').attr('onclick',
+            'web2py_component("' + refresh_url + '", "'
+            + wrappername + '"); return false;');
+    return 'True'
+}
+
+//utility - assemble and return tag with edit link
+function editlink(info, args, vars, newval, newtext){
+    var link_url = info.linkbase + args + '/';
+    link_url += newval + '?' + vars;
+    var script_s = "web2py_component('" + link_url + "', '" +
+                                        info.formname + "')";
+    ntag = '<li class="editlink tag" id="' + newval + '">';
+    ntag += '<a class="tag_remover">X</a>';
+    ntag += '<a id="' + info.linktable + '_editlist_trigger_' + newval + '" ';
+    ntag += 'class="edit_trigger editlink tag" ';
+    ntag += 'href="' + link_url + '" ';
+    ntag += 'onclick="' + script_s + '; return false;">';
+    ntag += 'edit' + '</a>';
+    ntag += newtext + '</li>';
+    return ntag
+}
+
+//utility - build and return html for basic tag
+function tag(newval, newtext){
+    newtag += '<li class="tag" id="' + newval + '">';
+    newtag += '<a class="tag_remover">X</a>';
+    newtag += '<span>' + newtext + '</span>' + '</li>';
+    return newtag
+}
+
 //supply .indexOf function to ie browsers before ie8
 if (!Array.prototype.indexOf) {
     Array.prototype.indexOf = function (searchElement /*, fromIndex */ ) {
@@ -264,3 +341,34 @@ if (!Array.prototype.indexOf) {
         return -1;
     }
 }
+
+// supply .filter() method for arrays in older browsers
+if (!Array.prototype.filter)
+    {
+      Array.prototype.filter = function(fun /*, thisp */)
+      {
+        "use strict";
+
+        if (this == null)
+          throw new TypeError();
+
+        var t = Object(this);
+        var len = t.length >>> 0;
+        if (typeof fun != "function")
+          throw new TypeError();
+
+        var res = [];
+        var thisp = arguments[1];
+        for (var i = 0; i < len; i++)
+        {
+          if (i in t)
+          {
+            var val = t[i]; // in case fun mutates this
+            if (fun.call(thisp, val, i, t))
+              res.push(val);
+          }
+        }
+
+        return res;
+      };
+    }

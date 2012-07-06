@@ -1,0 +1,17 @@
+<div id=plugin_slider_{{=did}} class='plugin_slider_frame'>
+    <div class='plugin_slider_frameheader'>deck {{=did}}</div>
+
+    {{=A('next slide', _href=URL('plugin_slider', 'next_slide'),
+                    _class='plugin_slider_nextlink',
+                    cid='plugin_slider_slide'
+                    )}}
+    {{=A('previous slide', _href=URL('plugin_slider', 'prev_slide'),
+                    _class='plugin_slider_prevlink',
+                    cid='plugin_slider_slide'
+                    )}}
+
+    <div class='plugin_slider_slide'>
+        {{=LOAD('plugin_slider', 'show_slide', args=[firstslide],
+                                ajax=True, target='plugin_slider_slide')}}
+    </div>
+</div>
