@@ -103,9 +103,6 @@ $('.plugin_ajaxselect select[multiple="multiple"] option').live('click', functio
 //TODO: move binding of sortable here from set_widget.load and
 //listandedit/edit.load using plugin to provide 'create' event.
 function whenSortStops($taglist){
-    //$taglist.each(function(){
-        //$(this).addClass('bound-whenSortStops');
-    //});
     //COMMON get landmarks to navigate dom =====================
     var $p = $taglist.first().parents('span');
     //get $select, wrappername, $theinput, theinput, $td in info object
@@ -130,11 +127,20 @@ function whenSortStops($taglist){
     myinfo.$select.val(vals);
     //update back end via ajax
     setval(r_url.appname, myinfo.theinput);
+
+    //reorder options in widget
+    for (var i = 0; i < vals.length; i++) {
+        var $opts = myinfo.$select.children('option');
+        var $opt = myinfo.$select.find('option[value=' + vals[i] + ']');
+        console.log(vals[i]);
+        console.log($opt.attr('id'));
+        $opt.insertAfter($opts.last());
+    }
 }
 //TODO: change values in tag links? in adder link?
 
 //remove an option by clicking on the remover icon in a tag
-$('.tag_remover').live('click', function(event){
+$('a.tag_remover').live('click', function(event){
     //COMMON get landmarks to navigate dom =====================
     var $p = $(this).parents('span');
     //get $select, wrappername, $theinput, theinput, $td in info object

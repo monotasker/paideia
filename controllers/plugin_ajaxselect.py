@@ -88,10 +88,11 @@ def setval():
     if type(curval) == list:
         curval = curval[0]
     curval = str(curval).split(',')
-    session[wrappername] = curval
+    curvalInts = [int(i) for i in curval]
+    session[wrappername] = curvalInts
 
     if verbose == 1:
-        print 'insetval() processed: ', curval
+        print 'in setval() processed: ', curvalInts
         print 'in setval(), session[', wrappername, '=', session[wrappername]
 
     return curval
