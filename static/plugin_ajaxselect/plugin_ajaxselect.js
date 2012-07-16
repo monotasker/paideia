@@ -53,7 +53,7 @@ $('.edit_trigger').live('click', function(event){
 
 //TODO: Bind a separate function to the select if multi=False or no taglist
 //when select value is changed, update
-$('.plugin_ajaxselect select option').live('click', function(event){
+$('.plugin_ajaxselect select[multiple="multiple"] option').live('click', function(event){
     //COMMON get landmarks to navigate dom =====================
     var $p = $(this).parents('span');
     //get $select, wrappername, $theinput, theinput, $td in info object
@@ -102,8 +102,10 @@ $('.plugin_ajaxselect select option').live('click', function(event){
 
 //TODO: move binding of sortable here from set_widget.load and
 //listandedit/edit.load using plugin to provide 'create' event.
-
 function whenSortStops($taglist){
+    //$taglist.each(function(){
+        //$(this).addClass('bound-whenSortStops');
+    //});
     //COMMON get landmarks to navigate dom =====================
     var $p = $taglist.first().parents('span');
     //get $select, wrappername, $theinput, theinput, $td in info object
