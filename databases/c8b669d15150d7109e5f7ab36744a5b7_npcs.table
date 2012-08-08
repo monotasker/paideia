@@ -1,0 +1,74 @@
+(dp1
+S'name'
+p2
+(dp3
+S'type'
+p4
+S'string'
+p5
+sS'sortable'
+p6
+I2
+sS'sql'
+p7
+S'CHAR(512)'
+p8
+ssS'image'
+p9
+(dp10
+S'type'
+p11
+S'reference images'
+p12
+sS'sortable'
+p13
+I4
+sS'sql'
+p14
+S'INTEGER REFERENCES images(id) ON DELETE CASCADE'
+p15
+ssS'notes'
+p16
+(dp17
+g4
+S'text'
+p18
+sg6
+I5
+sg7
+S'TEXT'
+p19
+ssS'id'
+p20
+(dp21
+g4
+S'id'
+p22
+sg6
+I1
+sg7
+S'INTEGER PRIMARY KEY AUTOINCREMENT'
+p23
+ssS'npc_image'
+p24
+(dp25
+g4
+S'reference images'
+p26
+sg6
+I4
+sg7
+S'INTEGER REFERENCES images(id) ON DELETE CASCADE'
+p27
+ssS'location'
+p28
+(dp29
+g4
+S'list:reference db.locations'
+p30
+sg6
+I3
+sg7
+S'TEXT'
+p31
+ss.
