@@ -16,13 +16,13 @@ p8
 ssS'image'
 p9
 (dp10
-S'type'
+S'sortable'
 p11
-S'reference images'
-p12
-sS'sortable'
-p13
 I4
+sS'type'
+p12
+S'reference images'
+p13
 sS'sql'
 p14
 S'INTEGER REFERENCES images(id) ON DELETE CASCADE'
@@ -64,7 +64,7 @@ ssS'location'
 p28
 (dp29
 g4
-S'list:reference db.locations'
+S'list:reference locations'
 p30
 sg6
 I3

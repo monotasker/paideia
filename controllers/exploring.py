@@ -1,5 +1,6 @@
 # coding: utf8
-from paideia_exploring import Walk, Npc, Path, Step, StepMultipleChoice, Counter, Map, Location
+from paideia_exploring import Walk, Location, Step
+#, Npc, Path, Step, StepStub, StepMultipleChoice, Counter, Map, Location
 import pprint
 
 """
@@ -235,17 +236,16 @@ def walk():
     #after enters location or has completed step in this location
     #pick a path and present the prompt for the appropriate step
     elif request.args(0) == 'ask':
-        staying = False
+        walk.staying = False
         stay = request.vars['stay']
         if stay:
-            staying = walk.stay(stay)
+            walk.staying = walk.stay()
         else:
-            print 'DEBUG: loc =', request.vars['loc']
             loc = request.vars['loc']
             if loc:
                 walk.active_location = Location(loc)
-        print 'DEBUG: active loc =', walk.active_location
-        if not staying:
+        print 'DEBUG: staying =', walk.staying
+        if not walk.staying:
             walk.next_step()
         data = walk.step.ask()
         walk.save_session_data()
@@ -254,7 +254,6 @@ def walk():
 
     #if user response results in an error
     elif request.args(0) == 'error':
-        print '\nerror state'
         return patherror()
 
     #this and the following function are for testing a specific step

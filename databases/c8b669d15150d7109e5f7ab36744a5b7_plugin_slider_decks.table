@@ -39,19 +39,18 @@ ssS'id'
 p17
 (dp18
 g4
-S'id'
-p19
+g17
 sg6
 I1
 sg7
 S'INTEGER PRIMARY KEY AUTOINCREMENT'
-p20
+p19
 ssS'deck_slides'
-p21
-(dp22
+p20
+(dp21
 g4
 S'list:reference db.plugin_slider_slides'
-p23
+p22
 sg6
 I3
 sg7
