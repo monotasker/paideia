@@ -117,6 +117,8 @@ class Walk(object):
         if self.step:
             self.step.save_session_data()
 
+        print 'DEBUG: in Walk.save_session_data, session.walk = ', session.walk
+
     def get_session_data(self):
         '''
         Get the walk attributes from the session.
@@ -155,10 +157,10 @@ class Walk(object):
 
         if not step_id:
             step_id = session.walk['step']
-        print 'DEBUG: in _create_step_instance: step id =', step_id
+        print 'DEBUG: in Walk._create_step_instance: step id =', step_id
         step = db.steps(step_id)
         step_type = db.step_types(step.widget_type)
-        print 'DEBUG: in _create_step_instance: step type =', step_type
+        print 'DEBUG: in Walk._create_step_instance: step type =', step_type
 
         return STEP_CLASSES[step_type.step_class](step_id)
 
@@ -382,9 +384,9 @@ class Walk(object):
 
         self.path = path
         self.step = self._create_step_instance(step_id)
-        print 'DEBUG: in activate_step: step =', step_id
-        print 'DEBUG: in activate_step: step =', self.step.step
-        print 'DEBUG: in activate_step: step =', self.step.step.id
+        print 'DEBUG: in Walk.activate_step: step_id =', step_id
+        print 'DEBUG: in Walk.activate_step: self.step.step =', self.step.step
+        print 'DEBUG: in Walk.activate_step: self.step.step.id =', self.step.step.id
         self.active_paths[path.id] = step_id
 
         self.save_session_data()
@@ -414,7 +416,7 @@ class Walk(object):
 
         for p in self.get_paths():
             if default_tag.id in p.tags:
-                print 'DEBUG: %s --> %s' % (p.id, p.tags)
+                print 'DEBUG: in Walk.get_default_step, %s --> %s' % (p.id, p.tags)
         paths = [p for p in self.get_paths() if default_tag.id in p.tags]
 
 
@@ -470,7 +472,7 @@ class Walk(object):
         location = self.active_location.location
 
         if self.active_paths:
-            print 'DEBUG: looking for active paths'
+            print 'DEBUG: in Walk.get_next_step, looking for active paths'
             active_paths = db(db.paths.id.belongs(self.active_paths.keys())).select()
             # TODO: Do we need this - shouldn't a path be moved from active_paths to completed_paths when it's ended?
             if self.completed_paths:
@@ -528,7 +530,7 @@ class Walk(object):
 
         # We don't have any suitable active paths so look for a path due in this
         # location
-        print 'DEBUG: looking for due paths'
+        print 'DEBUG: in Walk.get_next_step, looking for due paths'
         tag_list = []
         for category in xrange(1, 5):
             tag_list.extend(self.tag_set[category])
@@ -550,14 +552,14 @@ class Walk(object):
                 elsewhere = True
 
         # There are no paths due in this location so look in other locations
-        print 'DEBUG: looking for due paths in othr loc'
+        print 'DEBUG: in Walk.get_next_step, looking for due paths in othr loc'
         if elsewhere:
             path, step_id = self.get_default_step()
 
             return dict(path=path, step=step_id)
 
         # If all else fails, choose a random path
-        print 'DEBUG: looking for random path'
+        print 'DEBUG: in Walk.get_next_step(), looking for random path'
         paths = self.get_paths()
         path = paths[random.randrange(0, len(paths))]
 
@@ -741,6 +743,9 @@ class Step(object):
         if self.npc:
             self.npc.save_session_data()
 
+        print 'DEBUG: in Step.save_session_data: session_data = ', session_data
+        print 'DEBUG: in Step.save_session_data: session.walk = ', session.walk
+
     def get_session_data(self):
         '''
         Get the step attributes from the session.
@@ -770,6 +775,8 @@ class Step(object):
 
         self.save_session_data()
 
+        print 'DEBUG: in Step.ask(): self.npc = ', self.npc
+        print 'DEBUG: in Step.ask(): npc.image = ', npc.image
         return dict(npc_img=npc.image, prompt=prompt, responder=responder)
 
     def get_npc(self):
@@ -1120,9 +1127,11 @@ class Npc(object):
         db = current.db
 
         try:
-            url = URL('static', os.path.join('images', self.npc.npc_image.image))
-            return IMG(_src=url)
+            print 'DEBUG: in Npc.get_image(), self.npc.npc_image.image =', self.npc.npc_image.image
+            url = URL('static/images', self.npc.npc_image.image)
 
+            print 'DEBUG: in Npc.get_image(), url=', url
+            return IMG(_src=url)
         except:
             return
 
