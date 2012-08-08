@@ -618,14 +618,14 @@ timestamp: 2012-05-11T17:25:40.643059
 ALTER TABLE locations ADD bg_image INTEGER REFERENCES images(id) ON DELETE CASCADE;
 timestamp: 2012-05-11T17:25:40.776425
 ALTER TABLE npcs ADD npc_image INTEGER REFERENCES images(id) ON DELETE CASCADE;
-timestamp: 2012-07-03T15:58:17.760651
-CREATE TABLE plugin_slider_decks(
+timestamp: 2012-08-08T15:03:35.492945
+CREATE TABLE plugin_slider_themes(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    deck_name CHAR(512),
-    deck_slides TEXT
+    theme_name CHAR(512),
+    description TEXT
 );
 success!
-timestamp: 2012-07-03T16:00:43.558004
+timestamp: 2012-08-08T15:03:35.698697
 CREATE TABLE plugin_slider_slides(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     slide_name CHAR(512),
@@ -633,14 +633,12 @@ CREATE TABLE plugin_slider_slides(
     theme TEXT
 );
 success!
-timestamp: 2012-07-03T16:00:43.768855
-CREATE TABLE plugin_slider_themes(
+timestamp: 2012-08-08T15:03:35.868053
+CREATE TABLE plugin_slider_decks(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    theme_name CHAR(512),
-    description TEXT
+    deck_name CHAR(512),
+    deck_slides TEXT,
+    theme TEXT,
+    position INTEGER
 );
 success!
-timestamp: 2012-07-03T16:17:45.001984
-ALTER TABLE plugin_slider_decks ADD theme TEXT;
-timestamp: 2012-07-03T17:15:02.972566
-ALTER TABLE plugin_slider_decks ADD position INTEGER;
