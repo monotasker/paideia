@@ -32,13 +32,21 @@ def set_widget():
         print 'linked to table |', linktable, '|'
 
     #get current value of widget
-    valstring = request.vars['value']
-    #restore value to list since it was converted to string for url
-    value = valstring.split(',')
+    wrp = request.vars['wrappername']
+    if wrp in session and session[wrp] != None:
+        value = session[request.vars['wrappername']]
+    else:
+        valstring = request.vars['value']
+        #restore value to list since it was converted to string for url
+        value = valstring.split(',')
+
     if 'rval' in request.vars:
         rval = request.vars['rval']
     else:
         rval = None
+
+    if verbose == 1:
+        print 'value:', value
 
     if request.vars['restricted'] in (None, 'None'):
         w = AjaxSelect().widget(field, value,
@@ -67,7 +75,7 @@ def setval():
     widget state in a session object to be used if the widget is refreshed
     before the form is processed."""
 
-    verbose = 0
+    verbose = 1
 
     theinput = request.args[0]
     wrappername = theinput.replace('_input', '')
@@ -80,10 +88,11 @@ def setval():
     if type(curval) == list:
         curval = curval[0]
     curval = str(curval).split(',')
-    session[wrappername] = curval
+    curvalInts = [int(i) for i in curval]
+    session[wrappername] = curvalInts
 
     if verbose == 1:
-        print 'insetval() processed: ', curval
+        print 'in setval() processed: ', curvalInts
         print 'in setval(), session[', wrappername, '=', session[wrappername]
 
     return curval
