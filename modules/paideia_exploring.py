@@ -756,12 +756,15 @@ class Step(object):
         try:
             self.path = db.paths(session.walk['path'])
             self.step = db.steps(session.walk['step'])
-            self.npc = Npc()
-
+            self.npc = Npc(session.walk['npc'])
+            #self.npc = Npc()
+            print 'DEBUG: in Step.get_session_data(), getting step and \
+                        npc from session'
         except KeyError:
             self.path = db.paths(session.walk['path'])
             self.step = None
             self.npc = None
+            print 'DEBUG: in Step.get_session_data(), step and npc = None'
 
     def ask(self):
         '''
@@ -868,11 +871,13 @@ class Step(object):
                 reply = "Right. Κάλη."
             elif answer2 != 'null' and re.match(answer2, user_response, re.I):
                 score = 0.5
-                #TODO: Get this score value from the db instead of hard coding it here.
+                #TODO: Get this score value from the db instead of hard
+                #coding it here.
                 reply = "Οὐ κάκος. You're close."
                 #TODO: Vary the replies
             elif answer3 != 'null' and re.match(answer3, user_response, re.I):
-                #TODO: Get this score value from the db instead of hard coding it here.
+                #TODO: Get this score value from the db instead of hard
+                #coding it here.
                 score = 0.3
             else:
                 score = 0
@@ -891,7 +896,7 @@ class Step(object):
         except re.error:
             redirect(URL('index', args=['error', 'regex']))
 
-        return dict(reply=reply, readable=readable, npc_img=self.npc.image)
+        return dict(reply=reply, readable=readable, npc_img=session.walk['npc_image'])
 
     def record(self, score, times_wrong_incr):
         '''

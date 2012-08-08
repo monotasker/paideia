@@ -232,6 +232,7 @@ def walk():
     elif ('response' in request.vars) and (request.args(0) == 'ask'):
 
         print '\nDEBUG: controller state: response'
+        print 'DEBUG: in controller.walk(), session.walk =', session.walk
         data = walk.step.process(request.vars.response)
 
         walk.save_session_data()
