@@ -84,13 +84,13 @@ db.define_table('tags',
 db.define_table('locations',
     Field('location'),
     Field('alias'),
-    Field('bg_image', images),
+    Field('bg_image', db.images),
     format='%(location)s')
 
 db.define_table('npcs',
     Field('name', 'string'),
     Field('location', 'list:reference locations'),
-    Field('npc_image', images),
+    Field('npc_image', db.images),
     Field('notes', 'text'),
     format='%(name)s')
 db.npcs.location.requires = IS_IN_DB(db, 'locations.id',

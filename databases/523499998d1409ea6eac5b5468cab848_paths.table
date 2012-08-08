@@ -4,7 +4,7 @@ p2
 (dp3
 S'type'
 p4
-S'list:reference steps'
+S'list:reference db.steps'
 p5
 sS'sortable'
 p6
@@ -17,22 +17,21 @@ ssS'id'
 p9
 (dp10
 g4
-S'id'
-p11
+g9
 sg6
 I1
 sg7
 S'INTEGER PRIMARY KEY AUTOINCREMENT'
-p12
+p11
 ssS'label'
-p13
-(dp14
+p12
+(dp13
 g4
 S'string'
-p15
+p14
 sg6
 I2
 sg7
 S'CHAR(512)'
-p16
+p15
 ss.
