@@ -231,7 +231,7 @@ db.paths.steps.widget = lambda field, value: AjaxSelect().widget(
                                         field, value, 'steps',
                                         refresher=True,
                                         multi='basic',
-                                        lister='simple',
+                                        lister='editlinks',
                                         sortable='true')
 
 class PathsVirtualFields(object):

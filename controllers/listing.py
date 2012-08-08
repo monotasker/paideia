@@ -37,3 +37,12 @@ def news():
     else:
         button = ''
     return dict(newslist = newslist, button = button)
+
+def slides():
+    slidelist = db(db.plugin_slider_decks.id > 0).select(orderby= db.plugin_slider_decks.position);
+    slides = UL()
+    for s in slidelist:
+        slides.append(LI(A(s.deck_name, _href=URL('plugin_slider', 'start_deck.load', args=[s.id]), cid='slideframe')))
+
+    return dict(slides=slides)
+
