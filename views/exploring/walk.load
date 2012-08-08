@@ -46,7 +46,7 @@
 
 <!--path selection-->
 {{elif request.args(0) == 'start' or not request.args:}}
-	<embed id='town_map' src='{{=map_image}}' type='image/svg+xml' />
+	<embed id='town_map' src='{{=map.image}}' type='image/svg+xml' />
     
 <!--present npc reply for user's response to step prompt-->
 {{elif 'response' in request.vars:}}
@@ -60,7 +60,7 @@
         paths already complete today.</span>
     </section>
     <div class='responder'>
-        {{=A("Continue", _href=URL('walk', args=['ask']), cid='page', 
+        {{=A("Continue", _href=URL('walk', args=['ask'], vars={'stay': True}), cid='page', 
             _class='button-green-grad next_q')}}
         <span class='back_to_map'>{{=A("Map", _href=URL('walk'), cid='page', 
             _class='button-yellow-grad back_to_map')}}</span>

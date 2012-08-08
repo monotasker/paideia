@@ -180,7 +180,7 @@ def index():
     # Check to see whether this user session has been initialized
     if not walk.tag_set:
         print '\ninitializing new user session'
-        # Categorize available tags for this student, store in walk instance
+        # Categorize available tags for this student, store in Walk instance
         walk.categorize_tags()
 
         walk.unfinished()
@@ -226,15 +226,27 @@ def walk():
     # Evaluate response and present feedback via npc reply
     elif ('response' in request.vars) and (request.args(0) == 'ask'):
 
-        return walk.step.process(request.vars.response)
+        data = walk.step.process(request.vars.response)
+
+        walk.save_session_data()
+
+        return data
 
     #after enters location or has completed step in this location
     #pick a path and present the prompt for the appropriate step
     elif request.args(0) == 'ask':
-        location = Location(request.vars['loc'])
-        walk.active_location = location
-        walk.pick_path(location)
-        step = walk.step
+        staying = False
+        stay = request.vars['stay']
+        if stay:
+            staying = walk.stay(stay)
+        else:
+            print 'DEBUG: loc =', request.vars['loc']
+            loc = request.vars['loc']
+            if loc:
+                walk.active_location = Location(loc)
+        print 'DEBUG: active loc =', walk.active_location
+        if not staying:
+            walk.next_step()
         data = walk.step.ask()
         walk.save_session_data()
 
