@@ -216,8 +216,12 @@ def walk():
 
     walk = Walk()
 
+    print '\n\nDEBUG: controller exploring.walk()'
+
     # When user begins exploring (also default) present map
     if (request.args(0) == 'start') or (not request.args):
+
+        print '\nDEBUG: controller state: start'
         walk.active_location = None #clear in preparation for new location
         walk.save_session_data()
 
@@ -227,6 +231,7 @@ def walk():
     # Evaluate response and present feedback via npc reply
     elif ('response' in request.vars) and (request.args(0) == 'ask'):
 
+        print '\nDEBUG: controller state: response'
         data = walk.step.process(request.vars.response)
 
         walk.save_session_data()
@@ -236,6 +241,8 @@ def walk():
     #after enters location or has completed step in this location
     #pick a path and present the prompt for the appropriate step
     elif request.args(0) == 'ask':
+
+        print '\nDEBUG: controller state: ask'
         walk.staying = False
         stay = request.vars['stay']
         if stay:
@@ -254,6 +261,8 @@ def walk():
 
     #if user response results in an error
     elif request.args(0) == 'error':
+
+        print '\nDEBUG: controller state: error'
         return patherror()
 
     #this and the following function are for testing a specific step
