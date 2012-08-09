@@ -1,5 +1,5 @@
 # coding: utf8
-from paideia_exploring import Walk, Location, Step
+from paideia_exploring import Walk, Location, Step, StepStub
 #, Npc, Path, Step, StepStub, StepMultipleChoice, Counter, Map, Location
 import pprint
 
@@ -224,6 +224,10 @@ def walk():
         print '\nDEBUG: controller state: start'
         walk.active_location = None #clear in preparation for new location
         walk.save_session_data()
+
+        # If we got here from a StepStub, we need to complete the step
+        if walk.step and isinstance(walk.step, StepStub):
+            walk.step.complete()
 
         return {'map': walk.map}
 
