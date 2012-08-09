@@ -3,7 +3,10 @@ from gluon import current, URL, redirect, IMG, SQLFORM, SPAN, Field, INPUT, A
 from gluon import IS_NOT_EMPTY, IS_IN_SET
 #from gluon.sql import Row, Rows
 
-import datetime, random, re, traceback
+import datetime
+import random
+import re
+import traceback
 
 
 ### Utility functions
@@ -50,14 +53,15 @@ class Utils(object):
                 if type(val) == tuple and (val[0] in session[session_index]):
                     session[session_index][val[0]] = val[1]
                 elif type(val) == tuple:
-                    session[session_index] = {val[0]:val[1]}
+                    session[session_index] = {val[0]: val[1]}
                 else:
                     session[session_index].append(val)
             else:
                 if type(val) == tuple:
-                    session[session_index] = {val[0]:val[1]}
+                    session[session_index] = {val[0]: val[1]}
                 else:
                     session[session_index] = [val]
+
 
 class Walk(object):
     '''
@@ -149,8 +153,8 @@ class Walk(object):
 
     def _create_step_instance(self, step_id=None):
         '''
-        Create an instance of a Step class or one of its subclasses based on the
-        step's widget type.
+        Create an instance of a Step class or one of its subclasses based on
+        the step's widget type.
         '''
 
         db = current.db
@@ -174,8 +178,9 @@ class Walk(object):
 
         :param cat:dict()
 
-        JEFF: By convention, private methods in Python are prefixed with an underscore
-              (see http://docs.python.org/tutorial/classes.html#private-variables)
+        JEFF: By convention, private methods in Python are prefixed with
+        an underscore
+        (see http://docs.python.org/tutorial/classes.html#private-variables)
         '''
 
         auth, db = current.auth, current.db
@@ -198,9 +203,9 @@ class Walk(object):
 
     def categorize_tags(self):
         '''
-        This method uses stored statistics for current user to categorize the grammatical
-        tags based on the user's success and the time since the user last
-        used the tag.
+        This method uses stored statistics for current user to categorize the
+        grammatical tags based on the user's success and the time since the
+        user last used the tag.
 
         The categories range from 1 (need immediate review) to 4 (no review
         needed).
@@ -231,15 +236,15 @@ class Walk(object):
                 if right_wrong_dur.days >= 7:
                     if right_wrong_dur.days > 30:
                         if right_wrong_dur > datetime.timedelta(days=180):
-                            category = 1 # Not due, but not attempted for 6 months
+                            category = 1  # Not due, not attempted for 6 months
                         else:
-                            category = 4 # Not due, delta more than a month
+                            category = 4  # Not due, delta more than a month
                     else:
-                        category = 3 # Not due, delta between a week and a month
+                        category = 3  # Not due, delta between a week and a month
                 else:
-                    category = 2 # Not due but delta is a week or less
+                    category = 2  # Not due but delta is a week or less
             else:
-                category = 1 # Spaced repetition requires review
+                category = 1  # Spaced repetition requires review
             categories[category].append(record.tag.id)
 
         # If there are no tags needing immediate review, introduce new one
@@ -352,14 +357,17 @@ class Walk(object):
 #            db = current.db
 #
 #            category = self.get_category()
-#            paths, category = self.find_paths(category, location, self.get_paths())
+#            paths, category = self.find_paths(category, location,
+#                                                            #self.get_paths())
 #
 #            path_count = len(paths)
 #
 #            if not len(paths):
-#                print 'No available paths, so reviewing some already completed today'
+#                print 'No available paths, so reviewing some already
+#                                                            #completed today'
 #                self.completed_paths = set()
-#                paths, category = self.find_paths(category, location, self.get_paths())
+#                paths, category = self.find_paths(category, location,
+#                                                            self.get_paths())
 #
 #            path = paths[random.randrange(0, len(paths))]
 #            step_id = path.steps[0]
@@ -387,7 +395,8 @@ class Walk(object):
         self.step = self._create_step_instance(step_id)
         print 'DEBUG: in Walk.activate_step: step_id =', step_id
         print 'DEBUG: in Walk.activate_step: self.step.step =', self.step.step
-        print 'DEBUG: in Walk.activate_step: self.step.step.id =', self.step.step.id
+        print 'DEBUG: in Walk.activate_step: \
+                                    self.step.step.id =', self.step.step.id
         self.active_paths[path.id] = step_id
 
         self.save_session_data()
@@ -399,11 +408,11 @@ class Walk(object):
         '''
         Deactivate the given step on the given path.
         '''
+        print 'DEBUG: in Walk.deactivate_step, path =', path
+        self.update_path_log(path, 0, 1)  # ??? changed path.id to path here
 
-        self.update_path_log(path.id, 0, 1)
-
-        del self.active_paths[path.id]
-        self.completed_paths.add(path.id)
+        del self.active_paths[path]  # ??? changed path.id to path here
+        self.completed_paths.add(path)  # ??? changed path.id to path here
         self.save_session_data()
 
     def get_default_step(self):
@@ -419,7 +428,6 @@ class Walk(object):
             if default_tag.id in p.tags:
                 print 'DEBUG: in Walk.get_default_step, %s --> %s' % (p.id, p.tags)
         paths = [p for p in self.get_paths() if default_tag.id in p.tags]
-
 
         # Choose a path at random
         path = paths[random.randrange(0, len(paths))]
@@ -480,9 +488,9 @@ class Walk(object):
         if self.active_paths:
             print 'DEBUG: in Walk.get_next_step, looking for active paths'
             active_paths = db(db.paths.id.belongs(self.active_paths.keys())).select()
-            # TODO: Do we need this - shouldn't a path be moved from active_paths to completed_paths when it's ended?
-            if self.completed_paths:
-                active_paths.exclude(lambda row: row.id in self.completed_paths)
+            # TODO: condition now unnecessary and deprecated
+            #if self.completed_paths:
+                #active_paths.exclude(lambda row: row.id in self.completed_paths)
 
             active_here = active_paths.find(lambda row: location.id in row.locations)
 
@@ -528,14 +536,16 @@ class Walk(object):
 
             # We haven't found a suitable path in this location, so look for an
             # arbitrary active path in another location
-            active_elsewhere = set(active_paths) - set(active_here)
+            # TODO: rows() objects aren't hashable, can't be in sets
+            hlist = active_here.as_list()
+            active_elsewhere = active_paths.exclude(lambda row: row in hlist)
             if active_elsewhere:
                 path, step_id = self.get_default_step()
 
                 return dict(path=path, step=step_id)
 
-        # We don't have any suitable active paths so look for a path due in this
-        # location
+        # We don't have any suitable active paths so look for a path due
+        #in this location
         print 'DEBUG: in Walk.get_next_step, looking for due paths'
         tag_list = []
         for category in xrange(1, 5):
@@ -558,7 +568,7 @@ class Walk(object):
                 elsewhere = True
 
         # There are no paths due in this location so look in other locations
-        print 'DEBUG: in Walk.get_next_step, looking for due paths in other loc'
+        print 'DEBUG: in Walk.get_next_step, looking for due paths elsewhere'
         if elsewhere:
             path, step_id = self.get_default_step()
 
@@ -576,13 +586,13 @@ class Walk(object):
         Choose one of four categories with a random factor but a heavy
         weighting toward category 1
         '''
-        switch = random.randrange(1,101)
+        switch = random.randrange(1, 101)
 
-        if switch in range(1,75):
+        if switch in range(1, 75):
             category = 1
-        elif switch in range(75,90):
+        elif switch in range(75, 90):
             category = 2
-        elif switch in range(90,98):
+        elif switch in range(90, 98):
             category = 3
         else:
             category = 4
@@ -599,7 +609,7 @@ class Walk(object):
         # TODO: Review cache time
         return db().select(db.paths.ALL,
                         orderby=db.paths.id,
-                        cache=(cache.ram, 60*60))
+                        cache=(cache.ram, 60 * 60))
 
 #    def find_paths(self, cat, location, paths):
 #        '''
@@ -675,7 +685,7 @@ class Walk(object):
         auth, db = current.auth, current.db
 
         if update_switch:
-            query = (db.path_log.path==path_id) & (db.path_log.name==auth.user_id)
+            query = (db.path_log.path == path_id) & (db.path_log.name == auth.user_id)
             log = db(query).select(orderby=~db.path_log.dt_started).first()
             log.update_record(path=path_id, last_step=step_id)
         else:
@@ -689,8 +699,8 @@ class Path(object):
     the data in the session object
 
     ## session variables available:
-    ### This first set is used to track information about a user's session that persists
-    beyond a single step execution.
+    ### This first set is used to track information about a user's session
+    that persists beyond a single step execution.
 
     session.active_paths (dict: id:last active step)
     session.completed (list: int for path id)
@@ -711,7 +721,8 @@ class Path(object):
         self.loc = loc
 
     def end(self):
-        #current object must be accessed at runtime, so can't be global variable
+        #current object must be accessed at runtime, so can't be global
+        # variable
         session, request, auth, db = current.session, current.request
         auth, db = current.auth, current.db
 
@@ -814,7 +825,7 @@ class Step(object):
         db, session = current.db, current.session
 
         if session.walk['active_location'] is None:
-            return   # TODO: maybe we return a 404 here (or in ask() and other callers?)
+            return   # TODO: maybe we return a 404 here (or in ask(), etc.)?
 
         location = Location(session.walk['active_location'])
 
@@ -828,11 +839,12 @@ class Step(object):
         # If we haven't found an npc at the location and step, get a random one
         # from this location.
         if not npc:
-            npcs = db((db.npcs.location.contains(location.location.id))).select()
+            npcs = db(db.npcs.location.contains(location.location.id)).select()
 
             npc = _get_npc(npcs)
 
-        # If we haven't found an npc at the location, get a random one from this
+        # If we haven't found an npc at the location, get a random one from
+        # this
         # step.
         if not npc:
             npcs = db((db.npcs.id.belongs(self.step.npcs))).select()
@@ -902,7 +914,9 @@ class Step(object):
         except re.error:
             redirect(URL('index', args=['error', 'regex']))
 
-        return dict(reply=reply, readable=readable, npc_img=session.walk['npc_image'])
+        return {'reply': reply,
+                'readable': readable,
+                'npc_img': session.walk['npc_image']}
 
     def record(self, score, times_wrong_incr):
         '''
@@ -981,7 +995,7 @@ class Step(object):
         log = db(query).select(orderby=~db.path_log.dt_started).first()
         if log:
             log.update_record(path=self.path.id, last_step=self.step.id)
-        else:   # We should already have an existing path_log but in case we don't...
+        else:   # We should have an existing path_log but in case not...
             db.path_log.insert(path=self.path.id, last_step=self.step.id)
 
         # Log this step attempt
@@ -1004,7 +1018,7 @@ class Step(object):
         #TODO: get audio file for prompt text as well.
         audio = ''
 
-        return text#, audio
+        return text  # audio
 
     def get_responder(self):
         '''
@@ -1037,7 +1051,7 @@ class StepMultipleChoice(Step):
         form = SQLFORM.factory(
                    Field('response', 'string',
                     requires=IS_IN_SET(vals),
-                    widget = SQLFORM.widgets.radio.widget))
+                    widget=SQLFORM.widgets.radio.widget))
         if form.process().accepted:
             session.response = request.vars.response
 
@@ -1066,7 +1080,6 @@ class StepStub(Step):
 
         return dict(npc_img=npc.image, prompt=prompt)
 
-
     def get_responder(self):
         pass
 
@@ -1087,7 +1100,6 @@ class StepStub(Step):
         session, db, auth = current.session, current.db, current.auth
 
         utc_now = datetime.datetime.utcnow()
-
 
         tag_records = db(db.tag_records.name == auth.user_id).select()
 
@@ -1145,7 +1157,7 @@ class StepStub(Step):
         log = db(query).select(orderby=~db.path_log.dt_started).first()
         if log:
             log.update_record(path=self.path.id, last_step=0)
-        else:   # We should already have an existing path_log but in case we don't...
+        else:   # We should have an existing path_log but in case we don't...
             db.path_log.insert(path=self.path.id, last_step=0)
 
         # Log this step attempt
@@ -1224,7 +1236,9 @@ class Npc(object):
         db = current.db
 
         try:
-            print 'DEBUG: in Npc.get_image(), self.npc.npc_image.image =', self.npc.npc_image.image
+            print 'DEBUG: in Npc.get_image(), self.npc.npc_image.image ='
+            print self.npc.npc_image.image
+
             url = URL('static/images', self.npc.npc_image.image)
 
             print 'DEBUG: in Npc.get_image(), url=', url
@@ -1306,7 +1320,8 @@ class Location(object):
 #
 #        if walk.active_paths:
 #            active_paths = db(db.paths.id.belongs(walk.active_paths.keys())).select()
-#            # TODO: Do we need this - shouldn't a path be moved from active_paths to completed_paths when it's ended?
+#            # TODO: Do we need this - shouldn't a path be moved from
+#               active_paths to completed_paths when it's ended?
 #            if walk.completed_paths:
 #                active_paths.exclude(lambda row: row.id in walk.completed_paths)
 #
@@ -1398,6 +1413,7 @@ class Location(object):
 #
 #        return dict(path=path, step=path.steps[0])
 
+
 class Map(object):
     '''This class returns information needed to present the navigation map'''
 
@@ -1420,6 +1436,4 @@ class Map(object):
         # TODO: Review cache time
         return db().select(db.locations.ALL,
                            orderby=db.locations.location,
-                           cache=(cache.ram, 60*60)).as_list()
-
-
+                           cache=(cache.ram, 60 * 60)).as_list()
