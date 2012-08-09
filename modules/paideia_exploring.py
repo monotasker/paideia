@@ -301,10 +301,11 @@ class Walk(object):
             attempts = db(
                     (db.attempt_log.name == auth.user_id) &
                     (db.attempt_log.path == log.path) &
-                    (db.attempt_log.step == log.last_step)
+                    (db.attempt_log.step == log.last_step) &
+                    (db.attempt_log.dt_attempted >= log.dt_started)
                 ).select(orderby=~db.attempt_log.dt_attempted)
 
-            # Get attempts made today
+            # TODO: Get attempts made today?
             attempts = [a for a in attempts if a.dt_attempted.date() == today]
 
             # Activated step that hasn't had a response
@@ -542,8 +543,8 @@ class Walk(object):
         elsewhere = False
         for tag in tag_list:
             record = tag_records.find(lambda row: row.tag == tag)[0]
-            if not (record.path.id in self.active_paths and
-                    record.path.id not in self.completed_paths):
+            if not (record.path.id in self.active_paths or
+                    record.path.id in self.completed_paths):
                 path = db.paths(record.path.id)
 
                 if location.id in path.locations:
@@ -552,7 +553,7 @@ class Walk(object):
                 elsewhere = True
 
         # There are no paths due in this location so look in other locations
-        print 'DEBUG: in Walk.get_next_step, looking for due paths in othr loc'
+        print 'DEBUG: in Walk.get_next_step, looking for due paths in other loc'
         if elsewhere:
             path, step_id = self.get_default_step()
 
@@ -839,7 +840,7 @@ class Step(object):
 
             npc = _get_npc(npcs)
 
-        self.npc = Npc(npc)
+        self.npc = Npc(npc.id)
 
         return self.npc
 
@@ -910,9 +911,6 @@ class Step(object):
 
         utc_now = datetime.datetime.utcnow()
 
-        # Log this step attempt
-        db.attempt_log.insert(step=self.step.id, score=score, path=self.path.id)
-
         tag_records = db(db.tag_records.name == auth.user_id).select()
 
         # Calculate record info
@@ -980,6 +978,9 @@ class Step(object):
             log.update_record(path=self.path.id, last_step=self.step.id)
         else:   # We should already have an existing path_log but in case we don't...
             db.path_log.insert(path=self.path.id, last_step=self.step.id)
+
+        # Log this step attempt
+        db.attempt_log.insert(step=self.step.id, score=score, path=self.path.id)
 
         # Check to see whether this is the last step in the path and if so
         # remove from active_paths and add to completed_paths
@@ -1065,6 +1066,89 @@ class StepStub(Step):
     def process(self):
         pass
 
+    def complete(self):
+        '''
+        Complete this step:
+            * Update the path_log
+            * Update the attempt_log
+            * Remove path from active paths
+            * Add path to completed paths
+
+        Note that the user always gets the step right.
+        '''
+
+        session, db, auth = current.session, current.db, current.auth
+
+        utc_now = datetime.datetime.utcnow()
+
+
+        tag_records = db(db.tag_records.name == auth.user_id).select()
+
+        # Calculate record info
+        time_last_right = utc_now
+        time_last_wrong = utc_now
+
+        times_right = 1
+        times_wrong = 0
+
+        # Log this tag attempt for each tag in the step
+        for tag in self.step.tags:
+            # Try to update an existing record for this tag
+            try:
+                tag_records = tag_records.find(lambda row: row.tag == tag)
+
+                if tag_records:
+                    tag_record = tag_records[0]
+
+                    time_last_wrong = tag_record.tlast_wrong
+
+                    times_right += tag_record.times_right
+
+                    tag_record.update_record(
+                        tlast_right=time_last_right,
+                        tlast_wrong=time_last_wrong,
+                        times_right=times_right,
+                        times_wrong=times_wrong,
+                        path=self.path.id,
+                        step=self.step.id
+                    )
+
+                else:
+                    val = db.tag_records.insert(
+                        tag=tag,
+                        tlast_right=time_last_right,
+                        tlast_wrong=time_last_wrong,
+                        times_right=times_right,
+                        times_wrong=times_wrong,
+                        path=self.path.id,
+                        step=self.step.id
+                    )
+
+            # Print any other error that is thrown
+            # TODO: Put this in a server log instead/as well or create a ticket
+            # TODO: Do we want to rollback the transaction?
+            except Exception, err:
+                print 'unidentified error:'
+                print type(err)
+                print err
+                print traceback.format_exc()
+
+        # TODO: Merge this with Walk.update_path_log()
+        query = (db.path_log.path == self.path.id) & (db.path_log.name == auth.user_id)
+        log = db(query).select(orderby=~db.path_log.dt_started).first()
+        if log:
+            log.update_record(path=self.path.id, last_step=0)
+        else:   # We should already have an existing path_log but in case we don't...
+            db.path_log.insert(path=self.path.id, last_step=0)
+
+        # Log this step attempt
+        db.attempt_log.insert(step=self.step.id, score=1.0, path=self.path.id)
+
+        # Remove from active_paths and add to completed_paths
+        del session.walk['active_paths'][self.path.id]
+        session.walk['completed_paths'].add(self.path.id)
+
+
 class StepImage(Step):
     pass
 
@@ -1083,10 +1167,12 @@ STEP_CLASSES = {
 
 class Npc(object):
 
-    def __init__(self, npc=None):
+    def __init__(self, npc_id=None):
 
-        if npc is not None:
-            self.npc = npc
+        db, session = current.db, current.session
+
+        if npc_id is not None:
+            self.npc = db.npcs(npc_id)
             self.image = self.get_image()
 
             self.save_session_data()
@@ -1128,7 +1214,6 @@ class Npc(object):
         Get the image to present as a depiction of the npc.
         '''
 
-        import os
         db = current.db
 
         try:
