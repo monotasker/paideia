@@ -446,10 +446,15 @@ class Walk(object):
 
     def stay(self):
         '''
-        Get a step in the current locastion at the current location if possible.
+        Get a step in the current location at the current location if
+        possible.
         '''
 
         session, db = current.session, current.db
+        print 'DEBUG: in Walk.stay(), self.step =', self.step.step
+        print 'DEBUG: in Walk.stay(), self.step =', self.step.step.id
+        print 'DEBUG: in Walk.stay(), self.path =', self.path
+        print 'DEBUG: in Walk.stay(), self.path.steps =', self.path.steps
 
         index = self.path.steps.index(self.step.step.id)
         if index + 1 < len(self.path.steps):
@@ -1003,13 +1008,15 @@ class Step(object):
 
     def get_responder(self):
         '''
-        Create and return the form to receive the user's response for this step.
+        Create and return the form to receive the user's response for this
+        step.
         '''
 
         if isinstance(self, StepStub):
             return
 
-        session, request, response = current.session, current.request, current.response
+        session, request = current.session, current.request
+        response = current.response
 
         form = SQLFORM.factory(
                    Field('response', 'string', requires=IS_NOT_EMPTY())
