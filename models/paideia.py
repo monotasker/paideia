@@ -289,16 +289,18 @@ db.define_table('bug_status',
     Field('status_label'),
     format='%(status_label)s')
 
-db.define_table('q_bugs',
-    Field('question', db.questions),
-    Field('a_submitted'),
-    Field('name', db.auth_user, default=auth.user_id),
-    Field('submitted', 'datetime', default=dtnow),
-    Field('bug_status', db.bug_status, default=1),
+db.define_table('bugs',
+    Field('step', db.steps),
+    Field('path', db.paths),
+    Field('location', db.locations),
+    Field('user_response'),
+    Field('user_name', db.auth_user, default=auth.user_id),
+    Field('date_submitted', 'datetime', default=dtnow),
+    Field('bug_status', db.bug_status, default=5),
     Field('admin_comment', 'text'),
     Field('prev_lastright', 'datetime'),
     Field('prev_lastwrong', 'datetime'),
-    format='%(question)s')
+    format='%(step)s')
 
 db.define_table('news',
     Field('story', 'text'),
