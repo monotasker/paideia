@@ -2,24 +2,49 @@ from gluon import current, SQLFORM, redirect, A, URL, H3
 from gluon.tools import Crud
 
 
-class paideia_bugs:
-    """This class handles the creation, manipulation, and reporting of bug reports for paideia."""
-    def __init__(self, qID = 0):
-        self.qID = qID
+class Bug(object):
+    """
+    Handles the creation, manipulation, and reporting of bug
+    reports for paideia.
+    """
+    def __init__(self, step=None, path=None, location=None):
+        session = current.session
+
+        if not step:
+            step = session.walk['step']
+        self.step = step
+        if not path:
+            path = session.walk['path']
+        self.path = path
+        if not location:
+            location = session.walk['location']
+        self.location = location
         return
 
-    def lognew(self, answer):
-        """creates a new bug report and provides confirmation to the user."""
-
+    def log_new(self, answer):
+        """
+        creates a new bug report and provides confirmation to the user.
+        """
         response, db = current.response, current.db
-
-        db.q_bugs.insert(question=self.qID, a_submitted=answer)
-        response.flash = 'Thanks for reporting this potential bug.'
-        return dict(message = 'If this turns out to be a bug it will be taken into account as we track your learning.')
+        try:
+            db.q_bugs.insert(question=self.step, a_submitted=answer)
+            response.flash = 'Thanks for reporting this potential bug. We will\
+                    look at the question to see what the problem was. If there\
+                    turns out to be a problem with the question, this answer\
+                    will be ignored as we track your learning. Check your\
+                    profile page in the next few days to see the instructor\'s
+                    response to your bug report.'
+            return True
+        except:
+            response.flash = 'Sorry, something went wrong with your error\
+                    report. Please contact the instructor.'
+            return False
 
     def updatebug(self):
-        """provides form and page components to update an existing bug and handles the  """
-
+        """
+        Provides form and page components to update an existing bug and
+        handles the form processing.
+        """
         request, db = current.request, current.db
         crud = Crud(db)
 
