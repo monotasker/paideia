@@ -554,10 +554,11 @@ class Walk(object):
         tag_records = db(
                 db.tag_records.tag.belongs(tag_list)
             ).select(orderby=db.tag_records.tag)
-
+        print 'DEBUG: in Walk.get_next_step, tag_records =', tag_records
         elsewhere = False
-        for tag in tag_list:
-            record = tag_records.find(lambda row: row.tag == tag)[0]
+        for tag_id in tag_list:
+            record = tag_records.find(lambda row: row.tag == tag_id)[0]
+            print 'DEBUG: in Walk.get_next_step, record =', record
             if not (record.path.id in self.active_paths or
                     record.path.id in self.completed_paths):
                 path = db.paths(record.path.id)
