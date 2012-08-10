@@ -27,49 +27,51 @@ class Bug(object):
         """
         response, db = current.response, current.db
         try:
-            db.q_bugs.insert(question=self.step, a_submitted=answer)
+            db.bugs.insert(step=self.step, path=self.path,
+                            location=self.location, user_response=answer)
             response.flash = 'Thanks for reporting this potential bug. We will\
                     look at the question to see what the problem was. If there\
                     turns out to be a problem with the question, this answer\
                     will be ignored as we track your learning. Check your\
-                    profile page in the next few days to see the instructor\'s
+                    profile page in the next few days to see the instructor\'s\
                     response to your bug report.'
             return True
         except:
-            response.flash = 'Sorry, something went wrong with your error\
+            response.flash = 'Sorry, something went wrong with your bug\
                     report. Please contact the instructor.'
             return False
 
-    def updatebug(self):
-        """
-        Provides form and page components to update an existing bug and
-        handles the form processing.
-        """
-        request, db = current.request, current.db
-        crud = Crud(db)
+    # TODO: Deprecated in favour of plugin_listandedit
+    #def updatebug(self):
+        #"""
+        #Provides form and page components to update an existing bug and
+        #handles the form processing.
+        #"""
+        #request, db = current.request, current.db
+        #crud = Crud(db)
 
-        edit_form = crud.update(db.q_bugs, request.args[0])
-        closer = A('close', _href=URL('#'), _class='close_link')
-        the_title = H3('Reviewing Bug Report for Question')
+        #edit_form = crud.update(db.bugs, request.args[0])
+        #closer = A('close', _href=URL('#'), _class='close_link')
+        #the_title = H3('Reviewing Bug Report for Question')
 
     def bugresponse(self, the_user):
 
         db = current.db
 
-        bugs = db((db.questions.id == db.q_bugs.question) & (db.q_bugs.name == the_user)).select()
+        bugs = db((db.steps.id == db.bugs.step) & (db.bugs.name == the_user)).select()
         lst = []
-        for bug in bugs:
+        for b in bugs:
             display = []
-            display.append(bug.questions.question)
-            display.append(bug.q_bugs.a_submitted)
-            display.append(bug.q_bugs.submitted)
+            display.append(b.questions.step)
+            display.append(b.bugs.user_response)
+            display.append(b.bugs.date_submitted)
             #get status label instead of raw status reference
-            s = bug.q_bugs.bug_status
+            s = bug.bugs.bug_status
             if s == None:
                 s = 5
             st = db(db.bug_status.id == s).select().first()
             status = st.status_label
             display.append(status)
-            display.append(bug.q_bugs.admin_comment)
+            display.append(bug.bugs.admin_comment)
             lst.append(display)
         return lst
