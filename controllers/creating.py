@@ -1,4 +1,5 @@
 # coding: utf8
+from paideia_bugs import Bug
 
 if 0:
     from gluon import current, URL, A, H3
@@ -9,17 +10,6 @@ if 0:
     crud = Crud()
     db = DAL()
     auth = Auth()
-
-from paideia_bugs import paideia_bugs
-
-@auth.requires_membership(role="administrators")
-def question():
-    edit_form = crud.create(db.questions)
-    closer = A('close', _href=URL('#'), _class='close_link')
-    the_title = H3('Create a New Question')
-
-    return dict(form = edit_form, closer=closer, the_title=the_title)
-
 
 @auth.requires_membership(role="administrators")
 def quiz():
@@ -38,16 +28,13 @@ def tag():
     return dict(form = edit_form, closer=closer, the_title=the_title)
 
 @auth.requires_login()
-def q_bug():
-    """creates new bug report
-    Two arguments are necessary to create the bug report:
-    session.qID identifies the question against which bug is logged
-    request.vars.answer identifies the answer that was submitted prior to report
-
-    the .lognew() method of paideia_bugs class also returns a response message to the user, and this function passes that message along to the view.
+def bug():
     """
-    b = paideia_bugs(session.qID)
-    return dict(b.lognew(request.vars.answer))
+    Create a new bug report for a step.
+    """
+    b = Bug(session.walk['step'], session.walk['path'],
+                        session.walk['active_location'])
+    return dict(success=b.log_new(request.vars.answer))
 
 @auth.requires_membership(role='administrators')
 def news():
