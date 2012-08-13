@@ -2,7 +2,7 @@
 
 import datetime
 from paideia_stats import paideia_stats, paideia_timestats, paideia_weeklycount
-from paideia_bugs import paideia_bugs
+from paideia_bugs import Bug
 
 if 0:
     from gluon import current
@@ -10,11 +10,15 @@ if 0:
     from gluon.dal import DAL
     db = DAL()
     auth = Auth()
-    response, session, request, T, service = current.response, current.session, current.request, current.T, current.service
+    response, session = current.response, current.session
+    T, service = current.T, current.service
+    request = current.request
+
 
 def index():
     """    """
     return dict()
+
 
 def user():
     """
@@ -34,9 +38,21 @@ def user():
     s = paideia_stats(auth.user_id)
     t = paideia_timestats(auth.user_id)
     w = paideia_weeklycount(auth.user_id)
-    b = paideia_bugs()
+    b = Bug()
     blist = b.bugresponse(auth.user_id)
-    return dict(form=auth(), score_avg=s.score_avg, total_len = t.total_len, total_cat1 = t.total_cat1, total_cat2 = t.total_cat2, total_cat3 = t.total_cat3, percent_cat1 = t.percent_cat1, percent_cat2 = t.percent_cat2, percent_cat3 = t.percent_cat3, total_cat4 = t.total_cat4, percent_cat4 = t.percent_cat4, htmlcal = w.htmlcal, blist = blist)
+    return dict(form=auth(),
+                score_avg=s.score_avg,
+                total_len = t.total_len,
+                total_cat1 = t.total_cat1,
+                total_cat2 = t.total_cat2,
+                total_cat3 = t.total_cat3,
+                percent_cat1 = t.percent_cat1,
+                percent_cat2 = t.percent_cat2,
+                percent_cat3 = t.percent_cat3,
+                total_cat4 = t.total_cat4,
+                percent_cat4 = t.percent_cat4,
+                htmlcal = w.htmlcal,
+                blist = blist)
 
 def download():
     """
@@ -86,35 +102,36 @@ def send_mail():
 
     return
 
-@auth.requires_membership(role='administrators')
-def bulk_cat_qs():
-    records = db(db.question_records.id > 0).select()
-    counter = 0
-    for record in records:
-        #figure out how the student is doing with this question
-        last_right = record.last_right
-        last_wrong = record.last_wrong
-        now_date = datetime.date.today()
-        right_dur = now_date-last_right
-        wrong_dur = now_date-last_wrong
-        rightWrong_dur = last_right - last_wrong
-        #categorize this question based on student's performance
-        if right_dur < wrong_dur:
-            if (right_dur < rightWrong_dur) and (right_dur < datetime.timedelta(days=170)):
-                if right_dur > datetime.timedelta(days=14):
-                    cat = 4
-                else:
-                    cat = 3
-            else:
-                cat = 2
-        else:
-            cat = 1
-        # update database with categorization
-        db(db.question_records.id == record.id).update(category = cat)
-        # count each record updated
-        counter += 1
-        session.debug = record.id
+# TODO: deprecated utility script
+#@auth.requires_membership(role='administrators')
+#def bulk_cat_qs():
+    #records = db(db.question_records.id > 0).select()
+    #counter = 0
+    #for record in records:
+        ##figure out how the student is doing with this question
+        #last_right = record.last_right
+        #last_wrong = record.last_wrong
+        #now_date = datetime.date.today()
+        #right_dur = now_date-last_right
+        #wrong_dur = now_date-last_wrong
+        #rightWrong_dur = last_right - last_wrong
+        ##categorize this question based on student's performance
+        #if right_dur < wrong_dur:
+            #if (right_dur < rightWrong_dur) and (right_dur < datetime.timedelta(days=170)):
+                #if right_dur > datetime.timedelta(days=14):
+                    #cat = 4
+                #else:
+                    #cat = 3
+            #else:
+                #cat = 2
+        #else:
+            #cat = 1
+        ## update database with categorization
+        #db(db.question_records.id == record.id).update(category = cat)
+        ## count each record updated
+        #counter += 1
+        #session.debug = record.id
 
-    message = "Success. I categorized ", counter, " records."
+    #message = "Success. I categorized ", counter, " records."
 
-    return dict(message = message)
+    #return dict(message = message)
