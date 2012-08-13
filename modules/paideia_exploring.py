@@ -201,7 +201,7 @@ class Walk(object):
 
         return tags
 
-    def categorize_tags(self):
+    def categorize_tags(self, user=None):
         '''
         This method uses stored statistics for current user to categorize the
         grammatical tags based on the user's success and the time since the
@@ -210,18 +210,29 @@ class Walk(object):
         The categories range from 1 (need immediate review) to 4 (no review
         needed).
 
-        this method is called at the start of each user session so that
-        time-based statistics can be updated.
+        This method is called at the start of each user session so that
+        time-based statistics can be updated. It is also called by
+        Stats.categories() to provide a progress report for the student's
+        profile page.
 
-
+        Returns a dictionary with four keys corresponding to the four
+        categories. The value for each key is a list holding the id's
+        (integers) of the tags that are currently in the given category.
         '''
-        #TODO: Factor in how many times a tag has been successful or not
         auth, db = current.auth, current.db
+
+        if not user:
+            user = auth.user_id
+        # check to make sure that a non-null value is given for user
+        #assert type(user) = int
+        print 'Debug: in Walk.categorize_tags, user =', user
+
+        #TODO: Factor in how many times a tag has been successful or not
 
         # create new dictionary to hold categorized results
         categories = dict((x, []) for x in xrange(1, 5))
 
-        record_list = db(db.tag_records.name == auth.user_id).select()
+        record_list = db(db.tag_records.name == user).select()
 
         for record in record_list:
             #get time-based statistics for this tag
@@ -252,6 +263,8 @@ class Walk(object):
             categories[1] = self._introduce()
 
         self.tag_set = categories
+        # return the value as well so that it can be used in Stats
+        return categories
 
     def unfinished(self):
         '''

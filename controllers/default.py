@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import datetime
-from paideia_stats import paideia_stats, paideia_timestats, paideia_weeklycount
+from paideia_stats import Stats
 from paideia_bugs import Bug
 
 if 0:
@@ -35,59 +35,54 @@ def user():
     to decorate functions that need access control
     """
     # create instance of paideia_stats class from models
-    s = paideia_stats(auth.user_id)
-    t = paideia_timestats(auth.user_id)
-    w = paideia_weeklycount(auth.user_id)
+    s = Stats(auth.user_id)
+    avg = s.average()
+    print '\nController.user()'
+    print 'avg =', avg
+    cats = s.categories()
+    print 'cats =', cats
+    cal = s.monthcal()
+    print 'monthcal =', monthcal
+
     b = Bug()
     blist = b.bugresponse(auth.user_id)
-    return dict(form=auth(),
-                score_avg=s.score_avg,
-                total_len = t.total_len,
-                total_cat1 = t.total_cat1,
-                total_cat2 = t.total_cat2,
-                total_cat3 = t.total_cat3,
-                percent_cat1 = t.percent_cat1,
-                percent_cat2 = t.percent_cat2,
-                percent_cat3 = t.percent_cat3,
-                total_cat4 = t.total_cat4,
-                percent_cat4 = t.percent_cat4,
-                htmlcal = w.htmlcal,
-                blist = blist)
 
-def download():
-    """
-    allows downloading of uploaded files
-    http://..../[app]/default/download/[filename]
-    """
-    return response.download(request,db)
+    return dict(form=auth(), avg=avg, cats=cats, cal=monthcal, blist=blist)
+
+#def download():
+    #"""
+    #allows downloading of uploaded files
+    #http://..../[app]/default/download/[filename]
+    #"""
+    #return response.download(request,db)
 
 
-def call():
-    """
-    exposes services. for example:
-    http://..../[app]/default/call/jsonrpc
-    decorate with @services.jsonrpc the functions to expose
-    supports xml, json, xmlrpc, jsonrpc, amfrpc, rss, csv
-    """
-    return service()
+#def call():
+    #"""
+    #exposes services. for example:
+    #http://..../[app]/default/call/jsonrpc
+    #decorate with @services.jsonrpc the functions to expose
+    #supports xml, json, xmlrpc, jsonrpc, amfrpc, rss, csv
+    #"""
+    #return service()
 
 
-@auth.requires_signature()
-def data():
-    """
-    http://..../[app]/default/data/tables
-    http://..../[app]/default/data/create/[table]
-    http://..../[app]/default/data/read/[table]/[id]
-    http://..../[app]/default/data/update/[table]/[id]
-    http://..../[app]/default/data/delete/[table]/[id[
-    http://..../[app]/default/data/select/[table]
-    http://..../[app]/default/data/search/[table]
-    but URLs bust be signed, i.e. linked with
-      A('table',_href=URL('data/tables',user_signature=True))
-    or with the signed load operator
-      LOAD('default','data.load',args='tables',ajax=True,user_signature=True)
-    """
-    return dict(form=crud())
+#@auth.requires_signature()
+#def data():
+    #"""
+    #http://..../[app]/default/data/tables
+    #http://..../[app]/default/data/create/[table]
+    #http://..../[app]/default/data/read/[table]/[id]
+    #http://..../[app]/default/data/update/[table]/[id]
+    #http://..../[app]/default/data/delete/[table]/[id[
+    #http://..../[app]/default/data/select/[table]
+    #http://..../[app]/default/data/search/[table]
+    #but URLs bust be signed, i.e. linked with
+      #A('table',_href=URL('data/tables',user_signature=True))
+    #or with the signed load operator
+      #LOAD('default','data.load',args='tables',ajax=True,user_signature=True)
+    #"""
+    #return dict(form=crud())
 
 @auth.requires_membership(role='administrators')
 def send_mail():

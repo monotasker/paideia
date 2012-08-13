@@ -19,6 +19,7 @@ response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.css'))
 
 dtnow = datetime.datetime.utcnow
 
+#TODO: Fix this regex validator
 class IS_VALID_REGEX(object):
     """
     custom validator to check regex in step definitions against the given
