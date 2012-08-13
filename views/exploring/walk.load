@@ -68,7 +68,7 @@
     <div class='npc prompt'>
         <span id="bug_reporter">If you think your answer should have been 
             correct, {{=A('click here', _href=URL('creating', 'bug.load', 
-            vars=dict(answer=session.response)), 
+            vars=dict(answer=request.vars.response)), 
             cid='bug_reporter')}} to submit a bug report for this question
         </span>
     </div>
