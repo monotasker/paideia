@@ -1,5 +1,5 @@
 import calendar, datetime
-from gluon import current
+from gluon import current, DIV
 from paideia_exploring import Walk
 
 
@@ -103,13 +103,13 @@ class Stats(object):
         # get current year and month as default
         if not month:
             month = datetime.date.today().month
-        if not year
+        if not year:
             year = datetime.date.today().year
 
         # use calendar module to get month structure
         monthcal = calendar.monthcalendar(this_year, month)
 
-        monthdict = {year=this_year, month_name=month}
+        monthdict = {'year':this_year, 'month_name':month}
 
         date_set = {}
         #build dict containing stats organized into weeks
@@ -140,7 +140,7 @@ class Stats(object):
         # get current year and month as default
         if not month:
             month = datetime.date.today().month
-        if not year
+        if not year:
             year = datetime.date.today().year
 
         htmlcal = DIV()
