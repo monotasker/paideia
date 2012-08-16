@@ -45,7 +45,8 @@ class IS_VALID_REGEX(object):
 
 #TODO:Allow for different class profiles with different settings
 db.define_table('app_settings',
-    Field('paths_per_day', 'integer', default=10),
+    Field('class_id', 'string'),
+    Field('paths_per_day', 'integer', default=20),
     Field('days_per_week', 'integer', default=5)
     )
 
