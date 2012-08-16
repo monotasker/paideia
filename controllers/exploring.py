@@ -183,10 +183,12 @@ def index():
         print '\ninitializing new user session'
         # Categorize available tags for this student, store in Walk instance
         walk.categorize_tags()
-
+        # Find and re-initialize any paths that were previously started but
+        # not finished
         walk.unfinished()
-
         # Update the session
+        # TODO: Make sure that the session is refreshed at the start of each
+        # new day
         walk.save_session_data()
 
     return dict(active = walk.active_paths)

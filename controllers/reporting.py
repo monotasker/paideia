@@ -7,13 +7,14 @@ if 0:
     db = DAL()
     request = current.request
 
-from paideia_stats import paideia_stats, paideia_timestats, paideia_weeklycount
+from paideia_stats import Stats
 
 
 @auth.requires_membership(role='administrators')
 def index():
     reports = dict(attempts='Attemps Log',)
     return dict(reports=reports)
+
 
 @auth.requires_membership(role='administrators')
 def paths_by_tag():
@@ -36,6 +37,7 @@ def paths_by_tag():
 
     return dict(taglist=taglist)
 
+
 @auth.requires_membership(role='administrators')
 def attempts():
     if len(request.args) > 0:
@@ -43,6 +45,7 @@ def attempts():
     else:
         form = SQLFORM.grid(db.attempt_log)
     return dict(form=form)
+
 
 @auth.requires_membership(role='administrators')
 def user():
@@ -61,5 +64,5 @@ def user():
     return dict(the_name=the_name,
             score_avg=avg,
             categories=cats,
-            calendar=cal
+            calendar=cal,
             blist=blist)
