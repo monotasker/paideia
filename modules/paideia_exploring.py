@@ -72,7 +72,6 @@ class Walk(object):
     '''
 
     def __init__(self):
-
         session = current.session
 
         if not session.walk:
@@ -82,6 +81,8 @@ class Walk(object):
             self.completed_paths = set()
             self.step = None
             self.tag_set = {}
+            # TODO: should an error be thrown here because
+            # trying to work without an initialized session.walk?
 
         else:
             self.get_session_data()
@@ -127,6 +128,7 @@ class Walk(object):
         '''
         Get the walk attributes from the session.
         '''
+        # TODO: rename as private method
 
         db, session = current.db, current.session
 
@@ -273,10 +275,8 @@ class Walk(object):
         'last_step' value of 0 in its most recent entry in the db table
         path_log.
 
-        implemented by:
-
+        called by: controllers/exploring.index()
         '''
-
         auth, db = current.auth, current.db
 
         path_logs = db(
@@ -403,13 +403,15 @@ class Walk(object):
         '''
         Activate the given step on the given path.
         '''
+        debug = False
 
         self.path = path
         self.step = self._create_step_instance(step_id)
-        print 'DEBUG: in Walk.activate_step: step_id =', step_id
-        print 'DEBUG: in Walk.activate_step: self.step.step =', self.step.step
-        print 'DEBUG: in Walk.activate_step: \
-                                    self.step.step.id =', self.step.step.id
+        if debug: print 'DEBUG: in Walk.activate_step(): step_id =', step_id
+        if debug: print 'DEBUG: in Walk.activate_step: self.step.step ='
+        if debug: print self.step.step
+        if debug: print 'DEBUG: in Walk.activate_step: self.step.step.id ='
+        if debug: print self.step.step.id
         self.active_paths[path.id] = step_id
 
         self.save_session_data()
@@ -450,6 +452,8 @@ class Walk(object):
     def next_step(self):
         '''
         Choose a new path and step for the user, based on tag performance.
+        Checks first for any blocking conditions and constrains the
+        choice of next step accordingly.
         '''
 
         # Handle active blocking conditions
@@ -472,8 +476,8 @@ class Walk(object):
         '''
 
         session, db = current.session, current.db
-        print 'DEBUG: in Walk.stay(), self.step =', self.step.step
-        print 'DEBUG: in Walk.stay(), self.step =', self.step.step.id
+        print 'DEBUG: in Walk.stay(), self.step.step =', self.step.step
+        print 'DEBUG: in Walk.stay(), self.step.step.id =', self.step.step.id
         print 'DEBUG: in Walk.stay(), self.path =', self.path
         print 'DEBUG: in Walk.stay(), self.path.steps =', self.path.steps
 
@@ -765,16 +769,13 @@ class Step(object):
         session = current.session
 
         session_data = {}
-
         session_data['step'] = self.step.id
+        session_data['path'] = self.step.id
 
         session.walk.update(session_data)
 
         if self.npc:
             self.npc.save_session_data()
-
-        print 'DEBUG: in Step.save_session_data: session_data = ', session_data
-        print 'DEBUG: in Step.save_session_data: session.walk = ', session.walk
 
     def get_session_data(self):
         '''
@@ -787,14 +788,10 @@ class Step(object):
             self.path = db.paths(session.walk['path'])
             self.step = db.steps(session.walk['step'])
             self.npc = Npc(session.walk['npc'])
-            #self.npc = Npc()
-            print 'DEBUG: in Step.get_session_data(), getting step and \
-                        npc from session'
         except KeyError:
             self.path = db.paths(session.walk['path'])
             self.step = None
             self.npc = None
-            print 'DEBUG: in Step.get_session_data(), step and npc = None'
 
     def ask(self):
         '''
@@ -808,8 +805,6 @@ class Step(object):
 
         self.save_session_data()
 
-        print 'DEBUG: in Step.ask(): self.npc = ', self.npc
-        print 'DEBUG: in Step.ask(): npc.image = ', npc.image
         return dict(npc_img=npc.image, prompt=prompt, responder=responder)
 
     def get_npc(self):
@@ -1112,61 +1107,65 @@ class StepStub(Step):
 
         session, db, auth = current.session, current.db, current.auth
 
-        utc_now = datetime.datetime.utcnow()
+        # TODO: remove all of this commented code, since StepStubs
+        # shouldn't be recorded as tag attempts (can't fail)
+        #utc_now = datetime.datetime.utcnow()
 
-        tag_records = db(db.tag_records.name == auth.user_id).select()
+        #tag_records = db(db.tag_records.name == auth.user_id).select()
 
-        # Calculate record info
-        time_last_right = utc_now
-        time_last_wrong = utc_now
+        ## Calculate record info
+        #time_last_right = utc_now
+        #time_last_wrong = utc_now
 
-        times_right = 1
-        times_wrong = 0
+        #times_right = 1
+        #times_wrong = 0
 
-        # Log this tag attempt for each tag in the step
-        for tag in self.step.tags:
-            # Try to update an existing record for this tag
-            try:
-                tag_records = tag_records.find(lambda row: row.tag == tag)
+        ## TODO: step stubs shouldn't be recorded in tag_records
+        ## Log this tag attempt for each tag in the step
+        #for tag in self.step.tags:
+            ## Try to update an existing record for this tag
+            #try:
+                #tag_records = tag_records.find(lambda row: row.tag == tag)
 
-                if tag_records:
-                    tag_record = tag_records[0]
+                #if tag_records:
+                    #tag_record = tag_records[0]
 
-                    time_last_wrong = tag_record.tlast_wrong
+                    #time_last_wrong = tag_record.tlast_wrong
 
-                    times_right += tag_record.times_right
+                    #times_right += tag_record.times_right
 
-                    tag_record.update_record(
-                        tlast_right=time_last_right,
-                        tlast_wrong=time_last_wrong,
-                        times_right=times_right,
-                        times_wrong=times_wrong,
-                        path=self.path.id,
-                        step=self.step.id
-                    )
+                    #tag_record.update_record(
+                        #tlast_right=time_last_right,
+                        #tlast_wrong=time_last_wrong,
+                        #times_right=times_right,
+                        #times_wrong=times_wrong,
+                        #path=self.path.id,
+                        #step=self.step.id
+                    #)
 
-                else:
-                    val = db.tag_records.insert(
-                        tag=tag,
-                        tlast_right=time_last_right,
-                        tlast_wrong=time_last_wrong,
-                        times_right=times_right,
-                        times_wrong=times_wrong,
-                        path=self.path.id,
-                        step=self.step.id
-                    )
+                #else:
+                    #val = db.tag_records.insert(
+                        #tag=tag,
+                        #tlast_right=time_last_right,
+                        #tlast_wrong=time_last_wrong,
+                        #times_right=times_right,
+                        #times_wrong=times_wrong,
+                        #path=self.path.id,
+                        #step=self.step.id
+                    #)
 
             # Print any other error that is thrown
             # TODO: Put this in a server log instead/as well or create a ticket
             # TODO: Do we want to rollback the transaction?
-            except Exception, err:
-                print 'unidentified error:'
-                print type(err)
-                print err
-                print traceback.format_exc()
+            #except Exception, err:
+                #print 'unidentified error:'
+                #print type(err)
+                #print err
+                #print traceback.format_exc()
 
         # TODO: Merge this with Walk.update_path_log()
-        query = (db.path_log.path == self.path.id) & (db.path_log.name == auth.user_id)
+        query = (db.path_log.path == self.path.id) & (db.path_log.name ==
+                                                                auth.user_id)
         log = db(query).select(orderby=~db.path_log.dt_started).first()
         if log:
             log.update_record(path=self.path.id, last_step=0)
@@ -1174,6 +1173,7 @@ class StepStub(Step):
             db.path_log.insert(path=self.path.id, last_step=0)
 
         # Log this step attempt
+        # TODO: Giving this attempt a score value will throw off stats
         db.attempt_log.insert(step=self.step.id, score=1.0, path=self.path.id)
 
         # Remove from active_paths and add to completed_paths

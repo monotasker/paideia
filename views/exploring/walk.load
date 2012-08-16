@@ -14,7 +14,7 @@
 </form>
 <ul>
     {{for s in ('active_paths', 'completed_paths', 'location', 'path', 'step', 'tagset'):}}
-        {{if s in session:}}
+        {{if s in session.walk:}}
             <li>{{=s}}: {{=session[s]}}</li>
         {{pass}}
     {{pass}}
@@ -23,7 +23,7 @@
     <ul>
         <li>
             <input type='text' value='all' name='test_step' id='test_step' />
-            <a id='test_this_step' href='#'>Clear session</a> 
+            <a id='test_this_step' href='#'>Test step</a> 
         </li>
     </ul>
 </form>    
