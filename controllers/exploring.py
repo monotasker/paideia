@@ -215,15 +215,16 @@ def walk():
     is exploring/walk.load. This view should be presented in the #page
     element of exploring/index.html.
     """
+    debug = False
 
     walk = Walk()
-
-    print '\n\nDEBUG: controller exploring.walk()'
+    if debug: print '\n\nDEBUG: controller exploring.walk()'
 
     # When user begins exploring (also default) present map
     if (request.args(0) == 'start') or (not request.args):
 
-        print '\nDEBUG: controller state: start'
+        if debug: print '\nDEBUG: controller state: start'
+        # TODO: change to a new public method Walk.set_active_location()
         walk.active_location = None #clear in preparation for new location
         walk.save_session_data()
 
@@ -237,12 +238,11 @@ def walk():
     # Evaluate response and present feedback via npc reply
     elif ('response' in request.vars) and (request.args(0) == 'ask'):
 
-        print '\nDEBUG: controller state: response'
-        print 'DEBUG: in controller.walk(), session.walk =', session.walk
+        if debug: print '\nDEBUG: controller state: response'
+        if debug: print 'DEBUG: in controller.walk(), session.walk =',\
+                                                                session.walk
         data = walk.step.process(request.vars.response)
-
         walk.save_session_data()
-
         return data
 
     #after enters location or has completed step in this location
@@ -250,10 +250,13 @@ def walk():
     elif request.args(0) == 'ask':
 
         print '\nDEBUG: controller state: ask'
+        # Walk.stay() handles transition to another path/step in the
+        # same location
         walk.staying = False
         stay = request.vars['stay']
         if stay:
             walk.staying = walk.stay()
+        # TODO: not sure what's going on here with location
         else:
             loc = request.vars['loc']
             if loc:
@@ -269,9 +272,11 @@ def walk():
     #if user response results in an error
     elif request.args(0) == 'error':
 
+        #TODO: Review bug handling and logging here
         print '\nDEBUG: controller state: error'
         return patherror()
 
+    # TODO: make sure these still work
     #this and the following function are for testing a specific step
     if (request.args(0) == 'test_step') and ('response' in request.vars):
         s = Step(request.args(0))
