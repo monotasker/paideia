@@ -21,29 +21,34 @@ response.menu = [
     ]
 
 if auth.has_membership('administrators', auth.user_id):
-    response.menu+=[(T('Admin'), False, None,
-        [
-        (T('Reports'), False, None,
-            (T('Users'), False, URL('listing', 'user')),
-            (T('Paths'), False, URL('plugin_listandedit',
-                                    'listing.html', args=['paths'])),
-            (T('Steps'), False, URL('plugin_listandedit',
-                                    'listing.html', args=['steps'])),
-            (T('Quizzes'), False, URL('plugin_listandedit',
-                                    'listing.html', args=['quizzes'])),
-            (T('Tags'), False, URL('plugin_listandedit',
-                                    'listing.html', args=['tags'])),
-            (T('NPCs'), False, URL('plugin_listandedit',
-                                    'listing.html', args=['npcs'])),
-            (T('locations'), False, URL('plugin_listandedit',
-                                    'listing.html', args=['locations'])),
-            (T('images'), False, URL('plugin_listandedit',
-                                    'listing.html', args=['images'])),
-            (T('Bug reports'), False, URL('plugin_listandedit',
-                                    'listing.html', args=['bugs'])),
+    response.menu+=[(T('Admin'), False, None, [
+            (T('Create'), False, None, [
+                (T('Paths'), False, URL('plugin_listandedit',
+                                        'listing.html', args=['paths'])),
+                (T('Steps'), False, URL('plugin_listandedit',
+                                        'listing.html', args=['steps'])),
+                (T('Quizzes'), False, URL('plugin_listandedit',
+                                        'listing.html', args=['quizzes'])),
+                (T('Tags'), False, URL('plugin_listandedit',
+                                        'listing.html', args=['tags'])),
+                (T('NPCs'), False, URL('plugin_listandedit',
+                                        'listing.html', args=['npcs'])),
+                (T('locations'), False, URL('plugin_listandedit',
+                                        'listing.html', args=['locations'])),
+                (T('images'), False, URL('plugin_listandedit',
+                                        'listing.html', args=['images'])),
+            ]),
 
-        ),
-        (T('Web IDE'), False, URL('admin', 'default', 'index')),
-        (T('Database'), False, URL('appadmin', 'index')),
+            (T('Reports'), False, None, [
+                (T('Users'), False, URL('listing', 'user')),
+                (T('Bug reports'), False, URL('plugin_listandedit',
+                                        'listing.html', args=['bugs'])),
+                (T('Paths by tag'), False, URL('reporting',
+                                        'paths_by_tag')),
+                (T('Attempt log'), False, URL('reporting',
+                                        'attempts')),
+            ]),
+            (T('Web IDE'), False, URL('admin', 'default', 'index')),
+            (T('Database'), False, URL('appadmin', 'index')),
+        ])
         ]
-       )]
