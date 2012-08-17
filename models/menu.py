@@ -18,11 +18,14 @@ response.meta.copyright = 'Copyright 2011'
 
 response.menu = [
     (T('Home'), False, URL('default','index'), [])
+    (T('Slides'), False, URL('listing','slides'), [])
     ]
 
 if auth.has_membership('administrators', auth.user_id):
     response.menu+=[(T('Admin'), False, None, [
             (T('Create'), False, None, [
+                (T('Slide decks'), False, URL('plugin_listandedit',
+                                'listing.html', args=['plugin_slider_decks'])),
                 (T('Paths'), False, URL('plugin_listandedit',
                                         'listing.html', args=['paths'])),
                 (T('Steps'), False, URL('plugin_listandedit',
