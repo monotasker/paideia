@@ -158,15 +158,18 @@ class Walk(object):
         Create an instance of a Step class or one of its subclasses based on
         the step's widget type.
         '''
-
+        debug = False
         db = current.db
 
         if not step_id:
             step_id = session.walk['step']
-        print 'DEBUG: in Walk._create_step_instance: step id =', step_id
+        if debug: print 'DEBUG: in Walk._create_step_instance: step id ='
+        if debug: print step_id
+
         step = db.steps(step_id)
         step_type = db.step_types(step.widget_type)
-        print 'DEBUG: in Walk._create_step_instance: step type =', step_type
+        if debug: print 'DEBUG: in Walk._create_step_instance: step type ='
+        if debug: print step_type
 
         return STEP_CLASSES[step_type.step_class](step_id)
 
@@ -294,14 +297,12 @@ class Walk(object):
         '''
         Look for active blocking conditions:
             * no response given for an activated step
-            * retry a failed step
             * daily full paths limit reached
 
         Returns:
             * (None, None) if there are no blocking conditions
             * (False, False) if daily path limit reached
             * Otherwise, return (path, step id) for active blocking conditions
-        Blocking conditions are:
         '''
 
         auth, db = current.auth, current.db
@@ -313,6 +314,7 @@ class Walk(object):
             (db.path_log.last_step != 0)
         ).select()
 
+        # TODO: use UTC or adjust here for user's local tz?
         today = datetime.datetime.utcnow().date()
 
         for log in path_logs:
@@ -352,12 +354,6 @@ class Walk(object):
 #        '''
 #        Choose a new path for the user, based on tag performance.
 #        '''
-#
-#        # Check for active blocking conditions
-#        blocks = self.get_blocks()
-#        # TODO: Implement logic to do something with True result here
-#        if blocks:
-#            pass
 #
 #        # If possible, continue an active path whose next step is here.
 #        path_info = location.active_paths(self)
@@ -432,16 +428,20 @@ class Walk(object):
 
     def get_default_step(self):
         '''
-        Return a random default path and step.
+        Return the default path and step, a StepStub directing the user
+        to try another location.
         '''
-
+        debug = False
         session, db = current.session, current.db
 
         default_tag = db(db.tags.tag == 'default').select()[0]
 
-        for p in self.get_paths():
-            if default_tag.id in p.tags:
-                print 'DEBUG: in Walk.get_default_step, %s --> %s' % (p.id, p.tags)
+        # TODO: rename get_paths as private method?
+        if debug:
+            for p in self.get_paths():
+                if default_tag.id in p.tags:
+                    print 'DEBUG: in Walk.get_default_step, %s --> %s'\
+                                                            % (p.id, p.tags)
         paths = [p for p in self.get_paths() if default_tag.id in p.tags]
 
         # Choose a path at random
@@ -459,27 +459,32 @@ class Walk(object):
         # Handle active blocking conditions
         if not self.staying:
             path, step_id = self.handle_blocks()
+            # handle_blocks() returns None, None if no blocks present
+            # if daily max reached, returns default step
             if not (path is None and step_id is None):
                 self.activate_step(path, step_id)
                 return
 
         # If possible, continue an active path whose next step is here.
         active_path = self.get_next_step()
+
         self.activate_step(active_path['path'], active_path['step'])
 
         return
 
     def stay(self):
         '''
-        Get a step in the current location at the current location if
-        possible.
+        Get a step at the current location if possible.
         '''
+        debug = False
 
         session, db = current.session, current.db
-        print 'DEBUG: in Walk.stay(), self.step.step =', self.step.step
-        print 'DEBUG: in Walk.stay(), self.step.step.id =', self.step.step.id
-        print 'DEBUG: in Walk.stay(), self.path =', self.path
-        print 'DEBUG: in Walk.stay(), self.path.steps =', self.path.steps
+        if debug:
+            print 'DEBUG: in Walk.stay(),'
+            print 'self.step.step =', self.step.step
+            print 'self.step.step.id =', self.step.step.id
+            print 'self.path =', self.path
+            print 'self.path.steps =', self.path.steps
 
         index = self.path.steps.index(self.step.step.id)
         if index + 1 < len(self.path.steps):
@@ -497,21 +502,18 @@ class Walk(object):
         it has another step to begin. If so return a dict containing the
         id for the path ('path') and the step ('step').
         '''
-
+        debug = False
         session, db = current.session, current.db
 
         location = self.active_location.location
 
         if self.active_paths:
-            print 'DEBUG: in Walk.get_next_step, looking for active paths'
-            active_paths = db(db.paths.id.belongs(self.active_paths.keys())).select()
-            # TODO: condition now unnecessary and deprecated
-            #if self.completed_paths:
-                #active_paths.exclude(lambda row: row.id in self.completed_paths)
+            if debug: print 'DEBUG: in Walk.get_next_step(),'
+            if debug: print 'looking for active paths in this location'
+            apaths = db(db.paths.id.belongs(self.active_paths.keys())).select()
+            ahere = active_paths.find(lambda row: location.id in row.locations)
 
-            active_here = active_paths.find(lambda row: location.id in row.locations)
-
-            for path in active_here:
+            for path in ahere:
                 last = self.active_paths[path.id]
 
                 try:
@@ -530,9 +532,9 @@ class Walk(object):
                     continue
 
                 # If the last completed step was not the final in the path
+                # try to activate the next step
                 if len(path.steps) > (step_index + 1):
                     step_id = path.steps[step_index + 1]
-
                     step = db(db.steps.id == step_id).select()[0]
                     if not location.id in step.locations:
                         path, step_id = self.get_default_step()
@@ -554,8 +556,8 @@ class Walk(object):
             # We haven't found a suitable path in this location, so look for an
             # arbitrary active path in another location
             # TODO: rows() objects aren't hashable, can't be in sets
-            hlist = active_here.as_list()
-            active_elsewhere = active_paths.exclude(lambda row: row in hlist)
+            hlist = ahere.as_list()
+            active_elsewhere = apaths.exclude(lambda row: row in hlist)
             if active_elsewhere:
                 path, step_id = self.get_default_step()
 
@@ -699,11 +701,11 @@ class Walk(object):
         '''
         Create or update entries in the path_log table.
         '''
-
         auth, db = current.auth, current.db
 
         if update_switch:
-            query = (db.path_log.path == path_id) & (db.path_log.name == auth.user_id)
+            query = (db.path_log.path == path_id) & (db.path_log.name ==
+                                                                auth.user_id)
             log = db(query).select(orderby=~db.path_log.dt_started).first()
             log.update_record(path=path_id, last_step=step_id)
         else:
@@ -711,40 +713,40 @@ class Walk(object):
 
 
 # TODO: Deprecate eventually
-class Path(object):
-    '''
-    set the path a student is exploring, retrieve its data, and store
-    the data in the session object
+#class Path(object):
+    #'''
+    #set the path a student is exploring, retrieve its data, and store
+    #the data in the session object
 
-    ## session variables available:
-    ### This first set is used to track information about a user's session
-    that persists beyond a single step execution.
+    ### session variables available:
+    #### This first set is used to track information about a user's session
+    #that persists beyond a single step execution.
 
-    session.active_paths (dict: id:last active step)
-    session.completed (list: int for path id)
-    session.tag_set (dict: each of four categories is a key, list of tag
-        ids as its value)
+    #session.active_paths (dict: id:last active step)
+    #session.completed (list: int for path id)
+    #session.tag_set (dict: each of four categories is a key, list of tag
+        #ids as its value)
 
-    ### This second set should be used exclusively to preserve current data
-    during execution of a single step (i.e., retrieve the results of
-    path.pick() in step.process()). By the end of step.process() they
-    should be returned to a value of None:
+    #### This second set should be used exclusively to preserve current data
+    #during execution of a single step (i.e., retrieve the results of
+    #path.pick() in step.process()). By the end of step.process() they
+    #should be returned to a value of None:
 
-    session.step (single int)
-    session.path (single int)
-    session.image
-    '''
+    #session.step (single int)
+    #session.path (single int)
+    #session.image
+    #'''
 
-    def __init__(self, loc):
-        self.loc = loc
+    #def __init__(self, loc):
+        #self.loc = loc
 
-    def end(self):
-        #current object must be accessed at runtime, so can't be global
-        # variable
-        session, request, auth, db = current.session, current.request
-        auth, db = current.auth, current.db
+    #def end(self):
+        ##current object must be accessed at runtime, so can't be global
+        ## variable
+        #session, request, auth, db = current.session, current.request
+        #auth, db = current.auth, current.db
 
-        pass
+        #pass
 
 
 class Step(object):
@@ -923,7 +925,9 @@ class Step(object):
         except re.error:
             redirect(URL('index', args=['error', 'regex']))
 
-        return {'reply': reply,
+        return {'step_id': self.step.id,
+                'path_id': self.path,
+                'reply': reply,
                 'readable': readable,
                 'npc_img': session.walk['npc_image']}
 
