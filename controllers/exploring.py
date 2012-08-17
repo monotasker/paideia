@@ -237,10 +237,10 @@ def walk():
     # After user submits response to step prompt
     # Evaluate response and present feedback via npc reply
     elif ('response' in request.vars) and (request.args(0) == 'ask'):
+        if debug:
+            print '\nDEBUG: controller state: response'
+            print 'DEBUG: in controller.walk(), session.walk =', session.walk
 
-        if debug: print '\nDEBUG: controller state: response'
-        if debug: print 'DEBUG: in controller.walk(), session.walk =',\
-                                                                session.walk
         data = walk.step.process(request.vars.response)
         walk.save_session_data()
         return data
@@ -249,9 +249,11 @@ def walk():
     #pick a path and present the prompt for the appropriate step
     elif request.args(0) == 'ask':
 
-        print '\nDEBUG: controller state: ask'
+        if debug: print '\nDEBUG: controller state: ask'
         # Walk.stay() handles transition to another path/step in the
         # same location
+        # TODO: is this setting to false necessary, since Walk.__init__()
+        # defaults to self.staying = False?
         walk.staying = False
         stay = request.vars['stay']
         if stay:
@@ -261,7 +263,6 @@ def walk():
             loc = request.vars['loc']
             if loc:
                 walk.active_location = Location(loc)
-        print 'DEBUG: staying =', walk.staying
         if not walk.staying:
             walk.next_step()
         data = walk.step.ask()
