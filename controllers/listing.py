@@ -17,21 +17,7 @@ def user():
     users = db().select(db.auth_user.ALL, orderby = db.auth_user.last_name)
     return dict(users = users)
 
-#@auth.requires_membership(role='administrators')
-#def tags():
-    #tags = db().select(db.tags.ALL, orderby = db.tags.tag)
-    #return dict(tags = tags)
-
-#@auth.requires_membership(role='administrators')
-#def bug():
-    #the_q = request.args[0]
-    #the_status = request.args[1]
-    #if the_status == 1:
-        #bugs = db((db.q_bugs.question == the_q) & ((db.q_bugs.bug_status == the_status) | (db.q_bugs.bug_status == None))).select()
-    #else:
-        #bugs = db((db.q_bugs.question == the_q) & (db.q_bugs.bug_status == the_status)).select()
-    #return dict(bugs = bugs)
-
+# TODO: rework using plugin_bloglet
 def news():
     newslist = db(db.news).select(orderby = ~db.news.date_submitted)
     if db((db.auth_membership.user_id == auth.user_id) & (db.auth_membership.group_id == 1)).select():

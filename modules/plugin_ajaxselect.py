@@ -185,36 +185,36 @@ class AjaxSelect(object):
         Use value stored in session if changes to widget haven't been sent to
         db session val must be reset to None each time it is checked.
         """
-        verbose = 1
-        if verbose == 1:
-            print '---------------'
-            print 'starting modules/plugin_ajaxselect choose_val'
+        debug = True
+        if debug: print '---------------'
+        if debug: print 'starting modules/plugin_ajaxselect choose_val'
 
         session = current.session
 
         if (wrappername in session) and (session[wrappername]):
             val = session[wrappername]
-            if verbose == 1:
-                print 'session value being used in module: %s' % val
+            if debug: print 'session value being used in module: %s' % val
             session[wrappername] = None
         else:
-            if verbose == 1:
-                print 'db value being used in module: %s' % val
+            if debug: print 'db value being used in module: %s' % val
             session[wrappername] = None
         #make sure strings are converted to int and lenth-1 lists to single val
         if type(val) == list:
-            if val[0] == '':
-                del val[0]
             try:
-                val = [int(v) for v in val]
+                if (val == []) or (val[0] == '' and len(val) < 2):
+                    val = None
+                elif val and len(val) < 2:
+                    val = val[0]
+                else:
+                    val = [int(v) for v in val]
             except ValueError, e:
                 print e
                 val = None #to handle a blank string being passed to int(v)
-
-            try:
-                if val and len(val) < 2: val = val[0]
             except IndexError, e:
+                print e
                 val = None #to handle an empty list
+
+        if debug: print 'val at end of choose_val() =', val
 
         return val
 
