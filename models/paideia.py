@@ -19,6 +19,7 @@ response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.css'))
 
 dtnow = datetime.datetime.utcnow
 
+#TODO: Fix this regex validator
 class IS_VALID_REGEX(object):
     """
     custom validator to check regex in step definitions against the given
@@ -44,7 +45,8 @@ class IS_VALID_REGEX(object):
 
 #TODO:Allow for different class profiles with different settings
 db.define_table('app_settings',
-    Field('paths_per_day', 'integer', default=10),
+    Field('class_id', 'string'),
+    Field('paths_per_day', 'integer', default=20),
     Field('days_per_week', 'integer', default=5)
     )
 
