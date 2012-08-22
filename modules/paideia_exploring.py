@@ -450,8 +450,6 @@ class Walk(object):
         active_path = self.get_next_step()
         self.activate_step(active_path['path'], active_path['step'])
 
-#        return
-
     def stay(self):
         '''
         Get a step in the current location if possible.
@@ -1057,9 +1055,6 @@ class StepMultipleChoice(Step):
             session.response = request.vars.response
 
         return form
-
-    def process(self):
-        pass
 
 
 class StepStub(Step):
