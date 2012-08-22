@@ -9,15 +9,12 @@ import re
 import traceback
 
 
-### Utility functions
-### End utility functions
-
 # TODO: Deprecate eventually
 class Utils(object):
     '''
     Miscellaneous utility functions, gathered in a class for convenience.
     '''
-
+    # TODO: Move logic to controller and remove class
     def clear_session(self):
         session, response = current.session, current.response
 
@@ -53,21 +50,21 @@ class Walk(object):
             self.completed_paths = set()
             self.step = None
             self.tag_set = {}
-            # TODO: should an error be thrown here because
-            # trying to work without an initialized session.walk?
-
+            # initialize the session properly
+            self._categorize_tags()
+            self._unfinished()
+            self._save_session_data()
         else:
             self._get_session_data()
 
         self.map = Map()
-
         self.staying = False
 
-    def save_session_data(self):
+    def _save_session_data(self):
         '''
         Save attributes in session.
         '''
-        debug = False
+        debug = True
         session = current.session
 
         session_data = {}
@@ -92,9 +89,9 @@ class Walk(object):
             session.walk = session_data
 
         if self.step:
-            self.step.save_session_data()
+            self.step._save_session_data()
 
-        if debug: print 'Walk.save_session_data, session.walk = ', session.walk
+        if debug: print 'Walk._save_session_data, session.walk = ', session.walk
 
     def _get_session_data(self):
         '''
@@ -178,7 +175,7 @@ class Walk(object):
 
         return tags
 
-    def categorize_tags(self, user=None):
+    def _categorize_tags(self, user=None):
         '''
         This method uses stored statistics for current user to categorize the
         grammatical tags based on the user's success and the time since the
@@ -202,7 +199,7 @@ class Walk(object):
             user = auth.user_id
         # check to make sure that a non-null value is given for user
         #assert type(user) = int
-        print 'Debug: in Walk.categorize_tags, user =', user
+        print 'Debug: in Walk._categorize_tags, user =', user
 
         #TODO: Factor in how many times a tag has been successful or not
 
@@ -243,7 +240,7 @@ class Walk(object):
         # return the value as well so that it can be used in Stats
         return categories
 
-    def unfinished(self):
+    def _unfinished(self):
         '''
         This public method checks for any paths that have been started but not
         finished by the current user. It expects finished paths to have a
@@ -363,7 +360,7 @@ class Walk(object):
 #        self.step = Step(step_id)
 #        print 'DEBUG: activating step =', self.step.step
 #
-#        self.save_session_data()
+#        self._save_session_data()
 #
 #        # Log this attempt of the step
 #        self._update_path_log(path.id, step_id, 0)
@@ -373,14 +370,27 @@ class Walk(object):
         Activate the given step on the given path.
         '''
         debug = True
+        session = current.session
+
+        if debug: print 'called Walk.activate_step()'
 
         self.path = path
         self.step = self._create_step_instance(step_id)
-        if debug: print 'DEBUG: in Walk.activate_step(): step_id =', step_id
-        if debug: print 'DEBUG: in Walk.activate_step(): path.id =', path.id
+        if debug:
+            print 'DEBUG: in Walk.activate_step(): step_id =', step_id
+            print 'DEBUG: in Walk.activate_step(): path.id =', path.id
         self.active_paths[path.id] = step_id
+        if debug:
+            print 'self.active_paths is now', self.active_paths
+            print 'self.path.id is now', self.path.id
+            print 'self.step.step.id is now', self.step.step.id
 
-        self.save_session_data()
+        self._save_session_data()
+        if debug:
+            print 'session.walk["active_paths"] is now'
+            print session.walk["active_paths"]
+            print 'session.walk["path"] is now', session.walk["path"]
+            print 'session.walk["step"] is now', session.walk["step"]
         self._update_path_log(path.id, step_id, 0)
 
     def _deactivate_path(self, path):
@@ -443,6 +453,7 @@ class Walk(object):
         if debug: print 'activating step', active_path['step']
         if debug: print 'and path', active_path['path'].id
         self.activate_step(active_path['path'], active_path['step'])
+        self._save_session_data()
 
         return
 
@@ -473,7 +484,7 @@ class Walk(object):
             # Remove this path from active paths
             if path.id in self.active_paths:
                 del self.active_paths[path.id]
-                self.save_session_data()
+                self._save_session_data()
             if debug: print 'self.active_paths now=', self.active_paths
 
             # Set the log for this attempt as if path completed
@@ -500,8 +511,10 @@ class Walk(object):
             step = db.steps(self.path.steps[index + 1])
             if self.active_location.location.id in step.locations:
                 self.activate_step(self.path, step.id)
-
+                self._save_session_data()
                 return True
+
+        self._save_session_data()
 
         return False
 
@@ -548,7 +561,7 @@ class Walk(object):
                         path, step_id = self._get_default_step()
 
                     self.active_paths[path.id] = step_id
-                    self.save_session_data()
+                    self._save_session_data()
                     self._update_path_log(path.id, step_id, 1)
 
                     return dict(path=path, step=step_id)
@@ -557,7 +570,8 @@ class Walk(object):
                     self._deactivate_path(path.id)
                     continue
 
-            # 3) look for an active path in another location
+            # 2) look for an active path in another location
+            if debug: print 'Looking for an active path elsewhere'
             hlist = ahere.as_list()
             active_elsewhere = apaths.exclude(lambda row: row in hlist)
             if active_elsewhere:
@@ -573,6 +587,8 @@ class Walk(object):
         tag_list = []
         for category in xrange(1, 5):
             tag_list.extend(self.tag_set[category])
+        if debug: print 'tag_list =', tag_list
+        if debug: print 'tag_set =', self.tag_set
 
         tag_records = db(
                 db.tag_records.tag.belongs(tag_list)
@@ -706,25 +722,21 @@ class Step(object):
             self.step = db.steps(step)
 
             self.npc = None
-            self.save_session_data()
+            self._save_session_data()
         else:
             self._get_session_data()
 
-    def save_session_data(self):
+    def _save_session_data(self):
         '''
         Save attributes in session.
         '''
-
         session = current.session
 
         session_data = {}
         session_data['step'] = self.step.id
-        session_data['path'] = self.step.id
-
         session.walk.update(session_data)
-
         if self.npc:
-            self.npc.save_session_data()
+            self.npc._save_session_data()
 
     def _get_session_data(self):
         '''
@@ -751,8 +763,8 @@ class Step(object):
         npc = self._get_npc()
         prompt = self.get_prompt()
         responder = self.get_responder()
-
-        self.save_session_data()
+        # TODO: Add retrieval of background image here
+        self._save_session_data()
 
         return dict(npc_img=npc.image, prompt=prompt, responder=responder)
 
@@ -843,12 +855,12 @@ class Step(object):
         try:
             if re.match(answer1, user_response, re.I):
                 score = 1
-                reply = "Right. Κάλη."
+                reply = "Right. Κάλον."
             elif answer2 != 'null' and re.match(answer2, user_response, re.I):
                 score = 0.5
                 #TODO: Get this score value from the db instead of hard
                 #coding it here.
-                reply = "Οὐ κάκος. You're close."
+                reply = "Οὐ κάκον. You're close."
                 #TODO: Vary the replies
             elif answer3 != 'null' and re.match(answer3, user_response, re.I):
                 #TODO: Get this score value from the db instead of hard
@@ -871,9 +883,11 @@ class Step(object):
         except re.error:
             redirect(URL('index', args=['error', 'regex']))
 
-        return {'step_id': self.step.id,
-                'path_id': self.path,
-                'reply': reply,
+        # TODO: This replaces the Walk.save_session_data() that was in the
+        # controller. Make sure this saving of step data is enough.
+        self._save_session_data()
+
+        return {'reply': reply,
                 'readable': readable,
                 'npc_img': session.walk['npc_image']}
 
@@ -1035,7 +1049,7 @@ class StepStub(Step):
         npc = self._get_npc()
         prompt = self.get_prompt()
 
-        self.save_session_data()
+        self._save_session_data()
 
         return dict(npc_img=npc.image, prompt=prompt)
 
@@ -1158,12 +1172,12 @@ class Npc(object):
             self.npc = db.npcs(npc_id)
             self.image = self.get_image()
 
-            self.save_session_data()
+            self._save_session_data()
 
         else:
             self._get_session_data()
 
-    def save_session_data(self):
+    def _save_session_data(self):
         '''
         Save attributes in session.
         '''
@@ -1214,34 +1228,6 @@ class Npc(object):
             return
 
 
-class Counter(object):
-    '''This class is deprecated'''
-
-    def __init__(self):
-        '''include this question in the count for this quiz, send to 'end'
-        if quiz is finished'''
-
-    def check(self):
-        #current object must be accessed at runtime
-        session, request = current.session, current.request
-
-        if session.q_counter:
-            if int(session.q_counter) >= int(session.path_length):
-                session.q_counter = 0
-                redirect(URL('index', args=['end']))
-                return dict(end="yes")
-            else:
-                session.q_counter += 1
-        else:
-            session.q_counter = 1
-
-    def set(self):
-        pass
-
-    def clear(self):
-        pass
-
-
 class Location(object):
     '''
     This class finds and returns information on the student's current
@@ -1275,110 +1261,6 @@ class Location(object):
         }
 
         return info
-
-#    def active_paths(self, walk):
-#        '''
-#        Check for an active path in this location and make sure
-#        it has another step to begin. If so return a dict containing the
-#        id for the path ('path') and the step ('step').
-#        '''
-#
-#        session, db = current.session, current.db
-#
-#        if walk.active_paths:
-#            active_paths = db(db.paths.id.belongs(walk.active_paths.keys())).select()
-#            # TODO: Do we need this - shouldn't a path be moved from
-#               active_paths to completed_paths when it's ended?
-#            if walk.completed_paths:
-#                active_paths.exclude(lambda row: row.id in walk.completed_paths)
-#
-#            active_here = active_paths.find(lambda row: self.location.id in row.locations)
-#            print 'DEBUG: in active_paths: completed =', session.walk['completed_paths']
-#            print 'DEBUG: in active_paths: active here ='
-#            for a in active_here:
-#                print 'DEBUG: in active_paths: id =', a.id
-#
-#            for path in active_here:
-#                last = walk.active_paths[path.id]
-#
-#                try:
-#                    step_index = path.steps.index(last)
-#
-#                # If impossible step id is given in active_paths
-#                except ValueError, err:
-#                    # Remove this path from active paths
-#                    del walk.active_paths[path.id]
-#                    walk.save_session_data()
-#
-#                    # Set the log for this attempt as if path completed
-#                    walk._update_path_log(path.id, 0, 1)
-#                    # TODO: Log error instead/as well
-#                    print err
-#                    continue
-#
-#                # If the last completed step was not the final in the path
-#                if len(path.steps) > (step_index + 1):
-#                    step_id = path.steps[step_index + 1]
-#
-#                    step = db(db.steps.id == step_id).select()[0]
-#                    if not self.location.id in step.locations:
-#                        path, step_id = walk._get_default_step()
-#
-#                    # Set session flag for this active path
-#                    walk.active_paths[path.id] = step_id
-#                    walk.save_session_data()
-#
-#                    # Update attempt log
-#                    walk._update_path_log(path.id, step_id, 1)
-#
-#                    return dict(path=path, step=step_id)
-#
-#                # If the last step in the path has already been completed
-#                else:
-#                    walk._deactivate_step(path.id, 0)
-#                    continue
-#
-#            # We haven't found a suitable path in this location, so look for an
-#            # arbitrary active path in another location
-#            active_elsewhere = set(active_paths) - set(active_here)
-#            if active_elsewhere:
-#                path, step_id = walk._get_default_step()
-#
-#                return dict(path=path, step=step_id)
-#
-#        # We don't have any suitable active paths so look for a path due in this
-#        # location
-#        tag_list = []
-#        for category in xrange(1, 5):
-#            tag_list.extend(self.tag_set[category])
-#
-#        tag_records = db(
-#                db.tag_records.tag.belongs(tag_list)
-#            ).select(orderby=db.tag_records.tag)
-#
-#        elsewhere = False
-#        for tag in tag_list:
-#            record = tag_records.find(lambda row: row.id == tag)[0]
-#            if not (record.path.id in walk.active_paths and
-#                    record.path.id not in walk.completed_paths):
-#                path = db.paths(record.path.id)
-#
-#                if self.location.id in path.locations:
-#                    return dict(path=path, step=path.steps[0])
-#
-#                elsewhere = True
-#
-#        # There are no paths due in this location so look in other locations
-#        if elsewhere:
-#            path, step_id = walk._get_default_step()
-#
-#            return dict(path=path, step=step_id)
-#
-#        # If all else fails, choose a random path
-#        paths = walk._get_paths()
-#        path = paths[random.randrange(0, len(paths))]
-#
-#        return dict(path=path, step=path.steps[0])
 
 
 class Map(object):

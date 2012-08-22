@@ -167,31 +167,14 @@ def set_value():
 @auth.requires_login()
 def index():
     """
-    Present game interface and prepare the necessary session variables.
-
-    Little of the game logic happens here. This function is used mainly just
-    to set up the static page elements, including the #page element which
-    will load the walk() function.
+    Present the frame for the game interface, which will then load via ajax
+    using the walk() controller below. Preparation of the necessary session
+    variables has now been moved to Walk.__init__ and doesn't need to happen
+    here.
 
     :Permissions: user must be logged in.
     """
-
-    walk = Walk()
-
-    # Check to see whether this user session has been initialized
-    if not walk.tag_set:
-        print '\ninitializing new user session'
-        # Categorize available tags for this student, store in Walk instance
-        walk.categorize_tags()
-        # Find and re-initialize any paths that were previously started but
-        # not finished
-        walk.unfinished()
-        # Update the session
-        # TODO: Make sure that the session is refreshed at the start of each
-        # new day
-        walk.save_session_data()
-
-    return dict(active = walk.active_paths)
+    pass
 
 def walk():
     """
@@ -226,14 +209,11 @@ def walk():
         if debug: print '\nDEBUG: controller state: start'
         # TODO: change to a new public method Walk.set_active_location()
         walk.active_location = None #clear in preparation for new location
-        walk.save_session_data()
+        session.walk['active_location'] = None
 
         # If we got here from a StepStub, we need to complete the step
         if walk.step and isinstance(walk.step, StepStub):
             walk.step.complete()
-
-        if debug: print 'session.walk["step"] =', session.walk['step']
-        if debug: print 'session.walk["path"] =', session.walk['path']
 
         return {'map': walk.map}
 
@@ -244,10 +224,6 @@ def walk():
             print '\nDEBUG: controller state: response'
 
         data = walk.step.process(request.vars.response)
-        walk.save_session_data()
-
-        if debug: print 'session.walk["step"] =', session.walk['step']
-        if debug: print 'session.walk["path"] =', session.walk['path']
 
         return data
 
@@ -256,32 +232,26 @@ def walk():
     elif request.args(0) == 'ask':
 
         if debug: print '\nDEBUG: controller state: ask'
-        # Walk.stay() handles transition to another path/step in the
-        # same location
         # TODO: is this setting to false necessary, since Walk.__init__()
         # defaults to self.staying = False?
         walk.staying = False
         stay = request.vars['stay']
+
         if stay:
-            if debug: print 'staying'
             walk.staying = walk.stay()
-        # TODO: not sure what's going on here with location
         else:
-            if debug: print 'not staying'
-            if debug: print 'walk.staying =', walk.staying
             loc = request.vars['loc']
             if loc:
                 walk.active_location = Location(loc)
-        if walk.staying == False:
-            if debug: print 'calling Walk.next_step()'
             walk.next_step()
         data = walk.step.ask()
-        walk.save_session_data()
-
-        if debug: print 'session.walk["step"] =', session.walk['step']
-        if debug: print 'session.walk["path"] =', session.walk['path']
 
         return data
+
+    #if user wants to retry a failed step
+    elif request.args(0) == 'retry':
+        # TODO: write logic here
+        pass
 
     #if user response results in an error
     elif request.args(0) == 'error':

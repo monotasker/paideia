@@ -64,9 +64,12 @@
                                     vars={'stay': True}),
             cid='page', 
             _class='button-green-grad next_q')}}
+        <span class='retry'>{{=A("Retry", _href=URL('walk', args=['retry'], 
+                                    vars={'stay': True}), 
+            cid='page', 
+            _class='button-yellow-grad back_to_map')}}</span>
         <span class='back_to_map'>{{=A("Map", _href=URL('walk'), cid='page', 
             _class='button-yellow-grad back_to_map')}}</span>
-        <span>Step {{=step_id}} of path {{=path_id}}</span>
     </div>
     <div class='npc prompt'>
         <span id="bug_reporter">If you think your answer should have been 
