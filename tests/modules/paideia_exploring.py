@@ -133,7 +133,7 @@ class Paideia_exploringModule(unittest.TestCase):
         # Tag sets
         self.assertEqual(
             self.walk.tag_set,
-            [],
+            {},
             "walk.tag_set should be empty (got %s)" % self.walk.tag_set
         )
 
@@ -266,62 +266,62 @@ class Paideia_exploringModule(unittest.TestCase):
             'A new user should have no active paths (got %s)' % self.walk.active_paths
         )
 
-    def test_pick_path(self):
-        '''
-        Test Walk.pick_path for a new user.
-        '''
-
-        self.walk.categorize_tags()
-        self.walk.unfinished()
-
-        location = Location('domusA')
-        self.walk.pick_path(location)
-        self.walk.active_location = location
-
-        expected_path_ids = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 21)
-        expected_paths = self.db(self.db.paths.id.belongs(expected_path_ids)).select()
-
-        # Since path is picked at random, just check that the selected path is
-        # one of the possibilities
-        self.assertIn(
-            self.walk.path.id,
-            expected_path_ids,
-            'Picked incorrect path: %s is not in %s' % (self.walk.path.id, expected_paths)
-        )
-
-        expected_path = expected_paths[expected_path_ids.index(self.walk.path.id)]
-        self.assertEqual(
-            self.walk.step.step.id,
-            expected_path.steps[0],
-            'Picked incorrect step: expected %s got %s' % (expected_path.steps[0], self.walk.step.step.id)
-        )
-
-    def test_find_paths(self):
-        '''
-        Test walk.find_paths for a new user.
-        '''
-
-        expected = ((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 21), 1)
-
-        self.walk.categorize_tags()
-        self.walk.unfinished()
-
-        location = Location('domusA')
-
-        for category in (1, 2, 3, 4):
-            category_paths, category = self.walk.find_paths(category, location, self.walk.get_paths())
-
-            self.assertEqual(
-                tuple(p.id for p in category_paths),
-                expected[0],
-                'Category %s: Found incorrect paths:\n\texpected %s\n\tgot %s' % (category, expected[0], category_paths)
-            )
-
-            self.assertEqual(
-                category,
-                expected[1],
-                'Category %s: Found incorrect category:\n\texpected %s\n\tgot %s' % (category, expected[1], category)
-            )
+#    def test_pick_path(self):
+#        '''
+#        Test Walk.pick_path for a new user.
+#        '''
+#
+#        self.walk.categorize_tags()
+#        self.walk.unfinished()
+#
+#        location = Location('domusA')
+#        self.walk.pick_path(location)
+#        self.walk.active_location = location
+#
+#        expected_path_ids = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 21)
+#        expected_paths = self.db(self.db.paths.id.belongs(expected_path_ids)).select()
+#
+#        # Since path is picked at random, just check that the selected path is
+#        # one of the possibilities
+#        self.assertIn(
+#            self.walk.path.id,
+#            expected_path_ids,
+#            'Picked incorrect path: %s is not in %s' % (self.walk.path.id, expected_paths)
+#        )
+#
+#        expected_path = expected_paths[expected_path_ids.index(self.walk.path.id)]
+#        self.assertEqual(
+#            self.walk.step.step.id,
+#            expected_path.steps[0],
+#            'Picked incorrect step: expected %s got %s' % (expected_path.steps[0], self.walk.step.step.id)
+#        )
+#
+#    def test_find_paths(self):
+#        '''
+#        Test walk.find_paths for a new user.
+#        '''
+#
+#        expected = ((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 21), 1)
+#
+#        self.walk.categorize_tags()
+#        self.walk.unfinished()
+#
+#        location = Location('domusA')
+#
+#        for category in (1, 2, 3, 4):
+#            category_paths, category = self.walk.find_paths(category, location, self.walk.get_paths())
+#
+#            self.assertEqual(
+#                tuple(p.id for p in category_paths),
+#                expected[0],
+#                'Category %s: Found incorrect paths:\n\texpected %s\n\tgot %s' % (category, expected[0], category_paths)
+#            )
+#
+#            self.assertEqual(
+#                category,
+#                expected[1],
+#                'Category %s: Found incorrect category:\n\texpected %s\n\tgot %s' % (category, expected[1], category)
+#            )
 
     ### Step
 
@@ -347,7 +347,7 @@ class Paideia_exploringModule(unittest.TestCase):
         Test Step.get_npc() where there is an active location.
         '''
 
-        self.walk.active_location = Location('domusA')
+        self.walk.active_location = Location('domus_A')
         self.walk.save_session_data()
 
         step = Step(1)
@@ -383,7 +383,7 @@ class Paideia_exploringModule(unittest.TestCase):
 
         prompt = step.get_prompt()
 
-        expected = '<span>How could you write the word &quot;mat&quot; using Greek letters?</span>'
+        expected = '<span>How could you write the word &quot;meet&quot; using Greek letters?</span>'
 
         self.assertEqual(
             str(prompt),
@@ -407,12 +407,13 @@ class Paideia_exploringModule(unittest.TestCase):
 
         npc_id = 2
 
-        npc = self.db.npcs(npc_id)
+#        npc = self.db.npcs(npc_id)
+        for k, v in sorted(globals().items()):
+            print 'DEBUG: %s --> %s' % (k, v)
+            print
+        npc_obj = Npc(npc_id)
 
-        npc_obj = Npc(npc)
-
-        expected = '<img src="/paideia/default/download/npcs.image.a5da29fa3962ad01.776f6d616e312e706e67.png" />'
-
+        expected = '<img src="/paideia/static/images/images.image.85a960241dc29f1b.776f6d616e312e706e67.png" />'
         self.assertEqual(
             str(npc_obj.image),
             expected,
