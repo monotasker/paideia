@@ -1,5 +1,5 @@
 # coding: utf8
-from paideia_exploring import Walk, Location, Step, StepStub
+from paideia_exploring import Walk, Location, Step, StepStub, Npc
 #, Npc, Path, Step, StepStub, StepMultipleChoice, Counter, Map, Location
 import pprint
 
@@ -248,6 +248,8 @@ def walk():
     elif request.args(0) == 'ask':
 
         print '\nDEBUG: controller state: ask'
+        print 'DEBUG: in controller.walk(), session.walk =', session.walk
+        print 'DEBUG: in controller.walk(), request vars =', request.vars
         walk.staying = False
         stay = request.vars['stay']
         if stay:
