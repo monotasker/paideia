@@ -331,7 +331,7 @@ class Walk(object):
         # Have we reached the daily path limit? Return a default step.
         # TODO: Replace hardcoded limit (20)
         if len(self.completed_paths) >= 20:
-            return get_default_step()
+            return self.get_default_step()
 
         return None, None
 
@@ -404,15 +404,15 @@ class Walk(object):
         # Log this attempt of the step
         self.update_path_log(path.id, step_id, 0)
 
-    def deactivate_step(self, path, step_id):
+    def deactivate_step(self, path_id, step_id):
         '''
         Deactivate the given step on the given path.
         '''
-        print 'DEBUG: in Walk.deactivate_step, path =', path
-        self.update_path_log(path, 0, 1)  # ??? changed path.id to path here
+        print 'DEBUG: in Walk.deactivate_step, path =', path_id
+        self.update_path_log(path_id, 0, 1)  # ??? changed path.id to path here
 
-        del self.active_paths[path]  # ??? changed path.id to path here
-        self.completed_paths.add(path)  # ??? changed path.id to path here
+        del self.active_paths[path_id]  # ??? changed path.id to path here
+        self.completed_paths.add(path_id)  # ??? changed path.id to path here
         self.save_session_data()
 
     def get_default_step(self):
@@ -450,12 +450,11 @@ class Walk(object):
         active_path = self.get_next_step()
         self.activate_step(active_path['path'], active_path['step'])
 
-        return
+#        return
 
     def stay(self):
         '''
-        Get a step in the current location at the current location if
-        possible.
+        Get a step in the current location if possible.
         '''
 
         session, db = current.session, current.db
@@ -481,7 +480,7 @@ class Walk(object):
         id for the path ('path') and the step ('step').
         '''
 
-        session, db = current.session, current.db
+        session, db, auth = current.session, current.db, current.auth
 
         location = self.active_location.location
 
@@ -545,14 +544,15 @@ class Walk(object):
                 return dict(path=path, step=step_id)
 
         # We don't have any suitable active paths so look for a path due
-        #in this location
+        # in this location
         print 'DEBUG: in Walk.get_next_step, looking for due paths'
         tag_list = []
         for category in xrange(1, 5):
             tag_list.extend(self.tag_set[category])
 
         tag_records = db(
-                db.tag_records.tag.belongs(tag_list)
+                (db.tag_records.tag.belongs(tag_list)) &
+                (db.tag_records.name == auth.user_id)
             ).select(orderby=db.tag_records.tag)
         print 'DEBUG: in Walk.get_next_step, tag_records =', tag_records
         elsewhere = False
@@ -1165,7 +1165,10 @@ class StepStub(Step):
         db.attempt_log.insert(step=self.step.id, score=1.0, path=self.path.id)
 
         # Remove from active_paths and add to completed_paths
-        del session.walk['active_paths'][self.path.id]
+        try:
+            del session.walk['active_paths'][self.path.id]
+        except KeyError:
+            pass   # Path is not in active_paths
         session.walk['completed_paths'].add(self.path.id)
 
 
