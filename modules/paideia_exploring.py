@@ -372,20 +372,15 @@ class Walk(object):
         '''
         Activate the given step on the given path.
         '''
-        debug = False
+        debug = True
 
         self.path = path
         self.step = self._create_step_instance(step_id)
         if debug: print 'DEBUG: in Walk.activate_step(): step_id =', step_id
-        if debug: print 'DEBUG: in Walk.activate_step: self.step.step ='
-        if debug: print self.step.step
-        if debug: print 'DEBUG: in Walk.activate_step: self.step.step.id ='
-        if debug: print self.step.step.id
+        if debug: print 'DEBUG: in Walk.activate_step(): path.id =', path.id
         self.active_paths[path.id] = step_id
 
         self.save_session_data()
-
-        # Log this attempt of the step
         self._update_path_log(path.id, step_id, 0)
 
     def _deactivate_path(self, path):
@@ -429,6 +424,7 @@ class Walk(object):
         Checks first for any blocking conditions and constrains the
         choice of next step accordingly.
         '''
+        debug = True
 
         # Handle active blocking conditions
         if not self.staying:
@@ -444,6 +440,8 @@ class Walk(object):
         # If possible, continue an active path whose next step is here.
         active_path = self._get_next_step()
 
+        if debug: print 'activating step', active_path['step']
+        if debug: print 'and path', active_path['path'].id
         self.activate_step(active_path['path'], active_path['step'])
 
         return
@@ -539,7 +537,7 @@ class Walk(object):
             for path in ahere:
                 # make sure step belongs to the path
                 step_index = self._step_in_path(path)
-                if not step_index
+                if not step_index:
                     continue
                 # If the last completed step was not the final in the path
                 # try to activate the next step.
