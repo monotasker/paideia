@@ -451,8 +451,6 @@ class Walk(object):
         active_path = self.get_next_step()
         self.activate_step(active_path['path'], active_path['step'])
 
-#        return
-
     def stay(self):
         '''
         Get a step on the current path in the current location if possible.
