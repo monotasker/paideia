@@ -215,7 +215,7 @@ def walk():
     is exploring/walk.load. This view should be presented in the #page
     element of exploring/index.html.
     """
-    debug = False
+    debug = True
 
     walk = Walk()
     if debug: print '\n\nDEBUG: controller exploring.walk()'
@@ -232,6 +232,9 @@ def walk():
         if walk.step and isinstance(walk.step, StepStub):
             walk.step.complete()
 
+        if debug: print 'session.walk["step"] =', session.walk['step']
+        if debug: print 'session.walk["path"] =', session.walk['path']
+
         return {'map': walk.map}
 
     # After user submits response to step prompt
@@ -239,10 +242,13 @@ def walk():
     elif ('response' in request.vars) and (request.args(0) == 'ask'):
         if debug:
             print '\nDEBUG: controller state: response'
-            print 'DEBUG: in controller.walk(), session.walk =', session.walk
 
         data = walk.step.process(request.vars.response)
         walk.save_session_data()
+
+        if debug: print 'session.walk["step"] =', session.walk['step']
+        if debug: print 'session.walk["path"] =', session.walk['path']
+
         return data
 
     #after enters location or has completed step in this location
@@ -257,16 +263,23 @@ def walk():
         walk.staying = False
         stay = request.vars['stay']
         if stay:
+            if debug: print 'staying'
             walk.staying = walk.stay()
         # TODO: not sure what's going on here with location
         else:
+            if debug: print 'not staying'
+            if debug: print 'walk.staying =', walk.staying
             loc = request.vars['loc']
             if loc:
                 walk.active_location = Location(loc)
-        if not walk.staying:
+        if walk.staying == False:
+            if debug: print 'calling Walk.next_step()'
             walk.next_step()
         data = walk.step.ask()
         walk.save_session_data()
+
+        if debug: print 'session.walk["step"] =', session.walk['step']
+        if debug: print 'session.walk["path"] =', session.walk['path']
 
         return data
 
@@ -275,6 +288,10 @@ def walk():
 
         #TODO: Review bug handling and logging here
         print '\nDEBUG: controller state: error'
+
+        if debug: print 'session.walk["step"] =', session.walk['step']
+        if debug: print 'session.walk["path"] =', session.walk['path']
+
         return patherror()
 
     # TODO: make sure these still work

@@ -185,7 +185,7 @@ class AjaxSelect(object):
         Use value stored in session if changes to widget haven't been sent to
         db session val must be reset to None each time it is checked.
         """
-        debug = True
+        debug = False
         if debug: print '---------------'
         if debug: print 'starting modules/plugin_ajaxselect choose_val'
 
@@ -242,29 +242,44 @@ class AjaxSelect(object):
         """
         create either a single select widget or multiselect widget
         """
-        verbose = 0
-        if verbose == 1:
+        debug = False
+        if debug:
             print 'starting create_widget()'
+            print 'field =', field
+            print 'value =', value
+
 
         if multi and multi != 'False':
             w = MultipleOptionsWidget.widget(field, value)
+            if debug:
+                print 'multiple options'
 
             #place selected items at end of sortable select widget
             if sortable:
                 try:
                     for v in value:
+                        if debug: print 'v =', v
                         opt = w.element(_value=v)
+                        if debug: print 'opt =', opt
                         i = w.elements().index(opt)
                         w.append(opt)
                         del w[i-1]
-                        if verbose == 1:
+                        if debug:
                             print 'removed', opt
                             print 'index', i
-                except ValueError:
-                        print ValueError
-                        print 'could not remove', opt
-                except TypeError:
-                        print TypeError
+                except AttributeError, e:
+                    if type(v) == 'IntType':
+                        opt = w.element(_value=value)
+                        i = w.elements().index(opt)
+                        w.append(opt)
+                        del w[i-1]
+                    else:
+                        print e
+                except ValueError, e:
+                        print e
+                        print 'could not move', opt
+                except TypeError, e:
+                        print e
 
         else:
             w = OptionsWidget.widget(field, value)
@@ -348,8 +363,8 @@ class AjaxSelect(object):
         """Build a list of selected widget options to be displayed as a
         list of 'tags' below the widget."""
 
-        verbose = 0
-        if verbose == 1:
+        debug = False
+        if debug:
             print '----------------------------------------------'
             print 'starting models/plugin_ajaxselect add_tags'
             print value
@@ -372,7 +387,7 @@ class AjaxSelect(object):
                 myrow = db(db[linktable].id == v).select().first()
 
                 formatted = db[linktable]._format % myrow
-                edit_trigger_id = '%s_editlist_trigger_%i' % (linktable, v)
+                trigger_id = '%s_editlist_trigger_%i' % (linktable, int(v))
                 linkargs = uargs[:] #slice for new obj so vals don't pile up
                 linkargs.append(v)
                 ln = LI(SPAN(formatted), _id=v, _class='editlink tag')
@@ -382,7 +397,7 @@ class AjaxSelect(object):
                                             'set_form_wrapper.load',
                                             args=linkargs,
                                             vars=uvars),
-                                _id=edit_trigger_id,
+                                _id=trigger_id,
                                 _class='edit_trigger editlink tag',
                                 cid=form_name))
                 ll.append(ln)
