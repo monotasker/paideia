@@ -248,6 +248,8 @@ def walk():
     elif request.args(0) == 'ask':
 
         print '\nDEBUG: controller state: ask'
+        print 'DEBUG: in controller.walk(), session.walk =', session.walk
+        print 'DEBUG: in controller.walk(), request vars =', request.vars
         walk.staying = False
         stay = request.vars['stay']
         if stay:
