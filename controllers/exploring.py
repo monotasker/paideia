@@ -1,5 +1,5 @@
 # coding: utf8
-from paideia_exploring import Walk, Location, Step, StepStub
+from paideia_exploring import Walk, Location, Step, StepStub, Npc
 #, Npc, Path, Step, StepStub, StepMultipleChoice, Counter, Map, Location
 import pprint
 

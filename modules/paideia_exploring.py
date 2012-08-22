@@ -892,13 +892,13 @@ class Step(object):
             if re.match(answer1, user_response, re.I):
                 score = 1
                 reply = "Right. Κάλη."
-            elif answer2 != 'null' and re.match(answer2, user_response, re.I):
+            elif answer2 is not None and re.match(answer2, user_response, re.I):
                 score = 0.5
                 #TODO: Get this score value from the db instead of hard
                 #coding it here.
                 reply = "Οὐ κάκος. You're close."
                 #TODO: Vary the replies
-            elif answer3 != 'null' and re.match(answer3, user_response, re.I):
+            elif answer3 is not None and re.match(answer3, user_response, re.I):
                 #TODO: Get this score value from the db instead of hard
                 #coding it here.
                 score = 0.3
@@ -1181,6 +1181,7 @@ class StepImage(Step):
 class StepImageMultipleChoice(Step):
     pass
 
+
 STEP_CLASSES = {
         'step': Step,
         'step_multipleChoice': StepMultipleChoice,
@@ -1253,32 +1254,32 @@ class Npc(object):
             return
 
 
-class Counter(object):
-    '''This class is deprecated'''
-
-    def __init__(self):
-        '''include this question in the count for this quiz, send to 'end'
-        if quiz is finished'''
-
-    def check(self):
-        #current object must be accessed at runtime
-        session, request = current.session, current.request
-
-        if session.q_counter:
-            if int(session.q_counter) >= int(session.path_length):
-                session.q_counter = 0
-                redirect(URL('index', args=['end']))
-                return dict(end="yes")
-            else:
-                session.q_counter += 1
-        else:
-            session.q_counter = 1
-
-    def set(self):
-        pass
-
-    def clear(self):
-        pass
+#class Counter(object):
+#    '''This class is deprecated'''
+#
+#    def __init__(self):
+#        '''include this question in the count for this quiz, send to 'end'
+#        if quiz is finished'''
+#
+#    def check(self):
+#        #current object must be accessed at runtime
+#        session, request = current.session, current.request
+#
+#        if session.q_counter:
+#            if int(session.q_counter) >= int(session.path_length):
+#                session.q_counter = 0
+#                redirect(URL('index', args=['end']))
+#                return dict(end="yes")
+#            else:
+#                session.q_counter += 1
+#        else:
+#            session.q_counter = 1
+#
+#    def set(self):
+#        pass
+#
+#    def clear(self):
+#        pass
 
 
 class Location(object):
