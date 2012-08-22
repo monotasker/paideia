@@ -17,13 +17,15 @@ response.meta.copyright = 'Copyright 2011'
 
 
 response.menu = [
-    (T('Home'), False, URL('default','index'), [])
+    (T('Home'), False, URL('default','index'), []),
+    (T('Slides'), False, URL('listing','slides'), [])
     ]
 
 if auth.has_membership('administrators', auth.user_id):
     response.menu+=[(T('Admin'), False, None, [
-            (T('Reports'), False, None, [
-                (T('Users'), False, URL('listing', 'user')),
+            (T('Create'), False, None, [
+                (T('Slide decks'), False, URL('plugin_listandedit',
+                                'listing.html', args=['plugin_slider_decks'])),
                 (T('Paths'), False, URL('plugin_listandedit',
                                         'listing.html', args=['paths'])),
                 (T('Steps'), False, URL('plugin_listandedit',
@@ -38,8 +40,16 @@ if auth.has_membership('administrators', auth.user_id):
                                         'listing.html', args=['locations'])),
                 (T('images'), False, URL('plugin_listandedit',
                                         'listing.html', args=['images'])),
+            ]),
+
+            (T('Reports'), False, None, [
+                (T('Users'), False, URL('listing', 'user')),
                 (T('Bug reports'), False, URL('plugin_listandedit',
                                         'listing.html', args=['bugs'])),
+                (T('Paths by tag'), False, URL('reporting',
+                                        'paths_by_tag')),
+                (T('Attempt log'), False, URL('reporting',
+                                        'attempts')),
             ]),
             (T('Web IDE'), False, URL('admin', 'default', 'index')),
             (T('Database'), False, URL('appadmin', 'index')),

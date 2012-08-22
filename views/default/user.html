@@ -11,6 +11,7 @@
 
 <div id="web2py_user_form" class="tab active">
 {{=form}}
+
 {{if request.args(0)=='login':}}
     {{if not 'register' in auth.settings.actions_disabled:}}
         <br/><a href="{{=URL(r=request,args='register')}}">register</a>
@@ -24,29 +25,35 @@
 {{if request.args(0) == 'profile':}}
 
 <div id='tab_stats' class="tab">
+
+    <p>You are currently working on <span class='total_len'>{{=active['total']}}</span> grammar badges</p>
+    <p>The most recent badges started are:
+    <ul class='most_recent'>
+        {{for k,v in active['latest'].iteritems():}}
+            {{=LI(v)}}
+        {{pass}}
+    <ul>
+
 <table cellspacing='0' class='summary_stats'>
     <tr>
-        <td class='total_len'>{{=total_len}}</td>
-        <td>distinct questions attempted so far.</td>
+        <td>mastered</td>
+        <td class='total_cat4'>{{=len(cats[4])}}</td>
+        <td>badges</td>
     </tr>
     <tr>
-        <td class='total_cat4'>{{=total_cat4}}</td>
-        <td>questions mastered (<span class='percent_cat4'>{{=percent_cat4}}</span>% of questions tried)</td>
+        <td>making very good progress on</td>
+        <td class='total_cat3'>{{=len(cats[3])}}</td>
+        <td>badges</td>
     </tr>
     <tr>
-        <td class='total_cat3'>{{=total_cat3}}</td>
-        <td>making very good progress (<span class='percent_cat3'>{{=percent_cat3}}</span>% of questions tried)</td>
+        <td>made a good start with</td>
+        <td class='total_cat2'>{{=len(cats[2])}}</td>
+        <td>badges</td>
     </tr>
     <tr>
-        <td class='total_cat2'>{{=total_cat2}}</td>
-        <td>have made a good start (<span class='percent_cat2'>{{=percent_cat2}}</span>% of questions tried)</td>
-    </tr>
-    <tr>
-        <td class='total_cat1'>{{=total_cat1}}</td>
-        <td>need some more attention (<span class='percent_cat1'>{{=percent_cat1}}</span>% of questions tried)</td>
-    </tr>
-    <tr>
-        <td colspan='2'>Average score <span class='score_avg'>{{=score_avg}}%</span></td>
+        <td class='total_cat1'>{{=len(cats[1])}}</td>
+        <td>badges just started or needing review</td>
+        <td></td>
     </tr>
 </table>
 
@@ -55,7 +62,7 @@
 <div class='tab' id='tab_calendar'>
 Questions answered each day:
 
-{{=XML(htmlcal)}}
+{{=XML(cal)}}
 </div>
 
 <div class='tab' id='tab_bug_reports'>
@@ -86,18 +93,7 @@ Questions answered each day:
 
 <script language="javascript">
 <!--
- jQuery("#web2py_user_form input:visible:enabled:first").focus();
- $('.tab_row a').click(function(){
-     l = $(this).attr('href')
-    $('.tabs .tab').each(function(){
-        $(this).hide();
-    })      
-    $('.tabs .tab' + l).show();
-    $('.tab_row li').each(function(){
-        $(this).removeClass('active');
-    });
-    $(this).parents('li').addClass('active'); 
-    return false;
- })
+ $("#web2py_user_form input:visible:enabled:first").focus();
+ $('#user_profile_tabs').tabs(); 
 //-->
 </script>

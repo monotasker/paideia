@@ -36,18 +36,20 @@ def user():
     """
     # create instance of paideia_stats class from models
     s = Stats(auth.user_id)
+    active = s.active_tags()
     avg = s.average()
     print '\nController.user()'
     print 'avg =', avg
     cats = s.categories()
     print 'cats =', cats
     cal = s.monthcal()
-    print 'monthcal =', monthcal
+    print 'monthcal =', cal
 
     b = Bug()
-    blist = b.bugresponse(auth.user_id)
+    blist = b.bugresponses(auth.user_id)
 
-    return dict(form=auth(), avg=avg, cats=cats, cal=monthcal, blist=blist)
+    return {'form': auth(), 'avg': avg, 'cats': cats, 'cal': cal,
+            'blist':blist, 'active': active}
 
 #def download():
     #"""

@@ -19,6 +19,8 @@ def start_deck():
     Takes no parameters.
     Expects the first url argument to be the id of the deck to be initialized.
     """
+    debug = True
+
     did = request.args[0]
     if did:
         session['plugin_slider_did'] = did
@@ -27,7 +29,8 @@ def start_deck():
 
     deck = db.plugin_slider_decks[did]
     deckorder = [s for s in deck.deck_slides if s != None]
-    print deckorder
+    if debug: print deckorder
+
     if deckorder and len(deckorder) > 0:
         session['plugin_slider_deckorder'] = deckorder
     else:
@@ -44,6 +47,7 @@ def start_deck():
                             cid='plugin_slider_slide')))
     slidemenu = DIV(slidelist, _class='plugin_slider_slidemenu')
 
+    if debug: print deck.theme
     theme = db.plugin_slider_themes[deck.theme[0]].theme_name
 
     return dict(did=did, firstslide=firstslide, theme=theme,
@@ -60,6 +64,7 @@ def show_slide():
     Returns a dictionary with a single item, 'content', containing a
     web2py MARKMIN helper object with the text contents of the slide.
     """
+    debug = False
     try:
         sid = request.args[0]
         session.plugin_slider_sid = sid
@@ -74,7 +79,7 @@ def show_slide():
 
     slide = db.plugin_slider_slides[int(sid)]
     content = MARKMIN(slide.content)
-    print 'show_slide: content =', content
+    if debug: print 'show_slide: content =', content
 
     return dict(content=content)
 

@@ -1,5 +1,5 @@
 # coding: utf8
-from paideia_exploring import Walk, Location, Step, StepStub, Npc
+from paideia_exploring import Walk, Location, Step, StepStub
 #, Npc, Path, Step, StepStub, StepMultipleChoice, Counter, Map, Location
 import pprint
 
@@ -183,10 +183,12 @@ def index():
         print '\ninitializing new user session'
         # Categorize available tags for this student, store in Walk instance
         walk.categorize_tags()
-
+        # Find and re-initialize any paths that were previously started but
+        # not finished
         walk.unfinished()
-
         # Update the session
+        # TODO: Make sure that the session is refreshed at the start of each
+        # new day
         walk.save_session_data()
 
     return dict(active = walk.active_paths)
@@ -213,15 +215,16 @@ def walk():
     is exploring/walk.load. This view should be presented in the #page
     element of exploring/index.html.
     """
+    debug = True
 
     walk = Walk()
-
-    print '\n\nDEBUG: controller exploring.walk()'
+    if debug: print '\n\nDEBUG: controller exploring.walk()'
 
     # When user begins exploring (also default) present map
     if (request.args(0) == 'start') or (not request.args):
 
-        print '\nDEBUG: controller state: start'
+        if debug: print '\nDEBUG: controller state: start'
+        # TODO: change to a new public method Walk.set_active_location()
         walk.active_location = None #clear in preparation for new location
         walk.save_session_data()
 
@@ -229,17 +232,22 @@ def walk():
         if walk.step and isinstance(walk.step, StepStub):
             walk.step.complete()
 
+        if debug: print 'session.walk["step"] =', session.walk['step']
+        if debug: print 'session.walk["path"] =', session.walk['path']
+
         return {'map': walk.map}
 
     # After user submits response to step prompt
     # Evaluate response and present feedback via npc reply
     elif ('response' in request.vars) and (request.args(0) == 'ask'):
+        if debug:
+            print '\nDEBUG: controller state: response'
 
-        print '\nDEBUG: controller state: response'
-        print 'DEBUG: in controller.walk(), session.walk =', session.walk
         data = walk.step.process(request.vars.response)
-
         walk.save_session_data()
+
+        if debug: print 'session.walk["step"] =', session.walk['step']
+        if debug: print 'session.walk["path"] =', session.walk['path']
 
         return data
 
@@ -247,31 +255,46 @@ def walk():
     #pick a path and present the prompt for the appropriate step
     elif request.args(0) == 'ask':
 
-        print '\nDEBUG: controller state: ask'
-        print 'DEBUG: in controller.walk(), session.walk =', session.walk
-        print 'DEBUG: in controller.walk(), request vars =', request.vars
+        if debug: print '\nDEBUG: controller state: ask'
+        # Walk.stay() handles transition to another path/step in the
+        # same location
+        # TODO: is this setting to false necessary, since Walk.__init__()
+        # defaults to self.staying = False?
         walk.staying = False
         stay = request.vars['stay']
         if stay:
+            if debug: print 'staying'
             walk.staying = walk.stay()
+        # TODO: not sure what's going on here with location
         else:
+            if debug: print 'not staying'
+            if debug: print 'walk.staying =', walk.staying
             loc = request.vars['loc']
             if loc:
                 walk.active_location = Location(loc)
-        print 'DEBUG: staying =', walk.staying
-        if not walk.staying:
+        if walk.staying == False:
+            if debug: print 'calling Walk.next_step()'
             walk.next_step()
         data = walk.step.ask()
         walk.save_session_data()
+
+        if debug: print 'session.walk["step"] =', session.walk['step']
+        if debug: print 'session.walk["path"] =', session.walk['path']
 
         return data
 
     #if user response results in an error
     elif request.args(0) == 'error':
 
+        #TODO: Review bug handling and logging here
         print '\nDEBUG: controller state: error'
+
+        if debug: print 'session.walk["step"] =', session.walk['step']
+        if debug: print 'session.walk["path"] =', session.walk['path']
+
         return patherror()
 
+    # TODO: make sure these still work
     #this and the following function are for testing a specific step
     if (request.args(0) == 'test_step') and ('response' in request.vars):
         s = Step(request.args(0))

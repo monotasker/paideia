@@ -14,7 +14,7 @@
 </form>
 <ul>
     {{for s in ('active_paths', 'completed_paths', 'location', 'path', 'step', 'tagset'):}}
-        {{if s in session:}}
+        {{if s in session.walk:}}
             <li>{{=s}}: {{=session[s]}}</li>
         {{pass}}
     {{pass}}
@@ -23,7 +23,7 @@
     <ul>
         <li>
             <input type='text' value='all' name='test_step' id='test_step' />
-            <a id='test_this_step' href='#'>Clear session</a> 
+            <a id='test_this_step' href='#'>Test step</a> 
         </li>
     </ul>
 </form>    
@@ -60,14 +60,17 @@
         paths already complete today.</span>
     </section>
     <div class='responder'>
-        {{=A("Continue", _href=URL('walk', args=['ask'], vars={'stay': True}), cid='page', 
+        {{=A("Continue", _href=URL('walk', args=['ask'],
+                                    vars={'stay': True}),
+            cid='page', 
             _class='button-green-grad next_q')}}
         <span class='back_to_map'>{{=A("Map", _href=URL('walk'), cid='page', 
             _class='button-yellow-grad back_to_map')}}</span>
+        <span>Step {{=step_id}} of path {{=path_id}}</span>
     </div>
     <div class='npc prompt'>
         <span id="bug_reporter">If you think your answer should have been 
-            correct, {{=A('click here', _href=URL('creating', 'bug.load', 
+            correct, you can {{=A('click here', _href=URL('creating', 'bug.load', 
             vars=dict(answer=request.vars.response)), 
             cid='bug_reporter')}} to submit a bug report for this question
         </span>

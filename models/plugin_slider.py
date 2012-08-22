@@ -20,7 +20,8 @@ db.define_table('plugin_slider_slides',
     )
 db.plugin_slider_slides.theme.requires = IS_IN_DB(db,
                                     'plugin_slider_themes.id',
-                                    db.plugin_slider_themes._format)
+                                    db.plugin_slider_themes._format,
+                                    multiple=True)
 
 db.define_table('plugin_slider_decks',
     Field('deck_name', 'string'),
@@ -33,13 +34,17 @@ db.plugin_slider_decks.deck_slides.requires = IS_IN_DB(db,
                                     'plugin_slider_slides.id',
                                     db.plugin_slider_slides._format,
                                     multiple=True)
-#db.plugin_slider_decks.deck_slides.widget = lambda field, value: \
-                                    #AjaxSelect().widget(
-                                        #field, value, 'slides',
-                                        #refresher=True,
-                                        #multi='basic',
-                                        #lister='editlinks',
-                                        #sortable='true')
+db.plugin_slider_decks.theme.requires = IS_IN_DB(db,
+                                    'plugin_slider_themes.id',
+                                    db.plugin_slider_themes._format,
+                                    multiple=True)
+db.plugin_slider_decks.deck_slides.widget = lambda field, value: \
+                                    AjaxSelect().widget(
+                                        field, value, 'plugin_slider_slides',
+                                        refresher=True,
+                                        multi='basic',
+                                        lister='editlinks',
+                                        sortable='true')
 
 
 

@@ -61,8 +61,13 @@ class Bug(object):
         #closer = A('close', _href=URL('#'), _class='close_link')
         #the_title = H3('Reviewing Bug Report for Question')
 
-    def bugresponse(self, user):
-
+    def bugresponses(self, user):
+        '''
+        Returns a list of the bug reports submitted by 'user'. Each list item
+        is itself a list containing the step prompt, user_response,
+        date_submitted, bug_status, and admin_comment for an individual bug
+        report.
+        '''
         db = current.db
         bugs_q = (db.steps.id == db.bugs.step) & (db.bugs.user_name == user)
         bugs = db(bugs_q).select()

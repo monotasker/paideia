@@ -158,18 +158,16 @@ def edit():
             function of this controller, opening a form to insert a new record
             and pre-populating it with data copied from the current record.
     """
+    debug = True
 
-    verbose = 0
-    if verbose == 1:
-        print '\n starting controllers/plugin_listandedit edit()'
+    if debug: print '\n starting controllers/plugin_listandedit edit()'
 
     tablename = request.args[0]
     duplink = ''
     if len(request.args) > 1:
         rowid = request.args[1]
         formname = '%s/%s' % (tablename, rowid)
-        if verbose == 1:
-            print 'formname: ', formname
+        if debug: print 'formname: ', formname
 
         #TODO: Set value of "project" field programatically
         form = SQLFORM(db[tablename], rowid, separator='',
@@ -180,8 +178,7 @@ def edit():
             the_url = makeurl(tablename)
             response.js = "web2py_component('%s', 'listpane');" % the_url
             response.flash = 'The changes were recorded successfully.'
-            if verbose == 1:
-                print "submitted form vars", form.vars
+            if debug: print "submitted form vars", form.vars
         elif form.errors:
             print form.errors
             response.flash = 'Sorry, there was an error processing ' \
@@ -208,6 +205,7 @@ def edit():
             the_url = makeurl(tablename)
             response.js = "web2py_component('%s', 'listpane');" % the_url
             response.flash = 'New record successfully created.'
+            if debug: print "submitted form vars", form.vars
         elif form.errors:
             print form.vars
             response.flash = 'Sorry, there was an error processing '\
