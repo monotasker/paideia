@@ -234,16 +234,23 @@ def walk():
         if debug: print '\nDEBUG: controller state: ask'
         # TODO: is this setting to false necessary, since Walk.__init__()
         # defaults to self.staying = False?
-        walk.staying = False
-        stay = request.vars['stay']
 
-        if stay:
-            walk.staying = walk.stay()
-        else:
-            loc = request.vars['loc']
-            if loc:
-                walk.active_location = Location(loc)
-            walk.next_step()
+        # TODO: Maybe deprecate this commented code and remove Walk.stay()
+        # That method seems to me to introduce unnecessary complexity and
+        # Require that we duplicate existing logic.
+        #walk.staying = False
+        #stay = request.vars['stay']
+        #if stay:
+            #walk.staying = walk.stay()
+        #else:
+            #loc = request.vars['loc']
+            #if loc:
+                #walk.active_location = Location(loc)
+            #walk.next_step()
+
+        loc = request.vars['loc']
+        walk.active_location = Location(loc)
+        walk.next_step()
         data = walk.step.ask()
 
         return data

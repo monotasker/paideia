@@ -494,27 +494,34 @@ class Walk(object):
 
     def stay(self):
         '''
-        Get a step at the current location if possible.
+        Continue the current path in this location if possible.
         '''
-        debug = False
+        # TODO: I'm not sure we need to have this separate method -- it
+        #duplicates the first test of _get_next_step and it bypasses the
+        #check for blocking conditions.
+
+        debug = True
 
         session, db = current.session, current.db
         if debug:
-            print 'DEBUG: in Walk.stay(),'
-            print 'self.step.step =', self.step.step
+            print 'calling Walk.stay() =============='
             print 'self.step.step.id =', self.step.step.id
-            print 'self.path =', self.path
-            print 'self.path.steps =', self.path.steps
+            print 'self.path.id =', self.path.id
 
         index = self.path.steps.index(self.step.step.id)
         if index + 1 < len(self.path.steps):
-            step = db.steps(self.path.steps[index + 1])
-            if self.active_location.location.id in step.locations:
-                self.activate_step(self.path, step.id)
-                self._save_session_data()
-                return True
+            try:
+                step = db.steps(self.path.steps[index + 1])
+                if self.active_location.location.id in step.locations:
+                    self.activate_step(self.path, step.id)
+                    self._save_session_data()
+                    return True
+            except Exception, e:
+                print 'Exception raised trying to continue active path in'
+                print 'Walk.stay()'
+                print e
 
-        self._save_session_data()
+        if debug: print 'No path to continue here'
 
         return False
 
