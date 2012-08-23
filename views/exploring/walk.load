@@ -50,6 +50,7 @@
     
 <!--present npc reply for user's response to step prompt-->
 {{elif 'response' in request.vars:}}
+    <div class='bg_image'>{{=bg_image}}</div>
     <div class='speaker'>{{=npc_img}}</div>
     <section class="npc prompt">
         <p>{{=reply}}</p>
@@ -81,14 +82,18 @@
 
 <!--present prompt for step-->
 {{elif not 'response' in request.vars:}}
+    <div class='bg_image'>{{=bg_image}}</div>
     <div class='speaker'>{{=npc_img}}</div>
     <div class="npc prompt">{{=prompt}}</div>
     {{try:}}
         <div class='responder'>{{=responder}}</div>
-        <p class="guidelines">Remember to only give <strong>one</strong> 
-            translation (not a list of different possibilities) and to give a 
-            <strong>translation</strong> (so not "keep" but "I keep").
-        </p>
+        <div class='prompt_tips'>
+            <!--TODO: We need a different tip for different kinds of question-->
+            <p class="guidelines">Remember to only give <strong>one</strong> 
+                translation (not a list of different possibilities) and to give a 
+                <strong>translation</strong> (so not "keep" but "I keep").
+            </p>
+        </div>
         <span class='back_to_map'>{{=A("Map", _href=URL('walk'), cid='page', 
             _class='button-yellow-grad back_to_map')}}</span>
         <span class="q_counter">Question {{#=session.q_counter}}</span>
