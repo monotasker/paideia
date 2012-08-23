@@ -752,12 +752,12 @@ class Step(object):
 
         db, session = current.db, current.session
 
+        self.location = Location(session.walk['active_location'])
+        self.path = db.paths(session.walk['path'])
         try:
-            self.path = db.paths(session.walk['path'])
             self.step = db.steps(session.walk['step'])
             self.npc = Npc(session.walk['npc'])
         except KeyError:
-            self.path = db.paths(session.walk['path'])
             self.step = None
             self.npc = None
 
@@ -768,19 +768,21 @@ class Step(object):
         '''
 
         npc = self._get_npc()
-        prompt = self.get_prompt()
-        responder = self.get_responder()
-        # TODO: Add retrieval of background image here
+        prompt = self._get_prompt()
+        responder = self._get_responder()
         self._save_session_data()
 
-        return dict(npc_img=npc.image, prompt=prompt, responder=responder)
+        return dict(npc_img=npc.image, prompt=prompt,
+                    responder=responder,
+                    bg_image=self.location.img)
 
     def _get_npc(self):
         '''
         Given a set of npcs for this step select one of the npcs at random and
         return the corresponding Npc object.
         '''
-
+        # TODO: Make sure that subsequent steps of the current path use the
+        # same npc if in the same location
         def _get_npc_internal(npcs):
             '''
             Return an npc from the set of npcs or None if there aren't any.
@@ -803,7 +805,7 @@ class Step(object):
         if session.walk['active_location'] is None:
             return   # TODO: maybe we return a 404 here (or in ask(), etc.)?
 
-        location = Location(session.walk['active_location'])
+        location = self.location
 
         npcs = db(
             (db.npcs.id.belongs(self.step.npcs)) &
@@ -820,8 +822,7 @@ class Step(object):
             npc = _get_npc_internal(npcs)
 
         # If we haven't found an npc at the location, get a random one from
-        # this
-        # step.
+        # this step.
         if not npc:
             npcs = db((db.npcs.id.belongs(self.step.npcs))).select()
 
@@ -884,7 +885,7 @@ class Step(object):
                 times_wrong = 0
 
             # Record the results in statistics for this step and this tag
-            self.record(score, times_wrong)
+            self._record(score, times_wrong)
 
         # Handle errors if the student's response cannot be evaluated
         except re.error:
@@ -896,9 +897,10 @@ class Step(object):
 
         return {'reply': reply,
                 'readable': readable,
-                'npc_img': session.walk['npc_image']}
+                'npc_img': session.walk['npc_image'],
+                'bg_image': self.location.img}
 
-    def record(self, score, times_wrong_incr):
+    def _record(self, score, times_wrong_incr):
         '''
         Record the results of this step in db tables attempt_log and
         tag_records. score gives the increment to add to 'times right' in
@@ -987,7 +989,7 @@ class Step(object):
             del session.walk['active_paths'][self.path.id]
             session.walk['completed_paths'].add(self.path.id)
 
-    def get_prompt(self):
+    def _get_prompt(self):
         '''
         Get the prompt text to be presented from the npc to start the step
         interaction.
@@ -1000,7 +1002,7 @@ class Step(object):
 
         return text  # audio
 
-    def get_responder(self):
+    def _get_responder(self):
         '''
         Create and return the form to receive the user's response for this
         step.
@@ -1020,7 +1022,7 @@ class Step(object):
 
 
 class StepMultipleChoice(Step):
-    def get_responder(self):
+    def _get_responder(self):
         '''
         create and return the form to receive the user's response for this
         step
@@ -1054,13 +1056,13 @@ class StepStub(Step):
         '''
 
         npc = self._get_npc()
-        prompt = self.get_prompt()
+        prompt = self._get_prompt()
 
         self._save_session_data()
 
         return dict(npc_img=npc.image, prompt=prompt)
 
-    def get_responder(self):
+    def _get_responder(self):
         pass
 
     def process(self):
@@ -1177,7 +1179,7 @@ class Npc(object):
 
         if npc_id is not None:
             self.npc = db.npcs(npc_id)
-            self.image = self.get_image()
+            self.image = self._get_image()
 
             self._save_session_data()
 
@@ -1208,12 +1210,14 @@ class Npc(object):
         if 'npc' in session.walk:
             self.npc = db.npcs(session.walk['npc'])
             self.image = session.walk['npc_image']
-
         else:
             self.npc = None
             self.image = None
 
-    def get_image(self):
+        self.location = Location(session.walk['active_location'])
+
+
+    def _get_image(self):
         '''
         Get the image to present as a depiction of the npc.
         '''
@@ -1222,16 +1226,16 @@ class Npc(object):
 
         try:
             if debug:
-                print 'DEBUG: in Npc.get_image(), self.npc.npc_image.image ='
+                print 'DEBUG: in Npc._get_image(), self.npc.npc_image.image ='
                 print self.npc.npc_image.image
 
             url = URL('static/images', self.npc.npc_image.image)
 
             if debug:
-                print 'DEBUG: in Npc.get_image(), url=', url
+                print 'DEBUG: in Npc._get_image(), url=', url
             return IMG(_src=url)
         except:
-            print 'Npc.get_image(): Could not find npc image'
+            print 'Npc._get_image(): Could not find npc image'
             return
 
 
@@ -1249,25 +1253,12 @@ class Location(object):
 
         db = current.db
 
+        self.alias = alias
         self.location = db(db.locations.alias == alias).select().first()
-        self.image = IMG(
+        self.id = self.location.id
+        self.img = IMG(
                 _src=URL('static', 'images', args=self.location.bg_image)
             )
-
-    def info(self):
-        '''
-        Determine what location has just been entered and retrieve its
-        details from db. Returns a dictionary with the keys 'id', 'alias',
-        and 'img'.
-        '''
-
-        info = {
-            'id': self.location.id,
-            'alias': self.location.alias,
-            'img': self.image
-        }
-
-        return info
 
 
 class Map(object):
