@@ -174,7 +174,7 @@ def index():
 
     :Permissions: user must be logged in.
     """
-    pass
+    return {}
 
 def walk():
     """
