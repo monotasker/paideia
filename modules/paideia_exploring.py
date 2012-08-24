@@ -42,7 +42,9 @@ class Walk(object):
 
     def __init__(self):
         session = current.session
+        request = current.request
 
+        print 'initializing Walk======='
         if not session.walk:
             self.active_location = None
             self.path = None
@@ -66,6 +68,7 @@ class Walk(object):
         '''
         debug = True
         session = current.session
+        request = current.request
 
         session_data = {}
 
@@ -74,12 +77,11 @@ class Walk(object):
         else:
             session_data['path'] = None
 
+        if self.active_location:
+            session_data['active_location'] = self.active_location
+
         session_data['active_paths'] = self.active_paths
         session_data['completed_paths'] = self.completed_paths
-        if self.active_location:
-            session_data['active_location'] = self.active_location.location.alias
-        else:
-            session_data['active_location'] = None
         session_data['tag_set'] = self.tag_set
 
         try:
@@ -91,15 +93,14 @@ class Walk(object):
         if self.step:
             self.step._save_session_data()
 
-        if debug: print 'Walk._save_session_data, session.walk = ', session.walk
+        #if debug: print 'Walk._save_session_data, session.walk = ', session.walk
 
     def _get_session_data(self):
         '''
         Get the walk attributes from the session.
         '''
-        # TODO: rename as private method
-
-        db, session = current.db, current.session
+        print 'calling Walk._get_session_data() ============'
+        db, session, request = current.db, current.session, current.request
 
         path = session.walk['path']
         if path:
@@ -107,12 +108,15 @@ class Walk(object):
         else:
             self.path = None
 
-        location_alias = session.walk['active_location']
-
-        if location_alias:
-            self.active_location = Location(location_alias)
+        if 'loc' in request.vars:
+            location_alias = request.vars['loc']
+            self.active_location = Location(location_alias).info()
+            session.walk['active_location'] = self.active_location
+            print 'self.active_location =', self.active_location
         else:
             self.active_location = None
+            session.walk['active_location'] = None
+            print 'no loc variable in request, setting active_location to None'
         self.active_paths = session.walk['active_paths']
         self.completed_paths = session.walk['completed_paths']
         self.tag_set = session.walk['tag_set']
@@ -512,7 +516,7 @@ class Walk(object):
         if index + 1 < len(self.path.steps):
             try:
                 step = db.steps(self.path.steps[index + 1])
-                if self.active_location.location.id in step.locations:
+                if self.active_location['id'] in step.locations:
                     self.activate_step(self.path, step.id)
                     self._save_session_data()
                     return True
@@ -545,14 +549,14 @@ class Walk(object):
         debug = True
         session, db = current.session, current.db
 
-        location = self.active_location.location
+        loc_id = self.active_location['id']
 
         # 1) try to continue an active path whose next step is in this loc
         if self.active_paths:
             if debug: print 'DEBUG: in Walk._get_next_step(),'
             if debug: print 'looking for active paths in this location'
             apaths = db(db.paths.id.belongs(self.active_paths.keys())).select()
-            ahere = apaths.find(lambda row: location.id in row.locations)
+            ahere = apaths.find(lambda row: loc_id in row.locations)
 
             for path in ahere:
                 # make sure step belongs to the path
@@ -564,7 +568,7 @@ class Walk(object):
                 if len(path.steps) > (step_index + 1):
                     step_id = path.steps[step_index + 1]
                     step = db(db.steps.id == step_id).select()[0]
-                    if not location.id in step.locations:
+                    if not loc_id in step.locations:
                         path, step_id = self._get_default_step()
 
                     self.active_paths[path.id] = step_id
@@ -610,7 +614,7 @@ class Walk(object):
                     path = db.paths(record.path.id)
 
                     # Here we're returning the new path for this loc
-                    if location.id in path.locations:
+                    if loc_id in path.locations:
                         if debug: print 'found a new path due here'
                         return dict(path=path, step=path.steps[0])
 
@@ -681,57 +685,21 @@ class Walk(object):
             db.path_log.insert(path=path_id, last_step=step_id)
 
 
-# TODO: Deprecate eventually
-#class Path(object):
-    #'''
-    #set the path a student is exploring, retrieve its data, and store
-    #the data in the session object
-
-    ### session variables available:
-    #### This first set is used to track information about a user's session
-    #that persists beyond a single step execution.
-
-    #session.active_paths (dict: id:last active step)
-    #session.completed (list: int for path id)
-    #session.tag_set (dict: each of four categories is a key, list of tag
-        #ids as its value)
-
-    #### This second set should be used exclusively to preserve current data
-    #during execution of a single step (i.e., retrieve the results of
-    #path.pick() in step.process()). By the end of step.process() they
-    #should be returned to a value of None:
-
-    #session.step (single int)
-    #session.path (single int)
-    #session.image
-    #'''
-
-    #def __init__(self, loc):
-        #self.loc = loc
-
-    #def end(self):
-        ##current object must be accessed at runtime, so can't be global
-        ## variable
-        #session, request, auth, db = current.session, current.request
-        #auth, db = current.auth, current.db
-
-        #pass
-
-
 class Step(object):
 
     def __init__(self, step=None):
 
         db, session = current.db, current.session
-
+        print 'initializing Step======='
         if step is not None:
             self.path = db.paths(session.walk['path'])
             self.step = db.steps(step)
-
+            self.location = session.walk['active_location']
             self.npc = None
             self._save_session_data()
         else:
             self._get_session_data()
+        print 'session.walk["active_location"] =', session.walk["active_location"]
 
     def _save_session_data(self):
         '''
@@ -752,7 +720,9 @@ class Step(object):
 
         db, session = current.db, current.session
 
-        self.location = Location(session.walk['active_location'])
+        if session.walk['active_location']:
+            self.location = session.walk['active_location']
+        self.bg_image = self.location['img']
         self.path = db.paths(session.walk['path'])
         try:
             self.step = db.steps(session.walk['step'])
@@ -774,7 +744,7 @@ class Step(object):
 
         return dict(npc_img=npc.image, prompt=prompt,
                     responder=responder,
-                    bg_image=self.location.img)
+                    bg_image=self.bg_image)
 
     def _get_npc(self):
         '''
@@ -804,20 +774,18 @@ class Step(object):
 
         if session.walk['active_location'] is None:
             return   # TODO: maybe we return a 404 here (or in ask(), etc.)?
-
-        location = self.location
-
+        print 'self.location =', self.location
         npcs = db(
-            (db.npcs.id.belongs(self.step.npcs)) &
-            (db.npcs.location.contains(location.location.id))
-        ).select()
+                    (db.npcs.id.belongs(self.step.npcs)) &
+                    (db.npcs.location.contains(self.location['id']))
+                ).select()
 
         npc = _get_npc_internal(npcs)
 
         # If we haven't found an npc at the location and step, get a random one
         # from this location.
         if not npc:
-            npcs = db(db.npcs.location.contains(location.location.id)).select()
+            npcs = db(db.npcs.location.contains(self.location['id'])).select()
 
             npc = _get_npc_internal(npcs)
 
@@ -898,7 +866,7 @@ class Step(object):
         return {'reply': reply,
                 'readable': readable,
                 'npc_img': session.walk['npc_image'],
-                'bg_image': self.location.img}
+                'bg_image': self.bg_image}
 
     def _record(self, score, times_wrong_incr):
         '''
@@ -1214,7 +1182,7 @@ class Npc(object):
             self.npc = None
             self.image = None
 
-        self.location = Location(session.walk['active_location'])
+        self.location = session.walk['active_location']
 
 
     def _get_image(self):
@@ -1248,18 +1216,55 @@ class Location(object):
     implemented in:
     controllers/exploring.walk()
     '''
+    debug = False
 
     def __init__(self, alias):
 
-        db = current.db
-
         self.alias = alias
-        self.location = db(db.locations.alias == alias).select().first()
-        self.id = self.location.id
-        self.img = IMG(
-                _src=URL('static', 'images', args=self.location.bg_image)
-            )
+        if alias:
+            self.db_data = self._get_db(alias)
+            if self.debug:
+                print 'calling Location.__init__ ============'
+                print 'self.db_data =', self.db_data
+            self.id = self.db_data.id
+            self.img = self._get_img()
+        else:
+            self.db_data = None
+            self.id = None
+            self.img = None
 
+    def _get_db(self, alias):
+        '''
+        Return the web2py row() object corresponding to the db record
+        for the location with the given alias.
+        '''
+        db = current.db
+        db_data = db(db.locations.alias == alias).select().first()
+        return db_data
+
+    def _get_img(self):
+        '''
+        Retrieve the background image for the given location and return
+        it as a web2py IMG() helper object.
+        '''
+        db = current.db
+        if self.debug:
+            print 'in _get_img() self.db_data.bg_image ='
+            print self.db_data.bg_image
+        filename = db.images[self.db_data.bg_image].image
+        img = IMG(_src=URL('static', 'images', args=filename))
+        return img
+
+    def info(self):
+        '''
+        Return a dict holding the location info
+        '''
+        if self.alias:
+            return {'alias': self.alias,
+                    'id': self.id,
+                    'bg_image': self.img}
+        else:
+            return None
 
 class Map(object):
     '''This class returns information needed to present the navigation map'''
