@@ -120,6 +120,7 @@ nav {
     }
 }
 
+/*The main page element for presenting ui*/
 body #page {
     margin-top:-(@lineheight2 + 14);
     /*z-index:1;*/
@@ -133,6 +134,7 @@ body #page {
         .border-image('', 0, 0, 0, 0);
     }
 
+    /*Utility panel for development and debugging*/
     #utils {
         background-color:#666;
         color: #fff;
@@ -162,7 +164,7 @@ body #page {
 
     #utils:after {
         content:'S';
-        font-family:"Websymbol";
+        font-family:"Websymbols";
         display: block;
         position: absolute;
         left:300px;
@@ -178,6 +180,7 @@ body #page {
         .transition();
     }
 
+    /*Main headings for page-level content*/
     h2 {
         padding-left: @lineheight3;
         margin-top: @lineheight2;
@@ -189,6 +192,7 @@ body #page {
         padding:0;
     }
 
+    /*Paragraph text content, as in news posts or instruction pages*/
     article {
         padding-left:@lineheight3;
         padding-right:@lineheight3;
@@ -246,12 +250,14 @@ body #page {
 
     }
 
+    /*The main map for navigating the town*/
     #town_map {
         width:860px;
         position:absolute;
         top:-100px;
     }
 
+    /*Comments on news posts*/
     .comments{
         padding: 0;
         margin-top: @lineheight3;
@@ -281,6 +287,7 @@ body #page {
         }
     }
 
+    /*Sidebars*/
     #left_sidebar, #right_sidebar {
         padding:@lineheight3;
         width:30%;
@@ -328,9 +335,19 @@ body #page {
 
 #page.exploring {
     overflow: hidden;
-    .speaker {
+    .bg_image{
         position: absolute;
         z-index:1;
+        width:100%;
+
+        img {
+            width:100%;
+            opacity:0.5;
+            }
+        }
+    .speaker {
+        position: absolute;
+        z-index:2;
         left:0px;
         top:48px;
         width:380px;

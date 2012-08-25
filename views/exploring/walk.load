@@ -32,9 +32,9 @@
 <!--when path completed-->
 {{if request.args(0) == 'end':}}
     <section class="npc">
-        <p>Well done. You've finished this path. You don't have to stop here, 
-        though. If you want to continue exploring, {{=A('click here', 
-        _href=URL('walk.load'), cid='page')}}</p>
+    <p>Well done. You've done enough for today, but you're welcome to continue 
+    exploring you want.
+    {{=A('Continue', _href=URL('walk.load'), cid='page')}}</p>
     </section>
 
 <!--when an error is raised-->
@@ -62,21 +62,27 @@
     </section>
     <div class='responder'>
         {{=A("Continue", _href=URL('walk', args=['ask'],
-                                    vars={'stay': True}),
+                                    vars=dict(loc=request.vars['loc'])),
             cid='page', 
             _class='button-green-grad next_q')}}
-        <span class='retry'>{{=A("Retry", _href=URL('walk', args=['retry'], 
-                                    vars={'stay': True}), 
+        {{=A("Retry", _href=URL('walk', args=['retry'], 
+                                    vars=dict(loc=request.vars.loc)), 
             cid='page', 
-            _class='button-yellow-grad back_to_map')}}</span>
-        <span class='back_to_map'>{{=A("Map", _href=URL('walk'), cid='page', 
-            _class='button-yellow-grad back_to_map')}}</span>
+            _class='button-yellow-grad back_to_map')}}
+        {{=A("Map", _href=URL('walk'),
+            cid='page', 
+            _class='button-yellow-grad back_to_map')}}
     </div>
     <div class='npc prompt'>
         <span id="bug_reporter">If you think your answer should have been 
-            correct, you can {{=A('click here', _href=URL('creating', 'bug.load', 
-            vars=dict(answer=request.vars.response)), 
-            cid='bug_reporter')}} to submit a bug report for this question
+            correct, you can
+            {{=A('click here',
+                _href=URL('creating', 'bug.load', 
+                            vars=dict(answer=request.vars.response,
+                                        loc=request.vars.loc)), 
+                cid='bug_reporter',
+                _class='button-bug-reporter')}}
+            to submit a bug report for this question.
         </span>
     </div>
 
@@ -89,24 +95,17 @@
         <div class='responder'>{{=responder}}</div>
         <div class='prompt_tips'>
             <!--TODO: We need a different tip for different kinds of question-->
+            <!--TODO: Make guidelines a popup tooltip-->
             <p class="guidelines">Remember to only give <strong>one</strong> 
                 translation (not a list of different possibilities) and to give a 
                 <strong>translation</strong> (so not "keep" but "I keep").
             </p>
         </div>
-        <span class='back_to_map'>{{=A("Map", _href=URL('walk'), cid='page', 
-            _class='button-yellow-grad back_to_map')}}</span>
-        <span class="q_counter">Question {{#=session.q_counter}}</span>
-        {{except:}} <!-- Only show map for step stub -->
-        <span class='back_to_map'>{{=A("Map", _href=URL('walk'), cid='page', 
-            _class='button-yellow-grad back_to_map')}}</span>
+        {{=A("Map", _href=URL('walk'),
+            cid='page', 
+            _class='button-yellow-grad back_to_map')}}
     {{pass}}
 {{pass}}
-
-{{#if auth.user_id==2:}}
-{{#=BEAUTIFY(response._vars)}}
-{{#=BEAUTIFY(session)}}
-{{#pass}}
 
 <script>
 

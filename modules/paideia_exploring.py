@@ -720,9 +720,7 @@ class Step(object):
 
         db, session = current.db, current.session
 
-        if session.walk['active_location']:
-            self.location = session.walk['active_location']
-        self.bg_image = self.location['img']
+        self.location = session.walk['active_location']
         self.path = db.paths(session.walk['path'])
         try:
             self.step = db.steps(session.walk['step'])
@@ -744,7 +742,7 @@ class Step(object):
 
         return dict(npc_img=npc.image, prompt=prompt,
                     responder=responder,
-                    bg_image=self.bg_image)
+                    bg_image=self.location['bg_image'])
 
     def _get_npc(self):
         '''
@@ -866,7 +864,7 @@ class Step(object):
         return {'reply': reply,
                 'readable': readable,
                 'npc_img': session.walk['npc_image'],
-                'bg_image': self.bg_image}
+                'bg_image': self.location['bg_image']}
 
     def _record(self, score, times_wrong_incr):
         '''
@@ -1193,14 +1191,7 @@ class Npc(object):
         db = current.db
 
         try:
-            if debug:
-                print 'DEBUG: in Npc._get_image(), self.npc.npc_image.image ='
-                print self.npc.npc_image.image
-
             url = URL('static/images', self.npc.npc_image.image)
-
-            if debug:
-                print 'DEBUG: in Npc._get_image(), url=', url
             return IMG(_src=url)
         except:
             print 'Npc._get_image(): Could not find npc image'
@@ -1252,7 +1243,7 @@ class Location(object):
             print 'in _get_img() self.db_data.bg_image ='
             print self.db_data.bg_image
         filename = db.images[self.db_data.bg_image].image
-        img = IMG(_src=URL('static', 'images', args=filename))
+        img = IMG(_src=URL('static/images', filename))
         return img
 
     def info(self):
