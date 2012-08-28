@@ -125,7 +125,8 @@ class Walk(object):
         self.completed_paths = session.walk['completed_paths']
         self.tag_set = session.walk['tag_set']
 
-        if 'step' in session.walk:
+        # only initialize a step if we have entered a location
+        if 'step' in session.walk and self.active_location:
             self.step = self._create_step_instance(session.walk['step'])
         else:
             self.step = None
@@ -710,7 +711,7 @@ class Step(object):
         prompt = self._get_prompt()
         responder = self._get_responder()
         self._save_session_data()
-        if debug: print 'bg_image =' self.location['bg_image']
+        if debug: print 'bg_image =', self.location['bg_image']
 
         return dict(npc_img=npc.image, prompt=prompt,
                     responder=responder,
