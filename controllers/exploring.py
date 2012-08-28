@@ -51,7 +51,7 @@ def patherror():
 
     return dict(message=message, button=button)
 
-@auth.requires_login()
+@auth.requires_membership('administrators')
 def clear_session():
     """
     Reset the requested session variables to None.
@@ -69,7 +69,7 @@ def clear_session():
     """
     Utils().clear_session()
 
-@auth.requires_login()
+@auth.requires_membership('administrators')
 def set_value():
     """
     Update specified values programmatically on several rows of a db table.
@@ -125,13 +125,13 @@ def walk():
     """
     debug = True
 
+    if debug: print '\n\nStarting controller exploring.walk()'
     walk = Walk()
-    if debug: print '\n\nDEBUG: controller exploring.walk()'
 
     # When user begins exploring (also default) present map
     if (request.args(0) == 'start') or (not request.args):
 
-        if debug: print '\nDEBUG: controller state: start'
+        if debug: print '\ncontroller exploring.walk() state: start'
         # TODO: change to a new public method Walk.set_active_location()
         walk.active_location = None #clear in preparation for new location
         session.walk['active_location'] = None
@@ -146,7 +146,7 @@ def walk():
     # Evaluate response and present feedback via npc reply
     elif ('response' in request.vars) and (request.args(0) == 'ask'):
         if debug:
-            print '\nDEBUG: controller state: response'
+            print '\ncontroller exploring.walk() state: response'
 
         data = walk.step.process(request.vars.response)
 
@@ -156,7 +156,7 @@ def walk():
     #pick a path and present the prompt for the appropriate step
     elif request.args(0) == 'ask':
 
-        if debug: print '\nDEBUG: controller state: ask'
+        if debug: print '\ncontroller exploring.walk() state: ask'
         # TODO: is this setting to false necessary, since Walk.__init__()
         # defaults to self.staying = False?
 
@@ -187,7 +187,7 @@ def walk():
     elif request.args(0) == 'error':
 
         #TODO: Review bug handling and logging here
-        print '\nDEBUG: controller state: error'
+        print '\ncontroller exploring.walk() state: error'
 
         if debug: print 'session.walk["step"] =', session.walk['step']
         if debug: print 'session.walk["path"] =', session.walk['path']
