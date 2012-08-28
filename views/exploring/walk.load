@@ -69,7 +69,8 @@
                                     vars=dict(loc=request.vars.loc)), 
             cid='page', 
             _class='button-yellow-grad back_to_map')}}
-        {{=A("Map", _href=URL('walk'),
+            {{=A("Map", _href=URL('walk', args=['start'],
+                                    vars=dict(loc=None)),
             cid='page', 
             _class='button-yellow-grad back_to_map')}}
     </div>
