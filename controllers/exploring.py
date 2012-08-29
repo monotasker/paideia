@@ -152,7 +152,7 @@ def walk():
 
         return data
 
-    #after enters location or has completed step in this location
+    # After user enters location or has completed step in this location
     #pick a path and present the prompt for the appropriate step
     elif request.args(0) == 'ask':
 
