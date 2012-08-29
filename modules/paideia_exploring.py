@@ -803,8 +803,10 @@ class Step(object):
         answer2 = self.step.response2
         answer3 = self.step.response3
         readable = self.step.readable_response
-        readable = readable.split('|')[:2]
-        readable = readable[0] + 'or' + readable[1] + 'or' + readable[2]
+        i = len(readable)
+        if i > 1: i = 2
+        readable = readable.split('|')[:(i + 1)]
+        readable = '\n'.join(readable)
 
         # Compare the student's response to the regular expressions
         try:
@@ -942,7 +944,12 @@ class Step(object):
         interaction.
         '''
         if self.verbose: print 'calling Step._get_prompt-----------'
-        text = SPAN(self.step.prompt)
+        db, auth = current.db, current.auth
+
+        uname = auth.user['first_name']
+        rawtext = self.step.prompt
+        newtext = rawtext.replace('[[user]]', uname)
+        text = SPAN(newtext)
 
         #TODO: get audio file for prompt text as well.
         audio = ''
