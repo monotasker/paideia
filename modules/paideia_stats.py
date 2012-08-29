@@ -71,7 +71,7 @@ class Stats(object):
 
         """
         w = Walk()
-        tags = w.categorize_tags(self.user_id)
+        tags = w._categorize_tags(self.user_id)
         return tags
 
     def log_list(self):

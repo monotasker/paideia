@@ -96,7 +96,8 @@ class Walk(object):
         if self.step:
             self.step._save_session_data()
 
-        #if debug: print 'Walk._save_session_data, session.walk = ', session.walk
+        if debug: print 'self.step = ', self.step
+        #if debug: print 'session.walk = ', session.walk
 
     def _get_session_data(self):
         '''
@@ -136,18 +137,18 @@ class Walk(object):
         Create an instance of a Step class or one of its subclasses based on
         the step's widget type.
         '''
-        debug = False
+        debug = True
         if self.verbose: print 'calling Walk._create_step_instance------------'
         db = current.db
 
         if not step_id:
             step_id = session.walk['step']
-        if debug: print 'DEBUG: in Walk._create_step_instance: step id ='
+        if debug: print 'step id ='
         if debug: print step_id
 
         step = db.steps(step_id)
         step_type = db.step_types(step.widget_type)
-        if debug: print 'DEBUG: in Walk._create_step_instance: step type ='
+        if debug: print 'step type ='
         if debug: print step_type
 
         return STEP_CLASSES[step_type.step_class](step_id)
@@ -338,15 +339,7 @@ class Walk(object):
 
         self.path = path
         self.step = self._create_step_instance(step_id)
-        if debug:
-            print 'DEBUG: in Walk.activate_step(): step_id =', step_id
-            print 'DEBUG: in Walk.activate_step(): path.id =', path.id
         self.active_paths[path.id] = step_id
-        if debug:
-            print 'self.active_paths is now', self.active_paths
-            print 'self.path.id is now', self.path.id
-            print 'self.step.step.id is now', self.step.step.id
-
         self._save_session_data()
         if debug:
             print 'session.walk["active_paths"] is now'
@@ -398,28 +391,31 @@ class Walk(object):
         Checks first for any blocking conditions and constrains the
         choice of next step accordingly.
         '''
-        debug = True
+        debug = False
         if self.verbose: print 'calling Walk.next_step--------------'
 
         # Handle active blocking conditions
-        if not self.staying:
-            path, step_id = self._handle_blocks()
-            # _handle_blocks() returns None, None if no blocks present
-            # if daily max reached, returns default step
-            if path and step_id:
-                if debug:
-                    print 'blocking conditions found'
-                    print 'by activating path', path, ', step', step_id
-                self.activate_step(path, step_id)
-                return
+        # TODO: condition is being deprecated
+        #if not self.staying:
 
-        # If possible, continue an active path whose next step is here.
-        active_path = self._get_next_step()
+        path, step_id = self._handle_blocks()
+        # _handle_blocks() returns None, None if no blocks present
+        # if daily max reached, returns default step
+        if path and step_id:
+            if debug:
+                print 'blocking conditions found'
+                print 'by activating path', path, ', step', step_id
+            self.activate_step(path, step_id)
+            return
 
-        self.activate_step(active_path['path'], active_path['step'])
-        self._save_session_data()
+        else:
+            # If possible, continue an active path whose next step is here.
+            active_path = self._get_next_step()
 
-        return
+            self.activate_step(active_path['path'], active_path['step'])
+            self._save_session_data()
+
+            return
 
     def _step_in_path(self, path, step=None):
         '''
@@ -428,7 +424,7 @@ class Walk(object):
         use the last completed step (as recorded in self.active_paths).
         If the step is not in the given path, return False.
         '''
-        debug = True
+        debug = False
         if self.verbose: print 'calling Walk._step_in_path--------------'
 
         if not step:
@@ -463,7 +459,7 @@ class Walk(object):
         Continue the current path in this location if possible. (Deprecated)
         '''
         # TODO: This method is now deprecated
-        debug = True
+        debug = False
 
         session, db = current.session, current.db
         if debug:
@@ -505,7 +501,7 @@ class Walk(object):
         6) any random path which can be started elsewhere (in which case the
         default step is activated)
         '''
-        debug = True
+        debug = False
         if self.verbose: print 'calling Walk._get_next_step--------------'
         session, db = current.session, current.db
 
@@ -635,7 +631,7 @@ class Walk(object):
         '''
         Create or update entries in the path_log table.
         '''
-        debug = True
+        debug = False
         if self.verbose: print 'calling Walk._update_path_log--------------'
         auth, db = current.auth, current.db
 
@@ -674,6 +670,7 @@ class Step(object):
         '''
         Save attributes in session.
         '''
+        debug = True
         if self.verbose: print 'calling Step._save_session_data--------------'
         session = current.session
 
@@ -682,6 +679,10 @@ class Step(object):
         session.walk.update(session_data)
         if self.npc:
             self.npc._save_session_data()
+
+        if debug: print 'session_data =', session_data
+
+        return
 
     def _get_session_data(self):
         '''
@@ -705,7 +706,7 @@ class Step(object):
         for the 'ask' state of the user interface.
         '''
         if self.verbose: print 'calling Step.ask----------------------------'
-        debug = True
+        debug = False
 
         npc = self._get_npc()
         prompt = self._get_prompt()
@@ -802,6 +803,8 @@ class Step(object):
         answer2 = self.step.response2
         answer3 = self.step.response3
         readable = self.step.readable_response
+        readable = readable.split('|')[:2]
+        readable = readable[0] + 'or' + readable[1] + 'or' + readable[2]
 
         # Compare the student's response to the regular expressions
         try:
@@ -998,24 +1001,22 @@ class StepStub(Step):
     giving the user information and then freeing her/him up to perform a task.
     '''
 
+    verbose = True
+
     def ask(self):
         '''
         Public method. Returns the html helpers to create the view
         for the 'ask' state of the user interface.
         '''
+        if self.verbose: print 'calling StepMultipleChoice._get_responder----'
 
         npc = self._get_npc()
         prompt = self._get_prompt()
 
         self._save_session_data()
 
-        return dict(npc_img=npc.image, prompt=prompt)
-
-    def _get_responder(self):
-        pass
-
-    def process(self):
-        pass
+        return dict(npc_img=npc.image, prompt=prompt,
+                bg_image=self.location['bg_image'])
 
     def complete(self):
         '''
