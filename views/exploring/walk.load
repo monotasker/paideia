@@ -104,9 +104,8 @@
                 </p>
             </div>
         {{except:}}
-            {{pass}}
         {{pass}}
-        {{=A("Map", _href=URL('walk'),
+        {{=A("This Map", _href=URL('walk'),
             cid='page', 
             _class='button-yellow-grad back_to_map')}}
     </div>
