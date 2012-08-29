@@ -75,17 +75,11 @@
                                     vars=dict(loc=None)),
             cid='page', 
             _class='button-yellow-grad back_to_map')}}
-
-        <span id="bug_reporter">If you think your answer should have been 
-            correct, you can
-            {{=A('click here',
-                _href=URL('creating', 'bug.load', 
-                            vars=dict(answer=request.vars.response,
-                                        loc=request.vars.loc)), 
-                cid='bug_reporter',
-                _class='button-bug-reporter')}}
-            to submit a bug report for this question.
-        </span>
+        
+        <a class="bug_reporter">
+            <span class='icon-bug'>bug</span>
+            {{=XML(bug_reporter)}} 
+        </a> 
     </div>
 
 <!--present prompt for step-->

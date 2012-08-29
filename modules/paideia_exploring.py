@@ -280,15 +280,40 @@ class Walk(object):
 
         Returns:
             * (None, None) if there are no blocking conditions
-            * (False, False) if daily path limit reached
             * Otherwise, return (path, step id) for active blocking conditions
         '''
 
         if self.verbose: print 'calling Walk._handle_blocks--------------'
         auth, db = current.auth, current.db
 
-        # Are there any activated steps that haven't had a response yet?
-        # Just get the first one we find
+        if 'new_badge' in session.walk:
+            return self.get_util_step('award badge') #tag id=81
+
+
+        # TODO: insert these session.walk values in _introduce and _categorize)
+        if 'view_slides' in session.walk:
+            return self.get_util_step('view slides') #tag id=80
+
+        upath, ustep = self._unfinished_today()
+        if upath:
+            return upath, ustep
+
+        # Have we reached the daily path limit? Return a default step.
+        # TODO: Replace hardcoded limit (20)
+        if len(self.completed_paths) >= 20:
+            return self._get_util_step('end of quota') #tag id=79
+
+        return None, None
+
+    def _unfinished_today(self):
+        '''
+        If there are any newly activated paths that haven't had a response yet,
+        activate the first one whose next step is in this loc.
+        '''
+        if self.verbose: print 'calling Walk.unfinished_today--------------'
+        db = current.db
+
+        # Get this user's unfinished paths
         path_logs = db(
             (db.path_log.name == auth.user_id) &
             (db.path_log.last_step != 0)
@@ -297,8 +322,11 @@ class Walk(object):
         # TODO: use UTC or adjust here for user's local tz?
         today = datetime.datetime.utcnow().date()
 
+        # Activate the first unfinished step that hasn't had a response
         for log in path_logs:
+            # Filter out if it wasn't started today
             #TODO: Is there a faster way to do this?
+            # yes: look for any in path_logs that aren't in active_paths
             attempts = db(
                     (db.attempt_log.name == auth.user_id) &
                     (db.attempt_log.path == log.path) &
@@ -306,26 +334,14 @@ class Walk(object):
                     (db.attempt_log.dt_attempted >= log.dt_started)
                 ).select(orderby=~db.attempt_log.dt_attempted)
             attempts = [a for a in attempts if a.dt_attempted.date() == today]
+            in_path = self._step_in_path(log.path, log.last_step)
+            here = self.active_location['id'] in db.steps[log.last_step].locations
 
-            # Activated step that hasn't had a response
-            if attempts and self._step_in_path(log.path, log.last_step):
+            # If it's in this loc, activate; otherwise, show default step
+            if attempts and in_path and here:
                 return log.path, log.last_step
-
-            # Retry failed step
-            # TODO: Move this since all it does is ask the question repeatedly
-            #       if the answer was incorrect
-#            attempts = [a for a in attempts if a.score != 1.0]
-#
-#            if attempts:
-#                attempt = attempts[0]
-#                path = db(db.paths.id == attempt.path).select()[0]
-#
-#                return path, attempt.step
-
-        # Have we reached the daily path limit? Return a default step.
-        # TODO: Replace hardcoded limit (20)
-        if len(self.completed_paths) >= 20:
-            return _get_default_step()
+            elif attempts and in_path:
+                return self._get_util_step('default') #tag id=70
 
         return None, None
 
@@ -362,26 +378,33 @@ class Walk(object):
         self.completed_paths.add(path)
         self.save_session_data()
 
-    def _get_default_step(self):
+    def _get_util_step(self, tag):
         '''
-        Return the default path and step, a StepStub directing the user
-        to try another location.
+        Return the default path and step for a particular utility situation.
+        These include
+        - having reached the daily quota of completed paths
+        - having an incomplete path whose next step is in another location
+        - having a newly introduced tag whose slides must be viewed
+        - having a newly awarded badge
         '''
         debug = False
-        if self.verbose: print 'calling Walk._get_default_step--------------'
+        if self.verbose: print 'calling Walk._get_util_step--------------'
         session, db = current.session, current.db
 
-        default_tag = db(db.tags.tag == 'default').select()[0]
+        tag_id = db(db.tags.tag == tag).select()[0].id
 
         if debug:
             for p in self._get_paths():
                 if default_tag.id in p.tags:
-                    print 'DEBUG: in Walk._get_default_step, %s --> %s'\
-                                                            % (p.id, p.tags)
-        paths = [p for p in self._get_paths() if default_tag.id in p.tags]
+                    print '%s --> %s' % (p.id, p.tags)
+
+        paths = [p for p in self._get_paths() if tag_id in p.tags]
 
         # Choose a path at random
-        path = paths[random.randrange(0, len(paths))]
+        if len(paths) > 1:
+            path = paths[random.randrange(0, len(paths))]
+        else:
+            path = paths[0]
 
         return path, path.steps[0]
 
@@ -525,7 +548,7 @@ class Walk(object):
                     step_id = path.steps[step_index + 1]
                     step = db(db.steps.id == step_id).select()[0]
                     if not loc_id in step.locations:
-                        path, step_id = self._get_default_step()
+                        path, step_id = self._get_util_step()
 
                     self.active_paths[path.id] = step_id
                     self._save_session_data()
@@ -543,8 +566,7 @@ class Walk(object):
             active_elsewhere = apaths.exclude(lambda row: row in hlist)
             if active_elsewhere:
                 if debug: print 'A path active in another location'
-                if debug: print 'calling Walk._get_default_step()'
-                path, step_id = self._get_default_step()
+                path, step_id = self._get_util_step('default')
 
                 return dict(path=path, step=step_id)
 
@@ -582,7 +604,7 @@ class Walk(object):
         # 4) Here we've found that a new path is due elsewhere, so we're
         # returning the default step
         if elsewhere:
-            path, step_id = self._get_default_step()
+            path, step_id = self._get_util_step('default')
 
             return dict(path=path, step=step_id)
 
@@ -794,6 +816,7 @@ class Step(object):
         debug = False
         if self.verbose: print 'calling Step.process-----------'
         session, db, auth = current.session, current.db, current.auth
+        request = current.request
 
         # Get the student's response to the question
         user_response = user_response.strip()
@@ -805,8 +828,13 @@ class Step(object):
         readable = self.step.readable_response
         i = len(readable)
         if i > 1: i = 2
-        readable = readable.split('|')[:(i + 1)]
-        readable = '\n'.join(readable)
+        print readable
+        readable_short = readable.split('|')[:(i + 1)]
+        readable_short = [unicode(r, 'utf-8') for r in readable_short]
+        readable_short = '\n'.join(readable)
+        print readable_short
+        readable_long = readable.split('|')
+        readable_long = '\n'.join(readable)
 
         # Compare the student's response to the regular expressions
         try:
@@ -845,9 +873,33 @@ class Step(object):
         self._save_session_data()
 
         return {'reply': reply,
-                'readable': readable,
+                'readable': readable_short,
+                'readable_long': readable_long,
+                'bug_reporter': self._get_bug_reporter(),
                 'npc_img': session.walk['npc_image'],
                 'bg_image': self.location['bg_image']}
+
+    def _get_bug_reporter(self):
+        '''
+        Construct and return a SPAN helper containing the contents of the
+        tooltip containing the message and link allowing students to submit
+        a bug report for the current step.
+        '''
+        if self.verbose: print 'calling Step._get_bug_reporter----------------'
+        request, response = current.request, current.response
+
+        bug_reporter = SPAN(_class='tip')
+        text1 = SPAN('If you think your answer wasn\'nt evaluated properly, ')
+        link = A('click here',
+                    _href=URL('creating', 'bug.load',
+                                vars=dict(answer=request.vars.response,
+                                loc=request.vars.loc)),
+                    cid='bug_reporter',
+                    _class='button-bug-reporter')
+        text2 = SPAN('to submit a bug report for this question.')
+        bug_reporter.append([text1, link, text2])
+
+        return bug_reporter
 
     def _record(self, score, times_wrong_incr):
         '''
@@ -978,6 +1030,7 @@ class Step(object):
 
 
 class StepMultipleChoice(Step):
+
     def _get_responder(self):
         '''
         create and return the form to receive the user's response for this
@@ -996,10 +1049,61 @@ class StepMultipleChoice(Step):
 
         return form
 
-    def process(self):
+    def process(self, user_response):
+        '''
+        Evaluate the user's answer to a StepMultipleChoice prompt, record
+        her/his performance, and return the appropriate reply elements.
 
+        This method overrides Step.process for the StepMultipleChoice subclass.
+        '''
         if self.verbose: print 'calling StepMultipleChoice._get_responder----'
-        pass
+        debug = False
+        session, db, auth = current.session, current.db, current.auth
+        request = current.request
+
+        # Get the student's response to the question
+        user_response = user_response.strip()
+
+        # Get the correct answer information from db
+        answer1 = self.step.response1
+        readable = self.step.readable_response
+
+        # Compare the student's response to the stored answers
+        if answer1 == readable:
+            score = 1
+            reply = "Right. Κάλον."
+        elif answer2 != 'null' and answer1 == readable:
+            score = 0.5
+            #TODO: Get this score value from the db instead of hard
+            #coding it here.
+            reply = "Οὐ κάκον. You're close."
+            #TODO: Vary the replies
+        elif answer3 != 'null' and answer1 == readable:
+            #TODO: Get this score value from the db instead of hard
+            #coding it here.
+            score = 0.3
+        else:
+            score = 0
+            reply = "Sorry, that wasn't right. Try again!"
+
+        # Set the increment value for times wrong, depending on score
+        if score < 1:
+            times_wrong = 1
+        else:
+            times_wrong = 0
+
+        # Record the results in statistics for this step and this tag
+        self._record(score, times_wrong)
+
+        # TODO: This replaces the Walk.save_session_data() that was in the
+        # controller. Make sure this saving of step data is enough.
+        self._save_session_data()
+
+        return {'reply': reply,
+                'readable': readable_short,
+                'bug_reporter': self._get_bug_reporter(),
+                'npc_img': session.walk['npc_image'],
+                'bg_image': self.location['bg_image']}
 
 
 class StepStub(Step):
@@ -1121,7 +1225,7 @@ class StepImageMultipleChoice(Step):
 
 STEP_CLASSES = {
         'step': Step,
-        'step_mutlipleChoice': StepMultipleChoice,
+        'step_multipleChoice': StepMultipleChoice,
         'step_stub': StepStub,
         'step_image': StepImage,
         'step_imageMutlipleChoice': StepImageMultipleChoice,
