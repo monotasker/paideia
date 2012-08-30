@@ -1,5 +1,6 @@
 # coding: utf8
-from gluon import current, URL, redirect, IMG, SQLFORM, SPAN, Field, INPUT, A
+from gluon import current, redirect, Field
+from gluon import IMG, SQLFORM, SPAN, DIV, URL, INPUT, A
 from gluon import IS_NOT_EMPTY, IS_IN_SET
 #from gluon.sql import Row, Rows
 
@@ -826,15 +827,18 @@ class Step(object):
         answer2 = self.step.response2
         answer3 = self.step.response3
         readable = self.step.readable_response
-        i = len(readable)
-        if i > 1: i = 2
-        print readable
-        readable_short = readable.split('|')[:(i + 1)]
-        readable_short = [unicode(r, 'utf-8') for r in readable_short]
-        readable_short = '\n'.join(readable)
-        print readable_short
-        readable_long = readable.split('|')
-        readable_long = '\n'.join(readable)
+        if '|' in readable:
+            i = len(readable)
+            if i > 1: i = 2
+            print readable
+            readable_short = readable.split('|')[:(i + 1)]
+            readable_short = [unicode(r, 'utf-8') for r in readable_short]
+            print readable_short
+            readable_long = readable.split('|')
+            readable_long = [unicode(r, 'utf-8') for r in readable_long]
+        else:
+            readable_short = [readable]
+            readable_long = None
 
         # Compare the student's response to the regular expressions
         try:
@@ -888,7 +892,7 @@ class Step(object):
         if self.verbose: print 'calling Step._get_bug_reporter----------------'
         request, response = current.request, current.response
 
-        bug_reporter = SPAN(_class='tip')
+        bug_reporter = DIV(_class='tip')
         text1 = SPAN('If you think your answer wasn\'nt evaluated properly, ')
         link = A('click here',
                     _href=URL('creating', 'bug.load',
@@ -897,7 +901,9 @@ class Step(object):
                     cid='bug_reporter',
                     _class='button-bug-reporter')
         text2 = SPAN('to submit a bug report for this question.')
-        bug_reporter.append([text1, link, text2])
+        bug_reporter.append(text1)
+        bug_reporter.append(link)
+        bug_reporter.append(text2)
 
         return bug_reporter
 
@@ -1042,7 +1048,7 @@ class StepMultipleChoice(Step):
         vals = self.step.options
         form = SQLFORM.factory(
                    Field('response', 'string',
-                    requires=IS_IN_SET(vals),
+                    requires=IS_IN_SET(v for v in vals),
                     widget=SQLFORM.widgets.radio.widget))
         if form.process().accepted:
             session.response = request.vars.response
@@ -1100,7 +1106,7 @@ class StepMultipleChoice(Step):
         self._save_session_data()
 
         return {'reply': reply,
-                'readable': readable_short,
+                'readable': answer1,
                 'bug_reporter': self._get_bug_reporter(),
                 'npc_img': session.walk['npc_image'],
                 'bg_image': self.location['bg_image']}
