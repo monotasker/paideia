@@ -13,10 +13,8 @@
     </ul>
 </form>
 <ul>
-    {{for s in ('active_paths', 'completed_paths', 'location', 'path', 'step', 'tagset'):}}
-        {{if s in session.walk:}}
-            <li>{{=s}}: {{=session[s]}}</li>
-        {{pass}}
+    {{for k,v in session.walk.iteritems():}}
+        <li>{{=k}}: {{=v}}</li>
     {{pass}}
 </ul>
 <form>
@@ -54,7 +52,13 @@
     <div class='speaker'>{{=npc_img}}</div>
     <section class="npc prompt">
         <p>{{=reply}}</p>
-        <p>Correct answers would include "{{=readable}}"</p>
+        <p>Correct answers would include
+            <ul class='readable_short'>
+            {{for r in readable:}}
+                {{=LI(r)}}
+            {{pass}}
+            </ul>
+        </p>
         <span class="q_counter">Currently working on 
             {{=len(session.walk['active_paths'].keys())}} paths; 
             {{=len(session.walk['completed_paths'])}} 

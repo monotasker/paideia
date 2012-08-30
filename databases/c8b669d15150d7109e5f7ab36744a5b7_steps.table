@@ -8,7 +8,7 @@ S'integer'
 p5
 sS'sortable'
 p6
-I18
+I20
 sS'sql'
 p7
 S'INTEGER'
@@ -52,7 +52,7 @@ g4
 S'list:reference tags'
 p22
 sg6
-I15
+I17
 sg7
 S'TEXT'
 p23
@@ -63,7 +63,7 @@ g4
 S'list:reference locations'
 p26
 sg6
-I17
+I19
 sg7
 g23
 ssS'outcome2'
@@ -93,7 +93,7 @@ g4
 S'list:reference npcs'
 p35
 sg6
-I16
+I18
 sg7
 g23
 ssS'prompt_audio'
@@ -138,56 +138,76 @@ I1
 sg7
 S'INTEGER PRIMARY KEY AUTOINCREMENT'
 p49
-ssS'widget_type'
+ssS'hints'
 p50
 (dp51
 g4
-S'reference step_types'
+S'list:reference step_hints'
 p52
+sg6
+I14
+sg7
+g23
+ssS'widget_type'
+p53
+(dp54
+g4
+S'reference step_types'
+p55
 sg6
 I4
 sg7
 S'INTEGER REFERENCES step_types(id) ON DELETE CASCADE'
-p53
+p56
 ssS'widget_image'
-p54
-(dp55
+p57
+(dp58
 g4
 S'reference images'
-p56
+p59
 sg6
 I5
 sg7
 S'INTEGER REFERENCES images(id) ON DELETE CASCADE'
-p57
+p60
 ssS'readable_response'
-p58
-(dp59
+p61
+(dp62
 g4
 g15
 sg6
 I8
 sg7
 S'CHAR(512)'
-p60
+p63
 ssS'tags'
-p61
-(dp62
+p64
+(dp65
 g4
 g22
 sg6
-I14
+I16
+sg7
+g23
+ssS'instructions'
+p66
+(dp67
+g4
+S'list:reference step_instructions'
+p68
+sg6
+I15
 sg7
 g23
 ssS'options'
-p63
-(dp64
+p69
+(dp70
 g4
 S'list:string'
-p65
+p71
 sg6
 I6
 sg7
 S'TEXT'
-p66
+p72
 ss.

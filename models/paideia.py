@@ -155,6 +155,16 @@ db.define_table('step_types',
     Field('step_class'),
     format='%(type)s')
 
+db.define_table('step_hints',
+    Field('label'),
+    Field('text', 'text'),
+    format='%(label)s')
+
+db.define_table('step_instructions',
+    Field('label'),
+    Field('text', 'text'),
+    format='%(label)s')
+
 #TODO: transfer all questions data over to steps table
 db.define_table('steps',
     Field('prompt', 'text'),
@@ -169,6 +179,8 @@ db.define_table('steps',
     Field('outcome2', default=None),
     Field('response3', default=None),
     Field('outcome3', default=None),
+    Field('hints', 'list:reference step_hints'),
+    Field('instructions', 'list:reference step_instructions'),
     Field('tags', 'list:reference tags'),
     Field('tags_secondary', 'list:reference tags'),
     Field('npcs', 'list:reference npcs'),
@@ -204,6 +216,22 @@ db.steps.locations.widget = lambda field, value: AjaxSelect().widget(
                                                 field, value, 'locations',
                                                 multi='basic',
                                                 lister='editlinks')
+db.steps.hints.requires = IS_IN_DB(db, 'step_hints.id',
+                                                db.step_hints._format,
+                                                multiple=True)
+db.steps.hints.widget = lambda field, value: AjaxSelect().widget(
+                                                    field, value, 'step_hints',
+                                                    multi='basic',
+                                                    lister='editlinks')
+db.steps.instructions.requires = IS_IN_DB(db, 'step_instructions.id',
+                                                db.step_instructions._format,
+                                                multiple=True)
+db.steps.instructions.widget = lambda field, value: AjaxSelect().widget(
+                                                    field, value,
+                                                    'step_instructions',
+                                                    multi='basic',
+                                                    lister='editlinks')
+
 
 #this table is deprecated
 #TODO: do we need an equivalent for steps? The same data could be retrieved as
