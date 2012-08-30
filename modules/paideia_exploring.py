@@ -388,26 +388,25 @@ class Walk(object):
         - having a newly introduced tag whose slides must be viewed
         - having a newly awarded badge
         '''
-        debug = False
+        debug = True
         if self.verbose: print 'calling Walk._get_util_step--------------'
         session, db = current.session, current.db
 
         tag_id = db(db.tags.tag == tag).select()[0].id
-
+        steps = db(db.steps.tags.contains(tag_id)).select()
         if debug:
-            for p in self._get_paths():
-                if default_tag.id in p.tags:
-                    print '%s --> %s' % (p.id, p.tags)
+            print 'steps with tag', tag, 'id=', tag_id
+            print steps
 
-        paths = [p for p in self._get_paths() if tag_id in p.tags]
-
-        # Choose a path at random
-        if len(paths) > 1:
-            path = paths[random.randrange(0, len(paths))]
+        # Choose a step at random
+        if len(steps) > 1:
+            step = steps[random.randrange(0, len(steps))]
         else:
-            path = paths[0]
+            step = steps[0]
 
-        return path, path.steps[0]
+        path = db(db.paths.steps.contains(step.id)).select().first()
+
+        return path, step
 
     def next_step(self):
         '''
@@ -892,7 +891,7 @@ class Step(object):
         if self.verbose: print 'calling Step._get_bug_reporter----------------'
         request, response = current.request, current.response
 
-        bug_reporter = DIV(_class='tip')
+        bug_reporter = DIV(_class='tip bug_reporter')
         text1 = SPAN('If you think your answer wasn\'nt evaluated properly, ')
         link = A('click here',
                     _href=URL('creating', 'bug.load',

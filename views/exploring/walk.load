@@ -5,16 +5,16 @@
 
 <div id='utils'>
 <form style='z-index:99' id='clear_session'>
-    <ul>
-        <li>
-            <input type='text' value='all' name='session_var' id='session_var' />
-            <a id='session_clear' href='#'>Clear session</a> 
-        </li>
-    </ul>
+    <ul> <li>
+        <input type='text' value='all' name='session_var' id='session_var' />
+        <a id='session_clear' href='#'>Clear session</a> 
+    </li> </ul>
 </form>
 <ul>
     {{for k,v in session.walk.iteritems():}}
-        <li>{{=k}}: {{=v}}</li>
+        {{if k != 'npc_image':}}
+            <li>{{=k}}: {{=v}}</li>
+        {{pass}}
     {{pass}}
 </ul>
 <form>
@@ -27,16 +27,8 @@
 </form>    
 </div>
 
-<!--when path completed-->
-{{if request.args(0) == 'end':}}
-    <section class="npc">
-    <p>Well done. You've done enough for today, but you're welcome to continue 
-    exploring you want.
-    {{=A('Continue', _href=URL('walk.load'), cid='page')}}</p>
-    </section>
-
 <!--when an error is raised-->
-{{elif request.args(0) == 'error':}}
+{{if request.args(0) == 'error':}}
     <section class='npc'>
         {{=message}}
         {{=button}}
@@ -80,10 +72,8 @@
             cid='page', 
             _class='button-yellow-grad back_to_map')}}
         
-        <a class="bug_reporter">
-            <span class='icon-bug'>bug</span>
-            {{=XML(bug_reporter)}} 
-        </a> 
+            <a href='#' class="bug_reporter icon icon-bug">bug</a> 
+        {{=XML(bug_reporter)}} 
     </div>
 
 <!--present prompt for step-->
@@ -97,9 +87,9 @@
             <div class='prompt_tips'>
                 <!--TODO: We need a different tips for different questions-->
                 <!--TODO: Make guidelines a popup tooltip-->
-                <p class="guidelines">Remember to only give <strong>one</strong> 
-                    translation (not a list of different possibilities) and to give a <strong>translation</strong> (so not "keep" but "I keep").
-                </p>
+                <a class='instructions icon icon-lightbulb'>tips</a>
+                <div class="instructions tip">
+                </div>
             </div>
         {{except:}}
         {{pass}}
@@ -123,5 +113,15 @@ $('#test_this_step').click(function(event){
 $('#responder_submit').click(function(event){
     window.parent.web2py_component("/paideia/exploring/walk.load/reply","page"); 
     event.preventDefault();
+});
+$('a.bug_reporter').click(function(event){
+    var $tip = $('div.bug_reporter');
+    if ($tip.hasClass('tip-visible')){
+        $tip.removeClass('tip-visible');
+    }
+    else {
+        $tip.addClass('tip-visible');
+    }
+    return false;
 });
 </script>
