@@ -284,7 +284,7 @@ class Walk(object):
         '''
 
         if self.verbose: print 'calling Walk._handle_blocks--------------'
-        auth, db = current.auth, current.db
+        auth, db, session = current.auth, current.db, current.session
 
         if 'new_badge' in session.walk:
             return self.get_util_step('award badge') #tag id=81
@@ -311,7 +311,7 @@ class Walk(object):
         activate the first one whose next step is in this loc.
         '''
         if self.verbose: print 'calling Walk.unfinished_today--------------'
-        db = current.db
+        db, auth = current.db, current.auth
 
         # Get this user's unfinished paths
         path_logs = db(
