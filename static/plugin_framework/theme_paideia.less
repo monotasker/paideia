@@ -125,10 +125,11 @@ body #page {
     margin-top:-(@lineheight2 + 14);
     /*z-index:1;*/
     .border-image('/paideia/static/images/page_border.png', 170, 170, 170, 171);
+    border-image-width:65px;
     border-width:65px;
     background:@chalk;
     /*overflow: hidden;*/
-    min-height:500px;
+    min-height:670px;
 
     #page {
         .border-image('', 0, 0, 0, 0);
@@ -358,16 +359,23 @@ body #page {
         }
     }
     .prompt, .responder, .quiz_type, .guidelines, 
-    .q_counter, .back_to_map {
+    .q_counter {
         z-index:10;
-        width:50%;
-        float: right;
+        width:100%;
         clear:both;
     }
-
+    .q_counter {
+        color:#ccc;
+    }
+    .readable_short, .readable_long {
+        color:@cranberry;
+    }
     .prompt, .responder {
         .speech-bubble(@lineheight);
         margin-top: @lineheight;
+        .button {
+            display:inline-block;
+        }
     }
 
     .responder {

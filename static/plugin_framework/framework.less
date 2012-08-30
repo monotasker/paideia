@@ -3,46 +3,56 @@
 
 @font-face {
     font-family: 'SBLGreekRegular';
-    src: url('/grammateus3/static/plugin_framework/fonts/sbl_grk-webfont.eot');
-    src: local('☺'), url('/grammateus3/static/plugin_framework/fonts/sbl_grk-webfont.woff') format('woff'), 
-        url('/grammateus3/static/plugin_framework/fonts/sbl_grk-webfont.ttf') format('truetype'), 
-        url('/grammateus3/static/plugin_framework/fonts/sbl_grk-webfont.svg#webfontRelj09Wi') format('svg');
+    src: url('../static/plugin_framework/fonts/sbl_grk-webfont.eot');
+    src: local('☺'),
+    url('..//grammateus3/static/plugin_framework/fonts/sbl_grk-webfont.woff') format('woff'), 
+    url('../static/plugin_framework/fonts/sbl_grk-webfont.ttf') format('truetype'), 
+    url('../static/plugin_framework/fonts/sbl_grk-webfont.svg#webfontRelj09Wi') format('svg');
     font-weight: normal;
     font-style: normal;
 }
 
 @font-face{
     font-family: 'Websymbols';
-    src: url('../fonts/websymbols-regular-webfont.eot');
-    src: url('../fonts/websymbols-regular-webfont.eot?#iefix') format('embedded-opentype'), url('fonts/websymbols-regular-webfont.woff') format('woff'), url('fonts/websymbols-regular-webfont.ttf') format('truetype'), url('fonts/websymbols-regular-webfont.svg#websymbols-regular-webfont') format('svg');
+    src: url('../static/plugin_framework/fonts/websymbols-regular-webfont.eot');
+    src: local('☺'),
+    url('../static/plugin_framework/fonts/websymbols-regular-webfont.eot?#iefix') format('embedded-opentype'),
+    url('../static/plugin_framework/fonts/websymbols-regular-webfont.woff') format('woff'),
+    url('../static/plugin_framework/fonts/websymbols-regular-webfont.ttf') format('truetype'),
+    url('../static/plugin_framework/fonts/websymbols-regular-webfont.svg#websymbols-regular-webfont') format('svg');
+    font-weight: normal;
+    font-style: normal;
 }
 
 @font-face {
     font-family: 'EstrangeloEdessaRegular';
-    src: url('/grammateus3/static/plugin_framework/fonts/estre-webfont.eot');
-    src: local('☺'), url('/grammateus3/static/plugin_framework/fonts/estre-webfont.woff') format('woff'), 
-        url('/grammateus3/static/plugin_framework/fonts/estre-webfont.ttf') format('truetype'), 
-        url('/grammateus3/static/plugin_framework/fonts/estre-webfont.svg#webfont7YE92Obt') format('svg');
+    src: url('../static/plugin_framework/fonts/estre-webfont.eot');
+    src: local('☺'),
+    url('../static/plugin_framework/fonts/estre-webfont.woff') format('woff'), 
+    url('../static/plugin_framework/fonts/estre-webfont.ttf') format('truetype'), 
+    url('../static/plugin_framework/fonts/estre-webfont.svg#webfont7YE92Obt') format('svg');
     font-weight: normal;
     font-style: normal;
 }
 
 @font-face {
     font-family: 'SBLHebrewRegular';
-    src: url('/grammateus3/static/plugin_framework/fonts/sbl_hbrw-webfont.eot');
-    src: local('☺'), url('/grammateus3/static/plugin_framework/fonts/sbl_hbrw-webfont.woff') format('woff'), 
-        url('/grammateus3/static/plugin_framework/fonts/sbl_hbrw-webfont.ttf') format('truetype'), 
-        url('/grammateus3/static/plugin_framework/fonts/sbl_hbrw-webfont.svg#webfontUHtlyWNi') format('svg');
+    src: url('../static/plugin_framework/fonts/sbl_hbrw-webfont.eot');
+    src: local('☺'),
+    url('../static/plugin_framework/fonts/sbl_hbrw-webfont.woff') format('woff'), 
+    url('../static/plugin_framework/fonts/sbl_hbrw-webfont.ttf') format('truetype'), 
+    url('../static/plugin_framework/fonts/sbl_hbrw-webfont.svg#webfontUHtlyWNi') format('svg');
     font-weight: normal;
     font-style: normal;
 }
 
 @font-face {
     font-family: 'AbyssinicaSIL';
-    src: url('/grammateus3/static/plugin_framework/fonts/abyssinica_sil-webfont.eot');
-    src: local('☺'), url('/grammateus3/static/plugin_framework/fonts/abyssinica_sil-webfont.woff') format('woff'), 
-        url('/grammateus3/static/plugin_framework/fonts/abyssinica_sil-webfont.ttf') format('truetype'), 
-        url('/grammateus3/static/plugin_framework/fonts/abyssinica_sil-webfont.svg#webfont5nU8VVLc') format('svg');
+    src: url('../static/plugin_framework/fonts/abyssinica_sil-webfont.eot');
+    src: local('☺'),
+    url('../static/plugin_framework/fonts/abyssinica_sil-webfont.woff') format('woff'), 
+    url('../static/plugin_framework/fonts/abyssinica_sil-webfont.ttf') format('truetype'), 
+    url('../static/plugin_framework/fonts/abyssinica_sil-webfont.svg#webfont5nU8VVLc') format('svg');
     font-weight: normal;
     font-style: normal;
 }
@@ -526,12 +536,18 @@ a:active .tip {
 .tip {
     background: #eee;
     border: 1px solid #ccc;
-    padding: 10px;
-    border-radius: 8px;
+    padding: @lineheight;
+    border-radius: @typeheight;
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
     position: relative;
     width: 200px;
     display:none; /* hide until hover */
+    .transition();
+}
+
+.tip-visible {
+    display:block;
+    .transition();
 }
 
 /* tooltip arrows - :before and :after for fore- and background */
@@ -560,11 +576,11 @@ a:active .tip {
 
 /* border images */
 .border-image(@img, @a, @b, @c, @d) {
-    border-width: @a px @b px @c px @d px;
-    -moz-border-image: url(@img) @a @b @c @d repeat;
-    -webkit-border-image: url(@img) @a @b @c @d repeat;
-    -o-border-image: url(@img) @a @b @c @d repeat;
-    border-image: url(@img) @a @b @c @d repeat;
+    border: @a px solid transparent;
+    -moz-border-image: url(@img) @a @b @c @d repeat repeat;
+    -webkit-border-image: url(@img) @a @b @c @d repeat repeat;
+    -o-border-image: url(@img) @a @b @c @d repeat repeat;
+    border-image: url(@img) @a @b @c @d repeat repeat;
 }
 
 /* buttons */
