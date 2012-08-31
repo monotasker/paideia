@@ -351,13 +351,14 @@ class Walk(object):
         '''
         Activate the given step on the given path.
         '''
-        debug = False
+        debug = True
         if self.verbose: print 'calling Walk.activate_step--------------'
         session = current.session
 
         self.path = path
-        self.step = self._create_step_instance(step_id)
         self.active_paths[path.id] = step_id
+        if debug: print 'activating step', step_id
+        self.step = self._create_step_instance(step_id)
         self._save_session_data()
         if debug:
             print 'session.walk["active_paths"] is now'
@@ -407,7 +408,7 @@ class Walk(object):
 
         path = db(db.paths.steps.contains(step.id)).select().first()
 
-        return path, step
+        return path, step.id
 
     def next_step(self):
         '''
@@ -563,7 +564,7 @@ class Walk(object):
                     self._update_path_log(path.id, step_id, 1)
                     if debug: print 'getting next step', step_id
                     if debug: print 'of path', path.id
-                    return path.id, step_id
+                    return path, step_id
                 # If the last step in the path is completed, deactivate path
                 # and try the next in apaths
                 else:
