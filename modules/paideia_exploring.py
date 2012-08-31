@@ -295,9 +295,10 @@ class Walk(object):
         if 'view_slides' in session.walk:
             return self.get_util_step('view slides') #tag id=80
 
-        upath, ustep = self._unfinished_today()
-        if upath:
-            return upath, ustep
+        # TODO: need to fix check for step that was never finished
+        #upath, ustep = self._unfinished_today()
+        #if upath:
+            #return upath, ustep
 
         # Have we reached the daily path limit? Return a default step.
         # TODO: Replace hardcoded limit (20)
@@ -377,7 +378,7 @@ class Walk(object):
         self._update_path_log(path, 0, 1)
         del self.active_paths[path]
         self.completed_paths.add(path)
-        self.save_session_data()
+        self._save_session_data()
 
     def _get_util_step(self, tag):
         '''
@@ -432,11 +433,10 @@ class Walk(object):
             return
 
         else:
-            # If possible, continue an active path whose next step is here.
-            active_path = self._get_next_step()
+            # select the next path and/or step
+            new_path, new_step = self._get_next_step()
 
-            self.activate_step(active_path['path'], active_path['step'])
-            self._save_session_data()
+            self.activate_step(new_path, new_step)
 
             return
 
@@ -447,7 +447,7 @@ class Walk(object):
         use the last completed step (as recorded in self.active_paths).
         If the step is not in the given path, return False.
         '''
-        debug = False
+        debug = True
         if self.verbose: print 'calling Walk._step_in_path--------------'
 
         if not step:
@@ -460,7 +460,8 @@ class Walk(object):
             print 'checking that step', step, 'is in path', path.id
         try:
             step_index = path.steps.index(step)
-            if debug: print 'step', step, 'is in path', path.id
+            if debug:
+                print 'step', step, 'is index', step_index, 'in path', path.id
             return step_index
         # If impossible step id is given in active_paths
         except ValueError, err:
@@ -524,7 +525,7 @@ class Walk(object):
         6) any random path which can be started elsewhere (in which case the
         default step is activated)
         '''
-        debug = False
+        debug = True
         if self.verbose: print 'calling Walk._get_next_step--------------'
         session, db = current.session, current.db
 
@@ -532,43 +533,44 @@ class Walk(object):
 
         # 1) try to continue an active path whose next step is in this loc
         if self.active_paths:
-            if debug: print 'DEBUG: in Walk._get_next_step(),'
-            if debug: print 'looking for active paths in this location'
+            if debug:
+                print 'looking for active paths in this location'
+                print 'active_paths =', self.active_paths
             apaths = db(db.paths.id.belongs(self.active_paths.keys())).select()
-            ahere = apaths.find(lambda row: loc_id in row.locations)
 
-            for path in ahere:
+            for path in apaths:
                 # make sure step belongs to the path
-                step_index = self._step_in_path(path)
-                if not step_index:
+                step_id = self.active_paths[path.id]
+                step_index = self._step_in_path(path, step_id)
+                if debug: print 'index of the last started step is', step_index
+                if type(step_index) is bool:
+                    if debug:
+                        print 'step', step_id, 'not in path', path.id
                     continue
-                # If the last completed step was not the final in the path
-                # try to activate the next step.
+
+                # 1) try to activate the next step if it can be done here.
                 if len(path.steps) > (step_index + 1):
+                    if debug: print len(path.steps), 'steps in this path'
                     step_id = path.steps[step_index + 1]
-                    step = db(db.steps.id == step_id).select()[0]
+                    step = db.steps[step_id]
+
+                    # 2) If not in this location, send user elsewhere
                     if not loc_id in step.locations:
-                        path, step_id = self._get_util_step()
+                        if debug: print 'next step elsewhere, getting default'
+                        return self._get_util_step('default')
 
                     self.active_paths[path.id] = step_id
-                    self._save_session_data()
                     self._update_path_log(path.id, step_id, 1)
-
-                    return dict(path=path, step=step_id)
+                    if debug: print 'getting next step', step_id
+                    if debug: print 'of path', path.id
+                    return path.id, step_id
                 # If the last step in the path is completed, deactivate path
+                # and try the next in apaths
                 else:
                     self._deactivate_path(path.id)
+                    if debug:
+                        print 'last step already completed for path', path.id
                     continue
-
-            # 2) look for an active path in another location
-            if debug: print 'Looking for an active path elsewhere'
-            hlist = ahere.as_list()
-            active_elsewhere = apaths.exclude(lambda row: row in hlist)
-            if active_elsewhere:
-                if debug: print 'A path active in another location'
-                path, step_id = self._get_util_step('default')
-
-                return dict(path=path, step=step_id)
 
         # 3)-4) look for a new path due, first in this location and otherwise
         # in another location
