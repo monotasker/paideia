@@ -65,7 +65,7 @@
         {{=A("Retry", _href=URL('walk', args=['retry'], 
                                     vars=dict(loc=request.vars.loc)), 
             cid='page', 
-            _class='button-yellow-grad back_to_map')}}
+            _class='button-yellow-grad retry')}}
 
         {{=A("Map", _href=URL('walk', args=['start'],
                                     vars=dict(loc=None)),
@@ -93,7 +93,7 @@
             </div>
         {{except:}}
         {{pass}}
-        {{=A("This Map", _href=URL('walk'),
+        {{=A("Map", _href=URL('walk'),
             cid='page', 
             _class='button-yellow-grad back_to_map')}}
     </div>
@@ -106,8 +106,9 @@ $('#session_clear').click(function(event){
     event.preventDefault();
 });
 $('#test_this_step').click(function(event){
-    val = $(this).parent('li').find('#test_step').val()
-    window.parent.web2py_component("/paideia/exploring/walk.load/test_step/" + val,"page");
+    val = $(this).parent('li').find('#test_path').val();
+    val2 = $(this).parent('li').find('#test_step').val();
+    window.parent.web2py_component("/paideia/exploring/walk.load/retry?path=" + val + "&step=" + val2, "page");
     event.preventDefault();
 });
 $('#responder_submit').click(function(event){
