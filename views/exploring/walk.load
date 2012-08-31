@@ -20,8 +20,10 @@
 <form>
     <ul>
         <li>
+            <a id='test_this_step' href='#'>Test</a> path 
+            <input type='text' value='all' name='test_path' id='test_step' />
+            step
             <input type='text' value='all' name='test_step' id='test_step' />
-            <a id='test_this_step' href='#'>Test step</a> 
         </li>
     </ul>
 </form>    
