@@ -14,13 +14,14 @@ that logic through a very small set of public methods:
 
 - Walk.next_step
 - Walk.activate_step (for those cases in which
-- Step.ask (accessed via the Step object stored in the Walk object: Walk.step.ask)
+- Step.ask (accessed via the Step stored in the Walk object: Walk.step.ask)
 - Step.process
+(Walk._categorize_tags is also accessed externally from paideia_stats.py)
 
 The controller functions interact with these views:
-- exploring/index.html
-- exploring/walk.load
-- exploring/patherror.load
+- exploring/index.html (frame for the game ui)
+- exploring/walk.load (main game ui)
+- exploring/patherror.load (error screen)
 """
 
 def patherror():
@@ -157,31 +158,15 @@ def walk():
     elif request.args(0) == 'ask':
 
         if debug: print '\ncontroller exploring.walk() state: ask'
-        # TODO: is this setting to false necessary, since Walk.__init__()
-        # defaults to self.staying = False?
-
-        # TODO: Maybe deprecate this commented code and remove Walk.stay()
-        # That method seems to me to introduce unnecessary complexity and
-        # Require that we duplicate existing logic.
-        #walk.staying = False
-        #stay = request.vars['stay']
-        #if stay:
-            #walk.staying = walk.stay()
-        #else:
-            #loc = request.vars['loc']
-            #if loc:
-                #walk.active_location = Location(loc)
-            #walk.next_step()
-
         walk.next_step()
-        data = walk.step.ask()
 
-        return data
+        return walk.step.ask()
 
     #if user wants to retry a failed step
     elif request.args(0) == 'retry':
-        # TODO: write logic here
-        pass
+        last_pathid = session.walk['path']
+        last_stepid = session.walk['step']
+        walk.activate_step(last_pathid, last_stepid)
 
     #if user response results in an error
     elif request.args(0) == 'error':

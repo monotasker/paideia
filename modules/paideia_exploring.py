@@ -354,6 +354,12 @@ class Walk(object):
         debug = True
         if self.verbose: print 'calling Walk.activate_step--------------'
         session = current.session
+        db = current.db
+
+        # allow for situations where the path id is given rather than the
+        # path's row object. (As in 'retry' state.)
+        if type(path) == int:
+            path = db.paths[path]
 
         self.path = path
         self.active_paths[path.id] = step_id
