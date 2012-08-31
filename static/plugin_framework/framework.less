@@ -575,8 +575,8 @@ a:active .tip {
 }
 
 /* border images */
-.border-image(@img, @a, @b, @c, @d) {
-    border: @a px solid transparent;
+.border-image(@img, @a, @b, @c, @d, @bwidth) {
+    border: @bwidth solid transparent;
     -moz-border-image: url(@img) @a @b @c @d repeat repeat;
     -webkit-border-image: url(@img) @a @b @c @d repeat repeat;
     -o-border-image: url(@img) @a @b @c @d repeat repeat;

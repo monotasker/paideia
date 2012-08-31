@@ -124,15 +124,15 @@ nav {
 body #page {
     margin-top:-(@lineheight2 + 14);
     /*z-index:1;*/
-    .border-image('/paideia/static/images/page_border.png', 170, 170, 170, 171);
+    border:65px solid transparent;
+    .border-image('/paideia/static/images/page_border.png', 170, 170, 170, 171, 65);
     border-image-width:65px;
-    border-width:65px;
     background:@chalk;
-    /*overflow: hidden;*/
+    overflow: hidden;
     min-height:670px;
 
     #page {
-        .border-image('', 0, 0, 0, 0);
+        .border-image('', 0, 0, 0, 0, 0);
     }
 
     /*Utility panel for development and debugging*/
@@ -143,7 +143,7 @@ body #page {
         position: absolute;
         display: block;
         width:300px;
-        left:-300px;
+        left:-302px;
         .transition();
         z-index:99;
         min-height:200px;
