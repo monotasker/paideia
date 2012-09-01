@@ -1,5 +1,6 @@
 import calendar
 import datetime
+from pytz import timezone
 from gluon import current, DIV, H4, TABLE, THEAD, TBODY, TR, TD, SPAN
 from paideia_exploring import Walk
 
@@ -13,7 +14,7 @@ class Stats(object):
     def __init__(self, user_id):
 
         self.user_id = user_id
-        #assert type(user_id) == StringType
+        #assert type(user_id) == str
         self.loglist = self.log_list()
 
     def active_tags(self):
@@ -29,11 +30,11 @@ class Stats(object):
             furthest = atag_rows.last()
             latest = atag_rows.find(lambda row:
                                 row.tags.position == furthest.tags.position)
-            atags['latest'] = {r.tags.id:r.tags.tag for r in latest}
+            atags['latest'] = {r.tags.id: r.tags.tag for r in latest}
         except Exception, e:
             print 'error in Stats.average():', e
-            atags['total'] = "Can't calculate total number of active tags"
-            atags['latest'] = "Can't find the most recent tags reached"
+            atags['total'] = "Can't calculate total number of active badges."
+            atags['latest'] = "Can't find the most recent badge awarded."
 
         return atags
 
@@ -81,10 +82,13 @@ class Stats(object):
         attempt_log entries on that date by the user represented by
         self.user_id.
 
-        These datetimes and totals are corrected from UTC to EST (UTC -5).
+        These datetimes and totals are corrected from UTC to the user's
+        local time zone.
         """
-
-        session, db = current.session, current.db
+        debug = True
+        session = current.session
+        db = current.db
+        auth = current.auth
 
         log_query = db(db.attempt_log.name == self.user_id)
         logs = log_query.select(db.attempt_log.dt_attempted)
@@ -92,11 +96,15 @@ class Stats(object):
 
         #offset from utc time used to generate and store time stamps
         #TODO: Get utc time offset dynamically from user's locale
-        utcvar = -5
+        print db.auth_user[self.user_id]
+        tz_name = db.auth_user[self.user_id].time_zone[0]
+        tz = timezone(tz_name)
+        if debug:
+            print 'timezone =', tz
 
         # count the number of attempts for each unique date
         for log in logs:
-            newdatetime = log.dt_attempted + datetime.timedelta(hours=utcvar)
+            newdatetime = tz.fromutc(log.dt_attempted)
             newdate = datetime.date(newdatetime.year,
                                     newdatetime.month,
                                     newdatetime.day)
@@ -110,6 +118,7 @@ class Stats(object):
     def cal(self, year=None):
         '''
         Assemble a full year calendar.
+        TODO: not yet implemented
         '''
         if not year:
             #get the current year as default
@@ -193,7 +202,7 @@ class Stats(object):
                 if days[day] != 0:
                     weekrow[-1].append(SPAN(str(days[day]),
                                         _class='cal_count'))
-            tb.append(weekrow) # append week to table body
+            tb.append(weekrow)  # append week to table body
 
         tbl.append(tb)
         mcal.append(tbl)
@@ -202,5 +211,3 @@ class Stats(object):
         #row (from self.dateset)
 
         return mcal
-
-
