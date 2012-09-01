@@ -146,20 +146,14 @@ def walk():
     # After user submits response to step prompt
     # Evaluate response and present feedback via npc reply
     elif ('response' in request.vars) and (request.args(0) == 'ask'):
-        if debug:
-            print '\ncontroller exploring.walk() state: response'
-
-        data = walk.step.process(request.vars.response)
-
-        return data
+        if debug: print '\ncontroller exploring.walk() state: response'
+        return walk.step.process(request.vars.response)
 
     # After user enters location or has completed step in this location
     #pick a path and present the prompt for the appropriate step
     elif request.args(0) == 'ask':
-
         if debug: print '\ncontroller exploring.walk() state: ask'
         walk.next_step()
-
         return walk.step.ask()
 
     #if user wants to retry a failed step
@@ -167,35 +161,10 @@ def walk():
         last_pathid = session.walk['path']
         last_stepid = session.walk['step']
         walk.activate_step(last_pathid, last_stepid)
+        return walk.step.ask()
 
     #if user response results in an error
     elif request.args(0) == 'error':
-
         #TODO: Review bug handling and logging here
         print '\ncontroller exploring.walk() state: error'
-
-        if debug: print 'session.walk["step"] =', session.walk['step']
-        if debug: print 'session.walk["path"] =', session.walk['path']
-
         return patherror()
-
-    # TODO: make sure these still work
-    #this and the following function are for testing a specific step
-    if (request.args(0) == 'test_step') and ('response' in request.vars):
-        s = Step(request.args(0))
-        return s.process()
-
-    if (request.args(0) == 'test_step'):
-        sid = request.args(1)
-        pid = db(db.paths.steps.contains(sid)).select().first().id
-        session.path = pid
-        session.active_paths = {pid:sid}
-        session.location = 1
-        w = db.steps[sid].widget_type.step_class
-        session.widget = w
-        if w == 'step_multipleChoice':
-            s = StepMultipleChoice(sid)
-        else:
-            s = Step(sid)
-        return s.ask()
-

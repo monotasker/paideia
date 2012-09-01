@@ -1,6 +1,6 @@
 # coding: utf8
 from gluon import current, redirect, Field
-from gluon import IMG, SQLFORM, SPAN, DIV, URL, INPUT, A
+from gluon import IMG, SQLFORM, SPAN, DIV, URL, A
 from gluon import IS_NOT_EMPTY, IS_IN_SET
 #from gluon.sql import Row, Rows
 
@@ -33,6 +33,7 @@ class Utils(object):
             if s in session:
                 del session[s]
 
+
 class Walk(object):
     '''
     A class handling the "movement" of a user from one path or step to the
@@ -41,13 +42,13 @@ class Walk(object):
     before path selection.
     '''
 
-    verbose = True #controls printing of initialization and method calls
+    verbose = True  # controls printing of initialization and method calls
 
     def __init__(self):
         session = current.session
-        request = current.request
 
-        if self.verbose: print 'initializing Walk============================'
+        if self.verbose:
+            print 'initializing Walk============================'
         if not session.walk:
             self.active_location = None
             self.path = None
@@ -70,9 +71,9 @@ class Walk(object):
         Save attributes in session.
         '''
         debug = True
-        if self.verbose: print 'calling Walk._save_session_data--------------'
+        if self.verbose:
+            print 'calling Walk._save_session_data--------------'
         session = current.session
-        request = current.request
 
         session_data = {}
 
@@ -97,7 +98,8 @@ class Walk(object):
         if self.step:
             self.step._save_session_data()
 
-        if debug: print 'self.step = ', self.step
+        if debug:
+            print 'self.step = ', self.step
         #if debug: print 'session.walk = ', session.walk
 
     def _get_session_data(self):
@@ -105,7 +107,8 @@ class Walk(object):
         Get the walk attributes from the session.
         '''
         debug = False
-        if self.verbose: print 'calling Walk._get_session_data--------------'
+        if self.verbose:
+            print 'calling Walk._get_session_data--------------'
         db, session, request = current.db, current.session, current.request
 
         path = session.walk['path']
@@ -118,11 +121,13 @@ class Walk(object):
             location_alias = request.vars['loc']
             self.active_location = Location(location_alias).info()
             session.walk['active_location'] = self.active_location
-            if debug: print 'self.active_location =', self.active_location
+            if debug:
+                print 'self.active_location =', self.active_location
         else:
             self.active_location = None
             session.walk['active_location'] = None
-            if debug: print 'no loc variable in request, setting loc to None'
+            if debug:
+                print 'no loc variable in request, setting loc to None'
         self.active_paths = session.walk['active_paths']
         self.completed_paths = session.walk['completed_paths']
         self.tag_set = session.walk['tag_set']
@@ -139,18 +144,19 @@ class Walk(object):
         the step's widget type.
         '''
         debug = True
-        if self.verbose: print 'calling Walk._create_step_instance------------'
+        if self.verbose:
+            print 'calling Walk._create_step_instance------------'
         db = current.db
+        session = current.session
 
         if not step_id:
             step_id = session.walk['step']
-        if debug: print 'step id ='
-        if debug: print step_id
-
+        if debug:
+            print 'step id =', step_id
         step = db.steps(step_id)
         step_type = db.step_types(step.widget_type)
-        if debug: print 'step type ='
-        if debug: print step_type
+        if debug:
+            print 'step type =', step_type
 
         return STEP_CLASSES[step_type.step_class](step_id)
 
@@ -162,10 +168,11 @@ class Walk(object):
         if that method yields an initial result with no tags in category 1
         (needing immediate review).
         '''
-        if self.verbose: print 'calling Walk._introduce--------------'
+        if self.verbose:
+            print 'calling Walk._introduce--------------'
         auth, db = current.auth, current.db
 
-        tag_progress = db(db.tag_progress.name == auth.user_id).select().first()
+        tag_progress = db(db.tag_progress.name == auth.user_id).select()[0]
         # TODO: Check we aren't at the end
         if tag_progress:
             latest = tag_progress.latest_new + 1
@@ -200,14 +207,16 @@ class Walk(object):
         (integers) of the tags that are currently in the given category.
         '''
         debug = False
-        if self.verbose: print 'calling Walk._categorize_tags--------------'
+        if self.verbose:
+            print 'calling Walk._categorize_tags--------------'
         auth, db = current.auth, current.db
 
         if not user:
             user = auth.user_id
         # check to make sure that a non-null value is given for user
         #assert type(user) = int
-        if debug: print 'Debug: in Walk._categorize_tags, user =', user
+        if debug:
+            print 'Debug: in Walk._categorize_tags, user =', user
 
         #TODO: Factor in how many times a tag has been successful or not
 
@@ -221,7 +230,6 @@ class Walk(object):
             #note: the arithmetic operations yield datetime.timedelta objects
             now_date = datetime.datetime.utcnow()
             right_dur = now_date - record.tlast_right
-            wrong_dur = now_date - record.tlast_wrong
             right_wrong_dur = record.tlast_right - record.tlast_wrong
 
             # Categorize q or tag based on this performance
@@ -233,7 +241,7 @@ class Walk(object):
                         else:
                             category = 4  # Not due, delta more than a month
                     else:
-                        category = 3  # Not due, delta between a week and a month
+                        category = 3  # Not due, delta between a week and month
                 else:
                     category = 2  # Not due but delta is a week or less
             else:
@@ -257,7 +265,8 @@ class Walk(object):
 
         called by: controllers/exploring.index()
         '''
-        if self.verbose: print 'calling Walk._unfinished--------------'
+        if self.verbose:
+            print 'calling Walk._unfinished--------------'
         auth, db = current.auth, current.db
 
         path_logs = db(
@@ -268,7 +277,8 @@ class Walk(object):
         # Get only most recent log for each unique path
         self.active_paths = {}
         for path in set(log.path for log in path_logs):
-            log = max((p.dt_started, p) for p in path_logs if p.path == path)[1]
+            log = max((p.dt_started, p)
+                      for p in path_logs if p.path == path)[1]
             self.active_paths[path.id] = log.last_step
 
     def _handle_blocks(self):
@@ -284,16 +294,16 @@ class Walk(object):
             * Otherwise, return (path, step id) for active blocking conditions
         '''
 
-        if self.verbose: print 'calling Walk._handle_blocks--------------'
+        if self.verbose:
+            print 'calling Walk._handle_blocks--------------'
         auth, db, session = current.auth, current.db, current.session
 
         if 'new_badge' in session.walk:
-            return self.get_util_step('award badge') #tag id=81
-
+            return self.get_util_step('award badge')  # tag id=81
 
         # TODO: insert these session.walk values in _introduce and _categorize)
         if 'view_slides' in session.walk:
-            return self.get_util_step('view slides') #tag id=80
+            return self.get_util_step('view slides')  # tag id=80
 
         # TODO: need to fix check for step that was never finished
         #upath, ustep = self._unfinished_today()
@@ -303,7 +313,7 @@ class Walk(object):
         # Have we reached the daily path limit? Return a default step.
         # TODO: Replace hardcoded limit (20)
         if len(self.completed_paths) >= 20:
-            return self._get_util_step('end of quota') #tag id=79
+            return self._get_util_step('end of quota')  # tag id=79
 
         return None, None
 
@@ -312,7 +322,8 @@ class Walk(object):
         If there are any newly activated paths that haven't had a response yet,
         activate the first one whose next step is in this loc.
         '''
-        if self.verbose: print 'calling Walk.unfinished_today--------------'
+        if self.verbose:
+            print 'calling Walk.unfinished_today--------------'
         db, auth = current.db, current.auth
 
         # Get this user's unfinished paths
@@ -330,20 +341,21 @@ class Walk(object):
             #TODO: Is there a faster way to do this?
             # yes: look for any in path_logs that aren't in active_paths
             attempts = db(
-                    (db.attempt_log.name == auth.user_id) &
-                    (db.attempt_log.path == log.path) &
-                    (db.attempt_log.step == log.last_step) &
-                    (db.attempt_log.dt_attempted >= log.dt_started)
-                ).select(orderby=~db.attempt_log.dt_attempted)
+                (db.attempt_log.name == auth.user_id) &
+                (db.attempt_log.path == log.path) &
+                (db.attempt_log.step == log.last_step) &
+                (db.attempt_log.dt_attempted >= log.dt_started)
+            ).select(orderby=~db.attempt_log.dt_attempted)
             attempts = [a for a in attempts if a.dt_attempted.date() == today]
-            in_path = self._step_in_path(log.path, log.last_step)
-            here = self.active_location['id'] in db.steps[log.last_step].locations
+            ls = log.last_step
+            in_path = self._step_in_path(log.path, ls)
+            here = self.active_location['id'] in db.steps[ls].locations
 
             # If it's in this loc, activate; otherwise, show default step
             if attempts and in_path and here:
                 return log.path, log.last_step
             elif attempts and in_path:
-                return self._get_util_step('default') #tag id=70
+                return self._get_util_step('default')  # tag id=70
 
         return None, None
 
@@ -352,7 +364,8 @@ class Walk(object):
         Activate the given step on the given path.
         '''
         debug = True
-        if self.verbose: print 'calling Walk.activate_step--------------'
+        if self.verbose:
+            print 'calling Walk.activate_step--------------'
         session = current.session
         db = current.db
 
@@ -363,7 +376,8 @@ class Walk(object):
 
         self.path = path
         self.active_paths[path.id] = step_id
-        if debug: print 'activating step', step_id
+        if debug:
+            print 'activating step', step_id
         self.step = self._create_step_instance(step_id)
         self._save_session_data()
         if debug:
@@ -379,8 +393,10 @@ class Walk(object):
         the current day and will not be repeated.
         '''
         debug = False
-        if self.verbose: print 'calling Walk._deactivate_path--------------'
-        if debug: print 'in Walk._deactivate_path, path =', path
+        if self.verbose:
+            print 'calling Walk._deactivate_path--------------'
+        if debug:
+            print 'in Walk._deactivate_path, path =', path
 
         self._update_path_log(path, 0, 1)
         del self.active_paths[path]
@@ -397,7 +413,8 @@ class Walk(object):
         - having a newly awarded badge
         '''
         debug = True
-        if self.verbose: print 'calling Walk._get_util_step--------------'
+        if self.verbose:
+            print 'calling Walk._get_util_step--------------'
         session, db = current.session, current.db
 
         tag_id = db(db.tags.tag == tag).select()[0].id
@@ -423,7 +440,8 @@ class Walk(object):
         choice of next step accordingly.
         '''
         debug = False
-        if self.verbose: print 'calling Walk.next_step--------------'
+        if self.verbose:
+            print 'calling Walk.next_step--------------'
 
         # Handle active blocking conditions
         # TODO: condition is being deprecated
@@ -455,7 +473,8 @@ class Walk(object):
         If the step is not in the given path, return False.
         '''
         debug = True
-        if self.verbose: print 'calling Walk._step_in_path--------------'
+        if self.verbose:
+            print 'calling Walk._step_in_path--------------'
 
         if not step:
             try:
@@ -472,13 +491,15 @@ class Walk(object):
             return step_index
         # If impossible step id is given in active_paths
         except ValueError, err:
-            if debug: print 'ValueError:', err
-            if debug: print 'step', step, '*not* in path', path.id
+            if debug:
+                print 'ValueError:', err
+                print 'step', step, '*not* in path', path.id
             # Remove this path from active paths
             if path.id in self.active_paths:
                 del self.active_paths[path.id]
                 self._save_session_data()
-            if debug: print 'self.active_paths now=', self.active_paths
+            if debug:
+                print 'self.active_paths now=', self.active_paths
 
             # Set the log for this attempt as if path completed
             self._update_path_log(path.id, 0, 1)
@@ -511,7 +532,8 @@ class Walk(object):
                 print 'Walk.stay()'
                 print e
 
-        if debug: print 'No path to continue here'
+        if debug:
+            print 'No path to continue here'
 
         return False
 
@@ -533,7 +555,8 @@ class Walk(object):
         default step is activated)
         '''
         debug = True
-        if self.verbose: print 'calling Walk._get_next_step--------------'
+        if self.verbose:
+            print 'calling Walk._get_next_step--------------'
         session, db = current.session, current.db
 
         loc_id = self.active_location['id']
@@ -549,7 +572,8 @@ class Walk(object):
                 # make sure step belongs to the path
                 step_id = self.active_paths[path.id]
                 step_index = self._step_in_path(path, step_id)
-                if debug: print 'index of the last started step is', step_index
+                if debug:
+                    print 'index of the last started step is', step_index
                 if type(step_index) is bool:
                     if debug:
                         print 'step', step_id, 'not in path', path.id
@@ -557,19 +581,22 @@ class Walk(object):
 
                 # 1) try to activate the next step if it can be done here.
                 if len(path.steps) > (step_index + 1):
-                    if debug: print len(path.steps), 'steps in this path'
+                    if debug:
+                        print len(path.steps), 'steps in this path'
                     step_id = path.steps[step_index + 1]
                     step = db.steps[step_id]
 
                     # 2) If not in this location, send user elsewhere
                     if not loc_id in step.locations:
-                        if debug: print 'next step elsewhere, getting default'
+                        if debug:
+                            print 'next step elsewhere, getting default'
                         return self._get_util_step('default')
 
                     self.active_paths[path.id] = step_id
                     self._update_path_log(path.id, step_id, 1)
-                    if debug: print 'getting next step', step_id
-                    if debug: print 'of path', path.id
+                    if debug:
+                        print 'getting next step', step_id
+                        print 'of path', path.id
                     return path, step_id
                 # If the last step in the path is completed, deactivate path
                 # and try the next in apaths
@@ -581,12 +608,14 @@ class Walk(object):
 
         # 3)-4) look for a new path due, first in this location and otherwise
         # in another location
-        if debug: print 'no active paths, looking for a new path'
+        if debug:
+            print 'no active paths, looking for a new path'
         tag_list = []
         for category in xrange(1, 5):
             tag_list.extend(self.tag_set[category])
-        if debug: print 'tag_list =', tag_list
-        if debug: print 'tag_set =', self.tag_set
+        if debug:
+            print 'tag_list =', tag_list
+            print 'tag_set =', self.tag_set
 
         tag_records = db(
                 db.tag_records.tag.belongs(tag_list)
@@ -662,7 +691,6 @@ class Walk(object):
         '''
         Create or update entries in the path_log table.
         '''
-        debug = False
         if self.verbose: print 'calling Walk._update_path_log--------------'
         auth, db = current.auth, current.db
 
@@ -825,11 +853,11 @@ class Step(object):
         debug = False
         if self.verbose: print 'calling Step.process-----------'
         session, db, auth = current.session, current.db, current.auth
-        request = current.request
 
         # Get the student's response to the question
         user_response = user_response.strip()
-
+        if debug:
+            print 'user_response'    
         # Get the correct answer information from db
         answer1 = self.step.response1
         answer2 = self.step.response2
@@ -966,7 +994,7 @@ class Step(object):
                     )
 
                 else:
-                    val = db.tag_records.insert(
+                    db.tag_records.insert(
                         tag=tag,
                         tlast_right=time_last_right,
                         tlast_wrong=time_last_wrong,
@@ -1018,7 +1046,7 @@ class Step(object):
         text = SPAN(newtext)
 
         #TODO: get audio file for prompt text as well.
-        audio = ''
+        # audio = ''
 
         return text  # audio
 
@@ -1033,7 +1061,6 @@ class Step(object):
             return
 
         session, request = current.session, current.request
-        response = current.response
 
         form = SQLFORM.factory(
                    Field('response', 'string', requires=IS_NOT_EMPTY()),
@@ -1073,13 +1100,16 @@ class StepMultipleChoice(Step):
         if self.verbose: print 'calling StepMultipleChoice._get_responder----'
         debug = False
         session, db, auth = current.session, current.db, current.auth
-        request = current.request
 
         # Get the student's response to the question
         user_response = user_response.strip()
+        if debug:
+            print user_response    
 
         # Get the correct answer information from db
         answer1 = self.step.response1
+        answer2 = self.step.response2
+        answer3 = self.step.response3
         readable = self.step.readable_response
 
         # Compare the student's response to the stored answers
@@ -1297,10 +1327,11 @@ class Npc(object):
         Get the image to present as a depiction of the npc.
         '''
         debug = False
-        db = current.db
 
         try:
             url = URL('static/images', self.npc.npc_image.image)
+            if debug:
+                print url
             return IMG(_src=url)
         except:
             print 'Npc._get_image(): Could not find npc image'
