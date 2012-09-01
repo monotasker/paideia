@@ -677,3 +677,5 @@ timestamp: 2012-08-30T10:50:29.296941
 ALTER TABLE steps ADD hints TEXT;
 timestamp: 2012-08-30T10:50:29.418341
 ALTER TABLE steps ADD instructions TEXT;
+timestamp: 2012-09-01T15:32:01.366617
+ALTER TABLE auth_user ADD time_zone TEXT;
