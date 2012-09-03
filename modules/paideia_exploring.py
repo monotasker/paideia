@@ -543,7 +543,7 @@ class Walk(object):
         a dictionary with the keys 'path' and 'step'.
 
         The method looks (in order of preference) for:
-        1) an active path whose next step is in this location;
+        1)  an active path whose next step is in this location;
         2) an active path whose next step is in another location (in which
         case the default step is activated;
         3) a new path which can be started in this location and whose tags are
@@ -557,7 +557,8 @@ class Walk(object):
         debug = True
         if self.verbose:
             print 'calling Walk._get_next_step--------------'
-        session, db = current.session, current.db
+        session = current.session
+        db = current.db
 
         loc_id = self.active_location['id']
 
@@ -608,53 +609,46 @@ class Walk(object):
 
         # 3)-4) look for a new path due, first in this location and otherwise
         # in another location
-        if debug:
-            print 'no active paths, looking for a new path'
-        tag_list = []
-        for category in xrange(1, 5):
-            tag_list.extend(self.tag_set[category])
-        if debug:
-            print 'tag_list =', tag_list
-            print 'tag_set =', self.tag_set
+        if debug: print 'no active paths, looking for a new path'  # DEBUG
 
-        tag_records = db(
-                db.tag_records.tag.belongs(tag_list)
-            ).select(orderby=db.tag_records.tag)
+        cat = self._get_category()
+        cat_range = self.tag_set.keys()
+        cat_list = cat_range[cat:5] + cat_range[1:cat]
 
-        elsewhere = False
-        for tag_id in tag_list:
-            try:
-                record = tag_records.find(lambda row: row.tag == tag_id)[0]
-                if not (record.path.id in self.active_paths or
-                        record.path.id in self.completed_paths):
-                    path = db.paths(record.path.id)
+        # cycle through categories, starting with the one from _get_category()
+        for cat in cat_list:
+            if debug: print 'Trying category', cat  # DEBUG
+            tag_list = self.tag_set[cat]
+            p_list = db(db.paths.id > 0).select()
+            p_list = p_list.find(lambda row: [t in row.tags for t in tag_list])
+            # exclude paths completed in this session
+            if self.completed_paths:
+                p_list.exclude(lambda row: row.id in self.completed_paths)
+            if p_list:
+                if debug: print 'some new paths are available in cat', cat
+                # 3) Find and activate a due path that starts here
+                for path in p_list:
+                    step1_id = path.steps[0]
+                    first_step = db.steps[step1_id]
+                    if loc_id in first_step.locations:
+                        print 'found path', path.id, 'step', step1_id, 'due'
+                        return path, first_step
+                    else:
+                        continue
+                # 4) If due paths are elsewhere, trigger default step
+                return self._get_util_step('default')
 
-                    # Here we're returning the new path for this loc
-                    if loc_id in path.locations:
-                        if debug: print 'found a new path due here'
-                        return dict(path=path, step=path.steps[0])
-
-                    elsewhere = True
-                    if debug: print 'found new path due elsewhere'
-            except:
-                continue
-
-        # 4) Here we've found that a new path is due elsewhere, so we're
-        # returning the default step
-        if elsewhere:
-            path, step_id = self._get_util_step('default')
-
-            return dict(path=path, step=step_id)
+        #TODO: Fall back here to repeating random paths from completed_paths
+        # first that can be started here
+        # then that can't (trigger default step)
 
         # 5) Choose a random path that can be started here
-        if debug: print 'looking for random path'
-        # TODO: This will throw errors
+        if debug: print 'looking for random path'  # DEBUG
         paths = self._get_paths()
         path = paths[random.randrange(0, len(paths))]
 
-        return dict(path=path, step=path.steps[0])
+        return path, path.steps[0]
 
-    # TODO: Is this method now used anywhere?
     def _get_category(self):
         '''
         Choose one of four categories with a random factor but a heavy
@@ -857,7 +851,7 @@ class Step(object):
         # Get the student's response to the question
         user_response = user_response.strip()
         if debug:
-            print 'user_response'    
+            print 'user_response'
         # Get the correct answer information from db
         answer1 = self.step.response1
         answer2 = self.step.response2
@@ -1013,18 +1007,21 @@ class Step(object):
                 print err
                 print traceback.format_exc()
 
-        # DONE: Update the path log for this attempt
-        # TODO: Merge this with Walk._update_path_log()
-        # DONE: Set last_step to 0 if path has been completed
-        query = (db.path_log.path == self.path.id) & (db.path_log.name == auth.user_id)
-        log = db(query).select(orderby=~db.path_log.dt_started).first()
+        # TODO: Merge this with Walk._update_path_log()?
+        log = db(
+                (db.path_log.path == self.path.id) &
+                (db.path_log.name == auth.user_id)
+                ).select(orderby=~db.path_log.dt_started).first()
+
         if log:
             log.update_record(path=self.path.id, last_step=self.step.id)
         else:   # We should have an existing path_log but in case not...
             db.path_log.insert(path=self.path.id, last_step=self.step.id)
 
         # Log this step attempt
-        db.attempt_log.insert(step=self.step.id, score=score, path=self.path.id)
+        db.attempt_log.insert(step=self.step.id,
+                              score=score,
+                              path=self.path.id)
 
         # Check to see whether this is the last step in the path and if so
         # remove from active_paths and add to completed_paths
@@ -1063,9 +1060,9 @@ class Step(object):
         session, request = current.session, current.request
 
         form = SQLFORM.factory(
-                   Field('response', 'string', requires=IS_NOT_EMPTY()),
-                   _autocomplete='off'
-               )
+                    Field('response', 'string', requires=IS_NOT_EMPTY()),
+                    _autocomplete='off'
+                )
 
         return form
 
@@ -1082,7 +1079,7 @@ class StepMultipleChoice(Step):
 
         vals = self.step.options
         form = SQLFORM.factory(
-                   Field('response', 'string',
+                    Field('response', 'string',
                     requires=IS_IN_SET(v for v in vals),
                     widget=SQLFORM.widgets.radio.widget))
         if form.process().accepted:
@@ -1104,7 +1101,7 @@ class StepMultipleChoice(Step):
         # Get the student's response to the question
         user_response = user_response.strip()
         if debug:
-            print user_response    
+            print user_response
 
         # Get the correct answer information from db
         answer1 = self.step.response1
@@ -1321,7 +1318,6 @@ class Npc(object):
 
         self.location = session.walk['active_location']
 
-
     def _get_image(self):
         '''
         Get the image to present as a depiction of the npc.
@@ -1396,6 +1392,7 @@ class Location(object):
                     'bg_image': self.img}
         else:
             return None
+
 
 class Map(object):
     '''This class returns information needed to present the navigation map'''

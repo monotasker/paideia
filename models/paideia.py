@@ -14,10 +14,12 @@ if 0:
     db = current.db
 
 #js file necessary for AjaxSelect widget
-response.files.insert(5,URL('static', 'plugin_ajaxselect/plugin_ajaxselect.js'))
+response.files.insert(5, URL('static',
+                      'plugin_ajaxselect/plugin_ajaxselect.js'))
 response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.css'))
 
 dtnow = datetime.datetime.utcnow
+
 
 #TODO: Fix this regex validator
 class IS_VALID_REGEX(object):
@@ -26,7 +28,7 @@ class IS_VALID_REGEX(object):
     readable responses.
     """
     def __init__(self):
-        self.error_message='Given answers do not satisfy regular expression.'
+        self.error_message = 'Given answers do not satisfy regular expression.'
 
     def __call__(self, value):
         request = current.request
@@ -38,7 +40,7 @@ class IS_VALID_REGEX(object):
                 print a.strip()
                 print 'it matched!'
             else:
-                print 'answer ', a, ' did not match the regular expression provided.'
+                print 'answer ', a, ' did not match the regex provided.'
                 print regex
                 return (value, self.error_message)
         return (value, None)
@@ -67,7 +69,7 @@ db.define_table('audio',
 db.define_table('journals',
     Field('user', db.auth_user, default=auth.user_id),
     Field('pages', 'list:reference pages'),
-    format = '%(user)s')
+    format='%(user)s')
 
 db.define_table('pages',
     Field('page', 'text'),
@@ -98,7 +100,7 @@ db.define_table('npcs',
 db.npcs.location.requires = IS_IN_DB(db, 'locations.id',
                                      db.locations._format, multiple=True)
 db.npcs.location.widget = lambda field, value: \
-                         AjaxSelect().widget(field, value, 'locations',
+                        AjaxSelect().widget(field, value, 'locations',
                                     multi='basic',
                                     lister='editlinks')
 
@@ -264,11 +266,12 @@ db.paths.steps.widget = lambda field, value: AjaxSelect().widget(
                                         lister='editlinks',
                                         sortable='true')
 
+
 class PathsVirtualFields(object):
-    def locations(self):
-        # TODO: This only gets locations from one of the steps in the path
-        steprows = db(db.steps.id.belongs(self.paths.steps)).select().first()
-        return steprows.locations
+    # def locations(self):
+    #     # TODO: This only gets locations from one of the steps in the path
+    #     steprows = db(db.steps.id.belongs(self.paths.steps)).select().first()
+    #     return steprows.locations
 
     def tags(self):
         steprows = db(db.steps.id.belongs(self.paths.steps)).select()
@@ -339,4 +342,3 @@ db.define_table('news',
     Field('date_submitted', 'datetime', default=dtnow),
     Field('last_edit', 'datetime', default=dtnow),
     format='%(title)s')
-

@@ -1,7 +1,15 @@
 # coding: utf8
-from paideia_exploring import Walk, Location, Step, StepStub
+from paideia_exploring import Walk, StepStub
 #, Npc, Path, Step, StepStub, StepMultipleChoice, Counter, Map, Location
-import pprint
+# import pprint
+
+if 0:
+    from gluon import current, A, URL
+    request = current.request
+    session = current.session
+    response = current.response
+    auth = current.auth
+    db = current.db
 
 """
 These controller functions handle user-interactions for the game proper. It
@@ -24,6 +32,7 @@ The controller functions interact with these views:
 - exploring/patherror.load (error screen)
 """
 
+
 def patherror():
     """
     Present a message informing the user of an error and logging error info.
@@ -37,10 +46,10 @@ def patherror():
     none
     """
 
-    if request.args(1) == 'unknown':
+    if request.args[1] == 'unknown':
         db.q_bugs.insert(question=session.qID, a_submitted=request.vars.answer)
         #TODO: fix problem with changing column name for status
-    if request.args(1) == 'regex':
+    if request.args[1] == 'regex':
         db.q_bugs.insert(question=session.qID, a_submitted=request.vars.answer)
 
     message = """Oops! Something about that question confused me, and I'm not
@@ -51,6 +60,7 @@ def patherror():
     session.q_counter -= 1
 
     return dict(message=message, button=button)
+
 
 @auth.requires_membership('administrators')
 def clear_session():
@@ -70,6 +80,7 @@ def clear_session():
     """
     Utils().clear_session()
 
+
 @auth.requires_membership('administrators')
 def set_value():
     """
@@ -87,8 +98,9 @@ def set_value():
 
     query = db(db.steps.id > 0).select()
     for q in query:
-        q.update_record(widget_type = 1)
+        q.update_record(widget_type=1)
     print 'updated ', len(query), ' records'
+
 
 @auth.requires_login()
 def index():
@@ -101,6 +113,7 @@ def index():
     :Permissions: user must be logged in.
     """
     return {}
+
 
 def walk():
     """
@@ -134,7 +147,7 @@ def walk():
 
         if debug: print '\ncontroller exploring.walk() state: start'
         # TODO: change to a new public method Walk.set_active_location()
-        walk.active_location = None #clear in preparation for new location
+        walk.active_location = None  # clear in preparation for new location
         session.walk['active_location'] = None
 
         # If we got here from a StepStub, we need to complete the step
