@@ -151,6 +151,7 @@ class Walk(object):
 
         if not step_id:
             step_id = session.walk['step']
+
         if debug:
             print 'step id =', step_id
         step = db.steps(step_id)
@@ -170,10 +171,12 @@ class Walk(object):
         '''
         if self.verbose:
             print 'calling Walk._introduce--------------'
-        auth, db = current.auth, current.db
+        auth = current.auth
+        db = current.db
+        session = current.session
 
         tag_progress = db(db.tag_progress.name == auth.user_id).select()[0]
-        # TODO: Check we aren't at the end
+        # TODO: Check we aren't at the end of the tag progression
         if tag_progress:
             latest = tag_progress.latest_new + 1
 
@@ -185,6 +188,8 @@ class Walk(object):
             db.tag_progress.insert(name=auth.user_id, latest_new=latest)
 
         tags = [t.id for t in db(db.tags.position == latest).select()]
+        # TODO: Use slide deck titles (so correlate them with tags somewhere)
+        session.walk['view_slides'] = tags
 
         return tags
 
@@ -209,7 +214,9 @@ class Walk(object):
         debug = False
         if self.verbose:
             print 'calling Walk._categorize_tags--------------'
-        auth, db = current.auth, current.db
+        auth = current.auth
+        db = current.db
+        session = current.session
 
         if not user:
             user = auth.user_id
@@ -252,6 +259,20 @@ class Walk(object):
         if not categories[1]:
             categories[1] = self._introduce()
 
+        # If a tag has moved up in category, award the badge
+        # TODO: needs to be tested!!!
+        mycats = db(db.tag_progress.name == auth.user_id).select().first()
+        new_badge_list = []
+        for cat, lst in categories.iteritems():
+            catname = 'cat' + cat
+            new = [t for t in lst if t not in mycats[catname]]
+            if new:
+                print 'newly awarded badges for tags', new
+                new_badge_list += new
+                mycats.update_or_insert(**{catname: (lst + new)})
+        if new_badge_list:
+            session.walk['new_badges'] = new_badge_list
+
         self.tag_set = categories
         # return the value as well so that it can be used in Stats
         return categories
@@ -284,6 +305,8 @@ class Walk(object):
     def _handle_blocks(self):
         '''
         Look for active blocking conditions:
+            * a new badge has been awarded
+            * a new badge is being started (and slides need to be viewed)
             * no response given for an activated step
             * daily full paths limit reached
         Also checks to make sure that any path/step combination it returns
@@ -298,7 +321,7 @@ class Walk(object):
             print 'calling Walk._handle_blocks--------------'
         auth, db, session = current.auth, current.db, current.session
 
-        if 'new_badge' in session.walk:
+        if 'new_badges' in session.walk:
             return self.get_util_step('award badge')  # tag id=81
 
         # TODO: insert these session.walk values in _introduce and _categorize)
@@ -312,7 +335,7 @@ class Walk(object):
 
         # Have we reached the daily path limit? Return a default step.
         # TODO: Replace hardcoded limit (20)
-        if len(self.completed_paths) >= 20:
+        if len(session.walk['completed_paths']) >= 20:
             return self._get_util_step('end of quota')  # tag id=79
 
         return None, None
@@ -557,8 +580,8 @@ class Walk(object):
         debug = True
         if self.verbose:
             print 'calling Walk._get_next_step--------------'
-        session = current.session
         db = current.db
+        auth = current.auth
 
         loc_id = self.active_location['id']
 
@@ -613,7 +636,8 @@ class Walk(object):
 
         cat = self._get_category()
         cat_range = self.tag_set.keys()
-        cat_list = cat_range[cat:5] + cat_range[1:cat]
+        cat_list = cat_range[cat:5] + cat_range[0:cat]
+        if debug: print 'category list to try:', cat_list
 
         # cycle through categories, starting with the one from _get_category()
         for cat in cat_list:
@@ -632,7 +656,7 @@ class Walk(object):
                     first_step = db.steps[step1_id]
                     if loc_id in first_step.locations:
                         print 'found path', path.id, 'step', step1_id, 'due'
-                        return path, first_step
+                        return path, step1_id
                     else:
                         continue
                 # 4) If due paths are elsewhere, trigger default step
@@ -643,11 +667,14 @@ class Walk(object):
         # then that can't (trigger default step)
 
         # 5) Choose a random path that can be started here
-        if debug: print 'looking for random path'  # DEBUG
+        if debug: print 'looking for random path with active tags'  # DEBUG
         paths = self._get_paths()
+        max_rank = db(db.tag_progress.name == auth.user_id).first().latest_new
+        tag_list = db(db.tags.id <= max_rank)
+        paths.find(lambda row: [t in row.tags for t in tag_list])
         path = paths[random.randrange(0, len(paths))]
 
-        return path, path.steps[0]
+        return path, path.steps[0].id
 
     def _get_category(self):
         '''
