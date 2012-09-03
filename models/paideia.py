@@ -250,7 +250,11 @@ db.define_table('question_records',
 
 db.define_table('tag_progress',
     Field('name', db.auth_user, default=auth.user_id),
-    Field('latest_new', 'integer'),
+    Field('latest_new', 'integer'),  # not tag id but order ranking
+    Field('cat1', 'list:reference tags'),
+    Field('cat2', 'list:reference tags'),
+    Field('cat3', 'list:reference tags'),
+    Field('cat4', 'list:reference tags'),
     format='%(name)s, %(latest_new)s')
 
 db.define_table('paths',

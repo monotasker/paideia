@@ -160,7 +160,9 @@ def walk():
     # Evaluate response and present feedback via npc reply
     elif ('response' in request.vars) and (request.args(0) == 'ask'):
         if debug: print '\ncontroller exploring.walk() state: response'
-        return walk.step.process(request.vars.response)
+        resp = request.vars.response
+        if debug: print 'response is', resp
+        return walk.step.process(resp)
 
     # After user enters location or has completed step in this location
     #pick a path and present the prompt for the appropriate step
@@ -169,8 +171,10 @@ def walk():
         walk.next_step()
         return walk.step.ask()
 
-    #if user wants to retry a failed step
+    # if user wants to retry a failed step
+    # TODO: Ensure repeats aren't added separately to paths_completed
     elif request.args(0) == 'retry':
+        if debug: print '\ncontroller exploring.walk() state: retry'
         last_pathid = session.walk['path']
         last_stepid = session.walk['step']
         walk.activate_step(last_pathid, last_stepid)
