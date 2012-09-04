@@ -11,9 +11,9 @@ from gluon.globals import current
 response = current.response
 request = current.request
 
-if request.is_local:  # disable in production enviroment
-    from gluon.custom_import import track_changes
-    track_changes(True)
+# if request.is_local:  # disable in production enviroment
+from gluon.custom_import import track_changes
+track_changes(True)
 
 # define database storage
 db = DAL('sqlite://storage.sqlite')

@@ -35,21 +35,24 @@ def user():
     to decorate functions that need access control
     """
     # create instance of paideia_stats class from models
-    s = Stats(auth.user_id)
-    active = s.active_tags()
-    avg = s.average()
-    print '\nController.user()'
-    print 'avg =', avg
-    cats = s.categories()
-    print 'cats =', cats
-    cal = s.monthcal()
-    print 'monthcal =', cal
+    if auth.is_logged_in():
+        s = Stats(auth.user_id)
+        active = s.active_tags()
+        avg = s.average()
+        print '\nController.user()'
+        print 'avg =', avg
+        cats = s.categories()
+        print 'cats =', cats
+        cal = s.monthcal()
+        print 'monthcal =', cal
 
-    b = Bug()
-    blist = b.bugresponses(auth.user_id)
+        b = Bug()
+        blist = b.bugresponses(auth.user_id)
 
-    return {'form': auth(), 'avg': avg, 'cats': cats, 'cal': cal,
-            'blist':blist, 'active': active}
+        return {'form': auth(), 'avg': avg, 'cats': cats, 'cal': cal,
+                'blist': blist, 'active': active}
+    else:
+        return {'form': auth()}
 
 #def download():
     #"""

@@ -46,6 +46,7 @@ class Walk(object):
 
     def __init__(self):
         session = current.session
+        auth = current.auth
 
         if self.verbose:
             print 'initializing Walk============================'
@@ -58,6 +59,7 @@ class Walk(object):
             self.tag_set = {}
             # initialize the session properly
             self._categorize_tags()
+            self._new_badges(auth.user_id, self.tag_self)  # flag new badges
             self._unfinished()
             self._save_session_data()
         else:
@@ -211,20 +213,14 @@ class Walk(object):
         categories. The value for each key is a list holding the id's
         (integers) of the tags that are currently in the given category.
         '''
-        debug = False
+        debug = True
         if self.verbose:
             print 'calling Walk._categorize_tags--------------'
         auth = current.auth
         db = current.db
-        session = current.session
 
         if not user:
             user = auth.user_id
-        # check to make sure that a non-null value is given for user
-        #assert type(user) = int
-        if debug:
-            print 'Debug: in Walk._categorize_tags, user =', user
-
         #TODO: Factor in how many times a tag has been successful or not
 
         # create new dictionary to hold categorized results
@@ -255,27 +251,60 @@ class Walk(object):
                 category = 1  # Spaced repetition requires review
             categories[category].append(record.tag.id)
 
+        if debug: print categories
+
+        # Remove duplicate tag id's from each category
+        for k, v in categories.iteritems():
+            categories[k] = list(set(v))
+
         # If there are no tags needing immediate review, introduce new one
         if not categories[1]:
             categories[1] = self._introduce()
 
-        # If a tag has moved up in category, award the badge
-        # TODO: needs to be tested!!!
-        mycats = db(db.tag_progress.name == auth.user_id).select().first()
-        new_badge_list = []
-        for cat, lst in categories.iteritems():
-            catname = 'cat' + cat
-            new = [t for t in lst if t not in mycats[catname]]
-            if new:
-                print 'newly awarded badges for tags', new
-                new_badge_list += new
-                mycats.update_or_insert(**{catname: (lst + new)})
-        if new_badge_list:
-            session.walk['new_badges'] = new_badge_list
-
         self.tag_set = categories
         # return the value as well so that it can be used in Stats
         return categories
+
+    def _new_badges(self, user, categories):
+        '''
+        Find any tags that have been newly promoted to a higher category,
+        update the user's row in db.tag_progress, and return a dictionary of
+        those new tags whose structure mirrors that of session.walk['tag_set'].
+        '''
+        debug = True
+        session = current.session
+        db = current.db
+        auth = current.auth
+
+        # If a tag has moved up in category, award the badge
+        # TODO: needs to be tested!!!
+        mycats = db(db.tag_progress.name == auth.user_id).select().first()
+        if debug:
+            print 'user ='
+            print user
+            print 'mycats ='
+            print mycats
+        new_badge_list = []
+        for categ, lst in categories.iteritems():
+            if lst:
+                catname = 'cat{0}'.format(categ)
+                if mycats:
+                    if debug: print 'mycats exists'
+                    new = [t for t in lst if t not in mycats[catname]]
+                else:
+                    if debug: print 'mycats doesn\'t exist'
+                    new = [t for t in lst]
+                if new:
+                    if debug: print 'newly awarded badges for tags', new
+                    new_badge_list += new
+                    mycats.update_or_insert(**{catname: (lst + new)})
+        if new_badge_list:
+            if debug: print 'new badge list =', new_badge_list
+            session.walk['new_badges'] = new_badge_list
+            return new_badge_list
+        else:
+            if debug: print 'no new badges awarded'
+            return None
 
     def _unfinished(self):
         '''
