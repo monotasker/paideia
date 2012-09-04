@@ -1,0 +1,138 @@
+ @import "../plugin_framework/framework";
+
+.plugin_slider_frame{
+    background-color:@chalk;
+    width:100%;
+    height:100%;
+}
+
+.plugin_slider_prevlink{
+    position:absolute;
+    left:-60px;
+    top:50%;
+    width:72px;
+    height:72px;
+    display:block;
+    background-color:#888;
+    color:#fff;
+    opacity:0.6;
+    .transition();
+
+    &:hover {
+        left:0;
+        .transition();
+    }
+}
+
+.plugin_slider_nextlink{
+    position:absolute;
+    right:-60px;
+    top:50%;
+    width:72px;
+    height:72px;
+    display:block;
+    background-color:#888;
+    color:#fff;
+    .transition();
+
+    &:hover {
+        right:0;
+        .transition();
+    }
+}
+
+div.plugin_slider_slidemenu{
+    display:block;
+    position:absolute;
+    top:0;
+    left:-40px;
+    height:40px;
+    max-height:40px;
+    overflow:hidden;
+    background-color:@sol_charcoal;
+    color:@chalk;
+    padding-left:@typeheight;
+    .transition();
+    z-index:99;
+
+    &:hover {
+        height:400px;
+        max-height:400px;
+        overflow:auto;
+        .transition();
+    }
+
+    a {
+        color:@chalk;
+    }
+}
+
+
+
+#slideframe {
+    height:100%;
+}
+
+body #page div.plugin_slider_slide{
+    background-color: @chalk;
+    .Greek;
+    width:100%;
+    height:100%;
+    padding-top:@typeheight;
+    padding-left:@lineheight2 * 2; 
+    padding-right:@lineheight2 * 2; 
+    z-index:99;
+
+    h1 {
+        display:inline-block;
+        color:@sol_yellow;
+        margin:0 auto;
+    }
+
+    ul {
+        list-style-type:disc;
+        /*font-family:Ubuntu, Calibri;*/
+        list-style-position: outside;
+        font-size:@typeheight2;
+        color:@sol_blue;
+        line-height:@lineheight2;
+        margin:0;
+
+        ul {
+            font-size:@typeheight;
+            color:@sol_orange;
+            padding-left:@lineheight;
+        }
+    }
+
+    ol {
+        font-family:Ubuntu, Calibri;
+        font-size:1.5em;
+        color:#268bd2;
+        line-height:2em;
+        margin:0;
+    }
+
+    table.letter_table {
+        background-color:@sol_cyan;
+        padding:@typeheight;
+        border:1px solid #fff;
+        border-radius:.5em;
+        text-align:center;
+        margin:@typeheight auto;
+
+        thead {
+            font-size:4em;
+            line-height:1.5em;
+            
+            td {
+                padding:.5em;
+            }
+        }
+    }        
+
+    tbody {
+        font-size:1.5em;
+        border-top:1px solid #fff;
+    }
+}

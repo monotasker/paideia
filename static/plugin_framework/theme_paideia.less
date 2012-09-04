@@ -10,7 +10,7 @@ body {
     background-color: @chalk;
     background-image: url('/paideia/static/images/mosaic_texture1.png');
     background-repeat: repeat;
-    /*z-index:1;*/
+    z-index:1;
     font-family: @fonts2;
 }
 
@@ -415,16 +415,46 @@ body #page {
 /* for profile pages */
 
 #page.profile {
+
+    /* jquery ui tab styling */
+    .ui-widget-content {
+        border:1px solid transparent;
+    }
+    .ui-widget-header {
+        background: @sol_beige;
+        .blockletter-small;
+        border:1px solid transparent;
+
+        .ui-state-default {
+            background: transparent;
+            border:1px solid transparent;
+        }
+        .ui-state-default.ui-state-active {
+            background: @chalk;
+            a {
+                color: @cranberry;
+            }
+        }
+    }
+
+    /* styles for tab content */
     div.tab {
         padding:@lineheight;
+        background-color:@chalk;
         .textdefaults;
+
+        h4 {
+            color: @sol_yellow;
+            font-size: @typeheight2;
+        }
     }
 
     table.summary_stats {
         border-collapse:separate; 
-        border-spacing:@lineheight /2;
+        border-spacing:2px;
 
         td {
+            width:auto;
             vertical-align:middle;
             span.score_avg{
                 background:#f5f5f5;
@@ -467,29 +497,37 @@ body #page {
 
     table.paideia_monthcal_table {
         border-collapse:separate;
-        border-spacing:@lineheight /2;
+        border-spacing:2px;
+
+        thead td {
+            height: @lineheight;
+            font-size: @smalltype;
+            background: transparent;
+            text-align: center;
+        }
 
         td{
             width:@lineheight * 2;
             height:@lineheight * 2;
-            background-color:#f5f5f5;
-            border:1px solid #eee;
+            background-color:@sol_beige;
             color:#aaa;
-            font-size:10px;
+            font-size:@typeheight;
             position:relative;
 
             span.cal_num{
                 position:relative;
-                top:-6px;
-                left:-2px;
+                padding:4px, 2px;
+                top:0;
+                left:0;
             }
             span.cal_count{
                 position:relative;
-                font-size:16px;
+                font-size:@typeheight2;
                 font-weight:bold;
-                top:10px;
-                left:6px;
-                color:#809240;
+                top:@lineheight;
+                float:right;
+                padding-right:2px;
+                color:@sol_blue;
             }
         }
     }
