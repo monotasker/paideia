@@ -30,7 +30,7 @@ class Stats(object):
             furthest = atag_rows.last()
             latest = atag_rows.find(lambda row:
                                 row.tags.position == furthest.tags.position)
-            atags['latest'] = {r.tags.id: r.tags.tag for r in latest}
+            atags['latest'] = dict((row.tags.id, row.tags.tag) for row in latest)
         except Exception, e:
             print 'error in Stats.average():', e
             atags['total'] = "Can't calculate total number of active badges."
@@ -72,6 +72,7 @@ class Stats(object):
 
         """
         w = Walk()
+        print self.user_id
         tags = w._categorize_tags(self.user_id)
         return tags
 
@@ -86,9 +87,7 @@ class Stats(object):
         local time zone.
         """
         debug = True
-        session = current.session
         db = current.db
-        auth = current.auth
 
         log_query = db(db.attempt_log.name == self.user_id)
         logs = log_query.select(db.attempt_log.dt_attempted)
@@ -167,7 +166,6 @@ class Stats(object):
         The calendar is returned as a web2py DIV helper.
         '''
         db = current.db
-        auth = current.auth
         # get settings for this user's class requirements
         memberships = db(
                         (db.auth_group.id == db.auth_membership.group_id)

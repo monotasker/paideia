@@ -4,6 +4,14 @@
 		"selected_items":
 		[
 			[
+				"new",
+				"new_badge_list	(local, instance)"
+			],
+			[
+				"Paths",
+				"PathsVirtualFields2	(global, class)"
+			],
+			[
 				"Is_",
 				"IS_IN_SET"
 			],
@@ -291,7 +299,7 @@
 			"file": "models/paideia.py",
 			"settings":
 			{
-				"buffer_size": 13636,
+				"buffer_size": 13854,
 				"line_ending": "Unix"
 			}
 		},
@@ -299,7 +307,7 @@
 			"file": "modules/paideia_exploring.py",
 			"settings":
 			{
-				"buffer_size": 49890,
+				"buffer_size": 52236,
 				"line_ending": "Unix"
 			}
 		},
@@ -307,7 +315,31 @@
 			"file": "controllers/exploring.py",
 			"settings":
 			{
-				"buffer_size": 6191,
+				"buffer_size": 6567,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "modules/paideia_stats.py",
+			"settings":
+			{
+				"buffer_size": 7253,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "controllers/default.py",
+			"settings":
+			{
+				"buffer_size": 4272,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "models/db.py",
+			"settings":
+			{
+				"buffer_size": 3037,
 				"line_ending": "Unix"
 			}
 		}
@@ -315,16 +347,24 @@
 	"build_system": "",
 	"command_palette":
 	{
-		"height": 369.0,
+		"height": 392.0,
 		"selected_items":
 		[
 			[
-				":inst",
-				"Package Control: Install Package"
-			],
-			[
 				":w",
 				":w - Save"
+			],
+			[
+				":sett",
+				"Preferences: Settings - User"
+			],
+			[
+				":dis",
+				"Package Control: Disable Package"
+			],
+			[
+				":inst",
+				"Package Control: Install Package"
 			],
 			[
 				":disable",
@@ -440,12 +480,14 @@
 	},
 	"file_history":
 	[
+		"/home/ian/.config/sublime-text-2/Packages/User/Preferences.sublime-settings",
 		"/home/ian/.config/sublime-text-2/Packages/User/Flake8Lint.sublime-settings",
+		"/home/ian/.config/sublime-text-2/Packages/Flake8Lint/Flake8Lint.sublime-settings",
+		"/home/ian/.config/sublime-text-2/Packages/Function Name Display/Function Name Display.sublime-settings",
 		"/home/ian/web/web2py/applications/paideia/models/db.py",
 		"/home/ian/.config/sublime-text-2/Packages/BracketHighlighter/BracketHighlighter.sublime-settings",
 		"/home/ian/.config/sublime-text-2/Packages/SplitScreen-Resizer/Default (Linux).sublime-keymap",
 		"/home/ian/.config/sublime-text-2/Packages/Default/Preferences.sublime-settings",
-		"/home/ian/.config/sublime-text-2/Packages/User/Preferences.sublime-settings",
 		"/home/ian/.config/sublime-text-2/Packages/Default/Default (Linux).sublime-keymap",
 		"/home/ian/web/web2py/applications/topoi/models/db.py",
 		"/home/ian/web/web2py/gluon/contrib/test_helpers.py",
@@ -506,6 +548,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"paths",
 			"\n            ",
 			"vint",
 			"import",
@@ -544,15 +587,15 @@
 					"file": "models/paideia.py",
 					"settings":
 					{
-						"buffer_size": 13636,
+						"buffer_size": 13854,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								10667,
-								10667
+								0,
+								0
 							]
 						],
 						"settings":
@@ -563,7 +606,7 @@
 								"README",
 								"FIXME"
 							],
-							"function_name_status_row": 265,
+							"function_name_status_row": 0,
 							"gjslint_ignore":
 							[
 								110
@@ -612,7 +655,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 4784.0,
+						"translation.y": 4890.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -622,15 +665,15 @@
 					"file": "modules/paideia_exploring.py",
 					"settings":
 					{
-						"buffer_size": 49890,
+						"buffer_size": 52236,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								241,
-								241
+								7328,
+								7328
 							]
 						],
 						"settings":
@@ -641,7 +684,7 @@
 								"README",
 								"FIXME"
 							],
-							"function_name_status_row": 10,
+							"function_name_status_row": 223,
 							"gjslint_ignore":
 							[
 								110
@@ -690,7 +733,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 4664.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -700,15 +743,15 @@
 					"file": "controllers/exploring.py",
 					"settings":
 					{
-						"buffer_size": 6191,
+						"buffer_size": 6567,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								358,
-								358
+								0,
+								0
 							]
 						],
 						"settings":
@@ -719,7 +762,7 @@
 								"README",
 								"FIXME"
 							],
-							"function_name_status_row": 8,
+							"function_name_status_row": 0,
 							"gjslint_ignore":
 							[
 								110
@@ -766,6 +809,91 @@
 							"syntax": "Packages/Python/Python.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 2496.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "modules/paideia_stats.py",
+					"settings":
+					{
+						"buffer_size": 7253,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								5634,
+								5634
+							]
+						],
+						"settings":
+						{
+							"function_name_status_row": 168,
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 3047.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "controllers/default.py",
+					"settings":
+					{
+						"buffer_size": 4272,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1511,
+								1511
+							]
+						],
+						"settings":
+						{
+							"function_name_status_row": 55,
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 596.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "models/db.py",
+					"settings":
+					{
+						"buffer_size": 3037,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								442,
+								442
+							]
+						],
+						"settings":
+						{
+							"function_name_status_row": 14,
+							"syntax": "Packages/Python/Python.tmLanguage"
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
