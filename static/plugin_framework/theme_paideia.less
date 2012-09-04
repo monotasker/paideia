@@ -414,97 +414,112 @@ body #page {
 
 /* for profile pages */
 
-table.summary_stats {border-collapse:separate; border-spacing:6px;}
-table.summary_stats td{vertical-align:middle;}
-
-td.total_cat1, td.total_cat2, td.total_cat3, td.total_cat4{
-    height:40px;
-    width:40px;
-    color:#fff;
-    height:40px;
-    text-align:center;
-    font-size:20px;
-    padding:0;
-    border:3px solid #fff;
-    font-family:"Droid Sans";
-    margin:3px;
-    text-shadow:0px 1px 3px rgba(0,0,0,0.3);
-}
-td.total_len{color:#aaa; font-size:14px;}
-td.total_cat4{background-color:#809240;}
-td.total_cat3{background-color:#AAE557;}
-td.total_cat2{background-color:#EBFC97;}
-td.total_cat1{background-color:#852625;}
-
-span.score_avg{
-    background:#f5f5f5;
-    border:3px solid #eee;
-    display:inline-block;
-    height:48px;
-    width:48px;
-    border-radius:28px;
-    font-size:14px;
-    color:#aaa;
-    line-height:48px;
-    text-align:center;
-    box-shadow:0px 2px 6px rgba(0,0,0,0.3);
+#page.profile {
+    div.tab {
+        padding:@lineheight;
+        .textdefaults;
     }
 
-table.weeklycount{
-  border-collapse:separate;
-  border-spacing:3px;
-}
+    table.summary_stats {
+        border-collapse:separate; 
+        border-spacing:@lineheight /2;
 
-table.weeklycount td{
-  width:36px;
-  height:36px;
-  background-color:#f5f5f5;
-  border:1px solid #eee;
-  color:#aaa;
-  font-size:10px;
-  position:relative;
-}
+        td {
+            vertical-align:middle;
+            span.score_avg{
+                background:#f5f5f5;
+                border:3px solid #eee;
+                display:inline-block;
+                height:48px;
+                width:48px;
+                border-radius:28px;
+                font-size:14px;
+                color:#aaa;
+                line-height:48px;
+                text-align:center;
+                box-shadow:0px 2px 6px rgba(0,0,0,0.3);
+            }
+        }
 
-table.weeklycount td span.cal_num{
-  position:relative;
-  top:-6px;
-  left:-2px;
-}
+        td.total_cat1, 
+        td.total_cat2, 
+        td.total_cat3, 
+        td.total_cat4{
+            height:40px;
+            width:40px;
+            color:#fff;
+            height:40px;
+            text-align:center;
+            font-size:20px;
+            padding:0;
+            border:3px solid #fff;
+            font-family:"Droid Sans";
+            margin:3px;
+            text-shadow:0px 1px 3px rgba(0,0,0,0.3);
+        }
 
-table.weeklycount span.cal_count{
-    position:relative;
-    font-size:16px;
-    font-weight:bold;
-    top:10px;
-    left:6px;
-    color:#809240;
-}
+        td.total_len{color:#aaa; font-size:14px;}
+        td.total_cat4{background-color:#809240;}
+        td.total_cat3{background-color:#AAE557;}
+        td.total_cat2{background-color:#EBFC97;}
+        td.total_cat1{background-color:#852625;}
+    }
 
-/*** bug reports on user profile ***/
+    table.paideia_monthcal_table {
+        border-collapse:separate;
+        border-spacing:@lineheight /2;
 
-#tab_bug_reports table{
-    text-align:left;
-    border-collapse:separate;
-    border-spacing:3px;
-}
+        td{
+            width:@lineheight * 2;
+            height:@lineheight * 2;
+            background-color:#f5f5f5;
+            border:1px solid #eee;
+            color:#aaa;
+            font-size:10px;
+            position:relative;
 
-#tab_bug_reports table th{
-    font-weight:bold;
-    background-color:#efefef;
-    border:1px solid #eee;
-    vertical-align:middle;
-    text-align:center;
-}
+            span.cal_num{
+                position:relative;
+                top:-6px;
+                left:-2px;
+            }
+            span.cal_count{
+                position:relative;
+                font-size:16px;
+                font-weight:bold;
+                top:10px;
+                left:6px;
+                color:#809240;
+            }
+        }
+    }
 
-#tab_bug_reports table tr td{
-    min-width:140px;
-    background-color:#f5f5f5;
-}
+    /*** bug reports on user profile ***/
 
-#tab_bug_reports table tr td:nth-child(3){
-    min-width:100px;
-    background-color:#f5f5f5;
-    border:1px solid #eee;
+    #tab_bug_reports table{
+        text-align:left;
+        border-collapse:separate;
+        border-spacing:3px;
+    }
+
+    #tab_bug_reports table th{
+        font-weight:bold;
+        background-color:#efefef;
+        border:1px solid #eee;
+        vertical-align:middle;
+        text-align:center;
+    }
+
+    #tab_bug_reports table tr td{
+        min-width:140px;
+        background-color:#f5f5f5;
+    }
+
+    #tab_bug_reports table tr td:nth-child(3){
+        min-width:100px;
+        background-color:#f5f5f5;
+        border:1px solid #eee;
+    }
 }
 
 /* for plugin_listandedit */

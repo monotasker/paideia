@@ -100,26 +100,67 @@
 @typeheight3: @typeheight * 2.5;
 @lineheight3: @lineheight * 2.5;
 
-/* colours */
+/* COLOURS ***********************************/
+/* solarized */
+@sol_charcoal:   #002b36; /* background - charcoal */
+@sol_aqua:   #073642; /* background - dark aqua */
+@sol_grey1:   #586e75; /* content - dark grey */
+@sol_grey2:   #657b83; /* content - dark grey */
+@sol_grey3:    #839496; /* content - mid-grey */
+@sol_grey4:    #93a1a1; /* content - mid-grey */
+@sol_beige:    #eee8d5; /* background - beige */
+@sol_cream:    #fdf6e3; /* background - cream */
+@sol_yellow:   #b58900; /* golden yellow */
+@sol_orange:   #cb4b16;
+@sol_red:      #dc322f;
+@sol_magenta:  #d33682;
+@sol_violet:   #6c71c4;
+@sol_blue:     #268bd2;
+@sol_cyan:     #2aa198;
+@sol_green:    #859900;
+
+/* paideia */
 @red:#B10808;
 @warning:#a40000;
 @wine:#701;
 @cranberry:#852625;
-@cinnamon:#845852; /* paideia */
+@cinnamon:#845852; 
+@paideia_moss:@moss; 
+@cream:#F8F0E5; /* paideia */
+@tapioca:#F2E5D4; /* paideia */
 
-@orange:#FF9700;
-@tangerine:#dd4814; /* ubuntu */
+/* ubuntu */
+@ubuntu_orange:#FF9700;
+@ubuntu_tangerine:#dd4814; 
+@ubuntu_purple:#772953; 
 
+/* ocp */
+@ocp_yellow:#ffc100; /* ocp - book title */
+@ocp_green1:#96BC44; /* ocp -- text headings on white or on mud; edition label */
+@ocp_green2:#690; /* ocp - not in active use */
+@ocp_sea1:#007DBB; /* ocp - not in active use */
+@ocp_sea2:#069; /* ocp - read text link on intro pages; maybe headings on white? */
+@mud1:#494738; /* ocp - footer and top of header gradient */
+@mud2:#38362b; /* ocp - bottom of header gradient */
+@wet-chalk:#E3E1D3; /* ocp - accent with chalk, table lines */
+@latte:#E4DFC8; /* ocp - sidebars and control buttons */
+@granite1:#959174; /* ocp */
+@granite2:#79765D; /* ocp */
+@grey6:#666; /* ocp - text on latte */
+
+/* yellows */
 @yellow:yellow;
 @ocp-yellow:#ffc100; /* ocp - book title */
 
+/* greens */
 @dark-green:#0D3100;
 @green:#5BA917;
-@grass1:#96BC44; /* ocp -- text headings on white or on mud; edition label */
-@grass2:#690; /* ocp - not in active use */
+@grass1:@ocp_green1; /* ocp -- text headings on white or on mud; edition label */
+@grass2:@ocp_green2; /* ocp - not in active use */
 @moss:#809240; /* paideia */
 @spring-green:#AAE557;
 
+/* blues */
 @mist:#E4EDF7;
 @sky:#7E9AFF;
 @aqua1:#00BFF3;
