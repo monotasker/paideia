@@ -7,7 +7,8 @@ import os
 import re
 
 if 0:
-    from gluon import URL, current, Field, IS_IN_DB, SQLFORM
+    from gluon import URL, current, Field, IS_IN_DB, IS_NOT_IN_DB, SQLFORM
+    from gluon import IS_EMPTY_OR
     response = current.response
     request = current.request
     auth = current.auth
@@ -51,6 +52,7 @@ db.define_table('app_settings',
     Field('paths_per_day', 'integer', default=20),
     Field('days_per_week', 'integer', default=5)
     )
+db.app_settings.class_id.requires = IS_NOT_IN_DB(db, 'app_settings.class_id')
 
 db.define_table('images',
     Field('image', 'upload',
@@ -70,35 +72,63 @@ db.define_table('journals',
     Field('user', db.auth_user, default=auth.user_id),
     Field('pages', 'list:reference pages'),
     format='%(user)s')
+db.journals.user.requires = IS_NOT_IN_DB(db, 'journals.user')
 
 db.define_table('pages',
     Field('page', 'text'),
     format='%(page)s')
 
 db.define_table('categories',
-    Field('category'),
+    Field('category', unique=True),
     Field('description'),
     format='%(category)s')
 
 db.define_table('tags',
-    Field('tag', 'string'),
+    Field('tag', 'string', unique=True),
     Field('position', 'integer'),
+    Field('slides', 'list:reference db.plugin_slider_decks'),
     format='%(tag)s')
 
+db.tags.tag.requires = IS_NOT_IN_DB(db, 'tags.tag')
+
+db.tags.slides.requires = IS_IN_DB(db,
+                                    'plugin_slider_decks.id',
+                                    '%(deck_name)s',
+                                    multiple=True)
+db.tags.slides.widget = lambda field, value: \
+                                    AjaxSelect().widget(
+                                        field, value, 'plugin_slider_decks',
+                                        refresher=True,
+                                        multi='basic',
+                                        lister='editlinks')
+
+db.define_table('badges',
+    Field('badge_name', 'string', unique=True),
+    Field('tag', db.tags),
+    Field('description', 'text'),
+    format='%(badge_name)s')
+db.badges.badge_name.requires = IS_NOT_IN_DB(db, 'badges.badge_name')
+db.badges.tag.requires = IS_EMPTY_OR(IS_IN_DB(db, 'tags.id', db.tags._format))
+
 db.define_table('locations',
-    Field('location'),
-    Field('alias'),
+    Field('location', unique=True),
+    Field('alias', unique=True),
     Field('bg_image', db.images),
     format='%(location)s')
+db.locations.location.requires = IS_NOT_IN_DB(db, 'locations.location')
+db.locations.alias.requires = IS_NOT_IN_DB(db, 'locations.alias')
+db.locations.bg_image.requires = IS_EMPTY_OR(IS_IN_DB(db, 'images.id',
+                                                     db.images._format))
 
 db.define_table('npcs',
-    Field('name', 'string'),
+    Field('name', 'string', unique=True),
     Field('location', 'list:reference locations'),
     Field('npc_image', db.images),
     Field('notes', 'text'),
     format='%(name)s')
+db.npcs.name.requires = IS_NOT_IN_DB(db, 'npcs.name')
 db.npcs.location.requires = IS_IN_DB(db, 'locations.id',
-                                     db.locations._format, multiple=True)
+                                    db.locations._format, multiple=True)
 db.npcs.location.widget = lambda field, value: \
                         AjaxSelect().widget(field, value, 'locations',
                                     multi='basic',
@@ -152,18 +182,18 @@ db.questions.tags_secondary.widget = lambda field, value: AjaxSelect().widget(
                                                     multi='basic')
 
 db.define_table('step_types',
-    Field('type'),
+    Field('type', unique=True),
     Field('widget'),
     Field('step_class'),
     format='%(type)s')
 
 db.define_table('step_hints',
-    Field('label'),
+    Field('label', unique=True),
     Field('text', 'text'),
     format='%(label)s')
 
 db.define_table('step_instructions',
-    Field('label'),
+    Field('label', unique=True),
     Field('text', 'text'),
     format='%(label)s')
 
@@ -256,6 +286,7 @@ db.define_table('tag_progress',
     Field('cat3', 'list:reference tags'),
     Field('cat4', 'list:reference tags'),
     format='%(name)s, %(latest_new)s')
+db.tag_progress.name.requires = IS_NOT_IN_DB(db, db.tag_progress.name)
 
 db.define_table('paths',
     Field('label'),

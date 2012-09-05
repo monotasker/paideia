@@ -1,6 +1,6 @@
 # coding: utf8
 from gluon import current, redirect, Field
-from gluon import IMG, SQLFORM, SPAN, DIV, URL, A
+from gluon import IMG, SQLFORM, SPAN, DIV, URL, A, UL, LI
 from gluon import IS_NOT_EMPTY, IS_IN_SET
 #from gluon.sql import Row, Rows
 
@@ -56,10 +56,9 @@ class Walk(object):
             self.active_paths = {}
             self.completed_paths = set()
             self.step = None
-            self.tag_set = {}
             # initialize the session properly
-            self._categorize_tags()
-            self._new_badges(auth.user_id, self.tag_self)  # flag new badges
+            self.tag_set = self._categorize_tags()
+            self.new_badges = self._new_badges(auth.user_id, self.tag_set)
             self._unfinished()
             self._save_session_data()
         else:
@@ -86,23 +85,24 @@ class Walk(object):
 
         if self.active_location:
             session_data['active_location'] = self.active_location
-
         session_data['active_paths'] = self.active_paths
         session_data['completed_paths'] = self.completed_paths
         session_data['tag_set'] = self.tag_set
+        try:
+            session_data['new_badges'] = self.new_badges
+        except AttributeError:
+            pass
 
         try:
             session.walk.update(session_data)
-
         except AttributeError:
             session.walk = session_data
 
+        # TODO: Is this necessary?
         if self.step:
             self.step._save_session_data()
-
         if debug:
             print 'self.step = ', self.step
-        #if debug: print 'session.walk = ', session.walk
 
     def _get_session_data(self):
         '''
@@ -214,8 +214,7 @@ class Walk(object):
         (integers) of the tags that are currently in the given category.
         '''
         debug = True
-        if self.verbose:
-            print 'calling Walk._categorize_tags--------------'
+        if self.verbose: print 'calling Walk._categorize_tags--------------'
         auth = current.auth
         db = current.db
 
@@ -271,37 +270,42 @@ class Walk(object):
         update the user's row in db.tag_progress, and return a dictionary of
         those new tags whose structure mirrors that of session.walk['tag_set'].
         '''
+        if self.verbose: print 'calling Walk._new_badges ---------------------'
         debug = True
-        session = current.session
         db = current.db
         auth = current.auth
 
         # If a tag has moved up in category, award the badge
         # TODO: needs to be tested!!!
         mycats = db(db.tag_progress.name == auth.user_id).select().first()
-        if debug:
-            print 'user ='
-            print user
-            print 'mycats ='
-            print mycats
-        new_badge_list = []
+        if debug: print 'mycats =', mycats
+
+        new_badges = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
+        all_badges = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
         for categ, lst in categories.iteritems():
             if lst:
+                print 'current badges =', lst
                 catname = 'cat{0}'.format(categ)
-                if mycats:
-                    if debug: print 'mycats exists'
+                if mycats and mycats[catname]:
                     new = [t for t in lst if t not in mycats[catname]]
                 else:
-                    if debug: print 'mycats doesn\'t exist'
                     new = [t for t in lst]
                 if new:
-                    if debug: print 'newly awarded badges for tags', new
-                    new_badge_list += new
-                    mycats.update_or_insert(**{catname: (lst + new)})
-        if new_badge_list:
-            if debug: print 'new badge list =', new_badge_list
-            session.walk['new_badges'] = new_badge_list
-            return new_badge_list
+                    if debug: print 'newly awarded badges =', new
+                    new_badges[catname] = new
+                    all_badges[catname] = new + lst
+
+        db.tag_progress.update_or_insert(**{
+                                            'name': auth.user_id,
+                                            'cat1': all_badges['cat1'],
+                                            'cat2': all_badges['cat2'],
+                                            'cat3': all_badges['cat3'],
+                                            'cat4': all_badges['cat4'],
+                                            })
+
+        if new_badges:
+            if debug: print 'new badges =', new_badges
+            return new_badges
         else:
             if debug: print 'no new badges awarded'
             return None
@@ -351,11 +355,11 @@ class Walk(object):
         auth, db, session = current.auth, current.db, current.session
 
         if 'new_badges' in session.walk:
-            return self.get_util_step('award badge')  # tag id=81
+            return self._get_util_step('award badge')  # tag id=81
 
         # TODO: insert these session.walk values in _introduce and _categorize)
         if 'view_slides' in session.walk:
-            return self.get_util_step('view slides')  # tag id=80
+            return self._get_util_step('view slides')  # tag id=80
 
         # TODO: need to fix check for step that was never finished
         #upath, ustep = self._unfinished_today()
@@ -1091,11 +1095,14 @@ class Step(object):
         interaction.
         '''
         if self.verbose: print 'calling Step._get_prompt-----------'
-        db, auth = current.db, current.auth
+        auth = current.auth
 
         uname = auth.user['first_name']
         rawtext = self.step.prompt
         newtext = rawtext.replace('[[user]]', uname)
+        if self._get_responder():
+            for k, v in self._get_responder().iteritems():
+                newtext = newtext.replace(k, v)
         text = SPAN(newtext)
 
         #TODO: get audio file for prompt text as well.
@@ -1110,6 +1117,7 @@ class Step(object):
         '''
         if self.verbose: print 'calling Step._get_responder-----------'
 
+        # TODO: this return not needed now? Or should .complete() be called?
         if isinstance(self, StepStub):
             return
 
@@ -1229,88 +1237,109 @@ class StepStub(Step):
     def complete(self):
         '''
         Complete this step:
-            * Update the path_log
-            * Update the attempt_log
+            * Do not update the path_log
+            * Do not update the attempt_log
             * Remove path from active paths
             * Add path to completed paths
 
         Note that the user always gets the step right.
         '''
+        session = current.session
 
-        session, db, auth = current.session, current.db, current.auth
-
-        # TODO: remove all of this commented code, since StepStubs
-        # shouldn't be recorded as tag attempts (can't fail)
-        #utc_now = datetime.datetime.utcnow()
-
-        #tag_records = db(db.tag_records.name == auth.user_id).select()
-
-        ## Calculate record info
-        #time_last_right = utc_now
-        #time_last_wrong = utc_now
-
-        #times_right = 1
-        #times_wrong = 0
-
-        ## TODO: step stubs shouldn't be recorded in tag_records
-        ## Log this tag attempt for each tag in the step
-        #for tag in self.step.tags:
-            ## Try to update an existing record for this tag
-            #try:
-                #tag_records = tag_records.find(lambda row: row.tag == tag)
-
-                #if tag_records:
-                    #tag_record = tag_records[0]
-
-                    #time_last_wrong = tag_record.tlast_wrong
-
-                    #times_right += tag_record.times_right
-
-                    #tag_record.update_record(
-                        #tlast_right=time_last_right,
-                        #tlast_wrong=time_last_wrong,
-                        #times_right=times_right,
-                        #times_wrong=times_wrong,
-                        #path=self.path.id,
-                        #step=self.step.id
-                    #)
-
-                #else:
-                    #val = db.tag_records.insert(
-                        #tag=tag,
-                        #tlast_right=time_last_right,
-                        #tlast_wrong=time_last_wrong,
-                        #times_right=times_right,
-                        #times_wrong=times_wrong,
-                        #path=self.path.id,
-                        #step=self.step.id
-                    #)
-
-            # Print any other error that is thrown
-            # TODO: Put this in a server log instead/as well or create a ticket
-            # TODO: Do we want to rollback the transaction?
-            #except Exception, err:
-                #print 'unidentified error:'
-                #print type(err)
-                #print err
-                #print traceback.format_exc()
-
-        # TODO: Merge this with Walk._update_path_log()
-        query = (db.path_log.path == self.path.id) & (db.path_log.name ==
-                                                                auth.user_id)
-        log = db(query).select(orderby=~db.path_log.dt_started).first()
-        if log:
-            log.update_record(path=self.path.id, last_step=0)
-        else:   # We should have an existing path_log but in case we don't...
-            db.path_log.insert(path=self.path.id, last_step=0)
-
-        # Log this step attempt
-        # TODO: Giving this attempt a score value will throw off stats
-        db.attempt_log.insert(step=self.step.id, score=1.0, path=self.path.id)
-
-        # Remove from active_paths and add to completed_paths
         del session.walk['active_paths'][self.path.id]
         session.walk['completed_paths'].add(self.path.id)
+
+
+class StepViewSlides(StepStub):
+    '''
+    '''
+    pass
+
+
+class StepDailyQuota(StepStub):
+    '''
+    '''
+    pass
+
+
+class StepAwardBadges(StepStub):
+    '''
+    A step type that, like StepStub, doesn't take or process a user response.
+    Unlike that parent class, though, StepMessage provides a "continue" button
+    that allows the user to proceed with more paths at the current location.
+
+    This is used for:
+    - alerting user to newly awarded badges
+    '''
+
+    verbose = True
+
+    def ask(self):
+        '''
+        Public method. Returns the html helpers to create the view
+        for the 'ask' state of the user interface.
+        '''
+        if self.verbose: print 'calling StepMessage.ask()----'
+
+        npc = self._get_npc()
+        prompt = self._get_prompt()
+        responder = self._get_responder()
+
+        self.complete()
+        self._save_session_data()
+
+        return dict(npc_img=npc.image, prompt=prompt,
+                responder=responder,
+                bg_image=self.location['bg_image'])
+
+    def _get_replacements(self):
+        '''
+        Provide the string replacement data to be used in the step prompt.
+        '''
+        session = current.session
+        db = current.db
+
+        badges = UL(_class='badge_list')
+        if 'new_badges' in session.walk:
+            for k, v in session.walk['new_badges'].iteritems():
+                if type(k) == int:
+                    for tag in v:
+                        badge = db(db.badges.tag == tag).select().first()
+                        ranks = ['beginner', 'apprentice',
+                                    'journeyman', 'master']
+                        bn = '{0} {1}'.format(ranks[k], badge.badge_name)
+                        bn_span = SPAN(bn, _class='badge_name')
+                        rank_verbs = ['starting to learn',
+                                        'making good progress with',
+                                        'gaining a good working grasp of',
+                                        'mastering']
+                        bd = 'for {0} {1}'.format(rank_verbs[k],
+                                                  badge.description)
+                        badge_string = LI(bn_span.xml(), bd)
+                        badges.append(badge_string.xml())
+
+        replacements = {'[[badge_list]]': badges}
+
+        return replacements
+
+    def _get_responder(self):
+        '''
+        Create and return the html helper for the buttons to allow the user
+        to continue here.
+        '''
+        if self.verbose: print 'calling Step._get_responder-----------'
+        request = current.request
+
+        # TODO: this return not needed now? Or should .complete() be called?
+        if isinstance(self, StepStub):
+            return
+
+        buttons = A("Continue", _href=URL('walk', args=['ask'],
+                                        vars=dict(loc=request.vars['loc'])),
+                    cid='page',
+                    _class='button-green-grad next_q')
+
+        return buttons
 
 
 class StepImage(Step):
@@ -1326,6 +1355,9 @@ STEP_CLASSES = {
         'step_stub': StepStub,
         'step_image': StepImage,
         'step_imageMutlipleChoice': StepImageMultipleChoice,
+        'step_awardBadges': StepAwardBadges,
+        'step_dailyQuota': StepDailyQuota,
+        'step_viewSlides': StepViewSlides
     }
 
 
