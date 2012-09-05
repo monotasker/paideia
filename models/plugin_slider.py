@@ -1,8 +1,11 @@
-
 from plugin_ajaxselect import AjaxSelect
+if 0:
+    from gluon import current, URL, Field, IS_IN_DB
+    response, db = current.response, current.db
 
 #js file necessary for AjaxSelect widget
-response.files.insert(5,URL('static', 'plugin_ajaxselect/plugin_ajaxselect.js'))
+response.files.insert(5, URL('static',
+                          'plugin_ajaxselect/plugin_ajaxselect.js'))
 response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.css'))
 response.files.append(URL('static', 'plugin_slider/plugin_slider.css'))
 
@@ -45,7 +48,3 @@ db.plugin_slider_decks.deck_slides.widget = lambda field, value: \
                                         multi='basic',
                                         lister='editlinks',
                                         sortable='true')
-
-
-
-

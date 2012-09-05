@@ -3,6 +3,7 @@
 if 0:
     from gluon import current, URL
     response, request, T = current.response, current.request, current.t
+    auth = current.auth
 
 response.title = request.application
 response.mobiletitle = request.application
@@ -11,21 +12,25 @@ response.subtitle = T('An online space for learning New Testament Greek')
 #http://dev.w3.org/html5/markup/meta.name.html
 response.meta.author = 'Ian W. Scott'
 response.meta.description = 'An online space for learning New Testament Greek'
-response.meta.keywords = 'Greek, koine, New Testament, language, education, learning'
+response.meta.keywords = \
+                'Greek, koine, New Testament, language, education, learning'
 response.meta.generator = 'Web2py Enterprise Framework'
 response.meta.copyright = 'Copyright 2011'
 
 
 response.menu = [
-    (T('Home'), False, URL('default','index'), []),
-    (T('Slides'), False, URL('listing','slides'), [])
+    (T('Home'), False, URL('default', 'index'), []),
+    (T('Map'), False, URL('exploring', 'index'), []),
+    (T('Slides'), False, URL('listing', 'slides'), [])
     ]
 
 if auth.has_membership('administrators', auth.user_id):
-    response.menu+=[(T('Admin'), False, None, [
+    response.menu += [(T('Admin'), False, None, [
             (T('Create'), False, None, [
                 (T('Slide decks'), False, URL('plugin_listandedit',
-                                'listing.html', args=['plugin_slider_decks'])),
+                            'listing.html', args=['plugin_slider_decks'])),
+                (T('Slides'), False, URL('plugin_listandedit',
+                            'listing.html', args=['plugin_slider_slides'])),
                 (T('Paths'), False, URL('plugin_listandedit',
                                         'listing.html', args=['paths'])),
                 (T('Steps'), False, URL('plugin_listandedit',

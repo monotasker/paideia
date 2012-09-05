@@ -1,4 +1,3 @@
-{{# vim:set filetype=html.web2py.htmlweb2py: }}
 {{if request.is_local:}}
     {{#=response.toolbar()}}
 {{pass}}
@@ -7,7 +6,7 @@
 <form style='z-index:99' id='clear_session'>
     <ul> <li>
         <input type='text' value='all' name='session_var' id='session_var' />
-        <a id='session_clear' href='#'>Clear session</a> 
+        <a id='session_clear' href='#'>Clear session</a>
     </li> </ul>
 </form>
 <ul>
@@ -20,13 +19,13 @@
 <form>
     <ul>
         <li>
-            <a id='test_this_step' href='#'>Test</a> path 
+            <a id='test_this_step' href='#'>Test</a> path
             <input type='text' value='all' name='test_path' id='test_step' />
             step
             <input type='text' value='all' name='test_step' id='test_step' />
         </li>
     </ul>
-</form>    
+</form>
 </div>
 
 <!--when an error is raised-->
@@ -39,7 +38,7 @@
 <!--path selection-->
 {{elif request.args(0) == 'start' or not request.args:}}
 	<embed id='town_map' src='{{=map.image}}' type='image/svg+xml' />
-    
+
 <!--present npc reply for user's response to step prompt-->
 {{elif 'response' in request.vars:}}
     <div class='bg_image'>{{=bg_image}}</div>
@@ -53,29 +52,29 @@
             {{pass}}
             </ul>
         </p>
-        <span class="q_counter">Currently working on 
-            {{=len(session.walk['active_paths'].keys())}} paths; 
-            {{=len(session.walk['completed_paths'])}} 
+        <span class="q_counter">Currently working on
+            {{=len(session.walk['active_paths'].keys())}} paths;
+            {{=len(session.walk['completed_paths'])}}
         paths already complete today.</span>
     </section>
     <div class='responder'>
         {{=A("Continue", _href=URL('walk', args=['ask'],
                                     vars=dict(loc=request.vars['loc'])),
-            cid='page', 
+            cid='page',
             _class='button-green-grad next_q')}}
-            
-        {{=A("Retry", _href=URL('walk', args=['retry'], 
-                                    vars=dict(loc=request.vars.loc)), 
-            cid='page', 
+
+        {{=A("Retry", _href=URL('walk', args=['retry'],
+                                    vars=dict(loc=request.vars.loc)),
+            cid='page',
             _class='button-yellow-grad retry')}}
 
         {{=A("Map", _href=URL('walk', args=['start'],
                                     vars=dict(loc=None)),
-            cid='page', 
+            cid='page',
             _class='button-yellow-grad back_to_map')}}
-        
-            <a href='#' class="bug_reporter icon icon-bug">bug</a> 
-        {{=XML(bug_reporter)}} 
+
+            <a href='#' class="bug_reporter icon icon-bug">bug</a>
+        {{=XML(bug_reporter)}}
     </div>
 
 <!--present prompt for step-->
@@ -96,7 +95,7 @@
         {{except:}}
         {{pass}}
         {{=A("Map", _href=URL('walk'),
-            cid='page', 
+            cid='page',
             _class='button-yellow-grad back_to_map')}}
     </div>
 {{pass}}
@@ -114,7 +113,7 @@ $('#test_this_step').click(function(event){
     event.preventDefault();
 });
 $('#responder_submit').click(function(event){
-    window.parent.web2py_component("/paideia/exploring/walk.load/reply","page"); 
+    window.parent.web2py_component("/paideia/exploring/walk.load/reply","page");
     event.preventDefault();
 });
 $('a.bug_reporter').click(function(event){

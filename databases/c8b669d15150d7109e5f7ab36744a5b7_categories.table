@@ -11,26 +11,27 @@ p6
 I2
 sS'sql'
 p7
-S'CHAR(512)'
+S'CHAR(512) UNIQUE'
 p8
 ssS'id'
 p9
 (dp10
 g4
-g9
+S'id'
+p11
 sg6
 I1
 sg7
 S'INTEGER PRIMARY KEY AUTOINCREMENT'
-p11
-ssS'description'
 p12
-(dp13
+ssS'description'
+p13
+(dp14
 g4
 g5
 sg6
 I3
 sg7
 S'CHAR(512)'
-p14
+p15
 ss.

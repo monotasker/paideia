@@ -23,23 +23,25 @@ I3
 sg7
 S'CHAR(512)'
 p11
-ssg4
-(dp12
+ssS'type'
+p12
+(dp13
 g4
 g5
 sg6
 I2
 sg7
-S'CHAR(512)'
-p13
-ssS'id'
+S'CHAR(512) UNIQUE'
 p14
-(dp15
+ssS'id'
+p15
+(dp16
 g4
-g14
+S'id'
+p17
 sg6
 I1
 sg7
 S'INTEGER PRIMARY KEY AUTOINCREMENT'
-p16
+p18
 ss.

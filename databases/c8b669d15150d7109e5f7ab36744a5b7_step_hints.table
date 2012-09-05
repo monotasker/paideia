@@ -33,6 +33,6 @@ p15
 sg6
 I2
 sg7
-S'CHAR(512)'
+S'CHAR(512) UNIQUE'
 p16
 ss.

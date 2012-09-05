@@ -10,16 +10,18 @@ class Stats(object):
     Provides various statistics on student performance.
     '''
     Name = "paideia_stats"
+    verbose = True
 
     def __init__(self, user_id):
-
+        if self.verbose: print '\nInitializing Stats object =================='
         self.user_id = user_id
         #assert type(user_id) == str
         self.loglist = self.log_list()
 
     def active_tags(self):
+        if self.verbose: print 'calling Stats.active_tags() ------------------'
         db = current.db
-
+        # TODO: Add a list of the badge titles (tags) to returned object
         try:
             atag_q = db(
                         (db.tag_records.name == self.user_id)
@@ -30,7 +32,8 @@ class Stats(object):
             furthest = atag_rows.last()
             latest = atag_rows.find(lambda row:
                                 row.tags.position == furthest.tags.position)
-            atags['latest'] = dict((row.tags.id, row.tags.tag) for row in latest)
+            atags['latest'] = dict((row.tags.id, row.tags.tag)
+                                                           for row in latest)
         except Exception, e:
             print 'error in Stats.average():', e
             atags['total'] = "Can't calculate total number of active badges."
@@ -43,6 +46,7 @@ class Stats(object):
         Calculates and returns the average score for the student given in
         self.user_id
         '''
+        if self.verbose: print 'calling Stats.average() ----------------------'
         db = current.db
 
         try:
@@ -71,6 +75,8 @@ class Stats(object):
         (integers) of the tags that are currently in the given category.
 
         """
+        if self.verbose: print 'calling Stats.categories() -------------------'
+
         w = Walk()
         print self.user_id
         tags = w._categorize_tags(self.user_id)
@@ -86,6 +92,7 @@ class Stats(object):
         These datetimes and totals are corrected from UTC to the user's
         local time zone.
         """
+        if self.verbose: print 'calling Stats.log_list() ---------------------'
         debug = True
         db = current.db
 
@@ -114,15 +121,6 @@ class Stats(object):
 
         return loglist
 
-    def cal(self, year=None):
-        '''
-        Assemble a full year calendar.
-        TODO: not yet implemented
-        '''
-        if not year:
-            #get the current year as default
-            this_year = datetime.date.today().year
-
     def monthstats(self, year=None, month=None):
         '''
         Assemble and return a dictionary with the weeks. If the year and
@@ -130,6 +128,9 @@ class Stats(object):
         this method will by default provide stats for the current month and
         year.
         '''
+        if self.verbose: print 'calling Stats.monthstats() -------------------'
+        debug = True
+
         # get current year and month as default
         if not month:
             month = datetime.date.today().month
@@ -141,19 +142,24 @@ class Stats(object):
 
         monthdict = {'year': year, 'month_name': month}
 
-        date_set = {}
-        #build dict containing stats organized into weeks
+        month_list = []
+        #build nested list containing stats organized into weeks
         for week in monthcal:
-            weekday = week[0]
-            date_set[weekday] = {}
+            week_list = []
             for day in week:
-                date_set[weekday][day] = 0
+                day_set = [day, 0]
 
-            for dtime, count in self.loglist.items():
-                if dtime.month == month and dtime.day in week:
-                    date_set[weekday][dtime.day] = count
+                for dtime, count in self.loglist.items():
+                    if dtime.month == month and dtime.day == day:
+                        day_set[1] = count
 
-        monthdict['calstats'] = date_set
+                week_list.append(day_set)
+            week_list.sort(key=lambda k: k[0])
+            month_list.append(week_list)
+        month_list.sort(key=lambda k: k[0])
+
+        if debug: print month_list
+        monthdict['calstats'] = month_list
 
         return monthdict
 
@@ -165,12 +171,14 @@ class Stats(object):
 
         The calendar is returned as a web2py DIV helper.
         '''
+        debug = True
         db = current.db
-        # get settings for this user's class requirements
+        # TODO: get settings for this user's class requirements
         memberships = db(
                         (db.auth_group.id == db.auth_membership.group_id)
                         & (db.auth_membership.user_id == self.user_id)
                         ).select()
+        if debug: print memberships
 
         # get current year and month as default
         if not month:
@@ -188,19 +196,20 @@ class Stats(object):
         tbl = TABLE(_class='paideia_monthcal_table')
         tbl.append(THEAD(TR('Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun')))
         tb = TBODY()
-        for week, days in data['calstats'].iteritems():
+        for week in data['calstats']:
             weekrow = TR()
-            for day in days:
+            for day in week:
                 # add table cell for this day
-                weekrow.append(TD(_id=str(week) + '-' + str(day)))
+                weekrow.append(TD(_id=str(week) + '-' + str(day[0])))
                 # append span with day number
-                weekrow[-1].append(SPAN(str(day),
+                weekrow[-1].append(SPAN(str(day[0]),
                                     _class='cal_num'))
                 # append a span with the day's attempt-count (if non-zero)
-                if days[day] != 0:
-                    weekrow[-1].append(SPAN(str(days[day]),
+                if day[1] != 0:
+                    weekrow[-1].append(SPAN(str(day[1]),
                                         _class='cal_count'))
             tb.append(weekrow)  # append week to table body
+            if debug: print 'weekrow =', weekrow
 
         tbl.append(tb)
         mcal.append(tbl)
