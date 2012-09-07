@@ -71,7 +71,7 @@ class Walk(object):
         '''
         Save attributes in session.
         '''
-        debug = True
+        #debug = True
         if self.verbose:
             print 'calling Walk._save_session_data--------------'
         session = current.session
@@ -98,12 +98,6 @@ class Walk(object):
         except AttributeError:
             session.walk = session_data
 
-        # TODO: Is this necessary?
-        if self.step:
-            self.step._save_session_data()
-        if debug:
-            print 'self.step = ', self.step
-
     def _get_session_data(self):
         '''
         Get the walk attributes from the session.
@@ -111,7 +105,9 @@ class Walk(object):
         debug = False
         if self.verbose:
             print 'calling Walk._get_session_data--------------'
-        db, session, request = current.db, current.session, current.request
+        db = current.db
+        session = current.session
+        request = current.request
 
         path = session.walk['path']
         if path:
@@ -134,11 +130,10 @@ class Walk(object):
         self.completed_paths = session.walk['completed_paths']
         self.tag_set = session.walk['tag_set']
 
-        # only initialize a step if we have entered a location
-        if 'step' in session.walk and self.active_location:
-            self.step = self._create_step_instance(session.walk['step'])
-        else:
-            self.step = None
+        # create step instance here if we're processing a user's response
+        if ('response' in request.vars) and (request.args(0) == 'ask'):
+            self.step = self._create_step_instance()
+            print 're-activating step'
 
     def _create_step_instance(self, step_id=None):
         '''
@@ -486,6 +481,8 @@ class Walk(object):
             step = steps[0]
 
         path = db(db.paths.steps.contains(step.id)).select().first()
+        if debug: print 'returning path id=', path.id
+        if debug: print 'returning step id=', step.id
 
         return path, step.id
 
@@ -495,7 +492,7 @@ class Walk(object):
         Checks first for any blocking conditions and constrains the
         choice of next step accordingly.
         '''
-        debug = False
+        debug = True
         if self.verbose:
             print 'calling Walk.next_step--------------'
 
@@ -504,6 +501,7 @@ class Walk(object):
         #if not self.staying:
 
         path, step_id = self._handle_blocks()
+        if debug: print 'path=', path.id, 'step=', step_id
         # _handle_blocks() returns None, None if no blocks present
         # if daily max reached, returns default step
         if path and step_id:
@@ -642,8 +640,11 @@ class Walk(object):
                         print len(path.steps), 'steps in this path'
                     step_id = path.steps[step_index + 1]
                     step = db.steps[step_id]
+                    if debug: print step
 
                     # 2) If not in this location, send user elsewhere
+                    if debug: print 'loc_id =', loc_id
+                    if debug: print 'step.locations =', step.locations
                     if not loc_id in step.locations:
                         if debug:
                             print 'next step elsewhere, getting default'
@@ -1095,15 +1096,25 @@ class Step(object):
         interaction.
         '''
         if self.verbose: print 'calling Step._get_prompt-----------'
+        debug = True
         auth = current.auth
 
         uname = auth.user['first_name']
         rawtext = self.step.prompt
         newtext = rawtext.replace('[[user]]', uname)
-        if self._get_responder():
-            for k, v in self._get_responder().iteritems():
+        try:
+            for k, v in self._get_replacements().iteritems():
                 newtext = newtext.replace(k, v)
+        except AttributeError:
+            if debug: print 'No replacements for this Step type'
+
         text = SPAN(newtext)
+
+        try:
+            img = self._get_step_image()
+            text = SPAN(newtext, img)
+        except AttributeError:
+            pass
 
         #TODO: get audio file for prompt text as well.
         # audio = ''
@@ -1215,24 +1226,11 @@ class StepStub(Step):
     '''
     A step type that does not require significant user response. Useful for
     giving the user information and then freeing her/him up to perform a task.
+    It does not, however, allow the user to continue at the current location,
+    but sends her/him back to the map.
     '''
 
     verbose = True
-
-    def ask(self):
-        '''
-        Public method. Returns the html helpers to create the view
-        for the 'ask' state of the user interface.
-        '''
-        if self.verbose: print 'calling StepMultipleChoice._get_responder----'
-
-        npc = self._get_npc()
-        prompt = self._get_prompt()
-
-        self._save_session_data()
-
-        return dict(npc_img=npc.image, prompt=prompt,
-                bg_image=self.location['bg_image'])
 
     def complete(self):
         '''
@@ -1249,48 +1247,106 @@ class StepStub(Step):
         del session.walk['active_paths'][self.path.id]
         session.walk['completed_paths'].add(self.path.id)
 
+    def _get_responder(self):
+        '''
+        overrides Step._get_responder() to remove everything but the map
+        button built into the view template.
+        '''
+        return SPAN()
+
+
+class StepNonBlocking(Step):
+    '''
+    This abstract class provides a responder that includes a "continue"
+    button, allowing the user to move directly to another step in the current
+    location. It overrides the following methods of Step:
+    Step._get_responder()
+    '''
+
+    def _get_responder(self):
+        '''
+        Create and return the html helper for the buttons to allow the user
+        to continue here.
+        '''
+        if self.verbose: print 'calling Step._get_responder-----------'
+        request = current.request
+
+        # TODO: this return not needed now? Or should .complete() be called?
+        if isinstance(self, StepStub):
+            return
+
+        buttons = A("Continue", _href=URL('walk', args=['ask'],
+                                        vars=dict(loc=request.vars['loc'])),
+                    cid='page',
+                    _class='button-green-grad next_q')
+
+        return buttons
+
 
 class StepViewSlides(StepStub):
     '''
+    Provides a step that stops a student and asks her/him to view the
+    slides for newly activated tags/badges.
     '''
+    verbose = True
+
+    def _get_replacements(self):
+        '''
+        Provide the string replacement data to be used in the step prompt.
+        '''
+        session = current.session
+        db = current.db
+
+        badges = ''
+        if 'new_badges' in session.walk:
+            for k, v in session.walk['new_badges'].iteritems():
+                if k == 1:
+                    for tag in v:
+                        badge = db(db.badges.tag == tag).select().first()
+                        bn = '{0} {1}'.format('beginner', badge.badge_name)
+                        bn_span = SPAN(bn, _class='badge_name')
+                        badge_string = bn_span.xml() + ', '
+                        badges += badge_string
+
+        slides = UL(_class='slides_list')
+        if 'view_slides' in session.walk:
+            for t in session.walk['view_slides']:
+                # convert this to link once plugin_slider supports it
+                tag_slides = db.tags[t].slides
+                title_list = [db.plugin_slider_decks[d].deck_name
+                                                        for d in tag_slides]
+                for li in title_list:
+                    slides.append(LI(li))
+
+        replacements = {'[[badge_list]]': badges, '[[slides]]':slides}
+
+        return replacements
+
     pass
 
 
-class StepDailyQuota(StepStub):
+class StepDailyQuota(StepNonBlocking, StepStub):
     '''
+    This step class alerts the user that the daily quota of paths has been
+    completed, but provides a continue button (from StepNonBlocking). As in
+    StepStub, it still does not allow processing of any user response.
     '''
+    #TODO: provide self._get_substitution override method to sub in the
+    # user's required quota of paths per day.
+    verbose = True
+
     pass
 
 
-class StepAwardBadges(StepStub):
+class StepAwardBadges(StepNonBlocking, StepStub):
     '''
     A step type that, like StepStub, doesn't take or process a user response.
     Unlike that parent class, though, StepMessage provides a "continue" button
-    that allows the user to proceed with more paths at the current location.
-
-    This is used for:
-    - alerting user to newly awarded badges
+    (inherited from StepNonBlocking) that allows the user to proceed with
+    more paths at the current location. This is used for alerting user to
+    newly awarded badges.
     '''
-
     verbose = True
-
-    def ask(self):
-        '''
-        Public method. Returns the html helpers to create the view
-        for the 'ask' state of the user interface.
-        '''
-        if self.verbose: print 'calling StepMessage.ask()----'
-
-        npc = self._get_npc()
-        prompt = self._get_prompt()
-        responder = self._get_responder()
-
-        self.complete()
-        self._save_session_data()
-
-        return dict(npc_img=npc.image, prompt=prompt,
-                responder=responder,
-                bg_image=self.location['bg_image'])
 
     def _get_replacements(self):
         '''
@@ -1322,31 +1378,27 @@ class StepAwardBadges(StepStub):
 
         return replacements
 
-    def _get_responder(self):
-        '''
-        Create and return the html helper for the buttons to allow the user
-        to continue here.
-        '''
-        if self.verbose: print 'calling Step._get_responder-----------'
-        request = current.request
-
-        # TODO: this return not needed now? Or should .complete() be called?
-        if isinstance(self, StepStub):
-            return
-
-        buttons = A("Continue", _href=URL('walk', args=['ask'],
-                                        vars=dict(loc=request.vars['loc'])),
-                    cid='page',
-                    _class='button-green-grad next_q')
-
-        return buttons
-
 
 class StepImage(Step):
-    pass
+    '''
+    This subclass of Step adds an image in the prompt area.
+    '''
+    verbose = True
+
+    def _get_step_image(self):
+        '''
+        Returns the image to be displayed in the step prompt, wrapped in a
+        web2py IMG() helper object.
+        '''
 
 
-class StepImageMultipleChoice(Step):
+class StepImageMultipleChoice(StepImage, StepMultipleChoice):
+    '''
+    This subclass of StepMultipleChoice adds an image in the prompt
+    area (inherited from StepImage).
+    '''
+    verbose = True
+
     pass
 
 STEP_CLASSES = {
