@@ -78,7 +78,7 @@ def clear_session():
     **TODO: provide a return value and use web2py response.flash to notify
     user of successful result.
     """
-    Utils().clear_session()
+    pass
 
 
 @auth.requires_membership('administrators')
@@ -151,8 +151,11 @@ def walk():
         session.walk['active_location'] = None
 
         # If we got here from a StepStub, we need to complete the step
-        if walk.step and isinstance(walk.step, StepStub):
-            walk.step.complete()
+        try:
+            if isinstance(walk.step, StepStub):
+                walk.step.complete()
+        except:
+            print 'no step is active yet'
 
         return {'map': walk.map}
 
