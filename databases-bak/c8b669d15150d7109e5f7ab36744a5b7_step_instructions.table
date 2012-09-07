@@ -1,17 +1,17 @@
 (dp1
-S'category'
+S'text'
 p2
 (dp3
 S'type'
 p4
-S'string'
+S'text'
 p5
 sS'sortable'
 p6
-I2
+I3
 sS'sql'
 p7
-S'CHAR(512) UNIQUE'
+S'TEXT'
 p8
 ssS'id'
 p9
@@ -24,14 +24,15 @@ I1
 sg7
 S'INTEGER PRIMARY KEY AUTOINCREMENT'
 p12
-ssS'description'
+ssS'label'
 p13
 (dp14
 g4
-g5
-sg6
-I3
-sg7
-S'CHAR(512)'
+S'string'
 p15
+sg6
+I2
+sg7
+S'CHAR(512) UNIQUE'
+p16
 ss.
