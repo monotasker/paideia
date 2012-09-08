@@ -28,10 +28,11 @@
 </form>
 <span class='icon-only icon-gear'>
     <span class='accessible'>Admin</span>
-</span>
+</span>;
 </div>
 
 <!--when an error is raised-->
+<!-- TODO: Rework this error message -->
 {{if request.args(0) == 'error':}}
     <section class='npc'>
         {{=message}}
@@ -88,18 +89,8 @@
     <div class='responder'>
         {{try:}}
             {{=responder}}
-            <div class='prompt_tips'>
-                <!--TODO: We need a different tips for different questions-->
-                <!--TODO: Make guidelines a popup tooltip-->
-                <a class='instructions icon icon-lightbulb'>tips</a>
-                <div class="instructions tip">
-                </div>
-            </div>
         {{except:}}
         {{pass}}
-        {{=A("Map", _href=URL('walk'),
-            cid='page',
-            _class='button-yellow-grad back_to_map')}}
     </div>
 {{pass}}
 

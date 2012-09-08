@@ -1138,8 +1138,29 @@ class Step(object):
                     Field('response', 'string', requires=IS_NOT_EMPTY()),
                     _autocomplete='off'
                 )
+        instructions = self._get_instructions()
+        wrapper = DIV(form, instructions, _class='responder')
 
-        return form
+        return wrapper
+
+    def _get_instructions(self):
+        '''
+        Return a web2py DIV() element holding a link that displays a tooltip
+        with the instructions to accompany the current step's responder form.
+        '''
+        db = current.db
+
+        inst_div = DIV(
+                        A('tips', _class='instructions \
+                                            icon-only icon-lightbulb'),
+                        DIV(UL(), _class='instructions tip'),
+                    _class='prompt_tips')
+
+        iset = db.steps[self.step.id].instructions
+        for i in iset:
+            inst_div[-1][0].append(LI(i))
+
+        return inst_div
 
 
 class StepMultipleChoice(Step):
@@ -1160,7 +1181,10 @@ class StepMultipleChoice(Step):
         if form.process().accepted:
             session.response = request.vars.response
 
-        return form
+        instructions = self._get_instructions()
+        wrapper = DIV(form, instructions, _class='responder')
+
+        return wrapper
 
     def process(self, user_response):
         '''
@@ -1246,6 +1270,7 @@ class StepStub(Step):
         session = current.session
 
         del session.walk['active_paths'][self.path.id]
+        #TODO: completed_paths shouldn't count utility paths
         session.walk['completed_paths'].add(self.path.id)
 
     def _get_responder(self):
@@ -1254,7 +1279,10 @@ class StepStub(Step):
         button built into the view template.
         '''
         if self.verbose: print 'calling', type(self), '._get_responder -------'
-        return SPAN('*')
+        map_button = A("Map", _href=URL('walk'),
+                        cid='page',
+                        _class='button-yellow-grad back_to_map icon-location')
+        return map_button
 
 
 class StepNonBlocking(Step):
@@ -1392,6 +1420,7 @@ class StepImage(Step):
         '''
         if self.verbose: print 'calling', type(self), '._get_step_image -----'
 
+    def
 
 class StepImageMultipleChoice(StepImage, StepMultipleChoice):
     '''
