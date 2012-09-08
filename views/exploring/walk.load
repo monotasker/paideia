@@ -26,6 +26,9 @@
         </li>
     </ul>
 </form>
+<span class='icon-only icon-gear'>
+    <span class='accessible'>Admin</span>
+</span>
 </div>
 
 <!--when an error is raised-->

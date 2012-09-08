@@ -766,7 +766,7 @@ class Step(object):
 
         debug = False
         db, session = current.db, current.session
-        if self.verbose: print 'Initializing Step============================='
+        if self.verbose: print 'Initializing', type(self), '=================='
 
         if step is not None:
             self.path = db.paths(session.walk['path'])
@@ -785,7 +785,7 @@ class Step(object):
         Save attributes in session.
         '''
         debug = True
-        if self.verbose: print 'calling Step._save_session_data--------------'
+        if self.verbose: print 'calling', type(self), '._save_session_data----'
         session = current.session
 
         session_data = {}
@@ -802,7 +802,7 @@ class Step(object):
         '''
         Get the step attributes from the session.
         '''
-        if self.verbose: print 'calling Step._get_session_data--------------'
+        if self.verbose: print 'calling', type(self), '._get_session_data-----'
         db, session = current.db, current.session
 
         self.location = session.walk['active_location']
@@ -819,7 +819,7 @@ class Step(object):
         Public method. Returns the html helpers to create the view
         for the 'ask' state of the user interface.
         '''
-        if self.verbose: print 'calling Step.ask----------------------------'
+        if self.verbose: print 'calling', type(self), '.ask-------------------'
         debug = False
 
         npc = self._get_npc()
@@ -839,14 +839,14 @@ class Step(object):
         '''
         # TODO: Make sure that subsequent steps of the current path use the
         # same npc if in the same location
-        if self.verbose: print 'calling Step._get_npc------------------------'
+        if self.verbose: print 'calling', type(self), '._get_npc--------------'
         debug = False
 
         def _get_npc_internal(npcs):
             '''
             Return an npc from the set of npcs or None if there aren't any.
             '''
-            if self.verbose: print 'calling Step._get_npc_internal-----------'
+            if self.verbose: print 'calling', type(self), '._get_npc_internal-'
             if npcs is None:
                 return
 
@@ -906,7 +906,7 @@ class Step(object):
         information presented to the user.
         '''
         debug = False
-        if self.verbose: print 'calling Step.process-----------'
+        if self.verbose: print 'calling', type(self), '.process----------'
         session, db, auth = current.session, current.db, current.auth
 
         # Get the student's response to the question
@@ -980,7 +980,7 @@ class Step(object):
         tooltip containing the message and link allowing students to submit
         a bug report for the current step.
         '''
-        if self.verbose: print 'calling Step._get_bug_reporter----------------'
+        if self.verbose: print 'calling', type(self), '._get_bug_reporter-----'
         request, response = current.request, current.response
 
         bug_reporter = DIV(_class='tip bug_reporter')
@@ -1005,7 +1005,7 @@ class Step(object):
         records. times_wrong gives the opposite value to add to 'times wrong'
         (i.e., negative score).
         '''
-        if self.verbose: print 'calling Step._record-------------------------'
+        if self.verbose: print 'calling', type(self), '._record---------------'
         db, auth, session = current.db, current.auth, current.session
 
         utc_now = datetime.datetime.utcnow()
@@ -1095,7 +1095,7 @@ class Step(object):
         Get the prompt text to be presented from the npc to start the step
         interaction.
         '''
-        if self.verbose: print 'calling Step._get_prompt-----------'
+        if self.verbose: print 'calling', type(self), '._get_prompt-----------'
         debug = True
         auth = current.auth
 
@@ -1126,7 +1126,7 @@ class Step(object):
         Create and return the form to receive the user's response for this
         step.
         '''
-        if self.verbose: print 'calling Step._get_responder-----------'
+        if self.verbose: print 'calling', type(self), '._get_responder--------'
 
         # TODO: this return not needed now? Or should .complete() be called?
         if isinstance(self, StepStub):
@@ -1149,7 +1149,7 @@ class StepMultipleChoice(Step):
         create and return the form to receive the user's response for this
         step
         '''
-        if self.verbose: print 'calling StepMultipleChoice._get_responder-----'
+        if self.verbose: print 'calling', type(self), '._get_responder-----'
         session, request = current.session, current.request
 
         vals = self.step.options
@@ -1169,7 +1169,7 @@ class StepMultipleChoice(Step):
 
         This method overrides Step.process for the StepMultipleChoice subclass.
         '''
-        if self.verbose: print 'calling StepMultipleChoice._get_responder----'
+        if self.verbose: print 'calling', type(self), '._get_responder----'
         debug = False
         session, db, auth = current.session, current.db, current.auth
 
@@ -1242,6 +1242,7 @@ class StepStub(Step):
 
         Note that the user always gets the step right.
         '''
+        if self.verbose: print 'calling', type(self), '.complete -------------'
         session = current.session
 
         del session.walk['active_paths'][self.path.id]
@@ -1252,7 +1253,8 @@ class StepStub(Step):
         overrides Step._get_responder() to remove everything but the map
         button built into the view template.
         '''
-        return SPAN()
+        if self.verbose: print 'calling', type(self), '._get_responder -------'
+        return SPAN('*')
 
 
 class StepNonBlocking(Step):
@@ -1268,12 +1270,8 @@ class StepNonBlocking(Step):
         Create and return the html helper for the buttons to allow the user
         to continue here.
         '''
-        if self.verbose: print 'calling Step._get_responder-----------'
+        if self.verbose: print 'calling', type(self), '._get_responder--------'
         request = current.request
-
-        # TODO: this return not needed now? Or should .complete() be called?
-        if isinstance(self, StepStub):
-            return
 
         buttons = A("Continue", _href=URL('walk', args=['ask'],
                                         vars=dict(loc=request.vars['loc'])),
@@ -1294,6 +1292,7 @@ class StepViewSlides(StepStub):
         '''
         Provide the string replacement data to be used in the step prompt.
         '''
+        if self.verbose: print 'calling', type(self), '._get_replacements ----'
         session = current.session
         db = current.db
 
@@ -1318,7 +1317,7 @@ class StepViewSlides(StepStub):
                 for li in title_list:
                     slides.append(LI(li))
 
-        replacements = {'[[badge_list]]': badges, '[[slides]]':slides}
+        replacements = {'[[badge_list]]': badges, '[[slides]]': slides}
 
         return replacements
 
@@ -1352,6 +1351,7 @@ class StepAwardBadges(StepNonBlocking, StepStub):
         '''
         Provide the string replacement data to be used in the step prompt.
         '''
+        if self.verbose: print 'calling', type(self), '._get_replacements ---'
         session = current.session
         db = current.db
 
@@ -1390,6 +1390,7 @@ class StepImage(Step):
         Returns the image to be displayed in the step prompt, wrapped in a
         web2py IMG() helper object.
         '''
+        if self.verbose: print 'calling', type(self), '._get_step_image -----'
 
 
 class StepImageMultipleChoice(StepImage, StepMultipleChoice):
