@@ -1,6 +1,6 @@
 # coding: utf8
 from gluon import current, redirect, Field
-from gluon import IMG, SQLFORM, SPAN, DIV, URL, A, UL, LI
+from gluon import IMG, SQLFORM, SPAN, DIV, URL, A, UL, LI, MARKMIN
 from gluon import IS_NOT_EMPTY, IS_IN_SET
 #from gluon.sql import Row, Rows
 
@@ -280,15 +280,15 @@ class Walk(object):
         for categ, lst in categories.iteritems():
             if lst:
                 print 'current badges =', lst
-                catname = 'cat{0}'.format(categ)
-                if mycats and mycats[catname]:
-                    new = [t for t in lst if t not in mycats[catname]]
+                categ = 'cat{0}'.format(str(categ))
+                if mycats and mycats[categ]:
+                    new = [t for t in lst if t not in mycats[categ]]
                 else:
                     new = [t for t in lst]
                 if new:
                     if debug: print 'newly awarded badges =', new
-                    new_badges[catname] = new
-                    all_badges[catname] = new + lst
+                    new_badges[categ] = new
+                    all_badges[categ] = new + lst
 
         db.tag_progress.update_or_insert(**{
                                             'name': auth.user_id,
@@ -364,7 +364,11 @@ class Walk(object):
         # Have we reached the daily path limit? Return a default step.
         # TODO: Replace hardcoded limit (20)
         if len(session.walk['completed_paths']) >= 20:
-            return self._get_util_step('end of quota')  # tag id=79
+            if 'quota_override' in session.walk and \
+                                                session.walk['quota_override']:
+                pass
+            else:
+                return self._get_util_step('end of quota')  # tag id=79
 
         return None, None
 
@@ -501,7 +505,6 @@ class Walk(object):
         #if not self.staying:
 
         path, step_id = self._handle_blocks()
-        if debug: print 'path=', path.id, 'step=', step_id
         # _handle_blocks() returns None, None if no blocks present
         # if daily max reached, returns default step
         if path and step_id:
@@ -1114,11 +1117,11 @@ class Step(object):
         newtext = rawtext.replace('[[user]]', uname)
         try:
             for k, v in self._get_replacements().iteritems():
-                newtext = newtext.replace(k, v)
+                newtext = newtext.replace(k, v.xml())
         except AttributeError:
             if debug: print 'No replacements for this Step type'
 
-        prompt = SPAN(newtext)
+        prompt = MARKMIN(newtext)
 
         try:
             prompt.append(self._get_step_image())
@@ -1136,8 +1139,8 @@ class Step(object):
 
     def _get_step_audio(self):
         '''
-        Return an html audio tag as a string, linking to the audio file for
-        the current step's prompt.
+        Return the url (as a string) of the audio file for the current step's
+        prompt.
         '''
         if self.verbose:
             print 'calling', type(self).__name__, '._get_step_audio--------'
@@ -1147,7 +1150,7 @@ class Step(object):
             url = URL('static/audio', self.step.prompt_audio)
             if debug: print url
             if url:
-                return '<audio src="{0}" />'.format(url)
+                return url.xml()
         except:
             print '._get_step_audio(): Could not find step audio'
             return
@@ -1359,21 +1362,24 @@ class StepViewSlides(StepStub):
         '''
         if self.verbose:
             print 'calling', type(self).__name__, '._get_replacements ----'
+        debug = True
         session = current.session
         db = current.db
 
         badges = ''
         if 'new_badges' in session.walk:
             for k, v in session.walk['new_badges'].iteritems():
-                if k == 1:
+                if k == 'cat1':
                     for tag in v:
                         badge = db(db.badges.tag == tag).select().first()
-                        bn = '{0} {1}'.format('beginner', badge.badge_name)
-                        bn_span = SPAN(bn, _class='badge_name')
-                        badge_string = bn_span.xml() + ', '
-                        badges += badge_string
+                        badge_name = '{0} {1},'.format('beginner',
+                                                       badge.badge_name)
+                        badges += badge_name
+                    if badges[-1] == ',':
+                        badges = badges[:len(badges)]
+        if debug: print 'badges =', badges
 
-        slides = UL(_class='slides_list')
+        slides = ''
         if 'view_slides' in session.walk:
             for t in session.walk['view_slides']:
                 # convert this to link once plugin_slider supports it
@@ -1381,7 +1387,8 @@ class StepViewSlides(StepStub):
                 title_list = [db.plugin_slider_decks[d].deck_name
                                                         for d in tag_slides]
                 for li in title_list:
-                    slides.append(LI(li))
+                    slides += '- {0}'.format(li)
+        if debug: print 'slides =', slides
 
         replacements = {'[[badge_list]]': badges, '[[slides]]': slides}
 
@@ -1400,7 +1407,21 @@ class StepDailyQuota(StepNonBlocking, StepStub):
     # user's required quota of paths per day.
     verbose = True
 
-    pass
+    def _get_replacements(self):
+        '''
+        Just here as a hook to introduce _add_flag into the step processing
+        cycle.
+        '''
+        self._add_flag()
+
+    def _add_flag(self):
+        '''
+        Add the session flag overriding the user's daily quota
+        of steps, allowing the user to continue on to a new step.
+        '''
+        session = current.session
+
+        session.walk['quota_override'] = True
 
 
 class StepAwardBadges(StepNonBlocking, StepStub):
@@ -1419,31 +1440,57 @@ class StepAwardBadges(StepNonBlocking, StepStub):
         '''
         if self.verbose:
             print 'calling', type(self).__name__, '._get_replacements ---'
+        debug = True
         session = current.session
         db = current.db
+        auth = current.auth
 
-        badges = UL(_class='badge_list')
+        badges = ''
         if 'new_badges' in session.walk:
             for k, v in session.walk['new_badges'].iteritems():
-                if type(k) == int:
+                if debug: print 'new_badges =', session.walk['new_badges']
+                #TODO: cludge to handle change in new_badges keys to simple int
+                print k, k[:3], k[3:]
+                if k[:3] == 'cat' and int(k[3:]) in [1, 2, 3, 4]:
+                    n = int(k[3:])
+                    print v
                     for tag in v:
+                        print 'auth =', auth.user_id
                         badge = db(db.badges.tag == tag).select().first()
+                        if debug: print 'badge =', badge
                         ranks = ['beginner', 'apprentice',
-                                    'journeyman', 'master']
-                        bn = '{0} {1}'.format(ranks[k], badge.badge_name)
-                        bn_span = SPAN(bn, _class='badge_name')
-                        rank_verbs = ['starting to learn',
-                                        'making good progress with',
-                                        'gaining a good working grasp of',
-                                        'mastering']
-                        bd = 'for {0} {1}'.format(rank_verbs[k],
-                                                  badge.description)
-                        badge_string = LI(bn_span.xml(), bd)
-                        badges.append(badge_string.xml())
+                                                'journeyman', 'master']
+                        try:
+                            #TODO: chokes on this line if badge == None
+                            badge_name = '{0} {1}'.format(ranks[n - 1],
+                                                          badge.badge_name)
+                            rank_verbs = ['starting to learn',
+                                            'making good progress with',
+                                            'gaining a good working grasp of',
+                                            'mastering']
+                            badge_desc = 'for {0} {1}'.format(
+                                                        rank_verbs[n - 1],
+                                                        badge.description)
+                            if debug: print 'badge_desc =', badge_desc
+                            badges += ('- **{0}** {1}\n'.format(badge_name,
+                                                               badge_desc))
+                        except:
+                            badges += '- unknown\n'
+        if debug: print badges
+        print 'bla, bla'
+        self._remove_flag()
 
-        replacements = {'[[badge_list]]': badges}
+        return {'[[badge_list]]': badges}
 
-        return replacements
+    def _remove_flag(self):
+        '''
+        remove the session flag for newly awarded badges, allowing the user
+        to continue on to a new step.
+        '''
+        session = current.session
+
+        del session.walk['new_badges']
+        print 'removed award badges flag'
 
 
 class StepImage(Step):

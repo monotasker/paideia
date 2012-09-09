@@ -4,8 +4,128 @@
 		"selected_items":
 		[
 			[
-				"paid",
-				"paideia_path"
+				"user_",
+				"user_id"
+			],
+			[
+				"plugin",
+				"plugin_slider_decks"
+			],
+			[
+				"image",
+				"images"
+			],
+			[
+				"_get",
+				"_get_responder()	(attribute, function)"
+			],
+			[
+				"IS_",
+				"IS_EMPTY_OR	(imported, instance)"
+			],
+			[
+				"IS",
+				"IS_NOT_IN_DB"
+			],
+			[
+				"loc",
+				"location"
+			],
+			[
+				"locat",
+				"location"
+			],
+			[
+				"NOT",
+				"IS_NOT_IN_DB"
+			],
+			[
+				"req",
+				"requires"
+			],
+			[
+				"user",
+				"user"
+			],
+			[
+				"class",
+				"class_id"
+			],
+			[
+				"app",
+				"app_settings"
+			],
+			[
+				"all",
+				"all_badges"
+			],
+			[
+				"log",
+				"log_list()	(attribute, function)"
+			],
+			[
+				"new",
+				"new_badge_list	(local, instance)"
+			],
+			[
+				"Paths",
+				"PathsVirtualFields2	(global, class)"
+			],
+			[
+				"Is_",
+				"IS_IN_SET"
+			],
+			[
+				"path",
+				"patherror"
+			],
+			[
+				"res",
+				"restrictor	(local, instance)"
+			],
+			[
+				"refre",
+				"refresher_id"
+			],
+			[
+				"restr",
+				"restricted"
+			],
+			[
+				"clean",
+				"clean_val"
+			],
+			[
+				"list",
+				"lister"
+			],
+			[
+				"restri",
+				"restrictor"
+			],
+			[
+				"rest",
+				"restricted"
+			],
+			[
+				"refresh",
+				"refresher"
+			],
+			[
+				"field",
+				"fieldset	(local, instance)"
+			],
+			[
+				"wra",
+				"wrappername	(local, instance)"
+			],
+			[
+				"hid",
+				"hidden_ajax_field	(attribute, function)"
+			],
+			[
+				"wrapp",
+				"wrappername"
 			],
 			[
 				"tag",
@@ -88,10 +208,6 @@
 				"formname"
 			],
 			[
-				"list",
-				"plugin_listandedit"
-			],
-			[
 				"init",
 				"__init__"
 			],
@@ -100,20 +216,12 @@
 				"curr_loc"
 			],
 			[
-				"loc",
-				"location"
-			],
-			[
 				"acti",
 				"active_path"
 			],
 			[
 				"pai",
 				"paideia_path"
-			],
-			[
-				"user",
-				"user_id"
 			],
 			[
 				"introduc",
@@ -224,49 +332,30 @@
 				"selected"
 			],
 			[
-				"wra",
-				"wrappername"
-			],
-			[
 				"fields",
 				"fieldset"
 			],
 			[
 				"fun",
 				"function"
-			],
-			[
-				"plugin",
-				"plugin_ajaxselect"
 			]
 		]
 	},
 	"buffers":
 	[
 		{
-			"file": "models/paideia.py",
-			"settings":
-			{
-				"buffer_size": 12275,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"contents": "# coding: utf8\nfrom gluon import current, redirect, Field\nfrom gluon import IMG, SQLFORM, SPAN, DIV, URL, A, UL, LI\nfrom gluon import IS_NOT_EMPTY, IS_IN_SET\n#from gluon.sql import Row, Rows\n\nimport datetime\nimport random\nimport re\nimport traceback\n\n\n# TODO: Deprecate eventually\nclass Utils(object):\n    '''\n    Miscellaneous utility functions, gathered in a class for convenience.\n    '''\n    # TODO: Move logic to controller and remove class\n    def clear_session(self):\n        session, response = current.session, current.response\n\n        if response.vars and ('session_var' in response.vars):\n            session_vars = response.vars['session_var']\n        else:\n            session_vars = 'all'\n\n        if session_vars == 'all':\n            session_vars = ['walk']\n        if type(session_vars) is not list:\n            session_vars = list(session_vars)\n\n        for s in session_vars:\n            if s in session:\n                del session[s]\n\n\nclass Walk(object):\n    '''\n    A class handling the \"movement\" of a user from one path or step to the\n    next (i.e., transitions between states outside a single step). In other\n    words, this class prepares path-related information needed immediately\n    before path selection.\n    '''\n\n    verbose = True  # controls printing of initialization and method calls\n\n    def __init__(self):\n        session = current.session\n        auth = current.auth\n\n        if self.verbose:\n            print 'initializing Walk============================'\n        if not session.walk:\n            self.active_location = None\n            self.path = None\n            self.active_paths = {}\n            self.completed_paths = set()\n            self.step = None\n            # initialize the session properly\n            self.tag_set = self._categorize_tags()\n            self.new_badges = self._new_badges(auth.user_id, self.tag_set)\n            self._unfinished()\n            self._save_session_data()\n        else:\n            self._get_session_data()\n\n        self.map = Map()\n        self.staying = False\n\n    def _save_session_data(self):\n        '''\n        Save attributes in session.\n        '''\n        debug = True\n        if self.verbose:\n            print 'calling Walk._save_session_data--------------'\n        session = current.session\n\n        session_data = {}\n\n        if self.path:\n            session_data['path'] = self.path.id\n        else:\n            session_data['path'] = None\n\n        if self.active_location:\n            session_data['active_location'] = self.active_location\n        session_data['active_paths'] = self.active_paths\n        session_data['completed_paths'] = self.completed_paths\n        session_data['tag_set'] = self.tag_set\n        try:\n            session_data['new_badges'] = self.new_badges\n        except AttributeError:\n            pass\n\n        try:\n            session.walk.update(session_data)\n        except AttributeError:\n            session.walk = session_data\n\n        # TODO: Is this necessary?\n        if self.step:\n            self.step._save_session_data()\n        if debug:\n            print 'self.step = ', self.step\n\n    def _get_session_data(self):\n        '''\n        Get the walk attributes from the session.\n        '''\n        debug = False\n        if self.verbose:\n            print 'calling Walk._get_session_data--------------'\n        db, session, request = current.db, current.session, current.request\n\n        path = session.walk['path']\n        if path:\n            self.path = db.paths(path)\n        else:\n            self.path = None\n\n        if 'loc' in request.vars:\n            location_alias = request.vars['loc']\n            self.active_location = Location(location_alias).info()\n            session.walk['active_location'] = self.active_location\n            if debug:\n                print 'self.active_location =', self.active_location\n        else:\n            self.active_location = None\n            session.walk['active_location'] = None\n            if debug:\n                print 'no loc variable in request, setting loc to None'\n        self.active_paths = session.walk['active_paths']\n        self.completed_paths = session.walk['completed_paths']\n        self.tag_set = session.walk['tag_set']\n\n        # only initialize a step if we have entered a location\n        if 'step' in session.walk and self.active_location:\n            self.step = self._create_step_instance(session.walk['step'])\n        else:\n            self.step = None\n\n    def _create_step_instance(self, step_id=None):\n        '''\n        Create an instance of a Step class or one of its subclasses based on\n        the step's widget type.\n        '''\n        debug = True\n        if self.verbose:\n            print 'calling Walk._create_step_instance------------'\n        db = current.db\n        session = current.session\n\n        if not step_id:\n            step_id = session.walk['step']\n\n        if debug:\n            print 'step id =', step_id\n        step = db.steps(step_id)\n        step_type = db.step_types(step.widget_type)\n        if debug:\n            print 'step type =', step_type\n\n        return STEP_CLASSES[step_type.step_class](step_id)\n\n    def _introduce(self):\n        '''\n        This method checks the user's performance and, if appropriate,\n        introduces one or more new tags to the active set for selecting paths.\n        This method is intended as private, to be called by categorize()\n        if that method yields an initial result with no tags in category 1\n        (needing immediate review).\n        '''\n        if self.verbose:\n            print 'calling Walk._introduce--------------'\n        auth = current.auth\n        db = current.db\n        session = current.session\n\n        tag_progress = db(db.tag_progress.name == auth.user_id).select()[0]\n        # TODO: Check we aren't at the end of the tag progression\n        if tag_progress:\n            latest = tag_progress.latest_new + 1\n\n            tag_progress.update(name=auth.user_id, latest_new=latest)\n\n        else:\n            latest = 1\n\n            db.tag_progress.insert(name=auth.user_id, latest_new=latest)\n\n        tags = [t.id for t in db(db.tags.position == latest).select()]\n        # TODO: Use slide deck titles (so correlate them with tags somewhere)\n        session.walk['view_slides'] = tags\n\n        return tags\n\n    def _categorize_tags(self, user=None):\n        '''\n        This method uses stored statistics for current user to categorize the\n        grammatical tags based on the user's success and the time since the\n        user last used the tag.\n\n        The categories range from 1 (need immediate review) to 4 (no review\n        needed).\n\n        This method is called at the start of each user session so that\n        time-based statistics can be updated. It is also called by\n        Stats.categories() to provide a progress report for the student's\n        profile page.\n\n        Returns a dictionary with four keys corresponding to the four\n        categories. The value for each key is a list holding the id's\n        (integers) of the tags that are currently in the given category.\n        '''\n        debug = True\n        if self.verbose: print 'calling Walk._categorize_tags--------------'\n        auth = current.auth\n        db = current.db\n\n        if not user:\n            user = auth.user_id\n        #TODO: Factor in how many times a tag has been successful or not\n\n        # create new dictionary to hold categorized results\n        categories = dict((x, []) for x in xrange(1, 5))\n\n        record_list = db(db.tag_records.name == user).select()\n\n        for record in record_list:\n            #get time-based statistics for this tag\n            #note: the arithmetic operations yield datetime.timedelta objects\n            now_date = datetime.datetime.utcnow()\n            right_dur = now_date - record.tlast_right\n            right_wrong_dur = record.tlast_right - record.tlast_wrong\n\n            # Categorize q or tag based on this performance\n            if right_dur < right_wrong_dur:\n                if right_wrong_dur.days >= 7:\n                    if right_wrong_dur.days > 30:\n                        if right_wrong_dur > datetime.timedelta(days=180):\n                            category = 1  # Not due, not attempted for 6 months\n                        else:\n                            category = 4  # Not due, delta more than a month\n                    else:\n                        category = 3  # Not due, delta between a week and month\n                else:\n                    category = 2  # Not due but delta is a week or less\n            else:\n                category = 1  # Spaced repetition requires review\n            categories[category].append(record.tag.id)\n\n        if debug: print categories\n\n        # Remove duplicate tag id's from each category\n        for k, v in categories.iteritems():\n            categories[k] = list(set(v))\n\n        # If there are no tags needing immediate review, introduce new one\n        if not categories[1]:\n            categories[1] = self._introduce()\n\n        self.tag_set = categories\n        # return the value as well so that it can be used in Stats\n        return categories\n\n    def _new_badges(self, user, categories):\n        '''\n        Find any tags that have been newly promoted to a higher category,\n        update the user's row in db.tag_progress, and return a dictionary of\n        those new tags whose structure mirrors that of session.walk['tag_set'].\n        '''\n        if self.verbose: print 'calling Walk._new_badges ---------------------'\n        debug = True\n        db = current.db\n        auth = current.auth\n\n        # If a tag has moved up in category, award the badge\n        # TODO: needs to be tested!!!\n        mycats = db(db.tag_progress.name == auth.user_id).select().first()\n        if debug: print 'mycats =', mycats\n\n        new_badges = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}\n        all_badges = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}\n        for categ, lst in categories.iteritems():\n            if lst:\n                print 'current badges =', lst\n                catname = 'cat{0}'.format(categ)\n                if mycats and mycats[catname]:\n                    new = [t for t in lst if t not in mycats[catname]]\n                else:\n                    new = [t for t in lst]\n                if new:\n                    if debug: print 'newly awarded badges =', new\n                    new_badges[catname] = new\n                    all_badges[catname] = new + lst\n\n        db.tag_progress.update_or_insert(**{\n                                            'name': auth.user_id,\n                                            'cat1': all_badges['cat1'],\n                                            'cat2': all_badges['cat2'],\n                                            'cat3': all_badges['cat3'],\n                                            'cat4': all_badges['cat4'],\n                                            })\n\n        if new_badges:\n            if debug: print 'new badges =', new_badges\n            return new_badges\n        else:\n            if debug: print 'no new badges awarded'\n            return None\n\n    def _unfinished(self):\n        '''\n        This public method checks for any paths that have been started but not\n        finished by the current user. It expects finished paths to have a\n        'last_step' value of 0 in its most recent entry in the db table\n        path_log.\n\n        called by: controllers/exploring.index()\n        '''\n        if self.verbose:\n            print 'calling Walk._unfinished--------------'\n        auth, db = current.auth, current.db\n\n        path_logs = db(\n            (db.path_log.name == auth.user_id) &\n            (db.path_log.last_step != 0)\n        ).select()\n\n        # Get only most recent log for each unique path\n        self.active_paths = {}\n        for path in set(log.path for log in path_logs):\n            log = max((p.dt_started, p)\n                      for p in path_logs if p.path == path)[1]\n            self.active_paths[path.id] = log.last_step\n\n    def _handle_blocks(self):\n        '''\n        Look for active blocking conditions:\n            * a new badge has been awarded\n            * a new badge is being started (and slides need to be viewed)\n            * no response given for an activated step\n            * daily full paths limit reached\n        Also checks to make sure that any path/step combination it returns\n        is a valid combination.\n\n        Returns:\n            * (None, None) if there are no blocking conditions\n            * Otherwise, return (path, step id) for active blocking conditions\n        '''\n\n        if self.verbose:\n            print 'calling Walk._handle_blocks--------------'\n        auth, db, session = current.auth, current.db, current.session\n\n        if 'new_badges' in session.walk:\n            return self._get_util_step('award badge')  # tag id=81\n\n        # TODO: insert these session.walk values in _introduce and _categorize)\n        if 'view_slides' in session.walk:\n            return self._get_util_step('view slides')  # tag id=80\n\n        # TODO: need to fix check for step that was never finished\n        #upath, ustep = self._unfinished_today()\n        #if upath:\n            #return upath, ustep\n\n        # Have we reached the daily path limit? Return a default step.\n        # TODO: Replace hardcoded limit (20)\n        if len(session.walk['completed_paths']) >= 20:\n            return self._get_util_step('end of quota')  # tag id=79\n\n        return None, None\n\n    def _unfinished_today(self):\n        '''\n        If there are any newly activated paths that haven't had a response yet,\n        activate the first one whose next step is in this loc.\n        '''\n        if self.verbose:\n            print 'calling Walk.unfinished_today--------------'\n        db, auth = current.db, current.auth\n\n        # Get this user's unfinished paths\n        path_logs = db(\n            (db.path_log.name == auth.user_id) &\n            (db.path_log.last_step != 0)\n        ).select()\n\n        # TODO: use UTC or adjust here for user's local tz?\n        today = datetime.datetime.utcnow().date()\n\n        # Activate the first unfinished step that hasn't had a response\n        for log in path_logs:\n            # Filter out if it wasn't started today\n            #TODO: Is there a faster way to do this?\n            # yes: look for any in path_logs that aren't in active_paths\n            attempts = db(\n                (db.attempt_log.name == auth.user_id) &\n                (db.attempt_log.path == log.path) &\n                (db.attempt_log.step == log.last_step) &\n                (db.attempt_log.dt_attempted >= log.dt_started)\n            ).select(orderby=~db.attempt_log.dt_attempted)\n            attempts = [a for a in attempts if a.dt_attempted.date() == today]\n            ls = log.last_step\n            in_path = self._step_in_path(log.path, ls)\n            here = self.active_location['id'] in db.steps[ls].locations\n\n            # If it's in this loc, activate; otherwise, show default step\n            if attempts and in_path and here:\n                return log.path, log.last_step\n            elif attempts and in_path:\n                return self._get_util_step('default')  # tag id=70\n\n        return None, None\n\n    def activate_step(self, path, step_id):\n        '''\n        Activate the given step on the given path.\n        '''\n        debug = True\n        if self.verbose:\n            print 'calling Walk.activate_step--------------'\n        session = current.session\n        db = current.db\n\n        # allow for situations where the path id is given rather than the\n        # path's row object. (As in 'retry' state.)\n        if type(path) == int:\n            path = db.paths[path]\n\n        self.path = path\n        self.active_paths[path.id] = step_id\n        if debug:\n            print 'activating step', step_id\n        self.step = self._create_step_instance(step_id)\n        self._save_session_data()\n        if debug:\n            print 'session.walk[\"active_paths\"] is now'\n            print session.walk[\"active_paths\"]\n            print 'session.walk[\"path\"] is now', session.walk[\"path\"]\n            print 'session.walk[\"step\"] is now', session.walk[\"step\"]\n        self._update_path_log(path.id, step_id, 0)\n\n    def _deactivate_path(self, path):\n        '''\n        Deactivate the given path. It will then be considered \"completed\" for\n        the current day and will not be repeated.\n        '''\n        debug = False\n        if self.verbose:\n            print 'calling Walk._deactivate_path--------------'\n        if debug:\n            print 'in Walk._deactivate_path, path =', path\n\n        self._update_path_log(path, 0, 1)\n        del self.active_paths[path]\n        self.completed_paths.add(path)\n        self._save_session_data()\n\n    def _get_util_step(self, tag):\n        '''\n        Return the default path and step for a particular utility situation.\n        These include\n        - having reached the daily quota of completed paths\n        - having an incomplete path whose next step is in another location\n        - having a newly introduced tag whose slides must be viewed\n        - having a newly awarded badge\n        '''\n        debug = True\n        if self.verbose:\n            print 'calling Walk._get_util_step--------------'\n        session, db = current.session, current.db\n\n        tag_id = db(db.tags.tag == tag).select()[0].id\n        steps = db(db.steps.tags.contains(tag_id)).select()\n        if debug:\n            print 'steps with tag', tag, 'id=', tag_id\n            print steps\n\n        # Choose a step at random\n        if len(steps) > 1:\n            step = steps[random.randrange(0, len(steps))]\n        else:\n            step = steps[0]\n\n        path = db(db.paths.steps.contains(step.id)).select().first()\n\n        return path, step.id\n\n    def next_step(self):\n        '''\n        Choose a new path and step for the user, based on tag performance.\n        Checks first for any blocking conditions and constrains the\n        choice of next step accordingly.\n        '''\n        debug = False\n        if self.verbose:\n            print 'calling Walk.next_step--------------'\n\n        # Handle active blocking conditions\n        # TODO: condition is being deprecated\n        #if not self.staying:\n\n        path, step_id = self._handle_blocks()\n        # _handle_blocks() returns None, None if no blocks present\n        # if daily max reached, returns default step\n        if path and step_id:\n            if debug:\n                print 'blocking conditions found'\n                print 'by activating path', path, ', step', step_id\n            self.activate_step(path, step_id)\n            return\n\n        else:\n            # select the next path and/or step\n            new_path, new_step = self._get_next_step()\n\n            self.activate_step(new_path, new_step)\n\n            return\n\n    def _step_in_path(self, path, step=None):\n        '''\n        Check the given step id to make sure it is in the given path. If so,\n        return the index of the given step in the path. If no step is given\n        use the last completed step (as recorded in self.active_paths).\n        If the step is not in the given path, return False.\n        '''\n        debug = True\n        if self.verbose:\n            print 'calling Walk._step_in_path--------------'\n\n        if not step:\n            try:\n                step = self.active_paths[path.id]\n            except Exception, e:\n                print 'Error encountered in Walk._step_in_path()'\n                print e\n        if debug:\n            print 'checking that step', step, 'is in path', path.id\n        try:\n            step_index = path.steps.index(step)\n            if debug:\n                print 'step', step, 'is index', step_index, 'in path', path.id\n            return step_index\n        # If impossible step id is given in active_paths\n        except ValueError, err:\n            if debug:\n                print 'ValueError:', err\n                print 'step', step, '*not* in path', path.id\n            # Remove this path from active paths\n            if path.id in self.active_paths:\n                del self.active_paths[path.id]\n                self._save_session_data()\n            if debug:\n                print 'self.active_paths now=', self.active_paths\n\n            # Set the log for this attempt as if path completed\n            self._update_path_log(path.id, 0, 1)\n            # TODO: Log error instead/as well\n            return False\n\n    def stay(self):\n        '''\n        Continue the current path in this location if possible. (Deprecated)\n        '''\n        # TODO: This method is now deprecated\n        debug = False\n\n        session, db = current.session, current.db\n        if debug:\n            print 'calling Walk.stay() =============='\n            print 'self.step.step.id =', self.step.step.id\n            print 'self.path.id =', self.path.id\n\n        index = self.path.steps.index(self.step.step.id)\n        if index + 1 < len(self.path.steps):\n            try:\n                step = db.steps(self.path.steps[index + 1])\n                if self.active_location['id'] in step.locations:\n                    self.activate_step(self.path, step.id)\n                    self._save_session_data()\n                    return True\n            except Exception, e:\n                print 'Exception raised trying to continue active path in'\n                print 'Walk.stay()'\n                print e\n\n        if debug:\n            print 'No path to continue here'\n\n        return False\n\n    def _get_next_step(self):\n        '''\n        Determines what path and step to activate next and returns them as\n        a dictionary with the keys 'path' and 'step'.\n\n        The method looks (in order of preference) for:\n        1)  an active path whose next step is in this location;\n        2) an active path whose next step is in another location (in which\n        case the default step is activated;\n        3) a new path which can be started in this location and whose tags are\n        due for review by the current user;\n        4) a new path started in another location whose tags are\n        due (in which case the default step is activated);\n        5) any random path which can be started here;\n        6) any random path which can be started elsewhere (in which case the\n        default step is activated)\n        '''\n        debug = True\n        if self.verbose:\n            print 'calling Walk._get_next_step--------------'\n        db = current.db\n        auth = current.auth\n\n        loc_id = self.active_location['id']\n\n        # 1) try to continue an active path whose next step is in this loc\n        if self.active_paths:\n            if debug:\n                print 'looking for active paths in this location'\n                print 'active_paths =', self.active_paths\n            apaths = db(db.paths.id.belongs(self.active_paths.keys())).select()\n\n            for path in apaths:\n                # make sure step belongs to the path\n                step_id = self.active_paths[path.id]\n                step_index = self._step_in_path(path, step_id)\n                if debug:\n                    print 'index of the last started step is', step_index\n                if type(step_index) is bool:\n                    if debug:\n                        print 'step', step_id, 'not in path', path.id\n                    continue\n\n                # 1) try to activate the next step if it can be done here.\n                if len(path.steps) > (step_index + 1):\n                    if debug:\n                        print len(path.steps), 'steps in this path'\n                    step_id = path.steps[step_index + 1]\n                    step = db.steps[step_id]\n\n                    # 2) If not in this location, send user elsewhere\n                    if not loc_id in step.locations:\n                        if debug:\n                            print 'next step elsewhere, getting default'\n                        return self._get_util_step('default')\n\n                    self.active_paths[path.id] = step_id\n                    self._update_path_log(path.id, step_id, 1)\n                    if debug:\n                        print 'getting next step', step_id\n                        print 'of path', path.id\n                    return path, step_id\n                # If the last step in the path is completed, deactivate path\n                # and try the next in apaths\n                else:\n                    self._deactivate_path(path.id)\n                    if debug:\n                        print 'last step already completed for path', path.id\n                    continue\n\n        # 3)-4) look for a new path due, first in this location and otherwise\n        # in another location\n        if debug: print 'no active paths, looking for a new path'  # DEBUG\n\n        cat = self._get_category()\n        cat_range = self.tag_set.keys()\n        cat_list = cat_range[cat:5] + cat_range[0:cat]\n        if debug: print 'category list to try:', cat_list\n\n        # cycle through categories, starting with the one from _get_category()\n        for cat in cat_list:\n            if debug: print 'Trying category', cat  # DEBUG\n            tag_list = self.tag_set[cat]\n            p_list = db(db.paths.id > 0).select()\n            p_list = p_list.find(lambda row: [t in row.tags for t in tag_list])\n            # exclude paths completed in this session\n            if self.completed_paths:\n                p_list.exclude(lambda row: row.id in self.completed_paths)\n            if p_list:\n                if debug: print 'some new paths are available in cat', cat\n                # 3) Find and activate a due path that starts here\n                for path in p_list:\n                    step1_id = path.steps[0]\n                    first_step = db.steps[step1_id]\n                    if loc_id in first_step.locations:\n                        print 'found path', path.id, 'step', step1_id, 'due'\n                        return path, step1_id\n                    else:\n                        continue\n                # 4) If due paths are elsewhere, trigger default step\n                return self._get_util_step('default')\n\n        #TODO: Fall back here to repeating random paths from completed_paths\n        # first that can be started here\n        # then that can't (trigger default step)\n\n        # 5) Choose a random path that can be started here\n        if debug: print 'looking for random path with active tags'  # DEBUG\n        paths = self._get_paths()\n        max_rank = db(db.tag_progress.name == auth.user_id).first().latest_new\n        tag_list = db(db.tags.id <= max_rank)\n        paths.find(lambda row: [t in row.tags for t in tag_list])\n        path = paths[random.randrange(0, len(paths))]\n\n        return path, path.steps[0].id\n\n    def _get_category(self):\n        '''\n        Choose one of four categories with a random factor but a heavy\n        weighting toward category 1\n        '''\n\n        if self.verbose: print 'calling Walk._get_category--------------'\n        switch = random.randrange(1, 101)\n\n        if switch in range(1, 75):\n            category = 1\n        elif switch in range(75, 90):\n            category = 2\n        elif switch in range(90, 98):\n            category = 3\n        else:\n            category = 4\n        return category\n\n    def _get_paths(self):\n        '''\n        Return all paths in the game.\n        '''\n        if self.verbose: print 'calling Walk._get_paths--------------'\n        db = current.db\n        cache = current.cache\n\n        # TODO: Review cache time\n        return db().select(db.paths.ALL,\n                        orderby=db.paths.id,\n                        cache=(cache.ram, 60 * 60))\n\n    def _update_path_log(self, path_id, step_id, update_switch):\n        '''\n        Create or update entries in the path_log table.\n        '''\n        if self.verbose: print 'calling Walk._update_path_log--------------'\n        auth, db = current.auth, current.db\n\n        if update_switch:\n            query = (db.path_log.path == path_id) & (db.path_log.name ==\n                                                                auth.user_id)\n            log = db(query).select(orderby=~db.path_log.dt_started).first()\n            log.update_record(path=path_id, last_step=step_id)\n        else:\n            db.path_log.insert(path=path_id, last_step=step_id)\n\n\nclass Step(object):\n\n    verbose = True\n\n    def __init__(self, step=None):\n\n        debug = False\n        db, session = current.db, current.session\n        if self.verbose: print 'Initializing Step============================='\n\n        if step is not None:\n            self.path = db.paths(session.walk['path'])\n            self.step = db.steps(step)\n            self.location = session.walk['active_location']\n            self.npc = None\n            self._save_session_data()\n        else:\n            self._get_session_data()\n\n        if debug: print 'session.walk[\"active_location\"] ='\n        if debug: print session.walk[\"active_location\"]\n\n    def _save_session_data(self):\n        '''\n        Save attributes in session.\n        '''\n        debug = True\n        if self.verbose: print 'calling Step._save_session_data--------------'\n        session = current.session\n\n        session_data = {}\n        session_data['step'] = self.step.id\n        session.walk.update(session_data)\n        if self.npc:\n            self.npc._save_session_data()\n\n        if debug: print 'session_data =', session_data\n\n        return\n\n    def _get_session_data(self):\n        '''\n        Get the step attributes from the session.\n        '''\n        if self.verbose: print 'calling Step._get_session_data--------------'\n        db, session = current.db, current.session\n\n        self.location = session.walk['active_location']\n        self.path = db.paths(session.walk['path'])\n        try:\n            self.step = db.steps(session.walk['step'])\n            self.npc = Npc(session.walk['npc'])\n        except KeyError:\n            self.step = None\n            self.npc = None\n\n    def ask(self):\n        '''\n        Public method. Returns the html helpers to create the view\n        for the 'ask' state of the user interface.\n        '''\n        if self.verbose: print 'calling Step.ask----------------------------'\n        debug = False\n\n        npc = self._get_npc()\n        prompt = self._get_prompt()\n        responder = self._get_responder()\n        self._save_session_data()\n        if debug: print 'bg_image =', self.location['bg_image']\n\n        return dict(npc_img=npc.image, prompt=prompt,\n                    responder=responder,\n                    bg_image=self.location['bg_image'])\n\n    def _get_npc(self):\n        '''\n        Given a set of npcs for this step select one of the npcs at random and\n        return the corresponding Npc object.\n        '''\n        # TODO: Make sure that subsequent steps of the current path use the\n        # same npc if in the same location\n        if self.verbose: print 'calling Step._get_npc------------------------'\n        debug = False\n\n        def _get_npc_internal(npcs):\n            '''\n            Return an npc from the set of npcs or None if there aren't any.\n            '''\n            if self.verbose: print 'calling Step._get_npc_internal-----------'\n            if npcs is None:\n                return\n\n            npc_count = len(npcs)\n\n            if npc_count > 1:\n                return npcs[random.randrange(1, npc_count) - 1]\n            elif npc_count == 1:\n                return npcs[0]\n            else:\n                return None\n\n        db, session = current.db, current.session\n\n        if session.walk['active_location'] is None:\n            return   # TODO: maybe we return a 404 here (or in ask(), etc.)?\n\n        if debug: print 'self.location =', self.location\n        npcs = db(\n                    (db.npcs.id.belongs(self.step.npcs)) &\n                    (db.npcs.location.contains(self.location['id']))\n                ).select()\n\n        npc = _get_npc_internal(npcs)\n\n        # If we haven't found an npc at the location and step, get a random one\n        # from this location.\n        if not npc:\n            npcs = db(db.npcs.location.contains(self.location['id'])).select()\n\n            npc = _get_npc_internal(npcs)\n\n        # If we haven't found an npc at the location, get a random one from\n        # this step.\n        if not npc:\n            npcs = db((db.npcs.id.belongs(self.step.npcs))).select()\n\n            npc = _get_npc_internal(npcs)\n\n        # If we still haven't found an npc, just get a random one\n        if not npc:\n            npcs = db(db.npcs.id > 0).select()\n\n            npc = _get_npc_internal(npcs)\n\n        self.npc = Npc(npc.id)\n\n        return self.npc\n\n    def process(self, user_response):\n        '''\n        Handles the user's response to the step prompt.\n\n        In this base 'step' class this involves comparing the user's typed\n        response with the regular expressions provided for the step. The\n        evaluation is then logged and stored in the db, and the appropriate\n        information presented to the user.\n        '''\n        debug = False\n        if self.verbose: print 'calling Step.process-----------'\n        session, db, auth = current.session, current.db, current.auth\n\n        # Get the student's response to the question\n        user_response = user_response.strip()\n        if debug:\n            print 'user_response'\n        # Get the correct answer information from db\n        answer1 = self.step.response1\n        answer2 = self.step.response2\n        answer3 = self.step.response3\n        readable = self.step.readable_response\n        if '|' in readable:\n            i = len(readable)\n            if i > 1: i = 2\n            print readable\n            readable_short = readable.split('|')[:(i + 1)]\n            readable_short = [unicode(r, 'utf-8') for r in readable_short]\n            print readable_short\n            readable_long = readable.split('|')\n            readable_long = [unicode(r, 'utf-8') for r in readable_long]\n        else:\n            readable_short = [readable]\n            readable_long = None\n\n        # Compare the student's response to the regular expressions\n        try:\n            if re.match(answer1, user_response, re.I):\n                score = 1\n                reply = \"Right. Κάλον.\"\n            elif answer2 != 'null' and re.match(answer2, user_response, re.I):\n                score = 0.5\n                #TODO: Get this score value from the db instead of hard\n                #coding it here.\n                reply = \"Οὐ κάκον. You're close.\"\n                #TODO: Vary the replies\n            elif answer3 != 'null' and re.match(answer3, user_response, re.I):\n                #TODO: Get this score value from the db instead of hard\n                #coding it here.\n                score = 0.3\n            else:\n                score = 0\n                reply = \"Incorrect. Try again!\"\n\n            # Set the increment value for times wrong, depending on score\n            if score < 1:\n                times_wrong = 1\n            else:\n                times_wrong = 0\n\n            # Record the results in statistics for this step and this tag\n            self._record(score, times_wrong)\n\n        # Handle errors if the student's response cannot be evaluated\n        except re.error:\n            redirect(URL('index', args=['error', 'regex']))\n\n        # TODO: This replaces the Walk.save_session_data() that was in the\n        # controller. Make sure this saving of step data is enough.\n        self._save_session_data()\n\n        return {'reply': reply,\n                'readable': readable_short,\n                'readable_long': readable_long,\n                'bug_reporter': self._get_bug_reporter(),\n                'npc_img': session.walk['npc_image'],\n                'bg_image': self.location['bg_image']}\n\n    def _get_bug_reporter(self):\n        '''\n        Construct and return a SPAN helper containing the contents of the\n        tooltip containing the message and link allowing students to submit\n        a bug report for the current step.\n        '''\n        if self.verbose: print 'calling Step._get_bug_reporter----------------'\n        request, response = current.request, current.response\n\n        bug_reporter = DIV(_class='tip bug_reporter')\n        text1 = SPAN('If you think your answer wasn\\'nt evaluated properly, ')\n        link = A('click here',\n                    _href=URL('creating', 'bug.load',\n                                vars=dict(answer=request.vars.response,\n                                loc=request.vars.loc)),\n                    cid='bug_reporter',\n                    _class='button-bug-reporter')\n        text2 = SPAN('to submit a bug report for this question.')\n        bug_reporter.append(text1)\n        bug_reporter.append(link)\n        bug_reporter.append(text2)\n\n        return bug_reporter\n\n    def _record(self, score, times_wrong_incr):\n        '''\n        Record the results of this step in db tables attempt_log and\n        tag_records. score gives the increment to add to 'times right' in\n        records. times_wrong gives the opposite value to add to 'times wrong'\n        (i.e., negative score).\n        '''\n        if self.verbose: print 'calling Step._record-------------------------'\n        db, auth, session = current.db, current.auth, current.session\n\n        utc_now = datetime.datetime.utcnow()\n\n        tag_records = db(db.tag_records.name == auth.user_id).select()\n\n        # Calculate record info\n        time_last_right = utc_now\n        time_last_wrong = utc_now\n\n        times_right = score\n        times_wrong = times_wrong_incr\n\n        # Log this tag attempt for each tag in the step\n        for tag in self.step.tags:\n            # Try to update an existing record for this tag\n            try:\n                tag_records = tag_records.find(lambda row: row.tag == tag)\n\n                if tag_records:\n                    tag_record = tag_records[0]\n\n                    if score == 1:\n                        time_last_wrong = tag_record.tlast_wrong\n                    elif score == 0:\n                        time_last_right = tag_record.tlast_right\n                    else:\n                        score = 0\n                        time_last_right = tag_record.tlast_right\n\n                    times_right += tag_record.times_right\n                    times_wrong += tag_record.times_wrong\n\n                    tag_record.update_record(\n                        tlast_right=time_last_right,\n                        tlast_wrong=time_last_wrong,\n                        times_right=times_right,\n                        times_wrong=times_wrong,\n                        path=self.path.id,\n                        step=self.step.id\n                    )\n\n                else:\n                    db.tag_records.insert(\n                        tag=tag,\n                        tlast_right=time_last_right,\n                        tlast_wrong=time_last_wrong,\n                        times_right=times_right,\n                        times_wrong=times_wrong,\n                        path=self.path.id,\n                        step=self.step.id\n                    )\n\n            # Print any other error that is thrown\n            # TODO: Put this in a server log instead/as well or create a ticket\n            # TODO: Do we want to rollback the transaction?\n            except Exception, err:\n                print 'unidentified error:'\n                print type(err)\n                print err\n                print traceback.format_exc()\n\n        # TODO: Merge this with Walk._update_path_log()?\n        log = db(\n                (db.path_log.path == self.path.id) &\n                (db.path_log.name == auth.user_id)\n                ).select(orderby=~db.path_log.dt_started).first()\n\n        if log:\n            log.update_record(path=self.path.id, last_step=self.step.id)\n        else:   # We should have an existing path_log but in case not...\n            db.path_log.insert(path=self.path.id, last_step=self.step.id)\n\n        # Log this step attempt\n        db.attempt_log.insert(step=self.step.id,\n                              score=score,\n                              path=self.path.id)\n\n        # Check to see whether this is the last step in the path and if so\n        # remove from active_paths and add to completed_paths\n        if self.path.steps[-1] == self.step.id:\n            del session.walk['active_paths'][self.path.id]\n            session.walk['completed_paths'].add(self.path.id)\n\n    def _get_prompt(self):\n        '''\n        Get the prompt text to be presented from the npc to start the step\n        interaction.\n        '''\n        if self.verbose: print 'calling Step._get_prompt-----------'\n        auth = current.auth\n\n        uname = auth.user['first_name']\n        rawtext = self.step.prompt\n        newtext = rawtext.replace('[[user]]', uname)\n        if self._get_responder():\n            for k, v in self._get_responder().iteritems():\n                newtext = newtext.replace(k, v)\n        text = SPAN(newtext)\n\n        #TODO: get audio file for prompt text as well.\n        # audio = ''\n\n        return text  # audio\n\n    def _get_responder(self):\n        '''\n        Create and return the form to receive the user's response for this\n        step.\n        '''\n        if self.verbose: print 'calling Step._get_responder-----------'\n\n        # TODO: this return not needed now? Or should .complete() be called?\n        if isinstance(self, StepStub):\n            return\n\n        session, request = current.session, current.request\n\n        form = SQLFORM.factory(\n                    Field('response', 'string', requires=IS_NOT_EMPTY()),\n                    _autocomplete='off'\n                )\n\n        return form\n\n\nclass StepMultipleChoice(Step):\n\n    def _get_responder(self):\n        '''\n        create and return the form to receive the user's response for this\n        step\n        '''\n        if self.verbose: print 'calling StepMultipleChoice._get_responder-----'\n        session, request = current.session, current.request\n\n        vals = self.step.options\n        form = SQLFORM.factory(\n                    Field('response', 'string',\n                    requires=IS_IN_SET(v for v in vals),\n                    widget=SQLFORM.widgets.radio.widget))\n        if form.process().accepted:\n            session.response = request.vars.response\n\n        return form\n\n    def process(self, user_response):\n        '''\n        Evaluate the user's answer to a StepMultipleChoice prompt, record\n        her/his performance, and return the appropriate reply elements.\n\n        This method overrides Step.process for the StepMultipleChoice subclass.\n        '''\n        if self.verbose: print 'calling StepMultipleChoice._get_responder----'\n        debug = False\n        session, db, auth = current.session, current.db, current.auth\n\n        # Get the student's response to the question\n        user_response = user_response.strip()\n        if debug:\n            print user_response\n\n        # Get the correct answer information from db\n        answer1 = self.step.response1\n        answer2 = self.step.response2\n        answer3 = self.step.response3\n        readable = self.step.readable_response\n\n        # Compare the student's response to the stored answers\n        if answer1 == readable:\n            score = 1\n            reply = \"Right. Κάλον.\"\n        elif answer2 != 'null' and answer1 == readable:\n            score = 0.5\n            #TODO: Get this score value from the db instead of hard\n            #coding it here.\n            reply = \"Οὐ κάκον. You're close.\"\n            #TODO: Vary the replies\n        elif answer3 != 'null' and answer1 == readable:\n            #TODO: Get this score value from the db instead of hard\n            #coding it here.\n            score = 0.3\n        else:\n            score = 0\n            reply = \"Sorry, that wasn't right. Try again!\"\n\n        # Set the increment value for times wrong, depending on score\n        if score < 1:\n            times_wrong = 1\n        else:\n            times_wrong = 0\n\n        # Record the results in statistics for this step and this tag\n        self._record(score, times_wrong)\n\n        # TODO: This replaces the Walk.save_session_data() that was in the\n        # controller. Make sure this saving of step data is enough.\n        self._save_session_data()\n\n        return {'reply': reply,\n                'readable': answer1,\n                'bug_reporter': self._get_bug_reporter(),\n                'npc_img': session.walk['npc_image'],\n                'bg_image': self.location['bg_image']}\n\n\nclass StepStub(Step):\n    '''\n    A step type that does not require significant user response. Useful for\n    giving the user information and then freeing her/him up to perform a task.\n    '''\n\n    verbose = True\n\n    def ask(self):\n        '''\n        Public method. Returns the html helpers to create the view\n        for the 'ask' state of the user interface.\n        '''\n        if self.verbose: print 'calling StepMultipleChoice._get_responder----'\n\n        npc = self._get_npc()\n        prompt = self._get_prompt()\n\n        self._save_session_data()\n\n        return dict(npc_img=npc.image, prompt=prompt,\n                bg_image=self.location['bg_image'])\n\n    def complete(self):\n        '''\n        Complete this step:\n            * Do not update the path_log\n            * Do not update the attempt_log\n            * Remove path from active paths\n            * Add path to completed paths\n\n        Note that the user always gets the step right.\n        '''\n        session = current.session\n\n        del session.walk['active_paths'][self.path.id]\n        session.walk['completed_paths'].add(self.path.id)\n\n\nclass StepViewSlides(StepStub):\n    '''\n    '''\n    pass\n\n\nclass StepDailyQuota(StepStub):\n    '''\n    '''\n    pass\n\n\nclass StepAwardBadges(StepStub):\n    '''\n    A step type that, like StepStub, doesn't take or process a user response.\n    Unlike that parent class, though, StepMessage provides a \"continue\" button\n    that allows the user to proceed with more paths at the current location.\n\n    This is used for:\n    - alerting user to newly awarded badges\n    '''\n\n    verbose = True\n\n    def ask(self):\n        '''\n        Public method. Returns the html helpers to create the view\n        for the 'ask' state of the user interface.\n        '''\n        if self.verbose: print 'calling StepMessage.ask()----'\n\n        npc = self._get_npc()\n        prompt = self._get_prompt()\n        responder = self._get_responder()\n\n        self.complete()\n        self._save_session_data()\n\n        return dict(npc_img=npc.image, prompt=prompt,\n                responder=responder,\n                bg_image=self.location['bg_image'])\n\n    def _get_replacements(self):\n        '''\n        Provide the string replacement data to be used in the step prompt.\n        '''\n        session = current.session\n        db = current.db\n\n        badges = UL(_class='badge_list')\n        if 'new_badges' in session.walk:\n            for k, v in session.walk['new_badges'].iteritems():\n                if type(k) == int:\n                    for tag in v:\n                        badge = db(db.badges.tag == tag).select().first()\n                        ranks = ['beginner', 'apprentice',\n                                    'journeyman', 'master']\n                        bn = '{0} {1}'.format(ranks[k], badge.badge_name)\n                        bn_span = SPAN(bn, _class='badge_name')\n                        rank_verbs = ['starting to learn',\n                                        'making good progress with',\n                                        'gaining a good working grasp of',\n                                        'mastering']\n                        bd = 'for {0} {1}'.format(rank_verbs[k],\n                                                  badge.description)\n                        badge_string = LI(bn_span.xml(), bd)\n                        badges.append(badge_string.xml())\n\n        replacements = {'[[badge_list]]': badges}\n\n        return replacements\n\n    def _get_responder(self):\n        '''\n        Create and return the html helper for the buttons to allow the user\n        to continue here.\n        '''\n        if self.verbose: print 'calling Step._get_responder-----------'\n        request = current.request\n\n        # TODO: this return not needed now? Or should .complete() be called?\n        if isinstance(self, StepStub):\n            return\n\n        buttons = A(\"Continue\", _href=URL('walk', args=['ask'],\n                                        vars=dict(loc=request.vars['loc'])),\n                    cid='page',\n                    _class='button-green-grad next_q')\n\n        return buttons\n\n\nclass StepImage(Step):\n    pass\n\n\nclass StepImageMultipleChoice(Step):\n    pass\n\nSTEP_CLASSES = {\n        'step': Step,\n        'step_multipleChoice': StepMultipleChoice,\n        'step_stub': StepStub,\n        'step_image': StepImage,\n        'step_imageMutlipleChoice': StepImageMultipleChoice,\n        'step_awardBadges': StepAwardBadges,\n        'step_dailyQuota': StepDailyQuota,\n        'step_viewSlides': StepViewSlides\n    }\n\n\nclass Npc(object):\n\n    def __init__(self, npc_id=None):\n\n        db, session = current.db, current.session\n\n        if npc_id is not None:\n            self.npc = db.npcs(npc_id)\n            self.image = self._get_image()\n\n            self._save_session_data()\n\n        else:\n            self._get_session_data()\n\n    def _save_session_data(self):\n        '''\n        Save attributes in session.\n        '''\n\n        session = current.session\n\n        session_data = {}\n\n        session_data['npc'] = self.npc.id\n        session_data['npc_image'] = self.image\n\n        session.walk.update(session_data)\n\n    def _get_session_data(self):\n        '''\n        Get the walk attributes from the session.\n        '''\n\n        db, session = current.db, current.session\n\n        if 'npc' in session.walk:\n            self.npc = db.npcs(session.walk['npc'])\n            self.image = session.walk['npc_image']\n        else:\n            self.npc = None\n            self.image = None\n\n        self.location = session.walk['active_location']\n\n    def _get_image(self):\n        '''\n        Get the image to present as a depiction of the npc.\n        '''\n        debug = False\n\n        try:\n            url = URL('static/images', self.npc.npc_image.image)\n            if debug:\n                print url\n            return IMG(_src=url)\n        except:\n            print 'Npc._get_image(): Could not find npc image'\n            return\n\n\nclass Location(object):\n    '''\n    This class finds and returns information on the student's current\n    'location' within the town, based on the url variable 'loc' which\n    is accessed via the web2py request object.\n\n    implemented in:\n    controllers/exploring.walk()\n    '''\n    debug = False\n\n    def __init__(self, alias):\n\n        self.alias = alias\n        if alias:\n            self.db_data = self._get_db(alias)\n            if self.debug:\n                print 'calling Location.__init__ ============'\n                print 'self.db_data =', self.db_data\n            self.id = self.db_data.id\n            self.img = self._get_img()\n        else:\n            self.db_data = None\n            self.id = None\n            self.img = None\n\n    def _get_db(self, alias):\n        '''\n        Return the web2py row() object corresponding to the db record\n        for the location with the given alias.\n        '''\n        db = current.db\n        db_data = db(db.locations.alias == alias).select().first()\n        return db_data\n\n    def _get_img(self):\n        '''\n        Retrieve the background image for the given location and return\n        it as a web2py IMG() helper object.\n        '''\n        db = current.db\n        if self.debug:\n            print 'in _get_img() self.db_data.bg_image ='\n            print self.db_data.bg_image\n        filename = db.images[self.db_data.bg_image].image\n        img = IMG(_src=URL('static/images', filename))\n        return img\n\n    def info(self):\n        '''\n        Return a dict holding the location info\n        '''\n        if self.alias:\n            return {'alias': self.alias,\n                    'id': self.id,\n                    'bg_image': self.img}\n        else:\n            return None\n\n\nclass Map(object):\n    '''This class returns information needed to present the navigation map'''\n\n    def __init__(self):\n\n        # Prepare map interface for user to select a place to go\n        self.locations = self.get_locations()\n\n        # TODO: Define this in a setting or somewhere\n        self.image = '/paideia/static/images/town_map.svg'\n\n    def get_locations(self):\n        '''\n        Return all locations in the game.\n        '''\n\n        db = current.db\n        cache = current.cache\n\n        # TODO: Review cache time\n        return db().select(db.locations.ALL,\n                           orderby=db.locations.location,\n                           cache=(cache.ram, 60 * 60)).as_list()\n",
 			"file": "modules/paideia_exploring.py",
-			"file_size": 53201,
-			"file_write_time": 1346960876000000,
 			"settings":
 			{
-				"buffer_size": 53175,
+				"buffer_size": 59219,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "/home/iscott/.config/sublime-text-2/Packages/Default/Preferences.sublime-settings",
+			"file": "views/exploring/walk.load",
 			"settings":
 			{
-				"buffer_size": 13138,
+				"buffer_size": 3704,
 				"line_ending": "Unix"
 			}
 		},
@@ -274,7 +363,15 @@
 			"file": "controllers/exploring.py",
 			"settings":
 			{
-				"buffer_size": 6567,
+				"buffer_size": 7371,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "models/paideia.py",
+			"settings":
+			{
+				"buffer_size": 15539,
 				"line_ending": "Unix"
 			}
 		}
@@ -286,6 +383,86 @@
 		"selected_items":
 		[
 			[
+				":w",
+				":w - Save"
+			],
+			[
+				":sett",
+				"Preferences: Settings - Default"
+			],
+			[
+				":",
+				"Goto Symbol : List symbols"
+			],
+			[
+				":inst",
+				"Package Control: Install Package"
+			],
+			[
+				"file nav",
+				"Sublime Files: Open Navigator"
+			],
+			[
+				":nav",
+				"Sublime Files: Open Navigator"
+			],
+			[
+				":dis",
+				"Package Control: Disable Package"
+			],
+			[
+				":disable",
+				"Package Control: Disable Package"
+			],
+			[
+				":deact",
+				"SublimeLinter: Disable Background Linting"
+			],
+			[
+				":remove",
+				"Package Control: Remove Package"
+			],
+			[
+				":disab",
+				"Package Control: Disable Package"
+			],
+			[
+				":tabs",
+				"View: Toggle Tabs"
+			],
+			[
+				":toggle",
+				"View: Toggle Tabs"
+			],
+			[
+				":remov",
+				"Package Control: Remove Package"
+			],
+			[
+				":list ",
+				"Package Control: List Packages"
+			],
+			[
+				":list p",
+				"Package Control: List Packages"
+			],
+			[
+				":list",
+				"Package Control: List Packages"
+			],
+			[
+				"inst",
+				"Package Control: Install Package"
+			],
+			[
+				"disc",
+				"Package Control: Discover Packages"
+			],
+			[
+				"package",
+				"Package Control: Disable Package"
+			],
+			[
 				"pack",
 				"Package Control: List Packages"
 			],
@@ -296,10 +473,6 @@
 			[
 				"col",
 				"Color picker"
-			],
-			[
-				"inst",
-				"Package Control: Install Package"
 			],
 			[
 				"remo",
@@ -330,7 +503,7 @@
 				"Package Control: Discover Packages"
 			]
 		],
-		"width": 392.0
+		"width": 521.0
 	},
 	"console":
 	{
@@ -347,32 +520,38 @@
 	},
 	"file_history":
 	[
-		"/home/iscott/.config/sublime-text-2/Packages/User/Preferences.sublime-settings",
-		"/home/iscott/web/web2py/applications/paideia/tests/controllers/exploring.py",
-		"/home/iscott/web/web2py/applications/paideia/tests/modules/paideia_exploring.py",
+		"/home/ian/.config/sublime-text-2/Packages/Default/Preferences.sublime-settings",
+		"/home/ian/.config/sublime-text-2/Packages/User/Preferences.sublime-settings",
+		"/home/ian/web/web2py/applications/paideia/modules/paideia_stats.py",
+		"/home/ian/web/web2py/applications/paideia/models/plugin_slider.py",
+		"/home/ian/web/web2py/applications/paideia/models/menu.py",
+		"/home/ian/.config/sublime-text-2/Packages/User/Package Control.sublime-settings",
+		"/home/ian/web/web2py/applications/paideia/models/db.py",
+		"/home/ian/web/web2py/applications/paideia/controllers/default.py",
+		"/home/ian/.config/sublime-text-2/Packages/User/Flake8Lint.sublime-settings",
+		"/home/ian/.config/sublime-text-2/Packages/Flake8Lint/Flake8Lint.sublime-settings",
+		"/home/ian/.config/sublime-text-2/Packages/Function Name Display/Function Name Display.sublime-settings",
+		"/home/ian/.config/sublime-text-2/Packages/BracketHighlighter/BracketHighlighter.sublime-settings",
+		"/home/ian/.config/sublime-text-2/Packages/SplitScreen-Resizer/Default (Linux).sublime-keymap",
+		"/home/ian/.config/sublime-text-2/Packages/Default/Default (Linux).sublime-keymap",
+		"/home/ian/web/web2py/applications/topoi/models/db.py",
+		"/home/ian/web/web2py/gluon/contrib/test_helpers.py",
 		"/home/ian/web/web2py/applications/paideia/static/plugin_ajaxselect/plugin_ajaxselect.css",
 		"/home/ian/web/web2py/applications/paideia/static/plugin_ajaxselect/plugin_ajaxselect.js",
 		"/home/ian/web/web2py/applications/paideia/modules/plugin_ajaxselect.py",
 		"/home/ian/web/web2py/applications/paideia/controllers/plugin_ajaxselect.py",
-		"/home/ian/web/web2py/gluon/contrib/test_helpers.py",
 		"/home/ian/web/web2py/testRunner.py",
 		"/home/ian/web/web2py/applications/paideia/views/exploring/index.load",
 		"/home/ian/web/web2py/applications/paideia/modules/paideia_questions.py",
-		"/home/ian/.config/sublime-text-2/Packages/User/Preferences.sublime-settings",
-		"/home/ian/.config/sublime-text-2/Packages/Default/Preferences.sublime-settings",
 		"/home/ian/.config/sublime-text-2/Packages/SideBarEnhancements/Side Bar.sublime-settings",
-		"/home/ian/web/web2py/applications/paideia/modules/paideia_stats.py",
 		"/home/ian/.config/sublime-text-2/Packages/SublimeCodeIntel/Base File.sublime-settings",
 		"/home/ian/web/web2py/applications/paideia/controllers/plugin_listandedit.py",
 		"/home/ian/.config/sublime-text-2/Packages/Prevu/Prevu.sublime-settings",
 		"/home/ian/web/web2py/applications/paideia/static/plugin_framework/theme.less",
-		"/home/ian/web/web2py/applications/paideia/models/menu.py",
 		"/home/ian/web/web2py/applications/paideia/static/plugin_framework/framework.less",
 		"/home/ian/web/web2py/applications/paideia/static/plugin_framework/theme_paideia.less",
 		"/home/ian/.config/sublime-text-2/Packages/sublime-V8/JSHINT.sublime-settings",
 		"/home/ian/web/web2py/applications/paideia/views/plugin_ajaxselect/set_widget.load",
-		"/home/ian/.config/sublime-text-2/Packages/Default/Default (Linux).sublime-keymap",
-		"/home/ian/web/web2py/applications/paideia/models/db.py",
 		"/home/iscott/web/web2py/applications/paideia/modules/plugin_ajaxselect.py",
 		"/home/ian/web/web2py/applications/paideia/views/plugin_ajaxselect/set_form_wrapper.load",
 		"/home/ian/web/web2py/applications/paideia/views/plugin_ajaxselect/linked_create_form.load",
@@ -412,6 +591,22 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"awardb",
+			"new_badge",
+			"badges",
+			" cat",
+			"cat",
+			"badges",
+			"type(self)",
+			"message",
+			"tag",
+			"#",
+			"new",
+			"paths",
+			"\n            ",
+			"vint",
+			"import",
+			"classes",
 			"current",
 			"package",
 			"editlis",
@@ -438,60 +633,116 @@
 	"groups":
 	[
 		{
-			"selected": 2,
+			"selected": 0,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "models/paideia.py",
+					"file": "modules/paideia_exploring.py",
 					"settings":
 					{
-						"buffer_size": 12275,
+						"buffer_size": 59219,
 						"regions":
 						{
+							"bookmarks":
+							{
+								"flags": 144,
+								"icon": "bookmark",
+								"regions":
+								[
+								],
+								"scope": "bookmarks"
+							}
 						},
 						"selection":
 						[
 							[
-								0,
-								0
+								52773,
+								52773
 							]
 						],
 						"settings":
 						{
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"function_name_status_row": 1443,
+							"gjslint_ignore":
+							[
+								110
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"browser": true,
+								"evil": true,
+								"regexdash": true,
+								"sub": true,
+								"trailing": true,
+								"wsh": true
+							},
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 0,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": false,
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"Python Django": "python"
+							},
+							"sublimelinter_wrap_find": true,
 							"syntax": "Packages/Python/Python.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 3010.0,
+						"translation.y": 24530.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "modules/paideia_exploring.py",
+					"file": "views/exploring/walk.load",
 					"settings":
 					{
-						"buffer_size": 53175,
+						"buffer_size": 3704,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								0,
-								0
+								48,
+								48
 							]
 						],
 						"settings":
 						{
-							"rulers":
-							[
-								78
-							],
-							"syntax": "Packages/Python/Python.tmLanguage",
+							"function_name_status_row": 1,
+							"syntax": "Packages/HTML/HTML.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
@@ -503,57 +754,78 @@
 				},
 				{
 					"buffer": 2,
-					"file": "/home/iscott/.config/sublime-text-2/Packages/Default/Preferences.sublime-settings",
-					"settings":
-					{
-						"buffer_size": 13138,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								12479,
-								12479
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/JavaScript/JSON.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 4738.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 3,
 					"file": "controllers/exploring.py",
 					"settings":
 					{
-						"buffer_size": 6567,
+						"buffer_size": 7371,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								5292,
-								5292
+								5575,
+								5575
 							]
 						],
 						"settings":
 						{
-							"sublimelinter": false,
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"function_name_status_row": 165,
+							"gjslint_ignore":
+							[
+								110
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"browser": true,
+								"evil": true,
+								"regexdash": true,
+								"sub": true,
+								"trailing": true,
+								"wsh": true
+							},
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 0,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": false,
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"Python Django": "python"
+							},
+							"sublimelinter_wrap_find": true,
 							"syntax": "Packages/Python/Python.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 2346.0,
+						"translation.y": 2300.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -561,37 +833,239 @@
 			]
 		},
 		{
-			"selected": 0,
+			"selected": 1,
 			"sheets":
 			[
 				{
-					"buffer": 1,
+					"buffer": 0,
 					"file": "modules/paideia_exploring.py",
 					"settings":
 					{
-						"buffer_size": 53175,
+						"buffer_size": 59219,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								193,
-								193
+								398,
+								398
 							]
 						],
 						"settings":
 						{
-							"rulers":
+							"annotations":
 							[
-								78
+								"TODO",
+								"README",
+								"FIXME"
 							],
+							"function_name_status_row": 16,
+							"gjslint_ignore":
+							[
+								110
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"browser": true,
+								"evil": true,
+								"regexdash": true,
+								"sub": true,
+								"trailing": true,
+								"wsh": true
+							},
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 0,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": false,
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"Python Django": "python"
+							},
+							"sublimelinter_wrap_find": true,
 							"syntax": "Packages/Python/Python.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 162.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "models/paideia.py",
+					"settings":
+					{
+						"buffer_size": 15539,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								5188,
+								5188
+							]
+						],
+						"settings":
+						{
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"function_name_status_row": 290,
+							"gjslint_ignore":
+							[
+								110
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"browser": true,
+								"evil": true,
+								"regexdash": true,
+								"sub": true,
+								"trailing": true,
+								"wsh": true
+							},
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 0,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": false,
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"Python Django": "python"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 2622.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "models/paideia.py",
+					"settings":
+					{
+						"buffer_size": 15539,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								11990,
+								11990
+							]
+						],
+						"settings":
+						{
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"function_name_status_row": 290,
+							"gjslint_ignore":
+							[
+								110
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"browser": true,
+								"evil": true,
+								"regexdash": true,
+								"sub": true,
+								"trailing": true,
+								"wsh": true
+							},
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 0,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": false,
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"Python Django": "python"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 5125.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -601,7 +1075,7 @@
 	],
 	"incremental_find":
 	{
-		"height": 0.0
+		"height": 35.0
 	},
 	"input":
 	{
@@ -627,7 +1101,7 @@
 		"cols":
 		[
 			0.0,
-			0.473611111111,
+			0.713030746706,
 			1.0
 		],
 		"rows":
@@ -637,6 +1111,10 @@
 		]
 	},
 	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 142.0
+	},
 	"replace":
 	{
 		"height": 0.0
@@ -652,11 +1130,15 @@
 	},
 	"select_project":
 	{
-		"height": 0.0,
+		"height": 500.0,
 		"selected_items":
 		[
+			[
+				"",
+				"/home/ian/web/web2py/applications/paideia/paideia.sublime-project"
+			]
 		],
-		"width": 0.0
+		"width": 380.0
 	},
 	"show_minimap": false,
 	"show_open_files": true,
