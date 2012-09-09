@@ -994,15 +994,15 @@ class Step(object):
             print 'calling', type(self).__name__, '._get_bug_reporter-----'
         request, response = current.request, current.response
 
-        bug_reporter = DIV(_class='tip bug_reporter')
-        text1 = SPAN('If you think your answer wasn\'nt evaluated properly, ')
+        bug_reporter = DIV(_class='tip-left bug_reporter')
+        text1 = SPAN('If you think your answer wasn\'t evaluated properly, ')
         link = A('click here',
                     _href=URL('creating', 'bug.load',
                                 vars=dict(answer=request.vars.response,
                                 loc=request.vars.loc)),
                     cid='bug_reporter',
                     _class='button-bug-reporter')
-        text2 = SPAN('to submit a bug report for this question.')
+        text2 = SPAN(' to submit a bug report for this question.')
         bug_reporter.append(text1)
         bug_reporter.append(link)
         bug_reporter.append(text2)
@@ -1324,7 +1324,9 @@ class StepStub(Step):
         map_button = A("Map", _href=URL('walk'),
                         cid='page',
                         _class='button-yellow-grad back_to_map icon-location')
-        return map_button
+        responder = DIV(map_button, _class='responder')
+
+        return responder
 
 
 class StepNonBlocking(Step):

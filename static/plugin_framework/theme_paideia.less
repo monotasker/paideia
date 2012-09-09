@@ -310,18 +310,30 @@ body #page             {margin-top:-(@lineheight2 + 14);
                             z-index: 3;
                             font-size: @typeheight2;
                             line-height: @lineheight2;
-                            .speech-bubble(@lineheight);
 
         .button            {display:inline-block;}
         .quiz_type         {}
         .guidelines        {z-index:10;
                             clear:both;}
         .q_counter         {color:#ccc;
-                            width:100%;}
+                            width:100%;
+                            font-size:@typeheight;}
         .readable_short,
-        .readable_long     {color:@cranberry;}
+        .readable_long     {color:@sol_green;}
+        .bug_reporter_wrapper
+                           {display:block;
+                            float:right;}
+        .bug_reporter.tip  {font-size: @typeheight;
+                            line-height: @lineheight;
+                            padding: @lineheight;
+                            left:-320px;
+                            top:-@lineheight * 2;
+            span,
+            a              {font-size: @typeheight;} 
+            }
         }
-    .responder             {background: @greyf5;}
+    .prompt                {.speech-bubble-left(@lineheight, @typeheight);}
+    .responder             {.speech-bubble-down(@lineheight, @typeheight, @greyf5);}
     }
 
 #page.listing              {
