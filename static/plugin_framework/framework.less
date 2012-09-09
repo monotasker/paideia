@@ -7,8 +7,8 @@
     font-family: 'SBLGreekRegular';
     src: url('../static/plugin_framework/fonts/sbl_grk-webfont.eot');
     src: local('☺'),
-    url('..//grammateus3/static/plugin_framework/fonts/sbl_grk-webfont.woff') format('woff'), 
-    url('../static/plugin_framework/fonts/sbl_grk-webfont.ttf') format('truetype'), 
+    url('..//grammateus3/static/plugin_framework/fonts/sbl_grk-webfont.woff') format('woff'),
+    url('../static/plugin_framework/fonts/sbl_grk-webfont.ttf') format('truetype'),
     url('../static/plugin_framework/fonts/sbl_grk-webfont.svg#webfontRelj09Wi') format('svg');
     font-weight: normal;
     font-style: normal;
@@ -30,8 +30,8 @@
     font-family: 'EstrangeloEdessaRegular';
     src: url('../static/plugin_framework/fonts/estre-webfont.eot');
     src: local('☺'),
-    url('../static/plugin_framework/fonts/estre-webfont.woff') format('woff'), 
-    url('../static/plugin_framework/fonts/estre-webfont.ttf') format('truetype'), 
+    url('../static/plugin_framework/fonts/estre-webfont.woff') format('woff'),
+    url('../static/plugin_framework/fonts/estre-webfont.ttf') format('truetype'),
     url('../static/plugin_framework/fonts/estre-webfont.svg#webfont7YE92Obt') format('svg');
     font-weight: normal;
     font-style: normal;
@@ -41,8 +41,8 @@
     font-family: 'SBLHebrewRegular';
     src: url('../static/plugin_framework/fonts/sbl_hbrw-webfont.eot');
     src: local('☺'),
-    url('../static/plugin_framework/fonts/sbl_hbrw-webfont.woff') format('woff'), 
-    url('../static/plugin_framework/fonts/sbl_hbrw-webfont.ttf') format('truetype'), 
+    url('../static/plugin_framework/fonts/sbl_hbrw-webfont.woff') format('woff'),
+    url('../static/plugin_framework/fonts/sbl_hbrw-webfont.ttf') format('truetype'),
     url('../static/plugin_framework/fonts/sbl_hbrw-webfont.svg#webfontUHtlyWNi') format('svg');
     font-weight: normal;
     font-style: normal;
@@ -52,8 +52,8 @@
     font-family: 'AbyssinicaSIL';
     src: url('../static/plugin_framework/fonts/abyssinica_sil-webfont.eot');
     src: local('☺'),
-    url('../static/plugin_framework/fonts/abyssinica_sil-webfont.woff') format('woff'), 
-    url('../static/plugin_framework/fonts/abyssinica_sil-webfont.ttf') format('truetype'), 
+    url('../static/plugin_framework/fonts/abyssinica_sil-webfont.woff') format('woff'),
+    url('../static/plugin_framework/fonts/abyssinica_sil-webfont.ttf') format('truetype'),
     url('../static/plugin_framework/fonts/abyssinica_sil-webfont.svg#webfont5nU8VVLc') format('svg');
     font-weight: normal;
     font-style: normal;
@@ -67,7 +67,7 @@
                     direction: rtl;
                     line-height:@lineheight2;}
 .Greek             {font-family:SBLGreekRegular, Gentium, 'Galatia SIL', Palatino, 'Palatino Linotype', 'Times New Roman', xyz;
-                    font-size:@typeheight * 1.25;    
+                    font-size:@typeheight * 1.25;
                     direction: ltr;
                     line-height:@lineheight2;}
 .Syriac            {font-family:'EstrangeloEdessaRegular';
@@ -112,15 +112,15 @@
 @warning:#a40000;
 @wine:#701;
 @cranberry:#852625;
-@cinnamon:#845852; 
-@paideia_moss:@moss; 
+@cinnamon:#845852;
+@paideia_moss:@moss;
 @cream:#F8F0E5; /* paideia */
 @tapioca:#F2E5D4; /* paideia */
 
 /* ubuntu */
 @ubuntu_orange:#FF9700;
-@ubuntu_tangerine:#dd4814; 
-@ubuntu_purple:#772953; 
+@ubuntu_tangerine:#dd4814;
+@ubuntu_purple:#772953;
 
 /* ocp */
 @ocp_yellow:#ffc100; /* ocp - book title */
@@ -282,8 +282,8 @@ ul             {margin: 0;
                 list-style-type: none;}
 
 /* forms **************************************************/
-input[type=text], 
-select, 
+input[type=text],
+select,
 textarea           {border:1px solid #eee;
                     .textdefaults;
                     .transition();}
@@ -398,7 +398,7 @@ div.error      {background-color: @red;
                 -ms-border-radius: @arguments;
                 border-radius: @arguments;}
 
-.box-shadow(@x: 0, @y:2px, @blur:6px, @color:rgba(0,0,0,0.3)) 
+.box-shadow(@x: 0, @y:2px, @blur:6px, @color:rgba(0,0,0,0.3))
                {-moz-box-shadow: @arguments;
                 -webkit-box-shadow: @arguments;
                 -o-box-shadow: @arguments;
@@ -443,7 +443,7 @@ div.error      {background-color: @red;
                     -ms-transition:@target @time @easing;
                     transition:@target @time @easing;}
 
-.speech-bubble(@br:@lineheight2)   
+.speech-bubble(@br:@lineheight2)
                    {position:relative;
                     border-radius:@br;
                     padding:@br;
@@ -487,8 +487,8 @@ div.error      {background-color: @red;
                 top: 20px;
                 content: '';}
     }
-a:hover .tip, 
-a:active .tip, 
+a:hover .tip,
+a:active .tip,
 .tip-visible   {display:block;
                 .transition();}
 
@@ -553,76 +553,80 @@ a:active .tip,
             }
 
 /* TODO: hide from screen readers: <span aria-hidden="true" data-icon="S"></span> */
-.icon-gear:before {         content:'S'; font-family: Websymbols; }
-.icon-profile:before {      content:'U'; font-family: Websymbols; }
-.icon-logout:before {       content:'X'; font-family: Websymbols; }
-.icon-image:before {        content:'I'; font-family: Websymbols; }
-.icon-cloud:before {        content:'C'; font-family: Websymbols; }
-.icon-folder:before {       content:'F'; font-family: Websymbols; }
-.icon-archive:before {      content:'Z'; font-family: Websymbols; }
-.icon-move:before {         content:'M'; font-family: Websymbols; }
-.icon-logout:before {       content:'X'; font-family: Websymbols; }
-.icon-html:before {         content:'H'; font-family: Websymbols; }
-.icon-a:before {            content:'T'; font-family: Websymbols; }
-.icon-terminal:before {     content:'_'; font-family: Websymbols; }
-.icon-paperclip:before {    content:'A'; font-family: Websymbols; } 
-.icon-indent:before {       content:'n'; font-family: Websymbols; }
-.icon-outdent:before {      content:'o'; font-family: Websymbols; }
-.icon-ul:before {           content:'p'; font-family: Websymbols; }
-.icon-ol:before {           content:'q'; font-family: Websymbols; }
-.icon-lock:before {         content:'x'; font-family: Websymbols; }
-.icon-page:before {         content:'a'; font-family: Websymbols; }
-.icon-plus-circle:before {  content:'+'; font-family: Websymbols; } 
-.icon-close-circle:before { content:'x'; font-family: Websymbols; }
-.icon-scale:before {        content:'&'; font-family: Websymbols; }
-.icon-back-circle:before {  content:'('; font-family: Websymbols; }
-.icon-next-circle:before {  content:')'; font-family: Websymbols; }
-.icon-back:before {         content:'<'; font-family: Websymbols; }
-.icon-next:before {         content:'>'; font-family: Websymbols; }
-.icon-rotate-circle:before {content:'*'; font-family: Websymbols; }
-.icon-close:before {        content:"'"; font-family: Websymbols; }
-.icon-twitter:before {      content:'t'; font-family: Websymbols; }
-.icon-facebook:before {     content:'f'; font-family: Websymbols; }
-.icon-linkedin:before {     content:'l'; font-family: Websymbols; }
-.icon-google-plus:before {  content:'g'; font-family: Websymbols; }
-.icon-rss-square:before {   content:'r'; font-family: Websymbols; }
-.icon-vimeo:before {        content:'m'; font-family: Websymbols; }
-.icon-youtube:before {      content:'y'; font-family: Websymbols; }
-.icon-tumblr:before {       content:'k'; font-family: Websymbols; }
-.icon-lettery:before {      content:'z'; font-family: Websymbols; }
-.icon-odnoklassniki:before {content:'Q'; font-family: Websymbols; }
-.icon-star:before {         content:'R'; font-family: Websymbols; }
-.icon-tag-diagonal:before { content:','; font-family: Websymbols; }
-.icon-speech-squared:before {content:'c'; font-family: Websymbols; }
-.icon-speech:before {       content:'d'; font-family: Websymbols; }
-.icon-speech-dots:before {  content:'e'; font-family: Websymbols; }
-.icon-bars:before {         content:'u'; font-family: Websymbols; }
-.icon-location:before {     content:'?'; font-family: Websymbols; }
-.icon-heart:before {        content:'N'; font-family: Websymbols; }
-.icon-heart-outline:before {content:'O'; font-family: Websymbols; }
-.icon-search:before {       content:'L'; font-family: Websymbols; }
-.icon-cycle-squared:before {content:'J'; font-family: Websymbols; }
-.icon-new-window:before {   content:'D'; font-family: Websymbols; }
-.icon-clock:before {        content:'P'; font-family: Websymbols; }
-.icon-chain:before {        content:'K'; font-family: Websymbols; }
-.icon-mail:before {         content:'@'; font-family: Websymbols; }
-.icon-sort-down:before {    content:'{'; font-family: Websymbols; }
-.icon-sort-up:before {      content:'}'; font-family: Websymbols; }
-.icon-unfold:before {       content:'['; font-family: Websymbols; }
-.icon-fold:before {         content:']'; font-family: Websymbols; }
-.icon-grid:before {         content:'1'; font-family: Websymbols; }
-.icon-list:before {         content:'2'; font-family: Websymbols; }
-.icon-grid-list:before {    content:'3'; font-family: Websymbols; }
-.icon-reply:before {        content:'h'; font-family: Websymbols; }
-.icon-reply-all:before {    content:'i'; font-family: Websymbols; }
-.icon-right-arrow:before {  content:'j'; font-family: Websymbols; }
-.icon-full-screen:before {  content:'%'; font-family: Websymbols; }
-.icon-checkmark:before {    content:'.'; font-family: Websymbols; }
-.icon-alert:before {        content:'W'; font-family: Websymbols; }
-.icon-cycle-rounded:before {content:'V'; font-family: Websymbols; }
-.icon-skype:before {        content:'s'; font-family: Websymbols; }
-.icon-vkontakte:before {    content:'v'; font-family: Websymbols; }
-.icon-target:before {       content:'`'; font-family: Websymbols; }
-.icon-page-landscape:before {content:'b'; font-family: Websymbols; }
-.icon-unlocked:before {     content:'w'; font-family: Websymbols; }
-.icon-up-down:before {      content:'~'; font-family: Websymbols; }
+.icon-gear:before {         content:'S '; font-family: Websymbols; }
+.icon-profile              {
+    &:before               {content:'U '; font-family: Websymbols;}
+    }
+.icon-logout               {
+    &:before               {content:'X '; font-family: Websymbols;}
+    }
+.icon-image:before {        content:'I '; font-family: Websymbols; }
+.icon-cloud:before {        content:'C '; font-family: Websymbols; }
+.icon-folder:before {       content:'F '; font-family: Websymbols; }
+.icon-archive:before {      content:'Z '; font-family: Websymbols; }
+.icon-move:before {         content:'M '; font-family: Websymbols; }
+.icon-logout:before {       content:'X '; font-family: Websymbols; }
+.icon-html:before {         content:'H '; font-family: Websymbols; }
+.icon-a:before {            content:'T '; font-family: Websymbols; }
+.icon-terminal:before {     content:'_ '; font-family: Websymbols; }
+.icon-paperclip:before {    content:'A '; font-family: Websymbols; }
+.icon-indent:before {       content:'n '; font-family: Websymbols; }
+.icon-outdent:before {      content:'o '; font-family: Websymbols; }
+.icon-ul:before {           content:'p '; font-family: Websymbols; }
+.icon-ol:before {           content:'q '; font-family: Websymbols; }
+.icon-lock:before {         content:'x '; font-family: Websymbols; }
+.icon-page:before {         content:'a '; font-family: Websymbols; }
+.icon-plus-circle:before {  content:'+ '; font-family: Websymbols; }
+.icon-close-circle:before { content:'x '; font-family: Websymbols; }
+.icon-scale:before {        content:'& '; font-family: Websymbols; }
+.icon-back-circle:before {  content:'( '; font-family: Websymbols; }
+.icon-next-circle:before {  content:') '; font-family: Websymbols; }
+.icon-back:before {         content:'< '; font-family: Websymbols; }
+.icon-next:before {         content:'> '; font-family: Websymbols; }
+.icon-rotate-circle:before {content:'* '; font-family: Websymbols; }
+.icon-close:before {        content:"' "; font-family: Websymbols; }
+.icon-twitter:before {      content:'t '; font-family: Websymbols; }
+.icon-facebook:before {     content:'f '; font-family: Websymbols; }
+.icon-linkedin:before {     content:'l '; font-family: Websymbols; }
+.icon-google-plus:before {  content:'g '; font-family: Websymbols; }
+.icon-rss-square:before {   content:'r '; font-family: Websymbols; }
+.icon-vimeo:before {        content:'m '; font-family: Websymbols; }
+.icon-youtube:before {      content:'y '; font-family: Websymbols; }
+.icon-tumblr:before {       content:'k '; font-family: Websymbols; }
+.icon-lettery:before {      content:'z '; font-family: Websymbols; }
+.icon-odnoklassniki:before {content:'Q '; font-family: Websymbols; }
+.icon-star:before {         content:'R '; font-family: Websymbols; }
+.icon-tag-diagonal:before { content:', '; font-family: Websymbols; }
+.icon-speech-squared:before {content:'c '; font-family: Websymbols; }
+.icon-speech:before {       content:'d '; font-family: Websymbols; }
+.icon-speech-dots:before {  content:'e '; font-family: Websymbols; }
+.icon-bars:before {         content:'u '; font-family: Websymbols; }
+.icon-location:before {     content:'? '; font-family: Websymbols; }
+.icon-heart:before {        content:'N '; font-family: Websymbols; }
+.icon-heart-outline:before {content:'O '; font-family: Websymbols; }
+.icon-search:before {       content:'L '; font-family: Websymbols; }
+.icon-cycle-squared:before {content:'J '; font-family: Websymbols; }
+.icon-new-window:before {   content:'D '; font-family: Websymbols; }
+.icon-clock:before {        content:'P '; font-family: Websymbols; }
+.icon-chain:before {        content:'K '; font-family: Websymbols; }
+.icon-mail:before {         content:'@ '; font-family: Websymbols; }
+.icon-sort-down:before {    content:'{ '; font-family: Websymbols; }
+.icon-sort-up:before {      content:'} '; font-family: Websymbols; }
+.icon-unfold:before {       content:'[ '; font-family: Websymbols; }
+.icon-fold:before {         content:'] '; font-family: Websymbols; }
+.icon-grid:before {         content:'1 '; font-family: Websymbols; }
+.icon-list:before {         content:'2 '; font-family: Websymbols; }
+.icon-grid-list:before {    content:'3 '; font-family: Websymbols; }
+.icon-reply:before {        content:'h '; font-family: Websymbols; }
+.icon-reply-all:before {    content:'i '; font-family: Websymbols; }
+.icon-right-arrow:before {  content:'j '; font-family: Websymbols; }
+.icon-full-screen:before {  content:'% '; font-family: Websymbols; }
+.icon-checkmark:before {    content:'. '; font-family: Websymbols; }
+.icon-alert:before {        content:'W '; font-family: Websymbols; }
+.icon-cycle-rounded:before {content:'V '; font-family: Websymbols; }
+.icon-skype:before {        content:'s '; font-family: Websymbols; }
+.icon-vkontakte:before {    content:'v '; font-family: Websymbols; }
+.icon-target:before {       content:'` '; font-family: Websymbols; }
+.icon-page-landscape:before {content:'b '; font-family: Websymbols; }
+.icon-unlocked:before {     content:'w '; font-family: Websymbols; }
+.icon-up-down:before {      content:'~ '; font-family: Websymbols; }

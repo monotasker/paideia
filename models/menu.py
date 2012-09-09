@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 if 0:
-    from gluon import current, URL
+    from gluon import current, URL, SPAN
     response, request, T = current.response, current.request, current.t
     auth = current.auth
 
@@ -20,12 +20,14 @@ response.meta.copyright = 'Copyright 2011'
 
 response.menu = [
     (T('Home'), False, URL('default', 'index'), []),
-    (T('Map'), False, URL('exploring', 'index'), []),
-    (T('Slides'), False, URL('listing', 'slides'), [])
+    (SPAN(T('Map'), _class='icon-location'), False,
+                                             URL('exploring', 'index'), []),
+    (SPAN(T('Slides'), _class='icon-image'), False,
+                                             URL('listing', 'slides'), [])
     ]
 
 if auth.has_membership('administrators', auth.user_id):
-    response.menu += [(T('Admin'), False, None, [
+    response.menu += [(SPAN(T('Admin'), _class='icon-gear'), False, None, [
             (T('Create'), False, None, [
                 (T('Slide decks'), False, URL('plugin_listandedit',
                             'listing.html', args=['plugin_slider_decks'])),

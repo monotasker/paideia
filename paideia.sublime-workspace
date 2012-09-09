@@ -4,6 +4,10 @@
 		"selected_items":
 		[
 			[
+				"quota",
+				"quota_override"
+			],
+			[
 				"user_",
 				"user_id"
 			],
@@ -347,7 +351,7 @@
 			"file": "modules/paideia_exploring.py",
 			"settings":
 			{
-				"buffer_size": 59219,
+				"buffer_size": 60072,
 				"line_ending": "Unix"
 			}
 		},
@@ -364,6 +368,14 @@
 			"settings":
 			{
 				"buffer_size": 7371,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "models/menu.py",
+			"settings":
+			{
+				"buffer_size": 3106,
 				"line_ending": "Unix"
 			}
 		},
@@ -503,11 +515,11 @@
 				"Package Control: Discover Packages"
 			]
 		],
-		"width": 521.0
+		"width": 456.0
 	},
 	"console":
 	{
-		"height": 722.0
+		"height": 330.0
 	},
 	"distraction_free":
 	{
@@ -520,6 +532,8 @@
 	},
 	"file_history":
 	[
+		"/home/ian/web/web2py/applications/paideia/static/plugin_framework/theme_paideia.less",
+		"/home/ian/web/web2py/applications/paideia/static/plugin_framework/framework.less",
 		"/home/ian/.config/sublime-text-2/Packages/Default/Preferences.sublime-settings",
 		"/home/ian/.config/sublime-text-2/Packages/User/Preferences.sublime-settings",
 		"/home/ian/web/web2py/applications/paideia/modules/paideia_stats.py",
@@ -548,8 +562,6 @@
 		"/home/ian/web/web2py/applications/paideia/controllers/plugin_listandedit.py",
 		"/home/ian/.config/sublime-text-2/Packages/Prevu/Prevu.sublime-settings",
 		"/home/ian/web/web2py/applications/paideia/static/plugin_framework/theme.less",
-		"/home/ian/web/web2py/applications/paideia/static/plugin_framework/framework.less",
-		"/home/ian/web/web2py/applications/paideia/static/plugin_framework/theme_paideia.less",
 		"/home/ian/.config/sublime-text-2/Packages/sublime-V8/JSHINT.sublime-settings",
 		"/home/ian/web/web2py/applications/paideia/views/plugin_ajaxselect/set_widget.load",
 		"/home/iscott/web/web2py/applications/paideia/modules/plugin_ajaxselect.py",
@@ -591,6 +603,8 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"override",
+			"view_s",
 			"awardb",
 			"new_badge",
 			"badges",
@@ -641,7 +655,7 @@
 					"file": "modules/paideia_exploring.py",
 					"settings":
 					{
-						"buffer_size": 59219,
+						"buffer_size": 60072,
 						"regions":
 						{
 							"bookmarks":
@@ -657,8 +671,8 @@
 						"selection":
 						[
 							[
-								52773,
-								52773
+								43451,
+								43451
 							]
 						],
 						"settings":
@@ -669,7 +683,7 @@
 								"README",
 								"FIXME"
 							],
-							"function_name_status_row": 1443,
+							"function_name_status_row": 1180,
 							"gjslint_ignore":
 							[
 								110
@@ -718,7 +732,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 24530.0,
+						"translation.y": 21165.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -841,7 +855,7 @@
 					"file": "modules/paideia_exploring.py",
 					"settings":
 					{
-						"buffer_size": 59219,
+						"buffer_size": 60072,
 						"regions":
 						{
 						},
@@ -916,6 +930,35 @@
 				},
 				{
 					"buffer": 3,
+					"file": "models/menu.py",
+					"settings":
+					{
+						"buffer_size": 3106,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								933,
+								933
+							]
+						],
+						"settings":
+						{
+							"function_name_status_row": 24,
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 162.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
 					"file": "models/paideia.py",
 					"settings":
 					{
@@ -938,7 +981,7 @@
 								"README",
 								"FIXME"
 							],
-							"function_name_status_row": 290,
+							"function_name_status_row": 150,
 							"gjslint_ignore":
 							[
 								110
@@ -993,7 +1036,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 3,
+					"buffer": 4,
 					"file": "models/paideia.py",
 					"settings":
 					{
@@ -1101,7 +1144,7 @@
 		"cols":
 		[
 			0.0,
-			0.713030746706,
+			0.42532942899,
 			1.0
 		],
 		"rows":

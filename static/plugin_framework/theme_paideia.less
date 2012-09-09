@@ -22,7 +22,7 @@ body header    {height:@navheight;
                 line-height:@navheight;
                 overflow:hidden;
                 float:left;
-                margin: 6px 0 0 65px; 
+                margin: 6px 0 0 65px;
 
         a      {display:block;
                 background-color:@cream;
@@ -51,8 +51,8 @@ nav                        {background-color:@cream;
                             line-height:@navheight;
 
             /* first-level menu links */
-            a, 
-            a:link, 
+            a,
+            a:link,
             a:visited      {color:@cranberry;
                             font-weight:bold;
                             padding:0 @typeheight;
@@ -83,10 +83,14 @@ nav                        {background-color:@cream;
                         line-height:@navheight;
                         display:block;
                         font-weight:bold;
-                        text-transform:uppercase;  
-                        font-size:@typeheight * .8;  
+                        text-transform:uppercase;
+                        font-size:@typeheight * .8;
 
-    li                 {float: right;}
+    li                 {float: right;
+        &:nth-child(1) {.icon-logout;}
+        &:nth-child(2) {margin-left:@typeheight;
+                        .icon-profile;}
+    }
 
     a,
     a:link,
@@ -95,7 +99,8 @@ nav                        {background-color:@cream;
                         color:@cranberry;
                         display:block;
                         float:right;
-                        margin:0 @typeheight;}
+                        margin:0 0 0 0;
+                        margin-right:@typeheight * 2}
         &:hover,
         &:active,
         &:focus        {}
@@ -144,7 +149,7 @@ body #page             {margin-top:-(@lineheight2 + 14);
                         padding: @typeheight/2;
                         .border-radius(0, @typeheight/2, @typeheight/2, 0);}
         }
-    
+
     /*Main headings for page-level content*/
     h2                 {padding-left: @lineheight3;
                         margin-top: @lineheight2;
@@ -301,7 +306,7 @@ body #page             {margin-top:-(@lineheight2 + 14);
         }
     .prompt,
     .responder             {margin-top: @lineheight;
-                            max-width: 65%; 
+                            max-width: 65%;
                             z-index: 3;
                             font-size: @typeheight2;
                             line-height: @lineheight2;
@@ -386,9 +391,9 @@ body #page             {margin-top:-(@lineheight2 + 14);
                             text-align:center;
                             box-shadow:0px 2px 6px rgba(0,0,0,0.3);}
             }
-        td.total_cat1, 
-        td.total_cat2, 
-        td.total_cat3, 
+        td.total_cat1,
+        td.total_cat2,
+        td.total_cat3,
         td.total_cat4      {height:40px;
                             width:40px;
                             color:#fff;
@@ -406,7 +411,7 @@ body #page             {margin-top:-(@lineheight2 + 14);
         td.total_cat2      {background-color:#EBFC97;}
         td.total_cat1      {background-color:#852625;}
         }
-    /* calendar for monthly user statistics */    
+    /* calendar for monthly user statistics */
     table.paideia_monthcal_table
                            {border-collapse:separate;
                             border-spacing:2px;
