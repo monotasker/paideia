@@ -95,11 +95,29 @@ def set_value():
     **TODO: return the result instead of just
     printing to stdout.
     """
+    pass
 
-    query = db(db.steps.id > 0).select()
-    for q in query:
-        q.update_record(widget_type=1)
-    print 'updated ', len(query), ' records'
+    # query = db(db.questions.id > 0).select()
+    # for q in query:
+    #     db.steps.insert(prompt=q.question,
+    #                     readable_response=q.readable_answer,
+    #                     outcome1=q.value,
+    #                     response1=q.answer,
+    #                     outcome2=q.value2,
+    #                     response2=q.answer2,
+    #                     outcome3=q.value3,
+    #                     response3=q.answer3,
+    #                     tags=q.tags,
+    #                     tags_secondary=q.tags_secondary,
+    #                     status=q.status,
+    #                     npcs=q.npcs
+    #                     )
+    #     step = db(db.steps.prompt == q.question).select().first()
+    #     db.paths.insert(label=step.prompt[:40],
+    #                     steps=[step.id]
+    #                     )
+
+    # print 'updated ', len(query), ' records'
 
 
 @auth.requires_login()

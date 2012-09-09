@@ -86,12 +86,7 @@
     <div class='bg_image'>{{=bg_image}}</div>
     <div class='speaker'>{{=npc_img}}</div>
     <div class="npc prompt">{{=prompt}}</div>
-    <div class='responder'>
-        {{try:}}
-            {{=responder}}
-        {{except:}}
-        {{pass}}
-    </div>
+    <div class='responder'>{{=responder}}</div>
 {{pass}}
 
 <script>
