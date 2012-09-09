@@ -1192,10 +1192,13 @@ class Step(object):
                     _class='prompt_tips')
 
         iset = db.steps[self.step.id].instructions
-        for i in iset:
-            inst_div[-1][0].append(LI(i))
+        if iset:
+            for i in iset:
+                inst_div[-1][0].append(LI(i))
 
-        return inst_div
+            return inst_div
+        else:
+            return None
 
 
 class StepMultipleChoice(Step):
