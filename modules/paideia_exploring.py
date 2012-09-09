@@ -1,6 +1,6 @@
 # coding: utf8
 from gluon import current, redirect, Field
-from gluon import IMG, SQLFORM, SPAN, DIV, URL, A, UL, LI
+from gluon import IMG, SQLFORM, SPAN, DIV, URL, A, UL, LI, MARKMIN
 from gluon import IS_NOT_EMPTY, IS_IN_SET
 #from gluon.sql import Row, Rows
 
@@ -280,15 +280,15 @@ class Walk(object):
         for categ, lst in categories.iteritems():
             if lst:
                 print 'current badges =', lst
-                catname = 'cat{0}'.format(categ)
-                if mycats and mycats[catname]:
-                    new = [t for t in lst if t not in mycats[catname]]
+                categ = 'cat{0}'.format(str(categ))
+                if mycats and mycats[categ]:
+                    new = [t for t in lst if t not in mycats[categ]]
                 else:
                     new = [t for t in lst]
                 if new:
                     if debug: print 'newly awarded badges =', new
-                    new_badges[catname] = new
-                    all_badges[catname] = new + lst
+                    new_badges[categ] = new
+                    all_badges[categ] = new + lst
 
         db.tag_progress.update_or_insert(**{
                                             'name': auth.user_id,
@@ -364,7 +364,11 @@ class Walk(object):
         # Have we reached the daily path limit? Return a default step.
         # TODO: Replace hardcoded limit (20)
         if len(session.walk['completed_paths']) >= 20:
-            return self._get_util_step('end of quota')  # tag id=79
+            if 'quota_override' in session.walk and \
+                                                session.walk['quota_override']:
+                pass
+            else:
+                return self._get_util_step('end of quota')  # tag id=79
 
         return None, None
 
@@ -501,7 +505,6 @@ class Walk(object):
         #if not self.staying:
 
         path, step_id = self._handle_blocks()
-        if debug: print 'path=', path.id, 'step=', step_id
         # _handle_blocks() returns None, None if no blocks present
         # if daily max reached, returns default step
         if path and step_id:
@@ -766,7 +769,8 @@ class Step(object):
 
         debug = False
         db, session = current.db, current.session
-        if self.verbose: print 'Initializing', type(self), '=================='
+        if self.verbose:
+            print 'Initializing', type(self).__name__, '=================='
 
         if step is not None:
             self.path = db.paths(session.walk['path'])
@@ -785,7 +789,8 @@ class Step(object):
         Save attributes in session.
         '''
         debug = True
-        if self.verbose: print 'calling', type(self), '._save_session_data----'
+        if self.verbose:
+            print 'calling', type(self).__name__, '._save_session_data----'
         session = current.session
 
         session_data = {}
@@ -802,7 +807,8 @@ class Step(object):
         '''
         Get the step attributes from the session.
         '''
-        if self.verbose: print 'calling', type(self), '._get_session_data-----'
+        if self.verbose:
+            print 'calling', type(self).__name__, '._get_session_data-----'
         db, session = current.db, current.session
 
         self.location = session.walk['active_location']
@@ -819,7 +825,8 @@ class Step(object):
         Public method. Returns the html helpers to create the view
         for the 'ask' state of the user interface.
         '''
-        if self.verbose: print 'calling', type(self), '.ask-------------------'
+        if self.verbose:
+            print 'calling', type(self).__name__, '.ask-------------------'
         debug = False
 
         npc = self._get_npc()
@@ -839,14 +846,16 @@ class Step(object):
         '''
         # TODO: Make sure that subsequent steps of the current path use the
         # same npc if in the same location
-        if self.verbose: print 'calling', type(self), '._get_npc--------------'
+        if self.verbose:
+            print 'calling', type(self).__name__, '._get_npc--------------'
         debug = False
 
         def _get_npc_internal(npcs):
             '''
             Return an npc from the set of npcs or None if there aren't any.
             '''
-            if self.verbose: print 'calling', type(self), '._get_npc_internal-'
+            if self.verbose:
+                print 'calling', type(self).__name__, '._get_npc_internal-'
             if npcs is None:
                 return
 
@@ -906,7 +915,8 @@ class Step(object):
         information presented to the user.
         '''
         debug = False
-        if self.verbose: print 'calling', type(self), '.process----------'
+        if self.verbose:
+            print 'calling', type(self).__name__, '.process----------'
         session, db, auth = current.session, current.db, current.auth
 
         # Get the student's response to the question
@@ -980,7 +990,8 @@ class Step(object):
         tooltip containing the message and link allowing students to submit
         a bug report for the current step.
         '''
-        if self.verbose: print 'calling', type(self), '._get_bug_reporter-----'
+        if self.verbose:
+            print 'calling', type(self).__name__, '._get_bug_reporter-----'
         request, response = current.request, current.response
 
         bug_reporter = DIV(_class='tip bug_reporter')
@@ -1005,7 +1016,8 @@ class Step(object):
         records. times_wrong gives the opposite value to add to 'times wrong'
         (i.e., negative score).
         '''
-        if self.verbose: print 'calling', type(self), '._record---------------'
+        if self.verbose:
+            print 'calling', type(self).__name__, '._record---------------'
         db, auth, session = current.db, current.auth, current.session
 
         utc_now = datetime.datetime.utcnow()
@@ -1095,7 +1107,8 @@ class Step(object):
         Get the prompt text to be presented from the npc to start the step
         interaction.
         '''
-        if self.verbose: print 'calling', type(self), '._get_prompt-----------'
+        if self.verbose:
+            print 'calling', type(self).__name__, '._get_prompt-----------'
         debug = True
         auth = current.auth
 
@@ -1104,29 +1117,51 @@ class Step(object):
         newtext = rawtext.replace('[[user]]', uname)
         try:
             for k, v in self._get_replacements().iteritems():
-                newtext = newtext.replace(k, v)
+                newtext = newtext.replace(k, v.xml())
         except AttributeError:
             if debug: print 'No replacements for this Step type'
 
-        text = SPAN(newtext)
+        prompt = MARKMIN(newtext)
 
         try:
-            img = self._get_step_image()
-            text = SPAN(newtext, img)
+            prompt.append(self._get_step_image())
         except AttributeError:
             pass
 
-        #TODO: get audio file for prompt text as well.
-        # audio = ''
+        try:
+            audio = self._get_step_audio()
+            if audio:
+                prompt.append(audio)
+        except AttributeError:
+            pass
 
-        return text  # audio
+        return prompt
+
+    def _get_step_audio(self):
+        '''
+        Return the url (as a string) of the audio file for the current step's
+        prompt.
+        '''
+        if self.verbose:
+            print 'calling', type(self).__name__, '._get_step_audio--------'
+        debug = True
+
+        try:
+            url = URL('static/audio', self.step.prompt_audio)
+            if debug: print url
+            if url:
+                return url.xml()
+        except:
+            print '._get_step_audio(): Could not find step audio'
+            return
 
     def _get_responder(self):
         '''
         Create and return the form to receive the user's response for this
         step.
         '''
-        if self.verbose: print 'calling', type(self), '._get_responder--------'
+        if self.verbose:
+            print 'calling', type(self).__name__, '._get_responder--------'
 
         # TODO: this return not needed now? Or should .complete() be called?
         if isinstance(self, StepStub):
@@ -1170,7 +1205,8 @@ class StepMultipleChoice(Step):
         create and return the form to receive the user's response for this
         step
         '''
-        if self.verbose: print 'calling', type(self), '._get_responder-----'
+        if self.verbose:
+            print 'calling', type(self).__name__, '._get_responder-----'
         session, request = current.session, current.request
 
         vals = self.step.options
@@ -1193,7 +1229,8 @@ class StepMultipleChoice(Step):
 
         This method overrides Step.process for the StepMultipleChoice subclass.
         '''
-        if self.verbose: print 'calling', type(self), '._get_responder----'
+        if self.verbose:
+            print 'calling', type(self).__name__, '._get_responder----'
         debug = False
         session, db, auth = current.session, current.db, current.auth
 
@@ -1266,7 +1303,8 @@ class StepStub(Step):
 
         Note that the user always gets the step right.
         '''
-        if self.verbose: print 'calling', type(self), '.complete -------------'
+        if self.verbose:
+            print 'calling', type(self).__name__, '.complete -------------'
         session = current.session
 
         del session.walk['active_paths'][self.path.id]
@@ -1278,7 +1316,8 @@ class StepStub(Step):
         overrides Step._get_responder() to remove everything but the map
         button built into the view template.
         '''
-        if self.verbose: print 'calling', type(self), '._get_responder -------'
+        if self.verbose:
+            print 'calling', type(self).__name__, '._get_responder -------'
         map_button = A("Map", _href=URL('walk'),
                         cid='page',
                         _class='button-yellow-grad back_to_map icon-location')
@@ -1298,7 +1337,8 @@ class StepNonBlocking(Step):
         Create and return the html helper for the buttons to allow the user
         to continue here.
         '''
-        if self.verbose: print 'calling', type(self), '._get_responder--------'
+        if self.verbose:
+            print 'calling', type(self).__name__, '._get_responder--------'
         request = current.request
 
         buttons = A("Continue", _href=URL('walk', args=['ask'],
@@ -1320,22 +1360,26 @@ class StepViewSlides(StepStub):
         '''
         Provide the string replacement data to be used in the step prompt.
         '''
-        if self.verbose: print 'calling', type(self), '._get_replacements ----'
+        if self.verbose:
+            print 'calling', type(self).__name__, '._get_replacements ----'
+        debug = True
         session = current.session
         db = current.db
 
         badges = ''
         if 'new_badges' in session.walk:
             for k, v in session.walk['new_badges'].iteritems():
-                if k == 1:
+                if k == 'cat1':
                     for tag in v:
                         badge = db(db.badges.tag == tag).select().first()
-                        bn = '{0} {1}'.format('beginner', badge.badge_name)
-                        bn_span = SPAN(bn, _class='badge_name')
-                        badge_string = bn_span.xml() + ', '
-                        badges += badge_string
+                        badge_name = '{0} {1},'.format('beginner',
+                                                       badge.badge_name)
+                        badges += badge_name
+                    if badges[-1] == ',':
+                        badges = badges[:len(badges)]
+        if debug: print 'badges =', badges
 
-        slides = UL(_class='slides_list')
+        slides = ''
         if 'view_slides' in session.walk:
             for t in session.walk['view_slides']:
                 # convert this to link once plugin_slider supports it
@@ -1343,7 +1387,8 @@ class StepViewSlides(StepStub):
                 title_list = [db.plugin_slider_decks[d].deck_name
                                                         for d in tag_slides]
                 for li in title_list:
-                    slides.append(LI(li))
+                    slides += '- {0}'.format(li)
+        if debug: print 'slides =', slides
 
         replacements = {'[[badge_list]]': badges, '[[slides]]': slides}
 
@@ -1362,7 +1407,21 @@ class StepDailyQuota(StepNonBlocking, StepStub):
     # user's required quota of paths per day.
     verbose = True
 
-    pass
+    def _get_replacements(self):
+        '''
+        Just here as a hook to introduce _add_flag into the step processing
+        cycle.
+        '''
+        self._add_flag()
+
+    def _add_flag(self):
+        '''
+        Add the session flag overriding the user's daily quota
+        of steps, allowing the user to continue on to a new step.
+        '''
+        session = current.session
+
+        session.walk['quota_override'] = True
 
 
 class StepAwardBadges(StepNonBlocking, StepStub):
@@ -1379,32 +1438,59 @@ class StepAwardBadges(StepNonBlocking, StepStub):
         '''
         Provide the string replacement data to be used in the step prompt.
         '''
-        if self.verbose: print 'calling', type(self), '._get_replacements ---'
+        if self.verbose:
+            print 'calling', type(self).__name__, '._get_replacements ---'
+        debug = True
         session = current.session
         db = current.db
+        auth = current.auth
 
-        badges = UL(_class='badge_list')
+        badges = ''
         if 'new_badges' in session.walk:
             for k, v in session.walk['new_badges'].iteritems():
-                if type(k) == int:
+                if debug: print 'new_badges =', session.walk['new_badges']
+                #TODO: cludge to handle change in new_badges keys to simple int
+                print k, k[:3], k[3:]
+                if k[:3] == 'cat' and int(k[3:]) in [1, 2, 3, 4]:
+                    n = int(k[3:])
+                    print v
                     for tag in v:
+                        print 'auth =', auth.user_id
                         badge = db(db.badges.tag == tag).select().first()
+                        if debug: print 'badge =', badge
                         ranks = ['beginner', 'apprentice',
-                                    'journeyman', 'master']
-                        bn = '{0} {1}'.format(ranks[k], badge.badge_name)
-                        bn_span = SPAN(bn, _class='badge_name')
-                        rank_verbs = ['starting to learn',
-                                        'making good progress with',
-                                        'gaining a good working grasp of',
-                                        'mastering']
-                        bd = 'for {0} {1}'.format(rank_verbs[k],
-                                                  badge.description)
-                        badge_string = LI(bn_span.xml(), bd)
-                        badges.append(badge_string.xml())
+                                                'journeyman', 'master']
+                        try:
+                            #TODO: chokes on this line if badge == None
+                            badge_name = '{0} {1}'.format(ranks[n - 1],
+                                                          badge.badge_name)
+                            rank_verbs = ['starting to learn',
+                                            'making good progress with',
+                                            'gaining a good working grasp of',
+                                            'mastering']
+                            badge_desc = 'for {0} {1}'.format(
+                                                        rank_verbs[n - 1],
+                                                        badge.description)
+                            if debug: print 'badge_desc =', badge_desc
+                            badges += ('- **{0}** {1}\n'.format(badge_name,
+                                                               badge_desc))
+                        except:
+                            badges += '- unknown\n'
+        if debug: print badges
+        print 'bla, bla'
+        self._remove_flag()
 
-        replacements = {'[[badge_list]]': badges}
+        return {'[[badge_list]]': badges}
 
-        return replacements
+    def _remove_flag(self):
+        '''
+        remove the session flag for newly awarded badges, allowing the user
+        to continue on to a new step.
+        '''
+        session = current.session
+
+        del session.walk['new_badges']
+        print 'removed award badges flag'
 
 
 class StepImage(Step):
@@ -1418,9 +1504,18 @@ class StepImage(Step):
         Returns the image to be displayed in the step prompt, wrapped in a
         web2py IMG() helper object.
         '''
-        if self.verbose: print 'calling', type(self), '._get_step_image -----'
+        debug = True
+        if self.verbose:
+            print 'calling', type(self).__name__, '._get_step_image -----'
+        try:
+            url = URL('static/images', self.step.widget_image)
+            if debug:
+                print url
+            return IMG(_src=url)
+        except:
+            print '._get_image(): Could not find npc image'
+            return
 
-    def
 
 class StepImageMultipleChoice(StepImage, StepMultipleChoice):
     '''
@@ -1498,6 +1593,7 @@ class Npc(object):
             url = URL('static/images', self.npc.npc_image.image)
             if debug:
                 print url
+            # TODO: Add title attribute
             return IMG(_src=url)
         except:
             print 'Npc._get_image(): Could not find npc image'
