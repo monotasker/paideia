@@ -77,8 +77,12 @@
             cid='page',
             _class='button-yellow-grad back_to_map')}}
 
-            <a href='#' class="bug_reporter icon icon-bug">bug</a>
-        {{=XML(bug_reporter)}}
+        <div class='bug_reporter_wrapper tip_wrapper'>
+            <a href='#' class="bug_reporter icon-only icon-alert">
+                <span class='accessible'>bug</span> 
+            </a>
+            {{=XML(bug_reporter)}}
+        </div>
     </div>
 
 <!--present prompt for step-->
@@ -86,7 +90,7 @@
     <div class='bg_image'>{{=bg_image}}</div>
     <div class='speaker'>{{=npc_img}}</div>
     <div class="npc prompt">{{=prompt}}</div>
-    <div class='responder'>{{=responder}}</div>
+    {{=responder}}
 {{pass}}
 
 <script>

@@ -1,13 +1,17 @@
-from gluon import current, SQLFORM, redirect, A, URL, H3
-from gluon.tools import Crud
+from gluon import current
 
 
 class Bug(object):
+
+    verbose = True
+
     """
     Handles the creation, manipulation, and reporting of bug
     reports for paideia.
     """
     def __init__(self, step=None, path=None, location=None):
+        if self.verbose: print '\nInitializing Bug object ==================='
+        debug = True
         session = current.session
 
         if not step and 'step' in session.walk:
@@ -17,21 +21,30 @@ class Bug(object):
             path = session.walk['path']
         self.path = path
         if not location and 'location' in session.walk:
-            location = session.walk['location']
+            location = session.walk['active_location']
         self.location = location
+        if debug:
+            print 'initial arguments:', self.step, self.path, self.location
+
         return
 
     def log_new(self, answer):
         """
         creates a new bug report and provides confirmation to the user.
         """
-        response, db = current.response, current.db
-        location = db(db.locations.alias == self.location).select().first()
-        print 'in Bug.log_new()'
-        print 'location =', self.location
-        print 'step =', self.step
-        print 'path =', self.path
-        print 'answer =', answer
+        if self.verbose: print 'calling Bug.log_new object ================='
+        debug = True
+        response = current.response
+        db = current.db
+
+        location = db(db.locations.alias ==
+                                    self.location['alias']).select().first()
+        if debug:
+            print 'location =', self.location
+            print 'step =', self.step
+            print 'path =', self.path
+            print 'answer =', answer
+
         try:
             db.bugs.insert(step=self.step, path=self.path,
                             location=location.id, user_response=answer)
@@ -45,7 +58,8 @@ class Bug(object):
         except Exception, e:
             response.flash = 'Sorry, something went wrong with your bug\
                     report. Please contact the instructor.'
-            print 'Error in Walk.log_new():', e
+            # TODO: Log these errors.
+            print 'Error in Bug.log_new():', e
             return False
 
     # TODO: Deprecated in favour of plugin_listandedit
@@ -80,7 +94,7 @@ class Bug(object):
             display.append(b.bugs.date_submitted)
             #get status label instead of raw status reference
             s = b.bugs.bug_status
-            if s == None:
+            if s is None:
                 s = 5
             st = db(db.bug_status.id == s).select().first()
             status = st.status_label
