@@ -2,6 +2,7 @@
     {{#=response.toolbar()}}
 {{pass}}
 
+{{if auth.has_membership('administrators'):}}
 <div id='utils'>
 <form style='z-index:99' id='clear_session'>
     <ul> <li>
@@ -30,6 +31,7 @@
     <span class='accessible'>Admin</span>
 </span>;
 </div>
+{{pass}}
 
 <!--when an error is raised-->
 <!-- TODO: Rework this error message -->
