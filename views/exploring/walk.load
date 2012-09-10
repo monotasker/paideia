@@ -65,21 +65,21 @@
         {{=A("Continue", _href=URL('walk', args=['ask'],
                                     vars=dict(loc=request.vars['loc'])),
             cid='page',
-            _class='button-green-grad next_q')}}
+            _class='button-green-grad next_q icon-next-circle')}}
 
         {{=A("Retry", _href=URL('walk', args=['retry'],
                                     vars=dict(loc=request.vars.loc)),
             cid='page',
-            _class='button-yellow-grad retry')}}
+            _class='button-yellow-grad retry icon-rotate-circle')}}
 
         {{=A("Map", _href=URL('walk', args=['start'],
                                     vars=dict(loc=None)),
             cid='page',
-            _class='button-yellow-grad back_to_map')}}
+            _class='button-yellow-grad back_to_map icon-location')}}
 
         <div class='bug_reporter_wrapper tip_wrapper'>
-            <a href='#' class="bug_reporter icon-only icon-alert">
-                <span class='accessible'>bug</span> 
+            <a href='#' class="bug_reporter_icon icon-only icon-alert">
+                <span class='accessible'>bug</span>
             </a>
             {{=XML(bug_reporter)}}
         </div>
@@ -109,7 +109,7 @@ $('#responder_submit').click(function(event){
     window.parent.web2py_component("/paideia/exploring/walk.load/reply","page");
     event.preventDefault();
 });
-$('a.bug_reporter').click(function(event){
+$('.bug_reporter_icon').click(function(event){
     var $tip = $('div.bug_reporter');
     if ($tip.hasClass('tip-visible')){
         $tip.removeClass('tip-visible');
