@@ -1,6 +1,6 @@
 import calendar
 import datetime
-from pytz import timezone
+from applications.myapp.modules.pytz.__init__ import timezone
 from gluon import current, DIV, H4, TABLE, THEAD, TBODY, TR, TD, SPAN
 from paideia_exploring import Walk
 

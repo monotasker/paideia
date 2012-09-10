@@ -138,6 +138,18 @@
         {{end}}
     </footer>
 
+<script type="text/javascript"> 
+var $buoop = {} 
+$buoop.ol = window.onload; 
+window.onload=function(){ 
+ try {if ($buoop.ol) $buoop.ol();}catch (e) {} 
+ var e = document.createElement("script"); 
+ e.setAttribute("type", "text/javascript"); 
+ e.setAttribute("src", "http://browser-update.org/update.js"); 
+ document.body.appendChild(e); 
+} 
+</script>
+
     <!--[if lt IE 7 ]>
     <script src="{{=URL('static','js/dd_belatedpng.js')}}"></script>
     <script> DD_belatedPNG.fix('img, .png_bg'); //fix any <img> or .png_bg background-images </script>
