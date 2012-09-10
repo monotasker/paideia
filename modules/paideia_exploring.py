@@ -131,7 +131,8 @@ class Walk(object):
         self.tag_set = session.walk['tag_set']
 
         # create step instance here if we're processing a user's response
-        if ('response' in request.vars) and (request.args(0) == 'ask'):
+        if ('response' in request.vars) and (request.args(0)
+                                                         in ['ask', 'retry']):
             self.step = self._create_step_instance()
             print 're-activating step'
 
@@ -917,7 +918,8 @@ class Step(object):
         debug = False
         if self.verbose:
             print 'calling', type(self).__name__, '.process----------'
-        session, db, auth = current.session, current.db, current.auth
+        session = current.session
+        request = current.request
 
         # Get the student's response to the question
         user_response = user_response.strip()
@@ -967,7 +969,9 @@ class Step(object):
                 times_wrong = 0
 
             # Record the results in statistics for this step and this tag
-            self._record(score, times_wrong)
+            # Don't record repeat attempts within the same day's session
+            if request.args[0] != 'retry':
+                self._record(score, times_wrong)
 
         # Handle errors if the student's response cannot be evaluated
         except re.error:
@@ -994,7 +998,7 @@ class Step(object):
             print 'calling', type(self).__name__, '._get_bug_reporter-----'
         request, response = current.request, current.response
 
-        bug_reporter = DIV(_class='tip-left bug_reporter')
+        bug_reporter = DIV(_class='bug_reporter')
         text1 = SPAN('If you think your answer wasn\'t evaluated properly, ')
         link = A('click here',
                     _href=URL('creating', 'bug.load',
@@ -1166,8 +1170,6 @@ class Step(object):
         # TODO: this return not needed now? Or should .complete() be called?
         if isinstance(self, StepStub):
             return
-
-        session, request = current.session, current.request
 
         form = SQLFORM.factory(
                     Field('response', 'string', requires=IS_NOT_EMPTY()),
@@ -1351,7 +1353,9 @@ class StepNonBlocking(Step):
                     cid='page',
                     _class='button-green-grad next_q')
 
-        return buttons
+        wrapper = DIV(buttons, _class='responder')
+
+        return wrapper
 
 
 class StepViewSlides(StepStub):

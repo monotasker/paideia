@@ -179,7 +179,7 @@ def walk():
 
     # After user submits response to step prompt
     # Evaluate response and present feedback via npc reply
-    elif ('response' in request.vars) and (request.args(0) == 'ask'):
+    elif ('response' in request.vars) and (request.args(0) in ['ask', 'retry']):
         if debug: print '\ncontroller exploring.walk() state: response'
         resp = request.vars.response
         if debug: print 'response is', resp

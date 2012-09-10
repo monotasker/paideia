@@ -88,7 +88,7 @@ nav                        {background-color:@cream;
 
     li                 {float: right;
         &:nth-child(1) {.icon-logout;}
-        &:nth-child(2) {margin-left:@typeheight;
+        &:nth-child(2) {margin-left:@typeheight / 2;
                         .icon-profile;}
     }
 
@@ -306,6 +306,7 @@ body #page             {margin-top:-(@lineheight2 + 14);
         }
     .prompt,
     .responder             {margin-top: @lineheight;
+                            margin-left:260px;
                             max-width: 65%;
                             z-index: 3;
                             font-size: @typeheight2;
@@ -321,15 +322,18 @@ body #page             {margin-top:-(@lineheight2 + 14);
         .readable_short,
         .readable_long     {color:@sol_green;}
         .bug_reporter_wrapper
-                           {display:block;
+                           {display:inline-block;
                             float:right;}
-        .bug_reporter.tip  {font-size: @typeheight;
+        .bug_reporter      {font-size: @typeheight;
                             line-height: @lineheight;
                             padding: @lineheight;
                             left:-320px;
-                            top:-@lineheight * 2;
+                            top:-@lineheight * 3;
+                            margin-left:0;
+                            display:none;
+                            .tip-left(@greyf5);
             span,
-            a              {font-size: @typeheight;} 
+            a              {font-size: @typeheight;}
             }
         }
     .prompt                {.speech-bubble-left(@lineheight, @typeheight);}
