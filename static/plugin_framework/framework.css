@@ -120,7 +120,7 @@
 body {
   font-size: 16px;
   line-height: 24px;
-  font-family: "Palatino Linotype", Palatino, serif;
+  font-family: "Palatino Linotype", serif;
   color: #666666;
 }
 body header, body #page, body footer {
@@ -147,12 +147,12 @@ a:hover, a:active, a:link {
 h1, h1 a {
   font-size: 40px;
   line-height: 60px;
-  font-family: "Palatino Linotype", Palatino, serif;
+  font-family: "Palatino Linotype", serif;
   display: block;
   margin: 0;
 }
 h2, h3 {
-  font-family: "Palatino Linotype", Palatino, serif;
+  font-family: "Palatino Linotype", serif;
   display: block;
   margin: 0;
 }
@@ -197,7 +197,7 @@ input[type=text], select, textarea {
   border: 1px solid #eee;
   font-size: 16px;
   line-height: 24px;
-  font-family: "Palatino Linotype", Palatino, serif;
+  font-family: "Palatino Linotype", serif;
   color: #666666;
   -webkit-transition: all 200ms ease-in-out;
   -moz-transition: all 200ms ease-in-out;
@@ -222,7 +222,7 @@ textarea {
   padding: 0 16px;
   font-size: 16px;
   line-height: 24px;
-  font-family: "Palatino Linotype", Palatino, serif;
+  font-family: "Palatino Linotype", serif;
   color: #666666;
 }
 input[type=text], select {
@@ -240,7 +240,7 @@ select {
 form label {
   line-height: 36px;
   text-transform: uppercase;
-  font-family: ubuntu, calibri, arial, sans-serif;
+  font-family: ubuntu, arial, sans-serif;
   font-size: 12.8px;
 }
 input[type=submit] {
@@ -818,249 +818,4 @@ a:hover .tip, a:active .tip {
 .icon-up-down:before {
   content: '~';
   font-family: Websymbols;
-}
-.plugin_slider_frame {
-  background-color: #fcfbf7;
-  width: 100%;
-  height: 100%;
-}
-.plugin_slider_navlink {
-  position: absolute;
-  top: 50%;
-  width: 60px;
-  height: 60px;
-  display: block;
-  background-color: #002b36;
-  color: #fff;
-  opacity: 0.6;
-  display: inline-block;
-  /* Fix for webkit clickability issue */
-
-  font-size: 24px;
-  padding: 24px;
-  -moz-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
-  -webkit-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
-  -o-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
-  -ms-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
-  text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
-  -webkit-transition: all 200ms ease-in-out;
-  -moz-transition: all 200ms ease-in-out;
-  -o-transition: all 200ms ease-in-out;
-  -ms-transition: all 200ms ease-in-out;
-  transition: all 200ms ease-in-out;
-}
-.plugin_slider_navlink .accessible {
-  position: absolute;
-  top: -9999px;
-  left: -9999px;
-}
-.plugin_slider_navlink:hover {
-  -webkit-transition: all 200ms ease-in-out;
-  -moz-transition: all 200ms ease-in-out;
-  -o-transition: all 200ms ease-in-out;
-  -ms-transition: all 200ms ease-in-out;
-  transition: all 200ms ease-in-out;
-}
-.plugin_slider_prevlink {
-  left: -24px;
-  position: absolute;
-  top: 50%;
-  width: 60px;
-  height: 60px;
-  display: block;
-  background-color: #002b36;
-  color: #fff;
-  opacity: 0.6;
-  display: inline-block;
-  /* Fix for webkit clickability issue */
-
-  font-size: 24px;
-  padding: 24px;
-  -moz-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
-  -webkit-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
-  -o-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
-  -ms-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
-  text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
-  -webkit-transition: all 200ms ease-in-out;
-  -moz-transition: all 200ms ease-in-out;
-  -o-transition: all 200ms ease-in-out;
-  -ms-transition: all 200ms ease-in-out;
-  transition: all 200ms ease-in-out;
-  text-align: right;
-}
-.plugin_slider_prevlink .accessible {
-  position: absolute;
-  top: -9999px;
-  left: -9999px;
-}
-.plugin_slider_prevlink:hover {
-  -webkit-transition: all 200ms ease-in-out;
-  -moz-transition: all 200ms ease-in-out;
-  -o-transition: all 200ms ease-in-out;
-  -ms-transition: all 200ms ease-in-out;
-  transition: all 200ms ease-in-out;
-}
-.plugin_slider_prevlink:before {
-  content: '<';
-  font-family: Websymbols;
-  padding-right: 8px;
-}
-.plugin_slider_prevlink:hover {
-  left: 0;
-}
-.plugin_slider_nextlink {
-  right: -24px;
-  position: absolute;
-  top: 50%;
-  width: 60px;
-  height: 60px;
-  display: block;
-  background-color: #002b36;
-  color: #fff;
-  opacity: 0.6;
-  display: inline-block;
-  /* Fix for webkit clickability issue */
-
-  font-size: 24px;
-  padding: 24px;
-  -moz-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
-  -webkit-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
-  -o-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
-  -ms-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
-  text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
-  -webkit-transition: all 200ms ease-in-out;
-  -moz-transition: all 200ms ease-in-out;
-  -o-transition: all 200ms ease-in-out;
-  -ms-transition: all 200ms ease-in-out;
-  transition: all 200ms ease-in-out;
-  text-align: left;
-}
-.plugin_slider_nextlink .accessible {
-  position: absolute;
-  top: -9999px;
-  left: -9999px;
-}
-.plugin_slider_nextlink:hover {
-  -webkit-transition: all 200ms ease-in-out;
-  -moz-transition: all 200ms ease-in-out;
-  -o-transition: all 200ms ease-in-out;
-  -ms-transition: all 200ms ease-in-out;
-  transition: all 200ms ease-in-out;
-}
-.plugin_slider_nextlink:before {
-  content: '>';
-  font-family: Websymbols;
-  padding-right: 8px;
-}
-.plugin_slider_nextlink:hover {
-  right: 0;
-}
-div.plugin_slider_slidemenu {
-  display: block;
-  position: absolute;
-  bottom: -476px;
-  left: 50%;
-  margin-left: -150px;
-  width: 300px;
-  height: 500px;
-  max-height: 500px;
-  overflow: auto;
-  background-color: #002b36;
-  opacity: 0.6;
-  font-size: 16px;
-  color: #fcfbf7;
-  -moz-border-radius: 16px 16px 0 0;
-  -webkit-border-radius: 16px 16px 0 0;
-  -o-border-radius: 16px 16px 0 0;
-  -ms-border-radius: 16px 16px 0 0;
-  border-radius: 16px 16px 0 0;
-  -webkit-transition: all 200ms ease-in-out;
-  -moz-transition: all 200ms ease-in-out;
-  -o-transition: all 200ms ease-in-out;
-  -ms-transition: all 200ms ease-in-out;
-  transition: all 200ms ease-in-out;
-  z-index: 99;
-}
-div.plugin_slider_slidemenu:hover, div.plugin_slider_slidemenu.initial_state {
-  bottom: 0;
-  -webkit-transition: all 200ms ease-in-out;
-  -moz-transition: all 200ms ease-in-out;
-  -o-transition: all 200ms ease-in-out;
-  -ms-transition: all 200ms ease-in-out;
-  transition: all 200ms ease-in-out;
-}
-div.plugin_slider_slidemenu h4 {
-  display: block;
-  text-align: center;
-  text-transform: uppercase;
-  font-family: ubuntu, calibri, arial, sans-serif;
-  font-size: 12.8px;
-}
-div.plugin_slider_slidemenu a {
-  color: #fcfbf7;
-}
-div.plugin_slider_slidemenu ul {
-  padding: 0 24px;
-}
-#slideframe {
-  height: 100%;
-}
-body #page div.plugin_slider_slide {
-  background-color: #fcfbf7;
-  font-family: SBLGreekRegular, Gentium, 'Galatia SIL', Palatino, 'Palatino Linotype', 'Times New Roman', xyz;
-  font-size: 20px;
-  direction: ltr;
-  line-height: 36px;
-  width: 100%;
-  height: 100%;
-  padding-top: 16px;
-  padding-left: 120px;
-  padding-right: 120px;
-  z-index: 99;
-}
-body #page div.plugin_slider_slide h1 {
-  display: inline-block;
-  color: #b58900;
-  margin: 0 auto;
-}
-body #page div.plugin_slider_slide ul {
-  list-style-type: disc;
-  /*font-family:Ubuntu, Calibri;*/
-
-  list-style-position: outside;
-  font-size: 24px;
-  color: #268bd2;
-  line-height: 36px;
-  margin: 0;
-}
-body #page div.plugin_slider_slide ul ul {
-  font-size: 24px;
-  color: #cb4b16;
-  padding-left: 24px;
-}
-body #page div.plugin_slider_slide ol {
-  font-family: Ubuntu, Calibri;
-  font-size: 1.5em;
-  color: #268bd2;
-  line-height: 2em;
-  margin: 0;
-}
-body #page div.plugin_slider_slide table.letter_table {
-  background-color: #2aa198;
-  padding: 16px;
-  border: 1px solid #fff;
-  border-radius: .5em;
-  text-align: center;
-  margin: 16px auto;
-}
-body #page div.plugin_slider_slide table.letter_table thead {
-  font-size: 4em;
-  line-height: 1.5em;
-}
-body #page div.plugin_slider_slide table.letter_table thead td {
-  padding: .5em;
-}
-body #page div.plugin_slider_slide tbody {
-  font-size: 1.5em;
-  border-top: 1px solid #fff;
 }

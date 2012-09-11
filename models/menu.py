@@ -15,7 +15,9 @@ response.meta.description = 'An online space for learning New Testament Greek'
 response.meta.keywords = \
                 'Greek, koine, New Testament, language, education, learning'
 response.meta.generator = 'Web2py Enterprise Framework'
-response.meta.copyright = 'Copyright 2011'
+response.meta.copyright = 'Copyright 2011-2012, Ian W. Scott. Source' \
+    'code available on <a href="https://github.com/monotasker/paideia">' \
+    'GitHub</a>'
 
 
 response.menu = [

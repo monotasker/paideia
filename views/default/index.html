@@ -2,17 +2,22 @@
 
 {{extend 'layout.html'}}
 
+<article id='intro'>
 <h2>Welcome!</h2>
 
-<article id='intro'>
+<section>    
     <p>Paideia is an online space for learning New Testament Greek. To get started register for an account and then click the link below to "start exploring."</p>
     <p>This is an early "alpha" version for use in my courses at Tyndale Seminary. While the site is functional, it is not yet polished, and I do appreciate feedback whenever you find something that looks  and I am hoping to expand the site's functionality over the coming months. Feel free to follow the link, though, to get a sense of what the project is about.</p>
     {{=A("start exploring", _href=URL('exploring', 'index'), _class='button-green-grad icon-next-circle')}}
+</section>
 
+<section>
 <h3>Browser Requirements</h3>
 <p>This web-app does rely on some features built into newer browsers. To have a reliable experience, you will need to use an up-to-date version of Firefox, Google Chrome, or Safari. If you must use Internet Explorer, it needs to be at least version 9, available <a href="http://windows.microsoft.com/en-US/internet-explorer/downloads/ie-9/worldwide-languages">here</a>. But one of the other standard browsers is less likely to run into trouble. 
 </p>
+</section>
 
+<section>
 <h3>How Does It Work?</h3>
 <p>Paideia revolves around a fictional hellenized town in eastern Anatolia, on 
 the fringe of the Roman Empire where it runs up against Parthian territory. You will take the role of a foreign slave, recently bought by a middle-class Jewish 
@@ -21,7 +26,8 @@ couple to serve in their house. From the start you are free to move around the t
 <p>Paideia is meant to give you something a little like an immersion experience, so that you learn the language naturally, by using it. You will not be asked to do much memorizing of vocabulary lists or verb charts. At the same time, some structured understanding of the language can be a real help. So, whenever you start work on a new badge (learning a new facet of the language) you will be told that it is time to go and view a few sets of slides. These slides will sketch out the grammar, new vocabulary, and new word-forms that you are about to start using in your exchanges in the town. The point of these is not to spend a lot of time memorizing the details. Rather, the slides are a primer for the learning that will take place as you dive back into town life your conversations with the townspeople. If you ever start to feel lost, you can always click the "slides" link in the top menu and go back to view any of the slide sets again.</p>
 
 <p>The biggest thing to realize about Paideia is that in this town there is no penalty for making mistakes. This is not a giant online test, and we do not count up how many wrong answers you have given. So after every interaction you will be given examples of some proper responses you could have given. You can, if you like, immediately repeat the "step" and give one of the correct responses, or try out a different response. In fact, you will often learn the most by making mistakes and then looking at the correct responses to see where you went wrong. You are free to learn at your own pace. Once you are able to use your new knowledge without making mistakes, the townspeople will know you are ready to start working on a new badge and they will start leading you on some new kinds of paths.</p>
-
+</section>
+<section>
 <h3>Known Bugs and Issues</h3>
 <p>Since this software is still very much a work in progress, there are a few things to be aware of:
 <ul>
@@ -34,12 +40,11 @@ couple to serve in their house. From the start you are free to move around the t
     <li>If you do get a scary "Internal Error" message, don't worry! You haven't broken anything. Just refresh your browser and you should be returned to the town map to continue your session.</li>
 </ul>
 </p>
-
+</section>
 </article>
 
-<aside id='updates'>
-    {{=LOAD('listing', 'news.load',ajax=True) }}
-</aside>
+<!-- <aside id='updates'>
+</ -->aside>
 
 {{block left_sidebar}}New Left Sidebar Content{{end}}
 

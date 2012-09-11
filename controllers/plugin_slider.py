@@ -1,3 +1,8 @@
+if 0:
+    from gluon import current, UL, LI, DIV, A, URL, MARKMIN
+    request, session, db = current.request, current.session, current.db
+    response = current.response
+
 
 def start_deck():
     """
@@ -28,7 +33,7 @@ def start_deck():
         response.flash = "Sorry, I couldn't find the slides you asked for."
 
     deck = db.plugin_slider_decks[did]
-    deckorder = [s for s in deck.deck_slides if s != None]
+    deckorder = [s for s in deck.deck_slides if s is not None]
     if debug: print deckorder
 
     if deckorder and len(deckorder) > 0:
@@ -45,13 +50,14 @@ def start_deck():
                                         'show_slide',
                                         args=[theslide.id]),
                             cid='plugin_slider_slide')))
-    slidemenu = DIV(slidelist, _class='plugin_slider_slidemenu')
+    slidemenu = DIV(slidelist, _class='plugin_slider_slidemenu initial_state')
 
     if debug: print deck.theme
     theme = db.plugin_slider_themes[deck.theme[0]].theme_name
 
     return dict(did=did, firstslide=firstslide, theme=theme,
                 slidemenu=slidemenu, deckorder=deckorder)
+
 
 def show_slide():
     """
@@ -83,6 +89,7 @@ def show_slide():
 
     return dict(content=content)
 
+
 def next_slide():
     """
     Find the next slide in a deck sequence and redirect to
@@ -99,6 +106,7 @@ def next_slide():
     else:
         response.flash = 'You are already at the last slide.'
     return show_slide()
+
 
 def prev_slide():
     """

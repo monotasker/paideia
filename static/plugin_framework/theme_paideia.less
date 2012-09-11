@@ -166,21 +166,40 @@ body #page             {margin-top:-(@lineheight2 + 14);
                         -webkit-hyphens:auto;
                         font-family:prociono;
                         color:#666;
+        section        {padding:0;}
+
+        h2             {padding-left:0;}
+
+        h3, 
+        h3 a           {color:@sol_yellow;
+                        padding-top:@lineheight;}
 
         .date_created  {display:block;
                         color:@sky;}
         .article_wrapper {padding:0;}
 
         p              {margin:0;
-                        text-indent: @lineheight2;}
+                        text-indent: @lineheight2;
+            &:first-of-type
+                       {text-indent:0;}
+            }
 
-        li             {line-height: @lineheight2;
-                        border-bottom: 1px solid @greye5;}
-
+        ul             {padding-top:@lineheight / 2;
+                        padding-left: @lineheight2;
+                        padding-bottom:@lineheight;
+            li         {list-style-type: disc;
+                        list-style-position: outside;
+                        padding-bottom:@lineheight / 2;}
+            }
         a,
         a:link,
-        a:visited      {color: @dusky-blue1;
+        a:visited      {color: @sol_blue;
             &:hover    {color: @dusky-blue2;}
+            &.button-green-grad
+                       {color: @white;
+                        margin-top:@lineheight;
+                        margin-left:0;
+                        text-transform: capitalize;}
             }
         }
 

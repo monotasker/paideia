@@ -1,11 +1,13 @@
 <div id=plugin_slider_{{=did}} class='plugin_slider_frame'>
     <div class='plugin_slider_frameheader'>deck {{=did}}</div>
 
-    {{=A('next slide', _href=URL('plugin_slider', 'next_slide'),
+    {{=A(SPAN('next slide', _class='accessible'),
+                    _href=URL('plugin_slider', 'next_slide'),
                     _class='plugin_slider_nextlink',
                     cid='plugin_slider_slide'
                     )}}
-    {{=A('previous slide', _href=URL('plugin_slider', 'prev_slide'),
+    {{=A(SPAN('previous slide', _class='accessible'), 
+                    _href=URL('plugin_slider', 'prev_slide'),
                     _class='plugin_slider_prevlink',
                     cid='plugin_slider_slide'
                     )}}

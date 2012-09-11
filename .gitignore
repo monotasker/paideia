@@ -3,6 +3,7 @@
 *.swp
 *.swo
 *~
+private/*
 errors/*
 sessions/*
 -MiniBufExplorer-
