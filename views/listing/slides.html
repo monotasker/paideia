@@ -1,5 +1,11 @@
 {{extend 'layout.html'}}
 
-{{=DIV(H4('Slide Sets'), slides, _class='plugin_slider_slidemenu')}}
+{{=DIV(H4('Slide Sets'), slides, _class='plugin_slider_slidemenu initial_state')}}
 
 <div id="slideframe"></div>
+
+<script type="text/javascript">
+$('.plugin_slider_slidemenu a').click(function(event){
+    $(this).parents('.plugin_slider_slidemenu').removeClass('initial_state');
+});
+</script>

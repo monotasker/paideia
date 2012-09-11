@@ -204,9 +204,9 @@ body                   {.fixed-page;
                         .textdefaults;}
 
 /* fonts and typography ****************************************/
-@fonts1:"Palatino Linotype", serif;
-@fonts2:prociono, "Palatino Linotype", serif;
-@fonts3:ubuntu,arial,sans-serif;
+@fonts1:"Palatino Linotype", Palatino, serif;
+@fonts2:"Palatino Linotype", Palatino, serif;
+@fonts3:ubuntu, calibri, arial, sans-serif;
 
 .textdefaults()        {font-size: @typeheight;
                         line-height: @lineheight;
@@ -631,8 +631,12 @@ a:active .tip,                     {display:block;
 .icon-scale:before {        content:'&'; font-family: Websymbols; padding-right:@lineheight / 3 }
 .icon-back-circle:before {  content:'('; font-family: Websymbols; padding-right:@lineheight / 3 }
 .icon-next-circle:before {  content:')'; font-family: Websymbols; padding-right:@lineheight / 3 }
-.icon-back:before {         content:'<'; font-family: Websymbols; padding-right:@lineheight / 3 }
-.icon-next:before {         content:'>'; font-family: Websymbols; padding-right:@lineheight / 3 }
+.icon-back                 {
+    &:before               {content:'<'; font-family: Websymbols; padding-right:@lineheight / 3 }
+    }    
+.icon-next                 {
+    &:before               {content:'>'; font-family: Websymbols; padding-right:@lineheight / 3 }
+    }    
 .icon-rotate-circle:before {content:'*'; font-family: Websymbols; padding-right:@lineheight / 3 }
 .icon-close:before {        content:"'"; font-family: Websymbols; padding-right:@lineheight / 3 }
 .icon-twitter:before {      content:'t'; font-family: Websymbols; padding-right:@lineheight / 3 }
@@ -651,7 +655,7 @@ a:active .tip,                     {display:block;
 .icon-speech:before {       content:'d'; font-family: Websymbols; }
 .icon-speech-dots:before {  content:'e'; font-family: Websymbols; }
 .icon-bars:before {         content:'u'; font-family: Websymbols; }
-.icon-location:before {     content:'?'; font-family: Websymbols; }
+.icon-location:before {     content:'?'; font-family: Websymbols; padding-right:@lineheight / 3 }
 .icon-heart:before {        content:'N'; font-family: Websymbols; }
 .icon-heart-outline:before {content:'O'; font-family: Websymbols; }
 .icon-search:before {       content:'L'; font-family: Websymbols; }
