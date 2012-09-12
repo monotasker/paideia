@@ -758,10 +758,15 @@ class Walk(object):
         auth, db = current.auth, current.db
 
         if update_switch:
-            query = (db.path_log.path == path_id) & (db.path_log.name ==
+            try:
+                query = (db.path_log.path == path_id) & (db.path_log.name ==
                                                                 auth.user_id)
-            log = db(query).select(orderby=~db.path_log.dt_started).first()
-            log.update_record(path=path_id, last_step=step_id)
+                log = db(query).select(orderby=
+                                            ~db.path_log.dt_started).first()
+                log.update_record(path=path_id, last_step=step_id)
+            except AttributeError:
+                # handling active path/step that was never given path_log row
+                db.path_log.insert(path=path_id, last_step=step_id)
         else:
             db.path_log.insert(path=path_id, last_step=step_id)
 
