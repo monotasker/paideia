@@ -103,7 +103,7 @@ class Stats(object):
         #offset from utc time used to generate and store time stamps
         #TODO: Get utc time offset dynamically from user's locale
         print db.auth_user[self.user_id]
-        tz_name = db.auth_user[self.user_id].time_zone[0]
+        tz_name = db.auth_user[self.user_id].time_zone
         tz = timezone(tz_name)
         if debug:
             print 'timezone =', tz

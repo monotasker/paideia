@@ -173,16 +173,20 @@ class Walk(object):
         db = current.db
         session = current.session
 
-        tag_progress = db(db.tag_progress.name == auth.user_id).select()[0]
-        # TODO: Check we aren't at the end of the tag progression
-        if tag_progress:
-            latest = tag_progress.latest_new + 1
+        try:
+            progress = db(db.tag_progress.name == auth.user_id).select()[0]
+        except IndexError:
+            #If this user is just starting, so doesn't have table row
+            db.tag_progress.insert(name=auth.user_id, latest_new=0)
+            progress = db(db.tag_progress.name == auth.user_id).select()[0]
+            # TODO: Check we aren't at the end of the tag progression
 
-            tag_progress.update(name=auth.user_id, latest_new=latest)
+        if progress:
+            latest = progress.latest_new + 1
+            progress.update(name=auth.user_id, latest_new=latest)
 
         else:
             latest = 1
-
             db.tag_progress.insert(name=auth.user_id, latest_new=latest)
 
         tags = [t.id for t in db(db.tags.position == latest).select()]
@@ -1120,8 +1124,10 @@ class Step(object):
         rawtext = self.step.prompt
         newtext = rawtext.replace('[[user]]', uname)
         try:
-            for k, v in self._get_replacements().iteritems():
-                newtext = newtext.replace(k, v.xml())
+            reps = self._get_replacements()
+            if debug: print reps
+            for k, v in reps.iteritems():
+                newtext = newtext.replace(k, v)
         except AttributeError:
             if debug: print 'No replacements for this Step type'
 
@@ -1375,35 +1381,38 @@ class StepViewSlides(StepStub):
         session = current.session
         db = current.db
 
-        badges = ''
-        if 'new_badges' in session.walk:
-            for k, v in session.walk['new_badges'].iteritems():
-                if k == 'cat1':
-                    for tag in v:
-                        badge = db(db.badges.tag == tag).select().first()
-                        badge_name = '{0} {1},'.format('beginner',
-                                                       badge.badge_name)
-                        badges += badge_name
-                    if badges[-1] == ',':
-                        badges = badges[:len(badges)]
-        if debug: print 'badges =', badges
-
-        slides = ''
+        slidelist = []
+        badgelist = []
         if 'view_slides' in session.walk:
             for t in session.walk['view_slides']:
                 # convert this to link once plugin_slider supports it
                 tag_slides = db.tags[t].slides
-                title_list = [db.plugin_slider_decks[d].deck_name
+                slidelist += [db.plugin_slider_decks[d].deck_name
                                                         for d in tag_slides]
-                for li in title_list:
-                    slides += '- {0}'.format(li)
-        if debug: print 'slides =', slides
 
-        replacements = {'[[badge_list]]': badges, '[[slides]]': slides}
+                badge = db(db.badges.tag == t).select().first()
+                badge_name = '{0} {1}'.format('beginner', badge.badge_name)
+                badgelist.append(badge_name)
 
-        return replacements
+            # Filter out duplicates
+            slidelist = list(set(slidelist))
+            badgelist = list(set(badgelist))
 
-    pass
+            badges = ''
+            slides = ''
+            for l in badgelist:
+                badges += '- {0}\n'.format(l)
+            for i in slidelist:
+                slides += '- {0}\n'.format(i)
+
+            if debug: print 'badges =', badges
+            if debug: print 'slides =', slides
+
+            replacements = {'[[badge_list]]': badges, '[[slides]]': slides}
+
+            return replacements
+
+        return None
 
 
 class StepDailyQuota(StepNonBlocking, StepStub):
@@ -1465,7 +1474,7 @@ class StepAwardBadges(StepNonBlocking, StepStub):
                     print v
                     for tag in v:
                         print 'auth =', auth.user_id
-                        badge = db(db.badges.tag == tag).select().first()
+                        badge = db.tags[tag].select().first()
                         if debug: print 'badge =', badge
                         ranks = ['beginner', 'apprentice',
                                                 'journeyman', 'master']
@@ -1487,18 +1496,19 @@ class StepAwardBadges(StepNonBlocking, StepStub):
                             badges += '- unknown\n'
         if debug: print badges
         print 'bla, bla'
-        self._remove_flag()
+        self._remove_flag('new_badges')
 
         return {'[[badge_list]]': badges}
 
-    def _remove_flag(self):
+    # TODO: This should really be a method of Walk
+    def _remove_flag(self, flag_name):
         '''
         remove the session flag for newly awarded badges, allowing the user
         to continue on to a new step.
         '''
         session = current.session
 
-        del session.walk['new_badges']
+        del session.walk[flag_name]
         print 'removed award badges flag'
 
 
