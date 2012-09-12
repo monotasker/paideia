@@ -55,6 +55,7 @@ class Walk(object):
             self.path = None
             self.active_paths = {}
             self.completed_paths = set()
+            self.view_slides = None
             self.step = None
             # initialize the session properly
             self.tag_set = self._categorize_tags()
@@ -88,10 +89,8 @@ class Walk(object):
         session_data['active_paths'] = self.active_paths
         session_data['completed_paths'] = self.completed_paths
         session_data['tag_set'] = self.tag_set
-        try:
-            session_data['new_badges'] = self.new_badges
-        except AttributeError:
-            pass
+        session_data['view_slides'] = self.view_slides
+        session_data['new_badges'] = self.new_badges
 
         try:
             session.walk.update(session_data)
@@ -109,12 +108,24 @@ class Walk(object):
         session = current.session
         request = current.request
 
+        defaults = {'active_paths': {},
+                    'completed_paths': [],
+                    'tag_set': {1: [], 2: [], 3: [], 4: []},
+                    'new_badges': None,
+                    'view_slides': None
+                    }
+
+        for key, default in defaults.iteritems():
+            val = session.walk[key] if key in session.walk else default
+            setattr(self, key, val)
+
         path = session.walk['path']
         if path:
             self.path = db.paths(path)
         else:
             self.path = None
 
+        # only create a location object if the request included a loc
         if 'loc' in request.vars:
             location_alias = request.vars['loc']
             self.active_location = Location(location_alias).info()
@@ -126,13 +137,10 @@ class Walk(object):
             session.walk['active_location'] = None
             if debug:
                 print 'no loc variable in request, setting loc to None'
-        self.active_paths = session.walk['active_paths']
-        self.completed_paths = session.walk['completed_paths']
-        self.tag_set = session.walk['tag_set']
 
         # create step instance here if we're processing a user's response
-        if ('response' in request.vars) and (request.args(0)
-                                                         in ['ask', 'retry']):
+        if ('response' in request.vars) and \
+                (request.args(0) in ['ask', 'retry']):
             self.step = self._create_step_instance()
             print 're-activating step'
 
@@ -169,9 +177,9 @@ class Walk(object):
         '''
         if self.verbose:
             print 'calling Walk._introduce--------------'
+        debug = True
         auth = current.auth
         db = current.db
-        session = current.session
 
         try:
             progress = db(db.tag_progress.name == auth.user_id).select()[0]
@@ -190,8 +198,9 @@ class Walk(object):
             db.tag_progress.insert(name=auth.user_id, latest_new=latest)
 
         tags = [t.id for t in db(db.tags.position == latest).select()]
+        if debug: print 'introducing new tag(s):', tags
         # TODO: Use slide deck titles (so correlate them with tags somewhere)
-        session.walk['view_slides'] = tags
+        self.view_slides = tags
 
         return tags
 
@@ -354,11 +363,11 @@ class Walk(object):
             print 'calling Walk._handle_blocks--------------'
         auth, db, session = current.auth, current.db, current.session
 
-        if 'new_badges' in session.walk:
+        if self.new_badges:
             return self._get_util_step('award badge')  # tag id=81
 
         # TODO: insert these session.walk values in _introduce and _categorize)
-        if 'view_slides' in session.walk:
+        if self.view_slides:
             return self._get_util_step('view slides')  # tag id=80
 
         # TODO: need to fix check for step that was never finished
@@ -455,12 +464,18 @@ class Walk(object):
         debug = False
         if self.verbose:
             print 'calling Walk._deactivate_path--------------'
+        db = current.db
+
         if debug:
             print 'in Walk._deactivate_path, path =', path
 
         self._update_path_log(path, 0, 1)
         del self.active_paths[path]
-        self.completed_paths.add(path)
+        # TODO: find more elegant way to avoid adding utility steps
+        if [v for v in db.paths[path].tags if v in [70, 79, 80, 81]]:
+            pass
+        else:
+            self.completed_paths.add(path)
         self._save_session_data()
 
     def _get_util_step(self, tag):
@@ -767,8 +782,14 @@ class Walk(object):
             except AttributeError:
                 # handling active path/step that was never given path_log row
                 db.path_log.insert(path=path_id, last_step=step_id)
+
+            return True
         else:
             db.path_log.insert(path=path_id, last_step=step_id)
+
+            return True
+
+        return False
 
 
 class Step(object):
@@ -1324,8 +1345,6 @@ class StepStub(Step):
         session = current.session
 
         del session.walk['active_paths'][self.path.id]
-        #TODO: completed_paths shouldn't count utility paths
-        session.walk['completed_paths'].add(self.path.id)
 
     def _get_responder(self):
         '''
@@ -1479,28 +1498,27 @@ class StepAwardBadges(StepNonBlocking, StepStub):
                     print v
                     for tag in v:
                         print 'auth =', auth.user_id
-                        badge = db.tags[tag].select().first()
-                        if debug: print 'badge =', badge
+                        b = db(db.badges.tag == tag).select()[0]
+                        if debug: print 'badge =', b
                         ranks = ['beginner', 'apprentice',
                                                 'journeyman', 'master']
                         try:
                             #TODO: chokes on this line if badge == None
                             badge_name = '{0} {1}'.format(ranks[n - 1],
-                                                          badge.badge_name)
+                                                          b.badge_name)
                             rank_verbs = ['starting to learn',
-                                            'making good progress with',
-                                            'gaining a good working grasp of',
-                                            'mastering']
+                                        'making good progress with',
+                                        'gaining a good working grasp of',
+                                        'mastering']
                             badge_desc = 'for {0} {1}'.format(
                                                         rank_verbs[n - 1],
-                                                        badge.description)
+                                                        b.description)
                             if debug: print 'badge_desc =', badge_desc
-                            badges += ('- **{0}** {1}\n'.format(badge_name,
-                                                               badge_desc))
+                            badges += ('- **{0}** {1}\n'.format(
+                                                badge_name, badge_desc))
                         except:
                             badges += '- unknown\n'
         if debug: print badges
-        print 'bla, bla'
         self._remove_flag('new_badges')
 
         return {'[[badge_list]]': badges}

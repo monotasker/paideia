@@ -170,7 +170,7 @@ body #page             {margin-top:-(@lineheight2 + 14);
 
         h2             {padding-left:0;}
 
-        h3, 
+        h3,
         h3 a           {color:@sol_yellow;
                         padding-top:@lineheight;}
 
@@ -328,9 +328,13 @@ body #page             {margin-top:-(@lineheight2 + 14);
                             margin-left:260px;
                             max-width: 65%;
                             z-index: 3;
-                            font-size: @typeheight2;
-                            line-height: @lineheight2;
-
+                            font-size: @typeheight * 1.25;
+                            line-height: @lineheight * 1.25;
+        p                  {margin:0;}
+        ul                 {padding-left: @lineheight;
+            li             {font-size: @typeheight;
+                            color:@sol_yellow;}
+            }
         .button            {display:inline-block;}
         .quiz_type         {}
         .guidelines        {z-index:10;
@@ -410,10 +414,13 @@ body #page             {margin-top:-(@lineheight2 + 14);
 
     table.summary_stats    {border-collapse:separate;
                             border-spacing:2px;
+                            border-radius: @lineheight/4;
+                            padding:(@lineheight/4) 0;
+                            background:@white;
 
-        td                 {width:auto;
-                            vertical-align:middle;
-
+        td                 {vertical-align:middle;
+                            background: @sol_beige;
+                            padding: 0 @lineheight;
             span.score_avg {background:#f5f5f5;
                             border:3px solid #eee;
                             display:inline-block;
@@ -436,16 +443,15 @@ body #page             {margin-top:-(@lineheight2 + 14);
                             text-align:center;
                             font-size:20px;
                             padding:0;
-                            border:3px solid #fff;
-                            font-family:"Droid Sans";
-                            margin:3px;
+                            font-family:"Droid Sans", @fonts3;
                             text-shadow:0px 1px 3px rgba(0,0,0,0.3);}
         td.total_len       {color:#aaa; font-size:14px;}
         td.total_cat4      {background-color:#809240;}
         td.total_cat3      {background-color:#AAE557;}
-        td.total_cat2      {background-color:#EBFC97;}
+        td.total_cat2      {background-color:@sol_yellow;}
         td.total_cat1      {background-color:#852625;}
         }
+
     /* calendar for monthly user statistics */
     table.paideia_monthcal_table
                            {border-collapse:separate;
