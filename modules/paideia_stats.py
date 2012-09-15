@@ -27,14 +27,10 @@ class Stats(object):
         try:
             atag_s = db(db.tag_progress.name == self.user_id).select().first()
             atags = {}
-            atags1 = atag_s.cat1
-            atags['cat1'] = atags1
-            atags2 = atag_s.cat2
-            atags['cat2'] = atags2
-            atags3 = atag_s.cat3
-            atags['cat3'] = atags3
-            atags4 = atag_s.cat4
-            atags['cat4'] = atags4
+            atags1 = atags['cat1'] = list(set(atag_s.cat1))
+            atags2 = atags['cat2'] = list(set(atag_s.cat2))
+            atags3 = atags['cat3'] = list(set(atag_s.cat3))
+            atags4 = atags['cat4'] = list(set(atag_s.cat4))
             try:
                 total = []
                 for c in [atags1, atags2, atags3, atags4]:
@@ -54,7 +50,9 @@ class Stats(object):
                     if l:
                         latest_badges.append(l.badge_name)
                     else:
-                        latest_badges.append('unknown')
+                        pass
+                if latest_badges is None:
+                    latest_badges = 'Sorry, I couldn\'t find that!'
                 atags['latest'] = latest_badges
         except Exception, e:
             print 'error in Stats.average():', e

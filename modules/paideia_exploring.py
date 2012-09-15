@@ -249,7 +249,7 @@ class Walk(object):
         if len(progress_sel) > 1:
             for r in progress_sel[1:]:
                 if debug: print 'deleting extra record for this user:', r
-                db.tag_progress[r.id].delete()
+                del db.tag_progress[r.id]
 
         progress = progress_sel.first()
         if progress is None:
@@ -357,7 +357,7 @@ class Walk(object):
         mycats_all = db(db.tag_progress.name == auth.user_id).select()
         if len(mycats_all) > 1:
             for r in mycats_all[1:]:
-                db.tag_progress[r.id].delete()
+                del db.tag_progress[r.id]
         if mycats_all is None:
             db.tag_progress.insert(name=auth.user_id, latest_new=1)
         mycats = mycats_all.first()
@@ -376,7 +376,7 @@ class Walk(object):
                 if new:
                     if debug: print 'newly awarded badges =', new
                     new_badges[categ] = new
-                    all_badges[categ] = new + lst
+                    all_badges[categ] = list(set(new + lst))
 
         mycats.update_record(cat1=all_badges['cat1'],
                             cat2=all_badges['cat2'],
