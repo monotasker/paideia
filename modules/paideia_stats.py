@@ -2,7 +2,6 @@ import calendar
 import datetime
 from pytz import timezone
 from gluon import current, DIV, H4, TABLE, THEAD, TBODY, TR, TD, SPAN
-from paideia_exploring import Walk
 
 
 class Stats(object):
@@ -19,68 +18,50 @@ class Stats(object):
         self.loglist = self.log_list()
 
     def active_tags(self):
+        '''
+        Find the
+        '''
         if self.verbose: print 'calling Stats.active_tags() ------------------'
         db = current.db
         # TODO: Add a list of the badge titles (tags) to returned object
         try:
-            atag_q = db(
-                        (db.tag_records.name == self.user_id)
-                        & (db.tag_records.tag == db.tags.id)
-                        )
-            atag_rows = atag_q.select(orderby=db.tags.position)
-            atags = {'total': len(atag_rows)}
-            furthest = atag_rows.last()
-            latest = atag_rows.find(lambda row:
-                                row.tags.position == furthest.tags.position)
-            atags['latest'] = dict((row.tags.id, row.tags.tag)
-                                                           for row in latest)
+            atag_s = db(db.tag_progress.name == self.user_id).select().first()
+            atags = {}
+            atags1 = atag_s.cat1
+            atags['cat1'] = atags1
+            atags2 = atag_s.cat2
+            atags['cat2'] = atags2
+            atags3 = atag_s.cat3
+            atags['cat3'] = atags3
+            atags4 = atag_s.cat4
+            atags['cat4'] = atags4
+            try:
+                total = []
+                for c in [atags1, atags2, atags3, atags4]:
+                    if c: total.extend(c)
+                atags['total'] = len(total)
+            except:
+                atags['total'] = 'an unknown number of'
+
+            latest_rank = atag_s.latest_new
+            latest_tags = db(db.tags.position == latest_rank).select()
+            if latest_tags is None:
+                latest_badges = ['Sorry, I can\'t find it!']
+            else:
+                latest_badges = []
+                for t in latest_tags:
+                    l = db(db.badges.tag == t).select().first()
+                    if l:
+                        latest_badges.append(l.badge_name)
+                    else:
+                        latest_badges.append('unknown')
+                atags['latest'] = latest_badges
         except Exception, e:
             print 'error in Stats.average():', e
             atags['total'] = "Can't calculate total number of active badges."
             atags['latest'] = "Can't find the most recent badge awarded."
 
         return atags
-
-    def average(self):
-        '''
-        Calculates and returns the average score for the student given in
-        self.user_id
-        '''
-        if self.verbose: print 'calling Stats.average() ----------------------'
-        db = current.db
-
-        try:
-            attempts = db(db.attempt_log.name == self.user_id).select()
-            s = db.attempt_log.score.sum()
-            row = db(db.attempt_log.name == self.user_id).select(s).first()
-            answer = row[s]
-            avg = round(answer / len(attempts) * 100)
-        except Exception, e:
-            print 'error in Stats.average():', e
-            avg = "Can't calculate average"
-
-        return avg
-
-    def categories(self):
-        """
-        Collects and returns the number of tags that are currently in each
-        of the four performance categories for the student given in
-        self.user_id.
-
-        The categories range from 1 (need immediate review) to 4 (no review
-        needed).
-
-        Returns a dictionary with four keys corresponding to the four
-        categories. The value for each key is a list holding the id's
-        (integers) of the tags that are currently in the given category.
-
-        """
-        if self.verbose: print 'calling Stats.categories() -------------------'
-
-        w = Walk()
-        print self.user_id
-        tags = w._categorize_tags(self.user_id)
-        return tags
 
     def log_list(self):
         """

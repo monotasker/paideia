@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import datetime
 from paideia_stats import Stats
 from paideia_bugs import Bug
 
@@ -38,19 +37,12 @@ def user():
     if auth.is_logged_in():
         s = Stats(auth.user_id)
         active = s.active_tags()
-        avg = s.average()
-        print '\nController.user()'
-        print 'avg =', avg
-        cats = s.categories()
-        print 'cats =', cats
         cal = s.monthcal()
-        print 'monthcal =', cal
 
         b = Bug()
         blist = b.bugresponses(auth.user_id)
 
-        return {'form': auth(), 'avg': avg, 'cats': cats, 'cal': cal,
-                'blist': blist, 'active': active}
+        return {'form': auth(), 'cal': cal, 'blist': blist, 'active': active}
     else:
         return {'form': auth()}
 
