@@ -232,37 +232,38 @@ class Walk(object):
 
     def _introduce(self):
         '''
-        This method checks the user's performance and, if appropriate,
-        introduces one or more new tags to the active set for selecting paths.
-        This method is intended as private, to be called by categorize()
-        if that method yields an initial result with no tags in category 1
-        (needing immediate review).
+        Introduce into the user's active tags (self.tag_list and
+        db.tag_progress) the tags for the next position in the tag progression.
+        Also record this user's new position in that progression in
+        db.tag_progress.latest_new. Set self.view_slides to a list of the newly
+        introduced tags (by id), and return that same list.
         '''
         if self.verbose:
             print 'calling Walk._introduce--------------'
         debug = True
         auth = current.auth
         db = current.db
+        uid = auth.user_id
 
-        try:
-            progress = db(db.tag_progress.name == auth.user_id).select()[0]
-        except IndexError:
+        progress_sel = db(db.tag_progress.name == uid).select()
+        if len(progress_sel) > 1:
+            for r in progress_sel[1:]:
+                if debug: print 'deleting extra record for this user:', r
+                db.tag_progress[r.id].delete()
+
+        progress = progress_sel.first()
+        if progress is None:
             #If this user is just starting, so doesn't have table row
-            db.tag_progress.insert(name=auth.user_id, latest_new=0)
-            progress = db(db.tag_progress.name == auth.user_id).select()[0]
+            latest = 0
             # TODO: Check we aren't at the end of the tag progression
 
-        if progress:
-            latest = progress.latest_new + 1
-            progress.update(name=auth.user_id, latest_new=latest)
-
-        else:
-            latest = 1
-            db.tag_progress.insert(name=auth.user_id, latest_new=latest)
+        latest = progress.latest_new + 1
+        if debug: print 'latest_new now =', latest
+        db.tag_progress.update_or_insert(db.tag_progress.name == uid,
+                                          name=uid, latest_new=latest)
 
         tags = [t.id for t in db(db.tags.position == latest).select()]
         if debug: print 'introducing new tag(s):', tags
-        # TODO: Use slide deck titles (so correlate them with tags somewhere)
         self.view_slides = tags
 
         return tags
@@ -300,6 +301,7 @@ class Walk(object):
         record_list = db(db.tag_records.name == user).select()
 
         for record in record_list:
+            # TODO: Make sure there's only one record per person, per tag
             #get time-based statistics for this tag
             #note: the arithmetic operations yield datetime.timedelta objects
             now_date = datetime.datetime.utcnow()
@@ -307,7 +309,8 @@ class Walk(object):
             right_wrong_dur = record.tlast_right - record.tlast_wrong
 
             # Categorize q or tag based on this performance
-            if right_dur < right_wrong_dur:
+            if (right_dur < right_wrong_dur) and (right_wrong_dur >
+                                                  datetime.timedelta(days=1)):
                 if right_wrong_dur.days >= 7:
                     if right_wrong_dur.days > 30:
                         if right_wrong_dur > datetime.timedelta(days=180):
@@ -333,6 +336,7 @@ class Walk(object):
             categories[1] = self._introduce()
 
         self.tag_set = categories
+
         # return the value as well so that it can be used in Stats
         return categories
 
@@ -349,7 +353,14 @@ class Walk(object):
 
         # If a tag has moved up in category, award the badge
         # TODO: needs to be tested!!!
-        mycats = db(db.tag_progress.name == auth.user_id).select().first()
+        # here making sure user has one and only one tag_progress row
+        mycats_all = db(db.tag_progress.name == auth.user_id).select()
+        if len(mycats_all) > 1:
+            for r in mycats_all[1:]:
+                db.tag_progress[r.id].delete()
+        if mycats_all is None:
+            db.tag_progress.insert(name=auth.user_id, latest_new=1)
+        mycats = mycats_all.first()
         if debug: print 'mycats =', mycats
 
         new_badges = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
@@ -367,13 +378,10 @@ class Walk(object):
                     new_badges[categ] = new
                     all_badges[categ] = new + lst
 
-        db.tag_progress.update_or_insert(**{
-                                            'name': auth.user_id,
-                                            'cat1': all_badges['cat1'],
-                                            'cat2': all_badges['cat2'],
-                                            'cat3': all_badges['cat3'],
-                                            'cat4': all_badges['cat4'],
-                                            })
+        mycats.update_record(cat1=all_badges['cat1'],
+                            cat2=all_badges['cat2'],
+                            cat3=all_badges['cat3'],
+                            cat4=all_badges['cat4'])
 
         if new_badges:
             if debug: print 'new badges =', new_badges
@@ -1073,6 +1081,7 @@ class Step(object):
         # TODO: This replaces the Walk.save_session_data() that was in the
         # controller. Make sure this saving of step data is enough.
         self._save_session_data()
+        self._complete()
 
         return {'reply': reply,
                 'readable': readable_short,
@@ -1198,6 +1207,20 @@ class Step(object):
         if self.path.steps[-1] == self.step.id:
             del session.walk['active_paths'][self.path.id]
             session.walk['completed_paths'].add(self.path.id)
+
+    def _complete(self):
+        '''
+        Record the current session data in the db for cross-session
+        persistence.
+        '''
+        if self.verbose:
+            print 'calling', type(self).__name__, '._complete -----------'
+        db = current.db
+        session = current.session
+        auth = current.auth
+
+        db.session_data.update_or_insert(db.session_data.user == auth.user_id,
+                                         user=auth.user_id, data=session.walk)
 
     def _get_prompt(self):
         '''
@@ -1343,19 +1366,19 @@ class StepMultipleChoice(Step):
         answer1 = self.step.response1
         answer2 = self.step.response2
         answer3 = self.step.response3
-        readable = self.step.readable_response
+        # readable = self.step.readable_response
 
         # Compare the student's response to the stored answers
-        if answer1 == readable:
+        if user_response == answer1:
             score = 1
             reply = "Right. Κάλον."
-        elif answer2 != 'null' and answer1 == readable:
+        elif answer2 != 'null' and user_response == answer2:
             score = 0.5
             #TODO: Get this score value from the db instead of hard
             #coding it here.
             reply = "Οὐ κάκον. You're close."
             #TODO: Vary the replies
-        elif answer3 != 'null' and answer1 == readable:
+        elif answer3 != 'null' and user_response == answer2:
             #TODO: Get this score value from the db instead of hard
             #coding it here.
             score = 0.3

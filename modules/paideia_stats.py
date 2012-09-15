@@ -74,7 +74,7 @@ class Stats(object):
         local time zone.
         """
         if self.verbose: print 'calling Stats.log_list() ---------------------'
-        debug = True
+        debug = False
         db = current.db
 
         log_query = db(db.attempt_log.name == self.user_id)
@@ -83,11 +83,10 @@ class Stats(object):
 
         #offset from utc time used to generate and store time stamps
         #TODO: Get utc time offset dynamically from user's locale
-        print db.auth_user[self.user_id]
+        if debug: print db.auth_user[self.user_id]
         tz_name = db.auth_user[self.user_id].time_zone
         tz = timezone(tz_name)
-        if debug:
-            print 'timezone =', tz
+        if debug: print 'timezone =', tz
 
         # count the number of attempts for each unique date
         for log in logs:
@@ -110,7 +109,7 @@ class Stats(object):
         year.
         '''
         if self.verbose: print 'calling Stats.monthstats() -------------------'
-        debug = True
+        debug = False
 
         # get current year and month as default
         if not month:
@@ -152,7 +151,7 @@ class Stats(object):
 
         The calendar is returned as a web2py DIV helper.
         '''
-        debug = True
+        debug = False
         db = current.db
         # TODO: get settings for this user's class requirements
         memberships = db(
@@ -168,7 +167,7 @@ class Stats(object):
             year = datetime.date.today().year
 
         data = self.monthstats(year, month)
-        print 'DEBUG: in Stats.cal(), data=', data
+        if debug: print 'data=', data
 
         nms = calendar.month_name
         monthname = nms[data['month_name']]
