@@ -105,6 +105,7 @@ class Walk(object):
         session = current.session
         db = current.db
 
+        # TODO: What about case where db data is newer than session data?
         mysession = db(db.session_data.user == auth.user_id).select().first()
         tz_name = db.auth_user[auth.user_id].time_zone
         tz = timezone(tz_name)
@@ -145,6 +146,7 @@ class Walk(object):
             'path': None,
             'step': None,
             'active_location': None,
+            'quota_override': False,
             'session_start': self.session_start or datetime.datetime.utcnow()
             }
 

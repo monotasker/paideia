@@ -72,9 +72,10 @@ def save_session_data():
     if debug: print '\n\nStarting controller exploring.save_session_data()'
 
     try:
-        fields = ['walk']
-        data = dict((k, v) for k, v in session.walk.iteritems() if k in fields)
+        # the fields 'user' and 'updated' are populated by defaults
+        data = dict((k, v) for k, v in session.walk.iteritems())
         db.session_data.update_or_insert(data)
+        if debug: print 'storing session data in db:', data
     except Exception, e:
         print type(e), e
 

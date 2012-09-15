@@ -4,9 +4,11 @@
 
 <ul class="tab_row">
     <li><a href="#web2py_user_form">My info</a></li>
-    <li><a href="#tab_stats">How am I doing?</a></li>
+    {{if auth.is_logged_in():}}
+    <li><a href="#tab_stats">My badges</a></li>
     <li><a href="#tab_calendar">My activity</a></li>
     <li><a href="#tab_bug_reports">My bug reports</a></li>
+    {{pass}}
 </ul>
 
 <div id="web2py_user_form" class="tab active">
@@ -29,35 +31,67 @@
     <p>You are currently working on <span class='total_len'>{{=active['total']}}</span> grammar badges</p>
     <p>The most recent badges started are:
     <ul class='most_recent'>
-        {{for k,v in active['latest'].iteritems():}}
-            {{=LI(v)}}
+        {{for l in active['latest']:}}
+            {{=LI(l)}}
         {{pass}}
     <ul>
 
 <table cellspacing='0' class='summary_stats'>
     <tr>
         <td>mastered</td>
-        <td class='total_cat4'>{{=len(cats[4])}}</td>
+        <td class='total_cat4'>{{=len(active['cat4']) if active['cat4'] else 0}}</td>
         <td>badges</td>
-        <td></td>
+        <td>
+            {{if active['cat4'] and active['cat4'] != 0:}}
+            <ul>
+                {{for b in active['cat4']:}}
+                <li>{{=b}}</li>
+                {{pass}}
+            </ul>
+            {{pass}}
+        </td>
     </tr>
     <tr>
         <td>making very good progress on</td>
-        <td class='total_cat3'>{{=len(cats[3])}}</td>
+        <td class='total_cat3'>{{=len(active['cat3']) if active['cat3'] else 0}}</td>
         <td>badges</td>
-        <td></td>
+        <td>
+            {{if active['cat3'] and active['cat3'] != 0:}}
+            <ul>
+                {{for b in active['cat3']:}}
+                <li>{{=b}}</li>
+                {{pass}}
+            </ul>
+            {{pass}}
+        </td>
     </tr>
     <tr>
         <td>made a good start with</td>
-        <td class='total_cat2'>{{=len(cats[2])}}</td>
+        <td class='total_cat2'>{{=len(active['cat2']) if active['cat2'] else 0}}</td>
         <td>badges</td>
-        <td></td>
+        <td>
+            {{if active['cat2'] and active['cat2'] != 0:}}
+            <ul>
+                {{for b in active['cat2']:}}
+                <li>{{=b}}</li>
+                {{pass}}
+            </ul>
+            {{pass}}
+        </td>
     </tr>
     <tr>
         <td>just started or needing review</td>
-        <td class='total_cat1'>{{=len(cats[1])}}</td>
+        <td class='total_cat1'>{{=len(active['cat1']) if active['cat1'] else 0}}</td>
         <td>badges</td>
-        <td></td>
+        <td>
+            {{if active['cat1'] and active['cat1'] != 0:}}
+            <ul>
+                {{for b in active['cat1']:}}
+                <li>{{=b}}</li>
+                {{pass}}
+            </ul>
+            {{pass}}
+        </td>
     </tr>
 </table>
 
