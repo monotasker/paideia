@@ -14,13 +14,14 @@ class Bug(object):
         debug = True
         session = current.session
 
-        if not step and 'step' in session.walk:
+        if (step is None) and (session.walk) and ('step' in session.walk):
             step = session.walk['step']
         self.step = step
-        if not path and 'path' in session.walk:
+        if (path is None) and (session.walk) and ('path' in session.walk):
             path = session.walk['path']
         self.path = path
-        if not location and 'location' in session.walk:
+        if (location is None) and (session.walk) and ('active_location'
+                                                           in session.walk):
             location = session.walk['active_location']
         self.location = location
         if debug:
