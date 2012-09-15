@@ -10,6 +10,7 @@
         <a id='session_clear' href='#'>Clear session</a>
     </li> </ul>
 </form>
+<div id='session_data'>
 <ul>
     {{for k,v in session.walk.iteritems():}}
         {{if k != 'npc_image':}}
@@ -17,6 +18,7 @@
         {{pass}}
     {{pass}}
 </ul>
+</div>
 <form>
     <ul>
         <li>
