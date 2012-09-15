@@ -699,3 +699,13 @@ timestamp: 2012-09-05T16:49:32.364093
 ALTER TABLE plugin_slider_decks ADD tag TEXT;
 timestamp: 2012-09-05T16:53:29.758472
 ALTER TABLE tags ADD slides TEXT;
+timestamp: 2012-09-14T15:47:19.582918
+CREATE TABLE session_data(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    updated TIMESTAMP,
+    data TEXT
+);
+success!
+timestamp: 2012-09-14T16:58:30.731167
+ALTER TABLE session_data ADD session_start TIMESTAMP;

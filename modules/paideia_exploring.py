@@ -8,6 +8,7 @@ import datetime
 import random
 import re
 import traceback
+from pytz import timezone
 
 
 # TODO: Deprecate eventually
@@ -45,28 +46,86 @@ class Walk(object):
     verbose = True  # controls printing of initialization and method calls
 
     def __init__(self):
-        session = current.session
-        auth = current.auth
-
+        '''
+        Initialize a Walk object. When it is initialized, maintain session
+        data through each 24-hour day by:
+        - Checking whether the web2py session object has a walk attribute
+        - If so, check that its 'initialized' date is the same as today
+        - If either of these checks fails, look for a 'session_stored' row
+        in the db for this user with today's date
+            - If so, create session.walk with that data and continue
+              initializing Walk object
+        - If that returns None, initialize the Walk object with default data
+        '''
         if self.verbose:
             print 'initializing Walk============================'
-        if not session.walk:
-            self.active_location = None
-            self.path = None
-            self.active_paths = {}
-            self.completed_paths = set()
-            self.view_slides = None
-            self.step = None
-            # initialize the session properly
-            self.tag_set = self._categorize_tags()
-            self.new_badges = self._new_badges(auth.user_id, self.tag_set)
-            self._unfinished()
-            self._save_session_data()
-        else:
+
+        if self._check_for_session() is True:
             self._get_session_data()
+        else:
+            self._start_new_session()
 
         self.map = Map()
-        self.staying = False
+
+    def _start_new_session(self):
+        '''
+        Initialize this Walk object's instance variables with defaults and
+        save the results to session object.
+        '''
+        if self.verbose:
+            print 'calling Walk._start_new_session() -------------------------'
+        auth = current.auth
+
+        # create placeholder instance attributes
+        self.active_location = None
+        self.path = None
+        self.active_paths = {}
+        self.completed_paths = set()
+        self.view_slides = None
+        self.step = None
+        # initialize the session properly
+        self.tag_set = self._categorize_tags()
+        self.new_badges = self._new_badges(auth.user_id, self.tag_set)
+        self._unfinished()
+        self.session_start = datetime.datetime.utcnow()
+        # store newly initialized attributes in session object
+        self._save_session_data()
+
+    def _check_for_session(self):
+        '''
+        Return True if 'walk' is in session and it was created today, or if
+        there is a db.session_data row that was created today. In the latter
+        case populate session.walk with the data from the db record. Otherwise
+        return False.
+        '''
+        if self.verbose:
+            print 'calling Walk._check_for_session() -------------------------'
+
+        auth = current.auth
+        session = current.session
+        db = current.db
+
+        mysession = db(db.session_data.user == auth.user_id).select().first()
+        tz_name = db.auth_user[auth.user_id].time_zone
+        tz = timezone(tz_name)
+        now_local = tz.fromutc(datetime.datetime.utcnow())
+
+        if session.walk and ('session_start' in session.walk):
+            session_start_local = tz.fromutc(session.walk['session_start'])
+            if (session_start_local.day == now_local.day):
+                return True
+            else:
+                pass
+
+        elif mysession:
+            session_start_local = tz.fromutc(mysession.session_start)
+            if session_start_local.day == now_local.day:
+                session.walk == mysession.data
+                return True
+            else:
+                pass
+
+        return False
 
     def _save_session_data(self):
         '''
@@ -77,20 +136,23 @@ class Walk(object):
             print 'calling Walk._save_session_data--------------'
         session = current.session
 
-        session_data = {}
+        session_data = {
+            'active_paths': self.active_paths,
+            'completed_paths': self.completed_paths,
+            'tag_set': self.tag_set,
+            'view_slides': self.view_slides,
+            'new_badges': self.new_badges,
+            'path': None,
+            'step': None,
+            'active_location': None,
+            'session_start': self.session_start or datetime.datetime.utcnow()
+            }
 
         if self.path:
             session_data['path'] = self.path.id
-        else:
-            session_data['path'] = None
 
         if self.active_location:
             session_data['active_location'] = self.active_location
-        session_data['active_paths'] = self.active_paths
-        session_data['completed_paths'] = self.completed_paths
-        session_data['tag_set'] = self.tag_set
-        session_data['view_slides'] = self.view_slides
-        session_data['new_badges'] = self.new_badges
 
         try:
             session.walk.update(session_data)
@@ -108,22 +170,21 @@ class Walk(object):
         session = current.session
         request = current.request
 
+        # set session.walk attributes as instance attributes (with fallbacks)
         defaults = {'active_paths': {},
-                    'completed_paths': [],
+                    'completed_paths': set(),
                     'tag_set': {1: [], 2: [], 3: [], 4: []},
                     'new_badges': None,
-                    'view_slides': None
+                    'view_slides': None,
+                    'session_start': datetime.datetime.utcnow()
                     }
-
         for key, default in defaults.iteritems():
             val = session.walk[key] if key in session.walk else default
             setattr(self, key, val)
 
-        path = session.walk['path']
-        if path:
-            self.path = db.paths(path)
-        else:
-            self.path = None
+        # only start with a path value if one is already in session
+        path_id = session.walk['path']
+        self.path = db.paths(path_id) if path_id else None
 
         # only create a location object if the request included a loc
         if 'loc' in request.vars:

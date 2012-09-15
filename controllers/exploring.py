@@ -62,6 +62,23 @@ def patherror():
     return dict(message=message, button=button)
 
 
+@auth.requires_login()
+def save_session_data():
+    '''
+    Save the required session variables from the current session to db so that
+    it can be recovered later on.
+    '''
+    debug = True
+    if debug: print '\n\nStarting controller exploring.save_session_data()'
+
+    try:
+        fields = ['walk']
+        data = dict((k, v) for k, v in session.walk.iteritems() if k in fields)
+        db.session_data.update_or_insert(data)
+    except Exception, e:
+        print type(e), e
+
+
 @auth.requires_membership('administrators')
 def clear_session():
     """
@@ -179,7 +196,8 @@ def walk():
 
     # After user submits response to step prompt
     # Evaluate response and present feedback via npc reply
-    elif ('response' in request.vars) and (request.args(0) in ['ask', 'retry']):
+    elif ('response' in request.vars) and (request.args(0)
+                                                       in ['ask', 'retry']):
         if debug: print '\ncontroller exploring.walk() state: response'
         resp = request.vars.response
         if debug: print 'response is', resp

@@ -377,3 +377,10 @@ db.define_table('news',
     Field('date_submitted', 'datetime', default=dtnow),
     Field('last_edit', 'datetime', default=dtnow),
     format='%(title)s')
+
+db.define_table('session_data',
+    Field('user', db.auth_user, default=auth.user_id),
+    Field('updated', 'datetime', default=dtnow),
+    Field('session_start', 'datetime', default=dtnow),
+    Field('data', 'text'),
+    format='%(user)s')
