@@ -23,14 +23,21 @@ class Stats(object):
         '''
         if self.verbose: print 'calling Stats.active_tags() ------------------'
         db = current.db
-        # TODO: Add a list of the badge titles (tags) to returned object
+        debug = True
         try:
             atag_s = db(db.tag_progress.name == self.user_id).select().first()
             atags = {}
-            atags1 = atags['cat1'] = list(set(atag_s.cat1))
+            atags1 = atags['cat1'] = list(set(atag_s.cat1))  # remove dup's
             atags2 = atags['cat2'] = list(set(atag_s.cat2))
             atags3 = atags['cat3'] = list(set(atag_s.cat3))
             atags4 = atags['cat4'] = list(set(atag_s.cat4))
+            for c, lst in atags.iteritems():
+                # allow for possibility that tag hasn't got badge yet
+                try:
+                    atags[c] = [db(db.badges.tag ==
+                                   t).select().first().badge_name for t in lst]
+                except AttributeError:
+                    pass
             try:
                 total = []
                 for c in [atags1, atags2, atags3, atags4]:
@@ -40,6 +47,11 @@ class Stats(object):
                 atags['total'] = 'an unknown number of'
 
             latest_rank = atag_s.latest_new
+            # fix any leftover records with latest rank stuck at 0
+            if latest_rank == 0:
+                atag_s.update_record(latest_new=1)
+                latest_rank = 1
+                if debug: print 'position in tag progression:', latest_rank
             latest_tags = db(db.tags.position == latest_rank).select()
             if latest_tags is None:
                 latest_badges = ['Sorry, I can\'t find it!']
@@ -52,12 +64,12 @@ class Stats(object):
                     else:
                         pass
                 if latest_badges is None:
-                    latest_badges = 'Sorry, I couldn\'t find that!'
+                    latest_badges = ['Sorry, I couldn\'t find that!']
                 atags['latest'] = latest_badges
         except Exception, e:
-            print 'error in Stats.average():', e
+            print type(e), e
             atags['total'] = "Can't calculate total number of active badges."
-            atags['latest'] = "Can't find the most recent badge awarded."
+            atags['latest'] = ["Can't find the most recent badge awarded."]
 
         return atags
 

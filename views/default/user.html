@@ -28,13 +28,14 @@
 
 <div id='tab_stats' class="tab">
 
-    <p>You are currently working on <span class='total_len'>{{=active['total']}}</span> grammar badges</p>
-    <p>The most recent badges started are:
+    <p class="overview">You are currently working on <span class='total_len'>{{=active['total']}}</span> grammar badges</p>
+    <p class="overview">The most recent badges started are:
     <ul class='most_recent'>
         {{for l in active['latest']:}}
             {{=LI(l)}}
         {{pass}}
-    <ul>
+    </ul>
+    </p>
 
 <table cellspacing='0' class='summary_stats'>
     <tr>

@@ -170,9 +170,10 @@ body #page #left_sidebar div:hover,body #page #right_sidebar div:hover{height:au
 #page.profile .ui-widget-header{background:#eee8d5;text-transform:uppercase;font-family:ubuntu,calibri,arial,sans-serif;font-size:12.8px;border:1px solid transparent;}#page.profile .ui-widget-header .ui-state-default{background:transparent;border:1px solid transparent;}
 #page.profile .ui-widget-header .ui-state-default.ui-state-active{background:#fcfbf7;}#page.profile .ui-widget-header .ui-state-default.ui-state-active a{color:#852625;}
 #page.profile div.tab{padding:24px;background-color:#fcfbf7;font-size:16px;line-height:24px;font-family:"Palatino Linotype",Palatino,serif;color:#666666;}#page.profile div.tab h4{color:#b58900;font-size:24px;}
-#page.profile table.summary_stats{border-collapse:separate;border-spacing:2px;border-radius:6px;padding:6px 0;background:#ffffff;}#page.profile table.summary_stats td{vertical-align:middle;background:#eee8d5;padding:0 24px;}#page.profile table.summary_stats td span.score_avg{background:#f5f5f5;border:3px solid #eee;display:inline-block;height:48px;width:48px;border-radius:28px;font-size:14px;color:#aaa;line-height:48px;text-align:center;box-shadow:0px 2px 6px rgba(0, 0, 0, 0.3);}
+#page.profile p.overview li{color:#b58900;padding-left:60px;}
+#page.profile p.overview .total_len{background:#f5f5f5;border:3px solid #eee;display:inline-block;height:36px;width:36px;border-radius:18px;color:#aaa;line-height:36px;text-align:center;box-shadow:0px 2px 6px rgba(0, 0, 0, 0.3);}
+#page.profile table.summary_stats{border-collapse:separate;border-spacing:2px;border-radius:6px;padding:6px 0;background:#ffffff;}#page.profile table.summary_stats td{vertical-align:middle;background:#eee8d5;padding:0 24px;}
 #page.profile table.summary_stats td.total_cat1,#page.profile table.summary_stats td.total_cat2,#page.profile table.summary_stats td.total_cat3,#page.profile table.summary_stats td.total_cat4{height:40px;width:40px;color:#fff;height:40px;text-align:center;font-size:20px;padding:0;font-family:"Droid Sans",ubuntu,calibri,arial,sans-serif;text-shadow:0px 1px 3px rgba(0, 0, 0, 0.3);}
-#page.profile table.summary_stats td.total_len{color:#aaa;font-size:14px;}
 #page.profile table.summary_stats td.total_cat4{background-color:#809240;}
 #page.profile table.summary_stats td.total_cat3{background-color:#AAE557;}
 #page.profile table.summary_stats td.total_cat2{background-color:#b58900;}
