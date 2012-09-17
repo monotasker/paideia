@@ -40,7 +40,7 @@ def slides():
                             cid='slideframe')
                         ))
     if auth.is_logged_in():
-        if 'view_slides' in session.walk:
+        if session.walk and 'view_slides' in session.walk:
             del session.walk['view_slides']
 
     return dict(slides=slides)
