@@ -63,6 +63,12 @@ def user():
     b = Bug()
     blist = b.bugresponses(request.args[0])
 
+    tag_progress = db(db.tag_progress.name ==
+                      request.args[0]).select().first().as_dict()
+
+    tag_records = db(db.tag_records.name == request.args[0]).select().as_list()
+
     return {'the_name': the_name, 'tz': tz,
             'email': email, 'cal': cal,
-            'blist': blist, 'active': active}
+            'blist': blist, 'active': active,
+            'tag_progress': tag_progress, 'tag_records': tag_records}

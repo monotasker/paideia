@@ -2,122 +2,147 @@
 
 <div id='user_profile_tabs' class="tabs">
 
-<ul class="tab_row">
-    <li><a href="#web2py_user_form">Info</a></li>
-    <li><a href="#tab_stats">Badges</a></li>
-    <li><a href="#tab_calendar">Activity</a></li>
-    <li><a href="#tab_bug_reports">Bug reports</a></li>
-</ul>
-
-<div id="web2py_user_form" class="tab active">
-
-<ul>
-    <li>Name: {{=the_name}}</li>
-    <li>Email: {{=email}}</li>
-    <li>Time Zone: {{=tz}}</li>
-</ul>
-
-</div>
-
-<div id='tab_stats' class="tab">
-
-    <p class="overview">You are currently working on <span class='total_len'>{{=active['total']}}</span> grammar badges</p>
-    <p class="overview">The most recent badges started are:
-    <ul class='most_recent'>
-        {{for l in active['latest']:}}
-            {{=LI(l)}}
-        {{pass}}
+    <ul class="tab_row">
+        <li><a href="#web2py_user_form">Info</a></li>
+        <li><a href="#tab_stats">Badges</a></li>
+        <li><a href="#tab_calendar">Activity</a></li>
+        <li><a href="#tab_bug_reports">Bug reports</a></li>
+        <li><a href="#tab_tag_progress">Tag Progress Data</a></li>
+        <li><a href="#tab_tag_records">Tag Records</a></li>
     </ul>
-    </p>
 
-<table cellspacing='0' class='summary_stats'>
-    <tr>
-        <td>mastered</td>
-        <td class='total_cat4'>{{=len(active['cat4']) if active['cat4'] else 0}}</td>
-        <td>badges</td>
-        <td>
-            {{if active['cat4'] and active['cat4'] != 0:}}
-            <ul>
-                {{for b in active['cat4']:}}
-                <li>{{=b}}</li>
-                {{pass}}
-            </ul>
+    <div id="web2py_user_form" class="tab active">
+
+    <ul>
+        <li>Name: {{=the_name}}</li>
+        <li>Email: {{=email}}</li>
+        <li>Time Zone: {{=tz}}</li>
+    </ul>
+
+    </div>
+
+    <div id='tab_stats' class="tab">
+
+        <p class="overview">You are currently working on <span class='total_len'>{{=active['total']}}</span> grammar badges</p>
+        <p class="overview">The most recent badges started are:
+        <ul class='most_recent'>
+            {{for l in active['latest']:}}
+                {{=LI(l)}}
             {{pass}}
-        </td>
-    </tr>
-    <tr>
-        <td>making very good progress on</td>
-        <td class='total_cat3'>{{=len(active['cat3']) if active['cat3'] else 0}}</td>
-        <td>badges</td>
-        <td>
-            {{if active['cat3'] and active['cat3'] != 0:}}
-            <ul>
-                {{for b in active['cat3']:}}
-                <li>{{=b}}</li>
+        </ul>
+        </p>
+
+    <table cellspacing='0' class='summary_stats'>
+        <tr>
+            <td>mastered</td>
+            <td class='total_cat4'>{{=len(active['cat4']) if active['cat4'] else 0}}</td>
+            <td>badges</td>
+            <td>
+                {{if active['cat4'] and active['cat4'] != 0:}}
+                <ul>
+                    {{for b in active['cat4']:}}
+                    <li>{{=b}}</li>
+                    {{pass}}
+                </ul>
                 {{pass}}
-            </ul>
-            {{pass}}
-        </td>
-    </tr>
-    <tr>
-        <td>made a good start with</td>
-        <td class='total_cat2'>{{=len(active['cat2']) if active['cat2'] else 0}}</td>
-        <td>badges</td>
-        <td>
-            {{if active['cat2'] and active['cat2'] != 0:}}
-            <ul>
-                {{for b in active['cat2']:}}
-                <li>{{=b}}</li>
+            </td>
+        </tr>
+        <tr>
+            <td>making very good progress on</td>
+            <td class='total_cat3'>{{=len(active['cat3']) if active['cat3'] else 0}}</td>
+            <td>badges</td>
+            <td>
+                {{if active['cat3'] and active['cat3'] != 0:}}
+                <ul>
+                    {{for b in active['cat3']:}}
+                    <li>{{=b}}</li>
+                    {{pass}}
+                </ul>
                 {{pass}}
-            </ul>
-            {{pass}}
-        </td>
-    </tr>
-    <tr>
-        <td>just started or needing review</td>
-        <td class='total_cat1'>{{=len(active['cat1']) if active['cat1'] else 0}}</td>
-        <td>badges</td>
-        <td>
-            {{if active['cat1'] and active['cat1'] != 0:}}
-            <ul>
-                {{for b in active['cat1']:}}
-                <li>{{=b}}</li>
+            </td>
+        </tr>
+        <tr>
+            <td>made a good start with</td>
+            <td class='total_cat2'>{{=len(active['cat2']) if active['cat2'] else 0}}</td>
+            <td>badges</td>
+            <td>
+                {{if active['cat2'] and active['cat2'] != 0:}}
+                <ul>
+                    {{for b in active['cat2']:}}
+                    <li>{{=b}}</li>
+                    {{pass}}
+                </ul>
                 {{pass}}
-            </ul>
-            {{pass}}
-        </td>
+            </td>
+        </tr>
+        <tr>
+            <td>just started or needing review</td>
+            <td class='total_cat1'>{{=len(active['cat1']) if active['cat1'] else 0}}</td>
+            <td>badges</td>
+            <td>
+                {{if active['cat1'] and active['cat1'] != 0:}}
+                <ul>
+                    {{for b in active['cat1']:}}
+                    <li>{{=b}}</li>
+                    {{pass}}
+                </ul>
+                {{pass}}
+            </td>
+        </tr>
+    </table>
+
+    </div>
+
+    <div class='tab' id='tab_calendar'>
+    Questions answered each day:
+
+    {{=XML(cal)}}
+    </div>
+
+    <div class='tab' id='tab_bug_reports'>
+
+    <table>
+    <tr>
+    <th>question</th>
+    <th>your answer</th>
+    <th>submitted</th>
+    <th>evaluation</th>
+    <th>instructor's comments</th>
     </tr>
-</table>
+    {{for b in blist:}}
+    <tr>
+    {{for v in b:}}
+        <td>{{=v}}</td>
+    {{pass}}
+    </tr>
+    {{pass}}
+    </table>
 
-</div>
+    </div>
 
-<div class='tab' id='tab_calendar'>
-Questions answered each day:
-
-{{=XML(cal)}}
-</div>
-
-<div class='tab' id='tab_bug_reports'>
-
-<table>
-<tr>
-<th>question</th>
-<th>your answer</th>
-<th>submitted</th>
-<th>evaluation</th>
-<th>instructor's comments</th>
-</tr>
-{{for b in blist:}}
-<tr>
-{{for v in b:}}
-    <td>{{=v}}</td>
-{{pass}}
-</tr>
-{{pass}}
-</table>
-
-</div>
-
+    <div id='tab_tag_progress' class="tab">
+        <ul>
+            {{for label, item in tag_progress.iteritems():}}
+                {{=LI(label, item)}}
+            {{pass}}
+        </ul>
+    </div>
+    <div id='tab_tag_records' class="tab">
+        <table>
+            <thead>
+            {{for k, i in tag_records[0].iteritems():}}
+                {{=TD(k)}}
+            {{pass}}
+            </thead>
+            {{for row in tag_records:}}
+            <tr>
+                {{for k, i in row.iteritems():}}
+                    {{=TD(i)}}
+                {{pass}}
+            </tr>
+            {{pass}}
+        </table>
+    </div>
 </div>
 
 <script language="javascript">
