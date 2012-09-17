@@ -150,6 +150,8 @@ class Walk(object):
         if self.verbose:
             print 'calling Walk._save_session_data--------------'
         session = current.session
+        db = current.db
+        auth = current.auth
 
         session_data = {
             'active_paths': self.active_paths,
@@ -174,6 +176,10 @@ class Walk(object):
             session.walk.update(session_data)
         except AttributeError:
             session.walk = session_data
+
+        db.session_data.update_or_insert(db.session_data.user == auth.user_id,
+                                         updated=datetime.datetime.utcnow(),
+                                         data=session.walk)
 
     def _get_session_data(self):
         '''
@@ -278,6 +284,8 @@ class Walk(object):
 
         tags = [t.id for t in db(db.tags.position == latest).select()]
         if debug: print 'introducing new tag(s):', tags
+        # set the flag for the user to view any slides associated with these
+        # tags
         self.view_slides = tags
 
         db.tag_progress.update_or_insert(db.tag_progress.name == uid,
@@ -360,13 +368,6 @@ class Walk(object):
         # If there are no tags needing immediate review, introduce new one
         if not categories[1]:
             categories[1] = self._introduce()
-        # Otherwise, update user's tag_progress to record new categorization
-        else:
-            db(db.tag_progress.name == auth.user_id).update(
-                                                    cat1=categories[1],
-                                                    cat2=categories[2],
-                                                    cat3=categories[3],
-                                                    cat4=categories[4])
         # TODO: Could this categorization be done by a background process?
 
         self.tag_set = categories
@@ -1116,7 +1117,7 @@ class Step(object):
         # TODO: This replaces the Walk.save_session_data() that was in the
         # controller. Make sure this saving of step data is enough.
         self._save_session_data()
-        self._complete()
+        self._complete(score, times_wrong)
 
         return {'reply': reply,
                 'readable': readable_short,
