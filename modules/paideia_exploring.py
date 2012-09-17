@@ -359,9 +359,13 @@ class Walk(object):
             if v:
                 try:
                     rank = db(db.tag_progress.name == auth.user_id).latest_new
+                    if rank == 0:
+                        db(db.tag_progress.name == auth.user_id).update(
+                                                                latest_new=1)
+                        rank = 1
                 except Exception:
                     rank = 1
-                    db.tag_progress.insert(name=auth.user_id, latest_new=1)
+                    db.tag_progress.insert(name=auth.user_id)
                 newv = [t for t in v if db.tags[t].position <= rank]
                 categories[k] = list(set(newv))
 
