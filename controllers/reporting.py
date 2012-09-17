@@ -8,6 +8,7 @@ if 0:
     request = current.request
 
 from paideia_stats import Stats
+from paideia_bugs import Bug
 
 
 @auth.requires_membership(role='administrators')
@@ -52,17 +53,16 @@ def user():
     # get student's user id and name
     the_user = db.auth_user[request.args[0]]
     the_name = the_user.last_name + ', ' + the_user.first_name
+    tz = the_user.time_zone
+    email = the_user.email
 
     s = Stats(request.args[0])
-    avg = s.average()
-    cats = s.categories()
+    active = s.active_tags()
     cal = s.monthcal()
 
     b = Bug()
-    blist = b.bugresponses(the_user)
+    blist = b.bugresponses(request.args[0])
 
-    return dict(the_name=the_name,
-            score_avg=avg,
-            categories=cats,
-            calendar=cal,
-            blist=blist)
+    return {'the_name': the_name, 'tz': tz,
+            'email': email, 'cal': cal,
+            'blist': blist, 'active': active}

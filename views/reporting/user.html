@@ -1,32 +1,128 @@
 {{extend 'layout.html'}}
-<h2>{{=the_name}}</h2>
-<h3>Summary Statistics</h3>
+
+<div id='user_profile_tabs' class="tabs">
+
+<ul class="tab_row">
+    <li><a href="#web2py_user_form">Info</a></li>
+    <li><a href="#tab_stats">Badges</a></li>
+    <li><a href="#tab_calendar">Activity</a></li>
+    <li><a href="#tab_bug_reports">Bug reports</a></li>
+</ul>
+
+<div id="web2py_user_form" class="tab active">
+
+<ul>
+    <li>Name: {{=the_name}}</li>
+    <li>Email: {{=email}}</li>
+    <li>Time Zone: {{=tz}}</li>
+</ul>
+
+</div>
+
+<div id='tab_stats' class="tab">
+
+    <p class="overview">You are currently working on <span class='total_len'>{{=active['total']}}</span> grammar badges</p>
+    <p class="overview">The most recent badges started are:
+    <ul class='most_recent'>
+        {{for l in active['latest']:}}
+            {{=LI(l)}}
+        {{pass}}
+    </ul>
+    </p>
+
 <table cellspacing='0' class='summary_stats'>
     <tr>
-        <td class='total_len'>{{=total_len}}</td>
-        <td>distinct questions attempted so far.</td>
+        <td>mastered</td>
+        <td class='total_cat4'>{{=len(active['cat4']) if active['cat4'] else 0}}</td>
+        <td>badges</td>
+        <td>
+            {{if active['cat4'] and active['cat4'] != 0:}}
+            <ul>
+                {{for b in active['cat4']:}}
+                <li>{{=b}}</li>
+                {{pass}}
+            </ul>
+            {{pass}}
+        </td>
     </tr>
     <tr>
-        <td class='total_cat4'>{{=total_cat4}}</td>
-        <td>questions mastered (<span class='percent_cat4'>{{=percent_cat4}}</span>% of questions tried)</td>
+        <td>making very good progress on</td>
+        <td class='total_cat3'>{{=len(active['cat3']) if active['cat3'] else 0}}</td>
+        <td>badges</td>
+        <td>
+            {{if active['cat3'] and active['cat3'] != 0:}}
+            <ul>
+                {{for b in active['cat3']:}}
+                <li>{{=b}}</li>
+                {{pass}}
+            </ul>
+            {{pass}}
+        </td>
     </tr>
     <tr>
-        <td class='total_cat3'>{{=total_cat3}}</td>
-        <td>making very good progress (<span class='percent_cat3'>{{=percent_cat3}}</span>% of questions tried)</td>
+        <td>made a good start with</td>
+        <td class='total_cat2'>{{=len(active['cat2']) if active['cat2'] else 0}}</td>
+        <td>badges</td>
+        <td>
+            {{if active['cat2'] and active['cat2'] != 0:}}
+            <ul>
+                {{for b in active['cat2']:}}
+                <li>{{=b}}</li>
+                {{pass}}
+            </ul>
+            {{pass}}
+        </td>
     </tr>
     <tr>
-        <td class='total_cat2'>{{=total_cat2}}</td>
-        <td>have made a good start (<span class='percent_cat2'>{{=percent_cat2}}</span>% of questions tried)</td>
-    </tr>
-    <tr>
-        <td class='total_cat1'>{{=total_cat1}}</td>
-        <td>need some more attention (<span class='percent_cat1'>{{=percent_cat1}}</span>% of questions tried)</td>
-    </tr>
-    <tr>
-        <td colspan='2'>Average score <span class='score_avg'>{{=score_avg}}%</span></td>
+        <td>just started or needing review</td>
+        <td class='total_cat1'>{{=len(active['cat1']) if active['cat1'] else 0}}</td>
+        <td>badges</td>
+        <td>
+            {{if active['cat1'] and active['cat1'] != 0:}}
+            <ul>
+                {{for b in active['cat1']:}}
+                <li>{{=b}}</li>
+                {{pass}}
+            </ul>
+            {{pass}}
+        </td>
     </tr>
 </table>
 
-<h3>Questions Attempted</h3>
+</div>
 
-{{=XML(htmlcal)}}
+<div class='tab' id='tab_calendar'>
+Questions answered each day:
+
+{{=XML(cal)}}
+</div>
+
+<div class='tab' id='tab_bug_reports'>
+
+<table>
+<tr>
+<th>question</th>
+<th>your answer</th>
+<th>submitted</th>
+<th>evaluation</th>
+<th>instructor's comments</th>
+</tr>
+{{for b in blist:}}
+<tr>
+{{for v in b:}}
+    <td>{{=v}}</td>
+{{pass}}
+</tr>
+{{pass}}
+</table>
+
+</div>
+
+</div>
+
+<script language="javascript">
+<!--
+ $("#web2py_user_form input:visible:enabled:first").focus();
+ $('#user_profile_tabs').tabs();
+//-->
+</script>

@@ -328,12 +328,27 @@ class Walk(object):
         if debug: print categories
 
         # Remove duplicate tag id's from each category
+        # Make sure each of the tags is not beyond the user's current ranking
         for k, v in categories.iteritems():
-            categories[k] = list(set(v))
+            if v:
+                try:
+                    rank = db(db.tag_progress.name == auth.user_id).latest_new
+                except Exception:
+                    rank = 1
+                    db.tag_progress.insert(name=auth.user_id, latest_new=1)
+                newv = [t for t in v if db.tags[t].position <= rank]
+                categories[k] = list(set(newv))
 
         # If there are no tags needing immediate review, introduce new one
         if not categories[1]:
             categories[1] = self._introduce()
+        # Otherwise, update user's tag_progress to record new categorization
+        else:
+            db(db.tag_progress.name == auth.user_id).update(
+                                                    cat1=categories[1],
+                                                    cat2=categories[2],
+                                                    cat3=categories[3],
+                                                    cat4=categories[4])
 
         self.tag_set = categories
 
@@ -798,11 +813,15 @@ class Walk(object):
         if debug: print 'looking for random path with active tags'  # DEBUG
         paths = self._get_paths()
         max_rank = db(db.tag_progress.name == auth.user_id).first().latest_new
-        tag_list = db(db.tags.id <= max_rank)
+        tag_list = db(db.tags.position <= max_rank)
         paths.find(lambda row: [t in row.tags for t in tag_list])
-        path = paths[random.randrange(0, len(paths))]
+        for p in paths:
+            the_step = p.steps[0]
+            if loc_id in the_step.locations:
+                return p, the_step
 
-        return path, path.steps[0].id
+        # 6) Send user to look elsewhere for a path with active tags
+        return self._get_util_step('default')
 
     def _get_category(self):
         '''
