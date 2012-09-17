@@ -280,7 +280,7 @@ db.define_table('question_records',
 
 db.define_table('tag_progress',
     Field('name', db.auth_user, default=auth.user_id),
-    Field('latest_new', 'integer'),  # not tag id but order ranking
+    Field('latest_new', 'integer', default=1),  # not tag id but order ranking
     Field('cat1', 'list:reference tags'),
     Field('cat2', 'list:reference tags'),
     Field('cat3', 'list:reference tags'),

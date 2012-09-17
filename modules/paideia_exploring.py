@@ -59,12 +59,19 @@ class Walk(object):
         '''
         if self.verbose:
             print 'initializing Walk============================'
+        debug = True
 
+        # TODO: This check is too costly to do every time, rework
+        # maybe pass whole serialized Walk object via session?
+        # then just check start date of Walk object?
         if self._check_for_session() is True:
+            if debug: print 'session data present and not stale'
             self._get_session_data()
         else:
+            if debug: print 'session data stale or not present, using defaults'
             self._start_new_session()
 
+        # TODO: This doesn't need to be instantiated every time
         self.map = Map()
 
     def _start_new_session(self):
@@ -100,7 +107,7 @@ class Walk(object):
         '''
         if self.verbose:
             print 'calling Walk._check_for_session() -------------------------'
-
+        debug = True
         auth = current.auth
         session = current.session
         db = current.db
@@ -110,20 +117,27 @@ class Walk(object):
         tz_name = db.auth_user[auth.user_id].time_zone
         tz = timezone(tz_name)
         now_local = tz.fromutc(datetime.datetime.utcnow())
+        if debug: print 'current local time:', now_local
 
         if session.walk and ('session_start' in session.walk):
             session_start_local = tz.fromutc(session.walk['session_start'])
+            if debug: print 'session started at:', session_start_local
             if (session_start_local.day == now_local.day):
+                if debug: print 'session started today'
                 return True
             else:
+                if debug: print 'session is stale'
                 pass
 
         elif mysession:
             session_start_local = tz.fromutc(mysession.session_start)
+            if debug: print 'db session started at:', session_start_local
             if session_start_local.day == now_local.day:
-                session.walk == mysession.data
+                session.walk = mysession.data
+                if debug: print 'session started today'
                 return True
             else:
+                if debug: print 'db session is stale'
                 pass
 
         return False
@@ -243,9 +257,11 @@ class Walk(object):
         debug = True
         auth = current.auth
         db = current.db
-        uid = auth.user_id
 
+        uid = auth.user_id
         progress_sel = db(db.tag_progress.name == uid).select()
+        # Make sure only one record per user
+        # TODO: enforce at db level and remove
         if len(progress_sel) > 1:
             for r in progress_sel[1:]:
                 if debug: print 'deleting extra record for this user:', r
@@ -254,17 +270,19 @@ class Walk(object):
         progress = progress_sel.first()
         if progress is None:
             #If this user is just starting, so doesn't have table row
-            latest = 0
+            latest = 1
             # TODO: Check we aren't at the end of the tag progression
-
-        latest = progress.latest_new + 1
+        else:
+            latest = progress.latest_new + 1
         if debug: print 'latest_new now =', latest
-        db.tag_progress.update_or_insert(db.tag_progress.name == uid,
-                                          name=uid, latest_new=latest)
 
         tags = [t.id for t in db(db.tags.position == latest).select()]
         if debug: print 'introducing new tag(s):', tags
         self.view_slides = tags
+
+        db.tag_progress.update_or_insert(db.tag_progress.name == uid,
+                                          name=uid, latest_new=latest,
+                                          cat1=tags)
 
         return tags
 
@@ -349,6 +367,7 @@ class Walk(object):
                                                     cat2=categories[2],
                                                     cat3=categories[3],
                                                     cat4=categories[4])
+        # TODO: Could this categorization be done by a background process?
 
         self.tag_set = categories
 
@@ -373,13 +392,10 @@ class Walk(object):
         if len(mycats_all) > 1:
             for r in mycats_all[1:]:
                 del db.tag_progress[r.id]
-        if mycats_all is None:
-            db.tag_progress.insert(name=auth.user_id, latest_new=1)
         mycats = mycats_all.first()
         if debug: print 'mycats =', mycats
 
         new_badges = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
-        all_badges = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
         for categ, lst in categories.iteritems():
             if lst:
                 print 'current badges =', lst
@@ -391,12 +407,12 @@ class Walk(object):
                 if new:
                     if debug: print 'newly awarded badges =', new
                     new_badges[categ] = new
-                    all_badges[categ] = list(set(new + lst))
 
-        mycats.update_record(cat1=all_badges['cat1'],
-                            cat2=all_badges['cat2'],
-                            cat3=all_badges['cat3'],
-                            cat4=all_badges['cat4'])
+        db.tag_progress.update_or_insert(db.tag_progress.name == auth.user_id,
+                                                    cat1=categories[1],
+                                                    cat2=categories[2],
+                                                    cat3=categories[3],
+                                                    cat4=categories[4])
 
         if new_badges:
             if debug: print 'new badges =', new_badges
@@ -1221,13 +1237,7 @@ class Step(object):
                               score=score,
                               path=self.path.id)
 
-        # Check to see whether this is the last step in the path and if so
-        # remove from active_paths and add to completed_paths
-        if self.path.steps[-1] == self.step.id:
-            del session.walk['active_paths'][self.path.id]
-            session.walk['completed_paths'].add(self.path.id)
-
-    def _complete(self):
+    def _complete(self, score, times_wrong):
         '''
         Record the current session data in the db for cross-session
         persistence.
@@ -1238,8 +1248,30 @@ class Step(object):
         session = current.session
         auth = current.auth
 
+        # Record evaluation of step response
+        self._record(score, times_wrong)
+
+        # Check to see whether this is the last step in the path and if so
+        # remove from active_paths and add to completed_paths
+        # also set path to None in session.walk
+        if self.path.steps[-1] == self.step.id:
+            del session.walk['active_paths'][self.path.id]
+            session.walk['completed_paths'].add(self.path.id)
+            session.walk['path'] = None
+
+        # remove active step from session.walk
+        session.walk['step'] = None
+
+        # Store session data in db
+        # This needs to happen last
         db.session_data.update_or_insert(db.session_data.user == auth.user_id,
-                                         user=auth.user_id, data=session.walk)
+                                         user=auth.user_id, data=session.walk,
+                                         updated=datetime.datetime.utcnow())
+
+        # TODO: In path selection, re-activate any path or step that is still
+        # in session.walk when controller in the 'ask' state
+        # TODO: Remove from session._get_next_path the logic to deactivate
+        # final steps, etc.?
 
     def _get_prompt(self):
         '''
@@ -1412,7 +1444,7 @@ class StepMultipleChoice(Step):
             times_wrong = 0
 
         # Record the results in statistics for this step and this tag
-        self._record(score, times_wrong)
+        self._complete(score, times_wrong)
 
         # TODO: This replaces the Walk.save_session_data() that was in the
         # controller. Make sure this saving of step data is enough.
@@ -1435,7 +1467,7 @@ class StepStub(Step):
 
     verbose = True
 
-    def complete(self):
+    def _complete(self):
         '''
         Complete this step:
             * Do not update the path_log
@@ -1448,8 +1480,17 @@ class StepStub(Step):
         if self.verbose:
             print 'calling', type(self).__name__, '.complete -------------'
         session = current.session
+        db = current.db
+        auth = current.auth
 
         del session.walk['active_paths'][self.path.id]
+        session.walk.update({'path': None,
+                            'step': None})
+
+        # Store session data in db
+        db.session_data.update_or_insert(db.session_data.user == auth.user_id,
+                                         user=auth.user_id, data=session.walk,
+                                         updated=datetime.datetime.utcnow())
 
     def _get_responder(self):
         '''
@@ -1462,6 +1503,8 @@ class StepStub(Step):
                         cid='page',
                         _class='button-yellow-grad back_to_map icon-location')
         responder = DIV(map_button, _class='responder')
+
+        self._complete()
 
         return responder
 
