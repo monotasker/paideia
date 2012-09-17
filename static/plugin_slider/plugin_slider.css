@@ -829,6 +829,7 @@ a:hover .tip, a:active .tip {
   top: 50%;
   width: 60px;
   height: 60px;
+  line-height: 60px;
   display: block;
   background-color: #002b36;
   color: #fff;
@@ -837,7 +838,7 @@ a:hover .tip, a:active .tip {
   /* Fix for webkit clickability issue */
 
   font-size: 24px;
-  padding: 24px;
+  padding: 0 24px;
   -moz-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
   -webkit-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
   -o-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
@@ -867,6 +868,7 @@ a:hover .tip, a:active .tip {
   top: 50%;
   width: 60px;
   height: 60px;
+  line-height: 60px;
   display: block;
   background-color: #002b36;
   color: #fff;
@@ -875,7 +877,7 @@ a:hover .tip, a:active .tip {
   /* Fix for webkit clickability issue */
 
   font-size: 24px;
-  padding: 24px;
+  padding: 0 24px;
   -moz-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
   -webkit-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
   -o-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
@@ -887,6 +889,11 @@ a:hover .tip, a:active .tip {
   -ms-transition: all 200ms ease-in-out;
   transition: all 200ms ease-in-out;
   text-align: right;
+  -moz-border-radius: 0 16px 16px 0;
+  -webkit-border-radius: 0 16px 16px 0;
+  -o-border-radius: 0 16px 16px 0;
+  -ms-border-radius: 0 16px 16px 0;
+  border-radius: 0 16px 16px 0;
 }
 .plugin_slider_prevlink .accessible {
   position: absolute;
@@ -914,6 +921,7 @@ a:hover .tip, a:active .tip {
   top: 50%;
   width: 60px;
   height: 60px;
+  line-height: 60px;
   display: block;
   background-color: #002b36;
   color: #fff;
@@ -922,7 +930,7 @@ a:hover .tip, a:active .tip {
   /* Fix for webkit clickability issue */
 
   font-size: 24px;
-  padding: 24px;
+  padding: 0 24px;
   -moz-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
   -webkit-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
   -o-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
@@ -934,6 +942,11 @@ a:hover .tip, a:active .tip {
   -ms-transition: all 200ms ease-in-out;
   transition: all 200ms ease-in-out;
   text-align: left;
+  -moz-border-radius: 16px 0 0 16px;
+  -webkit-border-radius: 16px 0 0 16px;
+  -o-border-radius: 16px 0 0 16px;
+  -ms-border-radius: 16px 0 0 16px;
+  border-radius: 16px 0 0 16px;
 }
 .plugin_slider_nextlink .accessible {
   position: absolute;
@@ -1045,11 +1058,103 @@ body #page div.plugin_slider_slide ol {
   line-height: 2em;
   margin: 0;
 }
-body #page div.plugin_slider_slide table.letter_table {
-  background-color: #2aa198;
-  padding: 16px;
+body #page div.plugin_slider_slide table {
+  background-color: #ffffff;
   border: 1px solid #fff;
-  border-radius: .5em;
+  border-collapse: separate;
+  border-spacing: 2px;
+  text-align: center;
+  color: #657b83;
+  font-size: 24px;
+}
+body #page div.plugin_slider_slide table td {
+  background-color: #eee8d5;
+  padding: 8px 16px;
+}
+body #page div.plugin_slider_slide table.nominative_bg_table {
+  position: absolute;
+  left: 50%;
+  margin-left: -360px;
+  top: 120px;
+  width: 720px;
+  background-color: transparent;
+  color: #ffffff;
+  z-index: 1;
+  border: 1px transparent solid;
+  border-collapse: collapse;
+  -moz-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
+  -webkit-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
+  -o-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
+  -ms-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
+  text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
+}
+body #page div.plugin_slider_slide table.nominative_bg_table tr {
+  background-color: #a3cfee;
+  border-top: 24px transparent solid;
+  border-bottom: 24px transparent solid;
+  height: 72px;
+}
+body #page div.plugin_slider_slide table.nominative_bg_table tr td {
+  background-color: transparent;
+  padding: 0px;
+  vertical-align: middle;
+  height: 96px;
+}
+body #page div.plugin_slider_slide table.nominative_bg_table tr td:first-child, body #page div.plugin_slider_slide table.nominative_bg_table tr td:last-child {
+  max-width: 0px;
+}
+body #page div.plugin_slider_slide table.nominative_bg_table tr:nth-child(even) {
+  background-color: transparent;
+  height: 24px;
+}
+body #page div.plugin_slider_slide table.nominative_bg_table tr:nth-child(even) td {
+  height: 24px;
+  max-height: 24px;
+}
+body #page div.plugin_slider_slide table.nominative_bg_table tr:nth-child(3) {
+  background-color: #cee6f6;
+}
+body #page div.plugin_slider_slide table.nominative_fg_table {
+  z-index: 10;
+  position: absolute;
+  top: 120px;
+  left: 50%;
+  margin-left: -360px;
+  background-color: transparent;
+  border: 0px solid transparent;
+  color: #ffffff;
+  font-size: 40px;
+  width: 720px;
+  border-spacing: 0px;
+  -moz-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
+  -webkit-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
+  -o-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
+  -ms-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
+  text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
+}
+body #page div.plugin_slider_slide table.nominative_fg_table tr {
+  background-color: transparent;
+}
+body #page div.plugin_slider_slide table.nominative_fg_table tr td {
+  height: 120px;
+  padding: 0px;
+  width: 180px;
+  background-color: transparent;
+  vertical-align: middle;
+}
+body #page div.plugin_slider_slide table.nominative_fg_table tr td:nth-child(even) {
+  background-color: #1e6ea7;
+}
+body #page div.plugin_slider_slide table.nominative_fg_table tr td:nth-child(3) {
+  width: 180px;
+}
+body #page div.plugin_slider_slide table.nominative_fg_table tr:nth-child(2) td:nth-child(2) {
+  background-color: #268bd2;
+}
+body #page div.plugin_slider_slide table.letter_table {
+  padding: 16px;
+  color: #073642;
+  border-radius: 8px;
   text-align: center;
   margin: 16px auto;
 }
@@ -1060,7 +1165,7 @@ body #page div.plugin_slider_slide table.letter_table thead {
 body #page div.plugin_slider_slide table.letter_table thead td {
   padding: .5em;
 }
-body #page div.plugin_slider_slide tbody {
+body #page div.plugin_slider_slide table.letter_table tbody {
   font-size: 1.5em;
   border-top: 1px solid #fff;
 }

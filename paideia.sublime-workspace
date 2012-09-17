@@ -4,6 +4,18 @@
 		"selected_items":
 		[
 			[
+				"background",
+				"background-color"
+			],
+			[
+				"line",
+				"lineheight3"
+			],
+			[
+				"lin",
+				"line-height"
+			],
+			[
 				"au",
 				"auth"
 			],
@@ -356,10 +368,6 @@
 				"typeheight"
 			],
 			[
-				"line",
-				"lineheight"
-			],
-			[
 				"add_ta",
 				"add_taglist"
 			],
@@ -399,7 +407,15 @@
 			"file": "modules/paideia_exploring.py",
 			"settings":
 			{
-				"buffer_size": 67827,
+				"buffer_size": 68031,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "static/plugin_slider/plugin_slider.less",
+			"settings":
+			{
+				"buffer_size": 8490,
 				"line_ending": "Unix"
 			}
 		},
@@ -426,6 +442,14 @@
 				"buffer_size": 15792,
 				"line_ending": "Unix"
 			}
+		},
+		{
+			"file": "static/plugin_framework/framework.less",
+			"settings":
+			{
+				"buffer_size": 27915,
+				"line_ending": "Unix"
+			}
 		}
 	],
 	"build_system": "Packages/LESS-build/LESS.sublime-build",
@@ -439,6 +463,18 @@
 				":w - Save"
 			],
 			[
+				":sett",
+				"Preferences: Settings - User"
+			],
+			[
+				":dis",
+				"Package Control: Disable Package"
+			],
+			[
+				":disa",
+				"Package Control: Disable Package"
+			],
+			[
 				":enab",
 				"Package Control: Enable Package"
 			],
@@ -449,10 +485,6 @@
 			[
 				":inst",
 				"Package Control: Install Package"
-			],
-			[
-				":sett",
-				"Preferences: Settings - User"
 			],
 			[
 				":insta",
@@ -489,10 +521,6 @@
 			[
 				":nav",
 				"Sublime Files: Open Navigator"
-			],
-			[
-				":dis",
-				"Package Control: Disable Package"
 			],
 			[
 				":disable",
@@ -587,7 +615,7 @@
 				"Package Control: Discover Packages"
 			]
 		],
-		"width": 588.0
+		"width": 507.0
 	},
 	"console":
 	{
@@ -604,6 +632,9 @@
 	},
 	"file_history":
 	[
+		"/home/ian/.config/sublime-text-2/Packages/Default/Preferences.sublime-settings",
+		"/home/ian/.config/sublime-text-2/Packages/User/Preferences.sublime-settings",
+		"/home/ian/web/web2py/applications/paideia/modules/static/",
 		"/home/ian/.config/sublime-text-2/Packages/SplitScreen-Resizer/Default (Linux).sublime-keymap",
 		"/home/ian/web/web2py/applications/paideia/static/plugin_framework/framework.less",
 		"/home/ian/web/web2py/applications/paideia/static/plugin_slider/plugin_slider.less",
@@ -615,7 +646,6 @@
 		"/home/ian/web/web2py/applications/paideia/modules/paideia_stats.py",
 		"/home/ian/web/web2py/applications/paideia/controllers/default.py",
 		"/home/ian/web/web2py/applications/paideia/views/exploring/listing/",
-		"/home/ian/.config/sublime-text-2/Packages/User/Preferences.sublime-settings",
 		"/home/ian/web/web2py/applications/paideia/modules/views/",
 		"/home/ian/web/web2py/applications/paideia/modules/paideia_bugs.py",
 		"/home/ian/web/web2py/applications/paideia/modules/save_session_data.py",
@@ -624,7 +654,6 @@
 		"/home/ian/web/web2py/applications/paideia/modules/paideia_exploring.py",
 		"/home/ian/web/web2py/applications/paideia/models/paideia.py",
 		"/home/ian/web/web2py/applications/paideia/models/menu.py",
-		"/home/ian/.config/sublime-text-2/Packages/Default/Preferences.sublime-settings",
 		"/home/ian/web/web2py/applications/paideia/models/plugin_slider.py",
 		"/home/ian/.config/sublime-text-2/Packages/User/Package Control.sublime-settings",
 		"/home/ian/web/web2py/applications/paideia/models/db.py",
@@ -757,7 +786,7 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 1,
 			"sheets":
 			[
 				{
@@ -765,15 +794,15 @@
 					"file": "modules/paideia_exploring.py",
 					"settings":
 					{
-						"buffer_size": 67827,
+						"buffer_size": 68031,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								16417,
-								16417
+								14097,
+								14097
 							]
 						],
 						"settings":
@@ -784,7 +813,7 @@
 								"README",
 								"FIXME"
 							],
-							"function_name_status_row": 422,
+							"function_name_status_row": 366,
 							"gjslint_ignore":
 							[
 								110
@@ -833,7 +862,36 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 8604.0,
+						"translation.y": 7614.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "static/plugin_slider/plugin_slider.less",
+					"settings":
+					{
+						"buffer_size": 8490,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								6321,
+								6321
+							]
+						],
+						"settings":
+						{
+							"function_name_status_row": 148,
+							"syntax": "Packages/LESS/LESS.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 2772.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -841,11 +899,11 @@
 			]
 		},
 		{
-			"selected": 2,
+			"selected": 3,
 			"sheets":
 			[
 				{
-					"buffer": 1,
+					"buffer": 2,
 					"file": "controllers/exploring.py",
 					"settings":
 					{
@@ -923,7 +981,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 2,
+					"buffer": 3,
 					"file": "views/exploring/walk.load",
 					"settings":
 					{
@@ -952,7 +1010,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 3,
+					"buffer": 4,
 					"file": "models/paideia.py",
 					"settings":
 					{
@@ -1025,6 +1083,35 @@
 						},
 						"translation.x": 0.0,
 						"translation.y": 6028.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "static/plugin_framework/framework.less",
+					"settings":
+					{
+						"buffer_size": 27915,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								4349,
+								4349
+							]
+						],
+						"settings":
+						{
+							"function_name_status_row": 105,
+							"syntax": "Packages/LESS/LESS.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1822.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
