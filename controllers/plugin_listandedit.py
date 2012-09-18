@@ -7,6 +7,7 @@ if 0:
     db = current.db
     session = current.session
 
+
 def listing():
     """
     This plugin creates a large widget to display, edit, and add entries
@@ -19,6 +20,9 @@ def listing():
 
     ARGUMENTS
     Takes one required argument, the name of the table to be listed.
+
+    A second optional argument provides the name of a field by which to order
+    the list.
 
     VARIABLES
     An optional variable "restrictor" can be used to filter the displayed
@@ -35,6 +39,12 @@ def listing():
     tablename = request.args[0]
     #pass that name on to be used as a title for the widget
     rname = tablename
+    #allow ordering of list based on values in any field
+    orderby = None
+    try:
+        orderby = request.args[1] if orderby in db[tablename].fields else None
+    except ValueError:
+        pass
 
     #get filtering values if any
     if 'restrictor' in request.vars:
@@ -60,7 +70,7 @@ def listing():
                 filter_select = db(tb[k] == v)._select(tb.id)
                 rowlist = db(tb.id.belongs(filter_select)).select()
         else:
-            rowlist = db(tb.id > 0).select()
+            rowlist = db(tb.id > 0).select(orderby=tb[orderby])
 
     # build html list from the selected rows
     listset = []
