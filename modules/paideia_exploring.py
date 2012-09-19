@@ -1268,6 +1268,8 @@ class Step(object):
         # remove active step from session.walk
         session.walk['step'] = None
 
+        session.walk['retry'] = (self.path.id, self.step.id)
+
         # Store session data in db
         # This needs to happen last
         db.session_data.update_or_insert(db.session_data.user == auth.user_id,
@@ -1489,7 +1491,7 @@ class StepStub(Step):
         db = current.db
         auth = current.auth
 
-        if self.path.id in session.walk['active_paths']:
+        if self.path.id and self.path.id in session.walk['active_paths']:
             del session.walk['active_paths'][self.path.id]
         session.walk.update({'path': None,
                             'step': None})
