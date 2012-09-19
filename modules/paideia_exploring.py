@@ -1260,7 +1260,8 @@ class Step(object):
         # remove from active_paths and add to completed_paths
         # also set path to None in session.walk
         if self.path.steps[-1] == self.step.id:
-            del session.walk['active_paths'][self.path.id]
+            if self.path.id in session.walk['active_paths']:
+                del session.walk['active_paths'][self.path.id]
             session.walk['completed_paths'].add(self.path.id)
             session.walk['path'] = None
 
@@ -1488,7 +1489,8 @@ class StepStub(Step):
         db = current.db
         auth = current.auth
 
-        del session.walk['active_paths'][self.path.id]
+        if self.path.id in session.walk['active_paths']:
+            del session.walk['active_paths'][self.path.id]
         session.walk.update({'path': None,
                             'step': None})
 
