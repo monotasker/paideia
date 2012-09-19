@@ -97,7 +97,7 @@ class Walk(object):
         self._unfinished()
         self.session_start = datetime.datetime.utcnow()
         # store newly initialized attributes in session object
-        self._save_session_data()
+        self._save_session_data(True)
 
     def _check_for_session(self):
         '''
@@ -116,6 +116,7 @@ class Walk(object):
         # TODO: What about case where db data is newer than session data?
         mysession = db(db.session_data.user == auth.user_id).select().first()
         if debug: print 'stored data in db', mysession
+
         tz_name = db.auth_user[auth.user_id].time_zone
         tz = timezone(tz_name)
         now_local = tz.fromutc(datetime.datetime.utcnow())
@@ -145,7 +146,7 @@ class Walk(object):
 
         return False
 
-    def _save_session_data(self):
+    def _save_session_data(self, new=False):
         '''
         Save attributes in session.
         '''
@@ -180,9 +181,13 @@ class Walk(object):
         except AttributeError:
             session.walk = session_data
 
+        if new is True:
+            session.walk['session_start'] = datetime.datetime.utcnow()
+
         db.session_data.update_or_insert(db.session_data.user == auth.user_id,
-                                         updated=datetime.datetime.utcnow(),
-                                         data=session.walk)
+                                 updated=datetime.datetime.utcnow(),
+                                 session_start=session.walk['session_start'],
+                                 data=session.walk)
 
     def _get_session_data(self):
         '''
@@ -1502,7 +1507,7 @@ class StepStub(Step):
         db = current.db
         auth = current.auth
 
-        if self.path.id and self.path.id in session.walk['active_paths']:
+        if self.path and self.path.id in session.walk['active_paths']:
             del session.walk['active_paths'][self.path.id]
         session.walk.update({'path': None,
                             'step': None})

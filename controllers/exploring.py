@@ -1,7 +1,5 @@
 # coding: utf8
-from paideia_exploring import Walk, StepStub
-#, Npc, Path, Step, StepStub, StepMultipleChoice, Counter, Map, Location
-# import pprint
+from paideia_exploring import Walk
 
 if 0:
     from gluon import current, A, URL
@@ -185,13 +183,6 @@ def walk():
         # TODO: change to a new public method Walk.set_active_location()
         walk.active_location = None  # clear in preparation for new location
         session.walk['active_location'] = None
-
-        # If we got here from a StepStub, we need to complete the step
-        try:
-            if isinstance(walk.step, StepStub):
-                walk.step.complete()
-        except:
-            print 'no step is active yet'
 
         return {'map': walk.map}
 
