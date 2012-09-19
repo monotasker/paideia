@@ -215,8 +215,8 @@ def walk():
     # TODO: Ensure repeats aren't added separately to paths_completed
     elif request.args(0) == 'retry':
         if debug: print '\ncontroller exploring.walk() state: retry'
-        last_pathid = session.walk['path']
-        last_stepid = session.walk['step']
+        last_pathid = session.walk['retry'][0]
+        last_stepid = session.walk['retry'][1]
         walk.activate_step(last_pathid, last_stepid)
         return walk.step.ask()
 
