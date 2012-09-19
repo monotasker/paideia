@@ -339,7 +339,7 @@ class Walk(object):
 
             # Categorize q or tag based on this performance
             if (right_dur < right_wrong_dur) and (right_wrong_dur >
-                                                  datetime.timedelta(days=1)):
+                  datetime.timedelta(days=1)) and (record.times_right >= 10):
                 if right_wrong_dur.days >= 7:
                     if right_wrong_dur.days > 30:
                         if right_wrong_dur > datetime.timedelta(days=180):
@@ -405,10 +405,14 @@ class Walk(object):
                 category = 'cat{0}'.format(str(categ))
                 print 'current badges =', lst
                 if mycats and mycats[category]:
+                    # TODO: still need permanent solution to store
+                    # 'max reached' info for tags
                     # make sure to check against higher categories too
                     catindex = categories.keys().index(categ)
-                    mycats_gteq = dict((k, v) for k, v in mycats.iteritems
-                                       if mycats.index(k) >= catindex)
+                    print catindex
+                    mycats_gteq = dict((k, mycats[k]) for k
+                                       in mycats.keys()[catindex:])
+                    print 'looking in equal and higher cats:', mycats_gteq
 
                     new = [t for t in lst if t not in mycats_gteq[category]]
 
