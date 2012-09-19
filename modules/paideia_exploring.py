@@ -68,7 +68,8 @@ class Walk(object):
             if debug: print 'session data present and not stale'
             self._get_session_data()
         else:
-            if debug: print 'session data stale or not present, using defaults'
+            if debug:
+                print 'session stale or not present, starting new session'
             self._start_new_session()
 
         # TODO: This doesn't need to be instantiated every time
@@ -106,7 +107,7 @@ class Walk(object):
         return False.
         '''
         if self.verbose:
-            print 'calling Walk._check_for_session() -------------------------'
+            print 'calling Walk._check_for_session() ------------------------'
         debug = True
         auth = current.auth
         session = current.session
@@ -114,12 +115,14 @@ class Walk(object):
 
         # TODO: What about case where db data is newer than session data?
         mysession = db(db.session_data.user == auth.user_id).select().first()
+        if debug: print 'stored data in db', mysession
         tz_name = db.auth_user[auth.user_id].time_zone
         tz = timezone(tz_name)
         now_local = tz.fromutc(datetime.datetime.utcnow())
         if debug: print 'current local time:', now_local
 
         if session.walk and ('session_start' in session.walk):
+            if debug: print 'session.walk:', session.walk
             session_start_local = tz.fromutc(session.walk['session_start'])
             if debug: print 'session started at:', session_start_local
             if (session_start_local.day == now_local.day):
@@ -393,33 +396,37 @@ class Walk(object):
         # If a tag has moved up in category, award the badge
         # TODO: needs to be tested!!!
         # here making sure user has one and only one tag_progress row
-        mycats_all = db(db.tag_progress.name == auth.user_id).select()
-        if len(mycats_all) > 1:
-            for r in mycats_all[1:]:
-                del db.tag_progress[r.id]
-        mycats = mycats_all.first()
+        mycats = db(db.tag_progress.name == auth.user_id).select().first()
         if debug: print 'mycats =', mycats
 
         new_badges = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
         for categ, lst in categories.iteritems():
             if lst:
+                category = 'cat{0}'.format(str(categ))
                 print 'current badges =', lst
-                categ = 'cat{0}'.format(str(categ))
-                if mycats and mycats[categ]:
-                    new = [t for t in lst if t not in mycats[categ]]
+                if mycats and mycats[category]:
+                    # make sure to check against higher categories too
+                    catindex = categories.keys().index(categ)
+                    mycats_gteq = dict((k, v) for k, v in mycats.iteritems
+                                       if mycats.index(k) >= catindex)
+
+                    new = [t for t in lst if t not in mycats_gteq[category]]
+
                 else:
                     new = [t for t in lst]
                 if new:
                     if debug: print 'newly awarded badges =', new
-                    new_badges[categ] = new
+                    new_badges[category] = new
 
+        # do this here so that we can compare db to categories first
         db.tag_progress.update_or_insert(db.tag_progress.name == auth.user_id,
                                                     cat1=categories[1],
                                                     cat2=categories[2],
                                                     cat3=categories[3],
                                                     cat4=categories[4])
 
-        if new_badges:
+        result = []
+        if [result.append(lst) for k, lst in new_badges.iteritems() if lst]:
             if debug: print 'new badges =', new_badges
             return new_badges
         else:
@@ -470,11 +477,11 @@ class Walk(object):
             print 'calling Walk._handle_blocks--------------'
         auth, db, session = current.auth, current.db, current.session
 
-        if self.new_badges:
+        if self.new_badges is not None:
             return self._get_util_step('award badge')  # tag id=81
 
         # TODO: insert these session.walk values in _introduce and _categorize)
-        if self.view_slides:
+        if self.view_slides is not None:
             return self._get_util_step('view slides')  # tag id=80
 
         # TODO: need to fix check for step that was never finished
