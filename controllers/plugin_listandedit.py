@@ -37,14 +37,17 @@ def listing():
 
     #get table to be listed
     tablename = request.args[0]
-    #pass that name on to be used as a title for the widget
-    rname = tablename
+
     #allow ordering of list based on values in any field
-    orderby = None
+    orderby = 'id'
     try:
-        orderby = request.args[1] if orderby in db[tablename].fields else None
+        if 'orderby' in request.vars:
+            orderby = request.vars['orderby']
     except ValueError:
         pass
+
+    #pass that name on to be used as a title for the widget
+    rname = tablename + ' (' + orderby + ')'
 
     #get filtering values if any
     if 'restrictor' in request.vars:
@@ -70,7 +73,7 @@ def listing():
                 filter_select = db(tb[k] == v)._select(tb.id)
                 rowlist = db(tb.id.belongs(filter_select)).select()
         else:
-            rowlist = db(tb.id > 0).select(orderby=tb[orderby])
+            rowlist = db().select(tb.ALL, orderby=tb[orderby])
 
     # build html list from the selected rows
     listset = []
@@ -101,16 +104,13 @@ def listing():
     return dict(listset=listset, adder=adder, rname=rname)
 
 
-def makeurl(tablename):
+def makeurl(tablename, orderby):
+    rdict = {'orderby': orderby}
     if session.restrictor:
-        rstring = '{'
-        for k, v in session.restrictor:
-            rstring += "'%s':'%s'" % k, v
-        rstring += '}'
-    else:
-        rstring = ''
+        rdict2 = dict((k, v) for k, v in session.restrictor)
+        rdict = dict(rdict.items() + rdict2.items())
     the_url = URL('plugin_listandedit', 'listing.load',
-                    args=tablename, vars=rstring)
+                    args=[tablename], vars=rdict)
     return the_url
 
 
@@ -124,6 +124,7 @@ def dupAndEdit():
 
     tablename = request.args[0]
     rowid = request.args[1]
+    orderby = request.vars['orderby'] or 'id'
     formname = '%s/%s/dup' % (tablename, rowid)
 
     src = db(db[tablename].id == rowid).select().first()
@@ -145,7 +146,7 @@ def dupAndEdit():
             session[wrappername] = src[v]
 
     if form.process(formname=formname).accepted:
-        the_url = makeurl(tablename)
+        the_url = makeurl(tablename, orderby)
         response.js = "web2py_component('%s', 'listpane');" % the_url
         response.flash = 'New record successfully created.'
     elif form.errors:
@@ -173,6 +174,7 @@ def edit():
     if debug: print '\n starting controllers/plugin_listandedit edit()'
 
     tablename = request.args[0]
+    orderby = request.vars['orderby'] or 'id'
     duplink = ''
     if len(request.args) > 1:
         rowid = request.args[1]
@@ -185,7 +187,7 @@ def edit():
                 showid=True,
                 formstyle='ul')
         if form.process(formname=formname).accepted:
-            the_url = makeurl(tablename)
+            the_url = makeurl(tablename, orderby)
             response.js = "web2py_component('%s', 'listpane');" % the_url
             response.flash = 'The changes were recorded successfully.'
             if debug: print "submitted form vars", form.vars
@@ -212,7 +214,7 @@ def edit():
                         showid=True,
                         formstyle='ul')
         if form.process(formname=formname).accepted:
-            the_url = makeurl(tablename)
+            the_url = makeurl(tablename, orderby)
             response.js = "web2py_component('%s', 'listpane');" % the_url
             response.flash = 'New record successfully created.'
             if debug: print "submitted form vars", form.vars
