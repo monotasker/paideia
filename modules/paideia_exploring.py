@@ -4,6 +4,7 @@ from gluon import IMG, SQLFORM, SPAN, DIV, URL, A, UL, LI, MARKMIN
 from gluon import IS_NOT_EMPTY, IS_IN_SET
 #from gluon.sql import Row, Rows
 
+import ast
 import datetime
 import random
 import re
@@ -137,7 +138,7 @@ class Walk(object):
             session_start_local = tz.fromutc(mysession.session_start)
             if debug: print 'db session started at:', session_start_local
             if session_start_local.day == now_local.day:
-                session.walk = mysession.data
+                session.walk = ast.literal_eval(mysession.data)
                 if debug: print 'session started today'
                 return True
             else:
