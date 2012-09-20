@@ -287,7 +287,7 @@
 			"file": "modules/paideia_exploring.py",
 			"settings":
 			{
-				"buffer_size": 68031,
+				"buffer_size": 69326,
 				"line_ending": "Unix"
 			}
 		},
@@ -295,15 +295,7 @@
 			"file": "controllers/exploring.py",
 			"settings":
 			{
-				"buffer_size": 8009,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "controllers/plugin_listandedit.py",
-			"settings":
-			{
-				"buffer_size": 8596,
+				"buffer_size": 7690,
 				"line_ending": "Unix"
 			}
 		}
@@ -388,14 +380,18 @@
 	},
 	"file_history":
 	[
+		"/home/iscott/web/web2py/applications/paideia/modules/paideia_exploring.py",
+		"/home/iscott/web/web2py/applications/paideia/controllers/default.py",
+		"/home/iscott/web/web2py/applications/paideia/views/default/user.html",
+		"/home/iscott/web/web2py/applications/paideia/modules/paideia_stats.py",
+		"/home/iscott/web/web2py/applications/paideia/controllers/reporting.py",
+		"/home/iscott/web/web2py/applications/paideia/controllers/plugin_listandedit.py",
 		"/home/iscott/web/web2py/applications/paideia/views/plugin_listandedit/edit.load",
 		"/home/iscott/web/web2py/applications/paideia/views/plugin_listandedit/listing.html",
 		"/home/iscott/web/web2py/applications/paideia/views/plugin_listandedit/listing.load",
 		"/home/iscott/web/web2py/applications/paideia/views/plugin_listandedit/list.load",
 		"/home/iscott/web/web2py/applications/paideia/static/plugin_listandedit/plugin_listandedit.js",
-		"/home/iscott/web/web2py/applications/paideia/views/default/user.html",
 		"/home/iscott/web/web2py/applications/paideia/static/plugin_framework/theme_paideia.less",
-		"/home/iscott/web/web2py/applications/paideia/modules/paideia_exploring.py",
 		"/home/iscott/web/web2py/applications/paideia/models/plugin_slider.py",
 		"/home/iscott/.config/sublime-text-2/Packages/User/Flake8Lint.sublime-settings",
 		"/home/iscott/.config/sublime-text-2/Packages/Function Name Display/Function Name Display.sublime-settings",
@@ -465,6 +461,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"new_b",
 			"makeur",
 			"tags",
 			"get_util",
@@ -502,7 +499,7 @@
 	"groups":
 	[
 		{
-			"selected": 3,
+			"selected": 1,
 			"sheets":
 			[
 				{
@@ -539,20 +536,20 @@
 					"file": "modules/paideia_exploring.py",
 					"settings":
 					{
-						"buffer_size": 68031,
+						"buffer_size": 69326,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								0,
-								0
+								32428,
+								32428
 							]
 						],
 						"settings":
 						{
-							"function_name_status_row": 0,
+							"function_name_status_row": 830,
 							"rulers":
 							[
 								78
@@ -561,8 +558,8 @@
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
-						"translation.x": 0.0,
-						"translation.y": 7664.0,
+						"translation.x": 18.0,
+						"translation.y": 13714.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -572,95 +569,27 @@
 					"file": "controllers/exploring.py",
 					"settings":
 					{
-						"buffer_size": 8009,
+						"buffer_size": 7690,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								5001,
-								5001
+								535,
+								535
 							]
 						],
 						"settings":
 						{
-							"function_name_status_row": 151,
+							"function_name_status_row": 17,
 							"sublimelinter": false,
 							"syntax": "Packages/Python/Python.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 2496.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "controllers/plugin_listandedit.py",
-					"settings":
-					{
-						"buffer_size": 8596,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								858,
-								858
-							]
-						],
-						"settings":
-						{
-							"function_name_status_row": 28,
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 371.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				}
-			]
-		},
-		{
-			"selected": 0,
-			"sheets":
-			[
-				{
-					"buffer": 1,
-					"file": "modules/paideia_exploring.py",
-					"settings":
-					{
-						"buffer_size": 68031,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								47466,
-								47466
-							]
-						],
-						"settings":
-						{
-							"function_name_status_row": 1249,
-							"rulers":
-							[
-								78
-							],
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 20888.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -685,18 +614,11 @@
 				0,
 				1,
 				1
-			],
-			[
-				1,
-				0,
-				2,
-				1
 			]
 		],
 		"cols":
 		[
 			0.0,
-			0.5,
 			1.0
 		],
 		"rows":
@@ -720,6 +642,22 @@
 		"height": 0.0,
 		"selected_items":
 		[
+			[
+				"stats",
+				"paideia/modules/paideia_stats.py"
+			],
+			[
+				"user",
+				"paideia/views/default/user.html"
+			],
+			[
+				"def",
+				"paideia/controllers/default.py"
+			],
+			[
+				"repor",
+				"paideia/controllers/reporting.py"
+			],
 			[
 				"edit",
 				"paideia/views/plugin_listandedit/edit.load"
