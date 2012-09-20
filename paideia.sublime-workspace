@@ -4,6 +4,14 @@
 		"selected_items":
 		[
 			[
+				"active",
+				"active_location"
+			],
+			[
+				"session_",
+				"session_start"
+			],
+			[
 				"rd",
 				"rdict	(local, instance)"
 			],
@@ -82,10 +90,6 @@
 			[
 				"di",
 				"display	display: block"
-			],
-			[
-				"active",
-				"activepaths	(local, instance)"
 			],
 			[
 				"activ",
@@ -287,7 +291,7 @@
 			"file": "modules/paideia_exploring.py",
 			"settings":
 			{
-				"buffer_size": 69326,
+				"buffer_size": 72168,
 				"line_ending": "Unix"
 			}
 		},
@@ -296,6 +300,30 @@
 			"settings":
 			{
 				"buffer_size": 7690,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "views/exploring/walk.load",
+			"settings":
+			{
+				"buffer_size": 3963,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "models/db.py",
+			"settings":
+			{
+				"buffer_size": 3288,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/home/iscott/web/web2py/logging.conf",
+			"settings":
+			{
+				"buffer_size": 3534,
 				"line_ending": "Unix"
 			}
 		}
@@ -380,6 +408,8 @@
 	},
 	"file_history":
 	[
+		"/home/iscott/web/web2py/applications/paideia/controllers/listing.py",
+		"/home/iscott/.config/sublime-text-2/Packages/User/Flake8Lint.sublime-settings",
 		"/home/iscott/web/web2py/applications/paideia/modules/paideia_exploring.py",
 		"/home/iscott/web/web2py/applications/paideia/controllers/default.py",
 		"/home/iscott/web/web2py/applications/paideia/views/default/user.html",
@@ -393,7 +423,6 @@
 		"/home/iscott/web/web2py/applications/paideia/static/plugin_listandedit/plugin_listandedit.js",
 		"/home/iscott/web/web2py/applications/paideia/static/plugin_framework/theme_paideia.less",
 		"/home/iscott/web/web2py/applications/paideia/models/plugin_slider.py",
-		"/home/iscott/.config/sublime-text-2/Packages/User/Flake8Lint.sublime-settings",
 		"/home/iscott/.config/sublime-text-2/Packages/Function Name Display/Function Name Display.sublime-settings",
 		"/home/iscott/.config/sublime-text-2/Packages/Default/Preferences.sublime-settings",
 		"/home/iscott/.config/sublime-text-2/Packages/User/Preferences.sublime-settings",
@@ -461,6 +490,18 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"_db_to_s",
+			"_session_to_",
+			"session_data",
+			"delete",
+			"del ",
+			"# prepare the session data for serialization\n        walk4db = deepcopy(session.walk)\n        walk4db['session_start'] = walk4db['session_start'].isoformat()\n        # deserialize datetime: timegm(time.strptime(date.split(\".\")[0]+\"UTC\", \"%Y-%m-%dT%H:%M:%SZ\"))\n\n\n        db.session_data.update_or_insert(db.session_data.user == auth.user_id,\n                                 updated=datetime.datetime.utcnow(),\n                                 session_start=session.walk['session_start'],\n          ",
+			"location",
+			"session_data.update",
+			"session_data']['bg",
+			"session_data",
+			"ast",
+			"categ",
 			"new_b",
 			"makeur",
 			"tags",
@@ -536,20 +577,20 @@
 					"file": "modules/paideia_exploring.py",
 					"settings":
 					{
-						"buffer_size": 69326,
+						"buffer_size": 72168,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								32428,
-								32428
+								1554,
+								1554
 							]
 						],
 						"settings":
 						{
-							"function_name_status_row": 830,
+							"function_name_status_row": 50,
 							"rulers":
 							[
 								78
@@ -558,8 +599,8 @@
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
-						"translation.x": 18.0,
-						"translation.y": 13714.0,
+						"translation.x": 0.0,
+						"translation.y": 391.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -590,6 +631,91 @@
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "views/exploring/walk.load",
+					"settings":
+					{
+						"buffer_size": 3963,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1386,
+								1386
+							]
+						],
+						"settings":
+						{
+							"function_name_status_row": 51,
+							"syntax": "Packages/Text/Plain text.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 493.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "models/db.py",
+					"settings":
+					{
+						"buffer_size": 3288,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								581,
+								581
+							]
+						],
+						"settings":
+						{
+							"function_name_status_row": 19,
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "/home/iscott/web/web2py/logging.conf",
+					"settings":
+					{
+						"buffer_size": 3534,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2167,
+								2167
+							]
+						],
+						"settings":
+						{
+							"function_name_status_row": 84,
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 773.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -643,6 +769,22 @@
 		"selected_items":
 		[
 			[
+				"db.",
+				"paideia/models/db.py"
+			],
+			[
+				"walk.l",
+				"paideia/views/exploring/walk.load"
+			],
+			[
+				"listing",
+				"paideia/controllers/listing.py"
+			],
+			[
+				"list",
+				"paideia/controllers/listing.py"
+			],
+			[
 				"stats",
 				"paideia/modules/paideia_stats.py"
 			],
@@ -661,10 +803,6 @@
 			[
 				"edit",
 				"paideia/views/plugin_listandedit/edit.load"
-			],
-			[
-				"listing",
-				"paideia/views/plugin_listandedit/listing.html"
 			],
 			[
 				"listandedit",
