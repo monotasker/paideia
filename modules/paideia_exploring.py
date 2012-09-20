@@ -217,7 +217,7 @@ class Walk(object):
         self.path = db.paths(path_id) if path_id else None
 
         # only create a location object if the request included a loc
-        if 'loc' in request.vars:
+        if 'loc' in request.vars and request.vars['loc'] is not None:
             location_alias = request.vars['loc']
             self.active_location = Location(location_alias).info()
             session.walk['active_location'] = self.active_location
@@ -365,6 +365,10 @@ class Walk(object):
         if tprogress is None:
             db.tag_progress.insert(name=auth.user_id)
 
+        # Make sure untried tags are still included
+        untried = [t for t in tprogress.cat1 if t not in categories[1]]
+        categories[1].extend(untried)
+
         # Remove duplicate tag id's from each category
         # Make sure each of the tags is not beyond the user's current ranking
         for k, v in categories.iteritems():
@@ -375,10 +379,6 @@ class Walk(object):
                     rank = 1
                 newv = [t for t in v if db.tags[t].position <= rank]
                 categories[k] = list(set(newv))
-
-        # Make sure untried tags are still included
-        untried = [t for t in tprogress.cat1 if t not in categories[1]]
-        categories[1].extend(untried)
 
         # If there are no tags needing immediate review, introduce new one
         if not categories[1]:
