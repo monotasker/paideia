@@ -361,21 +361,24 @@ class Walk(object):
 
         if debug: print categories
 
+        tprogress = db(db.tag_progress.name == auth.user_id).select().first()
+        if tprogress is None:
+            db.tag_progress.insert(name=auth.user_id)
+
         # Remove duplicate tag id's from each category
         # Make sure each of the tags is not beyond the user's current ranking
         for k, v in categories.iteritems():
             if v:
-                try:
-                    rank = db(db.tag_progress.name == auth.user_id).latest_new
-                    if rank == 0:
-                        db(db.tag_progress.name == auth.user_id).update(
-                                                                latest_new=1)
-                        rank = 1
-                except Exception:
+                rank = tprogress.latest_new
+                if rank == 0:
+                    tprogress.update_record(latest_new=1)
                     rank = 1
-                    db.tag_progress.insert(name=auth.user_id)
                 newv = [t for t in v if db.tags[t].position <= rank]
                 categories[k] = list(set(newv))
+
+        # Make sure untried tags are still included
+        untried = [t for t in tprogress.cat1 if t not in categories[1]]
+        categories[1].extend(untried)
 
         # If there are no tags needing immediate review, introduce new one
         if not categories[1]:
@@ -823,8 +826,9 @@ class Walk(object):
         for cat in cat_list:
             if debug: print 'Trying category', cat  # DEBUG
             tag_list = self.tag_set[cat]
-            p_list = db(db.paths.id > 0).select()
-            p_list = p_list.find(lambda row: [t in row.tags for t in tag_list])
+            p_list1 = db().select(db.paths.ALL, orderby='<random>')
+            p_list = p_list1.find(lambda row:
+                                  [t in row.tags for t in tag_list])
             # exclude paths completed in this session
             if self.completed_paths:
                 p_list.exclude(lambda row: row.id in self.completed_paths)
@@ -832,13 +836,18 @@ class Walk(object):
                 if debug: print 'some new paths are available in cat', cat
                 # 3) Find and activate a due path that starts here
                 for path in p_list:
-                    step1_id = path.steps[0]
-                    first_step = db.steps[step1_id]
-                    if loc_id in first_step.locations:
-                        print 'found path', path.id, 'step', step1_id, 'due'
-                        return path, step1_id
-                    else:
+                    try:
+                        step1_id = path.steps[0]
+                        first_step = db.steps[step1_id]
+                        if loc_id in first_step.locations:
+                            print 'path', path.id, 'step', step1_id, 'due'
+                            return path, step1_id
+                        else:
+                            continue
+                    except Exception, e:
+                        print type(e), e
                         continue
+
                 # 4) If due paths are elsewhere, trigger default step
                 return self._get_util_step('default')
 
