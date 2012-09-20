@@ -4,12 +4,18 @@ from gluon import IMG, SQLFORM, SPAN, DIV, URL, A, UL, LI, MARKMIN
 from gluon import IS_NOT_EMPTY, IS_IN_SET
 #from gluon.sql import Row, Rows
 
-import ast
 import datetime
+import ast
+import time
+from calendar import timegm
+from copy import deepcopy
 import random
 import re
 import traceback
 from pytz import timezone
+import logging
+logger = logging.getLogger('web2py.app.paideia')
+logger.setLevel(logging.DEBUG)
 
 
 # TODO: Deprecate eventually
@@ -17,6 +23,82 @@ class Utils(object):
     '''
     Miscellaneous utility functions, gathered in a class for convenience.
     '''
+
+    def __init__(self):
+        pass
+
+    def _session_to_db(self, data):
+        '''
+        Serialize session.walk data and store it in db.session_data
+        '''
+        auth = current.auth
+        db = current.db
+
+        # prepare the session data for serialization
+        walk4db = deepcopy(data)
+        # convert datetime to iso string
+        walk4db['session_start'] = walk4db['session_start'].isoformat()
+        # convert bg_image IMG helper to html string
+        al = data['active_location']
+        if al and al['bg_image']:
+            if type(al['bg_image']) is str:
+                walk4db['active_location']['bg_image'] = al['bg_image']
+            else:
+                walk4db['active_location']['bg_image'] = al['bg_image'].xml()
+        # convert complete_paths from set to list
+        walk4db['completed_paths'] = list(data['completed_paths'])
+        # convert npc_image IMG helper to html string
+        if 'npc_image' in data:
+            if type(data['npc_image']) is str:
+                walk4db['npc_image'] = data['npc_image']
+            else:
+                walk4db['npc_image'] = data['npc_image'].xml()
+
+        db.session_data.update_or_insert(db.session_data.user == auth.user_id,
+                                 updated=datetime.datetime.utcnow(),
+                                 session_start=data['session_start'],
+                                 data=walk4db)
+
+    def _db_to_session(self, data):
+        '''
+        Retrieve stored session data and deserialize for use.
+        '''
+        auth = current.auth
+        db = current.db
+
+        try:
+            sdata = ast.literal_eval(data)
+        # if the db value still has unserialized objects, delete and recheck
+        except (ValueError('malformed string'), SyntaxError) as e:
+            db(db.session_data.user == auth.user_id).delete()
+            return None
+
+        # deserialize datetime:
+        sdata['session_start'] = timegm(time.strptime(data.split(".")[0]
+                                       + "UTC", "%Y-%m-%dT%H:%M:%SZ"))
+        # convert bg_image html back to IMG helper
+        try:
+            istring = data['active_location']['bg_image']
+            isrc = '_' + re.search(r'src=[\'"]?([^\'" >]+)', istring)
+            sdata['active_location'] = IMG(isrc)
+        except Exception, e:
+            print type(e), e
+            pass
+
+        # convert completed paths from list back to set
+        sdata['completed_paths'] = set(data['completed_paths'])
+
+        # convert npc_image html back to IMG helper
+        try:
+            istring = data['npc_image']
+            isrc = '_' + re.search(r'src=[\'"]?([^\'" >]+)', istring)
+            sdata['npc_image'] = IMG(isrc)
+        except Exception, e:
+            print type(e), e
+            pass
+
+        return sdata
+
     # TODO: Move logic to controller and remove class
     def clear_session(self):
         session, response = current.session, current.response
@@ -138,9 +220,14 @@ class Walk(object):
             session_start_local = tz.fromutc(mysession.session_start)
             if debug: print 'db session started at:', session_start_local
             if session_start_local.day == now_local.day:
-                session.walk = ast.literal_eval(mysession.data)
+                retrieved = Utils()._db_to_session(mysession.data)
                 if debug: print 'session started today'
-                return True
+                if retrieved:
+                    session.walk = retrieved
+                    return True
+                else:
+                    if debug: print 'malformed db data'
+                    return False
             else:
                 if debug: print 'db session is stale'
                 pass
@@ -155,8 +242,6 @@ class Walk(object):
         if self.verbose:
             print 'calling Walk._save_session_data--------------'
         session = current.session
-        db = current.db
-        auth = current.auth
 
         session_data = {
             'active_paths': self.active_paths,
@@ -185,10 +270,7 @@ class Walk(object):
         if new is True:
             session.walk['session_start'] = datetime.datetime.utcnow()
 
-        db.session_data.update_or_insert(db.session_data.user == auth.user_id,
-                                 updated=datetime.datetime.utcnow(),
-                                 session_start=session.walk['session_start'],
-                                 data=session.walk)
+        Utils()._session_to_db(session.walk)
 
     def _get_session_data(self):
         '''
@@ -201,17 +283,16 @@ class Walk(object):
         session = current.session
         request = current.request
 
+        logger.debug('here is session.walk:{}'.format(session.walk))
+
         # set session.walk attributes as instance attributes (with fallbacks)
-        defaults = {'active_paths': {},
-                    'completed_paths': set(),
-                    'tag_set': {1: [], 2: [], 3: [], 4: []},
-                    'new_badges': None,
-                    'view_slides': None,
-                    'session_start': datetime.datetime.utcnow()
-                    }
-        for key, default in defaults.iteritems():
-            val = session.walk[key] if key in session.walk else default
-            setattr(self, key, val)
+        self.active_paths = session.walk['active_paths'] or {}
+        self.completed_paths = session.walk['completed_paths'] or set()
+        self.tag_set = session.walk['tag_set'] or {1: [], 2: [], 3: [], 4: []}
+        self.new_badges = session.walk['new_badges'] or None
+        self.view_slides = session.walk['view_slides'] or None
+        self.session_start = session.walk['session_start']\
+                                                or datetime.datetime.utcnow()
 
         # only start with a path value if one is already in session
         path_id = session.walk['path']
@@ -964,6 +1045,7 @@ class Step(object):
         session_data = {}
         session_data['step'] = self.step.id
         session.walk.update(session_data)
+
         if self.npc:
             self.npc._save_session_data()
 
@@ -1275,9 +1357,7 @@ class Step(object):
         '''
         if self.verbose:
             print 'calling', type(self).__name__, '._complete -----------'
-        db = current.db
         session = current.session
-        auth = current.auth
 
         # Record evaluation of step response
         self._record(score, times_wrong)
@@ -1298,9 +1378,7 @@ class Step(object):
 
         # Store session data in db
         # This needs to happen last
-        db.session_data.update_or_insert(db.session_data.user == auth.user_id,
-                                         user=auth.user_id, data=session.walk,
-                                         updated=datetime.datetime.utcnow())
+        Utils()._session_to_db(session.walk)
 
         # TODO: In path selection, re-activate any path or step that is still
         # in session.walk when controller in the 'ask' state
@@ -1841,11 +1919,12 @@ class Location(object):
         self.alias = alias
         if alias:
             self.db_data = self._get_db(alias)
-            if self.debug:
-                print 'calling Location.__init__ ============'
-                print 'self.db_data =', self.db_data
-            self.id = self.db_data.id
-            self.img = self._get_img()
+            if self.db_data:
+                if self.debug:
+                    print 'calling Location.__init__ ============'
+                    print 'self.db_data =', self.db_data
+                self.id = self.db_data.id
+                self.img = self._get_img()
         else:
             self.db_data = None
             self.id = None
@@ -1871,6 +1950,7 @@ class Location(object):
             print self.db_data.bg_image
         filename = db.images[self.db_data.bg_image].image
         img = IMG(_src=URL('static/images', filename))
+        img = img.xml()
         return img
 
     def info(self):
