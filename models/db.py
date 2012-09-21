@@ -4,6 +4,7 @@
 if 0:
     from gluon import DAL, URL, Field, SQLFORM
 
+import logging
 from pytz import common_timezones
 from gluon.tools import Recaptcha, Mail, Auth, Crud, Service, PluginManager
 from gluon.tools import IS_IN_SET
@@ -14,6 +15,9 @@ request = current.request
 #if request.is_local:  # disable in production enviroment
 from gluon.custom_import import track_changes
 track_changes(True)
+
+logger = logging.getLogger('web2py.app.paideia')
+logger.setLevel(logging.DEBUG)
 
 # define database storage
 db = DAL('sqlite://storage.sqlite')

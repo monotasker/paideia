@@ -1,7 +1,5 @@
 # coding: utf8
-from paideia_exploring import Walk, StepStub
-#, Npc, Path, Step, StepStub, StepMultipleChoice, Counter, Map, Location
-# import pprint
+from paideia_exploring import Walk
 
 if 0:
     from gluon import current, A, URL
@@ -186,13 +184,6 @@ def walk():
         walk.active_location = None  # clear in preparation for new location
         session.walk['active_location'] = None
 
-        # If we got here from a StepStub, we need to complete the step
-        try:
-            if isinstance(walk.step, StepStub):
-                walk.step.complete()
-        except:
-            print 'no step is active yet'
-
         return {'map': walk.map}
 
     # After user submits response to step prompt
@@ -215,8 +206,8 @@ def walk():
     # TODO: Ensure repeats aren't added separately to paths_completed
     elif request.args(0) == 'retry':
         if debug: print '\ncontroller exploring.walk() state: retry'
-        last_pathid = session.walk['path']
-        last_stepid = session.walk['step']
+        last_pathid = session.walk['retry'][0]
+        last_stepid = session.walk['retry'][1]
         walk.activate_step(last_pathid, last_stepid)
         return walk.step.ask()
 

@@ -5,10 +5,17 @@ from gluon import IS_NOT_EMPTY, IS_IN_SET
 #from gluon.sql import Row, Rows
 
 import datetime
+import ast
+import time
+from calendar import timegm
+from copy import deepcopy
 import random
 import re
 import traceback
 from pytz import timezone
+import logging
+logger = logging.getLogger('web2py.app.paideia')
+logger.setLevel(logging.DEBUG)
 
 
 # TODO: Deprecate eventually
@@ -16,6 +23,82 @@ class Utils(object):
     '''
     Miscellaneous utility functions, gathered in a class for convenience.
     '''
+
+    def __init__(self):
+        pass
+
+    def _session_to_db(self, data):
+        '''
+        Serialize session.walk data and store it in db.session_data
+        '''
+        auth = current.auth
+        db = current.db
+
+        # prepare the session data for serialization
+        walk4db = deepcopy(data)
+        # convert datetime to iso string
+        walk4db['session_start'] = walk4db['session_start'].isoformat()
+        # convert bg_image IMG helper to html string
+        al = data['active_location']
+        if al and al['bg_image']:
+            if type(al['bg_image']) is str:
+                walk4db['active_location']['bg_image'] = al['bg_image']
+            else:
+                walk4db['active_location']['bg_image'] = al['bg_image'].xml()
+        # convert complete_paths from set to list
+        walk4db['completed_paths'] = list(data['completed_paths'])
+        # convert npc_image IMG helper to html string
+        if 'npc_image' in data:
+            if type(data['npc_image']) is str:
+                walk4db['npc_image'] = data['npc_image']
+            else:
+                walk4db['npc_image'] = data['npc_image'].xml()
+
+        db.session_data.update_or_insert(db.session_data.user == auth.user_id,
+                                 updated=datetime.datetime.utcnow(),
+                                 session_start=data['session_start'],
+                                 data=walk4db)
+
+    def _db_to_session(self, data):
+        '''
+        Retrieve stored session data and deserialize for use.
+        '''
+        auth = current.auth
+        db = current.db
+
+        try:
+            sdata = ast.literal_eval(data)
+        # if the db value still has unserialized objects, delete and recheck
+        except (ValueError('malformed string'), SyntaxError) as e:
+            db(db.session_data.user == auth.user_id).delete()
+            return None
+
+        # deserialize datetime:
+        sdata['session_start'] = timegm(time.strptime(data.split(".")[0]
+                                       + "UTC", "%Y-%m-%dT%H:%M:%SZ"))
+        # convert bg_image html back to IMG helper
+        try:
+            istring = data['active_location']['bg_image']
+            isrc = '_' + re.search(r'src=[\'"]?([^\'" >]+)', istring)
+            sdata['active_location'] = IMG(isrc)
+        except Exception, e:
+            print type(e), e
+            pass
+
+        # convert completed paths from list back to set
+        sdata['completed_paths'] = set(data['completed_paths'])
+
+        # convert npc_image html back to IMG helper
+        try:
+            istring = data['npc_image']
+            isrc = '_' + re.search(r'src=[\'"]?([^\'" >]+)', istring)
+            sdata['npc_image'] = IMG(isrc)
+        except Exception, e:
+            print type(e), e
+            pass
+
+        return sdata
+
     # TODO: Move logic to controller and remove class
     def clear_session(self):
         session, response = current.session, current.response
@@ -68,7 +151,8 @@ class Walk(object):
             if debug: print 'session data present and not stale'
             self._get_session_data()
         else:
-            if debug: print 'session data stale or not present, using defaults'
+            if debug:
+                print 'session stale or not present, starting new session'
             self._start_new_session()
 
         # TODO: This doesn't need to be instantiated every time
@@ -96,7 +180,7 @@ class Walk(object):
         self._unfinished()
         self.session_start = datetime.datetime.utcnow()
         # store newly initialized attributes in session object
-        self._save_session_data()
+        self._save_session_data(True)
 
     def _check_for_session(self):
         '''
@@ -106,7 +190,7 @@ class Walk(object):
         return False.
         '''
         if self.verbose:
-            print 'calling Walk._check_for_session() -------------------------'
+            print 'calling Walk._check_for_session() ------------------------'
         debug = True
         auth = current.auth
         session = current.session
@@ -114,12 +198,15 @@ class Walk(object):
 
         # TODO: What about case where db data is newer than session data?
         mysession = db(db.session_data.user == auth.user_id).select().first()
+        if debug: print 'stored data in db', mysession
+
         tz_name = db.auth_user[auth.user_id].time_zone
         tz = timezone(tz_name)
         now_local = tz.fromutc(datetime.datetime.utcnow())
         if debug: print 'current local time:', now_local
 
         if session.walk and ('session_start' in session.walk):
+            if debug: print 'session.walk:', session.walk
             session_start_local = tz.fromutc(session.walk['session_start'])
             if debug: print 'session started at:', session_start_local
             if (session_start_local.day == now_local.day):
@@ -133,16 +220,21 @@ class Walk(object):
             session_start_local = tz.fromutc(mysession.session_start)
             if debug: print 'db session started at:', session_start_local
             if session_start_local.day == now_local.day:
-                session.walk = mysession.data
+                retrieved = Utils()._db_to_session(mysession.data)
                 if debug: print 'session started today'
-                return True
+                if retrieved:
+                    session.walk = retrieved
+                    return True
+                else:
+                    if debug: print 'malformed db data'
+                    return False
             else:
                 if debug: print 'db session is stale'
                 pass
 
         return False
 
-    def _save_session_data(self):
+    def _save_session_data(self, new=False):
         '''
         Save attributes in session.
         '''
@@ -150,8 +242,6 @@ class Walk(object):
         if self.verbose:
             print 'calling Walk._save_session_data--------------'
         session = current.session
-        db = current.db
-        auth = current.auth
 
         session_data = {
             'active_paths': self.active_paths,
@@ -177,9 +267,10 @@ class Walk(object):
         except AttributeError:
             session.walk = session_data
 
-        db.session_data.update_or_insert(db.session_data.user == auth.user_id,
-                                         updated=datetime.datetime.utcnow(),
-                                         data=session.walk)
+        if new is True:
+            session.walk['session_start'] = datetime.datetime.utcnow()
+
+        Utils()._session_to_db(session.walk)
 
     def _get_session_data(self):
         '''
@@ -192,24 +283,23 @@ class Walk(object):
         session = current.session
         request = current.request
 
+        logger.debug('here is session.walk:{}'.format(session.walk))
+
         # set session.walk attributes as instance attributes (with fallbacks)
-        defaults = {'active_paths': {},
-                    'completed_paths': set(),
-                    'tag_set': {1: [], 2: [], 3: [], 4: []},
-                    'new_badges': None,
-                    'view_slides': None,
-                    'session_start': datetime.datetime.utcnow()
-                    }
-        for key, default in defaults.iteritems():
-            val = session.walk[key] if key in session.walk else default
-            setattr(self, key, val)
+        self.active_paths = session.walk['active_paths'] or {}
+        self.completed_paths = session.walk['completed_paths'] or set()
+        self.tag_set = session.walk['tag_set'] or {1: [], 2: [], 3: [], 4: []}
+        self.new_badges = session.walk['new_badges'] or None
+        self.view_slides = session.walk['view_slides'] or None
+        self.session_start = session.walk['session_start']\
+                                                or datetime.datetime.utcnow()
 
         # only start with a path value if one is already in session
         path_id = session.walk['path']
         self.path = db.paths(path_id) if path_id else None
 
         # only create a location object if the request included a loc
-        if 'loc' in request.vars:
+        if 'loc' in request.vars and request.vars['loc'] is not None:
             location_alias = request.vars['loc']
             self.active_location = Location(location_alias).info()
             session.walk['active_location'] = self.active_location
@@ -336,7 +426,7 @@ class Walk(object):
 
             # Categorize q or tag based on this performance
             if (right_dur < right_wrong_dur) and (right_wrong_dur >
-                                                  datetime.timedelta(days=1)):
+                  datetime.timedelta(days=1)) and (record.times_right >= 10):
                 if right_wrong_dur.days >= 7:
                     if right_wrong_dur.days > 30:
                         if right_wrong_dur > datetime.timedelta(days=180):
@@ -353,19 +443,22 @@ class Walk(object):
 
         if debug: print categories
 
+        tprogress = db(db.tag_progress.name == auth.user_id).select().first()
+        if tprogress is None:
+            db.tag_progress.insert(name=auth.user_id)
+
+        # Make sure untried tags are still included
+        untried = [t for t in tprogress.cat1 if t not in categories[1]]
+        categories[1].extend(untried)
+
         # Remove duplicate tag id's from each category
         # Make sure each of the tags is not beyond the user's current ranking
         for k, v in categories.iteritems():
             if v:
-                try:
-                    rank = db(db.tag_progress.name == auth.user_id).latest_new
-                    if rank == 0:
-                        db(db.tag_progress.name == auth.user_id).update(
-                                                                latest_new=1)
-                        rank = 1
-                except Exception:
+                rank = tprogress.latest_new
+                if rank == 0:
+                    tprogress.update_record(latest_new=1)
                     rank = 1
-                    db.tag_progress.insert(name=auth.user_id)
                 newv = [t for t in v if db.tags[t].position <= rank]
                 categories[k] = list(set(newv))
 
@@ -393,33 +486,41 @@ class Walk(object):
         # If a tag has moved up in category, award the badge
         # TODO: needs to be tested!!!
         # here making sure user has one and only one tag_progress row
-        mycats_all = db(db.tag_progress.name == auth.user_id).select()
-        if len(mycats_all) > 1:
-            for r in mycats_all[1:]:
-                del db.tag_progress[r.id]
-        mycats = mycats_all.first()
+        mycats = db(db.tag_progress.name == auth.user_id).select().first()
         if debug: print 'mycats =', mycats
 
         new_badges = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
         for categ, lst in categories.iteritems():
             if lst:
+                category = 'cat{0}'.format(str(categ))
                 print 'current badges =', lst
-                categ = 'cat{0}'.format(str(categ))
-                if mycats and mycats[categ]:
-                    new = [t for t in lst if t not in mycats[categ]]
+                if mycats and mycats[category]:
+                    # TODO: still need permanent solution to store
+                    # 'max reached' info for tags
+                    # make sure to check against higher categories too
+                    catindex = categories.keys().index(categ)
+                    print catindex
+                    mycats_gteq = dict((k, mycats[k]) for k
+                                       in mycats.keys()[catindex:])
+                    print 'looking in equal and higher cats:', mycats_gteq
+
+                    new = [t for t in lst if t not in mycats_gteq[category]]
+
                 else:
                     new = [t for t in lst]
                 if new:
                     if debug: print 'newly awarded badges =', new
-                    new_badges[categ] = new
+                    new_badges[category] = new
 
+        # do this here so that we can compare db to categories first
         db.tag_progress.update_or_insert(db.tag_progress.name == auth.user_id,
                                                     cat1=categories[1],
                                                     cat2=categories[2],
                                                     cat3=categories[3],
                                                     cat4=categories[4])
 
-        if new_badges:
+        result = []
+        if [result.append(lst) for k, lst in new_badges.iteritems() if lst]:
             if debug: print 'new badges =', new_badges
             return new_badges
         else:
@@ -470,11 +571,11 @@ class Walk(object):
             print 'calling Walk._handle_blocks--------------'
         auth, db, session = current.auth, current.db, current.session
 
-        if self.new_badges:
+        if self.new_badges is not None:
             return self._get_util_step('award badge')  # tag id=81
 
         # TODO: insert these session.walk values in _introduce and _categorize)
-        if self.view_slides:
+        if self.view_slides is not None:
             return self._get_util_step('view slides')  # tag id=80
 
         # TODO: need to fix check for step that was never finished
@@ -807,8 +908,9 @@ class Walk(object):
         for cat in cat_list:
             if debug: print 'Trying category', cat  # DEBUG
             tag_list = self.tag_set[cat]
-            p_list = db(db.paths.id > 0).select()
-            p_list = p_list.find(lambda row: [t in row.tags for t in tag_list])
+            p_list1 = db().select(db.paths.ALL, orderby='<random>')
+            p_list = p_list1.find(lambda row:
+                                  [t in row.tags for t in tag_list])
             # exclude paths completed in this session
             if self.completed_paths:
                 p_list.exclude(lambda row: row.id in self.completed_paths)
@@ -816,13 +918,18 @@ class Walk(object):
                 if debug: print 'some new paths are available in cat', cat
                 # 3) Find and activate a due path that starts here
                 for path in p_list:
-                    step1_id = path.steps[0]
-                    first_step = db.steps[step1_id]
-                    if loc_id in first_step.locations:
-                        print 'found path', path.id, 'step', step1_id, 'due'
-                        return path, step1_id
-                    else:
+                    try:
+                        step1_id = path.steps[0]
+                        first_step = db.steps[step1_id]
+                        if loc_id in first_step.locations:
+                            print 'path', path.id, 'step', step1_id, 'due'
+                            return path, step1_id
+                        else:
+                            continue
+                    except Exception, e:
+                        print type(e), e
                         continue
+
                 # 4) If due paths are elsewhere, trigger default step
                 return self._get_util_step('default')
 
@@ -938,6 +1045,7 @@ class Step(object):
         session_data = {}
         session_data['step'] = self.step.id
         session.walk.update(session_data)
+
         if self.npc:
             self.npc._save_session_data()
 
@@ -1249,9 +1357,7 @@ class Step(object):
         '''
         if self.verbose:
             print 'calling', type(self).__name__, '._complete -----------'
-        db = current.db
         session = current.session
-        auth = current.auth
 
         # Record evaluation of step response
         self._record(score, times_wrong)
@@ -1260,18 +1366,19 @@ class Step(object):
         # remove from active_paths and add to completed_paths
         # also set path to None in session.walk
         if self.path.steps[-1] == self.step.id:
-            del session.walk['active_paths'][self.path.id]
+            if self.path.id in session.walk['active_paths']:
+                del session.walk['active_paths'][self.path.id]
             session.walk['completed_paths'].add(self.path.id)
             session.walk['path'] = None
 
         # remove active step from session.walk
         session.walk['step'] = None
 
+        session.walk['retry'] = (self.path.id, self.step.id)
+
         # Store session data in db
         # This needs to happen last
-        db.session_data.update_or_insert(db.session_data.user == auth.user_id,
-                                         user=auth.user_id, data=session.walk,
-                                         updated=datetime.datetime.utcnow())
+        Utils()._session_to_db(session.walk)
 
         # TODO: In path selection, re-activate any path or step that is still
         # in session.walk when controller in the 'ask' state
@@ -1488,7 +1595,8 @@ class StepStub(Step):
         db = current.db
         auth = current.auth
 
-        del session.walk['active_paths'][self.path.id]
+        if self.path and self.path.id in session.walk['active_paths']:
+            del session.walk['active_paths'][self.path.id]
         session.walk.update({'path': None,
                             'step': None})
 
@@ -1811,11 +1919,12 @@ class Location(object):
         self.alias = alias
         if alias:
             self.db_data = self._get_db(alias)
-            if self.debug:
-                print 'calling Location.__init__ ============'
-                print 'self.db_data =', self.db_data
-            self.id = self.db_data.id
-            self.img = self._get_img()
+            if self.db_data:
+                if self.debug:
+                    print 'calling Location.__init__ ============'
+                    print 'self.db_data =', self.db_data
+                self.id = self.db_data.id
+                self.img = self._get_img()
         else:
             self.db_data = None
             self.id = None
@@ -1841,6 +1950,7 @@ class Location(object):
             print self.db_data.bg_image
         filename = db.images[self.db_data.bg_image].image
         img = IMG(_src=URL('static/images', filename))
+        img = img.xml()
         return img
 
     def info(self):

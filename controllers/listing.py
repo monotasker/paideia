@@ -33,12 +33,15 @@ def slides():
                                     orderby=db.plugin_slider_decks.position)
     slides = UL()
     for s in slidelist:
-        slides.append(LI(A(s.deck_name,
-                            _href=URL('plugin_slider',
-                                'start_deck.load',
-                                args=[s.id]),
-                            cid='slideframe')
-                        ))
+        try:
+            slides.append(LI(A(s.deck_name,
+                                _href=URL('plugin_slider',
+                                    'start_deck.load',
+                                    args=[s.id]),
+                                cid='slideframe')
+                            ))
+        except Exception, e:
+            print type(e), e
     if auth.is_logged_in():
         if session.walk and 'view_slides' in session.walk:
             del session.walk['view_slides']
