@@ -40,7 +40,7 @@ class Utils(object):
         walk4db['session_start'] = walk4db['session_start'].isoformat()
         # convert bg_image IMG helper to html string
         al = data['active_location']
-        if al and al['bg_image']:
+        if al and al['bg_image'] is not None:
             if type(al['bg_image']) is str:
                 walk4db['active_location']['bg_image'] = al['bg_image']
             else:
@@ -48,7 +48,7 @@ class Utils(object):
         # convert complete_paths from set to list
         walk4db['completed_paths'] = list(data['completed_paths'])
         # convert npc_image IMG helper to html string
-        if 'npc_image' in data:
+        if 'npc_image' in data and data['npc_image'] is not None:
             if type(data['npc_image']) is str:
                 walk4db['npc_image'] = data['npc_image']
             else:
@@ -142,7 +142,7 @@ class Walk(object):
         '''
         if self.verbose:
             print 'initializing Walk============================'
-        debug = True
+        debug = False
 
         # TODO: This check is too costly to do every time, rework
         # maybe pass whole serialized Walk object via session?
@@ -191,7 +191,7 @@ class Walk(object):
         '''
         if self.verbose:
             print 'calling Walk._check_for_session() ------------------------'
-        debug = True
+        debug = False
         auth = current.auth
         session = current.session
         db = current.db
@@ -236,9 +236,9 @@ class Walk(object):
 
     def _save_session_data(self, new=False):
         '''
-        Save attributes in session.
+        Save instance attributes in web2py session object for data persistence.
         '''
-        #debug = True
+        #debug = False
         if self.verbose:
             print 'calling Walk._save_session_data--------------'
         session = current.session
@@ -286,13 +286,15 @@ class Walk(object):
         logger.debug('here is session.walk:{}'.format(session.walk))
 
         # set session.walk attributes as instance attributes (with fallbacks)
-        self.active_paths = session.walk['active_paths'] or {}
-        self.completed_paths = session.walk['completed_paths'] or set()
-        self.tag_set = session.walk['tag_set'] or {1: [], 2: [], 3: [], 4: []}
-        self.new_badges = session.walk['new_badges'] or None
-        self.view_slides = session.walk['view_slides'] or None
-        self.session_start = session.walk['session_start']\
-                                                or datetime.datetime.utcnow()
+        defaults = {'active_paths': {},
+                    'completed_paths': set(),
+                    'tag_set': {1: [], 2: [], 3: [], 4: []},
+                    'new_badges': None,
+                    'view_slides': None,
+                    'session_start': datetime.datetime.utcnow()}
+        for k, v in defaults.iteritems():
+            val = session.walk[k] if k in session.walk else v
+            setattr(self, k, val)
 
         # only start with a path value if one is already in session
         path_id = session.walk['path']
@@ -322,7 +324,7 @@ class Walk(object):
         Create an instance of a Step class or one of its subclasses based on
         the step's widget type.
         '''
-        debug = True
+        debug = False
         if self.verbose:
             print 'calling Walk._create_step_instance------------'
         db = current.db
@@ -350,7 +352,7 @@ class Walk(object):
         '''
         if self.verbose:
             print 'calling Walk._introduce--------------'
-        debug = True
+        debug = False
         auth = current.auth
         db = current.db
 
@@ -402,7 +404,7 @@ class Walk(object):
         categories. The value for each key is a list holding the id's
         (integers) of the tags that are currently in the given category.
         '''
-        debug = True
+        debug = False
         if self.verbose: print 'calling Walk._categorize_tags--------------'
         auth = current.auth
         db = current.db
@@ -479,7 +481,7 @@ class Walk(object):
         those new tags whose structure mirrors that of session.walk['tag_set'].
         '''
         if self.verbose: print 'calling Walk._new_badges ---------------------'
-        debug = True
+        debug = False
         db = current.db
         auth = current.auth
 
@@ -640,7 +642,7 @@ class Walk(object):
         '''
         Activate the given step on the given path.
         '''
-        debug = True
+        debug = False
         if self.verbose:
             print 'calling Walk.activate_step--------------'
         session = current.session
@@ -695,7 +697,7 @@ class Walk(object):
         - having a newly introduced tag whose slides must be viewed
         - having a newly awarded badge
         '''
-        debug = True
+        debug = False
         if self.verbose:
             print 'calling Walk._get_util_step--------------'
         session, db = current.session, current.db
@@ -724,7 +726,7 @@ class Walk(object):
         Checks first for any blocking conditions and constrains the
         choice of next step accordingly.
         '''
-        debug = True
+        debug = False
         if self.verbose:
             print 'calling Walk.next_step--------------'
 
@@ -757,7 +759,7 @@ class Walk(object):
         use the last completed step (as recorded in self.active_paths).
         If the step is not in the given path, return False.
         '''
-        debug = True
+        debug = False
         if self.verbose:
             print 'calling Walk._step_in_path--------------'
 
@@ -839,7 +841,7 @@ class Walk(object):
         6) any random path which can be started elsewhere (in which case the
         default step is activated)
         '''
-        debug = True
+        debug = False
         if self.verbose:
             print 'calling Walk._get_next_step--------------'
         db = current.db
@@ -910,7 +912,7 @@ class Walk(object):
             tag_list = self.tag_set[cat]
             p_list1 = db().select(db.paths.ALL, orderby='<random>')
             p_list = p_list1.find(lambda row:
-                                  [t in row.tags for t in tag_list])
+                                  [t for t in row.tags if t in tag_list])
             # exclude paths completed in this session
             if self.completed_paths:
                 p_list.exclude(lambda row: row.id in self.completed_paths)
@@ -1037,7 +1039,7 @@ class Step(object):
         '''
         Save attributes in session.
         '''
-        debug = True
+        debug = False
         if self.verbose:
             print 'calling', type(self).__name__, '._save_session_data----'
         session = current.session
@@ -1392,7 +1394,7 @@ class Step(object):
         '''
         if self.verbose:
             print 'calling', type(self).__name__, '._get_prompt-----------'
-        debug = True
+        debug = False
         auth = current.auth
 
         uname = auth.user['first_name']
@@ -1429,7 +1431,7 @@ class Step(object):
         '''
         if self.verbose:
             print 'calling', type(self).__name__, '._get_step_audio--------'
-        debug = True
+        debug = False
 
         try:
             url = URL('static/audio', self.step.prompt_audio)
@@ -1662,7 +1664,7 @@ class StepViewSlides(StepStub):
         '''
         if self.verbose:
             print 'calling', type(self).__name__, '._get_replacements ----'
-        debug = True
+        debug = False
         session = current.session
         db = current.db
 
@@ -1743,7 +1745,7 @@ class StepAwardBadges(StepNonBlocking, StepStub):
         '''
         if self.verbose:
             print 'calling', type(self).__name__, '._get_replacements ---'
-        debug = True
+        debug = False
         session = current.session
         db = current.db
         auth = current.auth
@@ -1807,7 +1809,7 @@ class StepImage(Step):
         Returns the image to be displayed in the step prompt, wrapped in a
         web2py IMG() helper object.
         '''
-        debug = True
+        debug = False
         if self.verbose:
             print 'calling', type(self).__name__, '._get_step_image -----'
         try:
