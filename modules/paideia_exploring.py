@@ -23,6 +23,7 @@ class Utils(object):
     '''
     Miscellaneous utility functions, gathered in a class for convenience.
     '''
+    verbose = True
 
     def __init__(self):
         pass
@@ -31,11 +32,18 @@ class Utils(object):
         '''
         Serialize session.walk data and store it in db.session_data
         '''
+        if self.verbose:
+            print 'calling Utils._session_to_db============================'
+        debug = True
         auth = current.auth
         db = current.db
 
         # prepare the session data for serialization
         walk4db = deepcopy(data)
+        if debug: print 'copy:', walk4db
+        # make sure 'retry' is list
+        if 'retry' in walk4db and type(walk4db['retry']) != list:
+            walk4db['retry'] = list(walk4db['retry'])
         # convert datetime to iso string
         walk4db['session_start'] = walk4db['session_start'].isoformat()
         # convert bg_image IMG helper to html string
@@ -54,34 +62,50 @@ class Utils(object):
             else:
                 walk4db['npc_image'] = data['npc_image'].xml()
 
+        if debug: print 'serialized as:', walk4db
         db.session_data.update_or_insert(db.session_data.user == auth.user_id,
                                  updated=datetime.datetime.utcnow(),
                                  session_start=data['session_start'],
                                  data=walk4db)
+        if debug: print 'saved in db'
 
     def _db_to_session(self, data):
         '''
         Retrieve stored session data and deserialize for use.
         '''
+        if self.verbose:
+            print 'calling Utils._db_to_session============================'
+        debug = True
         auth = current.auth
         db = current.db
 
         try:
             sdata = ast.literal_eval(data)
+            if debug: print "deserialized data as:", sdata
         # if the db value still has unserialized objects, delete and recheck
         except (ValueError('malformed string'), SyntaxError) as e:
+            print type(e), e
             db(db.session_data.user == auth.user_id).delete()
+            print 'deleted bad data'
             return None
 
         # deserialize datetime:
-        sdata['session_start'] = timegm(time.strptime(data.split(".")[0]
-                                       + "UTC", "%Y-%m-%dT%H:%M:%SZ"))
+        try:
+            sdata['session_start'] = timegm(time.strptime(
+                                        sdata['session_start'].split(".")[0]
+                                        + "UTC", "%Y-%m-%dT%H:%M:%S%Z"))
+        except Exception as e:
+            print 'couldn\'t deserialize datetime for session_start'
+            print type(e), e
+            pass
         # convert bg_image html back to IMG helper
         try:
             istring = data['active_location']['bg_image']
-            isrc = '_' + re.search(r'src=[\'"]?([^\'" >]+)', istring)
-            sdata['active_location'] = IMG(isrc)
+            isrc = '_{}'.format(
+                        re.search(r'src=[\"]?([^\" >]+)', istring).group())
+            sdata['active_location']['bg_image'] = IMG(isrc)
         except Exception, e:
+            print 'couldn\'t deserialize bg_image'
             print type(e), e
             pass
 
@@ -91,9 +115,11 @@ class Utils(object):
         # convert npc_image html back to IMG helper
         try:
             istring = data['npc_image']
-            isrc = '_' + re.search(r'src=[\'"]?([^\'" >]+)', istring)
+            isrc = '_{}'.format(
+                        re.search(r'src=[\"]?([^\" >]+)', istring).group())
             sdata['npc_image'] = IMG(isrc)
         except Exception, e:
+            print 'couldn\'t deserialize npc_image'
             print type(e), e
             pass
 
@@ -1412,7 +1438,7 @@ class Step(object):
         # remove active step from session.walk
         session.walk['step'] = None
 
-        session.walk['retry'] = (self.path.id, self.step.id)
+        session.walk['retry'] = [self.path.id, self.step.id]
 
         # Store session data in db
         # This needs to happen last
