@@ -1084,12 +1084,48 @@ class Step(object):
         npc = self._get_npc()
         prompt = self._get_prompt()
         responder = self._get_responder()
+        badgetip = self._get_badge_display
+        prompt.append(badgetip)
         self._save_session_data()
         if debug: print 'bg_image =', self.location['bg_image']
 
         return dict(npc_img=npc.image, prompt=prompt,
                     responder=responder,
                     bg_image=self.location['bg_image'])
+
+    def _get_badge_display(self, step_id):
+        '''
+        Return an html helper object to display the badges for the specified
+        question's primary and secondary tags.
+        '''
+        if self.verbose:
+            print 'calling', type(self).__name__, '._get_badge_display-------'
+        #debug = False
+        db = current.db
+
+        badgetip = DIV(A(SPAN('badges', _class='accessible'),
+                        _href='#',
+                        _class='prompt_badges_icon icon-only'),
+                    _class='prompt_badges_wrapper')
+
+        the_step = db.steps[step_id]
+        bsel = db(db.badges.tag == db.tags.id).select()
+        bsel1 = bsel.find(lambda row: row.tags.id in the_step.tags)
+        bsel2 = bsel.find(lambda row: row.tags.id in the_step.tags_secondary)
+
+        badgeset1 = [LI(b.badges.badge_name) for b in bsel1]
+        badgelist1 = UL(*badgeset1)
+
+        badgeset2 = [LI(b.badges.badge_name) for b in bsel2]
+        badgelist2 = UL(*badgeset2)
+
+        btext = SPAN('This step focuses on these badges:',
+                      badgelist1,
+                      'It also assumes you\'ve started these other badges:',
+                      badgelist2)
+        badgetip.append(btext)
+
+        return badgetip
 
     def _get_npc(self):
         '''
