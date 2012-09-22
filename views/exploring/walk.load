@@ -49,7 +49,7 @@
 
 <!--present npc reply for user's response to step prompt-->
 {{elif 'response' in request.vars:}}
-    <div class='bg_image'>{{=bg_image}}</div>
+    <div class='bg_image'>{{=XML(bg_image)}}</div>
     <div class='speaker'>{{=npc_img}}</div>
     <section class="npc prompt">
         <p>{{=reply}}</p>
@@ -115,6 +115,16 @@ $('#responder_submit').click(function(event){
 });
 $('.bug_reporter_icon').click(function(event){
     var $tip = $('div.bug_reporter');
+    if ($tip.hasClass('tip-visible')){
+        $tip.removeClass('tip-visible');
+    }
+    else {
+        $tip.addClass('tip-visible');
+    }
+    return false;
+});
+$('.prompt_badges_icon').click(function(event){
+    var $tip = $('div.prompt_badges');
     if ($tip.hasClass('tip-visible')){
         $tip.removeClass('tip-visible');
     }

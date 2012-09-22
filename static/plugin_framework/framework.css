@@ -7,7 +7,7 @@
 @font-face {
   font-family: 'SBLGreekRegular';
   src: url('../static/plugin_framework/fonts/sbl_grk-webfont.eot');
-  src: local('☺'), url('..//grammateus3/static/plugin_framework/fonts/sbl_grk-webfont.woff') format('woff'), url('../static/plugin_framework/fonts/sbl_grk-webfont.ttf') format('truetype'), url('../static/plugin_framework/fonts/sbl_grk-webfont.svg#webfontRelj09Wi') format('svg');
+  src: local('☺'), url('../static/plugin_framework/fonts/sbl_grk-webfont.woff') format('woff'), url('../static/plugin_framework/fonts/sbl_grk-webfont.ttf') format('truetype'), url('../static/plugin_framework/fonts/sbl_grk-webfont.svg#webfontRelj09Wi') format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -120,7 +120,7 @@
 body {
   font-size: 16px;
   line-height: 24px;
-  font-family: "Palatino Linotype", serif;
+  font-family: "Palatino Linotype", Palatino, serif;
   color: #666666;
 }
 body header, body #page, body footer {
@@ -147,12 +147,12 @@ a:hover, a:active, a:link {
 h1, h1 a {
   font-size: 40px;
   line-height: 60px;
-  font-family: "Palatino Linotype", serif;
+  font-family: "Palatino Linotype", Palatino, serif;
   display: block;
   margin: 0;
 }
 h2, h3 {
-  font-family: "Palatino Linotype", serif;
+  font-family: "Palatino Linotype", Palatino, serif;
   display: block;
   margin: 0;
 }
@@ -197,7 +197,7 @@ input[type=text], select, textarea {
   border: 1px solid #eee;
   font-size: 16px;
   line-height: 24px;
-  font-family: "Palatino Linotype", serif;
+  font-family: "Palatino Linotype", Palatino, serif;
   color: #666666;
   -webkit-transition: all 200ms ease-in-out;
   -moz-transition: all 200ms ease-in-out;
@@ -222,7 +222,7 @@ textarea {
   padding: 0 16px;
   font-size: 16px;
   line-height: 24px;
-  font-family: "Palatino Linotype", serif;
+  font-family: "Palatino Linotype", Palatino, serif;
   color: #666666;
 }
 input[type=text], select {
@@ -240,7 +240,7 @@ select {
 form label {
   line-height: 36px;
   text-transform: uppercase;
-  font-family: ubuntu, arial, sans-serif;
+  font-family: ubuntu, calibri, arial, sans-serif;
   font-size: 12.8px;
 }
 input[type=submit] {

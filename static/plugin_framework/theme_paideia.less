@@ -227,8 +227,8 @@ body #page             {margin-top:-(@lineheight2 + 14);
     /*The main map for navigating the town*/
     #town_map {
         width:860px;
+        height:665px;
         position:absolute;
-        top:-100px;
     }
 
     /*Comments on news posts*/
@@ -329,7 +329,6 @@ body #page             {margin-top:-(@lineheight2 + 14);
     .responder             {margin-top: @lineheight;
                             margin-left:260px;
                             max-width: 65%;
-                            z-index: 3;
                             font-size: @typeheight * 1.25;
                             line-height: @lineheight * 1.25;
         p                  {margin:0;}
@@ -346,9 +345,11 @@ body #page             {margin-top:-(@lineheight2 + 14);
                             font-size:@typeheight;}
         .readable_short,
         .readable_long     {color:@sol_green;}
+        .prompt_badges_wrapper,
         .bug_reporter_wrapper
                            {display:inline-block;
                             float:right;}
+        .prompt_badges,
         .bug_reporter      {font-size: @typeheight;
                             line-height: @lineheight;
                             padding: @lineheight;
@@ -356,13 +357,17 @@ body #page             {margin-top:-(@lineheight2 + 14);
                             top:-@lineheight * 3;
                             margin-left:0;
                             display:none;
-                            .tip-left(@greyf5);
+                            z-index:10;
+                            .tip-left(#fff);
             span,
             a              {font-size: @typeheight;}
             }
         }
-    .prompt                {.speech-bubble-left(@lineheight, @typeheight);}
-    .responder             {.speech-bubble-down(@lineheight, @typeheight, @greyf5);}
+        .prompt_badges     {top:0;}
+    .prompt                {.speech-bubble-left(@lineheight, @typeheight);
+                            z-index:4;}
+    .responder             {.speech-bubble-down(@lineheight, @typeheight, @greyf5);
+                            z-index:3;}
     }
 
 #page.listing              {
