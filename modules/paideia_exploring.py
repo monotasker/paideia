@@ -5,9 +5,8 @@ from gluon import IS_NOT_EMPTY, IS_IN_SET
 #from gluon.sql import Row, Rows
 
 import datetime
+from dateutil.parser import parse
 import ast
-import time
-from calendar import timegm
 from copy import deepcopy
 import random
 import re
@@ -39,34 +38,41 @@ class Utils(object):
         db = current.db
 
         # prepare the session data for serialization
-        walk4db = deepcopy(data)
-        if debug: print 'copy:', walk4db
+        wdb = deepcopy(data)
+        if debug: print 'copy:', wdb
         # make sure 'retry' is list
-        if 'retry' in walk4db and type(walk4db['retry']) != list:
-            walk4db['retry'] = list(walk4db['retry'])
+        if 'retry' in wdb and type(wdb['retry']) != list:
+            wdb['retry'] = list(wdb['retry'])
         # convert datetime to iso string
-        walk4db['session_start'] = walk4db['session_start'].isoformat()
+        if type(wdb['session_start']) == str:
+            pass
+        else:
+            wdb['session_start'] = wdb['session_start'].isoformat(' ')
         # convert bg_image IMG helper to html string
         al = data['active_location']
         if al and al['bg_image'] is not None:
             if type(al['bg_image']) is str:
-                walk4db['active_location']['bg_image'] = al['bg_image']
+                wdb['active_location']['bg_image'] = al['bg_image']
             else:
-                walk4db['active_location']['bg_image'] = al['bg_image'].xml()
+                wdb['active_location']['bg_image'] = al['bg_image'].xml()
         # convert complete_paths from set to list
-        walk4db['completed_paths'] = list(data['completed_paths'])
+        wdb['completed_paths'] = list(data['completed_paths'])
         # convert npc_image IMG helper to html string
         if 'npc_image' in data and data['npc_image'] is not None:
             if type(data['npc_image']) is str:
-                walk4db['npc_image'] = data['npc_image']
+                wdb['npc_image'] = data['npc_image']
             else:
-                walk4db['npc_image'] = data['npc_image'].xml()
+                wdb['npc_image'] = data['npc_image'].xml()
 
-        if debug: print 'serialized as:', walk4db
+        if debug: print 'serialized as:', wdb
+        # make sure date for session_start field is datetime, not string
+        tdb = data['session_start']
+        if type(tdb) == str:
+            tdb = parse(tdb)
         db.session_data.update_or_insert(db.session_data.user == auth.user_id,
                                  updated=datetime.datetime.utcnow(),
-                                 session_start=data['session_start'],
-                                 data=walk4db)
+                                 session_start=tdb,
+                                 data=wdb)
         if debug: print 'saved in db'
 
     def _db_to_session(self, data):
@@ -91,37 +97,37 @@ class Utils(object):
 
         # deserialize datetime:
         try:
-            sdata['session_start'] = timegm(time.strptime(
-                                        sdata['session_start'].split(".")[0]
-                                        + "UTC", "%Y-%m-%dT%H:%M:%S%Z"))
+            sdata['session_start'] = parse(sdata['session_start'])
         except Exception as e:
             print 'couldn\'t deserialize datetime for session_start'
             print type(e), e
             pass
         # convert bg_image html back to IMG helper
         try:
-            istring = data['active_location']['bg_image']
-            isrc = '_{}'.format(
-                        re.search(r'src=[\"]?([^\" >]+)', istring).group())
-            sdata['active_location']['bg_image'] = IMG(isrc)
+            istring = sdata['active_location']['bg_image']
+            isrc = re.search(r'src=[\"]?([^\" >]+)', istring).group(1)
+            isrc = isrc.split('="')[1]
+            if isrc[-1] == '"':
+                isrc = isrc[:-1]
+            sdata['active_location']['bg_image'] = IMG(_src=URL(isrc))
         except Exception, e:
             print 'couldn\'t deserialize bg_image'
             print type(e), e
-            pass
 
         # convert completed paths from list back to set
-        sdata['completed_paths'] = set(data['completed_paths'])
+        sdata['completed_paths'] = set(sdata['completed_paths'])
 
         # convert npc_image html back to IMG helper
         try:
-            istring = data['npc_image']
-            isrc = '_{}'.format(
-                        re.search(r'src=[\"]?([^\" >]+)', istring).group())
-            sdata['npc_image'] = IMG(isrc)
+            istring = sdata['npc_image']
+            isrc = re.search(r'src=[\"]?([^\" >]+)', istring).group(1)
+            isrc = isrc.split('="')[1]
+            if isrc[-1] == '"':
+                isrc = isrc[:-1]
+            sdata['npc_image'] = IMG(_src=URL(isrc))
         except Exception, e:
             print 'couldn\'t deserialize npc_image'
             print type(e), e
-            pass
 
         return sdata
 
@@ -217,7 +223,7 @@ class Walk(object):
         '''
         if self.verbose:
             print 'calling Walk._check_for_session() ------------------------'
-        debug = False
+        debug = True
         auth = current.auth
         session = current.session
         db = current.db
@@ -232,8 +238,11 @@ class Walk(object):
         if debug: print 'current local time:', now_local
 
         if session.walk and ('session_start' in session.walk):
+            start = session.walk['session_start']
             if debug: print 'session.walk:', session.walk
-            session_start_local = tz.fromutc(session.walk['session_start'])
+            if type(start) != datetime.datetime:
+                start = parse(start)
+            session_start_local = tz.fromutc(start)
             if debug: print 'session started at:', session_start_local
             if (session_start_local.day == now_local.day):
                 if debug: print 'session started today'
@@ -1110,8 +1119,9 @@ class Step(object):
         npc = self._get_npc()
         prompt = self._get_prompt()
         responder = self._get_responder()
-        badgetip = self._get_badge_display
-        prompt.append(badgetip)
+        badgetip = self._get_badge_display(self.step.id)
+        if badgetip:
+            prompt.append(badgetip)
         self._save_session_data()
         if debug: print 'bg_image =', self.location['bg_image']
 
@@ -1131,13 +1141,15 @@ class Step(object):
 
         badgetip = DIV(A(SPAN('badges', _class='accessible'),
                         _href='#',
-                        _class='prompt_badges_icon icon-only'),
-                    _class='prompt_badges_wrapper')
+                        _class='prompt_badges_icon icon-only icon-ul'),
+                    _class='prompt_badges_wrapper tip_wrapper')
 
         the_step = db.steps[step_id]
         bsel = db(db.badges.tag == db.tags.id).select()
         bsel1 = bsel.find(lambda row: row.tags.id in the_step.tags)
         bsel2 = bsel.find(lambda row: row.tags.id in the_step.tags_secondary)
+        if (bsel1 is None) and (bsel2 is None):
+            return None
 
         badgeset1 = [LI(b.badges.badge_name) for b in bsel1]
         badgelist1 = UL(*badgeset1)
@@ -1145,10 +1157,13 @@ class Step(object):
         badgeset2 = [LI(b.badges.badge_name) for b in bsel2]
         badgelist2 = UL(*badgeset2)
 
-        btext = SPAN('This step focuses on these badges:',
-                      badgelist1,
-                      'It also assumes you\'ve started these other badges:',
-                      badgelist2)
+        btext = DIV('This step focuses on these badges:', badgelist1,
+                    _class='prompt_badges')
+
+        if len(badgeset2) > 0:
+            btext.append('It also assumes you\'ve already been working on')
+            btext.append(' these other badges:')
+            btext.append(badgelist2)
         badgetip.append(btext)
 
         return badgetip
@@ -1312,7 +1327,7 @@ class Step(object):
             print 'calling', type(self).__name__, '._get_bug_reporter-----'
         request, response = current.request, current.response
 
-        bug_reporter = DIV(_class='bug_reporter')
+        bug_reporter = DIV(_class='bug_reporter tip')
         text1 = SPAN('If you think your answer wasn\'t evaluated properly, ')
         link = A('click here',
                     _href=URL('creating', 'bug.load',
@@ -1470,7 +1485,7 @@ class Step(object):
         except AttributeError:
             if debug: print 'No replacements for this Step type'
 
-        prompt = MARKMIN(newtext)
+        prompt = DIV(MARKMIN(newtext))
 
         try:
             prompt.append(self._get_step_image())
@@ -1710,6 +1725,8 @@ class StepNonBlocking(Step):
 
         wrapper = DIV(buttons, _class='responder')
 
+        self._complete()
+
         return wrapper
 
 
@@ -1774,21 +1791,16 @@ class StepDailyQuota(StepNonBlocking, StepStub):
     # user's required quota of paths per day.
     verbose = True
 
-    def _get_replacements(self):
-        '''
-        Just here as a hook to introduce _add_flag into the step processing
-        cycle.
-        '''
-        self._add_flag()
-
-    def _add_flag(self):
+    def _complete(self):
         '''
         Add the session flag overriding the user's daily quota
         of steps, allowing the user to continue on to a new step.
         '''
+        if self.verbose:
+            print 'calling', type(self).__name__, '._complete-----------'
         session = current.session
-
         session.walk['quota_override'] = True
+        super(StepDailyQuota, self)._complete()
 
 
 class StepAwardBadges(StepNonBlocking, StepStub):
@@ -2014,7 +2026,6 @@ class Location(object):
             print self.db_data.bg_image
         filename = db.images[self.db_data.bg_image].image
         img = IMG(_src=URL('static/images', filename))
-        img = img.xml()
         return img
 
     def info(self):

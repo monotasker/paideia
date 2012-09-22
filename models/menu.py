@@ -43,6 +43,8 @@ if auth.has_membership('administrators', auth.user_id):
                                         'listing.html', args=['quizzes'])),
                 (T('Tags'), False, URL('plugin_listandedit',
                                         'listing.html', args=['tags'])),
+                (T('Badges'), False, URL('plugin_listandedit',
+                                        'listing.html', args=['badges'])),
                 (T('NPCs'), False, URL('plugin_listandedit',
                                         'listing.html', args=['npcs'])),
                 (T('locations'), False, URL('plugin_listandedit',
