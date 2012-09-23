@@ -230,6 +230,27 @@ body #page             {margin-top:-(@lineheight2 + 14);
         height:665px;
         position:absolute;
     }
+    .townmap_key_trigger                   {position: absolute;
+                                            top:@typeheight;
+                                            right:@typeheight;
+                                            color:@white;
+                                            background-color: @moss;
+                                            line-height: @lineheight2;
+                                            height: @lineheight2;
+                                            width: @lineheight2;
+                                            border-radius: @lineheight2 / 2;
+                                            .inset-text();}
+
+    #townmap_key                           {width:200px;
+                                            height:200px;
+                                            position: relative;
+                                            left: -200px - @lineheight2;
+                                            .box-shadow();
+        img                                {width:100%;
+                                            height:100%;
+                                            display:none;}
+        }
+
 
     /*Comments on news posts*/
     .comments{

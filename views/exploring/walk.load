@@ -46,6 +46,12 @@
 <!--path selection-->
 {{elif request.args(0) == 'start' or not request.args:}}
 	<embed id='town_map' src='{{=map.image}}' type='image/svg+xml' />
+    <a href='#' class='townmap_key_trigger icon-only icon-search'>
+        <span class='accessible'>Show map hotspots</span>
+    </a>
+    <span id='townmap_key'>
+        <img src='townmap.png' />
+    </span>
 
 <!--present npc reply for user's response to step prompt-->
 {{elif 'response' in request.vars:}}
@@ -125,6 +131,16 @@ $('.bug_reporter_icon').click(function(event){
 });
 $('.prompt_badges_icon').click(function(event){
     var $tip = $('div.prompt_badges');
+    if ($tip.hasClass('tip-visible')){
+        $tip.removeClass('tip-visible');
+    }
+    else {
+        $tip.addClass('tip-visible');
+    }
+    return false;
+});
+$('.townmap_key_trigger').click(function(event){
+    var $tip = $('#townmap_key');
     if ($tip.hasClass('tip-visible')){
         $tip.removeClass('tip-visible');
     }
