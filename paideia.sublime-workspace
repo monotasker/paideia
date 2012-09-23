@@ -4,55 +4,200 @@
 		"selected_items":
 		[
 			[
-<<<<<<< HEAD
-=======
-				"active",
-				"active_location"
+				"background",
+				"background-color"
 			],
 			[
-				"session_",
-				"session_start"
+				"line",
+				"lineheight3"
 			],
 			[
->>>>>>> 59d0e09981420219ed516dc76e7cfcc4f9bc7707
-				"rd",
-				"rdict	(local, instance)"
+				"lin",
+				"line-height"
 			],
 			[
-				"rdi",
-				"rdict2"
+				"au",
+				"auth"
 			],
 			[
-				"order",
-				"orderby	(local, instance)"
+				"date",
+				"datetime  (class)"
 			],
 			[
-				"view",
-				"view_slides"
+				"badge",
+				"badge_name"
+			],
+			[
+				"update",
+				"update_or_insert"
+			],
+			[
+				"user",
+				"user_id"
 			],
 			[
 				"sess",
 				"session_data"
 			],
 			[
-				"_get",
-				"_get_responder"
+				"user_",
+				"user_response	(local, instance)"
 			],
 			[
-				"_get_",
-				"_get_prompt"
+				"mycats",
+				"mycats_all	(local, instance)"
 			],
 			[
-				"Step",
-				"StepStub"
-			],
-			[
-				"paid",
-				"paideia_path"
+				"lates",
+				"latest_new"
 			],
 			[
 				"tag",
-				"tag_records"
+				"tag_progress"
+			],
+			[
+				"progress",
+				"progress_sel	(local, instance)"
+			],
+			[
+				"progre",
+				"progress_sel	(local, instance)"
+			],
+			[
+				"active",
+				"active_location"
+			],
+			[
+				"session_",
+				"session_start_local	(local, instance)"
+			],
+			[
+				"from",
+				"fromutc"
+			],
+			[
+				"requires",
+				"requires_login"
+			],
+			[
+				"quota",
+				"quota_override"
+			],
+			[
+				"plugin",
+				"plugin_slider_decks"
+			],
+			[
+				"image",
+				"images"
+			],
+			[
+				"_get",
+				"_get_responder()	(attribute, function)"
+			],
+			[
+				"IS_",
+				"IS_EMPTY_OR	(imported, instance)"
+			],
+			[
+				"IS",
+				"IS_NOT_IN_DB"
+			],
+			[
+				"loc",
+				"location"
+			],
+			[
+				"locat",
+				"location"
+			],
+			[
+				"NOT",
+				"IS_NOT_IN_DB"
+			],
+			[
+				"req",
+				"requires"
+			],
+			[
+				"class",
+				"class_id"
+			],
+			[
+				"app",
+				"app_settings"
+			],
+			[
+				"all",
+				"all_badges"
+			],
+			[
+				"log",
+				"log_list()	(attribute, function)"
+			],
+			[
+				"new",
+				"new_badge_list	(local, instance)"
+			],
+			[
+				"Paths",
+				"PathsVirtualFields2	(global, class)"
+			],
+			[
+				"Is_",
+				"IS_IN_SET"
+			],
+			[
+				"path",
+				"patherror"
+			],
+			[
+				"res",
+				"restrictor	(local, instance)"
+			],
+			[
+				"refre",
+				"refresher_id"
+			],
+			[
+				"restr",
+				"restricted"
+			],
+			[
+				"clean",
+				"clean_val"
+			],
+			[
+				"list",
+				"lister"
+			],
+			[
+				"restri",
+				"restrictor"
+			],
+			[
+				"rest",
+				"restricted"
+			],
+			[
+				"refresh",
+				"refresher"
+			],
+			[
+				"field",
+				"fieldset	(local, instance)"
+			],
+			[
+				"wra",
+				"wrappername	(local, instance)"
+			],
+			[
+				"hid",
+				"hidden_ajax_field	(attribute, function)"
+			],
+			[
+				"wrapp",
+				"wrappername"
 			],
 			[
 				"record",
@@ -95,10 +240,6 @@
 				"display	display: block"
 			],
 			[
-				"active",
-				"activepaths	(local, instance)"
-			],
-			[
 				"activ",
 				"activepaths	(local, instance)"
 			],
@@ -131,10 +272,6 @@
 				"formname"
 			],
 			[
-				"list",
-				"plugin_listandedit"
-			],
-			[
 				"init",
 				"__init__"
 			],
@@ -143,20 +280,12 @@
 				"curr_loc"
 			],
 			[
-				"loc",
-				"location"
-			],
-			[
 				"acti",
 				"active_path"
 			],
 			[
 				"pai",
 				"paideia_path"
-			],
-			[
-				"user",
-				"user_id"
 			],
 			[
 				"introduc",
@@ -239,10 +368,6 @@
 				"typeheight"
 			],
 			[
-				"line",
-				"lineheight"
-			],
-			[
 				"add_ta",
 				"add_taglist"
 			],
@@ -267,42 +392,22 @@
 				"selected"
 			],
 			[
-				"wra",
-				"wrappername"
-			],
-			[
 				"fields",
 				"fieldset"
 			],
 			[
 				"fun",
 				"function"
-			],
-			[
-				"plugin",
-				"plugin_ajaxselect"
 			]
 		]
 	},
 	"buffers":
 	[
 		{
-			"file": "models/paideia.py",
-			"settings":
-			{
-				"buffer_size": 15792,
-				"line_ending": "Unix"
-			}
-		},
-		{
 			"file": "modules/paideia_exploring.py",
 			"settings":
 			{
-<<<<<<< HEAD
-				"buffer_size": 69326,
-=======
-				"buffer_size": 72168,
->>>>>>> 59d0e09981420219ed516dc76e7cfcc4f9bc7707
+				"buffer_size": 75132,
 				"line_ending": "Unix"
 			}
 		},
@@ -311,8 +416,6 @@
 			"settings":
 			{
 				"buffer_size": 7690,
-<<<<<<< HEAD
-=======
 				"line_ending": "Unix"
 			}
 		},
@@ -320,7 +423,15 @@
 			"file": "views/exploring/walk.load",
 			"settings":
 			{
-				"buffer_size": 3963,
+				"buffer_size": 4218,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "models/paideia.py",
+			"settings":
+			{
+				"buffer_size": 15792,
 				"line_ending": "Unix"
 			}
 		},
@@ -331,26 +442,37 @@
 				"buffer_size": 3288,
 				"line_ending": "Unix"
 			}
-		},
-		{
-			"file": "/home/iscott/web/web2py/logging.conf",
-			"settings":
-			{
-				"buffer_size": 3534,
->>>>>>> 59d0e09981420219ed516dc76e7cfcc4f9bc7707
-				"line_ending": "Unix"
-			}
 		}
 	],
 	"build_system": "Packages/LESS-build/LESS.sublime-build",
 	"command_palette":
 	{
-		"height": 327.0,
+		"height": 375.0,
 		"selected_items":
 		[
 			[
 				":w",
 				":w - Save"
+			],
+			[
+				":sett",
+				"Preferences: Settings - User"
+			],
+			[
+				":dis",
+				"Package Control: Disable Package"
+			],
+			[
+				":disa",
+				"Package Control: Disable Package"
+			],
+			[
+				":enab",
+				"Package Control: Enable Package"
+			],
+			[
+				":split",
+				"Preferences: SplitScreen-Resizer Key Bindings – Default"
 			],
 			[
 				":inst",
@@ -359,6 +481,90 @@
 			[
 				":insta",
 				"Package Control: Install Package"
+			],
+			[
+				":disc",
+				"Package Control: Discover Packages"
+			],
+			[
+				":status",
+				"Git: Status"
+			],
+			[
+				"comm",
+				"Git: Commit"
+			],
+			[
+				":install",
+				"Package Control: Install Package"
+			],
+			[
+				":W",
+				":w - Save"
+			],
+			[
+				":",
+				"Goto Symbol : List symbols"
+			],
+			[
+				"file nav",
+				"Sublime Files: Open Navigator"
+			],
+			[
+				":nav",
+				"Sublime Files: Open Navigator"
+			],
+			[
+				":disable",
+				"Package Control: Disable Package"
+			],
+			[
+				":deact",
+				"SublimeLinter: Disable Background Linting"
+			],
+			[
+				":remove",
+				"Package Control: Remove Package"
+			],
+			[
+				":disab",
+				"Package Control: Disable Package"
+			],
+			[
+				":tabs",
+				"View: Toggle Tabs"
+			],
+			[
+				":toggle",
+				"View: Toggle Tabs"
+			],
+			[
+				":remov",
+				"Package Control: Remove Package"
+			],
+			[
+				":list ",
+				"Package Control: List Packages"
+			],
+			[
+				":list p",
+				"Package Control: List Packages"
+			],
+			[
+				":list",
+				"Package Control: List Packages"
+			],
+			[
+				"inst",
+				"Package Control: Install Package"
+			],
+			[
+				"disc",
+				"Package Control: Discover Packages"
+			],
+			[
+				"package",
+				"Package Control: Disable Package"
 			],
 			[
 				"pack",
@@ -371,10 +577,6 @@
 			[
 				"col",
 				"Color picker"
-			],
-			[
-				"inst",
-				"Package Control: Install Package"
 			],
 			[
 				"remo",
@@ -405,11 +607,11 @@
 				"Package Control: Discover Packages"
 			]
 		],
-		"width": 449.0
+		"width": 507.0
 	},
 	"console":
 	{
-		"height": 722.0
+		"height": 330.0
 	},
 	"distraction_free":
 	{
@@ -422,56 +624,51 @@
 	},
 	"file_history":
 	[
-<<<<<<< HEAD
-=======
-		"/home/iscott/web/web2py/applications/paideia/controllers/listing.py",
-		"/home/iscott/.config/sublime-text-2/Packages/User/Flake8Lint.sublime-settings",
->>>>>>> 59d0e09981420219ed516dc76e7cfcc4f9bc7707
-		"/home/iscott/web/web2py/applications/paideia/modules/paideia_exploring.py",
-		"/home/iscott/web/web2py/applications/paideia/controllers/default.py",
-		"/home/iscott/web/web2py/applications/paideia/views/default/user.html",
-		"/home/iscott/web/web2py/applications/paideia/modules/paideia_stats.py",
-		"/home/iscott/web/web2py/applications/paideia/controllers/reporting.py",
-		"/home/iscott/web/web2py/applications/paideia/controllers/plugin_listandedit.py",
-		"/home/iscott/web/web2py/applications/paideia/views/plugin_listandedit/edit.load",
-		"/home/iscott/web/web2py/applications/paideia/views/plugin_listandedit/listing.html",
-		"/home/iscott/web/web2py/applications/paideia/views/plugin_listandedit/listing.load",
-		"/home/iscott/web/web2py/applications/paideia/views/plugin_listandedit/list.load",
-		"/home/iscott/web/web2py/applications/paideia/static/plugin_listandedit/plugin_listandedit.js",
-		"/home/iscott/web/web2py/applications/paideia/static/plugin_framework/theme_paideia.less",
-		"/home/iscott/web/web2py/applications/paideia/models/plugin_slider.py",
-<<<<<<< HEAD
-		"/home/iscott/.config/sublime-text-2/Packages/User/Flake8Lint.sublime-settings",
-=======
->>>>>>> 59d0e09981420219ed516dc76e7cfcc4f9bc7707
-		"/home/iscott/.config/sublime-text-2/Packages/Function Name Display/Function Name Display.sublime-settings",
-		"/home/iscott/.config/sublime-text-2/Packages/Default/Preferences.sublime-settings",
-		"/home/iscott/.config/sublime-text-2/Packages/User/Preferences.sublime-settings",
-		"/home/iscott/web/web2py/applications/paideia/tests/controllers/exploring.py",
-		"/home/iscott/web/web2py/applications/paideia/tests/modules/paideia_exploring.py",
+		"/home/ian/web/web2py/applications/paideia/static/plugin_slider/plugin_slider.less",
+		"/home/ian/web/web2py/applications/paideia/static/plugin_framework/framework.less",
+		"/home/ian/.config/sublime-text-2/Packages/Default/Preferences.sublime-settings",
+		"/home/ian/.config/sublime-text-2/Packages/User/Preferences.sublime-settings",
+		"/home/ian/web/web2py/applications/paideia/modules/static/",
+		"/home/ian/.config/sublime-text-2/Packages/SplitScreen-Resizer/Default (Linux).sublime-keymap",
+		"/home/ian/web/web2py/applications/paideia/static/plugin_framework/theme_paideia.less",
+		"/home/ian/web/web2py/applications/paideia/controllers/reporting.py",
+		"/home/ian/web/web2py/applications/paideia/views/reporting/user.html",
+		"/home/ian/web/web2py/applications/paideia/views/default/user.html",
+		"/home/ian/web/web2py/applications/paideia/views/default/index.html",
+		"/home/ian/web/web2py/applications/paideia/modules/paideia_stats.py",
+		"/home/ian/web/web2py/applications/paideia/controllers/default.py",
+		"/home/ian/web/web2py/applications/paideia/views/exploring/listing/",
+		"/home/ian/web/web2py/applications/paideia/modules/views/",
+		"/home/ian/web/web2py/applications/paideia/modules/paideia_bugs.py",
+		"/home/ian/web/web2py/applications/paideia/modules/save_session_data.py",
+		"/home/ian/web/web2py/applications/paideia/views/exploring/index.html",
+		"/home/ian/.config/sublime-text-2/Packages/Flake8Lint/Flake8Lint.sublime-settings",
+		"/home/ian/web/web2py/applications/paideia/modules/paideia_exploring.py",
+		"/home/ian/web/web2py/applications/paideia/models/paideia.py",
+		"/home/ian/web/web2py/applications/paideia/models/menu.py",
+		"/home/ian/web/web2py/applications/paideia/models/plugin_slider.py",
+		"/home/ian/.config/sublime-text-2/Packages/User/Package Control.sublime-settings",
+		"/home/ian/web/web2py/applications/paideia/models/db.py",
+		"/home/ian/.config/sublime-text-2/Packages/User/Flake8Lint.sublime-settings",
+		"/home/ian/.config/sublime-text-2/Packages/Function Name Display/Function Name Display.sublime-settings",
+		"/home/ian/.config/sublime-text-2/Packages/BracketHighlighter/BracketHighlighter.sublime-settings",
+		"/home/ian/.config/sublime-text-2/Packages/Default/Default (Linux).sublime-keymap",
+		"/home/ian/web/web2py/applications/topoi/models/db.py",
+		"/home/ian/web/web2py/gluon/contrib/test_helpers.py",
 		"/home/ian/web/web2py/applications/paideia/static/plugin_ajaxselect/plugin_ajaxselect.css",
 		"/home/ian/web/web2py/applications/paideia/static/plugin_ajaxselect/plugin_ajaxselect.js",
 		"/home/ian/web/web2py/applications/paideia/modules/plugin_ajaxselect.py",
 		"/home/ian/web/web2py/applications/paideia/controllers/plugin_ajaxselect.py",
-		"/home/ian/web/web2py/gluon/contrib/test_helpers.py",
 		"/home/ian/web/web2py/testRunner.py",
 		"/home/ian/web/web2py/applications/paideia/views/exploring/index.load",
 		"/home/ian/web/web2py/applications/paideia/modules/paideia_questions.py",
-		"/home/ian/.config/sublime-text-2/Packages/User/Preferences.sublime-settings",
-		"/home/ian/.config/sublime-text-2/Packages/Default/Preferences.sublime-settings",
 		"/home/ian/.config/sublime-text-2/Packages/SideBarEnhancements/Side Bar.sublime-settings",
-		"/home/ian/web/web2py/applications/paideia/modules/paideia_stats.py",
 		"/home/ian/.config/sublime-text-2/Packages/SublimeCodeIntel/Base File.sublime-settings",
 		"/home/ian/web/web2py/applications/paideia/controllers/plugin_listandedit.py",
 		"/home/ian/.config/sublime-text-2/Packages/Prevu/Prevu.sublime-settings",
 		"/home/ian/web/web2py/applications/paideia/static/plugin_framework/theme.less",
-		"/home/ian/web/web2py/applications/paideia/models/menu.py",
-		"/home/ian/web/web2py/applications/paideia/static/plugin_framework/framework.less",
-		"/home/ian/web/web2py/applications/paideia/static/plugin_framework/theme_paideia.less",
 		"/home/ian/.config/sublime-text-2/Packages/sublime-V8/JSHINT.sublime-settings",
 		"/home/ian/web/web2py/applications/paideia/views/plugin_ajaxselect/set_widget.load",
-		"/home/ian/.config/sublime-text-2/Packages/Default/Default (Linux).sublime-keymap",
-		"/home/ian/web/web2py/applications/paideia/models/db.py",
 		"/home/iscott/web/web2py/applications/paideia/modules/plugin_ajaxselect.py",
 		"/home/ian/web/web2py/applications/paideia/views/plugin_ajaxselect/set_form_wrapper.load",
 		"/home/ian/web/web2py/applications/paideia/views/plugin_ajaxselect/linked_create_form.load",
@@ -511,33 +708,51 @@
 		"case_sensitive": false,
 		"find_history":
 		[
-<<<<<<< HEAD
-=======
-			"_db_to_s",
-			"_session_to_",
+			"walk",
+			"self._complete",
+			"db.session_data",
+			"self.complete",
 			"session_data",
-			"delete",
-			"del ",
-			"# prepare the session data for serialization\n        walk4db = deepcopy(session.walk)\n        walk4db['session_start'] = walk4db['session_start'].isoformat()\n        # deserialize datetime: timegm(time.strptime(date.split(\".\")[0]+\"UTC\", \"%Y-%m-%dT%H:%M:%SZ\"))\n\n\n        db.session_data.update_or_insert(db.session_data.user == auth.user_id,\n                                 updated=datetime.datetime.utcnow(),\n                                 session_start=session.walk['session_start'],\n          ",
-			"location",
-			"session_data.update",
-			"session_data']['bg",
-			"session_data",
-			"ast",
-			"categ",
->>>>>>> 59d0e09981420219ed516dc76e7cfcc4f9bc7707
+			"_compl",
+			"_complete",
+			"shuff",
+			"shuffle",
 			"new_b",
-			"makeur",
-			"tags",
-			"get_util",
-			"handle",
-			"completed",
-			"view_slides",
-			"tags",
-			"slides",
-			"stepst",
-			"stepmultiple",
-			"save_se",
+			"award",
+			"shuffle",
+			"total",
+			"\n                ",
+			"delete",
+			"update",
+			"('steps",
+			"answer2 = self.step.response2\n        an",
+			"_new_badges",
+			"print",
+			"len",
+			"categor",
+			"timezone",
+			"pytz",
+			"util",
+			"curs",
+			"process",
+			"override",
+			"view_s",
+			"awardb",
+			"new_badge",
+			"badges",
+			" cat",
+			"cat",
+			"badges",
+			"type(self)",
+			"message",
+			"tag",
+			"#",
+			"new",
+			"paths",
+			"\n            ",
+			"vint",
+			"import",
+			"classes",
 			"current",
 			"package",
 			"editlis",
@@ -564,15 +779,177 @@
 	"groups":
 	[
 		{
-			"selected": 1,
+			"selected": 0,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "models/paideia.py",
+					"file": "modules/paideia_exploring.py",
 					"settings":
 					{
-						"buffer_size": 15792,
+						"buffer_size": 75132,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"function_name_status_row": 0,
+							"gjslint_ignore":
+							[
+								110
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"browser": true,
+								"evil": true,
+								"regexdash": true,
+								"sub": true,
+								"trailing": true,
+								"wsh": true
+							},
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 0,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": false,
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"Python Django": "python"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 27422.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
+			]
+		},
+		{
+			"selected": 3,
+			"sheets":
+			[
+				{
+					"buffer": 1,
+					"file": "controllers/exploring.py",
+					"settings":
+					{
+						"buffer_size": 7690,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"function_name_status_row": 0,
+							"gjslint_ignore":
+							[
+								110
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"browser": true,
+								"evil": true,
+								"regexdash": true,
+								"sub": true,
+								"trailing": true,
+								"wsh": true
+							},
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 0,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": false,
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"Python Django": "python"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 4322.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "views/exploring/walk.load",
+					"settings":
+					{
+						"buffer_size": 4218,
 						"regions":
 						{
 						},
@@ -586,135 +963,90 @@
 						"settings":
 						{
 							"function_name_status_row": 0,
-							"syntax": "Packages/Python/Python.tmLanguage",
+							"syntax": "Packages/HTML/HTML.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1151.0,
+						"translation.y": 1848.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
-					"buffer": 1,
-					"file": "modules/paideia_exploring.py",
-<<<<<<< HEAD
-					"settings":
-					{
-						"buffer_size": 69326,
-=======
-					"settings":
-					{
-						"buffer_size": 72168,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1554,
-								1554
-							]
-						],
-						"settings":
-						{
-							"function_name_status_row": 50,
-							"rulers":
-							[
-								78
-							],
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 391.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "controllers/exploring.py",
-					"settings":
-					{
-						"buffer_size": 7690,
->>>>>>> 59d0e09981420219ed516dc76e7cfcc4f9bc7707
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-<<<<<<< HEAD
-								32428,
-								32428
-=======
-								535,
-								535
->>>>>>> 59d0e09981420219ed516dc76e7cfcc4f9bc7707
-							]
-						],
-						"settings":
-						{
-<<<<<<< HEAD
-							"function_name_status_row": 830,
-							"rulers":
-							[
-								78
-							],
-=======
-							"function_name_status_row": 17,
-							"sublimelinter": false,
->>>>>>> 59d0e09981420219ed516dc76e7cfcc4f9bc7707
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-<<<<<<< HEAD
-						"translation.x": 18.0,
-						"translation.y": 13714.0,
-=======
-						"translation.x": 0.0,
-						"translation.y": 0.0,
->>>>>>> 59d0e09981420219ed516dc76e7cfcc4f9bc7707
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-<<<<<<< HEAD
-					"buffer": 2,
-					"file": "controllers/exploring.py",
-					"settings":
-					{
-						"buffer_size": 7690,
-=======
 					"buffer": 3,
-					"file": "views/exploring/walk.load",
+					"file": "models/paideia.py",
 					"settings":
 					{
-						"buffer_size": 3963,
+						"buffer_size": 15792,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1386,
-								1386
+								11983,
+								11983
 							]
 						],
 						"settings":
 						{
-							"function_name_status_row": 51,
-							"syntax": "Packages/Text/Plain text.tmLanguage",
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"function_name_status_row": 289,
+							"gjslint_ignore":
+							[
+								110
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"browser": true,
+								"evil": true,
+								"regexdash": true,
+								"sub": true,
+								"trailing": true,
+								"wsh": true
+							},
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 0,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": false,
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"Python Django": "python"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/Python/Python.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 493.0,
+						"translation.y": 6028.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -725,66 +1057,25 @@
 					"settings":
 					{
 						"buffer_size": 3288,
->>>>>>> 59d0e09981420219ed516dc76e7cfcc4f9bc7707
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-<<<<<<< HEAD
-								535,
-								535
-=======
-								581,
-								581
->>>>>>> 59d0e09981420219ed516dc76e7cfcc4f9bc7707
+								2000,
+								2000
 							]
 						],
 						"settings":
 						{
-<<<<<<< HEAD
-							"function_name_status_row": 17,
-							"sublimelinter": false,
-=======
-							"function_name_status_row": 19,
->>>>>>> 59d0e09981420219ed516dc76e7cfcc4f9bc7707
+							"function_name_status_row": 59,
 							"syntax": "Packages/Python/Python.tmLanguage",
 							"tab_size": 2,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
-<<<<<<< HEAD
-=======
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 5,
-					"file": "/home/iscott/web/web2py/logging.conf",
-					"settings":
-					{
-						"buffer_size": 3534,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								2167,
-								2167
-							]
-						],
-						"settings":
-						{
-							"function_name_status_row": 84,
-							"syntax": "Packages/Text/Plain text.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 773.0,
->>>>>>> 59d0e09981420219ed516dc76e7cfcc4f9bc7707
+						"translation.y": 1188.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -794,7 +1085,7 @@
 	],
 	"incremental_find":
 	{
-		"height": 34.0
+		"height": 35.0
 	},
 	"input":
 	{
@@ -809,11 +1100,18 @@
 				0,
 				1,
 				1
+			],
+			[
+				1,
+				0,
+				2,
+				1
 			]
 		],
 		"cols":
 		[
 			0.0,
+			0.3,
 			1.0
 		],
 		"rows":
@@ -825,7 +1123,11 @@
 	"menu_visible": true,
 	"output.exec":
 	{
-		"height": 112.0
+		"height": 142.0
+	},
+	"output.git":
+	{
+		"height": 142.0
 	},
 	"replace":
 	{
@@ -838,73 +1140,23 @@
 		"selected_items":
 		[
 			[
-<<<<<<< HEAD
-=======
-				"db.",
+				"db",
 				"paideia/models/db.py"
-			],
-			[
-				"walk.l",
-				"paideia/views/exploring/walk.load"
-			],
-			[
-				"listing",
-				"paideia/controllers/listing.py"
-			],
-			[
-				"list",
-				"paideia/controllers/listing.py"
-			],
-			[
->>>>>>> 59d0e09981420219ed516dc76e7cfcc4f9bc7707
-				"stats",
-				"paideia/modules/paideia_stats.py"
-			],
-			[
-				"user",
-				"paideia/views/default/user.html"
-			],
-			[
-				"def",
-				"paideia/controllers/default.py"
-			],
-			[
-				"repor",
-				"paideia/controllers/reporting.py"
-			],
-			[
-				"edit",
-				"paideia/views/plugin_listandedit/edit.load"
-			],
-			[
-<<<<<<< HEAD
-				"listing",
-				"paideia/views/plugin_listandedit/listing.html"
-			],
-			[
-=======
->>>>>>> 59d0e09981420219ed516dc76e7cfcc4f9bc7707
-				"listandedit",
-				"paideia/views/plugin_listandedit/listing.load"
-			],
-			[
-				"listanded",
-				"paideia/views/plugin_listandedit/list.load"
-			],
-			[
-				"listande",
-				"paideia/static/plugin_listandedit/plugin_listandedit.js"
 			]
 		],
 		"width": 0.0
 	},
 	"select_project":
 	{
-		"height": 0.0,
+		"height": 500.0,
 		"selected_items":
 		[
+			[
+				"",
+				"/home/ian/web/web2py/applications/paideia/paideia.sublime-project"
+			]
 		],
-		"width": 0.0
+		"width": 380.0
 	},
 	"show_minimap": false,
 	"show_open_files": true,

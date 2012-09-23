@@ -485,8 +485,9 @@ class Walk(object):
             db.tag_progress.insert(name=auth.user_id)
 
         # Make sure untried tags are still included
-        untried = [t for t in tprogress.cat1 if t not in categories[1]]
-        categories[1].extend(untried)
+        if tprogress.cat1 is not None:
+            untried = [t for t in tprogress.cat1 if t not in categories[1]]
+            categories[1].extend(untried)
 
         # Remove duplicate tag id's from each category
         # Make sure each of the tags is not beyond the user's current ranking
