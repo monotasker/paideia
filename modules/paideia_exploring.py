@@ -893,10 +893,12 @@ class Walk(object):
             # remove all but one active path (since more is wrong data)
             start_len = len(self.active_paths.keys())
             lastk = self.active_paths.keys()[-1]
+            if debug: print 'last active path:', lastk
             if start_len > 1:
-                self.active_paths = self.active_paths[lastk]
+                self.active_paths = {lastk: self.active_paths[lastk]}
                 if debug: print 'removing', (start_len - 1), 'active paths'
             apath = db.paths[lastk]
+            if debug: print 'active path:', apath
 
             # make sure step belongs to the path
             step_id = self.active_paths[apath.id]
@@ -2047,7 +2049,7 @@ class Location(object):
         '''
         Return a dict holding the location info
         '''
-        if self.alias:
+        if self.alias and self.alias != 'None':
             return {'alias': self.alias,
                     'id': self.id,
                     'bg_image': self.img}
