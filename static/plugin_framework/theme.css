@@ -1133,6 +1133,55 @@ body #page #town_map {
   height: 665px;
   position: absolute;
 }
+body #page .townmap_key_trigger {
+  position: absolute;
+  display: inline-block;
+  top: 16px;
+  right: 16px;
+  color: #ffffff;
+  background-color: #809240;
+  line-height: 40px;
+  height: 40px;
+  width: 40px;
+  border-radius: 20px;
+  border: 4px solid #ffffff;
+  text-align: center;
+  z-index: 10;
+  padding-bottom: 4px;
+  -moz-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  -webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  -o-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  -ms-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  -moz-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
+  -webkit-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
+  -o-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
+  -ms-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
+  text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
+}
+body #page #townmap_key {
+  position: absolute;
+  height: 205px;
+  display: block;
+  top: 36px;
+  right: 36px;
+  background-color: #fff;
+  -moz-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  -webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  -o-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  -ms-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  display: none;
+  z-index: 9;
+  border: 12px solid #ffffff;
+}
+body #page #townmap_key.tip-visible {
+  display: block;
+}
+body #page #townmap_key img {
+  width: 277px;
+  border: 2px solid #eee8d5;
+}
 body #page .comments {
   padding: 0;
   margin-top: 60px;
@@ -1355,6 +1404,9 @@ body #page #left_sidebar div:hover, body #page #right_sidebar div:hover {
 #page.exploring .prompt .bug_reporter a,
 #page.exploring .responder .bug_reporter a {
   font-size: 16px;
+}
+#page.exploring .prompt_badges {
+  top: 0;
 }
 #page.exploring .prompt {
   position: relative;

@@ -18,7 +18,7 @@ db.define_table('plugin_slider_themes',
 db.define_table('plugin_slider_slides',
     Field('slide_name', 'string'),
     Field('content', 'text'),
-    Field('theme', 'list:reference db.plugin_slider_themes'),
+    Field('theme', 'list:reference plugin_slider_themes'),
     format='%(slide_name)s'
     )
 db.plugin_slider_slides.theme.requires = IS_IN_DB(db,
@@ -28,8 +28,8 @@ db.plugin_slider_slides.theme.requires = IS_IN_DB(db,
 
 db.define_table('plugin_slider_decks',
     Field('deck_name', 'string'),
-    Field('deck_slides', 'list:reference db.plugin_slider_slides'),
-    Field('theme', 'list:reference db.plugin_slider_themes'),
+    Field('deck_slides', 'list:reference plugin_slider_slides'),
+    Field('theme', 'list:reference plugin_slider_themes'),
     Field('position', 'integer'),
     format='%(deck_name)s'
     )

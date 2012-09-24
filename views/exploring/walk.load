@@ -50,7 +50,7 @@
         <span class='accessible'>Show map hotspots</span>
     </a>
     <span id='townmap_key'>
-        <img src='townmap.png' />
+        <img src='../static/images/townmap.png' />
     </span>
 
 <!--present npc reply for user's response to step prompt-->

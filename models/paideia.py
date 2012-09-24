@@ -86,7 +86,7 @@ db.define_table('categories',
 db.define_table('tags',
     Field('tag', 'string', unique=True),
     Field('position', 'integer'),
-    Field('slides', 'list:reference db.plugin_slider_decks'),
+    Field('slides', 'list:reference plugin_slider_decks'),
     format='%(tag)s')
 
 db.tags.tag.requires = IS_NOT_IN_DB(db, 'tags.tag')
