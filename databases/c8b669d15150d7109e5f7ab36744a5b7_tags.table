@@ -4,7 +4,7 @@ p2
 (dp3
 S'type'
 p4
-S'list:reference db.plugin_slider_decks'
+S'list:reference plugin_slider_decks'
 p5
 sS'sortable'
 p6

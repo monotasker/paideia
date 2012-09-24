@@ -4,7 +4,7 @@ p2
 (dp3
 S'type'
 p4
-S'list:reference db.plugin_slider_themes'
+S'list:reference plugin_slider_themes'
 p5
 sS'sortable'
 p6
@@ -16,13 +16,13 @@ p8
 ssS'tag'
 p9
 (dp10
-S'type'
+S'sortable'
 p11
-S'list:reference db.tags'
-p12
-sS'sortable'
-p13
 I5
+sS'type'
+p12
+S'list:reference db.tags'
+p13
 sS'sql'
 p14
 S'TEXT'
@@ -64,7 +64,7 @@ ssS'deck_slides'
 p28
 (dp29
 g4
-S'list:reference db.plugin_slider_slides'
+S'list:reference plugin_slider_slides'
 p30
 sg6
 I3
