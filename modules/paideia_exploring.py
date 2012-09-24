@@ -8,7 +8,7 @@ import datetime
 from dateutil.parser import parse
 import ast
 from copy import deepcopy
-import random
+from random import randrange
 import re
 import traceback
 from pytz import timezone
@@ -746,7 +746,7 @@ class Walk(object):
 
         # Choose a step at random
         if len(steps) > 1:
-            step = steps[random.randrange(0, len(steps))]
+            step = steps[randrange(0, len(steps))]
         else:
             step = steps[0]
 
@@ -877,7 +877,7 @@ class Walk(object):
         6) any random path which can be started elsewhere (in which case the
         default step is activated)
         '''
-        debug = False
+        debug = True
         if self.verbose:
             print 'calling Walk._get_next_step--------------'
         db = current.db
@@ -886,73 +886,72 @@ class Walk(object):
         loc_id = self.active_location['id']
 
         # 1) try to continue an active path whose next step is in this loc
-        if self.active_paths:
+        if len(self.active_paths.keys()) > 0:
             if debug:
                 print 'looking for active paths in this location'
                 print 'active_paths =', self.active_paths
-            apaths = db(db.paths.id.belongs(self.active_paths.keys())).select()
+            # remove all but one active path (since more is wrong data)
+            start_len = len(self.active_paths.keys())
+            lastk = self.active_paths.keys()[-1]
+            if start_len > 1:
+                self.active_paths = self.active_paths[lastk]
+                if debug: print 'removing', (start_len - 1), 'active paths'
+            apath = db.paths[lastk]
 
-            for path in apaths:
-                # make sure step belongs to the path
-                step_id = self.active_paths[path.id]
-                step_index = self._step_in_path(path, step_id)
+            # make sure step belongs to the path
+            step_id = self.active_paths[apath.id]
+            step_index = self._step_in_path(apath, step_id)
+            if debug: print 'index of the unfinished step is', step_index
+            if type(step_index) is bool:
                 if debug:
-                    print 'index of the last started step is', step_index
-                if type(step_index) is bool:
-                    if debug:
-                        print 'step', step_id, 'not in path', path.id
-                    continue
+                    print 'step', step_id, 'not in path', apath.id
+                # Remove it from active paths
+                del self.active_paths[apath]
+                # Move on to selecting a new path (#3 below)
+            else:
+                # 1) try to activate the step if it can be done here.
+                step = db.steps[step_id]
+                if debug: print step.id
+                if debug: print 'loc_id =', loc_id, 'locs =', step.locations
+                # 2) If not in this location, send user elsewhere
+                if not loc_id in step.locations:
+                    if debug: print 'step is elsewhere, getting redirect step'
+                    return self._get_util_step('default')
 
-                # 1) try to activate the next step if it can be done here.
-                if len(path.steps) > (step_index + 1):
-                    if debug:
-                        print len(path.steps), 'steps in this path'
-                    step_id = path.steps[step_index + 1]
-                    step = db.steps[step_id]
-                    if debug: print step
-
-                    # 2) If not in this location, send user elsewhere
-                    if debug: print 'loc_id =', loc_id
-                    if debug: print 'step.locations =', step.locations
-                    if not loc_id in step.locations:
-                        if debug:
-                            print 'next step elsewhere, getting default'
-                        return self._get_util_step('default')
-
-                    self.active_paths[path.id] = step_id
-                    self._update_path_log(path.id, step_id, 1)
-                    if debug:
-                        print 'getting next step', step_id
-                        print 'of path', path.id
-                    return path, step_id
-                # If the last step in the path is completed, deactivate path
-                # and try the next in apaths
-                else:
-                    self._deactivate_path(path.id)
-                    if debug:
-                        print 'last step already completed for path', path.id
-                    continue
+                # 1) Otherwise re-activate this step
+                # TODO: make sure Step.complete includes activating next step
+                # of multi-step path and that that path/step isn't removed in
+                # Walk.init
+                self._update_path_log(apath.id, step_id, 1)
+                if debug: print 'activating step', step_id, 'of path', apath.id
+                return apath, step_id
 
         # 3)-4) look for a new path due, first in this location and otherwise
         # in another location
-        if debug: print 'no active paths, looking for a new path'  # DEBUG
-
-        cat = self._get_category()
+        if debug: print 'no active paths, looking for a new path'
+        cat = self._get_category()  # generate weighted random number for cat
         cat_range = self.tag_set.keys()
         cat_list = cat_range[cat:5] + cat_range[0:cat]
         if debug: print 'category list to try:', cat_list
 
         # cycle through categories, starting with the one from _get_category()
+        p_list1 = db().select(db.paths.ALL, orderby='<random>')
         for cat in cat_list:
             if debug: print 'Trying category', cat  # DEBUG
+
+            # find paths with tags in the current category
             tag_list = self.tag_set[cat]
-            p_list1 = db().select(db.paths.ALL, orderby='<random>')
             p_list = p_list1.find(lambda row:
                                   [t for t in row.tags if t in tag_list])
-            # exclude paths completed in this session
-            if self.completed_paths:
+            if debug: print 'paths tagged in this cat:', [p.id for p in p_list]
+
+            # exclude paths already completed in this session
+            if self.completed_paths is not None:
+                if debug: print 'already completed:', self.completed_paths
                 p_list.exclude(lambda row: row.id in self.completed_paths)
-            if p_list:
+                if debug: print 'path list without those:', p_list
+
+            if p_list is not None:
                 if debug: print 'some new paths are available in cat', cat
                 # 3) Find and activate a due path that starts here
                 for path in p_list:
@@ -977,14 +976,15 @@ class Walk(object):
 
         # 5) Choose a random path that can be started here
         if debug: print 'looking for random path with active tags'  # DEBUG
-        paths = self._get_paths()
         max_rank = db(db.tag_progress.name == auth.user_id).first().latest_new
         tag_list = db(db.tags.position <= max_rank)
-        paths.find(lambda row: [t in row.tags for t in tag_list])
+        paths = p_list1.find(lambda row: [t in row.tags for t in tag_list])
         for p in paths:
             the_step = p.steps[0]
             if loc_id in the_step.locations:
                 return p, the_step
+            else:
+                continue
 
         # 6) Send user to look elsewhere for a path with active tags
         return self._get_util_step('default')
@@ -996,7 +996,7 @@ class Walk(object):
         '''
 
         if self.verbose: print 'calling Walk._get_category--------------'
-        switch = random.randrange(1, 101)
+        switch = (1, 101)
 
         if switch in range(1, 75):
             category = 1
@@ -1192,7 +1192,7 @@ class Step(object):
             npc_count = len(npcs)
 
             if npc_count > 1:
-                return npcs[random.randrange(1, npc_count) - 1]
+                return npcs[randrange(1, npc_count) - 1]
             elif npc_count == 1:
                 return npcs[0]
             else:
@@ -1437,6 +1437,7 @@ class Step(object):
         '''
         if self.verbose:
             print 'calling', type(self).__name__, '._complete -----------'
+        debug = True
         session = current.session
 
         # Record evaluation of step response
@@ -1445,14 +1446,22 @@ class Step(object):
         # Check to see whether this is the last step in the path and if so
         # remove from active_paths and add to completed_paths
         # also set path to None in session.walk
+        if debug:
+            print 'self.path.steps:', self.path.steps
+            print 'self.path.steps[-1]:', self.path.steps[-1]
+        # if this was the last step in the path, end the path
         if self.path.steps[-1] == self.step.id:
             if self.path.id in session.walk['active_paths']:
                 del session.walk['active_paths'][self.path.id]
             session.walk['completed_paths'].add(self.path.id)
             session.walk['path'] = None
-
-        # remove active step from session.walk
-        session.walk['step'] = None
+            session.walk['step'] = None
+        # if there's another step in this path, make it active
+        elif len(self.path.steps) > 0:
+            s_index = self.path.steps.index(self.step.id)
+            next_s = self.path.steps[s_index + 1]
+            session.walk['step'] = next_s
+            session.walk['active_paths'][self.path.id] = next_s
 
         session.walk['retry'] = [self.path.id, self.step.id]
 
@@ -1670,20 +1679,25 @@ class StepStub(Step):
         Note that the user always gets the step right.
         '''
         if self.verbose:
-            print 'calling', type(self).__name__, '.complete -------------'
+            print 'calling', type(self).__name__, '._complete -------------'
+        debug = True
         session = current.session
-        db = current.db
-        auth = current.auth
 
         if self.path and self.path.id in session.walk['active_paths']:
+            if debug: print 'path:', self.path.id
             del session.walk['active_paths'][self.path.id]
-        session.walk.update({'path': None,
-                            'step': None})
+        elif session.walk['path'] in session.walk['active_paths'].keys():
+            if debug: print 'path:', session.walk['path']
+            del session.walk['active_paths'][session.walk['path']]
+
+        if debug: print 'session active_paths:', session.walk['active_paths']
+        session.walk['path'] = None
+        session.walk['step'] = None
+        if debug: print 'session path:', session.walk['step']
+        if debug: print 'session step:', session.walk['step']
 
         # Store session data in db
-        db.session_data.update_or_insert(db.session_data.user == auth.user_id,
-                                         user=auth.user_id, data=session.walk,
-                                         updated=datetime.datetime.utcnow())
+        Utils()._session_to_db(session.walk)
 
     def _get_responder(self):
         '''
@@ -1702,7 +1716,7 @@ class StepStub(Step):
         return responder
 
 
-class StepNonBlocking(Step):
+class StepNonBlocking(StepStub, Step):
     '''
     This abstract class provides a responder that includes a "continue"
     button, allowing the user to move directly to another step in the current
