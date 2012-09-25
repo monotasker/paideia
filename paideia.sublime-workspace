@@ -427,7 +427,7 @@
 			"file": "modules/paideia_exploring.py",
 			"settings":
 			{
-				"buffer_size": 76093,
+				"buffer_size": 76232,
 				"line_ending": "Unix"
 			}
 		},
@@ -807,15 +807,15 @@
 					"file": "modules/paideia_exploring.py",
 					"settings":
 					{
-						"buffer_size": 76093,
+						"buffer_size": 76232,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								63521,
-								63521
+								75350,
+								75350
 							]
 						],
 						"settings":
@@ -826,7 +826,7 @@
 								"README",
 								"FIXME"
 							],
-							"function_name_status_row": 1689,
+							"function_name_status_row": 2051,
 							"gjslint_ignore":
 							[
 								110
@@ -875,7 +875,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 36756.0,
+						"translation.y": 44968.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
