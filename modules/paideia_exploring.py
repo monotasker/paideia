@@ -8,6 +8,7 @@ import datetime
 from dateutil.parser import parse
 import ast
 from copy import deepcopy
+from itertools import chain
 from random import randrange
 import re
 import traceback
@@ -493,25 +494,26 @@ class Walk(object):
 
             if debug: print categories
 
+        # Make sure untried tags are still included
         tprogress = db(db.tag_progress.name == auth.user_id).select().first()
         if tprogress is None:
-            db.tag_progress.insert(name=auth.user_id)
-            tprogress = db(db.tag_progress.name ==
-                                               auth.user_id).select().first()
-
-        # Make sure untried tags are still included
-        if tprogress.cat1 is not None:
-            untried = [t for t in tprogress.cat1 if t not in categories[1]]
-            categories[1].extend(untried)
+            rank = 1
+        else:
+            rank = tprogress.latest_new
+            if rank == 0:
+                tprogress.update_record(latest_new=1)
+                rank = 1
+        newtags = [t.id for t in db(db.tags.position == rank).select()]
+        alltags = list(chain(*categories.values()))
+        left_out = [t for t in newtags if t not in alltags]
+        if left_out:
+            categories[1].extend(left_out)
+            if debug: print 'adding untried tags', left_out, 'to cat1'
 
         # Remove duplicate tag id's from each category
         # Make sure each of the tags is not beyond the user's current ranking
         for k, v in categories.iteritems():
             if v:
-                rank = tprogress.latest_new
-                if rank == 0:
-                    tprogress.update_record(latest_new=1)
-                    rank = 1
                 newv = [t for t in v if db.tags[t].position <= rank]
                 categories[k] = list(set(newv))
 
