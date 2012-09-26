@@ -483,6 +483,8 @@ class Walk(object):
         tprogress = db(db.tag_progress.name == auth.user_id).select().first()
         if tprogress is None:
             db.tag_progress.insert(name=auth.user_id)
+            tprogress = db(db.tag_progress.name ==
+                                               auth.user_id).select().first()
 
         # Make sure untried tags are still included
         if tprogress.cat1 is not None:
