@@ -38,6 +38,7 @@
     </p>
 
 <table cellspacing='0' class='summary_stats'>
+{{if 'cat4' in active:}}
     <tr>
         <td>mastered</td>
         <td class='total_cat4'>{{=len(active['cat4']) if active['cat4'] else 0}}</td>
@@ -94,6 +95,9 @@
             {{pass}}
         </td>
     </tr>
+{{else:}}
+    <span>You don't yet have any badges to report on. Check back after you explore the town map a bit.</span>
+{{pass}}
 </table>
 
 </div>
