@@ -453,10 +453,11 @@ class Walk(object):
         categories = dict((x, []) for x in xrange(1, 5))
 
         record_list = db(db.tag_records.name == user).select()
-        if record_list is None:
+        if record_list.first() is None:
             if debug: print 'No tag_records for this user'
             firsttags = [t.id for t in db(db.tags.position == 1).select()]
             categories[1] = firsttags
+            self.view_slides = firsttags
             if debug: print 'setting categories to initial value', categories
         else:
             for record in record_list:
@@ -470,11 +471,12 @@ class Walk(object):
                 # Categorize q or tag based on this performance
                 # spaced repetition algorithm for promotion from cat1
                 if ((right_dur < right_wrong_dur)
-                    # don't allow promotion from cat1 within 1 day
-                    and (right_wrong_dur > datetime.timedelta(days=1))
-                    # require at least 10 right answers
-                    and (record.times_right >= 20)) \
-                        or ((record.times_right / record.times_wrong) >= 10):
+                        # don't allow promotion from cat1 within 1 day
+                        and (right_wrong_dur > datetime.timedelta(days=1))
+                        # require at least 10 right answers
+                        and (record.times_right >= 20)) \
+                    or ((record.times_wrong > 0)  # prevent zero division error
+                        and (record.times_right / record.times_wrong) >= 10):
                         # allow for 10% wrong and still promote
 
                     if right_wrong_dur.days >= 7:
@@ -976,7 +978,11 @@ class Walk(object):
                 for path in p_list:
                     try:
                         step1_id = path.steps[0]
+                        if debug: print 'step1_id', step1_id
                         first_step = db.steps[step1_id]
+                        if debug: print 'first_step', first_step
+                        if debug:
+                            print 'first_step.locations', first_step.locations
                         if loc_id in first_step.locations:
                             print 'path', path.id, 'step', step1_id, 'due'
                             return path, step1_id
@@ -1306,6 +1312,7 @@ class Step(object):
                 #TODO: Get this score value from the db instead of hard
                 #coding it here.
                 score = 0.3
+                reply = "Οὐ κάκον. You're close."
             else:
                 score = 0
                 reply = "Incorrect. Try again!"
@@ -1324,7 +1331,9 @@ class Step(object):
         # Handle errors if the student's response cannot be evaluated
         except re.error:
             redirect(URL('index', args=['error', 'regex']))
-
+            reply = 'Oops! I seem to have encountered an error in this step.'
+            readable_short = None
+            readable_long = None
         # TODO: This replaces the Walk.save_session_data() that was in the
         # controller. Make sure this saving of step data is enough.
         self._save_session_data()
@@ -1653,6 +1662,7 @@ class StepMultipleChoice(Step):
             #TODO: Get this score value from the db instead of hard
             #coding it here.
             score = 0.3
+            reply = "Οὐ κάκον. You're close."
         else:
             score = 0
             reply = "Sorry, that wasn't right. Try again!"
@@ -1702,14 +1712,25 @@ class StepStub(Step):
         debug = True
         session = current.session
 
-        if self.path and self.path.id in session.walk['active_paths']:
-            if debug: print 'path:', self.path.id
-            del session.walk['active_paths'][self.path.id]
-        elif session.walk['path'] in session.walk['active_paths'].keys():
-            if debug: print 'path:', session.walk['path']
-            del session.walk['active_paths'][session.walk['path']]
+        # if this is part of a multi-step path
+        if self.path and (len(self.path.steps) > 1) and (self.step.id !=
+                                                         self.path.steps[-1]):
+            thisi = self.path.steps.index(self.step.id)
+            next = self.path.steps[thisi + 1]
+            session.walk['active_paths'][self.path.id] = next
+            if debug: print 'next step in path', self.path.id, 'is', next
+        # if it's a terminal stub
+        else:
+            if self.path and self.path.id in session.walk['active_paths']:
+                if debug: print 'path:', self.path.id
+                del session.walk['active_paths'][self.path.id]
+            elif session.walk['path'] in session.walk['active_paths'].keys():
+                if debug: print 'path:', session.walk['path']
+                del session.walk['active_paths'][session.walk['path']]
 
-        if debug: print 'session active_paths:', session.walk['active_paths']
+            if debug:
+                print 'session active_paths:', session.walk['active_paths']
+        # either way, remove 'path' and 'step' from session.walk
         session.walk['path'] = None
         session.walk['step'] = None
         if debug: print 'session path:', session.walk['step']
@@ -1783,7 +1804,8 @@ class StepViewSlides(StepStub):
 
         slidelist = []
         badgelist = []
-        if 'view_slides' in session.walk:
+        if ('view_slides' in session.walk) and (session.walk['view_slides']
+                                                              is not None):
             for t in session.walk['view_slides']:
                 # convert this to link once plugin_slider supports it
                 tag_slides = db.tags[t].slides
