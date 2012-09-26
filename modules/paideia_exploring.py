@@ -439,7 +439,7 @@ class Walk(object):
         categories. The value for each key is a list holding the id's
         (integers) of the tags that are currently in the given category.
         '''
-        debug = False
+        debug = True
         if self.verbose: print 'calling Walk._categorize_tags--------------'
         auth = current.auth
         db = current.db
@@ -452,33 +452,46 @@ class Walk(object):
         categories = dict((x, []) for x in xrange(1, 5))
 
         record_list = db(db.tag_records.name == user).select()
+        if record_list is None:
+            if debug: print 'No tag_records for this user'
+            firsttags = [t.id for t in db(db.tags.position == 1).select()]
+            categories[1] = firsttags
+            if debug: print 'setting categories to initial value', categories
+        else:
+            for record in record_list:
+                # TODO: Make sure there's only one record per person, per tag
+                #get time-based statistics for this tag
+                #note: the arithmetic operations yield datetime.timedelta objs
+                now_date = datetime.datetime.utcnow()
+                right_dur = now_date - record.tlast_right
+                right_wrong_dur = record.tlast_right - record.tlast_wrong
 
-        for record in record_list:
-            # TODO: Make sure there's only one record per person, per tag
-            #get time-based statistics for this tag
-            #note: the arithmetic operations yield datetime.timedelta objects
-            now_date = datetime.datetime.utcnow()
-            right_dur = now_date - record.tlast_right
-            right_wrong_dur = record.tlast_right - record.tlast_wrong
+                # Categorize q or tag based on this performance
+                # spaced repetition algorithm for promotion from cat1
+                if ((right_dur < right_wrong_dur)
+                    # don't allow promotion from cat1 within 1 day
+                    and (right_wrong_dur > datetime.timedelta(days=1))
+                    # require at least 10 right answers
+                    and (record.times_right >= 20)) \
+                        or ((record.times_right / record.times_wrong) >= 10):
+                        # allow for 10% wrong and still promote
 
-            # Categorize q or tag based on this performance
-            if (right_dur < right_wrong_dur) and (right_wrong_dur >
-                  datetime.timedelta(days=1)) and (record.times_right >= 10):
-                if right_wrong_dur.days >= 7:
-                    if right_wrong_dur.days > 30:
-                        if right_wrong_dur > datetime.timedelta(days=180):
-                            category = 1  # Not due, not attempted for 6 months
+                    if right_wrong_dur.days >= 7:
+                        if right_wrong_dur.days > 30:
+                            if right_wrong_dur > datetime.timedelta(days=180):
+                                category = 1  # not attempted for 6 mos
+                            else:
+                                category = 4  # delta > 1 month
                         else:
-                            category = 4  # Not due, delta more than a month
+                            category = 3  # delta between a week and month
                     else:
-                        category = 3  # Not due, delta between a week and month
-                else:
-                    category = 2  # Not due but delta is a week or less
-            else:
-                category = 1  # Spaced repetition requires review
-            categories[category].append(record.tag.id)
+                        category = 2  # delta is a week or less
 
-        if debug: print categories
+                else:
+                    category = 1  # Spaced repetition requires review
+                categories[category].append(record.tag.id)
+
+            if debug: print categories
 
         tprogress = db(db.tag_progress.name == auth.user_id).select().first()
         if tprogress is None:
