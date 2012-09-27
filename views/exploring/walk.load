@@ -4,6 +4,7 @@
 
 {{if auth.has_membership('administrators'):}}
 <div id='utils'>
+{{=A("Force new session", _href=URL('index.html', vars={'force':'True'}))}}
 <form style='z-index:99' id='clear_session'>
     <ul> <li>
         <input type='text' value='all' name='session_var' id='session_var' />

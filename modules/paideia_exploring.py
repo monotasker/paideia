@@ -161,7 +161,7 @@ class Walk(object):
 
     verbose = True  # controls printing of initialization and method calls
 
-    def __init__(self):
+    def __init__(self, force_new_session=False):
         '''
         Initialize a Walk object. When it is initialized, maintain session
         data through each 24-hour day by:
@@ -180,6 +180,10 @@ class Walk(object):
         # TODO: This check is too costly to do every time, rework
         # maybe pass whole serialized Walk object via session?
         # then just check start date of Walk object?
+        if force_new_session is True:
+            if debug:
+                print 'forcing new session'
+            self._start_new_session()
         if self._check_for_session() is True:
             if debug: print 'session data present and not stale'
             self._get_session_data()
@@ -210,7 +214,8 @@ class Walk(object):
         # initialize the session properly
         self.tag_set = self._categorize_tags()
         self.new_badges = self._new_badges(auth.user_id, self.tag_set)
-        self._unfinished()
+        #self._unfinished()
+        # TODO: deprecated _unfinished in present state, but need replacement
         self.session_start = datetime.datetime.utcnow()
         # store newly initialized attributes in session object
         self._save_session_data(True)
@@ -494,7 +499,7 @@ class Walk(object):
                     category = 1  # Spaced repetition requires review
                 categories[category].append(record.tag.id)
 
-            if debug: print categories
+            if debug: print 'raw categorized tags:', categories
 
         # Make sure untried tags are still included
         tprogress = db(db.tag_progress.name == auth.user_id).select().first()
@@ -505,15 +510,21 @@ class Walk(object):
             if rank == 0:
                 tprogress.update_record(latest_new=1)
                 rank = 1
-        newtags = [t.id for t in db(db.tags.position == rank).select()]
-        alltags = list(chain(*categories.values()))
-        left_out = [t for t in newtags if t not in alltags]
+        if debug: print 'current rank:', rank
+        #check for untried in current and all lower ranks
+        #should only be necessary until junk data is fixed?
+        left_out = []
+        for r in range(1, rank + 1):
+            newtags = [t.id for t in db(db.tags.position == r).select()]
+            alltags = list(chain(*categories.values()))
+            left_out.extend([t for t in newtags if t not in alltags])
         if left_out:
             categories[1].extend(left_out)
             if debug: print 'adding untried tags', left_out, 'to cat1'
 
         # Remove duplicate tag id's from each category
         # Make sure each of the tags is not beyond the user's current ranking
+        # even if some were actually tried before (through system error)
         for k, v in categories.iteritems():
             if v:
                 newv = [t for t in v if db.tags[t].position <= rank]
@@ -525,6 +536,8 @@ class Walk(object):
         # TODO: Could this categorization be done by a background process?
 
         self.tag_set = categories
+        if debug: print 'final categorized tags:', categories
+        if debug: print 'active_paths:', self.active_paths
 
         # return the value as well so that it can be used in Stats
         return categories
@@ -536,7 +549,7 @@ class Walk(object):
         those new tags whose structure mirrors that of session.walk['tag_set'].
         '''
         if self.verbose: print 'calling Walk._new_badges ---------------------'
-        debug = False
+        debug = True
         db = current.db
         auth = current.auth
 
@@ -584,6 +597,7 @@ class Walk(object):
             if debug: print 'no new badges awarded'
             return None
 
+    # method deprecated
     def _unfinished(self):
         '''
         This public method checks for any paths that have been started but not
