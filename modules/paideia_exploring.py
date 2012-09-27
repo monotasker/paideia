@@ -1492,14 +1492,15 @@ class Step(object):
             print 'self.path.steps:', self.path.steps
             print 'self.path.steps[-1]:', self.path.steps[-1]
         # if this was the last step in the path, end the path
-        if self.path.steps[-1] == self.step.id:
+        stepcount = len(self.path.steps)
+        if stepcount > 1 and self.path.steps[-1] == self.step.id:
             if self.path.id in session.walk['active_paths']:
                 del session.walk['active_paths'][self.path.id]
             session.walk['completed_paths'].add(self.path.id)
             session.walk['path'] = None
             session.walk['step'] = None
         # if there's another step in this path, make it active
-        elif len(self.path.steps) > 0:
+        elif stepcount > 0:
             s_index = self.path.steps.index(self.step.id)
             next_s = self.path.steps[s_index + 1]
             session.walk['step'] = next_s
