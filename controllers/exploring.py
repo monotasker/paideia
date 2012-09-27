@@ -174,7 +174,12 @@ def walk():
     debug = True
 
     if debug: print '\n\nStarting controller exploring.walk()'
-    walk = Walk()
+    print request.vars
+    if request.vars and request.vars['force'] == 'True':
+        print 'forcing new session'
+        walk = Walk(True)
+    else:
+        walk = Walk()
 
     # When user begins exploring (also default) present map
     if (request.args(0) == 'start') or (not request.args):

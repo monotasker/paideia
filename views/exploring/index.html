@@ -1,19 +1,25 @@
 {{extend 'layout.html'}}
-{{=LOAD('exploring','walk.load',ajax=True)}}
+{{if request.vars:}}
+    {{v = request.vars}}
+{{else:}}
+    {{v = ''}}
+{{pass}}
+{{=LOAD('exploring','walk.load', vars=v, ajax=True)}}
 <!-- TODO: This script isn't working at all! -->
-<script type="text/javascript">
-window.onbeforeunload = function(e){
-    ajax(URL('exploring', 'save_session_data'), [], ":eval");
 
-    var e = e || window.event;
+// <script type="text/javascript">
+// window.onbeforeunload = function(e){
+//     ajax(URL('exploring', 'save_session_data'), [], ":eval");
 
-    // For IE and Firefox prior to version 4
-    if (e) {
-         e.returnValue = 'We\'re storing your session';
-    }
+//     var e = e || window.event;
 
-    // For Safari
-    return 'We\'re storing your session';
-};
+//     // For IE and Firefox prior to version 4
+//     if (e) {
+//          e.returnValue = 'We\'re storing your session';
+//     }
 
-</script>
+//     // For Safari
+//     return 'We\'re storing your session';
+// };
+
+// </script>
