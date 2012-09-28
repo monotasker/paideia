@@ -4,6 +4,10 @@
 		"selected_items":
 		[
 			[
+				"sess",
+				"session_data	(local, instance)"
+			],
+			[
 				"times",
 				"times_wrong"
 			],
@@ -66,10 +70,6 @@
 			[
 				"user",
 				"user_id"
-			],
-			[
-				"sess",
-				"session_data"
 			],
 			[
 				"user_",
@@ -427,7 +427,7 @@
 			"file": "modules/paideia_exploring.py",
 			"settings":
 			{
-				"buffer_size": 78409,
+				"buffer_size": 80082,
 				"line_ending": "Unix"
 			}
 		},
@@ -435,7 +435,7 @@
 			"file": "controllers/exploring.py",
 			"settings":
 			{
-				"buffer_size": 7690,
+				"buffer_size": 8058,
 				"line_ending": "Unix"
 			}
 		},
@@ -443,7 +443,7 @@
 			"file": "views/exploring/walk.load",
 			"settings":
 			{
-				"buffer_size": 4689,
+				"buffer_size": 5038,
 				"line_ending": "Unix"
 			}
 		},
@@ -467,6 +467,10 @@
 				":w - Save"
 			],
 			[
+				":inst",
+				"Package Control: Install Package"
+			],
+			[
 				":sett",
 				"Preferences: Settings - User"
 			],
@@ -485,10 +489,6 @@
 			[
 				":split",
 				"Preferences: SplitScreen-Resizer Key Bindings – Default"
-			],
-			[
-				":inst",
-				"Package Control: Install Package"
 			],
 			[
 				":insta",
@@ -636,6 +636,7 @@
 	},
 	"file_history":
 	[
+		"/home/ian/.config/sublime-text-2/Packages/TodoManager/TodoManager.sublime-settings",
 		"/home/ian/web/web2py/applications/paideia/controllers/default.py",
 		"/home/ian/web/web2py/applications/paideia/views/default/user.html",
 		"/home/ian/web/web2py/applications/paideia/static/plugin_framework/theme_paideia.less",
@@ -722,6 +723,9 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"activ",
+			"npc",
+			"ask",
 			"view_slides",
 			"break",
 			"randrange",
@@ -808,15 +812,15 @@
 					"file": "modules/paideia_exploring.py",
 					"settings":
 					{
-						"buffer_size": 78409,
+						"buffer_size": 80082,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								51466,
-								51466
+								66088,
+								66088
 							]
 						],
 						"settings":
@@ -827,7 +831,7 @@
 								"README",
 								"FIXME"
 							],
-							"function_name_status_row": 1341,
+							"function_name_status_row": 1734,
 							"gjslint_ignore":
 							[
 								110
@@ -876,7 +880,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 29226.0,
+						"translation.y": 37856.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -884,7 +888,7 @@
 			]
 		},
 		{
-			"selected": 2,
+			"selected": 1,
 			"sheets":
 			[
 				{
@@ -892,15 +896,15 @@
 					"file": "controllers/exploring.py",
 					"settings":
 					{
-						"buffer_size": 7690,
+						"buffer_size": 8058,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								0,
-								0
+								7758,
+								7758
 							]
 						],
 						"settings":
@@ -911,7 +915,7 @@
 								"README",
 								"FIXME"
 							],
-							"function_name_status_row": 0,
+							"function_name_status_row": 221,
 							"gjslint_ignore":
 							[
 								110
@@ -960,7 +964,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 4322.0,
+						"translation.y": 4300.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -970,26 +974,26 @@
 					"file": "views/exploring/walk.load",
 					"settings":
 					{
-						"buffer_size": 4689,
+						"buffer_size": 5038,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1458,
-								1458
+								1018,
+								1018
 							]
 						],
 						"settings":
 						{
-							"function_name_status_row": 52,
+							"function_name_status_row": 31,
 							"syntax": "Packages/HTML/HTML.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 720.0,
+						"translation.y": 230.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -1006,8 +1010,8 @@
 						"selection":
 						[
 							[
-								8043,
-								8043
+								4140,
+								4140
 							]
 						],
 						"settings":
@@ -1018,7 +1022,7 @@
 								"README",
 								"FIXME"
 							],
-							"function_name_status_row": 218,
+							"function_name_status_row": 122,
 							"gjslint_ignore":
 							[
 								110
@@ -1067,7 +1071,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 4212.0,
+						"translation.y": 2365.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
