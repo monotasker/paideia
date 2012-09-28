@@ -356,7 +356,7 @@ class Walk(object):
 
         # create step instance here if we're processing a user's response
         if ('response' in request.vars) and \
-                (request.args(0) in ['ask', 'retry']):
+                (request.args[0] in ['ask', 'retry']):
             self.step = self._create_step_instance()
             print 're-activating step'
 
@@ -719,7 +719,7 @@ class Walk(object):
 
         # allow for situations where the path id is given rather than the
         # path's row object. (As in 'retry' state.)
-        if type(path) == int:
+        if (type(path) == int) or (type(path) == str):
             path = db.paths[path]
 
         self.path = path
@@ -1156,7 +1156,7 @@ class Step(object):
             print 'calling', type(self).__name__, '.ask-------------------'
         debug = False
 
-        npc = self._get_npc()
+        npc = self._get_npc(self.step, self.location)
         prompt = self._get_prompt()
         responder = self._get_responder()
         badgetip = self._get_badge_display(self.step.id)
@@ -1208,7 +1208,7 @@ class Step(object):
 
         return badgetip
 
-    def _get_npc(self):
+    def _get_npc(self, step, location):
         '''
         Given a set of npcs for this step select one of the npcs at random and
         return the corresponding Npc object.
@@ -1217,7 +1217,7 @@ class Step(object):
         # same npc if in the same location
         if self.verbose:
             print 'calling', type(self).__name__, '._get_npc--------------'
-        debug = False
+        debug = True
 
         def _get_npc_internal(npcs):
             '''
@@ -1242,33 +1242,34 @@ class Step(object):
         if session.walk['active_location'] is None:
             return   # TODO: maybe we return a 404 here (or in ask(), etc.)?
 
-        if debug: print 'self.location =', self.location
+        if debug: print 'self.location =', location
         npcs = db(
-                    (db.npcs.id.belongs(self.step.npcs)) &
-                    (db.npcs.location.contains(self.location['id']))
+                    (db.npcs.id.belongs(step.npcs)) &
+                    (db.npcs.location.contains(location['id']))
                 ).select()
 
         npc = _get_npc_internal(npcs)
+        if debug: print 'initial npc result:', npc
 
         # If we haven't found an npc at the location and step, get a random one
         # from this location.
         if not npc:
-            npcs = db(db.npcs.location.contains(self.location['id'])).select()
-
+            npcs = db(db.npcs.location.contains(location['id'])).select()
             npc = _get_npc_internal(npcs)
+            if debug: print 'getting random npc from this loc'
 
         # If we haven't found an npc at the location, get a random one from
         # this step.
         if not npc:
-            npcs = db((db.npcs.id.belongs(self.step.npcs))).select()
-
+            npcs = db((db.npcs.id.belongs(step.npcs))).select()
             npc = _get_npc_internal(npcs)
+            if debug: print 'getting random npc for this step'
 
         # If we still haven't found an npc, just get a random one
         if not npc:
             npcs = db(db.npcs.id > 0).select()
-
             npc = _get_npc_internal(npcs)
+            if debug: print 'getting completely random npc'
 
         self.npc = Npc(npc.id)
 
@@ -1493,14 +1494,14 @@ class Step(object):
             print 'self.path.steps[-1]:', self.path.steps[-1]
         # if this was the last step in the path, end the path
         stepcount = len(self.path.steps)
-        if stepcount > 1 and self.path.steps[-1] == self.step.id:
+        if self.path.steps[-1] == self.step.id:
             if self.path.id in session.walk['active_paths']:
                 del session.walk['active_paths'][self.path.id]
             session.walk['completed_paths'].add(self.path.id)
             session.walk['path'] = None
             session.walk['step'] = None
         # if there's another step in this path, make it active
-        elif stepcount > 0:
+        elif stepcount > 1:
             s_index = self.path.steps.index(self.step.id)
             next_s = self.path.steps[s_index + 1]
             session.walk['step'] = next_s
@@ -1728,6 +1729,7 @@ class StepStub(Step):
         session = current.session
 
         # if this is part of a multi-step path
+        # text with path 93 step 107
         if self.path and (len(self.path.steps) > 1) and (self.step.id !=
                                                          self.path.steps[-1]):
             thisi = self.path.steps.index(self.step.id)
@@ -1750,6 +1752,7 @@ class StepStub(Step):
         session.walk['step'] = None
         if debug: print 'session path:', session.walk['step']
         if debug: print 'session step:', session.walk['step']
+        if debug: print 'session active_paths', session.walk['active_paths']
 
         # Store session data in db
         Utils()._session_to_db(session.walk)
@@ -1996,22 +1999,23 @@ class Npc(object):
 
         if npc_id is not None:
             self.npc = db.npcs(npc_id)
-            self.image = self._get_image()
+            self.image = self._get_image(self.npc)
 
             self._save_session_data()
 
         else:
-            self._get_session_data()
+            info = self._get_session_data()
+            self.npc = info.npc
+            self.image = info.image
+            self.location = info.location
 
     def _save_session_data(self):
         '''
         Save attributes in session.
         '''
-
         session = current.session
 
         session_data = {}
-
         session_data['npc'] = self.npc.id
         session_data['npc_image'] = self.image
 
@@ -2021,26 +2025,27 @@ class Npc(object):
         '''
         Get the walk attributes from the session.
         '''
-
         db, session = current.db, current.session
 
         if 'npc' in session.walk:
-            self.npc = db.npcs(session.walk['npc'])
-            self.image = session.walk['npc_image']
+            npc = db.npcs(session.walk['npc'])
+            image = session.walk['npc_image']
         else:
-            self.npc = None
-            self.image = None
+            npc = None
+            image = None
 
-        self.location = session.walk['active_location']
+        location = session.walk['active_location']
 
-    def _get_image(self):
+        return {'image': image, 'npc': npc, 'location': location}
+
+    def _get_image(self, row):
         '''
         Get the image to present as a depiction of the npc.
         '''
         debug = False
 
         try:
-            url = URL('static/images', self.npc.npc_image.image)
+            url = URL('static/images', row.npc_image.image)
             if debug:
                 print url
             # TODO: Add title attribute
