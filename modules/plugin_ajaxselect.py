@@ -3,6 +3,7 @@ from gluon.html import URL
 from gluon.sqlhtml import OptionsWidget, MultipleOptionsWidget
 #TODO: add ListWidget as another option?
 
+
 class AjaxSelect(object):
     """
     This plugin creates a select widget wrapped that can be refreshed via ajax
@@ -29,8 +30,10 @@ class AjaxSelect(object):
 
     from gluon import current
     current.db = db
-    response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.css'))
-    response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.js'))
+    response.files.append(URL('static',
+                          'plugin_ajaxselect/plugin_ajaxselect.css'))
+    response.files.append(URL('static',
+                          'plugin_ajaxselect/plugin_ajaxselect.js'))
 
     The plugin should now be installed and ready to use.
 
@@ -123,23 +126,23 @@ class AjaxSelect(object):
         #assemble information first
         fieldset = str(field).split('.')
         wrappername = self.wrappername(fieldset)
-        linktable = self.linktable(field) #find table referenced by widget
-        form_name = '%s_adder_form' % linktable #for referenced table form
-        value = self.choose_val(value, wrappername) #choose db or session
+        linktable = self.linktable(field)  # find table referenced by widget
+        form_name = '%s_adder_form' % linktable  # for referenced table form
+        value = self.choose_val(value, wrappername)  # choose db or session
         clean_val = self.clean(value, multi)
-        uargs = fieldset #args for add and refresh urls
-        restricted = self.restricted(restricted) #isolate setting of this param
+        uargs = fieldset  # args for add and refresh urls
+        restricted = self.restricted(restricted)  # isolate setting of param
         uvars = dict(linktable=linktable,
                     wrappername=wrappername, refresher=refresher,
                     adder=adder, restrictor=restrictor,
                     multi=multi, lister=lister,
                     restricted=restricted,
                     sortable=sortable,
-                    value=clean_val) #vars for add and refresh urls
+                    value=clean_val)  # vars for add and refresh urls
 
-        #create and assemble elements of widget
-        wrapper = SPAN(_id = wrappername,
-                    _class = self.classes(linktable, restricted,
+        # create and assemble elements of widget
+        wrapper = SPAN(_id=wrappername,
+                    _class=self.classes(linktable, restricted,
                                         restrictor, lister, sortable))
         wrapper.append(self.create_widget(field, value, clean_val,
                                         multi, restricted, rval, sortable))
@@ -209,10 +212,10 @@ class AjaxSelect(object):
                     val = [int(v) for v in val]
             except ValueError, e:
                 print e
-                val = None #to handle a blank string being passed to int(v)
+                val = None  # to handle a blank string being passed to int(v)
             except IndexError, e:
                 print e
-                val = None #to handle an empty list
+                val = None  # to handle an empty list
 
         if debug: print 'val at end of choose_val() =', val
 
@@ -248,7 +251,6 @@ class AjaxSelect(object):
             print 'field =', field
             print 'value =', value
 
-
         if multi and multi != 'False':
             w = MultipleOptionsWidget.widget(field, value)
             if debug:
@@ -263,7 +265,7 @@ class AjaxSelect(object):
                         if debug: print 'opt =', opt
                         i = w.elements().index(opt)
                         w.append(opt)
-                        del w[i-1]
+                        del w[i - 1]
                         if debug:
                             print 'removed', opt
                             print 'index', i
@@ -272,7 +274,7 @@ class AjaxSelect(object):
                         opt = w.element(_value=value)
                         i = w.elements().index(opt)
                         w.append(opt)
-                        del w[i-1]
+                        del w[i - 1]
                     else:
                         print e
                 except ValueError, e:
@@ -291,8 +293,8 @@ class AjaxSelect(object):
         preserved through a widget refresh"""
 
         inputid = wrappername + '_input'
-        i = INPUT(_id = inputid, _name = inputid, _type = 'hidden',
-                _value = clean_val)
+        i = INPUT(_id=inputid, _name=inputid, _type='hidden',
+                _value=clean_val)
 
         return i
 
@@ -385,10 +387,14 @@ class AjaxSelect(object):
 
             for v in value:
                 myrow = db(db[linktable].id == v).select().first()
-
-                formatted = db[linktable]._format % myrow
+                if myrow is None:
+                    continue
+                try:
+                    formatted = db[linktable]._format % myrow
+                except TypeError:
+                    formatted = myrow[1]
                 trigger_id = '%s_editlist_trigger_%i' % (linktable, int(v))
-                linkargs = uargs[:] #slice for new obj so vals don't pile up
+                linkargs = uargs[:]  # slice for new obj so vals don't pile up
                 linkargs.append(v)
                 ln = LI(SPAN(formatted), _id=v, _class='editlink tag')
                 ln.insert(0, A('X', _class='tag_remover'))
@@ -446,11 +452,13 @@ class FilteredAjaxSelect(AjaxSelect):
             #TODO: Create filtered multiple options widget class
         else:
             if rval:
-                w = FilteredOptionsWidget.widget(field, value, restricted, rval)
+                w = FilteredOptionsWidget.widget(field, value,
+                                                 restricted, rval)
             else:
                 w = OptionsWidget.widget(field, value)
 
         return w
+
 
 class FilteredOptionsWidget(OptionsWidget):
     """
@@ -489,7 +497,7 @@ class FilteredOptionsWidget(OptionsWidget):
             if hasattr(requires[0], 'options'):
                 options = requires[0].options()
             else:
-                raise SyntaxError, 'widget cannot determine options of %s' % field
+                raise SyntaxError, 'widget cannot get options of %s' % field
 
         # get the table referenced by this field
         linktable = requires[0].ktable
@@ -518,11 +526,12 @@ class FilteredOptionsWidget(OptionsWidget):
 
         #find the linktable field that references filter_linktable
         ref = 'reference %s' % filter_linktable
-        cf = [f for f in db[linktable].fields if db[linktable][f].type == ref][0]
+        cf = [f for f in db[linktable].fields
+                                        if db[linktable][f].type == ref][0]
 
         # filter raw list of options
         f_options = [o for o in options if db((db[linktable].id == o[0])
-                                            & (db[linktable][cf] == filter_val)).select()]
+                                & (db[linktable][cf] == filter_val)).select()]
 
         # build widget with filtered options
         opts = [OPTION(v, _value=k) for (k, v) in f_options]
