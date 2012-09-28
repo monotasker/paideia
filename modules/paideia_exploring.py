@@ -279,7 +279,7 @@ class Walk(object):
         '''
         Save instance attributes in web2py session object for data persistence.
         '''
-        #debug = False
+        debug = True
         if self.verbose:
             print 'calling Walk._save_session_data--------------'
         session = current.session
@@ -299,6 +299,10 @@ class Walk(object):
 
         if self.path:
             session_data['path'] = self.path.id
+            if debug: print 'path:', session_data['path']
+        if self.step:
+            session_data['step'] = self.step.step.id
+            if debug: print 'step:', session_data['step']
 
         if self.active_location:
             session_data['active_location'] = self.active_location
@@ -717,6 +721,7 @@ class Walk(object):
         session = current.session
         db = current.db
 
+        step_id = int(step_id)
         # allow for situations where the path id is given rather than the
         # path's row object. (As in 'retry' state.)
         if (type(path) == int) or (type(path) == str):
@@ -1727,7 +1732,11 @@ class StepStub(Step):
             print 'calling', type(self).__name__, '._complete -------------'
         debug = True
         session = current.session
+        db = current.db
 
+        if self.path is None:
+            self.path = db.paths(session.walk['path'])
+        print 'self.path', self.path
         # if this is part of a multi-step path
         # text with path 93 step 107
         if self.path and (len(self.path.steps) > 1) and (self.step.id !=
