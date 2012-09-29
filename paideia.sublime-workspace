@@ -451,7 +451,15 @@
 			"file": "models/paideia.py",
 			"settings":
 			{
-				"buffer_size": 15789,
+				"buffer_size": 15853,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "modules/plugin_ajaxselect.py",
+			"settings":
+			{
+				"buffer_size": 21106,
 				"line_ending": "Unix"
 			}
 		}
@@ -723,6 +731,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"('tags",
 			"activ",
 			"npc",
 			"ask",
@@ -888,7 +897,7 @@
 			]
 		},
 		{
-			"selected": 1,
+			"selected": 3,
 			"sheets":
 			[
 				{
@@ -981,13 +990,13 @@
 						"selection":
 						[
 							[
-								1018,
-								1018
+								606,
+								606
 							]
 						],
 						"settings":
 						{
-							"function_name_status_row": 31,
+							"function_name_status_row": 21,
 							"syntax": "Packages/HTML/HTML.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
@@ -1003,15 +1012,15 @@
 					"file": "models/paideia.py",
 					"settings":
 					{
-						"buffer_size": 15789,
+						"buffer_size": 15853,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								4140,
-								4140
+								3328,
+								3328
 							]
 						],
 						"settings":
@@ -1022,7 +1031,7 @@
 								"README",
 								"FIXME"
 							],
-							"function_name_status_row": 122,
+							"function_name_status_row": 102,
 							"gjslint_ignore":
 							[
 								110
@@ -1071,7 +1080,36 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 2365.0,
+						"translation.y": 1638.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "modules/plugin_ajaxselect.py",
+					"settings":
+					{
+						"buffer_size": 21106,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								15331,
+								15331
+							]
+						],
+						"settings":
+						{
+							"function_name_status_row": 391,
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 8574.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -1135,6 +1173,10 @@
 		"height": 0.0,
 		"selected_items":
 		[
+			[
+				"ajaxs",
+				"paideia/modules/plugin_ajaxselect.py"
+			],
 			[
 				"defa",
 				"paideia/controllers/default.py"
