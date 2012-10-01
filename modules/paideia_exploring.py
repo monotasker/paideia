@@ -1024,7 +1024,8 @@ class Walk(object):
 
         # 5) Choose a random path that can be started here
         if debug: print 'looking for random path with active tags'  # DEBUG
-        max_rank = db(db.tag_progress.name == auth.user_id).first().latest_new
+        max_rank = db(db.tag_progress.name
+                            == auth.user_id).select().first().latest_new
         tag_list = db(db.tags.position <= max_rank)
         paths = p_list1.find(lambda row: [t in row.tags for t in tag_list])
         for p in paths:
@@ -1522,6 +1523,7 @@ class Step(object):
         debug = True
         session = current.session
 
+        # Where appropriate, make sure last_step is recorded as 0
         # Record evaluation of step response
         self._record(score, times_wrong)
 
