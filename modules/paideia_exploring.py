@@ -984,9 +984,13 @@ class Walk(object):
             if self.completed_paths is not None:
                 if debug: print 'already completed:', self.completed_paths
                 p_list.exclude(lambda row: row.id in self.completed_paths)
+                # prevent getting hung up because of steps with right tag but
+                # with no location
+                p_list.exclude(lambda row: db.steps[row.steps[0]].locations
+                                                                    is None)
                 if debug: print 'path list without those:', p_list
 
-            if p_list is not None:
+            if len(p_list) > 0:
                 if debug: print 'some new paths are available in cat', cat
                 # 3) Find and activate a due path that starts here
                 for path in p_list:
@@ -1729,10 +1733,19 @@ class StepStub(Step):
         # if this is part of a multi-step path
         if self.path and (len(self.path.steps) > 1) and (self.step.id !=
                                                          self.path.steps[-1]):
-            thisi = self.path.steps.index(self.step.id)
-            next = self.path.steps[thisi + 1]
-            session.walk['active_paths'][self.path.id] = next
-            if debug: print 'next step in path', self.path.id, 'is', next
+            # TODO: In some cases when step 30 (nothing here) is activated
+            # between steps of a multi-step path, no other path is activated,
+            # but the step 30 will not be found in the path.steps list
+            # so this condition prevents a ValueError.
+            if self.step.id == 30:
+                if debug:
+                    print 'this is intermediate "not here" step'
+                    print 'preserving path and active_paths info'
+            else:
+                thisi = self.path.steps.index(self.step.id)
+                next = self.path.steps[thisi + 1]
+                session.walk['active_paths'][self.path.id] = next
+                if debug: print 'next step in path', self.path.id, 'is', next
         # if it's a terminal stub
         else:
             if self.path and self.path.id in session.walk['active_paths']:
