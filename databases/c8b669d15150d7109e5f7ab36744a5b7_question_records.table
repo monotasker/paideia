@@ -25,7 +25,7 @@ p13
 I8
 sS'sql'
 p14
-S'INTEGER REFERENCES categories(id) ON DELETE CASCADE'
+S'INTEGER REFERENCES categories (id) ON DELETE CASCADE'
 p15
 ssS'last_right'
 p16
@@ -57,7 +57,7 @@ p25
 sg13
 I3
 sg14
-S'INTEGER REFERENCES questions(id) ON DELETE CASCADE'
+S'INTEGER REFERENCES questions (id) ON DELETE CASCADE'
 p26
 ssS'tlast_wrong'
 p27
@@ -110,6 +110,6 @@ p43
 sg13
 I2
 sg14
-S'INTEGER REFERENCES auth_user(id) ON DELETE CASCADE'
+S'INTEGER REFERENCES auth_user (id) ON DELETE CASCADE'
 p44
 ss.
