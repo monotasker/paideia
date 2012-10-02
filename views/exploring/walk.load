@@ -4,6 +4,7 @@
 
 {{if auth.has_membership('administrators'):}}
 <div id='utils'>
+{{=A("Force new session", _href=URL('index.html', vars={'force':'True'}))}}
 <form style='z-index:99' id='clear_session'>
     <ul> <li>
         <input type='text' value='all' name='session_var' id='session_var' />
@@ -23,9 +24,14 @@
     <ul>
         <li>
             <a id='test_this_step' href='#'>Test</a> path
-            <input type='text' value='all' name='test_path' id='test_step' />
+            <input type='text' value='all' name='test_path' id='test_path' />
             step
             <input type='text' value='all' name='test_step' id='test_step' />
+            <select id='test_loc'>
+                {{for l in db(db.locations.id > 0).select():}}
+                    {{=OPTION(l.alias, _value=l.alias)}}
+                {{pass}}
+            </select>
         </li>
     </ul>
 </form>
@@ -112,7 +118,8 @@ $('#session_clear').click(function(event){
 $('#test_this_step').click(function(event){
     val = $(this).parent('li').find('#test_path').val();
     val2 = $(this).parent('li').find('#test_step').val();
-    window.parent.web2py_component("/paideia/exploring/walk.load/retry?path=" + val + "&step=" + val2, "page");
+    loc = $(this).parent('li').find('#test_loc').val();
+    window.parent.web2py_component("/paideia/exploring/walk.load/test?path=" + val + "&step=" + val2 + "&loc=" + loc, "page");
     event.preventDefault();
 });
 $('#responder_submit').click(function(event){
