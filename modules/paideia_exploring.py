@@ -1027,7 +1027,8 @@ class Walk(object):
         max_rank = db(db.tag_progress.name
                             == auth.user_id).select().first().latest_new
         tag_list = db(db.tags.position <= max_rank)
-        paths = p_list1.find(lambda row: [t in row.tags for t in tag_list])
+        paths = p_list1.find(lambda row:
+                                    [t for t in row.tags if t in tag_list])
         for p in paths:
             the_step = p.steps[0]
             if loc_id in the_step.locations:
