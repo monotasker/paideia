@@ -22,7 +22,7 @@ p11
 sg6
 I2
 sg7
-S'INTEGER REFERENCES auth_group(id) ON DELETE CASCADE'
+S'INTEGER REFERENCES auth_group (id) ON DELETE CASCADE'
 p12
 ssS'table_name'
 p13
@@ -39,20 +39,21 @@ ssS'id'
 p17
 (dp18
 g4
-g17
+S'id'
+p19
 sg6
 I1
 sg7
 S'INTEGER PRIMARY KEY AUTOINCREMENT'
-p19
-ssS'name'
 p20
-(dp21
+ssS'name'
+p21
+(dp22
 g4
 g15
 sg6
 I3
 sg7
 S'CHAR(512)'
-p22
+p23
 ss.

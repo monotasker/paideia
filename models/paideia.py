@@ -239,6 +239,7 @@ db.steps.tags_secondary.requires = IS_IN_DB(db, 'tags.id',
                                                 multiple=True)
 db.steps.tags_secondary.widget = lambda field, value: AjaxSelect().widget(
                                                 field, value, 'tags',
+                                                refresher=True,
                                                 multi='basic',
                                                 lister='editlinks')
 db.steps.locations.requires = IS_IN_DB(db, 'locations.id',

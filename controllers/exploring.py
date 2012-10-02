@@ -174,7 +174,12 @@ def walk():
     debug = True
 
     if debug: print '\n\nStarting controller exploring.walk()'
-    walk = Walk()
+    print request.vars
+    if request.vars and request.vars['force'] == 'True':
+        print 'forcing new session'
+        walk = Walk(True)
+    else:
+        walk = Walk()
 
     # When user begins exploring (also default) present map
     if (request.args(0) == 'start') or (not request.args):
@@ -203,12 +208,19 @@ def walk():
         return walk.step.ask()
 
     # if user wants to retry a failed step
-    # TODO: Ensure repeats aren't added separately to paths_completed
     elif request.args(0) == 'retry':
         if debug: print '\ncontroller exploring.walk() state: retry'
         last_pathid = session.walk['retry'][0]
         last_stepid = session.walk['retry'][1]
         walk.activate_step(last_pathid, last_stepid)
+        return walk.step.ask()
+
+    # test a specific path
+    elif request.args(0) == 'test':
+        if debug: print '\ncontroller exploring.walk() state: test'
+        pathid = request.vars['path']
+        stepid = request.vars['step']
+        walk.activate_step(pathid, stepid)
         return walk.step.ask()
 
     #if user response results in an error

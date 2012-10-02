@@ -11,7 +11,7 @@ p6
 I3
 sS'sql'
 p7
-S'INTEGER REFERENCES auth_group(id) ON DELETE CASCADE'
+S'INTEGER REFERENCES auth_group (id) ON DELETE CASCADE'
 p8
 ssS'user_id'
 p9
@@ -22,16 +22,17 @@ p11
 sg6
 I2
 sg7
-S'INTEGER REFERENCES auth_user(id) ON DELETE CASCADE'
+S'INTEGER REFERENCES auth_user (id) ON DELETE CASCADE'
 p12
 ssS'id'
 p13
 (dp14
 g4
-g13
+S'id'
+p15
 sg6
 I1
 sg7
 S'INTEGER PRIMARY KEY AUTOINCREMENT'
-p15
+p16
 ss.
