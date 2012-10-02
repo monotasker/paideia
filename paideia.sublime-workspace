@@ -4,14 +4,6 @@
 		"selected_items":
 		[
 			[
-				"sess",
-				"session_data	(local, instance)"
-			],
-			[
-				"times",
-				"times_wrong"
-			],
-			[
 				"active",
 				"active_paths"
 			],
@@ -70,6 +62,10 @@
 			[
 				"user",
 				"user_id"
+			],
+			[
+				"sess",
+				"session_data"
 			],
 			[
 				"user_",
@@ -246,6 +242,10 @@
 			[
 				"tla",
 				"tlast_wrong"
+			],
+			[
+				"times",
+				"times_wrong"
 			],
 			[
 				"last_",
@@ -427,7 +427,39 @@
 			"file": "modules/paideia_exploring.py",
 			"settings":
 			{
-				"buffer_size": 80082,
+				"buffer_size": 76306,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "views/plugin_slider/show_slide.load",
+			"settings":
+			{
+				"buffer_size": 13,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "controllers/plugin_slider.py",
+			"settings":
+			{
+				"buffer_size": 4606,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "controllers/listing.py",
+			"settings":
+			{
+				"buffer_size": 1859,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "static/plugin_slider/plugin_slider.less",
+			"settings":
+			{
+				"buffer_size": 8898,
 				"line_ending": "Unix"
 			}
 		},
@@ -435,7 +467,7 @@
 			"file": "controllers/exploring.py",
 			"settings":
 			{
-				"buffer_size": 8058,
+				"buffer_size": 7690,
 				"line_ending": "Unix"
 			}
 		},
@@ -443,7 +475,7 @@
 			"file": "views/exploring/walk.load",
 			"settings":
 			{
-				"buffer_size": 5038,
+				"buffer_size": 4689,
 				"line_ending": "Unix"
 			}
 		},
@@ -451,7 +483,7 @@
 			"file": "models/paideia.py",
 			"settings":
 			{
-				"buffer_size": 15789,
+				"buffer_size": 15853,
 				"line_ending": "Unix"
 			}
 		}
@@ -459,7 +491,7 @@
 	"build_system": "Packages/LESS-build/LESS.sublime-build",
 	"command_palette":
 	{
-		"height": 375.0,
+		"height": 264.0,
 		"selected_items":
 		[
 			[
@@ -467,12 +499,8 @@
 				":w - Save"
 			],
 			[
-				":inst",
-				"Package Control: Install Package"
-			],
-			[
 				":sett",
-				"Preferences: Settings - User"
+				"Preferences: Settings - Default"
 			],
 			[
 				":dis",
@@ -489,6 +517,10 @@
 			[
 				":split",
 				"Preferences: SplitScreen-Resizer Key Bindings – Default"
+			],
+			[
+				":inst",
+				"Package Control: Install Package"
 			],
 			[
 				":insta",
@@ -619,7 +651,7 @@
 				"Package Control: Discover Packages"
 			]
 		],
-		"width": 507.0
+		"width": 449.0
 	},
 	"console":
 	{
@@ -636,9 +668,10 @@
 	},
 	"file_history":
 	[
-		"/home/ian/.config/sublime-text-2/Packages/TodoManager/TodoManager.sublime-settings",
-		"/home/ian/web/web2py/applications/paideia/controllers/default.py",
-		"/home/ian/web/web2py/applications/paideia/views/default/user.html",
+		"/home/iscott/web/web2py/applications/paideia/controllers/plugin_slider.py",
+		"/home/iscott/web/web2py/routes.py",
+		"/home/iscott/web/web2py/applications/blog/routes.py",
+		"/home/iscott/.config/sublime-text-2/Packages/Default/Preferences.sublime-settings",
 		"/home/ian/web/web2py/applications/paideia/static/plugin_framework/theme_paideia.less",
 		"/home/ian/web/web2py/applications/paideia/static/plugin_framework/theme.less",
 		"/home/ian/web/web2py/bin/test_runner.py",
@@ -653,8 +686,10 @@
 		"/home/ian/.config/sublime-text-2/Packages/SplitScreen-Resizer/Default (Linux).sublime-keymap",
 		"/home/ian/web/web2py/applications/paideia/controllers/reporting.py",
 		"/home/ian/web/web2py/applications/paideia/views/reporting/user.html",
+		"/home/ian/web/web2py/applications/paideia/views/default/user.html",
 		"/home/ian/web/web2py/applications/paideia/views/default/index.html",
 		"/home/ian/web/web2py/applications/paideia/modules/paideia_stats.py",
+		"/home/ian/web/web2py/applications/paideia/controllers/default.py",
 		"/home/ian/web/web2py/applications/paideia/views/exploring/listing/",
 		"/home/ian/web/web2py/applications/paideia/modules/views/",
 		"/home/ian/web/web2py/applications/paideia/modules/paideia_bugs.py",
@@ -723,10 +758,6 @@
 		"case_sensitive": false,
 		"find_history":
 		[
-			"activ",
-			"npc",
-			"ask",
-			"view_slides",
 			"break",
 			"randrange",
 			"random",
@@ -795,7 +826,7 @@
 		"replace_history":
 		[
 		],
-		"reverse": false,
+		"reverse": true,
 		"show_context": true,
 		"use_buffer2": true,
 		"whole_word": false,
@@ -804,7 +835,7 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 4,
 			"sheets":
 			[
 				{
@@ -812,15 +843,15 @@
 					"file": "modules/paideia_exploring.py",
 					"settings":
 					{
-						"buffer_size": 80082,
+						"buffer_size": 76306,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								66088,
-								66088
+								38072,
+								38072
 							]
 						],
 						"settings":
@@ -831,7 +862,7 @@
 								"README",
 								"FIXME"
 							],
-							"function_name_status_row": 1734,
+							"function_name_status_row": 968,
 							"gjslint_ignore":
 							[
 								110
@@ -879,8 +910,122 @@
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
+						"translation.x": 8.0,
+						"translation.y": 16317.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "views/plugin_slider/show_slide.load",
+					"settings":
+					{
+						"buffer_size": 13,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								13,
+								13
+							]
+						],
+						"settings":
+						{
+							"function_name_status_row": 1,
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
 						"translation.x": 0.0,
-						"translation.y": 37856.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "controllers/plugin_slider.py",
+					"settings":
+					{
+						"buffer_size": 4606,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2111,
+								2111
+							]
+						],
+						"settings":
+						{
+							"function_name_status_row": 54,
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 533.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "controllers/listing.py",
+					"settings":
+					{
+						"buffer_size": 1859,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								191,
+								191
+							]
+						],
+						"settings":
+						{
+							"function_name_status_row": 5,
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "static/plugin_slider/plugin_slider.less",
+					"settings":
+					{
+						"buffer_size": 8898,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1804,
+								1804
+							]
+						],
+						"settings":
+						{
+							"function_name_status_row": 45,
+							"syntax": "Packages/LESS/LESS.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 641.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -888,23 +1033,23 @@
 			]
 		},
 		{
-			"selected": 1,
+			"selected": 2,
 			"sheets":
 			[
 				{
-					"buffer": 1,
+					"buffer": 5,
 					"file": "controllers/exploring.py",
 					"settings":
 					{
-						"buffer_size": 8058,
+						"buffer_size": 7690,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								7758,
-								7758
+								0,
+								0
 							]
 						],
 						"settings":
@@ -915,7 +1060,7 @@
 								"README",
 								"FIXME"
 							],
-							"function_name_status_row": 221,
+							"function_name_status_row": 0,
 							"gjslint_ignore":
 							[
 								110
@@ -964,54 +1109,54 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 4300.0,
+						"translation.y": 3706.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
-					"buffer": 2,
+					"buffer": 6,
 					"file": "views/exploring/walk.load",
 					"settings":
 					{
-						"buffer_size": 5038,
+						"buffer_size": 4689,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1018,
-								1018
+								1342,
+								1342
 							]
 						],
 						"settings":
 						{
-							"function_name_status_row": 31,
+							"function_name_status_row": 49,
 							"syntax": "Packages/HTML/HTML.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 230.0,
+						"translation.y": 720.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
-					"buffer": 3,
+					"buffer": 7,
 					"file": "models/paideia.py",
 					"settings":
 					{
-						"buffer_size": 15789,
+						"buffer_size": 15853,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								4140,
-								4140
+								3725,
+								3725
 							]
 						],
 						"settings":
@@ -1022,7 +1167,7 @@
 								"README",
 								"FIXME"
 							],
-							"function_name_status_row": 122,
+							"function_name_status_row": 113,
 							"gjslint_ignore":
 							[
 								110
@@ -1071,7 +1216,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 2365.0,
+						"translation.y": 1428.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -1107,7 +1252,7 @@
 		"cols":
 		[
 			0.0,
-			0.7,
+			0.502191759709,
 			1.0
 		],
 		"rows":
@@ -1127,7 +1272,7 @@
 	},
 	"replace":
 	{
-		"height": 0.0
+		"height": 64.0
 	},
 	"save_all_on_build": true,
 	"select_file":
@@ -1136,24 +1281,24 @@
 		"selected_items":
 		[
 			[
-				"defa",
-				"paideia/controllers/default.py"
+				"slider",
+				"paideia/static/plugin_slider/plugin_slider.less"
 			],
 			[
-				"user",
-				"paideia/views/default/user.html"
+				"listing",
+				"paideia/controllers/listing.py"
+			],
+			[
+				"pluginsl",
+				"paideia/views/plugin_slider/show_slide.load"
+			],
+			[
+				"plugin",
+				"paideia/controllers/plugin_slider.py"
 			],
 			[
 				"theme",
 				"paideia/static/plugin_framework/theme.less"
-			],
-			[
-				"slider",
-				"paideia/models/plugin_slider.py"
-			],
-			[
-				"pluginsl",
-				"paideia/models/plugin_slider.py"
 			],
 			[
 				"tests",

@@ -51,7 +51,7 @@ p19
 sg6
 I2
 sg7
-S'INTEGER REFERENCES auth_user (id) ON DELETE CASCADE'
+S'INTEGER REFERENCES auth_user(id) ON DELETE CASCADE'
 p20
 ssS'cat4'
 p21
