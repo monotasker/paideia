@@ -978,9 +978,11 @@ class Walk(object):
 
         # 5) Choose a random path that can be started here
         if debug: print 'looking for random path with active tags'  # DEBUG
-        max_rank = db(db.tag_progress.name == auth.user_id).first().latest_new
-        tag_list = db(db.tags.position <= max_rank)
-        paths = p_list1.find(lambda row: [t in row.tags for t in tag_list])
+        max_rank = db(db.tag_progress.name
+                      == auth.user_id).select().first().latest_new
+        tag_list = db(db.tags.position <= max_rank).select()
+        paths = p_list1.find(lambda row:
+                             [t for t in row.tags if t in tag_list])
         for p in paths:
             the_step = p.steps[0]
             if loc_id in the_step.locations:
