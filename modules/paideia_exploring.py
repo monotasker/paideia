@@ -8,7 +8,6 @@ import datetime
 from dateutil.parser import parse
 import ast
 from copy import deepcopy
-from itertools import chain
 from random import randrange
 import re
 import traceback
@@ -161,7 +160,7 @@ class Walk(object):
 
     verbose = True  # controls printing of initialization and method calls
 
-    def __init__(self, force_new_session=False):
+    def __init__(self):
         '''
         Initialize a Walk object. When it is initialized, maintain session
         data through each 24-hour day by:
@@ -180,10 +179,6 @@ class Walk(object):
         # TODO: This check is too costly to do every time, rework
         # maybe pass whole serialized Walk object via session?
         # then just check start date of Walk object?
-        if force_new_session is True:
-            if debug:
-                print 'forcing new session'
-            self._start_new_session()
         if self._check_for_session() is True:
             if debug: print 'session data present and not stale'
             self._get_session_data()
@@ -214,8 +209,7 @@ class Walk(object):
         # initialize the session properly
         self.tag_set = self._categorize_tags()
         self.new_badges = self._new_badges(auth.user_id, self.tag_set)
-        #self._unfinished()
-        # TODO: deprecated _unfinished in present state, but need replacement
+        self._unfinished()
         self.session_start = datetime.datetime.utcnow()
         # store newly initialized attributes in session object
         self._save_session_data(True)
@@ -279,7 +273,7 @@ class Walk(object):
         '''
         Save instance attributes in web2py session object for data persistence.
         '''
-        debug = True
+        #debug = False
         if self.verbose:
             print 'calling Walk._save_session_data--------------'
         session = current.session
@@ -299,10 +293,6 @@ class Walk(object):
 
         if self.path:
             session_data['path'] = self.path.id
-            if debug: print 'path:', session_data['path']
-        if self.step:
-            session_data['step'] = self.step.step.id
-            if debug: print 'step:', session_data['step']
 
         if self.active_location:
             session_data['active_location'] = self.active_location
@@ -360,7 +350,7 @@ class Walk(object):
 
         # create step instance here if we're processing a user's response
         if ('response' in request.vars) and \
-                (request.args[0] in ['ask', 'retry']):
+                (request.args(0) in ['ask', 'retry']):
             self.step = self._create_step_instance()
             print 're-activating step'
 
@@ -449,7 +439,7 @@ class Walk(object):
         categories. The value for each key is a list holding the id's
         (integers) of the tags that are currently in the given category.
         '''
-        debug = True
+        debug = False
         if self.verbose: print 'calling Walk._categorize_tags--------------'
         auth = current.auth
         db = current.db
@@ -462,75 +452,51 @@ class Walk(object):
         categories = dict((x, []) for x in xrange(1, 5))
 
         record_list = db(db.tag_records.name == user).select()
-        if record_list.first() is None:
-            if debug: print 'No tag_records for this user'
-            firsttags = [t.id for t in db(db.tags.position == 1).select()]
-            categories[1] = firsttags
-            self.view_slides = firsttags
-            if debug: print 'setting categories to initial value', categories
-        else:
-            for record in record_list:
-                # TODO: Make sure there's only one record per person, per tag
-                #get time-based statistics for this tag
-                #note: the arithmetic operations yield datetime.timedelta objs
-                now_date = datetime.datetime.utcnow()
-                right_dur = now_date - record.tlast_right
-                right_wrong_dur = record.tlast_right - record.tlast_wrong
 
-                # Categorize q or tag based on this performance
-                # spaced repetition algorithm for promotion from cat1
-                if ((right_dur < right_wrong_dur)
-                        # don't allow promotion from cat1 within 1 day
-                        and (right_wrong_dur > datetime.timedelta(days=1))
-                        # require at least 10 right answers
-                        and (record.times_right >= 20)) \
-                    or ((record.times_wrong > 0)  # prevent zero division error
-                        and (record.times_right / record.times_wrong) >= 10):
-                        # allow for 10% wrong and still promote
+        for record in record_list:
+            # TODO: Make sure there's only one record per person, per tag
+            #get time-based statistics for this tag
+            #note: the arithmetic operations yield datetime.timedelta objects
+            now_date = datetime.datetime.utcnow()
+            right_dur = now_date - record.tlast_right
+            right_wrong_dur = record.tlast_right - record.tlast_wrong
 
-                    if right_wrong_dur.days >= 7:
-                        if right_wrong_dur.days > 30:
-                            if right_wrong_dur > datetime.timedelta(days=180):
-                                category = 1  # not attempted for 6 mos
-                            else:
-                                category = 4  # delta > 1 month
+            # Categorize q or tag based on this performance
+            if (right_dur < right_wrong_dur) and (right_wrong_dur >
+                  datetime.timedelta(days=1)) and (record.times_right >= 10):
+                if right_wrong_dur.days >= 7:
+                    if right_wrong_dur.days > 30:
+                        if right_wrong_dur > datetime.timedelta(days=180):
+                            category = 1  # Not due, not attempted for 6 months
                         else:
-                            category = 3  # delta between a week and month
+                            category = 4  # Not due, delta more than a month
                     else:
-                        category = 2  # delta is a week or less
-
+                        category = 3  # Not due, delta between a week and month
                 else:
-                    category = 1  # Spaced repetition requires review
-                categories[category].append(record.tag.id)
+                    category = 2  # Not due but delta is a week or less
+            else:
+                category = 1  # Spaced repetition requires review
+            categories[category].append(record.tag.id)
 
-            if debug: print 'raw categorized tags:', categories
+        if debug: print categories
 
-        # Make sure untried tags are still included
         tprogress = db(db.tag_progress.name == auth.user_id).select().first()
         if tprogress is None:
-            rank = 1
-        else:
-            rank = tprogress.latest_new
-            if rank == 0:
-                tprogress.update_record(latest_new=1)
-                rank = 1
-        if debug: print 'current rank:', rank
-        #check for untried in current and all lower ranks
-        #should only be necessary until junk data is fixed?
-        left_out = []
-        for r in range(1, rank + 1):
-            newtags = [t.id for t in db(db.tags.position == r).select()]
-            alltags = list(chain(*categories.values()))
-            left_out.extend([t for t in newtags if t not in alltags])
-        if left_out:
-            categories[1].extend(left_out)
-            if debug: print 'adding untried tags', left_out, 'to cat1'
+            db.tag_progress.insert(name=auth.user_id)
+
+        # Make sure untried tags are still included
+        if tprogress.cat1 is not None:
+            untried = [t for t in tprogress.cat1 if t not in categories[1]]
+            categories[1].extend(untried)
 
         # Remove duplicate tag id's from each category
         # Make sure each of the tags is not beyond the user's current ranking
-        # even if some were actually tried before (through system error)
         for k, v in categories.iteritems():
             if v:
+                rank = tprogress.latest_new
+                if rank == 0:
+                    tprogress.update_record(latest_new=1)
+                    rank = 1
                 newv = [t for t in v if db.tags[t].position <= rank]
                 categories[k] = list(set(newv))
 
@@ -540,8 +506,6 @@ class Walk(object):
         # TODO: Could this categorization be done by a background process?
 
         self.tag_set = categories
-        if debug: print 'final categorized tags:', categories
-        if debug: print 'active_paths:', self.active_paths
 
         # return the value as well so that it can be used in Stats
         return categories
@@ -553,7 +517,7 @@ class Walk(object):
         those new tags whose structure mirrors that of session.walk['tag_set'].
         '''
         if self.verbose: print 'calling Walk._new_badges ---------------------'
-        debug = True
+        debug = False
         db = current.db
         auth = current.auth
 
@@ -601,7 +565,6 @@ class Walk(object):
             if debug: print 'no new badges awarded'
             return None
 
-    # method deprecated
     def _unfinished(self):
         '''
         This public method checks for any paths that have been started but not
@@ -721,10 +684,9 @@ class Walk(object):
         session = current.session
         db = current.db
 
-        step_id = int(step_id)
         # allow for situations where the path id is given rather than the
         # path's row object. (As in 'retry' state.)
-        if (type(path) == int) or (type(path) == str):
+        if type(path) == int:
             path = db.paths[path]
 
         self.path = path
@@ -997,11 +959,7 @@ class Walk(object):
                 for path in p_list:
                     try:
                         step1_id = path.steps[0]
-                        if debug: print 'step1_id', step1_id
                         first_step = db.steps[step1_id]
-                        if debug: print 'first_step', first_step
-                        if debug:
-                            print 'first_step.locations', first_step.locations
                         if loc_id in first_step.locations:
                             print 'path', path.id, 'step', step1_id, 'due'
                             return path, step1_id
@@ -1020,9 +978,11 @@ class Walk(object):
 
         # 5) Choose a random path that can be started here
         if debug: print 'looking for random path with active tags'  # DEBUG
-        max_rank = db(db.tag_progress.name == auth.user_id).first().latest_new
-        tag_list = db(db.tags.position <= max_rank)
-        paths = p_list1.find(lambda row: [t in row.tags for t in tag_list])
+        max_rank = db(db.tag_progress.name
+                      == auth.user_id).select().first().latest_new
+        tag_list = db(db.tags.position <= max_rank).select()
+        paths = p_list1.find(lambda row:
+                             [t for t in row.tags if t in tag_list])
         for p in paths:
             the_step = p.steps[0]
             if loc_id in the_step.locations:
@@ -1161,7 +1121,7 @@ class Step(object):
             print 'calling', type(self).__name__, '.ask-------------------'
         debug = False
 
-        npc = self._get_npc(self.step, self.location)
+        npc = self._get_npc()
         prompt = self._get_prompt()
         responder = self._get_responder()
         badgetip = self._get_badge_display(self.step.id)
@@ -1213,7 +1173,7 @@ class Step(object):
 
         return badgetip
 
-    def _get_npc(self, step, location):
+    def _get_npc(self):
         '''
         Given a set of npcs for this step select one of the npcs at random and
         return the corresponding Npc object.
@@ -1222,7 +1182,7 @@ class Step(object):
         # same npc if in the same location
         if self.verbose:
             print 'calling', type(self).__name__, '._get_npc--------------'
-        debug = True
+        debug = False
 
         def _get_npc_internal(npcs):
             '''
@@ -1247,34 +1207,33 @@ class Step(object):
         if session.walk['active_location'] is None:
             return   # TODO: maybe we return a 404 here (or in ask(), etc.)?
 
-        if debug: print 'self.location =', location
+        if debug: print 'self.location =', self.location
         npcs = db(
-                    (db.npcs.id.belongs(step.npcs)) &
-                    (db.npcs.location.contains(location['id']))
+                    (db.npcs.id.belongs(self.step.npcs)) &
+                    (db.npcs.location.contains(self.location['id']))
                 ).select()
 
         npc = _get_npc_internal(npcs)
-        if debug: print 'initial npc result:', npc
 
         # If we haven't found an npc at the location and step, get a random one
         # from this location.
         if not npc:
-            npcs = db(db.npcs.location.contains(location['id'])).select()
+            npcs = db(db.npcs.location.contains(self.location['id'])).select()
+
             npc = _get_npc_internal(npcs)
-            if debug: print 'getting random npc from this loc'
 
         # If we haven't found an npc at the location, get a random one from
         # this step.
         if not npc:
-            npcs = db((db.npcs.id.belongs(step.npcs))).select()
+            npcs = db((db.npcs.id.belongs(self.step.npcs))).select()
+
             npc = _get_npc_internal(npcs)
-            if debug: print 'getting random npc for this step'
 
         # If we still haven't found an npc, just get a random one
         if not npc:
             npcs = db(db.npcs.id > 0).select()
+
             npc = _get_npc_internal(npcs)
-            if debug: print 'getting completely random npc'
 
         self.npc = Npc(npc.id)
 
@@ -1332,7 +1291,6 @@ class Step(object):
                 #TODO: Get this score value from the db instead of hard
                 #coding it here.
                 score = 0.3
-                reply = "Οὐ κάκον. You're close."
             else:
                 score = 0
                 reply = "Incorrect. Try again!"
@@ -1351,9 +1309,7 @@ class Step(object):
         # Handle errors if the student's response cannot be evaluated
         except re.error:
             redirect(URL('index', args=['error', 'regex']))
-            reply = 'Oops! I seem to have encountered an error in this step.'
-            readable_short = None
-            readable_long = None
+
         # TODO: This replaces the Walk.save_session_data() that was in the
         # controller. Make sure this saving of step data is enough.
         self._save_session_data()
@@ -1498,7 +1454,6 @@ class Step(object):
             print 'self.path.steps:', self.path.steps
             print 'self.path.steps[-1]:', self.path.steps[-1]
         # if this was the last step in the path, end the path
-        stepcount = len(self.path.steps)
         if self.path.steps[-1] == self.step.id:
             if self.path.id in session.walk['active_paths']:
                 del session.walk['active_paths'][self.path.id]
@@ -1506,7 +1461,7 @@ class Step(object):
             session.walk['path'] = None
             session.walk['step'] = None
         # if there's another step in this path, make it active
-        elif stepcount > 1:
+        elif len(self.path.steps) > 0:
             s_index = self.path.steps.index(self.step.id)
             next_s = self.path.steps[s_index + 1]
             session.walk['step'] = next_s
@@ -1683,7 +1638,6 @@ class StepMultipleChoice(Step):
             #TODO: Get this score value from the db instead of hard
             #coding it here.
             score = 0.3
-            reply = "Οὐ κάκον. You're close."
         else:
             score = 0
             reply = "Sorry, that wasn't right. Try again!"
@@ -1732,36 +1686,19 @@ class StepStub(Step):
             print 'calling', type(self).__name__, '._complete -------------'
         debug = True
         session = current.session
-        db = current.db
 
-        if self.path is None:
-            self.path = db.paths(session.walk['path'])
-        print 'self.path', self.path
-        # if this is part of a multi-step path
-        # text with path 93 step 107
-        if self.path and (len(self.path.steps) > 1) and (self.step.id !=
-                                                         self.path.steps[-1]):
-            thisi = self.path.steps.index(self.step.id)
-            next = self.path.steps[thisi + 1]
-            session.walk['active_paths'][self.path.id] = next
-            if debug: print 'next step in path', self.path.id, 'is', next
-        # if it's a terminal stub
-        else:
-            if self.path and self.path.id in session.walk['active_paths']:
-                if debug: print 'path:', self.path.id
-                del session.walk['active_paths'][self.path.id]
-            elif session.walk['path'] in session.walk['active_paths'].keys():
-                if debug: print 'path:', session.walk['path']
-                del session.walk['active_paths'][session.walk['path']]
+        if self.path and self.path.id in session.walk['active_paths']:
+            if debug: print 'path:', self.path.id
+            del session.walk['active_paths'][self.path.id]
+        elif session.walk['path'] in session.walk['active_paths'].keys():
+            if debug: print 'path:', session.walk['path']
+            del session.walk['active_paths'][session.walk['path']]
 
-            if debug:
-                print 'session active_paths:', session.walk['active_paths']
-        # either way, remove 'path' and 'step' from session.walk
+        if debug: print 'session active_paths:', session.walk['active_paths']
         session.walk['path'] = None
         session.walk['step'] = None
         if debug: print 'session path:', session.walk['step']
         if debug: print 'session step:', session.walk['step']
-        if debug: print 'session active_paths', session.walk['active_paths']
 
         # Store session data in db
         Utils()._session_to_db(session.walk)
@@ -1831,8 +1768,7 @@ class StepViewSlides(StepStub):
 
         slidelist = []
         badgelist = []
-        if ('view_slides' in session.walk) and (session.walk['view_slides']
-                                                              is not None):
+        if 'view_slides' in session.walk:
             for t in session.walk['view_slides']:
                 # convert this to link once plugin_slider supports it
                 tag_slides = db.tags[t].slides
@@ -2008,23 +1944,22 @@ class Npc(object):
 
         if npc_id is not None:
             self.npc = db.npcs(npc_id)
-            self.image = self._get_image(self.npc)
+            self.image = self._get_image()
 
             self._save_session_data()
 
         else:
-            info = self._get_session_data()
-            self.npc = info.npc
-            self.image = info.image
-            self.location = info.location
+            self._get_session_data()
 
     def _save_session_data(self):
         '''
         Save attributes in session.
         '''
+
         session = current.session
 
         session_data = {}
+
         session_data['npc'] = self.npc.id
         session_data['npc_image'] = self.image
 
@@ -2034,27 +1969,26 @@ class Npc(object):
         '''
         Get the walk attributes from the session.
         '''
+
         db, session = current.db, current.session
 
         if 'npc' in session.walk:
-            npc = db.npcs(session.walk['npc'])
-            image = session.walk['npc_image']
+            self.npc = db.npcs(session.walk['npc'])
+            self.image = session.walk['npc_image']
         else:
-            npc = None
-            image = None
+            self.npc = None
+            self.image = None
 
-        location = session.walk['active_location']
+        self.location = session.walk['active_location']
 
-        return {'image': image, 'npc': npc, 'location': location}
-
-    def _get_image(self, row):
+    def _get_image(self):
         '''
         Get the image to present as a depiction of the npc.
         '''
         debug = False
 
         try:
-            url = URL('static/images', row.npc_image.image)
+            url = URL('static/images', self.npc.npc_image.image)
             if debug:
                 print url
             # TODO: Add title attribute

@@ -1,5 +1,5 @@
 if 0:
-    from gluon import current, UL, LI, DIV, A, URL, MARKMIN
+    from gluon import current, UL, LI, DIV, A, URL, MARKMIN, SPAN
     request, session, db = current.request, current.session, current.db
     response = current.response
 
@@ -45,11 +45,16 @@ def start_deck():
     slidelist = UL(_class='plugin_slider_decklist')
     for d in deckorder:
         theslide = db.plugin_slider_slides[d]
+        badges = db((db.tags.slides.contains(theslide.id))
+                      & (db.badges.tag == db.tags.id)).select()
         slidelist.append(LI(A(theslide.slide_name,
                             _href=URL('plugin_slider',
                                         'show_slide',
                                         args=[theslide.id]),
                             cid='plugin_slider_slide')))
+        for b in badges:
+            if debug: print b.badges.badge_name
+            slidelist[-1].append(SPAN(b.badges.badge_name))
     slidemenu = DIV(slidelist, _class='plugin_slider_slidemenu initial_state')
 
     if debug: print deck.theme

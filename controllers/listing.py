@@ -1,6 +1,6 @@
 # coding: utf8
 if 0:
-    from gluon import current, UL, LI, A, URL
+    from gluon import current, UL, LI, A, URL, SPAN
     db, auth, session = current.db, current.auth, current.session
 
 # TODO: rework to use plugin_listandedit as a widget
@@ -29,10 +29,14 @@ def news():
 
 
 def slides():
+    debug = True
     slidelist = db(db.plugin_slider_decks.id > 0).select(
                                     orderby=db.plugin_slider_decks.position)
+
     slides = UL()
     for s in slidelist:
+        badges = db((db.tags.slides.contains(s.id))
+                      & (db.badges.tag == db.tags.id)).select()
         try:
             slides.append(LI(A(s.deck_name,
                                 _href=URL('plugin_slider',
@@ -40,6 +44,9 @@ def slides():
                                     args=[s.id]),
                                 cid='slideframe')
                             ))
+            for b in badges:
+                if debug: print b.badges.badge_name
+                slides[-1].append(SPAN(b.badges.badge_name))
         except Exception, e:
             print type(e), e
     if auth.is_logged_in():

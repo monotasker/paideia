@@ -1,39 +1,39 @@
 (dp1
-S'last_step'
+S'dt_started'
 p2
 (dp3
 S'type'
 p4
-S'reference steps'
+S'datetime'
 p5
 sS'sortable'
 p6
-I5
+I4
 sS'sql'
 p7
-S'INTEGER REFERENCES steps(id) ON DELETE CASCADE'
+S'TIMESTAMP'
 p8
-ssS'name'
+ssS'last_step'
 p9
 (dp10
 g4
-S'reference auth_user'
+S'reference steps'
 p11
+sg6
+I5
+sg7
+S'INTEGER REFERENCES steps(id) ON DELETE CASCADE'
+p12
+ssS'name'
+p13
+(dp14
+g4
+S'reference auth_user'
+p15
 sg6
 I2
 sg7
 S'INTEGER REFERENCES auth_user(id) ON DELETE CASCADE'
-p12
-ssS'dt_started'
-p13
-(dp14
-g4
-S'datetime'
-p15
-sg6
-I4
-sg7
-S'TIMESTAMP'
 p16
 ssS'path'
 p17
@@ -50,7 +50,7 @@ ssS'dt_completed'
 p21
 (dp22
 g4
-g15
+g5
 sg6
 I6
 sg7
