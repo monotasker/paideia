@@ -1025,6 +1025,8 @@ class Walk(object):
         # filter out paths whose tags aren't in the tag_list
         paths = p_list1.find(lambda row:
                      [t for t in row.tags if t in [l.id for l in tag_list]])
+        # TODO: randomize selection of this path or is it already randomized
+        # from p_list1 select?
         for p in paths:
             the_step = p.steps[0]
             if loc_id in the_step.locations:
@@ -2100,10 +2102,12 @@ class Npc(object):
         '''
         Get the image to present as a depiction of the npc.
         '''
-        debug = False
+        debug = True
+        db = current.db
 
+        if debug: print row
         try:
-            url = URL('static/images', row.npc.npc_image.image)
+            url = URL('static/images', db.images[row.npc_image].image)
             if debug:
                 print url
             # TODO: Add title attribute

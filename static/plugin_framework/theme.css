@@ -487,6 +487,24 @@ a:hover .tip, a:active .tip {
   -ms-transition: all 200ms ease-in-out;
   transition: all 200ms ease-in-out;
 }
+/* collapsible divs or panels using :target pseudo-element */
+ul li.collapsible_parent ul.collapsible_child {
+  height: 0;
+  overflow: hidden;
+  -webkit-transition: all 200ms ease-in-out;
+  -moz-transition: all 200ms ease-in-out;
+  -o-transition: all 200ms ease-in-out;
+  -ms-transition: all 200ms ease-in-out;
+  transition: all 200ms ease-in-out;
+}
+ul li.collapsible_parent:target ul.collapsible_child {
+  height: auto;
+  -webkit-transition: all 200ms ease-in-out;
+  -moz-transition: all 200ms ease-in-out;
+  -o-transition: all 200ms ease-in-out;
+  -ms-transition: all 200ms ease-in-out;
+  transition: all 200ms ease-in-out;
+}
 /* icon-fonts **************/
 .icon-only {
   display: inline-block;

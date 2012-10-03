@@ -4,6 +4,10 @@
 		"selected_items":
 		[
 			[
+				"requires",
+				"requires_membership"
+			],
+			[
 				"sess",
 				"session_data	(local, instance)"
 			],
@@ -102,10 +106,6 @@
 			[
 				"from",
 				"fromutc"
-			],
-			[
-				"requires",
-				"requires_login"
 			],
 			[
 				"quota",
@@ -427,7 +427,7 @@
 			"file": "modules/paideia_exploring.py",
 			"settings":
 			{
-				"buffer_size": 82390,
+				"buffer_size": 82567,
 				"line_ending": "Unix"
 			}
 		},
@@ -435,7 +435,7 @@
 			"file": "controllers/exploring.py",
 			"settings":
 			{
-				"buffer_size": 8058,
+				"buffer_size": 8565,
 				"line_ending": "Unix"
 			}
 		},
@@ -824,15 +824,15 @@
 					"file": "modules/paideia_exploring.py",
 					"settings":
 					{
-						"buffer_size": 82390,
+						"buffer_size": 82567,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								81500,
-								81500
+								41368,
+								41368
 							]
 						],
 						"settings":
@@ -843,7 +843,7 @@
 								"README",
 								"FIXME"
 							],
-							"function_name_status_row": 2167,
+							"function_name_status_row": 1028,
 							"gjslint_ignore":
 							[
 								110
@@ -892,7 +892,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 47253.0,
+						"translation.y": 22291.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -900,7 +900,7 @@
 			]
 		},
 		{
-			"selected": 1,
+			"selected": 0,
 			"sheets":
 			[
 				{
@@ -908,15 +908,15 @@
 					"file": "controllers/exploring.py",
 					"settings":
 					{
-						"buffer_size": 8058,
+						"buffer_size": 8565,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								6076,
-								6076
+								8521,
+								8521
 							]
 						],
 						"settings":
@@ -927,7 +927,7 @@
 								"README",
 								"FIXME"
 							],
-							"function_name_status_row": 182,
+							"function_name_status_row": 243,
 							"gjslint_ignore":
 							[
 								110
@@ -976,7 +976,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 3602.0,
+						"translation.y": 5035.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -1146,7 +1146,7 @@
 		"cols":
 		[
 			0.0,
-			0.7,
+			0.671156661786,
 			1.0
 		],
 		"rows":
