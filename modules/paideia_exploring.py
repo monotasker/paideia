@@ -458,6 +458,14 @@ class Walk(object):
         categories = dict((x, []) for x in xrange(1, 5))
 
         record_list = db(db.tag_records.name == user).select()
+        discrete_tags = [t.tag for t in record_list]
+        if len(record_list) > len(discrete_tags):
+            for tag in discrete_tags:
+                shortlist = record_list.find(lambda row: row.tag == tag)
+                if len(shortlist) > 1:
+                    for record in shortlist[1:]:
+                        db.tag_records[record.id].delete()
+
         if record_list.first() is None:
             if debug: print 'No tag_records for this user'
             firsttags = [t.id for t in db(db.tags.position == 1).select()]
@@ -1391,7 +1399,7 @@ class Step(object):
         records. times_wrong gives the opposite value to add to 'times wrong'
         (i.e., negative score).
         '''
-        debug = True
+        debug = False
 
         if self.verbose:
             print 'calling', type(self).__name__, '._record---------------'
@@ -1525,7 +1533,7 @@ class Step(object):
         '''
         if self.verbose:
             print 'calling', type(self).__name__, '._complete -----------'
-        debug = True
+        debug = False
         session = current.session
         request = current.request
 
