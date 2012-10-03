@@ -1359,13 +1359,11 @@ class Step(object):
         db, auth, session = current.db, current.auth, current.session
 
         utc_now = datetime.datetime.utcnow()
-
         tag_records = db(db.tag_records.name == auth.user_id).select()
 
         # Calculate record info
         time_last_right = utc_now
         time_last_wrong = utc_now
-
         times_right = score
         times_wrong = times_wrong_incr
 
@@ -1409,6 +1407,38 @@ class Step(object):
                         step=self.step.id
                     )
 
+        # TODO: Work on more concise version below
+
+        # # Log this tag attempt for each tag in the step
+        # for tag in self.step.tags:
+        #     # Try to update an existing record for this tag
+        #     try:
+        #         tag_record = tag_records.find(lambda row:
+        #                                             row.tag == tag).first()
+
+        #         if tag_record:
+        #             if score == 1:
+        #                 time_last_wrong = tag_record.tlast_wrong
+        #             elif score == 0:
+        #                 time_last_right = tag_record.tlast_right
+        #             else:
+        #                 score = 0
+        #                 time_last_right = tag_record.tlast_right
+
+        #             times_right += tag_record.times_right
+        #             times_wrong += tag_record.times_wrong
+
+        #         db.tag_records.update_or_insert(
+        #                 {'name': auth.user_id,
+        #                 'tag': tag},
+        #                 tlast_right=time_last_right,
+        #                 tlast_wrong=time_last_wrong,
+        #                 times_right=times_right,
+        #                 times_wrong=times_wrong,
+        #                 path=self.path.id,
+        #                 step=self.step.id
+        #             )
+
             # Print any other error that is thrown
             # TODO: Put this in a server log instead/as well or create a ticket
             # TODO: Do we want to rollback the transaction?
@@ -1419,6 +1449,8 @@ class Step(object):
                 print traceback.format_exc()
 
         # TODO: Merge this with Walk._update_path_log()?
+        # TODO: Note that last_step has to be set to 0 either here or in
+        # complete() *after* this.
         log = db(
                 (db.path_log.path == self.path.id) &
                 (db.path_log.name == auth.user_id)
@@ -1718,6 +1750,13 @@ class StepStub(Step):
         self._complete()
 
         return responder
+
+    def _get_badge_display(self, step_id):
+        '''
+        overrides Step._get_badge_display() to simply return None so that no
+        confusing button is presented for step stubs that require no badges
+        '''
+        return None
 
 
 class StepNonBlocking(StepStub, Step):
