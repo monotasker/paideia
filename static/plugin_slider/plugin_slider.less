@@ -43,13 +43,11 @@ div.plugin_slider_slidemenu    {display:block;
                                 position:absolute;
                                 bottom:-500px + @lineheight;
                                 left:50%;
-                                margin-left: -150px;
-                                width:300px;
+                                margin-left: -250px;
+                                width:500px;
                                 height:500px;
                                 max-height:500px;
-                                overflow:auto;
-                                background-color:@sol_charcoal;
-                                opacity:0.6;
+                                background-color:fadeout(@sol_charcoal, 10%);
                                 font-size:@typeheight;
                                 color:@chalk;
                                 .border-radius(@typeheight, @typeheight, 0, 0);
@@ -60,10 +58,22 @@ div.plugin_slider_slidemenu    {display:block;
 
     h4                         {display:block;
                                 text-align: center;
-                                .blockletter-small();}
-    a                          {color:@chalk;}
-    ul                         {padding:0 @lineheight;}
-}
+                                .blockletter-small();
+                                margin-top:0;}
+    a                          {color:@chalk;
+        &:hover                {color:@white;
+                                .text-shadow();}
+        }
+    ul                         {padding:0 @lineheight;
+                                overflow:auto;
+                                height:500px - (@lineheight * 2);
+        li                     {
+            span               {color:@sol_yellow;
+                                padding:0 0 0 @typeheight;
+                                font-style: italic;}
+            }
+        }
+    }
 
 
 
