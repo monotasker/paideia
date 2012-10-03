@@ -34,7 +34,7 @@ class Utils(object):
         '''
         if self.verbose:
             print 'calling Utils._session_to_db============================'
-        debug = True
+        debug = False
         auth = current.auth
         db = current.db
 
@@ -82,7 +82,7 @@ class Utils(object):
         '''
         if self.verbose:
             print 'calling Utils._db_to_session============================'
-        debug = True
+        debug = False
         auth = current.auth
         db = current.db
 
@@ -229,7 +229,7 @@ class Walk(object):
         '''
         if self.verbose:
             print 'calling Walk._check_for_session() ------------------------'
-        debug = True
+        debug = False
         auth = current.auth
         session = current.session
         db = current.db
@@ -1291,7 +1291,6 @@ class Step(object):
         if self.verbose:
             print 'calling', type(self).__name__, '.process----------'
         session = current.session
-        request = current.request
 
         # Get the student's response to the question
         user_response = user_response.strip()
@@ -1340,11 +1339,6 @@ class Step(object):
                 times_wrong = 1
             else:
                 times_wrong = 0
-
-            # Record the results in statistics for this step and this tag
-            # Don't record repeat attempts within the same day's session
-            if request.args[0] != 'retry':
-                self._record(score, times_wrong)
 
         # Handle errors if the student's response cannot be evaluated
         except re.error:
@@ -1397,38 +1391,45 @@ class Step(object):
         records. times_wrong gives the opposite value to add to 'times wrong'
         (i.e., negative score).
         '''
+        debug = True
+
         if self.verbose:
             print 'calling', type(self).__name__, '._record---------------'
         db, auth, session = current.db, current.auth, current.session
 
         utc_now = datetime.datetime.utcnow()
         tag_records = db(db.tag_records.name == auth.user_id).select()
+        if debug: print 'tag_records:', tag_records
 
         # Calculate record info
         time_last_right = utc_now
         time_last_wrong = utc_now
-        times_right = score
-        times_wrong = times_wrong_incr
+        tagset = set(self.step.tags)
+        if debug: print 'recording for tags:', tagset
 
         # Log this tag attempt for each tag in the step
-        for tag in self.step.tags:
+        for tag in tagset:
             # Try to update an existing record for this tag
             try:
                 tag_records = tag_records.find(lambda row: row.tag == tag)
+                if debug: print 'tag_records with tag:', tag_records
 
                 if tag_records:
                     tag_record = tag_records[0]
 
+                    times_right = tag_record.times_right
+                    times_wrong = tag_record.times_wrong
+
                     if score == 1:
                         time_last_wrong = tag_record.tlast_wrong
+                        times_right += 1
                     elif score == 0:
                         time_last_right = tag_record.tlast_right
+                        times_wrong += 1
                     else:
                         score = 0
                         time_last_right = tag_record.tlast_right
-
-                    times_right += tag_record.times_right
-                    times_wrong += tag_record.times_wrong
+                        times_wrong += 1
 
                     tag_record.update_record(
                         tlast_right=time_last_right,
@@ -1438,8 +1439,15 @@ class Step(object):
                         path=self.path.id,
                         step=self.step.id
                     )
+                    if debug: print 'updated existing record'
 
                 else:
+                    times_right = 1
+                    times_wrong = 0
+                    if score != 1:
+                        times_right = 0
+                        times_wrong = 1
+
                     db.tag_records.insert(
                         tag=tag,
                         tlast_right=time_last_right,
@@ -1449,6 +1457,7 @@ class Step(object):
                         path=self.path.id,
                         step=self.step.id
                     )
+                    if debug: print 'created new record'
 
         # TODO: Work on more concise version below
 
@@ -1518,10 +1527,13 @@ class Step(object):
             print 'calling', type(self).__name__, '._complete -----------'
         debug = True
         session = current.session
+        request = current.request
 
-        # Where appropriate, make sure last_step is recorded as 0
+        # TODO: Where appropriate, make sure last_step is recorded as 0
         # Record evaluation of step response
-        self._record(score, times_wrong)
+        # Don't record repeat attempts within the same day's session
+        if request.args[0] != 'retry':
+            self._record(score, times_wrong)
 
         # Check to see whether this is the last step in the path and if so
         # remove from active_paths and add to completed_paths
@@ -2102,7 +2114,7 @@ class Npc(object):
         '''
         Get the image to present as a depiction of the npc.
         '''
-        debug = True
+        debug = False
         db = current.db
 
         if debug: print row

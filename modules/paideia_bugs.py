@@ -3,7 +3,7 @@ from gluon import current
 
 class Bug(object):
 
-    verbose = True
+    verbose = False
 
     """
     Handles the creation, manipulation, and reporting of bug
@@ -11,7 +11,7 @@ class Bug(object):
     """
     def __init__(self, step=None, path=None, location=None):
         if self.verbose: print '\nInitializing Bug object ==================='
-        debug = True
+        debug = False
         session = current.session
 
         if (step is None) and (session.walk) and ('step' in session.walk):
@@ -34,7 +34,7 @@ class Bug(object):
         creates a new bug report and provides confirmation to the user.
         """
         if self.verbose: print 'calling Bug.log_new object ================='
-        debug = True
+        debug = False
         response = current.response
         db = current.db
 
@@ -84,9 +84,11 @@ class Bug(object):
         report.
         '''
         db = current.db
+        debug = False
+
         bugs_q = (db.steps.id == db.bugs.step) & (db.bugs.user_name == user)
         bugs = db(bugs_q).select()
-        print 'DEBUG: bugs.select() =', bugs
+        if debug: print 'DEBUG: bugs.select() =', bugs
         lst = []
         for b in bugs:
             display = []
