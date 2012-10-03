@@ -7,6 +7,7 @@ from gluon import IS_NOT_EMPTY, IS_IN_SET
 import datetime
 from dateutil.parser import parse
 import ast
+from itertools import chain
 from copy import deepcopy
 from random import randrange
 import re
@@ -160,7 +161,7 @@ class Walk(object):
 
     verbose = True  # controls printing of initialization and method calls
 
-    def __init__(self):
+    def __init__(self, force_new_session=False):
         '''
         Initialize a Walk object. When it is initialized, maintain session
         data through each 24-hour day by:
@@ -176,6 +177,10 @@ class Walk(object):
             print 'initializing Walk============================'
         debug = False
 
+        if force_new_session is True:
+            if debug:
+                print 'forcing new session'
+            self._start_new_session()
         # TODO: This check is too costly to do every time, rework
         # maybe pass whole serialized Walk object via session?
         # then just check start date of Walk object?
@@ -209,7 +214,8 @@ class Walk(object):
         # initialize the session properly
         self.tag_set = self._categorize_tags()
         self.new_badges = self._new_badges(auth.user_id, self.tag_set)
-        self._unfinished()
+        # self._unfinished()
+        # TODO: deprecated _unfinished in present state, but need replacement
         self.session_start = datetime.datetime.utcnow()
         # store newly initialized attributes in session object
         self._save_session_data(True)
@@ -452,51 +458,74 @@ class Walk(object):
         categories = dict((x, []) for x in xrange(1, 5))
 
         record_list = db(db.tag_records.name == user).select()
+        if record_list.first() is None:
+            if debug: print 'No tag_records for this user'
+            firsttags = [t.id for t in db(db.tags.position == 1).select()]
+            categories[1] = firsttags
+            self.view_slides = firsttags
+            if debug: print 'setting categories to initial value', categories
+        else:
+            for record in record_list:
+                # TODO: Make sure there's only one record per person, per tag
+                #get time-based statistics for this tag
+                #note: arithmetic operations yield datetime.timedelta objects
+                now_date = datetime.datetime.utcnow()
+                right_dur = now_date - record.tlast_right
+                right_wrong_dur = record.tlast_right - record.tlast_wrong
 
-        for record in record_list:
-            # TODO: Make sure there's only one record per person, per tag
-            #get time-based statistics for this tag
-            #note: the arithmetic operations yield datetime.timedelta objects
-            now_date = datetime.datetime.utcnow()
-            right_dur = now_date - record.tlast_right
-            right_wrong_dur = record.tlast_right - record.tlast_wrong
+                # Categorize q or tag based on this performance
+                # spaced repetition algorithm for promotion from cat1
+                if ((right_dur < right_wrong_dur)
+                        # don't allow promotion from cat1 within 1 day
+                        and (right_wrong_dur > datetime.timedelta(days=1))
+                        # require at least 10 right answers
+                        and (record.times_right >= 20)) \
+                    or ((record.times_wrong > 0)  # prevent zero division error
+                        and (record.times_right / record.times_wrong) >= 10):
+                       # allow for 10% wrong and still promote
 
-            # Categorize q or tag based on this performance
-            if (right_dur < right_wrong_dur) and (right_wrong_dur >
-                  datetime.timedelta(days=1)) and (record.times_right >= 10):
-                if right_wrong_dur.days >= 7:
-                    if right_wrong_dur.days > 30:
-                        if right_wrong_dur > datetime.timedelta(days=180):
-                            category = 1  # Not due, not attempted for 6 months
+                    if right_wrong_dur.days >= 7:
+                        if right_wrong_dur.days > 30:
+                            if right_wrong_dur > datetime.timedelta(days=180):
+                                category = 1  # Not due or tried for 6 months
+                            else:
+                                category = 4  # Not due, delta > a month
                         else:
-                            category = 4  # Not due, delta more than a month
+                            category = 3  # delta between a week and month
                     else:
-                        category = 3  # Not due, delta between a week and month
+                        category = 2  # Not due but delta is a week or less
                 else:
-                    category = 2  # Not due but delta is a week or less
-            else:
-                category = 1  # Spaced repetition requires review
-            categories[category].append(record.tag.id)
+                    category = 1  # Spaced repetition requires review
+                categories[category].append(record.tag.id)
 
-        if debug: print categories
-
-        tprogress = db(db.tag_progress.name == auth.user_id).select().first()
-        if tprogress is None:
-            db.tag_progress.insert(name=auth.user_id)
+        if debug: print 'raw categorized tags:', categories
 
         # Make sure untried tags are still included
-        if tprogress.cat1 is not None:
-            untried = [t for t in tprogress.cat1 if t not in categories[1]]
-            categories[1].extend(untried)
+        tprogress = db(db.tag_progress.name == auth.user_id).select().first()
+        if tprogress is None:
+            rank = 1
+        else:
+            rank = tprogress.latest_new
+            if rank == 0:
+                tprogress.update_record(latest_new=1)
+                rank = 1
+        if debug: print 'current rank:', rank
+        #check for untried in current and all lower ranks
+        #should only be necessary until junk data is fixed?
+        left_out = []
+        for r in range(1, rank + 1):
+            newtags = [t.id for t in db(db.tags.position == r).select()]
+            alltags = list(chain(*categories.values()))
+            left_out.extend([t for t in newtags if t not in alltags])
+        if left_out:
+            categories[1].extend(left_out)
+            if debug: print 'adding untried tags', left_out, 'to cat1'
 
         # Remove duplicate tag id's from each category
         # Make sure each of the tags is not beyond the user's current ranking
+        # even if some were actually tried before (through system error)
         for k, v in categories.iteritems():
             if v:
-                rank = tprogress.latest_new
-                if rank == 0:
-                    tprogress.update_record(latest_new=1)
-                    rank = 1
                 newv = [t for t in v if db.tags[t].position <= rank]
                 categories[k] = list(set(newv))
 
@@ -506,6 +535,8 @@ class Walk(object):
         # TODO: Could this categorization be done by a background process?
 
         self.tag_set = categories
+        if debug: print 'final categorized tags:', categories
+        if debug: print 'active_paths:', self.active_paths
 
         # return the value as well so that it can be used in Stats
         return categories
@@ -565,6 +596,7 @@ class Walk(object):
             if debug: print 'no new badges awarded'
             return None
 
+    # TODO: method deprecated
     def _unfinished(self):
         '''
         This public method checks for any paths that have been started but not
@@ -964,7 +996,11 @@ class Walk(object):
                 for path in p_list:
                     try:
                         step1_id = path.steps[0]
+                        if debug: print 'step1_id', step1_id
                         first_step = db.steps[step1_id]
+                        if debug:
+                            print 'first_step', first_step
+                            print 'first_step.locations', first_step.locations
                         if loc_id in first_step.locations:
                             print 'path', path.id, 'step', step1_id, 'due'
                             return path, step1_id
@@ -1224,19 +1260,15 @@ class Step(object):
         # from this location.
         if not npc:
             npcs = db(db.npcs.location.contains(location['id'])).select()
-
             npc = _get_npc_internal(npcs)
-
         # If we haven't found an npc at the location, get a random one from
         # this step.
         if not npc:
             npcs = db((db.npcs.id.belongs(step.npcs))).select()
             npc = _get_npc_internal(npcs)
-
         # If we still haven't found an npc, just get a random one
         if not npc:
             npcs = db(db.npcs.id > 0).select()
-
             npc = _get_npc_internal(npcs)
 
         self.npc = Npc(npc.id)
@@ -1295,6 +1327,7 @@ class Step(object):
                 #TODO: Get this score value from the db instead of hard
                 #coding it here.
                 score = 0.3
+                reply = "Οὐ κάκον. You're close."
             else:
                 score = 0
                 reply = "Incorrect. Try again!"
@@ -1313,6 +1346,9 @@ class Step(object):
         # Handle errors if the student's response cannot be evaluated
         except re.error:
             redirect(URL('index', args=['error', 'regex']))
+            reply = 'Oops! I seem to have encountered an error in this step.'
+            readable_short = None
+            readable_long = None
 
         # TODO: This replaces the Walk.save_session_data() that was in the
         # controller. Make sure this saving of step data is enough.
@@ -1676,6 +1712,7 @@ class StepMultipleChoice(Step):
             #TODO: Get this score value from the db instead of hard
             #coding it here.
             score = 0.3
+            reply = "Οὐ κάκον. You're close."
         else:
             score = 0
             reply = "Sorry, that wasn't right. Try again!"
@@ -1729,8 +1766,9 @@ class StepStub(Step):
         if self.path is None:
             self.path = db.paths(session.walk['path'])
         if debug: print 'self.path', self.path
+
         # if this is part of a multi-step path
-        # text with path 93 step 107
+        # test with path 93 step 107
         if self.path and (len(self.path.steps) > 1) and (self.step.id !=
                                                           self.path.steps[-1]):
             # TODO: In some cases when step 30 (nothing here) is activated
@@ -1755,7 +1793,6 @@ class StepStub(Step):
             elif session.walk['path'] in session.walk['active_paths'].keys():
                 if debug: print 'path:', session.walk['path']
                 del session.walk['active_paths'][session.walk['path']]
-
             if debug:
                 print 'session active_paths:', session.walk['active_paths']
         # either way, remove 'path' and 'step' from session.walk
@@ -1840,7 +1877,8 @@ class StepViewSlides(StepStub):
 
         slidelist = []
         badgelist = []
-        if 'view_slides' in session.walk:
+        if ('view_slides' in session.walk) and (session.walk['view_slides']
+                                                              is not None):
             for t in session.walk['view_slides']:
                 # convert this to link once plugin_slider supports it
                 tag_slides = db.tags[t].slides
