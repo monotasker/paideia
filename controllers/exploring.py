@@ -228,3 +228,18 @@ def walk():
         #TODO: Review bug handling and logging here
         print '\ncontroller exploring.walk() state: error'
         return patherror()
+
+
+@auth.requires_membership('administrators')
+def x():
+    '''
+    sandbox method for testing logic
+    '''
+    max_rank = db(db.tag_progress.name
+              == auth.user_id).select().first().latest_new
+    p_list1 = db().select(db.paths.ALL, orderby='<random>')
+    tag_list = db(db.tags.position <= max_rank).select()
+    # filter out paths whose tags aren't in the tag_list
+    paths = p_list1.find(lambda row:
+                 [t for t in row.tags if t in [l.id for l in tag_list]])
+    return paths
