@@ -595,6 +595,16 @@ a:active .tip,                     {display:block;
 }
 .red-sticker   {background-color:@red; color:#fff; .sticker; }
 
+/* collapsible divs or panels using :target pseudo-element */
+ul li.collapsible_parent           {
+    ul.collapsible_child           {height:0;
+                                    overflow: hidden;
+                                    .transition();}
+    &:target ul.collapsible_child  {height:auto;
+                                   .transition();}
+    }
+
+
 /* icon-fonts **************/
 .icon-only {        display: inline-block; /* Fix for webkit clickability issue */
     .accessible {   position: absolute;
@@ -633,10 +643,10 @@ a:active .tip,                     {display:block;
 .icon-next-circle:before {  content:')'; font-family: Websymbols; padding-right:@lineheight / 3 }
 .icon-back                 {
     &:before               {content:'<'; font-family: Websymbols; padding-right:@lineheight / 3 }
-    }    
+    }
 .icon-next                 {
     &:before               {content:'>'; font-family: Websymbols; padding-right:@lineheight / 3 }
-    }    
+    }
 .icon-rotate-circle:before {content:'*'; font-family: Websymbols; padding-right:@lineheight / 3 }
 .icon-close:before {        content:"'"; font-family: Websymbols; padding-right:@lineheight / 3 }
 .icon-twitter:before {      content:'t'; font-family: Websymbols; padding-right:@lineheight / 3 }

@@ -1,24 +1,25 @@
 {{extend 'layout.html'}}
 
 <h2>Number of paths in DB for each tag</h2>
-<table>
+<section>
+<ul>
+{{cid = 0}}
 {{for t in taglist:}}
-{{if t['position']:}}
-<tr>
-    <td>{{=t['position']}}</td>
-    <td>{{=t['name']}}</td>
-    <td>{{=t['count']}}</td>
-</tr>
-<tr>
-    <td></td>
-    <td colspan='2'>
-        <ul>
+    {{if t['position']:}}
+        {{cid += 1}}
+    <li id={{=cid}} class='collapsible_parent'>
+        {{=A(SPAN(('{}: '.format(t['position'])), _class='tag_position'),
+             SPAN(('{} '.format(t['name'])), _class='tag_count'),
+             SPAN(t['count'], _class='tag_count'),
+            _href=('#{}'.format(cid)),
+            _class='collapse_trigger')}}
+        <ul class='collapsible_child'>
             {{for p in t['pathset']:}}
             <li>{{=p.id}}: {{=p.label}}</li>
             {{pass}}
         </ul>
-    </td>
-</tr>
-{{pass}}    
-{{pass}}    
-</table>
+    </li>
+    {{pass}}
+{{pass}}
+</ul>
+</section>
