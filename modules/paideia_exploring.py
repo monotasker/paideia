@@ -1022,8 +1022,9 @@ class Walk(object):
         max_rank = db(db.tag_progress.name
                       == auth.user_id).select().first().latest_new
         tag_list = db(db.tags.position <= max_rank).select()
+        # filter out paths whose tags aren't in the tag_list
         paths = p_list1.find(lambda row:
-                             [t for t in row.tags if t in tag_list])
+                     [t for t in row.tags if t in [l.id for l in tag_list]])
         for p in paths:
             the_step = p.steps[0]
             if loc_id in the_step.locations:
