@@ -427,7 +427,7 @@ class Walk(object):
 
         return tags
 
-    def _categorize_tags(self, user=None):
+    def _categorize_tags(self, user=None, auth=None, db=None):
         '''
         This method uses stored statistics for current user to categorize the
         grammatical tags based on the user's success and the time since the
@@ -447,18 +447,21 @@ class Walk(object):
         '''
         debug = False
         if self.verbose: print 'calling Walk._categorize_tags--------------'
-        auth = current.auth
-        db = current.db
-
-        if not user:
+        # inject default dependencies
+        if auth is None:
+            auth = current.auth
+        if db is None:
+            db = current.db
+        if user is None:
             user = auth.user_id
+
         #TODO: Factor in how many times a tag has been successful or not
 
         # create new dictionary to hold categorized results
         categories = dict((x, []) for x in xrange(1, 5))
 
         record_list = db(db.tag_records.name == user).select()
-        discrete_tags = [t.tag for t in record_list]
+        discrete_tags = set([t.tag for t in record_list])
         if len(record_list) > len(discrete_tags):
             for tag in discrete_tags:
                 shortlist = record_list.find(lambda row: row.tag == tag)
@@ -1036,7 +1039,7 @@ class Walk(object):
         # TODO: randomize selection of this path or is it already randomized
         # from p_list1 select?
         for p in paths:
-            the_step = p.steps[0]
+            the_step = db.steps[p.steps[0]]
             if loc_id in the_step.locations:
                 return p, the_step
             else:
