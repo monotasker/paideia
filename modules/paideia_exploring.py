@@ -1044,7 +1044,7 @@ class Walk(object):
         # from p_list1 select?
         for p in paths:
             the_step = db.steps[p.steps[0]]
-            if loc_id in the_step.locations:
+            if the_step.locations and (loc_id in the_step.locations):
                 return p, the_step
             else:
                 continue
@@ -1653,8 +1653,11 @@ class Step(object):
                     Field('response', 'string', requires=IS_NOT_EMPTY()),
                     _autocomplete='off'
                 )
+        wrapper = DIV(form, _class='responder')
+
         instructions = self._get_instructions()
-        wrapper = DIV(form, instructions, _class='responder')
+        if instructions:
+            wrapper.append(instructions)
 
         return wrapper
 
