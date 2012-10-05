@@ -358,15 +358,23 @@ body #page             {margin-top:-(@lineheight2 + 14);
                             height:680px;}
         }
     .prompt,
-    .responder             {margin-top: @lineheight;
-                            margin-left:260px;
-                            max-width: 65%;
-                            font-size: @typeheight * 1.25;
-                            line-height: @lineheight * 1.25;
-        p                  {margin:0;}
-        ul                 {padding-left: @lineheight;
-            li             {font-size: @typeheight;
-                            color:@sol_yellow;}
+    .responder                     {margin-top: @lineheight;
+                                    margin-left:260px;
+                                    max-width: 65%;
+                                    font-size: @typeheight * 1.25;
+                                    line-height: @lineheight * 1.25;
+        p                          {margin:0;}
+        #no_table_response__row    {
+            td:first-child         {display: none;}
+            input                  {font-size: @lineheight2;
+                                    font-family: SBLGreekRegular}
+            }
+        #submit_record__row        {
+            td:first-child         {display: none;}
+            }
+        ul                         {padding-left: @lineheight;
+            li                     {font-size: @typeheight;
+                                    color:@sol_yellow;}
             }
         .button            {display:inline-block;}
         .quiz_type         {}
@@ -395,7 +403,12 @@ body #page             {margin-top:-(@lineheight2 + 14);
             a              {font-size: @typeheight;}
             }
         }
-        .prompt_badges     {top:0;}
+        .prompt_badges         {top:0;}
+        .prompt_badges_icon    {.sticker(@lineheight2, @typeheight2);
+                                background-color: @moss;
+                                color: @cream;
+                                font-size: @lineheight / 2;
+                                border:2px solid @white;}
     .prompt                {.speech-bubble-left(@lineheight, @typeheight);
                             z-index:4;}
     .responder             {.speech-bubble-down(@lineheight, @typeheight, @greyf5);
