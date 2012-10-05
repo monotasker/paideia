@@ -56,7 +56,7 @@ def create_and_login_test_user(db, first_name, last_name, email, password):
 
 class Paideia_exploringModule(unittest.TestCase):
     '''
-    Unit test suite for paideia module
+    Unit test suite for paideia_exploring module
     '''
 
     def __init__(self, p):
