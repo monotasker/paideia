@@ -461,13 +461,17 @@ class Walk(object):
         categories = dict((x, []) for x in xrange(1, 5))
 
         record_list = db(db.tag_records.name == user).select()
+        # find and remove any duplicate entries in tag_records
         discrete_tags = set([t.tag for t in record_list])
+        kept = []
         if len(record_list) > len(discrete_tags):
             for tag in discrete_tags:
                 shortlist = record_list.find(lambda row: row.tag == tag)
+                kept.append(shortlist[0].id)
                 if len(shortlist) > 1:
-                    for record in shortlist[1:]:
-                        db.tag_records[record.id].delete()
+                    for row in shortlist[1:]:
+                        row.delete_record()
+        record_list = record_list.find(lambda row: row.id in kept)
 
         if record_list.first() is None:
             if debug: print 'No tag_records for this user'
