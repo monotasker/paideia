@@ -708,3 +708,9 @@ CREATE TABLE session_data(
     data TEXT
 );
 success!
+timestamp: 2012-10-07T16:35:11.556251
+ALTER TABLE tag_progress ADD rev1 TEXT;
+timestamp: 2012-10-07T16:35:11.821447
+ALTER TABLE tag_progress ADD rev3 TEXT;
+timestamp: 2012-10-07T16:35:12.185175
+ALTER TABLE tag_progress ADD rev2 TEXT;
