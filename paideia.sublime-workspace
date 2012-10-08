@@ -4,8 +4,20 @@
 		"selected_items":
 		[
 			[
+				"update_",
+				"update_cats	(local, instance)"
+			],
+			[
 				"tag_",
-				"tag_list"
+				"tag_progress"
+			],
+			[
+				"rindex",
+				"rindex_new	(local, instance)"
+			],
+			[
+				"prog",
+				"progress	(local, instance)"
 			],
 			[
 				"latest",
@@ -280,10 +292,6 @@
 				"last_right"
 			],
 			[
-				"update_",
-				"update_record"
-			],
-			[
 				"di",
 				"display	display: block"
 			],
@@ -451,7 +459,7 @@
 			"file": "modules/paideia_exploring.py",
 			"settings":
 			{
-				"buffer_size": 85827,
+				"buffer_size": 85444,
 				"line_ending": "Unix"
 			}
 		},
@@ -764,6 +772,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"rev",
 			"tag_records",
 			"green-gr",
 			"label",
@@ -872,15 +881,15 @@
 					"file": "modules/paideia_exploring.py",
 					"settings":
 					{
-						"buffer_size": 85827,
+						"buffer_size": 85444,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								19996,
-								19996
+								25384,
+								25384
 							]
 						],
 						"settings":
@@ -891,7 +900,7 @@
 								"README",
 								"FIXME"
 							],
-							"function_name_status_row": 511,
+							"function_name_status_row": 630,
 							"gjslint_ignore":
 							[
 								110
@@ -940,7 +949,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 10890.0,
+						"translation.y": 13596.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -1050,8 +1059,8 @@
 						"selection":
 						[
 							[
-								12074,
-								12074
+								12157,
+								12157
 							]
 						],
 						"settings":
@@ -1062,7 +1071,7 @@
 								"README",
 								"FIXME"
 							],
-							"function_name_status_row": 291,
+							"function_name_status_row": 293,
 							"gjslint_ignore":
 							[
 								110
@@ -1176,6 +1185,10 @@
 		"selected_items":
 		[
 			[
+				"user",
+				"paideia/views/default/user.html"
+			],
+			[
 				"stats",
 				"paideia/modules/paideia_stats.py"
 			],
@@ -1226,10 +1239,6 @@
 			[
 				"inde",
 				"paideia/views/exploring/index.html"
-			],
-			[
-				"user",
-				"paideia/views/default/user.html"
 			],
 			[
 				"ajaxs",
