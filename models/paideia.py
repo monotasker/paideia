@@ -289,6 +289,7 @@ db.define_table('tag_progress',
     Field('rev1', 'list:reference tags'),
     Field('rev2', 'list:reference tags'),
     Field('rev3', 'list:reference tags'),
+    Field('rev4', 'list:reference tags'),
     format='%(name)s, %(latest_new)s')
 db.tag_progress.name.requires = IS_NOT_IN_DB(db, db.tag_progress.name)
 
