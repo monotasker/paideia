@@ -38,6 +38,14 @@
     </p>
 
 <table cellspacing='0' class='summary_stats'>
+    <thead>
+        <tr>
+            <th></th>
+            <th></th>
+            <th>Badge level reached</th>
+            <th>Review level</th>
+        </tr>
+    </thead>
 {{if 'cat4' in active:}}
     <tr>
         <td>mastered</td>
@@ -49,9 +57,13 @@
                 {{for b in active['cat4']:}}
                 <li>{{=b}}</li>
                 {{pass}}
+                {{for b in active['rev4']:}}
+                <li>{{=b}}</li>
+                {{pass}}
             </ul>
             {{pass}}
         </td>
+        <td></td>
     </tr>
     <tr>
         <td>making very good progress on</td>
@@ -61,6 +73,15 @@
             {{if active['cat3'] and active['cat3'] != 0:}}
             <ul>
                 {{for b in active['cat3']:}}
+                <li>{{=b}}</li>
+                {{pass}}
+            </ul>
+            {{pass}}
+        </td>
+        <td>
+            {{if active['rev3'] and active['rev3'] != 0:}}
+            <ul>
+                {{for b in active['rev3']:}}
                 <li>{{=b}}</li>
                 {{pass}}
             </ul>
@@ -80,6 +101,15 @@
             </ul>
             {{pass}}
         </td>
+        <td>
+            {{if active['rev2'] and active['rev2'] != 0:}}
+            <ul>
+                {{for b in active['rev2']:}}
+                <li>{{=b}}</li>
+                {{pass}}
+            </ul>
+            {{pass}}
+        </td>
     </tr>
     <tr>
         <td>just started or needing review</td>
@@ -89,6 +119,15 @@
             {{if active['cat1'] and active['cat1'] != 0:}}
             <ul>
                 {{for b in active['cat1']:}}
+                <li>{{=b}}</li>
+                {{pass}}
+            </ul>
+            {{pass}}
+        </td>
+        <td>
+            {{if active['rev1'] and active['rev1'] != 0:}}
+            <ul>
+                {{for b in active['rev1']:}}
                 <li>{{=b}}</li>
                 {{pass}}
             </ul>

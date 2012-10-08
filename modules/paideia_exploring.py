@@ -505,9 +505,12 @@ class Walk(object):
                         # don't allow promotion from cat1 within 1 day
                         and (right_wrong_dur > datetime.timedelta(days=1))
                         # require at least 10 right answers
-                        and (record.times_right >= 20)) \
+                        and (record.times_right >= 10)) \
                     or ((record.times_wrong > 0)  # prevent zero division error
-                        and (record.times_right / record.times_wrong) >= 10):
+                        and (record.times_right / record.times_wrong) >= 10)
+                        and (right_dur <= datetime.timedelta(days=1)))
+                    or ((record.times_wrong == 0)  # prevent zero division error
+                        and record.times_right >= 10)):
                        # allow for 10% wrong and still promote
                     # ==================================================
                     # for category 3

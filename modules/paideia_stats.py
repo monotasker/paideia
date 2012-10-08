@@ -31,6 +31,10 @@ class Stats(object):
             atags2 = atags['cat2'] = list(set(atag_s.cat2))
             atags3 = atags['cat3'] = list(set(atag_s.cat3))
             atags4 = atags['cat4'] = list(set(atag_s.cat4))
+            atags5 = atags['rev1'] = list(set(atag_s.rev1))  # remove dup's
+            atags6 = atags['rev2'] = list(set(atag_s.rev2))
+            atags7 = atags['rev3'] = list(set(atag_s.rev3))
+            atags8 = atags['rev4'] = list(set(atag_s.rev4))
             for c, lst in atags.iteritems():
                 # allow for possibility that tag hasn't got badge yet
                 try:
