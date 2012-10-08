@@ -50,15 +50,16 @@
     <tr>
         <td>mastered</td>
         <td class='total_cat4'>{{=len(active['cat4']) if active['cat4'] else 0}}</td>
-        <td>badges</td>
         <td>
             {{if active['cat4'] and active['cat4'] != 0:}}
             <ul>
                 {{for b in active['cat4']:}}
                 <li>{{=b}}</li>
                 {{pass}}
-                {{for b in active['rev4']:}}
-                <li>{{=b}}</li>
+                {{if active['rev4'] and active['rev4'] != 0:}}
+                    {{for b in active['rev4']:}}
+                    <li>{{=b}}</li>
+                    {{pass}}
                 {{pass}}
             </ul>
             {{pass}}
@@ -68,7 +69,6 @@
     <tr>
         <td>making very good progress on</td>
         <td class='total_cat3'>{{=len(active['cat3']) if active['cat3'] else 0}}</td>
-        <td>badges</td>
         <td>
             {{if active['cat3'] and active['cat3'] != 0:}}
             <ul>
@@ -91,7 +91,6 @@
     <tr>
         <td>made a good start with</td>
         <td class='total_cat2'>{{=len(active['cat2']) if active['cat2'] else 0}}</td>
-        <td>badges</td>
         <td>
             {{if active['cat2'] and active['cat2'] != 0:}}
             <ul>
@@ -114,7 +113,6 @@
     <tr>
         <td>just started or needing review</td>
         <td class='total_cat1'>{{=len(active['cat1']) if active['cat1'] else 0}}</td>
-        <td>badges</td>
         <td>
             {{if active['cat1'] and active['cat1'] != 0:}}
             <ul>
