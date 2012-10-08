@@ -79,7 +79,7 @@
             {{pass}}
         </td>
         <td>
-            {{if active['rev3'] and active['rev3'] != 0:}}
+            {{if ('rev3' in active) and (active['rev3']) and (active['rev3'] != 0):}}
             <ul>
                 {{for b in active['rev3']:}}
                 <li>{{=b}}</li>
@@ -101,7 +101,7 @@
             {{pass}}
         </td>
         <td>
-            {{if active['rev2'] and active['rev2'] != 0:}}
+            {{if ('rev2' in active.keys()) and (active['rev2']) and (active['rev2'] != 0):}}
             <ul>
                 {{for b in active['rev2']:}}
                 <li>{{=b}}</li>
@@ -123,7 +123,7 @@
             {{pass}}
         </td>
         <td>
-            {{if active['rev1'] and active['rev1'] != 0:}}
+            {{if ('rev1' in active.keys()) and (active['rev1']) and (active['rev1'] != 0):}}
             <ul>
                 {{for b in active['rev1']:}}
                 <li>{{=b}}</li>

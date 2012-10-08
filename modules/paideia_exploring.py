@@ -427,6 +427,53 @@ class Walk(object):
 
         return tags
 
+    def _find_cats(self, categories, record_list):
+
+        for record in record_list:
+            #get time-based statistics for this tag
+            #note: arithmetic operations yield datetime.timedelta objects
+            now_date = datetime.datetime.utcnow()
+            right_dur = now_date - record.tlast_right
+            right_wrong_dur = record.tlast_right - record.tlast_wrong
+
+            # Categorize q or tag based on this performance
+            # spaced repetition algorithm for promotion from cat1
+            # ======================================================
+            # for category 2
+            if ((right_dur < right_wrong_dur)
+                    # don't allow promotion from cat1 within 1 day
+                    and (right_wrong_dur > datetime.timedelta(days=1))
+                    # require at least 10 right answers
+                    and (record.times_right >= 10)) \
+                or ((record.times_wrong > 0)  # prevent zero division error
+                    and ((record.times_right / record.times_wrong) >= 10)
+                    and (right_dur <= datetime.timedelta(days=1))) \
+                or ((record.times_wrong == 0)  # prevent zero division error
+                    and (record.times_right >= 10)):
+                   # allow for 10% wrong and still promote
+                # ==================================================
+                # for category 3
+                if right_wrong_dur.days >= 7:
+                    # ==============================================
+                    # for category 4
+                    if right_wrong_dur.days > 30:
+                        # ==========================================
+                        # for review
+                        if right_wrong_dur > datetime.timedelta(days=180):
+                            category = 'cat1'  # Not tried for 6 months
+                        else:
+                            category = 'cat4'  # Not due, delta > a month
+                    else:
+                        category = 'cat3'  # delta between a week and month
+                else:
+                    category = 'cat2'  # Not due but delta is a week or less
+            else:
+                category = 'cat1'  # Spaced repetition requires review
+
+            categories[category].append(record.tag.id)
+
+        return categories
+
     def _categorize_tags(self, user=None, auth=None, db=None, progress=None):
         '''
         This method uses stored statistics for current user to categorize the
@@ -445,7 +492,7 @@ class Walk(object):
         categories. The value for each key is a list holding the id's
         (integers) of the tags that are currently in the given category.
         '''
-        debug = False
+        debug = True
         if self.verbose: print 'calling Walk._categorize_tags--------------'
         # inject default dependencies
         if auth is None:
@@ -454,6 +501,7 @@ class Walk(object):
             db = current.db
         if user is None:
             user = auth.user_id
+            if debug: print 'user:', user
         if progress is None:
             progress = db(db.tag_progress.name == user).select().first()
             if progress is None:
@@ -463,101 +511,45 @@ class Walk(object):
         # TODO: Look at secondary tags
 
         # create new dictionary to hold categorized results
-        catlabels = ['cat1', 'cat2', 'cat3', 'cat4',
-                    'rev1', 'rev2', 'rev3', 'rev4']
+        catlabels = ['cat1', 'cat2', 'cat3', 'cat4']
         categories = dict((x, []) for x in catlabels)
+        reviews = deepcopy(categories)
 
         # get record of user performance for each tag tried
         record_list = db(db.tag_records.name == user).select()
+        if debug: print 'initial record_list', [r.id for r in record_list]
         # find and remove any duplicate entries in tag_records
         discrete_tags = set([t.tag for t in record_list])
         kept = []
         if len(record_list) > len(discrete_tags):
             for tag in discrete_tags:
                 shortlist = record_list.find(lambda row: row.tag == tag)
+                if debug: print 'shortlist', [s.id for s in shortlist]
                 kept.append(shortlist[0].id)
                 if len(shortlist) > 1:
                     for row in shortlist[1:]:
                         row.delete_record()
-        record_list = record_list.find(lambda row: row.id in kept)
+            record_list = record_list.find(lambda row: row.id in kept)
+        if debug: print 'filtered record_list', [r.id for r in record_list]
 
         # if user has not tried any tags yet, start first set
         if record_list.first() is None:
             if debug: print 'No tag_records for this user'
             firsttags = [t.id for t in db(db.tags.position == 1).select()]
             categories['cat1'] = firsttags
+            reviews['cat1'] = firsttags
             self.view_slides = firsttags
             if debug: print 'setting categories to initial value', categories
         # otherwise, categorize tags that have been tried
         else:
-            for record in record_list:
-                #get time-based statistics for this tag
-                #note: arithmetic operations yield datetime.timedelta objects
-                now_date = datetime.datetime.utcnow()
-                right_dur = now_date - record.tlast_right
-                right_wrong_dur = record.tlast_right - record.tlast_wrong
-
-                # Categorize q or tag based on this performance
-                # spaced repetition algorithm for promotion from cat1
-                # ======================================================
-                # for category 2
-                if ((right_dur < right_wrong_dur)
-                        # don't allow promotion from cat1 within 1 day
-                        and (right_wrong_dur > datetime.timedelta(days=1))
-                        # require at least 10 right answers
-                        and (record.times_right >= 10)) \
-                    or ((record.times_wrong > 0)  # prevent zero division error
-                        and (record.times_right / record.times_wrong) >= 10)
-                        and (right_dur <= datetime.timedelta(days=1)))
-                    or ((record.times_wrong == 0)  # prevent zero division error
-                        and record.times_right >= 10)):
-                       # allow for 10% wrong and still promote
-                    # ==================================================
-                    # for category 3
-                    if right_wrong_dur.days >= 7:
-                        # ==============================================
-                        # for category 4
-                        if right_wrong_dur.days > 30:
-                            # ==========================================
-                            # for review
-                            if right_wrong_dur > datetime.timedelta(days=180):
-                                category = rev1  # Not tried for 6 months
-                            # review or furthest category reached?
-                            elif record.tag in progress.cat4:
-                                category = 'rev4'
-                            else:
-                                category = 'cat4'  # Not due, delta > a month
-                        # review or furthest category reached?
-                        elif record.tag in chain(progress.cat3,
-                                                 progress.cat4):
-                            category = 'rev3'
-                        else:
-                            category = 'cat3'  # delta between a week and month
-                    # review or furthest category reached?
-                    elif record.tag in chain(progress.cat2,
-                                             progress.cat3,
-                                             progress.cat4):
-                        category = 'rev2'
-                    else:
-                        category = 'cat2'  # Not due but delta is a week or less
-                # review or furthest category reached?
-                elif record.tag in chain(progress.cat1,
-                                         progress.cat2,
-                                         progress.cat3,
-                                         progress.cat4):
-                    category = 'rev2'
-                else:
-                    category = 'cat1'  # Spaced repetition requires review
-                categories[category].append(record.tag.id)
-
+            # run basic categorizing algorithm
+            categories = self._find_cats(categories, record_list)
         if debug: print 'raw categorized tags:', categories
 
         # Make sure untried tags are still included
         rank = progress.latest_new
 
-
         #check for untried in current and all lower ranks
-        #should only be necessary until junk data is fixed?
         left_out = []
         for r in range(1, rank + 1):
             newtags = [t.id for t in db(db.tags.position == r).select()]
@@ -608,33 +600,45 @@ class Walk(object):
 
         new_badges = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
         for category, lst in categories.iteritems():
-            if (category[0:4] == 'cat') and lst:
+            if lst:
                 print 'current badges =', lst
                 if mycats and mycats[category]:
                     # make sure to check against higher categories too
                     catindex = categories.keys().index(category)
                     mycats_gteq = dict((k, mycats[k]) for k
-                                       in mycats.keys()[catindex:])
+                               in ['cat1', 'cat2', 'cat3', 'cat4'][catindex:])
                     if debug:
                         print 'looking in equal and higher cats:', mycats_gteq
-                    new = [t for t in lst if t not in mycats_gteq[category]]
-
+                    new = [t for t in lst if (t not in mycats_gteq[category])]
                 else:
                     new = [t for t in lst]
                 if new:
                     if debug: print 'newly awarded badges =', new
                     new_badges[category] = new
 
+        # build dictionary of values to record in tag_progress
+        update_cats = mycats.as_dict()
+        # if tags new or promoted, change 'cat' lists
+        for cat in new_badges:
+            if new_badges[cat] != None:
+                for t in new_badges[cat]:
+                    try:
+                        oldcat = [c for c, v in update_cats.iteritems()
+                                    if (type(v) == list) and (t in v)][0]
+                        update_cats[oldcat].remove(t)
+                    except IndexError, e:
+                        print 'This tag appears to be new; not removing from \
+                                old position'
+                    update_cats[cat].append(t)
+        # record current categorization as 'rev' lists
+        update_cats['rev1'] = categories['cat1']
+        update_cats['rev2'] = categories['cat2']
+        update_cats['rev3'] = categories['cat3']
+        update_cats['rev4'] = categories['cat4']
+
         # do this here so that we can compare db to categories first
         # TODO: this is a bad place to update the db values
-        db(db.tag_progress.name == user).update(cat1=categories['cat1'],
-                                                rev1=categories['rev1'],
-                                                cat2=categories['cat2'],
-                                                rev2=categories['rev2'],
-                                                cat3=categories['cat3'],
-                                                rev3=categories['rev3'],
-                                                cat4=categories['cat4'],
-                                                rev4=categories['rev4'])
+        db(db.tag_progress.name == user).update(**update_cats)
 
         result = []
         if [result.append(lst) for k, lst in new_badges.iteritems() if lst]:
@@ -1022,7 +1026,6 @@ class Walk(object):
             # find paths with tags in the current category
             # include max category and review 'columns'
             tag_list = self.tag_set['cat' + str(cat)]
-            tag_list.extend(self.tag_set['rev' + str(cat)])
             p_list = p_list1.find(lambda row:
                                   [t for t in row.tags if t in tag_list])
             if debug: print 'paths tagged in this cat:', [p.id for p in p_list]
