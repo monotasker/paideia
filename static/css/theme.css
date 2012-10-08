@@ -1461,7 +1461,7 @@ body #page #left_sidebar div:hover, body #page #right_sidebar div:hover {
   transition: all 200ms ease-in-out;
   background-color: #809240;
   color: #f8f0e5;
-  font-size: 24px;
+  font-size: 12px;
   border: 2px solid #ffffff;
 }
 #page.exploring .prompt_badges_icon:hover {
