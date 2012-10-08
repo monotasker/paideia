@@ -213,7 +213,7 @@ class Walk(object):
         self.step = None
         # initialize the session properly
         self.tag_set = self._categorize_tags()
-        self.new_badges = self._new_badges(auth.user_id, self.tag_set)
+        self.new_badges = self._new_badges(self.tag_set, auth.user_id)
         # self._unfinished()
         # TODO: deprecated _unfinished in present state, but need replacement
         self.session_start = datetime.datetime.utcnow()
@@ -455,9 +455,9 @@ class Walk(object):
         if user is None:
             user = auth.user_id
         if progress is None:
-            progress = db(db.tag_progress.name = user).select().first()
+            progress = db(db.tag_progress.name == user).select().first()
             if progress is None:
-                db.tag_progress.insert('latest_new'=1)
+                db.tag_progress.insert(latest_new=1)
 
         # TODO: Factor in how many times a tag has been successful or not
         # TODO: Look at secondary tags
@@ -561,7 +561,7 @@ class Walk(object):
             alltags = list(chain(*categories.values()))
             left_out.extend([t for t in newtags if t not in alltags])
         if left_out:
-            categories[1].extend(left_out)
+            categories['cat1'].extend(left_out)
             if debug: print 'adding untried tags', left_out, 'to cat1'
 
         # Remove duplicate tag id's from each category
@@ -584,20 +584,23 @@ class Walk(object):
         # return the value as well so that it can be used in Stats
         return categories
 
-    def _new_badges(self, user=None, db=None, categories):
+    def _new_badges(self, categories, user=None, db=None):
         '''
         Find any tags that have been newly promoted to a higher category,
         update the user's row in db.tag_progress, and return a dictionary of
         those new tags whose structure mirrors that of session.walk['tag_set'].
         '''
         if self.verbose: print 'calling Walk._new_badges ---------------------'
-        debug = False
-        db = current.db
-        auth = current.auth
+        debug = True
+        if db is None:
+            db = current.db
+        if user is None:
+            auth = current.auth
+            user = auth.user_id
 
         # If a tag has moved up in category, award the badge
         # TODO: Deprecate since most of this now done in categorization
-        mycats = db(db.tag_progress.name == auth.user_id).select().first()
+        mycats = db(db.tag_progress.name == user).select().first()
         if debug: print 'mycats =', mycats
 
         new_badges = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
@@ -621,11 +624,14 @@ class Walk(object):
 
         # do this here so that we can compare db to categories first
         # TODO: this is a bad place to update the db values
-        db.tag_progress.update(db.tag_progress.name == user,
-                            cat1=categories['cat1'], rev1=categories['rev1'],
-                            cat2=categories['cat2'], rev2=categories['rev2'],
-                            cat3=categories['cat3'], rev3=categories['rev3'],
-                            cat4=categories['cat4'], rev4=categories['rev4'])
+        db(db.tag_progress.name == user).update(cat1=categories['cat1'],
+                                                rev1=categories['rev1'],
+                                                cat2=categories['cat2'],
+                                                rev2=categories['rev2'],
+                                                cat3=categories['cat3'],
+                                                rev3=categories['rev3'],
+                                                cat4=categories['cat4'],
+                                                rev4=categories['rev4'])
 
         result = []
         if [result.append(lst) for k, lst in new_badges.iteritems() if lst]:
@@ -1001,7 +1007,7 @@ class Walk(object):
         # in another location
         if debug: print 'no active paths, looking for a new path'
         cat = self._get_category()  # generate weighted random number for cat
-        cat_range = self.tag_set.keys()
+        cat_range = range(1,5)
         cat_list = cat_range[cat:5] + cat_range[0:cat]
         if debug: print 'category list to try:', cat_list
 
@@ -1429,7 +1435,7 @@ class Step(object):
         records. times_wrong gives the opposite value to add to 'times wrong'
         (i.e., negative score).
         '''
-        debug = False
+        debug = True
 
         if self.verbose:
             print 'calling', type(self).__name__, '._record---------------'
