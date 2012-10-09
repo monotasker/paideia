@@ -427,7 +427,7 @@
 			"file": "modules/paideia_exploring.py",
 			"settings":
 			{
-				"buffer_size": 82567,
+				"buffer_size": 83493,
 				"line_ending": "Unix"
 			}
 		},
@@ -435,7 +435,7 @@
 			"file": "controllers/exploring.py",
 			"settings":
 			{
-				"buffer_size": 8565,
+				"buffer_size": 8789,
 				"line_ending": "Unix"
 			}
 		},
@@ -467,7 +467,7 @@
 	"build_system": "Packages/LESS-build/LESS.sublime-build",
 	"command_palette":
 	{
-		"height": 392.0,
+		"height": 327.0,
 		"selected_items":
 		[
 			[
@@ -627,7 +627,7 @@
 				"Package Control: Discover Packages"
 			]
 		],
-		"width": 521.0
+		"width": 449.0
 	},
 	"console":
 	{
@@ -824,15 +824,15 @@
 					"file": "modules/paideia_exploring.py",
 					"settings":
 					{
-						"buffer_size": 82567,
+						"buffer_size": 83493,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								41368,
-								41368
+								40846,
+								40846
 							]
 						],
 						"settings":
@@ -843,7 +843,7 @@
 								"README",
 								"FIXME"
 							],
-							"function_name_status_row": 1028,
+							"function_name_status_row": 1018,
 							"gjslint_ignore":
 							[
 								110
@@ -892,7 +892,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 22291.0,
+						"translation.y": 17133.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -908,15 +908,15 @@
 					"file": "controllers/exploring.py",
 					"settings":
 					{
-						"buffer_size": 8565,
+						"buffer_size": 8789,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								8521,
-								8521
+								8787,
+								8787
 							]
 						],
 						"settings":
@@ -927,7 +927,7 @@
 								"README",
 								"FIXME"
 							],
-							"function_name_status_row": 243,
+							"function_name_status_row": 252,
 							"gjslint_ignore":
 							[
 								110
@@ -976,7 +976,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 5035.0,
+						"translation.y": 3882.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -1146,7 +1146,7 @@
 		"cols":
 		[
 			0.0,
-			0.671156661786,
+			0.486585645203,
 			1.0
 		],
 		"rows":

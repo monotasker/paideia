@@ -242,4 +242,12 @@ def x():
     # filter out paths whose tags aren't in the tag_list
     paths = p_list1.find(lambda row:
                  [t for t in row.tags if t in [l.id for l in tag_list]])
-    return paths
+    loc_id = 1
+    for p in paths:
+        the_step = db.steps[p.steps[0]]
+        if the_step.locations and (loc_id in the_step.locations):
+            return dict(p=p, the_step=the_step)
+        else:
+            continue
+
+    return None
