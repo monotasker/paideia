@@ -1,5 +1,6 @@
 # coding: utf8
 from paideia_exploring import Walk
+from itertools import chain
 
 if 0:
     from gluon import current, A, URL
@@ -235,19 +236,21 @@ def x():
     '''
     sandbox method for testing logic
     '''
-    max_rank = db(db.tag_progress.name
-              == auth.user_id).select().first().latest_new
-    p_list1 = db().select(db.paths.ALL, orderby='<random>')
-    tag_list = db(db.tags.position <= max_rank).select()
-    # filter out paths whose tags aren't in the tag_list
-    paths = p_list1.find(lambda row:
-                 [t for t in row.tags if t in [l.id for l in tag_list]])
-    loc_id = 1
-    for p in paths:
-        the_step = db.steps[p.steps[0]]
-        if the_step.locations and (loc_id in the_step.locations):
-            return dict(p=p, the_step=the_step)
-        else:
-            continue
+    user = 25
+    record_list = db(db.tag_records.name == user).select()
+    discrete_tags = set([t.tag for t in record_list])
+    tbdel = []
+    if len(record_list) > len(discrete_tags):
+        print 'duplicate rows present'
+        for tag in discrete_tags:
+            shortlist = record_list.find(lambda row: row.tag == tag)
+            if len(shortlist) > 1:
+                tbdel.append(shortlist[1:])
+                # for record in shortlist[1:]:
+                #     db.tag_records[record.id].delete()
+        tbdel = chain([l for l in tbdel])
+        print [l for l in tbdel]
 
-    return None
+    return dict(record_list=len(record_list),
+                discrete_tags=discrete_tags,
+                tbdel=tbdel)
