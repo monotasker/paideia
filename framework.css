@@ -1,0 +1,113 @@
+*{-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box;}
+@font-face{font-family:'SBLGreekRegular';src:url('../plugin_framework/fonts/sbl_grk-webfont.eot');src:local('☺'),url('../plugin_framework/fonts/sbl_grk-webfont.woff') format('woff'),url('../plugin_framework/fonts/sbl_grk-webfont.ttf') format('truetype'),url('../plugin_framework/fonts/sbl_grk-webfont.svg#webfontRelj09Wi') format('svg');font-weight:normal;font-style:normal;}@font-face{font-family:'Websymbols';src:url('../plugin_framework/fonts/websymbols-regular-webfont.eot');src:local('☺'),url('../plugin_framework/fonts/websymbols-regular-webfont.eot?#iefix') format('embedded-opentype'),url('../plugin_framework/fonts/websymbols-regular-webfont.woff') format('woff'),url('../plugin_framework/fonts/websymbols-regular-webfont.ttf') format('truetype'),url('../plugin_framework/fonts/websymbols-regular-webfont.svg#websymbols-regular-webfont') format('svg');font-weight:normal;font-style:normal;}@font-face{font-family:'EstrangeloEdessaRegular';src:url('../static/plugin_framework/fonts/estre-webfont.eot');src:local('☺'),url('../static/plugin_framework/fonts/estre-webfont.woff') format('woff'),url('../static/plugin_framework/fonts/estre-webfont.ttf') format('truetype'),url('../static/plugin_framework/fonts/estre-webfont.svg#webfont7YE92Obt') format('svg');font-weight:normal;font-style:normal;}@font-face{font-family:'SBLHebrewRegular';src:url('../static/plugin_framework/fonts/sbl_hbrw-webfont.eot');src:local('☺'),url('../static/plugin_framework/fonts/sbl_hbrw-webfont.woff') format('woff'),url('../static/plugin_framework/fonts/sbl_hbrw-webfont.ttf') format('truetype'),url('../static/plugin_framework/fonts/sbl_hbrw-webfont.svg#webfontUHtlyWNi') format('svg');font-weight:normal;font-style:normal;}@font-face{font-family:'AbyssinicaSIL';src:url('../static/plugin_framework/fonts/abyssinica_sil-webfont.eot');src:local('☺'),url('../static/plugin_framework/fonts/abyssinica_sil-webfont.woff') format('woff'),url('../static/plugin_framework/fonts/abyssinica_sil-webfont.ttf') format('truetype'),url('../static/plugin_framework/fonts/abyssinica_sil-webfont.svg#webfont5nU8VVLc') format('svg');font-weight:normal;font-style:normal;}.Ethiopic{font-family:AbyssinicaSIL;font-size:24px;}
+.Aramaic,.Hebrew{font-family:SBLHebrewRegular,'Ezra SIL','Times New Roman';font-size:28px;direction:rtl;line-height:36px;}
+.Greek{font-family:SBLGreekRegular,Gentium,'Galatia SIL',Palatino,'Palatino Linotype','Times New Roman',xyz;font-size:20px;direction:ltr;line-height:36px;}
+.Syriac{font-family:'EstrangeloEdessaRegular';direction:ltr;}
+.Latin,.English{font-family:prociono,Palatino,'Palatino Linotype';}
+body{font-size:16px;line-height:24px;font-family:"Palatino Linotype",Palatino,serif;color:#666666;}body header,body #page,body footer{position:relative;width:960px;min-width:640px;background-color:#ffffff;margin:0 auto;padding:0;}
+a{text-decoration:none;}a:hover,a:active,a:link{text-decoration:none;}
+h1,h1 a{font-size:40px;line-height:60px;font-family:"Palatino Linotype",Palatino,serif;display:block;margin:0;}
+h2,h3{font-family:"Palatino Linotype",Palatino,serif;display:block;margin:0;}
+div,section,aside{padding:14px;}
+form div{padding:0;}
+.ui-resizable-handle{padding:0;}
+#modal_frame{display:none;position:absolute;top:15%;left:50%;padding:24px;width:400px;min-height:260px;background-color:#fff;border-radius:2px;z-index:1;margin-left:-200px;-moz-box-shadow:0 2px 12px rgba(0, 0, 0, 0.7);-webkit-box-shadow:0 2px 12px rgba(0, 0, 0, 0.7);-o-box-shadow:0 2px 12px rgba(0, 0, 0, 0.7);-ms-box-shadow:0 2px 12px rgba(0, 0, 0, 0.7);box-shadow:0 2px 12px rgba(0, 0, 0, 0.7);}
+ul{margin:0;padding:0;list-style-position:inside;list-style-type:none;}
+input[type=text],select,textarea{border:1px solid #eee;font-size:16px;line-height:24px;font-family:"Palatino Linotype",Palatino,serif;color:#666666;-webkit-transition:all 200ms ease-in-out;-moz-transition:all 200ms ease-in-out;-o-transition:all 200ms ease-in-out;-ms-transition:all 200ms ease-in-out;transition:all 200ms ease-in-out;}
+input[type=text]:focus,textarea:focus{-moz-box-shadow:0 1px 2px rgba(0, 0, 0, 0.4) inset;-webkit-box-shadow:0 1px 2px rgba(0, 0, 0, 0.4) inset;-o-box-shadow:0 1px 2px rgba(0, 0, 0, 0.4) inset;-ms-box-shadow:0 1px 2px rgba(0, 0, 0, 0.4) inset;box-shadow:0 1px 2px rgba(0, 0, 0, 0.4) inset;border:1px solid #5ba917;-webkit-transition:all 200ms ease-in-out;-moz-transition:all 200ms ease-in-out;-o-transition:all 200ms ease-in-out;-ms-transition:all 200ms ease-in-out;transition:all 200ms ease-in-out;}
+textarea{padding:0 16px;font-size:16px;line-height:24px;font-family:"Palatino Linotype",Palatino,serif;color:#666666;}
+input[type=text],select{line-height:36px;}input[type=text] option,select option{padding-left:16px;}
+select{background:#fff;border:1px solid #eee;max-width:90%;width:90%;}
+form label{line-height:36px;text-transform:uppercase;font-family:ubuntu,calibri,arial,sans-serif;font-size:12.8px;}
+input[type=submit]{display:inline-block;line-height:36px;height:36px;margin-left:16px;padding:0 16px;color:#fff;-webkit-transition:all 200ms ease-in-out;-moz-transition:all 200ms ease-in-out;-o-transition:all 200ms ease-in-out;-ms-transition:all 200ms ease-in-out;transition:all 200ms ease-in-out;background-color:#489615;background-image:-moz-linear-gradient(#84c63c, #489615);background-image:-webkit-gradient(linear, 0 0, 0 100%, from(#84c63c), to(#489615));background-image:-o-linear-gradient(#84c63c, #489615);background-image:-ms-linear-gradient(#84c63c, #489615);border:1px solid #5ba917;}input[type=submit]:hover{-moz-box-shadow:0 2px 6px rgba(0, 0, 0, 0.4);-webkit-box-shadow:0 2px 6px rgba(0, 0, 0, 0.4);-o-box-shadow:0 2px 6px rgba(0, 0, 0, 0.4);-ms-box-shadow:0 2px 6px rgba(0, 0, 0, 0.4);box-shadow:0 2px 6px rgba(0, 0, 0, 0.4);-webkit-transition:all 200ms ease-in-out;-moz-transition:all 200ms ease-in-out;-o-transition:all 200ms ease-in-out;-ms-transition:all 200ms ease-in-out;transition:all 200ms ease-in-out;}
+td{vertical-align:top;}
+form tr td{min-height:36px;}form tr td:first-child{text-align:right;padding-right:16px;}
+header{background-color:#f5f5f5;}
+nav{margin:0;float:right;}
+#page{min-height:480px;}
+.auth_navbar{position:relative;display:block;float:right;height:36px;line-height:36px;}
+div.flash{font-weight:bold;display:none;position:fixed;padding:16px;top:0;right:0px;min-width:280px;opacity:0.85;margin:0px 0px 10px 10px;color:#fff;vertical-align:middle;cursor:pointer;background-color:rgba(0, 0, 0, 0.8);border:1px solid #ccc;z-index:100;-moz-border-radius:0 0 5px 5px;-webkit-border-radius:0 0 5px 5px;-o-border-radius:0 0 5px 5px;-ms-border-radius:0 0 5px 5px;border-radius:0 0 5px 5px;-moz-box-shadow:;-webkit-box-shadow:;-o-box-shadow:;-ms-box-shadow:;box-shadow:;}
+div.error{background-color:#b10808;color:#ffffff;padding:3px;}
+.clear{clear:both;padding:0;}
+.tip_wrapper{display:inline-block;position:relative;overflow:visible;}
+a:hover .tip,a:active .tip{display:block;-webkit-transition:all 200ms ease-in-out;-moz-transition:all 200ms ease-in-out;-o-transition:all 200ms ease-in-out;-ms-transition:all 200ms ease-in-out;transition:all 200ms ease-in-out;}
+.button{display:inline-block;line-height:36px;height:36px;margin-left:16px;padding:0 16px;color:#fff;-webkit-transition:all 200ms ease-in-out;-moz-transition:all 200ms ease-in-out;-o-transition:all 200ms ease-in-out;-ms-transition:all 200ms ease-in-out;transition:all 200ms ease-in-out;}.button:hover{-moz-box-shadow:0 2px 6px rgba(0, 0, 0, 0.4);-webkit-box-shadow:0 2px 6px rgba(0, 0, 0, 0.4);-o-box-shadow:0 2px 6px rgba(0, 0, 0, 0.4);-ms-box-shadow:0 2px 6px rgba(0, 0, 0, 0.4);box-shadow:0 2px 6px rgba(0, 0, 0, 0.4);-webkit-transition:all 200ms ease-in-out;-moz-transition:all 200ms ease-in-out;-o-transition:all 200ms ease-in-out;-ms-transition:all 200ms ease-in-out;transition:all 200ms ease-in-out;}
+.button-green-grad{display:inline-block;line-height:36px;height:36px;margin-left:16px;padding:0 16px;color:#fff;-webkit-transition:all 200ms ease-in-out;-moz-transition:all 200ms ease-in-out;-o-transition:all 200ms ease-in-out;-ms-transition:all 200ms ease-in-out;transition:all 200ms ease-in-out;background-color:#489615;background-image:-moz-linear-gradient(#84c63c, #489615);background-image:-webkit-gradient(linear, 0 0, 0 100%, from(#84c63c), to(#489615));background-image:-o-linear-gradient(#84c63c, #489615);background-image:-ms-linear-gradient(#84c63c, #489615);}.button-green-grad:hover{-moz-box-shadow:0 2px 6px rgba(0, 0, 0, 0.4);-webkit-box-shadow:0 2px 6px rgba(0, 0, 0, 0.4);-o-box-shadow:0 2px 6px rgba(0, 0, 0, 0.4);-ms-box-shadow:0 2px 6px rgba(0, 0, 0, 0.4);box-shadow:0 2px 6px rgba(0, 0, 0, 0.4);-webkit-transition:all 200ms ease-in-out;-moz-transition:all 200ms ease-in-out;-o-transition:all 200ms ease-in-out;-ms-transition:all 200ms ease-in-out;transition:all 200ms ease-in-out;}
+.button-yellow-grad{display:inline-block;line-height:36px;height:36px;margin-left:16px;padding:0 16px;color:#fff;-webkit-transition:all 200ms ease-in-out;-moz-transition:all 200ms ease-in-out;-o-transition:all 200ms ease-in-out;-ms-transition:all 200ms ease-in-out;transition:all 200ms ease-in-out;background-color:#efad1f;background-image:-moz-linear-gradient(#ffd272, #efad1f);background-image:-webkit-gradient(linear, 0 0, 0 100%, from(#ffd272), to(#efad1f));background-image:-o-linear-gradient(#ffd272, #efad1f);background-image:-ms-linear-gradient(#ffd272, #efad1f);}.button-yellow-grad:hover{-moz-box-shadow:0 2px 6px rgba(0, 0, 0, 0.4);-webkit-box-shadow:0 2px 6px rgba(0, 0, 0, 0.4);-o-box-shadow:0 2px 6px rgba(0, 0, 0, 0.4);-ms-box-shadow:0 2px 6px rgba(0, 0, 0, 0.4);box-shadow:0 2px 6px rgba(0, 0, 0, 0.4);-webkit-transition:all 200ms ease-in-out;-moz-transition:all 200ms ease-in-out;-o-transition:all 200ms ease-in-out;-ms-transition:all 200ms ease-in-out;transition:all 200ms ease-in-out;}
+.red-sticker{background-color:#b10808;color:#fff;display:inline-block;width:24px;height:24px;line-height:24px;padding:0;text-align:center;-moz-border-radius:16px 16px 16px 16px;-webkit-border-radius:16px 16px 16px 16px;-o-border-radius:16px 16px 16px 16px;-ms-border-radius:16px 16px 16px 16px;border-radius:16px 16px 16px 16px;font-weight:bold;-moz-border-radius:16px 16px 16px 16px;-webkit-border-radius:16px 16px 16px 16px;-o-border-radius:16px 16px 16px 16px;-ms-border-radius:16px 16px 16px 16px;border-radius:16px 16px 16px 16px;-webkit-transition:all 200ms ease-in-out;-moz-transition:all 200ms ease-in-out;-o-transition:all 200ms ease-in-out;-ms-transition:all 200ms ease-in-out;transition:all 200ms ease-in-out;}.red-sticker:hover{-moz-box-shadow:0 2px 4px rgba(0, 0, 0, 0.3);-webkit-box-shadow:0 2px 4px rgba(0, 0, 0, 0.3);-o-box-shadow:0 2px 4px rgba(0, 0, 0, 0.3);-ms-box-shadow:0 2px 4px rgba(0, 0, 0, 0.3);box-shadow:0 2px 4px rgba(0, 0, 0, 0.3);-webkit-transition:all 200ms ease-in-out;-moz-transition:all 200ms ease-in-out;-o-transition:all 200ms ease-in-out;-ms-transition:all 200ms ease-in-out;transition:all 200ms ease-in-out;}
+ul li.collapsible_parent ul.collapsible_child{height:0;overflow:hidden;-webkit-transition:all 200ms ease-in-out;-moz-transition:all 200ms ease-in-out;-o-transition:all 200ms ease-in-out;-ms-transition:all 200ms ease-in-out;transition:all 200ms ease-in-out;}
+ul li.collapsible_parent:target ul.collapsible_child{height:auto;-webkit-transition:all 200ms ease-in-out;-moz-transition:all 200ms ease-in-out;-o-transition:all 200ms ease-in-out;-ms-transition:all 200ms ease-in-out;transition:all 200ms ease-in-out;}
+.icon-only{display:inline-block;}.icon-only .accessible{position:absolute;top:-9999px;left:-9999px;}
+.icon-gear:before{content:'S';font-family:Websymbols;padding-right:8px;}
+.icon-profile:before{content:'U';font-family:Websymbols;padding-right:8px;}
+.icon-logout:before{content:'X';font-family:Websymbols;padding-right:8px;}
+.icon-image:before{content:'I';font-family:Websymbols;padding-right:8px;}
+.icon-cloud:before{content:'C';font-family:Websymbols;padding-right:8px;}
+.icon-folder:before{content:'F';font-family:Websymbols;padding-right:8px;}
+.icon-archive:before{content:'Z';font-family:Websymbols;padding-right:8px;}
+.icon-move:before{content:'M';font-family:Websymbols;padding-right:8px;}
+.icon-logout:before{content:'X';font-family:Websymbols;padding-right:8px;}
+.icon-html:before{content:'H';font-family:Websymbols;padding-right:8px;}
+.icon-a:before{content:'T';font-family:Websymbols;padding-right:8px;}
+.icon-terminal:before{content:'_';font-family:Websymbols;padding-right:8px;}
+.icon-paperclip:before{content:'A';font-family:Websymbols;padding-right:8px;}
+.icon-indent:before{content:'n';font-family:Websymbols;padding-right:8px;}
+.icon-outdent:before{content:'o';font-family:Websymbols;padding-right:8px;}
+.icon-ul:before{content:'p';font-family:Websymbols;padding-right:8px;}
+.icon-ol:before{content:'q';font-family:Websymbols;padding-right:8px;}
+.icon-lock:before{content:'x';font-family:Websymbols;padding-right:8px;}
+.icon-page:before{content:'a';font-family:Websymbols;padding-right:8px;}
+.icon-plus-circle:before{content:'+';font-family:Websymbols;padding-right:8px;}
+.icon-close-circle:before{content:'x';font-family:Websymbols;padding-right:8px;}
+.icon-scale:before{content:'&';font-family:Websymbols;padding-right:8px;}
+.icon-back-circle:before{content:'(';font-family:Websymbols;padding-right:8px;}
+.icon-next-circle:before{content:')';font-family:Websymbols;padding-right:8px;}
+.icon-back:before{content:'<';font-family:Websymbols;padding-right:8px;}
+.icon-next:before{content:'>';font-family:Websymbols;padding-right:8px;}
+.icon-rotate-circle:before{content:'*';font-family:Websymbols;padding-right:8px;}
+.icon-close:before{content:"'";font-family:Websymbols;padding-right:8px;}
+.icon-twitter:before{content:'t';font-family:Websymbols;padding-right:8px;}
+.icon-facebook:before{content:'f';font-family:Websymbols;padding-right:8px;}
+.icon-linkedin:before{content:'l';font-family:Websymbols;padding-right:8px;}
+.icon-google-plus:before{content:'g';font-family:Websymbols;}
+.icon-rss-square:before{content:'r';font-family:Websymbols;}
+.icon-vimeo:before{content:'m';font-family:Websymbols;}
+.icon-youtube:before{content:'y';font-family:Websymbols;}
+.icon-tumblr:before{content:'k';font-family:Websymbols;}
+.icon-lettery:before{content:'z';font-family:Websymbols;}
+.icon-odnoklassniki:before{content:'Q';font-family:Websymbols;}
+.icon-star:before{content:'R';font-family:Websymbols;}
+.icon-tag-diagonal:before{content:',';font-family:Websymbols;}
+.icon-speech-squared:before{content:'c';font-family:Websymbols;}
+.icon-speech:before{content:'d';font-family:Websymbols;}
+.icon-speech-dots:before{content:'e';font-family:Websymbols;}
+.icon-bars:before{content:'u';font-family:Websymbols;}
+.icon-location:before{content:'?';font-family:Websymbols;padding-right:8px;}
+.icon-heart:before{content:'N';font-family:Websymbols;}
+.icon-heart-outline:before{content:'O';font-family:Websymbols;}
+.icon-search:before{content:'L';font-family:Websymbols;}
+.icon-cycle-squared:before{content:'J';font-family:Websymbols;}
+.icon-new-window:before{content:'D';font-family:Websymbols;}
+.icon-clock:before{content:'P';font-family:Websymbols;}
+.icon-chain:before{content:'K';font-family:Websymbols;}
+.icon-mail:before{content:'@';font-family:Websymbols;}
+.icon-sort-down:before{content:'{';font-family:Websymbols;}
+.icon-sort-up:before{content:'}';font-family:Websymbols;}
+.icon-unfold:before{content:'[';font-family:Websymbols;}
+.icon-fold:before{content:']';font-family:Websymbols;}
+.icon-grid:before{content:'1';font-family:Websymbols;}
+.icon-list:before{content:'2';font-family:Websymbols;}
+.icon-grid-list:before{content:'3';font-family:Websymbols;}
+.icon-reply:before{content:'h';font-family:Websymbols;}
+.icon-reply-all:before{content:'i';font-family:Websymbols;}
+.icon-right-arrow:before{content:'j';font-family:Websymbols;}
+.icon-full-screen:before{content:'%';font-family:Websymbols;}
+.icon-checkmark:before{content:'.';font-family:Websymbols;}
+.icon-alert:before{content:'W';font-family:Websymbols;}
+.icon-cycle-rounded:before{content:'V';font-family:Websymbols;}
+.icon-skype:before{content:'s';font-family:Websymbols;}
+.icon-vkontakte:before{content:'v';font-family:Websymbols;}
+.icon-target:before{content:'`';font-family:Websymbols;}
+.icon-page-landscape:before{content:'b';font-family:Websymbols;}
+.icon-unlocked:before{content:'w';font-family:Websymbols;}
+.icon-up-down:before{content:'~';font-family:Websymbols;}
