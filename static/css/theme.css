@@ -1300,14 +1300,14 @@ body #page #left_sidebar div:hover, body #page #right_sidebar div:hover {
 #page.exploring .prompt p, #page.exploring .responder p {
   margin: 0;
 }
-#page.exploring .prompt #no_table_response__row td:first-child, #page.exploring .responder #no_table_response__row td:first-child {
+#page.exploring .prompt #no_table_response__row td.w2p_fl:first-child, #page.exploring .responder #no_table_response__row td.w2p_fl:first-child {
   display: none;
 }
 #page.exploring .prompt #no_table_response__row input, #page.exploring .responder #no_table_response__row input {
   font-size: 36px;
   font-family: SBLGreekRegular;
 }
-#page.exploring .prompt #submit_record__row td:first-child, #page.exploring .responder #submit_record__row td:first-child {
+#page.exploring .prompt #submit_record__row td.w2p_fl:first-child, #page.exploring .responder #submit_record__row td.w2p_fl:first-child {
   display: none;
 }
 #page.exploring .prompt ul, #page.exploring .responder ul {
