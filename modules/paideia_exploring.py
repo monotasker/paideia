@@ -767,12 +767,22 @@ class Walk(object):
             print 'calling Walk.activate_step--------------'
         session = current.session
         db = current.db
+        if debug:
+            print 'step_id is', step_id
+            print 'path is', path
 
         step_id = int(step_id)
         # allow for situations where the path id is given rather than the
         # path's row object. (As in 'retry' state.)
         if (type(path) == int) or (type(path) == str):
             path = db.paths[path]
+
+        # handle odd error where activate_step called at Walk.__init__
+        # even though no path or step is in session for reactivation
+        # TODO: why this error?
+        if step_id is None:
+            # select a new path and/or step
+            path, step = self._get_next_step()
 
         self.path = path
         self.active_paths[path.id] = step_id
