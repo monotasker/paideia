@@ -357,8 +357,8 @@ class Walk(object):
         # create step instance here if we're processing a user's response
         if ('response' in request.vars) and \
                 (request.args[0] in ['ask', 'retry']):
-            self.step = self._create_step_instance()
             print 're-activating step'
+            self.step = self._create_step_instance()
 
     def _create_step_instance(self, step_id=None):
         '''
@@ -620,13 +620,13 @@ class Walk(object):
         update_cats = mycats.as_dict()
         # if tags new or promoted, change 'cat' lists
         for cat in new_badges:
-            if new_badges[cat] != None:
+            if new_badges[cat] is not None:
                 for t in new_badges[cat]:
                     try:
                         oldcat = [c for c, v in update_cats.iteritems()
                                     if (type(v) == list) and (t in v)][0]
                         update_cats[oldcat].remove(t)
-                    except IndexError, e:
+                    except IndexError:
                         print 'This tag appears to be new; not removing from \
                                 old position'
                     update_cats[cat].append(t)
@@ -1014,7 +1014,7 @@ class Walk(object):
         # in another location
         if debug: print 'no active paths, looking for a new path'
         cat = self._get_category()  # generate weighted random number for cat
-        cat_range = range(1,5)
+        cat_range = range(1, 5)
         cat_list = cat_range[cat:5] + cat_range[0:cat]
         if debug: print 'category list to try:', cat_list
 
