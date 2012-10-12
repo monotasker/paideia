@@ -50,3 +50,14 @@ db.plugin_slider_decks.deck_slides.widget = lambda field, value: \
                                         multi='basic',
                                         lister='editlinks',
                                         sortable='true')
+
+
+class Plugin_slider_decksVirtualFields(object):
+    def updated(self):
+        deckslides = db(db.plugin_slider_slides.id.belongs(
+                        self.plugin_slider_decks.deck_slides)).select()
+        datelist = [s.updated for s in deckslides if s.updated is not None]
+        if datelist:
+            return max(datelist)
+
+db.plugin_slider_decks.virtualfields.append(Plugin_slider_decksVirtualFields())
