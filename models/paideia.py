@@ -306,13 +306,7 @@ db.paths.steps.widget = lambda field, value: AjaxSelect().widget(
                                         lister='editlinks',
                                         sortable='true')
 
-
 class PathsVirtualFields(object):
-    # def locations(self):
-    #     # TODO: This only gets locations from one of the steps in the path
-    #     steprows = db(db.steps.id.belongs(self.paths.steps)).select().first()
-    #     return steprows.locations
-
     def tags(self):
         steprows = db(db.steps.id.belongs(self.paths.steps)).select()
         nlists = [s.tags for s in steprows]
