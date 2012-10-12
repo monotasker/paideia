@@ -60,9 +60,11 @@ div.plugin_slider_slidemenu    {display:block;
                                 text-align: center;
                                 .blockletter-small();
                                 margin-top:0;}
-    a                          {color:@chalk;
+    a                          {color: @sol_grey4;
         &:hover                {color:@white;
                                 .text-shadow();}
+        &.plugin_slider_new    {.label_new();}
+        &.plugin_slider_active {color: @chalk;}
         }
     ul                         {padding:0 @lineheight;
                                 overflow:auto;

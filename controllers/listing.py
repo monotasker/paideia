@@ -2,6 +2,7 @@
 if 0:
     from gluon import current, UL, LI, A, URL, SPAN
     db, auth, session = current.db, current.auth, current.session
+import datetime
 
 # TODO: rework to use plugin_listandedit as a widget
 
@@ -32,17 +33,29 @@ def slides():
     debug = True
     slidelist = db(db.plugin_slider_decks.id > 0).select(
                                     orderby=db.plugin_slider_decks.position)
+    progress = db(db.tag_progress.name == auth.user_id).select().first()
 
     slides = UL()
     for s in slidelist:
         badges = db((db.tags.slides.contains(s.id))
                       & (db.badges.tag == db.tags.id)).select()
+        classes = ''
+        try:
+            if s.updated and (datetime.datetime.utcnow() - s.updated
+                              < datetime.timedelta(days=14)):
+                classes = 'plugin_slider_new '
+        except Exception:
+            pass
+        if progress and [t.tags.id for t in badges
+                            if t.tags.position <= progress.latest_new]:
+            classes += 'plugin_slider_active '
         try:
             slides.append(LI(A(s.deck_name,
                                 _href=URL('plugin_slider',
                                     'start_deck.load',
                                     args=[s.id]),
-                                cid='slideframe')
+                                cid='slideframe',
+                                _class=classes)
                             ))
             for b in badges:
                 if debug: print b.badges.badge_name

@@ -20,22 +20,22 @@
 }
 @font-face {
   font-family: 'EstrangeloEdessaRegular';
-  src: url('../static/plugin_framework/fonts/estre-webfont.eot');
-  src: local('☺'), url('../static/plugin_framework/fonts/estre-webfont.woff') format('woff'), url('../static/plugin_framework/fonts/estre-webfont.ttf') format('truetype'), url('../static/plugin_framework/fonts/estre-webfont.svg#webfont7YE92Obt') format('svg');
+  src: url('../plugin_framework/fonts/estre-webfont.eot');
+  src: local('☺'), url('../plugin_framework/fonts/estre-webfont.woff') format('woff'), url('../plugin_framework/fonts/estre-webfont.ttf') format('truetype'), url('../plugin_framework/fonts/estre-webfont.svg#webfont7YE92Obt') format('svg');
   font-weight: normal;
   font-style: normal;
 }
 @font-face {
   font-family: 'SBLHebrewRegular';
   src: url('../static/plugin_framework/fonts/sbl_hbrw-webfont.eot');
-  src: local('☺'), url('../static/plugin_framework/fonts/sbl_hbrw-webfont.woff') format('woff'), url('../static/plugin_framework/fonts/sbl_hbrw-webfont.ttf') format('truetype'), url('../static/plugin_framework/fonts/sbl_hbrw-webfont.svg#webfontUHtlyWNi') format('svg');
+  src: local('☺'), url('../plugin_framework/fonts/sbl_hbrw-webfont.woff') format('woff'), url('../plugin_framework/fonts/sbl_hbrw-webfont.ttf') format('truetype'), url('../plugin_framework/fonts/sbl_hbrw-webfont.svg#webfontUHtlyWNi') format('svg');
   font-weight: normal;
   font-style: normal;
 }
 @font-face {
   font-family: 'AbyssinicaSIL';
   src: url('../static/plugin_framework/fonts/abyssinica_sil-webfont.eot');
-  src: local('☺'), url('../static/plugin_framework/fonts/abyssinica_sil-webfont.woff') format('woff'), url('../static/plugin_framework/fonts/abyssinica_sil-webfont.ttf') format('truetype'), url('../static/plugin_framework/fonts/abyssinica_sil-webfont.svg#webfont5nU8VVLc') format('svg');
+  src: local('☺'), url('../plugin_framework/fonts/abyssinica_sil-webfont.woff') format('woff'), url('../plugin_framework/fonts/abyssinica_sil-webfont.ttf') format('truetype'), url('../plugin_framework/fonts/abyssinica_sil-webfont.svg#webfont5nU8VVLc') format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -44,7 +44,8 @@
   font-family: AbyssinicaSIL;
   font-size: 24px;
 }
-.Aramaic, .Hebrew {
+.Aramaic,
+.Hebrew {
   font-family: SBLHebrewRegular, 'Ezra SIL', 'Times New Roman';
   font-size: 28px;
   direction: rtl;
@@ -60,8 +61,9 @@
   font-family: 'EstrangeloEdessaRegular';
   direction: ltr;
 }
-.Latin, .English {
-  font-family: prociono, Palatino, 'Palatino Linotype';
+.Latin,
+.English {
+  font-family: Palatino, 'Palatino Linotype', serif;
 }
 /* layout dimensions */
 /* text dimensions */
@@ -123,7 +125,9 @@ body {
   font-family: "Palatino Linotype", Palatino, serif;
   color: #666666;
 }
-body header, body #page, body footer {
+body header,
+body #page,
+body footer {
   position: relative;
   width: 960px;
   min-width: 640px;
@@ -138,26 +142,32 @@ body header, body #page, body footer {
 a {
   text-decoration: none;
 }
-a:hover, a:active, a:link {
+a:hover,
+a:active,
+a:link {
   text-decoration: none;
 }
 /* the main action button or link in a region or form */
 /***** headings ******************************************/
 /* basic classes to apply to all heading levels */
-h1, h1 a {
+h1,
+h1 a {
   font-size: 40px;
   line-height: 60px;
   font-family: "Palatino Linotype", Palatino, serif;
   display: block;
   margin: 0;
 }
-h2, h3 {
+h2,
+h3 {
   font-family: "Palatino Linotype", Palatino, serif;
   display: block;
   margin: 0;
 }
 /* text divisions ****************************************/
-div, section, aside {
+div,
+section,
+aside {
   padding: 14px;
 }
 form div {
@@ -193,7 +203,9 @@ ul {
   list-style-type: none;
 }
 /* forms **************************************************/
-input[type=text], select, textarea {
+input[type=text],
+select,
+textarea {
   border: 1px solid #eee;
   font-size: 16px;
   line-height: 24px;
@@ -205,7 +217,8 @@ input[type=text], select, textarea {
   -ms-transition: all 200ms ease-in-out;
   transition: all 200ms ease-in-out;
 }
-input[type=text]:focus, textarea:focus {
+input[type=text]:focus,
+textarea:focus {
   -moz-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4) inset;
   -webkit-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4) inset;
   -o-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4) inset;
@@ -225,10 +238,12 @@ textarea {
   font-family: "Palatino Linotype", Palatino, serif;
   color: #666666;
 }
-input[type=text], select {
+input[type=text],
+select {
   line-height: 36px;
 }
-input[type=text] option, select option {
+input[type=text] option,
+select option {
   padding-left: 16px;
 }
 select {
@@ -325,11 +340,11 @@ div.flash {
   -o-border-radius: 0 0 5px 5px;
   -ms-border-radius: 0 0 5px 5px;
   border-radius: 0 0 5px 5px;
-  -moz-box-shadow: ;
-  -webkit-box-shadow: ;
-  -o-box-shadow: ;
-  -ms-box-shadow: ;
-  box-shadow: ;
+  -moz-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  -webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  -o-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  -ms-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 div.error {
   background-color: #b10808;
@@ -349,7 +364,8 @@ div.error {
   position: relative;
   overflow: visible;
 }
-a:hover .tip, a:active .tip {
+a:hover .tip,
+a:active .tip {
   display: block;
   -webkit-transition: all 200ms ease-in-out;
   -moz-transition: all 200ms ease-in-out;
@@ -482,6 +498,31 @@ a:hover .tip, a:active .tip {
   -o-transition: all 200ms ease-in-out;
   -ms-transition: all 200ms ease-in-out;
   transition: all 200ms ease-in-out;
+}
+/* collapsible divs or panels using :target pseudo-element */
+ul li.collapsible_parent ul.collapsible_child {
+  height: 0;
+  overflow: hidden;
+  -webkit-transition: all 200ms ease-in-out;
+  -moz-transition: all 200ms ease-in-out;
+  -o-transition: all 200ms ease-in-out;
+  -ms-transition: all 200ms ease-in-out;
+  transition: all 200ms ease-in-out;
+}
+ul li.collapsible_parent:target ul.collapsible_child {
+  height: auto;
+  -webkit-transition: all 200ms ease-in-out;
+  -moz-transition: all 200ms ease-in-out;
+  -o-transition: all 200ms ease-in-out;
+  -ms-transition: all 200ms ease-in-out;
+  transition: all 200ms ease-in-out;
+}
+/* labels for new items */
+.label_new:before {
+  content: 'new';
+  color: #aae557;
+  font-weight: bold;
+  font-style: italics;
 }
 /* icon-fonts **************/
 .icon-only {
@@ -992,7 +1033,8 @@ div.plugin_slider_slidemenu {
   transition: all 200ms ease-in-out;
   z-index: 99;
 }
-div.plugin_slider_slidemenu:hover, div.plugin_slider_slidemenu.initial_state {
+div.plugin_slider_slidemenu:hover,
+div.plugin_slider_slidemenu.initial_state {
   bottom: 0;
   -webkit-transition: all 200ms ease-in-out;
   -moz-transition: all 200ms ease-in-out;
@@ -1009,7 +1051,7 @@ div.plugin_slider_slidemenu h4 {
   margin-top: 0;
 }
 div.plugin_slider_slidemenu a {
-  color: #fcfbf7;
+  color: #93a1a1;
 }
 div.plugin_slider_slidemenu a:hover {
   color: #ffffff;
@@ -1018,6 +1060,15 @@ div.plugin_slider_slidemenu a:hover {
   -o-text-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
   -ms-text-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
   text-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
+}
+div.plugin_slider_slidemenu a.plugin_slider_new:before {
+  content: 'new';
+  color: #aae557;
+  font-weight: bold;
+  font-style: italics;
+}
+div.plugin_slider_slidemenu a.plugin_slider_active {
+  color: #fcfbf7;
 }
 div.plugin_slider_slidemenu ul {
   padding: 0 24px;
@@ -1114,7 +1165,8 @@ body #page div.plugin_slider_slide table.nominative_bg_table tr td {
   vertical-align: middle;
   height: 96px;
 }
-body #page div.plugin_slider_slide table.nominative_bg_table tr td:first-child, body #page div.plugin_slider_slide table.nominative_bg_table tr td:last-child {
+body #page div.plugin_slider_slide table.nominative_bg_table tr td:first-child,
+body #page div.plugin_slider_slide table.nominative_bg_table tr td:last-child {
   max-width: 0px;
 }
 body #page div.plugin_slider_slide table.nominative_bg_table tr:nth-child(even) {

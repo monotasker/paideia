@@ -716,3 +716,5 @@ timestamp: 2012-10-07T16:35:12.185175
 ALTER TABLE tag_progress ADD rev2 TEXT;
 timestamp: 2012-10-07T19:07:51.296500
 ALTER TABLE tag_progress ADD rev4 TEXT;
+timestamp: 2012-10-12T15:31:46.691662
+ALTER TABLE plugin_slider_slides ADD updated TIMESTAMP;

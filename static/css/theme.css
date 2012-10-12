@@ -24,22 +24,22 @@
 }
 @font-face {
   font-family: 'EstrangeloEdessaRegular';
-  src: url('../static/plugin_framework/fonts/estre-webfont.eot');
-  src: local('☺'), url('../static/plugin_framework/fonts/estre-webfont.woff') format('woff'), url('../static/plugin_framework/fonts/estre-webfont.ttf') format('truetype'), url('../static/plugin_framework/fonts/estre-webfont.svg#webfont7YE92Obt') format('svg');
+  src: url('../plugin_framework/fonts/estre-webfont.eot');
+  src: local('☺'), url('../plugin_framework/fonts/estre-webfont.woff') format('woff'), url('../plugin_framework/fonts/estre-webfont.ttf') format('truetype'), url('../plugin_framework/fonts/estre-webfont.svg#webfont7YE92Obt') format('svg');
   font-weight: normal;
   font-style: normal;
 }
 @font-face {
   font-family: 'SBLHebrewRegular';
   src: url('../static/plugin_framework/fonts/sbl_hbrw-webfont.eot');
-  src: local('☺'), url('../static/plugin_framework/fonts/sbl_hbrw-webfont.woff') format('woff'), url('../static/plugin_framework/fonts/sbl_hbrw-webfont.ttf') format('truetype'), url('../static/plugin_framework/fonts/sbl_hbrw-webfont.svg#webfontUHtlyWNi') format('svg');
+  src: local('☺'), url('../plugin_framework/fonts/sbl_hbrw-webfont.woff') format('woff'), url('../plugin_framework/fonts/sbl_hbrw-webfont.ttf') format('truetype'), url('../plugin_framework/fonts/sbl_hbrw-webfont.svg#webfontUHtlyWNi') format('svg');
   font-weight: normal;
   font-style: normal;
 }
 @font-face {
   font-family: 'AbyssinicaSIL';
   src: url('../static/plugin_framework/fonts/abyssinica_sil-webfont.eot');
-  src: local('☺'), url('../static/plugin_framework/fonts/abyssinica_sil-webfont.woff') format('woff'), url('../static/plugin_framework/fonts/abyssinica_sil-webfont.ttf') format('truetype'), url('../static/plugin_framework/fonts/abyssinica_sil-webfont.svg#webfont5nU8VVLc') format('svg');
+  src: local('☺'), url('../plugin_framework/fonts/abyssinica_sil-webfont.woff') format('woff'), url('../plugin_framework/fonts/abyssinica_sil-webfont.ttf') format('truetype'), url('../plugin_framework/fonts/abyssinica_sil-webfont.svg#webfont5nU8VVLc') format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -48,7 +48,8 @@
   font-family: AbyssinicaSIL;
   font-size: 24px;
 }
-.Aramaic, .Hebrew {
+.Aramaic,
+.Hebrew {
   font-family: SBLHebrewRegular, 'Ezra SIL', 'Times New Roman';
   font-size: 28px;
   direction: rtl;
@@ -64,8 +65,9 @@
   font-family: 'EstrangeloEdessaRegular';
   direction: ltr;
 }
-.Latin, .English {
-  font-family: prociono, Palatino, 'Palatino Linotype';
+.Latin,
+.English {
+  font-family: Palatino, 'Palatino Linotype', serif;
 }
 /* layout dimensions */
 /* text dimensions */
@@ -127,7 +129,9 @@ body {
   font-family: "Palatino Linotype", Palatino, serif;
   color: #666666;
 }
-body header, body #page, body footer {
+body header,
+body #page,
+body footer {
   position: relative;
   width: 960px;
   min-width: 640px;
@@ -142,26 +146,32 @@ body header, body #page, body footer {
 a {
   text-decoration: none;
 }
-a:hover, a:active, a:link {
+a:hover,
+a:active,
+a:link {
   text-decoration: none;
 }
 /* the main action button or link in a region or form */
 /***** headings ******************************************/
 /* basic classes to apply to all heading levels */
-h1, h1 a {
+h1,
+h1 a {
   font-size: 40px;
   line-height: 60px;
   font-family: "Palatino Linotype", Palatino, serif;
   display: block;
   margin: 0;
 }
-h2, h3 {
+h2,
+h3 {
   font-family: "Palatino Linotype", Palatino, serif;
   display: block;
   margin: 0;
 }
 /* text divisions ****************************************/
-div, section, aside {
+div,
+section,
+aside {
   padding: 14px;
 }
 form div {
@@ -197,7 +207,9 @@ ul {
   list-style-type: none;
 }
 /* forms **************************************************/
-input[type=text], select, textarea {
+input[type=text],
+select,
+textarea {
   border: 1px solid #eee;
   font-size: 16px;
   line-height: 24px;
@@ -209,7 +221,8 @@ input[type=text], select, textarea {
   -ms-transition: all 200ms ease-in-out;
   transition: all 200ms ease-in-out;
 }
-input[type=text]:focus, textarea:focus {
+input[type=text]:focus,
+textarea:focus {
   -moz-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4) inset;
   -webkit-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4) inset;
   -o-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4) inset;
@@ -229,10 +242,12 @@ textarea {
   font-family: "Palatino Linotype", Palatino, serif;
   color: #666666;
 }
-input[type=text], select {
+input[type=text],
+select {
   line-height: 36px;
 }
-input[type=text] option, select option {
+input[type=text] option,
+select option {
   padding-left: 16px;
 }
 select {
@@ -329,11 +344,11 @@ div.flash {
   -o-border-radius: 0 0 5px 5px;
   -ms-border-radius: 0 0 5px 5px;
   border-radius: 0 0 5px 5px;
-  -moz-box-shadow: ;
-  -webkit-box-shadow: ;
-  -o-box-shadow: ;
-  -ms-box-shadow: ;
-  box-shadow: ;
+  -moz-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  -webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  -o-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  -ms-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 div.error {
   background-color: #b10808;
@@ -353,7 +368,8 @@ div.error {
   position: relative;
   overflow: visible;
 }
-a:hover .tip, a:active .tip {
+a:hover .tip,
+a:active .tip {
   display: block;
   -webkit-transition: all 200ms ease-in-out;
   -moz-transition: all 200ms ease-in-out;
@@ -504,6 +520,13 @@ ul li.collapsible_parent:target ul.collapsible_child {
   -o-transition: all 200ms ease-in-out;
   -ms-transition: all 200ms ease-in-out;
   transition: all 200ms ease-in-out;
+}
+/* labels for new items */
+.label_new:before {
+  content: 'new';
+  color: #aae557;
+  font-weight: bold;
+  font-style: italics;
 }
 /* icon-fonts **************/
 .icon-only {
@@ -897,7 +920,9 @@ nav .sf-menu li {
   /* second-level menus */
 
 }
-nav .sf-menu li a, nav .sf-menu li a:link, nav .sf-menu li a:visited {
+nav .sf-menu li a,
+nav .sf-menu li a:link,
+nav .sf-menu li a:visited {
   color: #852625;
   font-weight: bold;
   padding: 0 16px;
@@ -919,19 +944,23 @@ nav .sf-menu li a:visited:focus {
   background-image: -o-linear-gradient(rgba(270, 270, 270, 0.1), rgba(270, 270, 270, 0));
   background-image: -ms-linear-gradient(rgba(270, 270, 270, 0.1), rgba(270, 270, 270, 0));
 }
-nav .sf-menu li:hover, nav .sf-menu li .sfHover {
+nav .sf-menu li:hover,
+nav .sf-menu li .sfHover {
   background-color: transparent;
 }
-nav .sf-menu li:hover li, nav .sf-menu li .sfHover li {
+nav .sf-menu li:hover li,
+nav .sf-menu li .sfHover li {
   line-height: 36px;
   height: 36px;
   background-color: #333333;
   font-weight: normal;
 }
-nav .sf-menu li:hover li a, nav .sf-menu li .sfHover li a {
+nav .sf-menu li:hover li a,
+nav .sf-menu li .sfHover li a {
   color: #ffffff;
 }
-nav .sf-menu li:hover li a:hover, nav .sf-menu li .sfHover li a:hover {
+nav .sf-menu li:hover li a:hover,
+nav .sf-menu li .sfHover li a:hover {
   color: #7e9aff;
 }
 nav .auth_navbar {
@@ -959,7 +988,9 @@ nav .auth_navbar li:nth-child(2):before {
   font-family: Websymbols;
   padding-right: 8px;
 }
-nav .auth_navbar a, nav .auth_navbar a:link, nav .auth_navbar a:visited {
+nav .auth_navbar a,
+nav .auth_navbar a:link,
+nav .auth_navbar a:visited {
   height: 32px;
   line-height: 32px;
   color: #852625;
@@ -1071,7 +1102,8 @@ body #page h2 {
   color: #003366;
   text-shadow: 0 0 6px #fff;
 }
-body #page div, body #page aside {
+body #page div,
+body #page aside {
   padding: 0;
 }
 body #page article {
@@ -1089,7 +1121,8 @@ body #page article section {
 body #page article h2 {
   padding-left: 0;
 }
-body #page article h3, body #page article h3 a {
+body #page article h3,
+body #page article h3 a {
   color: #b58900;
   padding-top: 24px;
 }
@@ -1117,13 +1150,19 @@ body #page article ul li {
   list-style-position: outside;
   padding-bottom: 12px;
 }
-body #page article a, body #page article a:link, body #page article a:visited {
+body #page article a,
+body #page article a:link,
+body #page article a:visited {
   color: #268bd2;
 }
-body #page article a:hover, body #page article a:link:hover, body #page article a:visited:hover {
+body #page article a:hover,
+body #page article a:link:hover,
+body #page article a:visited:hover {
   color: #003366;
 }
-body #page article a.button-green-grad, body #page article a:link.button-green-grad, body #page article a:visited.button-green-grad {
+body #page article a.button-green-grad,
+body #page article a:link.button-green-grad,
+body #page article a:visited.button-green-grad {
   color: #ffffff;
   margin-top: 24px;
   margin-left: 0;
@@ -1225,7 +1264,8 @@ body #page .comments .comment .comment_body {
 body #page .comments textarea {
   border: 1px solid #ccc;
 }
-body #page #left_sidebar, body #page #right_sidebar {
+body #page #left_sidebar,
+body #page #right_sidebar {
   padding: 60px;
   width: 30%;
   float: right;
@@ -1234,7 +1274,8 @@ body #page #left_sidebar, body #page #right_sidebar {
   margin-left: 60px;
   font-family: prociono;
 }
-body #page #left_sidebar h2, body #page #right_sidebar h2 {
+body #page #left_sidebar h2,
+body #page #right_sidebar h2 {
   font-family: Arial;
   text-transform: uppercase;
   font-size: 16px;
@@ -1250,13 +1291,15 @@ body #page #left_sidebar a:visited,
 body #page #right_sidebar a:visited {
   color: #b10808;
 }
-body #page #left_sidebar div, body #page #right_sidebar div {
+body #page #left_sidebar div,
+body #page #right_sidebar div {
   height: 24px;
   overflow: hidden;
   padding: 0;
   -moz-transition: 300ms all;
 }
-body #page #left_sidebar div:hover, body #page #right_sidebar div:hover {
+body #page #left_sidebar div:hover,
+body #page #right_sidebar div:hover {
   height: auto;
   -moz-transition: 300ms all;
   transition: 300ms all;
@@ -1290,41 +1333,51 @@ body #page #left_sidebar div:hover, body #page #right_sidebar div:hover {
 
   height: 680px;
 }
-#page.exploring .prompt, #page.exploring .responder {
+#page.exploring .prompt,
+#page.exploring .responder {
   margin-top: 24px;
   margin-left: 260px;
   max-width: 65%;
   font-size: 20px;
   line-height: 30px;
 }
-#page.exploring .prompt p, #page.exploring .responder p {
+#page.exploring .prompt p,
+#page.exploring .responder p {
   margin: 0;
 }
-#page.exploring .prompt #no_table_response__row td.w2p_fl:first-child, #page.exploring .responder #no_table_response__row td.w2p_fl:first-child {
+#page.exploring .prompt #no_table_response__row td.w2p_fl:first-child,
+#page.exploring .responder #no_table_response__row td.w2p_fl:first-child {
   display: none;
 }
-#page.exploring .prompt #no_table_response__row input, #page.exploring .responder #no_table_response__row input {
+#page.exploring .prompt #no_table_response__row input,
+#page.exploring .responder #no_table_response__row input {
   font-size: 36px;
   font-family: SBLGreekRegular;
 }
-#page.exploring .prompt #submit_record__row td.w2p_fl:first-child, #page.exploring .responder #submit_record__row td.w2p_fl:first-child {
+#page.exploring .prompt #submit_record__row td.w2p_fl:first-child,
+#page.exploring .responder #submit_record__row td.w2p_fl:first-child {
   display: none;
 }
-#page.exploring .prompt ul, #page.exploring .responder ul {
+#page.exploring .prompt ul,
+#page.exploring .responder ul {
   padding-left: 24px;
 }
-#page.exploring .prompt ul li, #page.exploring .responder ul li {
+#page.exploring .prompt ul li,
+#page.exploring .responder ul li {
   font-size: 16px;
   color: #b58900;
 }
-#page.exploring .prompt .button, #page.exploring .responder .button {
+#page.exploring .prompt .button,
+#page.exploring .responder .button {
   display: inline-block;
 }
-#page.exploring .prompt .guidelines, #page.exploring .responder .guidelines {
+#page.exploring .prompt .guidelines,
+#page.exploring .responder .guidelines {
   z-index: 10;
   clear: both;
 }
-#page.exploring .prompt .q_counter, #page.exploring .responder .q_counter {
+#page.exploring .prompt .q_counter,
+#page.exploring .responder .q_counter {
   color: #ccc;
   width: 100%;
   font-size: 16px;
@@ -1535,7 +1588,8 @@ body #page #left_sidebar div:hover, body #page #right_sidebar div:hover {
 #page.listing #viewpane {
   background-color: #fcfbf7;
 }
-#page.listing #viewpane input[type=text], #page.listing #viewpane textarea {
+#page.listing #viewpane input[type=text],
+#page.listing #viewpane textarea {
   width: 100%;
 }
 #page.listing #viewpane select {
@@ -1561,7 +1615,8 @@ body #page #left_sidebar div:hover, body #page #right_sidebar div:hover {
   float: left;
 }
 /* profile pages ************************************************/
-#page.profile, #page.user {
+#page.profile,
+#page.user {
   /* jquery ui tabs */
 
   /* tab content */
@@ -1571,27 +1626,33 @@ body #page #left_sidebar div:hover, body #page #right_sidebar div:hover {
   /*** bug reports on user profile ***/
 
 }
-#page.profile .ui-widget-content, #page.user .ui-widget-content {
+#page.profile .ui-widget-content,
+#page.user .ui-widget-content {
   border: 1px solid transparent;
 }
-#page.profile .ui-widget-header, #page.user .ui-widget-header {
+#page.profile .ui-widget-header,
+#page.user .ui-widget-header {
   background: #eee8d5;
   text-transform: uppercase;
   font-family: ubuntu, calibri, arial, sans-serif;
   font-size: 12.8px;
   border: 1px solid transparent;
 }
-#page.profile .ui-widget-header .ui-state-default, #page.user .ui-widget-header .ui-state-default {
+#page.profile .ui-widget-header .ui-state-default,
+#page.user .ui-widget-header .ui-state-default {
   background: transparent;
   border: 1px solid transparent;
 }
-#page.profile .ui-widget-header .ui-state-default.ui-state-active, #page.user .ui-widget-header .ui-state-default.ui-state-active {
+#page.profile .ui-widget-header .ui-state-default.ui-state-active,
+#page.user .ui-widget-header .ui-state-default.ui-state-active {
   background: #fcfbf7;
 }
-#page.profile .ui-widget-header .ui-state-default.ui-state-active a, #page.user .ui-widget-header .ui-state-default.ui-state-active a {
+#page.profile .ui-widget-header .ui-state-default.ui-state-active a,
+#page.user .ui-widget-header .ui-state-default.ui-state-active a {
   color: #852625;
 }
-#page.profile div.tab, #page.user div.tab {
+#page.profile div.tab,
+#page.user div.tab {
   padding: 24px;
   background-color: #fcfbf7;
   font-size: 16px;
@@ -1599,15 +1660,18 @@ body #page #left_sidebar div:hover, body #page #right_sidebar div:hover {
   font-family: "Palatino Linotype", Palatino, serif;
   color: #666666;
 }
-#page.profile div.tab h4, #page.user div.tab h4 {
+#page.profile div.tab h4,
+#page.user div.tab h4 {
   color: #b58900;
   font-size: 24px;
 }
-#page.profile p.overview li, #page.user p.overview li {
+#page.profile p.overview li,
+#page.user p.overview li {
   color: #b58900;
   padding-left: 60px;
 }
-#page.profile p.overview .total_len, #page.user p.overview .total_len {
+#page.profile p.overview .total_len,
+#page.user p.overview .total_len {
   background: #f5f5f5;
   border: 3px solid #eee;
   display: inline-block;
@@ -1619,14 +1683,16 @@ body #page #left_sidebar div:hover, body #page #right_sidebar div:hover {
   text-align: center;
   box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.3);
 }
-#page.profile table.summary_stats, #page.user table.summary_stats {
+#page.profile table.summary_stats,
+#page.user table.summary_stats {
   border-collapse: separate;
   border-spacing: 2px;
   border-radius: 6px;
   padding: 6px 0;
   background: #ffffff;
 }
-#page.profile table.summary_stats td, #page.user table.summary_stats td {
+#page.profile table.summary_stats td,
+#page.user table.summary_stats td {
   vertical-align: middle;
   background: #eee8d5;
   padding: 0 24px;
@@ -1649,29 +1715,36 @@ body #page #left_sidebar div:hover, body #page #right_sidebar div:hover {
   font-family: "Droid Sans", ubuntu, calibri, arial, sans-serif;
   text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.3);
 }
-#page.profile table.summary_stats td.total_cat4, #page.user table.summary_stats td.total_cat4 {
+#page.profile table.summary_stats td.total_cat4,
+#page.user table.summary_stats td.total_cat4 {
   background-color: #809240;
 }
-#page.profile table.summary_stats td.total_cat3, #page.user table.summary_stats td.total_cat3 {
+#page.profile table.summary_stats td.total_cat3,
+#page.user table.summary_stats td.total_cat3 {
   background-color: #AAE557;
 }
-#page.profile table.summary_stats td.total_cat2, #page.user table.summary_stats td.total_cat2 {
+#page.profile table.summary_stats td.total_cat2,
+#page.user table.summary_stats td.total_cat2 {
   background-color: #b58900;
 }
-#page.profile table.summary_stats td.total_cat1, #page.user table.summary_stats td.total_cat1 {
+#page.profile table.summary_stats td.total_cat1,
+#page.user table.summary_stats td.total_cat1 {
   background-color: #852625;
 }
-#page.profile table.paideia_monthcal_table, #page.user table.paideia_monthcal_table {
+#page.profile table.paideia_monthcal_table,
+#page.user table.paideia_monthcal_table {
   border-collapse: separate;
   border-spacing: 2px;
 }
-#page.profile table.paideia_monthcal_table thead td, #page.user table.paideia_monthcal_table thead td {
+#page.profile table.paideia_monthcal_table thead td,
+#page.user table.paideia_monthcal_table thead td {
   height: 24px;
   font-size: 12.8px;
   background: transparent;
   text-align: center;
 }
-#page.profile table.paideia_monthcal_table td, #page.user table.paideia_monthcal_table td {
+#page.profile table.paideia_monthcal_table td,
+#page.user table.paideia_monthcal_table td {
   width: 48px;
   height: 48px;
   background-color: #eee8d5;
@@ -1679,13 +1752,15 @@ body #page #left_sidebar div:hover, body #page #right_sidebar div:hover {
   font-size: 16px;
   position: relative;
 }
-#page.profile table.paideia_monthcal_table td span.cal_num, #page.user table.paideia_monthcal_table td span.cal_num {
+#page.profile table.paideia_monthcal_table td span.cal_num,
+#page.user table.paideia_monthcal_table td span.cal_num {
   position: relative;
   padding: 4px, 2px;
   top: 0;
   left: 0;
 }
-#page.profile table.paideia_monthcal_table td span.cal_count, #page.user table.paideia_monthcal_table td span.cal_count {
+#page.profile table.paideia_monthcal_table td span.cal_count,
+#page.user table.paideia_monthcal_table td span.cal_count {
   position: relative;
   font-size: 24px;
   font-weight: bold;
@@ -1694,23 +1769,27 @@ body #page #left_sidebar div:hover, body #page #right_sidebar div:hover {
   padding-right: 2px;
   color: #268bd2;
 }
-#page.profile #tab_bug_reports table, #page.user #tab_bug_reports table {
+#page.profile #tab_bug_reports table,
+#page.user #tab_bug_reports table {
   text-align: left;
   border-collapse: separate;
   border-spacing: 3px;
 }
-#page.profile #tab_bug_reports table th, #page.user #tab_bug_reports table th {
+#page.profile #tab_bug_reports table th,
+#page.user #tab_bug_reports table th {
   font-weight: bold;
   background-color: #efefef;
   border: 1px solid #eee;
   vertical-align: middle;
   text-align: center;
 }
-#page.profile #tab_bug_reports table tr td, #page.user #tab_bug_reports table tr td {
+#page.profile #tab_bug_reports table tr td,
+#page.user #tab_bug_reports table tr td {
   min-width: 140px;
   background-color: #f5f5f5;
 }
-#page.profile #tab_bug_reports table tr td:nth-child(3), #page.user #tab_bug_reports table tr td:nth-child(3) {
+#page.profile #tab_bug_reports table tr td:nth-child(3),
+#page.user #tab_bug_reports table tr td:nth-child(3) {
   min-width: 100px;
   background-color: #f5f5f5;
   border: 1px solid #eee;
@@ -1809,12 +1888,14 @@ body footer #poweredby {
 }
 /* ================= Intermediate browser viewing area (480px+)================= */
 @media screen and (max-width: 480px) {
-  #left_sidebar, #right_sidebar {
+  #left_sidebar,
+  #right_sidebar {
     padding: 0;
     width: 20px;
     overflow: hidden;
   }
-  #left_sidebar:hover, #right_sidebar:hover {
+  #left_sidebar:hover,
+  #right_sidebar:hover {
     padding: 60px;
     width: 30%;
   }

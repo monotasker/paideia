@@ -2,6 +2,7 @@ from plugin_ajaxselect import AjaxSelect
 if 0:
     from gluon import current, URL, Field, IS_IN_DB
     response, db = current.response, current.db
+import datetime
 
 #js file necessary for AjaxSelect widget
 response.files.insert(5, URL('static',
@@ -19,6 +20,7 @@ db.define_table('plugin_slider_slides',
     Field('slide_name', 'string'),
     Field('content', 'text'),
     Field('theme', 'list:reference plugin_slider_themes'),
+    Field('updated', 'datetime', default=datetime.datetime.utcnow()),
     format='%(slide_name)s'
     )
 db.plugin_slider_slides.theme.requires = IS_IN_DB(db,
