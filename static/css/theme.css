@@ -529,6 +529,7 @@ ul li.collapsible_parent:target ul.collapsible_child {
   font-style: italics;
   margin-right: 24px;
   margin-left: -48px;
+  display: inline-block;
 }
 /* icon-fonts **************/
 .icon-only {
