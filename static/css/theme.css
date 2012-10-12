@@ -527,6 +527,8 @@ ul li.collapsible_parent:target ul.collapsible_child {
   color: #aae557;
   font-weight: bold;
   font-style: italics;
+  margin-right: 24px;
+  margin-left: -48px;
 }
 /* icon-fonts **************/
 .icon-only {
