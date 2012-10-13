@@ -266,19 +266,6 @@ db.steps.instructions.widget = lambda field, value: AjaxSelect().widget(
                                                     lister='editlinks')
 
 
-#this table is deprecated
-#TODO: do we need an equivalent for steps? The same data could be retrieved as
-# needed from the attempts_log table.
-db.define_table('question_records',
-    Field('name', db.auth_user, default=auth.user_id),
-    Field('question', db.questions),
-    Field('times_right', 'double'),
-    Field('times_wrong', 'double'),
-    Field('tlast_wrong', 'datetime', default=dtnow),
-    Field('tlast_right', 'datetime', default=dtnow),
-    Field('category', db.categories)
-    )
-
 db.define_table('tag_progress',
     Field('name', db.auth_user, default=auth.user_id),
     Field('latest_new', 'integer', default=1),  # not tag id but order ranking
