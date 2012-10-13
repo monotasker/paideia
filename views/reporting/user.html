@@ -7,7 +7,7 @@
         <li><a href="#tab_stats">Badges</a></li>
         <li><a href="#tab_calendar">Activity</a></li>
         <li><a href="#tab_bug_reports">Bug reports</a></li>
-        <li><a href="#tab_tag_progress">Tag Progress Data</a></li>
+        <li><a href="#tab_recent_paths">Recent Path Log</a></li>
         <li><a href="#tab_tag_records">Tag Records</a></li>
     </ul>
 
@@ -161,26 +161,53 @@
 
     </div>
 
-    <div id='tab_tag_progress' class="tab">
-        <ul>
-            {{for label, item in tag_progress.iteritems():}}
-                {{=LI(label, item)}}
-            {{pass}}
-        </ul>
+    <div id='tab_recent_paths' class="tab">
+
     </div>
+
     <div id='tab_tag_records' class="tab">
-        <table>
+        <table id='tag_progress_table'>
             <thead>
-            {{for k, i in tag_records[0].iteritems():}}
-                {{=TD(k)}}
-            {{pass}}
+                {{for label in tag_progress.keys():}}
+                    {{=TH(label)}}
+                {{pass}}
             </thead>
-            {{for row in tag_records:}}
             <tr>
-                {{for k, i in row.iteritems():}}
-                    {{=TD(i)}}
+                {{for val in tag_progress.values():}}
+                    {{if type(val) is list:}}
+                        {{val = ['{}, '.format(str(v)) for v in val]}}
+                    {{pass}}
+                    {{=TD(val)}}
                 {{pass}}
             </tr>
+        </table>
+        <table id='tag_records_table'>
+            <thead>
+            {{=TH('tag')}}
+            {{=TH('times right')}}
+            {{=TH('times wrong')}}
+            {{=TH('ratio')}}
+            {{=TH('last right')}}
+            {{=TH('last wrong')}}
+            {{=TH('tag position')}}
+            </thead>
+            {{for row in tag_records:}}
+                {{timesr = row.tag_records.times_right
+                timesw = row.tag_records.times_wrong
+                try:
+                    ratio = float(timesw)/timesr
+                except ZeroDivisionError:
+                    ratio = 0}}
+                {{pass}}
+                <tr>
+                    {{=TD(row.tags.tag)}}
+                    {{=TD(row.tag_records.times_right)}}
+                    {{=TD(row.tag_records.times_wrong)}}
+                    {{=TD(ratio)}}
+                    {{=TD(row.tag_records.tlast_right)}}
+                    {{=TD(row.tag_records.tlast_wrong)}}
+                    {{=TD(row.tags.position)}}
+                </tr>
             {{pass}}
         </table>
     </div>
