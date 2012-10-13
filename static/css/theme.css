@@ -488,7 +488,7 @@ a:hover .tip, a:active .tip {
   transition: all 200ms ease-in-out;
 }
 /* collapsible divs or panels using :target pseudo-element */
-ul li.collapsible_parent ul.collapsible_child {
+.collapsible_parent .collapsible_child {
   height: 0;
   overflow: hidden;
   -webkit-transition: all 200ms ease-in-out;
@@ -497,7 +497,7 @@ ul li.collapsible_parent ul.collapsible_child {
   -ms-transition: all 200ms ease-in-out;
   transition: all 200ms ease-in-out;
 }
-ul li.collapsible_parent:target ul.collapsible_child {
+.collapsible_parent:target .collapsible_child {
   height: auto;
   -webkit-transition: all 200ms ease-in-out;
   -moz-transition: all 200ms ease-in-out;
@@ -1580,6 +1580,8 @@ body #page #left_sidebar div:hover, body #page #right_sidebar div:hover {
 
   /* calendar for monthly user statistics */
 
+  /*** step logs on user profile ***/
+
   /*** tag records on user profile ***/
 
   /*** tag progress on user profile ***/
@@ -1721,6 +1723,42 @@ body #page #left_sidebar div:hover, body #page #right_sidebar div:hover {
   float: right;
   padding-right: 2px;
   color: #268bd2;
+}
+#page.profile .step_log_table, #page.user .step_log_table {
+  max-width: 100%;
+  min-width: 100%;
+}
+#page.profile .step_log_table .step, #page.user .step_log_table .step {
+  max-width: 7%;
+}
+#page.profile .step_log_table .prompt, #page.user .step_log_table .prompt {
+  max-width: 40%;
+  min-width: 40%;
+}
+#page.profile .step_log_table .count, #page.user .step_log_table .count {
+  max-width: 7%;
+  color: #268bd2;
+}
+#page.profile .step_log_table .right, #page.user .step_log_table .right {
+  max-width: 7%;
+  color: #809240;
+}
+#page.profile .step_log_table .wrong, #page.user .step_log_table .wrong {
+  max-width: 7%;
+  color: #dc322f;
+}
+#page.profile .step_log_table .last_wrong, #page.user .step_log_table .last_wrong {
+  max-width: 14%;
+  color: #dc322f;
+  min-width: 14%;
+}
+#page.profile .step_log_table .right_since, #page.user .step_log_table .right_since {
+  max-width: 7%;
+  color: #809240;
+}
+#page.profile .step_log_table .tags, #page.user .step_log_table .tags {
+  width: auto;
+  min-width: 20%;
 }
 #page.profile #tag_records_table td:first-child, #page.user #tag_records_table td:first-child {
   color: #268bd2;

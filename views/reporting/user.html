@@ -162,7 +162,39 @@
     </div>
 
     <div id='tab_recent_paths' class="tab">
-
+        <h4>Steps attempted in the last {{=log[0]['duration'].days}} days</h4>
+        {{=TABLE(THEAD(TR(
+                TH('step', _class='step'),
+                TH('prompt', _class='prompt'),
+                TH('count', _class='count'),
+                TH('right', _class='right'),
+                TH('wrong', _class='wrong'),
+                TH('last_wrong', _class='last_wrong'),
+                TH('right_since', _class='right_since'),
+                TH('tags', _class='tags'),
+                _class='step_log_table'
+                )
+                ) 
+            )}}
+        {{for l in log:}}
+        {{=DIV(TABLE(TR(
+                TD(l['step'], _class='step'),
+                TD(l['prompt'], _class='prompt'),
+                TD(l['count'], _class='count'),
+                TD(l['right'], _class='right'),
+                TD(l['wrong'], _class='wrong'),
+                TD(l['last_wrong'], _class='last_wrong'),
+                TD(l['right_since'], _class='right_since'),
+                TD(l['tags'], _class='tags'),
+                _class='step_log_table'
+                ) 
+                ), 
+                A('show logs', _href=('#logs' + str(l['step']))),
+                DIV(l['logs'], _class='collapsible_child'),
+            _class='collapsible_parent',
+            _id=('logs' + str(l['step']))
+            )}}
+        {{pass}}
     </div>
 
     <div id='tab_tag_records' class="tab">
