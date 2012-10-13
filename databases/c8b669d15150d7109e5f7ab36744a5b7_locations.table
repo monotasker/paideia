@@ -22,7 +22,7 @@ p11
 sg6
 I4
 sg7
-S'INTEGER REFERENCES images(id) ON DELETE CASCADE'
+S'INTEGER REFERENCES images (id) ON DELETE CASCADE'
 p12
 ssS'id'
 p13
@@ -38,13 +38,13 @@ p16
 ssS'background'
 p17
 (dp18
-S'sortable'
+S'type'
 p19
-I4
-sS'type'
-p20
 S'reference images'
+p20
+sS'sortable'
 p21
+I4
 sS'sql'
 p22
 S'INTEGER REFERENCES images(id) ON DELETE CASCADE'

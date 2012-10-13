@@ -2,13 +2,13 @@
 S'last_wrong'
 p2
 (dp3
-S'sortable'
+S'type'
 p4
-I7
-sS'type'
-p5
 S'datetime'
+p5
+sS'sortable'
 p6
+I7
 sS'sql'
 p7
 S'TIMESTAMP'
@@ -25,15 +25,15 @@ p13
 I8
 sS'sql'
 p14
-S'INTEGER REFERENCES categories(id) ON DELETE CASCADE'
+S'INTEGER REFERENCES categories (id) ON DELETE CASCADE'
 p15
 ssS'last_right'
 p16
 (dp17
 g4
+g5
+sg6
 I6
-sg5
-g6
 sg7
 S'TIMESTAMP'
 p18
@@ -57,7 +57,7 @@ p25
 sg13
 I3
 sg14
-S'INTEGER REFERENCES questions(id) ON DELETE CASCADE'
+S'INTEGER REFERENCES questions (id) ON DELETE CASCADE'
 p26
 ssS'tlast_wrong'
 p27
@@ -110,6 +110,6 @@ p43
 sg13
 I2
 sg14
-S'INTEGER REFERENCES auth_user(id) ON DELETE CASCADE'
+S'INTEGER REFERENCES auth_user (id) ON DELETE CASCADE'
 p44
 ss.
