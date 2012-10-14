@@ -707,7 +707,7 @@ class Walk(object):
 
         # Have we reached the daily path limit? Return a default step.
         # TODO: Replace hardcoded limit (20)
-        if len(session.walk['completed_paths']) >= 20:
+        if len(session.walk['completed_paths']) == 20:
             if 'quota_override' in session.walk and \
                                                 session.walk['quota_override']:
                 pass
@@ -819,7 +819,7 @@ class Walk(object):
             self.completed_paths.add(path)
         self._save_session_data()
 
-    def _get_util_step(self, tag):
+    def _get_util_step(self, tag, next_loc=None):
         '''
         Return the default path and step for a particular utility situation.
         These include
@@ -832,6 +832,8 @@ class Walk(object):
         if self.verbose:
             print 'calling Walk._get_util_step--------------'
         session, db = current.session, current.db
+        if next_loc:
+            session.walk['next_loc'] = next_loc
 
         tag_id = db(db.tags.tag == tag).select()[0].id
         steps = db(db.steps.tags.contains(tag_id)).select()
@@ -1071,7 +1073,11 @@ class Walk(object):
                         continue
 
                 # 4) If due paths are elsewhere, trigger default step
-                return self._get_util_step('default')
+                next_locs = db.steps[p_list[0].steps[0]].locations
+                next_loc = next_locs[randrange(0, len(next_locs))]
+                if debug: print 'sending to loc', next_loc
+
+                return self._get_util_step('default', next_loc)
 
         #TODO: Fall back here to repeating random paths from completed_paths
         # first that can be started here
@@ -1085,8 +1091,6 @@ class Walk(object):
         # filter out paths whose tags aren't in the tag_list
         paths = p_list1.find(lambda row:
                      [t for t in row.tags if t in [l.id for l in tag_list]])
-        # TODO: randomize selection of this path or is it already randomized
-        # from p_list1 select?
         for p in paths:
             the_step = db.steps[p.steps[0]]
             if the_step.locations and (loc_id in the_step.locations):
@@ -1095,7 +1099,11 @@ class Walk(object):
                 continue
 
         # 6) Send user to look elsewhere for a path with active tags
-        return self._get_util_step('default')
+        next_locs = db.steps[paths[0].steps[0]].locations
+        next_loc = next_locs[randrange(0, len((next_locs) + 1))]
+        if debug: print 'sending to loc', next_loc
+
+        return self._get_util_step('default', next_loc)
 
     def _get_category(self):
         '''
@@ -1907,6 +1915,32 @@ class StepStub(Step):
         return None
 
 
+class StepRedirect(StepStub):
+    '''
+    Step type to redirect user to a different location.
+    '''
+
+    def _get_replacements(self):
+        '''
+        Provide the string replacement data to be used in the step prompt.
+        '''
+        if self.verbose:
+            print 'calling', type(self).__name__, '._get_replacements ----'
+        debug = True
+        session = current.session
+        db = current.db
+
+        if 'next_loc' in session.walk:
+            next_loc = db.locations[session.walk['next_loc']].alias
+        else:
+            next_loc = 'another location in town'
+
+        if debug: print 'next_loc is', next_loc
+        replacements = {'[[next_loc]]': next_loc}
+
+        return replacements
+
+
 class StepNonBlocking(StepStub, Step):
     '''
     This abstract class provides a responder that includes a "continue"
@@ -2116,6 +2150,7 @@ STEP_CLASSES = {
         'step': Step,
         'step_multipleChoice': StepMultipleChoice,
         'step_stub': StepStub,
+        'StepRedirect': StepRedirect,
         'step_image': StepImage,
         'step_imageMutlipleChoice': StepImageMultipleChoice,
         'step_awardBadges': StepAwardBadges,
