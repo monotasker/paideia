@@ -1,4 +1,12 @@
 <ul>
+<!--     <form>
+        <input type='text' id='restrictor_field' />
+        <select>
+            {{for o in optset:}}
+            <option value='{{=o}}'></option>
+            {{pass}}
+        </select>
+    </form> -->
     {{for l in listset:}}
     <li>{{=l}}</li>
     {{pass}}
