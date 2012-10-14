@@ -113,6 +113,7 @@ db.badges.tag.requires = IS_EMPTY_OR(IS_IN_DB(db, 'tags.id', db.tags._format))
 db.define_table('locations',
     Field('location', unique=True),
     Field('alias', unique=True),
+    Field('readable'),
     Field('bg_image', db.images),
     format='%(location)s')
 db.locations.location.requires = IS_NOT_IN_DB(db, 'locations.location')
@@ -292,6 +293,7 @@ db.paths.steps.widget = lambda field, value: AjaxSelect().widget(
                                         multi='basic',
                                         lister='editlinks',
                                         sortable='true')
+
 
 class PathsVirtualFields(object):
     def tags(self):
