@@ -1931,7 +1931,7 @@ class StepRedirect(StepStub):
         db = current.db
 
         if 'next_loc' in session.walk:
-            next_loc = db.locations[session.walk['next_loc']].alias
+            next_loc = db.locations[session.walk['next_loc']].readable
         else:
             next_loc = 'another location in town'
 
