@@ -428,7 +428,15 @@ class Walk(object):
         return tags
 
     def _find_cats(self, categories, record_list):
+        '''
+        Categorize the user's active subject tags based on a combination of
+        timed repetition and overall success with the tag to date.
 
+        Returns a dictionary with four keys (cat1, cat2, cat3, cat4)
+        corresponding to the four review categories, with cat1 meaning the
+        tag needs immediate review and the other categories indicating
+        progressively smaller likelihood of a path with the tag being chosen.
+        '''
         for record in record_list:
             #get time-based statistics for this tag
             #note: arithmetic operations yield datetime.timedelta objects
@@ -445,12 +453,14 @@ class Walk(object):
                     and (right_wrong_dur > datetime.timedelta(days=1))
                     # require at least 10 right answers
                     and (record.times_right >= 10)) \
-                or ((record.times_wrong > 0)  # prevent zero division error
-                    and ((record.times_right / record.times_wrong) >= 10)
-                    and (right_dur <= datetime.timedelta(days=1))) \
+                or ((record.times_right > 0)  # prevent zero division error
+                    and ((record.times_wrong / record.times_right) <= 0.125)
+                    and (right_dur <= datetime.timedelta(days=2))) \
                 or ((record.times_wrong == 0)  # prevent zero division error
-                    and (record.times_right >= 10)):
-                   # allow for 10% wrong and still promote
+                    and (record.times_right >= 20)):
+                    # allow for 1 wrong answer for every 8 correct
+                    # promote in any case if the user has never had a wrong
+                    # answer in 20+ attempts
                 # ==================================================
                 # for category 3
                 if right_wrong_dur.days >= 7:
@@ -691,6 +701,8 @@ class Walk(object):
 
         if self.verbose:
             print 'calling Walk._handle_blocks--------------'
+        debug = True
+
         auth, db, session = current.auth, current.db, current.session
 
         if self.new_badges is not None:
@@ -707,12 +719,16 @@ class Walk(object):
 
         # Have we reached the daily path limit? Return a default step.
         # TODO: Replace hardcoded limit (20)
-        if len(session.walk['completed_paths']) == 20:
+        if len(self.completed_paths) == 20:
             if 'quota_override' in session.walk and \
                                                 session.walk['quota_override']:
                 pass
             else:
                 return self._get_util_step('end of quota')  # tag id=79
+
+        if (len(self.completed_paths) % 20) == 0:
+            if debug: print 'completed n*20 paths, re-categorizing...'
+            self.tag_set = self._categorize_tags()
 
         return None, None
 
