@@ -1946,7 +1946,22 @@ class StepRedirect(StepStub):
         session = current.session
         db = current.db
 
-        if 'next_loc' in session.walk:
+        if 'active_paths' in session.walk and session.walk['active_paths']:
+            if debug: print 'getting loc for active path'
+            next_step = session.walk['active_paths'].values()[0]
+            if debug: print next_step
+            next_locids = db.steps[next_step].locations
+            if debug: print next_locids
+            # find a location that actually has a readable name
+            for n in next_locids:
+                if debug: print n
+                if debug: print db.locations[n]
+                next_loc = db.locations[n].readable
+                if next_loc is None:
+                    continue
+                else:
+                    break
+        elif 'next_loc' in session.walk:
             next_loc = db.locations[session.walk['next_loc']].readable
         else:
             next_loc = 'another location in town'
