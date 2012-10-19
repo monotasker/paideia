@@ -718,5 +718,7 @@ timestamp: 2012-10-07T21:53:08.689399
 ALTER TABLE tag_progress ADD rev4 TEXT;
 timestamp: 2012-10-12T15:50:36.534215
 ALTER TABLE plugin_slider_slides ADD updated TIMESTAMP;
-timestamp: 2012-10-16T14:24:46.843716
+timestamp: 2012-10-13T20:38:24.847495
+ALTER TABLE locations ADD readable CHAR(512) UNIQUE;
+timestamp: 2012-10-13T20:43:37.933563
 ALTER TABLE locations ADD readable CHAR(512);

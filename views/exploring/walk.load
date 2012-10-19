@@ -67,8 +67,12 @@
         <p>{{=reply}}</p>
         <p>Correct answers would include
             <ul class='readable_short'>
-            {{for r in readable:}}
-                {{=LI(r)}}
+            {{if type(readable) == list:}}
+                {{for r in readable:}}
+                    {{=LI(r)}}
+                {{pass}}
+            {{else:}}
+                {{=LI(readable)}}
             {{pass}}
             </ul>
         </p>
