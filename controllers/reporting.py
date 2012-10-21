@@ -59,6 +59,7 @@ def user():
     s = Stats(request.args[0])
     active = s.active_tags()
     cal = s.monthcal()
+    log = s.step_log()
 
     b = Bug()
     blist = b.bugresponses(request.args[0])
@@ -66,9 +67,16 @@ def user():
     tag_progress = db(db.tag_progress.name ==
                       request.args[0]).select().first().as_dict()
 
-    tag_records = db(db.tag_records.name == request.args[0]).select().as_list()
+    tag_records = db((db.tag_records.name == request.args[0]) &
+                        (db.tag_records.tag == db.tags.id)
+                    ).select(orderby=db.tags.position)
 
-    return {'the_name': the_name, 'tz': tz,
-            'email': email, 'cal': cal,
-            'blist': blist, 'active': active,
-            'tag_progress': tag_progress, 'tag_records': tag_records}
+    return {'the_name': the_name,
+            'tz': tz,
+            'email': email,
+            'cal': cal,
+            'blist': blist,
+            'active': active,
+            'tag_progress': tag_progress,
+            'tag_records': tag_records,
+            'log': log}

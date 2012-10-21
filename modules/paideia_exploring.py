@@ -428,7 +428,15 @@ class Walk(object):
         return tags
 
     def _find_cats(self, categories, record_list):
+        '''
+        Categorize the user's active subject tags based on a combination of
+        timed repetition and overall success with the tag to date.
 
+        Returns a dictionary with four keys (cat1, cat2, cat3, cat4)
+        corresponding to the four review categories, with cat1 meaning the
+        tag needs immediate review and the other categories indicating
+        progressively smaller likelihood of a path with the tag being chosen.
+        '''
         for record in record_list:
             #get time-based statistics for this tag
             #note: arithmetic operations yield datetime.timedelta objects
@@ -445,12 +453,14 @@ class Walk(object):
                     and (right_wrong_dur > datetime.timedelta(days=1))
                     # require at least 10 right answers
                     and (record.times_right >= 10)) \
-                or ((record.times_wrong > 0)  # prevent zero division error
-                    and ((record.times_right / record.times_wrong) >= 10)
-                    and (right_dur <= datetime.timedelta(days=1))) \
+                or ((record.times_right > 0)  # prevent zero division error
+                    and ((record.times_wrong / record.times_right) <= 0.125)
+                    and (right_dur <= datetime.timedelta(days=2))) \
                 or ((record.times_wrong == 0)  # prevent zero division error
-                    and (record.times_right >= 10)):
-                   # allow for 10% wrong and still promote
+                    and (record.times_right >= 20)):
+                    # allow for 1 wrong answer for every 8 correct
+                    # promote in any case if the user has never had a wrong
+                    # answer in 20+ attempts
                 # ==================================================
                 # for category 3
                 if right_wrong_dur.days >= 7:
@@ -691,6 +701,8 @@ class Walk(object):
 
         if self.verbose:
             print 'calling Walk._handle_blocks--------------'
+        debug = True
+
         auth, db, session = current.auth, current.db, current.session
 
         if self.new_badges is not None:
@@ -707,12 +719,16 @@ class Walk(object):
 
         # Have we reached the daily path limit? Return a default step.
         # TODO: Replace hardcoded limit (20)
-        if len(session.walk['completed_paths']) >= 20:
+        if len(self.completed_paths) == 20:
             if 'quota_override' in session.walk and \
                                                 session.walk['quota_override']:
                 pass
             else:
                 return self._get_util_step('end of quota')  # tag id=79
+
+        if (len(self.completed_paths) % 20) == 0:
+            if debug: print 'completed n*20 paths, re-categorizing...'
+            self.tag_set = self._categorize_tags()
 
         return None, None
 
@@ -819,7 +835,7 @@ class Walk(object):
             self.completed_paths.add(path)
         self._save_session_data()
 
-    def _get_util_step(self, tag):
+    def _get_util_step(self, tag, next_loc=None):
         '''
         Return the default path and step for a particular utility situation.
         These include
@@ -832,6 +848,8 @@ class Walk(object):
         if self.verbose:
             print 'calling Walk._get_util_step--------------'
         session, db = current.session, current.db
+        if next_loc:
+            session.walk['next_loc'] = next_loc
 
         tag_id = db(db.tags.tag == tag).select()[0].id
         steps = db(db.steps.tags.contains(tag_id)).select()
@@ -1071,7 +1089,11 @@ class Walk(object):
                         continue
 
                 # 4) If due paths are elsewhere, trigger default step
-                return self._get_util_step('default')
+                next_locs = db.steps[p_list[0].steps[0]].locations
+                next_loc = next_locs[randrange(0, len(next_locs))]
+                if debug: print 'sending to loc', next_loc
+
+                return self._get_util_step('default', next_loc)
 
         #TODO: Fall back here to repeating random paths from completed_paths
         # first that can be started here
@@ -1085,8 +1107,6 @@ class Walk(object):
         # filter out paths whose tags aren't in the tag_list
         paths = p_list1.find(lambda row:
                      [t for t in row.tags if t in [l.id for l in tag_list]])
-        # TODO: randomize selection of this path or is it already randomized
-        # from p_list1 select?
         for p in paths:
             the_step = db.steps[p.steps[0]]
             if the_step.locations and (loc_id in the_step.locations):
@@ -1095,7 +1115,11 @@ class Walk(object):
                 continue
 
         # 6) Send user to look elsewhere for a path with active tags
-        return self._get_util_step('default')
+        next_locs = db.steps[paths[0].steps[0]].locations
+        next_loc = next_locs[randrange(0, len((next_locs) + 1))]
+        if debug: print 'sending to loc', next_loc
+
+        return self._get_util_step('default', next_loc)
 
     def _get_category(self):
         '''
@@ -1907,6 +1931,47 @@ class StepStub(Step):
         return None
 
 
+class StepRedirect(StepStub):
+    '''
+    Step type to redirect user to a different location.
+    '''
+
+    def _get_replacements(self):
+        '''
+        Provide the string replacement data to be used in the step prompt.
+        '''
+        if self.verbose:
+            print 'calling', type(self).__name__, '._get_replacements ----'
+        debug = True
+        session = current.session
+        db = current.db
+
+        if 'active_paths' in session.walk and session.walk['active_paths']:
+            if debug: print 'getting loc for active path'
+            next_step = session.walk['active_paths'].values()[0]
+            if debug: print next_step
+            next_locids = db.steps[next_step].locations
+            if debug: print next_locids
+            # find a location that actually has a readable name
+            for n in next_locids:
+                if debug: print n
+                if debug: print db.locations[n]
+                next_loc = db.locations[n].readable
+                if next_loc is None:
+                    continue
+                else:
+                    break
+        elif 'next_loc' in session.walk:
+            next_loc = db.locations[session.walk['next_loc']].readable
+        else:
+            next_loc = 'another location in town'
+
+        if debug: print 'next_loc is', next_loc
+        replacements = {'[[next_loc]]': next_loc}
+
+        return replacements
+
+
 class StepNonBlocking(StepStub, Step):
     '''
     This abstract class provides a responder that includes a "continue"
@@ -2116,6 +2181,7 @@ STEP_CLASSES = {
         'step': Step,
         'step_multipleChoice': StepMultipleChoice,
         'step_stub': StepStub,
+        'StepRedirect': StepRedirect,
         'step_image': StepImage,
         'step_imageMutlipleChoice': StepImageMultipleChoice,
         'step_awardBadges': StepAwardBadges,

@@ -708,13 +708,17 @@ CREATE TABLE session_data(
     data TEXT
 );
 success!
-timestamp: 2012-10-07T16:35:11.556251
+timestamp: 2012-10-07T21:53:08.618969
 ALTER TABLE tag_progress ADD rev1 TEXT;
-timestamp: 2012-10-07T16:35:11.821447
+timestamp: 2012-10-07T21:53:08.656552
 ALTER TABLE tag_progress ADD rev3 TEXT;
-timestamp: 2012-10-07T16:35:12.185175
+timestamp: 2012-10-07T21:53:08.673411
 ALTER TABLE tag_progress ADD rev2 TEXT;
-timestamp: 2012-10-07T19:07:51.296500
+timestamp: 2012-10-07T21:53:08.689399
 ALTER TABLE tag_progress ADD rev4 TEXT;
-timestamp: 2012-10-12T15:31:46.691662
+timestamp: 2012-10-12T15:50:36.534215
 ALTER TABLE plugin_slider_slides ADD updated TIMESTAMP;
+timestamp: 2012-10-13T20:38:24.847495
+ALTER TABLE locations ADD readable CHAR(512) UNIQUE;
+timestamp: 2012-10-13T20:43:37.933563
+ALTER TABLE locations ADD readable CHAR(512);

@@ -11,11 +11,67 @@ class Stats(object):
     Name = "paideia_stats"
     verbose = True
 
-    def __init__(self, user_id):
+    def __init__(self, user_id=None, auth=None):
         if self.verbose: print '\nInitializing Stats object =================='
+        if auth is None:
+            auth = current.auth
+        if user_id is None:
+            user_id = auth.user_id
         self.user_id = user_id
         #assert type(user_id) == str
         self.loglist = self.log_list()
+
+    def step_log(self, logs=None, user_id=None, duration=None, db=None):
+        '''
+        Get record of a user's steps attempted in the last seven days.
+        '''
+        now = datetime.datetime.utcnow()
+        if user_id is None:
+            user_id = self.user_id
+        if duration is None:
+            duration = datetime.timedelta(days=7)
+        if db is None:
+            db = current.db
+        if logs is None:
+            logs = db((db.attempt_log.id > 0) &
+                    (db.attempt_log.name == user_id)).select()
+            logs = logs.find(lambda row: (now - row.dt_attempted) <= duration)
+        logset = []
+        stepset = set(l.step for l in logs)
+
+        for step in stepset:
+            steprow = db.steps[step]
+            steplogs = logs.find(lambda row: row.step == step)
+            stepcount = len(steplogs)
+            stepright = steplogs.find(lambda row: row.score == 1)
+            stepwrong = steplogs.find(lambda row: row.score == 0)
+
+            try:
+                last_wrong = max([s.dt_attempted for s in stepwrong])
+                last_wrong = datetime.datetime.date(last_wrong)
+            except ValueError:
+                last_wrong = 'never'
+
+            try:
+                right_since = len([s for s in stepright
+                                if s.dt_attempted > last_wrong])
+            except TypeError:
+                right_since = stepcount
+
+            step_dict = {'step': step,
+                        'count': stepcount,
+                        'right': len(stepright),
+                        'wrong': len(stepwrong),
+                        'last_wrong': last_wrong,
+                        'right_since': right_since,
+                        'tags': steprow.tags,
+                        'prompt': steprow.prompt,
+                        'logs': steplogs,
+                        'duration': duration}
+
+            logset.append(step_dict)
+
+        return logset
 
     def active_tags(self):
         '''
