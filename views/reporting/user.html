@@ -7,7 +7,7 @@
         <li><a href="#tab_stats">Badges</a></li>
         <li><a href="#tab_calendar">Activity</a></li>
         <li><a href="#tab_bug_reports">Bug reports</a></li>
-        <li><a href="#tab_tag_progress">Tag Progress Data</a></li>
+        <li><a href="#tab_recent_paths">Recent Path Log</a></li>
         <li><a href="#tab_tag_records">Tag Records</a></li>
     </ul>
 
@@ -21,77 +21,118 @@
 
     </div>
 
-    <div id='tab_stats' class="tab">
+<div id='tab_stats' class="tab">
 
-        <p class="overview">You are currently working on <span class='total_len'>{{=active['total']}}</span> grammar badges</p>
-        <p class="overview">The most recent badges started are:
-        <ul class='most_recent'>
-            {{for l in active['latest']:}}
-                {{=LI(l)}}
+    <p class="overview">You are currently working on <span class='total_len'>{{=active['total']}}</span> grammar badges</p>
+    <p class="overview">The most recent badges started are:
+    <ul class='most_recent'>
+        {{for l in active['latest']:}}
+            {{=LI(l)}}
+        {{pass}}
+    </ul>
+    </p>
+
+<table cellspacing='0' class='summary_stats'>
+    <thead>
+        <tr>
+            <th></th>
+            <th></th>
+            <th>Badge level reached</th>
+            <th>Review level</th>
+        </tr>
+    </thead>
+{{if 'cat4' in active:}}
+    <tr>
+        <td>mastered</td>
+        <td class='total_cat4'>{{=len(active['cat4']) if active['cat4'] else 0}}</td>
+        <td>
+            {{if active['cat4'] and active['cat4'] != 0:}}
+            <ul>
+                {{for b in active['cat4']:}}
+                <li>{{=b}}</li>
+                {{pass}}
+                {{if active['rev4'] and active['rev4'] != 0:}}
+                    {{for b in active['rev4']:}}
+                    <li>{{=b}}</li>
+                    {{pass}}
+                {{pass}}
+            </ul>
             {{pass}}
-        </ul>
-        </p>
+        </td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>making very good progress on</td>
+        <td class='total_cat3'>{{=len(active['cat3']) if active['cat3'] else 0}}</td>
+        <td>
+            {{if active['cat3'] and active['cat3'] != 0:}}
+            <ul>
+                {{for b in active['cat3']:}}
+                <li>{{=b}}</li>
+                {{pass}}
+            </ul>
+            {{pass}}
+        </td>
+        <td>
+            {{if ('rev3' in active) and (active['rev3']) and (active['rev3'] != 0):}}
+            <ul>
+                {{for b in active['rev3']:}}
+                <li>{{=b}}</li>
+                {{pass}}
+            </ul>
+            {{pass}}
+        </td>
+    </tr>
+    <tr>
+        <td>made a good start with</td>
+        <td class='total_cat2'>{{=len(active['cat2']) if active['cat2'] else 0}}</td>
+        <td>
+            {{if active['cat2'] and active['cat2'] != 0:}}
+            <ul>
+                {{for b in active['cat2']:}}
+                <li>{{=b}}</li>
+                {{pass}}
+            </ul>
+            {{pass}}
+        </td>
+        <td>
+            {{if ('rev2' in active.keys()) and (active['rev2']) and (active['rev2'] != 0):}}
+            <ul>
+                {{for b in active['rev2']:}}
+                <li>{{=b}}</li>
+                {{pass}}
+            </ul>
+            {{pass}}
+        </td>
+    </tr>
+    <tr>
+        <td>just started or needing review</td>
+        <td class='total_cat1'>{{=len(active['cat1']) if active['cat1'] else 0}}</td>
+        <td>
+            {{if active['cat1'] and active['cat1'] != 0:}}
+            <ul>
+                {{for b in active['cat1']:}}
+                <li>{{=b}}</li>
+                {{pass}}
+            </ul>
+            {{pass}}
+        </td>
+        <td>
+            {{if ('rev1' in active.keys()) and (active['rev1']) and (active['rev1'] != 0):}}
+            <ul>
+                {{for b in active['rev1']:}}
+                <li>{{=b}}</li>
+                {{pass}}
+            </ul>
+            {{pass}}
+        </td>
+    </tr>
+{{else:}}
+    <span>You don't yet have any badges to report on. Check back after you explore the town map a bit.</span>
+{{pass}}
+</table>
 
-    <table cellspacing='0' class='summary_stats'>
-        <tr>
-            <td>mastered</td>
-            <td class='total_cat4'>{{=len(active['cat4']) if active['cat4'] else 0}}</td>
-            <td>badges</td>
-            <td>
-                {{if active['cat4'] and active['cat4'] != 0:}}
-                <ul>
-                    {{for b in active['cat4']:}}
-                    <li>{{=b}}</li>
-                    {{pass}}
-                </ul>
-                {{pass}}
-            </td>
-        </tr>
-        <tr>
-            <td>making very good progress on</td>
-            <td class='total_cat3'>{{=len(active['cat3']) if active['cat3'] else 0}}</td>
-            <td>badges</td>
-            <td>
-                {{if active['cat3'] and active['cat3'] != 0:}}
-                <ul>
-                    {{for b in active['cat3']:}}
-                    <li>{{=b}}</li>
-                    {{pass}}
-                </ul>
-                {{pass}}
-            </td>
-        </tr>
-        <tr>
-            <td>made a good start with</td>
-            <td class='total_cat2'>{{=len(active['cat2']) if active['cat2'] else 0}}</td>
-            <td>badges</td>
-            <td>
-                {{if active['cat2'] and active['cat2'] != 0:}}
-                <ul>
-                    {{for b in active['cat2']:}}
-                    <li>{{=b}}</li>
-                    {{pass}}
-                </ul>
-                {{pass}}
-            </td>
-        </tr>
-        <tr>
-            <td>just started or needing review</td>
-            <td class='total_cat1'>{{=len(active['cat1']) if active['cat1'] else 0}}</td>
-            <td>badges</td>
-            <td>
-                {{if active['cat1'] and active['cat1'] != 0:}}
-                <ul>
-                    {{for b in active['cat1']:}}
-                    <li>{{=b}}</li>
-                    {{pass}}
-                </ul>
-                {{pass}}
-            </td>
-        </tr>
-    </table>
-
-    </div>
+</div>
 
     <div class='tab' id='tab_calendar'>
     Questions answered each day:
@@ -120,26 +161,85 @@
 
     </div>
 
-    <div id='tab_tag_progress' class="tab">
-        <ul>
-            {{for label, item in tag_progress.iteritems():}}
-                {{=LI(label, item)}}
-            {{pass}}
-        </ul>
+    <div id='tab_recent_paths' class="tab">
+        <h4>Steps attempted in the last {{=log[0]['duration'].days}} days</h4>
+        {{=TABLE(THEAD(TR(
+                TH('step', _class='step'),
+                TH('prompt', _class='prompt'),
+                TH('count', _class='count'),
+                TH('right', _class='right'),
+                TH('wrong', _class='wrong'),
+                TH('last_wrong', _class='last_wrong'),
+                TH('right_since', _class='right_since'),
+                TH('tags', _class='tags'),
+                _class='step_log_table'
+                )
+                ) 
+            )}}
+        {{for l in log:}}
+        {{=DIV(TABLE(TR(
+                TD(l['step'], _class='step'),
+                TD(l['prompt'], _class='prompt'),
+                TD(l['count'], _class='count'),
+                TD(l['right'], _class='right'),
+                TD(l['wrong'], _class='wrong'),
+                TD(l['last_wrong'], _class='last_wrong'),
+                TD(l['right_since'], _class='right_since'),
+                TD(l['tags'], _class='tags'),
+                _class='step_log_table'
+                ) 
+                ), 
+                A('show logs', _href=('#logs' + str(l['step']))),
+                DIV(l['logs'], _class='collapsible_child'),
+            _class='collapsible_parent',
+            _id=('logs' + str(l['step']))
+            )}}
+        {{pass}}
     </div>
+
     <div id='tab_tag_records' class="tab">
-        <table>
+        <table id='tag_progress_table'>
             <thead>
-            {{for k, i in tag_records[0].iteritems():}}
-                {{=TD(k)}}
-            {{pass}}
+                {{for label in tag_progress.keys():}}
+                    {{=TH(label)}}
+                {{pass}}
             </thead>
-            {{for row in tag_records:}}
             <tr>
-                {{for k, i in row.iteritems():}}
-                    {{=TD(i)}}
+                {{for val in tag_progress.values():}}
+                    {{if type(val) is list:}}
+                        {{val = ['{}, '.format(str(v)) for v in val]}}
+                    {{pass}}
+                    {{=TD(val)}}
                 {{pass}}
             </tr>
+        </table>
+        <table id='tag_records_table'>
+            <thead>
+            {{=TH('tag')}}
+            {{=TH('times right')}}
+            {{=TH('times wrong')}}
+            {{=TH('ratio')}}
+            {{=TH('last right')}}
+            {{=TH('last wrong')}}
+            {{=TH('tag position')}}
+            </thead>
+            {{for row in tag_records:}}
+                {{timesr = row.tag_records.times_right
+                timesw = row.tag_records.times_wrong
+                try:
+                    ratio = float(timesw)/timesr
+                except ZeroDivisionError:
+                    ratio = 0}}
+                {{pass}}
+                <tr>
+                    {{=TD(row.tags.tag)}}
+                    {{=TD(row.tag_records.times_right)}}
+                    {{=TD(row.tag_records.times_wrong)}}
+                    {{=TD(ratio)}}
+                    {{=TD(row.tag_records.tlast_right)}}
+                    {{=TD(row.tag_records.tlast_wrong)}}
+                    {{=TD(row.tags.position)}}
+                </tr>
             {{pass}}
         </table>
     </div>

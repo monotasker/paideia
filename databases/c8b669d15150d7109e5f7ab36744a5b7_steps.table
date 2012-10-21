@@ -105,7 +105,7 @@ p38
 sg6
 I3
 sg7
-S'INTEGER REFERENCES audio(id) ON DELETE CASCADE'
+S'INTEGER REFERENCES audio (id) ON DELETE CASCADE'
 p39
 ssS'response2'
 p40
@@ -157,7 +157,7 @@ p55
 sg6
 I4
 sg7
-S'INTEGER REFERENCES step_types(id) ON DELETE CASCADE'
+S'INTEGER REFERENCES step_types (id) ON DELETE CASCADE'
 p56
 ssS'widget_image'
 p57
@@ -168,7 +168,7 @@ p59
 sg6
 I5
 sg7
-S'INTEGER REFERENCES images(id) ON DELETE CASCADE'
+S'INTEGER REFERENCES images (id) ON DELETE CASCADE'
 p60
 ssS'readable_response'
 p61

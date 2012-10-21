@@ -20,43 +20,53 @@ g4
 S'reference images'
 p11
 sg6
-I4
+I5
 sg7
-S'INTEGER REFERENCES images(id) ON DELETE CASCADE'
+S'INTEGER REFERENCES images (id) ON DELETE CASCADE'
 p12
-ssS'id'
+ssS'location'
 p13
 (dp14
-g4
-S'id'
-p15
-sg6
-I1
-sg7
-S'INTEGER PRIMARY KEY AUTOINCREMENT'
-p16
-ssS'background'
-p17
-(dp18
-S'sortable'
-p19
-I4
-sS'type'
-p20
-S'reference images'
-p21
-sS'sql'
-p22
-S'INTEGER REFERENCES images(id) ON DELETE CASCADE'
-p23
-ssS'location'
-p24
-(dp25
 g4
 g5
 sg6
 I2
 sg7
 S'CHAR(512) UNIQUE'
+p15
+ssS'background'
+p16
+(dp17
+S'type'
+p18
+S'reference images'
+p19
+sS'sortable'
+p20
+I4
+sS'sql'
+p21
+S'INTEGER REFERENCES images(id) ON DELETE CASCADE'
+p22
+ssS'readable'
+p23
+(dp24
+g4
+g5
+sg6
+I4
+sg7
+S'CHAR(512)'
+p25
+ssS'id'
 p26
+(dp27
+g4
+S'id'
+p28
+sg6
+I1
+sg7
+S'INTEGER PRIMARY KEY AUTOINCREMENT'
+p29
 ss.

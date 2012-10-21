@@ -32,7 +32,7 @@ p14
 sg6
 I4
 sg7
-S'INTEGER REFERENCES auth_user(id) ON DELETE CASCADE'
+S'INTEGER REFERENCES auth_user (id) ON DELETE CASCADE'
 p15
 ssS'description'
 p16
