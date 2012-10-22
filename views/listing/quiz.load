@@ -1,7 +1,0 @@
-
-{{=A('Create a new quiz', _href=URL('creating', 'quiz.load'), cid='viewpane')}}
-<ul>
-{{for quiz in quizzes:}}
-{{=LI(A(quiz.quiz, _href=URL('editing', 'quiz.load', args=[quiz.id]), cid='viewpane'))}}
-{{pass}}
-</ul>
