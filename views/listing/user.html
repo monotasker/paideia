@@ -12,7 +12,11 @@
         {{=TD(user.tag_progress.latest_new, _class='rank')}}
         {{if user.auth_user.id in countlist:}}
             {{=TD(countlist[user.auth_user.id][0], _class='this_week')}}
-            {{=TD(countlist[user.auth_user.id][1], _class='last_week')}}
+            {{if countlist[user.auth_user.id][0] < 5:}}
+                {{=TD(countlist[user.auth_user.id][1], _class='last_week danger')}}
+            {{else:}}
+                {{=TD(countlist[user.auth_user.id][1], _class='last_week')}}
+            {{pass}}
         {{else:}}
             {{=TD(_class='this_week')}}
             {{=TD(_class='last_week')}}

@@ -1624,6 +1624,8 @@ body #page #right_sidebar div:hover {
 
   /* tab content */
 
+  /* common styles for reporting tables */
+
   /* summary stats (badges) tab */
 
   /* calendar for monthly user statistics */
@@ -1670,29 +1672,27 @@ body #page #right_sidebar div:hover {
   line-height: 24px;
   font-family: "Palatino Linotype", Palatino, serif;
   color: #666666;
-  /* common styles for reporting tables */
-
 }
 #page.profile div.tab h4,
 #page.user div.tab h4 {
   color: #b58900;
   font-size: 24px;
 }
-#page.profile div.tab table,
-#page.user div.tab table {
+#page.profile table,
+#page.user table {
   text-align: left;
   border-collapse: separate;
   border-spacing: 2px;
 }
-#page.profile div.tab table th,
-#page.user div.tab table th {
+#page.profile table th,
+#page.user table th {
   font-weight: bold;
   background-color: #ffffff;
   vertical-align: middle;
   text-align: center;
 }
-#page.profile div.tab table td,
-#page.user div.tab table td {
+#page.profile table td,
+#page.user table td {
   background-color: #eee8d5;
   padding: 8px 16px;
 }
@@ -1774,8 +1774,8 @@ body #page #right_sidebar div:hover {
 }
 #page.profile table.paideia_monthcal_table td,
 #page.user table.paideia_monthcal_table td {
-  width: 48px;
-  height: 48px;
+  width: 60px;
+  height: 60px;
   color: #aaa;
   font-size: 16px;
   position: relative;
