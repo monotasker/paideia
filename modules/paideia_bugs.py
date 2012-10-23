@@ -31,7 +31,7 @@ class Bug(object):
 
         return
 
-    def log_new(self, answer):
+    def log_new(self, step=None, path=None, answer, log_id, score):
         """
         creates a new bug report and provides confirmation to the user.
         """
@@ -39,6 +39,10 @@ class Bug(object):
         debug = False
         response = current.response
         db = current.db
+        if step = None:
+            step = self.step
+        if path = None:
+            path = self.path
 
         location = db(db.locations.alias ==
                                     self.location['alias']).select().first()
@@ -49,8 +53,10 @@ class Bug(object):
             print 'answer =', answer
 
         try:
-            db.bugs.insert(step=self.step, path=self.path,
-                            location=location.id, user_response=answer)
+            db.bugs.insert(step=step,
+                            path=path,
+                            location=location.id,
+                            user_response=answer)
             response.flash = 'Thanks for reporting this potential bug. We will\
                     look at the question to see what the problem was. If there\
                     turns out to be a problem with the question, this answer\
