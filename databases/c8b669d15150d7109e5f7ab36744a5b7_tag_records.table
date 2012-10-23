@@ -2,13 +2,13 @@
 S'category'
 p2
 (dp3
-S'sortable'
+S'type'
 p4
-I8
-sS'type'
-p5
 S'reference categories'
+p5
+sS'sortable'
 p6
+I8
 sS'sql'
 p7
 S'INTEGER REFERENCES categories(id) ON DELETE CASCADE'
@@ -41,13 +41,13 @@ p19
 ssS'question'
 p20
 (dp21
-S'sortable'
+S'type'
 p22
-I3
-sS'type'
-p23
 S'reference questions'
+p23
+sS'sortable'
 p24
+I3
 sS'sql'
 p25
 S'INTEGER REFERENCES questions(id) ON DELETE CASCADE'
