@@ -199,6 +199,10 @@ def walk():
         if debug: print '\ncontroller exploring.walk() state: response'
         resp = request.vars.response
         if debug: print 'response is', resp
+        # if response is blank, just re-present the step prompt
+        if resp in [None, '', ' ']:
+            redirect(URL('walk.load', args=('ask'), vars={'loc': request.vars['loc']}))
+        # otherwise, evaluate and present response
         return walk.step.process(resp)
 
     # After user enters location or has completed step in this location
