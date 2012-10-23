@@ -1464,9 +1464,9 @@ class Step(object):
         bug_reporter = DIV(_class='bug_reporter tip')
         text1 = SPAN('If you think your answer wasn\'t evaluated properly, ')
         link = A('click here',
-                    _href=URL('creating', 'bug.load',
-                                vars=dict(step=step,
-                                            path=path,
+                    _href=URL('creating', 'bug',
+                                vars=dict(step=step.id,
+                                            path=path.id,
                                             answer=request.vars.response,
                                             log_id=log_id,
                                             score=score,
@@ -1987,7 +1987,7 @@ class StepRedirect(StepStub):
                     continue
                 else:
                     break
-        elif 'next_loc' in session.walk:
+        elif 'next_loc' in session.walk and session.walk['next_loc']:
             if debug: print 'getting loc from session.walk["next_loc"]'
             next_loc = db.locations[session.walk['next_loc']].readable
         else:
