@@ -1944,11 +1944,13 @@ class StepRedirect(StepStub):
         '''
         if self.verbose:
             print 'calling', type(self).__name__, '._get_replacements ----'
-        debug = False
+        debug = True
         session = current.session
         db = current.db
 
-        if 'active_paths' in session.walk and session.walk['active_paths']:
+        if 'active_paths' in session.walk \
+                            and session.walk['active_paths'] \
+                            and session.walk['active_paths'].keys()[0] != 30:
             if debug: print 'getting loc for active path'
             next_step = session.walk['active_paths'].values()[0]
             if debug: print next_step
@@ -1964,6 +1966,7 @@ class StepRedirect(StepStub):
                 else:
                     break
         elif 'next_loc' in session.walk:
+            if debug: print 'getting loc from session.walk["next_loc"]'
             next_loc = db.locations[session.walk['next_loc']].readable
         else:
             next_loc = 'another location in town'
