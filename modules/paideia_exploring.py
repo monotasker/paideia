@@ -803,7 +803,9 @@ class Walk(object):
             path, step = self._get_next_step()
 
         self.path = path
-        self.active_paths[path.id] = step_id
+        # avoid adding utility redirect path 30 to active paths
+        if step_id != 30:
+            self.active_paths[path.id] = step_id
         if debug:
             print 'activating step', step_id
         self.step = self._create_step_instance(step_id)
@@ -1436,16 +1438,20 @@ class Step(object):
         # TODO: This replaces the Walk.save_session_data() that was in the
         # controller. Make sure this saving of step data is enough.
         self._save_session_data()
-        self._complete(score, times_wrong)
+        log_id = self._complete(score, times_wrong)
 
         return {'reply': reply,
                 'readable': readable_short,
                 'readable_long': readable_long,
-                'bug_reporter': self._get_bug_reporter(),
+                'bug_reporter': self._get_bug_reporter(self.step,
+                                                       self.path,
+                                                       user_response,
+                                                       log_id,
+                                                       score),
                 'npc_img': session.walk['npc_image'],
                 'bg_image': self.location['bg_image']}
 
-    def _get_bug_reporter(self):
+    def _get_bug_reporter(self, step, path, answer, log_id, score):
         '''
         Construct and return a SPAN helper containing the contents of the
         tooltip containing the message and link allowing students to submit
@@ -1459,8 +1465,12 @@ class Step(object):
         text1 = SPAN('If you think your answer wasn\'t evaluated properly, ')
         link = A('click here',
                     _href=URL('creating', 'bug.load',
-                                vars=dict(answer=request.vars.response,
-                                loc=request.vars.loc)),
+                                vars=dict(step=step,
+                                            path=path,
+                                            answer=request.vars.response,
+                                            log_id=log_id,
+                                            score=score,
+                                            loc=request.vars.loc)),
                     cid='bug_reporter',
                     _class='button-bug-reporter')
         text2 = SPAN(' to submit a bug report for this question.')
@@ -1594,6 +1604,7 @@ class Step(object):
                 (db.path_log.name == auth.user_id)
                 ).select(orderby=~db.path_log.dt_started).first()
 
+        # Log this path completion/progress
         if log:
             log.update_record(path=self.path.id, last_step=self.step.id)
         else:   # We should have an existing path_log but in case not...
@@ -1603,6 +1614,11 @@ class Step(object):
         db.attempt_log.insert(step=self.step.id,
                               score=score,
                               path=self.path.id)
+        a_log = db((db.attempt_log.name == auth.user_id) &
+                    (db.attempt_log.step == self.step.id)
+                    ).select(orderby=~db.attempt_log.dt_attempted)
+
+        return a_log.first().id
 
     def _complete(self, score, times_wrong):
         '''
@@ -1617,9 +1633,9 @@ class Step(object):
 
         # TODO: Where appropriate, make sure last_step is recorded as 0
         # Record evaluation of step response
-        # Don't record repeat attempts within the same day's session
+        log_id = None
         if request.args[0] != 'retry':
-            self._record(score, times_wrong)
+            log_id = self._record(score, times_wrong)
 
         # Check to see whether this is the last step in the path and if so
         # remove from active_paths and add to completed_paths
@@ -1652,6 +1668,8 @@ class Step(object):
         # in session.walk when controller in the 'ask' state
         # TODO: Remove from session._get_next_path the logic to deactivate
         # final steps, etc.?
+
+        return log_id
 
     def _get_prompt(self):
         '''
@@ -1828,7 +1846,7 @@ class StepMultipleChoice(Step):
             times_wrong = 0
 
         # Record the results in statistics for this step and this tag
-        self._complete(score, times_wrong)
+        log_id = self._complete(score, times_wrong)
 
         # TODO: This replaces the Walk.save_session_data() that was in the
         # controller. Make sure this saving of step data is enough.
@@ -1836,7 +1854,11 @@ class StepMultipleChoice(Step):
 
         return {'reply': reply,
                 'readable': answer1,
-                'bug_reporter': self._get_bug_reporter(),
+                'bug_reporter': self._get_bug_reporter(self.step,
+                                                        self.path,
+                                                        user_response,
+                                                        log_id,
+                                                        score),
                 'npc_img': session.walk['npc_image'],
                 'bg_image': self.location['bg_image']}
 
