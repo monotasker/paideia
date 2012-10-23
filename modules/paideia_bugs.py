@@ -31,32 +31,32 @@ class Bug(object):
 
         return
 
-    def log_new(self, step=None, path=None, answer, log_id, score):
+    def log_new(self, answer, log_id, score, step=None, path=None):
         """
         creates a new bug report and provides confirmation to the user.
         """
         if self.verbose: print 'calling Bug.log_new object ================='
-        debug = False
+        debug = True
         response = current.response
         db = current.db
-        if step = None:
+        if step == None:
             step = self.step
-        if path = None:
+        if path == None:
             path = self.path
 
         location = db(db.locations.alias ==
                                     self.location['alias']).select().first()
         if debug:
-            print 'location =', self.location
-            print 'step =', self.step
-            print 'path =', self.path
-            print 'answer =', answer
+            print 'score =', score
+            print 'log_id =', log_id
 
         try:
             db.bugs.insert(step=step,
                             path=path,
                             location=location.id,
-                            user_response=answer)
+                            user_response=answer,
+                            log_id=log_id,
+                            score=score)
             response.flash = 'Thanks for reporting this potential bug. We will\
                     look at the question to see what the problem was. If there\
                     turns out to be a problem with the question, this answer\
