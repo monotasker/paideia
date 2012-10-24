@@ -1,0 +1,37 @@
+(dp1
+S'status_label'
+p2
+(dp3
+S'type'
+p4
+S'text'
+p5
+sS'sortable'
+p6
+I3
+sS'sql'
+p7
+S'TEXT UNIQUE'
+p8
+ssS'id'
+p9
+(dp10
+g4
+g9
+sg6
+I1
+sg7
+S'INTEGER PRIMARY KEY AUTOINCREMENT'
+p11
+ssS'status_num'
+p12
+(dp13
+g4
+S'integer'
+p14
+sg6
+I2
+sg7
+S'INTEGER UNIQUE'
+p15
+ss.

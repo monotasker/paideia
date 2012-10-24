@@ -994,7 +994,7 @@ class Walk(object):
         6) any random path which can be started elsewhere (in which case the
         default step is activated)
         '''
-        debug = False
+        debug = True
         if self.verbose:
             print 'calling Walk._get_next_step--------------'
         db = current.db
@@ -1052,6 +1052,9 @@ class Walk(object):
 
         # cycle through categories, starting with the one from _get_category()
         p_list1 = db().select(db.paths.ALL, orderby='<random>')
+        p_list1 = p_list1.find(lambda row:
+                [stp for stp in row.steps if db.steps[stp].status != 2])
+        if debug: print 'filtered path list', [p.id for p in p_list1]
         for cat in cat_list:
             if debug: print 'Trying category', cat  # DEBUG
 
@@ -2369,3 +2372,4 @@ class Map(object):
         return db().select(db.locations.ALL,
                            orderby=db.locations.location,
                            cache=(cache.ram, 60 * 60)).as_list()
+

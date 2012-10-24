@@ -198,6 +198,11 @@ db.define_table('step_instructions',
     Field('text', 'text'),
     format='%(label)s')
 
+db.define_table('step_status',
+    Field('status_num', 'integer', unique=True),
+    Field('status_label', 'text', unique=True),
+    format='%(status_label)s')
+
 #TODO: transfer all questions data over to steps table
 db.define_table('steps',
     Field('prompt', 'text'),
@@ -218,7 +223,7 @@ db.define_table('steps',
     Field('tags_secondary', 'list:reference tags'),
     Field('npcs', 'list:reference npcs'),
     Field('locations', 'list:reference locations'),
-    Field('status', 'integer'),
+    Field('status', db.step_status, default=1),
     format='%(prompt)s')
 db.steps.options.widget = SQLFORM.widgets.list.widget
 #db.steps.response1.requires = IS_VALID_REGEX()
