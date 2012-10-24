@@ -201,7 +201,8 @@ def walk():
         if debug: print 'response is', resp
         # if response is blank, just re-present the step prompt
         if resp in [None, '', ' ']:
-            redirect(URL('walk.load', args=('ask'), vars={'loc': request.vars['loc']}))
+            redirect(URL('walk.load', args=('ask'),
+                            vars={'loc': request.vars['loc']}))
         # otherwise, evaluate and present response
         return walk.step.process(resp)
 
