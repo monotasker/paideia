@@ -96,7 +96,9 @@ class Stats(object):
                 try:
                     atags[c] = [db(db.badges.tag ==
                                    t).select().first().badge_name for t in lst]
+                    if debug: print 'found badges for tags', lst
                 except AttributeError:
+                    if debug: print 'no badges for tags', lst
                     pass
             try:
                 total = []
@@ -121,7 +123,9 @@ class Stats(object):
                     l = db(db.badges.tag == t).select().first()
                     if l:
                         latest_badges.append(l.badge_name)
+                        if debug: print 'found record for tag', t
                     else:
+                        if debug: print 'no record for tag', t
                         pass
                 if latest_badges is None:
                     latest_badges = ['Sorry, I couldn\'t find that!']
