@@ -360,6 +360,7 @@ div.error {
   clear: both;
   padding: 0;
 }
+/* clearfix class; see http://css-tricks.com/snippets/css/clear-fix/ */
 /* css triangles */
 /* css speech bubbles */
 /* tooltips */
@@ -504,7 +505,7 @@ a:active .tip {
   transition: all 200ms ease-in-out;
 }
 /* collapsible divs or panels using :target pseudo-element */
-.collapsible_parent .collapsible_child {
+ul li.collapsible_parent ul.collapsible_child {
   height: 0;
   overflow: hidden;
   -webkit-transition: all 200ms ease-in-out;
@@ -513,7 +514,7 @@ a:active .tip {
   -ms-transition: all 200ms ease-in-out;
   transition: all 200ms ease-in-out;
 }
-.collapsible_parent:target .collapsible_child {
+ul li.collapsible_parent:target ul.collapsible_child {
   height: auto;
   -webkit-transition: all 200ms ease-in-out;
   -moz-transition: all 200ms ease-in-out;
@@ -1374,6 +1375,11 @@ body #page #right_sidebar div:hover {
 #page.exploring .responder .button {
   display: inline-block;
 }
+#page.exploring .prompt .prompt_image,
+#page.exploring .responder .prompt_image {
+  height: 200px;
+  float: right;
+}
 #page.exploring .prompt .guidelines,
 #page.exploring .responder .guidelines {
   z-index: 10;
@@ -1395,8 +1401,10 @@ body #page #right_sidebar div:hover {
 #page.exploring .responder .prompt_badges_wrapper,
 #page.exploring .prompt .bug_reporter_wrapper,
 #page.exploring .responder .bug_reporter_wrapper {
-  display: inline-block;
-  float: right;
+  display: block;
+  position: absolute;
+  bottom: -16px;
+  right: -16px;
 }
 #page.exploring .prompt .prompt_badges,
 #page.exploring .responder .prompt_badges,
@@ -1489,9 +1497,7 @@ body #page #right_sidebar div:hover {
 #page.exploring .responder .bug_reporter a {
   font-size: 16px;
 }
-#page.exploring .prompt_badges {
-  top: 0;
-}
+#page.exploring .bug_reporter_icon,
 #page.exploring .prompt_badges_icon {
   display: inline-block;
   width: 36px;
@@ -1516,10 +1522,12 @@ body #page #right_sidebar div:hover {
   -ms-transition: all 200ms ease-in-out;
   transition: all 200ms ease-in-out;
   background-color: #809240;
-  color: #f8f0e5;
+  color: #ffffff;
   font-size: 12px;
+  text-align: center;
   border: 2px solid #ffffff;
 }
+#page.exploring .bug_reporter_icon:hover,
 #page.exploring .prompt_badges_icon:hover {
   -moz-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   -webkit-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
@@ -1544,6 +1552,8 @@ body #page #right_sidebar div:hover {
   background: #ffffff;
   min-height: 36px;
   z-index: 4;
+  /* clearfix class */
+
 }
 #page.exploring .prompt:after {
   content: "";
@@ -1560,6 +1570,20 @@ body #page #right_sidebar div:hover {
   border-right: 16px solid #ffffff;
   background: transparent;
 }
+#page.exploring .prompt div {
+  zoom: 1;
+  /* activate hasLayout in ie6-7 */
+
+}
+#page.exploring .prompt div:before {
+  content: " ";
+  display: block;
+}
+#page.exploring .prompt div:after {
+  content: " ";
+  display: table;
+  clear: both;
+}
 #page.exploring .responder {
   position: relative;
   border-radius: 24px;
@@ -1569,7 +1593,7 @@ body #page #right_sidebar div:hover {
   -o-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   -ms-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-  background: #f5f5f5;
+  background: #586e75;
   min-height: 36px;
   z-index: 3;
 }
@@ -1585,7 +1609,7 @@ body #page #right_sidebar div:hover {
   border-top: 16px solid transparent;
   border-bottom: 16px solid transparent;
   border-bottom: none;
-  border-top: 16px solid #f5f5f5;
+  border-top: 16px solid #586e75;
   background: transparent;
 }
 #page.listing #viewpane {
@@ -1624,17 +1648,7 @@ body #page #right_sidebar div:hover {
 
   /* tab content */
 
-  /* common styles for reporting tables */
-
-  /* summary stats (badges) tab */
-
   /* calendar for monthly user statistics */
-
-  /*** step logs on user profile ***/
-
-  /*** tag records on user profile ***/
-
-  /*** tag progress on user profile ***/
 
   /*** bug reports on user profile ***/
 
@@ -1677,24 +1691,6 @@ body #page #right_sidebar div:hover {
 #page.user div.tab h4 {
   color: #b58900;
   font-size: 24px;
-}
-#page.profile table,
-#page.user table {
-  text-align: left;
-  border-collapse: separate;
-  border-spacing: 2px;
-}
-#page.profile table th,
-#page.user table th {
-  font-weight: bold;
-  background-color: #ffffff;
-  vertical-align: middle;
-  text-align: center;
-}
-#page.profile table td,
-#page.user table td {
-  background-color: #eee8d5;
-  padding: 8px 16px;
 }
 #page.profile p.overview li,
 #page.user p.overview li {
@@ -1764,6 +1760,7 @@ body #page #right_sidebar div:hover {
 }
 #page.profile table.paideia_monthcal_table,
 #page.user table.paideia_monthcal_table {
+  border-collapse: separate;
   border-spacing: 2px;
 }
 #page.profile table.paideia_monthcal_table thead td,
@@ -1771,20 +1768,23 @@ body #page #right_sidebar div:hover {
   height: 24px;
   font-size: 12.8px;
   background: transparent;
+  text-align: center;
 }
 #page.profile table.paideia_monthcal_table td,
 #page.user table.paideia_monthcal_table td {
-  width: 60px;
-  height: 60px;
+  width: 48px;
+  height: 48px;
+  background-color: #eee8d5;
   color: #aaa;
   font-size: 16px;
   position: relative;
-  padding: 2px;
 }
 #page.profile table.paideia_monthcal_table td span.cal_num,
 #page.user table.paideia_monthcal_table td span.cal_num {
   position: relative;
   padding: 4px, 2px;
+  top: 0;
+  left: 0;
 }
 #page.profile table.paideia_monthcal_table td span.cal_count,
 #page.user table.paideia_monthcal_table td span.cal_count {
@@ -1796,74 +1796,30 @@ body #page #right_sidebar div:hover {
   padding-right: 2px;
   color: #268bd2;
 }
-#page.profile .step_log_table,
-#page.user .step_log_table {
-  max-width: 100%;
-  min-width: 100%;
+#page.profile #tab_bug_reports table,
+#page.user #tab_bug_reports table {
+  text-align: left;
+  border-collapse: separate;
+  border-spacing: 3px;
 }
-#page.profile .step_log_table .step,
-#page.user .step_log_table .step {
-  max-width: 7%;
+#page.profile #tab_bug_reports table th,
+#page.user #tab_bug_reports table th {
+  font-weight: bold;
+  background-color: #efefef;
+  border: 1px solid #eee;
+  vertical-align: middle;
+  text-align: center;
 }
-#page.profile .step_log_table .prompt,
-#page.user .step_log_table .prompt {
-  max-width: 40%;
-  min-width: 40%;
-}
-#page.profile .step_log_table .count,
-#page.user .step_log_table .count {
-  max-width: 7%;
-  color: #268bd2;
-}
-#page.profile .step_log_table .right,
-#page.user .step_log_table .right {
-  max-width: 7%;
-  color: #809240;
-}
-#page.profile .step_log_table .wrong,
-#page.user .step_log_table .wrong {
-  max-width: 7%;
-  color: #dc322f;
-}
-#page.profile .step_log_table .last_wrong,
-#page.user .step_log_table .last_wrong {
-  max-width: 14%;
-  color: #dc322f;
-  min-width: 14%;
-}
-#page.profile .step_log_table .right_since,
-#page.user .step_log_table .right_since {
-  max-width: 7%;
-  color: #809240;
-}
-#page.profile .step_log_table .tags,
-#page.user .step_log_table .tags {
-  width: auto;
-  min-width: 20%;
-}
-#page.profile #tag_records_table td:first-child,
-#page.user #tag_records_table td:first-child {
-  color: #268bd2;
-}
-#page.profile #tag_records_table td:nth-child(2),
-#page.user #tag_records_table td:nth-child(2) {
-  color: #859900;
-}
-#page.profile #tag_records_table td:nth-child(3),
-#page.user #tag_records_table td:nth-child(3) {
-  color: #dc322f;
-}
-#page.profile #tag_progress_table td:first-child,
-#page.user #tag_progress_table td:first-child {
-  color: #268bd2;
-}
-#page.profile #tab_bug_reports table td,
-#page.user #tab_bug_reports table td {
+#page.profile #tab_bug_reports table tr td,
+#page.user #tab_bug_reports table tr td {
   min-width: 140px;
+  background-color: #f5f5f5;
 }
-#page.profile #tab_bug_reports table td:nth-child(3),
-#page.user #tab_bug_reports table td:nth-child(3) {
+#page.profile #tab_bug_reports table tr td:nth-child(3),
+#page.user #tab_bug_reports table tr td:nth-child(3) {
   min-width: 100px;
+  background-color: #f5f5f5;
+  border: 1px solid #eee;
 }
 /* plugin_listandedit */
 #page .list_control {
