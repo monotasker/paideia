@@ -1681,7 +1681,7 @@ class Step(object):
         '''
         if self.verbose:
             print 'calling', type(self).__name__, '._get_prompt-----------'
-        debug = False
+        debug = True
         auth = current.auth
 
         uname = auth.user['first_name']
@@ -1698,8 +1698,10 @@ class Step(object):
         prompt = DIV(MARKMIN(newtext))
 
         try:
+            if debug: print 'getting prompt image'
             prompt.append(self._get_step_image())
         except AttributeError:
+            if debug: print 'No step image for this Step type'
             pass
 
         try:
@@ -2180,7 +2182,7 @@ class StepImage(Step):
     '''
     verbose = True
 
-    def _get_step_image(self):
+    def _get_step_image(self, db=None):
         '''
         Returns the image to be displayed in the step prompt, wrapped in a
         web2py IMG() helper object.
@@ -2188,13 +2190,16 @@ class StepImage(Step):
         debug = False
         if self.verbose:
             print 'calling', type(self).__name__, '._get_step_image -----'
+        if db == None:
+            db = current.db
+
         try:
-            url = URL('static/images', self.step.widget_image)
+            url = URL('static/images', db.images(self.step.widget_image).image)
             if debug:
                 print url
-            return IMG(_src=url)
+            return IMG(_src=url, _class='prompt_image')
         except:
-            print '._get_image(): Could not find npc image'
+            print '._get_image(): Could not find image for prompt'
             return
 
 
