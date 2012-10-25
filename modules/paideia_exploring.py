@@ -502,7 +502,7 @@ class Walk(object):
         categories. The value for each key is a list holding the id's
         (integers) of the tags that are currently in the given category.
         '''
-        debug = True
+        debug = False
         if self.verbose: print 'calling Walk._categorize_tags--------------'
         # inject default dependencies
         if auth is None:
@@ -523,7 +523,6 @@ class Walk(object):
         # create new dictionary to hold categorized results
         catlabels = ['cat1', 'cat2', 'cat3', 'cat4']
         categories = dict((x, []) for x in catlabels)
-        reviews = deepcopy(categories)
 
         # get record of user performance for each tag tried
         record_list = db(db.tag_records.name == user).select()
@@ -604,7 +603,6 @@ class Walk(object):
             user = auth.user_id
 
         # If a tag has moved up in category, award the badge
-        # TODO: Deprecate since most of this now done in categorization
         mycats = db(db.tag_progress.name == user).select().first()
         if debug: print 'mycats =', mycats
 
@@ -612,22 +610,24 @@ class Walk(object):
         for category, lst in categories.iteritems():
             if lst:
                 print 'current badges =', lst
-                if mycats and mycats[category]:
-                    # make sure to check against higher categories too
-                    catindex = categories.keys().index(category)
-                    mycats_gteq = dict((k, mycats[k]) for k
-                               in ['cat1', 'cat2', 'cat3', 'cat4'][catindex:])
-                    if debug:
-                        print 'looking in equal and higher cats:', mycats_gteq
-                    new = [t for t in lst if (t not in mycats_gteq[category])]
-                else:
-                    new = [t for t in lst]
+                # make sure to check against higher categories too
+                catindex = categories.keys().index(category)
+                mycats_gteq = dict((k, mycats[k]) for k
+                           in ['cat1', 'cat2', 'cat3', 'cat4'][catindex:])
+                oldtags = list(chain([val for cat in mycats_gteq.values() for val in cat]))
+                print 'oldtags', oldtags
+                if debug:
+                    print 'looking in equal and higher cats:', mycats_gteq
+                new = [t for t in lst if t not in oldtags]
                 if new:
                     if debug: print 'newly awarded badges =', new
                     new_badges[category] = new
 
         # build dictionary of values to record in tag_progress
-        update_cats = mycats.as_dict()
+        # start with old values
+        update_cats = dict((c, v) for c, v in mycats.as_dict().iteritems()
+                            if c in categories.keys())
+        if debug: print 'old categories were', update_cats
         # if tags new or promoted, change 'cat' lists
         for cat in new_badges:
             if new_badges[cat] is not None:
@@ -640,7 +640,9 @@ class Walk(object):
                         print 'This tag appears to be new; not removing from \
                                 old position'
                     update_cats[cat].append(t)
-        # record current categorization as 'rev' lists
+        # new max-category values
+        if debug: print 'new cat values:', update_cats
+        # record this session's working categorization as 'review' categories
         update_cats['rev1'] = categories['cat1']
         update_cats['rev2'] = categories['cat2']
         update_cats['rev3'] = categories['cat3']
@@ -701,7 +703,7 @@ class Walk(object):
 
         if self.verbose:
             print 'calling Walk._handle_blocks--------------'
-        debug = True
+        debug = False
 
         auth, db, session = current.auth, current.db, current.session
 
@@ -801,7 +803,9 @@ class Walk(object):
             path, step = self._get_next_step()
 
         self.path = path
-        self.active_paths[path.id] = step_id
+        # avoid adding utility redirect path 30 to active paths
+        if step_id != 30:
+            self.active_paths[path.id] = step_id
         if debug:
             print 'activating step', step_id
         self.step = self._create_step_instance(step_id)
@@ -1048,6 +1052,9 @@ class Walk(object):
 
         # cycle through categories, starting with the one from _get_category()
         p_list1 = db().select(db.paths.ALL, orderby='<random>')
+        p_list1 = p_list1.find(lambda row:
+                [stp for stp in row.steps if db.steps[stp].status != 2])
+        if debug: print 'filtered path list', [p.id for p in p_list1]
         for cat in cat_list:
             if debug: print 'Trying category', cat  # DEBUG
 
@@ -1434,16 +1441,20 @@ class Step(object):
         # TODO: This replaces the Walk.save_session_data() that was in the
         # controller. Make sure this saving of step data is enough.
         self._save_session_data()
-        self._complete(score, times_wrong)
+        log_id = self._complete(score, times_wrong)
 
         return {'reply': reply,
                 'readable': readable_short,
                 'readable_long': readable_long,
-                'bug_reporter': self._get_bug_reporter(),
+                'bug_reporter': self._get_bug_reporter(self.step,
+                                                       self.path,
+                                                       user_response,
+                                                       log_id,
+                                                       score),
                 'npc_img': session.walk['npc_image'],
                 'bg_image': self.location['bg_image']}
 
-    def _get_bug_reporter(self):
+    def _get_bug_reporter(self, step, path, answer, log_id, score):
         '''
         Construct and return a SPAN helper containing the contents of the
         tooltip containing the message and link allowing students to submit
@@ -1456,9 +1467,13 @@ class Step(object):
         bug_reporter = DIV(_class='bug_reporter tip')
         text1 = SPAN('If you think your answer wasn\'t evaluated properly, ')
         link = A('click here',
-                    _href=URL('creating', 'bug.load',
-                                vars=dict(answer=request.vars.response,
-                                loc=request.vars.loc)),
+                    _href=URL('creating', 'bug',
+                                vars=dict(step=step.id,
+                                            path=path.id,
+                                            answer=request.vars.response,
+                                            log_id=log_id,
+                                            score=score,
+                                            loc=request.vars.loc)),
                     cid='bug_reporter',
                     _class='button-bug-reporter')
         text2 = SPAN(' to submit a bug report for this question.')
@@ -1475,7 +1490,7 @@ class Step(object):
         records. times_wrong gives the opposite value to add to 'times wrong'
         (i.e., negative score).
         '''
-        debug = True
+        debug = False
 
         if self.verbose:
             print 'calling', type(self).__name__, '._record---------------'
@@ -1592,6 +1607,7 @@ class Step(object):
                 (db.path_log.name == auth.user_id)
                 ).select(orderby=~db.path_log.dt_started).first()
 
+        # Log this path completion/progress
         if log:
             log.update_record(path=self.path.id, last_step=self.step.id)
         else:   # We should have an existing path_log but in case not...
@@ -1601,6 +1617,11 @@ class Step(object):
         db.attempt_log.insert(step=self.step.id,
                               score=score,
                               path=self.path.id)
+        a_log = db((db.attempt_log.name == auth.user_id) &
+                    (db.attempt_log.step == self.step.id)
+                    ).select(orderby=~db.attempt_log.dt_attempted)
+
+        return a_log.first().id
 
     def _complete(self, score, times_wrong):
         '''
@@ -1615,9 +1636,9 @@ class Step(object):
 
         # TODO: Where appropriate, make sure last_step is recorded as 0
         # Record evaluation of step response
-        # Don't record repeat attempts within the same day's session
+        log_id = None
         if request.args[0] != 'retry':
-            self._record(score, times_wrong)
+            log_id = self._record(score, times_wrong)
 
         # Check to see whether this is the last step in the path and if so
         # remove from active_paths and add to completed_paths
@@ -1650,6 +1671,8 @@ class Step(object):
         # in session.walk when controller in the 'ask' state
         # TODO: Remove from session._get_next_path the logic to deactivate
         # final steps, etc.?
+
+        return log_id
 
     def _get_prompt(self):
         '''
@@ -1826,7 +1849,7 @@ class StepMultipleChoice(Step):
             times_wrong = 0
 
         # Record the results in statistics for this step and this tag
-        self._complete(score, times_wrong)
+        log_id = self._complete(score, times_wrong)
 
         # TODO: This replaces the Walk.save_session_data() that was in the
         # controller. Make sure this saving of step data is enough.
@@ -1834,7 +1857,11 @@ class StepMultipleChoice(Step):
 
         return {'reply': reply,
                 'readable': answer1,
-                'bug_reporter': self._get_bug_reporter(),
+                'bug_reporter': self._get_bug_reporter(self.step,
+                                                        self.path,
+                                                        user_response,
+                                                        log_id,
+                                                        score),
                 'npc_img': session.walk['npc_image'],
                 'bg_image': self.location['bg_image']}
 
@@ -1861,7 +1888,7 @@ class StepStub(Step):
         '''
         if self.verbose:
             print 'calling', type(self).__name__, '._complete -------------'
-        debug = True
+        debug = False
         session = current.session
         db = current.db
 
@@ -1946,7 +1973,9 @@ class StepRedirect(StepStub):
         session = current.session
         db = current.db
 
-        if 'active_paths' in session.walk and session.walk['active_paths']:
+        if 'active_paths' in session.walk \
+                            and session.walk['active_paths'] \
+                            and session.walk['active_paths'].keys()[0] != 30:
             if debug: print 'getting loc for active path'
             next_step = session.walk['active_paths'].values()[0]
             if debug: print next_step
@@ -1961,7 +1990,8 @@ class StepRedirect(StepStub):
                     continue
                 else:
                     break
-        elif 'next_loc' in session.walk:
+        elif 'next_loc' in session.walk and session.walk['next_loc']:
+            if debug: print 'getting loc from session.walk["next_loc"]'
             next_loc = db.locations[session.walk['next_loc']].readable
         else:
             next_loc = 'another location in town'
@@ -2342,3 +2372,4 @@ class Map(object):
         return db().select(db.locations.ALL,
                            orderby=db.locations.location,
                            cache=(cache.ram, 60 * 60)).as_list()
+

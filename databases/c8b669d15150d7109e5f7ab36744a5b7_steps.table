@@ -4,14 +4,14 @@ p2
 (dp3
 S'type'
 p4
-S'integer'
+S'reference step_status'
 p5
 sS'sortable'
 p6
 I20
 sS'sql'
 p7
-S'INTEGER'
+S'INTEGER REFERENCES step_status (id) ON DELETE CASCADE'
 p8
 ssS'prompt'
 p9
