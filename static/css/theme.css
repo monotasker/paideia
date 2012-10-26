@@ -361,6 +361,7 @@ div.error {
   padding: 0;
 }
 /* clearfix class; see http://css-tricks.com/snippets/css/clear-fix/ */
+/* css lines */
 /* css triangles */
 /* css speech bubbles */
 /* tooltips */
@@ -505,7 +506,7 @@ a:active .tip {
   transition: all 200ms ease-in-out;
 }
 /* collapsible divs or panels using :target pseudo-element */
-ul li.collapsible_parent ul.collapsible_child {
+.collapsible_parent .collapsible_child {
   height: 0;
   overflow: hidden;
   -webkit-transition: all 200ms ease-in-out;
@@ -514,7 +515,7 @@ ul li.collapsible_parent ul.collapsible_child {
   -ms-transition: all 200ms ease-in-out;
   transition: all 200ms ease-in-out;
 }
-ul li.collapsible_parent:target ul.collapsible_child {
+.collapsible_parent:target .collapsible_child {
   height: auto;
   -webkit-transition: all 200ms ease-in-out;
   -moz-transition: all 200ms ease-in-out;
@@ -1650,7 +1651,17 @@ body #page #right_sidebar div:hover {
 
   /* tab content */
 
+  /* common styles for reporting tables */
+
+  /* summary stats (badges) tab */
+
   /* calendar for monthly user statistics */
+
+  /*** step logs on user profile ***/
+
+  /*** tag records on user profile ***/
+
+  /*** tag progress on user profile ***/
 
   /*** bug reports on user profile ***/
 
@@ -1693,6 +1704,24 @@ body #page #right_sidebar div:hover {
 #page.user div.tab h4 {
   color: #b58900;
   font-size: 24px;
+}
+#page.profile table,
+#page.user table {
+  text-align: left;
+  border-collapse: separate;
+  border-spacing: 2px;
+}
+#page.profile table th,
+#page.user table th {
+  font-weight: bold;
+  background-color: #ffffff;
+  vertical-align: middle;
+  text-align: center;
+}
+#page.profile table td,
+#page.user table td {
+  background-color: #eee8d5;
+  padding: 8px 16px;
 }
 #page.profile p.overview li,
 #page.user p.overview li {
@@ -1762,7 +1791,6 @@ body #page #right_sidebar div:hover {
 }
 #page.profile table.paideia_monthcal_table,
 #page.user table.paideia_monthcal_table {
-  border-collapse: separate;
   border-spacing: 2px;
 }
 #page.profile table.paideia_monthcal_table thead td,
@@ -1770,23 +1798,20 @@ body #page #right_sidebar div:hover {
   height: 24px;
   font-size: 12.8px;
   background: transparent;
-  text-align: center;
 }
 #page.profile table.paideia_monthcal_table td,
 #page.user table.paideia_monthcal_table td {
-  width: 48px;
-  height: 48px;
-  background-color: #eee8d5;
+  width: 60px;
+  height: 60px;
   color: #aaa;
   font-size: 16px;
   position: relative;
+  padding: 2px;
 }
 #page.profile table.paideia_monthcal_table td span.cal_num,
 #page.user table.paideia_monthcal_table td span.cal_num {
   position: relative;
   padding: 4px, 2px;
-  top: 0;
-  left: 0;
 }
 #page.profile table.paideia_monthcal_table td span.cal_count,
 #page.user table.paideia_monthcal_table td span.cal_count {
@@ -1798,30 +1823,74 @@ body #page #right_sidebar div:hover {
   padding-right: 2px;
   color: #268bd2;
 }
-#page.profile #tab_bug_reports table,
-#page.user #tab_bug_reports table {
-  text-align: left;
-  border-collapse: separate;
-  border-spacing: 3px;
+#page.profile .step_log_table,
+#page.user .step_log_table {
+  max-width: 100%;
+  min-width: 100%;
 }
-#page.profile #tab_bug_reports table th,
-#page.user #tab_bug_reports table th {
-  font-weight: bold;
-  background-color: #efefef;
-  border: 1px solid #eee;
-  vertical-align: middle;
-  text-align: center;
+#page.profile .step_log_table .step,
+#page.user .step_log_table .step {
+  max-width: 7%;
 }
-#page.profile #tab_bug_reports table tr td,
-#page.user #tab_bug_reports table tr td {
+#page.profile .step_log_table .prompt,
+#page.user .step_log_table .prompt {
+  max-width: 40%;
+  min-width: 40%;
+}
+#page.profile .step_log_table .count,
+#page.user .step_log_table .count {
+  max-width: 7%;
+  color: #268bd2;
+}
+#page.profile .step_log_table .right,
+#page.user .step_log_table .right {
+  max-width: 7%;
+  color: #809240;
+}
+#page.profile .step_log_table .wrong,
+#page.user .step_log_table .wrong {
+  max-width: 7%;
+  color: #dc322f;
+}
+#page.profile .step_log_table .last_wrong,
+#page.user .step_log_table .last_wrong {
+  max-width: 14%;
+  color: #dc322f;
+  min-width: 14%;
+}
+#page.profile .step_log_table .right_since,
+#page.user .step_log_table .right_since {
+  max-width: 7%;
+  color: #809240;
+}
+#page.profile .step_log_table .tags,
+#page.user .step_log_table .tags {
+  width: auto;
+  min-width: 20%;
+}
+#page.profile #tag_records_table td:first-child,
+#page.user #tag_records_table td:first-child {
+  color: #268bd2;
+}
+#page.profile #tag_records_table td:nth-child(2),
+#page.user #tag_records_table td:nth-child(2) {
+  color: #859900;
+}
+#page.profile #tag_records_table td:nth-child(3),
+#page.user #tag_records_table td:nth-child(3) {
+  color: #dc322f;
+}
+#page.profile #tag_progress_table td:first-child,
+#page.user #tag_progress_table td:first-child {
+  color: #268bd2;
+}
+#page.profile #tab_bug_reports table td,
+#page.user #tab_bug_reports table td {
   min-width: 140px;
-  background-color: #f5f5f5;
 }
-#page.profile #tab_bug_reports table tr td:nth-child(3),
-#page.user #tab_bug_reports table tr td:nth-child(3) {
+#page.profile #tab_bug_reports table td:nth-child(3),
+#page.user #tab_bug_reports table td:nth-child(3) {
   min-width: 100px;
-  background-color: #f5f5f5;
-  border: 1px solid #eee;
 }
 /* plugin_listandedit */
 #page .list_control {

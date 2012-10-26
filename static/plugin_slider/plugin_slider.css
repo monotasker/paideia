@@ -356,6 +356,8 @@ div.error {
   clear: both;
   padding: 0;
 }
+/* clearfix class; see http://css-tricks.com/snippets/css/clear-fix/ */
+/* css lines */
 /* css triangles */
 /* css speech bubbles */
 /* tooltips */
@@ -500,7 +502,7 @@ a:active .tip {
   transition: all 200ms ease-in-out;
 }
 /* collapsible divs or panels using :target pseudo-element */
-ul li.collapsible_parent ul.collapsible_child {
+.collapsible_parent .collapsible_child {
   height: 0;
   overflow: hidden;
   -webkit-transition: all 200ms ease-in-out;
@@ -509,7 +511,7 @@ ul li.collapsible_parent ul.collapsible_child {
   -ms-transition: all 200ms ease-in-out;
   transition: all 200ms ease-in-out;
 }
-ul li.collapsible_parent:target ul.collapsible_child {
+.collapsible_parent:target .collapsible_child {
   height: auto;
   -webkit-transition: all 200ms ease-in-out;
   -moz-transition: all 200ms ease-in-out;
@@ -523,6 +525,9 @@ ul li.collapsible_parent:target ul.collapsible_child {
   color: #aae557;
   font-weight: bold;
   font-style: italics;
+  margin-right: 24px;
+  margin-left: -48px;
+  display: inline-block;
 }
 /* icon-fonts **************/
 .icon-only {
@@ -1066,6 +1071,9 @@ div.plugin_slider_slidemenu a.plugin_slider_new:before {
   color: #aae557;
   font-weight: bold;
   font-style: italics;
+  margin-right: 24px;
+  margin-left: -48px;
+  display: inline-block;
 }
 div.plugin_slider_slidemenu a.plugin_slider_active {
   color: #fcfbf7;
@@ -1094,27 +1102,37 @@ body #page div.plugin_slider_slide {
   padding-top: 16px;
   padding-left: 120px;
   padding-right: 120px;
+  padding-bottom: 48px;
   z-index: 99;
 }
 body #page div.plugin_slider_slide h1 {
-  display: inline-block;
+  display: block;
+  font-size: 24px;
   color: #b58900;
   margin: 0 auto;
+  text-align: center;
+  font-style: normal;
+  text-transform: uppercase;
+  font-family: ubuntu, calibri, arial, sans-serif;
 }
 body #page div.plugin_slider_slide ul {
+  font-family: Ubuntu, Calibri;
   list-style-type: disc;
-  /*font-family:Ubuntu, Calibri;*/
-
   list-style-position: outside;
   font-size: 24px;
-  color: #268bd2;
+  color: #003366;
   line-height: 36px;
   margin: 0;
 }
 body #page div.plugin_slider_slide ul ul {
-  font-size: 24px;
-  color: #cb4b16;
+  font-size: 20px;
+  color: #607890;
   padding-left: 24px;
+  /*.collapsible_parent();*/
+
+}
+body #page div.plugin_slider_slide ul ul ul {
+  color: #cb4b16;
 }
 body #page div.plugin_slider_slide ol {
   font-family: Ubuntu, Calibri;
@@ -1124,12 +1142,11 @@ body #page div.plugin_slider_slide ol {
   margin: 0;
 }
 body #page div.plugin_slider_slide table {
-  background-color: #ffffff;
-  border: 1px solid #fff;
+  background-color: transparent;
   border-collapse: separate;
-  border-spacing: 2px;
+  border-spacing: 0;
   text-align: center;
-  color: #657b83;
+  color: #845852;
   font-size: 24px;
 }
 body #page div.plugin_slider_slide table td {
@@ -1219,8 +1236,6 @@ body #page div.plugin_slider_slide table.nominative_fg_table tr:nth-child(2) td:
 }
 body #page div.plugin_slider_slide table.letter_table {
   padding: 16px;
-  color: #073642;
-  border-radius: 8px;
   text-align: center;
   margin: 16px auto;
 }
@@ -1230,8 +1245,26 @@ body #page div.plugin_slider_slide table.letter_table thead {
 }
 body #page div.plugin_slider_slide table.letter_table thead td {
   padding: .5em;
+  color: #845852;
+}
+body #page div.plugin_slider_slide table.letter_table thead td:first-child,
+body #page div.plugin_slider_slide table.letter_table thead td:last-child {
+  display: none;
 }
 body #page div.plugin_slider_slide table.letter_table tbody {
   font-size: 1.5em;
   border-top: 1px solid #fff;
+}
+body #page div.plugin_slider_slide table.letter_table tbody td {
+  background-color: #dfd4b1;
+  color: #ffffff;
+  -moz-text-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
+  -webkit-text-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
+  -o-text-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
+  -ms-text-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
+}
+body #page div.plugin_slider_slide table.letter_table tbody td:first-child,
+body #page div.plugin_slider_slide table.letter_table tbody td:last-child {
+  display: none;
 }
