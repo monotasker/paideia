@@ -91,25 +91,35 @@ body #page div.plugin_slider_slide{
     padding-top:@typeheight;
     padding-left:@lineheight3 * 2;
     padding-right:@lineheight3 * 2;
+    padding-bottom: @lineheight * 2;
     z-index:99;
 
     h1 {
-        display:inline-block;
+        display:block;
+        font-size: @typeheight2;
         color:@sol_yellow;
         margin:0 auto;
+        text-align: center;
+        font-style: normal;
+        .blockletter;
     }
 
-    ul                                 {list-style-type:disc;
-                                        /*font-family:Ubuntu, Calibri;*/
+    ul                                 {font-family:Ubuntu, Calibri;
+                                        list-style-type:disc;
                                         list-style-position: outside;
                                         font-size:@typeheight2;
-                                        color:@sol_blue;
+                                        color:@dusky-blue2;
                                         line-height:@lineheight2;
                                         margin:0;
 
-        ul                             {font-size:@typeheight * 1.5;
-                                        color:@sol_orange;
-                                        padding-left:@lineheight;}
+        ul                             {font-size:@typeheight * 1.25;
+                                        color:@dusky-blue1;
+                                        padding-left:@lineheight;
+                                        /*.collapsible_parent();*/
+            ul                         {color: @sol_orange;
+                                        // .collapsible_child();
+                                        }
+            }
         }
 
     ol                                 {font-family:Ubuntu, Calibri;
@@ -118,12 +128,11 @@ body #page div.plugin_slider_slide{
                                         line-height:2em;
                                         margin:0;}
 
-    table                              {background-color: @white;
-                                        border:1px solid #fff;
+    table                              {background-color: transparent;
                                         border-collapse: separate;
-                                        border-spacing: 2px;
+                                        border-spacing: 0;
                                         text-align: center;
-                                        color: @sol_grey2;
+                                        color: @cinnamon;
                                         font-size: @typeheight2;
 
         td                             {background-color: @sol_beige;
@@ -191,18 +200,27 @@ body #page div.plugin_slider_slide{
             }
 
         &.letter_table                 {padding:@typeheight;
-                                        color: @sol_aqua;
-                                        border-radius: @typeheight / 2;
                                         text-align:center;
                                         margin:@typeheight auto;
 
             thead                      {font-size:4em;
                                         line-height:1.5em;
-                td                     {padding:.5em;}
+                td                     {padding:.5em;
+                                        color: @cinnamon;
+                    &:first-child,
+                    &:last-child       {display:none;}
+                    }
                 }
 
             tbody                      {font-size:1.5em;
-                                        border-top:1px solid #fff;}
+                                        border-top:1px solid #fff;
+                td                     {background-color: darken(@sol_beige, 10%);
+                                        color:@white;
+                                        .text-shadow();
+                    &:first-child,
+                    &:last-child       {display:none;}
+                    }
+                }
             }
         }
     }
