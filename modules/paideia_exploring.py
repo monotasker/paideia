@@ -1317,7 +1317,7 @@ class Step(object):
         # same npc if in the same location
         if self.verbose:
             print 'calling', type(self).__name__, '._get_npc--------------'
-        debug = False
+        debug = True
 
         def _get_npc_internal(npcs):
             '''
@@ -1343,12 +1343,21 @@ class Step(object):
             return   # TODO: maybe we return a 404 here (or in ask(), etc.)?
 
         if debug: print 'self.location =', location
-        npcs = db(
-                    (db.npcs.id.belongs(step.npcs)) &
-                    (db.npcs.location.contains(location['id']))
-                ).select()
 
-        npc = _get_npc_internal(npcs)
+        # belongs selector needs 'list of tuples'
+        if debug:
+            print 'step.npcs', step.npcs
+        if len(step.npcs) == 1:
+            npcs = db.npcs(step.npcs[0])
+            npc = npcs
+        else:
+            npcs = db(db.npcs.id.belongs(tuple([n for n in step.npcs]))).select()
+            npcs = npcs.find(lambda row: location['id'] in row.location)
+            if len(npcs) > 1:
+                npc = _get_npc_internal(npcs)
+            else:
+                npc = npcs.first()
+        if debug: print 'npc set:', npcs
 
         # If we haven't found an npc at the location and step, get a random one
         # from this location.
