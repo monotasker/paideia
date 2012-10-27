@@ -431,7 +431,7 @@
 			"file": "static/plugin_framework/theme_paideia.less",
 			"settings":
 			{
-				"buffer_size": 23019,
+				"buffer_size": 24058,
 				"line_ending": "Unix"
 			}
 		},
@@ -447,7 +447,15 @@
 			"file": "/home/ian/web/web2py/plugins/plugin_framework/static/plugin_framework/framework.less",
 			"settings":
 			{
-				"buffer_size": 28925,
+				"buffer_size": 29872,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "static/plugin_slider/plugin_slider.less",
+			"settings":
+			{
+				"buffer_size": 11731,
 				"line_ending": "Unix"
 			}
 		},
@@ -759,6 +767,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"greek",
 			"for v in ",
 			"theme",
 			"('tags",
@@ -843,7 +852,7 @@
 	"groups":
 	[
 		{
-			"selected": 1,
+			"selected": 3,
 			"sheets":
 			[
 				{
@@ -851,26 +860,26 @@
 					"file": "static/plugin_framework/theme_paideia.less",
 					"settings":
 					{
-						"buffer_size": 23019,
+						"buffer_size": 24058,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								14445,
-								14445
+								0,
+								0
 							]
 						],
 						"settings":
 						{
-							"function_name_status_row": 418,
+							"function_name_status_row": 71,
 							"syntax": "Packages/LESS/LESS.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 8854.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -887,8 +896,8 @@
 						"selection":
 						[
 							[
-								0,
-								0
+								43,
+								43
 							]
 						],
 						"settings":
@@ -907,26 +916,55 @@
 					"file": "/home/ian/web/web2py/plugins/plugin_framework/static/plugin_framework/framework.less",
 					"settings":
 					{
-						"buffer_size": 28925,
+						"buffer_size": 29872,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								11990,
-								11990
+								16092,
+								16092
 							]
 						],
 						"settings":
 						{
-							"function_name_status_row": 382,
+							"function_name_status_row": 468,
+							"syntax": "Packages/LESS/LESS.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 60.0,
+						"translation.y": 10098.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "static/plugin_slider/plugin_slider.less",
+					"settings":
+					{
+						"buffer_size": 11731,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								8752,
+								8752
+							]
+						],
+						"settings":
+						{
+							"function_name_status_row": 209,
 							"syntax": "Packages/LESS/LESS.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 8008.0,
+						"translation.y": 4196.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -938,7 +976,7 @@
 			"sheets":
 			[
 				{
-					"buffer": 3,
+					"buffer": 4,
 					"file": "controllers/exploring.py",
 					"settings":
 					{
@@ -1016,7 +1054,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 4,
+					"buffer": 5,
 					"file": "views/exploring/walk.load",
 					"settings":
 					{
@@ -1045,7 +1083,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 5,
+					"buffer": 6,
 					"file": "models/paideia.py",
 					"settings":
 					{
@@ -1123,7 +1161,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 6,
+					"buffer": 7,
 					"file": "controllers/default.py",
 					"settings":
 					{
@@ -1134,19 +1172,19 @@
 						"selection":
 						[
 							[
-								0,
-								0
+								444,
+								444
 							]
 						],
 						"settings":
 						{
-							"function_name_status_row": 0,
+							"function_name_status_row": 24,
 							"syntax": "Packages/Python/Python.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 255.0,
+						"translation.y": 189.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -1210,6 +1248,10 @@
 		"height": 0.0,
 		"selected_items":
 		[
+			[
+				"plugin_slider.l",
+				"paideia/static/plugin_slider/plugin_slider.less"
+			],
 			[
 				"frame",
 				"paideia/static/plugin_framework/framework.less"
