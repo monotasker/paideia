@@ -88,7 +88,7 @@ body #page div.plugin_slider_slide{
     .Greek;
     width:100%;
     height:100%;
-    padding-top:@typeheight;
+    padding-top:0;
     padding-left:@lineheight3 * 2;
     padding-right:@lineheight3 * 2;
     padding-bottom: @lineheight * 2;
@@ -113,7 +113,7 @@ body #page div.plugin_slider_slide{
                                         margin:0;
 
         ul                             {font-size:@typeheight * 1.25;
-                                        color:@dusky-blue1;
+                                        color: darken(@sol_beige, 35%);
                                         padding-left:@lineheight;
                                         /*.collapsible_parent();*/
             ul                         {color: @sol_orange;
@@ -133,10 +133,43 @@ body #page div.plugin_slider_slide{
                                         border-spacing: 0;
                                         text-align: center;
                                         color: @cinnamon;
+                                        .Greek;
                                         font-size: @typeheight2;
-
-        td                             {background-color: @sol_beige;
+                                        margin: (@typeheight/2) auto;
+        tr                             {
+            td                         {background-color: @sol_beige;
                                         padding: (@typeheight/2) @typeheight}
+            &.even                     {
+                td                     {background-color: darken(@sol_beige, 2%)}
+                }
+            }
+
+        &.dark_col_2                   {
+            tr                         {
+                td:nth-child(2)        {background-color: darken(@sol_beige, 10%)}
+                &.even                 {
+                    td:nth-child(2)    {background-color: darken(@sol_beige, 12%)}
+                    }
+                }
+            }
+
+        &.dark_col_1                   {
+            tr                         {
+                td:first-child         {background-color: darken(@sol_beige, 10%)}
+                &.even                 {
+                    td:first-child     {background-color: darken(@sol_beige, 12%)}
+                    }
+                }
+            }
+
+        &.header_dark                  {
+            thead                      {
+                td                     {background-color: darken(@sol_beige, 10%)}
+                }
+            }
+
+        &.header_col1_dark             {.dark_col_1;
+                                        .header_dark;}
 
         &.nominative_bg_table          {position: absolute;
                                         left: 50%;
@@ -170,6 +203,11 @@ body #page div.plugin_slider_slide{
                 &:nth-child(3)         {background-color: lighten(@sol_blue, 40%);}
                 }
             }
+        &.genitive_bg_table            {.nominative_bg_table;
+            tr                         {background-color: fade(@sol_green, 30%);
+                &:nth-child(3)         {background-color: fade(@sol_green, 40%);}
+                }
+            }
 
         &.nominative_fg_table          {z-index: 10;
                                         position: absolute;
@@ -198,14 +236,22 @@ body #page div.plugin_slider_slide{
                     }
                 }
             }
+        &.genitive_fg_table            {.nominative_fg_table;
+            tr                         {
+                td:nth-child(even)     {background-color: darken(@sol_green, 10%);}
+                &:nth-child(2) td:nth-child(2)
+                                       {background-color: @sol_green;}
+                }
+        }
+
 
         &.letter_table                 {padding:@typeheight;
                                         text-align:center;
                                         margin:@typeheight auto;
 
             thead                      {font-size:4em;
-                                        line-height:1.5em;
-                td                     {padding:.5em;
+                                        line-height:1.25em;
+                td                     {padding: @typeheight .5em;
                                         color: @cinnamon;
                     &:first-child,
                     &:last-child       {display:none;}
@@ -224,3 +270,7 @@ body #page div.plugin_slider_slide{
             }
         }
     }
+
+    .subject_div                   {
+        &:after                    {.line(2px, 100px, @sol_grey3, 45deg, 50%, 0)}
+        }
