@@ -84,6 +84,53 @@ class Bug(object):
         #closer = A('close', _href=URL('#'), _class='close_link')
         #the_title = H3('Reviewing Bug Report for Question')
 
+    def undo(self, user, bug_id, log_id, step=None, db=None):
+        '''
+        Reverse the recorded effects of a single wrong answer for a given user.
+
+        Intended to be run when an administrator or instructor sets a bug to
+        'confirmed' or 'fixed'.
+        '''
+        if db is None:
+            db = current.db
+        if step_id is None:
+            step_id = self.step
+        bug_row = db.bugs(bug_id)
+
+        # don't do anything if the original answer was counted as correct
+        if bug_row.score == 1:
+            return
+
+        try:
+            log_row = db.attempt_log(log_id)
+            log_row.update_record(score=1)
+
+            step_id = bug_row.step
+            tagset = db.steps(step_id).tags
+            for tag in tagset:
+                trecord = db((db.tag_records.tag == tag) &
+                            (db.tag_records.name == user_id)).select().first()
+                args = {}
+
+                bugdate = bug_row.date_submitted
+                lastr = trecord.tlast_right
+                if lastr == bugdate:
+                    pass
+                elif lastr - bugdate >= datetime.timedelta(seconds=1):
+                    pass
+                else:
+                    args[tlast_right] = bugdate
+
+                lastw = trecord.tlast_wrong
+                if lastw == bugdate:
+                    ???
+
+                trecord.update_record(times_right = (trecord.times_right + 1),
+                                    times_wrong = (trecord.times_wrong - 1),
+                                    tlast_right = ,
+                                    tlast_wrong = ,
+
+
     def bugresponses(self, user):
         '''
         Returns a list of the bug reports submitted by 'user'. Each list item
