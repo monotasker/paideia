@@ -1,4 +1,12 @@
 # coding: utf8
+
+if 0:
+    from gluon import current, A, crud, URL, H3
+    auth = current.auth
+    db = current.db
+    request = current.request
+
+
 @auth.requires_membership(role='administrators')
 def question():
     edit_form = crud.update(db.questions, request.args[0])
@@ -38,3 +46,7 @@ def news():
     the_title = H3('Editing New Story')
 
     return dict(form = edit_form, closer=closer, the_title=the_title)
+
+@auth.requires_membership(role='administrators')
+def listing():
+    return dict()
