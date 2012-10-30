@@ -1,14 +1,14 @@
 # coding: utf8
 import ast
 if 0:
-    from gluon import current, URL, SQLFORM, A
+    from gluon import current, URL, SQLFORM, A, LOAD
     response = current.response
     request = current.request
     db = current.db
     session = current.session
 
 
-def listing():
+def widget():
     """
     This plugin creates a large widget to display, edit, and add entries
     to one database table.
@@ -30,10 +30,6 @@ def listing():
     of fields in the table and the values are the values to be allowed in those
     fields when generating the list.
     """
-    response.files.append(URL('static',
-            'plugin_listandedit/plugin_listandedit.css'))
-    response.files.append(URL('static',
-            'plugin_listandedit/plugin_listandedit.js'))
 
     #get table to be listed
     tablename = request.args[0]
