@@ -1,5 +1,3 @@
-{{extend 'layout.html'}}
-
 <div class="list_control">
     <h2>
         <span class='table'>{{=request.args[0].capitalize()}}</span> on
@@ -17,9 +15,9 @@ Please select an item from the list.
    <!--  <form>
         <input type='text' id='restrictor_field' />
         <select id='restrictor_value'>
-            {{for o in optset:}}
-            <option value='{{=o}}'></option>
-            {{pass}}
+            {{#for o in optset:}}
+            <option value='{{#=o}}'></option>
+            {{#pass}}
         </select>
     </form> -->
     <ul>
