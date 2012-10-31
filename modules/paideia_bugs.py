@@ -1,4 +1,5 @@
 from gluon import current
+from datetime import timedelta
 
 
 class Bug(object):
@@ -39,9 +40,9 @@ class Bug(object):
         debug = True
         response = current.response
         db = current.db
-        if step == None:
+        if step is None:
             step = self.step
-        if path == None:
+        if path is None:
             path = self.path
 
         location = db(db.locations.alias ==
@@ -84,7 +85,7 @@ class Bug(object):
         #closer = A('close', _href=URL('#'), _class='close_link')
         #the_title = H3('Reviewing Bug Report for Question')
 
-    def undo(self, user, bug_id, log_id, step=None, db=None):
+    def undo(self, user_id, bug_id, log_id, step_id=None, db=None):
         '''
         Reverse the recorded effects of a single wrong answer for a given user.
 
@@ -119,10 +120,10 @@ class Bug(object):
                 lastr = trecord.tlast_right
                 if lastr == bugdate:
                     pass
-                elif lastr - bugdate >= datetime.timedelta(seconds=1):
+                elif lastr - bugdate >= timedelta(seconds=1):
                     pass
                 else:
-                    args[tlast_right] = bugdate
+                    args['tlast_right'] = bugdate
 
                 # revert the last wrong date
                 lastw = trecord.tlast_wrong
