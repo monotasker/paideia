@@ -360,8 +360,6 @@ div.error {
   clear: both;
   padding: 0;
 }
-/* clearfix class; see http://css-tricks.com/snippets/css/clear-fix/ */
-/* css lines */
 /* css triangles */
 /* css speech bubbles */
 /* tooltips */
@@ -1340,7 +1338,7 @@ body #page #right_sidebar div:hover {
 }
 #page.exploring .prompt,
 #page.exploring .responder {
-  margin-top: 12px;
+  margin-top: 24px;
   margin-left: 260px;
   max-width: 65%;
   font-size: 20px;
@@ -1380,17 +1378,12 @@ body #page #right_sidebar div:hover {
 }
 #page.exploring .prompt ul li,
 #page.exploring .responder ul li {
-  font-size: 20px;
+  font-size: 16px;
   color: #b58900;
 }
 #page.exploring .prompt .button,
 #page.exploring .responder .button {
   display: inline-block;
-}
-#page.exploring .prompt .prompt_image,
-#page.exploring .responder .prompt_image {
-  height: 200px;
-  float: right;
 }
 #page.exploring .prompt .guidelines,
 #page.exploring .responder .guidelines {
@@ -1413,10 +1406,8 @@ body #page #right_sidebar div:hover {
 #page.exploring .responder .prompt_badges_wrapper,
 #page.exploring .prompt .bug_reporter_wrapper,
 #page.exploring .responder .bug_reporter_wrapper {
-  display: block;
-  position: absolute;
-  bottom: -16px;
-  right: -16px;
+  display: inline-block;
+  float: right;
 }
 #page.exploring .prompt .prompt_badges,
 #page.exploring .responder .prompt_badges,
@@ -1510,7 +1501,9 @@ body #page #right_sidebar div:hover {
 #page.exploring .responder .bug_reporter a {
   font-size: 16px;
 }
-#page.exploring .bug_reporter_icon,
+#page.exploring .prompt_badges {
+  top: 0;
+}
 #page.exploring .prompt_badges_icon {
   display: inline-block;
   width: 36px;
@@ -1535,13 +1528,10 @@ body #page #right_sidebar div:hover {
   -ms-transition: all 200ms ease-in-out;
   transition: all 200ms ease-in-out;
   background-color: #809240;
-  color: #ffffff;
+  color: #f8f0e5;
   font-size: 12px;
-  line-height: 36px;
-  text-align: center;
   border: 2px solid #ffffff;
 }
-#page.exploring .bug_reporter_icon:hover,
 #page.exploring .prompt_badges_icon:hover {
   -moz-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   -webkit-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
@@ -1565,10 +1555,7 @@ body #page #right_sidebar div:hover {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   background: #ffffff;
   min-height: 36px;
-  min-height: 64px;
   z-index: 4;
-  /* clearfix class */
-
 }
 #page.exploring .prompt:after {
   content: "";
@@ -1585,20 +1572,6 @@ body #page #right_sidebar div:hover {
   border-right: 16px solid #ffffff;
   background: transparent;
 }
-#page.exploring .prompt div {
-  zoom: 1;
-  /* activate hasLayout in ie6-7 */
-
-}
-#page.exploring .prompt div:before {
-  content: " ";
-  display: block;
-}
-#page.exploring .prompt div:after {
-  content: " ";
-  display: table;
-  clear: both;
-}
 #page.exploring .responder {
   position: relative;
   border-radius: 24px;
@@ -1608,7 +1581,7 @@ body #page #right_sidebar div:hover {
   -o-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   -ms-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-  background: #586e75;
+  background: #f5f5f5;
   min-height: 36px;
   color: #fcfbf7;
   z-index: 3;
@@ -1625,7 +1598,7 @@ body #page #right_sidebar div:hover {
   border-top: 16px solid transparent;
   border-bottom: 16px solid transparent;
   border-bottom: none;
-  border-top: 16px solid #586e75;
+  border-top: 16px solid #f5f5f5;
   background: transparent;
 }
 #page.listing #viewpane {
@@ -1663,8 +1636,6 @@ body #page #right_sidebar div:hover {
   /* jquery ui tabs */
 
   /* tab content */
-
-  /* common styles for reporting tables */
 
   /* summary stats (badges) tab */
 
@@ -1712,27 +1683,29 @@ body #page #right_sidebar div:hover {
   line-height: 24px;
   font-family: "Palatino Linotype", Palatino, serif;
   color: #666666;
+  /* common styles for reporting tables */
+
 }
 #page.profile div.tab h4,
 #page.user div.tab h4 {
   color: #b58900;
   font-size: 24px;
 }
-#page.profile table,
-#page.user table {
+#page.profile div.tab table,
+#page.user div.tab table {
   text-align: left;
   border-collapse: separate;
   border-spacing: 2px;
 }
-#page.profile table th,
-#page.user table th {
+#page.profile div.tab table th,
+#page.user div.tab table th {
   font-weight: bold;
   background-color: #ffffff;
   vertical-align: middle;
   text-align: center;
 }
-#page.profile table td,
-#page.user table td {
+#page.profile div.tab table td,
+#page.user div.tab table td {
   background-color: #eee8d5;
   padding: 8px 16px;
 }
@@ -1814,12 +1787,11 @@ body #page #right_sidebar div:hover {
 }
 #page.profile table.paideia_monthcal_table td,
 #page.user table.paideia_monthcal_table td {
-  width: 60px;
-  height: 60px;
+  width: 48px;
+  height: 48px;
   color: #aaa;
   font-size: 16px;
   position: relative;
-  padding: 2px;
 }
 #page.profile table.paideia_monthcal_table td span.cal_num,
 #page.user table.paideia_monthcal_table td span.cal_num {
@@ -1904,65 +1876,6 @@ body #page #right_sidebar div:hover {
 #page.profile #tab_bug_reports table td:nth-child(3),
 #page.user #tab_bug_reports table td:nth-child(3) {
   min-width: 100px;
-}
-/* plugin_listandedit */
-#page .list_control {
-  padding: 0;
-  background: #aaaaaa;
-  border-right: 1px solid #888888;
-  border-left: 1px solid #888888;
-}
-#page .list_control h2 {
-  font-weight: normal;
-  color: #eeeeee;
-  margin-right: 24px;
-  margin-left: 24px;
-  margin-top: 0;
-  line-height: 60px;
-  display: inline-block;
-  height: 60px;
-  font-size: 24px;
-  -moz-text-shadow: 0 0 3px rgba(0, 0, 0, 0.1);
-  -webkit-text-shadow: 0 0 3px rgba(0, 0, 0, 0.1);
-  -o-text-shadow: 0 0 3px rgba(0, 0, 0, 0.1);
-  -ms-text-shadow: 0 0 3px rgba(0, 0, 0, 0.1);
-  text-shadow: 0 0 3px rgba(0, 0, 0, 0.1);
-}
-#page .list_control a {
-  float: right;
-  color: #e4edf7;
-  display: block;
-  line-height: 60px;
-  height: 60px;
-  margin-right: 24px;
-}
-#page .list_control a:hover {
-  color: #ffffff;
-  -moz-text-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
-  -webkit-text-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
-  -o-text-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
-  -ms-text-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
-  text-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
-}
-#viewpane:before {
-  content: ' ';
-  position: absolute;
-  display: block;
-  width: 100%;
-  height: 14px;
-  top: 0px;
-  overflow: hidden;
-  background-image: -moz-radial-gradient(50% 53%, ellipse closest-side, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0) 100%);
-  background-image: -webkit-radial-gradient(50% 53%, ellipse closest-side, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0) 100%);
-  background-image: -o-radial-gradient(50% 53%, ellipse closest-side, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0) 100%);
-  background-image: -ms-radial-gradient(50% 53%, ellipse closest-side, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0) 100%);
-  background-image: radial-gradient(50% 53%, ellipse closest-side, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0) 100%);
-  background-position: 0 -10px;
-  background-repeat: no-repeat;
-}
-#viewpane form {
-  padding: 0;
-  margin: 0;
 }
 /* main page footer */
 body footer {
