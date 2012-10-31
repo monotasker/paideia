@@ -1163,27 +1163,78 @@ body #page div.plugin_slider_slide table tr.even td {
 }
 body #page div.plugin_slider_slide table.dark_col_2 tr td:nth-child(2) {
   background-color: #dfd4b1;
+  color: #ffffff;
 }
 body #page div.plugin_slider_slide table.dark_col_2 tr.even td:nth-child(2) {
   background-color: #dcd0a9;
 }
 body #page div.plugin_slider_slide table.dark_col_1 tr td:first-child {
   background-color: #dfd4b1;
+  color: #ffffff;
 }
 body #page div.plugin_slider_slide table.dark_col_1 tr.even td:first-child {
   background-color: #dcd0a9;
 }
 body #page div.plugin_slider_slide table.header_dark thead td {
   background-color: #dfd4b1;
+  color: #ffffff;
 }
 body #page div.plugin_slider_slide table.header_col1_dark tr td:first-child {
   background-color: #dfd4b1;
+  color: #ffffff;
 }
 body #page div.plugin_slider_slide table.header_col1_dark tr.even td:first-child {
   background-color: #dcd0a9;
 }
 body #page div.plugin_slider_slide table.header_col1_dark thead td {
   background-color: #dfd4b1;
+  color: #ffffff;
+}
+body #page div.plugin_slider_slide table.clause_diagram_greek td {
+  background-color: transparent;
+  overflow: visible;
+  -moz-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
+  -webkit-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
+  -o-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
+  -ms-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
+  text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
+}
+body #page div.plugin_slider_slide table.clause_diagram_greek td:first-child {
+  background-color: #93a1a1;
+  color: #ffffff;
+}
+body #page div.plugin_slider_slide table.clause_diagram_greek td:nth-child(2):after {
+  content: ' ';
+  width: 0;
+  height: 0;
+  border-left: 16px solid transparent;
+  border-right: 16px solid transparent;
+  border-top: 16px solid transparent;
+  border-bottom: 16px solid transparent;
+  border-right: none;
+  border-left: 16px solid #808080;
+}
+body #page div.plugin_slider_slide table.clause_diagram_greek td:nth-child(3) {
+  background-color: #ffc100;
+}
+body #page div.plugin_slider_slide table.clause_diagram_greek td:nth-child(5) {
+  background-color: #93a1a1;
+  color: #ffffff;
+}
+body #page div.plugin_slider_slide table.subject_predicate_table tr:first-child td {
+  background-color: transparent;
+  -moz-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
+  -webkit-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
+  -o-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
+  -ms-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
+  text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
+}
+body #page div.plugin_slider_slide table.subject_predicate_table tr:first-child td:first-child {
+  background-color: #268bd2;
+  color: #ffffff;
+}
+body #page div.plugin_slider_slide table.subject_predicate_table tr:first-child td:nth-child(3) {
+  background-color: #93a1a1;
 }
 body #page div.plugin_slider_slide table.nominative_bg_table {
   position: absolute;

@@ -1350,6 +1350,17 @@ body #page #right_sidebar div:hover {
 #page.exploring .responder p {
   margin: 0;
 }
+#page.exploring .prompt #no_table_response__row td,
+#page.exploring .responder #no_table_response__row td {
+  text-align: left;
+}
+#page.exploring .prompt #no_table_response__row td label,
+#page.exploring .responder #no_table_response__row td label {
+  margin-left: 16px;
+  text-transform: lowercase;
+  font-size: 36px;
+  font-family: SBLGreekRegular;
+}
 #page.exploring .prompt #no_table_response__row td.w2p_fl:first-child,
 #page.exploring .responder #no_table_response__row td.w2p_fl:first-child {
   display: none;
@@ -1413,6 +1424,7 @@ body #page #right_sidebar div:hover {
 #page.exploring .responder .bug_reporter {
   font-size: 16px;
   line-height: 24px;
+  color: #666666;
   padding: 24px;
   left: -320px;
   top: -72px;
@@ -1598,6 +1610,7 @@ body #page #right_sidebar div:hover {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   background: #586e75;
   min-height: 36px;
+  color: #fcfbf7;
   z-index: 3;
 }
 #page.exploring .responder:after {
