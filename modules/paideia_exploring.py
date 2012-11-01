@@ -614,7 +614,8 @@ class Walk(object):
                 catindex = categories.keys().index(category)
                 mycats_gteq = dict((k, mycats[k]) for k
                            in ['cat1', 'cat2', 'cat3', 'cat4'][catindex:])
-                oldtags = list(chain([val for cat in mycats_gteq.values() for val in cat]))
+                oldtags = list(chain([val for cat in mycats_gteq.values()
+                                                            for val in cat]))
                 print 'oldtags', oldtags
                 if debug:
                     print 'looking in equal and higher cats:', mycats_gteq
@@ -1351,7 +1352,8 @@ class Step(object):
             npcs = db.npcs(step.npcs[0])
             npc = npcs
         else:
-            npcs = db(db.npcs.id.belongs(tuple([n for n in step.npcs]))).select()
+            npcs = db(db.npcs.id.belongs(tuple([n for n
+                                                    in step.npcs]))).select()
             npcs = npcs.find(lambda row: location['id'] in row.location)
             if len(npcs) > 1:
                 npc = _get_npc_internal(npcs)
@@ -2001,7 +2003,8 @@ class StepRedirect(StepStub):
                     continue
                 else:
                     break
-        elif 'next_loc' in session.walk and session.walk['next_loc']:
+        elif ('next_loc' in session.walk) and (session.walk['next_loc']
+                                                                is not None):
             if debug: print 'getting loc from session.walk["next_loc"]'
             next_loc = db.locations[session.walk['next_loc']].readable
         else:
