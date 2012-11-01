@@ -103,9 +103,11 @@ class Bug(object):
             return
 
         try:
+            # correct score in the attempt_log table
             log_row = db.attempt_log(log_id)
             log_row.update_record(score=1)
 
+            # correct tag_records entry for each tag on the step
             step_id = bug_row.step
             tagset = db.steps(step_id).tags
             for tag in tagset:
@@ -113,6 +115,7 @@ class Bug(object):
                             (db.tag_records.name == user_id)).select().first()
                 args = {}
 
+                # revert the last right date
                 bugdate = bug_row.date_submitted
                 lastr = trecord.tlast_right
                 if lastr == bugdate:
@@ -122,14 +125,30 @@ class Bug(object):
                 else:
                     args['tlast_right'] = bugdate
 
+                # revert the last wrong date
                 lastw = trecord.tlast_wrong
                 if lastw == bugdate:
                     pass
+                elif lastw - bugdate >= datetime.timedelta(seconds=1):
+                    pass
+                else:
+                    oldlogs = db((db.attempt_log.name == user) &
+                                (db.attempt_log.step == step_id) &
+                                (db.attempt_log.score < 1)
+                                ).select(orderby=~db.attempt_log.dt_attempted)
+                    oldlogs = oldlogs.find(lambda row:
+                            (bugdate - row.dt_attempted) >
+                            datetime.timedelta(seconds=1))
+                    prev_log = oldlogs.first()
+                    args[tlast_wrong] = prev_log.dt_attempted
 
-                trecord.update_record(times_right = (trecord.times_right + 1),
-                                    times_wrong = (trecord.times_wrong - 1))
-        except Exception:
-            pass
+                # revert counts for times right and wrong
+                args[times_right] = (trecord.times_right + 1)
+                args[times_wrong] = (trecord.times_wrong - 1)
+
+                trecord.update_record(**args)
+        except Exception, e:
+            print type(e), e
 
     def bugresponses(self, user):
         '''

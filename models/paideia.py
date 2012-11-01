@@ -135,53 +135,6 @@ db.npcs.location.widget = lambda field, value: \
                                     multi='basic',
                                     lister='editlinks')
 
-db.define_table('inv_items',
-    Field('item_name', 'string'),
-    Field('item_image', db.images),
-    format='%(item_name)s')
-
-db.define_table('inventory',
-    Field('owner', db.auth_user, default=auth.user_id),
-    Field('items_held', 'list:reference inv_items'),
-    format='%(owner)s inventory')
-
-#this table is deprecated
-#TODO: refactor out questions entirely
-db.define_table('questions',
-    Field('question', 'text'),
-    Field('answer'),
-    Field('value', 'double', default=1.0),
-    Field('readable_answer'),
-    Field('answer2', default='null'),
-    Field('value2', 'double', default=0.5),
-    Field('answer3', default='null'),
-    Field('value3', 'double', default=0.3),
-    Field('frequency', 'double'),
-    Field('tags', 'list:reference tags'),
-    Field('tags_secondary', 'list:reference tags'),
-    Field('status', 'integer'),
-    Field('npcs', 'list:reference npcs'),
-    Field('next', 'list:reference questions'),
-    Field('audio', 'upload', uploadfolder=os.path.join(request.folder,
-        "static/audio")),
-    format='%(question)s')
-db.questions.npcs.requires = IS_IN_DB(db, 'npcs.id',
-                                db.npcs._format, multiple=True)
-db.questions.npcs.widget = lambda field, value: AjaxSelect().widget(field,
-                                                    value, 'npcs',
-                                                    multi='basic')
-db.questions.tags.requires = IS_IN_DB(db, 'tags.id',
-                                db.tags._format, multiple=True)
-db.questions.tags.widget = lambda field, value: AjaxSelect().widget(field,
-                                                    value, 'tags',
-                                                    refresher=True,
-                                                    multi='basic')
-db.questions.tags_secondary.requires = IS_IN_DB(db, 'tags.id',
-                                        db.tags._format, multiple=True)
-db.questions.tags_secondary.widget = lambda field, value: AjaxSelect().widget(
-                                                    field, value, 'tags',
-                                                    multi='basic')
-
 db.define_table('step_types',
     Field('type', unique=True),
     Field('widget'),
@@ -203,7 +156,6 @@ db.define_table('step_status',
     Field('status_label', 'text', unique=True),
     format='%(status_label)s')
 
-#TODO: transfer all questions data over to steps table
 db.define_table('steps',
     Field('prompt', 'text'),
     Field('prompt_audio', db.audio, default=0),
@@ -362,14 +314,6 @@ db.define_table('bugs',
     Field('bug_status', db.bug_status, default=5),
     Field('admin_comment', 'text'),
     format='%(step)s')
-
-db.define_table('news',
-    Field('story', 'text'),
-    Field('title', 'string'),
-    Field('name', db.auth_user, default=auth.user_id),
-    Field('date_submitted', 'datetime', default=dtnow),
-    Field('last_edit', 'datetime', default=dtnow),
-    format='%(title)s')
 
 db.define_table('session_data',
     Field('user', db.auth_user, default=auth.user_id),
