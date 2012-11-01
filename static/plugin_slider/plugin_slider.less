@@ -97,7 +97,7 @@ body #page div.plugin_slider_slide{
     h1 {
         display:block;
         font-size: @typeheight2;
-        color:@sol_yellow;
+        color:@sol_orange;
         margin:0 auto;
         text-align: center;
         font-style: normal;
@@ -146,7 +146,8 @@ body #page div.plugin_slider_slide{
 
         &.dark_col_2                   {
             tr                         {
-                td:nth-child(2)        {background-color: darken(@sol_beige, 10%)}
+                td:nth-child(2)        {background-color: darken(@sol_beige, 10%);
+                                        color: @white;}
                 &.even                 {
                     td:nth-child(2)    {background-color: darken(@sol_beige, 12%)}
                     }
@@ -155,7 +156,8 @@ body #page div.plugin_slider_slide{
 
         &.dark_col_1                   {
             tr                         {
-                td:first-child         {background-color: darken(@sol_beige, 10%)}
+                td:first-child         {background-color: darken(@sol_beige, 10%);
+                                        color: @white;}
                 &.even                 {
                     td:first-child     {background-color: darken(@sol_beige, 12%)}
                     }
@@ -164,12 +166,41 @@ body #page div.plugin_slider_slide{
 
         &.header_dark                  {
             thead                      {
-                td                     {background-color: darken(@sol_beige, 10%)}
+                td                     {background-color: darken(@sol_beige, 10%);
+                                        color: @white;}
                 }
             }
 
         &.header_col1_dark             {.dark_col_1;
                                         .header_dark;}
+
+        &.clause_diagram_greek         {
+            td                         {background-color: transparent;
+                                        overflow: visible;
+                                        .inset-text;
+                &:first-child          {background-color: @sol_grey4;
+                                        color: @white;}
+                &:nth-child(3)         {background-color: @ocp_yellow;}
+                &:nth-child(5)         {background-color: @sol_grey4;
+                                        color: @white;}
+                }
+            }
+
+        &.clause_diagram_subjectlast   {.clause_diagram_greek;
+            td:nth-child(5)            {background-color: @ocp_yellow;}
+            }
+
+        &.subject_predicate_table      {
+            tr:first-child             {
+                td                     {background-color: transparent;
+                                        .inset-text;
+                    &:first-child      {background-color: @sol_blue;
+                                        color: @white;}
+                    &:nth-child(3)     {background-color: @sol_grey4;
+                                        color: @white;}
+                    }
+                }
+            }
 
         &.nominative_bg_table          {position: absolute;
                                         left: 50%;
