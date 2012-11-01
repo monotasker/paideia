@@ -463,7 +463,7 @@
 			"file": "models/paideia.py",
 			"settings":
 			{
-				"buffer_size": 15492,
+				"buffer_size": 13035,
 				"line_ending": "Unix"
 			}
 		},
@@ -1018,7 +1018,7 @@
 					"file": "models/paideia.py",
 					"settings":
 					{
-						"buffer_size": 15492,
+						"buffer_size": 13035,
 						"regions":
 						{
 						},
