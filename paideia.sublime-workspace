@@ -4,14 +4,6 @@
 		"selected_items":
 		[
 			[
-				"margin",
-				"margin-right"
-			],
-			[
-				"ro",
-				"reload	(builtin, function)"
-			],
-			[
 				"complete",
 				"completed_paths	(attribute, instance)"
 			],
@@ -436,10 +428,34 @@
 	"buffers":
 	[
 		{
+			"file": "static/plugin_framework/theme_paideia.less",
+			"settings":
+			{
+				"buffer_size": 24058,
+				"line_ending": "Unix"
+			}
+		},
+		{
 			"file": "static/css/theme.less",
 			"settings":
 			{
 				"buffer_size": 44,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/home/ian/web/web2py/plugins/plugin_framework/static/plugin_framework/framework.less",
+			"settings":
+			{
+				"buffer_size": 29872,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "static/plugin_slider/plugin_slider.less",
+			"settings":
+			{
+				"buffer_size": 11731,
 				"line_ending": "Unix"
 			}
 		},
@@ -463,31 +479,15 @@
 			"file": "models/paideia.py",
 			"settings":
 			{
-				"buffer_size": 13035,
+				"buffer_size": 15492,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "views/editing/bug.load",
+			"file": "controllers/default.py",
 			"settings":
 			{
-				"buffer_size": 215,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "views/default/index.html",
-			"settings":
-			{
-				"buffer_size": 5995,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "models/menu.py",
-			"settings":
-			{
-				"buffer_size": 3281,
+				"buffer_size": 4034,
 				"line_ending": "Unix"
 			}
 		}
@@ -495,7 +495,7 @@
 	"build_system": "Packages/LESS-build/LESS.sublime-build",
 	"command_palette":
 	{
-		"height": 264.0,
+		"height": 392.0,
 		"selected_items":
 		[
 			[
@@ -655,7 +655,7 @@
 				"Package Control: Discover Packages"
 			]
 		],
-		"width": 449.0
+		"width": 521.0
 	},
 	"console":
 	{
@@ -672,32 +672,14 @@
 	},
 	"file_history":
 	[
-		"/home/iscott/web/web2py/applications/paideia/models/plugin_framework.py",
-		"/home/iscott/web/web2py/applications/paideia/static/index.html",
-		"/home/iscott/web/web2py/applications/paideia/modules/paideia_exploring.py",
-		"/home/iscott/web/web2py/applications/paideia/modules/paideia_bugs.py",
-		"/home/iscott/web/web2py/applications/paideia/controllers/default.py",
-		"/home/iscott/web/web2py/applications/paideia/controllers/plugin_listandedit.py",
-		"/home/iscott/web/web2py/applications/paideia/models/plugin_listandedit.py",
-		"/home/iscott/web/web2py/applications/paideia/views/plugin_listandedit/widget.load",
-		"/home/iscott/web/web2py/applications/paideia/static/plugin_listandedit/plugin_listandedit.less",
-		"/home/iscott/web/web2py/applications/paideia/static/plugin_framework/theme_paideia.less",
-		"/home/iscott/web/web2py/plugins/plugin_framework/static/plugin_framework/theme_paideia.less",
-		"/home/iscott/web/web2py/applications/paideia/models/menu.py",
-		"/home/iscott/web/web2py/applications/paideia/controllers/editing.py",
-		"/home/iscott/web/web2py/applications/paideia/static/plugin_listandedit/plugin_listandedit.css",
-		"/home/iscott/web/web2py/applications/paideia/views/plugin_listandedit/listing.load",
-		"/home/iscott/web/web2py/applications/paideia/views/editing/listing.html",
-		"/home/iscott/web/web2py/applications/paideia/views/plugin_listandedit/list.html",
-		"/home/iscott/web/web2py/applications/paideia/static/css/theme.less",
-		"/home/ian/web/web2py/plugins/plugin_framework/static/plugin_framework/framework.less",
-		"/home/iscott/web/web2py/applications/paideia/static/plugin_slider/plugin_slider.less",
 		"/home/ian/web/web2py/applications/paideia/modules/paideia_exploring.py",
 		"/home/ian/web/web2py/applications/paideia/static/plugin_framework/framework.less",
 		"/home/ian/web/web2py/applications/paideia/theme_paideia.css",
+		"/home/iscott/web/web2py/plugins/plugin_framework/static/plugin_framework/theme_paideia.less",
 		"/home/iscott/web/web2py/applications/paideia/views/exploring/index.html",
 		"/home/iscott/Dropbox/Simplenote/Department Meeting - 2012-10-10.txt",
 		"/home/iscott/web/web2py/applications/paideia/views/layout.html",
+		"/home/iscott/web/web2py/applications/paideia/static/css/theme.less",
 		"/home/iscott/web/web2py/applications/paideia/static/plugin_framework/theme.less",
 		"/home/ian/web/web2py/applications/paideia/views/default/user.html",
 		"/home/ian/web/web2py/applications/paideia/modules/plugin_ajaxselect.py",
@@ -870,11 +852,40 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 3,
 			"sheets":
 			[
 				{
 					"buffer": 0,
+					"file": "static/plugin_framework/theme_paideia.less",
+					"settings":
+					{
+						"buffer_size": 24058,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"function_name_status_row": 0,
+							"syntax": "Packages/LESS/LESS.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
 					"file": "static/css/theme.less",
 					"settings":
 					{
@@ -885,8 +896,8 @@
 						"selection":
 						[
 							[
-								44,
-								44
+								43,
+								43
 							]
 						],
 						"settings":
@@ -899,15 +910,73 @@
 						"zoom_level": 1.0
 					},
 					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "/home/ian/web/web2py/plugins/plugin_framework/static/plugin_framework/framework.less",
+					"settings":
+					{
+						"buffer_size": 29872,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								16092,
+								16092
+							]
+						],
+						"settings":
+						{
+							"function_name_status_row": 468,
+							"syntax": "Packages/LESS/LESS.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 60.0,
+						"translation.y": 10098.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "static/plugin_slider/plugin_slider.less",
+					"settings":
+					{
+						"buffer_size": 11731,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								8752,
+								8752
+							]
+						],
+						"settings":
+						{
+							"function_name_status_row": 209,
+							"syntax": "Packages/LESS/LESS.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 3338.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
 				}
 			]
 		},
 		{
-			"selected": 5,
+			"selected": 3,
 			"sheets":
 			[
 				{
-					"buffer": 1,
+					"buffer": 4,
 					"file": "controllers/exploring.py",
 					"settings":
 					{
@@ -985,7 +1054,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 2,
+					"buffer": 5,
 					"file": "views/exploring/walk.load",
 					"settings":
 					{
@@ -996,29 +1065,29 @@
 						"selection":
 						[
 							[
-								3625,
-								3625
+								0,
+								0
 							]
 						],
 						"settings":
 						{
-							"function_name_status_row": 109,
+							"function_name_status_row": 0,
 							"syntax": "Packages/HTML/HTML.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 2213.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
-					"buffer": 3,
+					"buffer": 6,
 					"file": "models/paideia.py",
 					"settings":
 					{
-						"buffer_size": 13035,
+						"buffer_size": 15492,
 						"regions":
 						{
 						},
@@ -1086,92 +1155,36 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 1479.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
-					"buffer": 4,
-					"file": "views/editing/bug.load",
+					"buffer": 7,
+					"file": "controllers/default.py",
 					"settings":
 					{
-						"buffer_size": 215,
+						"buffer_size": 4034,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								37,
-								37
+								444,
+								444
 							]
 						],
 						"settings":
 						{
-							"function_name_status_row": 3,
-							"syntax": "Packages/HTML/HTML.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 5,
-					"file": "views/default/index.html",
-					"settings":
-					{
-						"buffer_size": 5995,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								78,
-								78
-							]
-						],
-						"settings":
-						{
-							"function_name_status_row": 2,
-							"syntax": "Packages/HTML/HTML.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 6,
-					"file": "models/menu.py",
-					"settings":
-					{
-						"buffer_size": 3281,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								169,
-								169
-							]
-						],
-						"settings":
-						{
-							"function_name_status_row": 7,
+							"function_name_status_row": 24,
 							"syntax": "Packages/Python/Python.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 189.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -1207,7 +1220,7 @@
 		"cols":
 		[
 			0.0,
-			0.335535282597,
+			0.7,
 			1.0
 		],
 		"rows":
@@ -1235,58 +1248,6 @@
 		"height": 0.0,
 		"selected_items":
 		[
-			[
-				"menu",
-				"paideia/models/menu.py"
-			],
-			[
-				"modelsfr",
-				"paideia/models/plugin_framework.py"
-			],
-			[
-				"index",
-				"paideia/views/default/index.html"
-			],
-			[
-				"paideia_",
-				"paideia/modules/paideia_exploring.py"
-			],
-			[
-				"paideia_bug",
-				"paideia/modules/paideia_bugs.py"
-			],
-			[
-				"bug",
-				"paideia/views/editing/bug.load"
-			],
-			[
-				"theme.le",
-				"paideia/static/css/theme.less"
-			],
-			[
-				"theme_paid",
-				"paideia/static/plugin_framework/theme_paideia.less"
-			],
-			[
-				"theme_p",
-				"plugins/plugin_framework/static/plugin_framework/theme_paideia.less"
-			],
-			[
-				"plugin_list",
-				"paideia/static/plugin_listandedit/plugin_listandedit.css"
-			],
-			[
-				"paideia_bugs",
-				"paideia/modules/paideia_bugs.py"
-			],
-			[
-				"list",
-				"paideia/views/plugin_listandedit/list.html"
-			],
-			[
-				"listi",
-				"paideia/views/plugin_listandedit/listing.load"
-			],
 			[
 				"plugin_slider.l",
 				"paideia/static/plugin_slider/plugin_slider.less"
