@@ -15,6 +15,7 @@ if 0:
     db = current.db
 
 #js file necessary for AjaxSelect widget
+#TODO: move these to an AjaxSelect model file
 response.files.insert(5, URL('static',
                       'plugin_ajaxselect/plugin_ajaxselect.js'))
 response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.css'))
