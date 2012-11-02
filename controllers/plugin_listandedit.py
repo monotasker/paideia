@@ -105,7 +105,8 @@ def makeurl(tablename, orderby):
     if session.restrictor:
         rdict2 = dict((k, v) for k, v in session.restrictor)
         rdict = dict(rdict.items() + rdict2.items())
-    the_url = URL('listing.load',
+    # TODO: fix this reference to an external controller/view
+    the_url = URL('editing', 'listing.load',
                     args=[tablename], vars=rdict)
     return the_url
 
