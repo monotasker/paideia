@@ -69,7 +69,7 @@ def widget():
                 filter_select = db(tb[k] == v)._select(tb.id)
                 rowlist = db(tb.id.belongs(filter_select)).select()
         else:
-            rowlist = db().select(tb.ALL, orderby=tb[orderby])
+            rowlist = db().select(tb.ALL, orderby=~tb[orderby])
 
     # build html list from the selected rows
     listset = []
@@ -144,7 +144,8 @@ def dupAndEdit():
 
     if form.process(formname=formname).accepted:
         the_url = makeurl(tablename, orderby)
-        response.js = "web2py_component('%s', 'listpane');" % the_url
+        response.js = "web2py_component('%s', " \
+                                    "'plugin_listandedit_wrapper');" % the_url
         response.flash = 'New record successfully created.'
     elif form.errors:
         print form.vars
@@ -185,7 +186,8 @@ def edit():
                 formstyle='ul')
         if form.process(formname=formname).accepted:
             the_url = makeurl(tablename, orderby)
-            response.js = "web2py_component('%s', 'listpane');" % the_url
+            response.js = "web2py_component('%s', " \
+                                    "'plugin_listandedit_wrapper');" % the_url
             response.flash = 'The changes were recorded successfully.'
             if debug: print "submitted form vars", form.vars
         elif form.errors:

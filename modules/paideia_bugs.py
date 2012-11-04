@@ -4,7 +4,7 @@ from datetime import timedelta
 
 class Bug(object):
 
-    verbose = False
+    verbose = True
 
     """
     Handles the creation, manipulation, and reporting of bug
@@ -92,11 +92,20 @@ class Bug(object):
         Intended to be run when an administrator or instructor sets a bug to
         'confirmed' or 'fixed'.
         '''
+        if self.verbose: print '\ncalling Bug.undo ==================='
+        debug = True
+
         if db is None:
             db = current.db
         if step_id is None:
             step_id = self.step
+            if debug: print 'step_id', step_id
+        if debug: print 'bug_id', bug_id
+        if debug: print 'log_id', log_id
+        response = current.response
+
         bug_row = db.bugs(bug_id)
+        if debug: print 'bug_row', bug_row
 
         # don't do anything if the original answer was counted as correct
         if bug_row.score == 1:
@@ -106,6 +115,8 @@ class Bug(object):
             # correct score in the attempt_log table
             log_row = db.attempt_log(log_id)
             log_row.update_record(score=1)
+            if debug:
+                print 'updated log:', log_row
 
             # correct tag_records entry for each tag on the step
             step_id = bug_row.step
@@ -113,6 +124,7 @@ class Bug(object):
             for tag in tagset:
                 trecord = db((db.tag_records.tag == tag) &
                             (db.tag_records.name == user_id)).select().first()
+                if debug: print '\ntag:', trecord
                 args = {}
 
                 # revert the last right date
@@ -129,26 +141,32 @@ class Bug(object):
                 lastw = trecord.tlast_wrong
                 if lastw == bugdate:
                     pass
-                elif lastw - bugdate >= datetime.timedelta(seconds=1):
+                elif lastw - bugdate >= timedelta(seconds=1):
                     pass
                 else:
-                    oldlogs = db((db.attempt_log.name == user) &
+                    oldlogs = db((db.attempt_log.name == user_id) &
                                 (db.attempt_log.step == step_id) &
                                 (db.attempt_log.score < 1)
                                 ).select(orderby=~db.attempt_log.dt_attempted)
                     oldlogs = oldlogs.find(lambda row:
                             (bugdate - row.dt_attempted) >
-                            datetime.timedelta(seconds=1))
+                            timedelta(seconds=1))
                     prev_log = oldlogs.first()
-                    args[tlast_wrong] = prev_log.dt_attempted
+                    args['tlast_wrong'] = prev_log.dt_attempted
 
                 # revert counts for times right and wrong
-                args[times_right] = (trecord.times_right + 1)
-                args[times_wrong] = (trecord.times_wrong - 1)
+                args['times_right'] = (trecord.times_right + 1)
+                args['times_wrong'] = (trecord.times_wrong - 1)
 
                 trecord.update_record(**args)
+                if debug: print '\nupdated: ', trecord
+
+                return 'Bug {} reversed.'.format(bug_id)
+
         except Exception, e:
             print type(e), e
+            return 'Bug {} could not be reversed.'.format(bug_id)
+
 
     def bugresponses(self, user):
         '''
