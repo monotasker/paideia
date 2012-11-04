@@ -5,48 +5,23 @@ if 0:
     auth = current.auth
     db = current.db
     request = current.request
-
-
-@auth.requires_membership(role='administrators')
-def question():
-    edit_form = crud.update(db.questions, request.args[0])
-    closer = A('close', _href=URL('#'), _class='close_link')
-    the_title = H3('Editing Question ' + request.args[0])
-
-    return dict(form = edit_form, closer=closer, the_title=the_title)
-
-@auth.requires_membership(role='administrators')
-def quiz():
-    edit_form = crud.update(db.quizzes, request.args[0])
-    closer = A('close', _href=URL('#'), _class='close_link')
-    the_title = H3('Editing Quiz')
-
-    return dict(form = edit_form, closer=closer, the_title=the_title)
-
-
-@auth.requires_membership(role='administrators')
-def tag():
-    edit_form = crud.update(db.tags, request.args[0])
-    closer = A('close', _href=URL('#'), _class='close_link')
-    the_title = H3('Editing Tag')
-
-    return dict(form = edit_form, closer=closer, the_title=the_title)
-
-@auth.requires_membership(role='administrators')
-def bug():
-    edit_form = crud.update(db.q_bugs, request.args[0])
-    closer = A('close', _href=URL('#'), _class='close_link')
-    the_title = H3('Editing Bug Report')
-    return dict(form = edit_form, closer=closer, the_title=the_title)
-
-@auth.requires_membership(role='administrators')
-def news():
-    edit_form = crud.update(db.news, request.args[0])
-    closer = A('close', _href=URL('#'), _class='close_link')
-    the_title = H3('Editing New Story')
-
-    return dict(form = edit_form, closer=closer, the_title=the_title)
+from paideia_bugs import Bug
+import datetime
 
 @auth.requires_membership(role='administrators')
 def listing():
     return dict()
+
+@auth.requires_membership(role='administrators')
+def undo_bug():
+    '''
+    Controller to receive ajax signal and trigger the Bug class method to undo
+    the effects of a reported bug on the user's performance record.
+    '''
+    debug = True
+    if debug: print 'calling controller edit.undo_bug'
+    b = Bug(request.vars.step, request.vars.path, request.vars.location)
+    u = b.undo(request.vars.user_name, request.vars.id, request.vars.log_id)
+    response.flash = u
+
+    return None

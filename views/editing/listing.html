@@ -6,4 +6,17 @@ else:
     vars = None
 pass}}
 
+<div id="plugin_listandedit_wrapper">
 {{=LOAD('plugin_listandedit', 'widget.load', args=request.args, vars=vars, ajax=False, ajax_trap=True)}}
+</div>
+
+<script>
+if ($('select#bugs_bug_status')){
+    $('select#bugs_bug_status').live('change', function(event){
+        var newval = $(this).children('option:selected').val()
+        if ((newval == 1)|(newval == 2)){
+            ajax('{{=URL('editing', 'undo_bug')}}', ['id', 'step', 'path', 'score', 'location', 'log_id', 'user_name'], ':eval');
+        }
+    });
+};
+</script>
