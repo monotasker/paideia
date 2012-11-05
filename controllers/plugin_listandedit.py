@@ -106,7 +106,7 @@ def makeurl(tablename, orderby):
         rdict2 = dict((k, v) for k, v in session.restrictor)
         rdict = dict(rdict.items() + rdict2.items())
     # TODO: fix this reference to an external controller/view
-    the_url = URL('editing', 'listing.load',
+    the_url = URL('plugin_listandedit', 'widget.load',
                     args=[tablename], vars=rdict)
     return the_url
 
