@@ -2004,7 +2004,7 @@ class StepRedirect(StepStub):
                 else:
                     break
         elif ('next_loc' in session.walk) and (session.walk['next_loc']
-                                                                is not None):
+                                                        not in (None, 'None')):
             if debug: print 'getting loc from session.walk["next_loc"]'
             next_loc = db.locations[session.walk['next_loc']].readable
         else:
