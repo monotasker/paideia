@@ -22,6 +22,5 @@ def undo_bug():
     if debug: print 'calling controller edit.undo_bug'
     b = Bug(request.vars.step, request.vars.path, request.vars.location)
     u = b.undo(request.vars.user_name, request.vars.id, request.vars.log_id)
-    response.flash = u
 
-    return None
+    return u
