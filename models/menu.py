@@ -57,7 +57,13 @@ if auth.has_membership('administrators', auth.user_id):
 
             (T('Reports'), False, None, [
                 (T('Users'), False, URL('listing', 'user')),
-                (T('Bug reports'), False, URL('editing',
+                (T('New Bug reports'), False, URL('editing',
+                                        'listing.html', args=['bugs'],
+                                        vars={'restrictor':{'bug_status':5}})),
+                (T('Confirmed Bug reports'), False, URL('editing',
+                                        'listing.html', args=['bugs'],
+                                        vars={'restrictor':{'bug_status':1}})),
+                (T('All Bug reports'), False, URL('editing',
                                         'listing.html', args=['bugs'])),
                 (T('Paths by tag'), False, URL('reporting',
                                         'paths_by_tag')),
