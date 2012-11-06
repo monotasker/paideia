@@ -1749,7 +1749,7 @@ class Step(object):
         '''
         if self.verbose:
             print 'calling', type(self).__name__, '._get_responder--------'
-
+        debug = True
         # TODO: this return not needed now? Or should .complete() be called?
         if isinstance(self, StepStub):
             return
@@ -1762,7 +1762,11 @@ class Step(object):
 
         instructions = self._get_instructions()
         if instructions:
-            wrapper.append(instructions)
+            try:
+                wrapper.append(tooltip('instructions',
+                                    'instructions', instructions))
+            except Exception, e:
+                print type(e), e
 
         return wrapper
 
@@ -1913,11 +1917,11 @@ class StepStub(Step):
         # test with path 93 step 107
         if self.path and (len(self.path.steps) > 1) and (self.step.id !=
                                                           self.path.steps[-1]):
-            # TODO: In some cases when step 30 (nothing here) is activated
+            # TODO: In some cases when a utility step is activated
             # between steps of a multi-step path, no other path is activated,
-            # but the step 30 will not be found in the path.steps list
+            # but the util step will not be found in the path.steps list
             # so this condition prevents a ValueError.
-            if self.step.id == 30:
+            if self.step.id in [30, 125, 126, 127]:
                 if debug:
                     print 'this is intermediate "not here" step'
                     print 'preserving path and active_paths info'

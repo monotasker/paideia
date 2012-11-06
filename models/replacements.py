@@ -8,7 +8,7 @@ def iconlink(title, text, icon):
                 _id=linktitle)
     return link
 
-def tooltip(title, text, icon=None, content):
+def tooltip(title, text, content, icon=None):
     '''
     Build and return a tooltip widget with the supplied content.
     '''
