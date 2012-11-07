@@ -11,7 +11,7 @@ p6
 I2
 sS'sql'
 p7
-S'INTEGER REFERENCES auth_user (id) ON DELETE CASCADE'
+S'INTEGER REFERENCES auth_user(id) ON DELETE CASCADE'
 p8
 ssS'date_attempted'
 p9
@@ -64,7 +64,7 @@ p32
 sg6
 I3
 sg7
-S'INTEGER REFERENCES steps (id) ON DELETE CASCADE'
+S'INTEGER REFERENCES steps(id) ON DELETE CASCADE'
 p33
 ssS'score'
 p34
@@ -86,7 +86,7 @@ p40
 sg6
 I4
 sg7
-S'INTEGER REFERENCES paths (id) ON DELETE CASCADE'
+S'INTEGER REFERENCES paths(id) ON DELETE CASCADE'
 p41
 ssS'dt_attempted'
 p42
