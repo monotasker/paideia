@@ -195,12 +195,12 @@ def walk():
     # After user submits response to step prompt
     # Evaluate response and present feedback via npc reply
     elif ('response' in request.vars) and (request.args(0)
-                                                       in ['ask', 'retry']):
+                                               in ['ask', 'retry', 'test']):
         if debug: print '\ncontroller exploring.walk() state: response'
         resp = request.vars.response
         if debug: print 'response is', resp
         # if response is blank, just re-present the step prompt
-        if resp in [None, '', ' ']:
+        if resp in [None, '', ' ', []]:
             redirect(URL('walk.load', args=('ask'),
                             vars={'loc': request.vars['loc']}))
         # otherwise, evaluate and present response

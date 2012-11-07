@@ -356,7 +356,7 @@ class Walk(object):
 
         # create step instance here if we're processing a user's response
         if ('response' in request.vars) and \
-                (request.args[0] in ['ask', 'retry']):
+                (request.args[0] in ['ask', 'retry', 'test']):
             print 're-activating step'
             self.step = self._create_step_instance()
 
@@ -520,6 +520,7 @@ class Walk(object):
             progress = db(db.tag_progress.name == user).select().first()
             if progress is None:
                 db.tag_progress.insert(latest_new=1)
+                progress = db(db.tag_progress.name == user).select().first()
 
         # TODO: Factor in how many times a tag has been successful or not
         # TODO: Look at secondary tags
@@ -550,7 +551,6 @@ class Walk(object):
             if debug: print 'No tag_records for this user'
             firsttags = [t.id for t in db(db.tags.position == 1).select()]
             categories['cat1'] = firsttags
-            reviews['cat1'] = firsttags
             self.view_slides = firsttags
             if debug: print 'setting categories to initial value', categories
         # otherwise, categorize tags that have been tried
@@ -612,13 +612,14 @@ class Walk(object):
 
         new_badges = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
         for category, lst in categories.iteritems():
-            if lst:
+            if lst is not None:
                 print 'current badges =', lst
                 # make sure to check against higher categories too
                 catindex = categories.keys().index(category)
                 mycats_gteq = dict((k, mycats[k]) for k
                            in ['cat1', 'cat2', 'cat3', 'cat4'][catindex:])
-                oldtags = list(chain([val for cat in mycats_gteq.values()
+                # if cat is necessary in case of None in mycats
+                oldtags = list(chain([val for cat in mycats_gteq.values() if cat
                                                             for val in cat]))
                 print 'oldtags', oldtags
                 if debug:
@@ -644,7 +645,11 @@ class Walk(object):
                     except IndexError:
                         print 'This tag appears to be new; not removing from \
                                 old position'
-                    update_cats[cat].append(t)
+                    if not update_cats[cat]:
+                        update_cats[cat] = [t]
+                    else:
+                        update_cats[cat].append(t)
+
         # new max-category values
         if debug: print 'new cat values:', update_cats
         # record this session's working categorization as 'review' categories
@@ -1799,6 +1804,8 @@ class Step(object):
 
 class StepMultipleChoice(Step):
 
+    verbose = True
+
     def _get_responder(self):
         '''
         create and return the form to receive the user's response for this
@@ -1829,8 +1836,8 @@ class StepMultipleChoice(Step):
         This method overrides Step.process for the StepMultipleChoice subclass.
         '''
         if self.verbose:
-            print 'calling', type(self).__name__, '._get_responder----'
-        debug = False
+            print 'calling', type(self).__name__, '._process----'
+        debug = True
         session, db, auth = current.session, current.db, current.auth
 
         # Get the student's response to the question
@@ -1862,6 +1869,8 @@ class StepMultipleChoice(Step):
         else:
             score = 0
             reply = "Sorry, that wasn't right. Try again!"
+
+        if debug: print 'reply:', reply
 
         # Set the increment value for times wrong, depending on score
         if score < 1:
@@ -2238,7 +2247,7 @@ STEP_CLASSES = {
         'step_stub': StepStub,
         'StepRedirect': StepRedirect,
         'step_image': StepImage,
-        'step_imageMutlipleChoice': StepImageMultipleChoice,
+        'step_imageMultipleChoice': StepImageMultipleChoice,
         'step_awardBadges': StepAwardBadges,
         'step_dailyQuota': StepDailyQuota,
         'step_viewSlides': StepViewSlides
