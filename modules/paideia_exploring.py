@@ -373,6 +373,10 @@ class Walk(object):
 
         if not step_id:
             step_id = session.walk['step']
+        if not step_id:
+            step_id = session.walk['retry'][1]
+            path_id = session.walk['retry'][0]
+            self.path = db.paths(path_id) if path_id else None
 
         if debug:
             print 'step id =', step_id

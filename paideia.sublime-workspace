@@ -431,7 +431,7 @@
 			"file": "static/plugin_framework/theme_paideia.less",
 			"settings":
 			{
-				"buffer_size": 24058,
+				"buffer_size": 23136,
 				"line_ending": "Unix"
 			}
 		},
@@ -439,7 +439,7 @@
 			"file": "static/css/theme.less",
 			"settings":
 			{
-				"buffer_size": 44,
+				"buffer_size": 45,
 				"line_ending": "Unix"
 			}
 		},
@@ -447,7 +447,7 @@
 			"file": "/home/ian/web/web2py/plugins/plugin_framework/static/plugin_framework/framework.less",
 			"settings":
 			{
-				"buffer_size": 29872,
+				"buffer_size": 30037,
 				"line_ending": "Unix"
 			}
 		},
@@ -455,7 +455,7 @@
 			"file": "static/plugin_slider/plugin_slider.less",
 			"settings":
 			{
-				"buffer_size": 11731,
+				"buffer_size": 13142,
 				"line_ending": "Unix"
 			}
 		},
@@ -479,7 +479,7 @@
 			"file": "models/paideia.py",
 			"settings":
 			{
-				"buffer_size": 15492,
+				"buffer_size": 13081,
 				"line_ending": "Unix"
 			}
 		},
@@ -860,7 +860,7 @@
 					"file": "static/plugin_framework/theme_paideia.less",
 					"settings":
 					{
-						"buffer_size": 24058,
+						"buffer_size": 23136,
 						"regions":
 						{
 						},
@@ -889,15 +889,15 @@
 					"file": "static/css/theme.less",
 					"settings":
 					{
-						"buffer_size": 44,
+						"buffer_size": 45,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								43,
-								43
+								0,
+								0
 							]
 						],
 						"settings":
@@ -916,20 +916,20 @@
 					"file": "/home/ian/web/web2py/plugins/plugin_framework/static/plugin_framework/framework.less",
 					"settings":
 					{
-						"buffer_size": 29872,
+						"buffer_size": 30037,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								16092,
-								16092
+								0,
+								0
 							]
 						],
 						"settings":
 						{
-							"function_name_status_row": 468,
+							"function_name_status_row": 0,
 							"syntax": "Packages/LESS/LESS.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
@@ -945,20 +945,20 @@
 					"file": "static/plugin_slider/plugin_slider.less",
 					"settings":
 					{
-						"buffer_size": 11731,
+						"buffer_size": 13142,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								8752,
-								8752
+								0,
+								0
 							]
 						],
 						"settings":
 						{
-							"function_name_status_row": 209,
+							"function_name_status_row": 0,
 							"syntax": "Packages/LESS/LESS.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
@@ -1087,7 +1087,7 @@
 					"file": "models/paideia.py",
 					"settings":
 					{
-						"buffer_size": 15492,
+						"buffer_size": 13081,
 						"regions":
 						{
 						},
@@ -1178,6 +1178,7 @@
 						],
 						"settings":
 						{
+							"color_scheme": "Packages/Solarized Color Scheme (TextMate)/Solarized (light).tmTheme",
 							"function_name_status_row": 24,
 							"syntax": "Packages/Python/Python.tmLanguage",
 							"tab_size": 4,
