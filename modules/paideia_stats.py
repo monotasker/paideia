@@ -1,7 +1,8 @@
 import calendar
 import datetime
 from pytz import timezone
-from gluon import current, DIV, H4, TABLE, THEAD, TBODY, TR, TD, SPAN
+from gluon import current, DIV, H4, TABLE, THEAD, TBODY, TR, TD, SPAN, A, URL
+from pprint import pprint
 
 
 class Stats(object):
@@ -183,7 +184,7 @@ class Stats(object):
         year.
         '''
         if self.verbose: print 'calling Stats.monthstats() -------------------'
-        debug = False
+        debug = True
 
         # get current year and month as default
         if not month:
@@ -193,6 +194,7 @@ class Stats(object):
 
         # use calendar module to get month structure
         monthcal = calendar.monthcalendar(year, month)
+        if debug: pprint(monthcal)
 
         monthdict = {'year': year, 'month_name': month}
 
@@ -208,11 +210,9 @@ class Stats(object):
                         day_set[1] = count
 
                 week_list.append(day_set)
-            week_list.sort(key=lambda k: k[0])
             month_list.append(week_list)
-        month_list.sort(key=lambda k: k[0])
 
-        if debug: print month_list
+        if debug: pprint(month_list)
         monthdict['calstats'] = month_list
 
         return monthdict
@@ -225,7 +225,7 @@ class Stats(object):
 
         The calendar is returned as a web2py DIV helper.
         '''
-        debug = False
+        debug = True
         db = current.db
         # TODO: get settings for this user's class requirements
         memberships = db(
@@ -237,26 +237,36 @@ class Stats(object):
         # get current year and month as default
         if not month:
             month = datetime.date.today().month
+        else: month = int(month)
         if not year:
             year = datetime.date.today().year
+        else: year = int(year)
 
+        # get structured data to use in building table
         data = self.monthstats(year, month)
         if debug: print 'data=', data
 
         nms = calendar.month_name
         monthname = nms[data['month_name']]
-        mcal = DIV(H4(monthname), _class='paideia_monthcal')
+
+        # Create wrapper div with title line and month name
+        mcal = DIV(SPAN('Questions answered each day in'),
+                    H4(monthname), _class='paideia_monthcal')
 
         tbl = TABLE(_class='paideia_monthcal_table')
         tbl.append(THEAD(TR('Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun')))
         tb = TBODY()
         for week in data['calstats']:
+            weeknum = data['calstats'].index(week)
             weekrow = TR()
             for day in week:
                 # add table cell for this day
-                weekrow.append(TD(_id=str(week) + '-' + str(day[0])))
-                # append span with day number
-                weekrow[-1].append(SPAN(str(day[0]),
+                weekrow.append(TD(_id='{}-{}'.format(weeknum, day[0])))
+                # append empty span if no day number
+                if day[0] == 0:
+                    weekrow[-1].append(SPAN('', _class='cal_num'))
+                else:
+                    weekrow[-1].append(SPAN(str(day[0]),
                                     _class='cal_num'))
                 # append a span with the day's attempt-count (if non-zero)
                 if day[1] != 0:
@@ -264,6 +274,29 @@ class Stats(object):
                                         _class='cal_count'))
             tb.append(weekrow)  # append week to table body
             if debug: print 'weekrow =', weekrow
+
+        # build nav link for previous month
+        prev_month = (month - 1) if month > 1 else 12
+        if prev_month == 12:
+            prev_year = year - 1
+        else:
+            prev_year = year
+        prev_link = A('previous', _href=URL('reporting', 'calendar.load',
+                        args=[self.user_id, prev_year, prev_month]),
+                        cid='tab_calendar')
+        mcal.append(prev_link)
+
+        # build nav link for next month
+        next_month = (month + 1) if month < 12 else 1
+        if next_month == 1:
+            next_year = year + 1
+        else:
+            next_year = year
+
+        next_link = A('next', _href=URL('reporting', 'calendar.load',
+                        args=[self.user_id, next_year, next_month]),
+                        cid='tab_calendar')
+        mcal.append(next_link)
 
         tbl.append(tb)
         mcal.append(tbl)

@@ -80,3 +80,27 @@ def user():
             'tag_progress': tag_progress,
             'tag_records': tag_records,
             'log': log}
+
+
+def calendar():
+    '''
+    Provides a calendar with user activity information for a given month/year.
+    Intended to be used via an ajax component on the user's profile and the
+    instructor's user reports.
+    '''
+    debug = True
+
+    if debug: print '\n\nStarting controller exploring.calendar()'
+    print 'request.args:', request.args
+    print 'request.vars:', request.vars
+
+    user_id = request.args[0]
+    year = request.args[1]
+    month = request.args[2]
+
+    s = Stats(user_id)
+    cal = s.monthcal(year, month)
+
+    return {'cal': cal}
+
+
