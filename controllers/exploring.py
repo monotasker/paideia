@@ -1,5 +1,6 @@
 # coding: utf8
 from paideia_exploring import Walk
+from paideia_stats import Stats
 from itertools import chain
 
 if 0:
@@ -20,15 +21,14 @@ provided by classes in the module paideia_exploring. Controllers access
 that logic through a very small set of public methods:
 
 - Walk.next_step
-- Walk.activate_step (for those cases in which
 - Step.ask (accessed via the Step stored in the Walk object: Walk.step.ask)
 - Step.process
-(Walk._categorize_tags is also accessed externally from paideia_stats.py)
 
 The controller functions interact with these views:
 - exploring/index.html (frame for the game ui)
 - exploring/walk.load (main game ui)
 - exploring/patherror.load (error screen)
+- exploring/calendar.load (ajax calendar widget)
 """
 
 
@@ -61,42 +61,6 @@ def patherror():
     return dict(message=message, button=button)
 
 
-@auth.requires_login()
-def save_session_data():
-    '''
-    Save the required session variables from the current session to db so that
-    it can be recovered later on.
-    '''
-    debug = True
-    if debug: print '\n\nStarting controller exploring.save_session_data()'
-
-    try:
-        # the fields 'user' and 'updated' are populated by defaults
-        data = dict((k, v) for k, v in session.walk.iteritems())
-        db.session_data.update_or_insert(data)
-        if debug: print 'storing session data in db:', data
-    except Exception, e:
-        print type(e), e
-
-
-@auth.requires_membership('administrators')
-def clear_session():
-    """
-    Reset the requested session variables to None.
-
-    This is a utility function. It doesn't really belong in this controller
-    and it is not intended to present any view. All of the logic is in the
-    Utils class.
-
-    :See also: modules/paideia_exploring.Utils
-
-    :returns: no return value
-
-    **TODO: provide a return value and use web2py response.flash to notify
-    user of successful result.
-    """
-    pass
-
 
 @auth.requires_membership('administrators')
 def set_value():
@@ -113,28 +77,6 @@ def set_value():
     printing to stdout.
     """
     pass
-
-    # query = db(db.questions.id > 0).select()
-    # for q in query:
-    #     db.steps.insert(prompt=q.question,
-    #                     readable_response=q.readable_answer,
-    #                     outcome1=q.value,
-    #                     response1=q.answer,
-    #                     outcome2=q.value2,
-    #                     response2=q.answer2,
-    #                     outcome3=q.value3,
-    #                     response3=q.answer3,
-    #                     tags=q.tags,
-    #                     tags_secondary=q.tags_secondary,
-    #                     status=q.status,
-    #                     npcs=q.npcs
-    #                     )
-    #     step = db(db.steps.prompt == q.question).select().first()
-    #     db.paths.insert(label=step.prompt[:40],
-    #                     steps=[step.id]
-    #                     )
-
-    # print 'updated ', len(query), ' records'
 
 
 @auth.requires_login()
@@ -175,7 +117,7 @@ def walk():
     debug = True
 
     if debug: print '\n\nStarting controller exploring.walk()'
-    print request.vars
+    print 'request.vars:', request.vars
     if request.vars and request.vars['force'] == 'True':
         print 'forcing new session'
         walk = Walk(True)
