@@ -1813,18 +1813,96 @@ body #page #right_sidebar div:hover {
 #page.user table.summary_stats td.total_cat1 {
   background-color: #852625;
 }
-#page.profile table.paideia_monthcal_table,
-#page.user table.paideia_monthcal_table {
+#page.profile .paideia_monthcal,
+#page.user .paideia_monthcal {
+  position: relative;
+  width: 430px;
+}
+#page.profile .paideia_monthcal .monthcal_intro_line,
+#page.user .paideia_monthcal .monthcal_intro_line {
+  zoom: 1;
+  /* activate hasLayout in ie6-7 */
+
+  margin-bottom: 8px;
+}
+#page.profile .paideia_monthcal .monthcal_intro_line:before,
+#page.user .paideia_monthcal .monthcal_intro_line:before {
+  content: " ";
+  display: block;
+}
+#page.profile .paideia_monthcal .monthcal_intro_line:after,
+#page.user .paideia_monthcal .monthcal_intro_line:after {
+  content: " ";
+  display: table;
+  clear: both;
+}
+#page.profile .paideia_monthcal h4,
+#page.user .paideia_monthcal h4 {
+  display: block;
+  margin: 8px 120px;
+  text-align: center;
+}
+#page.profile .paideia_monthcal .monthcal_next_link,
+#page.user .paideia_monthcal .monthcal_next_link,
+#page.profile .paideia_monthcal .monthcal_prev_link,
+#page.user .paideia_monthcal .monthcal_prev_link {
+  display: inline-block;
+  /* Fix for webkit clickability issue */
+
+  color: #eee8d5;
+  font-size: 0;
+  margin-top: 8px;
+}
+#page.profile .paideia_monthcal .monthcal_next_link .accessible,
+#page.user .paideia_monthcal .monthcal_next_link .accessible,
+#page.profile .paideia_monthcal .monthcal_prev_link .accessible,
+#page.user .paideia_monthcal .monthcal_prev_link .accessible {
+  position: absolute;
+  top: -9999px;
+  left: -9999px;
+}
+#page.profile .paideia_monthcal .monthcal_next_link:after,
+#page.user .paideia_monthcal .monthcal_next_link:after,
+#page.profile .paideia_monthcal .monthcal_prev_link:after,
+#page.user .paideia_monthcal .monthcal_prev_link:after {
+  opacity: 0.7;
+}
+#page.profile .paideia_monthcal .monthcal_next_link,
+#page.user .paideia_monthcal .monthcal_next_link {
+  float: right;
+  width: 0;
+  height: 0;
+  border-left: 16px solid transparent;
+  border-right: 16px solid transparent;
+  border-top: 16px solid transparent;
+  border-bottom: 16px solid transparent;
+  border-right: none;
+  border-left: 16px solid #808080;
+}
+#page.profile .paideia_monthcal .monthcal_prev_link,
+#page.user .paideia_monthcal .monthcal_prev_link {
+  float: left;
+  width: 0;
+  height: 0;
+  border-left: 16px solid transparent;
+  border-right: 16px solid transparent;
+  border-top: 16px solid transparent;
+  border-bottom: 16px solid transparent;
+  border-left: none;
+  border-right: 16px solid #808080;
+}
+#page.profile .paideia_monthcal .paideia_monthcal_table,
+#page.user .paideia_monthcal .paideia_monthcal_table {
   border-spacing: 2px;
 }
-#page.profile table.paideia_monthcal_table thead td,
-#page.user table.paideia_monthcal_table thead td {
+#page.profile .paideia_monthcal .paideia_monthcal_table thead td,
+#page.user .paideia_monthcal .paideia_monthcal_table thead td {
   height: 24px;
   font-size: 12.8px;
   background: transparent;
 }
-#page.profile table.paideia_monthcal_table td,
-#page.user table.paideia_monthcal_table td {
+#page.profile .paideia_monthcal .paideia_monthcal_table td,
+#page.user .paideia_monthcal .paideia_monthcal_table td {
   width: 60px;
   height: 60px;
   color: #aaa;
@@ -1832,13 +1910,13 @@ body #page #right_sidebar div:hover {
   position: relative;
   padding: 2px;
 }
-#page.profile table.paideia_monthcal_table td span.cal_num,
-#page.user table.paideia_monthcal_table td span.cal_num {
+#page.profile .paideia_monthcal .paideia_monthcal_table td span.cal_num,
+#page.user .paideia_monthcal .paideia_monthcal_table td span.cal_num {
   position: relative;
   padding: 4px, 2px;
 }
-#page.profile table.paideia_monthcal_table td span.cal_count,
-#page.user table.paideia_monthcal_table td span.cal_count {
+#page.profile .paideia_monthcal .paideia_monthcal_table td span.cal_count,
+#page.user .paideia_monthcal .paideia_monthcal_table td span.cal_count {
   position: relative;
   font-size: 24px;
   font-weight: bold;
