@@ -250,8 +250,9 @@ class Stats(object):
         monthname = nms[data['month_name']]
 
         # Create wrapper div with title line and month name
-        mcal = DIV(SPAN('Questions answered each day in'),
-                    H4(monthname), _class='paideia_monthcal')
+        mcal = DIV(SPAN('Questions answered each day in',
+                        _class='monthcal_intro_line'),
+                    _class='paideia_monthcal')
 
         tbl = TABLE(_class='paideia_monthcal_table')
         tbl.append(THEAD(TR('Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun')))
@@ -283,6 +284,7 @@ class Stats(object):
             prev_year = year
         prev_link = A('previous', _href=URL('reporting', 'calendar.load',
                         args=[self.user_id, prev_year, prev_month]),
+                        _class='monthcal_prev_link',
                         cid='tab_calendar')
         mcal.append(prev_link)
 
@@ -295,8 +297,10 @@ class Stats(object):
 
         next_link = A('next', _href=URL('reporting', 'calendar.load',
                         args=[self.user_id, next_year, next_month]),
+                        _class='monthcal_next_link',
                         cid='tab_calendar')
         mcal.append(next_link)
+        mcal.append(H4(monthname))
 
         tbl.append(tb)
         mcal.append(tbl)

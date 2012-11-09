@@ -873,6 +873,7 @@
 						],
 						"settings":
 						{
+							"color_scheme": "Packages/Solarized Color Scheme (TextMate)/Solarized (light).tmTheme",
 							"function_name_status_row": 0,
 							"syntax": "Packages/LESS/LESS.tmLanguage",
 							"tab_size": 4,
@@ -902,6 +903,7 @@
 						],
 						"settings":
 						{
+							"color_scheme": "Packages/Solarized Color Scheme (TextMate)/Solarized (light).tmTheme",
 							"function_name_status_row": 0,
 							"syntax": "Packages/LESS/LESS.tmLanguage"
 						},
@@ -929,6 +931,7 @@
 						],
 						"settings":
 						{
+							"color_scheme": "Packages/Solarized Color Scheme (TextMate)/Solarized (light).tmTheme",
 							"function_name_status_row": 0,
 							"syntax": "Packages/LESS/LESS.tmLanguage",
 							"tab_size": 4,
@@ -952,13 +955,14 @@
 						"selection":
 						[
 							[
-								0,
-								0
+								6213,
+								6286
 							]
 						],
 						"settings":
 						{
-							"function_name_status_row": 0,
+							"color_scheme": "Packages/Solarized Color Scheme (TextMate)/Solarized (light).tmTheme",
+							"function_name_status_row": 157,
 							"syntax": "Packages/LESS/LESS.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
@@ -999,6 +1003,7 @@
 								"README",
 								"FIXME"
 							],
+							"color_scheme": "Packages/Solarized Color Scheme (TextMate)/Solarized (light).tmTheme",
 							"function_name_status_row": 0,
 							"gjslint_ignore":
 							[
@@ -1071,6 +1076,7 @@
 						],
 						"settings":
 						{
+							"color_scheme": "Packages/Solarized Color Scheme (TextMate)/Solarized (light).tmTheme",
 							"function_name_status_row": 0,
 							"syntax": "Packages/HTML/HTML.tmLanguage",
 							"tab_size": 4,
@@ -1106,6 +1112,7 @@
 								"README",
 								"FIXME"
 							],
+							"color_scheme": "Packages/Solarized Color Scheme (TextMate)/Solarized (light).tmTheme",
 							"function_name_status_row": 0,
 							"gjslint_ignore":
 							[
@@ -1178,7 +1185,6 @@
 						],
 						"settings":
 						{
-							"color_scheme": "Packages/Solarized Color Scheme (TextMate)/Solarized (light).tmTheme",
 							"function_name_status_row": 24,
 							"syntax": "Packages/Python/Python.tmLanguage",
 							"tab_size": 4,
