@@ -1,0 +1,9 @@
+[submodule "plugins/plugin_framework"]
+	path = plugins/plugin_framework
+	url = git@github.com:monotasker/plugin_framework.git
+[submodule "plugins/plugin_listandedit"]
+	path = plugins/plugin_listandedit
+	url = git@github.com:monotasker/plugin_listandedit.git
+[submodule "plugins/plugin_ajaxselect"]
+	path = plugins/plugin_ajaxselect
+	url = git@github.com:monotasker/plugin_ajaxselect.git
