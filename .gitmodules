@@ -7,3 +7,6 @@
 [submodule "plugins/plugin_ajaxselect"]
 	path = plugins/plugin_ajaxselect
 	url = git@github.com:monotasker/plugin_ajaxselect.git
+[submodule "plugins/plugin_slider"]
+	path = plugins/plugin_slider
+	url = git@github.com:monotasker/plugin_slider.git
