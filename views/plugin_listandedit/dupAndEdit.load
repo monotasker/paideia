@@ -1,5 +1,0 @@
-<span class='warning'>New copy: not yet saved</span>
-{{vals = len(response._vars.values())
-for v in range(vals): 
-    =response._vars.values()[v]
-pass}}
