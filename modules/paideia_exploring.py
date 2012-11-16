@@ -2003,8 +2003,10 @@ class StepRedirect(StepStub):
         session = current.session
         db = current.db
 
+        next_loc = 'another location in town'
+
         if 'active_paths' in session.walk \
-                            and session.walk['active_paths'] \
+                            and not session.walk['active_paths'] is None \
                             and session.walk['active_paths'].keys()[0] != 30:
             if debug: print 'getting loc for active path'
             next_step = session.walk['active_paths'].values()[0]
@@ -2023,9 +2025,9 @@ class StepRedirect(StepStub):
         elif ('next_loc' in session.walk) and (session.walk['next_loc']
                                                         not in (None, 'None')):
             if debug: print 'getting loc from session.walk["next_loc"]'
-            next_loc = db.locations[session.walk['next_loc']].readable
-        else:
-            next_loc = 'another location in town'
+            loc_rdbl = db.locations[session.walk['next_loc']].readable
+            if not loc_rdbl is None:
+                next_loc = loc_rdbl
 
         if debug: print 'next_loc is', next_loc
         replacements = {'[[next_loc]]': next_loc}
