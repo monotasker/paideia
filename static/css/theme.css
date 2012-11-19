@@ -373,8 +373,7 @@ div.error {
   position: relative;
   overflow: visible;
 }
-a:hover .tip,
-a:active .tip {
+.tip_wrapper:target div.tip {
   display: block;
   -webkit-transition: all 200ms ease-in-out;
   -moz-transition: all 200ms ease-in-out;
@@ -382,6 +381,7 @@ a:active .tip {
   -ms-transition: all 200ms ease-in-out;
   transition: all 200ms ease-in-out;
 }
+/* make tip div visible */
 /* border images */
 /* buttons */
 .button {
@@ -479,11 +479,6 @@ a:active .tip {
   line-height: 24px;
   padding: 0;
   text-align: center;
-  -moz-border-radius: 16px 16px 16px 16px;
-  -webkit-border-radius: 16px 16px 16px 16px;
-  -o-border-radius: 16px 16px 16px 16px;
-  -ms-border-radius: 16px 16px 16px 16px;
-  border-radius: 16px 16px 16px 16px;
   font-weight: bold;
   -moz-border-radius: 16px 16px 16px 16px;
   -webkit-border-radius: 16px 16px 16px 16px;
@@ -1421,7 +1416,9 @@ body #page #right_sidebar div:hover {
 #page.exploring .prompt .prompt_badges_wrapper,
 #page.exploring .responder .prompt_badges_wrapper,
 #page.exploring .prompt .bug_reporter_wrapper,
-#page.exploring .responder .bug_reporter_wrapper {
+#page.exploring .responder .bug_reporter_wrapper,
+#page.exploring .prompt .prompt_tips_wrapper,
+#page.exploring .responder .prompt_tips_wrapper {
   display: block;
   position: absolute;
   bottom: -16px;
@@ -1430,15 +1427,15 @@ body #page #right_sidebar div:hover {
 #page.exploring .prompt .prompt_badges,
 #page.exploring .responder .prompt_badges,
 #page.exploring .prompt .bug_reporter,
-#page.exploring .responder .bug_reporter {
+#page.exploring .responder .bug_reporter,
+#page.exploring .prompt .prompt_tips,
+#page.exploring .responder .prompt_tips {
   font-size: 16px;
   line-height: 24px;
   color: #666666;
-  padding: 24px;
   left: -320px;
   top: -72px;
   margin-left: 0;
-  display: none;
   z-index: 10;
   position: relative;
   border-radius: 36px;
@@ -1458,11 +1455,7 @@ body #page #right_sidebar div:hover {
   max-width: 300px;
   min-width: 100px;
   display: none;
-  /* hide until hover */
-
   z-index: 99;
-  /* to lift it above surrounding tips */
-
   -webkit-transition: all 200ms ease-in-out;
   -moz-transition: all 200ms ease-in-out;
   -o-transition: all 200ms ease-in-out;
@@ -1472,7 +1465,9 @@ body #page #right_sidebar div:hover {
 #page.exploring .prompt .prompt_badges:after,
 #page.exploring .responder .prompt_badges:after,
 #page.exploring .prompt .bug_reporter:after,
-#page.exploring .responder .bug_reporter:after {
+#page.exploring .responder .bug_reporter:after,
+#page.exploring .prompt .prompt_tips:after,
+#page.exploring .responder .prompt_tips:after {
   content: " ";
   position: absolute;
   right: -15px;
@@ -1490,18 +1485,9 @@ body #page #right_sidebar div:hover {
 #page.exploring .prompt .prompt_badges.tip-visible,
 #page.exploring .responder .prompt_badges.tip-visible,
 #page.exploring .prompt .bug_reporter.tip-visible,
-#page.exploring .responder .bug_reporter.tip-visible {
-  display: block;
-  -webkit-transition: all 200ms ease-in-out;
-  -moz-transition: all 200ms ease-in-out;
-  -o-transition: all 200ms ease-in-out;
-  -ms-transition: all 200ms ease-in-out;
-  transition: all 200ms ease-in-out;
-}
-#page.exploring .prompt .prompt_badges.tip-visible,
-#page.exploring .responder .prompt_badges.tip-visible,
-#page.exploring .prompt .bug_reporter.tip-visible,
-#page.exploring .responder .bug_reporter.tip-visible {
+#page.exploring .responder .bug_reporter.tip-visible,
+#page.exploring .prompt .prompt_tips.tip-visible,
+#page.exploring .responder .prompt_tips.tip-visible {
   display: block;
   -webkit-transition: all 200ms ease-in-out;
   -moz-transition: all 200ms ease-in-out;
@@ -1513,25 +1499,23 @@ body #page #right_sidebar div:hover {
 #page.exploring .responder .prompt_badges span,
 #page.exploring .prompt .bug_reporter span,
 #page.exploring .responder .bug_reporter span,
+#page.exploring .prompt .prompt_tips span,
+#page.exploring .responder .prompt_tips span,
 #page.exploring .prompt .prompt_badges a,
 #page.exploring .responder .prompt_badges a,
 #page.exploring .prompt .bug_reporter a,
-#page.exploring .responder .bug_reporter a {
+#page.exploring .responder .bug_reporter a,
+#page.exploring .prompt .prompt_tips a,
+#page.exploring .responder .prompt_tips a {
   font-size: 16px;
 }
 #page.exploring .bug_reporter_icon,
-#page.exploring .prompt_badges_icon {
+#page.exploring .prompt_badges_icon,
+#page.exploring .prompt_tips_icon {
   display: inline-block;
   width: 36px;
   height: 36px;
-  line-height: 36px;
   padding: 0;
-  text-align: center;
-  -moz-border-radius: 24px 24px 24px 24px;
-  -webkit-border-radius: 24px 24px 24px 24px;
-  -o-border-radius: 24px 24px 24px 24px;
-  -ms-border-radius: 24px 24px 24px 24px;
-  border-radius: 24px 24px 24px 24px;
   font-weight: bold;
   -moz-border-radius: 24px 24px 24px 24px;
   -webkit-border-radius: 24px 24px 24px 24px;
@@ -1551,7 +1535,8 @@ body #page #right_sidebar div:hover {
   border: 2px solid #ffffff;
 }
 #page.exploring .bug_reporter_icon:hover,
-#page.exploring .prompt_badges_icon:hover {
+#page.exploring .prompt_badges_icon:hover,
+#page.exploring .prompt_tips_icon:hover {
   -moz-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   -webkit-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   -o-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
@@ -1787,7 +1772,6 @@ body #page #right_sidebar div:hover {
 #page.user table.summary_stats td.total_cat3,
 #page.profile table.summary_stats td.total_cat4,
 #page.user table.summary_stats td.total_cat4 {
-  height: 40px;
   width: 40px;
   color: #fff;
   height: 40px;
