@@ -1268,7 +1268,8 @@ class Step(object):
 
         npc = self._get_npc(self.step, self.location)
         prompt = self._get_prompt()
-        responder = self._get_responder()
+        form = self._get_responder()
+        instructions = self._get_instructions()
         badgetip = self._get_badge_display(self.step.id)
         if badgetip:
             prompt.append(badgetip)
@@ -1276,7 +1277,8 @@ class Step(object):
         if debug: print 'bg_image =', self.location['bg_image']
 
         return dict(npc_img=npc.image, prompt=prompt,
-                    responder=responder,
+                    form=form,
+                    instructions=instructions,
                     bg_image=self.location['bg_image'])
 
     def _get_badge_display(self, step_id):
@@ -1484,7 +1486,7 @@ class Step(object):
             print 'calling', type(self).__name__, '._get_bug_reporter-----'
         request, response = current.request, current.response
 
-        bug_reporter = DIV(_class='bug_reporter tip')
+        bug_reporter = DIV()
         text1 = SPAN('If you think your answer wasn\'t evaluated properly, ')
         link = A('click here',
                     _href=URL('creating', 'bug',
@@ -1759,46 +1761,32 @@ class Step(object):
         if self.verbose:
             print 'calling', type(self).__name__, '._get_responder--------'
         debug = True
-        # TODO: this return not needed now? Or should .complete() be called?
-        if isinstance(self, StepStub):
-            return
 
         form = SQLFORM.factory(
                     Field('response', 'string', requires=IS_NOT_EMPTY()),
                     _autocomplete='off'
                 )
-        wrapper = DIV(form, _class='responder')
 
-        instructions = self._get_instructions()
-        if instructions:
-            try:
-                wrapper.append(tooltip('instructions',
-                                    'instructions', instructions))
-            except Exception, e:
-                print type(e), e
-
-        return wrapper
+        return form
 
     def _get_instructions(self):
         '''
         Return a web2py DIV() element holding a link that displays a tooltip
         with the instructions to accompany the current step's responder form.
         '''
+        debug = True
         db = current.db
 
-        inst_div = DIV(
-                        A('tips', _class='instructions \
-                                            icon-only icon-lightbulb'),
-                        DIV(UL(), _class='instructions tip'),
-                    _class='prompt_tips')
-
         iset = db.steps[self.step.id].instructions
+        inst_list = UL()
         if iset:
             for i in iset:
-                inst_div[-1][0].append(LI(i))
-
-            return inst_div
+                inst = db.step_instructions(i).text
+                inst_list.append(LI(inst))
+            if debug: print inst_list
+            return inst_list
         else:
+            if debug: print 'no instructions found'
             return None
 
 
@@ -2006,7 +1994,7 @@ class StepRedirect(StepStub):
         next_loc = 'another location in town'
 
         if 'active_paths' in session.walk \
-                            and not session.walk['active_paths'] is None \
+                            and session.walk['active_paths'] \
                             and session.walk['active_paths'].keys()[0] != 30:
             if debug: print 'getting loc for active path'
             next_step = session.walk['active_paths'].values()[0]

@@ -97,12 +97,7 @@
             cid='page',
             _class='button-yellow-grad back_to_map icon-location')}}
 
-        <div class='bug_reporter_wrapper tip_wrapper'>
-            <a href='#' class="bug_reporter_icon icon-only icon-alert">
-                <span class='accessible'>bug</span>
-            </a>
-            {{=XML(bug_reporter)}}
-        </div>
+        {{=TOOLTIP('bug_reporter', 'bug', XML(bug_reporter), 'alert')}}
     </div>
 
 <!--present prompt for step-->
@@ -110,7 +105,10 @@
     <div class='bg_image'>{{=bg_image}}</div>
     <div class='speaker'>{{=npc_img}}</div>
     <div class="npc prompt">{{=prompt}}</div>
-    {{=responder}}
+    <div class='responder'>
+        {{=form}}
+        {{=TOOLTIP('prompt_tips', 'tips', XML(instructions), 'star')}}
+    </div>
 {{pass}}
 
 <script>
@@ -152,6 +150,16 @@ $('.prompt_badges_icon').click(function(event){
 });
 $('.townmap_key_trigger').click(function(event){
     var $tip = $('#townmap_key');
+    if ($tip.hasClass('tip-visible')){
+        $tip.removeClass('tip-visible');
+    }
+    else {
+        $tip.addClass('tip-visible');
+    }
+    return false;
+});
+$('.prompt_tips_icon').click(function(event){
+    var $tip = $('#prompt_tips');
     if ($tip.hasClass('tip-visible')){
         $tip.removeClass('tip-visible');
     }

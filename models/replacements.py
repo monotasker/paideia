@@ -1,14 +1,14 @@
 
-def iconlink(title, text, icon):
+def ICONLINK(title, text, icon):
     linktitle = '{}_icon'.format(title)
-    link_classes = '{} icon-only icon-{}'.format(icon)
+    link_classes = '{} icon-only icon-{}'.format(linktitle, icon)
     link = A(SPAN(text, _class='accessible'),
                 _href='#',
                 _class=link_classes,
                 _id=linktitle)
     return link
 
-def tooltip(title, text, content, icon=None):
+def TOOLTIP(title, text, content, icon=None):
     '''
     Build and return a tooltip widget with the supplied content.
     '''
@@ -19,7 +19,7 @@ def tooltip(title, text, content, icon=None):
 
     # add tip trigger link
     if icon:
-        tip_wrapper.append(iconlink(title, text, icon))
+        tip_wrapper.append(ICONLINK(title, text, icon))
     else:
         trigger_title = '{}_trigger'.format(title)
         trigger_classes = '{} trigger'.format(trigger_title)
