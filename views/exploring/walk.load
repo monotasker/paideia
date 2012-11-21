@@ -65,6 +65,11 @@
     <div class='speaker'>{{=npc_img}}</div>
     <section class="npc prompt">
         <p>{{=reply}}</p>
+        <p>You said
+            <ul>
+                <li>{{=user_response}}</li>
+            </ul>
+        </p>
         <p>Correct answers would include
             <ul class='readable_short'>
             {{if type(readable) == list:}}
