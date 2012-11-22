@@ -1882,7 +1882,8 @@ class StepMultipleChoice(Step):
                                                         log_id,
                                                         score),
                 'npc_img': session.walk['npc_image'],
-                'bg_image': self.location['bg_image']}
+                'bg_image': self.location['bg_image'],
+                'user_response': user_response}
 
 
 class StepStub(Step):
