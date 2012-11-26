@@ -1,5 +1,6 @@
-from gluon import current
+from gluon import current, BEAUTIFY, xmlescape
 from datetime import timedelta
+import urllib2
 mail = current.mail
 
 
@@ -41,6 +42,7 @@ class Bug(object):
         debug = True
         response = current.response
         session = current.session
+        request = current.request
         db = current.db
         if step is None:
             step = self.step
@@ -60,22 +62,26 @@ class Bug(object):
                             user_response=answer,
                             log_id=log_id,
                             score=score,
-                            foo=bar)
+                            bla=bla)
             response.flash = 'Thanks for reporting this potential bug. We will\
                     look at the question to see what the problem was. If there\
                     turns out to be a problem with the question, this answer\
                     will be ignored as we track your learning. Check your\
                     profile page in the next few days to see the instructor\'s\
                     response to your bug report.'
+            xmlescape(response.flash).replace('\n', ' ')
             return True
         except Exception, e:
             response.flash = 'Sorry, something went wrong with your bug\
-                    report. Please contact the instructor.'
+                    report. An email including the details of your response\
+                    has been sent automatically to the instructor.'
+            response.flash = urllib2.quote(xmlescape(response.flash).replace('\n', ''))
             mail.send(mail.settings.sender,
                       'bug reporting error',
-                      'A user tried to submit a step bug report, but the\
-                              report failed. The session data\
-                              is:\n{}'.format(session))
+                      '<html>A user tried to submit a step bug report, but the\
+                       report failed. The session data is:\n{}\nThe request\
+                       data is: {}</html>'.format(BEAUTIFY(session),
+                                           BEAUTIFY(request)))
             # TODO: Log these errors.
             print 'Error in Bug.log_new():', e
             return False
