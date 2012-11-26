@@ -1,5 +1,6 @@
 from gluon import current
 from datetime import timedelta
+mail = current.mail
 
 
 class Bug(object):
@@ -39,6 +40,7 @@ class Bug(object):
         if self.verbose: print 'calling Bug.log_new object ================='
         debug = True
         response = current.response
+        session = current.session
         db = current.db
         if step is None:
             step = self.step
@@ -57,7 +59,8 @@ class Bug(object):
                             location=location.id,
                             user_response=answer,
                             log_id=log_id,
-                            score=score)
+                            score=score,
+                            foo=bar)
             response.flash = 'Thanks for reporting this potential bug. We will\
                     look at the question to see what the problem was. If there\
                     turns out to be a problem with the question, this answer\
@@ -68,6 +71,11 @@ class Bug(object):
         except Exception, e:
             response.flash = 'Sorry, something went wrong with your bug\
                     report. Please contact the instructor.'
+            mail.send(mail.settings.sender,
+                      'bug reporting error',
+                      'A user tried to submit a step bug report, but the\
+                              report failed. The session data\
+                              is:\n{}'.format(session))
             # TODO: Log these errors.
             print 'Error in Bug.log_new():', e
             return False
