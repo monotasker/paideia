@@ -1,4 +1,4 @@
-from gluon import current, BEAUTIFY, xmlescape
+from gluon import current, BEAUTIFY, xmlescape, XML
 from datetime import timedelta
 import urllib2
 mail = current.mail
@@ -61,21 +61,18 @@ class Bug(object):
                             location=location.id,
                             user_response=answer,
                             log_id=log_id,
-                            score=score,
-                            bla=bla)
+                            score=score)
             response.flash = 'Thanks for reporting this potential bug. We will\
                     look at the question to see what the problem was. If there\
                     turns out to be a problem with the question, this answer\
                     will be ignored as we track your learning. Check your\
                     profile page in the next few days to see the instructor\'s\
                     response to your bug report.'
-            xmlescape(response.flash).replace('\n', ' ')
             return True
         except Exception, e:
             response.flash = 'Sorry, something went wrong with your bug\
                     report. An email including the details of your response\
                     has been sent automatically to the instructor.'
-            response.flash = urllib2.quote(xmlescape(response.flash).replace('\n', ''))
             mail.send(mail.settings.sender,
                       'bug reporting error',
                       '<html>A user tried to submit a step bug report, but the\
