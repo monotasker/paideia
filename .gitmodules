@@ -10,3 +10,6 @@
 [submodule "plugins/plugin_slider"]
 	path = plugins/plugin_slider
 	url = git@github.com:monotasker/plugin_slider.git
+[submodule "plugins/plugin_widgets"]
+	path = plugins/plugin_widgets
+	url = git@github.com:monotasker/plugin_widgets
