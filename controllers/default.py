@@ -38,11 +38,15 @@ def user():
         s = Stats(auth.user_id)
         active = s.active_tags()
         cal = s.monthcal()
+        max_set = db(db.tag_progress.name ==
+                      auth.user_id).select().first().latest_new
 
         b = Bug()
         blist = b.bugresponses(auth.user_id)
 
-        return {'form': auth(), 'cal': cal, 'blist': blist, 'active': active}
+        return {'form': auth(), 'cal': cal,
+                'blist': blist, 'active': active,
+                'max_set': max_set}
     else:
         return {'form': auth()}
 

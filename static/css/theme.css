@@ -959,7 +959,7 @@ nav .sf-menu li:hover li,
 nav .sf-menu li .sfHover li {
   line-height: 36px;
   height: 36px;
-  background-color: #333333;
+  background-color: #073642;
   font-weight: normal;
 }
 nav .sf-menu li:hover li a,
@@ -1043,7 +1043,7 @@ body #page #page {
   border-image: url('') 0 0 0 0 repeat repeat;
 }
 body #page #utils {
-  background-color: #666;
+  background-color: #fcfbf7;
   color: #fff;
   -moz-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
   -webkit-text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(270, 270, 270, 0.5);
@@ -1081,10 +1081,10 @@ body #page #utils input {
   margin-right: 16px;
 }
 body #page #utils a {
-  color: #fff;
+  color: #ffffff;
 }
 body #page #utils a:hover {
-  color: yellow;
+  color: #7e9aff;
 }
 body #page #utils .icon-gear {
   display: block;
@@ -1120,7 +1120,7 @@ body #page article {
   -moz-hyphens: auto;
   -webkit-hyphens: auto;
   font-family: prociono;
-  color: #666;
+  color: #586e75;
 }
 body #page article section {
   padding: 0;
@@ -1260,10 +1260,10 @@ body #page .comments .comment {
   color: #888;
 }
 body #page .comments .comment .comment_author {
-  color: #b10808;
+  color: #dc322f;
 }
 body #page .comments .comment .comment_date {
-  color: #aaa;
+  color: #aaaaaa;
   display: block;
   float: right;
 }
@@ -1290,7 +1290,7 @@ body #page #right_sidebar h2 {
   font-size: 16px;
   letter-spacing: 2px;
   font-weight: normal;
-  color: #aaa;
+  color: #aaaaaa;
 }
 body #page #left_sidebar a,
 body #page #right_sidebar a,
@@ -1411,7 +1411,7 @@ body #page #right_sidebar div:hover {
 #page.exploring .responder .readable_short,
 #page.exploring .prompt .readable_long,
 #page.exploring .responder .readable_long {
-  color: #859900;
+  color: #e4edf7;
 }
 #page.exploring .prompt .prompt_badges_wrapper,
 #page.exploring .responder .prompt_badges_wrapper,
@@ -1738,17 +1738,23 @@ body #page #right_sidebar div:hover {
   padding-left: 60px;
 }
 #page.profile p.overview .total_len,
-#page.user p.overview .total_len {
+#page.user p.overview .total_len,
+#page.profile p.overview .max_set,
+#page.user p.overview .max_set {
   background: #f5f5f5;
-  border: 3px solid #eee;
+  border: 3px solid #eeeeee;
   display: inline-block;
   height: 36px;
   width: 36px;
   border-radius: 18px;
-  color: #aaa;
+  color: #aaaaaa;
   line-height: 36px;
   text-align: center;
   box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.3);
+}
+#page.profile .most_recent,
+#page.user .most_recent {
+  color: #b58900;
 }
 #page.profile table.summary_stats,
 #page.user table.summary_stats {
@@ -1787,7 +1793,7 @@ body #page #right_sidebar div:hover {
 }
 #page.profile table.summary_stats td.total_cat3,
 #page.user table.summary_stats td.total_cat3 {
-  background-color: #AAE557;
+  background-color: #aae557;
 }
 #page.profile table.summary_stats td.total_cat2,
 #page.user table.summary_stats td.total_cat2 {
@@ -1889,7 +1895,7 @@ body #page #right_sidebar div:hover {
 #page.user .paideia_monthcal .paideia_monthcal_table td {
   width: 60px;
   height: 60px;
-  color: #aaa;
+  color: #aaaaaa;
   font-size: 16px;
   position: relative;
   padding: 2px;
