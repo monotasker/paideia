@@ -39,12 +39,6 @@ with open('applications/paideia/private/app.keys', 'r') as keyfile:
         k, v = line.split()
         keydata[k] = v
 
-#configure mail
-mail = Mail()                                  # mailer
-mail.settings.server = keydata['email_sender'] or 'logging'  # SMTP server
-mail.settings.sender = keydata['email_address']  # email
-mail.settings.login = keydata['email_pass']  # credentials or None
-
 #configure authorization
 auth = Auth(db, hmac_key=Auth.get_or_create_key())  # authent/authorization
 
@@ -59,6 +53,13 @@ auth.settings.extra_fields['auth_user'] = [
 ]
 
 auth.define_tables()                           # creates all needed tables
+
+#configure mail
+mail = auth.settings.mailer                                  # mailer
+mail.settings.server = keydata['email_sender'] or 'logging'  # SMTP server
+mail.settings.sender = keydata['email_address']  # email
+mail.settings.login = keydata['email_pass']  # credentials or None
+current.mail = mail
 
 auth.settings.mailer = mail                    # for user email verification
 auth.settings.registration_requires_verification = False

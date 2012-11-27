@@ -1,5 +1,7 @@
-from gluon import current
+from gluon import current, BEAUTIFY, xmlescape, XML
 from datetime import timedelta
+import urllib2
+mail = current.mail
 
 
 class Bug(object):
@@ -39,6 +41,8 @@ class Bug(object):
         if self.verbose: print 'calling Bug.log_new object ================='
         debug = True
         response = current.response
+        session = current.session
+        request = current.request
         db = current.db
         if step is None:
             step = self.step
@@ -67,7 +71,14 @@ class Bug(object):
             return True
         except Exception, e:
             response.flash = 'Sorry, something went wrong with your bug\
-                    report. Please contact the instructor.'
+                    report. An email including the details of your response\
+                    has been sent automatically to the instructor.'
+            mail.send(mail.settings.sender,
+                      'bug reporting error',
+                      '<html>A user tried to submit a step bug report, but the\
+                       report failed. The session data is:\n{}\nThe request\
+                       data is: {}</html>'.format(BEAUTIFY(session),
+                                           BEAUTIFY(request)))
             # TODO: Log these errors.
             print 'Error in Bug.log_new():', e
             return False
