@@ -1080,10 +1080,14 @@ class Walk(object):
                 if debug: print 'already completed:', self.completed_paths
                 p_list.exclude(lambda row: row.id in self.completed_paths)
                 if debug: print 'path list without those:', p_list
-                # prevent getting hung up because of steps with right tag but
-                # with no location
+                # avoid steps with right tag but no location
                 p_list.exclude(lambda row: db.steps[row.steps[0]].locations
                                                                     is None)
+                # avoid paths whose steps have tags beyond user's active tags
+                maxp = db.tag_progress[auth.user_id].latest_new
+                p_list.exclude(lambda row: [t for s in row.steps
+                                                for t in db.steps[s].tags
+                                                if db.tags[t].position > maxp])
 
             if len(p_list) > 0:
                 if debug: print 'some new paths are available in cat', cat
@@ -1124,6 +1128,12 @@ class Walk(object):
         # filter out paths whose tags aren't in the tag_list
         paths = p_list1.find(lambda row:
                      [t for t in row.tags if t in [l.id for l in tag_list]])
+        # avoid paths whose steps have tags beyond user's active tags
+        max_p = db.tag_progress[auth.user_id].latest_new
+        paths.exclude(lambda row: [t for s in row.steps
+                                        for t in db.steps[s].tags
+                                        if db.tags[t].position > max_p])
+
         for p in paths:
             the_step = db.steps[p.steps[0]]
             if the_step.locations and (loc_id in the_step.locations):
