@@ -458,11 +458,11 @@ class Walk(object):
                     # require at least 10 right answers
                     and (record.times_right >= 10)) \
                 or ((record.times_right > 0)  # prevent zero division error
-                    and ((record.times_wrong / record.times_right) <= 0.125)
+                    and ((record.times_wrong / record.times_right) <= 0.2)
                     and (right_dur <= datetime.timedelta(days=2))) \
                 or ((record.times_wrong == 0)  # prevent zero division error
                     and (record.times_right >= 20)):
-                    # allow for 1 wrong answer for every 8 correct
+                    # allow for 1 wrong answer for every 5 correct
                     # promote in any case if the user has never had a wrong
                     # answer in 20+ attempts
                 # ==================================================
