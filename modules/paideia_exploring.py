@@ -1083,11 +1083,11 @@ class Walk(object):
                 # avoid steps with right tag but no location
                 p_list.exclude(lambda row: db.steps[row.steps[0]].locations
                                                                     is None)
-                # avoid paths whose steps have tags beyond user's active tags
-                maxp = db.tag_progress[auth.user_id].latest_new
-                p_list.exclude(lambda row: [t for s in row.steps
-                                                for t in db.steps[s].tags
-                                                if db.tags[t].position > maxp])
+            # exclude paths whose steps have tags beyond user's active tags
+            #if len(p_list) > 0:
+                #maxp = db.tag_progress[auth.user_id].latest_new
+                #p_list.exclude(lambda row:
+                    #[t for t in row.tags if db.tags[t].position > maxp])
 
             if len(p_list) > 0:
                 if debug: print 'some new paths are available in cat', cat
@@ -1128,18 +1128,14 @@ class Walk(object):
         # filter out paths whose tags aren't in the tag_list
         paths = p_list1.find(lambda row:
                      [t for t in row.tags if t in [l.id for l in tag_list]])
-        # avoid paths whose steps have tags beyond user's active tags
-        max_p = db.tag_progress[auth.user_id].latest_new
-        paths.exclude(lambda row: [t for s in row.steps
-                                        for t in db.steps[s].tags
-                                        if db.tags[t].position > max_p])
 
-        for p in paths:
-            the_step = db.steps[p.steps[0]]
-            if the_step.locations and (loc_id in the_step.locations):
-                return p, the_step
-            else:
-                continue
+        if len(paths) > 0:
+            for p in paths:
+                the_step = db.steps[p.steps[0]]
+                if the_step.locations and (loc_id in the_step.locations):
+                    return p, the_step
+                else:
+                    continue
 
         # 6) Send user to look elsewhere for a path with active tags
         next_locs = db.steps[paths[0].steps[0]].locations
