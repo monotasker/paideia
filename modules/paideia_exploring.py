@@ -458,11 +458,11 @@ class Walk(object):
                     # require at least 10 right answers
                     and (record.times_right >= 10)) \
                 or ((record.times_right > 0)  # prevent zero division error
-                    and ((record.times_wrong / record.times_right) <= 0.125)
+                    and ((record.times_wrong / record.times_right) <= 0.2)
                     and (right_dur <= datetime.timedelta(days=2))) \
                 or ((record.times_wrong == 0)  # prevent zero division error
                     and (record.times_right >= 20)):
-                    # allow for 1 wrong answer for every 8 correct
+                    # allow for 1 wrong answer for every 5 correct
                     # promote in any case if the user has never had a wrong
                     # answer in 20+ attempts
                 # ==================================================
@@ -1080,10 +1080,14 @@ class Walk(object):
                 if debug: print 'already completed:', self.completed_paths
                 p_list.exclude(lambda row: row.id in self.completed_paths)
                 if debug: print 'path list without those:', p_list
-                # prevent getting hung up because of steps with right tag but
-                # with no location
+                # avoid steps with right tag but no location
                 p_list.exclude(lambda row: db.steps[row.steps[0]].locations
                                                                     is None)
+            # exclude paths whose steps have tags beyond user's active tags
+            #if len(p_list) > 0:
+                #maxp = db.tag_progress[auth.user_id].latest_new
+                #p_list.exclude(lambda row:
+                    #[t for t in row.tags if db.tags[t].position > maxp])
 
             if len(p_list) > 0:
                 if debug: print 'some new paths are available in cat', cat
@@ -1124,12 +1128,14 @@ class Walk(object):
         # filter out paths whose tags aren't in the tag_list
         paths = p_list1.find(lambda row:
                      [t for t in row.tags if t in [l.id for l in tag_list]])
-        for p in paths:
-            the_step = db.steps[p.steps[0]]
-            if the_step.locations and (loc_id in the_step.locations):
-                return p, the_step
-            else:
-                continue
+
+        if len(paths) > 0:
+            for p in paths:
+                the_step = db.steps[p.steps[0]]
+                if the_step.locations and (loc_id in the_step.locations):
+                    return p, the_step
+                else:
+                    continue
 
         # 6) Send user to look elsewhere for a path with active tags
         next_locs = db.steps[paths[0].steps[0]].locations

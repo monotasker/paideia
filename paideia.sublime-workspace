@@ -444,22 +444,6 @@
 			}
 		},
 		{
-			"file": "/home/ian/web/web2py/plugins/plugin_framework/static/plugin_framework/theme_paideia.less",
-			"settings":
-			{
-				"buffer_size": 24064,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "static/css/theme.less",
-			"settings":
-			{
-				"buffer_size": 45,
-				"line_ending": "Unix"
-			}
-		},
-		{
 			"file": "controllers/exploring.py",
 			"settings":
 			{
@@ -471,7 +455,7 @@
 			"file": "views/exploring/walk.load",
 			"settings":
 			{
-				"buffer_size": 5348,
+				"buffer_size": 5460,
 				"line_ending": "Unix"
 			}
 		},
@@ -672,6 +656,7 @@
 	},
 	"file_history":
 	[
+		"/home/ian/web/web2py/plugins/plugin_framework/static/plugin_framework/theme_paideia.less",
 		"/home/ian/web/web2py/applications/paideia/static/css/theme.less",
 		"/home/ian/web/web2py/applications/paideia/static/plugin_framework/theme_paideia.less",
 		"/home/ian/web/web2py/plugins/plugin_framework/static/plugin_framework/framework.less",
@@ -856,7 +841,7 @@
 	"groups":
 	[
 		{
-			"selected": 3,
+			"selected": 1,
 			"sheets":
 			[
 				{
@@ -907,7 +892,7 @@
 						],
 						"settings":
 						{
-							"color_scheme": "Packages/Origami/Solarized Color Scheme/Solarized (dark).tmTheme",
+							"color_scheme": "Packages/Solarized Color Scheme/Solarized (dark).tmTheme",
 							"function_name_status_row": 575,
 							"syntax": "Packages/LESS/LESS.tmLanguage",
 							"tab_size": 4,
@@ -915,64 +900,6 @@
 						},
 						"translation.x": 0.0,
 						"translation.y": 12220.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "/home/ian/web/web2py/plugins/plugin_framework/static/plugin_framework/theme_paideia.less",
-					"settings":
-					{
-						"buffer_size": 24064,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								4605,
-								4605
-							]
-						],
-						"settings":
-						{
-							"color_scheme": "Packages/Origami/Solarized Color Scheme/Solarized (dark).tmTheme",
-							"function_name_status_row": 134,
-							"syntax": "Packages/LESS/LESS.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 2623.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "static/css/theme.less",
-					"settings":
-					{
-						"buffer_size": 45,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								10,
-								10
-							]
-						],
-						"settings":
-						{
-							"color_scheme": "Packages/Solarized Color Scheme/Solarized (dark).tmTheme",
-							"function_name_status_row": 0,
-							"syntax": "Packages/LESS/LESS.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -984,7 +911,7 @@
 			"sheets":
 			[
 				{
-					"buffer": 4,
+					"buffer": 2,
 					"file": "controllers/exploring.py",
 					"settings":
 					{
@@ -1063,11 +990,11 @@
 					"type": "text"
 				},
 				{
-					"buffer": 5,
+					"buffer": 3,
 					"file": "views/exploring/walk.load",
 					"settings":
 					{
-						"buffer_size": 5348,
+						"buffer_size": 5460,
 						"regions":
 						{
 						},
@@ -1093,7 +1020,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 6,
+					"buffer": 4,
 					"file": "models/paideia.py",
 					"settings":
 					{
@@ -1172,7 +1099,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 7,
+					"buffer": 5,
 					"file": "controllers/default.py",
 					"settings":
 					{
@@ -1189,7 +1116,7 @@
 						],
 						"settings":
 						{
-							"color_scheme": "Packages/Origami/Solarized Color Scheme/Solarized (dark).tmTheme",
+							"color_scheme": "Packages/Solarized Color Scheme/Solarized (dark).tmTheme",
 							"function_name_status_row": 24,
 							"syntax": "Packages/Python/Python.tmLanguage",
 							"tab_size": 4,
@@ -1232,7 +1159,7 @@
 		"cols":
 		[
 			0.0,
-			0.7,
+			0.65,
 			1.0
 		],
 		"rows":
