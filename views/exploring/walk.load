@@ -52,13 +52,10 @@
 <!--path selection-->
 {{elif request.args(0) == 'start' or not request.args:}}
 	<embed id='town_map' src='{{=map.image}}' type='image/svg+xml' />
-    <a href='#' class='townmap_key_trigger icon-only icon-search'>
-        <span class='accessible'>Show map hotspots</span>
-    </a>
-    <span id='townmap_key'>
-        <img src='../static/images/townmap.png' />
-    </span>
-
+    {{=TOOLTIP('townmap_key', 'Show map hotspots',
+        IMG(_src='../static/images/townmap.png'),
+        'search')}}
+    
 <!--present npc reply for user's response to step prompt-->
 {{elif 'response' in request.vars:}}
     <div class='bg_image'>{{=XML(bg_image)}}</div>
@@ -85,6 +82,7 @@
             {{=len(session.walk['active_paths'].keys())}} paths;
             {{=len(session.walk['completed_paths'])}}
         paths already complete today.</span>
+        {{=ROLE(SPAN('select type: {}'.format(''), _class='select_type'))}}  
     </section>
     <div class='responder'>
         {{=A("Continue", _href=URL('walk', args=['ask'],
