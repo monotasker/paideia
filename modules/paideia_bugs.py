@@ -43,6 +43,7 @@ class Bug(object):
         response = current.response
         session = current.session
         request = current.request
+        auth = current.auth
         db = current.db
         if step is None:
             step = self.step
@@ -54,6 +55,18 @@ class Bug(object):
         if debug:
             print 'score =', score
             print 'log_id =', log_id
+
+        # get most recent log entry if no log_id is provided
+        if log_id is None:
+            rows = db(db.attempt_log.name
+                    == auth.user_id).select(orderby=db.attempt_log.dt_attempted)
+            log_id = rows.last().id
+
+        if debug:
+            rows = db(db.attempt_log.name
+                    == auth.user_id).select(orderby=db.attempt_log.dt_attempted)
+            log_id = rows.last().id
+            print 'log_id retrieved from table:', log_id
 
         try:
             db.bugs.insert(step=step,
