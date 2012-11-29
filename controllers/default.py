@@ -39,7 +39,11 @@ def user():
         active = s.active_tags()
         cal = s.monthcal()
         max_set = db(db.tag_progress.name ==
-                      auth.user_id).select().first().latest_new
+                      auth.user_id).select().first()
+        if not max_set is None:
+            max_set = max_set.latest_new
+        else:
+            max_set = 1
 
         b = Bug()
         blist = b.bugresponses(auth.user_id)
