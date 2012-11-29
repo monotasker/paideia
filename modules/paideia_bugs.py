@@ -203,7 +203,7 @@ class Bug(object):
         debug = False
 
         bugs_q = (db.steps.id == db.bugs.step) & (db.bugs.user_name == user)
-        bugs = db(bugs_q).select()
+        bugs = db(bugs_q).select(orderby=~db.bugs.date_submitted)
         if debug: print 'DEBUG: bugs.select() =', bugs
         lst = []
         for b in bugs:

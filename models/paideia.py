@@ -314,6 +314,7 @@ db.define_table('bugs',
     Field('date_submitted', 'datetime', default=dtnow),
     Field('bug_status', db.bug_status, default=5),
     Field('admin_comment', 'text'),
+    Field('hidden', 'boolean'),
     format='%(step)s')
 
 db.define_table('session_data',
