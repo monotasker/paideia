@@ -29,12 +29,15 @@ response.menu = [
     ]
 
 if auth.has_membership('administrators', auth.user_id):
-    response.menu += [(SPAN(T('Admin'), _class='icon-gear'), False, None, [
+    response.menu += [(SPAN(T('Admin'), _class='icon-only icon-gear'), False, None, [
             (T('Create'), False, None, [
                 (T('Slide decks'), False, URL('editing',
-                            'listing.html', args=['plugin_slider_decks'])),
+                                            'listing.html',
+                                            args=['plugin_slider_decks'])),
                 (T('Slides'), False, URL('editing',
-                            'listing.html', args=['plugin_slider_slides'])),
+                                        'listing.html',
+                                        args=['plugin_slider_slides'],
+                                        vars={'orderby':'slide_name'})),
                 (T('Paths'), False, URL('editing',
                             'listing.html', args=['paths'])),
                 (T('Steps'), False, URL('editing',
