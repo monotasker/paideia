@@ -1818,7 +1818,7 @@ class StepMultipleChoice(Step):
         if form.process().accepted:
             session.response = request.vars.response
 
-        wrapper = DIV(form, instructions)
+        wrapper = DIV(form)
 
         return wrapper
 
