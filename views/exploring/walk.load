@@ -110,7 +110,9 @@
     <div class="npc prompt">{{=prompt}}</div>
     <div class='responder'>
         {{=form}}
-        {{=TOOLTIP('prompt_tips', 'tips', XML(instructions), 'star')}}
+        {{if not instructions is None:}}
+            {{=TOOLTIP('prompt_tips', 'tips', XML(instructions), 'star')}}
+        {{pass}}
     </div>
 {{pass}}
 
