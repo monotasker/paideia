@@ -1818,8 +1818,7 @@ class StepMultipleChoice(Step):
         if form.process().accepted:
             session.response = request.vars.response
 
-        instructions = self._get_instructions()
-        wrapper = DIV(form, instructions, _class='responder')
+        wrapper = DIV(form, instructions)
 
         return wrapper
 
@@ -1970,7 +1969,7 @@ class StepStub(Step):
         map_button = A("Map", _href=URL('walk'),
                         cid='page',
                         _class='button-yellow-grad back_to_map icon-location')
-        responder = DIV(map_button, _class='responder')
+        responder = DIV(map_button)
 
         self._complete()
 
@@ -2053,7 +2052,7 @@ class StepNonBlocking(StepStub, Step):
                     cid='page',
                     _class='button-green-grad next_q')
 
-        wrapper = DIV(buttons, _class='responder')
+        wrapper = DIV(buttons)
 
         self._complete()
 
