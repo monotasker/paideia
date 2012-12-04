@@ -1567,7 +1567,7 @@ class Step(object):
                         path=self.path.id,
                         step=self.step.id
                     )
-                    if debug: print 'updated existing record'
+                    if debug: print 'updated record for', tag_record.tag
 
                 else:
                     times_right = 1
@@ -1585,7 +1585,8 @@ class Step(object):
                         path=self.path.id,
                         step=self.step.id
                     )
-                    if debug: print 'created new record'
+                    if debug: print 'created new record for', tag_record.tag
+
 
         # TODO: Work on more concise version below
 

@@ -45,6 +45,8 @@ def user():
 
         this_weeklist = []
         for day in this_week:
+            if day < 10:
+                day = '0{}'.format(day) #avoid error due to invalid day num
             datestring = '{}{}{}'.format(day, today.month, today.year)
             print datestring
             date = datetime.datetime.strptime(datestring, "%d%m%Y").date()
