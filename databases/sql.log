@@ -733,5 +733,5 @@ CREATE TABLE step_status(
     status_label TEXT UNIQUE
 );
 success!
-timestamp: 2012-11-29T14:07:40.165948
+timestamp: 2012-11-29T13:20:53.905267
 ALTER TABLE bugs ADD hidden CHAR(1);

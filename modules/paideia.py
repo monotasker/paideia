@@ -22,7 +22,7 @@ class Npc(object):
         if db is None:
             db = current.db
         self.id_num = id_num
-        self.data = db.npcs(id_num)
+        self.data = db.npcs[id_num]
 
     def get_id(self):
         """return the database row id of the current npc"""
@@ -30,13 +30,20 @@ class Npc(object):
 
     def get_name(self):
         """return the name of the current npc"""
-
-        return self.data
+        return self.data.name
 
     def get_image(self):
         """docstring for get_image"""
-        pass
+        return self.data.npc_image
 
     def get_locations(self):
         """docstring for get_locations"""
+        return self.data.location
+
+    def get_notes(self):
+        """docstring for get_locations"""
+        return self.data.notes
+
+    def choose(self, step, location, prev_npc):
+        """choose a new npc for the step that has been selected"""
         pass
