@@ -25,6 +25,7 @@ def run_execfile(w2p_dir, test_dir, app_name):
         if 'site-packages' not in sys.path:
             sys.path.append('site-packages')    # support imports from web2py/site-packages
         g = copy(globals())
+        print current
         proc = subprocess.Popen("py.test {}".format(test_dir),
                                     stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE,
