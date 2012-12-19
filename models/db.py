@@ -9,6 +9,7 @@ from pytz import common_timezones
 from gluon.tools import Recaptcha, Mail, Auth, Crud, Service, PluginManager
 from gluon.tools import IS_IN_SET
 from gluon.globals import current
+
 response = current.response
 request = current.request
 
