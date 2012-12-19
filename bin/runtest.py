@@ -18,7 +18,6 @@ def run_execfile(w2p_dir, test_dir, app_name):
         test_dir = os.path.join(w2p_dir, 'applications', app_name, test_dir)
         if test_dir not in sys.path:
             sys.path.append(test_dir)   # to support imports from current folder in the testfiles
-        # modules are applications/[app_name]/modules
         modules_path = os.path.join('applications', app_name, 'modules')
         if modules_path not in sys.path:
             sys.path.append(modules_path)       # to support imports from modules folder
@@ -31,6 +30,8 @@ def run_execfile(w2p_dir, test_dir, app_name):
                                     shell=True)
         stdout_val, stderr_val = proc.communicate()
         print stdout_val, stderr_val
+        #execfile(py.test, g)
+        #return g
 
     except errlist:
         pass
@@ -40,5 +41,5 @@ def run_execfile(w2p_dir, test_dir, app_name):
         print type(e), e
 
 if __name__=='__main__':
-    run_execfile('~/web/web2py/', 'tests', 'paideia')
+    run_execfile('~/web/web2py/', 'tests/modules/', 'paideia')
 
