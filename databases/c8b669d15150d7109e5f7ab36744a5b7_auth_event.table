@@ -32,7 +32,7 @@ p14
 sg6
 I4
 sg7
-S'INTEGER REFERENCES auth_user(id) ON DELETE CASCADE'
+S'INTEGER REFERENCES auth_user (id) ON DELETE CASCADE'
 p15
 ssS'description'
 p16
@@ -60,10 +60,11 @@ ssS'id'
 p24
 (dp25
 g4
-g24
+S'id'
+p26
 sg6
 I1
 sg7
 S'INTEGER PRIMARY KEY AUTOINCREMENT'
-p26
+p27
 ss.
