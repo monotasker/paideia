@@ -24,6 +24,10 @@ class Npc(object):
         self.id_num = id_num
         self.data = db.npcs[id_num]
 
+        # get image here so that db interaction stays in __init__ method
+        image_id = self.data.npc_image
+        self.image = db.images[image_id].image
+
     def get_id(self):
         """return the database row id of the current npc"""
         return self.id_num
@@ -33,8 +37,9 @@ class Npc(object):
         return self.data.name
 
     def get_image(self):
-        """docstring for get_image"""
-        return self.data.npc_image
+        """Return a web2py IMG object for the image depicting this npc."""
+
+        return self.image
 
     def get_locations(self):
         """docstring for get_locations"""

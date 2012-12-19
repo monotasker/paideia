@@ -42,11 +42,11 @@ class TestNpc():
 
     def test_npc_get_image(self, mynpc):
         """Test for method Npc.get_image()"""
-        pass
+        assert mynpc.get_image() == 0
 
     def test_npc_get_locations(self, mynpc)
         """Test for method Npc.get_locations()"""
-        pass
+        assert mynpc.get_locations == 0
 
 class TestStance():
     pass
