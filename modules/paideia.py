@@ -171,11 +171,6 @@ class Step(object):
         """docstring for get_instructions"""
         pass
 
-    def _eval_response(self):
-        """docstring for eval_response"""
-        # TODO: unfinished
-        pass
-
     def _make_replacements(self):
         """docstring for eval_response"""
         # TODO: unfinished
@@ -184,26 +179,38 @@ class Step(object):
 
 class StepEvaluator(object):
 
-    def __init__(self, step):
+    def __init__(self, step_data, db=None):
         """docstring for __init__"""
-        pass
+        if db == None:
+            db = current.db
+        self.score = None
+        self.step_data = step_data
 
     def get_eval(self):
         """docstring for get_eval"""
-        tips = self.get_tips()
+        
+        #TODO: unfinished
+        
         self.score = ???
-        self._record()
-        bug_reporter = BugReporter(record_id)
+        record = self._record()
+        if record['score'] == self.score:
+            pass
+        else:
+            pass
+        
+        
+        tips = self.step_data.tips
+        bug_reporter = BugReporter(record['record_id'])
         return {'bug_reporter'=bug_reporter,
                 'tips'=tips}
 
-    def get_tips(self):
-        """docstring for get_tips"""
-        pass
-
     def _record(self):
         """docstring for _record"""
-        pass
+        score = ???
+        record_id = ???
+        #TODO: unfinished
+        return {'score'=score,
+                'record_id'=record_id}
 
 
 
