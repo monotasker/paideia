@@ -24,12 +24,13 @@ def user():
     if weekindex != 0:
         last_week = monthcal[weekindex - 1]
     else:
-        lastmonth = today - datetime.timedelta(months=1)
-        lastmonth = lastmonth.month
-        lastmonthcal = calendar.monthcalendar(today.year, lastmonth)
-        last_week = lastmonthcal[-1]
+        first = datetime.date(day=1, month=today.month, year=today.year)
+        last_monthend = first - datetime.timedelta(days=1)
+        last_month = last_monthend.month
+        last_monthcal = calendar.monthcalendar(today.year, last_month)
+        last_week = last_monthcal[-1]
         if last_week == this_week:
-            last_week = lastmonthcal[-2]
+            last_week = last_monthcal[-2]
         # TODO: put previous month here for last_week_month
     pprint.pprint(last_week)
 
@@ -45,6 +46,8 @@ def user():
 
         this_weeklist = []
         for day in this_week:
+            if day == 0:
+                continue # TODO: add last month's days at month boundaries
             if day < 10:
                 day = '0{}'.format(day) #avoid error due to invalid day num
             datestring = '{}{}{}'.format(day, today.month, today.year)
@@ -62,6 +65,11 @@ def user():
 
         last_weeklist = []
         for day in last_week:
+            if day == 0:
+                continue # TODO: add last month's days at month boundaries
+                # TODO: if at month start add to this_weeklist and get previous
+            if day < 10:
+                day = '0{}'.format(day) #avoid error due to invalid day num
             datestring = '{}{}{}'.format(day, today.month, today.year)
             print datestring
             date = datetime.datetime.strptime(datestring, "%d%m%Y").date()
