@@ -1,5 +1,5 @@
 from gluon import current
-from gluon import IMG, URL
+from gluon import IMG, URL, INPUT, FORM, SPAN, DIV
 from random import randint
 
 
@@ -109,7 +109,18 @@ class Npc(object):
         """docstring for get_locations"""
         return self.data.notes
 
-    def choose(self, step, location, prev_npc, prev_loc):
+class NpcChooser(object):
+    """
+    Choose an npc to engage the user in the current step, based on the current location and
+    the parameters of the step itself.
+    """
+    def __init__(self, step, location, prev_npc, prev_loc):
+        """
+        Initialize an NpcChooser object.
+        """
+        pass
+
+    def choose(self):
         """
         Choose an npc for the selected step.
         If possible, continue with the same npc. Otherwise, select a different
@@ -128,17 +139,27 @@ class Npc(object):
             else:
                 return available2[0]
 
-class BugReporter(object):
+
+class BugReporter(object, step_id, user_response, record_id):
+    """
+    Class representing a bug-reporting widget to be presented along with the evaluation
+    of the current step.
+    """
     pass
 
+
 class Step(object):
+    '''
+    This class represents one step (a single question and response interaction) in the game.
+    '''
+
     def __init__(self, step_id, db=None):
         """docstring for __init__"""
         if db is None:
             db == current.db
         self.db = db
         self.data = db.steps[step_id]
-        self.prompt = self.data.prompt
+        self.raw_prompt = self.data.prompt
         self.locations = self.data.location
         self.npcs = self.data.npcs
         self.reply = None
@@ -149,15 +170,39 @@ class Step(object):
         self.tips = self.data.tips
         self.record_id
 
-    def get_prompt(self):
-        """docstring for get_prompt"""
-        return self.prompt
+    def get_prompt(self, raw_prompt=None):
+        """
+        Return the prompt information for the step. In the Step base class this is a simple
+        string. Before returning, though, any necessary replacements or randomizations
+        are made.
+        """
+        if raw_prompt == None:
+            raw_prompt = self.prompt
+        prompt = self._make_replacements(raw_prompt)
+        return {'prompt':prompt}
 
-    def get_reply(self, response):
+    def get_responder(self):
+        """
+        Return the html form to allow the user to respond to the prompt for this step.
+        """
+
+    def get_reply(self, user_response=None):
         """docstring for get_reply"""
-        self.response = response
+        response = current.response
+        if user_response == None:
+            user_response = response.vars['response']
+        bug_reporter = BugReporter(record_id)
+        eval = StepEvaluator(response)
+        reply_text = eval['reply']
+        tips = eval['tips']
+
+
         # TODO: unfinished
-        pass
+        return {'response': user_response,
+                'reply_text': reply_text,
+                'bug_reporter': bug_reporter,
+                'tips':tips}
+
 
     def get_npcs(self):
         """docstring for get_npcs"""
@@ -171,46 +216,73 @@ class Step(object):
         """docstring for get_instructions"""
         pass
 
-    def _make_replacements(self):
+    def _make_replacements(self, raw_prompt=None):
         """docstring for eval_response"""
-        # TODO: unfinished
+        if raw_prompt == None:
+            raw_prompt == self.raw_prompt
         pass
 
 
 class StepEvaluator(object):
+    '''
+    This class evaluates the user's response to a single step interaction and handles the
+    data that results.
+    '''
 
     def __init__(self, step_data, db=None):
-        """docstring for __init__"""
+        """Initializes a StepEvaluator object"""
         if db == None:
             db = current.db
         self.score = None
         self.step_data = step_data
 
-    def get_eval(self):
-        """docstring for get_eval"""
-        
-        #TODO: unfinished
-        
-        self.score = ???
-        record = self._record()
-        if record['score'] == self.score:
+    def get_eval(self, user_response=None):
+        """
+        The main public method that returns the evaluation result and triggers the
+        handling of user-performance data. This method also returns the "tips" text
+        to be displayed to the user in case of a wrong answer and the db id of the
+        transaction that recorded the user performance data. This latter allows for
+        reversing the transaction later.
+        """
+        if user_response == None:
+            user_response =
+        result = self._eval(user_response)
+        score = result['score']
+        tips = result['tips'] # get from _eval to allow for varying based on kind of error
+
+        record = self._record(score)
+        if record['score'] == score:
             pass
         else:
-            pass
-        
-        
-        tips = self.step_data.tips
-        bug_reporter = BugReporter(record['record_id'])
-        return {'bug_reporter'=bug_reporter,
-                'tips'=tips}
+            pass # TODO: raise an error here
+
+
+
+        return {'tips':tips,
+                'record_id':record['record_id']}
+
+    def _eval(self, response=None):
+        """
+        Evaluate the user response against the step's regular expression(s)
+        """
+        score == 0 # TODO: add actual business logic
+
+        tips = self.step_data.tips  # TODO: customize tips for specific errors
+
+        return {'score': score,
+                'tips': tips}
 
     def _record(self):
-        """docstring for _record"""
-        score = ???
-        record_id = ???
+        """
+        Record user performance data resulting from the current step evaluation.
+        This method also returns some data so that the calling function can ensure
+        that the recorded result is accurate.
+        """
+        score = self.score
+        record_id = 0
         #TODO: unfinished
-        return {'score'=score,
-                'record_id'=record_id}
+        return {'score':score,
+                'record_id':record_id}
 
 
 
