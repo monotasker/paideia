@@ -25,8 +25,12 @@ def myloc():
 def mystep():
     """
     A pytest fixture providing a paideia.Step object for testing.
+    - same npc and location as previous step
     """
-    return Step(1, db)
+    loc = Location(8, db)
+    prev_loc = Location(8, db)
+    prev_npc_id = 1
+    return Step(1, loc, prev_loc, prev_npc_id, db)
 
 class TestNpc():
     '''
@@ -97,15 +101,23 @@ class TestStep():
 
     def test_step_get_prompt(self, mystep):
         """Test for method Step.get_prompt"""
-        assert mystep.get_prompt() == 'How could you write the word "meet" using Greek letters?'
+        assert mystep.get_prompt()['prompt'] == 'How could you write the word "meet" using Greek letters?'
+        assert mystep.get_prompt()['instructions'] == '<ul class="step_instructions"><li>Focus on finding Greek letters that make the *sounds* of the English word. Don\'t look for Greek "equivalents" for each English letter.</li></ul>'
+        assert mystep.get_prompt()['npc_image'] == '<img src="/paideia/static/images/images.image.bb48641f0122d2b6.696d616765732e696d6167652e383136303330663934646664646561312e34343732363137373639366536373230333432653733373636372e737667.svg" />'
 
-    def test_step_get_locations(self, mystep):
-        """Test for method Step.get_locations"""
-        assert mystep.get_locations() == [3, 1, 13, 7, 8, 11]
+    def test_step_get_npc(self, mystep):
+        """Test for method Step.get_npc"""
+        assert mystep.get_npc().get_id() == 1
 
-    def test_location_get_id(self, mystep):
-        """Test for method Step.get_id"""
-        assert mystep.get_id() == 1
+        locs = mystep.get_npc().get_locations()
+        assert isinstance(locs[0], Location)
+        assert locs[0].get_id() == 6
+        assert isinstance(locs[1], Location)
+        assert locs[1].get_id() == 8
+
+    def test_step_get_instructions(self, mystep):
+        """Test for method Step._get_instructions"""
+        assert mystep._get_instructions().xml() == '<ul class="step_instructions"><li>Focus on finding Greek letters that make the *sounds* of the English word. Don\'t look for Greek "equivalents" for each English letter.</li></ul>'
 
 
 class TestUser():
