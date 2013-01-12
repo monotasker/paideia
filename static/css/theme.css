@@ -179,6 +179,9 @@ form div {
   padding: 0;
 }
 /* modal dialogue *****************************************/
+/* custom modal mask */
+/* custom modal closer */
+/* custom modal dialog */
 .ui-resizable-handle {
   padding: 0;
 }
@@ -479,6 +482,11 @@ div.error {
   line-height: 24px;
   padding: 0;
   text-align: center;
+  -moz-border-radius: 16px 16px 16px 16px;
+  -webkit-border-radius: 16px 16px 16px 16px;
+  -o-border-radius: 16px 16px 16px 16px;
+  -ms-border-radius: 16px 16px 16px 16px;
+  border-radius: 16px 16px 16px 16px;
   font-weight: bold;
   -moz-border-radius: 16px 16px 16px 16px;
   -webkit-border-radius: 16px 16px 16px 16px;
@@ -1433,9 +1441,11 @@ body #page #right_sidebar div:hover {
   font-size: 16px;
   line-height: 24px;
   color: #666666;
+  padding: 24px;
   left: -320px;
   top: -72px;
   margin-left: 0;
+  display: none;
   z-index: 10;
   position: relative;
   border-radius: 36px;
@@ -1515,7 +1525,14 @@ body #page #right_sidebar div:hover {
   display: inline-block;
   width: 36px;
   height: 36px;
+  line-height: 36px;
   padding: 0;
+  text-align: center;
+  -moz-border-radius: 24px 24px 24px 24px;
+  -webkit-border-radius: 24px 24px 24px 24px;
+  -o-border-radius: 24px 24px 24px 24px;
+  -ms-border-radius: 24px 24px 24px 24px;
+  border-radius: 24px 24px 24px 24px;
   font-weight: bold;
   -moz-border-radius: 24px 24px 24px 24px;
   -webkit-border-radius: 24px 24px 24px 24px;
@@ -1778,6 +1795,7 @@ body #page #right_sidebar div:hover {
 #page.user table.summary_stats td.total_cat3,
 #page.profile table.summary_stats td.total_cat4,
 #page.user table.summary_stats td.total_cat4 {
+  height: 40px;
   width: 40px;
   color: #fff;
   height: 40px;
