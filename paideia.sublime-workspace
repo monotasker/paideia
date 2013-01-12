@@ -428,50 +428,10 @@
 	"buffers":
 	[
 		{
-			"file": "static/plugin_slider/plugin_slider.less",
+			"file": "/home/ian/Downloads/Ethiopic1Enoch(1).xml",
 			"settings":
 			{
-				"buffer_size": 13073,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "static/plugin_framework/framework.less",
-			"settings":
-			{
-				"buffer_size": 29943,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "controllers/exploring.py",
-			"settings":
-			{
-				"buffer_size": 7187,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "views/exploring/walk.load",
-			"settings":
-			{
-				"buffer_size": 5460,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "models/paideia.py",
-			"settings":
-			{
-				"buffer_size": 13081,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "controllers/default.py",
-			"settings":
-			{
-				"buffer_size": 4034,
+				"buffer_size": 346666,
 				"line_ending": "Unix"
 			}
 		}
@@ -479,9 +439,17 @@
 	"build_system": "Packages/LESS-build/LESS.sublime-build",
 	"command_palette":
 	{
-		"height": 392.0,
+		"height": 390.0,
 		"selected_items":
 		[
+			[
+				"list",
+				"Package Control: List Packages"
+			],
+			[
+				"pack",
+				"Package Control: Install Package"
+			],
 			[
 				":w",
 				":w - Save"
@@ -599,10 +567,6 @@
 				"Package Control: Disable Package"
 			],
 			[
-				"pack",
-				"Package Control: List Packages"
-			],
-			[
 				"packa",
 				"Package Control: Remove Package"
 			],
@@ -656,12 +620,18 @@
 	},
 	"file_history":
 	[
+		"/home/ian/web/web2py/applications/paideia/controllers/default.py",
+		"/home/ian/web/web2py/applications/paideia/models/paideia.py",
+		"/home/ian/web/web2py/applications/paideia/views/exploring/walk.load",
+		"/home/ian/web/web2py/applications/paideia/controllers/exploring.py",
+		"/home/ian/web/web2py/applications/paideia/static/plugin_framework/framework.less",
+		"/home/ian/web/web2py/applications/paideia/static/plugin_slider/plugin_slider.less",
+		"/home/ian/.config/sublime-text-2/Packages/SideBarEnhancements/messages/11.13.2012.1305.0.txt",
 		"/home/ian/web/web2py/plugins/plugin_framework/static/plugin_framework/theme_paideia.less",
 		"/home/ian/web/web2py/applications/paideia/static/css/theme.less",
 		"/home/ian/web/web2py/applications/paideia/static/plugin_framework/theme_paideia.less",
 		"/home/ian/web/web2py/plugins/plugin_framework/static/plugin_framework/framework.less",
 		"/home/ian/web/web2py/applications/paideia/modules/paideia_exploring.py",
-		"/home/ian/web/web2py/applications/paideia/static/plugin_framework/framework.less",
 		"/home/ian/web/web2py/applications/paideia/theme_paideia.css",
 		"/home/iscott/web/web2py/plugins/plugin_framework/static/plugin_framework/theme_paideia.less",
 		"/home/iscott/web/web2py/applications/paideia/views/exploring/index.html",
@@ -675,13 +645,11 @@
 		"/home/ian/.config/sublime-text-2/Packages/Default/Preferences.sublime-settings",
 		"/home/ian/.config/sublime-text-2/Packages/Package Control/Package Control.sublime-settings",
 		"/home/ian/.config/sublime-text-2/Packages/TodoManager/TodoManager.sublime-settings",
-		"/home/ian/web/web2py/applications/paideia/controllers/default.py",
 		"/home/ian/web/web2py/applications/paideia/static/plugin_framework/theme.less",
 		"/home/ian/web/web2py/bin/test_runner.py",
 		"/home/ian/web/web2py/applications/paideia/tests/modules/paideia_exploring.py",
 		"/home/ian/web/web2py/applications/paideia/models/db.py",
 		"/home/ian/web/web2py/applications/paideia/models/plugin_slider.py",
-		"/home/ian/web/web2py/applications/paideia/static/plugin_slider/plugin_slider.less",
 		"/home/ian/web/web2py/applications/paideia/modules/static/",
 		"/home/ian/.config/sublime-text-2/Packages/SplitScreen-Resizer/Default (Linux).sublime-keymap",
 		"/home/ian/web/web2py/applications/paideia/controllers/reporting.py",
@@ -694,7 +662,6 @@
 		"/home/ian/web/web2py/applications/paideia/modules/save_session_data.py",
 		"/home/ian/web/web2py/applications/paideia/views/exploring/index.html",
 		"/home/ian/.config/sublime-text-2/Packages/Flake8Lint/Flake8Lint.sublime-settings",
-		"/home/ian/web/web2py/applications/paideia/models/paideia.py",
 		"/home/ian/web/web2py/applications/paideia/models/menu.py",
 		"/home/ian/.config/sublime-text-2/Packages/User/Package Control.sublime-settings",
 		"/home/ian/.config/sublime-text-2/Packages/User/Flake8Lint.sublime-settings",
@@ -841,289 +808,40 @@
 	"groups":
 	[
 		{
-			"selected": 1,
+			"sheets":
+			[
+			]
+		},
+		{
+			"selected": 0,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "static/plugin_slider/plugin_slider.less",
+					"file": "/home/ian/Downloads/Ethiopic1Enoch(1).xml",
 					"settings":
 					{
-						"buffer_size": 13073,
+						"buffer_size": 346666,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								10113,
-								10113
-							]
-						],
-						"settings":
-						{
-							"color_scheme": "Packages/Origami/Solarized Color Scheme/Solarized (dark).tmTheme",
-							"function_name_status_row": 241,
-							"syntax": "Packages/LESS/LESS.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 5060.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "static/plugin_framework/framework.less",
-					"settings":
-					{
-						"buffer_size": 29943,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								20477,
-								20477
+								0,
+								0
 							]
 						],
 						"settings":
 						{
 							"color_scheme": "Packages/Solarized Color Scheme/Solarized (dark).tmTheme",
-							"function_name_status_row": 575,
-							"syntax": "Packages/LESS/LESS.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 12220.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				}
-			]
-		},
-		{
-			"selected": 3,
-			"sheets":
-			[
-				{
-					"buffer": 2,
-					"file": "controllers/exploring.py",
-					"settings":
-					{
-						"buffer_size": 7187,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"annotations":
-							[
-								"TODO",
-								"README",
-								"FIXME"
-							],
-							"color_scheme": "Packages/Origami/Solarized Color Scheme/Solarized (dark).tmTheme",
 							"function_name_status_row": 0,
-							"gjslint_ignore":
-							[
-								110
-							],
-							"gjslint_options":
-							[
-							],
-							"javascript_linter": "jshint",
-							"jshint_options":
-							{
-								"browser": true,
-								"evil": true,
-								"regexdash": true,
-								"sub": true,
-								"trailing": true,
-								"wsh": true
-							},
-							"pep8_ignore":
-							[
-								"E501"
-							],
-							"pyflakes_ignore":
-							[
-							],
-							"pyflakes_ignore_import_*": true,
-							"sublimelinter": true,
-							"sublimelinter_delay": 0,
-							"sublimelinter_disable":
-							[
-							],
-							"sublimelinter_executable_map":
-							{
-							},
-							"sublimelinter_fill_outlines": false,
-							"sublimelinter_gutter_marks": false,
-							"sublimelinter_notes": false,
-							"sublimelinter_objj_check_ascii": false,
-							"sublimelinter_popup_errors_on_save": false,
-							"sublimelinter_syntax_map":
-							{
-								"Python Django": "python"
-							},
-							"sublimelinter_wrap_find": true,
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 3315.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "views/exploring/walk.load",
-					"settings":
-					{
-						"buffer_size": 5460,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"color_scheme": "Packages/Origami/Solarized Color Scheme/Solarized (dark).tmTheme",
-							"function_name_status_row": 0,
-							"syntax": "Packages/HTML/HTML.tmLanguage",
+							"syntax": "Packages/XML/XML.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 4,
-					"file": "models/paideia.py",
-					"settings":
-					{
-						"buffer_size": 13081,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"annotations":
-							[
-								"TODO",
-								"README",
-								"FIXME"
-							],
-							"color_scheme": "Packages/Origami/Solarized Color Scheme/Solarized (dark).tmTheme",
-							"function_name_status_row": 0,
-							"gjslint_ignore":
-							[
-								110
-							],
-							"gjslint_options":
-							[
-							],
-							"javascript_linter": "jshint",
-							"jshint_options":
-							{
-								"browser": true,
-								"evil": true,
-								"regexdash": true,
-								"sub": true,
-								"trailing": true,
-								"wsh": true
-							},
-							"pep8_ignore":
-							[
-								"E501"
-							],
-							"pyflakes_ignore":
-							[
-							],
-							"pyflakes_ignore_import_*": true,
-							"sublimelinter": true,
-							"sublimelinter_delay": 0,
-							"sublimelinter_disable":
-							[
-							],
-							"sublimelinter_executable_map":
-							{
-							},
-							"sublimelinter_fill_outlines": false,
-							"sublimelinter_gutter_marks": false,
-							"sublimelinter_notes": false,
-							"sublimelinter_objj_check_ascii": false,
-							"sublimelinter_popup_errors_on_save": false,
-							"sublimelinter_syntax_map":
-							{
-								"Python Django": "python"
-							},
-							"sublimelinter_wrap_find": true,
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 1479.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 5,
-					"file": "controllers/default.py",
-					"settings":
-					{
-						"buffer_size": 4034,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								444,
-								444
-							]
-						],
-						"settings":
-						{
-							"color_scheme": "Packages/Solarized Color Scheme/Solarized (dark).tmTheme",
-							"function_name_status_row": 24,
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 189.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -1159,7 +877,7 @@
 		"cols":
 		[
 			0.0,
-			0.65,
+			0.0380228136882,
 			1.0
 		],
 		"rows":
