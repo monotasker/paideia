@@ -214,7 +214,7 @@ class Step(object):
         """
         try:
             instructions = self.data.instructions
-            list = UL(_class=step_instructions)
+            list = UL(_class='step_instructions')
             for item in instructions:
                 item_row = self.db.step_instructions[item]
                 item_text = item_row.text
