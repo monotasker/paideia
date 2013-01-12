@@ -107,6 +107,7 @@ class TestStep():
 
     def test_step_get_npc(self, mystep):
         """Test for method Step.get_npc"""
+        # TODO: make sure the npc really is randomized
         assert mystep.get_npc().get_id() == 1
 
         locs = mystep.get_npc().get_locations()
