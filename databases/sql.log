@@ -735,3 +735,25 @@ CREATE TABLE step_status(
 success!
 timestamp: 2012-11-29T13:20:53.905267
 ALTER TABLE bugs ADD hidden CHAR(1);
+timestamp: 2013-01-11T15:06:50.564880
+CREATE TABLE tags_begun(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name INTEGER REFERENCES auth_user (id) ON DELETE CASCADE,
+    tag INTEGER REFERENCES tags (id) ON DELETE CASCADE,
+    date_begun TIMESTAMP,
+    promoted_cat2 TIMESTAMP,
+    promoted_cat3 TIMESTAMP,
+    promoted_cat4 TIMESTAMP
+);
+success!
+timestamp: 2013-01-11T16:15:48.015701
+CREATE TABLE badges_begun(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name INTEGER REFERENCES auth_user (id) ON DELETE CASCADE,
+    tag INTEGER REFERENCES tags (id) ON DELETE CASCADE,
+    cat1 TIMESTAMP,
+    cat2 TIMESTAMP,
+    cat3 TIMESTAMP,
+    cat4 TIMESTAMP
+);
+success!

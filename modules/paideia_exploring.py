@@ -17,6 +17,7 @@ import logging
 logger = logging.getLogger('web2py.app.paideia')
 logger.setLevel(logging.DEBUG)
 
+dtnow = datetime.datetime.utcnow
 
 # TODO: Deprecate eventually
 class Utils(object):
@@ -612,29 +613,41 @@ class Walk(object):
 
         new_badges = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
         for category, lst in categories.iteritems():
+            # Was badge in the same or a higher category already?
             if lst is not None:
                 print 'current badges =', lst
                 # make sure to check against higher categories too
                 catindex = categories.keys().index(category)
                 mycats_gteq = dict((k, mycats[k]) for k
                            in ['cat1', 'cat2', 'cat3', 'cat4'][catindex:])
-                # if cat is necessary in case of None in mycats
+                # get flat list of all tags already in this or higher cat
+                # !! if cat is necessary in case of None in mycats
                 oldtags = list(chain([val for cat in mycats_gteq.values() if cat
                                                             for val in cat]))
-                print 'oldtags', oldtags
                 if debug:
                     print 'looking in equal and higher cats:', mycats_gteq
+                # was each tag in list was already in this or higher cat?
                 new = [t for t in lst if t not in oldtags]
                 if new:
                     if debug: print 'newly awarded badges =', new
                     new_badges[category] = new
+                    # also record in badges_begun
+                    for n in new:
+                        trecord = db((db.badges_begun.name == user) &
+                                (db.badges_begun.tag == n))
+                        if not trecord.count():
+                            db.badges_begun.insert({'name': user,
+                                                    'tag': n,
+                                                    category: dtnow})
+                        else:
+                            trecord.update({category: dtnow})
 
         # build dictionary of values to record in tag_progress
-        # start with old values
+        # - start with old values
         update_cats = dict((c, v) for c, v in mycats.as_dict().iteritems()
                             if c in categories.keys())
         if debug: print 'old categories were', update_cats
-        # if tags new or promoted, change 'cat' lists
+        # - if tags new or promoted, change 'cat' lists
         for cat in new_badges:
             if new_badges[cat] is not None:
                 for t in new_badges[cat]:
