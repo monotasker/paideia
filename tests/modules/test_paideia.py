@@ -99,14 +99,26 @@ class TestStep():
         """Test for method Step.get_id"""
         assert mystep.get_id() == 1
 
+    def test_step_get_tags(self, mystep):
+        """Test for method Step.get_tags"""
+        assert mystep.get_tags() == {'primary': [61], 'secondary': []}
+
     def test_step_get_prompt(self, mystep):
         """Test for method Step.get_prompt"""
         assert mystep.get_prompt()['prompt'] == 'How could you write the word "meet" using Greek letters?'
-        assert mystep.get_prompt()['instructions'] == '<ul class="step_instructions"><li>Focus on finding Greek letters that make the *sounds* of the English word. Don\'t look for Greek "equivalents" for each English letter.</li></ul>'
-        assert mystep.get_prompt()['npc_image'] == '<img src="/paideia/static/images/images.image.bb48641f0122d2b6.696d616765732e696d6167652e383136303330663934646664646561312e34343732363137373639366536373230333432653733373636372e737667.svg" />'
+        assert mystep.get_prompt()['instructions'].xml() == '<ul class="step_instructions"><li>Focus on finding Greek letters that make the *sounds* of the English word. Don&#x27;t look for Greek &quot;equivalents&quot; for each English letter.</li></ul>'
+        assert mystep.get_prompt()['npc_image'].xml() == '<img src="/paideia/static/images/images.image.bb48641f0122d2b6.696d616765732e696d6167652e383136303330663934646664646561312e34343732363137373639366536373230333432653733373636372e737667.svg" />'
+
+    def test_step_get_responder(self, mystep):
+        """Test for method Step.get_responder"""
+        map_button = A("Map", _href=URL('walk'),
+                        cid='page',
+                        _class='button-yellow-grad back_to_map icon-location')
+        assert mystep.get_responder().xml() == DIV(map_button).xml()
 
     def test_step_get_npc(self, mystep):
         """Test for method Step.get_npc"""
+        # TODO: make sure the npc really is randomized
         assert mystep.get_npc().get_id() == 1
 
         locs = mystep.get_npc().get_locations()
@@ -117,7 +129,7 @@ class TestStep():
 
     def test_step_get_instructions(self, mystep):
         """Test for method Step._get_instructions"""
-        assert mystep._get_instructions().xml() == '<ul class="step_instructions"><li>Focus on finding Greek letters that make the *sounds* of the English word. Don\'t look for Greek "equivalents" for each English letter.</li></ul>'
+        assert mystep._get_instructions().xml() == '<ul class="step_instructions"><li>Focus on finding Greek letters that make the *sounds* of the English word. Don&#x27;t look for Greek &quot;equivalents&quot; for each English letter.</li></ul>'
 
 
 class TestUser():

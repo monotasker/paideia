@@ -58,7 +58,7 @@ p26
 sg6
 I4
 sg7
-S'INTEGER REFERENCES images (id) ON DELETE CASCADE'
+S'INTEGER REFERENCES images(id) ON DELETE CASCADE'
 p27
 ssS'location'
 p28

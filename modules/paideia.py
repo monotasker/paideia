@@ -1,5 +1,5 @@
 from gluon import current
-from gluon import IMG, URL, INPUT, FORM, SPAN, DIV, UL, LI
+from gluon import IMG, URL, INPUT, FORM, SPAN, DIV, UL, LI, A
 from random import randint
 
 
@@ -176,6 +176,14 @@ class Step(object):
         """
         return self.data.id
 
+    def get_tags(self):
+        """
+        Return a list of tag id's
+        """
+        primary = self.data.tags
+        secondary = self.data.tags_secondary
+        return {'primary': primary, 'secondary': secondary}
+
     def get_prompt(self, raw_prompt=None):
         """
         Return the prompt information for the step. In the Step base class
@@ -193,6 +201,17 @@ class Step(object):
         return {'prompt': prompt,
                 'instructions': instructions,
                 'npc_image': npc_image}
+
+    def get_responder(self):
+        """
+        Return form providing navigation options after prompt that does not
+        require any answer.
+        """
+        map_button = A("Map", _href=URL('walk'),
+                        cid='page',
+                        _class='button-yellow-grad back_to_map icon-location')
+        responder = DIV(map_button)
+        return responder
 
     def get_npc(self):
         """docstring for get_npcs"""
@@ -214,7 +233,7 @@ class Step(object):
         """
         try:
             instructions = self.data.instructions
-            list = UL(_class=step_instructions)
+            list = UL(_class='step_instructions')
             for item in instructions:
                 item_row = self.db.step_instructions[item]
                 item_text = item_row.text
