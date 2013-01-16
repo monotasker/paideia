@@ -50,36 +50,8 @@ def attempts():
 
 @auth.requires_membership(role='administrators')
 def user():
-    # get student's user id and name
-    the_user = db.auth_user[request.args[0]]
-    the_name = the_user.last_name + ', ' + the_user.first_name
-    tz = the_user.time_zone
-    email = the_user.email
-
-    s = Stats(request.args[0])
-    active = s.active_tags()
-    cal = s.monthcal()
-    log = s.step_log()
-
-    b = Bug()
-    blist = b.bugresponses(request.args[0])
-
-    tag_progress = db(db.tag_progress.name ==
-                      request.args[0]).select().first().as_dict()
-
-    tag_records = db((db.tag_records.name == request.args[0]) &
-                        (db.tag_records.tag == db.tags.id)
-                    ).select(orderby=db.tags.position)
-
-    return {'the_name': the_name,
-            'tz': tz,
-            'email': email,
-            'cal': cal,
-            'blist': blist,
-            'active': active,
-            'tag_progress': tag_progress,
-            'tag_records': tag_records,
-            'log': log}
+    user = request.args[0]
+    return {'id': user}
 
 
 def calendar():

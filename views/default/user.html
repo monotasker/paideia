@@ -1,200 +1,21 @@
 {{extend 'layout.html'}}
 
-<div id='user_profile_tabs' class="tabs">
-
-<ul class="tab_row">
-    <li><a href="#web2py_user_form">My info</a></li>
-    {{if auth.is_logged_in():}}
-    <li><a href="#tab_stats">My badges</a></li>
-    <li><a href="#tab_calendar">My activity</a></li>
-    <li><a href="#tab_bug_reports">My bug reports</a></li>
-    {{pass}}
-</ul>
-
-<div id="web2py_user_form" class="tab active">
-{{=form}}
-
 {{if request.args(0)=='login':}}
+    {{=form}}
     {{if not 'register' in auth.settings.actions_disabled:}}
         <br/><a href="{{=URL(r=request,args='register')}}">register</a>
     {{pass}}
     {{if not 'request_reset_password' in auth.settings.actions_disabled:}}
-        <br/><a href="{{=URL(r=request,args='request_reset_password')}}">lost password</a>
+    <br/><a href="{{=URL(r=request,
+                        args='request_reset_password')}}">lost password</a>
     {{pass}}
 {{pass}}
-</div>
 
-{{if request.args(0) == 'profile':}}
-
-<div id='tab_stats' class="tab">
-
-    <p class="overview">You are currently working on 
-        <span class='total_len'>{{=active['total']}}</span> grammar badges
-        and have reached set <span class='max_set'>{{=max_set}}</span>
-    </p>
-    <p class="overview">The most recent badges started are:
-    <ul class='most_recent'>
-        {{for l in active['latest']:}}
-            {{=LI(l)}}
-        {{pass}}
-    </ul>
-    </p>
-
-<table cellspacing='0' class='summary_stats'>
-    <thead>
-        <tr>
-            <th></th>
-            <th></th>
-            <th>Badge level reached</th>
-            <th>Review level</th>
-        </tr>
-    </thead>
-{{if 'cat4' in active:}}
-    <tr>
-        <td>mastered</td>
-        <td class='total_cat4'>{{=len(active['cat4']) if active['cat4'] else 0}}</td>
-        <td>
-            {{if active['cat4'] and active['cat4'] != 0:}}
-            <ul>
-                {{for b in active['cat4']:}}
-                <li>{{=b}}</li>
-                {{pass}}
-                {{if active['rev4'] and active['rev4'] != 0:}}
-                    {{for b in active['rev4']:}}
-                    <li>{{=b}}</li>
-                    {{pass}}
-                {{pass}}
-            </ul>
-            {{pass}}
-        </td>
-        <td></td>
-    </tr>
-    <tr>
-        <td>making very good progress on</td>
-        <td class='total_cat3'>{{=len(active['cat3']) if active['cat3'] else 0}}</td>
-        <td>
-            {{if active['cat3'] and active['cat3'] != 0:}}
-            <ul>
-                {{for b in active['cat3']:}}
-                <li>{{=b}}</li>
-                {{pass}}
-            </ul>
-            {{pass}}
-        </td>
-        <td>
-            {{if ('rev3' in active) and (active['rev3']) and (active['rev3'] != 0):}}
-            <ul>
-                {{for b in active['rev3']:}}
-                <li>{{=b}}</li>
-                {{pass}}
-            </ul>
-            {{pass}}
-        </td>
-    </tr>
-    <tr>
-        <td>made a good start with</td>
-        <td class='total_cat2'>{{=len(active['cat2']) if active['cat2'] else 0}}</td>
-        <td>
-            {{if active['cat2'] and active['cat2'] != 0:}}
-            <ul>
-                {{for b in active['cat2']:}}
-                <li>{{=b}}</li>
-                {{pass}}
-            </ul>
-            {{pass}}
-        </td>
-        <td>
-            {{if ('rev2' in active.keys()) and (active['rev2']) and (active['rev2'] != 0):}}
-            <ul>
-                {{for b in active['rev2']:}}
-                <li>{{=b}}</li>
-                {{pass}}
-            </ul>
-            {{pass}}
-        </td>
-    </tr>
-    <tr>
-        <td>just started or needing review</td>
-        <td class='total_cat1'>{{=len(active['cat1']) if active['cat1'] else 0}}</td>
-        <td>
-            {{if active['cat1'] and active['cat1'] != 0:}}
-            <ul>
-                {{for b in active['cat1']:}}
-                <li>{{=b}}</li>
-                {{pass}}
-            </ul>
-            {{pass}}
-        </td>
-        <td>
-            {{if ('rev1' in active.keys()) and (active['rev1']) and (active['rev1'] != 0):}}
-            <ul>
-                {{for b in active['rev1']:}}
-                <li>{{=b}}</li>
-                {{pass}}
-            </ul>
-            {{pass}}
-        </td>
-    </tr>
+{{if auth.is_logged_in():}}
+    {{if request.args(0) == 'profile':}}
+        {{=LOAD('default','info.load', ajax=True)}}
+    {{pass}}
 {{else:}}
-    <span>You don't yet have any badges to report on. Check back after you explore the town map a bit.</span>
-{{pass}}
-</table>
-
-<ul>
-    <li class='collapsible_parent'>
-        <h3>What do these levels mean?</h3>
-        <p>It is important to realize that the four badge levels above are not "grades" like the letter grades we earn in most courses. They are, instead, stages in your learning of each element of Greek. Level 1 (beginner) is awarded when you start to learn a topic. It simply means that you are working on it. In your daily interactions in the town, the program will prioritize conversations tagged with these "beginner" badges since they are the ones you most need to review.</p>
-        <p>At the other end of the scale, Level 4 (master) is awarded when you no longer need to learn anything more about that aspect of the language. You have shown that this knowledge is now in your long-term memory, and you are now on a permanent maintenance routine in which you only review that material once every six months. Don't be discouraged if you find that it takes a long time to reach "master" level for any badges. This doesn't mean you aren't progressing. It just means that you're still working on getting that topic into your long-term memory -- a process that can't be rushed.</p>
-        <p>Between these two extremes, level 2 ("apprentice") and level 3 ("journeyman") represent increasing levels of mastery over a particular element of Greek. You will review the material related to such badges less and less often as you continue to provide good responses when such conversations do come up. Normally, you will find that badges begun during a term will remain at levels 2 or 3 through at least the balance of that term. This doesn't mean anything is wrong. It just represents the fact that true mastery is a longer-term goal.</p>
-    </li>
-    <li class='collapsible_parent'>
-        <h3>How do I earn new badges?</h3>
-        <p>You begin a new badge at level 1 when all of your current badges have been promoted to level 2 or higher. The program recognizes that you are ready to learn something new.</p>
-        <p>There are two different ways to reach level 2 ("apprentice") with a particular badge. (a) First, if you provide consistently right answers (with no errors) over a period of a day or two, then that badge will be promoted to level 2. (b) Alternately, you will be promoted despite some errors if you have given at least 8 correct responses for each error over the last two weeks. In either case you won't be promoted until you have done at least 20 paths related to that badge, with at least 24 hours between the first success and the most recent success. Keep in mind that on a given day your paths will not all be focused on the same badges. So even if you provide good answers on 20 paths in a row, this may mean that you have only added 5 or 6 successes to your record for a particular badge. This is one advantage of doing extra paths regularly - you will progress more quickly because you are working on each of your level 1 badges more often.</p>
-        <p>Levels 3 and 4 are reached as you go longer and longer without any errors in your responses on a given topic. If you make no errors with a badge over 7 days, it will be promoted to level 3. You are clearly retaining that knowledge and beginning toward real mastery. If you then go 30 days without any errors on that topic, the badge will be promoted to level 4 (mastered).</p>
-    </li>
-    <li>
-    <h3>What are the "Badge Level" and "Review Level" columns?</h3>
-    <p>In the "badge level" column you see the highest level you have achieved so far for a particular badge. Periodically, though, the program will decide that you need to review your level 2, 3, or 4 badges. At that point, the badge will move to "level 1" in the "review level" column. This doesn't mean you have been demoted. It just means that the program is going to prioritize that badge as if it were brand new material. Even for badges that you have mastered, you will review those topics at least once every three months. If you give good responses to the review material, this review level will last only a day. The next day you will find the badge has returned to its normal review level and you will be much less likely to see those paths until the next review period is up.</p>
-    <p>If you give a wrong answer during a review period, you don't lose your previous badge level. But the program recognizes that you may need to review that material more frequently. So, instead of the badge jumping right back to its original review level, you will see it move up through the review levels as if you were earning it again. This just means that the program is making sure you see it often enough. If you don't make more mistakes, you will quickly find the badge's review level is back up to the "badge level" you have attained.</p>
-    </li>
-</ul>
-
-</div>
-
-<div class='tab' id='tab_calendar'>
-{{=XML(cal)}}
-</div>
-
-<div class='tab' id='tab_bug_reports'>
-
-<table>
-<tr>
-<th>question</th>
-<th>your answer</th>
-<th>submitted</th>
-<th>evaluation</th>
-<th>instructor's comments</th>
-</tr>
-{{for b in blist:}}
-<tr>
-{{for v in b:}}
-    <td>{{=v}}</td>
-{{pass}}
-</tr>
-{{pass}}
-</table>
-
-</div>
-
-
+    {{=form}}
 {{pass}}
 
-</div>
-
-<script language="javascript">
-<!--
- $("#web2py_user_form input:visible:enabled:first").focus();
- $('#user_profile_tabs').tabs();
-//-->
-</script>

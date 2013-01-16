@@ -224,6 +224,13 @@ db.steps.instructions.widget = lambda field, value: AjaxSelect().widget(
                                                     multi='basic',
                                                     lister='editlinks')
 
+db.define_table('badges_begun',
+    Field('name', db.auth_user, default=auth.user_id),
+    Field('tag', db.tags),
+    Field('cat1', 'datetime', default=dtnow),
+    Field('cat2', 'datetime'),
+    Field('cat3', 'datetime'),
+    Field('cat4', 'datetime'))
 
 db.define_table('tag_progress',
     Field('name', db.auth_user, default=auth.user_id),

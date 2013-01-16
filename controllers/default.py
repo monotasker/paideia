@@ -28,31 +28,78 @@ def user():
     http://..../[app]/default/user/profile
     http://..../[app]/default/user/retrieve_password
     http://..../[app]/default/user/change_password
-    use @auth.requires_login()
-        @auth.requires_membership('group name')
-        @auth.requires_permission('read','table name',record_id)
-    to decorate functions that need access control
     """
-    # create instance of paideia_stats class from models
-    if auth.is_logged_in():
-        s = Stats(auth.user_id)
-        active = s.active_tags()
-        cal = s.monthcal()
-        max_set = db(db.tag_progress.name ==
-                      auth.user_id).select().first()
-        if not max_set is None:
-            max_set = max_set.latest_new
-        else:
-            max_set = 1
+    return {'form': auth()}
 
-        b = Bug()
-        blist = b.bugresponses(auth.user_id)
+def info():
+    """
+    Return data reporting on a user's performance record.
 
-        return {'form': auth(), 'cal': cal,
-                'blist': blist, 'active': active,
-                'max_set': max_set}
+    This controller is intended to serve the view profile.load as a modular
+    page component, to be embedded in other views such as:
+        default/user.html
+        reporting/user.html
+    The modular approach allows one controller/view pair to present the
+    information at multiple places in the application, reducing maintenance
+    and duplicate code.
+    """
+    # Allow either passing explicit user or defaulting to current user
+    if 'name' in request.vars:
+        user = db.auth_user[request.vars['id']]
     else:
-        return {'form': auth()}
+        user = db.auth_user[auth.user_id]
+
+    name = user.last_name + ', ' + user.first_name
+    tz = user.time_zone
+    email = user.email
+
+    stats = Stats(user.id)
+    active = stats.active_tags()
+    cal = stats.monthcal()
+    log = stats.step_log()
+
+    max_set = db(db.tag_progress.name ==
+                  auth.user_id).select().first()
+    if not max_set is None:
+        max_set = max_set.latest_new
+    else:
+        max_set = 1
+
+    b = Bug()
+    blist = b.bugresponses(user.id)
+    tag_progress = db((db.tag_progress.name == user.id)).select().first().as_dict()
+
+    tag_records = db((db.tag_records.name == user.id) &
+                        (db.tag_records.tag == db.tags.id)
+                    ).select(orderby=db.tags.position)
+
+    badge_dates = db(
+                        (db.badges_begun.name == user.id) &
+                        (db.badges_begun.tag == db.tags.id)
+                    ).select(orderby=db.tags.position)
+    badgelist = []
+    for bd in badge_dates:
+        badge_track = {'id': bd.tags.id,
+                'badge set': bd.tags.position,
+                'cat1':db.badges_begun.cat1,
+                'cat2':db.badges_begun.cat2,
+                'cat3':db.badges_begun.cat3,
+                'cat4':db.badges_begun.cat4}
+        badgelist.append(badge_track)
+
+    return {'form': auth(),
+            'the_name': name,
+            'tz': tz,
+            'email': email,
+            'cal': cal,
+            'blist': blist,
+            'active': active,
+            'max_set': max_set,
+            'tag_progress': tag_progress,
+            'tag_records': tag_records,
+            'log': log,
+            'badge_track': badgelist}
+
 
 #def download():
     #"""

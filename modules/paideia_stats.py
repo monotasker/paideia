@@ -29,6 +29,7 @@ class Stats(object):
         now = datetime.datetime.utcnow()
         if user_id is None:
             user_id = self.user_id
+            print 'user:', user_id
         if duration is None:
             duration = datetime.timedelta(days=7)
         if db is None:
@@ -36,7 +37,9 @@ class Stats(object):
         if logs is None:
             logs = db((db.attempt_log.id > 0) &
                     (db.attempt_log.name == user_id)).select()
+            print len(logs)
             logs = logs.find(lambda row: (now - row.dt_attempted) <= duration)
+            print len(logs)
         logset = []
         stepset = set(l.step for l in logs)
 
@@ -69,9 +72,9 @@ class Stats(object):
                         'prompt': steprow.prompt,
                         'logs': steplogs,
                         'duration': duration}
-
             logset.append(step_dict)
-
+            if logset == []:
+                logset = [{'duration': duration}]
         return logset
 
     def active_tags(self):
