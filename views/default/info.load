@@ -227,39 +227,13 @@
     </div>
 
     <div id='tab_tag_records' class="tab">
-        <table id='tag_progress_table'>
-            <thead>
-                {{keylist = {'latest_new': 'Recently Started',
-                                'cat1': 'Beginner',
-                                'cat2': 'Apprentice',
-                                'cat3': 'Journeyman',
-                                'cat4': 'Master',
-                                'rev1': 'Review 1',
-                                'rev2': 'Review 2',
-                                'rev3': 'Review 3'} }}
-                {{for val in keylist.values():}}
-                    {{=TH(val)}}
-                {{pass}}
-            </thead>
-            <tr>
-                {{for k in keylist.keys():}}
-                    {{val = tag_progress[k]}}
-                    {{if type(val) is list:}}
-                        {{val = [TOOLTIP(v, v, db.tags[v].tag) for v in val]}}
-                    {{pass}}
-                    {{=TD(val)}}
-                {{pass}}
-            </tr>
-        </table>
         <table id='tag_records_table'>
             <thead>
             {{=TH('tag')}}
-            {{=TH('times right')}}
-            {{=TH('times wrong')}}
-            {{=TH('ratio')}}
+            {{=TH('times right / times wrong / ratio')}}
             {{=TH('last right')}}
             {{=TH('last wrong')}}
-            {{=TH('tag position')}}
+            {{=TH('tag set')}}
             </thead>
             {{for row in tag_records:}}
                 {{timesr = row.tag_records.times_right
@@ -271,9 +245,19 @@
                 {{pass}}
                 <tr>
                     {{=TD(row.tags.tag)}}
-                    {{=TD(row.tag_records.times_right)}}
-                    {{=TD(row.tag_records.times_wrong)}}
-                    {{=TD(ratio)}}
+                    {{=TD(
+                        SPAN('', _style='width: {}px;'.format(row.tag_records.times_right),
+                             _class='right'),
+                        SPAN(int(row.tag_records.times_right), _class='right_num'),
+                        BR(),
+                        SPAN('', _style='width: {}px;'.format(row.tag_records.times_wrong),
+                             _class='wrong'),
+                        SPAN(int(row.tag_records.times_wrong), _class='wrong_num'),
+                        BR(),
+                        SPAN('', _style='width: {}px'.format(ratio * 100),
+                             _class='ratio'),
+                        SPAN(round(ratio, 3), _class='ratio_num'),
+                    )}}
                     {{=TD(row.tag_records.tlast_right)}}
                     {{=TD(row.tag_records.tlast_wrong)}}
                     {{=TD(row.tags.position)}}
