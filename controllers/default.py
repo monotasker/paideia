@@ -44,7 +44,7 @@ def info():
     and duplicate code.
     """
     # Allow either passing explicit user or defaulting to current user
-    if 'name' in request.vars:
+    if 'id' in request.vars:
         user = db.auth_user[request.vars['id']]
     else:
         user = db.auth_user[auth.user_id]
@@ -77,6 +77,7 @@ def info():
                         (db.badges_begun.name == user.id) &
                         (db.badges_begun.tag == db.tags.id)
                     ).select(orderby=db.tags.position)
+
     badgelist = []
     for bd in badge_dates:
         badge_track = {'id': bd.tags.id,
