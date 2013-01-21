@@ -214,7 +214,7 @@ class Step(object):
         return responder
 
     def get_npc(self):
-        """docstring for get_npcs"""
+        """Return an Npc object representing an appropriate npc for this step"""
         npcs_for_step = self.data.npcs
         npc_list = [n for n in npcs_for_step
                     if self.loc.get_id() in self.db.npcs[n].location]
@@ -256,6 +256,28 @@ class Step(object):
         # TODO: no code
         pass
 
+class StepRedirect(Step):
+    '''
+    A subclass of Step. Handles the user interaction when the user needs to be
+    sent to another location.
+    '''
+    def get_prompt(self):
+        """
+        Return the prompt appropriate for a step that simply sends a user to
+        a different location.
+        """
+        prompt = None
+        prompt = self._string_replacements(prompt)
+        return {'prompt': None,
+                'instructions': None,
+                'npc_image': None}
+
+    def _string_replacements(self, prompt_string):
+        """
+        Return the string for the step prompt with context-based information
+        substituted for tokens framed by [[]].
+        """
+        return None
 
 class StepTextResponse(Step):
     """
