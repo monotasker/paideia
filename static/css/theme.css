@@ -179,9 +179,6 @@ form div {
   padding: 0;
 }
 /* modal dialogue *****************************************/
-/* custom modal mask */
-/* custom modal closer */
-/* custom modal dialog */
 .ui-resizable-handle {
   padding: 0;
 }
@@ -482,11 +479,6 @@ div.error {
   line-height: 24px;
   padding: 0;
   text-align: center;
-  -moz-border-radius: 16px 16px 16px 16px;
-  -webkit-border-radius: 16px 16px 16px 16px;
-  -o-border-radius: 16px 16px 16px 16px;
-  -ms-border-radius: 16px 16px 16px 16px;
-  border-radius: 16px 16px 16px 16px;
   font-weight: bold;
   -moz-border-radius: 16px 16px 16px 16px;
   -webkit-border-radius: 16px 16px 16px 16px;
@@ -1441,11 +1433,9 @@ body #page #right_sidebar div:hover {
   font-size: 16px;
   line-height: 24px;
   color: #666666;
-  padding: 24px;
   left: -320px;
   top: -72px;
   margin-left: 0;
-  display: none;
   z-index: 10;
   position: relative;
   border-radius: 36px;
@@ -1525,14 +1515,7 @@ body #page #right_sidebar div:hover {
   display: inline-block;
   width: 36px;
   height: 36px;
-  line-height: 36px;
   padding: 0;
-  text-align: center;
-  -moz-border-radius: 24px 24px 24px 24px;
-  -webkit-border-radius: 24px 24px 24px 24px;
-  -o-border-radius: 24px 24px 24px 24px;
-  -ms-border-radius: 24px 24px 24px 24px;
-  border-radius: 24px 24px 24px 24px;
   font-weight: bold;
   -moz-border-radius: 24px 24px 24px 24px;
   -webkit-border-radius: 24px 24px 24px 24px;
@@ -1795,7 +1778,6 @@ body #page #right_sidebar div:hover {
 #page.user table.summary_stats td.total_cat3,
 #page.profile table.summary_stats td.total_cat4,
 #page.user table.summary_stats td.total_cat4 {
-  height: 40px;
   width: 40px;
   color: #fff;
   height: 40px;
@@ -1980,14 +1962,71 @@ body #page #right_sidebar div:hover {
 }
 #page.profile #tag_records_table td:first-child,
 #page.user #tag_records_table td:first-child {
-  color: #268bd2;
+  max-width: 7%;
 }
 #page.profile #tag_records_table td:nth-child(2),
 #page.user #tag_records_table td:nth-child(2) {
+  color: #fff;
+  padding-left: 0;
+  padding-right: 0;
+}
+#page.profile #tag_records_table td:nth-child(2) span,
+#page.user #tag_records_table td:nth-child(2) span {
+  height: 16px;
+  display: inline-block;
+  position: relative;
+}
+#page.profile #tag_records_table td:nth-child(2) span.right,
+#page.user #tag_records_table td:nth-child(2) span.right {
+  background-color: #6f8000;
+  background-image: -moz-linear-gradient(#b1cc00, #6f8000);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#b1cc00), to(#6f8000));
+  background-image: -o-linear-gradient(#b1cc00, #6f8000);
+  background-image: -ms-linear-gradient(#b1cc00, #6f8000);
+}
+#page.profile #tag_records_table td:nth-child(2) span.right_num,
+#page.user #tag_records_table td:nth-child(2) span.right_num {
   color: #859900;
+  margin-left: 4px;
+  top: -1px;
+  vertical-align: top;
+}
+#page.profile #tag_records_table td:nth-child(2) span.wrong,
+#page.user #tag_records_table td:nth-child(2) span.wrong {
+  background-color: #cf2623;
+  background-image: -moz-linear-gradient(#e35d5b, #cf2623);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#e35d5b), to(#cf2623));
+  background-image: -o-linear-gradient(#e35d5b, #cf2623);
+  background-image: -ms-linear-gradient(#e35d5b, #cf2623);
+}
+#page.profile #tag_records_table td:nth-child(2) span.wrong_num,
+#page.user #tag_records_table td:nth-child(2) span.wrong_num {
+  color: #dc322f;
+  margin-left: 4px;
+  top: -1px;
+  vertical-align: top;
+}
+#page.profile #tag_records_table td:nth-child(2) span.ratio,
+#page.user #tag_records_table td:nth-child(2) span.ratio {
+  background-color: #227dbc;
+  background-image: -moz-linear-gradient(#4ca2df, #227dbc);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#4ca2df), to(#227dbc));
+  background-image: -o-linear-gradient(#4ca2df, #227dbc);
+  background-image: -ms-linear-gradient(#4ca2df, #227dbc);
+}
+#page.profile #tag_records_table td:nth-child(2) span.ratio_num,
+#page.user #tag_records_table td:nth-child(2) span.ratio_num {
+  color: #268bd2;
+  margin-left: 4px;
+  top: -1px;
+  vertical-align: top;
 }
 #page.profile #tag_records_table td:nth-child(3),
 #page.user #tag_records_table td:nth-child(3) {
+  color: #268bd2;
+}
+#page.profile #tag_records_table td:nth-child(4),
+#page.user #tag_records_table td:nth-child(4) {
   color: #dc322f;
 }
 #page.profile #tag_progress_table td:first-child,

@@ -636,7 +636,7 @@ class Walk(object):
                         trecord = db((db.badges_begun.name == user) &
                                 (db.badges_begun.tag == n))
                         if not trecord.count():
-                            db.badges_begun.insert({'name': user,
+                            db.badges_begun.insert(**{'name': user,
                                                     'tag': n,
                                                     category: dtnow})
                         else:
