@@ -1,9 +1,13 @@
 # Unit tests for the paideia module
 
-
 import pytest
-from paideia import Npc, Location, Step, User, StepRedirect
+from paideia import Npc, Location, User, Step, StepRedirect, StepText, StepEvaluator
 from gluon import *
+
+
+# ===================================================================
+# Test Fixtures
+# ===================================================================
 
 db = current.db
 
@@ -45,7 +49,7 @@ def mystep():
     loc = Location(8, db)
     prev_loc = Location(8, db)
     prev_npc_id = 1
-    return Step(1, loc, prev_loc, prev_npc_id, db)
+    return Step(1, loc, prev_loc, prev_npc_id, path=None, db=db)
 
 @pytest.fixture
 def myStepRedirect():
@@ -57,7 +61,30 @@ def myStepRedirect():
     loc = Location(11, db) # synagogue
     prev_loc = Location(11, db)
     prev_npc_id = 31 # stephanos
-    return StepRedirect(30, loc, prev_loc, prev_npc_id, db)
+    return StepRedirect(30, loc, prev_loc, prev_npc_id, path=None, db=db)
+
+@pytest.fixture
+def myStepText():
+    """ """
+    loc = Location(8, db)
+    prev_loc = Location(8, db)
+    prev_npc_id = 1
+    return StepText(1, loc, prev_loc, prev_npc_id, path=None, db=db)
+
+@pytest.fixture
+def myStepEvaluator():
+    """
+    A pytest fixture providing a paideia.StepEvaluator object for testing.
+    """
+    step = db.steps[1]
+    answers = [step.response1, step.response2, step.response3]
+    tips = step.hints
+    user_response = 'μιτ'
+    return StepEvaluator(answers, tips).get_eval(user_response)
+
+# ===================================================================
+# Test Classes
+# ===================================================================
 
 class TestNpc():
     '''
@@ -203,6 +230,36 @@ class TestStepRedirect():
         assert isinstance(locs[0], Location)
         assert locs[0].get_id() == 11
 
+class TestStepText():
+    '''
+    Test class for paideia.StepText
+    '''
+    def test_steptext_get_responder(self, myStepText):
+        resp = '<form action="" autocomplete="off" enctype="multipart/form-data" method="post">'
+        resp += '<table><tbody>'
+        resp += '<tr id="no_table_response__row">'
+        resp += '<td class="w2p_fl">'
+        resp += '<label for="no_table_response" id="no_table_response__label">Response: </label>'
+        resp += '</td>'
+        resp += '<td class="w2p_fw">'
+        resp += '<input class="string" id="no_table_response" name="response" type="text" value="">'
+        resp += '</td>'
+        resp += '<td class="w2p_fc"></td>'
+        resp += '</tr>'
+        resp += '<tr id="submit_record__row">'
+        resp += '<td class="w2p_fl"></td>'
+        resp += '<td class="w2p_fw"><input type="submit" value="Submit"></td>'
+        resp += '<td class="w2p_fc"></td></tr></tbody></table></form>'
+
+        assert myStepText.get_responder().xml() == resp
+
+    def test_steptext_get_reply(self, myStepText):
+        pass
+
+class TestStepEvaluator():
+
+    def test_stepevaluator_get_eval(self, myStepEvaluator):
+        pass
 
 class TestUser():
     pass
