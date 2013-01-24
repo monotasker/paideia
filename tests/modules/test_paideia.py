@@ -79,8 +79,8 @@ def myStepEvaluator():
     step = db.steps[1]
     answers = [step.response1, step.response2, step.response3]
     tips = step.hints
-    user_response = 'μιτ'
-    return StepEvaluator(answers, tips).get_eval(user_response)
+
+    return StepEvaluator(answers, tips)
 
 # ===================================================================
 # Test Classes
@@ -159,9 +159,16 @@ class TestStep():
 
     def test_step_get_prompt(self, mystep):
         """Test for method Step.get_prompt"""
-        assert mystep.get_prompt()['prompt'] == 'How could you write the word "meet" using Greek letters?'
-        assert mystep.get_prompt()['instructions'].xml() == '<ul class="step_instructions"><li>Focus on finding Greek letters that make the *sounds* of the English word. Don&#x27;t look for Greek &quot;equivalents&quot; for each English letter.</li></ul>'
-        assert mystep.get_prompt()['npc_image'].xml() == '<img src="/paideia/static/images/images.image.bb48641f0122d2b6.696d616765732e696d6167652e383136303330663934646664646561312e34343732363137373639366536373230333432653733373636372e737667.svg" />'
+        username = 'Ian'
+        assert mystep.get_prompt(username)['prompt'] == 'How could you write the word "meet" using Greek letters?'
+        assert mystep.get_prompt(username)['instructions'].xml() == '<ul class="step_instructions"><li>Focus on finding Greek letters that make the *sounds* of the English word. Don&#x27;t look for Greek &quot;equivalents&quot; for each English letter.</li></ul>'
+        assert mystep.get_prompt(username)['npc_image'].xml() == '<img src="/paideia/static/images/images.image.bb48641f0122d2b6.696d616765732e696d6167652e383136303330663934646664646561312e34343732363137373639366536373230333432653733373636372e737667.svg" />'
+
+    def test_step_make_replacements(self, mystep):
+        """Unit test for method Step._make_replacements()"""
+        raw_string = 'Hi [[user]]!'
+        username = 'Ian'
+        assert mystep._make_replacements(raw_string, username) == 'Hi Ian!'
 
     def test_step_get_responder(self, mystep):
         """Test for method Step.get_responder"""
@@ -201,9 +208,18 @@ class TestStepRedirect():
         This test assumes that the selected npc is Stephanos. It also assumes
         that the step is 30.
         """
-        assert myStepRedirect.get_prompt()['prompt'] == "Hi there. Sorry, I don't have anything for you to do here at the moment. I think someone was looking for you at [[next_loc]]."
-        assert myStepRedirect.get_prompt()['instructions'] == None
-        assert myStepRedirect.get_prompt()['npc_image'].xml() == '<img src="/paideia/static/images/images.image.961b44d8d322659c.323031322d30362d30372031345f34345f34302e706e67.png" />'
+        username = 'Ian'
+        assert myStepRedirect.get_prompt(username)['prompt'] == "Hi there. Sorry, I don't have anything for you to do here at the moment. I think someone was looking for you at [[next_loc]]."
+        assert myStepRedirect.get_prompt(username)['instructions'] == None
+        assert myStepRedirect.get_prompt(username)['npc_image'].xml() == '<img src="/paideia/static/images/images.image.961b44d8d322659c.323031322d30362d30372031345f34345f34302e706e67.png" />'
+
+    def test_stepredirect_make_replacements(self, myStepRedirect):
+        """docstring for test_stepredirect_make_replacements"""
+        string = 'Nothing to do here [[user]]. Try [[next_loc]].'
+        next_step = 1
+        kwargs = {'username': 'Ian', 'db': db, 'next_step': next_step}
+        newstring = 'Nothing to do here Ian. Try somewhere else.'
+        assert myStepRedirect._make_replacements(string, **kwargs) == newstring
 
     def test_stepredirect_get_tags(self, myStepRedirect):
         """
@@ -228,7 +244,7 @@ class TestStepRedirect():
 
         locs = myStepRedirect.get_npc().get_locations()
         assert isinstance(locs[0], Location)
-        assert locs[0].get_id() == 11
+        assert (locs[0].get_id() == 3) or (locs[0].get_id() == 11)
 
 class TestStepText():
     '''
@@ -259,7 +275,12 @@ class TestStepText():
 class TestStepEvaluator():
 
     def test_stepevaluator_get_eval(self, myStepEvaluator):
-        pass
+        user_response = 'μιτ'
+        assert myStepEvaluator.get_eval(user_response)['score'] == 1
+        assert myStepEvaluator.get_eval(user_response)['times_wrong'] == 0
+        assert myStepEvaluator.get_eval(user_response)['reply'] == 'Right. Κάλον.'
+        assert myStepEvaluator.get_eval(user_response)['user_response'] == 'μιτ'
+        assert myStepEvaluator.get_eval(user_response)['tips'] == []
 
 class TestUser():
     pass

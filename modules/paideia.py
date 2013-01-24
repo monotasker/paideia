@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from gluon import current
-from gluon import IMG, URL, INPUT, FORM, SQLFORM, SPAN, DIV, UL, LI, A
+from gluon import IMG, URL, INPUT, FORM, SQLFORM, SPAN, DIV, UL, LI, A, Field
+from gluon import IS_NOT_EMPTY
 from random import randint
 import re
 
@@ -196,7 +197,7 @@ class Step(object):
         secondary = self.data.tags_secondary
         return {'primary': primary, 'secondary': secondary}
 
-    def get_prompt(self, raw_prompt=None):
+    def get_prompt(self, username=None):
         """
         Return the prompt information for the step. In the Step base class
         this is a simple string. Before returning, though, any necessary
@@ -205,14 +206,36 @@ class Step(object):
         self._check_location()
         if raw_prompt == None:
             raw_prompt = self.data.prompt
-        prompt = self._make_replacements(raw_prompt)
+        prompt = self._make_replacements(raw_prompt, username)
+        # prompt no longer tagged or converted to markmin here, but in view
+
         instructions = self._get_instructions()
-        npc = self.get_npc()
-        npc_image = npc.get_image()
+
+        npc = self.get_npc() # duplicate choice prevented in get_npc()
+        npc_image = self.npc.get_image()
 
         return {'prompt': prompt,
                 'instructions': instructions,
                 'npc_image': npc_image}
+
+    def _make_replacements(self, raw_string, username=None):
+        """
+        Return the provided string with tokens replaced by personalized
+        information for the current user.
+        """
+        if username is None:
+            auth = current.auth
+            uname = auth.user['first_name']
+
+        if not 'reps' in locals().keys():
+            reps = {}
+        reps['[[user]]'] = username
+
+        new_string = raw_string
+        for k, v in reps.iteritems():
+            new_string = new_string.replace(k, v)
+
+        return new_string
 
     def get_responder(self):
         """
@@ -227,16 +250,19 @@ class Step(object):
 
     def get_npc(self):
         """Return an Npc object representing an appropriate npc for this step"""
-        npcs_for_step = self.data.npcs
-        npc_list = [n for n in npcs_for_step
-                    if self.loc.get_id() in self.db.npcs[n].location]
-        if self.prev_npc_id in npc_list:
-            self.npc = Npc(self.prev_npc_id)
+        if self.npc: # ensure choice is made only once for each step
             return self.npc
         else:
-            pick = npc_list[randint(0,len(npc_list) - 1)]
-            self.npc = Npc(pick)
-            return self.npc
+            npcs_for_step = self.data.npcs
+            npc_list = [n for n in npcs_for_step
+                        if self.loc.get_id() in self.db.npcs[n].location]
+            if self.prev_npc_id in npc_list:
+                self.npc = Npc(self.prev_npc_id)
+                return self.npc
+            else:
+                pick = npc_list[randint(0,len(npc_list) - 1)]
+                self.npc = Npc(pick)
+                return self.npc
 
     def _get_instructions(self):
         """
@@ -255,14 +281,6 @@ class Step(object):
             print type(e), e, 'value: ', instructions
             return None
 
-    def _make_replacements(self, raw_prompt=None):
-        """docstring for eval_response"""
-        if raw_prompt == None:
-            raw_prompt == self.raw_prompt
-            # TODO: actually make replacements
-        prompt = raw_prompt
-        return prompt
-
     def _check_location(self):
         """docstring for get_locations"""
         # TODO: no code
@@ -274,24 +292,37 @@ class StepRedirect(Step):
     A subclass of Step. Handles the user interaction when the user needs to be
     sent to another location.
     '''
-    def get_prompt(self):
-        """
-        Return the prompt appropriate for a step that simply sends a user to
-        a different location.
-        """
-        prompt = None
-        prompt = self._string_replacements(prompt)
-        return {'prompt': prompt,
-                'instructions': None,
-                'npc_image': None}
 
-    def _string_replacements(self, prompt_string):
+    def _make_replacements(self, prompt_string, username=None,
+                                                    db=None, next_step=None):
         """
         Return the string for the step prompt with context-based information
         substituted for tokens framed by [[]].
         """
-        prompt = prompt_string
-        # TODO: Add actual string replacements!
+        session = current.session
+        if db is None:
+            db = current.db
+
+        next_loc = 'somewhere else in town' # generic default
+        # if mid-way through a path, send to next viable location
+        # TODO: find a way to set this value to another location with an
+        # available path if the current step is the last in its path.
+        if self.next_step_id:
+            next_locids = db.steps[self.next_step_id].locations
+            # find a location that actually has a readable name
+            raw_locs = [db.locations[n].readable for n in next_locids]
+            next_locs = [n for n in raw_locs if not n is None]
+        elif next_step:
+            next_locids = db.steps[next_step].locations
+            # find a location that actually has a readable name
+            raw_locs = [db.locations[n].readable for n in next_locids]
+            next_locs = [n for n in raw_locs if not n is None]
+        else:
+            pass
+
+        reps = {'[[next_loc]]': next_loc}
+        super()._make_replacements(prompt_string, username)
+
         return prompt
 
 
@@ -432,7 +463,6 @@ class StepEvaluator(object):
         tips = self.tips # TODO: customize tips for specific errors
 
         return {'score': score,
-                'times_right': times_right,
                 'times_wrong': times_wrong,
                 'reply': reply,
                 'user_response': user_response,
