@@ -179,6 +179,9 @@ form div {
   padding: 0;
 }
 /* modal dialogue *****************************************/
+/* custom modal mask */
+/* custom modal closer */
+/* custom modal dialog */
 .ui-resizable-handle {
   padding: 0;
 }
@@ -373,7 +376,49 @@ div.error {
   position: relative;
   overflow: visible;
 }
-.tip_wrapper:target div.tip {
+.tip_wrapper .tooltip-left {
+  position: relative;
+  border-radius: 36px;
+  padding: 36px;
+  -moz-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  -webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  -o-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  -ms-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  background: #ffffff;
+  min-height: 36px;
+  background: #eee;
+  border: 1px solid #ccc;
+  padding: 24px;
+  border-radius: 16px;
+  position: absolute;
+  max-width: 300px;
+  min-width: 100px;
+  display: none;
+  z-index: 99;
+  -webkit-transition: all 200ms ease-in-out;
+  -moz-transition: all 200ms ease-in-out;
+  -o-transition: all 200ms ease-in-out;
+  -ms-transition: all 200ms ease-in-out;
+  transition: all 200ms ease-in-out;
+}
+.tip_wrapper .tooltip-left:after {
+  content: " ";
+  position: absolute;
+  right: -15px;
+  top: 60%;
+  width: 0;
+  height: 0;
+  border-left: 16px solid transparent;
+  border-right: 16px solid transparent;
+  border-top: 16px solid transparent;
+  border-bottom: 16px solid transparent;
+  border-right: none;
+  border-left: 16px solid #ffffff;
+  background: transparent;
+}
+.tip_wrapper .tooltip-left.tip-visible,
+.tip_wrapper .tooltip-left:target {
   display: block;
   -webkit-transition: all 200ms ease-in-out;
   -moz-transition: all 200ms ease-in-out;
@@ -381,7 +426,165 @@ div.error {
   -ms-transition: all 200ms ease-in-out;
   transition: all 200ms ease-in-out;
 }
-/* make tip div visible */
+.tip_wrapper .tooltip-right {
+  position: relative;
+  border-radius: 36px;
+  padding: 36px;
+  -moz-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  -webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  -o-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  -ms-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  background: #ffffff;
+  min-height: 36px;
+  background: #eee;
+  border: 1px solid #ccc;
+  padding: 24px;
+  border-radius: 16px;
+  position: absolute;
+  max-width: 300px;
+  min-width: 100px;
+  display: none;
+  z-index: 99;
+  -webkit-transition: all 200ms ease-in-out;
+  -moz-transition: all 200ms ease-in-out;
+  -o-transition: all 200ms ease-in-out;
+  -ms-transition: all 200ms ease-in-out;
+  transition: all 200ms ease-in-out;
+}
+.tip_wrapper .tooltip-right:after {
+  content: "";
+  position: absolute;
+  left: -15px;
+  top: 60%;
+  width: 0;
+  height: 0;
+  border-left: 16px solid transparent;
+  border-right: 16px solid transparent;
+  border-top: 16px solid transparent;
+  border-bottom: 16px solid transparent;
+  border-left: none;
+  border-right: 16px solid #ffffff;
+  background: transparent;
+}
+.tip_wrapper .tooltip-right.tip-visible,
+.tip_wrapper .tooltip-right:target {
+  display: block;
+  -webkit-transition: all 200ms ease-in-out;
+  -moz-transition: all 200ms ease-in-out;
+  -o-transition: all 200ms ease-in-out;
+  -ms-transition: all 200ms ease-in-out;
+  transition: all 200ms ease-in-out;
+}
+.tip_wrapper .tooltip-top {
+  position: relative;
+  border-radius: 36px;
+  padding: 36px;
+  -moz-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  -webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  -o-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  -ms-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  background: #ffffff;
+  min-height: 36px;
+  background: #eee;
+  border: 1px solid #ccc;
+  padding: 24px;
+  border-radius: 16px;
+  position: absolute;
+  max-width: 300px;
+  min-width: 100px;
+  display: none;
+  z-index: 99;
+  -webkit-transition: all 200ms ease-in-out;
+  -moz-transition: all 200ms ease-in-out;
+  -o-transition: all 200ms ease-in-out;
+  -ms-transition: all 200ms ease-in-out;
+  transition: all 200ms ease-in-out;
+}
+.tip_wrapper .tooltip-top:after {
+  content: " ";
+  position: absolute;
+  bottom: -14px;
+  left: 30%;
+  width: 0;
+  height: 0;
+  border-left: 16px solid transparent;
+  border-right: 16px solid transparent;
+  border-top: 16px solid transparent;
+  border-bottom: 16px solid transparent;
+  border-bottom: none;
+  border-top: 16px solid #ffffff;
+  background: transparent;
+}
+.tip_wrapper .tooltip-top.tip-visible,
+.tip_wrapper .tooltip-top:target {
+  display: block;
+  -webkit-transition: all 200ms ease-in-out;
+  -moz-transition: all 200ms ease-in-out;
+  -o-transition: all 200ms ease-in-out;
+  -ms-transition: all 200ms ease-in-out;
+  transition: all 200ms ease-in-out;
+}
+.tip_wrapper .tooltip-top.tip-visible,
+.tip_wrapper .tooltip-top:target {
+  display: block;
+  -webkit-transition: all 200ms ease-in-out;
+  -moz-transition: all 200ms ease-in-out;
+  -o-transition: all 200ms ease-in-out;
+  -ms-transition: all 200ms ease-in-out;
+  transition: all 200ms ease-in-out;
+}
+.tip_wrapper .tooltip-bottom {
+  position: relative;
+  border-radius: 36px;
+  padding: 36px;
+  -moz-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  -webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  -o-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  -ms-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  background: #ffffff;
+  min-height: 36px;
+  background: #eee;
+  border: 1px solid #ccc;
+  padding: 24px;
+  border-radius: 16px;
+  position: absolute;
+  max-width: 300px;
+  min-width: 100px;
+  display: none;
+  z-index: 99;
+  -webkit-transition: all 200ms ease-in-out;
+  -moz-transition: all 200ms ease-in-out;
+  -o-transition: all 200ms ease-in-out;
+  -ms-transition: all 200ms ease-in-out;
+  transition: all 200ms ease-in-out;
+}
+.tip_wrapper .tooltip-bottom:after {
+  content: " ";
+  position: absolute;
+  top: -14px;
+  left: 30%;
+  width: 0;
+  height: 0;
+  border-left: 16px solid transparent;
+  border-right: 16px solid transparent;
+  border-top: 16px solid transparent;
+  border-bottom: 16px solid transparent;
+  border-top: none;
+  border-bottom: 16px solid #ffffff;
+  background: transparent;
+}
+.tip_wrapper .tooltip-bottom.tip-visible,
+.tip_wrapper .tooltip-bottom:target {
+  display: block;
+  -webkit-transition: all 200ms ease-in-out;
+  -moz-transition: all 200ms ease-in-out;
+  -o-transition: all 200ms ease-in-out;
+  -ms-transition: all 200ms ease-in-out;
+  transition: all 200ms ease-in-out;
+}
 /* border images */
 /* buttons */
 .button {
@@ -479,6 +682,11 @@ div.error {
   line-height: 24px;
   padding: 0;
   text-align: center;
+  -moz-border-radius: 16px 16px 16px 16px;
+  -webkit-border-radius: 16px 16px 16px 16px;
+  -o-border-radius: 16px 16px 16px 16px;
+  -ms-border-radius: 16px 16px 16px 16px;
+  border-radius: 16px 16px 16px 16px;
   font-weight: bold;
   -moz-border-radius: 16px 16px 16px 16px;
   -webkit-border-radius: 16px 16px 16px 16px;
@@ -1433,9 +1641,11 @@ body #page #right_sidebar div:hover {
   font-size: 16px;
   line-height: 24px;
   color: #666666;
+  padding: 24px;
   left: -320px;
   top: -72px;
   margin-left: 0;
+  display: none;
   z-index: 10;
   position: relative;
   border-radius: 36px;
@@ -1487,7 +1697,13 @@ body #page #right_sidebar div:hover {
 #page.exploring .prompt .bug_reporter.tip-visible,
 #page.exploring .responder .bug_reporter.tip-visible,
 #page.exploring .prompt .prompt_tips.tip-visible,
-#page.exploring .responder .prompt_tips.tip-visible {
+#page.exploring .responder .prompt_tips.tip-visible,
+#page.exploring .prompt .prompt_badges:target,
+#page.exploring .responder .prompt_badges:target,
+#page.exploring .prompt .bug_reporter:target,
+#page.exploring .responder .bug_reporter:target,
+#page.exploring .prompt .prompt_tips:target,
+#page.exploring .responder .prompt_tips:target {
   display: block;
   -webkit-transition: all 200ms ease-in-out;
   -moz-transition: all 200ms ease-in-out;
@@ -1515,7 +1731,14 @@ body #page #right_sidebar div:hover {
   display: inline-block;
   width: 36px;
   height: 36px;
+  line-height: 36px;
   padding: 0;
+  text-align: center;
+  -moz-border-radius: 24px 24px 24px 24px;
+  -webkit-border-radius: 24px 24px 24px 24px;
+  -o-border-radius: 24px 24px 24px 24px;
+  -ms-border-radius: 24px 24px 24px 24px;
+  border-radius: 24px 24px 24px 24px;
   font-weight: bold;
   -moz-border-radius: 24px 24px 24px 24px;
   -webkit-border-radius: 24px 24px 24px 24px;
@@ -1778,6 +2001,7 @@ body #page #right_sidebar div:hover {
 #page.user table.summary_stats td.total_cat3,
 #page.profile table.summary_stats td.total_cat4,
 #page.user table.summary_stats td.total_cat4 {
+  height: 40px;
   width: 40px;
   color: #fff;
   height: 40px;

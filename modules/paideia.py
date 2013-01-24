@@ -1,6 +1,9 @@
+# -*- coding: utf-8 -*-
 from gluon import current
-from gluon import IMG, URL, INPUT, FORM, SPAN, DIV, UL, LI, A
+from gluon import IMG, URL, INPUT, FORM, SQLFORM, SPAN, DIV, UL, LI, A, Field
+from gluon import IS_NOT_EMPTY
 from random import randint
+import re
 
 
 class Stance(object):
@@ -158,7 +161,7 @@ class Step(object):
     interaction) in the game.
     '''
 
-    def __init__(self, step_id, loc, prev_loc, prev_npc_id, db=None):
+    def __init__(self, step_id, loc, prev_loc, prev_npc_id, path=None, db=None):
         """docstring for __init__"""
         if db is None:
             db == current.db
@@ -169,12 +172,22 @@ class Step(object):
         self.prev_loc = prev_loc
         self.prev_npc_id = prev_npc_id
         self.npc = None
+        self.path = path
 
     def get_id(self):
         """
         Return the id of the current step as an integer.
         """
         return self.data.id
+
+    def get_path(self):
+        """
+        Return the id of the current path as an integer.
+        """
+        # TODO: This feels like it's reversing the execution flow in an awkward
+        # way. It's only needed for StepRecorder.record(). So should that method
+        # be called by the path instead?
+        return self.path
 
     def get_tags(self):
         """
@@ -184,7 +197,7 @@ class Step(object):
         secondary = self.data.tags_secondary
         return {'primary': primary, 'secondary': secondary}
 
-    def get_prompt(self, raw_prompt=None):
+    def get_prompt(self, username=None):
         """
         Return the prompt information for the step. In the Step base class
         this is a simple string. Before returning, though, any necessary
@@ -193,14 +206,36 @@ class Step(object):
         self._check_location()
         if raw_prompt == None:
             raw_prompt = self.data.prompt
-        prompt = self._make_replacements(raw_prompt)
+        prompt = self._make_replacements(raw_prompt, username)
+        # prompt no longer tagged or converted to markmin here, but in view
+
         instructions = self._get_instructions()
-        npc = self.get_npc()
-        npc_image = npc.get_image()
+
+        npc = self.get_npc() # duplicate choice prevented in get_npc()
+        npc_image = self.npc.get_image()
 
         return {'prompt': prompt,
                 'instructions': instructions,
                 'npc_image': npc_image}
+
+    def _make_replacements(self, raw_string, username=None):
+        """
+        Return the provided string with tokens replaced by personalized
+        information for the current user.
+        """
+        if username is None:
+            auth = current.auth
+            uname = auth.user['first_name']
+
+        if not 'reps' in locals().keys():
+            reps = {}
+        reps['[[user]]'] = username
+
+        new_string = raw_string
+        for k, v in reps.iteritems():
+            new_string = new_string.replace(k, v)
+
+        return new_string
 
     def get_responder(self):
         """
@@ -215,16 +250,19 @@ class Step(object):
 
     def get_npc(self):
         """Return an Npc object representing an appropriate npc for this step"""
-        npcs_for_step = self.data.npcs
-        npc_list = [n for n in npcs_for_step
-                    if self.loc.get_id() in self.db.npcs[n].location]
-        if self.prev_npc_id in npc_list:
-            self.npc = Npc(self.prev_npc_id)
+        if self.npc: # ensure choice is made only once for each step
             return self.npc
         else:
-            pick = npc_list[randint(0,len(npc_list) - 1)]
-            self.npc = Npc(pick)
-            return self.npc
+            npcs_for_step = self.data.npcs
+            npc_list = [n for n in npcs_for_step
+                        if self.loc.get_id() in self.db.npcs[n].location]
+            if self.prev_npc_id in npc_list:
+                self.npc = Npc(self.prev_npc_id)
+                return self.npc
+            else:
+                pick = npc_list[randint(0,len(npc_list) - 1)]
+                self.npc = Npc(pick)
+                return self.npc
 
     def _get_instructions(self):
         """
@@ -243,74 +281,120 @@ class Step(object):
             print type(e), e, 'value: ', instructions
             return None
 
-    def _make_replacements(self, raw_prompt=None):
-        """docstring for eval_response"""
-        if raw_prompt == None:
-            raw_prompt == self.raw_prompt
-            # TODO: actually make replacements
-        prompt = raw_prompt
-        return prompt
-
     def _check_location(self):
         """docstring for get_locations"""
         # TODO: no code
         pass
+
 
 class StepRedirect(Step):
     '''
     A subclass of Step. Handles the user interaction when the user needs to be
     sent to another location.
     '''
-    def get_prompt(self):
-        """
-        Return the prompt appropriate for a step that simply sends a user to
-        a different location.
-        """
-        prompt = None
-        prompt = self._string_replacements(prompt)
-        return {'prompt': None,
-                'instructions': None,
-                'npc_image': None}
 
-    def _string_replacements(self, prompt_string):
+    def _make_replacements(self, prompt_string, username=None,
+                                                    db=None, next_step=None):
         """
         Return the string for the step prompt with context-based information
         substituted for tokens framed by [[]].
         """
-        return None
+        session = current.session
+        if db is None:
+            db = current.db
 
-class StepTextResponse(Step):
+        next_loc = 'somewhere else in town' # generic default
+        # if mid-way through a path, send to next viable location
+        # TODO: find a way to set this value to another location with an
+        # available path if the current step is the last in its path.
+        if self.next_step_id:
+            next_locids = db.steps[self.next_step_id].locations
+            # find a location that actually has a readable name
+            raw_locs = [db.locations[n].readable for n in next_locids]
+            next_locs = [n for n in raw_locs if not n is None]
+        elif next_step:
+            next_locids = db.steps[next_step].locations
+            # find a location that actually has a readable name
+            raw_locs = [db.locations[n].readable for n in next_locids]
+            next_locs = [n for n in raw_locs if not n is None]
+        else:
+            pass
+
+        reps = {'[[next_loc]]': next_loc}
+        super()._make_replacements(prompt_string, username)
+
+        return prompt
+
+
+class StepText(Step):
     """
     A subclass of Step that adds a form to receive user input and evaluation of
     that input. Handles only a single string response.
     """
+
     def get_responder(self):
         """
         Return the html form to allow the user to respond to the prompt for
         this step.
         """
         form = SQLFORM.factory(
-                    Field('response', 'string', requires=IS_NOT_EMPTY()),
-                    _autocomplete='off'
+                    Field('response', 'string',
+                            requires=IS_NOT_EMPTY()),
+                            _autocomplete='off'
                 )
         return form
 
     def get_reply(self, user_response=None):
         """docstring for get_reply"""
-        request = current.request
-
         if user_response == None:
+            request = current.request
             user_response = request.vars['response']
-        bug_reporter = BugReporter(self.get_id(), user_response, record_id)
-        eval = StepEvaluator(response)
-        reply_text = eval['reply']
-        tips = eval['tips']
 
-        # TODO: unfinished
+        readable = self._get_readable()
+
+        result = StepEvaluator(response)
+        reply_text = result['reply']
+        tips = result['tips']
+        score = result['score']
+        tr = result['times_right']
+        tw = result['times_wrong']
+        ur = result['user_response']
+        tags = self.get_tags()
+        sid = self.get_id()
+        pid = self.get_path()
+        # the following class/method both records the user's performance
+        # on this step instance AND returns the BugReporter object
+        bug_reporter = StepRecorder().record(sid, tags, score, tr, tw, ur)
+
         return {'response': user_response,
                 'reply_text': reply_text,
                 'bug_reporter': bug_reporter,
-                'tips':tips}
+                'tips':tips,
+                'readable_short': readable['readable_short'],
+                'readable_long': readable['readable_long']}
+
+    def _get_readable(step_data=None):
+        """
+        Return two strings containing the shorter and the longer forms of the
+        readable correct answer samples for this step.
+        """
+        if step_data is None:
+            step_data = self.step_data
+
+        readable = self.step_data.readable_response
+        if '|' in readable:
+            i = len(readable)
+            if i > 1: i = 2
+            readable_short = readable.split('|')[:(i + 1)]
+            readable_short = [unicode(r, 'utf-8') for r in readable_short]
+            readable_long = readable.split('|')
+            readable_long = [unicode(r, 'utf-8') for r in readable_long]
+        else:
+            readable_short = [readable]
+            readable_long = None
+
+        return {'readable_short': readable_short,
+                'readable_long': readable_long}
 
 
 class StepMultipleChoice(Step):
@@ -327,48 +411,75 @@ class StepEvaluator(object):
     handles the data that results.
     '''
 
-    def __init__(self, step_data, db=None):
+    def __init__(self, answers, tips):
         """Initializes a StepEvaluator object"""
-        if db == None:
-            db = current.db
-        self.score = None
-        self.step_data = step_data
+        self.answers = answers
+        self.tips = tips
 
     def get_eval(self, user_response=None):
         """
-        The main public method that returns the evaluation result and triggers
-        the handling of user-performance data. This method also returns the
-        "tips" text to be displayed to the user in case of a wrong answer and
-        the db id of the transaction that recorded the user performance data.
-        This latter allows for reversing the transaction later.
+        Return the user's score for this step attempt along with "tips" text
+        to be displayed to the user in case of a wrong answer.
         """
         if user_response == None:
-            pass # TODO: raise error
-        result = self._eval(user_response)
-        score = result['score']
-        tips = result['tips'] # to allow for varying based on kind of error
+            request = current.request
+            user_response = request.vars['response']
+        user_response = user_response.strip()
+        answers = self.answers
 
-        record = self._record(score)
-        if record['score'] == score:
-            pass
-        else:
-            pass # TODO: raise an error here
+        # Compare the student's response to the regular expressions
+        try:
+            if re.match(answers[0], user_response, re.I):
+                score = 1
+                reply = "Right. Κάλον."
+            elif len(answers) > 1 and re.match(answers[1], user_response, re.I):
+                score = 0.5
+                #TODO: Get this score value from the db instead of hard
+                #coding it here.
+                reply = "Οὐ κάκον. You're close."
+                #TODO: Vary the replies
+            elif len(answers) > 2 and re.match(answers[2], user_response, re.I):
+                #TODO: Get this score value from the db instead of hard
+                #coding it here.
+                score = 0.3
+                reply = "Οὐ κάκον. You're close."
+            else:
+                score = 0
+                reply = "Incorrect. Try again!"
 
-        return {'tips':tips,
-                'record_id':record['record_id']}
+            # Set the increment value for times wrong, depending on score
+            if score < 1:
+                times_wrong = 1
+            else:
+                times_wrong = 0
 
-    def _eval(self, response=None):
-        """
-        Evaluate the user response against the step's regular expression(s)
-        """
-        score == 0 # TODO: add actual business logic
+        # Handle errors if the student's response cannot be evaluated
+        except re.error:
+            redirect(URL('index', args=['error', 'regex']))
+            reply = 'Oops! I seem to have encountered an error in this step.'
+            readable_short = None
+            readable_long = None
 
-        tips = self.step_data.tips  # TODO: customize tips for specific errors
+        tips = self.tips # TODO: customize tips for specific errors
 
         return {'score': score,
+                'times_wrong': times_wrong,
+                'reply': reply,
+                'user_response': user_response,
                 'tips': tips}
 
-    def _record(self):
+
+class StepRecorder(object):
+    """
+    Record the user's performance on this step and return a BugReporter object
+    containing information about the transaction required to reverse the
+    transaction later if necessary.
+    """
+
+    def __init__(self):
+        pass
+
+    def _record(self, step_id, path_id, tags, score, tr, tw, user_response, db=None):
         """
         Record user performance data resulting from the current step
         evaluation. This method also returns some data so that the calling
