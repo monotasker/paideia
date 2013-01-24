@@ -62,13 +62,18 @@ class Stats(object):
             except TypeError:
                 right_since = stepcount
 
+            steptags = {t: {'tagname': db.tags[t].tag,
+                        'badge': db(db.badges.tag == t).select().first().badge_name}
+                            for t in steprow.tags}
+            print steptags
+
             step_dict = {'step': step,
                         'count': stepcount,
                         'right': len(stepright),
                         'wrong': len(stepwrong),
                         'last_wrong': last_wrong,
                         'right_since': right_since,
-                        'tags': steprow.tags,
+                        'tags': steptags,
                         'prompt': steprow.prompt,
                         'logs': steplogs,
                         'duration': duration}

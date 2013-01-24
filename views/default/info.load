@@ -214,7 +214,8 @@
                 TD(l['wrong'], _class='wrong'),
                 TD(l['last_wrong'], _class='last_wrong'),
                 TD(l['right_since'], _class='right_since'),
-                TD(l['tags'], _class='tags'),
+                TD([TOOLTIP(v['badge'], v['badge'], 'tag: {} ({})'.format(v['tagname'], k))
+                        for k, v in l['tags'].iteritems()], _class='tags'),
                 _class='step_log_table'
                 ) 
                 ), 
@@ -280,5 +281,9 @@
 <!--
  $("#web2py_user_form input:visible:enabled:first").focus();
  $('#user_profile_tabs').tabs();
+ $('.trigger').live('click', function(event){
+     event.preventDefault();
+ });
 //-->
+
 </script>
