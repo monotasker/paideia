@@ -16,13 +16,13 @@ p8
 ssS'tag'
 p9
 (dp10
-S'sortable'
+S'type'
 p11
-I5
-sS'type'
-p12
 S'list:reference db.tags'
+p12
+sS'sortable'
 p13
+I5
 sS'sql'
 p14
 S'TEXT'

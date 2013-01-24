@@ -1,9 +1,13 @@
 # Unit tests for the paideia module
 
-
 import pytest
-from paideia import Npc, Location, Step, User, StepRedirect
+from paideia import Npc, Location, User, Step, StepRedirect, StepText, StepEvaluator
 from gluon import *
+
+
+# ===================================================================
+# Test Fixtures
+# ===================================================================
 
 db = current.db
 
@@ -45,7 +49,7 @@ def mystep():
     loc = Location(8, db)
     prev_loc = Location(8, db)
     prev_npc_id = 1
-    return Step(1, loc, prev_loc, prev_npc_id, db)
+    return Step(1, loc, prev_loc, prev_npc_id, path=None, db=db)
 
 @pytest.fixture
 def myStepRedirect():
@@ -57,7 +61,30 @@ def myStepRedirect():
     loc = Location(11, db) # synagogue
     prev_loc = Location(11, db)
     prev_npc_id = 31 # stephanos
-    return StepRedirect(30, loc, prev_loc, prev_npc_id, db)
+    return StepRedirect(30, loc, prev_loc, prev_npc_id, path=None, db=db)
+
+@pytest.fixture
+def myStepText():
+    """ """
+    loc = Location(8, db)
+    prev_loc = Location(8, db)
+    prev_npc_id = 1
+    return StepText(1, loc, prev_loc, prev_npc_id, path=None, db=db)
+
+@pytest.fixture
+def myStepEvaluator():
+    """
+    A pytest fixture providing a paideia.StepEvaluator object for testing.
+    """
+    step = db.steps[1]
+    answers = [step.response1, step.response2, step.response3]
+    tips = step.hints
+
+    return StepEvaluator(answers, tips)
+
+# ===================================================================
+# Test Classes
+# ===================================================================
 
 class TestNpc():
     '''
@@ -132,9 +159,16 @@ class TestStep():
 
     def test_step_get_prompt(self, mystep):
         """Test for method Step.get_prompt"""
-        assert mystep.get_prompt()['prompt'] == 'How could you write the word "meet" using Greek letters?'
-        assert mystep.get_prompt()['instructions'].xml() == '<ul class="step_instructions"><li>Focus on finding Greek letters that make the *sounds* of the English word. Don&#x27;t look for Greek &quot;equivalents&quot; for each English letter.</li></ul>'
-        assert mystep.get_prompt()['npc_image'].xml() == '<img src="/paideia/static/images/images.image.bb48641f0122d2b6.696d616765732e696d6167652e383136303330663934646664646561312e34343732363137373639366536373230333432653733373636372e737667.svg" />'
+        username = 'Ian'
+        assert mystep.get_prompt(username)['prompt'] == 'How could you write the word "meet" using Greek letters?'
+        assert mystep.get_prompt(username)['instructions'].xml() == '<ul class="step_instructions"><li>Focus on finding Greek letters that make the *sounds* of the English word. Don&#x27;t look for Greek &quot;equivalents&quot; for each English letter.</li></ul>'
+        assert mystep.get_prompt(username)['npc_image'].xml() == '<img src="/paideia/static/images/images.image.bb48641f0122d2b6.696d616765732e696d6167652e383136303330663934646664646561312e34343732363137373639366536373230333432653733373636372e737667.svg" />'
+
+    def test_step_make_replacements(self, mystep):
+        """Unit test for method Step._make_replacements()"""
+        raw_string = 'Hi [[user]]!'
+        username = 'Ian'
+        assert mystep._make_replacements(raw_string, username) == 'Hi Ian!'
 
     def test_step_get_responder(self, mystep):
         """Test for method Step.get_responder"""
@@ -174,9 +208,18 @@ class TestStepRedirect():
         This test assumes that the selected npc is Stephanos. It also assumes
         that the step is 30.
         """
-        assert myStepRedirect.get_prompt()['prompt'] == "Hi there. Sorry, I don't have anything for you to do here at the moment. I think someone was looking for you at [[next_loc]]."
-        assert myStepRedirect.get_prompt()['instructions'] == None
-        assert myStepRedirect.get_prompt()['npc_image'].xml() == '<img src="/paideia/static/images/images.image.961b44d8d322659c.323031322d30362d30372031345f34345f34302e706e67.png" />'
+        username = 'Ian'
+        assert myStepRedirect.get_prompt(username)['prompt'] == "Hi there. Sorry, I don't have anything for you to do here at the moment. I think someone was looking for you at [[next_loc]]."
+        assert myStepRedirect.get_prompt(username)['instructions'] == None
+        assert myStepRedirect.get_prompt(username)['npc_image'].xml() == '<img src="/paideia/static/images/images.image.961b44d8d322659c.323031322d30362d30372031345f34345f34302e706e67.png" />'
+
+    def test_stepredirect_make_replacements(self, myStepRedirect):
+        """docstring for test_stepredirect_make_replacements"""
+        string = 'Nothing to do here [[user]]. Try [[next_loc]].'
+        next_step = 1
+        kwargs = {'username': 'Ian', 'db': db, 'next_step': next_step}
+        newstring = 'Nothing to do here Ian. Try somewhere else.'
+        assert myStepRedirect._make_replacements(string, **kwargs) == newstring
 
     def test_stepredirect_get_tags(self, myStepRedirect):
         """
@@ -201,8 +244,43 @@ class TestStepRedirect():
 
         locs = myStepRedirect.get_npc().get_locations()
         assert isinstance(locs[0], Location)
-        assert locs[0].get_id() == 11
+        assert (locs[0].get_id() == 3) or (locs[0].get_id() == 11)
 
+class TestStepText():
+    '''
+    Test class for paideia.StepText
+    '''
+    def test_steptext_get_responder(self, myStepText):
+        resp = '<form action="" autocomplete="off" enctype="multipart/form-data" method="post">'
+        resp += '<table><tbody>'
+        resp += '<tr id="no_table_response__row">'
+        resp += '<td class="w2p_fl">'
+        resp += '<label for="no_table_response" id="no_table_response__label">Response: </label>'
+        resp += '</td>'
+        resp += '<td class="w2p_fw">'
+        resp += '<input class="string" id="no_table_response" name="response" type="text" value="">'
+        resp += '</td>'
+        resp += '<td class="w2p_fc"></td>'
+        resp += '</tr>'
+        resp += '<tr id="submit_record__row">'
+        resp += '<td class="w2p_fl"></td>'
+        resp += '<td class="w2p_fw"><input type="submit" value="Submit"></td>'
+        resp += '<td class="w2p_fc"></td></tr></tbody></table></form>'
+
+        assert myStepText.get_responder().xml() == resp
+
+    def test_steptext_get_reply(self, myStepText):
+        pass
+
+class TestStepEvaluator():
+
+    def test_stepevaluator_get_eval(self, myStepEvaluator):
+        user_response = 'μιτ'
+        assert myStepEvaluator.get_eval(user_response)['score'] == 1
+        assert myStepEvaluator.get_eval(user_response)['times_wrong'] == 0
+        assert myStepEvaluator.get_eval(user_response)['reply'] == 'Right. Κάλον.'
+        assert myStepEvaluator.get_eval(user_response)['user_response'] == 'μιτ'
+        assert myStepEvaluator.get_eval(user_response)['tips'] == []
 
 class TestUser():
     pass
