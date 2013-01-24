@@ -53,8 +53,9 @@
 {{elif request.args(0) == 'start' or not request.args:}}
 	<embed id='town_map' src='{{=map.image}}' type='image/svg+xml' />
     {{=TOOLTIP('townmap_key', 'Show map hotspots',
-        IMG(_src='../static/images/townmap.png'),
-        'search')}}
+                IMG(_src='../static/images/townmap.png'),
+                'left', 
+                'search')}}
     
 <!--present npc reply for user's response to step prompt-->
 {{elif 'response' in request.vars:}}
@@ -100,7 +101,7 @@
             cid='page',
             _class='button-yellow-grad back_to_map icon-location')}}
 
-        {{=TOOLTIP('bug_reporter', 'bug', XML(bug_reporter), 'alert')}}
+        {{=TOOLTIP('bug_reporter', 'bug', XML(bug_reporter), 'left', 'alert')}}
     </div>
 
 <!--present prompt for step-->
@@ -111,7 +112,7 @@
     <div class='responder'>
         {{=form}}
         {{if not instructions is None:}}
-            {{=TOOLTIP('prompt_tips', 'tips', XML(instructions), 'star')}}
+            {{=TOOLTIP('prompt_tips', 'tips', XML(instructions), 'left', 'star')}}
         {{pass}}
     </div>
 {{pass}}
