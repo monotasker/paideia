@@ -22,7 +22,7 @@ p11
 sg6
 I2
 sg7
-S'INTEGER REFERENCES auth_group(id) ON DELETE CASCADE'
+S'INTEGER REFERENCES auth_group (id) ON DELETE CASCADE'
 p12
 ssS'table_name'
 p13

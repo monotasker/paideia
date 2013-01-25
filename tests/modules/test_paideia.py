@@ -1,6 +1,7 @@
 # Unit tests for the paideia module
 
 import pytest
+import pprint
 from paideia import Npc, Location, User, Step, StepRedirect, StepText, StepEvaluator
 from gluon import *
 
@@ -209,16 +210,16 @@ class TestStepRedirect():
         that the step is 30.
         """
         username = 'Ian'
-        assert myStepRedirect.get_prompt(username)['prompt'] == "Hi there. Sorry, I don't have anything for you to do here at the moment. I think someone was looking for you at [[next_loc]]."
+        assert myStepRedirect.get_prompt(username)['prompt'] == "Hi there. Sorry, I don't have anything for you to do here at the moment. I think someone was looking for you at somewhere else in town."
         assert myStepRedirect.get_prompt(username)['instructions'] == None
-        assert myStepRedirect.get_prompt(username)['npc_image'].xml() == '<img src="/paideia/static/images/images.image.961b44d8d322659c.323031322d30362d30372031345f34345f34302e706e67.png" />'
+        assert myStepRedirect.get_prompt(username)['npc_image'].xml() == '<img src="/paideia/static/images/images.image.a59978facee731f0.44726177696e672031382e737667.svg" />'
 
     def test_stepredirect_make_replacements(self, myStepRedirect):
         """docstring for test_stepredirect_make_replacements"""
         string = 'Nothing to do here [[user]]. Try [[next_loc]].'
         next_step = 1
         kwargs = {'username': 'Ian', 'db': db, 'next_step': next_step}
-        newstring = 'Nothing to do here Ian. Try somewhere else.'
+        newstring = 'Nothing to do here Ian. Try somewhere else in town.'
         assert myStepRedirect._make_replacements(string, **kwargs) == newstring
 
     def test_stepredirect_get_tags(self, myStepRedirect):
@@ -252,21 +253,20 @@ class TestStepText():
     '''
     def test_steptext_get_responder(self, myStepText):
         resp = '<form action="" autocomplete="off" enctype="multipart/form-data" method="post">'
-        resp += '<table><tbody>'
+        resp += '<table>'
         resp += '<tr id="no_table_response__row">'
         resp += '<td class="w2p_fl">'
         resp += '<label for="no_table_response" id="no_table_response__label">Response: </label>'
         resp += '</td>'
         resp += '<td class="w2p_fw">'
-        resp += '<input class="string" id="no_table_response" name="response" type="text" value="">'
+        resp += '<input class="string" id="no_table_response" name="response" type="text" value="" />'
         resp += '</td>'
         resp += '<td class="w2p_fc"></td>'
         resp += '</tr>'
         resp += '<tr id="submit_record__row">'
         resp += '<td class="w2p_fl"></td>'
-        resp += '<td class="w2p_fw"><input type="submit" value="Submit"></td>'
-        resp += '<td class="w2p_fc"></td></tr></tbody></table></form>'
-
+        resp += '<td class="w2p_fw"><input type="submit" value="Submit" /></td>'
+        resp += '<td class="w2p_fc"></td></tr></table></form>'
         assert myStepText.get_responder().xml() == resp
 
     def test_steptext_get_reply(self, myStepText):

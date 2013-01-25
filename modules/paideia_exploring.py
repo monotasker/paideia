@@ -1966,9 +1966,6 @@ class StepStub(Step):
         # either way, remove 'path' and 'step' from session.walk
         session.walk['path'] = None
         session.walk['step'] = None
-        if debug: print 'session path:', session.walk['step']
-        if debug: print 'session step:', session.walk['step']
-        if debug: print 'session active_paths:', session.walk['active_paths']
 
         # Store session data in db
         Utils()._session_to_db(session.walk)

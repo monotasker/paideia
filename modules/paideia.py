@@ -161,7 +161,10 @@ class Step(object):
     interaction) in the game.
     '''
 
-    def __init__(self, step_id, loc, prev_loc, prev_npc_id, path=None, db=None):
+    def __init__(self, step_id, loc, prev_loc, prev_npc_id,
+                    next_step_id=None,
+                    path=None,
+                    db=None):
         """docstring for __init__"""
         if db is None:
             db == current.db
@@ -173,6 +176,7 @@ class Step(object):
         self.prev_npc_id = prev_npc_id
         self.npc = None
         self.path = path
+        self.next_step_id = next_step_id
 
     def get_id(self):
         """
@@ -204,8 +208,7 @@ class Step(object):
         replacements or randomizations are made.
         """
         self._check_location()
-        if raw_prompt == None:
-            raw_prompt = self.data.prompt
+        raw_prompt = self.data.prompt
         prompt = self._make_replacements(raw_prompt, username)
         # prompt no longer tagged or converted to markmin here, but in view
 
@@ -218,7 +221,7 @@ class Step(object):
                 'instructions': instructions,
                 'npc_image': npc_image}
 
-    def _make_replacements(self, raw_string, username=None):
+    def _make_replacements(self, raw_string, username=None, reps=None):
         """
         Return the provided string with tokens replaced by personalized
         information for the current user.
@@ -227,7 +230,7 @@ class Step(object):
             auth = current.auth
             uname = auth.user['first_name']
 
-        if not 'reps' in locals().keys():
+        if reps is None:
             reps = {}
         reps['[[user]]'] = username
 
@@ -269,17 +272,17 @@ class Step(object):
         Return an html list containing the instructions for the current
         step. Value is returned as a web2py UL() object.
         """
-        try:
-            instructions = self.data.instructions
+        instructions = self.data.instructions
+        if instructions is None or instructions == []:
+            return None
+        else:
             list = UL(_class='step_instructions')
             for item in instructions:
                 item_row = self.db.step_instructions[item]
                 item_text = item_row.text
                 list.append(LI(item_text))
+
             return list
-        except Exception, e:
-            print type(e), e, 'value: ', instructions
-            return None
 
     def _check_location(self):
         """docstring for get_locations"""
@@ -321,9 +324,11 @@ class StepRedirect(Step):
             pass
 
         reps = {'[[next_loc]]': next_loc}
-        super()._make_replacements(prompt_string, username)
+        new_string = super(StepRedirect, self)._make_replacements(prompt_string,
+                                                            reps=reps,
+                                                            username=username)
 
-        return prompt
+        return new_string
 
 
 class StepText(Step):
