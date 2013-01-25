@@ -11,11 +11,58 @@ class Stance(object):
 
     def __init__(self):
         """Initialize a Stance object."""
+        self.path = None
+        self.user = None
+
+    def get_path(self):
         pass
 
+    def get_user(self):
+        if self.user:
+            return self.user
+        else:
+            pass
 
 class Walk(object):
-    pass
+
+    def __init__(self, loc_alias):
+        """docstring for __init__"""
+        self.user = User(loc_alias)
+        self.response_string = response_string
+
+    def ask(self):
+        """docstring for __ask__"""
+
+        p = self.user.get_path()
+        s = p.get_next_step()
+        prompt = s.get_prompt()
+        responder = s.get_responder()
+        self.store_user()
+
+        return {'prompt': prompt, 'responder': responder}
+
+    def reply(self, response_string):
+        """docstring for __reply__"""
+
+        p = self.user.get_path()
+        s = p.get_current_step()
+        reply = s.get_reply(response_string)
+        record_id = self._record_step()
+        bug_reporter = BugReporter(record_id)
+        p.complete_step()
+
+        if p.check_for_end() is True:
+            self.user._complete_path()
+
+        self._store_user()
+
+        return {'reply': reply, 'bug_reporter': bug_reporter}
+
+    def _record_step(self):
+        pass
+
+    def _complete_path(self):
+        pass
 
 
 class PathChooser(object):
@@ -498,12 +545,70 @@ class StepRecorder(object):
 
 
 class Path(object):
-    pass
+    def __init__(self):
+        """docstring for __init__"""
+        self.completed_steps = []
+        self.next_step_id = None
 
+    def get_next_step(self, db=None):
+        """docstring for get_next_step"""
+        pass
+
+class PathChooser(object):
+    def __init__(self):
+        """docstring for __init__"""
+        pass
 
 class User(object):
-    pass
+    def __init__(self, userdata=None):
+        """docstring for __init__"""
+        if userdata is None:
+            userdata = current.Auth.user
+        self.userdata = userdata
+        self.path = None
+        self.completed_paths = None
+        self.categories = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
+        self.old_categories = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
+        self.new_badges = None
+        self.blocks = None
 
+    def get_id(self):
+        """docstring"""
+        pass
+
+    def get_categories(self):
+        """docstring for fname"""
+        pass
+
+    def get_new_badges(self):
+        """docstring for fname"""
+        pass
+
+    def get_firstname(self):
+        """docstring"""
+        pass
+
+    def get_path(self):
+        """docstring"""
+        pass
+
+    def get_categories(self):
+        """docstring"""
+        pass
+
+    def get_old_categories(self):
+        """docstring"""
+        pass
+
+    def get_blocks(self):
+        """docstring"""
+        pass
+
+class Categorizer(object):
+    pass
 
 class Block(object):
+    """docstring"""
     pass
+
+

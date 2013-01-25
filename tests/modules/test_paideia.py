@@ -273,7 +273,6 @@ class TestStepText():
         pass
 
 class TestStepEvaluator():
-
     def test_stepevaluator_get_eval(self, myStepEvaluator):
         user_response = 'μιτ'
         assert myStepEvaluator.get_eval(user_response)['score'] == 1
@@ -282,9 +281,17 @@ class TestStepEvaluator():
         assert myStepEvaluator.get_eval(user_response)['user_response'] == 'μιτ'
         assert myStepEvaluator.get_eval(user_response)['tips'] == []
 
+class TestPath():
+    pass
+
+class TestPathChooser():
+    pass
+
 class TestUser():
     pass
 
+class TestCategorizer():
+    pass
 
-class TestStance():
+class TestWalk():
     pass
