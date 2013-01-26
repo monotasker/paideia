@@ -6,32 +6,26 @@ from random import randint
 import re
 
 
-class Stance(object):
-    '''Stores the current state of the game session.'''
-
-    def __init__(self):
-        """Initialize a Stance object."""
-        self.path = None
-        self.user = None
-
-    def get_path(self):
-        pass
-
-    def get_user(self):
-        if self.user:
-            return self.user
-        else:
-            pass
-
 class Walk(object):
+    """
+    Main interface class for the paideia module, intended to be called by
+    the controller.
+    """
 
     def __init__(self, loc_alias):
-        """docstring for __init__"""
+        """Initialize a Walk object."""
         self.user = User(loc_alias)
         self.response_string = response_string
 
+    def map(self):
+        """
+        Return the information necessary to present the paideia navigation
+        map interface.
+        """
+        pass
+
     def ask(self):
-        """docstring for __ask__"""
+        """Return the information necessary to initiate a step interaction."""
 
         p = self.user.get_path()
         s = p.get_next_step()
@@ -45,14 +39,26 @@ class Walk(object):
         """docstring for __reply__"""
 
         p = self.user.get_path()
+        path_id = p.get_id()
+
         s = p.get_current_step()
+        step_id = s.get_id()
+
         reply = s.get_reply(response_string)
-        record_id = self._record_step()
-        bug_reporter = BugReporter(record_id)
-        p.complete_step()
+        tags = reply['tags']
+        score = reply['score']
+        times_right = reply['times_right']
+        times_wrong = reply['times_wrong']
+
+        record_id = self._record_step(path_id, step_id, tags, score,
+                                    times_right, times_wrong, response_string)
+
+        bug_reporter = BugReporter(record_id, path_id, step_id,
+                                    tags, score, response_string)
+        p.complete_step(step_id)
 
         if p.check_for_end() is True:
-            self.user._complete_path()
+            self.user._complete_path(path_id)
 
         self._store_user()
 
@@ -416,7 +422,6 @@ class StepText(Step):
         pid = self.get_path()
         # the following class/method both records the user's performance
         # on this step instance AND returns the BugReporter object
-        bug_reporter = StepRecorder().record(sid, tags, score, tr, tw, ur)
 
         return {'response': user_response,
                 'reply_text': reply_text,
@@ -560,11 +565,24 @@ class PathChooser(object):
         pass
 
 class User(object):
-    def __init__(self, userdata=None):
-        """docstring for __init__"""
+    """
+    An object representing the current user, including his/her performance
+    data and the paths completed and active in this session.
+    """
+
+    def __init__(self, userdata=None, tag_progress=None, db=None):
+        """Initialize a paideia.User object."""
         if userdata is None:
-            userdata = current.Auth.user
+            Auth = current.Auth
+            userdata = db.auth_user(Auth.user_id).as_dict()
+        if tag_progress is None:
+            tag_progress = db(db.tag_progress.name == userdata['id']).select()
+            tag_progress = tag_progress.as_list()
+        if db is None:
+            db = current.db
         self.userdata = userdata
+        self.tag_progress = tag_progress
+        self.db = db
         self.path = None
         self.completed_paths = None
         self.categories = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
@@ -573,10 +591,10 @@ class User(object):
         self.blocks = None
 
     def get_id(self):
-        """docstring"""
-        pass
+        """Return the id (from db.auth_user) of the current user."""
+        return self.userdata['id']
 
-    def get_categories(self):
+    def _get_categories(self):
         """docstring for fname"""
         pass
 
@@ -592,15 +610,19 @@ class User(object):
         """docstring"""
         pass
 
-    def get_categories(self):
+    def _get_categories(self):
         """docstring"""
         pass
 
-    def get_old_categories(self):
+    def _get_old_categories(self):
         """docstring"""
         pass
 
-    def get_blocks(self):
+    def _get_blocks(self):
+        """docstring"""
+        pass
+
+    def _complete_path(self, path_id):
         """docstring"""
         pass
 

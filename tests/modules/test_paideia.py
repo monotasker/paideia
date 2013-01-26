@@ -12,6 +12,14 @@ from gluon import *
 
 db = current.db
 
+
+@pytest.fixture
+def myuser():
+    """A pytest fixture providing a paideia.User object for testing."""
+    userdata = db.auth_user(1).as_dict()
+    tag_progress = db(db.tag_progress.name == userdata['id']).select().as_list()
+    return User(userdata, tag_progress, db)
+
 @pytest.fixture
 def mynpc():
     '''
@@ -282,13 +290,18 @@ class TestStepEvaluator():
         assert myStepEvaluator.get_eval(user_response)['tips'] == []
 
 class TestPath():
+
     pass
+
 
 class TestPathChooser():
     pass
 
 class TestUser():
-    pass
+    """unit testing class for the paideia.User class"""
+
+    def test_user_get_id(self, myuser):
+        assert myuser.get_id() == 1
 
 class TestCategorizer():
     pass
