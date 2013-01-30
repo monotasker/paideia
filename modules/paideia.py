@@ -13,9 +13,45 @@ class Walk(object):
     the controller.
     """
 
-    def __init__(self, loc_alias):
+    def __init__(self, loc_alias, user=None, attempt_log=None,
+                tag_records=None, tag_progress=None,
+                response_string=None, db=None):
         """Initialize a Walk object."""
-        self.user = User(loc_alias)
+        # inject dependencies
+        self.user = user
+        if not db:
+            self.db = current.db
+
+        # initialize or re-activate User object
+        if not self.user:
+            try:
+                session = current.session
+                self.user = session.user
+            except:
+                auth = current.auth
+                user_id = auth.user_id
+                userdata = db.auth_user[user_id].as_dict()
+
+                if not attempt_log:
+                    attempt_log = db(db.attempt_log.name == user_id).select()
+                    tag_records = tag_records.as_list()
+                if not tag_records:
+                    tag_records = db(db.tag_records.name == user_id).select()
+                    tag_records = tag_records.as_list()
+                if not tag_progress:
+                    tag_progress = db(db.tag_progress.name == user_id).select()
+                    tag_progress_length = len(tag_progress) #TODO log if > 1
+                    tag_progress = tag_progress.first().as_dict()
+                    # Handle first-time users, who won't have db row to fetch
+                    if not tag_progress:
+                        db.tag_progress.insert(latest_new=1)
+                        tag_progress = db(db.tag_progress.name ==
+                                                self.user.get_id()).select()
+                        tag_progress = tag_progress.first().as_dict()
+
+                self.user = User(userdata, loc_alias, attempt_log,
+                                tag_records, tag_progress)
+
         self.response_string = response_string
 
     def map(self):
@@ -571,11 +607,12 @@ class User(object):
     data and the paths completed and active in this session.
     """
 
-    def __init__(self, userdata=None, tag_progress=None, db=None):
+    def __init__(self, userdata=None, loc_alias=None, attempt_log=None,
+                    tag_records=None, tag_progress=None, db=None):
         """Initialize a paideia.User object."""
         if userdata is None:
-            Auth = current.Auth
-            userdata = db.auth_user(Auth.user_id).as_dict()
+            auth = current.auth
+            userdata = db.auth_user(auth.user_id).as_dict()
         if tag_progress is None:
             tag_progress = db(db.tag_progress.name == userdata['id']).select()
             tag_progress = tag_progress.as_list()
@@ -652,6 +689,9 @@ class Categorizer(object):
              'cat4': []}
 
         TODO: Could this be done by a cron job or separate background process?
+        TODO: Factor in how many times a tag has been successful or not
+        TODO: Require that a certain number of successes are recent
+        TODO: Look at secondary tags as well
         """
         categories = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
         if utcnow is None:
@@ -681,13 +721,13 @@ class Categorizer(object):
                     # promote in any case if the user has never had a wrong
                     # answer in 20+ attempts
                 # ==================================================
-                # for category 3
+                # for cat3
                 if right_wrong_dur.days >= 7:
                     # ==============================================
-                    # for category 4
+                    # for cat4
                     if right_wrong_dur.days > 30:
                         # ==========================================
-                        # for review
+                        # for immediate review
                         if right_wrong_dur > datetime.timedelta(days=180):
                             category = 'cat1'  # Not tried for 6 months
                         else:
@@ -702,6 +742,96 @@ class Categorizer(object):
             categories[category].append(record['tag_id'])
 
         return categories
+
+    def _clean_tag_records(record_list=None, db=None):
+        """
+        Find and remove any duplicate entries in record_list.
+
+        This method is really safeguarding against faulty db updating in Walk.
+        It should probably be deprecated, or should simply log a silent error
+        when a duplicate is detected.
+        """
+        discrete_tags = set([t.tag for t in record_list])
+        kept = []
+        if len(record_list) > len(discrete_tags):
+            for tag in discrete_tags:
+                shortlist = record_list.find(lambda row: row.tag == tag)
+                if debug: print 'shortlist', [s.id for s in shortlist]
+                kept.append(shortlist[0].id)
+                if len(shortlist) > 1:
+                    for row in shortlist[1:]:
+                        row.delete_record()
+            record_list = record_list.find(lambda row: row.id in kept)
+        if debug: print 'filtered record_list', [r.id for r in record_list]
+
+    def _categorize_tags(self, record_list=None, user=None, auth=None, db=None, progress=None):
+        '''
+        This method uses stored statistics for current user to categorize the
+        grammatical tags based on the user's success and the time since the
+        user last used the tag.
+
+        The categories range from 1 (need immediate review) to 4 (no review
+        needed).
+
+        This method is called at the start of each user session so that
+        time-based statistics can be updated. It is also called by
+        Stats.categories() to provide a progress report for the student's
+        profile page.
+
+        Returns a dictionary with four keys corresponding to the four
+        categories. The value for each key is a list holding the id's
+        (integers) of the tags that are currently in the given category.
+        '''
+        if db is None:
+            db = current.db
+        if user is None:
+            user = auth.user_id
+        if tag_progress is None:
+        if tag_records = None:
+
+
+
+        # if user has not tried any tags yet, start first set
+        if record_list.first() is None:
+            firsttags = [t.id for t in db(db.tags.position == 1).select()]
+            categories['cat1'] = firsttags
+            self.view_slides = firsttags
+        # otherwise, categorize tags that have been tried
+        else:
+            # run basic categorizing algorithm
+            categories = self._find_cats(categories, record_list)
+        if debug: print 'raw categorized tags:', categories
+
+        # Make sure untried tags are still included
+        rank = progress.latest_new
+
+        #check for untried in current and all lower ranks
+        left_out = []
+        for r in range(1, rank + 1):
+            newtags = [t.id for t in db(db.tags.position == r).select()]
+            alltags = list(chain(*categories.values()))
+            left_out.extend([t for t in newtags if t not in alltags])
+        if left_out:
+            categories['cat1'].extend(left_out)
+            if debug: print 'adding untried tags', left_out, 'to cat1'
+
+        # Remove duplicate tag id's from each category
+        # Make sure each of the tags is not beyond the user's current ranking
+        # even if some were actually tried before (through system error)
+        for k, v in categories.iteritems():
+            if v:
+                newv = [t for t in v if db.tags[t].position <= rank]
+                categories[k] = list(set(newv))
+
+        # If there are no tags needing immediate review, introduce new one
+        if not categories['cat1']:
+            categories['cat1'] = self._introduce()
+
+        self.tag_set = categories
+
+        # return the value as well so that it can be used in Stats
+        return categories
+
 
 
 class Block(object):
