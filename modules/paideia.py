@@ -4,6 +4,7 @@ from gluon import IMG, URL, INPUT, FORM, SQLFORM, SPAN, DIV, UL, LI, A, Field
 from gluon import IS_NOT_EMPTY
 from random import randint
 import re
+import datetime
 
 
 class Walk(object):
@@ -596,6 +597,7 @@ class User(object):
 
     def _get_categories(self):
         """docstring for fname"""
+
         pass
 
     def get_new_badges(self):
@@ -627,7 +629,80 @@ class User(object):
         pass
 
 class Categorizer(object):
-    pass
+    """
+    A class that categorizes a user's active tags based on past performance.
+    """
+
+    def categorize(self, record_list, utcnow=None):
+        """
+        Return dict of the user's active tags categorized by past performance.
+
+        The record_list argument should be a list of dictionaries, each of
+        which includes the following keys and value types:
+            {'tag_id': <int>,
+             'last_right': <datetime>,
+             'last_wrong': <datetime>,
+             'times_right': <float>,
+             'times_wrong': <float>}
+
+        The return value is a dict with the following keys and value types:
+            {'cat1': [int, int ...],
+             'cat2': [],
+             'cat3': [],
+             'cat4': []}
+
+        TODO: Could this be done by a cron job or separate background process?
+        """
+        categories = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
+        if utcnow is None:
+            utcnow = datetime.datetime.utcnow()
+
+        for record in record_list:
+            #get time-based statistics for this tag
+            #note: arithmetic operations yield datetime.timedelta objects
+            right_dur = utcnow - record['last_right']
+            right_wrong_dur = record['last_right'] - record['last_wrong']
+
+            # Categorize q or tag based on this performance
+            # spaced repetition algorithm for promotion from cat1
+            # ======================================================
+            # for category 2
+            if ((right_dur < right_wrong_dur)
+                    # don't allow promotion from cat1 within 1 day
+                    and (right_wrong_dur > datetime.timedelta(days=1))
+                    # require at least 10 right answers
+                    and (record['times_right'] >= 10)) \
+                or ((record['times_right'] > 0)  # prevent zero division error
+                    and ((record['times_wrong'] / record['times_right']) <= 0.2)
+                    and (right_dur <= datetime.timedelta(days=2))) \
+                or ((record['times_wrong'] == 0)  # prevent zero division error
+                    and (record['times_right'] >= 20)):
+                    # allow for 1 wrong answer for every 5 correct
+                    # promote in any case if the user has never had a wrong
+                    # answer in 20+ attempts
+                # ==================================================
+                # for category 3
+                if right_wrong_dur.days >= 7:
+                    # ==============================================
+                    # for category 4
+                    if right_wrong_dur.days > 30:
+                        # ==========================================
+                        # for review
+                        if right_wrong_dur > datetime.timedelta(days=180):
+                            category = 'cat1'  # Not tried for 6 months
+                        else:
+                            category = 'cat4'  # Not due, delta > a month
+                    else:
+                        category = 'cat3'  # delta between a week and month
+                else:
+                    category = 'cat2'  # Not due but delta is a week or less
+            else:
+                category = 'cat1'  # Spaced repetition requires review
+
+            categories[category].append(record['tag_id'])
+
+        return categories
+
 
 class Block(object):
     """docstring"""

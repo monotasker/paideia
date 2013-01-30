@@ -2,9 +2,10 @@
 
 import pytest
 import pprint
-from paideia import Npc, Location, User, Step, StepRedirect, StepText, StepEvaluator
+from paideia import Npc, Location, User, Step, StepRedirect, StepText
+from paideia import StepEvaluator, Path, Categorizer
 from gluon import *
-
+import datetime
 
 # ===================================================================
 # Test Fixtures
@@ -12,6 +13,10 @@ from gluon import *
 
 db = current.db
 
+@pytest.fixture
+def mycategorizer():
+    """A pytest fixture providing a paideia.Categorizer object for testing."""
+    return Categorizer()
 
 @pytest.fixture
 def myuser():
@@ -304,7 +309,32 @@ class TestUser():
         assert myuser.get_id() == 1
 
 class TestCategorizer():
-    pass
+    """Unit testing class for the paideia.Categorizer class"""
+
+    @pytest.fixture
+    def myrecords(self):
+        """pytest fixture for the record_list arg of Categorizer.categorize()"""
+
+        def dt(string):
+            format = "%Y-%m-%d"
+            return datetime.datetime.strptime(string, format)
+
+        mynow = dt('2013-01-29')
+        recordlist = [
+            {'tag_id': 1,
+             'last_right': dt('2013-01-29'),
+             'last_wrong': dt('2013-01-29'),
+             'times_right': 1,
+             'times_wrong': 1}
+            ]
+        return {'recordlist': recordlist, 'mynow': mynow}
+
+    def test_categorize(self, mycategorizer, myrecords):
+        """Unit test for the paideia.Categorizer.categorize method."""
+        record_list = myrecords['recordlist']
+        utcnow = myrecords['mynow']
+        output = {'cat1': [1], 'cat2': [], 'cat3': [], 'cat4': []}
+        assert mycategorizer.categorize(record_list, utcnow) == output
 
 class TestWalk():
     pass
