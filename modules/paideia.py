@@ -610,23 +610,25 @@ class User(object):
     def __init__(self, userdata=None, loc_alias=None, attempt_log=None,
                     tag_records=None, tag_progress=None, db=None):
         """Initialize a paideia.User object."""
-        if userdata is None:
+        if not db:
+            db = current.db
+        if not userdata:
             auth = current.auth
             userdata = db.auth_user(auth.user_id).as_dict()
-        if tag_progress is None:
+        if not tag_progress:
             tag_progress = db(db.tag_progress.name == userdata['id']).select()
             tag_progress = tag_progress.as_list()
-        if db is None:
-            db = current.db
+
         self.userdata = userdata
         self.tag_progress = tag_progress
         self.db = db
         self.path = None
         self.completed_paths = None
-        self.categories = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
-        self.old_categories = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
+        self.categories = None #{'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
+        self.old_categories = None
         self.new_badges = None
         self.blocks = None
+        self.cats_counter = 0
 
     def get_id(self):
         """Return the id (from db.auth_user) of the current user."""
@@ -649,17 +651,36 @@ class User(object):
         """docstring"""
         pass
 
-    def _get_categories(self):
-        """docstring"""
-        pass
+    def _get_categories(self, cats_counter=None):
+        """
+        Return a categorized dictionary with four lists of tag id's.
+        """
+        if not cats_counter:
+            cats_counter = self.cats_counter
+        # only re-categorize every 10th evaluated step
+        if cats_counter < 10:
+            self.cats_counter = cats_counter + 1
+            return self.categories
+        else:
+            self.old_categories = self.categories
+            c = Categorizer()
+            categories = c.categorize()
+            self.categories = categories
+            self.cats_counter = cats_counter + 1
+            return categories
 
     def _get_old_categories(self):
-        """docstring"""
-        pass
+        """
+        Return a dict of user's active tags as categorized second last time.
+
+        This is used in determining whether the user has been promoted to a
+        higher badge level for any tag.
+        """
+        return self.old_categories
 
     def _get_blocks(self):
         """docstring"""
-        pass
+        return self.blocks
 
     def _complete_path(self, path_id):
         """docstring"""
@@ -764,39 +785,46 @@ class Categorizer(object):
             record_list = record_list.find(lambda row: row.id in kept)
         if debug: print 'filtered record_list', [r.id for r in record_list]
 
-    def _categorize_tags(self, record_list=None, user=None, auth=None, db=None, progress=None):
+    def _introduce(cats, db=None):
+        """
+        Add the next set of tags to cat1 in the user's tag_progress
+
+        Returns a dictionary of categories identical to that returned by
+        categorize_tags
+        """
+        if not db:
+            db = current.db
+
+            firsttags = [t['id'] for t in db(db.tags.position == 1).select()]
+            categories['cat1'] = firsttags
+            self.view_slides = firsttags
+
+    def categorize_tags(self, record_list=None, tag_records=None,
+                        tag_progress=None, user=None, db=None):
         '''
         This method uses stored statistics for current user to categorize the
         grammatical tags based on the user's success and the time since the
         user last used the tag.
 
         The categories range from 1 (need immediate review) to 4 (no review
-        needed).
-
-        This method is called at the start of each user session so that
-        time-based statistics can be updated. It is also called by
-        Stats.categories() to provide a progress report for the student's
-        profile page.
-
-        Returns a dictionary with four keys corresponding to the four
+        needed). Returns a dictionary with four keys corresponding to the four
         categories. The value for each key is a list holding the id's
         (integers) of the tags that are currently in the given category.
         '''
-        if db is None:
-            db = current.db
-        if user is None:
-            user = auth.user_id
-        if tag_progress is None:
-        if tag_records = None:
-
-
+        if not db:
+            db = self.db
+        if not user:
+            user = self.user
+        if not tag_progress:
+            tag_records = self.tag_records
+        if not tag_records:
+            tag_progress = self.tag_progress
 
         # if user has not tried any tags yet, start first set
-        if record_list.first() is None:
-            firsttags = [t.id for t in db(db.tags.position == 1).select()]
-            categories['cat1'] = firsttags
-            self.view_slides = firsttags
-        # otherwise, categorize tags that have been tried
+        if record_list[0] is None:
+            return self._introduce(None)
+
+                # otherwise, categorize tags that have been tried
         else:
             # run basic categorizing algorithm
             categories = self._find_cats(categories, record_list)
@@ -829,9 +857,7 @@ class Categorizer(object):
 
         self.tag_set = categories
 
-        # return the value as well so that it can be used in Stats
         return categories
-
 
 
 class Block(object):

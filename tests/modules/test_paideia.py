@@ -13,6 +13,44 @@ import datetime
 
 db = current.db
 
+
+@pytest.fixture
+def myrecords():
+    """pytest fixture for the record_list arg of Categorizer.categorize()"""
+
+    def dt(string):
+        format = "%Y-%m-%d"
+        return datetime.datetime.strptime(string, format)
+
+    mynow = dt('2013-01-29')
+    attempt_log = [{'step': None,
+                    'path': None,
+                    'score': None,
+                    'dt_attempted': None}
+                    ]
+
+    tag_records = [{'tag_id': 1,
+                     'last_right': dt('2013-01-29'),
+                     'last_wrong': dt('2013-01-29'),
+                     'times_right': 1,
+                     'times_wrong': 1}
+                    ]
+
+    tag_progress = {'level': 1,
+                    'cat1': [],
+                    'cat2': [],
+                    'cat3': [],
+                    'cat4': [],
+                    'rev1': [],
+                    'rev2': [],
+                    'rev3': [],
+                    'rev4': []
+                    }
+
+    return {'mynow': mynow, 'tag_records': tag_records,
+            'tag_progress': tag_progress, 'attempt_log': attempt_log}
+
+
 @pytest.fixture
 def mycategorizer():
     """A pytest fixture providing a paideia.Categorizer object for testing."""
@@ -311,30 +349,13 @@ class TestUser():
 class TestCategorizer():
     """Unit testing class for the paideia.Categorizer class"""
 
-    @pytest.fixture
-    def myrecords(self):
-        """pytest fixture for the record_list arg of Categorizer.categorize()"""
-
-        def dt(string):
-            format = "%Y-%m-%d"
-            return datetime.datetime.strptime(string, format)
-
-        mynow = dt('2013-01-29')
-        recordlist = [
-            {'tag_id': 1,
-             'last_right': dt('2013-01-29'),
-             'last_wrong': dt('2013-01-29'),
-             'times_right': 1,
-             'times_wrong': 1}
-            ]
-        return {'recordlist': recordlist, 'mynow': mynow}
-
     def test_categorize(self, mycategorizer, myrecords):
         """Unit test for the paideia.Categorizer.categorize method."""
-        record_list = myrecords['recordlist']
+        tag_progress = myrecords['tag_progress']
+        tag_records = myrecords['tag_records']
         utcnow = myrecords['mynow']
         output = {'cat1': [1], 'cat2': [], 'cat3': [], 'cat4': []}
-        assert mycategorizer.categorize(record_list, utcnow) == output
+        assert mycategorizer.categorize(tag_records, utcnow) == output
 
 class TestWalk():
     pass
