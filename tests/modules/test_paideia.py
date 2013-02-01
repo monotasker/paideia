@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Unit tests for the paideia module
 
 import pytest
@@ -44,28 +45,25 @@ def myrecords():
                     'rev3': [],
                     'rev4': []}
 
-    categories = None
-
     return {'mynow': mynow, 'tag_records': tag_records,
-            'tag_progress': tag_progress, 'categories': categories,
-            'attempt_log': attempt_log}
+            'tag_progress': tag_progress, 'attempt_log': attempt_log}
 
 
 @pytest.fixture
-def mycategorizer():
+def mycategorizer(myrecords):
     """A pytest fixture providing a paideia.Categorizer object for testing."""
-    rank = myrecords()['rank']
-    categories = myrecords()['categories']
-    tag_records = myrecords()['tag_records']
+    rank = myrecords['tag_progress']['latest_new']
+    categories = myrecords['tag_progress']
+    tag_records = myrecords['tag_records']
     return Categorizer(rank, categories, tag_records)
 
 @pytest.fixture
-def myuser():
+def myuser(myrecords):
     """A pytest fixture providing a paideia.User object for testing."""
     userdata = db.auth_user(1).as_dict()
     loc_alias = 'shop_of_alexander'
-    tag_progress = myrecords()['tag_progress']
-    tag_records = myrecords()['tag_records']
+    tag_progress = myrecords['tag_progress']
+    tag_records = myrecords['tag_records']
     return User(userdata, loc_alias, tag_records, tag_progress)
 
 @pytest.fixture
@@ -355,12 +353,42 @@ class TestCategorizer():
     """Unit testing class for the paideia.Categorizer class"""
 
     def test_categorize(self, mycategorizer, myrecords):
-        """Unit test for the paideia.Categorizer.categorize method."""
-        tag_progress = myrecords['tag_progress']
-        tag_records = myrecords['tag_records']
-        utcnow = myrecords['mynow']
-        output = {'cat1': [1], 'cat2': [], 'cat3': [], 'cat4': []}
-        assert mycategorizer.categorize_tags() == output
+        """
+        Unit test for the paideia.Categorizer.categorize method.
+
+        case 1: removes tag 1 (too early) and introduces 61
+        """
+        output_cats = {'latest_new': 1, 'cat1': [61], 'cat2': [],
+                        'cat3': [], 'cat4': [], 'rev1': [], 'rev2': [],
+                        'rev3': [], 'rev4': [],}
+        output_new = {'cat1': [61]}
+        output_promoted = {'cat1': []}
+        output_demoted = {}
+        assert mycategorizer.categorize_tags() == {'tag_progress': output_cats,
+                                                'new_tags': output_new,
+                                                'promoted': output_promoted,
+                                                'demoted': output_demoted}
+    def test_core_algorithm(self, mycategorizer):
+        """docstring for test_core_algorithm"""
+        output_cats = {'cat1': [1], 'cat2': [],
+                        'cat3': [], 'cat4': []}
+        assert mycategorizer._core_algorithm() == output_cats
+
+    def test_introduce_tags(self):
+        """docstring for test_introduce_tags"""
+        pass
+
+    def test_add_untried_tags(self, mycategorizer):
+        """docstring for test_"""
+        input_cats = {'cat1': [1], 'cat2': [],
+                        'cat3': [], 'cat4': []}
+        output_cats = {'cat1': [1, 61], 'cat2': [],
+                        'cat3': [], 'cat4': []}
+        assert mycategorizer._add_untried_tags(input_cats) == output_cats
+
+    def test_find_cat_changes(self):
+        """docstring for test_"""
+        pass
 
 class TestWalk():
     pass
