@@ -33,4 +33,4 @@ def run_pytest(w2p_dir, test_dir, app_name):
         print type(e), e
 
 if __name__=='__main__':
-    run_pytest('/home/ian/web/web2py/', 'tests', 'paideia')
+    run_pytest('/home/iscott/web/web2py/', 'tests', 'paideia')
