@@ -17,11 +17,9 @@ db = current.db
 @pytest.fixture
 def myrecords():
     """pytest fixture for the record_list arg of Categorizer.categorize()"""
-
     def dt(string):
         format = "%Y-%m-%d"
         return datetime.datetime.strptime(string, format)
-
     mynow = dt('2013-01-29')
     attempt_log = [{'step': None,
                     'path': None,
@@ -36,7 +34,7 @@ def myrecords():
                      'times_wrong': 1}
                     ]
 
-    tag_progress = {'level': 1,
+    tag_progress = {'latest_new': 1,
                     'cat1': [],
                     'cat2': [],
                     'cat3': [],
@@ -44,24 +42,31 @@ def myrecords():
                     'rev1': [],
                     'rev2': [],
                     'rev3': [],
-                    'rev4': []
-                    }
+                    'rev4': []}
+
+    categories = None
 
     return {'mynow': mynow, 'tag_records': tag_records,
-            'tag_progress': tag_progress, 'attempt_log': attempt_log}
+            'tag_progress': tag_progress, 'categories': categories,
+            'attempt_log': attempt_log}
 
 
 @pytest.fixture
 def mycategorizer():
     """A pytest fixture providing a paideia.Categorizer object for testing."""
-    return Categorizer()
+    rank = myrecords()['rank']
+    categories = myrecords()['categories']
+    tag_records = myrecords()['tag_records']
+    return Categorizer(rank, categories, tag_records)
 
 @pytest.fixture
 def myuser():
     """A pytest fixture providing a paideia.User object for testing."""
     userdata = db.auth_user(1).as_dict()
-    tag_progress = db(db.tag_progress.name == userdata['id']).select().as_list()
-    return User(userdata, tag_progress, db)
+    loc_alias = 'shop_of_alexander'
+    tag_progress = myrecords()['tag_progress']
+    tag_records = myrecords()['tag_records']
+    return User(userdata, loc_alias, tag_records, tag_progress)
 
 @pytest.fixture
 def mynpc():
@@ -355,7 +360,7 @@ class TestCategorizer():
         tag_records = myrecords['tag_records']
         utcnow = myrecords['mynow']
         output = {'cat1': [1], 'cat2': [], 'cat3': [], 'cat4': []}
-        assert mycategorizer.categorize(tag_records, utcnow) == output
+        assert mycategorizer.categorize_tags() == output
 
 class TestWalk():
     pass

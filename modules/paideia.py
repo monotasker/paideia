@@ -5,6 +5,7 @@ from gluon import IS_NOT_EMPTY
 from random import randint
 import re
 import datetime
+from itertools import chain
 
 
 class Walk(object):
@@ -101,8 +102,54 @@ class Walk(object):
 
         return {'reply': reply, 'bug_reporter': bug_reporter}
 
-    def _record_step(self):
-        pass
+    def _record_step(self, tag_records, categories, new_tags):
+        """Record this session's progress"""
+        # record awarding of and new tags in table db.badges_begun
+        if new_tags:
+            for n in new_tags:
+                tag_record = db((db.badges_begun.name == user) &
+                        (db.badges_begun.tag == n))
+                if not tag_record.count():
+                    db.badges_begun.insert(**{'name': user,
+                                            'tag': n,
+                                            category: datetime.datetime.utcnow()})
+                else:
+                    trecord.update({category: datetime.datetime.utcnow()})
+
+        # - if tags new or promoted, change 'cat' lists
+        for cat in new_badges:
+            if new_badges[cat] is not None:
+                for t in new_badges[cat]:
+                    try:
+                        oldcat = [c for c, v in update_cats.iteritems()
+                                    if (type(v) == list) and (t in v)][0]
+                        update_cats[oldcat].remove(t)
+                    except IndexError:
+                        print 'This tag appears to be new; not removing from \
+                                old position'
+                    if not update_cats[cat]:
+                        update_cats[cat] = [t]
+                    else:
+                        update_cats[cat].append(t)
+
+        # new max-category values
+        # record this session's working categorization as 'review' categories
+        update_cats['rev1'] = categories['cat1']
+        update_cats['rev2'] = categories['cat2']
+        update_cats['rev3'] = categories['cat3']
+        update_cats['rev4'] = categories['cat4']
+
+        # do this here so that we can compare db to categories first
+        # TODO: this is a bad place to update the db values
+        db(db.tag_progress.name == user).update(**update_cats)
+
+        result = []
+        if [result.append(lst) for k, lst in new_badges.iteritems() if lst]:
+            if debug: print 'new badges =', new_badges
+            return new_badges
+        else:
+            if debug: print 'no new badges awarded'
+            return None
 
     def _complete_path(self):
         pass
@@ -607,91 +654,154 @@ class User(object):
     data and the paths completed and active in this session.
     """
 
-    def __init__(self, userdata=None, loc_alias=None, attempt_log=None,
-                    tag_records=None, tag_progress=None, db=None):
+    def __init__(self, userdata, loc_alias, tag_records, tag_progress,
+                            attempt_log=None):
         """Initialize a paideia.User object."""
-        if not db:
-            db = current.db
-        if not userdata:
-            auth = current.auth
-            userdata = db.auth_user(auth.user_id).as_dict()
-        if not tag_progress:
-            tag_progress = db(db.tag_progress.name == userdata['id']).select()
-            tag_progress = tag_progress.as_list()
-
-        self.userdata = userdata
         self.tag_progress = tag_progress
-        self.db = db
+        self.rank = tag_progress['latest_new']
+        self.name = userdata['first_name']
+        self.user_id = userdata['id']
         self.path = None
         self.completed_paths = None
-        self.categories = None #{'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
+        self.categories = None
         self.old_categories = None
         self.new_badges = None
         self.blocks = None
+        self.inventory = None
         self.cats_counter = 0
+        self.session_start = datetime.datetime.utcnow()
+        self.last_npc
+        self.last_loc
+        self.loc = None
 
     def get_id(self):
         """Return the id (from db.auth_user) of the current user."""
-        return self.userdata['id']
+        return self.user_id
 
-    def _get_categories(self):
+    def _get_start_time(self):
         """docstring for fname"""
-
-        pass
+        return self.session_start
 
     def get_new_badges(self):
-        """docstring for fname"""
-        pass
+        """Return a dictionary of tag ids newly introduced or promoted"""
+        return self.new_badges
 
-    def get_firstname(self):
-        """docstring"""
-        pass
+    def get_completed(self):
+        """Return a dictionary of paths completed so far during the session."""
+        return self.completed_paths
 
     def get_path(self):
-        """docstring"""
-        pass
+        """Return the currently active Path object."""
+        if self.path:
+            return self.path
+        else:
+            path = PathChooser(self.categories).choose()
+            self.path = path
+            return path
 
-    def _get_categories(self, cats_counter=None):
+    def _get_categories(self, rank=None, categories=None, old_categories=None,
+                            tag_records=None, cats_counter=None):
         """
         Return a categorized dictionary with four lists of tag id's.
+
+        This method is important primarily to decide whether a new
+        categorization is necessary before instantiating a Categorizer object
+        # do we need to create new categorizer object each time?
         """
+        if not rank:
+            rank = self.rank
+        if not tag_records:
+            tag_records = self.tag_records
         if not cats_counter:
             cats_counter = self.cats_counter
+        if not categories:
+            categories = self.categories
+        if not old_categories:
+            old_categories = self.old_categories
         # only re-categorize every 10th evaluated step
         if cats_counter < 10:
             self.cats_counter = cats_counter + 1
             return self.categories
         else:
             self.old_categories = self.categories
-            c = Categorizer()
-            categories = c.categorize()
+            c = Categorizer(rank, categories, tag_records)
+            cat_result = c.categorize()
+            categories = cat_result['categories']
             self.categories = categories
             self.cats_counter = cats_counter + 1
+            if cat_result['new_tags']:
+                self.set_block('new_tags', cat_result['new_tags'])
             return categories
-
-    def _get_old_categories(self):
-        """
-        Return a dict of user's active tags as categorized second last time.
-
-        This is used in determining whether the user has been promoted to a
-        higher badge level for any tag.
-        """
-        return self.old_categories
 
     def _get_blocks(self):
         """docstring"""
         return self.blocks
 
-    def _complete_path(self, path_id):
+    def _set_block(self, block_type, *args):
+        """docstring for _set_block"""
+        if block_type == 'new_tags':
+            self.blocks.append(BlockNewTags(*args))
+
+    def _complete_path(self):
         """docstring"""
-        pass
+        self.completed_paths.append(self.path.get_id())
+        self.last_npc = self.path.get_active_step().get_npc()['id']
+        self.last_loc = self.path.get_active_step().get_npc()['id']
+        self.path = None
+        return True
 
 class Categorizer(object):
     """
     A class that categorizes a user's active tags based on past performance.
+
+    The categories range from 1 (need immediate review) to 4 (no review
+    needed). Returns a dictionary with four keys corresponding to the four
+    categories. The value for each key is a list holding the id's
+    (integers) of the tags that are currently in the given category.
     """
 
-    def categorize(self, record_list, utcnow=None):
+    def __init__(self, rank, categories, tag_records):
+        """Initialize a paideia.Categorizer object"""
+        self.rank = rank
+        self.tag_records = tag_records
+        self.old_categories = categories
+
+    def categorize_tags(self, rank=None, tag_records=None,
+                            old_categories=None, db=None):
+        """Return a categorized dictionary of tags"""
+        if not rank:
+            rank = self.rank
+        if not old_categories:
+            old_categories = self.old_categories
+        if not tag_records:
+            tag_records = self.tag_records
+        if not db:
+            db = current.db
+
+        # if user has not tried any tags yet, start first set
+        if tag_records[0] is None:
+            categories = {}
+            categories['cat1'] = self._introduce_tags()
+            return categories
+        else:
+            # otherwise, categorize tags that have been tried
+            categories = self._core_algorithm()
+            categories = self._add_untried_tags(categories)
+            # Remove any duplicates and tags beyond the user's current ranking
+            for k, v in categories.iteritems():
+                if v:
+                    newv = [t for t in v if db.tags[t].position <= rank]
+                    categories[k] = list(set(newv))
+            # If there are no tags needing immediate review, introduce new one
+            if not categories['cat1']:
+                newtags = self._introduce_tags()
+                categories['cat1'] = newtags
+
+            new_tags = self._find_new_tags(categories, old_categories)
+
+            return {'categories': categories, 'new_tags': new_tags}
+
+    def _core_algorithm(self, tag_records=None, utcnow=None):
         """
         Return dict of the user's active tags categorized by past performance.
 
@@ -715,10 +825,12 @@ class Categorizer(object):
         TODO: Look at secondary tags as well
         """
         categories = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
-        if utcnow is None:
+        if not utcnow:
             utcnow = datetime.datetime.utcnow()
+        if not tag_records:
+            tag_records = self.tag_records
 
-        for record in record_list:
+        for record in tag_records:
             #get time-based statistics for this tag
             #note: arithmetic operations yield datetime.timedelta objects
             right_dur = utcnow - record['last_right']
@@ -764,6 +876,62 @@ class Categorizer(object):
 
         return categories
 
+    def _introduce_tags(rank=None, db=None):
+        """
+        Add the next set of tags to cat1 in the user's tag_progress
+
+        Returns a dictionary of categories identical to that returned by
+        categorize_tags
+        """
+        if not db:
+            db = current.db
+        if not rank:
+            rank = self.rank
+
+        if rank in (None, 0):
+            rank == 1
+        else:
+            rank += 1
+
+        newtags = [t['id'] for t in db(db.tags.position == rank).select()]
+
+        return newtags
+
+    def _add_untried_tags(self, categories, rank=None, db=None):
+        """Return the categorized list with any untried tags added to cat1"""
+        if not rank:
+            rank = self.rank
+        if not db:
+            db = current.db
+
+        left_out = []
+        for r in range(1, rank + 1):
+            newtags = [t.id for t in db(db.tags.position == r).select()]
+            alltags = list(chain(*categories.values()))
+            left_out.extend([t for t in newtags if t not in alltags])
+        if left_out:
+            categories['cat1'].extend(left_out)
+            if debug: print 'adding untried tags', left_out, 'to cat1'
+
+        return categories
+
+    def _find_new_tags(self, categories, old_categories):
+        """Determine whether any of the categorized tags are new or promoted"""
+        new_tags = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
+        for category, lst in categories.iteritems():
+            if lst is not None:
+                # Was badge in the same or a higher category already?
+                catindex = categories.keys().index(category)
+                gtequal_oldcats = dict((k, old_categories[k]) for k
+                           in ['cat1', 'cat2', 'cat3', 'cat4'][catindex:])
+                oldtags_flat = [chain([val for cat in gtequal_oldcats.values()
+                                                if cat for val in cat])]
+                new_tags = [t for t in lst if t not in oldtags_flat]
+                if new:
+                    new_tags[category] = new
+                    # also record in badges_begun
+        return new_tags
+
     def _clean_tag_records(record_list=None, db=None):
         """
         Find and remove any duplicate entries in record_list.
@@ -772,7 +940,7 @@ class Categorizer(object):
         It should probably be deprecated, or should simply log a silent error
         when a duplicate is detected.
         """
-        discrete_tags = set([t.tag for t in record_list])
+        discrete_tags = set([t['tag'] for t in record_list])
         kept = []
         if len(record_list) > len(discrete_tags):
             for tag in discrete_tags:
@@ -784,80 +952,6 @@ class Categorizer(object):
                         row.delete_record()
             record_list = record_list.find(lambda row: row.id in kept)
         if debug: print 'filtered record_list', [r.id for r in record_list]
-
-    def _introduce(cats, db=None):
-        """
-        Add the next set of tags to cat1 in the user's tag_progress
-
-        Returns a dictionary of categories identical to that returned by
-        categorize_tags
-        """
-        if not db:
-            db = current.db
-
-            firsttags = [t['id'] for t in db(db.tags.position == 1).select()]
-            categories['cat1'] = firsttags
-            self.view_slides = firsttags
-
-    def categorize_tags(self, record_list=None, tag_records=None,
-                        tag_progress=None, user=None, db=None):
-        '''
-        This method uses stored statistics for current user to categorize the
-        grammatical tags based on the user's success and the time since the
-        user last used the tag.
-
-        The categories range from 1 (need immediate review) to 4 (no review
-        needed). Returns a dictionary with four keys corresponding to the four
-        categories. The value for each key is a list holding the id's
-        (integers) of the tags that are currently in the given category.
-        '''
-        if not db:
-            db = self.db
-        if not user:
-            user = self.user
-        if not tag_progress:
-            tag_records = self.tag_records
-        if not tag_records:
-            tag_progress = self.tag_progress
-
-        # if user has not tried any tags yet, start first set
-        if record_list[0] is None:
-            return self._introduce(None)
-
-                # otherwise, categorize tags that have been tried
-        else:
-            # run basic categorizing algorithm
-            categories = self._find_cats(categories, record_list)
-        if debug: print 'raw categorized tags:', categories
-
-        # Make sure untried tags are still included
-        rank = progress.latest_new
-
-        #check for untried in current and all lower ranks
-        left_out = []
-        for r in range(1, rank + 1):
-            newtags = [t.id for t in db(db.tags.position == r).select()]
-            alltags = list(chain(*categories.values()))
-            left_out.extend([t for t in newtags if t not in alltags])
-        if left_out:
-            categories['cat1'].extend(left_out)
-            if debug: print 'adding untried tags', left_out, 'to cat1'
-
-        # Remove duplicate tag id's from each category
-        # Make sure each of the tags is not beyond the user's current ranking
-        # even if some were actually tried before (through system error)
-        for k, v in categories.iteritems():
-            if v:
-                newv = [t for t in v if db.tags[t].position <= rank]
-                categories[k] = list(set(newv))
-
-        # If there are no tags needing immediate review, introduce new one
-        if not categories['cat1']:
-            categories['cat1'] = self._introduce()
-
-        self.tag_set = categories
-
-        return categories
 
 
 class Block(object):
