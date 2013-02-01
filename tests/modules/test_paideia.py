@@ -15,10 +15,11 @@ import datetime
 db = current.db
 
 
-@pytest.fixture
-def myrecords():
-    """pytest fixture for the record_list arg of Categorizer.categorize()"""
+@pytest.fixture(scope='module', params=[1,2])
+def myrecords(request):
+    """pytest fixture for providing user records."""
     def dt(string):
+        case = request.param
         format = "%Y-%m-%d"
         return datetime.datetime.strptime(string, format)
     mynow = dt('2013-01-29')
@@ -42,9 +43,7 @@ def myrecords():
                     'cat4': [],
                     'rev1': [],
                     'rev2': [],
-                    'rev3': [],
-                    'rev4': []}
-
+                    'rev3': [], 'rev4': []}
     return {'mynow': mynow, 'tag_records': tag_records,
             'tag_progress': tag_progress, 'attempt_log': attempt_log}
 
@@ -369,7 +368,7 @@ class TestCategorizer():
                                                 'promoted': output_promoted,
                                                 'demoted': output_demoted}
     def test_core_algorithm(self, mycategorizer):
-        """docstring for test_core_algorithm"""
+        """Unit test for the paideia.Categorizer._core_algorithm method"""
         output_cats = {'cat1': [1], 'cat2': [],
                         'cat3': [], 'cat4': []}
         assert mycategorizer._core_algorithm() == output_cats
