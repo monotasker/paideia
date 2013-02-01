@@ -41,7 +41,7 @@ class Walk(object):
                     tag_records = tag_records.as_list()
                 if not tag_progress:
                     tag_progress = db(db.tag_progress.name == user_id).select()
-                    tag_progress_length = len(tag_progress) #TODO log if > 1
+                    tag_progress_length = len(tag_progress)  # TODO log if > 1
                     tag_progress = tag_progress.first().as_dict()
                     # Handle first-time users, who won't have db row to fetch
                     if not tag_progress:
@@ -110,9 +110,8 @@ class Walk(object):
                 tag_record = db((db.badges_begun.name == user) &
                         (db.badges_begun.tag == n))
                 if not tag_record.count():
-                    db.badges_begun.insert(**{'name': user,
-                                            'tag': n,
-                                            category: datetime.datetime.utcnow()})
+                    db.badges_begun.insert(**{'name': user, 'tag': n,
+                                        category: datetime.datetime.utcnow()})
                 else:
                     trecord.update({category: datetime.datetime.utcnow()})
 
@@ -145,10 +144,8 @@ class Walk(object):
 
         result = []
         if [result.append(lst) for k, lst in new_badges.iteritems() if lst]:
-            if debug: print 'new badges =', new_badges
             return new_badges
         else:
-            if debug: print 'no new badges awarded'
             return None
 
     def _complete_path(self):
@@ -249,6 +246,7 @@ class Npc(object):
         """docstring for get_locations"""
         return self.data.notes
 
+
 class NpcChooser(object):
     """
     Choose an npc to engage the user in the current step, based on the current
@@ -277,7 +275,7 @@ class NpcChooser(object):
                             if n.get_id() == prev_npc.get_id()
                             and location.get_id() in n.get_locations()]
             if len(available2) > 1:
-                return available2[randint(0,len(available2) - 1)]
+                return available2[randint(0, len(available2) - 1)]
             else:
                 return available2[0]
 
@@ -307,7 +305,7 @@ class Step(object):
             db == current.db
         self.db = db
         self.data = db.steps[step_id]
-        self.repeating = False # set to true if step already done today
+        self.repeating = False  # set to true if step already done today
         self.loc = loc
         self.prev_loc = prev_loc
         self.prev_npc_id = prev_npc_id
@@ -320,15 +318,6 @@ class Step(object):
         Return the id of the current step as an integer.
         """
         return self.data.id
-
-    def get_path(self):
-        """
-        Return the id of the current path as an integer.
-        """
-        # TODO: This feels like it's reversing the execution flow in an awkward
-        # way. It's only needed for StepRecorder.record(). So should that method
-        # be called by the path instead?
-        return self.path
 
     def get_tags(self):
         """
@@ -351,7 +340,7 @@ class Step(object):
 
         instructions = self._get_instructions()
 
-        npc = self.get_npc() # duplicate choice prevented in get_npc()
+        npc = self.get_npc()  # duplicate choice prevented in get_npc()
         npc_image = self.npc.get_image()
 
         return {'prompt': prompt,
@@ -389,8 +378,8 @@ class Step(object):
         return responder
 
     def get_npc(self):
-        """Return an Npc object representing an appropriate npc for this step"""
-        if self.npc: # ensure choice is made only once for each step
+        """Return an Npc object appropriate for this step"""
+        if self.npc:  # ensure choice is made only once for each step
             return self.npc
         else:
             npcs_for_step = self.data.npcs
@@ -400,7 +389,7 @@ class Step(object):
                 self.npc = Npc(self.prev_npc_id)
                 return self.npc
             else:
-                pick = npc_list[randint(0,len(npc_list) - 1)]
+                pick = npc_list[randint(0, len(npc_list) - 1)]
                 self.npc = Npc(pick)
                 return self.npc
 
@@ -443,7 +432,7 @@ class StepRedirect(Step):
         if db is None:
             db = current.db
 
-        next_loc = 'somewhere else in town' # generic default
+        next_loc = 'somewhere else in town'  # generic default
         # if mid-way through a path, send to next viable location
         # TODO: find a way to set this value to another location with an
         # available path if the current step is the last in its path.
@@ -461,7 +450,8 @@ class StepRedirect(Step):
             pass
 
         reps = {'[[next_loc]]': next_loc}
-        new_string = super(StepRedirect, self)._make_replacements(prompt_string,
+        new_string = super(StepRedirect, self)._make_replacements(
+                                                            prompt_string,
                                                             reps=reps,
                                                             username=username)
 
@@ -488,7 +478,7 @@ class StepText(Step):
 
     def get_reply(self, user_response=None):
         """docstring for get_reply"""
-        if user_response == None:
+        if not user_response:
             request = current.request
             user_response = request.vars['response']
 
@@ -510,7 +500,7 @@ class StepText(Step):
         return {'response': user_response,
                 'reply_text': reply_text,
                 'bug_reporter': bug_reporter,
-                'tips':tips,
+                'tips': tips,
                 'readable_short': readable['readable_short'],
                 'readable_long': readable['readable_long']}
 
@@ -525,7 +515,8 @@ class StepText(Step):
         readable = self.step_data.readable_response
         if '|' in readable:
             i = len(readable)
-            if i > 1: i = 2
+            if i > 1:
+                i = 2
             readable_short = readable.split('|')[:(i + 1)]
             readable_short = [unicode(r, 'utf-8') for r in readable_short]
             readable_long = readable.split('|')
@@ -562,7 +553,7 @@ class StepEvaluator(object):
         Return the user's score for this step attempt along with "tips" text
         to be displayed to the user in case of a wrong answer.
         """
-        if user_response == None:
+        if not user_response:
             request = current.request
             user_response = request.vars['response']
         user_response = user_response.strip()
@@ -573,13 +564,15 @@ class StepEvaluator(object):
             if re.match(answers[0], user_response, re.I):
                 score = 1
                 reply = "Right. Κάλον."
-            elif len(answers) > 1 and re.match(answers[1], user_response, re.I):
+            elif len(answers) > 1 and re.match(answers[1],
+                                                    user_response, re.I):
                 score = 0.5
                 #TODO: Get this score value from the db instead of hard
                 #coding it here.
                 reply = "Οὐ κάκον. You're close."
                 #TODO: Vary the replies
-            elif len(answers) > 2 and re.match(answers[2], user_response, re.I):
+            elif len(answers) > 2 and re.match(answers[2],
+                                                    user_response, re.I):
                 #TODO: Get this score value from the db instead of hard
                 #coding it here.
                 score = 0.3
@@ -601,36 +594,13 @@ class StepEvaluator(object):
             readable_short = None
             readable_long = None
 
-        tips = self.tips # TODO: customize tips for specific errors
+        tips = self.tips  # TODO: customize tips for specific errors
 
         return {'score': score,
                 'times_wrong': times_wrong,
                 'reply': reply,
                 'user_response': user_response,
                 'tips': tips}
-
-
-class StepRecorder(object):
-    """
-    Record the user's performance on this step and return a BugReporter object
-    containing information about the transaction required to reverse the
-    transaction later if necessary.
-    """
-
-    def __init__(self):
-        pass
-
-    def _record(self, step_id, path_id, tags, score, tr, tw, user_response, db=None):
-        """
-        Record user performance data resulting from the current step
-        evaluation. This method also returns some data so that the calling
-        function can ensure that the recorded result is accurate.
-        """
-        score = self.score
-        record_id = 0
-        #TODO: unfinished
-        return {'score':score,
-                'record_id':record_id}
 
 
 class Path(object):
@@ -643,10 +613,12 @@ class Path(object):
         """docstring for get_next_step"""
         pass
 
+
 class PathChooser(object):
     def __init__(self):
         """docstring for __init__"""
         pass
+
 
 class User(object):
     """
@@ -670,8 +642,8 @@ class User(object):
         self.inventory = None
         self.cats_counter = 0
         self.session_start = datetime.datetime.utcnow()
-        self.last_npc
-        self.last_loc
+        self.last_npc = None
+        self.last_loc = None
         self.loc = None
 
     def get_id(self):
@@ -750,6 +722,7 @@ class User(object):
         self.path = None
         return True
 
+
 class Categorizer(object):
     """
     A class that categorizes a user's active tags based on past performance.
@@ -792,14 +765,28 @@ class Categorizer(object):
                 if v:
                     newv = [t for t in v if db.tags[t].position <= rank]
                     categories[k] = list(set(newv))
-            # If there are no tags needing immediate review, introduce new one
+
+            # changes in categorization since last time
+            # this is where 'rev' categories are reintroduced
+            cat_changes = self._find_cat_changes(categories, old_categories)
+            promoted = cat_changes['promoted']
+            new_tags = cat_changes['new_tags']
+            demoted = cat_changes['demoted']
+            tag_progress = cat_changes['categories']
+
+            # If there are no tags left in category 1, introduce next set
             if not categories['cat1']:
-                newtags = self._introduce_tags()
-                categories['cat1'] = newtags
+                starting = self._introduce_tags()
+                categories['cat1'] = starting
+                new_tags['cat1'].append(starting)
 
-            new_tags = self._find_new_tags(categories, old_categories)
+            # Re-insert 'latest new' to match tag_progress table in db
+            tag_progress['latest_new'] = self.rank
 
-            return {'categories': categories, 'new_tags': new_tags}
+            return {'tag_progress': tag_progress,
+                    'new_tags': new_tags,
+                    'promoted': promoted,
+                    'demoted': demoted}
 
     def _core_algorithm(self, tag_records=None, utcnow=None):
         """
@@ -831,12 +818,10 @@ class Categorizer(object):
             tag_records = self.tag_records
 
         for record in tag_records:
-            #get time-based statistics for this tag
             #note: arithmetic operations yield datetime.timedelta objects
             right_dur = utcnow - record['last_right']
             right_wrong_dur = record['last_right'] - record['last_wrong']
 
-            # Categorize q or tag based on this performance
             # spaced repetition algorithm for promotion from cat1
             # ======================================================
             # for category 2
@@ -846,10 +831,13 @@ class Categorizer(object):
                     # require at least 10 right answers
                     and (record['times_right'] >= 10)) \
                 or ((record['times_right'] > 0)  # prevent zero division error
-                    and ((record['times_wrong'] / record['times_right']) <= 0.2)
+                    and ((record['times_wrong'] / record['times_right'])
+                                                                        <= 0.2)
                     and (right_dur <= datetime.timedelta(days=2))) \
                 or ((record['times_wrong'] == 0)  # prevent zero division error
                     and (record['times_right'] >= 20)):
+                    # TODO: add condition here requiring recent correct after
+                    # a gap in activity.
                     # allow for 1 wrong answer for every 5 correct
                     # promote in any case if the user has never had a wrong
                     # answer in 20+ attempts
@@ -911,26 +899,69 @@ class Categorizer(object):
             left_out.extend([t for t in newtags if t not in alltags])
         if left_out:
             categories['cat1'].extend(left_out)
-            if debug: print 'adding untried tags', left_out, 'to cat1'
 
         return categories
 
-    def _find_new_tags(self, categories, old_categories):
+    def _find_cat_changes(self, categories, old_categories):
         """Determine whether any of the categorized tags are new or promoted"""
-        new_tags = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
-        for category, lst in categories.iteritems():
-            if lst is not None:
-                # Was badge in the same or a higher category already?
-                catindex = categories.keys().index(category)
-                gtequal_oldcats = dict((k, old_categories[k]) for k
-                           in ['cat1', 'cat2', 'cat3', 'cat4'][catindex:])
-                oldtags_flat = [chain([val for cat in gtequal_oldcats.values()
-                                                if cat for val in cat])]
-                new_tags = [t for t in lst if t not in oldtags_flat]
-                if new:
-                    new_tags[category] = new
-                    # also record in badges_begun
-        return new_tags
+        if old_categories:
+            demoted = {}
+            new_tags = {}
+            promoted = {}
+            for category, lst in categories.iteritems():
+                if lst:
+                    # TODO: does this work to index dictionary keys?
+                    catindex = categories.keys().index(category)
+
+                    # was tag in a higher category before?
+                    # remove from current cat, place in same level review cat
+                    # then re-insert in its old cat (max reached)
+                    gt_oldcats = dict((k, old_categories[k]) for k
+                           in ['cat1', 'cat2', 'cat3', 'cat4'][catindex+1:])
+                    gt_oldcats_flat = [chain([val for cat
+                                            in gt_oldcats.values()
+                                            if cat for val in cat])]
+                    revcat = category.replace('cat', 'rev')
+                    for tag in lst:
+                        if tag in gt_oldcats_flat:
+                            categories[category].pop(tag)
+                            demoted[revcat].append(tag)
+                            oldcat = [k for k,v in gt_oldcats if v == tag]
+                            categories[oldcat].append(tag)
+
+                    # was tag already in this category? Just collect list.
+                    same_oldcat = [t for t in lst
+                                        if t in old_categories[category]]
+
+                    # was tag in a lower category?
+                    # add to dictionary of 'promoted' tags
+                    lt_oldcats = dict((k, old_categories[k]) for k
+                           in ['cat1', 'cat2', 'cat3', 'cat4'][:catindex])
+                    lt_oldcats_flat = [chain([val for cat
+                                            in lt_oldcats.values()
+                                            if cat for val in cat])]
+                    promoted[category] = [t for t in lst
+                                            if t in lt_oldcats_flat]
+
+                    # was tag not in any dictionary?
+                    # add to dictionary of 'new_tags'
+                    new = [t for t in lst if
+                                    (t not in same_oldcat) and
+                                    (t not in lt_oldcats_flat) and
+                                    (t not in gt_oldcats_flat)]
+                    if new:
+                        new_tags[category] = new
+                        # TODO: also record in badges_begun
+            # TODO: make sure to add any 'rev' categories that are empty
+            return {'categories': categories,
+                    'demoted': demoted,
+                    'promoted': promoted,
+                    'new_tags': new_tags}
+        else:
+            return {'categories': categories,
+                    'demoted': None,
+                    'promoted': None,
+                    'new_tags': None}
 
     def _clean_tag_records(record_list=None, db=None):
         """
@@ -945,17 +976,13 @@ class Categorizer(object):
         if len(record_list) > len(discrete_tags):
             for tag in discrete_tags:
                 shortlist = record_list.find(lambda row: row.tag == tag)
-                if debug: print 'shortlist', [s.id for s in shortlist]
                 kept.append(shortlist[0].id)
                 if len(shortlist) > 1:
                     for row in shortlist[1:]:
                         row.delete_record()
             record_list = record_list.find(lambda row: row.id in kept)
-        if debug: print 'filtered record_list', [r.id for r in record_list]
 
 
 class Block(object):
     """docstring"""
     pass
-
-
