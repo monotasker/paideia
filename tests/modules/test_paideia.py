@@ -7,54 +7,55 @@ from paideia import Npc, Location, User, Step, StepRedirect, StepText
 from paideia import StepEvaluator, Path, Categorizer
 from gluon import *
 import datetime
+from pprint import pprint
 
 # ===================================================================
 # Test Fixtures
 # ===================================================================
 
 db = current.db
+def dt(string):
+    """Return datetime object parsed from the string argument supplied"""
+    format = "%Y-%m-%d"
+    return datetime.datetime.strptime(string, format)
 
-
-@pytest.fixture(scope='module', params=[1,2])
+@pytest.fixture(scope='module',
+                params=['case{}'.format(n) for n in range(1,2)])
 def myrecords(request):
     """pytest fixture for providing user records."""
-    def dt(string):
-        case = request.param
-        format = "%Y-%m-%d"
-        return datetime.datetime.strptime(string, format)
-    mynow = dt('2013-01-29')
-    attempt_log = [{'step': None,
-                    'path': None,
-                    'score': None,
-                    'dt_attempted': None}
-                    ]
+    case = request.param
+    case1 = {'casenum': 1, 'mynow': dt('2013-01-29'),
+            'attempt_log': [{'step': None, 'path': None, 'score': None,
+                            'dt_attempted': None} ],
+            'tag_records': [{'tag_id': 1,
+                             'last_right': dt('2013-01-29'),
+                             'last_wrong': dt('2013-01-29'),
+                             'times_right': 1, 'times_wrong': 1}],
+            'tag_progress': {'latest_new': 1,
+                            'cat1': [], 'cat2': [], 'cat3': [], 'cat4': [],
+                            'rev1': [], 'rev2': [], 'rev3': [], 'rev4': []}}
 
-    tag_records = [{'tag_id': 1,
-                     'last_right': dt('2013-01-29'),
-                     'last_wrong': dt('2013-01-29'),
-                     'times_right': 1,
-                     'times_wrong': 1}
-                    ]
+    case2 = {'casenum': 2, 'mynow': dt('2013-01-29'),
+            'attempt_log': [{'step': None, 'path': None, 'score': None,
+                            'dt_attempted': None} ],
+            'tag_records': [{'tag_id': 1,
+                             'last_right': dt('2013-01-29'),
+                             'last_wrong': dt('2013-01-29'),
+                             'times_right': 1, 'times_wrong': 1}],
+            'tag_progress': {'latest_new': 1,
+                            'cat1': [], 'cat2': [], 'cat3': [], 'cat4': [],
+                            'rev1': [], 'rev2': [], 'rev3': [], 'rev4': []}}
 
-    tag_progress = {'latest_new': 1,
-                    'cat1': [],
-                    'cat2': [],
-                    'cat3': [],
-                    'cat4': [],
-                    'rev1': [],
-                    'rev2': [],
-                    'rev3': [], 'rev4': []}
-    return {'mynow': mynow, 'tag_records': tag_records,
-            'tag_progress': tag_progress, 'attempt_log': attempt_log}
+    return locals()[case]
 
-
-@pytest.fixture
-def mycategorizer(myrecords):
+@pytest.fixture(scope='module')
+def mycategorizer(myrecords, request):
     """A pytest fixture providing a paideia.Categorizer object for testing."""
     rank = myrecords['tag_progress']['latest_new']
     categories = myrecords['tag_progress']
     tag_records = myrecords['tag_records']
-    return Categorizer(rank, categories, tag_records)
+    return {'categorizer': Categorizer(rank, categories, tag_records),
+            'casenum': myrecords['casenum']}
 
 @pytest.fixture
 def myuser(myrecords):
@@ -351,39 +352,61 @@ class TestUser():
 class TestCategorizer():
     """Unit testing class for the paideia.Categorizer class"""
 
-    def test_categorize(self, mycategorizer, myrecords):
+    def test_categorize(self, mycategorizer):
         """
         Unit test for the paideia.Categorizer.categorize method.
 
-        case 1: removes tag 1 (too early) and introduces 61
+        Case numbers correspond to the cases (user performance scenarios) set
+        out in the myrecords fixture.
+        case 1: removes tag 1 (too early) and introduces untried tag 61
         """
-        output_cats = {'latest_new': 1, 'cat1': [61], 'cat2': [],
-                        'cat3': [], 'cat4': [], 'rev1': [], 'rev2': [],
-                        'rev3': [], 'rev4': [],}
-        output_new = {'cat1': [61]}
-        output_promoted = {'cat1': []}
-        output_demoted = {}
-        assert mycategorizer.categorize_tags() == {'tag_progress': output_cats,
-                                                'new_tags': output_new,
-                                                'promoted': output_promoted,
-                                                'demoted': output_demoted}
+        case = 'case{}'.format(mycategorizer['casenum'])
+        output = {
+            'case1': {'tag_progress': {'latest_new': 1,
+                                'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                        'new_tags': {'cat1': [61]},
+                        'promoted': {'cat1': []},
+                        'demoted': {}},
+
+            'case2': {'tag_progress': {'latest_new': 1,
+                                'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                        'new_tags': {'cat1': [61]},
+                        'promoted': {'cat1': []},
+                        'demoted': {}},
+            }
+        assert mycategorizer['categorizer'].categorize_tags() == output[case]
+
     def test_core_algorithm(self, mycategorizer):
-        """Unit test for the paideia.Categorizer._core_algorithm method"""
-        output_cats = {'cat1': [1], 'cat2': [],
-                        'cat3': [], 'cat4': []}
-        assert mycategorizer._core_algorithm() == output_cats
+        """
+        Unit test for the paideia.Categorizer._core_algorithm method
+
+        Case numbers correspond to the cases (user performance scenarios) set
+        out in the myrecords fixture.
+        """
+        case = 'case{}'.format(mycategorizer['casenum'])
+        output = {'case1': {'cat1': [1], 'cat2': [], 'cat3': [], 'cat4': []},
+                'case2': {'cat1': [1], 'cat2': [], 'cat3': [], 'cat4': []}}
+
+        assert mycategorizer['categorizer']._core_algorithm() == output[case]
 
     def test_introduce_tags(self):
-        """docstring for test_introduce_tags"""
+        """Unit test for the paideia.Categorizer._introduce_tags method"""
         pass
 
     def test_add_untried_tags(self, mycategorizer):
-        """docstring for test_"""
+        """Unit test for the paideia.Categorizer._add_untried_tags method"""
         input_cats = {'cat1': [1], 'cat2': [],
                         'cat3': [], 'cat4': []}
         output_cats = {'cat1': [1, 61], 'cat2': [],
                         'cat3': [], 'cat4': []}
-        assert mycategorizer._add_untried_tags(input_cats) == output_cats
+        assert mycategorizer['categorizer']._add_untried_tags(input_cats) == \
+                                                                output_cats
 
     def test_find_cat_changes(self):
         """docstring for test_"""
