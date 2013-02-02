@@ -296,10 +296,7 @@ class Step(object):
     interaction) in the game.
     '''
 
-    def __init__(self, step_id, loc, prev_loc, prev_npc_id,
-                    next_step_id=None,
-                    path=None,
-                    db=None):
+    def __init__(self, step_id, loc, prev_loc, prev_npc_id, db=None):
         """docstring for __init__"""
         if db is None:
             db == current.db
@@ -604,14 +601,65 @@ class StepEvaluator(object):
 
 
 class Path(object):
-    def __init__(self):
-        """docstring for __init__"""
-        self.completed_steps = []
-        self.next_step_id = None
+    """
+    A class representing one 'path' in the game.
 
-    def get_next_step(self, db=None):
+    Following the metaphor of 'walking' around the game environment, a 'path'
+    is one discrete chain of user interactions with one or more npcs. A 'path'
+    may include as little as one question-answer pair (one 'step') or may
+    include any number of inter-dependent interactions ('steps') in a set
+    linear sequence.
+
+    So far there is no infrastructure for paths without a set sequence.
+    """
+
+    def __init__(self, path_id, blocks, loc_id, prev_loc_id,
+                                                prev_npc_id, db=None):
+        """Initialize a paideia.Path object."""
+        self.prev_loc_id = prev_loc_id
+        self.prev_npc_id = prev_npc_id
+        self.loc_id = loc_id
+        self.path_dict = path_dict
+        self.blocks = blocks
+        if not db:
+            db = current.db
+        self.db = db
+        self.path_dict = db.paths[path_id].select().as_dict()
+
+        self.steps = [Step(i, loc_id, prev_loc_id, prev_npc_id)
+                                            for i in path_dict['steps']]
+        self.completed_steps = []
+        self.last_step_id = None
+        self.step_to_ask = None
+        self.step_to_answer = None
+
+    def get_next_step(self, loc_id, prev_loc_id=None,
+                        prev_npc_id=None, db=None):
         """docstring for get_next_step"""
-        pass
+        for arg in ['prev_loc_id', 'prev_npc_id', 'db']:
+            if not arg in locals():
+                arg = self[arg]
+
+        # check for active step that hasn't been asked because of block
+        if self.step_to_ask:
+            next_step = self.step_to_ask
+        else:
+            next_step = self.steps[0].pop()
+            self.step_to_ask = next_step
+
+        # check that next step can be asked here, else redirect
+        if not (self.loc_id in next_step['locations']):
+            self.blocks.append(Block('redirect', next_step['locations']))
+
+        # check for blocks
+        if self.blocks:
+            block_step = self.blocks[0].get_step()
+            if block_step:
+                return block_step
+
+        return next_step
+
+    def get_active_step(self, db=None):
 
 
 class PathChooser(object):
