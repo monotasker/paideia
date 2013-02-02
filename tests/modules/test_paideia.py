@@ -94,6 +94,29 @@ def myloc_synagogue():
     """
     return Location(11, db)
 
+@pytest.fixture(params=['case{}'.format(p) for p in range(1,2)])
+def mypath(request):
+    """
+    A pytest fixture providing a paideia.Path object for testing.
+    """
+    # StepText loc and prev_npc both work, no blocks, no prev_loc
+    case = request.param
+    case1 = {'path_id': 1,
+            'blocks': None,
+            'loc_id': 8,
+            'prev_loc_id': None,
+            'prev_npc_id': 1,
+            'db': db}
+
+    # StepText loc and prev_npc both work, no blocks, no prev_loc
+    case2 = {'path_id': 1,
+            'blocks': None,
+            'loc_id': 8,
+            'prev_loc_id': None,
+            'prev_npc_id': 1,
+            'db': db}
+    return Path(**case)
+
 @pytest.fixture
 def mystep():
     """
@@ -335,9 +358,12 @@ class TestStepEvaluator():
         assert myStepEvaluator.get_eval(user_response)['user_response'] == 'μιτ'
         assert myStepEvaluator.get_eval(user_response)['tips'] == []
 
-class TestPath():
-
-    pass
+class TestPath(mypath):
+    """Unit testing class for the paideia.Path object"""
+    output = mypath['casenum']
+    output1 = {}
+    output1 = {}
+    assert mypath['path'].get_next_step() == output
 
 
 class TestPathChooser():
