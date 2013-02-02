@@ -765,9 +765,10 @@ class Categorizer(object):
                 if v:
                     newv = [t for t in v if db.tags[t].position <= rank]
                     categories[k] = list(set(newv))
-
+            # 'rev' categories are reintroduced
+            categories.update((c, []) for c in ['rev1', 'rev2', 'rev3', 'rev4'])
+            print categories
             # changes in categorization since last time
-            # this is where 'rev' categories are reintroduced
             cat_changes = self._find_cat_changes(categories, old_categories)
             promoted = cat_changes['promoted']
             new_tags = cat_changes['new_tags']
