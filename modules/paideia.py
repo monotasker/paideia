@@ -306,36 +306,11 @@ class BugReporter(object):
         """Initialize a BugReporter object"""
     pass
 
-
-class Step(object):
-    '''
-    This class represents one step (a single question and response
-    interaction) in the game.
-    '''
-
-    def __init__(self, step_id=None, loc=None, prev_loc=None, prev_npc_id=None,
-                        db=None, **kwargs):
-        """Initialize a paideia.Step object"""
-        if db is None:
-            db == current.db
-        self.db = db
-        self.data = db.steps[step_id].as_dict()
-        # If not a stub step, return a Step subclass instead
-        if (type(self) is Step) and (self.data['widget_type'] != 3):
-            args = util_get_args()  # get the args and kwargs submitted above
-            del(args[0]['self'])
-            pprint(args)
-            self.subclass_factory(step_type_id=self.data['widget_type'],
-                                                                    **args[0])
-
-        # otherwise, continue with this Step instance
-        self.repeating = False  # set to true if step already done today
-        self.loc = loc
-        self.prev_loc = prev_loc
-        self.prev_npc_id = prev_npc_id
-        self.npc = None
-
-    def subclass_factory(self, **kwargs):
+class StepFactory(object):
+    """
+    A factory class allowing automatic generation of correct Step subclasses.
+    """
+    def get_instance(self, db=None, **kwargs):
         """
         Return the correct subclass of Step based on record's 'widget_type'.
 
@@ -350,9 +325,12 @@ class Step(object):
         8. award badges
         9. redirect
         """
-        args = util_get_args()
-        del(args[0]['self'])  # prevent stale 'self' var from being passed on
-
+        args = util_get_args()  # get the args and kwargs submitted above
+        if db is None:
+            db == current.db
+        # TODO: read db data here and pass it forward as a dict
+        data = db.steps[locals()['step_id']].as_dict()
+        del(args[0]['self'])
         step_classes = {1: StepText,
                         2: StepMultipleChoice,
                         3: Step,
@@ -361,8 +339,27 @@ class Step(object):
                         7: StepQuotaReached,
                         8: StepAwardBadges,
                         9: StepRedirect}
+        return step_classes[data['widget_type']](**args[0])
 
-        return step_classes[args[0]['step_type_id']](**args[0])
+
+class Step(object):
+    '''
+    This class represents one step (a single question and response
+    interaction) in the game.
+    '''
+
+    def __init__(self, step_id=None, loc=None, prev_loc=None, prev_npc_id=None,
+                        db=None, **kwargs):
+        """Initialize a paideia.Step object"""
+        if db is None:
+            db == current.db
+        self.db = db
+        self.data = db.steps[step_id].as_dict()
+        self.repeating = False  # set to true if step already done today
+        self.loc = loc
+        self.prev_loc = prev_loc
+        self.prev_npc_id = prev_npc_id
+        self.npc = None
 
     def get_id(self):
         """
@@ -681,8 +678,8 @@ class Path(object):
     So far there is no infrastructure for paths without a set sequence.
     """
 
-    def __init__(self, path_id, blocks, loc_id, prev_loc,
-                                                prev_npc_id, db=None):
+    def __init__(self, path_id=None, blocks=None, loc_id=None, prev_loc=None,
+                                                prev_npc_id=None, db=None):
         """Initialize a paideia.Path object."""
         self.prev_loc_id = prev_loc.get_id()
         self.prev_npc_id = prev_npc_id
@@ -693,7 +690,9 @@ class Path(object):
             db = current.db
         self.db = db
         self.path_dict = db.paths[path_id].as_dict()
-        self.steps = [Step(i, self.loc, prev_loc, prev_npc_id, db=db)
+        static_args = {'loc': self.loc, 'prev_loc': prev_loc,
+                        'prev_npc_id': prev_npc_id, 'db': db}
+        self.steps = [StepFactory().get_instance(step_id=i, **static_args)
                                             for i in self.path_dict['steps']]
         self.completed_steps = []
         self.last_step_id = None
