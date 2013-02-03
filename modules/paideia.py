@@ -296,7 +296,8 @@ class Step(object):
     interaction) in the game.
     '''
 
-    def __init__(self, step_id, loc, prev_loc, prev_npc_id, db=None):
+    def __init__(self, step_id, loc, prev_loc, prev_npc_id, db=None,
+                                                    next_step_id=None):
         """docstring for __init__"""
         if db is None:
             db == current.db
@@ -307,8 +308,7 @@ class Step(object):
         self.prev_loc = prev_loc
         self.prev_npc_id = prev_npc_id
         self.npc = None
-        self.path = path
-        self.next_step_id = next_step_id
+        self.next_step_id=next_step_id
 
     def get_id(self):
         """
@@ -324,13 +324,16 @@ class Step(object):
         secondary = self.data.tags_secondary
         return {'primary': primary, 'secondary': secondary}
 
+    def get_locations(self):
+        """Return a list of the location id's for this step."""
+        return self.data.locations
+
     def get_prompt(self, username=None):
         """
         Return the prompt information for the step. In the Step base class
         this is a simple string. Before returning, though, any necessary
         replacements or randomizations are made.
         """
-        self._check_location()
         raw_prompt = self.data.prompt
         prompt = self._make_replacements(raw_prompt, username)
         # prompt no longer tagged or converted to markmin here, but in view
@@ -406,11 +409,6 @@ class Step(object):
                 list.append(LI(item_text))
 
             return list
-
-    def _check_location(self):
-        """docstring for get_locations"""
-        # TODO: no code
-        pass
 
 
 class StepRedirect(Step):
@@ -619,15 +617,14 @@ class Path(object):
         self.prev_loc_id = prev_loc_id
         self.prev_npc_id = prev_npc_id
         self.loc_id = loc_id
-        self.path_dict = path_dict
         self.blocks = blocks
         if not db:
             db = current.db
         self.db = db
-        self.path_dict = db.paths[path_id].select().as_dict()
+        self.path_dict = db.paths[path_id].as_dict()
 
-        self.steps = [Step(i, loc_id, prev_loc_id, prev_npc_id)
-                                            for i in path_dict['steps']]
+        self.steps = [Step(i, loc_id, prev_loc_id, prev_npc_id, db=db)
+                                            for i in self.path_dict['steps']]
         self.completed_steps = []
         self.last_step_id = None
         self.step_to_ask = None
@@ -644,12 +641,13 @@ class Path(object):
         if self.step_to_ask:
             next_step = self.step_to_ask
         else:
-            next_step = self.steps[0].pop()
+            next_step = self.steps.pop(0)
             self.step_to_ask = next_step
 
         # check that next step can be asked here, else redirect
-        if not (self.loc_id in next_step['locations']):
-            self.blocks.append(Block('redirect', next_step['locations']))
+        locs = next_step.get_locations()
+        if not (self.loc_id in next_step.get_locations()):
+            self.blocks.append(Block('redirect', next_step.get_locations()))
 
         # check for blocks
         if self.blocks:
@@ -660,9 +658,15 @@ class Path(object):
         return next_step
 
     def get_active_step(self, db=None):
+        """Return the Step object that is currently active for this path."""
+        pass
 
 
 class PathChooser(object):
+    """
+    Select a new path to begin when the user begins another interaction.
+    """
+
     def __init__(self):
         """docstring for __init__"""
         pass

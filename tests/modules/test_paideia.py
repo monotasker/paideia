@@ -2,12 +2,10 @@
 # Unit tests for the paideia module
 
 import pytest
-import pprint
 from paideia import Npc, Location, User, Step, StepRedirect, StepText
-from paideia import StepEvaluator, Path, Categorizer
+from paideia import StepEvaluator, Path, PathChooser, Categorizer, Walk
 from gluon import *
 import datetime
-from pprint import pprint
 
 # ===================================================================
 # Test Fixtures
@@ -19,8 +17,7 @@ def dt(string):
     format = "%Y-%m-%d"
     return datetime.datetime.strptime(string, format)
 
-@pytest.fixture(scope='module',
-                params=['case{}'.format(n) for n in range(1,2)])
+@pytest.fixture(params=['case{}'.format(n) for n in range(1,2)])
 def myrecords(request):
     """pytest fixture for providing user records."""
     case = request.param
@@ -48,7 +45,7 @@ def myrecords(request):
 
     return locals()[case]
 
-@pytest.fixture(scope='module')
+@pytest.fixture
 def mycategorizer(myrecords, request):
     """A pytest fixture providing a paideia.Categorizer object for testing."""
     rank = myrecords['tag_progress']['latest_new']
@@ -101,21 +98,13 @@ def mypath(request):
     """
     # StepText loc and prev_npc both work, no blocks, no prev_loc
     case = request.param
-    case1 = {'path_id': 1,
-            'blocks': None,
-            'loc_id': 8,
-            'prev_loc_id': None,
-            'prev_npc_id': 1,
-            'db': db}
-
+    case1 = {'args': [1, None, 8, None, 1],
+            'kwargs': {'db': db}}
     # StepText loc and prev_npc both work, no blocks, no prev_loc
-    case2 = {'path_id': 1,
-            'blocks': None,
-            'loc_id': 8,
-            'prev_loc_id': None,
-            'prev_npc_id': 1,
-            'db': db}
-    return Path(**case)
+    case2 = {'args': [1, None, 8, None, 1],
+            'kwargs': {'db': db}}
+    casedict = locals()[case]
+    return {'casenum': case[4:], 'path': Path(*casedict['args'], **casedict['kwargs'])}
 
 @pytest.fixture
 def mystep():
@@ -127,7 +116,7 @@ def mystep():
     loc = Location(8, db)
     prev_loc = Location(8, db)
     prev_npc_id = 1
-    return Step(1, loc, prev_loc, prev_npc_id, path=None, db=db)
+    return Step(1, loc, prev_loc, prev_npc_id, db=db)
 
 @pytest.fixture
 def myStepRedirect():
@@ -139,7 +128,7 @@ def myStepRedirect():
     loc = Location(11, db) # synagogue
     prev_loc = Location(11, db)
     prev_npc_id = 31 # stephanos
-    return StepRedirect(30, loc, prev_loc, prev_npc_id, path=None, db=db)
+    return StepRedirect(30, loc, prev_loc, prev_npc_id, db=db)
 
 @pytest.fixture
 def myStepText():
@@ -147,7 +136,7 @@ def myStepText():
     loc = Location(8, db)
     prev_loc = Location(8, db)
     prev_npc_id = 1
-    return StepText(1, loc, prev_loc, prev_npc_id, path=None, db=db)
+    return StepText(1, loc, prev_loc, prev_npc_id, db=db)
 
 @pytest.fixture
 def myStepEvaluator():
@@ -157,7 +146,6 @@ def myStepEvaluator():
     step = db.steps[1]
     answers = [step.response1, step.response2, step.response3]
     tips = step.hints
-
     return StepEvaluator(answers, tips)
 
 # ===================================================================
@@ -350,6 +338,8 @@ class TestStepText():
         pass
 
 class TestStepEvaluator():
+    """Class for evaluating the submitted response string for a Step"""
+
     def test_stepevaluator_get_eval(self, myStepEvaluator):
         user_response = 'μιτ'
         assert myStepEvaluator.get_eval(user_response)['score'] == 1
@@ -358,12 +348,15 @@ class TestStepEvaluator():
         assert myStepEvaluator.get_eval(user_response)['user_response'] == 'μιτ'
         assert myStepEvaluator.get_eval(user_response)['tips'] == []
 
-class TestPath(mypath):
+class TestPath():
     """Unit testing class for the paideia.Path object"""
-    output = mypath['casenum']
-    output1 = {}
-    output1 = {}
-    assert mypath['path'].get_next_step() == output
+
+    def test_get_next_step(self, mypath):
+        """docstring for test_get_next_step"""
+        output = 'output{}'.format(mypath['casenum'])
+        output1 = Step(71, 8, None, 1, db=db)
+        output2 = Step(71, 8, None, 1, db=db)
+        assert mypath['path'].get_next_step(8) == output
 
 
 class TestPathChooser():
