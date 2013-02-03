@@ -6,6 +6,24 @@ from random import randint
 import re
 import datetime
 from itertools import chain
+from inspect import getargvalues, stack
+from pprint import pprint
+
+def util_get_args():
+    """
+    Returns a collection of all the calling functionos arguments.
+
+    The returned collection is a tuple containing dictionary of calling
+    function's named arguments and a list of calling function's unnamed
+    positional arguments.
+
+    By Kelly Yancey:
+    kbyanc.blogspot.ca/2007/07/python-aggregating-function-arguments.html
+    """
+    posname, kwname, args = getargvalues(stack()[1][0])[-3:]
+    posargs = args.pop(posname, [])
+    args.update(args.pop(kwname, []))
+    return args, posargs
 
 
 class Walk(object):
@@ -295,37 +313,74 @@ class Step(object):
     interaction) in the game.
     '''
 
-    def __init__(self, step_id, loc, prev_loc, prev_npc_id, db=None,
-                                                    next_step_id=None):
-        """docstring for __init__"""
+    def __init__(self, step_id=None, loc=None, prev_loc=None, prev_npc_id=None,
+                        db=None, **kwargs):
+        """Initialize a paideia.Step object"""
         if db is None:
             db == current.db
         self.db = db
-        self.data = db.steps[step_id]
+        self.data = db.steps[step_id].as_dict()
+        # If not a stub step, return a Step subclass instead
+        if (type(self) is Step) and (self.data['widget_type'] != 3):
+            args = util_get_args()  # get the args and kwargs submitted above
+            del(args[0]['self'])
+            pprint(args)
+            self.subclass_factory(step_type_id=self.data['widget_type'],
+                                                                    **args[0])
+
+        # otherwise, continue with this Step instance
         self.repeating = False  # set to true if step already done today
         self.loc = loc
         self.prev_loc = prev_loc
         self.prev_npc_id = prev_npc_id
         self.npc = None
-        self.next_step_id=next_step_id
+
+    def subclass_factory(self, **kwargs):
+        """
+        Return the correct subclass of Step based on record's 'widget_type'.
+
+        The ids correspond to the following 'widget_type' labels:
+        1. test response
+        2. multiple choice (single option)
+        3. stub
+        4. image - text response DEPRECATED
+        5. image - multichoice DEPRECATED
+        6. send to view slides
+        7. daily quota reached
+        8. award badges
+        9. redirect
+        """
+        args = util_get_args()
+        del(args[0]['self'])  # prevent stale 'self' var from being passed on
+
+        step_classes = {1: StepText,
+                        2: StepMultipleChoice,
+                        3: Step,
+                        5: StepText,
+                        6: StepMultipleChoice,
+                        7: StepQuotaReached,
+                        8: StepAwardBadges,
+                        9: StepRedirect}
+
+        return step_classes[args[0]['step_type_id']](**args[0])
 
     def get_id(self):
         """
         Return the id of the current step as an integer.
         """
-        return self.data.id
+        return self.data['id']
 
     def get_tags(self):
         """
         Return a list of tag id's
         """
-        primary = self.data.tags
-        secondary = self.data.tags_secondary
+        primary = self.data['tags']
+        secondary = self.data['tags_secondary']
         return {'primary': primary, 'secondary': secondary}
 
     def get_locations(self):
         """Return a list of the location id's for this step."""
-        return self.data.locations
+        return self.data['locations']
 
     def get_prompt(self, username=None):
         """
@@ -333,7 +388,7 @@ class Step(object):
         this is a simple string. Before returning, though, any necessary
         replacements or randomizations are made.
         """
-        raw_prompt = self.data.prompt
+        raw_prompt = self.data['prompt']
         prompt = self._make_replacements(raw_prompt, username)
         # prompt no longer tagged or converted to markmin here, but in view
 
@@ -381,7 +436,7 @@ class Step(object):
         if self.npc:  # ensure choice is made only once for each step
             return self.npc
         else:
-            npcs_for_step = self.data.npcs
+            npcs_for_step = self.data['npcs']
             npc_list = [n for n in npcs_for_step
                         if self.loc.get_id() in self.db.npcs[n].location]
             if self.prev_npc_id in npc_list:
@@ -397,7 +452,7 @@ class Step(object):
         Return an html list containing the instructions for the current
         step. Value is returned as a web2py UL() object.
         """
-        instructions = self.data.instructions
+        instructions = self.data['instructions']
         if not instructions:
             return None
         else:
@@ -415,6 +470,15 @@ class StepRedirect(Step):
     A subclass of Step. Handles the user interaction when the user needs to be
     sent to another location.
     '''
+    def __init__(self, step_id=None, step_data=None, loc=None, prev_loc=None,
+            prev_npc_id=None, username=None, next_step_id=None, db=None):
+        """docstring for __init__"""
+
+        self.username = username
+        self.next_step_id = next_step_id
+        kwargs = locals()
+        del(kwargs['self'])
+        super(StepRedirect, self).__init__(**kwargs)
 
     def _make_replacements(self, prompt_string, username=None,
                                                     db=None, next_step=None):
@@ -423,14 +487,17 @@ class StepRedirect(Step):
         substituted for tokens framed by [[]].
         """
         session = current.session
-        if db is None:
+        if not db:
             db = current.db
-
+        if not username:
+            username = self.username
+        if not 'next_step_id' in locals():
+            next_step_id = self.next_step_id
         next_loc = 'somewhere else in town'  # generic default
         # if mid-way through a path, send to next viable location
         # TODO: find a way to set this value to another location with an
         # available path if the current step is the last in its path.
-        if self.next_step_id:
+        if next_step_id:
             next_locids = db.steps[self.next_step_id].locations
             # find a location that actually has a readable name
             raw_locs = [db.locations[n].readable for n in next_locids]
@@ -448,9 +515,13 @@ class StepRedirect(Step):
                                                             prompt_string,
                                                             reps=reps,
                                                             username=username)
-
         return new_string
 
+class StepQuotaReached(Step):
+    pass
+
+class StepAwardBadges(Step):
+    pass
 
 class StepText(Step):
     """
@@ -622,7 +693,6 @@ class Path(object):
             db = current.db
         self.db = db
         self.path_dict = db.paths[path_id].as_dict()
-
         self.steps = [Step(i, self.loc, prev_loc_id, prev_npc_id, db=db)
                                             for i in self.path_dict['steps']]
         self.completed_steps = []

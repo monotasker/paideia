@@ -278,7 +278,8 @@ class TestStepRedirect():
         username = 'Ian'
         assert myStepRedirect.get_prompt(username)['prompt'] == "Hi there. Sorry, I don't have anything for you to do here at the moment. I think someone was looking for you at somewhere else in town."
         assert myStepRedirect.get_prompt(username)['instructions'] == None
-        assert myStepRedirect.get_prompt(username)['npc_image'] == '/paideia/static/images/images.image.a59978facee731f0.44726177696e672031382e737667.svg'
+        assert (myStepRedirect.get_prompt(username)['npc_image'] == '/paideia/static/images/images.image.a59978facee731f0.44726177696e672031382e737667.svg'
+                or myStepRedirect.get_prompt(username)['npc_image'] == '/paideia/static/images/images.image.961b44d8d322659c.323031322d30362d30372031345f34345f34302e706e67.png')
 
     def test_stepredirect_make_replacements(self, myStepRedirect):
         """docstring for test_stepredirect_make_replacements"""
@@ -307,8 +308,8 @@ class TestStepRedirect():
     def test_stepredirect_get_npc(self, myStepRedirect):
         """Test for method Step.get_npc"""
         # TODO: allow for alternate possibility of Sophia
-        assert myStepRedirect.get_npc().get_id() == 31
-
+        assert (myStepRedirect.get_npc().get_id() == 31
+                    or myStepRedirect.get_npc().get_id() == 32)
         locs = myStepRedirect.get_npc().get_locations()
         assert isinstance(locs[0], Location)
         assert (locs[0].get_id() == 3) or (locs[0].get_id() == 11)
