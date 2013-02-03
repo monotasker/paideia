@@ -233,8 +233,7 @@ class Npc(object):
         Return a web2py IMG helper object with the image for the current
         npc character.
         """
-        url = URL('static/images', self.db.images[self.data.npc_image].image)
-        img = IMG(_src=url)
+        img = URL('static/images', self.db.images[self.data.npc_image].image)
         return img
 
     def get_locations(self):
@@ -399,14 +398,14 @@ class Step(object):
         step. Value is returned as a web2py UL() object.
         """
         instructions = self.data.instructions
-        if instructions is None or instructions == []:
+        if not instructions:
             return None
         else:
-            list = UL(_class='step_instructions')
+            list = []
             for item in instructions:
                 item_row = self.db.step_instructions[item]
                 item_text = item_row.text
-                list.append(LI(item_text))
+                list.append(item_text)
 
             return list
 
@@ -617,13 +616,14 @@ class Path(object):
         self.prev_loc_id = prev_loc_id
         self.prev_npc_id = prev_npc_id
         self.loc_id = loc_id
+        self.loc = Location(loc_id, db)
         self.blocks = blocks
         if not db:
             db = current.db
         self.db = db
         self.path_dict = db.paths[path_id].as_dict()
 
-        self.steps = [Step(i, loc_id, prev_loc_id, prev_npc_id, db=db)
+        self.steps = [Step(i, self.loc, prev_loc_id, prev_npc_id, db=db)
                                             for i in self.path_dict['steps']]
         self.completed_steps = []
         self.last_step_id = None
