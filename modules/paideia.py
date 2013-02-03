@@ -681,10 +681,10 @@ class Path(object):
     So far there is no infrastructure for paths without a set sequence.
     """
 
-    def __init__(self, path_id, blocks, loc_id, prev_loc_id,
+    def __init__(self, path_id, blocks, loc_id, prev_loc,
                                                 prev_npc_id, db=None):
         """Initialize a paideia.Path object."""
-        self.prev_loc_id = prev_loc_id
+        self.prev_loc_id = prev_loc.get_id()
         self.prev_npc_id = prev_npc_id
         self.loc_id = loc_id
         self.loc = Location(loc_id, db)
@@ -693,7 +693,7 @@ class Path(object):
             db = current.db
         self.db = db
         self.path_dict = db.paths[path_id].as_dict()
-        self.steps = [Step(i, self.loc, prev_loc_id, prev_npc_id, db=db)
+        self.steps = [Step(i, self.loc, prev_loc, prev_npc_id, db=db)
                                             for i in self.path_dict['steps']]
         self.completed_steps = []
         self.last_step_id = None
