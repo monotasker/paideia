@@ -6,6 +6,7 @@ from paideia import Npc, Location, User, Step, StepRedirect, StepText
 from paideia import StepEvaluator, Path, PathChooser, Categorizer, Walk
 from gluon import *
 import datetime
+from pprint import pprint
 
 # ===================================================================
 # Test Fixtures
@@ -166,7 +167,7 @@ class TestNpc():
 
     def test_npc_get_image(self, mynpc):
         """Test for method Npc.get_image()"""
-        assert mynpc.get_image().xml() == '<img src="/paideia/static/images/images.image.bb48641f0122d2b6.696d616765732e696d6167652e383136303330663934646664646561312e34343732363137373639366536373230333432653733373636372e737667.svg" />'
+        assert mynpc.get_image() == '/paideia/static/images/images.image.bb48641f0122d2b6.696d616765732e696d6167652e383136303330663934646664646561312e34343732363137373639366536373230333432653733373636372e737667.svg'
 
     def test_npc_get_locations(self, mynpc):
         """Test for method Npc.get_locations()"""
@@ -227,8 +228,8 @@ class TestStep():
         """Test for method Step.get_prompt"""
         username = 'Ian'
         assert mystep.get_prompt(username)['prompt'] == 'How could you write the word "meet" using Greek letters?'
-        assert mystep.get_prompt(username)['instructions'].xml() == '<ul class="step_instructions"><li>Focus on finding Greek letters that make the *sounds* of the English word. Don&#x27;t look for Greek &quot;equivalents&quot; for each English letter.</li></ul>'
-        assert mystep.get_prompt(username)['npc_image'].xml() == '<img src="/paideia/static/images/images.image.bb48641f0122d2b6.696d616765732e696d6167652e383136303330663934646664646561312e34343732363137373639366536373230333432653733373636372e737667.svg" />'
+        assert mystep.get_prompt(username)['instructions'] == ['Focus on finding Greek letters that make the *sounds* of the English word. Don\'t look for Greek "equivalents" for each English letter.']
+        assert mystep.get_prompt(username)['npc_image'] == '/paideia/static/images/images.image.bb48641f0122d2b6.696d616765732e696d6167652e383136303330663934646664646561312e34343732363137373639366536373230333432653733373636372e737667.svg'
 
     def test_step_make_replacements(self, mystep):
         """Unit test for method Step._make_replacements()"""
@@ -256,7 +257,7 @@ class TestStep():
 
     def test_step_get_instructions(self, mystep):
         """Test for method Step._get_instructions"""
-        assert mystep._get_instructions().xml() == '<ul class="step_instructions"><li>Focus on finding Greek letters that make the *sounds* of the English word. Don&#x27;t look for Greek &quot;equivalents&quot; for each English letter.</li></ul>'
+        assert mystep._get_instructions() == ['Focus on finding Greek letters that make the *sounds* of the English word. Don\'t look for Greek "equivalents" for each English letter.']
 
 class TestStepRedirect():
     '''
@@ -277,7 +278,7 @@ class TestStepRedirect():
         username = 'Ian'
         assert myStepRedirect.get_prompt(username)['prompt'] == "Hi there. Sorry, I don't have anything for you to do here at the moment. I think someone was looking for you at somewhere else in town."
         assert myStepRedirect.get_prompt(username)['instructions'] == None
-        assert myStepRedirect.get_prompt(username)['npc_image'].xml() == '<img src="/paideia/static/images/images.image.a59978facee731f0.44726177696e672031382e737667.svg" />'
+        assert myStepRedirect.get_prompt(username)['npc_image'] == '/paideia/static/images/images.image.a59978facee731f0.44726177696e672031382e737667.svg'
 
     def test_stepredirect_make_replacements(self, myStepRedirect):
         """docstring for test_stepredirect_make_replacements"""
@@ -354,9 +355,14 @@ class TestPath():
     def test_get_next_step(self, mypath):
         """docstring for test_get_next_step"""
         output = 'output{}'.format(mypath['casenum'])
-        output1 = Step(71, 8, None, 1, db=db)
-        output2 = Step(71, 8, None, 1, db=db)
-        assert mypath['path'].get_next_step(8) == output
+        output1 = Step(71, Location(8, db), None, 1, db=db)
+        output2 = Step(71, Location(8, db), None, 1, db=db)
+        assert mypath['path'].get_next_step(8).get_id() == locals()[output].get_id()
+        assert mypath['path'].get_next_step(8).get_tags() == locals()[output].get_tags()
+        assert mypath['path'].get_next_step(8).get_locations() == locals()[output].get_locations()
+        pprint(mypath['path'].get_next_step(8).get_prompt('Joe'))
+        pprint(locals()[output].get_prompt('Joe'))
+        assert mypath['path'].get_next_step(8).get_prompt('Joe') == locals()[output].get_prompt('Joe')
 
 
 class TestPathChooser():
