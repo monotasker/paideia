@@ -4,6 +4,8 @@
 import pytest
 from paideia import Npc, Location, User, PathChooser, Path, Categorizer, Walk
 from paideia import StepFactory, Step, StepRedirect, StepText, StepEvaluator
+from paideia import StepMultiple
+from paideia import Block, BlockRedirect, BlockAwardBadges, BlockViewSlides
 from gluon import *
 import datetime
 from pprint import pprint
@@ -399,7 +401,7 @@ class TestStepText():
     def test_steptext_get_reply(self, myStepText):
         pass
 
-class TestStepEvaluator():
+class TestTextEvaluator():
     """Class for evaluating the submitted response string for a Step"""
 
     def test_stepevaluator_get_eval(self, myStepEvaluator):
@@ -410,20 +412,53 @@ class TestStepEvaluator():
         assert myStepEvaluator.get_eval(user_response)['user_response'] == 'μιτ'
         assert myStepEvaluator.get_eval(user_response)['tips'] == []
 
+class TestMultipleEvaluator():
+    """Unit testing class for the class paideia.MultipleEvaluator"""
+    pass
+
 class TestPath():
     """Unit testing class for the paideia.Path object"""
 
-    def test_get_next_step(self, mypath):
+    def test_get_step_for_prompt(self, mypath):
         """docstring for test_get_next_step"""
         output = 'output{}'.format(mypath['casenum'])
         output1 = StepFactory().get_instance(step_id=71, loc=Location(8, db),
                                         prev_loc=None, prev_npc_id=1, db=db)
         output2 = StepFactory().get_instance(step_id=71, loc=Location(8, db),
                                         prev_loc=None, prev_npc_id=1, db=db)
-        assert mypath['path'].get_next_step(8).get_id() == locals()[output].get_id()
-        assert mypath['path'].get_next_step(8).get_tags() == locals()[output].get_tags()
-        assert mypath['path'].get_next_step(8).get_locations() == locals()[output].get_locations()
-        assert mypath['path'].get_next_step(8).get_prompt('Joe') == locals()[output].get_prompt('Joe')
+        assert mypath['path'].get_step_for_prompt().get_id() == locals()[output].get_id()
+        assert mypath['path'].get_step_for_prompt().get_tags() == locals()[output].get_tags()
+        assert mypath['path'].get_step_for_prompt().get_locations() == locals()[output].get_locations()
+        assert mypath['path'].get_step_for_prompt().get_prompt('Joe') == locals()[output].get_prompt('Joe')
+
+    def test_prepare_for_answer(self, mypath):
+        """Unit test for method paideia.Path.get_step_for_reply."""
+        casenum = mypath['casenum']
+        case = 'case{}'.format(casenum)
+        case1 = {'step_for_reply': 61,
+                'step_for_prompt': None,
+                'step_sent_id': 61}
+        case2 = {'step_for_reply': 61,
+                'step_for_prompt': None,
+                'step_sent_id': 61}
+        output = locals()[case]
+        sent_id = output['step_sent_id']
+        del(output['step_sent_id'])
+        assert mypath['path'].prepare_for_answer(step_sent_id=sent_id) == output
+
+    def test_remove_block(self, mypath):
+        """Unit test for method paideia.Path.remove_block."""
+        casenum = mypath['casenum']
+        if not casenum in [1, 2]:
+            case = 'case{}'.format(casenum)
+            case3 = {'block_done': Block(), 'blocks': []}
+            output = locals()[case]
+            assert mypath['path'].remove_block() == output
+
+    def test_get_step_for_reply(self, mypath):
+        """Unit test for method paideia.Path.get_step_for_reply."""
+        output = 'output{}'.format(mypath['casenum'])
+        assert 0
 
 class TestPathChooser():
     """Unit testing class for the paideia.PathChooser class."""

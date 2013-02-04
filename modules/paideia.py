@@ -332,10 +332,10 @@ class StepFactory(object):
         data = db.steps[locals()['step_id']].as_dict()
         del(args[0]['self'])
         step_classes = {1: StepText,
-                        2: StepMultipleChoice,
+                        2: StepMultiple,
                         3: Step,
                         5: StepText,
-                        6: StepMultipleChoice,
+                        6: StepMultiple,
                         7: StepQuotaReached,
                         8: StepAwardBadges,
                         9: StepRedirect}
@@ -591,7 +591,7 @@ class StepText(Step):
                 'readable_long': readable_long}
 
 
-class StepMultipleChoice(Step):
+class StepMultiple(Step):
     """
     A subclass of Step that adds a form to receive multiple-choice user input
     and evaluation of that input.
@@ -696,39 +696,68 @@ class Path(object):
                                             for i in self.path_dict['steps']]
         self.completed_steps = []
         self.last_step_id = None
-        self.step_to_ask = None
-        self.step_to_answer = None
+        self.step_for_prompt = None
+        self.step_for_reply = None
 
-    def get_next_step(self, loc_id, prev_loc_id=None,
-                        prev_npc_id=None, db=None):
-        """docstring for get_next_step"""
-        for arg in ['prev_loc_id', 'prev_npc_id', 'db']:
-            if not arg in locals():
-                arg = self[arg]
-
+    def get_step_for_prompt(self):
+        """Find the next unanswered step in the current path and return it."""
         # check for active step that hasn't been asked because of block
-        if self.step_to_ask:
-            next_step = self.step_to_ask
+        if self.step_for_prompt:
+            next_step = self.step_for_prompt
         else:
             next_step = self.steps.pop(0)
-            self.step_to_ask = next_step
+            self.step_for_prompt = next_step
 
         # check that next step can be asked here, else redirect
         locs = next_step.get_locations()
         if not (self.loc_id in next_step.get_locations()):
-            self.blocks.append(Block('redirect', next_step.get_locations()))
+            self.blocks.append(Block.set_block('redirect', next_step.get_locations()))
 
         # check for blocks
         if self.blocks:
             block_step = self.blocks[0].get_step()
             if block_step:
+                # TODO: make sure that the block step isn't added to completed
+                # or step_to_answer or last_step_id
+                # TODO: how will we remove the block?
                 return block_step
 
         return next_step
 
-    def get_active_step(self, db=None):
+    def prepare_for_answer(self, step_sent_id=None):
+        """
+        Prepare the class instance variables to receive the user's response.
+
+        This method needs to be called before the step prompt is sent to the
+        view. This includes:
+        - resetting step_for_prompt to None
+        - pop active step and either move to step_for_reply or simply delete
+        """
+        # TODO: make sure this doesn't run if the step was a block step
+        # block steps are never set in self.step_for_prompt since should
+        # not be re-activated
+        # TODO: in Walk, provide id of actual step being sent to view
+        if self.step_for_prompt.get_id() == step_sent_id:
+            step_done = self.step_for_prompt
+            self.step_for_prompt = None
+            if type(step_done) in [StepText, StepMultiple]:
+                self.step_for_reply = step_done
+            else:
+                self.step_for_reply = None
+        return {'step_for_reply': self.step_for_reply.get_id(),
+                'step_for_prompt': self.step_for_prompt.get_id()}
+
+    def remove_block(self):
+        """Remove an active block once its step has been sent to view."""
+        # TODO: make sure that the block step isn't added to completed
+        # or step_to_answer or last_step_id
+        block_done = self.blocks.pop(0)
+        return {'block_done': block_done, 'blocks': self.blocks}
+
+    def get_step_for_reply(self, db=None):
         """Return the Step object that is currently active for this path."""
-        pass
+        reply_step = self.step_for_reply
+
 
 
 class PathChooser(object):
@@ -1107,4 +1136,26 @@ class Categorizer(object):
 
 class Block(object):
     """docstring"""
+    def __init__(self):
+        """docstring for __init__"""
+        pass
+
+    def set_block(self, condition, data):
+        """Factory method to instantiate the appropriate Block subclass."""
+        pass
+
+    def get_step():
+        """Return the appropriate step for the current blocking condition"""
+        pass
+
+class BlockRedirect():
+    pass
+
+class BlockAwardBadges():
+    pass
+
+class BlockViewSlides():
+    pass
+
+class BlockReachedQuota():
     pass
