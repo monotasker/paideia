@@ -271,11 +271,34 @@ class TestStep():
 
     def test_step_get_responder(self, mystep):
         """Test for method Step.get_responder"""
+        the_type = mystep['step'].__class__.__name__
+        # Step, StepRedirect, StepViewSlides steps
         map_button = A("Map", _href=URL('walk'),
                         cid='page',
                         _class='button-yellow-grad back_to_map icon-location')
-        assert mystep['step'].get_responder().xml() == DIV(map_button).xml()
-        assert 0 #need to vary output here
+        Step_output = StepRedirect_output = StepViewSlides_output = DIV(map_button).xml()
+        # StepText steps
+        resp = '<form action="" autocomplete="off" enctype="multipart/form-data" method="post">'
+        resp += '<table>'
+        resp += '<tr id="no_table_response__row">'
+        resp += '<td class="w2p_fl">'
+        resp += '<label for="no_table_response" id="no_table_response__label">Response: </label>'
+        resp += '</td>'
+        resp += '<td class="w2p_fw">'
+        resp += '<input class="string" id="no_table_response" name="response" type="text" value="" />'
+        resp += '</td>'
+        resp += '<td class="w2p_fc"></td>'
+        resp += '</tr>'
+        resp += '<tr id="submit_record__row">'
+        resp += '<td class="w2p_fl"></td>'
+        resp += '<td class="w2p_fw"><input type="submit" value="Submit" /></td>'
+        resp += '<td class="w2p_fc"></td></tr></table></form>'
+        StepText_output = resp
+        # StepMultiple steps #TODO: insert stepMultiple responder html here
+        StepMultiple_output = None
+        output = locals()['{}_output'.format(the_type)]
+
+        assert mystep['step'].get_responder().xml() == output
 
     def test_step_get_npc(self, mystep):
         """Test for method Step.get_npc"""
