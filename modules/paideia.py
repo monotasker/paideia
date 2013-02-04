@@ -6,6 +6,24 @@ from random import randint
 import re
 import datetime
 from itertools import chain
+from inspect import getargvalues, stack
+from pprint import pprint
+
+def util_get_args():
+    """
+    Returns a collection of all the calling functionos arguments.
+
+    The returned collection is a tuple containing dictionary of calling
+    function's named arguments and a list of calling function's unnamed
+    positional arguments.
+
+    By Kelly Yancey:
+    kbyanc.blogspot.ca/2007/07/python-aggregating-function-arguments.html
+    """
+    posname, kwname, args = getargvalues(stack()[1][0])[-3:]
+    posargs = args.pop(posname, [])
+    args.update(args.pop(kwname, []))
+    return args, posargs
 
 
 class Walk(object):
@@ -233,8 +251,7 @@ class Npc(object):
         Return a web2py IMG helper object with the image for the current
         npc character.
         """
-        url = URL('static/images', self.db.images[self.data.npc_image].image)
-        img = IMG(_src=url)
+        img = URL('static/images', self.db.images[self.data.npc_image].image)
         return img
 
     def get_locations(self):
@@ -289,6 +306,41 @@ class BugReporter(object):
         """Initialize a BugReporter object"""
     pass
 
+class StepFactory(object):
+    """
+    A factory class allowing automatic generation of correct Step subclasses.
+    """
+    def get_instance(self, db=None, **kwargs):
+        """
+        Return the correct subclass of Step based on record's 'widget_type'.
+
+        The ids correspond to the following 'widget_type' labels:
+        1. test response
+        2. multiple choice (single option)
+        3. stub
+        4. image - text response DEPRECATED
+        5. image - multichoice DEPRECATED
+        6. send to view slides
+        7. daily quota reached
+        8. award badges
+        9. redirect
+        """
+        args = util_get_args()  # get the args and kwargs submitted above
+        if db is None:
+            db == current.db
+        # TODO: read db data here and pass it forward as a dict
+        data = db.steps[locals()['step_id']].as_dict()
+        del(args[0]['self'])
+        step_classes = {1: StepText,
+                        2: StepMultiple,
+                        3: Step,
+                        5: StepText,
+                        6: StepMultiple,
+                        7: StepQuotaReached,
+                        8: StepAwardBadges,
+                        9: StepRedirect}
+        return step_classes[data['widget_type']](**args[0])
+
 
 class Step(object):
     '''
@@ -296,37 +348,36 @@ class Step(object):
     interaction) in the game.
     '''
 
-    def __init__(self, step_id, loc, prev_loc, prev_npc_id, db=None,
-                                                    next_step_id=None):
-        """docstring for __init__"""
+    def __init__(self, step_id=None, loc=None, prev_loc=None, prev_npc_id=None,
+                        db=None, **kwargs):
+        """Initialize a paideia.Step object"""
         if db is None:
             db == current.db
         self.db = db
-        self.data = db.steps[step_id]
+        self.data = db.steps[step_id].as_dict()
         self.repeating = False  # set to true if step already done today
         self.loc = loc
         self.prev_loc = prev_loc
         self.prev_npc_id = prev_npc_id
         self.npc = None
-        self.next_step_id=next_step_id
 
     def get_id(self):
         """
         Return the id of the current step as an integer.
         """
-        return self.data.id
+        return self.data['id']
 
     def get_tags(self):
         """
         Return a list of tag id's
         """
-        primary = self.data.tags
-        secondary = self.data.tags_secondary
+        primary = self.data['tags']
+        secondary = self.data['tags_secondary']
         return {'primary': primary, 'secondary': secondary}
 
     def get_locations(self):
         """Return a list of the location id's for this step."""
-        return self.data.locations
+        return self.data['locations']
 
     def get_prompt(self, username=None):
         """
@@ -334,7 +385,7 @@ class Step(object):
         this is a simple string. Before returning, though, any necessary
         replacements or randomizations are made.
         """
-        raw_prompt = self.data.prompt
+        raw_prompt = self.data['prompt']
         prompt = self._make_replacements(raw_prompt, username)
         # prompt no longer tagged or converted to markmin here, but in view
 
@@ -382,7 +433,7 @@ class Step(object):
         if self.npc:  # ensure choice is made only once for each step
             return self.npc
         else:
-            npcs_for_step = self.data.npcs
+            npcs_for_step = self.data['npcs']
             npc_list = [n for n in npcs_for_step
                         if self.loc.get_id() in self.db.npcs[n].location]
             if self.prev_npc_id in npc_list:
@@ -398,15 +449,15 @@ class Step(object):
         Return an html list containing the instructions for the current
         step. Value is returned as a web2py UL() object.
         """
-        instructions = self.data.instructions
-        if instructions is None or instructions == []:
+        instructions = self.data['instructions']
+        if not instructions:
             return None
         else:
-            list = UL(_class='step_instructions')
+            list = []
             for item in instructions:
                 item_row = self.db.step_instructions[item]
                 item_text = item_row.text
-                list.append(LI(item_text))
+                list.append(item_text)
 
             return list
 
@@ -416,6 +467,15 @@ class StepRedirect(Step):
     A subclass of Step. Handles the user interaction when the user needs to be
     sent to another location.
     '''
+    def __init__(self, step_id=None, step_data=None, loc=None, prev_loc=None,
+            prev_npc_id=None, username=None, next_step_id=None, db=None):
+        """docstring for __init__"""
+
+        self.username = username
+        self.next_step_id = next_step_id
+        kwargs = locals()
+        del(kwargs['self'])
+        super(StepRedirect, self).__init__(**kwargs)
 
     def _make_replacements(self, prompt_string, username=None,
                                                     db=None, next_step=None):
@@ -424,14 +484,17 @@ class StepRedirect(Step):
         substituted for tokens framed by [[]].
         """
         session = current.session
-        if db is None:
+        if not db:
             db = current.db
-
+        if not username:
+            username = self.username
+        if not 'next_step_id' in locals():
+            next_step_id = self.next_step_id
         next_loc = 'somewhere else in town'  # generic default
         # if mid-way through a path, send to next viable location
         # TODO: find a way to set this value to another location with an
         # available path if the current step is the last in its path.
-        if self.next_step_id:
+        if next_step_id:
             next_locids = db.steps[self.next_step_id].locations
             # find a location that actually has a readable name
             raw_locs = [db.locations[n].readable for n in next_locids]
@@ -449,9 +512,13 @@ class StepRedirect(Step):
                                                             prompt_string,
                                                             reps=reps,
                                                             username=username)
-
         return new_string
 
+class StepQuotaReached(Step):
+    pass
+
+class StepAwardBadges(Step):
+    pass
 
 class StepText(Step):
     """
@@ -524,7 +591,7 @@ class StepText(Step):
                 'readable_long': readable_long}
 
 
-class StepMultipleChoice(Step):
+class StepMultiple(Step):
     """
     A subclass of Step that adds a form to receive multiple-choice user input
     and evaluation of that input.
@@ -611,55 +678,86 @@ class Path(object):
     So far there is no infrastructure for paths without a set sequence.
     """
 
-    def __init__(self, path_id, blocks, loc_id, prev_loc_id,
-                                                prev_npc_id, db=None):
+    def __init__(self, path_id=None, blocks=None, loc_id=None, prev_loc=None,
+                                                prev_npc_id=None, db=None):
         """Initialize a paideia.Path object."""
-        self.prev_loc_id = prev_loc_id
+        self.prev_loc_id = prev_loc.get_id()
         self.prev_npc_id = prev_npc_id
         self.loc_id = loc_id
+        self.loc = Location(loc_id, db)
         self.blocks = blocks
         if not db:
             db = current.db
         self.db = db
         self.path_dict = db.paths[path_id].as_dict()
-
-        self.steps = [Step(i, loc_id, prev_loc_id, prev_npc_id, db=db)
+        static_args = {'loc': self.loc, 'prev_loc': prev_loc,
+                        'prev_npc_id': prev_npc_id, 'db': db}
+        self.steps = [StepFactory().get_instance(step_id=i, **static_args)
                                             for i in self.path_dict['steps']]
         self.completed_steps = []
         self.last_step_id = None
-        self.step_to_ask = None
-        self.step_to_answer = None
+        self.step_for_prompt = None
+        self.step_for_reply = None
 
-    def get_next_step(self, loc_id, prev_loc_id=None,
-                        prev_npc_id=None, db=None):
-        """docstring for get_next_step"""
-        for arg in ['prev_loc_id', 'prev_npc_id', 'db']:
-            if not arg in locals():
-                arg = self[arg]
-
+    def get_step_for_prompt(self):
+        """Find the next unanswered step in the current path and return it."""
         # check for active step that hasn't been asked because of block
-        if self.step_to_ask:
-            next_step = self.step_to_ask
+        if self.step_for_prompt:
+            next_step = self.step_for_prompt
         else:
             next_step = self.steps.pop(0)
-            self.step_to_ask = next_step
+            self.step_for_prompt = next_step
 
         # check that next step can be asked here, else redirect
         locs = next_step.get_locations()
         if not (self.loc_id in next_step.get_locations()):
-            self.blocks.append(Block('redirect', next_step.get_locations()))
+            self.blocks.append(Block.set_block('redirect', next_step.get_locations()))
 
         # check for blocks
         if self.blocks:
             block_step = self.blocks[0].get_step()
             if block_step:
+                # TODO: make sure that the block step isn't added to completed
+                # or step_to_answer or last_step_id
+                # TODO: how will we remove the block?
                 return block_step
 
         return next_step
 
-    def get_active_step(self, db=None):
+    def prepare_for_answer(self, step_sent_id=None):
+        """
+        Prepare the class instance variables to receive the user's response.
+
+        This method needs to be called before the step prompt is sent to the
+        view. This includes:
+        - resetting step_for_prompt to None
+        - pop active step and either move to step_for_reply or simply delete
+        """
+        # TODO: make sure this doesn't run if the step was a block step
+        # block steps are never set in self.step_for_prompt since should
+        # not be re-activated
+        # TODO: in Walk, provide id of actual step being sent to view
+        if self.step_for_prompt.get_id() == step_sent_id:
+            step_done = self.step_for_prompt
+            self.step_for_prompt = None
+            if type(step_done) in [StepText, StepMultiple]:
+                self.step_for_reply = step_done
+            else:
+                self.step_for_reply = None
+        return {'step_for_reply': self.step_for_reply.get_id(),
+                'step_for_prompt': self.step_for_prompt.get_id()}
+
+    def remove_block(self):
+        """Remove an active block once its step has been sent to view."""
+        # TODO: make sure that the block step isn't added to completed
+        # or step_to_answer or last_step_id
+        block_done = self.blocks.pop(0)
+        return {'block_done': block_done, 'blocks': self.blocks}
+
+    def get_step_for_reply(self, db=None):
         """Return the Step object that is currently active for this path."""
-        pass
+        reply_step = self.step_for_reply
+
 
 
 class PathChooser(object):
@@ -1038,4 +1136,26 @@ class Categorizer(object):
 
 class Block(object):
     """docstring"""
+    def __init__(self):
+        """docstring for __init__"""
+        pass
+
+    def set_block(self, condition, data):
+        """Factory method to instantiate the appropriate Block subclass."""
+        pass
+
+    def get_step():
+        """Return the appropriate step for the current blocking condition"""
+        pass
+
+class BlockRedirect():
+    pass
+
+class BlockAwardBadges():
+    pass
+
+class BlockViewSlides():
+    pass
+
+class BlockReachedQuota():
     pass
