@@ -3,6 +3,7 @@ import datetime
 from pytz import timezone
 from gluon import current, DIV, H4, TABLE, THEAD, TBODY, TR, TD, SPAN, A, URL
 from pprint import pprint
+from guppy import hpy # for memory profiling
 
 
 class Stats(object):
@@ -21,6 +22,7 @@ class Stats(object):
         self.user_id = user_id
         #assert type(user_id) == str
         self.loglist = self.log_list()
+        print hpy().heap()
 
     def step_log(self, logs=None, user_id=None, duration=None, db=None):
         '''
@@ -29,7 +31,6 @@ class Stats(object):
         now = datetime.datetime.utcnow()
         if user_id is None:
             user_id = self.user_id
-            print 'user:', user_id
         if duration is None:
             duration = datetime.timedelta(days=7)
         if db is None:
