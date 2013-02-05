@@ -33,4 +33,9 @@ def run_pytest(w2p_dir, test_dir, app_name):
         print type(e), e
 
 if __name__=='__main__':
-    run_pytest('/home/iscott/web/web2py/', 'tests', 'paideia')
+    paths = ['/home/iscott/web/web2py/', '/home/ian/web/web2py/']
+    runpath = paths[1]
+    if os.path.exists(paths[0]):
+        runpath = paths[0]
+    run_pytest(runpath, 'tests', 'paideia')
+

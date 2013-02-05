@@ -640,7 +640,7 @@ class Walk(object):
                                                     'tag': n,
                                                     category: dtnow})
                         else:
-                            trecord.update({category: dtnow})
+                            trecord.update(**{category: dtnow})
 
         # build dictionary of values to record in tag_progress
         # - start with old values
