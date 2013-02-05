@@ -191,7 +191,7 @@
 
 
     <div id='tab_recent_paths' class="tab">
-        <h4>Steps attempted in the last {{#=log[0]['duration'].days}} days</h4>
+        <h4>Steps attempted in the last {{=duration.days}} days</h4>
         {{=TABLE(THEAD(TR(
                 TH('step', _class='step'),
                 TH('prompt', _class='prompt'),
