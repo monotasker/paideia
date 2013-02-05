@@ -3,7 +3,7 @@ import datetime
 from pytz import timezone
 from gluon import current, DIV, H4, TABLE, THEAD, TBODY, TR, TD, SPAN, A, URL
 from pprint import pprint
-from guppy import hpy # for memory profiling
+#from guppy import hpy
 
 
 class Stats(object):
@@ -20,9 +20,8 @@ class Stats(object):
         if user_id is None:
             user_id = auth.user_id
         self.user_id = user_id
-        #assert type(user_id) == str
         self.loglist = self.log_list()
-        print hpy().heap()
+        #print hpy().heap()
 
     def step_log(self, logs=None, user_id=None, duration=None, db=None):
         '''
@@ -38,11 +37,14 @@ class Stats(object):
         if logs is None:
             logs = db((db.attempt_log.id > 0) &
                     (db.attempt_log.name == user_id)).select()
-            print len(logs)
+            print 'total logs:', len(logs)
             logs = logs.find(lambda row: (now - row.dt_attempted) <= duration)
-            print len(logs)
+            print 'recent logs:', len(logs)
         logset = []
         stepset = set(l.step for l in logs)
+        tag_badges = {tb.tags.id: (tb.badges.badge_name, tb.tags.tag)
+                            for tb in db(db.tags.id == db.badges.tag).select()}
+        #pprint(tag_badges)
 
         for step in stepset:
             steprow = db.steps[step]
@@ -62,12 +64,9 @@ class Stats(object):
                                 if s.dt_attempted > last_wrong])
             except TypeError:
                 right_since = stepcount
-
-            steptags = {t: {'tagname': db.tags[t].tag,
-                        'badge': db(db.badges.tag == t).select().first().badge_name}
-                            for t in steprow.tags}
-            print steptags
-
+            steptags = {t: {'tagname': tag_badges[t][1],
+                            'badge': tag_badges[t][0]}
+                        for t in steprow.tags}
             step_dict = {'step': step,
                         'count': stepcount,
                         'right': len(stepright),
@@ -76,12 +75,10 @@ class Stats(object):
                         'right_since': right_since,
                         'tags': steptags,
                         'prompt': steprow.prompt,
-                        'logs': steplogs,
-                        'duration': duration}
+                        'logs': steplogs}
             logset.append(step_dict)
-            if logset == []:
-                logset = [{'duration': duration}]
-        return logset
+
+        return {'loglist': logset, 'duration': duration}
 
     def active_tags(self):
         '''
@@ -193,7 +190,7 @@ class Stats(object):
         year.
         '''
         if self.verbose: print 'calling Stats.monthstats() -------------------'
-        debug = True
+        debug = False
 
         # get current year and month as default
         if not month:

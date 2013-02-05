@@ -56,7 +56,9 @@ def info():
     stats = Stats(user.id)
     active = stats.active_tags()
     cal = stats.monthcal()
-    log = stats.step_log()
+    sl = stats.step_log()
+    log = sl['loglist']
+    duration = sl['duration']
 
     max_set = db(db.tag_progress.name ==
                   auth.user_id).select().first()
@@ -99,6 +101,7 @@ def info():
             'tag_progress': tag_progress,
             'tag_records': tag_records,
             'log': log,
+            'duration': duration,
             'badge_track': badgelist}
 
 
