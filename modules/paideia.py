@@ -32,46 +32,46 @@ class Walk(object):
     the controller.
     """
 
-    def __init__(self, loc_alias, user=None, attempt_log=None,
-                tag_records=None, tag_progress=None,
-                response_string=None, db=None):
+    def __init__(self, loc_alias, tag_records=None,
+                tag_progress=None, response_string=None, db=None):
         """Initialize a Walk object."""
-        # inject dependencies
+
         self.user = user
+        # inject dependencies
         if not db:
             self.db = current.db
 
+        self.response_string = response_string
+
+    def get_user(self, userdata=None, loc_alias=None, tag_records=None, db=None):
         # initialize or re-activate User object
-        if not self.user:
-            try:
-                session = current.session
-                self.user = session.user
-            except:
+        try:
+            session = current.session
+            self.user = session.user
+        except:
+            if not userdata:
                 auth = current.auth
                 user_id = auth.user_id
                 userdata = db.auth_user[user_id].as_dict()
 
-                if not attempt_log:
-                    attempt_log = db(db.attempt_log.name == user_id).select()
-                    tag_records = tag_records.as_list()
-                if not tag_records:
-                    tag_records = db(db.tag_records.name == user_id).select()
-                    tag_records = tag_records.as_list()
+            if not tag_records:
+                tag_records = db(db.tag_records.name == user_id).select()
+                tag_records = tag_records.as_list()
+            if not tag_progress:
+                tag_progress = db(db.tag_progress.name == user_id).select()
+                tag_progress_length = len(tag_progress)  # TODO log if > 1
+                tag_progress = tag_progress.first().as_dict()
+                # Handle first-time users, who won't have db row to fetch
                 if not tag_progress:
-                    tag_progress = db(db.tag_progress.name == user_id).select()
-                    tag_progress_length = len(tag_progress)  # TODO log if > 1
+                    db.tag_progress.insert(latest_new=1)
+                    tag_progress = db(db.tag_progress.name ==
+                                            self.user.get_id()).select()
                     tag_progress = tag_progress.first().as_dict()
-                    # Handle first-time users, who won't have db row to fetch
-                    if not tag_progress:
-                        db.tag_progress.insert(latest_new=1)
-                        tag_progress = db(db.tag_progress.name ==
-                                                self.user.get_id()).select()
-                        tag_progress = tag_progress.first().as_dict()
 
-                self.user = User(userdata, loc_alias, attempt_log,
-                                tag_records, tag_progress)
+            self.user = User(userdata, loc_alias, attempt_log,
+                            tag_records, tag_progress)
 
-        self.response_string = response_string
+
 
     def map(self):
         """
@@ -774,11 +774,19 @@ class User(object):
     """
     An object representing the current user, including his/her performance
     data and the paths completed and active in this session.
+
     """
 
-    def __init__(self, userdata, loc_alias, tag_records, tag_progress,
-                            attempt_log=None):
-        """Initialize a paideia.User object."""
+    def __init__(self, userdata, loc_alias, tag_records, tag_progress):
+        """
+        Initialize a paideia.User object.
+
+        ## Argument types and structures
+        - userdata: {'name': str, 'id': int, '}
+        - loc_alias: str
+        - tag_progress: rows.as_dict()
+        - tag_records: rows.as_dict
+        """
         self.tag_progress = tag_progress
         self.rank = tag_progress['latest_new']
         self.name = userdata['first_name']
@@ -1148,14 +1156,26 @@ class Block(object):
         """Return the appropriate step for the current blocking condition"""
         pass
 
-class BlockRedirect():
+class BlockRedirect(Step):
+    """
+    A subclass of Block that redirects the user to another location.
+    """
+
+
+class BlockAwardBadges(Step):
+    """
+    A subclass of Block that redirects the user to another location.
+    """
     pass
 
-class BlockAwardBadges():
+class BlockViewSlides(Step):
+    """
+    A subclass of Block that redirects the user to another location.
+    """
     pass
 
-class BlockViewSlides():
-    pass
-
-class BlockReachedQuota():
+class BlockReachedQuota(Step):
+    """
+    A subclass of Block that redirects the user to another location.
+    """
     pass
