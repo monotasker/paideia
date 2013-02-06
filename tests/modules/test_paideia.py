@@ -20,6 +20,24 @@ def dt(string):
     format = "%Y-%m-%d"
     return datetime.datetime.strptime(string, format)
 
+@pytest.fixture
+def mywalk():
+    """pytest fixture providing a paideia.Walk object for testing"""
+    localias = db.locations[8].alias
+    return Walk(localias)
+
+@pytest.fixture(params=['case{}'.format(n) for n in range(1,2)])
+def mysession(request):
+    """pytest fixture for providing a mock session object."""
+    case = request.param
+    # no user in session
+    case1 = {}
+    # user already in session
+    case2 = {'user': myuser}
+
+    return locals()[case]
+
+
 @pytest.fixture(params=['case{}'.format(n) for n in range(1,2)])
 def myrecords(request):
     """pytest fixture for providing user records."""
@@ -419,7 +437,7 @@ class TestMultipleEvaluator():
 class TestPath():
     """Unit testing class for the paideia.Path object"""
 
-    def test_get_step_for_prompt(self, mypath):
+    def test_path_get_step_for_prompt(self, mypath):
         """docstring for test_get_next_step"""
         output = 'output{}'.format(mypath['casenum'])
         output1 = StepFactory().get_instance(step_id=71, loc=Location(8, db),
@@ -431,7 +449,7 @@ class TestPath():
         assert mypath['path'].get_step_for_prompt().get_locations() == locals()[output].get_locations()
         assert mypath['path'].get_step_for_prompt().get_prompt('Joe') == locals()[output].get_prompt('Joe')
 
-    def test_prepare_for_answer(self, mypath):
+    def test_path_prepare_for_answer(self, mypath):
         """Unit test for method paideia.Path.get_step_for_reply."""
         casenum = mypath['casenum']
         case = 'case{}'.format(casenum)
@@ -446,7 +464,7 @@ class TestPath():
         del(output['step_sent_id'])
         assert mypath['path'].prepare_for_answer(step_sent_id=sent_id) == output
 
-    def test_remove_block(self, mypath):
+    def test_path_remove_block(self, mypath):
         """Unit test for method paideia.Path.remove_block."""
         casenum = mypath['casenum']
         if not casenum in [1, 2]:
@@ -455,7 +473,7 @@ class TestPath():
             output = locals()[case]
             assert mypath['path'].remove_block() == output
 
-    def test_get_step_for_reply(self, mypath):
+    def test_path_get_step_for_reply(self, mypath):
         """Unit test for method paideia.Path.get_step_for_reply."""
         output = 'output{}'.format(mypath['casenum'])
         assert 0
@@ -473,7 +491,7 @@ class TestUser():
 class TestCategorizer():
     """Unit testing class for the paideia.Categorizer class"""
 
-    def test_categorize(self, mycategorizer):
+    def test_categorizer_categorize(self, mycategorizer):
         """
         Unit test for the paideia.Categorizer.categorize method.
 
@@ -503,7 +521,7 @@ class TestCategorizer():
             }
         assert mycategorizer['categorizer'].categorize_tags() == output[case]
 
-    def test_core_algorithm(self, mycategorizer):
+    def test_categorizer_core_algorithm(self, mycategorizer):
         """
         Unit test for the paideia.Categorizer._core_algorithm method
 
@@ -516,11 +534,11 @@ class TestCategorizer():
 
         assert mycategorizer['categorizer']._core_algorithm() == output[case]
 
-    def test_introduce_tags(self):
+    def test_categorizer_introduce_tags(self):
         """Unit test for the paideia.Categorizer._introduce_tags method"""
         pass
 
-    def test_add_untried_tags(self, mycategorizer):
+    def test_categorizer_add_untried_tags(self, mycategorizer):
         """Unit test for the paideia.Categorizer._add_untried_tags method"""
         input_cats = {'cat1': [1], 'cat2': [],
                         'cat3': [], 'cat4': []}
@@ -529,9 +547,19 @@ class TestCategorizer():
         assert mycategorizer['categorizer']._add_untried_tags(input_cats) == \
                                                                 output_cats
 
-    def test_find_cat_changes(self):
+    def test_categorizer_find_cat_changes(self):
         """docstring for test_"""
         pass
 
 class TestWalk():
-    pass
+    """
+    A unit testing class for the paideia.Walk class.
+    """
+
+    def _get_user(self, mywalk, myrecords, mysession):
+        """docstring for _get_user"""
+        userdata = {'name': 'Ian', 'id': 1}
+        loc_alias = mywalk.localias
+        tag_records = myrecords['tag_records']
+        tag_progress = myrecords['tag_progress']
+        assert mywalk._get_user(userdata, loc_alias, tag_records, tag_progress)
