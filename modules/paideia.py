@@ -8,6 +8,7 @@ import datetime
 from itertools import chain
 from inspect import getargvalues, stack
 from pprint import pprint
+from copy import copy, deepcopy
 
 def util_get_args():
     """
@@ -724,7 +725,8 @@ class Path(object):
 
         return next_step
 
-    def prepare_for_answer(self, step_sent_id=None):
+    def prepare_for_answer(self, step_for_prompt=None, step_for_reply=None,
+            step_sent_id=None):
         """
         Prepare the class instance variables to receive the user's response.
 
@@ -737,15 +739,35 @@ class Path(object):
         # block steps are never set in self.step_for_prompt since should
         # not be re-activated
         # TODO: in Walk, provide id of actual step being sent to view
-        if self.step_for_prompt.get_id() == step_sent_id:
-            step_done = self.step_for_prompt
+
+        if step_sent_id:
+            self.step_sent_id = step_sent_id # for testing purposes
+        else:
+            step_for_prompt = self.step_for_prompt
+        if not step_for_prompt:
+            step_for_prompt = self.step_for_prompt
+        if not step_for_reply:
+            step_for_reply = self.step_for_reply
+
+        if step_for_prompt.get_id() == step_sent_id:
+            step_done = copy(step_for_prompt)
             self.step_for_prompt = None
             if type(step_done) in [StepText, StepMultiple]:
                 self.step_for_reply = step_done
             else:
                 self.step_for_reply = None
-        return {'step_for_reply': self.step_for_reply.get_id(),
-                'step_for_prompt': self.step_for_prompt.get_id()}
+        try:
+            replynum = self.step_for_reply.get_id()
+        except AttributeError:
+            replynum = None
+        try:
+            promptnum = self.step_for_prompt.get_id()
+        except AttributeError:
+            promptnum = None
+
+        return {'step_for_reply': replynum,
+                'step_for_prompt': promptnum,
+                'step_sent_id': self.step_sent_id}
 
     def remove_block(self):
         """Remove an active block once its step has been sent to view."""

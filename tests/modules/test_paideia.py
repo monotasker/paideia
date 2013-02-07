@@ -117,12 +117,12 @@ def mypath(request):
     """
     A pytest fixture providing a paideia.Path object for testing.
     """
-    # StepText loc and prev_npc both work, no blocks, no prev_loc
+    # StepText loc and prev_npc both work, no blocks
     case = 'case{}'.format(request.param)
-    case1 = {'path_id': 1, 'blocks': [], 'loc_id': 8,
-            'prev_loc': Location(8, db), 'prev_npc_id': 1}
-    # StepText loc and prev_npc both work, no blocks, no prev_loc
-    case2 = {'path_id': 1, 'blocks': [], 'loc_id': 8,
+    case1 = {'path_id': 3, 'blocks': [], 'loc_id': 1,
+            'prev_loc': Location(1, db), 'prev_npc_id': 2}
+    # StepMultiple loc and prev_npc both work, no blocks
+    case2 = {'path_id': 89, 'blocks': [], 'loc_id': 8,
             'prev_loc': Location(8, db), 'prev_npc_id': 1}
     casedict = locals()[case]
     return {'casenum': request.param,
@@ -440,29 +440,46 @@ class TestPath():
     def test_path_get_step_for_prompt(self, mypath):
         """docstring for test_get_next_step"""
         output = 'output{}'.format(mypath['casenum'])
-        output1 = StepFactory().get_instance(step_id=71, loc=Location(8, db),
+        # for path 3, text, single step
+        output1 = StepFactory().get_instance(step_id=2, loc=Location(1, db),
+                                        prev_loc=1, prev_npc_id=2, db=db)
+        # for path 89, multiple, single step
+        output2 = StepFactory().get_instance(step_id=101, loc=Location(8, db),
                                         prev_loc=None, prev_npc_id=1, db=db)
-        output2 = StepFactory().get_instance(step_id=71, loc=Location(8, db),
-                                        prev_loc=None, prev_npc_id=1, db=db)
-        assert mypath['path'].get_step_for_prompt().get_id() == locals()[output].get_id()
-        assert mypath['path'].get_step_for_prompt().get_tags() == locals()[output].get_tags()
-        assert mypath['path'].get_step_for_prompt().get_locations() == locals()[output].get_locations()
-        assert mypath['path'].get_step_for_prompt().get_prompt('Joe') == locals()[output].get_prompt('Joe')
+        print 'case number:', mypath['casenum']
+        assert mypath['path'].get_step_for_prompt().get_id() ==\
+                locals()[output].get_id()
+        assert mypath['path'].get_step_for_prompt().get_tags() ==\
+                locals()[output].get_tags()
+        assert mypath['path'].get_step_for_prompt().get_locations() ==\
+                locals()[output].get_locations()
+        assert mypath['path'].get_step_for_prompt().get_prompt('Joe') ==\
+                locals()[output].get_prompt('Joe')
 
     def test_path_prepare_for_answer(self, mypath):
         """Unit test for method paideia.Path.get_step_for_reply."""
         casenum = mypath['casenum']
         case = 'case{}'.format(casenum)
-        case1 = {'step_for_reply': 61,
-                'step_for_prompt': None,
-                'step_sent_id': 61}
-        case2 = {'step_for_reply': 61,
-                'step_for_prompt': None,
-                'step_sent_id': 61}
+        # path 3, text
+        case1 = {'step_for_reply_end': 2,
+                'step_for_prompt_start': 2,
+                'step_for_prompt_end': None,
+                'step_sent_id': 2}
+        # path 89, multiple
+        case2 = {'step_for_reply_end': 101,
+                'step_for_prompt_start': 101,
+                'step_for_prompt_end': None,
+                'step_sent_id': 101}
         output = locals()[case]
         sent_id = output['step_sent_id']
-        del(output['step_sent_id'])
-        assert mypath['path'].prepare_for_answer(step_sent_id=sent_id) == output
+        print 'case number:', mypath['casenum']
+        test_func = mypath['path'].prepare_for_answer(
+                step_for_prompt=Step(output['step_for_prompt_start'], db=db),
+                step_for_reply=None,
+                step_sent_id=output['step_sent_id'])
+        assert test_func['step_for_reply'] == output['step_for_reply_end']
+        assert test_func['step_for_prompt'] == output['step_for_prompt_end']
+        assert test_func['step_sent_id'] == output['step_sent_id']
 
     def test_path_remove_block(self, mypath):
         """Unit test for method paideia.Path.remove_block."""
