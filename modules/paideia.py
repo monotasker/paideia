@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from gluon import current
 from gluon import IMG, URL, INPUT, FORM, SQLFORM, SPAN, DIV, UL, LI, A, Field
-from gluon import IS_NOT_EMPTY
+from gluon import IS_NOT_EMPTY, IS_IN_SET
 from random import randint
 import re
 import datetime
@@ -327,7 +327,7 @@ class StepFactory(object):
         9. redirect
         """
         args = util_get_args()  # get the args and kwargs submitted above
-        if db is None:
+        if not db:
             db == current.db
         # TODO: read db data here and pass it forward as a dict
         data = db.steps[locals()['step_id']].as_dict()
@@ -518,8 +518,10 @@ class StepRedirect(Step):
 class StepQuotaReached(Step):
     pass
 
+
 class StepAwardBadges(Step):
     pass
+
 
 class StepText(Step):
     """
@@ -573,9 +575,9 @@ class StepText(Step):
         readable correct answer samples for this step.
         """
         if step_data is None:
-            step_data = self.step_data
+            step_data = self.data
 
-        readable = self.step_data.readable_response
+        readable = step_data['readable_response']
         if '|' in readable:
             i = len(readable)
             if i > 1:
@@ -592,12 +594,30 @@ class StepText(Step):
                 'readable_long': readable_long}
 
 
-class StepMultiple(Step):
+class StepMultiple(StepText):
     """
     A subclass of Step that adds a form to receive multiple-choice user input
     and evaluation of that input.
     """
-    pass
+
+    def get_responder(self):
+        """
+        Return an html radio form for responding to the current step prompt.
+
+        The form is built and returned as a web2py html helper object produced
+        by the SQLFORM.factory() method. This produces a SQLFORM object
+        without setting up any connection to crud methods on form submission.
+        """
+        vals = self.data['options']
+        form = SQLFORM.factory(
+                    Field('response', 'string',
+                    requires=IS_IN_SET(v for v in vals),
+                    widget=SQLFORM.widgets.radio.widget))
+        if form.process().accepted:
+            session.response = request.vars.response
+
+        return form
+
 
 
 class StepEvaluator(object):
@@ -666,6 +686,13 @@ class StepEvaluator(object):
                 'tips': tips}
 
 
+class MultipleEvaluator(StepEvaluator):
+    """
+    Evaluates a user response to a multiple choice step prompt.
+    """
+
+
+
 class Path(object):
     """
     A class representing one 'path' in the game.
@@ -716,12 +743,15 @@ class Path(object):
 
         # check for blocks
         if self.blocks:
-            block_step = self.blocks[0].get_step()
+            block_step = self.blocks.pop(0).get_step()
             if block_step:
                 # TODO: make sure that the block step isn't added to completed
                 # or step_to_answer or last_step_id
                 # TODO: how will we remove the block?
+                step_sent_id = block_step.get_id()
                 return block_step
+
+        self.step_sent_id = self.step_for_prompt.get_id()
 
         return next_step
 
@@ -742,27 +772,23 @@ class Path(object):
 
         if step_sent_id:
             self.step_sent_id = step_sent_id # for testing purposes
-        else:
-            step_for_prompt = self.step_for_prompt
         if not step_for_prompt:
             step_for_prompt = self.step_for_prompt
         if not step_for_reply:
             step_for_reply = self.step_for_reply
 
         if step_for_prompt.get_id() == step_sent_id:
-            step_done = copy(step_for_prompt)
-            self.step_for_prompt = None
-            if type(step_done) in [StepText, StepMultiple]:
-                self.step_for_reply = step_done
+            # this type check filters out block steps (subclasses of Block)
+            if not isinstance(step_for_prompt, Block):
+                self.step_for_prompt = None
+                self.step_for_reply = step_for_prompt
             else:
                 self.step_for_reply = None
-        try:
-            replynum = self.step_for_reply.get_id()
-        except AttributeError:
-            replynum = None
+
+        replynum = self.step_for_reply.get_id()
         try:
             promptnum = self.step_for_prompt.get_id()
-        except AttributeError:
+        except:
             promptnum = None
 
         return {'step_for_reply': replynum,
