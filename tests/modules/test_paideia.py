@@ -9,6 +9,7 @@ from paideia import Block, BlockRedirect, BlockAwardBadges, BlockViewSlides
 from gluon import *
 import datetime
 from pprint import pprint
+import re
 
 # ===================================================================
 # Test Fixtures
@@ -136,15 +137,17 @@ def mystep(request):
     TODO: write another fixture for a new location and for a new npc
     """
     case = 'case{}'.format(request.param)
-    case1 = {'loc': Location(8, db),
+    case1 = {'step_id': 1,
+            'loc': Location(8, db),
             'prev_loc': Location(8, db),
             'prev_npc_id': 1}
-    case2 = {'loc': Location(8, db),
-            'prev_loc': Location(8, db),
-            'prev_npc_id': 1}
-    mycase = locals()[case]
+    case2 = {'step_id': 2,
+            'loc': Location(1, db),
+            'prev_loc': Location(1, db),
+            'prev_npc_id': 2}
+    output = locals()[case]
     return {'casenum': request.param,
-            'step': StepFactory().get_instance(step_id=request.param, db=db, **mycase)}
+            'step': StepFactory().get_instance(db=db, **output)}
 
 @pytest.fixture
 def myStepRedirect():
@@ -158,13 +161,39 @@ def myStepRedirect():
     prev_npc_id = 31 # stephanos
     return StepRedirect(30, loc, prev_loc, prev_npc_id, db=db)
 
-@pytest.fixture
-def myStepText():
+
+@pytest.fixture(params=[s for s in range(1,2)])
+def myStepText(request):
     """ """
-    loc = Location(8, db)
-    prev_loc = Location(8, db)
-    prev_npc_id = 1
-    return StepText(1, loc, prev_loc, prev_npc_id, db=db)
+    case = 'case{}'.format(request.param)
+    case1 = {'step_id': 1,
+            'loc': Location(8, db),
+            'prev_loc': Location(8, db),
+            'prev_npc_id': 1}
+    case2 = {'step_id': 2,
+            'loc': Location(1, db),
+            'prev_loc': Location(1, db),
+            'prev_npc_id': 2}
+    output = locals()[case]
+    return {'casenum': request.param,
+            'step': StepFactory().get_instance(db=db, **output)}
+
+@pytest.fixture(params=[s for s in range(1,2)])
+def myStepMultiple(request):
+    """ """
+    case = 'case{}'.format(request.param)
+    case1 = {'step_id': 101,
+            'loc': Location(8, db),
+            'prev_loc': Location(8, db),
+            'prev_npc_id': 1}
+    case2 = {'step_id': 101,
+            'loc': Location(8, db),
+            'prev_loc': Location(8, db),
+            'prev_npc_id': 1}
+    output = locals()[case]
+    return {'casenum': request.param,
+            'step': StepFactory().get_instance(db=db, **output)}
+
 
 @pytest.fixture
 def myStepEvaluator():
@@ -247,11 +276,11 @@ class TestStep():
         """Test for method Step.get_id"""
         casenum = mystep['casenum']
         case = 'case{}'.format(casenum)
-        case1 = 1
-        case2 = 1
+        case1 = {'id':1, 'type': StepText}
+        case2 = {'id':2, 'type': StepText}
         output = locals()[case]
-        assert mystep['step'].get_id() == output
-        assert isinstance(mystep['step'], StepText) == True
+        assert mystep['step'].get_id() == output['id']
+        assert isinstance(mystep['step'], output['type']) == True
 
     def test_step_get_tags(self, mystep):
         """Test for method Step.get_tags"""
@@ -270,8 +299,8 @@ class TestStep():
         case1 = {'prompt': 'How could you write the word "meet" using Greek letters?',
                 'instructions': ['Focus on finding Greek letters that make the *sounds* of the English word. Don\'t look for Greek "equivalents" for each English letter.'],
                 'npc_image': '/paideia/static/images/images.image.bb48641f0122d2b6.696d616765732e696d6167652e383136303330663934646664646561312e34343732363137373639366536373230333432653733373636372e737667.svg'}
-        case2 = {'prompt': 'How could you write the word "meet" using Greek letters?',
-                'instructions': ['Focus on finding Greek letters that make the *sounds* of the English word. Don\'t look for Greek "equivalents" for each English letter.'],
+        case2 = {'prompt': 'How could you write the word "bought" using Greek letters?',
+                'instructions': [],
                 'npc_image': '/paideia/static/images/images.image.bb48641f0122d2b6.696d616765732e696d6167652e383136303330663934646664646561312e34343732363137373639366536373230333432653733373636372e737667.svg'}
         output = locals()[case]
         pprint(mystep['step'].get_prompt(username))
@@ -326,7 +355,7 @@ class TestStep():
         casenum = mystep['casenum']
         case = 'case{}'.format(casenum)
         case1 = {'npc_id': 1, 'name': 'Ἀλεξανδρος'}
-        case2 = {'npc_id': 1, 'name': 'Ἀλεξανδρος'}
+        case2 = {'npc_id': 2, 'name': 'Ἀλεξανδρος'}
         output = locals()[case]
         assert mystep['step'].get_npc().get_id() == output['npc_id']
         assert mystep['step'].get_npc().get_name() == output['name']
@@ -337,7 +366,12 @@ class TestStep():
 
     def test_step_get_instructions(self, mystep):
         """Test for method Step._get_instructions"""
-        assert mystep['step']._get_instructions() == ['Focus on finding Greek letters that make the *sounds* of the English word. Don\'t look for Greek "equivalents" for each English letter.']
+        casenum = mystep['casenum']
+        case = 'case{}'.format(casenum)
+        case1 = ['Focus on finding Greek letters that make the *sounds* of the English word. Don\'t look for Greek "equivalents" for each English letter.']
+        case2 = []
+        output = locals()[case]
+        assert mystep['step']._get_instructions() == output
 
 class TestStepRedirect():
     '''
@@ -414,12 +448,75 @@ class TestStepText():
         resp += '<td class="w2p_fl"></td>'
         resp += '<td class="w2p_fw"><input type="submit" value="Submit" /></td>'
         resp += '<td class="w2p_fc"></td></tr></table></form>'
-        assert myStepText.get_responder().xml() == resp
+        assert myStepText['step'].get_responder().xml() == resp
 
     def test_steptext_get_reply(self, myStepText):
-        pass
+        casenum = myStepText['casenum']
+        case = 'case{}'.format(casenum)
+        case1 = ''
+        case2 = ''
+        output = locals()[case]
+        assert myStepText['step'].get_reply() == output
 
-class TestTextEvaluator():
+
+class TestStepMultiple():
+    '''
+    Test class for paideia.StepMultiple
+    '''
+    def test_stepmultiple_get_responder(self, myStepMultiple):
+        """Unit testing for get_responder method of StepMultiple."""
+        resp = '^<form action="" enctype="multipart/form-data" method="post">'
+        resp += '<table>'
+        resp += '<tr id="no_table_response__row">'
+        resp += '<td class="w2p_fl">'
+        resp += '<label for="no_table_response" id="no_table_response__label">Response: </label>'
+        resp += '</td>'
+        resp += '<td class="w2p_fw">'
+        resp += '<table class="generic-widget" id="no_table_response" name="response">'
+        resp += '<tr>'
+        resp += '<td>'
+        resp += '<input id="responseναι" name="response" type="radio" value="ναι" />'
+        resp += '<label for="responseναι">ναι</label>'
+        resp += '</td>'
+        resp += '</tr>'
+        resp += '<tr>'
+        resp += '<td>'
+        resp += '<input id="responseοὐ" name="response" type="radio" value="οὐ" />'
+        resp += '<label for="responseοὐ">οὐ</label>'
+        resp += '</td>'
+        resp += '</tr>'
+        resp += '</table>'
+        resp += '</td>'
+        resp += '<td class="w2p_fc"></td>'
+        resp += '</tr>'
+        resp += '<tr id="submit_record__row">'
+        resp += '<td class="w2p_fl"></td>'
+        resp += '<td class="w2p_fw">'
+        resp += '<input type="submit" value="Submit"></td>'
+        resp += '<td class="w2p_fc"></td>'
+        resp += '</tr>'
+        resp += '</table>'
+        resp += '<div style="display: none;" class="hidden">'
+        resp += '<input name="_formkey" type="hidden" value=".*">'
+        resp += '<input name="_formname" type="hidden" value="no_table/create">'
+        resp += '</div>'
+        resp += '</form>$'
+
+        pprint(resp)
+        testfunc = myStepMultiple['step'].get_responder().xml()
+        pprint(testfunc)
+        assert re.match(resp, testfuncp)
+
+    def test_stepmultiple_get_reply(self, myStepMultiple):
+        """Unit testing for get_reply method of StepMultiple."""
+        casenum = myStepMultiple['casenum']
+        case = 'case{}'.format(casenum)
+        case1 = ''
+        case2 = ''
+        output = locals()[case]
+        assert myStepMultiple['step'].get_reply() == output
+
+class TestStepEvaluator():
     """Class for evaluating the submitted response string for a Step"""
 
     def test_stepevaluator_get_eval(self, myStepEvaluator):
@@ -432,7 +529,9 @@ class TestTextEvaluator():
 
 class TestMultipleEvaluator():
     """Unit testing class for the class paideia.MultipleEvaluator"""
-    pass
+    def test_multiple_evaluator(self):
+        """docstring for test_multiple_evaluator"""
+        assert 0
 
 class TestPath():
     """Unit testing class for the paideia.Path object"""
@@ -474,12 +573,13 @@ class TestPath():
         sent_id = output['step_sent_id']
         print 'case number:', mypath['casenum']
         test_func = mypath['path'].prepare_for_answer(
-                step_for_prompt=Step(output['step_for_prompt_start'], db=db),
+                step_for_prompt=StepFactory().get_instance(
+                            db=db, step_id=output['step_for_prompt_start']),
                 step_for_reply=None,
                 step_sent_id=output['step_sent_id'])
-        assert test_func['step_for_reply'] == output['step_for_reply_end']
-        assert test_func['step_for_prompt'] == output['step_for_prompt_end']
         assert test_func['step_sent_id'] == output['step_sent_id']
+        assert test_func['step_for_prompt'] == output['step_for_prompt_end']
+        assert test_func['step_for_reply'] == output['step_for_reply_end']
 
     def test_path_remove_block(self, mypath):
         """Unit test for method paideia.Path.remove_block."""
