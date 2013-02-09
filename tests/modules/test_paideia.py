@@ -184,19 +184,31 @@ def myStepRedirect():
 
 @pytest.fixture
 def myStepAwardBadges():
+    """
+    A pytest fixture providing a paideia.StepAwardBadges object for testing.
+    """
     pass
 
 @pytest.fixture
 def myStepViewSlides():
+    """
+    A pytest fixture providing a paideia.StepViewSlides object for testing.
+    """
     pass
 
 @pytest.fixture
 def myStepQuota():
+    """
+    A pytest fixture providing a paideia.StepQuota object for testing.
+    """
     pass
 
 @pytest.fixture(params=[s for s in range(1,2)])
 def myStepText(request):
-    """ """
+    """
+    A pytest fixture providing a paideia.StepText object for testing.
+    """
+    # same npc and location as previous step
     case = 'case{}'.format(request.param)
     case1 = {'step_id': 1,
             'loc': Location(8, db),
@@ -231,15 +243,41 @@ def myStepMultiple(request):
             'step': StepFactory().get_instance(**output)}
 
 
-@pytest.fixture
-def myStepEvaluator():
+@pytest.fixture(params=[s for s in range(1,2)])
+def myStepEvaluator(request):
     """
     A pytest fixture providing a paideia.StepEvaluator object for testing.
     """
-    step = db.steps[1]
-    answers = [step.response1, step.response2, step.response3]
-    tips = step.hints
-    return StepEvaluator(answers, tips)
+    case = 'case{}'.format(request.param)
+    case1 = {'casenum': 1,
+            'vals': {'step_id': 1,
+                    'answers': ['^μιτ$'],
+                    'tips': None}}
+    case2 = {'casenum': 2,
+            'vals': {'step_id': 2,
+                    'answers': ['^β(α|ο)τ$'],
+                    'tips': None}}
+    out = locals()[case]
+    return {'casenum': out['casenum'],
+            'eval': StepEvaluator(out['vals']['answers'], out['vals']['tips'])}
+
+@pytest.fixture(params=[s for s in range(1,2)])
+def myMultipleEvaluator(request):
+    """
+    A pytest fixture providing a paideia.MultipleEvaluator object for testing.
+    """
+    case = 'case{}'.format(request.param)
+    case1 = {'casenum': 1,
+            'vals': {'step_id': 101,
+                    'answers': ['ναι'],
+                    'tips': None}}
+    case2 = {'casenum': 2,
+            'vals': {'step_id': 101,
+                    'answers': ['ναι'],
+                    'tips': None}}
+    out = locals()[case]
+    return {'casenum': out['casenum'],
+            'eval': StepEvaluator(out['vals']['answers'], out['vals']['tips'])}
 
 # ===================================================================
 # Test Classes
@@ -531,8 +569,11 @@ class TestStepText():
                             'times_right': 0,
                             'times_wrong': 1,
                             'user_response': 'βλα'}}
-        output = locals()[case]
-        assert myStepText['step'].get_reply(output['response'], answers='', tips='') == output['result']
+        out = locals()[case]
+        reply_args = {}
+        print out['response']
+        assert myStepText['step'].get_reply(user_response=out['response']) \
+                                                            == out['result']
 
 class TestStepMultiple():
     '''
@@ -588,27 +629,115 @@ class TestStepMultiple():
         """Unit testing for get_reply method of StepMultiple."""
         casenum = myStepMultiple['casenum']
         case = 'case{}'.format(casenum)
-        case1 = ''
-        case2 = ''
-        output = locals()[case]
-        assert myStepMultiple['step'].get_reply() == output
+        case1 = {'reply_text': 'Right. Κάλον.',
+                'tips': None,
+                'readable_short': ['μιτ'],
+                'readable_long': None,
+                'score': 1,
+                'times_right': 1,
+                'times_wrong': 0,
+                'user_response': 'μιτ'}
+        case2 = {'reply_text': 'Incorrect. Try again!',
+                'tips': None,
+                'readable_short': ['μιτ'],
+                'readable_long': None,
+                'score': 0,
+                'times_right': 0,
+                'times_wrong': 1,
+                'user_response': 'βλα'}
+        out = locals()[case]
+        assert myStepMultiple['step'].get_reply(out['user_response']
+                                    )['reply_text'] == out['reply_text']
+        assert myStepMultiple['step'].get_reply(out['user_response']
+                                    )['tips'] == out['tips']
+        assert myStepMultiple['step'].get_reply(out['user_response']
+                                    )['readable_short'] == out['readable_short']
+        assert myStepMultiple['step'].get_reply(out['user_response']
+                                    )['readable_long'] == out['readable_long']
+        assert myStepMultiple['step'].get_reply(out['user_response']
+                                    )['score'] == out['score']
+        assert myStepMultiple['step'].get_reply(out['user_response']
+                                    )['times_right'] == out['times_right']
+        assert myStepMultiple['step'].get_reply(out['user_response']
+                                    )['times_wrong'] == out['times_wrong']
+        assert myStepMultiple['step'].get_reply(out['user_response']
+                                    )['user_response'] == out['user_response']
+
 
 class TestStepEvaluator():
     """Class for evaluating the submitted response string for a Step"""
 
     def test_stepevaluator_get_eval(self, myStepEvaluator):
-        user_response = 'μιτ'
-        assert myStepEvaluator.get_eval(user_response)['score'] == 1
-        assert myStepEvaluator.get_eval(user_response)['times_wrong'] == 0
-        assert myStepEvaluator.get_eval(user_response)['reply'] == 'Right. Κάλον.'
-        assert myStepEvaluator.get_eval(user_response)['user_response'] == 'μιτ'
-        assert myStepEvaluator.get_eval(user_response)['tips'] == []
+        """Unit tests for StepEvaluator.get_eval() method."""
+        casenum = myStepEvaluator['casenum']
+        case = 'case{}'.format(casenum)
+        case1 = {'reply_text': 'Right. Κάλον.',
+                'tips': None,
+                'readable_short': ['ναι'],
+                'readable_long': None,
+                'score': 1,
+                'times_right': 1,
+                'times_wrong': 0,
+                'user_response': 'ναι'}
+        case2 = {'reply_text': 'Right. Κάλον.',
+                'tips': None,
+                'readable_short': ['ναι'],
+                'readable_long': None,
+                'score': 1,
+                'times_right': 1,
+                'times_wrong': 0,
+                'user_response': 'οὐ'}
+        out = locals()[case]
+
+        assert myStepEvaluator['eval'].get_eval(out['user_response']
+                                        )['score'] == out['score']
+        assert myStepEvaluator['eval'].get_eval(out['user_response']
+                                        )['times_wrong'] == out['times_wrong']
+        assert myStepEvaluator['eval'].get_eval(out['user_response']
+                                        )['reply'] == out['reply_text']
+        assert myStepEvaluator['eval'].get_eval(out['user_response']
+                                        )['user_response'] == out['user_response']
+        assert myStepEvaluator['eval'].get_eval(out['user_response']
+                                        )['tips'] == out['tips']
+
 
 class TestMultipleEvaluator():
-    """Unit testing class for the class paideia.MultipleEvaluator"""
-    def test_multipleevaluator_get_eval(self):
-        """docstring for test_multiple_evaluator"""
-        assert 0
+    """Class for evaluating the submitted response string for a StepMultiple"""
+
+    def test_multipleevaluator_get_eval(self, myMultipleEvaluator):
+        """Unit tests for StepEvaluator.get_eval() method."""
+        casenum = myMultipleEvaluator['casenum']
+        case = 'case{}'.format(casenum)
+        # step 101
+        case1 = {'reply_text': 'Right. Κάλον.',
+                'tips': None,
+                'readable_short': ['ναι'],
+                'readable_long': None,
+                'score': 1,
+                'times_right': 1,
+                'times_wrong': 0,
+                'user_response': 'ναι'}
+        # step 101
+        case2 = {'reply_text': 'Incorrect. Try again!',
+                'tips': None,
+                'readable_short': ['ναι'],
+                'readable_long': None,
+                'score': 1,
+                'times_right': 1,
+                'times_wrong': 0,
+                'user_response': 'οὐ'}
+        out = locals()[case]
+        assert myMultipleEvaluator['eval'].get_eval(out['user_response']
+                )['score'] == out['score']
+        assert myMultipleEvaluator['eval'].get_eval(out['user_response']
+                )['times_wrong'] == out['times_wrong']
+        assert myMultipleEvaluator['eval'].get_eval(out['user_response']
+                )['reply'] == out['reply_text']
+        assert myMultipleEvaluator['eval'].get_eval(out['user_response']
+                )['user_response'] == out['user_response']
+        assert myMultipleEvaluator['eval'].get_eval(out['user_response']
+                )['tips'] == out['tips']
+
 
 class TestPath():
     """Unit testing class for the paideia.Path object"""
