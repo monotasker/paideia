@@ -15,11 +15,27 @@ import re
 # Test Fixtures
 # ===================================================================
 
-db = current.db
 def dt(string):
     """Return datetime object parsed from the string argument supplied"""
     format = "%Y-%m-%d"
     return datetime.datetime.strptime(string, format)
+
+# Constant values from db
+db = current.db
+npc1_img = '/paideia/static/images/images.image.bb48641f0122d2b6.696d616765732e696d6167652e383136303330663934646664646561312e34343732363137373639366536373230333432653733373636372e737667.svg'
+npc2_img = '/paideia/static/images/images.image.81e2d69e1aea4d99.44726177696e672031372e737667.svg'
+npc3_img = '/paideia/static/images/images.image.81e2d69e1aea4d99.44726177696e672031372e737667.svg'
+npc4_img = '/paideia/static/images/images.image.85a960241dc29f1b.776f6d616e312e706e67.png'
+npc5_img = '/paideia/static/images/images.image.a4d5140b25f87749.44726177696e672031392e737667.svg'
+npc6_img = '/paideia/static/images/images.image.a28124edf3480d82.696d616765732e696d6167652e383135323664663563326663623438302e343437323631373736393665363732303332333232653733373636372e737667.svg'
+npc7_img = '/paideia/static/images/images.image.993274ee0076fd2f.696d616765732e696d6167652e393636636434346165663238613839652e343437323631373736393665363732303332333732653733373636372e737667.svg'
+npc8_img = '/paideia/static/images/images.image.938be4c25c678bb5.323031322d30362d30352030335f35325f31312e706e67.png'
+npc10_img = '/paideia/static/images/images.image.961b44d8d322659c.323031322d30362d30372031345f34345f34302e706e67.png'
+npc11_img = '/paideia/static/images/images.image.ac58c3e138964719.70686f6562652e706e67.png'
+npc14_img = '/paideia/static/images/images.image.b5592e80d5fe4bb3.73796e61676f6775652e6a7067.jpg'
+npc15_img = '/paideia/static/images/images.image.9a515ff664f03aa3.323031322d30372d32312032335f35315f31322e706e67.png'
+npc16_img = '/paideia/static/images/images.image.8bb7c079634cf35a.44726177696e672033332e706e67.png'
+npc17_img = '/paideia/static/images/images.image.95fcf253d4dd7abd.44726177696e6720352e706e67.png'
 
 @pytest.fixture
 def mywalk():
@@ -129,7 +145,7 @@ def mypath(request):
     return {'casenum': request.param,
             'path': Path(db=db, **casedict)}
 
-@pytest.fixture(params=[s for s in range(1,2)])
+@pytest.fixture(params=[s for s in range(1,3)])
 def mystep(request):
     """
     A pytest fixture providing a paideia.Step object for testing.
@@ -145,6 +161,11 @@ def mystep(request):
             'loc': Location(1, db),
             'prev_loc': Location(1, db),
             'prev_npc_id': 2}
+    case3 = {'step_id': 101,
+            'loc': Location(8, db),
+            'prev_loc': Location(7, db),
+            'prev_npc_id': 1}
+
     output = locals()[case]
     return {'casenum': request.param,
             'step': StepFactory().get_instance(db=db, **output)}
@@ -161,6 +182,17 @@ def myStepRedirect():
     prev_npc_id = 31 # stephanos
     return StepRedirect(30, loc, prev_loc, prev_npc_id, db=db)
 
+@pytest.fixture
+def myStepAwardBadges():
+    pass
+
+@pytest.fixture
+def myStepViewSlides():
+    pass
+
+@pytest.fixture
+def myStepQuota():
+    pass
 
 @pytest.fixture(params=[s for s in range(1,2)])
 def myStepText(request):
@@ -169,14 +201,16 @@ def myStepText(request):
     case1 = {'step_id': 1,
             'loc': Location(8, db),
             'prev_loc': Location(8, db),
-            'prev_npc_id': 1}
+            'prev_npc_id': 1,
+            'db': db}
     case2 = {'step_id': 2,
             'loc': Location(1, db),
             'prev_loc': Location(1, db),
-            'prev_npc_id': 2}
+            'prev_npc_id': 2,
+            'db': db}
     output = locals()[case]
     return {'casenum': request.param,
-            'step': StepFactory().get_instance(db=db, **output)}
+            'step': StepFactory().get_instance(**output)}
 
 @pytest.fixture(params=[s for s in range(1,2)])
 def myStepMultiple(request):
@@ -185,14 +219,16 @@ def myStepMultiple(request):
     case1 = {'step_id': 101,
             'loc': Location(8, db),
             'prev_loc': Location(8, db),
-            'prev_npc_id': 1}
+            'prev_npc_id': 1,
+            'db': db}
     case2 = {'step_id': 101,
             'loc': Location(8, db),
             'prev_loc': Location(8, db),
-            'prev_npc_id': 1}
+            'prev_npc_id': 1,
+            'db': db}
     output = locals()[case]
     return {'casenum': request.param,
-            'step': StepFactory().get_instance(db=db, **output)}
+            'step': StepFactory().get_instance(**output)}
 
 
 @pytest.fixture
@@ -278,6 +314,7 @@ class TestStep():
         case = 'case{}'.format(casenum)
         case1 = {'id':1, 'type': StepText}
         case2 = {'id':2, 'type': StepText}
+        case3 = {'id':101, 'type': StepMultiple}
         output = locals()[case]
         assert mystep['step'].get_id() == output['id']
         assert isinstance(mystep['step'], output['type']) == True
@@ -288,6 +325,7 @@ class TestStep():
         case = 'case{}'.format(casenum)
         case1 = {'primary': [61], 'secondary': []}
         case2 = {'primary': [61], 'secondary': []}
+        case3 = {'primary': [36], 'secondary': []}
         output = locals()[case]
         assert mystep['step'].get_tags() == output
 
@@ -298,10 +336,13 @@ class TestStep():
         case = 'case{}'.format(casenum)
         case1 = {'prompt': 'How could you write the word "meet" using Greek letters?',
                 'instructions': ['Focus on finding Greek letters that make the *sounds* of the English word. Don\'t look for Greek "equivalents" for each English letter.'],
-                'npc_image': '/paideia/static/images/images.image.bb48641f0122d2b6.696d616765732e696d6167652e383136303330663934646664646561312e34343732363137373639366536373230333432653733373636372e737667.svg'}
+                'npc_image': npc1_img}
         case2 = {'prompt': 'How could you write the word "bought" using Greek letters?',
-                'instructions': [],
-                'npc_image': '/paideia/static/images/images.image.bb48641f0122d2b6.696d616765732e696d6167652e383136303330663934646664646561312e34343732363137373639366536373230333432653733373636372e737667.svg'}
+                'instructions': None,
+                'npc_image': npc4_img}
+        case3 = {'prompt': 'Is this an English clause?\n\n"The cat sat."',
+                'instructions': None,
+                'npc_image': npc1_img}
         output = locals()[case]
         pprint(mystep['step'].get_prompt(username))
         assert mystep['step'].get_prompt(username)['prompt'] == output['prompt']
@@ -354,22 +395,30 @@ class TestStep():
         # TODO: make sure the npc really is randomized
         casenum = mystep['casenum']
         case = 'case{}'.format(casenum)
-        case1 = {'npc_id': 1, 'name': 'Ἀλεξανδρος'}
-        case2 = {'npc_id': 2, 'name': 'Ἀλεξανδρος'}
+        case1 = {'npc_id': [8, 2, 32, 1, 17],
+                'name': ['Διοδωρος', 'Μαρια', 'Στεφανος', 'Ἀλεξανδρος', 'Ἱασων'],
+                'locs': [3, 1, 2, 4, 6, 7, 8, 11]}
+        case2 = {'npc_id': [8, 2, 32, 1],
+                'name': ['Διοδωρος', 'Μαρια', 'Στεφανος', 'Ἀλεξανδρος'],
+                'locs': [3, 1, 2, 4, 6, 7, 8, 11]}
+        case3 = {'npc_id': [14],
+                'name': ['Γεωργιος'],
+                'locs': [3, 1, 2, 4, 7, 8, 9, 10]}
         output = locals()[case]
-        assert mystep['step'].get_npc().get_id() == output['npc_id']
-        assert mystep['step'].get_npc().get_name() == output['name']
+        assert mystep['step'].get_npc().get_id() in output['npc_id']
+        assert mystep['step'].get_npc().get_name() in output['name']
         locs = mystep['step'].get_npc().get_locations()
         for l in locs:
             assert isinstance(l, Location)
-            assert (l.get_id() in [6, 8]) == True
+            assert (l.get_id() in output['locs']) == True
 
     def test_step_get_instructions(self, mystep):
         """Test for method Step._get_instructions"""
         casenum = mystep['casenum']
         case = 'case{}'.format(casenum)
         case1 = ['Focus on finding Greek letters that make the *sounds* of the English word. Don\'t look for Greek "equivalents" for each English letter.']
-        case2 = []
+        case2 = None
+        case3 = None
         output = locals()[case]
         assert mystep['step']._get_instructions() == output
 
@@ -450,14 +499,40 @@ class TestStepText():
         resp += '<td class="w2p_fc"></td></tr></table></form>'
         assert myStepText['step'].get_responder().xml() == resp
 
-    def test_steptext_get_reply(self, myStepText):
+    def test_steptext_get_readable(self, myStepText):
+        """Unit tests for StepText._get_readable() method"""
         casenum = myStepText['casenum']
         case = 'case{}'.format(casenum)
-        case1 = ''
-        case2 = ''
+        case1 = {'readable_long': None, 'readable_short': ['μιτ']}
+        case2 = {'readable_long': None, 'readable_short': ['βατ|βοτ']}
         output = locals()[case]
-        assert myStepText['step'].get_reply() == output
+        assert myStepText['step']._get_readable() == output
 
+    def test_steptext_get_reply(self, myStepText):
+        """Unit tests for StepText._get_reply() method"""
+        casenum = myStepText['casenum']
+        case = 'case{}'.format(casenum)
+        case1 = {'response': 'μιτ',
+                'result': {'reply_text': '',
+                            'tips': [],
+                            'readable_short': ['μιτ'],
+                            'readable_long': None,
+                            'score': 1,
+                            'times_right': 1,
+                            'times_wrong': 0,
+                            'user_response': 'μιτ'}}
+
+        case2 = {'response': 'βλα',
+                'result': {'reply_text': 'bla',
+                            'tips': None,
+                            'readable_short': ['bla'],
+                            'readable_long': None,
+                            'score': 0,
+                            'times_right': 0,
+                            'times_wrong': 1,
+                            'user_response': 'βλα'}}
+        output = locals()[case]
+        assert myStepText['step'].get_reply(output['response'], answers='', tips='') == output['result']
 
 class TestStepMultiple():
     '''
@@ -465,6 +540,8 @@ class TestStepMultiple():
     '''
     def test_stepmultiple_get_responder(self, myStepMultiple):
         """Unit testing for get_responder method of StepMultiple."""
+
+        # value of _formkey input near end is variable, so matched with .*
         resp = '^<form action="" enctype="multipart/form-data" method="post">'
         resp += '<table>'
         resp += '<tr id="no_table_response__row">'
@@ -492,20 +569,20 @@ class TestStepMultiple():
         resp += '<tr id="submit_record__row">'
         resp += '<td class="w2p_fl"></td>'
         resp += '<td class="w2p_fw">'
-        resp += '<input type="submit" value="Submit"></td>'
+        resp += '<input type="submit" value="Submit" /></td>'
         resp += '<td class="w2p_fc"></td>'
         resp += '</tr>'
         resp += '</table>'
-        resp += '<div style="display: none;" class="hidden">'
-        resp += '<input name="_formkey" type="hidden" value=".*">'
-        resp += '<input name="_formname" type="hidden" value="no_table/create">'
+        resp += '<div class="hidden">'
+        resp += '<input name="_formkey" type="hidden" value=".*" />'
+        resp += '<input name="_formname" type="hidden" value="no_table/create" />'
         resp += '</div>'
         resp += '</form>$'
 
         pprint(resp)
         testfunc = myStepMultiple['step'].get_responder().xml()
         pprint(testfunc)
-        assert re.match(resp, testfuncp)
+        assert re.match(resp, testfunc)
 
     def test_stepmultiple_get_reply(self, myStepMultiple):
         """Unit testing for get_reply method of StepMultiple."""
@@ -529,7 +606,7 @@ class TestStepEvaluator():
 
 class TestMultipleEvaluator():
     """Unit testing class for the class paideia.MultipleEvaluator"""
-    def test_multiple_evaluator(self):
+    def test_multipleevaluator_get_eval(self):
         """docstring for test_multiple_evaluator"""
         assert 0
 
