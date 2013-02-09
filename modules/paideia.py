@@ -541,43 +541,47 @@ class StepText(Step):
                 )
         return form
 
-    def get_reply(self, user_response=None):
+    def get_reply(self, user_response=None, answers=None, tips=None):
         """docstring for get_reply"""
         if not user_response:
             request = current.request
             user_response = request.vars['response']
 
         readable = self._get_readable()
+        try:
+            tips = self.data['hints']
+            answers = {k:v for k, v in self.data.iteritems()
+                        if k and (k in ['answer1', 'answer2', 'answer3'])}
+        except TypeError:
+            tips = self.data['step'].data['hints']
+            answers = {k:v for k, v in self.data['step'].data.iteritems()
+                        if k and (k in ['answer1', 'answer2', 'answer3'])}
 
-        result = StepEvaluator(response)
+
+        result = StepEvaluator(answers, tips).get_eval(user_response)
         reply_text = result['reply']
-        tips = result['tips']
-        score = result['score']
-        tr = result['times_right']
-        tw = result['times_wrong']
-        ur = result['user_response']
-        tags = self.get_tags()
-        sid = self.get_id()
-        pid = self.get_path()
-        # the following class/method both records the user's performance
-        # on this step instance AND returns the BugReporter object
 
-        return {'response': user_response,
-                'reply_text': reply_text,
-                'bug_reporter': bug_reporter,
+        return {'reply_text': reply_text,
                 'tips': tips,
                 'readable_short': readable['readable_short'],
-                'readable_long': readable['readable_long']}
+                'readable_long': readable['readable_long'],
+                'score': result['score'],
+                'times_right': result['times_right'],
+                'times_wrong': result['times_wrong'],
+                'user_response': result['user_response']}
 
-    def _get_readable(step_data=None):
+    def _get_readable(self):
         """
         Return two strings containing the shorter and the longer forms of the
         readable correct answer samples for this step.
         """
-        if step_data is None:
-            step_data = self.data
+        try:
+            readable = self.data['readable_response']
+            assert isinstance(readable, str)
+        except TypeError:
+            readable = self.data['step'].data['readable_response']
+            assert isinstance(readable, str)
 
-        readable = step_data['readable_response']
         if '|' in readable:
             i = len(readable)
             if i > 1:
