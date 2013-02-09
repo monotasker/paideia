@@ -550,18 +550,18 @@ class StepText(Step):
         readable = self._get_readable()
         try:
             tips = self.data['hints']
-            answers = {k:v for k, v in self.data.iteritems()
-                        if k and (k in ['answer1', 'answer2', 'answer3'])}
+            responses = {k:v for k, v in self.data.iteritems()
+                        if k and (k in ['response1', 'response2', 'response3'])}
         except TypeError:
             tips = self.data['step'].data['hints']
-            answers = {k:v for k, v in self.data['step'].data.iteritems()
-                        if k and (k in ['answer1', 'answer2', 'answer3'])}
+            responses = {k:v for k, v in self.data['step'].data.iteritems()
+                        if k and (k in ['response1', 'response2', 'response3'])}
 
 
-        result = StepEvaluator(answers, tips).get_eval(user_response)
-        reply_text = result['reply']
+        result = StepEvaluator(responses, tips).get_eval(user_response)
 
-        return {'reply_text': reply_text,
+
+        return {'reply_text': result['reply'],
                 'tips': tips,
                 'readable_short': readable['readable_short'],
                 'readable_long': readable['readable_long'],
