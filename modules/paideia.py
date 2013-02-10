@@ -404,10 +404,6 @@ class Step(object):
         Return the provided string with tokens replaced by personalized
         information for the current user.
         """
-        if username is None:
-            auth = current.auth
-            uname = auth.user['first_name']
-
         if reps is None:
             reps = {}
         reps['[[user]]'] = username
@@ -474,6 +470,7 @@ class StepRedirect(Step):
 
         self.username = username
         self.next_step_id = next_step_id
+        # delegate common init tasks to Step superclass
         kwargs = locals()
         del(kwargs['self'])
         super(StepRedirect, self).__init__(**kwargs)
@@ -516,6 +513,25 @@ class StepRedirect(Step):
         return new_string
 
 class StepQuotaReached(Step):
+    '''
+    A Step that tells the user s/he has completed the daily minimum # of steps.
+    '''
+    def _make_replacements(self, prompt_string=None, username=None, db=None):
+        """
+        Return the string for the step prompt with context-based information
+        substituted for tokens framed by [[]].
+        """
+        if prompt_string is None:
+            prompt_string = self.data['prompt']
+        if not username:
+            username = self.username
+        reps = None
+        new_string = super(StepRedirect, self)._make_replacements(
+                                                            prompt_string,
+                                                            reps=reps,
+                                                            username=username)
+        return new_string
+
     pass
 
 

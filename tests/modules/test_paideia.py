@@ -3,8 +3,9 @@
 
 import pytest
 from paideia import Npc, Location, User, PathChooser, Path, Categorizer, Walk
-from paideia import StepFactory, Step, StepRedirect, StepText, StepEvaluator
-from paideia import StepMultiple
+from paideia import StepFactory, Step, StepText, StepMultiple
+from paideia import StepRedirect, StepViewSlides, StepAwardBadges, StepQuota
+from paideia import StepEvaluator, MultipleEvaluator
 from paideia import Block, BlockRedirect, BlockAwardBadges, BlockViewSlides
 from gluon import *
 import datetime
@@ -53,7 +54,6 @@ def mysession(request):
     case2 = {'user': myuser}
 
     return locals()[case]
-
 
 @pytest.fixture(params=['case{}'.format(n) for n in range(1,2)])
 def myrecords(request):
@@ -187,21 +187,56 @@ def myStepAwardBadges():
     """
     A pytest fixture providing a paideia.StepAwardBadges object for testing.
     """
-    pass
+    prompt_string = 'Congratulations, [[user]]! You\'ve earned a new badge! '\
+                    '[[badge_list]]!'
+    out = {'step_id': 126,
+            'loc': Location(12, db),
+            'prev_loc': Location(12, db),
+            'prev_npc_id': 2,
+            'new_badge_list': []}
+    info = {'prompt': prompt_string,
+            'widget_type': 8,
+            'tags': [81],
+            'npcs': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
+            'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10]}
+    return StepAwardBadges(db=db, **out)
 
 @pytest.fixture
 def myStepViewSlides():
     """
     A pytest fixture providing a paideia.StepViewSlides object for testing.
     """
-    pass
+    #prompt_string = 'Congratulations, [[user]]! You\'re ready to start '\
+                #'working on some new badges:\n[[badge_list]]\nBefore you '\
+                #'continue, take some time to view these slide sets:'\
+                #'[[slides]]\nYou\'ll find the slides by clicking on the '\
+                #'"slides" menu item at top.'
+    out = {'step_id': 127,
+            'loc': Location(3, db),
+            'prev_loc': Location(3, db),
+            'prev_npc_id': 1}
+    info = {'prompt': prompt_string,
+            'widget_type': 6,
+            'tags': [80],
+            'npcs': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
+            'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10]}
+    return StepViewSlides(db=db, **out)
 
-@pytest.fixture
+
 def myStepQuota():
     """
     A pytest fixture providing a paideia.StepQuota object for testing.
     """
-    pass
+    # same npc and location as previous step
+    #prompt_string = 'Well done, [[user]]. You\'ve finished enough paths for '\
+                    #'today. But if you would like to keep going, you\'re '\
+                    #'welcome to continue.'
+    out = {'step_id': 125,
+            'loc': Location(8, db),
+            'prev_loc': Location(8, db),
+            'prev_npc_id': 1,
+            'db': db}
+    return  StepFactory().get_instance(**out)
 
 @pytest.fixture(params=[s for s in range(1,2)])
 def myStepText(request):
@@ -514,6 +549,196 @@ class TestStepRedirect():
         locs = myStepRedirect.get_npc().get_locations()
         assert isinstance(locs[0], Location)
         assert (locs[0].get_id() == 3) or (locs[0].get_id() == 11)
+
+class TestAwardBadges():
+    '''
+    A subclass of Step. Handles the user interaction when the user is awarded
+    new badges.
+    '''
+
+    def test_step_awardbadges(self, myStepAwardBadges):
+        """Test for method Step.get_id"""
+        assert myStepAwardBadges.get_id() == 126
+
+    def test_step_stepawardbadges_get_prompt(self, myStepAwardBadges):
+        """
+        Test method for the get_prompt method of the StepRedirect class.
+        This test assumes that the selected npc is Stephanos. It also assumes
+        that the step is 30.
+        """
+        user = 'Ian'
+        new_badge_list = '<ul class="new_badge_list">'\
+                        '<li>'\
+                        '<strong>alphabet (diphthongs and capitals)</strong> '\
+                        'for learning the capital letter forms and the '\
+                        'sounds made by common vowel combinations'\
+                        '</li>'\
+                        '<li>'\
+                        '<strong>nominative 1</strong> '\
+                        'the use of singular, first-declension nouns in the '\
+                        'nominative case'\
+                        '</li>'\
+                        '</ul>'
+        prompt_string = 'Congratulations, Ian! You\'ve earned a new badge! '\
+                        '{}!'.format(new_badge_list)
+        # TODO: remove npc numbers that can't be at this loc
+        npcimgs = [i for i in 'npc{}'.format(n)
+                        for n in [14, 8, 2, 40, 31, 32, 41, 1, 17, 42]]
+        assert myStepAwardBadges.get_prompt(user)['prompt'] == prompt_string
+        assert myStepAwardBadges.get_prompt(username)['instructions'] == None
+        assert myStepAwardBadges.get_prompt(username)['npc_image'] in npcimgs
+
+    def test_step_stepawardbadges_make_replacements(self, myStepAwardBadges):
+        """docstring for test_step_stepawardbadges_make_replacements"""
+        new_badge_list = 'You\'ve earned a new badge! '\
+                        '<ul class="new_badge_list">'\
+                        '<li>'\
+                        '<strong>alphabet (diphthongs and capitals)</strong> '\
+                        'for learning the capital letter forms and the '\
+                        'sounds made by common vowel combinations'\
+                        '</li>'\
+                        '<li>'\
+                        '<strong>nominative 1</strong> '\
+                        'the use of singular, first-declension nouns in the '\
+                        'nominative case'\
+                        '</li>'\
+                        '</ul>'
+        promoted_list = 'You\'ve reached a new level in these badges:'\
+                        '<ul class="promoted_list">'\
+                        '<li>'\
+                        '<strong>nominative 1</strong> '\
+                        'the use of singular, first-declension nouns in the '\
+                        'nominative case'\
+                        '</li>'\
+                        '</ul>'
+
+        newstring = 'Congratulations, Ian! '\
+                        '{}{} You can click on your name above to see '\
+                        'details of your progress so far.'.format(
+                                                new_badge_list, promoted_list)
+
+        string = 'Congratulations, [[user]]! \n[[new_badge_list]]\n'\
+                '[[promoted_list]]\n You can click on your name above to '\
+                'see details of your progress so far.'
+        kwargs = {'username': 'Ian',
+                    'db': db,
+                    'new_badges': [5, 6],
+                    'promoted': [7]}
+        assert myStepAwardBadges._make_replacements(string, **kwargs) == newstring
+
+    def test_step_stepawardbadges_get_tags(self, myStepAwardBadges):
+        """
+        Test for method StepRedirect.get_tags
+
+        The one tag that should be returned for all steps of this class is tag
+        81
+        """
+        assert myStepAwardBadges.get_tags() == {'primary': [81], 'secondary': []}
+
+    def test_step_stepawardbadges_get_responder(self, myStepAwardBadges):
+        """Test for method StepAwardBadges.get_responder"""
+        map_button = A("Map", _href=URL('walk'),
+                        cid='page',
+                        _class='button-yellow-grad back_to_map icon-location')
+        continue_button = A("Continue", _href=URL('walk', args=['ask'],
+                                        vars=dict(loc=request.vars['loc'])),
+                            cid='page',
+                            _class='button-green-grad next_q')
+        assert myStepAwardBadges.get_responder().xml() == \
+                                        DIV(map_button, continue_button).xml()
+
+    def test_step_stepawardbadges_get_npc(self, myStepAwardBadges):
+        """Test for method StepAwardBadges.get_npc"""
+        assert myStepAwardBadges.get_npc().get_id() in [14, 8, 2, 40, 31,
+                                                            32, 41, 1, 17, 42]
+        locs = myStepAwardBadges.get_npc().get_locations()
+        assert isinstance(locs[0], Location)
+
+
+class TestStepViewSlides():
+    '''
+    A subclass of Step. Handles the user interaction when the user is awarded
+    new badges.
+    '''
+
+    def test_step_awardbadges_get_id(self, myStepViewSlides):
+        """Test for method Step.get_id"""
+        assert myStepViewSlides.get_id() == 127
+
+    def test_step_stepviewslides_get_prompt(self, myStepViewSlides):
+        """
+        Test method for the get_prompt method of the StepRedirect class.
+        This test assumes that the selected npc is Stephanos. It also assumes
+        that the step is 30.
+        """
+        user = 'Ian'
+        slide_list = 'You\'ve earned a new badge! '\
+                        '<ul class="slide_list">'\
+                        '<li>The Alphabet III</li>'\
+                        '<li>Case Basics</li>'\
+                        '</ul>'
+        prompt_string = 'Congratulations, Ian! You\'re ready to start working '\
+                'on some new badges. Before you continue, take some time '\
+                'to view these slide sets:'\
+                '{}'\
+                'You\'ll find the slides by clicking on the "slides" menu '\
+                'item at top.'.format(slide_list)
+        # TODO: remove npc numbers that can't be at this loc
+        npcimgs = [i for i in 'npc{}'.format(n)
+                        for n in [14, 8, 2, 40, 31, 32, 41, 1, 17, 42]]
+        assert myStepViewSlides.get_prompt(user)['prompt'] == prompt_string
+        assert myStepViewSlides.get_prompt(username)['instructions'] == None
+        assert myStepViewSlides.get_prompt(username)['npc_image'] in npcimgs
+
+    def test_step_stepviewslides_make_replacements(self, myStepViewSlides):
+        """docstring for test_step_stepviewslides_make_replacements"""
+        slide_list = 'You\'ve earned a new badge! '\
+                        '<ul class="slide_list">'\
+                        '<li>The Alphabet III</li>'\
+                        '<li>Case Basics</li>'\
+                        '</ul>'
+        newstring = 'Congratulations, Ian! You\'re ready to start working '\
+                'on some new badges. Before you continue, take some time '\
+                'to view these slide sets:'\
+                '{}'\
+                'You\'ll find the slides by clicking on the "slides" menu '\
+                'item at top.'.format(slide_list)
+
+        string = 'Congratulations, [[user]]! You\'re ready to start working '\
+                'on some new badges. Before you continue, take some time '\
+                'to view these slide sets:'\
+                '[[slides]]'\
+                'You\'ll find the slides by clicking on the "slides" menu '\
+                'item at top.'
+
+        kwargs = {'username': 'Ian',
+                    'db': db,
+                    'new_badges': [5, 6]}
+        assert myStepViewSlides._make_replacements(string, **kwargs) == newstring
+
+    def test_step_stepviewslides_get_tags(self, myStepViewSlides):
+        """
+        Test for method StepViewSlides.get_tags
+
+        The one tag that should be returned for all steps of this class is tag
+        80.
+        """
+        assert myStepViewSlides.get_tags() == {'primary': [80], 'secondary': []}
+
+    def test_step_stepviewslides_get_responder(self, myStepViewSlides):
+        """Test for method StepViewSlides.get_responder"""
+        map_button = A("Map", _href=URL('walk'),
+                        cid='page',
+                        _class='button-yellow-grad back_to_map icon-location')
+        assert myStepViewSlides.get_responder().xml() == DIV(map_button).xml()
+
+    def test_step_stepviewslides_get_npc(self, myStepViewSlides):
+        """Test for method StepViewSlides.get_npc"""
+        assert myStepViewSlides.get_npc().get_id() in [14, 8, 2, 40, 31,
+                                                            32, 41, 1, 17, 42]
+        locs = myStepViewSlides.get_npc().get_locations()
+        assert isinstance(locs[0], Location)
+
 
 class TestStepText():
     '''
