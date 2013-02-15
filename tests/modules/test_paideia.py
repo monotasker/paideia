@@ -4,7 +4,7 @@
 import pytest
 from paideia import Npc, Location, User, PathChooser, Path, Categorizer, Walk
 from paideia import StepFactory, Step, StepText, StepMultiple
-from paideia import StepRedirect, StepViewSlides, StepAwardBadges, StepQuota
+from paideia import StepRedirect, StepViewSlides, StepAwardBadges, StepQuotaReached
 from paideia import StepEvaluator, MultipleEvaluator
 from paideia import Block, BlockRedirect, BlockAwardBadges, BlockViewSlides
 from gluon import *
@@ -206,11 +206,11 @@ def myStepViewSlides():
     """
     A pytest fixture providing a paideia.StepViewSlides object for testing.
     """
-    #prompt_string = 'Congratulations, [[user]]! You\'re ready to start '\
-                #'working on some new badges:\n[[badge_list]]\nBefore you '\
-                #'continue, take some time to view these slide sets:'\
-                #'[[slides]]\nYou\'ll find the slides by clicking on the '\
-                #'"slides" menu item at top.'
+    prompt_string = 'Congratulations, [[user]]! You\'re ready to start '\
+                'working on some new badges:\n[[badge_list]]\nBefore you '\
+                'continue, take some time to view these slide sets:'\
+                '[[slides]]\nYou\'ll find the slides by clicking on the '\
+                '"slides" menu item at top.'
     out = {'step_id': 127,
             'loc': Location(3, db),
             'prev_loc': Location(3, db),
@@ -223,7 +223,7 @@ def myStepViewSlides():
     return StepViewSlides(db=db, **out)
 
 
-def myStepQuota():
+def myStepQuotaReached():
     """
     A pytest fixture providing a paideia.StepQuota object for testing.
     """
@@ -286,15 +286,16 @@ def myStepEvaluator(request):
     case = 'case{}'.format(request.param)
     case1 = {'casenum': 1,
             'vals': {'step_id': 1,
-                    'answers': ['^μιτ$'],
+                    'responses': {'response1': '^μιτ$'},
                     'tips': None}}
     case2 = {'casenum': 2,
             'vals': {'step_id': 2,
-                    'answers': ['^β(α|ο)τ$'],
+                    'responses': {'response1': '^β(α|ο)τ$'},
                     'tips': None}}
     out = locals()[case]
     return {'casenum': out['casenum'],
-            'eval': StepEvaluator(out['vals']['answers'], out['vals']['tips'])}
+            'eval': StepEvaluator(responses=out['vals']['responses'],
+                                    tips=out['vals']['tips'])}
 
 @pytest.fixture(params=[s for s in range(1,2)])
 def myMultipleEvaluator(request):
@@ -312,7 +313,8 @@ def myMultipleEvaluator(request):
                     'tips': None}}
     out = locals()[case]
     return {'casenum': out['casenum'],
-            'eval': StepEvaluator(out['vals']['answers'], out['vals']['tips'])}
+            'eval': MultipleEvaluator(responses=out['vals']['answers'],
+                                        tips=out['vals']['tips'])}
 
 # ===================================================================
 # Test Classes
@@ -429,8 +431,9 @@ class TestStep():
         case1 = {'raw_string': 'Hi [[user]]!', 'username': 'Ian', 'result': 'Hi Ian!'}
         case2 = {'raw_string': 'Hi there [[user]].', 'username': 'Ian', 'result': 'Hi there Ian.'}
         output = locals()[case]
-        assert mystep['step']._make_replacements(output['raw_string'],
-                                        output['username']) == output['result']
+        assert mystep['step']._make_replacements(raw_prompt=output['raw_string'],
+                                                username=output['username']
+                                                ) == output['result']
 
     def test_step_get_responder(self, mystep):
         """Test for method Step.get_responder"""
@@ -521,9 +524,12 @@ class TestStepRedirect():
         """docstring for test_stepredirect_make_replacements"""
         string = 'Nothing to do here [[user]]. Try [[next_loc]].'
         next_step = 1
-        kwargs = {'username': 'Ian', 'db': db, 'next_step': next_step}
+        kwargs = {'raw_prompt':string,
+                'username': 'Ian',
+                'db': db,
+                'next_step_id': next_step}
         newstring = 'Nothing to do here Ian. Try somewhere else in town.'
-        assert myStepRedirect._make_replacements(string, **kwargs) == newstring
+        assert myStepRedirect._make_replacements(**kwargs) == newstring
 
     def test_stepredirect_get_tags(self, myStepRedirect):
         """
@@ -582,7 +588,7 @@ class TestAwardBadges():
         prompt_string = 'Congratulations, Ian! You\'ve earned a new badge! '\
                         '{}!'.format(new_badge_list)
         # TODO: remove npc numbers that can't be at this loc
-        npcimgs = [i for i in 'npc{}'.format(n)
+        npcimgs = ['npc{}'.format(n)
                         for n in [14, 8, 2, 40, 31, 32, 41, 1, 17, 42]]
         assert myStepAwardBadges.get_prompt(user)['prompt'] == prompt_string
         assert myStepAwardBadges.get_prompt(username)['instructions'] == None
@@ -620,11 +626,12 @@ class TestAwardBadges():
         string = 'Congratulations, [[user]]! \n[[new_badge_list]]\n'\
                 '[[promoted_list]]\n You can click on your name above to '\
                 'see details of your progress so far.'
-        kwargs = {'username': 'Ian',
+        kwargs = {'raw_prompt': string,
+                    'username': 'Ian',
                     'db': db,
                     'new_badges': [5, 6],
                     'promoted': [7]}
-        assert myStepAwardBadges._make_replacements(string, **kwargs) == newstring
+        assert myStepAwardBadges._make_replacements(**kwargs) == newstring
 
     def test_step_stepawardbadges_get_tags(self, myStepAwardBadges):
         """
@@ -637,6 +644,7 @@ class TestAwardBadges():
 
     def test_step_stepawardbadges_get_responder(self, myStepAwardBadges):
         """Test for method StepAwardBadges.get_responder"""
+        request = current.request  # TODO: get loc below from self
         map_button = A("Map", _href=URL('walk'),
                         cid='page',
                         _class='button-yellow-grad back_to_map icon-location')
@@ -684,14 +692,24 @@ class TestStepViewSlides():
                 'You\'ll find the slides by clicking on the "slides" menu '\
                 'item at top.'.format(slide_list)
         # TODO: remove npc numbers that can't be at this loc
-        npcimgs = [i for i in 'npc{}'.format(n)
+        npcimgs = ['npc{}'.format(n)
                         for n in [14, 8, 2, 40, 31, 32, 41, 1, 17, 42]]
         assert myStepViewSlides.get_prompt(user)['prompt'] == prompt_string
         assert myStepViewSlides.get_prompt(username)['instructions'] == None
         assert myStepViewSlides.get_prompt(username)['npc_image'] in npcimgs
 
     def test_step_stepviewslides_make_replacements(self, myStepViewSlides):
-        """docstring for test_step_stepviewslides_make_replacements"""
+        """
+        docstring for test_step_stepviewslides_make_replacements
+
+        """
+        raw_prompt= 'Congratulations, [[user]]! You\'re ready to start working '\
+                'on some new badges. Before you continue, take some time '\
+                'to view these slide sets:'\
+                '[[slides]]'\
+                'You\'ll find the slides by clicking on the "slides" menu '\
+                'item at top.'
+
         slide_list = 'You\'ve earned a new badge! '\
                         '<ul class="slide_list">'\
                         '<li>The Alphabet III</li>'\
@@ -704,17 +722,10 @@ class TestStepViewSlides():
                 'You\'ll find the slides by clicking on the "slides" menu '\
                 'item at top.'.format(slide_list)
 
-        string = 'Congratulations, [[user]]! You\'re ready to start working '\
-                'on some new badges. Before you continue, take some time '\
-                'to view these slide sets:'\
-                '[[slides]]'\
-                'You\'ll find the slides by clicking on the "slides" menu '\
-                'item at top.'
-
-        kwargs = {'username': 'Ian',
-                    'db': db,
-                    'new_badges': [5, 6]}
-        assert myStepViewSlides._make_replacements(string, **kwargs) == newstring
+        assert myStepViewSlides._make_replacements(raw_prompt=raw_prompt,
+                                                    username='Ian',
+                                                    new_badges=[5, 6]
+                                                    ) == newstring
 
     def test_step_stepviewslides_get_tags(self, myStepViewSlides):
         """
@@ -983,8 +994,8 @@ class TestPath():
                 locals()[output].get_tags()
         assert mypath['path'].get_step_for_prompt().get_locations() ==\
                 locals()[output].get_locations()
-        assert mypath['path'].get_step_for_prompt().get_prompt('Joe') ==\
-                locals()[output].get_prompt('Joe')
+        assert mypath['path'].get_step_for_prompt().get_prompt(username='Joe') ==\
+                locals()[output].get_prompt(username='Joe')
 
     def test_path_prepare_for_answer(self, mypath):
         """Unit test for method paideia.Path.get_step_for_reply."""

@@ -1,0 +1,89 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+GetInHMS	appadmin.py	/^    def GetInHMS(seconds):$/;"	f	function:ccache
+args	appadmin.py	/^                 args=[request.application])], [T('db'), False,$/;"	v
+attempts	reporting.py	/^def attempts():$/;"	f
+auth	creating.py	/^    auth = Auth()$/;"	v
+auth	default.py	/^    auth = Auth()$/;"	v
+auth	editing.py	/^    auth = current.auth$/;"	v
+auth	exploring.py	/^    auth = current.auth$/;"	v
+auth	reporting.py	/^    auth = Auth()$/;"	v
+bug	creating.py	/^def bug():$/;"	f
+calendar	reporting.py	/^def calendar():$/;"	f
+ccache	appadmin.py	/^def ccache():$/;"	f
+crud	creating.py	/^    crud = Crud()$/;"	v
+csv	appadmin.py	/^def csv():$/;"	f
+databases	appadmin.py	/^databases = get_databases(None)$/;"	v
+db	creating.py	/^    db = DAL()$/;"	v
+db	default.py	/^    db = DAL()$/;"	v
+db	editing.py	/^    db = current.db$/;"	v
+db	exploring.py	/^    db = current.db$/;"	v
+db	plugin_ajaxselect.py	/^    db = dal.DAL()$/;"	v
+db	plugin_listandedit.py	/^    db = current.db$/;"	v
+db	reporting.py	/^    db = DAL()$/;"	v
+download	appadmin.py	/^def download():$/;"	f
+dupAndEdit	plugin_listandedit.py	/^def dupAndEdit():$/;"	f
+edit	plugin_listandedit.py	/^def edit():$/;"	f
+eval_in_global_env	appadmin.py	/^def eval_in_global_env(text):$/;"	f
+get_database	appadmin.py	/^def get_database(request):$/;"	f
+get_databases	appadmin.py	/^def get_databases(request):$/;"	f
+get_query	appadmin.py	/^def get_query(request):$/;"	f
+get_table	appadmin.py	/^def get_table(request):$/;"	f
+global_env	appadmin.py	/^global_env = copy.copy(globals())$/;"	v
+hosts	appadmin.py	/^    hosts = (http_host, )$/;"	v
+hosts	appadmin.py	/^    hosts = (http_host, socket.gethostname(),$/;"	v
+http_host	appadmin.py	/^http_host = request.env.http_host.split(':')[0]$/;"	v
+ignore_rw	appadmin.py	/^ignore_rw = True$/;"	v
+image_picker	plugin_widgets.py	/^def image_picker():$/;"	f
+import_csv	appadmin.py	/^def import_csv(table, file):$/;"	f
+index	appadmin.py	/^def index():$/;"	f
+index	default.py	/^def index():$/;"	f
+index	exploring.py	/^def index():$/;"	f
+index	reporting.py	/^def index():$/;"	f
+info	default.py	/^def info():$/;"	f
+insert	appadmin.py	/^def insert():$/;"	f
+linked_create_form	plugin_ajaxselect.py	/^def linked_create_form():$/;"	f
+linked_edit_form	plugin_ajaxselect.py	/^def linked_edit_form():$/;"	f
+list	plugin_listandedit.py	/^def list():$/;"	f
+listing	editing.py	/^def listing():$/;"	f
+makeurl	plugin_listandedit.py	/^def makeurl(tablename, orderby, restrictor):$/;"	f
+news	listing.py	/^def news():$/;"	f
+next_slide	plugin_slider.py	/^def next_slide():$/;"	f
+patherror	exploring.py	/^def patherror():$/;"	f
+paths_by_tag	reporting.py	/^def paths_by_tag():$/;"	f
+prev_slide	plugin_slider.py	/^def prev_slide():$/;"	f
+query_by_table_type	appadmin.py	/^def query_by_table_type(tablename,db,request=request):$/;"	f
+remote_addr	appadmin.py	/^remote_addr = request.env.remote_addr$/;"	v
+request	default.py	/^    request = current.request$/;"	v
+request	editing.py	/^    request = current.request$/;"	v
+request	exploring.py	/^    request = current.request$/;"	v
+request	plugin_listandedit.py	/^    request = current.request$/;"	v
+request	reporting.py	/^    request = current.request$/;"	v
+response	exploring.py	/^    response = current.response$/;"	v
+response	plugin_listandedit.py	/^    response = current.response$/;"	v
+response	plugin_slider.py	/^    response = current.response$/;"	v
+select	appadmin.py	/^def select():$/;"	f
+send_mail	default.py	/^def send_mail():$/;"	f
+session	exploring.py	/^    session = current.session$/;"	v
+session	plugin_listandedit.py	/^    session = current.session$/;"	v
+set_form_wrapper	plugin_ajaxselect.py	/^def set_form_wrapper():$/;"	f
+set_value	exploring.py	/^def set_value():$/;"	f
+set_widget	plugin_ajaxselect.py	/^def set_widget():$/;"	f
+setval	plugin_ajaxselect.py	/^def setval():$/;"	f
+show_slide	plugin_slider.py	/^def show_slide():$/;"	f
+slides	listing.py	/^def slides():$/;"	f
+start_deck	plugin_slider.py	/^def start_deck():$/;"	f
+state	appadmin.py	/^def state():$/;"	f
+tag	creating.py	/^def tag():$/;"	f
+undo_bug	editing.py	/^def undo_bug():$/;"	f
+update	appadmin.py	/^def update():$/;"	f
+user	default.py	/^def user():$/;"	f
+user	listing.py	/^def user():$/;"	f
+user	reporting.py	/^def user():$/;"	f
+walk	exploring.py	/^def walk():$/;"	f
+widget	plugin_listandedit.py	/^def widget():$/;"	f
+x	exploring.py	/^def x():$/;"	f
