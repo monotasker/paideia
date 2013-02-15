@@ -335,8 +335,9 @@ class StepFactory(object):
         step_classes = {1: StepText,
                         2: StepMultiple,
                         3: Step,
-                        5: StepText,
-                        6: StepMultiple,
+                        4: StepText,
+                        5: StepMultiple,
+                        6: StepViewSlides,
                         7: StepQuotaReached,
                         8: StepAwardBadges,
                         9: StepRedirect}
@@ -380,35 +381,39 @@ class Step(object):
         """Return a list of the location id's for this step."""
         return self.data['locations']
 
-    def get_prompt(self, username=None):
+    def get_prompt(self, username=None, raw_prompt=None, **kwargs):
         """
         Return the prompt information for the step. In the Step base class
         this is a simple string. Before returning, though, any necessary
         replacements or randomizations are made.
         """
-        raw_prompt = self.data['prompt']
-        prompt = self._make_replacements(raw_prompt, username)
-        # prompt no longer tagged or converted to markmin here, but in view
+        if not raw_prompt:
+            raw_prompt = self.data['prompt']
+        passargs = locals()
+        del(passargs['self'])
+        del(passargs['kwargs'])
+
+        prompt = self._make_replacements(**passargs)
 
         instructions = self._get_instructions()
-
         npc = self.get_npc()  # duplicate choice prevented in get_npc()
         npc_image = self.npc.get_image()
+        # prompt no longer tagged or converted to markmin here, but in view
 
         return {'prompt': prompt,
                 'instructions': instructions,
                 'npc_image': npc_image}
 
-    def _make_replacements(self, raw_string, username=None, reps=None):
+    def _make_replacements(self, raw_prompt=None, username=None, reps=None):
         """
         Return the provided string with tokens replaced by personalized
         information for the current user.
         """
-        if reps is None:
+        if not reps:
             reps = {}
-        reps['[[user]]'] = username
+            reps['[[user]]'] = username
 
-        new_string = raw_string
+        new_string = raw_prompt
         for k, v in reps.iteritems():
             new_string = new_string.replace(k, v)
 
@@ -458,6 +463,25 @@ class Step(object):
 
             return list
 
+class StepResponder(Step):
+    """
+    An abstract subclass of Step that adds a 'continue' button to the responder.
+    """
+    def get_responder():
+        """
+        Return the html form to allow the user to respond to the prompt for
+        this step.
+        """
+        responder = super(StepResponder, self).get_responder()
+
+        continue_button = A("Continue", _href=URL('walk', args=['ask'],
+                                        vars=dict(loc=request.vars['loc'])),
+                            cid='page',
+                            _class='button-green-grad next_q')
+        responder.append(continue_button)
+
+        return responder
+
 
 class StepRedirect(Step):
     '''
@@ -475,19 +499,17 @@ class StepRedirect(Step):
         del(kwargs['self'])
         super(StepRedirect, self).__init__(**kwargs)
 
-    def _make_replacements(self, prompt_string, username=None,
-                                                    db=None, next_step=None):
+    def _make_replacements(self, raw_prompt=None, username=None):
         """
         Return the string for the step prompt with context-based information
         substituted for tokens framed by [[]].
         """
         session = current.session
         if not db:
-            db = current.db
+            db = self.db
         if not username:
             username = self.username
-        if not 'next_step_id' in locals():
-            next_step_id = self.next_step_id
+        next_step_id = self.next_step_id
         next_loc = 'somewhere else in town'  # generic default
         # if mid-way through a path, send to next viable location
         # TODO: find a way to set this value to another location with an
@@ -505,38 +527,94 @@ class StepRedirect(Step):
         else:
             pass
 
-        reps = {'[[next_loc]]': next_loc}
+        reps = {'[[next_loc]]': next_loc,
+                '[[user]]': username}
         new_string = super(StepRedirect, self)._make_replacements(
-                                                            prompt_string,
-                                                            reps=reps,
-                                                            username=username)
+                                                        raw_prompt=raw_prompt,
+                                                        username=username,
+                                                        reps=reps)
         return new_string
 
-class StepQuotaReached(Step):
+
+class StepQuotaReached(StepResponder, Step):
     '''
     A Step that tells the user s/he has completed the daily minimum # of steps.
     '''
-    def _make_replacements(self, prompt_string=None, username=None, db=None):
+    def _make_replacements(self, raw_prompt=None, username=None):
         """
         Return the string for the step prompt with context-based information
         substituted for tokens framed by [[]].
         """
-        if prompt_string is None:
-            prompt_string = self.data['prompt']
-        if not username:
-            username = self.username
         reps = None
-        new_string = super(StepRedirect, self)._make_replacements(
-                                                            prompt_string,
-                                                            reps=reps,
-                                                            username=username)
+        new_string = super(StepQuotaReached, self)._make_replacements(
+                                                            raw_prompt=raw_prompt,
+                                                            username=username,
+                                                            reps=reps)
         return new_string
 
-    pass
+
+class StepAwardBadges(StepResponder, Step):
+    '''
+    A Step that informs the user when s/he has earned new badges.
+    '''
+
+    def _make_replacements(self, raw_prompt=None, username=None, new_badges=None,
+                            promoted=None, db=None):
+        """
+        Return the string for the step prompt with context-based information
+        substituted for tokens framed by [[]].
+        """
+        if not username:
+            username = self.username
+        if not db:
+            db = self.db
+        badges = [db(db.badges.tag == t).select()[0] for t in new_badges]
+        proms = [db(db.badges.tag == t).select()[0] for t in promoted]
+        nb = [LI(n.badge_name) for n in badges]
+        badgelist = UL()
+        for n in nb:
+            badgelist.append(n)
+        pr = {n.id: n.badge_name for n in proms}
+        promlist = UL()
+        for p in pr:
+            promlist.append(p)
+        reps = {'[[new_badge_list]]': badgelist,
+                '[[promoted_list]]': promlist.xml(),
+                '[[user]]': username}
+        new_string = super(StepAwardBadges, self)._make_replacements(
+                                                            raw_prompt=raw_prompt,
+                                                            username=username,
+                                                            reps=reps)
+        return new_string
 
 
-class StepAwardBadges(Step):
-    pass
+class StepViewSlides(Step):
+    '''
+    A Step that informs the user when s/he needs to view more grammar slides.
+    '''
+
+    def _make_replacements(self, raw_prompt=None, username=None, new_badges=None):
+        """
+        Return the string for the step prompt with context-based information
+        substituted for tokens framed by [[]].
+
+        new_badges value should be a 2 member tuple of the pattern
+        (<tag_id>, <badge_name>)
+        """
+        db = self.db
+        slides = UL()
+        sliderows = db((db.tags.id in new_badges) &
+                        (db.plugin_slider_decks.id.belongs(set(db.tags.slides)))
+                        ).select()
+        for r in sliderows:
+            slides.append(LI(r.plugin_slider_slides.deck_name))
+        reps = {'[[slides]]': slides.xml(),
+                '[[user]]': username}
+        new_string = super(StepViewSlides, self)._make_replacements(
+                                                        raw_prompt=raw_prompt,
+                                                        username=username,
+                                                        reps=reps)
+        return new_string
 
 
 class StepText(Step):
@@ -646,9 +724,9 @@ class StepEvaluator(object):
     handles the data that results.
     '''
 
-    def __init__(self, answers, tips):
+    def __init__(self, responses, tips):
         """Initializes a StepEvaluator object"""
-        self.answers = answers
+        self.responses = responses
         self.tips = tips
 
     def get_eval(self, user_response=None):
@@ -660,21 +738,21 @@ class StepEvaluator(object):
             request = current.request
             user_response = request.vars['response']
         user_response = user_response.strip()
-        answers = self.answers
-
+        responses = self.responses
+        print responses
         # Compare the student's response to the regular expressions
         try:
-            if re.match(answers[0], user_response, re.I):
+            if re.match(responses['response1'], user_response, re.I):
                 score = 1
                 reply = "Right. Κάλον."
-            elif len(answers) > 1 and re.match(answers[1],
+            elif len(responses) > 1 and re.match(responses['response2'],
                                                     user_response, re.I):
                 score = 0.5
                 #TODO: Get this score value from the db instead of hard
                 #coding it here.
                 reply = "Οὐ κάκον. You're close."
                 #TODO: Vary the replies
-            elif len(answers) > 2 and re.match(answers[2],
+            elif len(responses) > 2 and re.match(responses['response3'],
                                                     user_response, re.I):
                 #TODO: Get this score value from the db instead of hard
                 #coding it here.
@@ -710,6 +788,12 @@ class MultipleEvaluator(StepEvaluator):
     """
     Evaluates a user response to a multiple choice step prompt.
     """
+
+    def __init__(self, responses, tips):
+        """Initializes a StepEvaluator object"""
+        keys = ['response1', 'response2', 'response3']
+        self.responses = {r[0]: r[1] for r in zip(keys, responses)}
+        self.tips = tips
 
 
 

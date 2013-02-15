@@ -4,3 +4,27 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+DB_URI	test_runner.py	/^DB_URI = 'sqlite:memory:'$/;"	v
+app_name	test_runner.py	/^app_name= current.request.application$/;"	v
+components	test_runner.py	/^        components = os.path.split(test_file)$/;"	v
+copy_virtual_fields	test_runner.py	/^def copy_virtual_fields(db, test_db, table_name):$/;"	f
+csv_file	test_runner.py	/^    csv_file = os.path.join($/;"	v
+custom_execfile	test_runner.py	/^def custom_execfile(test_file):$/;"	f
+db	test_runner.py	/^        db = test_db$/;"	v
+directory	test_runner.py	/^        directory = str.capitalize(os.path.split(components[-2])[-1])$/;"	v
+filename	test_runner.py	/^        filename = str.capitalize(components[-1][:-3]) # without .py$/;"	v
+g	test_runner.py	/^        g = custom_execfile(test_file)$/;"	v
+g:include_dirs	env.vim	/^let g:include_dirs = [".\/include",]$/;"	v
+path	test_runner.py	/^    path = os.path.join('applications', app_name, 'tests', '*', '*.py')$/;"	v
+paths	runtest.py	/^    paths = ['\/home\/iscott\/web\/web2py\/', '\/home\/ian\/web\/web2py\/']$/;"	v
+run_pytest	runtest.py	/^def run_pytest(w2p_dir, test_dir, app_name):$/;"	f
+runpath	runtest.py	/^        runpath = paths[0]$/;"	v
+runpath	runtest.py	/^    runpath = paths[1]$/;"	v
+showfeedback	test_runner.py	/^def showfeedback():$/;"	f
+suite	test_runner.py	/^    suite = unittest.TestSuite()$/;"	v
+table_copy	test_runner.py	/^                table_copy = [copy(f) for f in db[table_name]]$/;"	v
+test_db	test_runner.py	/^        test_db = DAL(DB_URI)$/;"	v
+test_files	test_runner.py	/^    test_files = [x for x in test_files if not os.path.split(x)[0].endswith('userinterface')]$/;"	v
+test_files	test_runner.py	/^    test_files = glob.glob(path)$/;"	v
+to_be_tested_file	test_runner.py	/^        to_be_tested_file = os.path.join("applications",$/;"	v
+w2p_models	test_runner.py	/^    w2p_models = True$/;"	v

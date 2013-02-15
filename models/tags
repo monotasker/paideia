@@ -1,0 +1,67 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+ICONLINK	plugin_widgets.py	/^def ICONLINK(title, text, icon):$/;"	f
+IS_VALID_REGEX	paideia.py	/^class IS_VALID_REGEX(object):$/;"	c
+PathsVirtualFields	paideia.py	/^class PathsVirtualFields(object):$/;"	c
+Plugin_slider_decksVirtualFields	plugin_slider.py	/^class Plugin_slider_decksVirtualFields(object):$/;"	c
+ROLE	plugin_widgets.py	/^def ROLE(content, role=None):$/;"	f
+TOOLTIP	plugin_widgets.py	/^def TOOLTIP(title, text, content, direction='top', icon=None):$/;"	f
+__call__	paideia.py	/^    def __call__(self, value):$/;"	m	class:IS_VALID_REGEX	file:
+__init__	paideia.py	/^    def __init__(self):$/;"	m	class:IS_VALID_REGEX
+args	menu.py	/^                                            args=['plugin_slider_decks'])),$/;"	v
+args	menu.py	/^                                        args=['plugin_slider_slides'],$/;"	v
+auth	db.py	/^auth = Auth(db, hmac_key=Auth.get_or_create_key())  # authent\/authorization$/;"	v
+auth	menu.py	/^    auth = current.auth$/;"	v
+auth	paideia.py	/^    auth = current.auth$/;"	v
+authbar	plugin_framework.py	/^def authbar():$/;"	f
+crud	db.py	/^crud = Crud(db)                 # for CRUD helpers using auth$/;"	v
+db	db.py	/^db = DAL('sqlite:\/\/storage.sqlite')$/;"	v
+db	paideia.py	/^    db = current.db$/;"	v
+default	db.py	/^          default='America\/Toronto',$/;"	v
+dtnow	paideia.py	/^dtnow = datetime.datetime.utcnow$/;"	v
+format	paideia.py	/^    format='%(badge_name)s')$/;"	v
+format	paideia.py	/^    format='%(category)s')$/;"	v
+format	paideia.py	/^    format='%(label)s')$/;"	v
+format	paideia.py	/^    format='%(location)s')$/;"	v
+format	paideia.py	/^    format='%(name)s')$/;"	v
+format	paideia.py	/^    format='%(name)s, %(latest_new)s')$/;"	v
+format	paideia.py	/^    format='%(page)s')$/;"	v
+format	paideia.py	/^    format='%(prompt)s')$/;"	v
+format	paideia.py	/^    format='%(status_label)s')$/;"	v
+format	paideia.py	/^    format='%(status_label)s')$/;"	v	class:PathsVirtualFields
+format	paideia.py	/^    format='%(step)s')$/;"	v
+format	paideia.py	/^    format='%(tag)s')$/;"	v
+format	paideia.py	/^    format='%(title)s')$/;"	v
+format	paideia.py	/^    format='%(title)s')$/;"	v	class:IS_VALID_REGEX
+format	paideia.py	/^    format='%(type)s')$/;"	v
+format	paideia.py	/^    format='%(user)s')$/;"	v
+format	plugin_slider.py	/^    format='%(deck_name)s'$/;"	v
+format	plugin_slider.py	/^    format='%(slide_name)s'$/;"	v
+format	plugin_slider.py	/^    format='%(theme_name)s'$/;"	v
+keydata	db.py	/^keydata = {}$/;"	v
+lister	plugin_slider.py	/^                                        lister='editlinks',$/;"	v
+logger	db.py	/^logger = logging.getLogger('web2py.app.paideia')$/;"	v
+mail	db.py	/^mail = auth.settings.mailer                                  # mailer$/;"	v
+multi	plugin_slider.py	/^                                        multi='basic',$/;"	v
+multiple	plugin_slider.py	/^                                    multiple=True)$/;"	v
+plugin_listandedit	plugin_listandedit.py	/^def plugin_listandedit():$/;"	f
+plugins	db.py	/^plugins = PluginManager()       # for configuring plugins$/;"	v
+refresher	plugin_slider.py	/^                                        refresher=True,$/;"	v
+request	db.py	/^request = current.request$/;"	v
+request	paideia.py	/^    request = current.request$/;"	v
+requires	db.py	/^          requires=IS_IN_SET((common_timezones)),$/;"	v
+response	db.py	/^response = current.response$/;"	v
+response	paideia.py	/^    response = current.response$/;"	v
+response	plugin_listandedit.py	/^    response = current.response$/;"	v
+service	db.py	/^service = Service()             # for json, xml, jsonrpc, xmlrpc, amfrpc$/;"	v
+sortable	plugin_slider.py	/^                                        sortable='true')$/;"	v
+tags	paideia.py	/^    def tags(self):$/;"	m	class:PathsVirtualFields
+updated	plugin_slider.py	/^    def updated(self):$/;"	m	class:Plugin_slider_decksVirtualFields
+vars	menu.py	/^                                        vars={'orderby':'slide_name'})),$/;"	v
+vars	menu.py	/^                                        vars={'restrictor':{'bug_status':1}})),$/;"	v
+vars	menu.py	/^                                        vars={'restrictor':{'bug_status':5}})),$/;"	v
+widget	db.py	/^          widget=SQLFORM.widgets.options.widget$/;"	v
