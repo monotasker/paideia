@@ -562,17 +562,18 @@ class TestAwardBadges():
     new badges.
     '''
 
-    def test_step_awardbadges(self, myStepAwardBadges):
+    def test_stepawardbadges_get_id(self, myStepAwardBadges):
         """Test for method Step.get_id"""
         assert myStepAwardBadges.get_id() == 126
 
-    def test_step_stepawardbadges_get_prompt(self, myStepAwardBadges):
+    def test_stepawardbadges_get_prompt(self, myStepAwardBadges):
         """
         Test method for the get_prompt method of the StepRedirect class.
         This test assumes that the selected npc is Stephanos. It also assumes
         that the step is 30.
         """
         user = 'Ian'
+        # for new badges with tags 5, 6
         new_badge_list = '<ul class="new_badge_list">'\
                         '<li>'\
                         '<strong>alphabet (diphthongs and capitals)</strong> '\
@@ -590,9 +591,13 @@ class TestAwardBadges():
         # TODO: remove npc numbers that can't be at this loc
         npcimgs = ['npc{}'.format(n)
                         for n in [14, 8, 2, 40, 31, 32, 41, 1, 17, 42]]
-        assert myStepAwardBadges.get_prompt(user)['prompt'] == prompt_string
-        assert myStepAwardBadges.get_prompt(username)['instructions'] == None
-        assert myStepAwardBadges.get_prompt(username)['npc_image'] in npcimgs
+        prompt = myStepAwardBadges.get_prompt(raw_prompt=prompt_string,
+                                            username=user,
+                                            new_badges=[5, 6],
+                                            promoted=[7])
+        assert prompt['prompt'] == prompt_string
+        assert prompt['instructions'] == None
+        assert prompt['npc_image'] in npcimgs
 
     def test_step_stepawardbadges_make_replacements(self, myStepAwardBadges):
         """docstring for test_step_stepawardbadges_make_replacements"""
@@ -628,7 +633,6 @@ class TestAwardBadges():
                 'see details of your progress so far.'
         kwargs = {'raw_prompt': string,
                     'username': 'Ian',
-                    'db': db,
                     'new_badges': [5, 6],
                     'promoted': [7]}
         assert myStepAwardBadges._make_replacements(**kwargs) == newstring
