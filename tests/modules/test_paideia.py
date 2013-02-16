@@ -37,6 +37,20 @@ npc14_img = '/paideia/static/images/images.image.b5592e80d5fe4bb3.73796e61676f67
 npc15_img = '/paideia/static/images/images.image.9a515ff664f03aa3.323031322d30372d32312032335f35315f31322e706e67.png'
 npc16_img = '/paideia/static/images/images.image.8bb7c079634cf35a.44726177696e672033332e706e67.png'
 npc17_img = '/paideia/static/images/images.image.95fcf253d4dd7abd.44726177696e6720352e706e67.png'
+npc_image_addresses = {'npc1_img': npc1_img,
+                        'npc2_img': npc2_img,
+                        'npc3_img': npc3_img,
+                        'npc4_img': npc4_img,
+                        'npc5_img': npc5_img,
+                        'npc6_img': npc6_img,
+                        'npc7_img': npc7_img,
+                        'npc8_img': npc8_img,
+                        'npc10_img': npc10_img,
+                        'npc11_img': npc11_img,
+                        'npc14_img': npc14_img,
+                        'npc15_img': npc15_img,
+                        'npc16_img': npc16_img,
+                        'npc17_img': npc17_img}
 
 @pytest.fixture
 def mywalk():
@@ -576,12 +590,12 @@ class TestAwardBadges():
         # for new badges with tags 5, 6
         new_badge_list = '<ul class="new_badge_list">'\
                         '<li>'\
-                        '<strong>alphabet (diphthongs and capitals)</strong> '\
-                        'for learning the capital letter forms and the '\
-                        'sounds made by common vowel combinations'\
+                        '<strong>spaced out</strong> for'\
+                        'using spatial adverbs to talk about the location '\
+                        'of events, people, places, or things'\
                         '</li>'\
                         '<li>'\
-                        '<strong>nominative 1</strong> '\
+                        '<strong>nominative 1</strong> for'\
                         'the use of singular, first-declension nouns in the '\
                         'nominative case'\
                         '</li>'\
@@ -589,12 +603,11 @@ class TestAwardBadges():
         prompt_string = 'Congratulations, Ian! You\'ve earned a new badge! '\
                         '{}!'.format(new_badge_list)
         # TODO: remove npc numbers that can't be at this loc
-        npcimgs = ['npc{}'.format(n)
+        npcimgs = [npc_image_addresses['npc{}_img'.format(n)]
                         for n in [14, 8, 2, 40, 31, 32, 41, 1, 17, 42]]
         prompt = myStepAwardBadges.get_prompt(raw_prompt=prompt_string,
                                             username=user,
-                                            new_badges=[5, 6],
-                                            promoted=[7])
+                                            new_badges=[5, 6])
         assert prompt['prompt'] == prompt_string
         assert prompt['instructions'] == None
         assert prompt['npc_image'] in npcimgs
@@ -635,7 +648,10 @@ class TestAwardBadges():
                     'username': 'Ian',
                     'new_badges': [5, 6],
                     'promoted': [7]}
-        assert myStepAwardBadges._make_replacements(**kwargs) == newstring
+        actual = myStepAwardBadges._make_replacements(**kwargs)
+        print 'actual/n', actual
+        print 'test target/n', newstring
+        assert actual == newstring
 
     def test_step_stepawardbadges_get_tags(self, myStepAwardBadges):
         """
@@ -653,7 +669,7 @@ class TestAwardBadges():
                         cid='page',
                         _class='button-yellow-grad back_to_map icon-location')
         continue_button = A("Continue", _href=URL('walk', args=['ask'],
-                                        vars=dict(loc=request.vars['loc'])),
+                                        vars={'loc':12}),
                             cid='page',
                             _class='button-green-grad next_q')
         assert myStepAwardBadges.get_responder().xml() == \
@@ -698,16 +714,19 @@ class TestStepViewSlides():
         # TODO: remove npc numbers that can't be at this loc
         npcimgs = ['npc{}'.format(n)
                         for n in [14, 8, 2, 40, 31, 32, 41, 1, 17, 42]]
-        assert myStepViewSlides.get_prompt(user)['prompt'] == prompt_string
-        assert myStepViewSlides.get_prompt(username)['instructions'] == None
-        assert myStepViewSlides.get_prompt(username)['npc_image'] in npcimgs
+        assert myStepViewSlides.get_prompt(username=user
+                                                )['prompt'] == prompt_string
+        assert myStepViewSlides.get_prompt(username=user
+                                                )['instructions'] == None
+        assert myStepViewSlides.get_prompt(username=user
+                                                )['npc_image'] in npcimgs
 
     def test_step_stepviewslides_make_replacements(self, myStepViewSlides):
         """
         docstring for test_step_stepviewslides_make_replacements
 
         """
-        raw_prompt= 'Congratulations, [[user]]! You\'re ready to start working '\
+        raw = 'Congratulations, [[user]]! You\'re ready to start working '\
                 'on some new badges. Before you continue, take some time '\
                 'to view these slide sets:'\
                 '[[slides]]'\
@@ -726,7 +745,7 @@ class TestStepViewSlides():
                 'You\'ll find the slides by clicking on the "slides" menu '\
                 'item at top.'.format(slide_list)
 
-        assert myStepViewSlides._make_replacements(raw_prompt=raw_prompt,
+        assert myStepViewSlides._make_replacements(raw_prompt=raw,
                                                     username='Ian',
                                                     new_badges=[5, 6]
                                                     ) == newstring

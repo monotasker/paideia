@@ -475,7 +475,7 @@ class StepResponder(Step):
         responder = super(StepResponder, self).get_responder()
 
         continue_button = A("Continue", _href=URL('walk', args=['ask'],
-                                        vars=dict(loc=request.vars['loc'])),
+                                        vars={'loc': self.loc.get_id()}),
                             cid='page',
                             _class='button-green-grad next_q')
         responder.append(continue_button)
@@ -517,12 +517,7 @@ class StepRedirect(Step):
         # TODO: find a way to set this value to another location with an
         # available path if the current step is the last in its path.
         if next_step_id:
-            next_locids = db.steps[self.next_step_id].locations
-            # find a location that actually has a readable name
-            raw_locs = [db.locations[n].readable for n in next_locids]
-            next_locs = [n for n in raw_locs if not n is None]
-        elif next_step:
-            next_locids = db.steps[next_step].locations
+            next_locids = db.steps[next_step_id].locations
             # find a location that actually has a readable name
             raw_locs = [db.locations[n].readable for n in next_locids]
             next_locs = [n for n in raw_locs if not n is None]
@@ -560,8 +555,8 @@ class StepAwardBadges(StepResponder, Step):
     A Step that informs the user when s/he has earned new badges.
     '''
 
-    def _make_replacements(self, raw_prompt=None, username=None, new_badges=None,
-                            promoted=None, db=None):
+    def _make_replacements(self, raw_prompt=None, username=None,
+                            new_badges=None, promoted=None, db=None):
         """
         Return the string for the step prompt with context-based information
         substituted for tokens framed by [[]].
@@ -570,25 +565,33 @@ class StepAwardBadges(StepResponder, Step):
             username = self.username
         if not db:
             db = self.db
-        if new_badges:
+
+        try:
             badges = [db(db.badges.tag == t).select()[0] for t in new_badges]
-        if promoted:
+            nb = [LI(n.badge_name) for n in badges]
+            badgelist = UL()
+            for n in nb:
+                badgelist.append(n)
+            reps = {'[[new_badge_list]]': badgelist.xml(),
+                    '[[user]]': username}
+
+        except:
+            raise Exception
+
+        try:
             proms = [db(db.badges.tag == t).select()[0] for t in promoted]
-        nb = [LI(n.badge_name) for n in badges]
-        badgelist = UL()
-        for n in nb:
-            badgelist.append(n)
-        pr = {n.id: n.badge_name for n in proms}
-        promlist = UL()
-        for p in pr:
-            promlist.append(p)
-        reps = {'[[new_badge_list]]': badgelist,
-                '[[promoted_list]]': promlist.xml(),
-                '[[user]]': username}
+            pr = {n.id: n.badge_name for n in proms}
+            promlist = UL()
+            for p in pr:
+                promlist.append(p)
+            reps['[[promoted_list]]'] = promlist.xml()
+        except:
+            reps['[[promoted_list]]'] = ''
+
         new_string = super(StepAwardBadges, self)._make_replacements(
-                                                            raw_prompt=raw_prompt,
-                                                            username=username,
-                                                            reps=reps)
+                                                    raw_prompt=raw_prompt,
+                                                    username=username,
+                                                    reps=reps)
         return new_string
 
 
@@ -607,11 +610,10 @@ class StepViewSlides(Step):
         """
         db = self.db
         slides = UL()
-        sliderows = db((db.tags.id in new_badges) &
-                        (db.plugin_slider_decks.id.belongs(set(db.tags.slides)))
-                        ).select()
+        decks = set([db.tags[t].slides for t in new_badges])
+        sliderows = db(db.plugin_slider_decks.id.belongs(decks)).select()
         for r in sliderows:
-            slides.append(LI(r.plugin_slider_slides.deck_name))
+            slides.append(LI(r.plugin_slider_decks.deck_name))
         reps = {'[[slides]]': slides.xml(),
                 '[[user]]': username}
         new_string = super(StepViewSlides, self)._make_replacements(
