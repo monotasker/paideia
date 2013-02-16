@@ -389,11 +389,11 @@ class Step(object):
         """
         if not raw_prompt:
             raw_prompt = self.data['prompt']
-        passargs = locals()
-        del(passargs['self'])
-        del(passargs['kwargs'])
+        passargs = kwargs
 
-        prompt = self._make_replacements(**passargs)
+        prompt = self._make_replacements(username=username,
+                                        raw_prompt=raw_prompt,
+                                        **kwargs)
 
         instructions = self._get_instructions()
         npc = self.get_npc()  # duplicate choice prevented in get_npc()
@@ -467,7 +467,7 @@ class StepResponder(Step):
     """
     An abstract subclass of Step that adds a 'continue' button to the responder.
     """
-    def get_responder():
+    def get_responder(self):
         """
         Return the html form to allow the user to respond to the prompt for
         this step.
@@ -499,7 +499,8 @@ class StepRedirect(Step):
         del(kwargs['self'])
         super(StepRedirect, self).__init__(**kwargs)
 
-    def _make_replacements(self, raw_prompt=None, username=None):
+    def _make_replacements(self, raw_prompt=None, username=None, db=None,
+                            next_step_id=None):
         """
         Return the string for the step prompt with context-based information
         substituted for tokens framed by [[]].
@@ -509,7 +510,8 @@ class StepRedirect(Step):
             db = self.db
         if not username:
             username = self.username
-        next_step_id = self.next_step_id
+        if not next_step_id:
+            next_step_id = self.next_step_id
         next_loc = 'somewhere else in town'  # generic default
         # if mid-way through a path, send to next viable location
         # TODO: find a way to set this value to another location with an
@@ -568,8 +570,10 @@ class StepAwardBadges(StepResponder, Step):
             username = self.username
         if not db:
             db = self.db
-        badges = [db(db.badges.tag == t).select()[0] for t in new_badges]
-        proms = [db(db.badges.tag == t).select()[0] for t in promoted]
+        if new_badges:
+            badges = [db(db.badges.tag == t).select()[0] for t in new_badges]
+        if promoted:
+            proms = [db(db.badges.tag == t).select()[0] for t in promoted]
         nb = [LI(n.badge_name) for n in badges]
         badgelist = UL()
         for n in nb:
