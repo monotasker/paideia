@@ -31,26 +31,57 @@ npc5_img = '/paideia/static/images/images.image.a4d5140b25f87749.44726177696e672
 npc6_img = '/paideia/static/images/images.image.a28124edf3480d82.696d616765732e696d6167652e383135323664663563326663623438302e343437323631373736393665363732303332333232653733373636372e737667.svg'
 npc7_img = '/paideia/static/images/images.image.993274ee0076fd2f.696d616765732e696d6167652e393636636434346165663238613839652e343437323631373736393665363732303332333732653733373636372e737667.svg'
 npc8_img = '/paideia/static/images/images.image.938be4c25c678bb5.323031322d30362d30352030335f35325f31312e706e67.png'
+npc9_img = ''
 npc10_img = '/paideia/static/images/images.image.961b44d8d322659c.323031322d30362d30372031345f34345f34302e706e67.png'
 npc11_img = '/paideia/static/images/images.image.ac58c3e138964719.70686f6562652e706e67.png'
 npc14_img = '/paideia/static/images/images.image.b5592e80d5fe4bb3.73796e61676f6775652e6a7067.jpg'
 npc15_img = '/paideia/static/images/images.image.9a515ff664f03aa3.323031322d30372d32312032335f35315f31322e706e67.png'
 npc16_img = '/paideia/static/images/images.image.8bb7c079634cf35a.44726177696e672033332e706e67.png'
 npc17_img = '/paideia/static/images/images.image.95fcf253d4dd7abd.44726177696e6720352e706e67.png'
-npc_image_addresses = {'npc1_img': npc1_img,
-                        'npc2_img': npc2_img,
-                        'npc3_img': npc3_img,
-                        'npc4_img': npc4_img,
-                        'npc5_img': npc5_img,
-                        'npc6_img': npc6_img,
-                        'npc7_img': npc7_img,
-                        'npc8_img': npc8_img,
-                        'npc10_img': npc10_img,
-                        'npc11_img': npc11_img,
-                        'npc14_img': npc14_img,
-                        'npc15_img': npc15_img,
-                        'npc16_img': npc16_img,
-                        'npc17_img': npc17_img}
+npc_data = {1: {'image': npc1_img,
+                'name': 'Ἀλεξανδρος',
+                'location': [6, 8],
+                },
+            2: {'image': npc4_img,
+                'name': 'Μαρια',
+                'location': [3, 1, 2, 4],
+                },
+            8: {'image': npc5_img,
+                'name': 'Διοδωρος',
+                'location': [1],
+                },
+            14: {'image': npc2_img,
+                'name': 'Γεωργιος',
+                'location': [3, 1, 2, 4, 7, 8, 9, 10],
+                },
+            17: {'image': npc7_img,
+                'name': 'Ἰασων',
+                'location': [3, 1, 2, 4, 7, 8],
+                },
+            21: {'image': npc7_img,
+                'name': 'Νηρευς',
+                'location': [7, 8],
+                },
+            31: {'image': npc3_img,
+                'name': 'Σοφια',
+                'location': [3, 1, 2, 4, 11],
+                },
+            32: {'image': npc10_img,
+                'name': 'Στεφανος',
+                'location': [11],
+                },
+            40: {'image': npc6_img,
+                'name': 'Σιμων',
+                'location': [3, 1, 2, 4, 7, 8],
+                },
+            41: {'image': npc11_img,
+                'name': 'Φοιβη',
+                'location': [3, 1, 4, 8],
+                },
+            42: {'image': npc9_img,
+                'name': 'Ὑπατια',
+                'location': [3, 1, 2, 4, 12, 8],
+                }}
 
 @pytest.fixture
 def mywalk():
@@ -603,8 +634,8 @@ class TestAwardBadges():
         prompt_string = 'Congratulations, Ian! You\'ve earned a new badge! '\
                         '{}!'.format(new_badge_list)
         # TODO: remove npc numbers that can't be at this loc
-        npcimgs = [npc_image_addresses['npc{}_img'.format(n)]
-                        for n in [14, 8, 2, 40, 31, 32, 41, 1, 17, 42]]
+        npclist = [14, 8, 2, 40, 31, 32, 41, 1, 17, 42]
+        npcimgs = [n['image'] for k, n in npc_data.iteritems() if k in npclist]
         prompt = myStepAwardBadges.get_prompt(raw_prompt=prompt_string,
                                             username=user,
                                             new_badges=[5, 6])
@@ -614,43 +645,41 @@ class TestAwardBadges():
 
     def test_step_stepawardbadges_make_replacements(self, myStepAwardBadges):
         """docstring for test_step_stepawardbadges_make_replacements"""
-        new_badge_list = 'You\'ve earned a new badge! '\
+        new_badge_list = ' You\'ve earned a new badge! '\
                         '<ul class="new_badge_list">'\
                         '<li>'\
-                        '<strong>alphabet (diphthongs and capitals)</strong> '\
-                        'for learning the capital letter forms and the '\
-                        'sounds made by common vowel combinations'\
+                        '<span class="badge_name">spaced out</span> '\
+                        'for using spatial adverbs to talk about the '\
+                        'location of events, people, places, or things'\
                         '</li>'\
                         '<li>'\
-                        '<strong>nominative 1</strong> '\
+                        '<span class="badge_name">nominative 1</span> for '\
                         'the use of singular, first-declension nouns in the '\
                         'nominative case'\
                         '</li>'\
                         '</ul>'
-        promoted_list = 'You\'ve reached a new level in these badges:'\
-                        '<ul class="promoted_list">'\
-                        '<li>'\
-                        '<strong>nominative 1</strong> '\
-                        'the use of singular, first-declension nouns in the '\
-                        'nominative case'\
-                        '</li>'\
-                        '</ul>'
+        promoted_list = ''
 
-        newstring = 'Congratulations, Ian! '\
-                        '{}{} You can click on your name above to see '\
-                        'details of your progress so far.'.format(
+        #promoted_list = 'You\'ve reached a new level in these badges:'\
+                        #'<ul class="promoted_list">'\
+                        #'<li>'\
+                        #'</li>'\
+                        #'</ul>'
+        # TODO: write another case to test with promotions present
+
+        newstring = 'Congratulations, Ian!'\
+                    '{}{}You can click on your name above to see '\
+                    'details of your progress so far.'.format(
                                                 new_badge_list, promoted_list)
 
-        string = 'Congratulations, [[user]]! \n[[new_badge_list]]\n'\
-                '[[promoted_list]]\n You can click on your name above to '\
+        string = 'Congratulations, [[user]]![[new_badge_list]]'\
+                '[[promoted_list]]You can click on your name above to '\
                 'see details of your progress so far.'
         kwargs = {'raw_prompt': string,
                     'username': 'Ian',
                     'new_badges': [5, 6],
                     'promoted': [7]}
         actual = myStepAwardBadges._make_replacements(**kwargs)
-        print 'actual/n', actual
-        print 'test target/n', newstring
         assert actual == newstring
 
     def test_step_stepawardbadges_get_tags(self, myStepAwardBadges):

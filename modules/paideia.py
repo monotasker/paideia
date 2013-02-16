@@ -252,7 +252,7 @@ class Npc(object):
         Return a web2py IMG helper object with the image for the current
         npc character.
         """
-        img = URL('static/images', self.db.images[self.data.npc_image].image)
+        img = URL('static/images', self.db.images[image_id].image)
         return img
 
     def get_locations(self):
@@ -566,25 +566,25 @@ class StepAwardBadges(StepResponder, Step):
         if not db:
             db = self.db
 
-        try:
-            badges = [db(db.badges.tag == t).select()[0] for t in new_badges]
-            nb = [LI(n.badge_name) for n in badges]
-            badgelist = UL()
-            for n in nb:
-                badgelist.append(n)
-            reps = {'[[new_badge_list]]': badgelist.xml(),
-                    '[[user]]': username}
-
-        except:
-            raise Exception
-
+        badges = [db(db.badges.tag == t).select()[0] for t in new_badges]
+        nb = [LI(SPAN(n.badge_name, _class='badge_name'), ' for ', n.description)
+                for n in badges]
+        badgelist = UL(_class='new_badge_list')
+        for n in nb:
+            badgelist.append(n)
+        bstring = ' You\'ve earned a new badge! '
+        reps = {'[[new_badge_list]]': '{}{}'.format(bstring, badgelist.xml()),
+                '[[user]]': username}
         try:
             proms = [db(db.badges.tag == t).select()[0] for t in promoted]
-            pr = {n.id: n.badge_name for n in proms}
-            promlist = UL()
+            pr = [LI(SPAN(n.badge_name, _class='badge_name'),
+                        ' for ', n.description)
+                    for n in proms]
+            promlist = UL(_class='promoted_list')
             for p in pr:
                 promlist.append(p)
-            reps['[[promoted_list]]'] = promlist.xml()
+            promstring = 'You\'ve reached a new level in these badges:'
+            reps['[[promoted_list]]'] = '{}{}'.format(promstring, promlist.xml())
         except:
             reps['[[promoted_list]]'] = ''
 
