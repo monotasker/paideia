@@ -232,12 +232,15 @@ class Npc(object):
         if db is None:
             db = current.db
         self.db = db
+        print db
         self.id_num = id_num
+        print id_num
         self.data = db.npcs[id_num]
 
         # get image here so that db interaction stays in __init__ method
-        image_id = self.data.npc_image
-        self.image = db.images[image_id].image
+        self.image_id = self.data.npc_image
+        print self.image_id
+        self.image = db.images[self.image_id].image
 
     def get_id(self):
         """return the database row id of the current npc"""
@@ -247,12 +250,13 @@ class Npc(object):
         """return the name of the current npc"""
         return self.data.name
 
-    def get_image(self):
+    def get_image(self, db=None):
         """
         Return a web2py IMG helper object with the image for the current
         npc character.
         """
-        img = URL('static/images', self.db.images[image_id].image)
+        img = self.image
+        print img
         return img
 
     def get_locations(self):
@@ -439,11 +443,11 @@ class Step(object):
             npc_list = [n for n in npcs_for_step
                         if self.loc.get_id() in self.db.npcs[n].location]
             if self.prev_npc_id in npc_list:
-                self.npc = Npc(self.prev_npc_id)
+                self.npc = Npc(self.prev_npc_id, db=self.db)
                 return self.npc
             else:
                 pick = npc_list[randint(0, len(npc_list) - 1)]
-                self.npc = Npc(pick)
+                self.npc = Npc(pick, db=self.db)
                 return self.npc
 
     def _get_instructions(self):
@@ -605,15 +609,16 @@ class StepViewSlides(Step):
         Return the string for the step prompt with context-based information
         substituted for tokens framed by [[]].
 
-        new_badges value should be a 2 member tuple of the pattern
-        (<tag_id>, <badge_name>)
+        new_badges value should be a list of tag id's as integers
         """
         db = self.db
-        slides = UL()
-        decks = set([db.tags[t].slides for t in new_badges])
-        sliderows = db(db.plugin_slider_decks.id.belongs(decks)).select()
-        for r in sliderows:
-            slides.append(LI(r.plugin_slider_decks.deck_name))
+        slides = UL(_class='slide_list')
+        decks = db(db.tags.id.belongs(new_badges)).select(db.tags.slides).as_list()
+        pprint(decks)
+        decks = [d for i in decks for k, v in i.iteritems() for d in v]
+        sliderows = db(db.plugin_slider_decks.id.belongs(decks)).select(db.plugin_slider_decks.deck_name).as_list()
+        for name in [n for r in sliderows for k, n in r.iteritems()]:
+            slides.append(LI(name))
         reps = {'[[slides]]': slides.xml(),
                 '[[user]]': username}
         new_string = super(StepViewSlides, self)._make_replacements(
