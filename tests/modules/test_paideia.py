@@ -83,6 +83,50 @@ npc_data = {1: {'image': npc1_img,
                 'location': [3, 1, 2, 4, 12, 8],
                 }}
 
+step_data_store = {
+        1: {'case1':
+                {'user': 'Ian',
+                'new_badges': [],
+                'npc_list': [],
+                'instructions': None},
+            'case2': {}
+            },
+        # stepAwardBadges
+        30: {'case1':
+                {'user': 'Ian',
+                'new_badges': [5,6],
+                'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
+                'instructions': None},
+            'case2': {}
+            },
+        # stepViewSlides
+        127: {'case1':
+                {'loc': Location(3, db),
+                'prev_loc': Location(3, db),
+                'prev_npc_id': 1,
+                'new_badges': [5,6],
+                'raw_prompt': 'Congratulations, [[user]]! You\'re ready to start '\
+                    'working on some new badges!\nBefore you '\
+                    'continue, take some time to view these slide sets:'\
+                    '[[slides]]\nYou\'ll find the slides by clicking on the '\
+                    '"slides" menu item at top.',
+                'final_prompt': 'Congratulations, Ian! You\'re ready to '\
+                    'start working '\
+                    'on some new badges. Before you continue, take some time '\
+                    'to view these slide sets:'\
+                        '<ul class="slide_list">'\
+                        '<li>spaced out</li>'\
+                        '<li></li>'\
+                        '</ul>'
+                    'You\'ll find the slides by clicking on the "slides" menu '\
+                    'item at top.',
+                'widget_type': 6,
+                'tags': [80],
+                'npcs': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
+                'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10]},
+            'case2': {}}
+        }
+
 @pytest.fixture
 def mywalk():
     """pytest fixture providing a paideia.Walk object for testing"""
@@ -251,20 +295,11 @@ def myStepViewSlides():
     """
     A pytest fixture providing a paideia.StepViewSlides object for testing.
     """
-    prompt_string = 'Congratulations, [[user]]! You\'re ready to start '\
-                'working on some new badges:\n[[badge_list]]\nBefore you '\
-                'continue, take some time to view these slide sets:'\
-                '[[slides]]\nYou\'ll find the slides by clicking on the '\
-                '"slides" menu item at top.'
+    step_data = step_data_store[127]['case1']
     out = {'step_id': 127,
-            'loc': Location(3, db),
-            'prev_loc': Location(3, db),
-            'prev_npc_id': 1}
-    info = {'prompt': prompt_string,
-            'widget_type': 6,
-            'tags': [80],
-            'npcs': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
-            'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10]}
+            'loc': step_data['loc'],
+            'prev_loc': step_data['prev_loc'],
+            'prev_npc_id': step_data['prev_npc_id']}
     return StepViewSlides(db=db, **out)
 
 
@@ -617,7 +652,8 @@ class TestAwardBadges():
         This test assumes that the selected npc is Stephanos. It also assumes
         that the step is 30.
         """
-        user = 'Ian'
+        step_data = step_data_store[30]['case1']
+
         # for new badges with tags 5, 6
         new_badge_list = '<ul class="new_badge_list">'\
                         '<li>'\
@@ -634,13 +670,14 @@ class TestAwardBadges():
         prompt_string = 'Congratulations, Ian! You\'ve earned a new badge! '\
                         '{}!'.format(new_badge_list)
         # TODO: remove npc numbers that can't be at this loc
-        npclist = [14, 8, 2, 40, 31, 32, 41, 1, 17, 42]
-        npcimgs = [n['image'] for k, n in npc_data.iteritems() if k in npclist]
+        npcimgs = [n['image'] for k, n in npc_data.iteritems()
+                        if k in step_data['npc_list']]
         prompt = myStepAwardBadges.get_prompt(raw_prompt=prompt_string,
-                                            username=user,
-                                            new_badges=[5, 6])
+                                            username=step_data['user'],
+                                            new_badges=step_data['new_badges'],
+                                            db=db)
         assert prompt['prompt'] == prompt_string
-        assert prompt['instructions'] == None
+        assert prompt['instructions'] == step_data['instructions']
         assert prompt['npc_image'] in npcimgs
 
     def test_step_stepawardbadges_make_replacements(self, myStepAwardBadges):
@@ -728,56 +765,25 @@ class TestStepViewSlides():
         This test assumes that the selected npc is Stephanos. It also assumes
         that the step is 30.
         """
-        user = 'Ian'
-        slide_list = 'You\'ve earned a new badge! '\
-                        '<ul class="slide_list">'\
-                        '<li>The Alphabet III</li>'\
-                        '<li>Case Basics</li>'\
-                        '</ul>'
-        prompt_string = 'Congratulations, Ian! You\'re ready to start working '\
-                'on some new badges. Before you continue, take some time '\
-                'to view these slide sets:'\
-                '{}'\
-                'You\'ll find the slides by clicking on the "slides" menu '\
-                'item at top.'.format(slide_list)
+        sd = step_data_store[127]['case1']
         # TODO: remove npc numbers that can't be at this loc
-        npcimgs = ['npc{}'.format(n)
-                        for n in [14, 8, 2, 40, 31, 32, 41, 1, 17, 42]]
-        assert myStepViewSlides.get_prompt(username=user
-                                                )['prompt'] == prompt_string
-        assert myStepViewSlides.get_prompt(username=user
-                                                )['instructions'] == None
-        assert myStepViewSlides.get_prompt(username=user
-                                                )['npc_image'] in npcimgs
+        npcimgs = ['npc{}'.format(n) for n in sd['npcs']]
+        prompt = myStepViewSlides.get_prompt(username=sd['username'],
+                                           new_badges=sd['new_badges'])
+        assert prompt['prompt'] == sd['final_prompt']
+        assert prompt['instructions'] == sd['instructions']
+        assert prompt['npc_image'] in npcimgs
 
     def test_step_stepviewslides_make_replacements(self, myStepViewSlides):
         """
         docstring for test_step_stepviewslides_make_replacements
 
         """
-        raw = 'Congratulations, [[user]]! You\'re ready to start working '\
-                'on some new badges. Before you continue, take some time '\
-                'to view these slide sets:'\
-                '[[slides]]'\
-                'You\'ll find the slides by clicking on the "slides" menu '\
-                'item at top.'
-
-        slide_list = 'You\'ve earned a new badge! '\
-                        '<ul class="slide_list">'\
-                        '<li>The Alphabet III</li>'\
-                        '<li>Case Basics</li>'\
-                        '</ul>'
-        newstring = 'Congratulations, Ian! You\'re ready to start working '\
-                'on some new badges. Before you continue, take some time '\
-                'to view these slide sets:'\
-                '{}'\
-                'You\'ll find the slides by clicking on the "slides" menu '\
-                'item at top.'.format(slide_list)
-
-        assert myStepViewSlides._make_replacements(raw_prompt=raw,
-                                                    username='Ian',
+        sd = step_data_store[127]['case1']
+        assert myStepViewSlides._make_replacements(raw_prompt=sd['raw_prompt'],
+                                                    username=sd['user'],
                                                     new_badges=[5, 6]
-                                                    ) == newstring
+                                                    ) == sd['final_prompt']
 
     def test_step_stepviewslides_get_tags(self, myStepViewSlides):
         """
