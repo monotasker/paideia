@@ -665,7 +665,6 @@ class StepText(Step):
 
         result = StepEvaluator(responses, tips).get_eval(user_response)
 
-
         return {'reply_text': result['reply'],
                 'tips': tips,
                 'readable_short': readable['readable_short'],
@@ -776,8 +775,10 @@ class StepEvaluator(object):
             # Set the increment value for times wrong, depending on score
             if score < 1:
                 times_wrong = 1
+                times_right = 0
             else:
                 times_wrong = 0
+                times_right = 1
 
         # Handle errors if the student's response cannot be evaluated
         except re.error:
@@ -790,6 +791,7 @@ class StepEvaluator(object):
 
         return {'score': score,
                 'times_wrong': times_wrong,
+                'times_right': times_right,
                 'reply': reply,
                 'user_response': user_response,
                 'tips': tips}
