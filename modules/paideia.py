@@ -232,14 +232,11 @@ class Npc(object):
         if db is None:
             db = current.db
         self.db = db
-        print db
         self.id_num = id_num
-        print id_num
         self.data = db.npcs[id_num]
 
         # get image here so that db interaction stays in __init__ method
         self.image_id = self.data.npc_image
-        print self.image_id
         self.image = db.images[self.image_id].image
 
     def get_id(self):
@@ -255,8 +252,7 @@ class Npc(object):
         Return a web2py IMG helper object with the image for the current
         npc character.
         """
-        img = self.image
-        print img
+        img = URL('paideia', 'static', 'images/{}'.format(self.image))
         return img
 
     def get_locations(self):
@@ -579,7 +575,7 @@ class StepAwardBadges(StepResponder, Step):
         bstring = ' You\'ve earned a new badge! '
         reps = {'[[new_badge_list]]': '{}{}'.format(bstring, badgelist.xml()),
                 '[[user]]': username}
-        try:
+        if promoted:
             proms = [db(db.badges.tag == t).select()[0] for t in promoted]
             pr = [LI(SPAN(n.badge_name, _class='badge_name'),
                         ' for ', n.description)
@@ -589,7 +585,7 @@ class StepAwardBadges(StepResponder, Step):
                 promlist.append(p)
             promstring = 'You\'ve reached a new level in these badges:'
             reps['[[promoted_list]]'] = '{}{}'.format(promstring, promlist.xml())
-        except:
+        else:
             reps['[[promoted_list]]'] = ''
 
         new_string = super(StepAwardBadges, self)._make_replacements(
@@ -614,9 +610,9 @@ class StepViewSlides(Step):
         db = self.db
         slides = UL(_class='slide_list')
         decks = db(db.tags.id.belongs(new_badges)).select(db.tags.slides).as_list()
-        pprint(decks)
         decks = [d for i in decks for k, v in i.iteritems() for d in v]
-        sliderows = db(db.plugin_slider_decks.id.belongs(decks)).select(db.plugin_slider_decks.deck_name).as_list()
+        sliderows = db(db.plugin_slider_decks.id.belongs(decks)
+                        ).select(db.plugin_slider_decks.deck_name).as_list()
         for name in [n for r in sliderows for k, n in r.iteritems()]:
             slides.append(LI(name))
         reps = {'[[slides]]': slides.xml(),
@@ -749,7 +745,6 @@ class StepEvaluator(object):
             user_response = request.vars['response']
         user_response = user_response.strip()
         responses = self.responses
-        print responses
         # Compare the student's response to the regular expressions
         try:
             if re.match(responses['response1'], user_response, re.I):
@@ -1090,7 +1085,6 @@ class Categorizer(object):
                     categories[k] = list(set(newv))
             # 'rev' categories are reintroduced
             categories.update((c, []) for c in ['rev1', 'rev2', 'rev3', 'rev4'])
-            print categories
             # changes in categorization since last time
             cat_changes = self._find_cat_changes(categories, old_categories)
             promoted = cat_changes['promoted']
