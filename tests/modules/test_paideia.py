@@ -143,7 +143,7 @@ step_data_store = {
         # stepAwardBadges
         126: {'case1':  # new badges, no promoted
                 {'username': 'Ian',
-                'raw_prompt': 'Congratulations, [[user]]![[new_badge_list]]!'\
+                'raw_prompt': 'Congratulations, [[user]]![[new_badge_list]]'\
                         '[[promoted_list]]You can click on your name above to '\
                         'see details of your progress so far.',
                 'final_prompt': 'Congratulations, Ian! You\'ve earned a new '\
@@ -162,6 +162,7 @@ step_data_store = {
                         '</ul>'\
                         'You can click on your name above to '\
                         'see details of your progress so far.',
+                'instructions': None,
                 'loc': Location(12, db),
                 'prev_loc': Location(12, db),
                 'prev_npc_id': 2,
@@ -189,7 +190,7 @@ step_data_store = {
                 'raw_prompt': 'Congratulations, [[user]]! You\'re ready to start '\
                     'working on some new badges. Before you '\
                     'continue, take some time to view these slide sets:'\
-                    '[[slides]]\nYou\'ll find the slides by clicking on the '\
+                    '[[slides]]You\'ll find the slides by clicking on the '\
                     '"slides" menu item at top.',
                 'final_prompt': 'Congratulations, Ian! You\'re ready to '\
                     'start working '\
@@ -198,12 +199,13 @@ step_data_store = {
                         '<ul class="slide_list">'\
                         '<li>The Alphabet III</li>'\
                         '<li>Case Basics</li>'\
-                        '</ul>\n'
+                        '</ul>'
                     'You\'ll find the slides by clicking on the "slides" menu '\
                     'item at top.',
+                'instructions': None,
                 'widget_type': 6,
                 'tags': [80],
-                'npcs': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
+                'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
                 'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10]},
             'case2': {}
             }
@@ -556,7 +558,6 @@ class TestStep():
                 'instructions': None,
                 'npc_image': npc1_img}
         output = locals()[case]
-        pprint(mystep['step'].get_prompt(username))
         assert mystep['step'].get_prompt(username)['prompt'] == output['prompt']
         assert mystep['step'].get_prompt(username)['instructions'] == output['instructions']
         assert mystep['step'].get_prompt(username)['npc_image'] == output['npc_image']
@@ -780,8 +781,9 @@ class TestStepViewSlides():
         that the step is 30.
         """
         sd = step_data_store[127]['case1']
-        # TODO: remove npc numbers that can't be at this loc
-        npcimgs = ['npc{}'.format(n) for n in sd['npcs']]
+        # TODO: remove npc numbers that can't be at this
+        npcimgs = [n['image'] for k, n in npc_data.iteritems()
+                        if k in sd['npc_list']]
         prompt = myStepViewSlides.get_prompt(username=sd['username'],
                                            new_badges=sd['new_badges'])
         assert prompt['prompt'] == sd['final_prompt']
@@ -794,10 +796,12 @@ class TestStepViewSlides():
 
         """
         sd = step_data_store[127]['case1']
-        assert myStepViewSlides._make_replacements(raw_prompt=sd['raw_prompt'],
+        prompt = myStepViewSlides._make_replacements(raw_prompt=sd['raw_prompt'],
                                                     username=sd['username'],
-                                                    new_badges=[5, 6]
-                                                    ) == sd['final_prompt']
+                                                    new_badges=[5, 6])
+        print prompt, '\n'
+        print sd['final_prompt']
+        assert prompt == sd['final_prompt']
 
     def test_step_stepviewslides_get_tags(self, myStepViewSlides):
         """
@@ -859,7 +863,7 @@ class TestStepText():
         casenum = myStepText['casenum']
         case = 'case{}'.format(casenum)
         case1 = {'response': 'μιτ',
-                'result': {'reply_text': '',
+                'result': {'reply_text': 'Right. Κάλον.',
                             'tips': [],
                             'readable_short': ['μιτ'],
                             'readable_long': None,
@@ -878,10 +882,9 @@ class TestStepText():
                             'times_wrong': 1,
                             'user_response': 'βλα'}}
         out = locals()[case]
-        reply_args = {}
-        print out['response']
-        assert myStepText['step'].get_reply(user_response=out['response']) \
-                                                            == out['result']
+        func = myStepText['step'].get_reply(user_response=out['response'])
+        for k, f in func.iteritems():
+            assert  f == out['result'][k]
 
 class TestStepMultiple():
     '''
@@ -928,9 +931,7 @@ class TestStepMultiple():
         resp += '</div>'
         resp += '</form>$'
 
-        pprint(resp)
         testfunc = myStepMultiple['step'].get_responder().xml()
-        pprint(testfunc)
         assert re.match(resp, testfunc)
 
     def test_stepmultiple_get_reply(self, myStepMultiple):
@@ -938,21 +939,21 @@ class TestStepMultiple():
         casenum = myStepMultiple['casenum']
         case = 'case{}'.format(casenum)
         case1 = {'reply_text': 'Right. Κάλον.',
-                'tips': None,
-                'readable_short': ['μιτ'],
+                'tips': [],
+                'readable_short': ['ναι'],
                 'readable_long': None,
                 'score': 1,
                 'times_right': 1,
                 'times_wrong': 0,
-                'user_response': 'μιτ'}
+                'user_response': 'ναι'}
         case2 = {'reply_text': 'Incorrect. Try again!',
-                'tips': None,
-                'readable_short': ['μιτ'],
+                'tips': [],
+                'readable_short': ['οὐ'],
                 'readable_long': None,
                 'score': 0,
                 'times_right': 0,
                 'times_wrong': 1,
-                'user_response': 'βλα'}
+                'user_response': 'οὐ'}
         out = locals()[case]
         assert myStepMultiple['step'].get_reply(out['user_response']
                                     )['reply_text'] == out['reply_text']
@@ -981,12 +982,12 @@ class TestStepEvaluator():
         case = 'case{}'.format(casenum)
         case1 = {'reply_text': 'Right. Κάλον.',
                 'tips': None,
-                'readable_short': ['ναι'],
+                'readable_short': ['μιτ'],
                 'readable_long': None,
                 'score': 1,
                 'times_right': 1,
                 'times_wrong': 0,
-                'user_response': 'ναι'}
+                'user_response': 'μιτ'}
         case2 = {'reply_text': 'Right. Κάλον.',
                 'tips': None,
                 'readable_short': ['ναι'],
@@ -994,7 +995,7 @@ class TestStepEvaluator():
                 'score': 1,
                 'times_right': 1,
                 'times_wrong': 0,
-                'user_response': 'οὐ'}
+                'user_response': 'βατ'}
         out = locals()[case]
 
         assert myStepEvaluator['eval'].get_eval(out['user_response']
@@ -1059,7 +1060,6 @@ class TestPath():
         # for path 89, multiple, single step
         output2 = StepFactory().get_instance(step_id=101, loc=Location(8, db),
                                         prev_loc=None, prev_npc_id=1, db=db)
-        print 'case number:', mypath['casenum']
         assert mypath['path'].get_step_for_prompt().get_id() ==\
                 locals()[output].get_id()
         assert mypath['path'].get_step_for_prompt().get_tags() ==\
@@ -1085,7 +1085,6 @@ class TestPath():
                 'step_sent_id': 101}
         output = locals()[case]
         sent_id = output['step_sent_id']
-        print 'case number:', mypath['casenum']
         test_func = mypath['path'].prepare_for_answer(
                 step_for_prompt=StepFactory().get_instance(
                             db=db, step_id=output['step_for_prompt_start']),
