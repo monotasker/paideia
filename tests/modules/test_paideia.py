@@ -309,14 +309,15 @@ def mypath(request):
     """
     # StepText loc and prev_npc both work, no blocks
     case = 'case{}'.format(request.param)
-    case1 = {'path_id': 3, 'blocks': [], 'loc_id': 1,
+    case1args = {'path_id': 3, 'blocks': [], 'loc_id': 1,
             'prev_loc': Location(1, db), 'prev_npc_id': 2}
+    case1 = Path(db=db, **case1args)
     # StepMultiple loc and prev_npc both work, no blocks
-    case2 = {'path_id': 89, 'blocks': [], 'loc_id': 8,
+    case2args = {'path_id': 89, 'blocks': [], 'loc_id': 8,
             'prev_loc': Location(8, db), 'prev_npc_id': 1}
-    casedict = locals()[case]
+    case2 = Path(db=db, **case2args)
     return {'casenum': request.param,
-            'path': Path(db=db, **casedict)}
+            'path': locals()[case]}
 
 @pytest.fixture(params=[s for s in range(1,3)])
 def mystep(request):
@@ -723,7 +724,7 @@ class TestAwardBadges():
         assert prompt['instructions'] == sd['instructions']
         assert prompt['npc_image'] in npcimgs
 
-    def test_step_stepawardbadges_make_replacements(self, myStepAwardBadges):
+    def test_stepawardbadges_make_replacements(self, myStepAwardBadges):
         """docstring for test_step_stepawardbadges_make_replacements"""
         case = myStepAwardBadges['casenum']
         sd = step_data_store[126]['case{}'.format(case)]
@@ -732,7 +733,7 @@ class TestAwardBadges():
         actual = myStepAwardBadges['step']._make_replacements(**out)
         assert actual == sd['final_prompt']
 
-    def test_step_stepawardbadges_get_tags(self, myStepAwardBadges):
+    def test_stepawardbadges_get_tags(self, myStepAwardBadges):
         """
         Test for method StepRedirect.get_tags
 
@@ -743,7 +744,7 @@ class TestAwardBadges():
         out = {'primary': sd['tags'], 'secondary': sd['tags_secondary']}
         assert myStepAwardBadges['step'].get_tags() == out
 
-    def test_step_stepawardbadges_get_responder(self, myStepAwardBadges):
+    def test_stepawardbadges_get_responder(self, myStepAwardBadges):
         """Test for method StepAwardBadges.get_responder"""
         request = current.request  # TODO: get loc below from self
         map_button = A("Map", _href=URL('walk'),
@@ -756,7 +757,7 @@ class TestAwardBadges():
         assert myStepAwardBadges['step'].get_responder().xml() == \
                                         DIV(map_button, continue_button).xml()
 
-    def test_step_stepawardbadges_get_npc(self, myStepAwardBadges):
+    def test_stepawardbadges_get_npc(self, myStepAwardBadges):
         """Test for method StepAwardBadges.get_npc"""
         assert myStepAwardBadges['step'].get_npc().get_id() in [14, 8, 2, 40, 31,
                                                             32, 41, 1, 17, 42]
@@ -770,11 +771,11 @@ class TestStepViewSlides():
     new badges.
     '''
 
-    def test_step_awardbadges_get_id(self, myStepViewSlides):
+    def test_awardbadges_get_id(self, myStepViewSlides):
         """Test for method Step.get_id"""
         assert myStepViewSlides.get_id() == 127
 
-    def test_step_stepviewslides_get_prompt(self, myStepViewSlides):
+    def test_stepviewslides_get_prompt(self, myStepViewSlides):
         """
         Test method for the get_prompt method of the StepRedirect class.
         This test assumes that the selected npc is Stephanos. It also assumes
@@ -790,7 +791,7 @@ class TestStepViewSlides():
         assert prompt['instructions'] == sd['instructions']
         assert prompt['npc_image'] in npcimgs
 
-    def test_step_stepviewslides_make_replacements(self, myStepViewSlides):
+    def test_stepviewslides_make_replacements(self, myStepViewSlides):
         """
         docstring for test_step_stepviewslides_make_replacements
 
@@ -803,7 +804,7 @@ class TestStepViewSlides():
         print sd['final_prompt']
         assert prompt == sd['final_prompt']
 
-    def test_step_stepviewslides_get_tags(self, myStepViewSlides):
+    def test_stepviewslides_get_tags(self, myStepViewSlides):
         """
         Test for method StepViewSlides.get_tags
 
@@ -812,14 +813,14 @@ class TestStepViewSlides():
         """
         assert myStepViewSlides.get_tags() == {'primary': [80], 'secondary': []}
 
-    def test_step_stepviewslides_get_responder(self, myStepViewSlides):
+    def test_stepviewslides_get_responder(self, myStepViewSlides):
         """Test for method StepViewSlides.get_responder"""
         map_button = A("Map", _href=URL('walk'),
                         cid='page',
                         _class='button-yellow-grad back_to_map icon-location')
         assert myStepViewSlides.get_responder().xml() == DIV(map_button).xml()
 
-    def test_step_stepviewslides_get_npc(self, myStepViewSlides):
+    def test_stepviewslides_get_npc(self, myStepViewSlides):
         """Test for method StepViewSlides.get_npc"""
         assert myStepViewSlides.get_npc().get_id() in [14, 8, 2, 40, 31,
                                                             32, 41, 1, 17, 42]
@@ -1060,14 +1061,13 @@ class TestPath():
         # for path 89, multiple, single step
         output2 = StepFactory().get_instance(step_id=101, loc=Location(8, db),
                                         prev_loc=None, prev_npc_id=1, db=db)
-        assert mypath['path'].get_step_for_prompt().get_id() ==\
-                locals()[output].get_id()
-        assert mypath['path'].get_step_for_prompt().get_tags() ==\
-                locals()[output].get_tags()
-        assert mypath['path'].get_step_for_prompt().get_locations() ==\
-                locals()[output].get_locations()
-        assert mypath['path'].get_step_for_prompt().get_prompt(username='Joe') ==\
-                locals()[output].get_prompt(username='Joe')
+        pstep = mypath['path'].get_step_for_prompt()
+        ostep = locals()[output]
+        assert pstep.get_id() == ostep.get_id()
+        assert pstep.get_tags() == ostep.get_tags()
+        assert pstep.get_locations() == ostep.get_locations()
+        assert pstep.get_prompt(username='Joe') \
+                                        == ostep.get_prompt(username='Joe')
 
     def test_path_prepare_for_answer(self, mypath):
         """Unit test for method paideia.Path.get_step_for_reply."""
@@ -1105,8 +1105,17 @@ class TestPath():
 
     def test_path_get_step_for_reply(self, mypath):
         """Unit test for method paideia.Path.get_step_for_reply."""
-        output = 'output{}'.format(mypath['casenum'])
-        assert 0
+        out = {1: StepFactory().get_instance(step_id=2, loc=Location(1, db),
+                                        prev_loc=1, prev_npc_id=2, db=db),
+              2: StepFactory().get_instance(step_id=101,
+                  loc=Location(8, db), prev_loc=None, prev_npc_id=1, db=db)
+              }
+        case = mypath['path']
+        pstep = case.get_step_for_prompt()
+        case.prepare_for_answer(pstep, step_sent_id=pstep.get_id)
+
+        path = case.get_step_for_reply()
+        assert path == out[mypath['casenum']]
 
 class TestPathChooser():
     """Unit testing class for the paideia.PathChooser class."""
