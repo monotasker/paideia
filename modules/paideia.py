@@ -819,7 +819,8 @@ class Path(object):
     """
 
     def __init__(self, path_id=None, blocks=None, loc_id=None, prev_loc=None,
-                                                prev_npc_id=None, db=None):
+                completed_steps=None, last_step_id=None, step_for_prompt=None,
+                step_for_reply=None, prev_npc_id=None, db=None):
         """Initialize a paideia.Path object."""
         self.prev_loc_id = prev_loc.get_id()
         self.prev_npc_id = prev_npc_id
@@ -830,14 +831,17 @@ class Path(object):
             db = current.db
         self.db = db
         self.path_dict = db.paths[path_id].as_dict()
+        # assemble list of step objects for the whole path
         static_args = {'loc': self.loc, 'prev_loc': prev_loc,
                         'prev_npc_id': prev_npc_id, 'db': db}
         self.steps = [StepFactory().get_instance(step_id=i, **static_args)
                                             for i in self.path_dict['steps']]
-        self.completed_steps = []
-        self.last_step_id = None
-        self.step_for_prompt = None
-        self.step_for_reply = None
+        # allow for insertion of these values by argument for testing
+        if not completed_steps:
+            self.completed_steps = []
+        self.last_step_id = last_step_id
+        self.step_for_prompt = step_for_prompt
+        self.step_for_reply = step_for_reply
 
     def get_step_for_prompt(self):
         """Find the next unanswered step in the current path and return it."""
@@ -917,6 +921,7 @@ class Path(object):
     def get_step_for_reply(self, db=None):
         """Return the Step object that is currently active for this path."""
         reply_step = self.step_for_reply
+        return reply_step
 
 
 
