@@ -47,7 +47,7 @@ def info():
         user = db.auth_user[request.vars['id']]
     else:
         user = db.auth_user[auth.user_id]
-
+    assert 0
     name = user.last_name + ', ' + user.first_name
     tz = user.time_zone
     email = user.email
@@ -81,13 +81,9 @@ def info():
 
     badgelist = []
     for bd in badge_dates:
-        badge_track = {'id': bd.tags.id,
-                'badge set': bd.tags.position,
-                'cat1':db.badges_begun.cat1,
-                'cat2':db.badges_begun.cat2,
-                'cat3':db.badges_begun.cat3,
-                'cat4':db.badges_begun.cat4}
-        badgelist.append(badge_track)
+        for c in ['cat1', 'cat2', 'cat3', 'cat4']:
+            if bd.badges_begun[c]:
+                badgelist.append({'id': bd.tags.id, c: bd.badges_begun[c]}
 
     return {'form': auth(),
             'the_name': name,
@@ -111,7 +107,6 @@ def oops():
     request_url = request.vars.request_url
     # Return the original HTTP error code
     response.status = code
-
     if code == 500:
         title = 'Paideia - Internal error reported'
         msg = HTML(BODY('Hello Ian,<br>I seem to have run into an error!',
