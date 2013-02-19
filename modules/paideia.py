@@ -236,8 +236,8 @@ class Npc(object):
         self.data = db.npcs[id_num]
 
         # get image here so that db interaction stays in __init__ method
-        image_id = self.data.npc_image
-        self.image = db.images[image_id].image
+        self.image_id = self.data.npc_image
+        self.image = db.images[self.image_id].image
 
     def get_id(self):
         """return the database row id of the current npc"""
@@ -247,12 +247,12 @@ class Npc(object):
         """return the name of the current npc"""
         return self.data.name
 
-    def get_image(self):
+    def get_image(self, db=None):
         """
         Return a web2py IMG helper object with the image for the current
         npc character.
         """
-        img = URL('static/images', self.db.images[self.data.npc_image].image)
+        img = URL('paideia', 'static', 'images/{}'.format(self.image))
         return img
 
     def get_locations(self):
@@ -335,8 +335,9 @@ class StepFactory(object):
         step_classes = {1: StepText,
                         2: StepMultiple,
                         3: Step,
-                        5: StepText,
-                        6: StepMultiple,
+                        4: StepText,
+                        5: StepMultiple,
+                        6: StepViewSlides,
                         7: StepQuotaReached,
                         8: StepAwardBadges,
                         9: StepRedirect}
@@ -380,35 +381,39 @@ class Step(object):
         """Return a list of the location id's for this step."""
         return self.data['locations']
 
-    def get_prompt(self, username=None):
+    def get_prompt(self, username=None, raw_prompt=None, **kwargs):
         """
         Return the prompt information for the step. In the Step base class
         this is a simple string. Before returning, though, any necessary
         replacements or randomizations are made.
         """
-        raw_prompt = self.data['prompt']
-        prompt = self._make_replacements(raw_prompt, username)
-        # prompt no longer tagged or converted to markmin here, but in view
+        if not raw_prompt:
+            raw_prompt = self.data['prompt']
+        passargs = kwargs
+
+        prompt = self._make_replacements(username=username,
+                                        raw_prompt=raw_prompt,
+                                        **kwargs)
 
         instructions = self._get_instructions()
-
         npc = self.get_npc()  # duplicate choice prevented in get_npc()
         npc_image = self.npc.get_image()
+        # prompt no longer tagged or converted to markmin here, but in view
 
         return {'prompt': prompt,
                 'instructions': instructions,
                 'npc_image': npc_image}
 
-    def _make_replacements(self, raw_string, username=None, reps=None):
+    def _make_replacements(self, raw_prompt=None, username=None, reps=None):
         """
         Return the provided string with tokens replaced by personalized
         information for the current user.
         """
-        if reps is None:
+        if not reps:
             reps = {}
-        reps['[[user]]'] = username
+            reps['[[user]]'] = username
 
-        new_string = raw_string
+        new_string = raw_prompt
         for k, v in reps.iteritems():
             new_string = new_string.replace(k, v)
 
@@ -434,11 +439,11 @@ class Step(object):
             npc_list = [n for n in npcs_for_step
                         if self.loc.get_id() in self.db.npcs[n].location]
             if self.prev_npc_id in npc_list:
-                self.npc = Npc(self.prev_npc_id)
+                self.npc = Npc(self.prev_npc_id, db=self.db)
                 return self.npc
             else:
                 pick = npc_list[randint(0, len(npc_list) - 1)]
-                self.npc = Npc(pick)
+                self.npc = Npc(pick, db=self.db)
                 return self.npc
 
     def _get_instructions(self):
@@ -458,6 +463,25 @@ class Step(object):
 
             return list
 
+class StepResponder(Step):
+    """
+    An abstract subclass of Step that adds a 'continue' button to the responder.
+    """
+    def get_responder(self):
+        """
+        Return the html form to allow the user to respond to the prompt for
+        this step.
+        """
+        responder = super(StepResponder, self).get_responder()
+
+        continue_button = A("Continue", _href=URL('walk', args=['ask'],
+                                        vars={'loc': self.loc.get_id()}),
+                            cid='page',
+                            _class='button-green-grad next_q')
+        responder.append(continue_button)
+
+        return responder
+
 
 class StepRedirect(Step):
     '''
@@ -475,68 +499,129 @@ class StepRedirect(Step):
         del(kwargs['self'])
         super(StepRedirect, self).__init__(**kwargs)
 
-    def _make_replacements(self, prompt_string, username=None,
-                                                    db=None, next_step=None):
+    def _make_replacements(self, raw_prompt=None, username=None, db=None,
+                            next_step_id=None):
         """
         Return the string for the step prompt with context-based information
         substituted for tokens framed by [[]].
         """
         session = current.session
         if not db:
-            db = current.db
+            db = self.db
         if not username:
             username = self.username
-        if not 'next_step_id' in locals():
+        if not next_step_id:
             next_step_id = self.next_step_id
         next_loc = 'somewhere else in town'  # generic default
         # if mid-way through a path, send to next viable location
         # TODO: find a way to set this value to another location with an
         # available path if the current step is the last in its path.
         if next_step_id:
-            next_locids = db.steps[self.next_step_id].locations
-            # find a location that actually has a readable name
-            raw_locs = [db.locations[n].readable for n in next_locids]
-            next_locs = [n for n in raw_locs if not n is None]
-        elif next_step:
-            next_locids = db.steps[next_step].locations
+            next_locids = db.steps[next_step_id].locations
             # find a location that actually has a readable name
             raw_locs = [db.locations[n].readable for n in next_locids]
             next_locs = [n for n in raw_locs if not n is None]
         else:
             pass
 
-        reps = {'[[next_loc]]': next_loc}
+        reps = {'[[next_loc]]': next_loc,
+                '[[user]]': username}
         new_string = super(StepRedirect, self)._make_replacements(
-                                                            prompt_string,
-                                                            reps=reps,
-                                                            username=username)
+                                                        raw_prompt=raw_prompt,
+                                                        username=username,
+                                                        reps=reps)
         return new_string
 
-class StepQuotaReached(Step):
+
+class StepQuotaReached(StepResponder, Step):
     '''
     A Step that tells the user s/he has completed the daily minimum # of steps.
     '''
-    def _make_replacements(self, prompt_string=None, username=None, db=None):
+    def _make_replacements(self, raw_prompt=None, username=None):
         """
         Return the string for the step prompt with context-based information
         substituted for tokens framed by [[]].
         """
-        if prompt_string is None:
-            prompt_string = self.data['prompt']
-        if not username:
-            username = self.username
         reps = None
-        new_string = super(StepRedirect, self)._make_replacements(
-                                                            prompt_string,
-                                                            reps=reps,
-                                                            username=username)
+        new_string = super(StepQuotaReached, self)._make_replacements(
+                                                            raw_prompt=raw_prompt,
+                                                            username=username,
+                                                            reps=reps)
         return new_string
 
-    pass
+
+class StepAwardBadges(StepResponder, Step):
+    '''
+    A Step that informs the user when s/he has earned new badges.
+    '''
+
+    def _make_replacements(self, raw_prompt=None, username=None,
+                            new_badges=None, promoted=None, db=None):
+        """
+        Return the string for the step prompt with context-based information
+        substituted for tokens framed by [[]].
+        """
+        if not username:
+            username = self.username
+        if not db:
+            db = self.db
+
+        badges = [db(db.badges.tag == t).select()[0] for t in new_badges]
+        nb = [LI(SPAN(n.badge_name, _class='badge_name'), ' for ', n.description)
+                for n in badges]
+        badgelist = UL(_class='new_badge_list')
+        for n in nb:
+            badgelist.append(n)
+        bstring = ' You\'ve earned a new badge! '
+        reps = {'[[new_badge_list]]': '{}{}'.format(bstring, badgelist.xml()),
+                '[[user]]': username}
+        if promoted:
+            proms = [db(db.badges.tag == t).select()[0] for t in promoted]
+            pr = [LI(SPAN(n.badge_name, _class='badge_name'),
+                        ' for ', n.description)
+                    for n in proms]
+            promlist = UL(_class='promoted_list')
+            for p in pr:
+                promlist.append(p)
+            promstring = 'You\'ve reached a new level in these badges:'
+            reps['[[promoted_list]]'] = '{}{}'.format(promstring, promlist.xml())
+        else:
+            reps['[[promoted_list]]'] = ''
+
+        new_string = super(StepAwardBadges, self)._make_replacements(
+                                                    raw_prompt=raw_prompt,
+                                                    username=username,
+                                                    reps=reps)
+        return new_string
 
 
-class StepAwardBadges(Step):
-    pass
+class StepViewSlides(Step):
+    '''
+    A Step that informs the user when s/he needs to view more grammar slides.
+    '''
+
+    def _make_replacements(self, raw_prompt=None, username=None, new_badges=None):
+        """
+        Return the string for the step prompt with context-based information
+        substituted for tokens framed by [[]].
+
+        new_badges value should be a list of tag id's as integers
+        """
+        db = self.db
+        slides = UL(_class='slide_list')
+        decks = db(db.tags.id.belongs(new_badges)).select(db.tags.slides).as_list()
+        decks = [d for i in decks for k, v in i.iteritems() for d in v]
+        sliderows = db(db.plugin_slider_decks.id.belongs(decks)
+                        ).select(db.plugin_slider_decks.deck_name).as_list()
+        for name in [n for r in sliderows for k, n in r.iteritems()]:
+            slides.append(LI(name))
+        reps = {'[[slides]]': slides.xml(),
+                '[[user]]': username}
+        new_string = super(StepViewSlides, self)._make_replacements(
+                                                        raw_prompt=raw_prompt,
+                                                        username=username,
+                                                        reps=reps)
+        return new_string
 
 
 class StepText(Step):
@@ -575,7 +660,6 @@ class StepText(Step):
 
 
         result = StepEvaluator(responses, tips).get_eval(user_response)
-
 
         return {'reply_text': result['reply'],
                 'tips': tips,
@@ -646,9 +730,9 @@ class StepEvaluator(object):
     handles the data that results.
     '''
 
-    def __init__(self, answers, tips):
+    def __init__(self, responses, tips):
         """Initializes a StepEvaluator object"""
-        self.answers = answers
+        self.responses = responses
         self.tips = tips
 
     def get_eval(self, user_response=None):
@@ -660,21 +744,20 @@ class StepEvaluator(object):
             request = current.request
             user_response = request.vars['response']
         user_response = user_response.strip()
-        answers = self.answers
-
+        responses = self.responses
         # Compare the student's response to the regular expressions
         try:
-            if re.match(answers[0], user_response, re.I):
+            if re.match(responses['response1'], user_response, re.I):
                 score = 1
                 reply = "Right. Κάλον."
-            elif len(answers) > 1 and re.match(answers[1],
+            elif len(responses) > 1 and re.match(responses['response2'],
                                                     user_response, re.I):
                 score = 0.5
                 #TODO: Get this score value from the db instead of hard
                 #coding it here.
                 reply = "Οὐ κάκον. You're close."
                 #TODO: Vary the replies
-            elif len(answers) > 2 and re.match(answers[2],
+            elif len(responses) > 2 and re.match(responses['response3'],
                                                     user_response, re.I):
                 #TODO: Get this score value from the db instead of hard
                 #coding it here.
@@ -687,8 +770,10 @@ class StepEvaluator(object):
             # Set the increment value for times wrong, depending on score
             if score < 1:
                 times_wrong = 1
+                times_right = 0
             else:
                 times_wrong = 0
+                times_right = 1
 
         # Handle errors if the student's response cannot be evaluated
         except re.error:
@@ -701,6 +786,7 @@ class StepEvaluator(object):
 
         return {'score': score,
                 'times_wrong': times_wrong,
+                'times_right': times_right,
                 'reply': reply,
                 'user_response': user_response,
                 'tips': tips}
@@ -710,6 +796,12 @@ class MultipleEvaluator(StepEvaluator):
     """
     Evaluates a user response to a multiple choice step prompt.
     """
+
+    def __init__(self, responses, tips):
+        """Initializes a StepEvaluator object"""
+        keys = ['response1', 'response2', 'response3']
+        self.responses = {r[0]: r[1] for r in zip(keys, responses)}
+        self.tips = tips
 
 
 
@@ -727,7 +819,8 @@ class Path(object):
     """
 
     def __init__(self, path_id=None, blocks=None, loc_id=None, prev_loc=None,
-                                                prev_npc_id=None, db=None):
+                completed_steps=None, last_step_id=None, step_for_prompt=None,
+                step_for_reply=None, prev_npc_id=None, db=None):
         """Initialize a paideia.Path object."""
         self.prev_loc_id = prev_loc.get_id()
         self.prev_npc_id = prev_npc_id
@@ -738,14 +831,17 @@ class Path(object):
             db = current.db
         self.db = db
         self.path_dict = db.paths[path_id].as_dict()
+        # assemble list of step objects for the whole path
         static_args = {'loc': self.loc, 'prev_loc': prev_loc,
                         'prev_npc_id': prev_npc_id, 'db': db}
         self.steps = [StepFactory().get_instance(step_id=i, **static_args)
                                             for i in self.path_dict['steps']]
-        self.completed_steps = []
-        self.last_step_id = None
-        self.step_for_prompt = None
-        self.step_for_reply = None
+        # allow for insertion of these values by argument for testing
+        if not completed_steps:
+            self.completed_steps = []
+        self.last_step_id = last_step_id
+        self.step_for_prompt = step_for_prompt
+        self.step_for_reply = step_for_reply
 
     def get_step_for_prompt(self):
         """Find the next unanswered step in the current path and return it."""
@@ -825,6 +921,7 @@ class Path(object):
     def get_step_for_reply(self, db=None):
         """Return the Step object that is currently active for this path."""
         reply_step = self.step_for_reply
+        return reply_step
 
 
 
@@ -993,7 +1090,6 @@ class Categorizer(object):
                     categories[k] = list(set(newv))
             # 'rev' categories are reintroduced
             categories.update((c, []) for c in ['rev1', 'rev2', 'rev3', 'rev4'])
-            print categories
             # changes in categorization since last time
             cat_changes = self._find_cat_changes(categories, old_categories)
             promoted = cat_changes['promoted']

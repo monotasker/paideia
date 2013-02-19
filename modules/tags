@@ -30,7 +30,7 @@ STEP_CLASSES	paideia_exploring.py	/^STEP_CLASSES = {$/;"	v
 Stats	paideia_stats.py	/^class Stats(object):$/;"	c
 Step	paideia.py	/^class Step(object):$/;"	c
 Step	paideia_exploring.py	/^class Step(object):$/;"	c
-StepAwardBadges	paideia.py	/^class StepAwardBadges(Step):$/;"	c
+StepAwardBadges	paideia.py	/^class StepAwardBadges(StepResponder, Step):$/;"	c
 StepAwardBadges	paideia_exploring.py	/^class StepAwardBadges(StepNonBlocking, StepStub):$/;"	c
 StepDailyQuota	paideia_exploring.py	/^class StepDailyQuota(StepNonBlocking, StepStub):$/;"	c
 StepEvaluator	paideia.py	/^class StepEvaluator(object):$/;"	c
@@ -40,11 +40,13 @@ StepImageMultipleChoice	paideia_exploring.py	/^class StepImageMultipleChoice(Ste
 StepMultiple	paideia.py	/^class StepMultiple(StepText):$/;"	c
 StepMultipleChoice	paideia_exploring.py	/^class StepMultipleChoice(Step):$/;"	c
 StepNonBlocking	paideia_exploring.py	/^class StepNonBlocking(StepStub, Step):$/;"	c
-StepQuotaReached	paideia.py	/^class StepQuotaReached(Step):$/;"	c
+StepQuotaReached	paideia.py	/^class StepQuotaReached(StepResponder, Step):$/;"	c
 StepRedirect	paideia.py	/^class StepRedirect(Step):$/;"	c
 StepRedirect	paideia_exploring.py	/^class StepRedirect(StepStub):$/;"	c
+StepResponder	paideia.py	/^class StepResponder(Step):$/;"	c
 StepStub	paideia_exploring.py	/^class StepStub(Step):$/;"	c
 StepText	paideia.py	/^class StepText(Step):$/;"	c
+StepViewSlides	paideia.py	/^class StepViewSlides(Step):$/;"	c
 StepViewSlides	paideia_exploring.py	/^class StepViewSlides(StepStub):$/;"	c
 User	paideia.py	/^class User(object):$/;"	c
 Utils	paideia_exploring.py	/^class Utils(object):$/;"	c
@@ -52,12 +54,13 @@ Walk	paideia.py	/^class Walk(object):$/;"	c
 Walk	paideia_exploring.py	/^class Walk(object):$/;"	c
 __init__	paideia.py	/^    def __init__(self):$/;"	m	class:Block
 __init__	paideia.py	/^    def __init__(self):$/;"	m	class:PathChooser
-__init__	paideia.py	/^    def __init__(self, answers, tips):$/;"	m	class:StepEvaluator
 __init__	paideia.py	/^    def __init__(self, id_num, db=None):$/;"	m	class:Location
 __init__	paideia.py	/^    def __init__(self, id_num, db=None):$/;"	m	class:Npc
 __init__	paideia.py	/^    def __init__(self, loc_alias, tag_records=None,$/;"	m	class:Walk
 __init__	paideia.py	/^    def __init__(self, path_id=None, blocks=None, loc_id=None, prev_loc=None,$/;"	m	class:Path
 __init__	paideia.py	/^    def __init__(self, rank, categories, tag_records):$/;"	m	class:Categorizer
+__init__	paideia.py	/^    def __init__(self, responses, tips):$/;"	m	class:MultipleEvaluator
+__init__	paideia.py	/^    def __init__(self, responses, tips):$/;"	m	class:StepEvaluator
 __init__	paideia.py	/^    def __init__(self, step, location, prev_npc, prev_loc):$/;"	m	class:NpcChooser
 __init__	paideia.py	/^    def __init__(self, step_id=None, loc=None, prev_loc=None, prev_npc_id=None,$/;"	m	class:Step
 __init__	paideia.py	/^    def __init__(self, step_id=None, step_data=None, loc=None, prev_loc=None,$/;"	m	class:StepRedirect
@@ -122,9 +125,11 @@ _get_util_step	paideia_exploring.py	/^    def _get_util_step(self, tag, next_loc
 _handle_blocks	paideia_exploring.py	/^    def _handle_blocks(self):$/;"	m	class:Walk
 _introduce	paideia_exploring.py	/^    def _introduce(self):$/;"	m	class:Walk
 _introduce_tags	paideia.py	/^    def _introduce_tags(rank=None, db=None):$/;"	m	class:Categorizer
-_make_replacements	paideia.py	/^    def _make_replacements(self, prompt_string, username=None,$/;"	m	class:StepRedirect
-_make_replacements	paideia.py	/^    def _make_replacements(self, prompt_string=None, username=None, db=None):$/;"	m	class:StepQuotaReached
-_make_replacements	paideia.py	/^    def _make_replacements(self, raw_string, username=None, reps=None):$/;"	m	class:Step
+_make_replacements	paideia.py	/^    def _make_replacements(self, raw_prompt=None, username=None):$/;"	m	class:StepQuotaReached
+_make_replacements	paideia.py	/^    def _make_replacements(self, raw_prompt=None, username=None):$/;"	m	class:StepRedirect
+_make_replacements	paideia.py	/^    def _make_replacements(self, raw_prompt=None, username=None, new_badges=None):$/;"	m	class:StepViewSlides
+_make_replacements	paideia.py	/^    def _make_replacements(self, raw_prompt=None, username=None, new_badges=None,$/;"	m	class:StepAwardBadges
+_make_replacements	paideia.py	/^    def _make_replacements(self, raw_prompt=None, username=None, reps=None):$/;"	m	class:Step
 _new_badges	paideia_exploring.py	/^    def _new_badges(self, categories, user=None, db=None):$/;"	m	class:Walk
 _record	paideia_exploring.py	/^    def _record(self, score, times_wrong_incr):$/;"	m	class:Step
 _record_step	paideia.py	/^    def _record_step(self, tag_records, categories, new_tags):$/;"	m	class:Walk
@@ -174,9 +179,10 @@ get_name	paideia.py	/^    def get_name(self):$/;"	m	class:Npc
 get_new_badges	paideia.py	/^    def get_new_badges(self):$/;"	m	class:User
 get_npc	paideia.py	/^    def get_npc(self):$/;"	m	class:Step
 get_path	paideia.py	/^    def get_path(self):$/;"	m	class:User
-get_prompt	paideia.py	/^    def get_prompt(self, username=None):$/;"	m	class:Step
+get_prompt	paideia.py	/^    def get_prompt(self, username=None, raw_prompt=None, **kwargs):$/;"	m	class:Step
 get_readable	paideia.py	/^    def get_readable(self):$/;"	m	class:Location
 get_reply	paideia.py	/^    def get_reply(self, user_response=None, answers=None, tips=None):$/;"	m	class:StepText
+get_responder	paideia.py	/^    def get_responder():$/;"	m	class:StepResponder
 get_responder	paideia.py	/^    def get_responder(self):$/;"	m	class:Step
 get_responder	paideia.py	/^    def get_responder(self):$/;"	m	class:StepMultiple
 get_responder	paideia.py	/^    def get_responder(self):$/;"	m	class:StepText
@@ -192,7 +198,6 @@ linktable	plugin_ajaxselect.py	/^    def linktable(self, field):$/;"	m	class:Aja
 log_list	paideia_stats.py	/^    def log_list(self):$/;"	m	class:Stats
 log_new	paideia_bugs.py	/^    def log_new(self, answer, log_id, score, step=None, path=None):$/;"	m	class:Bug
 logger	paideia_exploring.py	/^logger = logging.getLogger('web2py.app.paideia')$/;"	v
-logger	paideia_stats.py	/^logger = logging.getLogger('web2py.app.paideia')$/;"	v
 mail	paideia_bugs.py	/^mail = current.mail$/;"	v
 map	paideia.py	/^    def map(self):$/;"	m	class:Walk
 monthcal	paideia_stats.py	/^    def monthcal(self, year=None, month=None):$/;"	m	class:Stats
@@ -215,16 +220,16 @@ textarea	plugin_widgets.py	/^    def textarea(self, label, target, cname, fname,
 undo	paideia_bugs.py	/^    def undo(self, user_id, bug_id, log_id, step_id=None, db=None):$/;"	m	class:Bug
 util_get_args	paideia.py	/^def util_get_args():$/;"	f
 verbose	paideia_bugs.py	/^    verbose = True$/;"	v	class:Bug
-verbose	paideia_exploring.py	/^    verbose = False  # controls printing of initialization and method calls$/;"	v	class:Walk
-verbose	paideia_exploring.py	/^    verbose = False$/;"	v	class:Step
-verbose	paideia_exploring.py	/^    verbose = False$/;"	v	class:StepAwardBadges
-verbose	paideia_exploring.py	/^    verbose = False$/;"	v	class:StepDailyQuota
-verbose	paideia_exploring.py	/^    verbose = False$/;"	v	class:StepImage
-verbose	paideia_exploring.py	/^    verbose = False$/;"	v	class:StepImageMultipleChoice
-verbose	paideia_exploring.py	/^    verbose = False$/;"	v	class:StepMultipleChoice
-verbose	paideia_exploring.py	/^    verbose = False$/;"	v	class:StepStub
-verbose	paideia_exploring.py	/^    verbose = False$/;"	v	class:StepViewSlides
-verbose	paideia_exploring.py	/^    verbose = False$/;"	v	class:Utils
+verbose	paideia_exploring.py	/^    verbose = True  # controls printing of initialization and method calls$/;"	v	class:Walk
+verbose	paideia_exploring.py	/^    verbose = True$/;"	v	class:Step
+verbose	paideia_exploring.py	/^    verbose = True$/;"	v	class:StepAwardBadges
+verbose	paideia_exploring.py	/^    verbose = True$/;"	v	class:StepDailyQuota
+verbose	paideia_exploring.py	/^    verbose = True$/;"	v	class:StepImage
+verbose	paideia_exploring.py	/^    verbose = True$/;"	v	class:StepImageMultipleChoice
+verbose	paideia_exploring.py	/^    verbose = True$/;"	v	class:StepMultipleChoice
+verbose	paideia_exploring.py	/^    verbose = True$/;"	v	class:StepStub
+verbose	paideia_exploring.py	/^    verbose = True$/;"	v	class:StepViewSlides
+verbose	paideia_exploring.py	/^    verbose = True$/;"	v	class:Utils
 verbose	paideia_stats.py	/^    verbose = True$/;"	v	class:Stats
 widget	plugin_ajaxselect.py	/^    def widget(cls, field, value, restricted, rval, **attributes):$/;"	m	class:FilteredOptionsWidget
 widget	plugin_ajaxselect.py	/^    def widget(self, field, value, restricted=None, refresher=False,$/;"	m	class:AjaxSelect

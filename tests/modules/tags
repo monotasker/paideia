@@ -32,7 +32,7 @@ myMultipleEvaluator	test_paideia.py	/^def myMultipleEvaluator(request):$/;"	f
 myStepAwardBadges	test_paideia.py	/^def myStepAwardBadges():$/;"	f
 myStepEvaluator	test_paideia.py	/^def myStepEvaluator(request):$/;"	f
 myStepMultiple	test_paideia.py	/^def myStepMultiple(request):$/;"	f
-myStepQuota	test_paideia.py	/^def myStepQuota():$/;"	f
+myStepQuotaReached	test_paideia.py	/^def myStepQuotaReached():$/;"	f
 myStepRedirect	test_paideia.py	/^def myStepRedirect():$/;"	f
 myStepText	test_paideia.py	/^def myStepText(request):$/;"	f
 myStepViewSlides	test_paideia.py	/^def myStepViewSlides():$/;"	f

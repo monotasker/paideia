@@ -4,7 +4,7 @@
 import pytest
 from paideia import Npc, Location, User, PathChooser, Path, Categorizer, Walk
 from paideia import StepFactory, Step, StepText, StepMultiple
-from paideia import StepRedirect, StepViewSlides, StepAwardBadges, StepQuota
+from paideia import StepRedirect, StepViewSlides, StepAwardBadges, StepQuotaReached
 from paideia import StepEvaluator, MultipleEvaluator
 from paideia import Block, BlockRedirect, BlockAwardBadges, BlockViewSlides
 from gluon import *
@@ -31,12 +31,185 @@ npc5_img = '/paideia/static/images/images.image.a4d5140b25f87749.44726177696e672
 npc6_img = '/paideia/static/images/images.image.a28124edf3480d82.696d616765732e696d6167652e383135323664663563326663623438302e343437323631373736393665363732303332333232653733373636372e737667.svg'
 npc7_img = '/paideia/static/images/images.image.993274ee0076fd2f.696d616765732e696d6167652e393636636434346165663238613839652e343437323631373736393665363732303332333732653733373636372e737667.svg'
 npc8_img = '/paideia/static/images/images.image.938be4c25c678bb5.323031322d30362d30352030335f35325f31312e706e67.png'
+npc9_img = ''
 npc10_img = '/paideia/static/images/images.image.961b44d8d322659c.323031322d30362d30372031345f34345f34302e706e67.png'
 npc11_img = '/paideia/static/images/images.image.ac58c3e138964719.70686f6562652e706e67.png'
 npc14_img = '/paideia/static/images/images.image.b5592e80d5fe4bb3.73796e61676f6775652e6a7067.jpg'
 npc15_img = '/paideia/static/images/images.image.9a515ff664f03aa3.323031322d30372d32312032335f35315f31322e706e67.png'
 npc16_img = '/paideia/static/images/images.image.8bb7c079634cf35a.44726177696e672033332e706e67.png'
 npc17_img = '/paideia/static/images/images.image.95fcf253d4dd7abd.44726177696e6720352e706e67.png'
+
+npc_data = {1: {'image': npc1_img,
+                'name': 'Ἀλεξανδρος',
+                'location': [6, 8],
+                },
+            2: {'image': npc4_img,
+                'name': 'Μαρια',
+                'location': [3, 1, 2, 4],
+                },
+            8: {'image': npc5_img,
+                'name': 'Διοδωρος',
+                'location': [1],
+                },
+            14: {'image': npc2_img,
+                'name': 'Γεωργιος',
+                'location': [3, 1, 2, 4, 7, 8, 9, 10],
+                },
+            17: {'image': npc7_img,
+                'name': 'Ἰασων',
+                'location': [3, 1, 2, 4, 7, 8],
+                },
+            21: {'image': npc7_img,
+                'name': 'Νηρευς',
+                'location': [7, 8],
+                },
+            31: {'image': npc3_img,
+                'name': 'Σοφια',
+                'location': [3, 1, 2, 4, 11],
+                },
+            32: {'image': npc10_img,
+                'name': 'Στεφανος',
+                'location': [11],
+                },
+            40: {'image': npc6_img,
+                'name': 'Σιμων',
+                'location': [3, 1, 2, 4, 7, 8],
+                },
+            41: {'image': npc11_img,
+                'name': 'Φοιβη',
+                'location': [3, 1, 4, 8],
+                },
+            42: {'image': npc9_img,
+                'name': 'Ὑπατια',
+                'location': [3, 1, 2, 4, 12, 8],
+                }}
+
+step_data_store = {
+        # stepText
+        1: {'case1':  # same npc and location as previous step
+               {'loc': Location(8, db),
+                'prev_loc': Location(8, db),
+                'prev_npc_id': 1,
+                'user': 'Ian',
+                'new_badges': [],
+                'npc_list': [],
+                'instructions': None},
+            'case2': {}
+            },
+        # stepText
+        2: {'case1':  # same npc and location as previous step
+                {'loc': Location(1, db),
+                'prev_loc': Location(1, db),
+                'prev_npc_id': 2}
+            },
+        # stepRedirect
+        30: {'case1':
+                {'user': 'Ian',
+                'loc': Location(11, db), # synagogue
+                'prev_loc': Location(11, db),
+                'prev_npc_id': 31, # stephanos
+                'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
+                'instructions': None},
+            'case2': {}
+            },
+        # stepMultiple
+        101: {'case1':  # same npc and location as previous step
+                {'loc': Location(8, db),
+                'prev_loc': Location(8, db),
+                'prev_npc_id': 1,},
+            'case2':
+                {'loc': Location(8, db),
+                'prev_loc': Location(7, db),
+                'prev_npc_id': 1,
+                }
+            },
+        # stepQuotaReached
+        125: {'case1':  # same npc and location as previous step
+                {'username': 'Ian',
+                'loc': Location(8, db),
+                'prev_loc': Location(8, db),
+                'prev_npc_id': 1,
+                'loc': Location(8, db),
+                'prev_loc': Location(8, db),
+                'prev_npc_id': 1,
+                'raw_prompt': 'Well done, [[user]]. You\'ve finished enough '\
+                        'paths for today. But if you would like to keep '\
+                        'going, you\'re welcome to continue.',
+                'final_prompt': 'Well done, Ian. You\'ve finished enough '\
+                        'paths for today. But if you would like to keep '\
+                        'going, you\'re welcome to continue.'
+                }
+            },
+        # stepAwardBadges
+        126: {'case1':  # new badges, no promoted
+                {'username': 'Ian',
+                'raw_prompt': 'Congratulations, [[user]]![[new_badge_list]]'\
+                        '[[promoted_list]]You can click on your name above to '\
+                        'see details of your progress so far.',
+                'final_prompt': 'Congratulations, Ian! You\'ve earned a new '\
+                        'badge! '\
+                        '<ul class="new_badge_list">'\
+                        '<li>'\
+                        '<span class="badge_name">spaced out</span> '\
+                        'for using spatial adverbs to talk about the '\
+                        'location of events, people, places, or things'\
+                        '</li>'\
+                        '<li>'\
+                        '<span class="badge_name">nominative 1</span> for '\
+                        'the use of singular, first-declension nouns in the '\
+                        'nominative case'\
+                        '</li>'\
+                        '</ul>'\
+                        'You can click on your name above to '\
+                        'see details of your progress so far.',
+                'instructions': None,
+                'loc': Location(12, db),
+                'prev_loc': Location(12, db),
+                'prev_npc_id': 2,
+                'new_badges': [5, 6],
+                'promoted': [],
+                'widget_type': 8,
+                'tags': [81],
+                'tags_secondary': [],
+                'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
+                'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10]}
+            },
+            # TODO: write another case to test with promotions present
+            #promoted_list = 'You\'ve reached a new level in these badges:'\
+                        #'<ul class="promoted_list">'\
+                        #'<li>'\
+                        #'</li>'\
+                        #'</ul>'
+        # stepViewSlides
+        127: {'case1':
+                {'username': 'Ian',
+                'loc': Location(3, db),
+                'prev_loc': Location(3, db),
+                'prev_npc_id': 1,
+                'new_badges': [5,6],
+                'raw_prompt': 'Congratulations, [[user]]! You\'re ready to start '\
+                    'working on some new badges. Before you '\
+                    'continue, take some time to view these slide sets:'\
+                    '[[slides]]You\'ll find the slides by clicking on the '\
+                    '"slides" menu item at top.',
+                'final_prompt': 'Congratulations, Ian! You\'re ready to '\
+                    'start working '\
+                    'on some new badges. Before you continue, take some time '\
+                    'to view these slide sets:'\
+                        '<ul class="slide_list">'\
+                        '<li>The Alphabet III</li>'\
+                        '<li>Case Basics</li>'\
+                        '</ul>'
+                    'You\'ll find the slides by clicking on the "slides" menu '\
+                    'item at top.',
+                'instructions': None,
+                'widget_type': 6,
+                'tags': [80],
+                'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
+                'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10]},
+            'case2': {}
+            }
+        }
 
 @pytest.fixture
 def mywalk():
@@ -136,14 +309,15 @@ def mypath(request):
     """
     # StepText loc and prev_npc both work, no blocks
     case = 'case{}'.format(request.param)
-    case1 = {'path_id': 3, 'blocks': [], 'loc_id': 1,
+    case1args = {'path_id': 3, 'blocks': [], 'loc_id': 1,
             'prev_loc': Location(1, db), 'prev_npc_id': 2}
+    case1 = Path(db=db, **case1args)
     # StepMultiple loc and prev_npc both work, no blocks
-    case2 = {'path_id': 89, 'blocks': [], 'loc_id': 8,
+    case2args = {'path_id': 89, 'blocks': [], 'loc_id': 8,
             'prev_loc': Location(8, db), 'prev_npc_id': 1}
-    casedict = locals()[case]
+    case2 = Path(db=db, **case2args)
     return {'casenum': request.param,
-            'path': Path(db=db, **casedict)}
+            'path': locals()[case]}
 
 @pytest.fixture(params=[s for s in range(1,3)])
 def mystep(request):
@@ -152,23 +326,17 @@ def mystep(request):
     - same npc and location as previous step
     TODO: write another fixture for a new location and for a new npc
     """
-    case = 'case{}'.format(request.param)
-    case1 = {'step_id': 1,
-            'loc': Location(8, db),
-            'prev_loc': Location(8, db),
-            'prev_npc_id': 1}
-    case2 = {'step_id': 2,
-            'loc': Location(1, db),
-            'prev_loc': Location(1, db),
-            'prev_npc_id': 2}
-    case3 = {'step_id': 101,
-            'loc': Location(8, db),
-            'prev_loc': Location(7, db),
-            'prev_npc_id': 1}
-
-    output = locals()[case]
+    ind = request.param - 1
+    cases = [(1, 'case1'),
+            (2, 'case1'),
+            (101, 'case2')]
+    sid = cases[ind][0]
+    case = cases[ind][1]
+    sd = step_data_store[sid][case]
+    out = {k:v for k, v in sd.iteritems()
+                if k in ['loc', 'prev_loc', 'prev_npc_id']}
     return {'casenum': request.param,
-            'step': StepFactory().get_instance(db=db, **output)}
+            'step': StepFactory().get_instance(step_id=sid, db=db, **out)}
 
 @pytest.fixture
 def myStepRedirect():
@@ -177,65 +345,48 @@ def myStepRedirect():
     - same npc and location as previous step
     TODO: write another fixture for a new location and for a new npc
     """
-    loc = Location(11, db) # synagogue
-    prev_loc = Location(11, db)
-    prev_npc_id = 31 # stephanos
-    return StepRedirect(30, loc, prev_loc, prev_npc_id, db=db)
+    step_data = step_data_store[30]['case1']
+    out = {'step_id': 30,
+            'loc': step_data['loc'],
+            'prev_loc': step_data['prev_loc'],
+            'prev_npc_id': step_data['prev_npc_id']}
+    return StepRedirect(db=db, **out)
 
 @pytest.fixture
 def myStepAwardBadges():
     """
     A pytest fixture providing a paideia.StepAwardBadges object for testing.
     """
-    prompt_string = 'Congratulations, [[user]]! You\'ve earned a new badge! '\
-                    '[[badge_list]]!'
+    casenum = 1
+    step_data = step_data_store[126]['case1']
     out = {'step_id': 126,
-            'loc': Location(12, db),
-            'prev_loc': Location(12, db),
-            'prev_npc_id': 2,
-            'new_badge_list': []}
-    info = {'prompt': prompt_string,
-            'widget_type': 8,
-            'tags': [81],
-            'npcs': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
-            'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10]}
-    return StepAwardBadges(db=db, **out)
+            'loc': step_data['loc'],
+            'prev_loc': step_data['prev_loc'],
+            'prev_npc_id': step_data['prev_npc_id']}
+    return {'casenum': casenum, 'step': StepAwardBadges(db=db, **out)}
 
 @pytest.fixture
 def myStepViewSlides():
     """
     A pytest fixture providing a paideia.StepViewSlides object for testing.
     """
-    #prompt_string = 'Congratulations, [[user]]! You\'re ready to start '\
-                #'working on some new badges:\n[[badge_list]]\nBefore you '\
-                #'continue, take some time to view these slide sets:'\
-                #'[[slides]]\nYou\'ll find the slides by clicking on the '\
-                #'"slides" menu item at top.'
+    step_data = step_data_store[127]['case1']
     out = {'step_id': 127,
-            'loc': Location(3, db),
-            'prev_loc': Location(3, db),
-            'prev_npc_id': 1}
-    info = {'prompt': prompt_string,
-            'widget_type': 6,
-            'tags': [80],
-            'npcs': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
-            'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10]}
+            'loc': step_data['loc'],
+            'prev_loc': step_data['prev_loc'],
+            'prev_npc_id': step_data['prev_npc_id']}
     return StepViewSlides(db=db, **out)
 
-
-def myStepQuota():
+@pytest.fixture
+def myStepQuotaReached():
     """
     A pytest fixture providing a paideia.StepQuota object for testing.
     """
-    # same npc and location as previous step
-    #prompt_string = 'Well done, [[user]]. You\'ve finished enough paths for '\
-                    #'today. But if you would like to keep going, you\'re '\
-                    #'welcome to continue.'
+    step_data = step_data_store[125]['case1']
     out = {'step_id': 125,
-            'loc': Location(8, db),
-            'prev_loc': Location(8, db),
-            'prev_npc_id': 1,
-            'db': db}
+            'loc': step_data['loc'],
+            'prev_loc': step_data['prev_loc'],
+            'prev_npc_id': step_data['prev_npc_id']}
     return  StepFactory().get_instance(**out)
 
 @pytest.fixture(params=[s for s in range(1,2)])
@@ -243,40 +394,29 @@ def myStepText(request):
     """
     A pytest fixture providing a paideia.StepText object for testing.
     """
-    # same npc and location as previous step
-    case = 'case{}'.format(request.param)
-    case1 = {'step_id': 1,
-            'loc': Location(8, db),
-            'prev_loc': Location(8, db),
-            'prev_npc_id': 1,
-            'db': db}
-    case2 = {'step_id': 2,
-            'loc': Location(1, db),
-            'prev_loc': Location(1, db),
-            'prev_npc_id': 2,
-            'db': db}
-    output = locals()[case]
+    ind = request.param - 1
+    cases = [(1, 'case1'),
+            (2, 'case1')]
+    sid = cases[ind][0]
+    case = cases[ind][1]
+    sd = step_data_store[sid][case]
+    out = {k:v for k, v in sd.iteritems() if k in ['loc', 'prev_loc', 'prev_npc_id']}
     return {'casenum': request.param,
-            'step': StepFactory().get_instance(**output)}
+            'step': StepFactory().get_instance(step_id=sid, db=db, **out)}
 
 @pytest.fixture(params=[s for s in range(1,2)])
 def myStepMultiple(request):
     """ """
-    case = 'case{}'.format(request.param)
-    case1 = {'step_id': 101,
-            'loc': Location(8, db),
-            'prev_loc': Location(8, db),
-            'prev_npc_id': 1,
-            'db': db}
-    case2 = {'step_id': 101,
-            'loc': Location(8, db),
-            'prev_loc': Location(8, db),
-            'prev_npc_id': 1,
-            'db': db}
-    output = locals()[case]
+    ind = request.param - 1
+    cases = [(101, 'case1'),
+            (101, 'case2')]
+    sid = cases[ind][0]
+    case = cases[ind][1]
+    sd = step_data_store[sid][case]
+    out = {k:v for k, v in sd.iteritems()
+                if k in ['loc', 'prev_loc', 'prev_npc_id']}
     return {'casenum': request.param,
-            'step': StepFactory().get_instance(**output)}
-
+            'step': StepFactory().get_instance(step_id=sid, db=db, **out)}
 
 @pytest.fixture(params=[s for s in range(1,2)])
 def myStepEvaluator(request):
@@ -286,15 +426,16 @@ def myStepEvaluator(request):
     case = 'case{}'.format(request.param)
     case1 = {'casenum': 1,
             'vals': {'step_id': 1,
-                    'answers': ['^μιτ$'],
+                    'responses': {'response1': '^μιτ$'},
                     'tips': None}}
     case2 = {'casenum': 2,
             'vals': {'step_id': 2,
-                    'answers': ['^β(α|ο)τ$'],
+                    'responses': {'response1': '^β(α|ο)τ$'},
                     'tips': None}}
     out = locals()[case]
     return {'casenum': out['casenum'],
-            'eval': StepEvaluator(out['vals']['answers'], out['vals']['tips'])}
+            'eval': StepEvaluator(responses=out['vals']['responses'],
+                                    tips=out['vals']['tips'])}
 
 @pytest.fixture(params=[s for s in range(1,2)])
 def myMultipleEvaluator(request):
@@ -312,7 +453,8 @@ def myMultipleEvaluator(request):
                     'tips': None}}
     out = locals()[case]
     return {'casenum': out['casenum'],
-            'eval': StepEvaluator(out['vals']['answers'], out['vals']['tips'])}
+            'eval': MultipleEvaluator(responses=out['vals']['answers'],
+                                        tips=out['vals']['tips'])}
 
 # ===================================================================
 # Test Classes
@@ -417,7 +559,6 @@ class TestStep():
                 'instructions': None,
                 'npc_image': npc1_img}
         output = locals()[case]
-        pprint(mystep['step'].get_prompt(username))
         assert mystep['step'].get_prompt(username)['prompt'] == output['prompt']
         assert mystep['step'].get_prompt(username)['instructions'] == output['instructions']
         assert mystep['step'].get_prompt(username)['npc_image'] == output['npc_image']
@@ -429,8 +570,9 @@ class TestStep():
         case1 = {'raw_string': 'Hi [[user]]!', 'username': 'Ian', 'result': 'Hi Ian!'}
         case2 = {'raw_string': 'Hi there [[user]].', 'username': 'Ian', 'result': 'Hi there Ian.'}
         output = locals()[case]
-        assert mystep['step']._make_replacements(output['raw_string'],
-                                        output['username']) == output['result']
+        assert mystep['step']._make_replacements(raw_prompt=output['raw_string'],
+                                                username=output['username']
+                                                ) == output['result']
 
     def test_step_get_responder(self, mystep):
         """Test for method Step.get_responder"""
@@ -521,9 +663,12 @@ class TestStepRedirect():
         """docstring for test_stepredirect_make_replacements"""
         string = 'Nothing to do here [[user]]. Try [[next_loc]].'
         next_step = 1
-        kwargs = {'username': 'Ian', 'db': db, 'next_step': next_step}
+        kwargs = {'raw_prompt':string,
+                'username': 'Ian',
+                'db': db,
+                'next_step_id': next_step}
         newstring = 'Nothing to do here Ian. Try somewhere else in town.'
-        assert myStepRedirect._make_replacements(string, **kwargs) == newstring
+        assert myStepRedirect._make_replacements(**kwargs) == newstring
 
     def test_stepredirect_get_tags(self, myStepRedirect):
         """
@@ -556,102 +701,67 @@ class TestAwardBadges():
     new badges.
     '''
 
-    def test_step_awardbadges(self, myStepAwardBadges):
+    def test_stepawardbadges_get_id(self, myStepAwardBadges):
         """Test for method Step.get_id"""
-        assert myStepAwardBadges.get_id() == 126
+        assert myStepAwardBadges['step'].get_id() == 126
 
-    def test_step_stepawardbadges_get_prompt(self, myStepAwardBadges):
+    def test_stepawardbadges_get_prompt(self, myStepAwardBadges):
         """
         Test method for the get_prompt method of the StepRedirect class.
         This test assumes that the selected npc is Stephanos. It also assumes
-        that the step is 30.
+        that the step is 126.
         """
-        user = 'Ian'
-        new_badge_list = '<ul class="new_badge_list">'\
-                        '<li>'\
-                        '<strong>alphabet (diphthongs and capitals)</strong> '\
-                        'for learning the capital letter forms and the '\
-                        'sounds made by common vowel combinations'\
-                        '</li>'\
-                        '<li>'\
-                        '<strong>nominative 1</strong> '\
-                        'the use of singular, first-declension nouns in the '\
-                        'nominative case'\
-                        '</li>'\
-                        '</ul>'
-        prompt_string = 'Congratulations, Ian! You\'ve earned a new badge! '\
-                        '{}!'.format(new_badge_list)
+        sd = step_data_store[126]['case1']
         # TODO: remove npc numbers that can't be at this loc
-        npcimgs = [i for i in 'npc{}'.format(n)
-                        for n in [14, 8, 2, 40, 31, 32, 41, 1, 17, 42]]
-        assert myStepAwardBadges.get_prompt(user)['prompt'] == prompt_string
-        assert myStepAwardBadges.get_prompt(username)['instructions'] == None
-        assert myStepAwardBadges.get_prompt(username)['npc_image'] in npcimgs
+        npcimgs = [n['image'] for k, n in npc_data.iteritems()
+                        if k in sd['npc_list']]
+        out = {'raw_prompt': sd['raw_prompt'],
+                'username': sd['username'],
+                'new_badges': sd['new_badges'],
+                'db': db}
+        prompt = myStepAwardBadges['step'].get_prompt(**out)
+        assert prompt['prompt'] == sd['final_prompt']
+        assert prompt['instructions'] == sd['instructions']
+        assert prompt['npc_image'] in npcimgs
 
-    def test_step_stepawardbadges_make_replacements(self, myStepAwardBadges):
+    def test_stepawardbadges_make_replacements(self, myStepAwardBadges):
         """docstring for test_step_stepawardbadges_make_replacements"""
-        new_badge_list = 'You\'ve earned a new badge! '\
-                        '<ul class="new_badge_list">'\
-                        '<li>'\
-                        '<strong>alphabet (diphthongs and capitals)</strong> '\
-                        'for learning the capital letter forms and the '\
-                        'sounds made by common vowel combinations'\
-                        '</li>'\
-                        '<li>'\
-                        '<strong>nominative 1</strong> '\
-                        'the use of singular, first-declension nouns in the '\
-                        'nominative case'\
-                        '</li>'\
-                        '</ul>'
-        promoted_list = 'You\'ve reached a new level in these badges:'\
-                        '<ul class="promoted_list">'\
-                        '<li>'\
-                        '<strong>nominative 1</strong> '\
-                        'the use of singular, first-declension nouns in the '\
-                        'nominative case'\
-                        '</li>'\
-                        '</ul>'
+        case = myStepAwardBadges['casenum']
+        sd = step_data_store[126]['case{}'.format(case)]
+        out = {k: v for k, v in sd.iteritems()
+                if k in ['raw_prompt', 'username', 'new_badges', 'promoted']}
+        actual = myStepAwardBadges['step']._make_replacements(**out)
+        assert actual == sd['final_prompt']
 
-        newstring = 'Congratulations, Ian! '\
-                        '{}{} You can click on your name above to see '\
-                        'details of your progress so far.'.format(
-                                                new_badge_list, promoted_list)
-
-        string = 'Congratulations, [[user]]! \n[[new_badge_list]]\n'\
-                '[[promoted_list]]\n You can click on your name above to '\
-                'see details of your progress so far.'
-        kwargs = {'username': 'Ian',
-                    'db': db,
-                    'new_badges': [5, 6],
-                    'promoted': [7]}
-        assert myStepAwardBadges._make_replacements(string, **kwargs) == newstring
-
-    def test_step_stepawardbadges_get_tags(self, myStepAwardBadges):
+    def test_stepawardbadges_get_tags(self, myStepAwardBadges):
         """
         Test for method StepRedirect.get_tags
 
-        The one tag that should be returned for all steps of this class is tag
-        81
+        The one tag that should be returned for all steps of this class is 81
         """
-        assert myStepAwardBadges.get_tags() == {'primary': [81], 'secondary': []}
+        case = myStepAwardBadges['casenum']
+        sd = step_data_store[126]['case{}'.format(case)]
+        out = {'primary': sd['tags'], 'secondary': sd['tags_secondary']}
+        assert myStepAwardBadges['step'].get_tags() == out
 
-    def test_step_stepawardbadges_get_responder(self, myStepAwardBadges):
+    def test_stepawardbadges_get_responder(self, myStepAwardBadges):
         """Test for method StepAwardBadges.get_responder"""
+        request = current.request  # TODO: get loc below from self
         map_button = A("Map", _href=URL('walk'),
                         cid='page',
                         _class='button-yellow-grad back_to_map icon-location')
         continue_button = A("Continue", _href=URL('walk', args=['ask'],
-                                        vars=dict(loc=request.vars['loc'])),
+                                        vars={'loc':12}),
                             cid='page',
                             _class='button-green-grad next_q')
-        assert myStepAwardBadges.get_responder().xml() == \
+        assert myStepAwardBadges['step'].get_responder().xml() == \
                                         DIV(map_button, continue_button).xml()
 
-    def test_step_stepawardbadges_get_npc(self, myStepAwardBadges):
+    def test_stepawardbadges_get_npc(self, myStepAwardBadges):
         """Test for method StepAwardBadges.get_npc"""
-        assert myStepAwardBadges.get_npc().get_id() in [14, 8, 2, 40, 31,
+        assert myStepAwardBadges['step'].get_npc().get_id() in [14, 8, 2, 40, 31,
                                                             32, 41, 1, 17, 42]
-        locs = myStepAwardBadges.get_npc().get_locations()
+        locs = myStepAwardBadges['step'].get_npc().get_locations()
         assert isinstance(locs[0], Location)
 
 
@@ -661,62 +771,40 @@ class TestStepViewSlides():
     new badges.
     '''
 
-    def test_step_awardbadges_get_id(self, myStepViewSlides):
+    def test_awardbadges_get_id(self, myStepViewSlides):
         """Test for method Step.get_id"""
         assert myStepViewSlides.get_id() == 127
 
-    def test_step_stepviewslides_get_prompt(self, myStepViewSlides):
+    def test_stepviewslides_get_prompt(self, myStepViewSlides):
         """
         Test method for the get_prompt method of the StepRedirect class.
         This test assumes that the selected npc is Stephanos. It also assumes
         that the step is 30.
         """
-        user = 'Ian'
-        slide_list = 'You\'ve earned a new badge! '\
-                        '<ul class="slide_list">'\
-                        '<li>The Alphabet III</li>'\
-                        '<li>Case Basics</li>'\
-                        '</ul>'
-        prompt_string = 'Congratulations, Ian! You\'re ready to start working '\
-                'on some new badges. Before you continue, take some time '\
-                'to view these slide sets:'\
-                '{}'\
-                'You\'ll find the slides by clicking on the "slides" menu '\
-                'item at top.'.format(slide_list)
-        # TODO: remove npc numbers that can't be at this loc
-        npcimgs = [i for i in 'npc{}'.format(n)
-                        for n in [14, 8, 2, 40, 31, 32, 41, 1, 17, 42]]
-        assert myStepViewSlides.get_prompt(user)['prompt'] == prompt_string
-        assert myStepViewSlides.get_prompt(username)['instructions'] == None
-        assert myStepViewSlides.get_prompt(username)['npc_image'] in npcimgs
+        sd = step_data_store[127]['case1']
+        # TODO: remove npc numbers that can't be at this
+        npcimgs = [n['image'] for k, n in npc_data.iteritems()
+                        if k in sd['npc_list']]
+        prompt = myStepViewSlides.get_prompt(username=sd['username'],
+                                           new_badges=sd['new_badges'])
+        assert prompt['prompt'] == sd['final_prompt']
+        assert prompt['instructions'] == sd['instructions']
+        assert prompt['npc_image'] in npcimgs
 
-    def test_step_stepviewslides_make_replacements(self, myStepViewSlides):
-        """docstring for test_step_stepviewslides_make_replacements"""
-        slide_list = 'You\'ve earned a new badge! '\
-                        '<ul class="slide_list">'\
-                        '<li>The Alphabet III</li>'\
-                        '<li>Case Basics</li>'\
-                        '</ul>'
-        newstring = 'Congratulations, Ian! You\'re ready to start working '\
-                'on some new badges. Before you continue, take some time '\
-                'to view these slide sets:'\
-                '{}'\
-                'You\'ll find the slides by clicking on the "slides" menu '\
-                'item at top.'.format(slide_list)
+    def test_stepviewslides_make_replacements(self, myStepViewSlides):
+        """
+        docstring for test_step_stepviewslides_make_replacements
 
-        string = 'Congratulations, [[user]]! You\'re ready to start working '\
-                'on some new badges. Before you continue, take some time '\
-                'to view these slide sets:'\
-                '[[slides]]'\
-                'You\'ll find the slides by clicking on the "slides" menu '\
-                'item at top.'
+        """
+        sd = step_data_store[127]['case1']
+        prompt = myStepViewSlides._make_replacements(raw_prompt=sd['raw_prompt'],
+                                                    username=sd['username'],
+                                                    new_badges=[5, 6])
+        print prompt, '\n'
+        print sd['final_prompt']
+        assert prompt == sd['final_prompt']
 
-        kwargs = {'username': 'Ian',
-                    'db': db,
-                    'new_badges': [5, 6]}
-        assert myStepViewSlides._make_replacements(string, **kwargs) == newstring
-
-    def test_step_stepviewslides_get_tags(self, myStepViewSlides):
+    def test_stepviewslides_get_tags(self, myStepViewSlides):
         """
         Test for method StepViewSlides.get_tags
 
@@ -725,14 +813,14 @@ class TestStepViewSlides():
         """
         assert myStepViewSlides.get_tags() == {'primary': [80], 'secondary': []}
 
-    def test_step_stepviewslides_get_responder(self, myStepViewSlides):
+    def test_stepviewslides_get_responder(self, myStepViewSlides):
         """Test for method StepViewSlides.get_responder"""
         map_button = A("Map", _href=URL('walk'),
                         cid='page',
                         _class='button-yellow-grad back_to_map icon-location')
         assert myStepViewSlides.get_responder().xml() == DIV(map_button).xml()
 
-    def test_step_stepviewslides_get_npc(self, myStepViewSlides):
+    def test_stepviewslides_get_npc(self, myStepViewSlides):
         """Test for method StepViewSlides.get_npc"""
         assert myStepViewSlides.get_npc().get_id() in [14, 8, 2, 40, 31,
                                                             32, 41, 1, 17, 42]
@@ -776,7 +864,7 @@ class TestStepText():
         casenum = myStepText['casenum']
         case = 'case{}'.format(casenum)
         case1 = {'response': 'μιτ',
-                'result': {'reply_text': '',
+                'result': {'reply_text': 'Right. Κάλον.',
                             'tips': [],
                             'readable_short': ['μιτ'],
                             'readable_long': None,
@@ -795,10 +883,9 @@ class TestStepText():
                             'times_wrong': 1,
                             'user_response': 'βλα'}}
         out = locals()[case]
-        reply_args = {}
-        print out['response']
-        assert myStepText['step'].get_reply(user_response=out['response']) \
-                                                            == out['result']
+        func = myStepText['step'].get_reply(user_response=out['response'])
+        for k, f in func.iteritems():
+            assert  f == out['result'][k]
 
 class TestStepMultiple():
     '''
@@ -845,9 +932,7 @@ class TestStepMultiple():
         resp += '</div>'
         resp += '</form>$'
 
-        pprint(resp)
         testfunc = myStepMultiple['step'].get_responder().xml()
-        pprint(testfunc)
         assert re.match(resp, testfunc)
 
     def test_stepmultiple_get_reply(self, myStepMultiple):
@@ -855,21 +940,21 @@ class TestStepMultiple():
         casenum = myStepMultiple['casenum']
         case = 'case{}'.format(casenum)
         case1 = {'reply_text': 'Right. Κάλον.',
-                'tips': None,
-                'readable_short': ['μιτ'],
+                'tips': [],
+                'readable_short': ['ναι'],
                 'readable_long': None,
                 'score': 1,
                 'times_right': 1,
                 'times_wrong': 0,
-                'user_response': 'μιτ'}
+                'user_response': 'ναι'}
         case2 = {'reply_text': 'Incorrect. Try again!',
-                'tips': None,
-                'readable_short': ['μιτ'],
+                'tips': [],
+                'readable_short': ['οὐ'],
                 'readable_long': None,
                 'score': 0,
                 'times_right': 0,
                 'times_wrong': 1,
-                'user_response': 'βλα'}
+                'user_response': 'οὐ'}
         out = locals()[case]
         assert myStepMultiple['step'].get_reply(out['user_response']
                                     )['reply_text'] == out['reply_text']
@@ -898,12 +983,12 @@ class TestStepEvaluator():
         case = 'case{}'.format(casenum)
         case1 = {'reply_text': 'Right. Κάλον.',
                 'tips': None,
-                'readable_short': ['ναι'],
+                'readable_short': ['μιτ'],
                 'readable_long': None,
                 'score': 1,
                 'times_right': 1,
                 'times_wrong': 0,
-                'user_response': 'ναι'}
+                'user_response': 'μιτ'}
         case2 = {'reply_text': 'Right. Κάλον.',
                 'tips': None,
                 'readable_short': ['ναι'],
@@ -911,7 +996,7 @@ class TestStepEvaluator():
                 'score': 1,
                 'times_right': 1,
                 'times_wrong': 0,
-                'user_response': 'οὐ'}
+                'user_response': 'βατ'}
         out = locals()[case]
 
         assert myStepEvaluator['eval'].get_eval(out['user_response']
@@ -976,15 +1061,13 @@ class TestPath():
         # for path 89, multiple, single step
         output2 = StepFactory().get_instance(step_id=101, loc=Location(8, db),
                                         prev_loc=None, prev_npc_id=1, db=db)
-        print 'case number:', mypath['casenum']
-        assert mypath['path'].get_step_for_prompt().get_id() ==\
-                locals()[output].get_id()
-        assert mypath['path'].get_step_for_prompt().get_tags() ==\
-                locals()[output].get_tags()
-        assert mypath['path'].get_step_for_prompt().get_locations() ==\
-                locals()[output].get_locations()
-        assert mypath['path'].get_step_for_prompt().get_prompt('Joe') ==\
-                locals()[output].get_prompt('Joe')
+        pstep = mypath['path'].get_step_for_prompt()
+        ostep = locals()[output]
+        assert pstep.get_id() == ostep.get_id()
+        assert pstep.get_tags() == ostep.get_tags()
+        assert pstep.get_locations() == ostep.get_locations()
+        assert pstep.get_prompt(username='Joe') \
+                                        == ostep.get_prompt(username='Joe')
 
     def test_path_prepare_for_answer(self, mypath):
         """Unit test for method paideia.Path.get_step_for_reply."""
@@ -1002,7 +1085,6 @@ class TestPath():
                 'step_sent_id': 101}
         output = locals()[case]
         sent_id = output['step_sent_id']
-        print 'case number:', mypath['casenum']
         test_func = mypath['path'].prepare_for_answer(
                 step_for_prompt=StepFactory().get_instance(
                             db=db, step_id=output['step_for_prompt_start']),
@@ -1023,8 +1105,17 @@ class TestPath():
 
     def test_path_get_step_for_reply(self, mypath):
         """Unit test for method paideia.Path.get_step_for_reply."""
-        output = 'output{}'.format(mypath['casenum'])
-        assert 0
+        out = {1: StepFactory().get_instance(step_id=2, loc=Location(1, db),
+                                        prev_loc=1, prev_npc_id=2, db=db),
+              2: StepFactory().get_instance(step_id=101,
+                  loc=Location(8, db), prev_loc=None, prev_npc_id=1, db=db)
+              }
+        case = mypath['path']
+        pstep = case.get_step_for_prompt()
+        case.prepare_for_answer(pstep, step_sent_id=pstep.get_id)
+
+        path = case.get_step_for_reply()
+        assert path == out[mypath['casenum']]
 
 class TestPathChooser():
     """Unit testing class for the paideia.PathChooser class."""
