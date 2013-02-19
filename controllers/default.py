@@ -18,7 +18,6 @@ def index():
     """    """
     return dict()
 
-
 def user():
     """
     exposes:
@@ -104,6 +103,26 @@ def info():
             'duration': duration,
             'badge_track': badgelist}
 
+def oops():
+    """A controller to handle rerouted requests that return error codes."""
+    code = request.vars.code
+    ticket = request.vars.ticket
+    requested_uri = request.vars.requested_uri
+    request_url = request.vars.request_url
+    # Return the original HTTP error code
+    response.status = code
+
+    if code == 500:
+        title = 'Paideia - Internal error reported'
+        msg = HTML(BODY('Hello Ian,<br>I seem to have run into an error!',
+                'Here is the ticket: '))
+        link = A(ticket, _href=URL('admin', 'default', 'ticket', args=[ticket]),
+                _target='_blank')
+        msg[0].append(link)
+
+        mail.send(mail.settings.sender, title, msg.xml())
+
+    return {'code': code}
 
 #def download():
     #"""
@@ -140,8 +159,9 @@ def info():
     #"""
     #return dict(form=crud())
 
+# TODO: does the mail function below make sense?
 @auth.requires_membership(role='administrators')
-def send_mail():
+def send_mail_to_user():
     addr = db(db.auth_user.id == session.the_student).select(db.auth_user.email)
     subj = session.mail_subject
     msg = session.mail_message

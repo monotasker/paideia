@@ -24,7 +24,7 @@ class Utils(object):
     '''
     Miscellaneous utility functions, gathered in a class for convenience.
     '''
-    verbose = True
+    verbose = False
 
     def __init__(self):
         pass
@@ -160,7 +160,7 @@ class Walk(object):
     before path selection.
     '''
 
-    verbose = True  # controls printing of initialization and method calls
+    verbose = False  # controls printing of initialization and method calls
 
     def __init__(self, force_new_session=False):
         '''
@@ -600,7 +600,7 @@ class Walk(object):
         those new tags whose structure mirrors that of session.walk['tag_set'].
         '''
         if self.verbose: print 'calling Walk._new_badges ---------------------'
-        debug = True
+        debug = False
         if db is None:
             db = current.db
         if user is None:
@@ -1017,7 +1017,7 @@ class Walk(object):
         6) any random path which can be started elsewhere (in which case the
         default step is activated)
         '''
-        debug = True
+        debug = False
         if self.verbose:
             print 'calling Walk._get_next_step--------------'
         db = current.db
@@ -1218,7 +1218,7 @@ class Walk(object):
 
 class Step(object):
 
-    verbose = True
+    verbose = False
 
     def __init__(self, step=None):
 
@@ -1348,7 +1348,7 @@ class Step(object):
         # same npc if in the same location
         if self.verbose:
             print 'calling', type(self).__name__, '._get_npc--------------'
-        debug = True
+        debug = False
 
         def _get_npc_internal(npcs):
             '''
@@ -1724,7 +1724,7 @@ class Step(object):
         '''
         if self.verbose:
             print 'calling', type(self).__name__, '._get_prompt-----------'
-        debug = True
+        debug = False
         auth = current.auth
 
         uname = auth.user['first_name']
@@ -1781,7 +1781,7 @@ class Step(object):
         '''
         if self.verbose:
             print 'calling', type(self).__name__, '._get_responder--------'
-        debug = True
+        debug = False
 
         form = SQLFORM.factory(
                     Field('response', 'string', requires=IS_NOT_EMPTY()),
@@ -1795,7 +1795,7 @@ class Step(object):
         Return a web2py DIV() element holding a link that displays a tooltip
         with the instructions to accompany the current step's responder form.
         '''
-        debug = True
+        debug = False
         db = current.db
 
         iset = db.steps[self.step.id].instructions
@@ -1813,7 +1813,7 @@ class Step(object):
 
 class StepMultipleChoice(Step):
 
-    verbose = True
+    verbose = False
 
     def _get_responder(self):
         '''
@@ -1845,7 +1845,7 @@ class StepMultipleChoice(Step):
         '''
         if self.verbose:
             print 'calling', type(self).__name__, '._process----'
-        debug = True
+        debug = False
         session, db, auth = current.session, current.db, current.auth
 
         # Get the student's response to the question
@@ -1913,7 +1913,7 @@ class StepStub(Step):
     but sends her/him back to the map.
     '''
 
-    verbose = True
+    verbose = False
 
     def _complete(self):
         '''
@@ -2005,7 +2005,7 @@ class StepRedirect(StepStub):
         '''
         if self.verbose:
             print 'calling', type(self).__name__, '._get_replacements ----'
-        debug = True
+        debug = False
         session = current.session
         db = current.db
 
@@ -2075,7 +2075,7 @@ class StepViewSlides(StepStub):
     Provides a step that stops a student and asks her/him to view the
     slides for newly activated tags/badges.
     '''
-    verbose = True
+    verbose = False
 
     def _get_replacements(self):
         '''
@@ -2130,7 +2130,7 @@ class StepDailyQuota(StepNonBlocking, StepStub):
     '''
     #TODO: provide self._get_substitution override method to sub in the
     # user's required quota of paths per day.
-    verbose = True
+    verbose = False
 
     def _complete(self):
         '''
@@ -2152,7 +2152,7 @@ class StepAwardBadges(StepNonBlocking, StepStub):
     more paths at the current location. This is used for alerting user to
     newly awarded badges.
     '''
-    verbose = True
+    verbose = False
 
     def _get_replacements(self):
         '''
@@ -2217,7 +2217,7 @@ class StepImage(Step):
     '''
     This subclass of Step adds an image in the prompt area.
     '''
-    verbose = True
+    verbose = False
 
     def _get_step_image(self, db=None):
         '''
@@ -2245,7 +2245,7 @@ class StepImageMultipleChoice(StepImage, StepMultipleChoice):
     This subclass of StepMultipleChoice adds an image in the prompt
     area (inherited from StepImage).
     '''
-    verbose = True
+    verbose = False
 
     pass
 

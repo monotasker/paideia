@@ -56,8 +56,8 @@ auth.settings.extra_fields['auth_user'] = [
 auth.define_tables()                           # creates all needed tables
 
 #configure mail
-mail = auth.settings.mailer                                  # mailer
-mail.settings.server = keydata['email_sender'] or 'logging'  # SMTP server
+mail = Mail()
+mail.settings.server = keydata['email_sender']  # 'logging' # SMTP server
 mail.settings.sender = keydata['email_address']  # email
 mail.settings.login = keydata['email_pass']  # credentials or None
 current.mail = mail

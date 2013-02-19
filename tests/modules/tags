@@ -1,0 +1,124 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+Paideia_exploringModule	paideia_exploring.py	/^class Paideia_exploringModule(unittest.TestCase):$/;"	c
+TestAwardBadges	test_paideia.py	/^class TestAwardBadges():$/;"	c
+TestCategorizer	test_paideia.py	/^class TestCategorizer():$/;"	c
+TestLocation	test_paideia.py	/^class TestLocation():$/;"	c
+TestMultipleEvaluator	test_paideia.py	/^class TestMultipleEvaluator():$/;"	c
+TestNpc	test_paideia.py	/^class TestNpc():$/;"	c
+TestPath	test_paideia.py	/^class TestPath():$/;"	c
+TestPathChooser	test_paideia.py	/^class TestPathChooser():$/;"	c
+TestStep	test_paideia.py	/^class TestStep():$/;"	c
+TestStepEvaluator	test_paideia.py	/^class TestStepEvaluator():$/;"	c
+TestStepMultiple	test_paideia.py	/^class TestStepMultiple():$/;"	c
+TestStepRedirect	test_paideia.py	/^class TestStepRedirect():$/;"	c
+TestStepText	test_paideia.py	/^class TestStepText():$/;"	c
+TestStepViewSlides	test_paideia.py	/^class TestStepViewSlides():$/;"	c
+TestUser	test_paideia.py	/^class TestUser():$/;"	c
+TestWalk	test_paideia.py	/^class TestWalk():$/;"	c
+___test_responder	paideia_exploring.py	/^    def ___test_responder(self):$/;"	m	class:Paideia_exploringModule	file:
+__init__	paideia_exploring.py	/^    def __init__(self, p):$/;"	m	class:Paideia_exploringModule
+_get_user	test_paideia.py	/^    def _get_user(self, mywalk, myrecords, mysession):$/;"	m	class:TestWalk
+_verify_walk_start	paideia_exploring.py	/^    def _verify_walk_start(self):$/;"	m	class:Paideia_exploringModule
+create_and_login_test_user	paideia_exploring.py	/^def create_and_login_test_user(db, first_name, last_name, email, password):$/;"	f
+db	test_paideia.py	/^db = current.db$/;"	v
+dt	test_paideia.py	/^def dt(string):$/;"	f
+get_location	paideia_exploring.py	/^    def get_location(self, alias):$/;"	m	class:Paideia_exploringModule
+myMultipleEvaluator	test_paideia.py	/^def myMultipleEvaluator(request):$/;"	f
+myStepAwardBadges	test_paideia.py	/^def myStepAwardBadges():$/;"	f
+myStepEvaluator	test_paideia.py	/^def myStepEvaluator(request):$/;"	f
+myStepMultiple	test_paideia.py	/^def myStepMultiple(request):$/;"	f
+myStepQuota	test_paideia.py	/^def myStepQuota():$/;"	f
+myStepRedirect	test_paideia.py	/^def myStepRedirect():$/;"	f
+myStepText	test_paideia.py	/^def myStepText(request):$/;"	f
+myStepViewSlides	test_paideia.py	/^def myStepViewSlides():$/;"	f
+mycategorizer	test_paideia.py	/^def mycategorizer(myrecords, request):$/;"	f
+myloc	test_paideia.py	/^def myloc():$/;"	f
+myloc_synagogue	test_paideia.py	/^def myloc_synagogue():$/;"	f
+mynpc	test_paideia.py	/^def mynpc():$/;"	f
+mynpc_stephanos	test_paideia.py	/^def mynpc_stephanos():$/;"	f
+mypath	test_paideia.py	/^def mypath(request):$/;"	f
+myrecords	test_paideia.py	/^def myrecords(request):$/;"	f
+mysession	test_paideia.py	/^def mysession(request):$/;"	f
+mystep	test_paideia.py	/^def mystep(request):$/;"	f
+myuser	test_paideia.py	/^def myuser(myrecords):$/;"	f
+mywalk	test_paideia.py	/^def mywalk():$/;"	f
+npc10_img	test_paideia.py	/^npc10_img = '\/paideia\/static\/images\/images.image.961b44d8d322659c.323031322d30362d30372031345f34345f34302e706e67.png'$/;"	v
+npc11_img	test_paideia.py	/^npc11_img = '\/paideia\/static\/images\/images.image.ac58c3e138964719.70686f6562652e706e67.png'$/;"	v
+npc14_img	test_paideia.py	/^npc14_img = '\/paideia\/static\/images\/images.image.b5592e80d5fe4bb3.73796e61676f6775652e6a7067.jpg'$/;"	v
+npc15_img	test_paideia.py	/^npc15_img = '\/paideia\/static\/images\/images.image.9a515ff664f03aa3.323031322d30372d32312032335f35315f31322e706e67.png'$/;"	v
+npc16_img	test_paideia.py	/^npc16_img = '\/paideia\/static\/images\/images.image.8bb7c079634cf35a.44726177696e672033332e706e67.png'$/;"	v
+npc17_img	test_paideia.py	/^npc17_img = '\/paideia\/static\/images\/images.image.95fcf253d4dd7abd.44726177696e6720352e706e67.png'$/;"	v
+npc1_img	test_paideia.py	/^npc1_img = '\/paideia\/static\/images\/images.image.bb48641f0122d2b6.696d616765732e696d6167652e383136303330663934646664646561312e34343732363137373639366536373230333432653733373636372e737667.svg'$/;"	v
+npc2_img	test_paideia.py	/^npc2_img = '\/paideia\/static\/images\/images.image.81e2d69e1aea4d99.44726177696e672031372e737667.svg'$/;"	v
+npc3_img	test_paideia.py	/^npc3_img = '\/paideia\/static\/images\/images.image.81e2d69e1aea4d99.44726177696e672031372e737667.svg'$/;"	v
+npc4_img	test_paideia.py	/^npc4_img = '\/paideia\/static\/images\/images.image.85a960241dc29f1b.776f6d616e312e706e67.png'$/;"	v
+npc5_img	test_paideia.py	/^npc5_img = '\/paideia\/static\/images\/images.image.a4d5140b25f87749.44726177696e672031392e737667.svg'$/;"	v
+npc6_img	test_paideia.py	/^npc6_img = '\/paideia\/static\/images\/images.image.a28124edf3480d82.696d616765732e696d6167652e383135323664663563326663623438302e343437323631373736393665363732303332333232653733373636372e737667.svg'$/;"	v
+npc7_img	test_paideia.py	/^npc7_img = '\/paideia\/static\/images\/images.image.993274ee0076fd2f.696d616765732e696d6167652e393636636434346165663238613839652e343437323631373736393665363732303332333732653733373636372e737667.svg'$/;"	v
+npc8_img	test_paideia.py	/^npc8_img = '\/paideia\/static\/images\/images.image.938be4c25c678bb5.323031322d30362d30352030335f35325f31312e706e67.png'$/;"	v
+setUp	paideia_exploring.py	/^    def setUp(self):$/;"	m	class:Paideia_exploringModule
+tearDown	paideia_exploring.py	/^    def tearDown(self):$/;"	m	class:Paideia_exploringModule
+test_categorize_tags_new_user	paideia_exploring.py	/^    def test_categorize_tags_new_user(self):$/;"	m	class:Paideia_exploringModule
+test_categorizer_add_untried_tags	test_paideia.py	/^    def test_categorizer_add_untried_tags(self, mycategorizer):$/;"	m	class:TestCategorizer
+test_categorizer_categorize	test_paideia.py	/^    def test_categorizer_categorize(self, mycategorizer):$/;"	m	class:TestCategorizer
+test_categorizer_core_algorithm	test_paideia.py	/^    def test_categorizer_core_algorithm(self, mycategorizer):$/;"	m	class:TestCategorizer
+test_categorizer_find_cat_changes	test_paideia.py	/^    def test_categorizer_find_cat_changes(self):$/;"	m	class:TestCategorizer
+test_categorizer_introduce_tags	test_paideia.py	/^    def test_categorizer_introduce_tags(self):$/;"	m	class:TestCategorizer
+test_get_npc_active_location	paideia_exploring.py	/^    def test_get_npc_active_location(self):$/;"	m	class:Paideia_exploringModule
+test_introduce_new_user	paideia_exploring.py	/^    def test_introduce_new_user(self):$/;"	m	class:Paideia_exploringModule
+test_location_get_alias	test_paideia.py	/^    def test_location_get_alias(self, myloc):$/;"	m	class:TestLocation
+test_location_get_bg	test_paideia.py	/^    def test_location_get_bg(self, myloc):$/;"	m	class:TestLocation
+test_location_get_id	test_paideia.py	/^    def test_location_get_id(self, myloc):$/;"	m	class:TestLocation
+test_location_get_name	test_paideia.py	/^    def test_location_get_name(self, myloc):$/;"	m	class:TestLocation
+test_location_get_readable	test_paideia.py	/^    def test_location_get_readable(self, myloc):$/;"	m	class:TestLocation
+test_multipleevaluator_get_eval	test_paideia.py	/^    def test_multipleevaluator_get_eval(self, myMultipleEvaluator):$/;"	m	class:TestMultipleEvaluator
+test_npc	paideia_exploring.py	/^    def test_npc(self):$/;"	m	class:Paideia_exploringModule
+test_npc_choose	test_paideia.py	/^    def test_npc_choose(self, mynpc):$/;"	m	class:TestNpc
+test_npc_get_description	test_paideia.py	/^    def test_npc_get_description(self, mynpc):$/;"	m	class:TestNpc
+test_npc_get_id	test_paideia.py	/^    def test_npc_get_id(self, mynpc):$/;"	m	class:TestNpc
+test_npc_get_image	test_paideia.py	/^    def test_npc_get_image(self, mynpc):$/;"	m	class:TestNpc
+test_npc_get_locations	test_paideia.py	/^    def test_npc_get_locations(self, mynpc):$/;"	m	class:TestNpc
+test_npc_get_name	test_paideia.py	/^    def test_npc_get_name(self, mynpc):$/;"	m	class:TestNpc
+test_path_get_step_for_prompt	test_paideia.py	/^    def test_path_get_step_for_prompt(self, mypath):$/;"	m	class:TestPath
+test_path_get_step_for_reply	test_paideia.py	/^    def test_path_get_step_for_reply(self, mypath):$/;"	m	class:TestPath
+test_path_prepare_for_answer	test_paideia.py	/^    def test_path_prepare_for_answer(self, mypath):$/;"	m	class:TestPath
+test_path_remove_block	test_paideia.py	/^    def test_path_remove_block(self, mypath):$/;"	m	class:TestPath
+test_prompt	paideia_exploring.py	/^    def test_prompt(self):$/;"	m	class:Paideia_exploringModule
+test_step_awardbadges	test_paideia.py	/^    def test_step_awardbadges(self, myStepAwardBadges):$/;"	m	class:TestAwardBadges
+test_step_awardbadges_get_id	test_paideia.py	/^    def test_step_awardbadges_get_id(self, myStepViewSlides):$/;"	m	class:TestStepViewSlides
+test_step_get_id	test_paideia.py	/^    def test_step_get_id(self, mystep):$/;"	m	class:TestStep
+test_step_get_instructions	test_paideia.py	/^    def test_step_get_instructions(self, mystep):$/;"	m	class:TestStep
+test_step_get_npc	test_paideia.py	/^    def test_step_get_npc(self, mystep):$/;"	m	class:TestStep
+test_step_get_prompt	test_paideia.py	/^    def test_step_get_prompt(self, mystep):$/;"	m	class:TestStep
+test_step_get_responder	test_paideia.py	/^    def test_step_get_responder(self, mystep):$/;"	m	class:TestStep
+test_step_get_tags	test_paideia.py	/^    def test_step_get_tags(self, mystep):$/;"	m	class:TestStep
+test_step_make_replacements	test_paideia.py	/^    def test_step_make_replacements(self, mystep):$/;"	m	class:TestStep
+test_step_stepawardbadges_get_npc	test_paideia.py	/^    def test_step_stepawardbadges_get_npc(self, myStepAwardBadges):$/;"	m	class:TestAwardBadges
+test_step_stepawardbadges_get_prompt	test_paideia.py	/^    def test_step_stepawardbadges_get_prompt(self, myStepAwardBadges):$/;"	m	class:TestAwardBadges
+test_step_stepawardbadges_get_responder	test_paideia.py	/^    def test_step_stepawardbadges_get_responder(self, myStepAwardBadges):$/;"	m	class:TestAwardBadges
+test_step_stepawardbadges_get_tags	test_paideia.py	/^    def test_step_stepawardbadges_get_tags(self, myStepAwardBadges):$/;"	m	class:TestAwardBadges
+test_step_stepawardbadges_make_replacements	test_paideia.py	/^    def test_step_stepawardbadges_make_replacements(self, myStepAwardBadges):$/;"	m	class:TestAwardBadges
+test_step_stepviewslides_get_npc	test_paideia.py	/^    def test_step_stepviewslides_get_npc(self, myStepViewSlides):$/;"	m	class:TestStepViewSlides
+test_step_stepviewslides_get_prompt	test_paideia.py	/^    def test_step_stepviewslides_get_prompt(self, myStepViewSlides):$/;"	m	class:TestStepViewSlides
+test_step_stepviewslides_get_responder	test_paideia.py	/^    def test_step_stepviewslides_get_responder(self, myStepViewSlides):$/;"	m	class:TestStepViewSlides
+test_step_stepviewslides_get_tags	test_paideia.py	/^    def test_step_stepviewslides_get_tags(self, myStepViewSlides):$/;"	m	class:TestStepViewSlides
+test_step_stepviewslides_make_replacements	test_paideia.py	/^    def test_step_stepviewslides_make_replacements(self, myStepViewSlides):$/;"	m	class:TestStepViewSlides
+test_stepevaluator_get_eval	test_paideia.py	/^    def test_stepevaluator_get_eval(self, myStepEvaluator):$/;"	m	class:TestStepEvaluator
+test_stepmultiple_get_reply	test_paideia.py	/^    def test_stepmultiple_get_reply(self, myStepMultiple):$/;"	m	class:TestStepMultiple
+test_stepmultiple_get_responder	test_paideia.py	/^    def test_stepmultiple_get_responder(self, myStepMultiple):$/;"	m	class:TestStepMultiple
+test_stepredirect_get_id	test_paideia.py	/^    def test_stepredirect_get_id(self, myStepRedirect):$/;"	m	class:TestStepRedirect
+test_stepredirect_get_npc	test_paideia.py	/^    def test_stepredirect_get_npc(self, myStepRedirect):$/;"	m	class:TestStepRedirect
+test_stepredirect_get_prompt	test_paideia.py	/^    def test_stepredirect_get_prompt(self, myStepRedirect):$/;"	m	class:TestStepRedirect
+test_stepredirect_get_responder	test_paideia.py	/^    def test_stepredirect_get_responder(self, myStepRedirect):$/;"	m	class:TestStepRedirect
+test_stepredirect_get_tags	test_paideia.py	/^    def test_stepredirect_get_tags(self, myStepRedirect):$/;"	m	class:TestStepRedirect
+test_stepredirect_make_replacements	test_paideia.py	/^    def test_stepredirect_make_replacements(self, myStepRedirect):$/;"	m	class:TestStepRedirect
+test_steptext_get_readable	test_paideia.py	/^    def test_steptext_get_readable(self, myStepText):$/;"	m	class:TestStepText
+test_steptext_get_reply	test_paideia.py	/^    def test_steptext_get_reply(self, myStepText):$/;"	m	class:TestStepText
+test_steptext_get_responder	test_paideia.py	/^    def test_steptext_get_responder(self, myStepText):$/;"	m	class:TestStepText
+test_unfinished_new_user	paideia_exploring.py	/^    def test_unfinished_new_user(self):$/;"	m	class:Paideia_exploringModule
+test_user_get_id	test_paideia.py	/^    def test_user_get_id(self, myuser):$/;"	m	class:TestUser

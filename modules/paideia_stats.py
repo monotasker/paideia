@@ -4,6 +4,9 @@ from pytz import timezone
 from gluon import current, DIV, H4, TABLE, THEAD, TBODY, TR, TD, SPAN, A, URL
 from pprint import pprint
 #from guppy import hpy
+import logging
+logger = logging.getLogger('web2py.app.paideia')
+logger.setLevel(logging.DEBUG)
 
 
 class Stats(object):
@@ -11,7 +14,7 @@ class Stats(object):
     Provides various statistics on student performance.
     '''
     Name = "paideia_stats"
-    verbose = True
+    verbose = False
 
     def __init__(self, user_id=None, auth=None):
         if self.verbose: print '\nInitializing Stats object =================='
@@ -28,23 +31,21 @@ class Stats(object):
         Get record of a user's steps attempted in the last seven days.
         '''
         now = datetime.datetime.utcnow()
-        if user_id is None:
+        if not user_id:
             user_id = self.user_id
-        if duration is None:
+        if not duration:
             duration = datetime.timedelta(days=7)
-        if db is None:
+        if not db:
             db = current.db
-        if logs is None:
+        if not logs:
             logs = db((db.attempt_log.id > 0) &
+        #TODO: Get utc time offset dynamically from user's locale
                     (db.attempt_log.name == user_id)).select()
-            print 'total logs:', len(logs)
             logs = logs.find(lambda row: (now - row.dt_attempted) <= duration)
-            print 'recent logs:', len(logs)
         logset = []
         stepset = set(l.step for l in logs)
         tag_badges = {tb.tags.id: (tb.badges.badge_name, tb.tags.tag)
                             for tb in db(db.tags.id == db.badges.tag).select()}
-        #pprint(tag_badges)
 
         for step in stepset:
             steprow = db.steps[step]
@@ -66,7 +67,16 @@ class Stats(object):
                 right_since = stepcount
             steptags = {t: {'tagname': tag_badges[t][1],
                             'badge': tag_badges[t][0]}
-                        for t in steprow.tags}
+                        for t in steprow.tags
+                        if t in tag_badges.keys()}
+            # check for tags without badges
+            # TODO: move this check to maintenance cron job
+            for t in steprow.tags:
+                if not t in tag_badges.keys():
+                    mail = current.mail
+                    mail.send(mail.settings.sender,
+                            'Paideia error: Missing badge',
+                            'There seems to be no badge for tag {}'.format(t))
             step_dict = {'step': step,
                         'count': stepcount,
                         'right': len(stepright),
@@ -86,7 +96,7 @@ class Stats(object):
         '''
         if self.verbose: print 'calling Stats.active_tags() ------------------'
         db = current.db
-        debug = True
+        debug = False
         try:
             atag_s = db(db.tag_progress.name == self.user_id).select().first()
             atags = {}
@@ -163,7 +173,6 @@ class Stats(object):
         loglist = {}
 
         #offset from utc time used to generate and store time stamps
-        #TODO: Get utc time offset dynamically from user's locale
         if debug: print db.auth_user[self.user_id]
         tz_name = db.auth_user[self.user_id].time_zone
         tz = timezone(tz_name)
