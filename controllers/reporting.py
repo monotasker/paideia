@@ -25,7 +25,6 @@ def paths_by_tag():
         steps = db(db.steps.tags.contains(str(t.id))).select()
         pathlist = []
         for s in steps:
-            print s.id
             paths = db(db.paths.steps.contains(s.id)).select()
             pathlist += [p.id for p in paths]
         pathlist = list(set(pathlist))
@@ -60,11 +59,11 @@ def calendar():
     Intended to be used via an ajax component on the user's profile and the
     instructor's user reports.
     '''
-    debug = True
+    debug = False
 
     if debug: print '\n\nStarting controller exploring.calendar()'
-    print 'request.args:', request.args
-    print 'request.vars:', request.vars
+    if debug: print 'request.args:', request.args
+    if debug: print 'request.vars:', request.vars
 
     user_id = request.args[0]
     year = request.args[1]

@@ -1,39 +1,39 @@
 (dp1
-S'latest_new'
+S'id'
 p2
 (dp3
 S'type'
 p4
-S'integer'
+S'id'
 p5
 sS'sortable'
 p6
-I3
+I1
 sS'sql'
 p7
-S'INTEGER'
+S'INTEGER PRIMARY KEY AUTOINCREMENT'
 p8
-ssS'name'
+ssS'latest_new'
 p9
 (dp10
 g4
-S'reference auth_user'
+S'integer'
 p11
+sg6
+I3
+sg7
+S'INTEGER'
+p12
+ssS'name'
+p13
+(dp14
+g4
+S'reference auth_user'
+p15
 sg6
 I2
 sg7
 S'INTEGER REFERENCES auth_user(id) ON DELETE CASCADE'
-p12
-ssS'id'
-p13
-(dp14
-g4
-S'id'
-p15
-sg6
-I1
-sg7
-S'INTEGER PRIMARY KEY AUTOINCREMENT'
 p16
 ssS'cat1'
 p17

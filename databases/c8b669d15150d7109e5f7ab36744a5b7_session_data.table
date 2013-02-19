@@ -38,22 +38,21 @@ ssS'id'
 p16
 (dp17
 g4
-S'id'
-p18
+g16
 sg6
 I1
 sg7
 S'INTEGER PRIMARY KEY AUTOINCREMENT'
-p19
+p18
 ssS'user'
-p20
-(dp21
+p19
+(dp20
 g4
 S'reference auth_user'
-p22
+p21
 sg6
 I2
 sg7
 S'INTEGER REFERENCES auth_user(id) ON DELETE CASCADE'
-p23
+p22
 ss.

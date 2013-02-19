@@ -39,21 +39,20 @@ ssS'id'
 p17
 (dp18
 g4
-S'id'
-p19
+g17
 sg6
 I1
 sg7
 S'INTEGER PRIMARY KEY AUTOINCREMENT'
-p20
+p19
 ssS'name'
-p21
-(dp22
+p20
+(dp21
 g4
 g15
 sg6
 I3
 sg7
 S'CHAR(512)'
-p23
+p22
 ss.

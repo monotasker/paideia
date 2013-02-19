@@ -6,7 +6,7 @@ mail = current.mail
 
 class Bug(object):
 
-    verbose = True
+    verbose = False
 
     """
     Handles the creation, manipulation, and reporting of bug
@@ -96,19 +96,6 @@ class Bug(object):
             print 'Error in Bug.log_new():', e
             return False
 
-    # TODO: Deprecated in favour of plugin_listandedit
-    #def updatebug(self):
-        #"""
-        #Provides form and page components to update an existing bug and
-        #handles the form processing.
-        #"""
-        #request, db = current.request, current.db
-        #crud = Crud(db)
-
-        #edit_form = crud.update(db.bugs, request.args[0])
-        #closer = A('close', _href=URL('#'), _class='close_link')
-        #the_title = H3('Reviewing Bug Report for Question')
-
     def undo(self, user_id, bug_id, log_id, step_id=None, db=None):
         '''
         Reverse the recorded effects of a single wrong answer for a given user.
@@ -117,7 +104,7 @@ class Bug(object):
         'confirmed' or 'fixed'.
         '''
         if self.verbose: print '\ncalling Bug.undo ==================='
-        debug = True
+        debug = False
 
         if db is None:
             db = current.db
