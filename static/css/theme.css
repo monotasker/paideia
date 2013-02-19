@@ -2198,6 +2198,7 @@ body #page #right_sidebar div:hover {
 #page.user #tag_records_table td:nth-child(2) span {
   height: 16px;
   display: inline-block;
+  max-width: 10em;
   position: relative;
 }
 #page.profile #tag_records_table td:nth-child(2) span.right,
