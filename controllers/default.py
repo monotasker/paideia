@@ -2,6 +2,7 @@
 
 from paideia_stats import Stats
 from paideia_bugs import Bug
+from gluon.tools import prettydate
 
 if 0:
     from gluon import current
@@ -47,7 +48,6 @@ def info():
         user = db.auth_user[request.vars['id']]
     else:
         user = db.auth_user[auth.user_id]
-    assert 0
     name = user.last_name + ', ' + user.first_name
     tz = user.time_zone
     email = user.email
@@ -77,13 +77,23 @@ def info():
     badge_dates = db(
                         (db.badges_begun.name == user.id) &
                         (db.badges_begun.tag == db.tags.id)
-                    ).select(orderby=db.tags.position)
+                    ).select(orderby=~db.tags.position)
 
     badgelist = []
+    catlabels = ['started at beginner level',
+                'promoted to apprentice level',
+                'promoted to journeyman level',
+                'promoted to master level']
     for bd in badge_dates:
         for c in ['cat1', 'cat2', 'cat3', 'cat4']:
             if bd.badges_begun[c]:
-                badgelist.append({'id': bd.tags.id, c: bd.badges_begun[c]}
+                tagbadge = db.badges(db.badges.tag==bd.tags.id)
+                badgelist.append({'id': tagbadge.badge_name,
+                                'description': tagbadge.description,
+                                'level': catlabels[int(c[3:])-1],
+                                'date': 'on {}'.format(bd.badges_begun[c].strftime('%b %e, %Y')),
+                                'dt': bd.badges_begun[c]})
+    badgelist = sorted(badgelist, key=lambda row: row['dt'], reverse=True)
 
     return {'form': auth(),
             'the_name': name,
