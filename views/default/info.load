@@ -206,7 +206,7 @@
                 ) 
             )}}
         {{for l in log:}}
-        {{=DIV(TABLE(TR(
+            {{=DIV(TABLE(TR(
                 TD(l['step'], _class='step'),
                 TD(l['prompt'], _class='prompt'),
                 TD(l['count'], _class='count'),
@@ -228,13 +228,14 @@
     </div>
 
     <div id='tab_tag_records' class="tab">
+        <h4>Your overall performance for each badge so far</h4>
         <table id='tag_records_table'>
             <thead>
-            {{=TH('tag')}}
-            {{=TH('times right / times wrong / ratio')}}
-            {{=TH('last right')}}
-            {{=TH('last wrong')}}
-            {{=TH('tag set')}}
+                {{=TD('tag')}}
+                {{=TD('times right / times wrong / ratio')}}
+                {{=TD('last right')}}
+                {{=TD('last wrong')}}
+                {{=TD('tag set')}}
             </thead>
             {{for row in tag_records:}}
                 {{timesr = row.tag_records.times_right
@@ -268,10 +269,17 @@
     </div>
 
     <div id='tab_badges_awarded' class="tab">
+        <h4>Timeline of your new badges earned</h4>
         {{if badge_track == []:}}
         <span>We've just started tracking the dates on which you earn each new badge, so there is no record here yet. Check back after you've earned your next badge.</span>
         {{else:}}
-            {{=badge_track}}
+            <table>
+            {{for badgeline in badge_track:}}
+                {{=TR(TD(badgeline['id']),
+                    TD(badgeline['level']),
+                    TD(badgeline['date']))}}
+            {{pass}}
+            </table>
         {{pass}}
     </div>
 
