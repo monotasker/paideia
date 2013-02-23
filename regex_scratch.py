@@ -3,6 +3,7 @@
 import re
 from termcolor import colored
 # who should sit πρωτος?
+
 # please fetch ἀλλος καρπος
 # please fetch ἑτερος καρπος
 # proverb, a poor man is seldom strong
@@ -13,35 +14,52 @@ from termcolor import colored
 # here all people are equal. The free woman and the slave(woman) are brothers.
 # you should address me as ???
 lines = [
-        'Ταπεινοι οἱ δουλοι ἡμων.',
-        'Οἱ ἡμων δουλοι ταπεινοι.',
-        'Ἡμων οἱ δουλοι ταπεινοι.',
-        'Ταπεινοι ἡμων οἱ δουλοι.',
-        'Ταπεινοι οἱ δουλοι ἡμων.',
-        'Οἱ δουλοι ἡμων ταπεινοι.',
-        'Οἱ ἡμων δουλοι ταπεινοι.',
-        'Οἱ δουλοι ἡμων ταπεινοι.'
+        'Ἡ ἐλευθερα και ἡ δουλη ἀδελφαι.',
+        'Ἀδελφαι ἡ ἐλευθερα και ἡ δουλη.',
+        'Ἡ ἐλευθερα και ἡ παιδη ἀδελφαι.',
+        'Ἀδελφαι ἡ παιδισκη και ἡ ἐλευθερα.',
+        'Ἀδελφαι ἡ ἐλευθερα και ἡ παιδη.',
+        'Ἀδελφαι ἡ ἐλευθερα και ἡ παιδισκη.'
         ]
 
 regex = """^
-(?P<a>(τ|Τ)απεινοι\s)?
-(?P<d>(Ἡ|ἡ)μων\s)?
-(?P<g>(Ο|ο)ἱ\s)?
-(?(d)|(?P<c>(Ἡ|ἡ)μων\s))?
-(δ|Δ)ουλοι
-(?(c)|(?(d)|\sἡμων))
-(?(a)|\sταπεινοι)
+(?P<a>Ἀδελφαι\s)?
+((Ἡ|ἡ)\s)
+(
+    (?P<b>((δ|Δ)ουλη\s|(π|Π)αιδ(ισκ)?η\s)
+    )
+    |
+    (?P<c>(ἐ|Ἐ)λευθερα\s
+    )
+)
+(και\s|δε\s)
+((Ἡ|ἡ)\s)
+(
+    (?(b)|
+        (δουλη|παιδ(ισκ)?η)
+    )|
+    (?(c)|
+        ἐλευθερα
+    )
+)
+(?(a)|\sἀδελφαι)
 \.$"""
 
 test_regex = re.compile(regex, re.X)
+roman_chars = re.compile(u'[\u0041-\u007a]|\d')
 print colored(regex, 'cyan')
+counter=1
 for l in lines:
     print '==================='
     m = re.match(test_regex, l)
     if m:
-        print colored(l, 'green')
+        print counter, colored(l, 'green')
     else:
-        print colored(l, 'red')
+        print counter, colored(l, 'red')
+    if re.search(roman_chars, l):
+        print colored('roman characters present', 'yellow')
+        break
+    counter += 1
 
 condensed = re.sub(r'\s', '', regex)
 print '==================='
