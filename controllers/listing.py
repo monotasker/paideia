@@ -6,83 +6,69 @@ import datetime
 import calendar
 from pytz import timezone
 import pprint
+from timeit import Timer
 
 # TODO: rework to use plugin_listandedit as a widget
 
 
 @auth.requires_membership(role='administrators')
 def user():
-    users = db(db.auth_user.id == db.tag_progress.name).select(orderby=db.auth_user.last_name)
+    # define minimum daily required # of paths
+    target = 20
+    # find dates for this week, last week, and earliest possible span
+    today = datetime.datetime.today()
+    thismonth = calendar.monthcalendar(today.year, today.month)
+    thisweek = [w for w in thismonth if today.day in w][0]
+    today_index = thisweek.index(today.day)
+    tw_index = thismonth.index(thisweek)
+    lastweek = thismonth[tw_index - 1]
+    delta = datetime.timedelta(days = (8+today_index))
+    lw_firstday = today - delta
 
-    # TODO: move this logic to stats module
-    today = datetime.date.today()
-    monthcal = calendar.monthcalendar(today.year, today.month)
-    this_week = [w for w in monthcal if today.day in w][0]
-    pprint.pprint(this_week)
-    last_week_month = today.month
-    weekindex = monthcal.index(this_week)
-    if weekindex != 0:
-        last_week = monthcal[weekindex - 1]
-    else:
-        first = datetime.date(day=1, month=today.month, year=today.year)
-        last_monthend = first - datetime.timedelta(days=1)
-        last_month = last_monthend.month
-        last_monthcal = calendar.monthcalendar(today.year, last_month)
-        last_week = last_monthcal[-1]
-        if last_week == this_week:
-            last_week = last_monthcal[-2]
-        # TODO: put previous month here for last_week_month
-    pprint.pprint(last_week)
+    tw_prev = None
+    if 0 in thisweek:
+        if thisweek.index(0) < thisweek.index(today.day):
+            lastmonth = calendar.monthcalendar(today.year, today.month - 1)
+            tw_prev = lastmonth[-1]
+            lastweek = lastmonth[-2]
 
+    lw_prev = None
+    if 0 in lastweek:
+        lastmonth = calendar.monthcalendar(today.year, today.month - 1)
+        lw_prev = lastmonth[-1]
+
+    users = db(db.auth_user.id == db.tag_progress.name).select(
+                                            orderby=db.auth_user.last_name)
+    logs = db((db.attempt_log.name.belongs([u.auth_user.id for u in users])) &
+            (db.attempt_log.dt_attempted > lw_firstday)).select()
     countlist = {}
     for user in users:
-        print user.auth_user.last_name
-        logs = db(db.attempt_log.name == user.auth_user.id).select()
         tz_name = user.auth_user.time_zone
         if tz_name is None:
             tz_name = 'America/Toronto'
         tz = timezone(tz_name)
-        now_local = tz.fromutc(datetime.datetime.utcnow())
 
-        this_weeklist = []
-        for day in this_week:
-            if day == 0:
-                continue # TODO: add last month's days at month boundaries
-            if day < 10:
-                day = '0{}'.format(day) #avoid error due to invalid day num
-            datestring = '{}{}{}'.format(day, today.month, today.year)
-            print datestring
-            date = datetime.datetime.strptime(datestring, "%d%m%Y").date()
-            print date
-            daylogs = logs.find(lambda row:
-                                tz.fromutc(row.dt_attempted).date() - date
-                                == datetime.timedelta(days=0))
-            print 'logs for day', day
-            print daylogs
-            count = len(daylogs)
-            this_weeklist.append((day, count))
-        tw_gooddays = len([d[0] for d in this_weeklist if d[1] >= 20])
+        tw_count = 0
+        if tw_prev:
+            thisweek = [d for d in thisweek if d != 0]
+            tw_prev = [d for d in tw_prev if d != 0]
+            thisweek += tw_prev
+        for day in thisweek:
+            count = len(logs.find(lambda row: tz.fromutc(row.dt_attempted).day == day))
+            if count >= target:
+                tw_count += 1
 
-        last_weeklist = []
-        for day in last_week:
-            if day == 0:
-                continue # TODO: add last month's days at month boundaries
-                # TODO: if at month start add to this_weeklist and get previous
-            if day < 10:
-                day = '0{}'.format(day) #avoid error due to invalid day num
-            datestring = '{}{}{}'.format(day, today.month, today.year)
-            print datestring
-            date = datetime.datetime.strptime(datestring, "%d%m%Y").date()
-            print date
-            daylogs = logs.find(lambda row:
-                                tz.fromutc(row.dt_attempted).date() - date
-                                == datetime.timedelta(days=0))
-            count = len(daylogs)
-            last_weeklist.append((day, count))
-        lw_gooddays = len([d[0] for d in last_weeklist if d[1] >= 20])
+        lw_count = 0
+        if lw_prev:
+            lastweek = [d for d in lastweek if d != 0]
+            lw_prev = [d for d in lw_prev if d != 0]
+            lastweek += lw_prev
+        for day in lastweek:
+            count = len(logs.find(lambda row: tz.fromutc(row.dt_attempted).day == day))
+            if count >= target:
+                lw_count += 1
 
-        countlist[user.auth_user.id] = (tw_gooddays, lw_gooddays)
-    pprint.pprint(countlist)
+        countlist[user.auth_user.id] = (tw_count, lw_count)
 
     return dict(users=users, countlist=countlist)
 
@@ -104,7 +90,7 @@ def news():
 
 
 def slides():
-    debug = True
+    debug = False
     slidelist = db(db.plugin_slider_decks.id > 0).select(
                                     orderby=db.plugin_slider_decks.position)
     progress = db(db.tag_progress.name == auth.user_id).select().first()
