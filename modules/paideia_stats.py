@@ -8,7 +8,6 @@ import logging
 logger = logging.getLogger('web2py.app.paideia')
 logger.setLevel(logging.DEBUG)
 
-
 class Stats(object):
     '''
     Provides various statistics on student performance.
@@ -24,6 +23,10 @@ class Stats(object):
             user_id = auth.user_id
         self.user_id = user_id
         self.loglist = self.log_list()
+        db = current.db
+        self.tag_badges = {tb.tags.id: (tb.badges.badge_name, tb.tags.tag)
+                            for tb in db(db.tags.id == db.badges.tag).select()}
+
         #print hpy().heap()
 
     def step_log(self, logs=None, user_id=None, duration=None, db=None):
@@ -38,14 +41,14 @@ class Stats(object):
         if not db:
             db = current.db
         if not logs:
-            logs = db((db.attempt_log.id > 0) &
+            logstart = now - duration  # yields datetime obj
+            logs = db((db.attempt_log.name==user_id) &
+                        (db.attempt_log.dt_attempted >= logstart)).select()
+
         #TODO: Get utc time offset dynamically from user's locale
-                    (db.attempt_log.name == user_id)).select()
-            logs = logs.find(lambda row: (now - row.dt_attempted) <= duration)
         logset = []
         stepset = set(l.step for l in logs)
-        tag_badges = {tb.tags.id: (tb.badges.badge_name, tb.tags.tag)
-                            for tb in db(db.tags.id == db.badges.tag).select()}
+        tag_badges = self.tag_badges
 
         for step in stepset:
             steprow = db.steps[step]
@@ -111,9 +114,7 @@ class Stats(object):
             for c, lst in atags.iteritems():
                 # allow for possibility that tag hasn't got badge yet
                 try:
-                    atags[c] = [db(db.badges.tag ==
-                                   t).select().first().badge_name for t in lst]
-                    if debug: print 'found badges for tags', lst
+                    atags[c] = [self.tag_badges[t][0] for t in lst]
                 except AttributeError:
                     if debug: print 'no badges for tags', lst
                     pass
@@ -130,19 +131,16 @@ class Stats(object):
             if latest_rank == 0:
                 atag_s.update_record(latest_new=1)
                 latest_rank = 1
-                if debug: print 'position in tag progression:', latest_rank
             latest_tags = db(db.tags.position == latest_rank).select()
             if latest_tags is None:
                 latest_badges = ['Sorry, I can\'t find it!']
             else:
                 latest_badges = []
                 for t in latest_tags:
-                    l = db(db.badges.tag == t).select().first()
+                    l = self.tag_badges[t]
                     if l:
-                        latest_badges.append(l.badge_name)
-                        if debug: print 'found record for tag', t
+                        latest_badges.append(l[0])
                     else:
-                        if debug: print 'no record for tag', t
                         pass
                 if latest_badges is None:
                     latest_badges = ['Sorry, I couldn\'t find that!']
@@ -173,10 +171,8 @@ class Stats(object):
         loglist = {}
 
         #offset from utc time used to generate and store time stamps
-        if debug: print db.auth_user[self.user_id]
         tz_name = db.auth_user[self.user_id].time_zone
         tz = timezone(tz_name)
-        if debug: print 'timezone =', tz
 
         # count the number of attempts for each unique date
         for log in logs:
@@ -240,7 +236,7 @@ class Stats(object):
 
         The calendar is returned as a web2py DIV helper.
         '''
-        debug = True
+        debug = False
         db = current.db
         # TODO: get settings for this user's class requirements
         memberships = db(
