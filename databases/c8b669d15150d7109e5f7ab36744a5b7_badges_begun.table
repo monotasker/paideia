@@ -1,65 +1,65 @@
 (dp1
-S'name'
+S'cat1'
 p2
 (dp3
 S'type'
 p4
-S'reference auth_user'
+S'datetime'
 p5
 sS'sortable'
 p6
-I2
+I4
 sS'sql'
 p7
-S'INTEGER REFERENCES auth_user(id) ON DELETE CASCADE'
+S'TIMESTAMP'
 p8
-ssS'cat1'
+ssS'cat2'
 p9
 (dp10
 g4
-S'datetime'
-p11
-sg6
-I4
-sg7
-S'TIMESTAMP'
-p12
-ssS'cat2'
-p13
-(dp14
-g4
-g11
+g5
 sg6
 I5
 sg7
 S'TIMESTAMP'
-p15
+p11
 ssS'tag'
-p16
-(dp17
+p12
+(dp13
 g4
 S'reference tags'
-p18
+p14
 sg6
 I3
 sg7
-S'INTEGER REFERENCES tags(id) ON DELETE CASCADE'
-p19
+S'INTEGER REFERENCES tags (id) ON DELETE CASCADE'
+p15
 ssS'cat4'
-p20
-(dp21
+p16
+(dp17
 g4
-g11
+g5
 sg6
 I7
 sg7
 S'TIMESTAMP'
+p18
+ssS'name'
+p19
+(dp20
+g4
+S'reference auth_user'
+p21
+sg6
+I2
+sg7
+S'INTEGER REFERENCES auth_user (id) ON DELETE CASCADE'
 p22
 ssS'cat3'
 p23
 (dp24
 g4
-g11
+g5
 sg6
 I6
 sg7
@@ -69,10 +69,11 @@ ssS'id'
 p26
 (dp27
 g4
-g26
+S'id'
+p28
 sg6
 I1
 sg7
 S'INTEGER PRIMARY KEY AUTOINCREMENT'
-p28
+p29
 ss.
