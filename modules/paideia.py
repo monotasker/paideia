@@ -33,28 +33,35 @@ class Walk(object):
     the controller.
     """
 
-    def __init__(self, loc_alias, tag_records=None,
-                tag_progress=None, response_string=None, db=None):
+    def __init__(self, localias, tag_records=None,
+                tag_progress=None, response_string=None, userdata=None,
+                db=None):
         """Initialize a Walk object."""
-
-        self.user = user
-        # inject dependencies
+        self.localias = localias
+        self.db = db
         if not db:
             self.db = current.db
-
         self.response_string = response_string
+        if not userdata:
+            auth = current.auth
+            user_id = auth.user_id
+            userdata = db.auth_user[user_id].as_dict()
 
-    def get_user(self, userdata=None, loc_alias=None, tag_records=None, db=None):
+        self.user = self._get_user(userdata=userdata, localias=localias,
+                tag_records=tag_records, tag_progress=tag_progress)
+
+    def _get_user(self, userdata=None, localias=None, tag_records=None,
+            tag_progress=None, db=None):
         # initialize or re-activate User object
         try:
             session = current.session
-            self.user = session.user
+            user = session.user
+            assert user.is_stale() is False
+            self.user = user
+            return user
         except:
-            if not userdata:
-                auth = current.auth
-                user_id = auth.user_id
-                userdata = db.auth_user[user_id].as_dict()
-
+            if not db:
+                db = self.db
             if not tag_records:
                 tag_records = db(db.tag_records.name == user_id).select()
                 tag_records = tag_records.as_list()
@@ -69,17 +76,24 @@ class Walk(object):
                                             self.user.get_id()).select()
                     tag_progress = tag_progress.first().as_dict()
 
-            self.user = User(userdata, loc_alias, attempt_log,
-                            tag_records, tag_progress)
+            self.user = User(userdata, localias, tag_records, tag_progress)
+            return self.user
 
-
-
-    def map(self):
+    def map(self, db=None):
         """
         Return the information necessary to present the paideia navigation
         map interface.
         """
-        pass
+        if not db:
+            db = self.db
+            cache = current.cache
+
+        map_image = '/paideia/static/images/town_map.svg'
+        # TODO: Review cache time
+        locations = db().select(db.locations.ALL,
+                           orderby=db.locations.location,
+                           cache=(cache.ram, 60 * 60)).as_list()
+        return {'map_image': map_image, 'locations': locations}
 
     def ask(self):
         """Return the information necessary to initiate a step interaction."""
@@ -166,9 +180,6 @@ class Walk(object):
             return new_badges
         else:
             return None
-
-    def _complete_path(self):
-        pass
 
 
 class PathChooser(object):
@@ -843,31 +854,39 @@ class Path(object):
         self.step_for_prompt = step_for_prompt
         self.step_for_reply = step_for_reply
 
+    def _prepare_for_prompt(self):
+        """ move next step in this path into the 'step_for_prompt' variable"""
+        next_step = self.steps.pop(0)
+        self.step_for_prompt = next_step
+
+        return self.step_for_prompt.get_id()
+
     def get_step_for_prompt(self):
         """Find the next unanswered step in the current path and return it."""
         # check for active step that hasn't been asked because of block
+
+        next_step = self.step_for_prompt
         if self.step_for_prompt:
-            next_step = self.step_for_prompt
-        else:
-            next_step = self.steps.pop(0)
-            self.step_for_prompt = next_step
 
         # check that next step can be asked here, else redirect
-        locs = next_step.get_locations()
-        if not (self.loc_id in next_step.get_locations()):
-            self.blocks.append(Block.set_block('redirect', next_step.get_locations()))
+            locs = next_step.get_locations()
+            if not (self.loc_id in next_step.get_locations()):
+                self.blocks.append(Block.set_block('redirect', next_step.get_locations()))
 
-        # check for blocks
-        if self.blocks:
-            block_step = self.blocks.pop(0).get_step()
-            if block_step:
-                # TODO: make sure that the block step isn't added to completed
-                # or step_to_answer or last_step_id
-                # TODO: how will we remove the block?
-                step_sent_id = block_step.get_id()
-                return block_step
+            # check for blocks
+            if self.blocks:
+                block_step = self.blocks.pop(0).get_step()
+                if block_step:
+                    # TODO: make sure that the block step isn't added to completed
+                    # or step_to_answer or last_step_id
+                    # TODO: how will we remove the block?
+                    step_sent_id = block_step.get_id()
+                    return block_step
 
-        self.step_sent_id = self.step_for_prompt.get_id()
+            self.step_sent_id = self.step_for_prompt.get_id()
+        else:
+            # if self.step_for_prompt was None because we're ready for answer
+            pass
 
         return next_step
 
@@ -896,8 +915,8 @@ class Path(object):
         if step_for_prompt.get_id() == step_sent_id:
             # this type check filters out block steps (subclasses of Block)
             if not isinstance(step_for_prompt, Block):
+                self.step_for_reply = copy(step_for_prompt)
                 self.step_for_prompt = None
-                self.step_for_reply = step_for_prompt
             else:
                 self.step_for_reply = None
 
@@ -942,13 +961,13 @@ class User(object):
 
     """
 
-    def __init__(self, userdata, loc_alias, tag_records, tag_progress):
+    def __init__(self, userdata, localias, tag_records, tag_progress):
         """
         Initialize a paideia.User object.
 
         ## Argument types and structures
         - userdata: {'name': str, 'id': int, '}
-        - loc_alias: str
+        - localias: str
         - tag_progress: rows.as_dict()
         - tag_records: rows.as_dict
         """
@@ -973,17 +992,17 @@ class User(object):
         """Return the id (from db.auth_user) of the current user."""
         return self.user_id
 
-    def _get_start_time(self):
-        """docstring for fname"""
-        return self.session_start
+    def is_stale(self):
+        now = datetime.datetime.utcnow()
+        start = self.session_start
+        if now - start >= datetime.timedelta(days=1):
+            return True
+        else:
+            return False
 
     def get_new_badges(self):
         """Return a dictionary of tag ids newly introduced or promoted"""
         return self.new_badges
-
-    def get_completed(self):
-        """Return a dictionary of paths completed so far during the session."""
-        return self.completed_paths
 
     def get_path(self):
         """Return the currently active Path object."""
