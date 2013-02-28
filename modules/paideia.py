@@ -63,10 +63,12 @@ class Walk(object):
             if not db:
                 db = self.db
             if not tag_records:
-                tag_records = db(db.tag_records.name == user_id).select()
+                auth = current.auth
+                tag_records = db(db.tag_records.name == auth.user_id).select()
                 tag_records = tag_records.as_list()
             if not tag_progress:
-                tag_progress = db(db.tag_progress.name == user_id).select()
+                auth = current.auth
+                tag_progress = db(db.tag_progress.name == auth.user_id).select()
                 tag_progress_length = len(tag_progress)  # TODO log if > 1
                 tag_progress = tag_progress.first().as_dict()
                 # Handle first-time users, who won't have db row to fetch
@@ -183,7 +185,22 @@ class Walk(object):
 
 
 class PathChooser(object):
-    pass
+    """
+    Selects an appropriate path to begin given the user's performance to date.
+    """
+
+    def __init__(self, categories):
+        """
+        Initialize a Paideia PathChooser object.
+        """
+        self.categories = categories
+
+    def choose(self, categories=None):
+        """
+        Peform the path selection.
+        """
+        if not categories:
+            categories = self.categories
 
 
 class Location(object):

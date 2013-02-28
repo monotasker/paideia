@@ -256,17 +256,17 @@ def mysession(request):
     return locals()[case]
 
 @pytest.fixture
-def mywalk():
+def mywalk(myrecords):
     """pytest fixture providing a paideia.Walk object for testing"""
-    localias = db.locations[8].alias
     userdata = {'first_name': 'Joe', 'id': 1}
-    tag_records = ''
-    tag_progress = ''
+    tag_progress = myrecords['tag_progress']
+    tag_records = myrecords['tag_records']
+    localias = myrecords['localias']
     return Walk(localias=localias, userdata=userdata,
             tag_records=tag_records, tag_progress=tag_progress, db=db)
 
 @pytest.fixture
-def mycategorizer(myrecords, request):
+def mycategorizer(myrecords):
     """A pytest fixture providing a paideia.Categorizer object for testing."""
     rank = myrecords['tag_progress']['latest_new']
     categories = myrecords['tag_progress']
