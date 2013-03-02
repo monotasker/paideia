@@ -29,7 +29,7 @@ def user():
     http://..../[app]/default/user/retrieve_password
     http://..../[app]/default/user/change_password
     """
-    return {} # {'form': auth()}
+    return {'form': auth()}
 
 def info():
     """
@@ -95,8 +95,7 @@ def info():
                                 'dt': bd.badges_begun[c]})
     badgelist = sorted(badgelist, key=lambda row: row['dt'], reverse=True)
     print tag_records[0]
-    return {'form': auth(),
-            'the_name': name,
+    return {'the_name': name,
             'tz': tz,
             'email': email,
             'cal': cal,

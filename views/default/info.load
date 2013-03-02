@@ -18,8 +18,6 @@
             <li class='email'><span class='label'>Email:</span> {{=email}}</li>
             <li class='timezone'><span class='label'>Time Zone:</span> {{=tz}}</li>
         </ul>
-        {{#else:}}
-            {{#=form}}
         {{#pass}}
     </div>
 
