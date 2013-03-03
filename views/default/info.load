@@ -18,8 +18,6 @@
             <li class='email'><span class='label'>Email:</span> {{=email}}</li>
             <li class='timezone'><span class='label'>Time Zone:</span> {{=tz}}</li>
         </ul>
-        {{#else:}}
-            {{#=form}}
         {{#pass}}
     </div>
 
@@ -231,11 +229,11 @@
         <h4>Your overall performance for each badge so far</h4>
         <table id='tag_records_table'>
             <thead>
-                {{=TD('tag')}}
+                {{=TD('badge')}}
                 {{=TD('times right / times wrong / ratio')}}
                 {{=TD('last right')}}
                 {{=TD('last wrong')}}
-                {{=TD('tag set')}}
+                {{=TD('badge set')}}
             </thead>
             {{for row in tag_records:}}
                 {{timesr = row.tag_records.times_right
@@ -246,7 +244,7 @@
                     ratio = 0}}
                 {{pass}}
                 <tr>
-                    {{=TD(row.tags.tag)}}
+                    {{=TD(db(db.badges.tag==row.tags.id).select().first().badge_name)}}
                     {{=TD(
                         SPAN('', _style='width: {}px;'.format(row.tag_records.times_right),
                              _class='right'),

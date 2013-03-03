@@ -15,7 +15,7 @@ from termcolor import colored
 # you should address me as ???
 # please give this money to the ptwxos (image)
 lines = [
-        'Οἱ Κορινθιοι ἀνθρωποι καλοι.',
+        'Χριστῳ, παντες δουλοι. Οἱ ταπεινοι ἀδελφοι των γενναιων.',
         'Καλοι ἀνθρωποι οἱ Κορινθιοι.',
         'Οἱ Κορινθιοι καλοι ἀνθρωποι.',
         'Καλοι οἱ Κορινθιοι ἀνθρωποι.',

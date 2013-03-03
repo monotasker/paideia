@@ -24,10 +24,10 @@ class Stats(object):
         self.user_id = user_id
         self.loglist = self.log_list()
         db = current.db
-        self.tag_badges = {tb.tags.id: (tb.badges.badge_name, tb.tags.tag)
+        self.tag_badges = {tb.tags.id: {'badge': tb.badges.badge_name,
+                                        'description': tb.badges.description,
+                                        'tag': tb.tags.tag}
                             for tb in db(db.tags.id == db.badges.tag).select()}
-
-        #print hpy().heap()
 
     def step_log(self, logs=None, user_id=None, duration=None, db=None):
         '''
@@ -68,8 +68,9 @@ class Stats(object):
                                 if s.dt_attempted > last_wrong])
             except TypeError:
                 right_since = stepcount
-            steptags = {t: {'tagname': tag_badges[t][1],
-                            'badge': tag_badges[t][0]}
+            steptags = {t: {'tagname': tag_badges[t]['tag'],
+                            'badge': tag_badges[t]['badge'],
+                            'description': tag_badges[t]['description']}
                         for t in steprow.tags
                         if t in tag_badges.keys()}
             # check for tags without badges
@@ -100,55 +101,57 @@ class Stats(object):
         if self.verbose: print 'calling Stats.active_tags() ------------------'
         db = current.db
         debug = False
-        try:
-            atag_s = db(db.tag_progress.name == self.user_id).select().first()
-            atags = {}
-            atags1 = atags['cat1'] = list(set(atag_s.cat1))  # remove dup's
-            atags2 = atags['cat2'] = list(set(atag_s.cat2))
-            atags3 = atags['cat3'] = list(set(atag_s.cat3))
-            atags4 = atags['cat4'] = list(set(atag_s.cat4))
-            atags5 = atags['rev1'] = list(set(atag_s.rev1))  # remove dup's
-            atags6 = atags['rev2'] = list(set(atag_s.rev2))
-            atags7 = atags['rev3'] = list(set(atag_s.rev3))
-            atags8 = atags['rev4'] = list(set(atag_s.rev4))
-            for c, lst in atags.iteritems():
-                # allow for possibility that tag hasn't got badge yet
-                try:
-                    atags[c] = [self.tag_badges[t][0] for t in lst]
-                except AttributeError:
-                    if debug: print 'no badges for tags', lst
-                    pass
+        #try:
+        atag_s = db(db.tag_progress.name == self.user_id).select().first()
+        atags = {}
+        atags1 = atags['cat1'] = list(set(atag_s.cat1))  # remove dup's
+        atags2 = atags['cat2'] = list(set(atag_s.cat2))
+        atags3 = atags['cat3'] = list(set(atag_s.cat3))
+        atags4 = atags['cat4'] = list(set(atag_s.cat4))
+        atags5 = atags['rev1'] = list(set(atag_s.rev1))  # remove dup's
+        atags6 = atags['rev2'] = list(set(atag_s.rev2))
+        atags7 = atags['rev3'] = list(set(atag_s.rev3))
+        atags8 = atags['rev4'] = list(set(atag_s.rev4))
+        for c, lst in atags.iteritems():
+            # allow for possibility that tag hasn't got badge yet
             try:
-                total = []
-                for c in [atags1, atags2, atags3, atags4]:
-                    if c: total.extend(c)
-                atags['total'] = len(total)
-            except:
-                atags['total'] = 'an unknown number of'
+                atags[c] = [self.tag_badges[t]['badge'] for t in lst]
+            except AttributeError:
+                # TODO: send notice here
+                pass
+        try:
+            total = []
+            for c in [atags1, atags2, atags3, atags4]:
+                if c: total.extend(c)
+            atags['total'] = len(total)
+        except Exception:
+            print Exception
+            print 'hi \n'
+            atags['total'] = 'an unknown number of'
 
-            latest_rank = atag_s.latest_new
-            # fix any leftover records with latest rank stuck at 0
-            if latest_rank == 0:
-                atag_s.update_record(latest_new=1)
-                latest_rank = 1
-            latest_tags = db(db.tags.position == latest_rank).select()
-            if latest_tags is None:
-                latest_badges = ['Sorry, I can\'t find it!']
-            else:
-                latest_badges = []
-                for t in latest_tags:
-                    l = self.tag_badges[t]
-                    if l:
-                        latest_badges.append(l[0])
-                    else:
-                        pass
-                if latest_badges is None:
-                    latest_badges = ['Sorry, I couldn\'t find that!']
-                atags['latest'] = latest_badges
-        except Exception, e:
-            print type(e), e
-            atags['total'] = "Can't calculate total number of active badges."
-            atags['latest'] = ["Can't find the most recent badge awarded."]
+        latest_rank = atag_s.latest_new
+        # fix any leftover records with latest rank stuck at 0
+        if latest_rank == 0:
+            atag_s.update_record(latest_new=1)
+            latest_rank = 1
+        latest_tags = db(db.tags.position == latest_rank).select()
+        if latest_tags is None:
+            latest_badges = ['Sorry, I can\'t find them!']
+        else:
+            latest_badges = []
+            for t in latest_tags:
+                l = self.tag_badges[t.id]
+                if l:
+                    latest_badges.append(l['badge'])
+                else:
+                    pass
+            if latest_badges is None:
+                latest_badges = ['Sorry, I couldn\'t find that!']
+            atags['latest'] = latest_badges
+        #except Exception, e:
+            #print type(e), e
+            #atags['total'] = "Can't calculate total number of active badges."
+            #atags['latest'] = ["Can't find the most recent badge awarded."]
 
         return atags
 
