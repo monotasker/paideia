@@ -211,11 +211,38 @@ step_data_store = {
             }
         }
 
-@pytest.fixture
-def mywalk():
-    """pytest fixture providing a paideia.Walk object for testing"""
-    localias = db.locations[8].alias
-    return Walk(localias)
+@pytest.fixture(params=['case{}'.format(n) for n in range(1,2)])
+def myrecords(request):
+    """pytest fixture for providing user records."""
+    case = request.param
+    case1 = {'casenum': 1, 'mynow': dt('2013-01-29'),
+            'localias': 'shop_of_alexander',
+            'attempt_log': [{'step': None, 'path': None, 'score': None,
+                            'dt_attempted': None} ],
+            'tag_records': [{'tag_id': 1,
+                             'last_right': dt('2013-01-29'),
+                             'last_wrong': dt('2013-01-29'),
+                             'times_right': 1,
+                             'times_wrong': 1,
+                             'secondary_right': []}],
+            'tag_progress': {'latest_new': 1,
+                            'cat1': [], 'cat2': [], 'cat3': [], 'cat4': [],
+                            'rev1': [], 'rev2': [], 'rev3': [], 'rev4': []}}
+
+    case2 = {'casenum': 2, 'mynow': dt('2013-01-29'),
+            'localias': 'domus_A',
+            'attempt_log': [{'step': None, 'path': None, 'score': None,
+                            'dt_attempted': None}],
+            'tag_records': [{'tag_id': 1,
+                             'last_right': dt('2013-01-29'),
+                             'last_wrong': dt('2013-01-28'),
+                             'times_right': 10,
+                             'times_wrong': 2,
+                             'secondary_right': []}],
+            'tag_progress': {'latest_new': 1,
+                            'cat1': [1], 'cat2': [], 'cat3': [], 'cat4': [],
+                            'rev1': [], 'rev2': [], 'rev3': [], 'rev4': []}}
+    return locals()[case]
 
 @pytest.fixture(params=['case{}'.format(n) for n in range(1,2)])
 def mysession(request):
@@ -228,36 +255,18 @@ def mysession(request):
 
     return locals()[case]
 
-@pytest.fixture(params=['case{}'.format(n) for n in range(1,2)])
-def myrecords(request):
-    """pytest fixture for providing user records."""
-    case = request.param
-    case1 = {'casenum': 1, 'mynow': dt('2013-01-29'),
-            'attempt_log': [{'step': None, 'path': None, 'score': None,
-                            'dt_attempted': None} ],
-            'tag_records': [{'tag_id': 1,
-                             'last_right': dt('2013-01-29'),
-                             'last_wrong': dt('2013-01-29'),
-                             'times_right': 1, 'times_wrong': 1}],
-            'tag_progress': {'latest_new': 1,
-                            'cat1': [], 'cat2': [], 'cat3': [], 'cat4': [],
-                            'rev1': [], 'rev2': [], 'rev3': [], 'rev4': []}}
-
-    case2 = {'casenum': 2, 'mynow': dt('2013-01-29'),
-            'attempt_log': [{'step': None, 'path': None, 'score': None,
-                            'dt_attempted': None} ],
-            'tag_records': [{'tag_id': 1,
-                             'last_right': dt('2013-01-29'),
-                             'last_wrong': dt('2013-01-29'),
-                             'times_right': 1, 'times_wrong': 1}],
-            'tag_progress': {'latest_new': 1,
-                            'cat1': [], 'cat2': [], 'cat3': [], 'cat4': [],
-                            'rev1': [], 'rev2': [], 'rev3': [], 'rev4': []}}
-
-    return locals()[case]
+@pytest.fixture
+def mywalk(myrecords):
+    """pytest fixture providing a paideia.Walk object for testing"""
+    userdata = {'first_name': 'Joe', 'id': 1}
+    tag_progress = myrecords['tag_progress']
+    tag_records = myrecords['tag_records']
+    localias = myrecords['localias']
+    return Walk(localias=localias, userdata=userdata,
+            tag_records=tag_records, tag_progress=tag_progress, db=db)
 
 @pytest.fixture
-def mycategorizer(myrecords, request):
+def mycategorizer(myrecords):
     """A pytest fixture providing a paideia.Categorizer object for testing."""
     rank = myrecords['tag_progress']['latest_new']
     categories = myrecords['tag_progress']
@@ -265,14 +274,14 @@ def mycategorizer(myrecords, request):
     return {'categorizer': Categorizer(rank, categories, tag_records),
             'casenum': myrecords['casenum']}
 
-@pytest.fixture
+@pytest.fixture(params=['case{}'.format(n) for n in range(1,2)])
 def myuser(myrecords):
     """A pytest fixture providing a paideia.User object for testing."""
     userdata = db.auth_user(1).as_dict()
-    loc_alias = 'shop_of_alexander'
     tag_progress = myrecords['tag_progress']
     tag_records = myrecords['tag_records']
-    return User(userdata, loc_alias, tag_records, tag_progress)
+    localias = myrecords['localias']
+    return User(userdata, localias, tag_records, tag_progress)
 
 @pytest.fixture
 def mynpc():
@@ -1061,7 +1070,9 @@ class TestPath():
         # for path 89, multiple, single step
         output2 = StepFactory().get_instance(step_id=101, loc=Location(8, db),
                                         prev_loc=None, prev_npc_id=1, db=db)
-        pstep = mypath['path'].get_step_for_prompt()
+        ready_path = mypath['path']
+        ready_path._prepare_for_prompt()
+        pstep = ready_path.get_step_for_prompt()
         ostep = locals()[output]
         assert pstep.get_id() == ostep.get_id()
         assert pstep.get_tags() == ostep.get_tags()
@@ -1110,12 +1121,14 @@ class TestPath():
               2: StepFactory().get_instance(step_id=101,
                   loc=Location(8, db), prev_loc=None, prev_npc_id=1, db=db)
               }
-        case = mypath['path']
-        pstep = case.get_step_for_prompt()
-        case.prepare_for_answer(pstep, step_sent_id=pstep.get_id)
+        path = mypath['path']
+        path._prepare_for_prompt()
+        pstep = path.get_step_for_prompt()
+        path.prepare_for_answer(step_for_prompt=pstep, step_sent_id=pstep.get_id())
+        rstep = path.get_step_for_reply()
 
-        path = case.get_step_for_reply()
-        assert path == out[mypath['casenum']]
+        assert path.get_step_for_prompt() is None
+        assert rstep.get_id() == out[mypath['casenum']].get_id()
 
 class TestPathChooser():
     """Unit testing class for the paideia.PathChooser class."""
@@ -1126,6 +1139,25 @@ class TestUser():
 
     def test_user_get_id(self, myuser):
         assert myuser.get_id() == 1
+
+    def test_user_is_stale(self, myuser):
+        assert 1
+
+    def test_user_get_categories(self, myuser):
+        assert 1
+
+    def test_user_get_old_categories(self, myuser):
+        assert 1
+
+    def test_user_get_new_badges(self, myuser):
+        assert 1
+
+    def test_user_complete_path(self, myuser):
+        assert 1
+
+    def test_user_get_path(self, myuser):
+        assert 1
+
 
 class TestCategorizer():
     """Unit testing class for the paideia.Categorizer class"""
@@ -1195,10 +1227,32 @@ class TestWalk():
     A unit testing class for the paideia.Walk class.
     """
 
-    def _get_user(self, mywalk, myrecords, mysession):
+    def test_walk_get_user(self, mywalk, myrecords, mysession):
         """docstring for _get_user"""
-        userdata = {'name': 'Ian', 'id': 1}
-        loc_alias = mywalk.localias
+        localias = mywalk.localias
         tag_records = myrecords['tag_records']
         tag_progress = myrecords['tag_progress']
-        assert mywalk._get_user(userdata, loc_alias, tag_records, tag_progress)
+        assert mywalk._get_user(localias, tag_records, tag_progress)
+
+    def test_walk_map(self, mywalk):
+        mapdata = {'map_image': '/paideia/static/images/town_map.svg',
+                    'locations': []}
+        map = mywalk.map()
+        assert map['map_image'] == mapdata['map_image']
+        assert map['locations'][0] == mapdata['locations'][0]
+
+    def test_walk_ask(self, mywalk):
+        prompt = ''
+        responder = ''
+        ask = mywalk.ask()
+        assert ask['prompt'] == prompt
+        assert ask['responder'] == responder
+
+    def test_walk_reply(self, mywalk):
+        assert 1
+
+    def test_walk_record_step(self, mywalk):
+        assert 1
+
+    def test_walk_cache_user(self, mywalk):
+        assert 1

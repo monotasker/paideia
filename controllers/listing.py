@@ -7,6 +7,7 @@ import calendar
 from pytz import timezone
 import pprint
 from timeit import Timer
+import itertools
 
 # TODO: rework to use plugin_listandedit as a widget
 
@@ -16,11 +17,14 @@ def user():
     # define minimum daily required # of paths
     target = 20
     # find dates for this week, last week, and earliest possible span
-    today = datetime.datetime.today()
+    today = datetime.datetime.utcnow()
+    now = timezone('UTC').localize(today)
     thismonth = calendar.monthcalendar(today.year, today.month)
+
     thisweek = [w for w in thismonth if today.day in w][0]
     today_index = thisweek.index(today.day)
     tw_index = thismonth.index(thisweek)
+
     lastweek = thismonth[tw_index - 1]
     delta = datetime.timedelta(days = (8+today_index))
     lw_firstday = today - delta
@@ -31,42 +35,44 @@ def user():
             lastmonth = calendar.monthcalendar(today.year, today.month - 1)
             tw_prev = lastmonth[-1]
             lastweek = lastmonth[-2]
+            thisweek = [d for d in itertools.chain(thisweek, tw_prev) if d != 0]
 
     lw_prev = None
     if 0 in lastweek:
         lastmonth = calendar.monthcalendar(today.year, today.month - 1)
         lw_prev = lastmonth[-1]
+        lastweek = [d for d in itertools.chain(lastweek, lw_prev) if d != 0]
 
     users = db(db.auth_user.id == db.tag_progress.name).select(
                                             orderby=db.auth_user.last_name)
+
     logs = db((db.attempt_log.name.belongs([u.auth_user.id for u in users])) &
-            (db.attempt_log.dt_attempted > lw_firstday)).select()
+            (db.attempt_log.dt_attempted > lw_firstday)).select(db.attempt_log.dt_attempted)
+
     countlist = {}
     for user in users:
+        print 'user', user.auth_user.id
         tz_name = user.auth_user.time_zone
         if tz_name is None:
             tz_name = 'America/Toronto'
         tz = timezone(tz_name)
+        offset = now - tz.localize(today)  # How do I know when to use "ambiguous" instead?
+        # alternative is to do tz.fromutc(datetime)
 
         tw_count = 0
-        if tw_prev:
-            thisweek = [d for d in thisweek if d != 0]
-            tw_prev = [d for d in tw_prev if d != 0]
-            thisweek += tw_prev
         for day in thisweek:
-            count = len(logs.find(lambda row: tz.fromutc(row.dt_attempted).day == day))
-            if count >= target:
+            daycount = len([l for l in logs if (l.dt_attempted - offset).day == day])
+            #count = len(logs.find(lambda row: tz.fromutc(row.dt_attempted).day == day))
+            if daycount >= target:
                 tw_count += 1
+        print tw_count, '\n'
 
         lw_count = 0
-        if lw_prev:
-            lastweek = [d for d in lastweek if d != 0]
-            lw_prev = [d for d in lw_prev if d != 0]
-            lastweek += lw_prev
         for day in lastweek:
-            count = len(logs.find(lambda row: tz.fromutc(row.dt_attempted).day == day))
-            if count >= target:
+            daycount = len([l for l in logs if (l.dt_attempted - offset).day == day])
+            if daycount >= target:
                 lw_count += 1
+        print lw_count
 
         countlist[user.auth_user.id] = (tw_count, lw_count)
 
