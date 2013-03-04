@@ -966,9 +966,119 @@ class PathChooser(object):
     Select a new path to begin when the user begins another interaction.
     """
 
-    def __init__(self):
-        """docstring for __init__"""
-        pass
+    def __init__(self, categories, loc, paths_completed, db=None):
+        """Initialize a PathChooser object to select the user's next path."""
+        self.categories = categories
+        if not db:
+            self.db = current.db
+        self.db = db
+        self.loc_id = loc.get_id()
+        self.completed = paths_completed
+
+    def _order_cats(self):
+        """
+        Choose a category to prefer in path selection and order categories
+        beginning with that number.
+
+        Returns a list with four members including the integers one-four.
+        """
+
+        cat = self._get_category()  # generate weighted random number for cat
+        # TODO: get logic from old module
+        cat_range = range(1, 5)
+        cat_list = cat_range[cat:5] + cat_range[0:cat]
+
+        return cat_list
+
+    def _paths_by_category(self):
+        """
+        Assemble list of paths tagged with tags in each category for this user.
+
+        Returns a dictionary with categories as keys and corresponding lists
+        as values.
+        """
+        db = self.db
+        categories = self.categories
+
+        ps = db().select(db.paths.ALL, orderby='<random>')
+        # filter out paths with a step that's not set to "active"
+        ps = ps.find(lambda row: [s for s in row.steps
+                                                if db.steps[s].status != 2])
+        # avoid steps with right tag but no location
+        ps = ps.exclude(lambda row: db.steps[row.steps[0]].locations is None)
+
+        paths_dict = {k: [] for k in categories.keys()}
+        for cat, taglist in categories.iteritems():
+            paths_dict[cat] = p_list.find(lambda row:
+                                  [t for t in row.tags if t in tag_list])
+
+        # TODO: exclude paths whose steps have tags beyond user's active tags
+        #if len(p_list) > 0:
+            #maxp = db.tag_progress[auth.user_id].latest_new
+            #p_list.exclude(lambda row:
+                #[t for t in row.tags if db.tags[t].position > maxp])
+
+        return paths_dict
+
+    def _choose_from_cat(self, cpaths):
+        """
+        Select a path from the category supplied as an argument.
+
+        Returns a 2-member tuple. The first value is the chosen path, and the
+        second is a location id. If the location id is None, it means that the
+        path can be begun in the current location. If that second member is an
+        integer then the user should be redirected to that location.
+        """
+        categories = self.categories
+        db = self.db
+        loc_id = self.loc_id
+
+        # catpaths is already filtered by category
+        p_new = cpaths.find(lambda row: row.id not in self.completed)
+        p_here = cpaths.find(lambda p: loc_id in p.steps[0].locations)
+        # TODO: or do I need db.steps[row.steps[0]].locations
+        p_here_new = p_here.find(lambda p: p in p_new)
+
+        path = None
+        new_loc = None
+        if p_here_new:
+            path = p_here_new[randrange(0, len(p_here_new))]
+        elif p_new:
+            path = p_new[randrange(0, len(p_new))]
+            new_locs = path.steps[0].locations[0]
+            # TODO: do we need db.steps[p_elsewhere.steps[0].locations
+            new_loc = new_locs[randrange(0, len(new_locs))]
+        elif p_here:
+            path = p_here[randrange(0, len(p_here))]
+
+        return (path, next_loc)
+
+    def choose(self, db=None):
+        """
+        Choose a path for the current user based on performance record.
+
+        The algorithm looks for paths using the following tests, in this order:
+        - has a due tag & can be started in current location & untried today
+        - has a due tag & untried today
+        - has a due tag & already tried today
+        - has a tag that's not due & untried today
+        - any random path
+        """
+        if not db:
+            db = current.db
+        loc_id = self.loc_id
+        cat_list = self._order_cats()
+        path_lists = self._paths_by_category()
+
+        # cycle through categories, starting with the one from _get_category()
+        for cat in cat_list:
+            catpaths = path_lists[cat]
+            if len(catpaths) > 0:
+                return self._choose_from_cat(catpaths)
+            else:
+                continue
+
+        return None
 
 
 class User(object):
@@ -978,7 +1088,7 @@ class User(object):
 
     """
 
-    def __init__(self, userdata, localias, tag_records, tag_progress):
+    def __init__(self, userdata, localias, tag_records, tag_progress, db=None):
         """
         Initialize a paideia.User object.
 
@@ -988,6 +1098,9 @@ class User(object):
         - tag_progress: rows.as_dict()
         - tag_records: rows.as_dict
         """
+        if not db:
+            db = current.db
+        self.db = db
         self.tag_progress = tag_progress
         self.rank = tag_progress['latest_new']
         self.name = userdata['first_name']
@@ -1026,7 +1139,8 @@ class User(object):
         if self.path:
             return self.path
         else:
-            path = PathChooser(self.categories).choose()
+            path = PathChooser(self.categories, self.loc,
+                                self.completed_paths, db=self.db).choose()
             self.path = path
             return path
 
