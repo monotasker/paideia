@@ -266,6 +266,14 @@ def mywalk(myrecords):
             tag_records=tag_records, tag_progress=tag_progress, db=db)
 
 @pytest.fixture
+def mypathchooser(myrecords):
+    """pytest fixture providing a paideia.PathChooser object for testing"""
+    categories = {'cat1': [61], 'cat2': [], 'cat3': [], 'cat4': []}
+    loc = myloc
+    completed = []
+    return PathChooser(categories, loc, completed, db=db)
+
+@pytest.fixture
 def mycategorizer(myrecords):
     """A pytest fixture providing a paideia.Categorizer object for testing."""
     rank = myrecords['tag_progress']['latest_new']
@@ -1256,3 +1264,17 @@ class TestWalk():
 
     def test_walk_cache_user(self, mywalk):
         assert 1
+
+    def text_pathchooser_choose(self, mypathchooser):
+        newpath = mypathchooser.choose()
+        assert newpath.isinstance(Path)
+
+    def text_pathchooser_order_cats(self, mypathchooser):
+        assert 0
+
+    def text_pathchooser_paths_by_category(self, mypathchooser):
+        assert 0
+
+    def text_pathchooser_choose_from_cat(self, mypathchooser):
+        assert 0
+
