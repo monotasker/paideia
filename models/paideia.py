@@ -298,7 +298,8 @@ db.define_table('tag_records',
     Field('tlast_wrong', 'datetime', default=dtnow),
     Field('tlast_right', 'datetime', default=dtnow),
     Field('path', db.paths),
-    Field('step', db.steps)
+    Field('step', db.steps),
+    Field('secondary_right', 'list:string')
     )
 db.tag_records.name.requires = IS_IN_DB(db, 'auth_user.id',
                                     db.auth_user._format)
