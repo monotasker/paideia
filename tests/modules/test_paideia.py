@@ -262,7 +262,7 @@ def mywalk(myrecords):
     tag_progress = myrecords['tag_progress']
     tag_records = myrecords['tag_records']
     localias = myrecords['localias']
-    return Walk(localias=localias, userdata=userdata,
+    return Walk(localias, userdata=userdata,
             tag_records=tag_records, tag_progress=tag_progress, db=db)
 
 @pytest.fixture(params=['case{}'.format(n) for n in range(1,2)])
@@ -272,12 +272,12 @@ def mypathchooser(request, myloc):
     cases = {
     'case1':
         {'categories': {'cat1': [61], 'cat2': [], 'cat3': [], 'cat4': []},
-        'loc': myloc,
+        'loc': 'domus_A',
         'completed': [],
         'paths': [1, 2, 3, 5, 8, 63, 64, 70, 95, 96, 97, 99, 102, 104, 256, 277]},
     'case2':
         {'categories': {'cat1': [62], 'cat2': [61], 'cat3': [], 'cat4': []},
-        'loc': myloc,
+        'loc': 'domus_A',
         'completed': [],
         'paths': [4, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22,
             23, 34, 35, 97, 98, 100, 101, 103, 257, 261, 277]},
@@ -1252,9 +1252,11 @@ class TestWalk():
     def test_walk_get_user(self, mywalk, myrecords, mysession):
         """docstring for _get_user"""
         localias = mywalk.localias
+        userdata = {'first_name': 'Joe', 'id': 1}
         tag_records = myrecords['tag_records']
         tag_progress = myrecords['tag_progress']
-        assert mywalk._get_user(localias, tag_records, tag_progress)
+        assert mywalk._get_user(userdata=userdata, localias=localias,
+                        tag_records=tag_records, tag_progress=tag_progress)
 
     def test_walk_map(self, mywalk):
         mapdata = {'map_image': '/paideia/static/images/town_map.svg',
@@ -1333,7 +1335,7 @@ class TestWalk():
         assert newpath.get_id() in mypathchooser['paths']
 
     def test_pathchooser_order_cats(self, mypathchooser):
-        pc = mypathchooser._order_cats()
+        pc = mypathchooser['pathchooser']._order_cats()
         print pc
         ind = pc.index(1)
         if len(pc) >= (ind + 2):
