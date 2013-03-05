@@ -1244,10 +1244,58 @@ class TestWalk():
 
     def test_walk_map(self, mywalk):
         mapdata = {'map_image': '/paideia/static/images/town_map.svg',
-                    'locations': []}
+                    'locations': [
+                        {'alias': 'None',
+                        'bg_image': 8,
+                        'id': 3},
+                       {'alias': 'domus_A',
+                        'bg_image': 8,
+                        'id': 1},
+                       {'alias': '',
+                        'bg_image': 8,
+                        'id': 2},
+                       {'alias': None,
+                        'bg_image': None,
+                        'id': 4},
+                       {'alias': None,
+                        'bg_image': None,
+                        'id': 12},
+                       {'alias': 'bath',
+                        'bg_image': 17,
+                        'id': 13},
+                       {'alias': 'gymnasion',
+                        'bg_image': 15,
+                        'id': 14},
+                       {'alias': 'shop_of_alexander',
+                        'bg_image': 16,
+                        'id': 6},
+                       {'alias': 'ne_stoa',
+                        'bg_image': 18,
+                        'id': 7},
+                       {'alias': 'agora',
+                        'bg_image': 16,
+                        'id': 8},
+                       {'alias': 'synagogue',
+                        'bg_image': 15,
+                        'id': 11},
+                       {'alias': None,
+                        'bg_image': None,
+                        'id': 5},
+                       {'alias': None,
+                        'bg_image': None,
+                        'id': 9},
+                       {'alias': None,
+                        'bg_image': None,
+                        'id': 10}
+                       ]}
         map = mywalk.map()
+        pprint(map)
+        for m in mapdata['locations']:
+            i = mapdata['locations'].index(m)
+            assert map['locations'][i]['alias'] == m['alias']
+            assert map['locations'][i]['bg_image'] == m['bg_image']
+            assert map['locations'][i]['id'] == m['id']
         assert map['map_image'] == mapdata['map_image']
-        assert map['locations'][0] == mapdata['locations'][0]
 
     def test_walk_ask(self, mywalk):
         prompt = ''
@@ -1270,7 +1318,22 @@ class TestWalk():
         assert newpath.isinstance(Path)
 
     def text_pathchooser_order_cats(self, mypathchooser):
-        assert 0
+        pc = mypathchooser._order_cats()
+        print pc
+        ind = pc.index(1)
+        if len(pc) >= (ind + 2):
+            assert pc[ind + 1] == 2
+        if len(pc) >= (ind + 3):
+            assert pc[ind + 2] == 3
+        if len(pc) >= (ind + 2):
+            assert pc[ind + 3] == 4
+        if ind != 0:
+            assert pc[ind - 1] == 4
+        assert len(pc) == 4
+        assert pc[0] in [1,2,3,4]
+        assert pc[1] in [1,2,3,4]
+        assert pc[2] in [1,2,3,4]
+        assert pc[3] in [1,2,3,4]
 
     def text_pathchooser_paths_by_category(self, mypathchooser):
         assert 0

@@ -982,9 +982,17 @@ class PathChooser(object):
 
         Returns a list with four members including the integers one-four.
         """
+        switch = (1, 101)
 
-        cat = self._get_category()  # generate weighted random number for cat
-        # TODO: get logic from old module
+        if switch in range(1, 75):
+            cat = 1
+        elif switch in range(75, 90):
+            cat = 2
+        elif switch in range(90, 98):
+            cat = 3
+        else:
+            cat = 4
+
         cat_range = range(1, 5)
         cat_list = cat_range[cat:5] + cat_range[0:cat]
 
