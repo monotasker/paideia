@@ -265,13 +265,26 @@ def mywalk(myrecords):
     return Walk(localias=localias, userdata=userdata,
             tag_records=tag_records, tag_progress=tag_progress, db=db)
 
-@pytest.fixture
-def mypathchooser(myrecords):
+@pytest.fixture(params=['case{}'.format(n) for n in range(1,2)])
+def mypathchooser(request, myloc):
     """pytest fixture providing a paideia.PathChooser object for testing"""
-    categories = {'cat1': [61], 'cat2': [], 'cat3': [], 'cat4': []}
-    loc = myloc
-    completed = []
-    return PathChooser(categories, loc, completed, db=db)
+    case = request.param
+    cases = {
+    'case1':
+        {'categories': {'cat1': [61], 'cat2': [], 'cat3': [], 'cat4': []},
+        'loc': myloc,
+        'completed': [],
+        'paths': [1, 2, 3, 5, 8, 63, 64, 70, 95, 96, 97, 99, 102, 104, 256, 277]},
+    'case2':
+        {'categories': {'cat1': [61], 'cat2': [], 'cat3': [], 'cat4': []},
+        'loc': myloc,
+        'completed': [],
+        'paths': [1, 2, 3, 5, 8, 63, 64, 70, 95, 96, 97, 99, 102, 104, 256, 277]},
+    }
+    c = cases[request.param]
+    return {'pathchooser':
+                PathChooser(c['categories'], c['loc'], c['completed'], db=db),
+            'paths': c['paths']}
 
 @pytest.fixture
 def mycategorizer(myrecords):
@@ -282,7 +295,7 @@ def mycategorizer(myrecords):
     return {'categorizer': Categorizer(rank, categories, tag_records),
             'casenum': myrecords['casenum']}
 
-@pytest.fixture(params=['case{}'.format(n) for n in range(1,2)])
+@pytest.fixture
 def myuser(myrecords):
     """A pytest fixture providing a paideia.User object for testing."""
     userdata = db.auth_user(1).as_dict()
@@ -1305,17 +1318,18 @@ class TestWalk():
         assert ask['responder'] == responder
 
     def test_walk_reply(self, mywalk):
-        assert 1
+        assert 0
 
     def test_walk_record_step(self, mywalk):
-        assert 1
+        assert 0
 
     def test_walk_cache_user(self, mywalk):
-        assert 1
+        assert 0
 
     def text_pathchooser_choose(self, mypathchooser):
-        newpath = mypathchooser.choose()
+        newpath = mypathchooser['pathchooser'].choose()
         assert newpath.isinstance(Path)
+        assert newpath.get_id() in mypathchooser['paths']
 
     def text_pathchooser_order_cats(self, mypathchooser):
         pc = mypathchooser._order_cats()
