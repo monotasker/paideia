@@ -276,10 +276,11 @@ def mypathchooser(request, myloc):
         'completed': [],
         'paths': [1, 2, 3, 5, 8, 63, 64, 70, 95, 96, 97, 99, 102, 104, 256, 277]},
     'case2':
-        {'categories': {'cat1': [61], 'cat2': [], 'cat3': [], 'cat4': []},
+        {'categories': {'cat1': [62], 'cat2': [61], 'cat3': [], 'cat4': []},
         'loc': myloc,
         'completed': [],
-        'paths': [1, 2, 3, 5, 8, 63, 64, 70, 95, 96, 97, 99, 102, 104, 256, 277]},
+        'paths': [4, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22,
+            23, 34, 35, 97, 98, 100, 101, 103, 257, 261, 277]},
     }
     c = cases[request.param]
     return {'pathchooser':
@@ -1326,12 +1327,12 @@ class TestWalk():
     def test_walk_cache_user(self, mywalk):
         assert 0
 
-    def text_pathchooser_choose(self, mypathchooser):
+    def test_pathchooser_choose(self, mypathchooser):
         newpath = mypathchooser['pathchooser'].choose()
         assert newpath.isinstance(Path)
         assert newpath.get_id() in mypathchooser['paths']
 
-    def text_pathchooser_order_cats(self, mypathchooser):
+    def test_pathchooser_order_cats(self, mypathchooser):
         pc = mypathchooser._order_cats()
         print pc
         ind = pc.index(1)
@@ -1349,9 +1350,9 @@ class TestWalk():
         assert pc[2] in [1,2,3,4]
         assert pc[3] in [1,2,3,4]
 
-    def text_pathchooser_paths_by_category(self, mypathchooser):
+    def test_pathchooser_paths_by_category(self, mypathchooser):
         assert 0
 
-    def text_pathchooser_choose_from_cat(self, mypathchooser):
+    def test_pathchooser_choose_from_cat(self, mypathchooser):
         assert 0
 
