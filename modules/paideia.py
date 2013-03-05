@@ -99,7 +99,7 @@ class Walk(object):
 
     def ask(self):
         """Return the information necessary to initiate a step interaction."""
-
+        localias = self.localias
         p = self.user.get_path()
         s = p.get_next_step()
         prompt = s.get_prompt()
@@ -183,24 +183,24 @@ class Walk(object):
         else:
             return None
 
+#TODO: remove this old code
+#class PathChooser(object):
+    #"""
+    #Selects an appropriate path to begin given the user's performance to date.
+    #"""
 
-class PathChooser(object):
-    """
-    Selects an appropriate path to begin given the user's performance to date.
-    """
+    #def __init__(self, categories):
+        #"""
+        #Initialize a Paideia PathChooser object.
+        #"""
+        #self.categories = categories
 
-    def __init__(self, categories):
-        """
-        Initialize a Paideia PathChooser object.
-        """
-        self.categories = categories
-
-    def choose(self, categories=None):
-        """
-        Peform the path selection.
-        """
-        if not categories:
-            categories = self.categories
+    #def choose(self, categories=None):
+        #"""
+        #Peform the path selection.
+        #"""
+        #if not categories:
+            #categories = self.categories
 
 
 class Location(object):
@@ -966,13 +966,13 @@ class PathChooser(object):
     Select a new path to begin when the user begins another interaction.
     """
 
-    def __init__(self, categories, loc, paths_completed, db=None):
+    def __init__(self, categories, localias, paths_completed, db=None):
         """Initialize a PathChooser object to select the user's next path."""
         self.categories = categories
         if not db:
             self.db = current.db
         self.db = db
-        self.loc_id = loc.get_id()
+        self.loc_id = db(db.locations.alias == localias).select().first().id
         self.completed = paths_completed
 
     def _order_cats(self):
@@ -1017,8 +1017,8 @@ class PathChooser(object):
 
         paths_dict = {k: [] for k in categories.keys()}
         for cat, taglist in categories.iteritems():
-            paths_dict[cat] = p_list.find(lambda row:
-                                  [t for t in row.tags if t in tag_list])
+            paths_dict[cat] = ps.find(lambda row:
+                                  [t for t in row.tags if t in taglist])
 
         # TODO: exclude paths whose steps have tags beyond user's active tags
         #if len(p_list) > 0:
@@ -1080,7 +1080,7 @@ class PathChooser(object):
 
         # cycle through categories, starting with the one from _get_category()
         for cat in cat_list:
-            catpaths = path_lists[cat]
+            catpaths = path_lists['cat{}'.format(cat)]
             if len(catpaths) > 0:
                 return self._choose_from_cat(catpaths)
             else:
@@ -1124,7 +1124,7 @@ class User(object):
         self.session_start = datetime.datetime.utcnow()
         self.last_npc = None
         self.last_loc = None
-        self.loc = None
+        self.loc = localias
 
     def get_id(self):
         """Return the id (from db.auth_user) of the current user."""
