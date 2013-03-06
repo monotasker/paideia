@@ -1110,17 +1110,18 @@ class User(object):
             db = current.db
         self.db = db
         self.tag_progress = tag_progress
+        self.tag_records = tag_records
         self.rank = tag_progress['latest_new']
         self.name = userdata['first_name']
         self.user_id = userdata['id']
         self.path = None
-        self.completed_paths = None
-        self.categories = None
-        self.old_categories = None
-        self.new_badges = None
-        self.blocks = None
-        self.inventory = None
+        self.completed_paths = []
         self.cats_counter = 0
+        self.old_categories = None
+        self.categories = self._get_categories()
+        self.new_badges = None
+        self.blocks = []
+        self.inventory = []
         self.session_start = datetime.datetime.utcnow()
         self.last_npc = None
         self.last_loc = None
@@ -1153,7 +1154,7 @@ class User(object):
             return path
 
     def _get_categories(self, rank=None, categories=None, old_categories=None,
-                            tag_records=None, cats_counter=None):
+                            tag_records=None):
         """
         Return a categorized dictionary with four lists of tag id's.
 
@@ -1165,20 +1166,19 @@ class User(object):
             rank = self.rank
         if not tag_records:
             tag_records = self.tag_records
-        if not cats_counter:
-            cats_counter = self.cats_counter
-        if not categories:
-            categories = self.categories
-        if not old_categories:
-            old_categories = self.old_categories
+        cats_counter = self.cats_counter
+        old_categories = self.old_categories
         # only re-categorize every 10th evaluated step
-        if cats_counter < 10:
+        if cats_counter in range(1,10):
             self.cats_counter = cats_counter + 1
             return self.categories
         else:
-            self.old_categories = self.categories
+            try:
+                self.old_categories = self.categories
+            except AttributeError:
+                self.old_categories = None
             c = Categorizer(rank, categories, tag_records)
-            cat_result = c.categorize()
+            cat_result = c.categorize_tags()
             categories = cat_result['categories']
             self.categories = categories
             self.cats_counter = cats_counter + 1
@@ -1236,7 +1236,11 @@ class Categorizer(object):
         if tag_records[0] is None:
             categories = {}
             categories['cat1'] = self._introduce_tags()
-            return categories
+            return {'tag_progress': None,
+                    'new_tags': None,
+                    'promoted': None,
+                    'demoted': None,
+                    'categories': categories}
         else:
             # otherwise, categorize tags that have been tried
             categories = self._core_algorithm()
@@ -1262,12 +1266,14 @@ class Categorizer(object):
                 new_tags['cat1'].append(starting)
 
             # Re-insert 'latest new' to match tag_progress table in db
+            # TODO: also re-insert secondary_right value
             tag_progress['latest_new'] = self.rank
 
             return {'tag_progress': tag_progress,
                     'new_tags': new_tags,
                     'promoted': promoted,
-                    'demoted': demoted}
+                    'demoted': demoted,
+                    'categories': categories}
 
     def _core_algorithm(self, tag_records=None, utcnow=None):
         """

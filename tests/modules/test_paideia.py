@@ -1201,7 +1201,10 @@ class TestCategorizer():
                                 'rev3': [], 'rev4': []},
                         'new_tags': {'cat1': [61]},
                         'promoted': {'cat1': []},
-                        'demoted': {}},
+                        'demoted': {},
+                        'categories': {'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': []}
+                        },
 
             'case2': {'tag_progress': {'latest_new': 1,
                                 'cat1': [61], 'cat2': [],
@@ -1210,7 +1213,10 @@ class TestCategorizer():
                                 'rev3': [], 'rev4': []},
                         'new_tags': {'cat1': [61]},
                         'promoted': {'cat1': []},
-                        'demoted': {}},
+                        'demoted': {},
+                        'categories': {'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': []}
+                        },
             }
         assert mycategorizer['categorizer'].categorize_tags() == output[case]
 
