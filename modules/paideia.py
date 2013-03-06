@@ -99,9 +99,14 @@ class Walk(object):
 
     def ask(self):
         """Return the information necessary to initiate a step interaction."""
+        db = self.db
         localias = self.localias
+        loc_id = db(db.locations.alias == localias).select().first().id
+        loc = Location(loc_id, db)
+        # TODO: switch the localias argument below to the ful Location obj
         p = self.user.get_path(localias)
-        s = p.get_step_for_prompt()
+        s = p.get_step_for_prompt(loc)
+        print s
         prompt = s.get_prompt()
         responder = s.get_responder()
         self.store_user()
@@ -885,9 +890,12 @@ class Path(object):
 
         return self.step_for_prompt.get_id()
 
-    def get_step_for_prompt(self):
+    def get_step_for_prompt(self, loc=None):
         """Find the next unanswered step in the current path and return it."""
         # check for active step that hasn't been asked because of block
+        if loc:
+            self.loc = loc
+        self._prepare_for_prompt()
 
         next_step = self.step_for_prompt
         if self.step_for_prompt:
