@@ -1,28 +1,28 @@
 (dp1
-S'id'
+S'tag'
 p2
 (dp3
 S'type'
 p4
-S'id'
+S'reference tags'
 p5
 sS'sortable'
 p6
-I1
+I3
 sS'sql'
 p7
-S'INTEGER PRIMARY KEY AUTOINCREMENT'
+S'INTEGER REFERENCES tags (id) ON DELETE CASCADE'
 p8
-ssS'tag'
+ssS'badge_name'
 p9
 (dp10
 g4
-S'reference tags'
+S'string'
 p11
 sg6
-I3
+I2
 sg7
-S'INTEGER REFERENCES tags(id) ON DELETE CASCADE'
+S'CHAR(512) UNIQUE'
 p12
 ssS'description'
 p13
@@ -35,15 +35,15 @@ I4
 sg7
 S'TEXT'
 p16
-ssS'badge_name'
+ssS'id'
 p17
 (dp18
 g4
-S'string'
+S'id'
 p19
 sg6
-I2
+I1
 sg7
-S'CHAR(512) UNIQUE'
+S'INTEGER PRIMARY KEY AUTOINCREMENT'
 p20
 ss.
