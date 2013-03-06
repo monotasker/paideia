@@ -100,8 +100,8 @@ class Walk(object):
     def ask(self):
         """Return the information necessary to initiate a step interaction."""
         localias = self.localias
-        p = self.user.get_path()
-        s = p.get_next_step()
+        p = self.user.get_path(localias)
+        s = p.get_step_for_prompt()
         prompt = s.get_prompt()
         responder = s.get_responder()
         self.store_user()
@@ -846,14 +846,21 @@ class Path(object):
     So far there is no infrastructure for paths without a set sequence.
     """
 
-    def __init__(self, path_id=None, blocks=None, loc_id=None, prev_loc=None,
+    def __init__(self, path_id=None, blocks=None, loc=None, prev_loc=None,
                 completed_steps=None, last_step_id=None, step_for_prompt=None,
                 step_for_reply=None, prev_npc_id=None, db=None):
-        """Initialize a paideia.Path object."""
-        self.prev_loc_id = prev_loc.get_id()
+        """
+        Initialize a paideia.Path object.
+
+        The following arguments are required at init:
+            path_id
+            loc_id
+        The others are for dependency injection in testing
+        """
+        if prev_loc:
+            self.prev_loc_id = prev_loc.get_id()
         self.prev_npc_id = prev_npc_id
-        self.loc_id = loc_id
-        self.loc = Location(loc_id, db)
+        self.loc = loc
         self.blocks = blocks
         if not db:
             db = current.db
@@ -887,7 +894,7 @@ class Path(object):
 
         # check that next step can be asked here, else redirect
             locs = next_step.get_locations()
-            if not (self.loc_id in next_step.get_locations()):
+            if not (self.loc.get_id() in next_step.get_locations()):
                 self.blocks.append(Block.set_block('redirect', next_step.get_locations()))
 
             # check for blocks
@@ -966,13 +973,13 @@ class PathChooser(object):
     Select a new path to begin when the user begins another interaction.
     """
 
-    def __init__(self, categories, localias, paths_completed, db=None):
+    def __init__(self, categories, loc_id, paths_completed, db=None):
         """Initialize a PathChooser object to select the user's next path."""
         self.categories = categories
         if not db:
             self.db = current.db
         self.db = db
-        self.loc_id = db(db.locations.alias == localias).select().first().id
+        self.loc_id = loc_id
         self.completed = paths_completed
 
     def _order_cats(self):
@@ -1015,13 +1022,12 @@ class PathChooser(object):
         # avoid steps with right tag but no location
         ps.exclude(lambda row: db.steps[row.steps[0]].locations is None)
 
-        pprint(ps)
         paths_dict = {k: [] for k in categories.keys()}
         for cat, taglist in categories.iteritems():
             if not type(taglist) is list:
-                taglist == [taglist]
-            paths_dict[cat] = ps.find(lambda row:
-                                  [t for t in row.tags if t in taglist])
+                taglist = [taglist]
+            paths_dict[cat] = ps.find(lambda row: [t for t in row.tags
+                                            if taglist and (t in taglist)])
 
         # TODO: exclude paths whose steps have tags beyond user's active tags
         #if len(p_list) > 0:
@@ -1056,7 +1062,7 @@ class PathChooser(object):
             path = p_here_new[randrange(0, len(p_here_new))]
         elif p_new:
             path = p_new[randrange(0, len(p_new))]
-            new_locs = path.steps[0].locations[0]
+            new_locs = path.steps[0].locations
             # TODO: do we need db.steps[p_elsewhere.steps[0].locations
             new_loc = new_locs[randrange(0, len(new_locs))]
         elif p_here:
@@ -1128,7 +1134,10 @@ class User(object):
         self.session_start = datetime.datetime.utcnow()
         self.last_npc = None
         self.last_loc = None
-        self.loc = localias
+        self.localias = localias
+        self.loc_id = db(db.locations.alias == localias).select().first().id
+        self.loc = Location(self.loc_id, db)
+        self.redirect_loc = None
 
     def get_id(self):
         """Return the id (from db.auth_user) of the current user."""
@@ -1146,13 +1155,38 @@ class User(object):
         """Return a dictionary of tag ids newly introduced or promoted"""
         return self.new_badges
 
-    def get_path(self):
-        """Return the currently active Path object."""
+    def get_path(self, localias=None, db=None):
+        """
+        Return the currently active Path object.
+
+        Neither argument is strictly necessary, but localias will usually be
+        provided. The db argument is only used for dependency injection during
+        testing.
+        """
+        if not db:
+            db = current.db
+        # If the user has a multi-step path in progress, use that path
         if self.path:
+            if localias:
+                loc_id = db(db.locations.alias == localias).select().first().id
+                self.loc = Location(loc_id, db)
+            self.path._set_loc(self.loc)
             return self.path
+        # otherwise, select a new path
         else:
-            path = PathChooser(self.categories, self.loc,
+            if localias:
+                loc_id = db(db.locations.alias == localias).select().first().id
+                self.loc = Location(loc_id, db)
+
+            choice = PathChooser(self.categories, self.loc,
                                 self.completed_paths, db=self.db).choose()
+            path = Path(path_id=choice[0].id, loc=self.loc)
+
+            # check for a redirect location to start the selected path
+            if choice[1]:
+                # TODO: get block logic working here
+                self._set_block('redirect', choice[1])
+
             self.path = path
             return path
 
@@ -1251,7 +1285,8 @@ class Categorizer(object):
             # Remove any duplicates and tags beyond the user's current ranking
             for k, v in categories.iteritems():
                 if v:
-                    newv = [t for t in v if db.tags[t].position <= rank]
+                    newv = [t for t in v if db.tags(t)
+                                        and (db.tags[t].position <= rank)]
                     categories[k] = list(set(newv))
             # 'rev' categories are reintroduced
             categories.update((c, []) for c in ['rev1', 'rev2', 'rev3', 'rev4'])
@@ -1260,12 +1295,13 @@ class Categorizer(object):
             promoted = cat_changes['promoted']
             new_tags = cat_changes['new_tags']
             demoted = cat_changes['demoted']
-            tag_progress = cat_changes['categories']
+            tag_progress = copy(cat_changes['categories'])
 
             # If there are no tags left in category 1, introduce next set
-            if not categories['cat1']:
+            if not tag_progress['cat1']:
                 starting = self._introduce_tags()
                 categories['cat1'] = starting
+                tag_progress['cat1'] = starting
                 new_tags['cat1'].append(starting)
 
             # Re-insert 'latest new' to match tag_progress table in db
