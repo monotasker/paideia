@@ -578,7 +578,7 @@ class Walk(object):
         # even if some were actually tried before (through system error)
         for k, v in categories.iteritems():
             if v:
-                newv = [t for t in v if db.tags[t].position <= rank]
+                newv = [t for t in v if db.tags(t) and (db.tags[t].position <= rank)]
                 categories[k] = list(set(newv))
 
         # If there are no tags needing immediate review, introduce new one
