@@ -188,18 +188,18 @@ step_data_store = {
                 'prev_npc_id': 1,
                 'new_badges': [5,6],
                 'raw_prompt': 'Congratulations, [[user]]! You\'re ready to start '\
-                    'working on some new badges. Before you '\
+                    'working on some new badges: \n[[badge_list]]\nBefore you '\
                     'continue, take some time to view these slide sets:'\
                     '[[slides]]You\'ll find the slides by clicking on the '\
                     '"slides" menu item at top.',
                 'final_prompt': 'Congratulations, Ian! You\'re ready to '\
                     'start working '\
-                    'on some new badges. Before you continue, take some time '\
-                    'to view these slide sets:'\
+                    'on some new badges: \n[[badge_list]]\nBefore you continue, take some time '\
+                    'to view these slide sets:\n'\
                         '<ul class="slide_list">'\
                         '<li>The Alphabet III</li>'\
                         '<li>Case Basics</li>'\
-                        '</ul>'
+                        '</ul>\n'
                     'You\'ll find the slides by clicking on the "slides" menu '\
                     'item at top.',
                 'instructions': None,
@@ -818,6 +818,8 @@ class TestStepViewSlides():
                         if k in sd['npc_list']]
         prompt = myStepViewSlides.get_prompt(username=sd['username'],
                                            new_badges=sd['new_badges'])
+        print 'METHOD OUTPUT\n', sd['final_prompt']
+        print 'EXPECTED\n', prompt['prompt']
         assert prompt['prompt'] == sd['final_prompt']
         assert prompt['instructions'] == sd['instructions']
         assert prompt['npc_image'] in npcimgs
@@ -1223,8 +1225,8 @@ class TestCategorizer():
                         },
             }
         cats = mycategorizer['categorizer'].categorize_tags()
-        print 'FROM METHOD\n', cats
-        print 'EXPECTED\n', output[case]
+        #print 'FROM METHOD\n', cats
+        #print 'EXPECTED\n', output[case]
         assert cats == output[case]
 
     def test_categorizer_core_algorithm(self, mycategorizer):
