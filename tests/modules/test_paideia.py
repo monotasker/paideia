@@ -1336,9 +1336,8 @@ class TestWalk():
         assert 0
 
     def test_pathchooser_choose(self, mypathchooser):
-        newpath = mypathchooser['pathchooser'].choose()
-        assert newpath.isinstance(Path)
-        assert newpath.get_id() in mypathchooser['paths']
+        newpath = mypathchooser['pathchooser'].choose()[0]
+        assert newpath.id in mypathchooser['paths']
 
     def test_pathchooser_order_cats(self, mypathchooser):
         pc = mypathchooser['pathchooser']._order_cats()

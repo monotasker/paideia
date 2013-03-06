@@ -2,7 +2,7 @@
 from gluon import current
 from gluon import IMG, URL, INPUT, FORM, SQLFORM, SPAN, DIV, UL, LI, A, Field
 from gluon import IS_NOT_EMPTY, IS_IN_SET
-from random import randint
+from random import randint, randrange
 import re
 import datetime
 from itertools import chain
@@ -1013,10 +1013,13 @@ class PathChooser(object):
         ps = ps.find(lambda row: [s for s in row.steps
                                                 if db.steps[s].status != 2])
         # avoid steps with right tag but no location
-        ps = ps.exclude(lambda row: db.steps[row.steps[0]].locations is None)
+        ps.exclude(lambda row: db.steps[row.steps[0]].locations is None)
 
+        pprint(ps)
         paths_dict = {k: [] for k in categories.keys()}
         for cat, taglist in categories.iteritems():
+            if not type(taglist) is list:
+                taglist == [taglist]
             paths_dict[cat] = ps.find(lambda row:
                                   [t for t in row.tags if t in taglist])
 
@@ -1059,7 +1062,7 @@ class PathChooser(object):
         elif p_here:
             path = p_here[randrange(0, len(p_here))]
 
-        return (path, next_loc)
+        return (path, new_loc)
 
     def choose(self, db=None):
         """
