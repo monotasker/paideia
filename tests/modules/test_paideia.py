@@ -340,11 +340,11 @@ def mypath(request):
     """
     # StepText loc and prev_npc both work, no blocks
     case = 'case{}'.format(request.param)
-    case1args = {'path_id': 3, 'blocks': [], 'loc_id': 1,
+    case1args = {'path_id': 3, 'blocks': [], 'loc': Location(1, db),
             'prev_loc': Location(1, db), 'prev_npc_id': 2}
     case1 = Path(db=db, **case1args)
     # StepMultiple loc and prev_npc both work, no blocks
-    case2args = {'path_id': 89, 'blocks': [], 'loc_id': 8,
+    case2args = {'path_id': 89, 'blocks': [], 'loc': Location(8, db),
             'prev_loc': Location(8, db), 'prev_npc_id': 1}
     case2 = Path(db=db, **case2args)
     return {'casenum': request.param,
@@ -1203,7 +1203,9 @@ class TestCategorizer():
                         'promoted': {'cat1': []},
                         'demoted': {},
                         'categories': {'cat1': [61], 'cat2': [],
-                                'cat3': [], 'cat4': []}
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [],
+                                'rev3': [], 'rev4': []},
                         },
 
             'case2': {'tag_progress': {'latest_new': 1,
@@ -1215,10 +1217,15 @@ class TestCategorizer():
                         'promoted': {'cat1': []},
                         'demoted': {},
                         'categories': {'cat1': [61], 'cat2': [],
-                                'cat3': [], 'cat4': []}
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [],
+                                'rev3': [], 'rev4': []},
                         },
             }
-        assert mycategorizer['categorizer'].categorize_tags() == output[case]
+        cats = mycategorizer['categorizer'].categorize_tags()
+        print 'FROM METHOD\n', cats
+        print 'EXPECTED\n', output[case]
+        assert cats == output[case]
 
     def test_categorizer_core_algorithm(self, mycategorizer):
         """
