@@ -15,20 +15,20 @@ from termcolor import colored
 # you should address me as ???
 # please give this money to the ptwxos (image)
 lines = [
-        'Χριστῳ, παντες δουλοι. Οἱ ταπεινοι ἀδελφοι των γενναιων.',
-        'Καλοι ἀνθρωποι οἱ Κορινθιοι.',
-        'Οἱ Κορινθιοι καλοι ἀνθρωποι.',
-        'Καλοι οἱ Κορινθιοι ἀνθρωποι.',
+        'The humble are brothers of the noble.',
+        'Those who are low-born are brothers and sisters to the high-born.',
+        'The low-class are siblings with the high-class.',
         ]
 
 regex = """^
-(?P<b>Ἀνθρωποι\s)?
-(?P<e>(Κ|κ)αλοι\s)?
-(?(b)|(?P<c>(ἀ|Ἀ)νθρωποι\s))?
-(Ο|ο)ἱ\s(Κ|κ)ορινθιοι
-(?(b)|(?(c)|(?P<d>\sἀνθρωποι)?))
-(?(e)|\sκαλοι)
-(?(b)|(?(c)|(?(d)|\sἀνθρωποι)))
+(The\s|Those who are)?
+((H\h)umble|(L|l)ow(-|\s)((B|b)orn|(C|c)lass))\s
+are\s(the\s)?
+(brothers(and\ssisters)|siblings)\s
+(of|for|with|related\sto)\s
+(the|those who are)?
+(noble|high(-|\s)(born|class))
+
 \.$"""
 
 test_regex = re.compile(regex, re.X)
