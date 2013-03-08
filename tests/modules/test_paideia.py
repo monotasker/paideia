@@ -8,6 +8,7 @@ from paideia import StepRedirect, StepViewSlides, StepAwardBadges, StepQuotaReac
 from paideia import StepEvaluator, MultipleEvaluator
 from paideia import Block, BlockRedirect, BlockAwardBadges, BlockViewSlides
 from gluon import *
+from gluon.dal import Rows
 import datetime
 from pprint import pprint
 import re
@@ -274,13 +275,23 @@ def mypathchooser(request, myloc):
         {'categories': {'cat1': [61], 'cat2': [], 'cat3': [], 'cat4': []},
         'loc': 'domus_A',
         'completed': [],
-        'paths': [1, 2, 3, 5, 8, 63, 64, 70, 95, 96, 97, 99, 102, 104, 256, 277]},
+        'paths':
+            {'cat1': [1, 2, 3, 5, 8, 63, 64, 70, 95, 96, 97, 99, 102,
+                        104, 256, 277],
+            'cat2': [],
+            'cat3': [],
+            'cat4': []}},
     'case2':
         {'categories': {'cat1': [62], 'cat2': [61], 'cat3': [], 'cat4': []},
         'loc': 'domus_A',
         'completed': [],
-        'paths': [4, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22,
-            23, 34, 35, 97, 98, 100, 101, 103, 257, 261, 277]},
+        'paths':
+            {'cat1': [1, 2, 3, 5, 8, 63, 64, 70, 95, 96, 97, 99, 102,
+                        104, 256, 277],
+            'cat2': [4, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22,
+                    23, 34, 35, 97, 98, 100, 101, 103, 257, 261, 277],
+            'cat3': [],
+            'cat4': []}}
     }
     c = cases[request.param]
     return {'pathchooser':
@@ -1095,7 +1106,7 @@ class TestPath():
         output2 = StepFactory().get_instance(step_id=101, loc=Location(8, db),
                                         prev_loc=None, prev_npc_id=1, db=db)
         ready_path = mypath['path']
-        ready_path._prepare_for_prompt()
+        #ready_path._prepare_for_prompt()
         pstep = ready_path.get_step_for_prompt()
         ostep = locals()[output]
         assert pstep.get_id() == ostep.get_id()
@@ -1146,17 +1157,14 @@ class TestPath():
                   loc=Location(8, db), prev_loc=None, prev_npc_id=1, db=db)
               }
         path = mypath['path']
-        path._prepare_for_prompt()
         pstep = path.get_step_for_prompt()
         path.prepare_for_answer(step_for_prompt=pstep, step_sent_id=pstep.get_id())
         rstep = path.get_step_for_reply()
 
-        assert path.get_step_for_prompt() is None
+        assert path.step_for_prompt is None
+        assert path.step_for_reply.get_id() is out[mypath['casenum']].get_id()
         assert rstep.get_id() == out[mypath['casenum']].get_id()
 
-class TestPathChooser():
-    """Unit testing class for the paideia.PathChooser class."""
-    pass
 
 class TestUser():
     """unit testing class for the paideia.User class"""
@@ -1329,11 +1337,16 @@ class TestWalk():
         assert map['map_image'] == mapdata['map_image']
 
     def test_walk_ask(self, mywalk):
-        prompt = ''
-        responder = ''
+        prompt = 'How would you write the English word "head" using'\
+                ' Greek letters?'
+        instructions = None
+        image = '/paideia/static/images/images.image.bb48641f0122d2b6.696d616765732e696d6167652e383136303330663934646664646561312e34343732363137373639366536373230333432653733373636372e737667.svg'
+        responder = '<form action="" autocomplete="off" enctype="multipart/form-data" method="post"><table><tr id="no_table_response__row"><td class="w2p_fl"><label for="no_table_response" id="no_table_response__label">Response: </label></td><td class="w2p_fw"><input class="string" id="no_table_response" name="response" type="text" value="" /></td><td class="w2p_fc"></td></tr><tr id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw"><input type="submit" value="Submit" /></td><td class="w2p_fc"></td></tr></table></form>'
         ask = mywalk.ask()
-        assert ask['prompt'] == prompt
-        assert ask['responder'] == responder
+        assert ask['prompt']['prompt'] == prompt
+        assert ask['prompt']['instructions'] == instructions
+        assert ask['prompt']['npc_image'] == image
+        assert ask['responder'].xml() == responder
 
     def test_walk_reply(self, mywalk):
         assert 0
@@ -1344,19 +1357,21 @@ class TestWalk():
     def test_walk_cache_user(self, mywalk):
         assert 0
 
+class TestPathChooser():
+
     def test_pathchooser_choose(self, mypathchooser):
-        newpath = mypathchooser['pathchooser'].choose()[0]
-        assert newpath.id in mypathchooser['paths']
+        newpath = mypathchooser['pathchooser'].choose()
+        assert newpath[0].id in [r for c in mypathchooser['paths'].values() for r in c if len(c) > 0]
+        assert newpath[2] in range(1,5)
 
     def test_pathchooser_order_cats(self, mypathchooser):
         pc = mypathchooser['pathchooser']._order_cats()
-        print pc
         ind = pc.index(1)
         if len(pc) >= (ind + 2):
             assert pc[ind + 1] == 2
         if len(pc) >= (ind + 3):
             assert pc[ind + 2] == 3
-        if len(pc) >= (ind + 2):
+        if len(pc) >= (ind + 4):
             assert pc[ind + 3] == 4
         if ind != 0:
             assert pc[ind - 1] == 4
@@ -1367,8 +1382,25 @@ class TestWalk():
         assert pc[3] in [1,2,3,4]
 
     def test_pathchooser_paths_by_category(self, mypathchooser):
-        assert 0
+        cpaths, category = mypathchooser['pathchooser']._paths_by_category('1')
+        allpaths = mypathchooser['paths']
+        pathids = allpaths['cat{}'.format(category)]
+        expected = db(db.paths).select()
+        expected = expected.find(lambda row: row.id in pathids)
+        assert len(cpaths) == len(expected)
+        for row in cpaths:
+            assert row.id in [r.id for r in expected]
 
     def test_pathchooser_choose_from_cat(self, mypathchooser):
-        assert 0
+        allpaths = mypathchooser['paths']
+        pathids = allpaths['cat{}'.format(1)]
+        expected = db(db.paths).select()
+        expected = expected.find(lambda row: row.id in pathids)
+        print expected
+
+        newpath = mypathchooser['pathchooser']._choose_from_cat(expected, 1)
+        assert newpath[0].id in mypathchooser['paths']['cat1']
+        assert newpath[1] in [l for l in newpath[0].steps[0].locations]
+        assert newpath[2] == 1
+
 
