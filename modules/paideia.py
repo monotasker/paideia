@@ -90,6 +90,7 @@ class Walk(object):
             db = self.db
             cache = current.cache
 
+
         map_image = '/paideia/static/images/town_map.svg'
         # TODO: Review cache time
         locations = db().select(db.locations.ALL,
@@ -104,12 +105,11 @@ class Walk(object):
         loc_id = db(db.locations.alias == localias).select().first().id
         loc = Location(loc_id, db)
         # TODO: switch the localias argument below to the ful Location obj
-        p = self.user.get_path(localias)
-        s = p.get_step_for_prompt(loc)
-        print s
+        p = self.user.get_path(loc)
+        s = p.get_step_for_prompt()
         prompt = s.get_prompt()
         responder = s.get_responder()
-        self.store_user()
+        self._store_user(self.user)
 
         return {'prompt': prompt, 'responder': responder}
 
@@ -187,6 +187,12 @@ class Walk(object):
             return new_badges
         else:
             return None
+
+    def _store_user(self, user):
+        """
+        Store the current User object (from self.user) in session.user
+        """
+        pass
 
 #TODO: remove this old code
 #class PathChooser(object):
@@ -448,6 +454,8 @@ class Step(object):
 
         new_string = raw_prompt
         for k, v in reps.iteritems():
+            if not v:
+                v = ''
             new_string = new_string.replace(k, v)
 
         return new_string
@@ -885,40 +893,41 @@ class Path(object):
 
     def _prepare_for_prompt(self):
         """ move next step in this path into the 'step_for_prompt' variable"""
-        next_step = self.steps.pop(0)
+        if len(self.steps) > 1:
+            next_step = self.steps.pop(0)
+        else:
+            print 'self.steps*****\n', self.steps, '*****\n'
+            next_step = copy(self.steps[0])
+            self.steps = []
         self.step_for_prompt = next_step
 
-        return self.step_for_prompt.get_id()
+        return self.step_for_prompt
 
     def get_step_for_prompt(self, loc=None):
         """Find the next unanswered step in the current path and return it."""
         # check for active step that hasn't been asked because of block
         if loc:
             self.loc = loc
-        self._prepare_for_prompt()
 
-        next_step = self.step_for_prompt
-        if self.step_for_prompt:
+        next_step = self._prepare_for_prompt()
 
         # check that next step can be asked here, else redirect
-            locs = next_step.get_locations()
-            if not (self.loc.get_id() in next_step.get_locations()):
-                self.blocks.append(Block.set_block('redirect', next_step.get_locations()))
+        locs = next_step.get_locations()
+        if not (self.loc.get_id() in next_step.get_locations()):
+            self.blocks.append(Block.set_block('redirect',
+                                                next_step.get_locations()))
 
-            # check for blocks
-            if self.blocks:
-                block_step = self.blocks.pop(0).get_step()
-                if block_step:
-                    # TODO: make sure that the block step isn't added to completed
-                    # or step_to_answer or last_step_id
-                    # TODO: how will we remove the block?
-                    step_sent_id = block_step.get_id()
-                    return block_step
+        # check for blocks
+        if self.blocks:
+            block_step = self.blocks.pop(0).get_step()
+            if block_step:
+                # TODO: make sure that the block step isn't added to completed
+                # or step_to_answer or last_step_id
+                # TODO: how will we remove the block?
+                step_sent_id = block_step.get_id()
+                return block_step
 
-            self.step_sent_id = self.step_for_prompt.get_id()
-        else:
-            # if self.step_for_prompt was None because we're ready for answer
-            pass
+        self.step_sent_id = self.step_for_prompt.get_id()
 
         return next_step
 
@@ -997,7 +1006,7 @@ class PathChooser(object):
 
         Returns a list with four members including the integers one-four.
         """
-        switch = (1, 101)
+        switch = randint(1, 101)
 
         if switch in range(1, 75):
             cat = 1
@@ -1013,7 +1022,7 @@ class PathChooser(object):
 
         return cat_list
 
-    def _paths_by_category(self):
+    def _paths_by_category(self, cat):
         """
         Assemble list of paths tagged with tags in each category for this user.
 
@@ -1021,21 +1030,18 @@ class PathChooser(object):
         as values.
         """
         db = self.db
-        categories = self.categories
+
 
         ps = db().select(db.paths.ALL, orderby='<random>')
+        # filter by category
+        taglist = self.categories['cat{}'.format(cat)]
+        ps = ps.find(lambda row: [t for t in row.tags
+                                            if taglist and (t in taglist)])
         # filter out paths with a step that's not set to "active"
         ps = ps.find(lambda row: [s for s in row.steps
                                                 if db.steps[s].status != 2])
         # avoid steps with right tag but no location
         ps.exclude(lambda row: db.steps[row.steps[0]].locations is None)
-
-        paths_dict = {k: [] for k in categories.keys()}
-        for cat, taglist in categories.iteritems():
-            if not type(taglist) is list:
-                taglist = [taglist]
-            paths_dict[cat] = ps.find(lambda row: [t for t in row.tags
-                                            if taglist and (t in taglist)])
 
         # TODO: exclude paths whose steps have tags beyond user's active tags
         #if len(p_list) > 0:
@@ -1043,19 +1049,19 @@ class PathChooser(object):
             #p_list.exclude(lambda row:
                 #[t for t in row.tags if db.tags[t].position > maxp])
 
-        return paths_dict
+        return (ps, cat)
 
-    def _choose_from_cat(self, cpaths):
+    def _choose_from_cat(self, cpaths, category):
         """
         Select a path from the category supplied as an argument.
 
-        Returns a 2-member tuple. The first value is the chosen path, and the
+        Returns a 3-member tuple. The first value is the chosen path, and the
         second is a location id. If the location id is None, it means that the
         path can be begun in the current location. If that second member is an
-        integer then the user should be redirected to that location.
+        integer then the user should be redirected to that location. The third
+        member is an integer between 1 and 4 corresponding to the category from
+        which the path was chosen.
         """
-        categories = self.categories
-        db = self.db
         loc_id = self.loc_id
 
         # catpaths is already filtered by category
@@ -1076,7 +1082,7 @@ class PathChooser(object):
         elif p_here:
             path = p_here[randrange(0, len(p_here))]
 
-        return (path, new_loc)
+        return (path, new_loc, category)
 
     def choose(self, db=None):
         """
@@ -1090,18 +1096,18 @@ class PathChooser(object):
         - any random path
         """
         if not db:
-            db = current.db
+            db = self.db
         loc_id = self.loc_id
         cat_list = self._order_cats()
-        path_lists = self._paths_by_category()
 
         # cycle through categories, starting with the one from _get_category()
         for cat in cat_list:
-            catpaths = path_lists['cat{}'.format(cat)]
-            if len(catpaths) > 0:
-                return self._choose_from_cat(catpaths)
+            catpaths = self._paths_by_category(cat)
+            print catpaths
+            if catpaths[0]:
+                return self._choose_from_cat(catpaths[0], catpaths[1])
             else:
-                continue
+                pass
 
         return None
 
@@ -1163,7 +1169,7 @@ class User(object):
         """Return a dictionary of tag ids newly introduced or promoted"""
         return self.new_badges
 
-    def get_path(self, localias=None, db=None):
+    def get_path(self, loc, db=None):
         """
         Return the currently active Path object.
 
@@ -1175,20 +1181,15 @@ class User(object):
             db = current.db
         # If the user has a multi-step path in progress, use that path
         if self.path:
-            if localias:
-                loc_id = db(db.locations.alias == localias).select().first().id
-                self.loc = Location(loc_id, db)
-            self.path._set_loc(self.loc)
+            self.loc = loc
+            self.path._set_loc(loc)
             return self.path
         # otherwise, select a new path
         else:
-            if localias:
-                loc_id = db(db.locations.alias == localias).select().first().id
-                self.loc = Location(loc_id, db)
-
-            choice = PathChooser(self.categories, self.loc,
+            self.loc = loc
+            choice = PathChooser(self.categories, loc.get_id(),
                                 self.completed_paths, db=self.db).choose()
-            path = Path(path_id=choice[0].id, loc=self.loc)
+            path = Path(path_id=choice[0].id, loc=loc)
 
             # check for a redirect location to start the selected path
             if choice[1]:
