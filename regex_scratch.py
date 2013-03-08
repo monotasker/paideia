@@ -21,15 +21,20 @@ lines = [
         ]
 
 regex = """^
-(The\s|Those who are)?
-((H\h)umble|(L|l)ow(-|\s)((B|b)orn|(C|c)lass))\s
+(The\s|Those\swho\sare\s)?
+((H|h)umble|((L|l)ow(-|\s)(born|class)))\s
+(ones\s|men(\sand\swomen)?\s|people\s)?
 are\s(the\s)?
-(brothers(and\ssisters)|siblings)\s
-(of|for|with|related\sto)\s
-(the|those who are)?
+(brothers\s(and\ssisters\s)?|siblings\s)
+(of|for|with|related\sto|to)\s
+(the\s|those\s)?
+(?P<a>(ones\s|men\s(and\swomen\s)?|people\s))?
+(?(a)who\sare\s|)
 (noble|high(-|\s)(born|class))
-
+(\sones\s|\smen(\sand\swomen)?|\speople)?
 \.$"""
+
+Greek_only = False
 
 test_regex = re.compile(regex, re.X)
 roman_chars = re.compile(u'[\u0041-\u007a]|\d')
@@ -42,9 +47,10 @@ for l in lines:
         print counter, colored(l, 'green')
     else:
         print counter, colored(l, 'red')
-    if re.search(roman_chars, l):
-        print colored('roman characters present', 'yellow')
-        break
+    if Greek_only:
+        if re.search(roman_chars, l):
+            print colored('roman characters present', 'yellow')
+            break
     counter += 1
 
 condensed = re.sub(r'\s', '', regex)
