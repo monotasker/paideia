@@ -115,7 +115,8 @@ class Stats(object):
         for c, lst in atags.iteritems():
             # allow for possibility that tag hasn't got badge yet
             try:
-                atags[c] = [self.tag_badges[t]['badge'] for t in lst]
+                atags[c] = [self.tag_badges[t]['badge'] for t in lst
+                                if t in self.tag_badges.keys()]
             except AttributeError:
                 # TODO: send notice here
                 pass

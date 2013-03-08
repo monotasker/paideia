@@ -1991,7 +1991,12 @@ body #page #right_sidebar div:hover {
 #page.user table.summary_stats td {
   vertical-align: middle;
   background: #eee8d5;
-  padding: 0 24px;
+  padding: 12px 24px;
+}
+#page.profile table.summary_stats td ul,
+#page.user table.summary_stats td ul {
+  max-height: 144px;
+  overflow: auto;
 }
 #page.profile table.summary_stats td.total_cat1,
 #page.user table.summary_stats td.total_cat1,
