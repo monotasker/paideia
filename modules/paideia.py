@@ -10,6 +10,13 @@ from inspect import getargvalues, stack
 from pprint import pprint
 from copy import copy, deepcopy
 
+# TODO: move these notes elsewhere
+"""
+The following files exist outside the paideia app folder and so need to be
+watched when upgrading web2py:
+- web2py/routes.py
+"""
+
 def util_get_args():
     """
     Returns a collection of all the calling functionos arguments.

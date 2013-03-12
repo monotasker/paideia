@@ -12,6 +12,19 @@ from gluon.dal import Rows
 import datetime
 from pprint import pprint
 import re
+# web2py library for functional testing
+from gluon.contrib.webclient import WebClient
+client = WebClient('http://127.0.0.1:8000/paideia/default/', postbacks=True)
+client.get('index')
+
+#register
+data = dict(first_name = 'Homer',
+            last_name = 'Simpson',
+            email = 'scottianw@gmail.com',
+            password = 'test',
+            password_two = 'test',
+            _formname = 'register')
+client.post('user/register',data = data)
 
 # ===================================================================
 # Test Fixtures
@@ -1349,6 +1362,8 @@ class TestWalk():
         assert ask['responder'].xml() == responder
 
     def test_walk_reply(self, mywalk):
+        session = current.session
+        print session
         assert 0
 
     def test_walk_record_step(self, mywalk):
