@@ -11,10 +11,7 @@ import sys
 import pytest
 
 def run_pytest(w2p_dir, test_dir, app_name):
-    #if os.name == 'nt':
-        #errlist = (WindowsError,ValueError,SystemExit)
-    #else:
-        #errlist = (OSError,ValueError,SystemExit)
+    #errlist = (OSError,ValueError,SystemExit)
 
     try:
         test_dir = os.path.join(w2p_dir,

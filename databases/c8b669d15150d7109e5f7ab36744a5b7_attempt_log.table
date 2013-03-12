@@ -2,10 +2,12 @@
 S'name'
 p2
 (dp3
-S'type'
+S'length'
 p4
-S'reference auth_user'
+I512
+sS'unique'
 p5
+I00
 sS'sortable'
 p6
 I2
@@ -13,101 +15,138 @@ sS'sql'
 p7
 S'INTEGER REFERENCES auth_user (id) ON DELETE CASCADE'
 p8
-ssS'date_attempted'
+sS'notnull'
 p9
-(dp10
-S'type'
+I00
+sS'type'
+p10
+S'reference auth_user'
 p11
-S'date'
+ssS'date_attempted'
 p12
-sS'sortable'
-p13
-I6
-sS'sql'
+(dp13
+S'sortable'
 p14
-S'DATE'
+I6
+sS'type'
 p15
-ssS'question'
+S'date'
 p16
-(dp17
-S'type'
+sS'sql'
+p17
+S'DATE'
 p18
-S'reference questions'
+ssS'question'
 p19
-sS'sortable'
-p20
-I3
-sS'sql'
+(dp20
+S'sortable'
 p21
-S'INTEGER REFERENCES questions(id) ON DELETE CASCADE'
+I3
+sS'type'
 p22
-ssS'quiz'
+S'reference questions'
 p23
-(dp24
-S'type'
-p25
-S'reference quizzes'
-p26
-sS'sortable'
-p27
-I5
 sS'sql'
+p24
+S'INTEGER REFERENCES questions(id) ON DELETE CASCADE'
+p25
+ssS'quiz'
+p26
+(dp27
+S'sortable'
 p28
-S'INTEGER REFERENCES quizzes(id) ON DELETE CASCADE'
+I5
+sS'type'
 p29
-ssS'step'
+S'reference quizzes'
 p30
-(dp31
-g4
-S'reference steps'
+sS'sql'
+p31
+S'INTEGER REFERENCES quizzes(id) ON DELETE CASCADE'
 p32
+ssS'step'
+p33
+(dp34
+g4
+I512
+sg5
+I00
 sg6
 I3
 sg7
 S'INTEGER REFERENCES steps (id) ON DELETE CASCADE'
-p33
-ssS'score'
-p34
-(dp35
-g4
-S'double'
+p35
+sg9
+I00
+sg10
+S'reference steps'
 p36
+ssS'score'
+p37
+(dp38
+g4
+I512
+sg5
+I00
 sg6
 I5
 sg7
 S'DOUBLE'
-p37
-ssS'path'
-p38
-(dp39
-g4
-S'reference paths'
+p39
+sg9
+I00
+sg10
+S'double'
 p40
-sg6
-I4
-sg7
-S'INTEGER REFERENCES paths (id) ON DELETE CASCADE'
-p41
 ssS'dt_attempted'
-p42
-(dp43
+p41
+(dp42
 g4
-S'datetime'
-p44
+I512
+sg5
+I00
 sg6
 I6
 sg7
 S'TIMESTAMP'
+p43
+sg9
+I00
+sg10
+S'datetime'
+p44
+ssS'path'
 p45
-ssS'id'
-p46
-(dp47
+(dp46
 g4
-S'id'
+I512
+sg5
+I00
+sg6
+I4
+sg7
+S'INTEGER REFERENCES paths (id) ON DELETE CASCADE'
+p47
+sg9
+I00
+sg10
+S'reference paths'
 p48
+ssS'id'
+p49
+(dp50
+g4
+I512
+sg5
+I00
 sg6
 I1
 sg7
 S'INTEGER PRIMARY KEY AUTOINCREMENT'
-p49
+p51
+sg9
+I00
+sg10
+S'id'
+p52
 ss.
