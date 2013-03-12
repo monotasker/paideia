@@ -166,7 +166,7 @@ step_data_store = {
                 'instructions': None,
                 'loc': Location(12, db),
                 'prev_loc': Location(12, db),
-                'prev_npc_id': 2,
+                'prev_npc_id': 1,
                 'new_badges': [5, 6],
                 'promoted': [],
                 'widget_type': 8,
@@ -1349,7 +1349,16 @@ class TestWalk():
         assert ask['responder'].xml() == responder
 
     def test_walk_reply(self, mywalk):
-        assert 0
+        response_string = ''
+        reply = ''
+        bug_reporter = ''
+        # TODO: put in safety in case of empty form
+        returning = mywalk.reply(response_string)
+        out_reply = returning['reply']
+        out_bug_reporter = returning['bug_reporter']
+
+        assert out_reply == reply
+        assert out_bug_reporter == bug_reporter
 
     def test_walk_record_step(self, mywalk):
         assert 0
@@ -1400,7 +1409,7 @@ class TestPathChooser():
 
         newpath = mypathchooser['pathchooser']._choose_from_cat(expected, 1)
         assert newpath[0].id in mypathchooser['paths']['cat1']
-        assert newpath[1] in [l for l in newpath[0].steps[0].locations]
+        assert newpath[1] in [l for l in db.steps(newpath[0].steps[0]).locations]
         assert newpath[2] == 1
 
 
