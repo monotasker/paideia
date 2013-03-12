@@ -48,6 +48,8 @@ class Walk(object):
         self.db = db
         if not db:
             self.db = current.db
+        loc_id = db(db.locations.alias == localias).select().first().id
+        self.loc = Location(loc_id, db)
         self.response_string = response_string
         if not userdata:
             auth = current.auth
@@ -108,14 +110,13 @@ class Walk(object):
     def ask(self):
         """Return the information necessary to initiate a step interaction."""
         db = self.db
-        localias = self.localias
-        loc_id = db(db.locations.alias == localias).select().first().id
-        loc = Location(loc_id, db)
+        loc = self.loc
         # TODO: switch the localias argument below to the ful Location obj
         p = self.user.get_path(loc)
         s = p.get_step_for_prompt()
         prompt = s.get_prompt()
         responder = s.get_responder()
+        p.prepare_for_answer()
         self._store_user(self.user)
 
         return {'prompt': prompt, 'responder': responder}
@@ -123,10 +124,10 @@ class Walk(object):
     def reply(self, response_string):
         """docstring for __reply__"""
 
-        p = self.user.get_path()
+        p = self.user.get_path(self.loc)
         path_id = p.get_id()
 
-        s = p.get_current_step()
+        s = p.get_step_for_reply(self.db)
         step_id = s.get_id()
 
         reply = s.get_reply(response_string)
@@ -898,12 +899,15 @@ class Path(object):
         self.step_for_prompt = step_for_prompt
         self.step_for_reply = step_for_reply
 
+    def get_id(self):
+        """Return the id of the current Path object."""
+        return self.path_dict['id']
+
     def _prepare_for_prompt(self):
         """ move next step in this path into the 'step_for_prompt' variable"""
         if len(self.steps) > 1:
             next_step = self.steps.pop(0)
         else:
-            print 'self.steps*****\n', self.steps, '*****\n'
             next_step = copy(self.steps[0])
             self.steps = []
         self.step_for_prompt = next_step
@@ -1070,10 +1074,11 @@ class PathChooser(object):
         which the path was chosen.
         """
         loc_id = self.loc_id
+        db = self.db
 
         # catpaths is already filtered by category
         p_new = cpaths.find(lambda row: row.id not in self.completed)
-        p_here = cpaths.find(lambda p: loc_id in p.steps[0].locations)
+        p_here = cpaths.find(lambda p: loc_id in db.steps[p.steps[0]].locations)
         # TODO: or do I need db.steps[row.steps[0]].locations
         p_here_new = p_here.find(lambda p: p in p_new)
 
@@ -1083,7 +1088,7 @@ class PathChooser(object):
             path = p_here_new[randrange(0, len(p_here_new))]
         elif p_new:
             path = p_new[randrange(0, len(p_new))]
-            new_locs = path.steps[0].locations
+            new_locs = db.steps(path.steps[0]).locations
             # TODO: do we need db.steps[p_elsewhere.steps[0].locations
             new_loc = new_locs[randrange(0, len(new_locs))]
         elif p_here:
@@ -1110,7 +1115,6 @@ class PathChooser(object):
         # cycle through categories, starting with the one from _get_category()
         for cat in cat_list:
             catpaths = self._paths_by_category(cat)
-            print catpaths
             if catpaths[0]:
                 return self._choose_from_cat(catpaths[0], catpaths[1])
             else:
