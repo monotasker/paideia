@@ -15,26 +15,31 @@ from termcolor import colored
 # you should address me as ???
 # please give this money to the ptwxos (image)
 lines = [
-        'The humble are brothers of the noble.',
-        'Those who are low-born are brothers and sisters to the high-born.',
-        'The low-class are siblings with the high-class.',
+        'Οὐ. Οἱ ἀρτοι αὐτων οὐ καλοι.',
+        'Οὐ. Οἱ ἀρτοι τουτων των ἀνδρων οὐ καλοι.',
+        'Οὐ. Κακοι οἱ ἀρτοι αὐτων.',
+        'Οὐ καλοι οἱ αὐτων ἀρτοι.',
+        'Οὐ, οἱ αὐτων ἀρτοι κακοι.',
         ]
 
 regex = """^
-(The\s|Those\swho\sare\s)?
-((H|h)umble|((L|l)ow(-|\s)(born|class)))\s
-(ones\s|men(\sand\swomen)?\s|people\s)?
-are\s(the\s)?
-(brothers\s(and\ssisters\s)?|siblings\s)
-(of|for|with|related\sto|to)\s
-(the\s|those\s)?
-(?P<a>(ones\s|men\s(and\swomen\s)?|people\s))?
-(?(a)who\sare\s|)
-(noble|high(-|\s)(born|class))
-(\sones\s|\smen(\sand\swomen)?|\speople)?
+(Οὐ(\.|\,)\s)?
+(?P<a>(Ο|ο)ἱ\s
+    (?P<b>(αὐτων\s|(τουτων\s)?(των\s)?ἀνδρων\s))?
+    ἀρτοι\s
+    (?(b)|(αὐτων\s|(τουτων\s)?(των\s)?ἀνδρων\s))
+)?
+((Ο|ο)ὐ\sκαλοι|(κ|Κ)ακοι)
+(?(a)|
+    (\sοἱ
+        (?P<c>\sαὐτων|(τουτων\s)?(των\s)?ἀνδρων\s)?
+        \sἀρτοι
+        (?(c)|(\sαὐτων|(τουτων\s)?(των\s)?ἀνδρων\s))
+    )
+)
 \.$"""
 
-Greek_only = False
+Greek_only = True
 
 test_regex = re.compile(regex, re.X)
 roman_chars = re.compile(u'[\u0041-\u007a]|\d')

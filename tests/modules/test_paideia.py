@@ -1373,10 +1373,59 @@ class TestWalk():
         assert out_reply == reply
         assert out_bug_reporter == bug_reporter
 
-    def test_walk_record_step(self, mywalk):
+    def test_walk_record_cats(self, mywalk):
+        """
+        Unit tests for Walk._record_cats()
+        """
+        tag_progress = {'tag': 61,
+                        'cat1': [1, 2, 3],
+                        'cat2': [4],
+                        'cat3': [5, 6],
+                        'cat4': [7]}
+                        'rev1': [1, 2, 3],
+                        'rev2': [4],
+                        'rev3': [5, 6],
+                        'rev4': [7],
+                        'secondary_right': []}
+
+        categories =   {'cat1': [1, 2, 3],
+                        'cat2': [4],
+                        'cat3': [5, 6],
+                        'cat4': [7]}
+                        'rev1': [1, 2, 3],
+                        'rev2': [4],
+                        'rev3': [5, 6],
+                        'rev4': [7]}
+        new_tags = [1, 2, 3]
+        promoted = {'cat1': [1, 2, 3],
+                    'cat2': [4],
+                    'cat3': [5, 6],
+                    'cat4': [7],
+                    'rev1': [1, 2, 3],
+                    'rev2': [4],
+                    'rev3': [5, 6],
+                    'rev4': [7]}
+        demoted = {'rev1': [1, 2, 3],
+                    'rev2': [4],
+                    'rev3': [5, 6],
+                    'rev4': [7]}
         assert 0
 
-    def test_walk_cache_user(self, mywalk):
+    def test_walk_record_step(self, mywalk):
+        id = mywalk._get_user().get_id()
+        loglength = len(db(db.attempt_log.name == id).select())
+        tag_records =
+
+        rec = mywalk._record_step(tag_records, categories, new_tags)
+        assert len(db(db.attempt_log.name == id).select()) == loglenth + 1
+        assert 0
+
+    def test_walk_store_user(self, mywalk):
+        """Unit test for Walk._store_user"""
+        session = current.session
+        assert mywalk._store_user() == True
+        assert isinstance(session.user, User)
+        assert session.user.get_id() == 1
         assert 0
 
 class TestPathChooser():
