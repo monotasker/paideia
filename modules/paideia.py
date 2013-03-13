@@ -63,32 +63,36 @@ class Walk(object):
             tag_progress=None, db=None):
         # initialize or re-activate User object
         try:
-            session = current.session
-            user = session.user
-            assert user.is_stale() is False
-            self.user = user
-            return user
-        except:
-            if not db:
-                db = self.db
-            if not tag_records:
-                auth = current.auth
-                tag_records = db(db.tag_records.name == auth.user_id).select()
-                tag_records = tag_records.as_list()
-            if not tag_progress:
-                auth = current.auth
-                tag_progress = db(db.tag_progress.name == auth.user_id).select()
-                tag_progress_length = len(tag_progress)  # TODO log if > 1
-                tag_progress = tag_progress.first().as_dict()
-                # Handle first-time users, who won't have db row to fetch
-                if not tag_progress:
-                    db.tag_progress.insert(latest_new=1)
-                    tag_progress = db(db.tag_progress.name ==
-                                            self.user.get_id()).select()
-                    tag_progress = tag_progress.first().as_dict()
-
-            self.user = User(userdata, localias, tag_records, tag_progress)
             return self.user
+        except AttributeError:  # because no user yet on this Walk
+            try:
+                session = current.session
+                user = session.user
+                assert user.is_stale() is False
+                self.user = user
+                return user
+            # TODO: need error condition here for stale user
+            except AttributeError:  # because no user yet in this session
+                if not db:
+                    db = self.db
+                if not tag_records:
+                    auth = current.auth
+                    tag_records = db(db.tag_records.name == auth.user_id).select()
+                    tag_records = tag_records.as_list()
+                if not tag_progress:
+                    auth = current.auth
+                    tag_progress = db(db.tag_progress.name == auth.user_id).select()
+                    tag_progress_length = len(tag_progress)  # TODO log if > 1
+                    tag_progress = tag_progress.first().as_dict()
+                    # Handle first-time users, who won't have db row to fetch
+                    if not tag_progress:
+                        db.tag_progress.insert(latest_new=1)
+                        tag_progress = db(db.tag_progress.name ==
+                                                self.user.get_id()).select()
+                        tag_progress = tag_progress.first().as_dict()
+
+                self.user = User(userdata, localias, tag_records, tag_progress)
+                return self.user
 
     def map(self, db=None):
         """
@@ -150,8 +154,14 @@ class Walk(object):
 
         return {'reply': reply, 'bug_reporter': bug_reporter}
 
-    def _record_step(self, tag_records, categories, new_tags):
-        """Record this session's progress"""
+    def _record_cats(self, tag_progress, categories, new_tags):
+        """
+        Record changes to the user's working tags and their categorization.
+
+        Changes recorded in the following db tables:
+        - badges_begun: new tags
+        - tag_progress: changes to categorization (only if changes made)
+        """
         # record awarding of and new tags in table db.badges_begun
         if new_tags:
             for n in new_tags:
@@ -187,7 +197,6 @@ class Walk(object):
         update_cats['rev4'] = categories['cat4']
 
         # do this here so that we can compare db to categories first
-        # TODO: this is a bad place to update the db values
         db(db.tag_progress.name == user).update(**update_cats)
 
         result = []
@@ -196,30 +205,39 @@ class Walk(object):
         else:
             return None
 
-    def _store_user(self, user):
+    def _record_step(self, tag_records, categories, new_tags):
+        """
+        Record this step attempt and its impact on user's performance record.
+
+        Changes recorded in the following db tables:
+        - attempt_log: log this attempt
+        - tag_records: changes to
+                            - times_right
+                            - times_wrong
+                            - tlast_wrong
+                            - tlast_right
+                            - secondary_right (add datetime to list)
+        ** if secondary_right is sufficient length, delete it and
+                - add 1 to times_right
+                - set tlast_right to now
+
+        ** be sure not to log redirect and utility steps.
+        """
+
+        return True
+
+    def _store_user(self, user=None):
         """
         Store the current User object (from self.user) in session.user
+
+        Returns a boolean value indicating whether the storing was
+        successful or not.
         """
-        pass
-
-#TODO: remove this old code
-#class PathChooser(object):
-    #"""
-    #Selects an appropriate path to begin given the user's performance to date.
-    #"""
-
-    #def __init__(self, categories):
-        #"""
-        #Initialize a Paideia PathChooser object.
-        #"""
-        #self.categories = categories
-
-    #def choose(self, categories=None):
-        #"""
-        #Peform the path selection.
-        #"""
-        #if not categories:
-            #categories = self.categories
+        if not user:
+            user = self.user
+        session = current.session
+        session.user = user
+        return True
 
 
 class Location(object):
