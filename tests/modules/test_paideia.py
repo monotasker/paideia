@@ -98,65 +98,68 @@ npc_data = {1: {'image': npc1_img,
                 'location': [3, 1, 2, 4, 12, 8],
                 }}
 
-step_data_store = {
-        # stepText
-        1: {'case1':  # same npc and location as previous step
-               {'loc': Location(8, db),
-                'prev_loc': Location(8, db),
-                'prev_npc_id': 1,
-                'user': 'Ian',
-                'new_badges': [],
+@pytest.fixture(params=[n for n in [1,2,30,101,125,126,127]])
+def mysteps(request):
+    """
+    Test fixture providing step information for unit tests.
+    This fixture is parameterized, so that tests can be run with each of the
+    steps or with any sub-section (defined by a filtering expression in the
+    test). This step fixture is also used in the mycases fixture.
+    """
+    the_step = request.param
+    steps = {1: {'type': 'StepText',
+                'widget_type': 1,
                 'npc_list': [],
-                'instructions': None},
-            'case2': {}
-            },
-        # stepText
-        2: {'case1':  # same npc and location as previous step
-                {'loc': Location(1, db),
-                'prev_loc': Location(1, db),
-                'prev_npc_id': 2}
-            },
-        # stepRedirect
-        30: {'case1':
-                {'user': 'Ian',
-                'loc': Location(11, db), # synagogue
-                'prev_loc': Location(11, db),
-                'prev_npc_id': 31, # stephanos
+                'locations': [],
+                'raw_prompt': '',
+                'final_prompt': '',
+                'instructions': None,
+                'tags': [],
+                'tags_secondary': []},
+            2: {'type': 'StepText'
+                'widget_type': 1,
+                'npc_list': [],
+                'locations': [],
+                'raw_prompt': '',
+                'final_prompt': '',
+                'instructions': None,
+                'tags': [],
+                'tags_secondary': []},
+            30: {'type': 'StepRedirect',
+                'widget_type': 1,
                 'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
-                'instructions': None},
-            'case2': {}
-            },
-        # stepMultiple
-        101: {'case1':  # same npc and location as previous step
-                {'loc': Location(8, db),
-                'prev_loc': Location(8, db),
-                'prev_npc_id': 1,},
-            'case2':
-                {'loc': Location(8, db),
-                'prev_loc': Location(7, db),
-                'prev_npc_id': 1,
-                }
-            },
-        # stepQuotaReached
-        125: {'case1':  # same npc and location as previous step
-                {'username': 'Ian',
-                'loc': Location(8, db),
-                'prev_loc': Location(8, db),
-                'prev_npc_id': 1,
-                'loc': Location(8, db),
-                'prev_loc': Location(8, db),
-                'prev_npc_id': 1,
+                'locations': [],
+                'raw_prompt': '',
+                'final_prompt': '',
+                'instructions': None,
+                'tags': [],
+                'tags_secondary': []},
+            101: {'type': 'stepMultiple',
+                'widget_type': 1,
+                'locations': [8, 7],
+                'npc_list': []
+                'raw_prompt': '',
+                'final_prompt': '',
+                'instructions': None,
+                'tags': [],
+                'tags_secondary': []},
+            125: {'type': 'StepQuotaReached'
+                'widget_type': ???,
+                'locations': [8, 7],
+                'npc_list': [],
                 'raw_prompt': 'Well done, [[user]]. You\'ve finished enough '\
                         'paths for today. But if you would like to keep '\
                         'going, you\'re welcome to continue.',
                 'final_prompt': 'Well done, Ian. You\'ve finished enough '\
                         'paths for today. But if you would like to keep '\
                         'going, you\'re welcome to continue.'
-                }
-            },
-        # stepAwardBadges
-        126: {'case1':  # new badges, no promoted
-                {'username': 'Ian',
+                'instructions': None,
+                'tags': [],
+                'tags_secondary': []},
+            126: {'type': 'stepAwardBadges',
+                'widget_type': 8,
+                'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10]}
+                'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
                 'raw_prompt': 'Congratulations, [[user]]![[new_badge_list]]'\
                         '[[promoted_list]]You can click on your name above to '\
                         'see details of your progress so far.',
@@ -177,53 +180,97 @@ step_data_store = {
                         'You can click on your name above to '\
                         'see details of your progress so far.',
                 'instructions': None,
-                'loc': Location(12, db),
-                'prev_loc': Location(12, db),
-                'prev_npc_id': 1,
-                'new_badges': [5, 6],
-                'promoted': [],
-                'widget_type': 8,
                 'tags': [81],
-                'tags_secondary': [],
+                'tags_secondary': []},
+            127: {'type': 'stepViewSlides',
+                'widget_type': 6,
                 'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
-                'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10]}
-            },
-            # TODO: write another case to test with promotions present
-            #promoted_list = 'You\'ve reached a new level in these badges:'\
-                        #'<ul class="promoted_list">'\
-                        #'<li>'\
-                        #'</li>'\
-                        #'</ul>'
-        # stepViewSlides
-        127: {'case1':
-                {'username': 'Ian',
-                'loc': Location(3, db),
-                'prev_loc': Location(3, db),
-                'prev_npc_id': 1,
-                'new_badges': [5,6],
-                'raw_prompt': 'Congratulations, [[user]]! You\'re ready to start '\
-                    'working on some new badges: \n[[badge_list]]\nBefore you '\
-                    'continue, take some time to view these slide sets:'\
+                'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10],
+                'raw_prompt': 'Congratulations, [[user]]! You\'re ready to '\
+                    'start working on some new badges:[[badge_list]]. Before'\
+                    'you continue, take some time to view these slide sets:'\
                     '[[slides]]You\'ll find the slides by clicking on the '\
                     '"slides" menu item at top.',
                 'final_prompt': 'Congratulations, Ian! You\'re ready to '\
-                    'start working '\
-                    'on some new badges: \n[[badge_list]]\nBefore you continue, take some time '\
-                    'to view these slide sets:\n'\
-                        '<ul class="slide_list">'\
-                        '<li>The Alphabet III</li>'\
-                        '<li>Case Basics</li>'\
-                        '</ul>\n'
-                    'You\'ll find the slides by clicking on the "slides" menu '\
-                    'item at top.',
+                    'start working on some new badges:[[badge_list]]Before '\
+                    'you continue, take some time to view these slide sets:'\
+                    '<ul class="slide_list">'\
+                    '<li>The Alphabet III</li>'\
+                    '<li>Case Basics</li>'\
+                    '</ul>'
+                    'You\'ll find the slides by clicking on the "slides" '\
+                    'menu item at top.',
                 'instructions': None,
-                'widget_type': 6,
                 'tags': [80],
-                'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
-                'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10]},
-            'case2': {}
+                'tags_secondary': []}
             }
-        }
+    return steps[the_step]
+
+
+@pytest.fixture(params=['case{}'.format(n) for n in range(1, 6)])
+def mycases(request, mysteps):
+    """
+    Text fixture providing various cases for unit tests. For each step,
+    several cases are specified, including:
+    TODO: write another case to test with promotions present
+    promoted_list = You\'ve reached a new level in these badges:
+                <ul class="promoted_list"><li></li></ul>
+    """
+    the_case = request.param
+    cases = {'case1': # same npc and location as previous step
+                {'loc': Location(8, db),
+                'user': 'Ian',
+                'prev_loc': Location(8, db),
+                'prev_npc_id': 1,
+                'tag_records': [],
+                'tag_progress': {},
+                'new_badges': [],
+                'promoted': {},
+                'demoted': {}
+                'categories': {}},
+            'case2': # same location as previous step, last npc 2
+                {'loc': Location(1, db),
+                'user': 'Ian',
+                'prev_loc': Location(1, db),
+                'prev_npc_id': 2,
+                'tag_records': [],
+                'tag_progress': {},
+                'new_badges': [],
+                'promoted': {},
+                'demoted': {}
+                'categories': {}},
+            {'case4': # same location as previous step, last npc stephanos
+                {'user': 'Ian',
+                'loc': Location(11, db), # synagogue
+                'prev_loc': Location(11, db),
+                'prev_npc_id': 31, # stephanos
+                'tag_records': [],
+                'tag_progress': {},
+                'new_badges': [],
+                'promoted': {},
+                'demoted': {}
+                'categories': {}},
+            {'case5': # different location than previous step
+                {'user': 'Ian',
+                'loc': Location(8, db),
+                'prev_loc': Location(7, db),
+                'prev_npc_id': 1,
+                'tag_records': [],
+                'tag_progress': {},
+                'new_badges': [],
+                'promoted': {},
+                'demoted': {}
+                'categories': {}},
+            {'case6': # new badges present
+                {'user': 'Ian',
+                'loc': Location(3, db),
+                'prev_loc': Location(3, db),
+                'prev_npc_id': 1,
+                'new_badges': [5,6]},
+            }
+    for c in cases.iteritems():
+        c['raw_prompt'] = mysteps['raw_prompt']
+    return cases[the_case]
 
 @pytest.fixture(params=['case{}'.format(n) for n in range(1,2)])
 def myrecords(request):
@@ -241,7 +288,8 @@ def myrecords(request):
                              'secondary_right': []}],
             'tag_progress': {'latest_new': 1,
                             'cat1': [], 'cat2': [], 'cat3': [], 'cat4': [],
-                            'rev1': [], 'rev2': [], 'rev3': [], 'rev4': []}}
+                            'rev1': [], 'rev2': [], 'rev3': [], 'rev4': [],
+                            'secondary_right': []}}
 
     case2 = {'casenum': 2, 'mynow': dt('2013-01-29'),
             'localias': 'domus_A',
@@ -255,7 +303,8 @@ def myrecords(request):
                              'secondary_right': []}],
             'tag_progress': {'latest_new': 1,
                             'cat1': [1], 'cat2': [], 'cat3': [], 'cat4': [],
-                            'rev1': [], 'rev2': [], 'rev3': [], 'rev4': []}}
+                            'rev1': [], 'rev2': [], 'rev3': [], 'rev4': []
+                            'secondary_right': []}}
     return locals()[case]
 
 @pytest.fixture(params=['case{}'.format(n) for n in range(1,2)])
@@ -1378,10 +1427,11 @@ class TestWalk():
         Unit tests for Walk._record_cats()
         """
         tag_progress = {'tag': 61,
+                        'latest_new': 2,
                         'cat1': [1, 2, 3],
                         'cat2': [4],
                         'cat3': [5, 6],
-                        'cat4': [7]}
+                        'cat4': [7],
                         'rev1': [1, 2, 3],
                         'rev2': [4],
                         'rev3': [5, 6],
@@ -1391,7 +1441,7 @@ class TestWalk():
         categories =   {'cat1': [1, 2, 3],
                         'cat2': [4],
                         'cat3': [5, 6],
-                        'cat4': [7]}
+                        'cat4': [7],
                         'rev1': [1, 2, 3],
                         'rev2': [4],
                         'rev3': [5, 6],
@@ -1414,7 +1464,7 @@ class TestWalk():
     def test_walk_record_step(self, mywalk):
         id = mywalk._get_user().get_id()
         loglength = len(db(db.attempt_log.name == id).select())
-        tag_records =
+        tag_records = ''
 
         rec = mywalk._record_step(tag_records, categories, new_tags)
         assert len(db(db.attempt_log.name == id).select()) == loglenth + 1
