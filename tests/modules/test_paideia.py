@@ -4,11 +4,11 @@
 import pytest
 from paideia import Npc, Location, User, PathChooser, Path, Categorizer, Walk
 from paideia import StepFactory, Step, StepText, StepMultiple
-from paideia import StepRedirect, StepViewSlides, StepAwardBadges, StepQuotaReached
-from paideia import StepEvaluator, MultipleEvaluator
+from paideia import StepRedirect, StepViewSlides, StepAwardBadges
+from paideia import StepEvaluator, MultipleEvaluator, StepQuotaReached
 from paideia import Block, BlockRedirect, BlockAwardBadges, BlockViewSlides
 from gluon import *
-from gluon.dal import Rows
+#from gluon.dal import Rows
 import datetime
 from pprint import pprint
 import re
@@ -18,17 +18,18 @@ client = WebClient('http://127.0.0.1:8000/paideia/default/', postbacks=True)
 client.get('index')
 
 #register
-data = dict(first_name = 'Homer',
-            last_name = 'Simpson',
-            email = 'scottianw@gmail.com',
-            password = 'test',
-            password_two = 'test',
-            _formname = 'register')
-client.post('user/register',data = data)
+data = dict(first_name='Homer',
+            last_name='Simpson',
+            email='scottianw@gmail.com',
+            password='test',
+            password_two='test',
+            _formname='register')
+client.post('user/register', data=data)
 
 # ===================================================================
 # Test Fixtures
 # ===================================================================
+
 
 def dt(string):
     """Return datetime object parsed from the string argument supplied"""
@@ -66,39 +67,33 @@ npc_data = {1: {'image': npc1_img,
                 'location': [1],
                 },
             14: {'image': npc2_img,
-                'name': 'Γεωργιος',
-                'location': [3, 1, 2, 4, 7, 8, 9, 10],
-                },
+                 'name': 'Γεωργιος',
+                 'location': [3, 1, 2, 4, 7, 8, 9, 10]},
             17: {'image': npc7_img,
-                'name': 'Ἰασων',
-                'location': [3, 1, 2, 4, 7, 8],
-                },
+                 'name': 'Ἰασων',
+                 'location': [3, 1, 2, 4, 7, 8]},
             21: {'image': npc7_img,
-                'name': 'Νηρευς',
-                'location': [7, 8],
-                },
+                 'name': 'Νηρευς',
+                 'location': [7, 8]},
             31: {'image': npc3_img,
-                'name': 'Σοφια',
-                'location': [3, 1, 2, 4, 11],
-                },
+                 'name': 'Σοφια',
+                 'location': [3, 1, 2, 4, 11]},
             32: {'image': npc10_img,
-                'name': 'Στεφανος',
-                'location': [11],
-                },
+                 'name': 'Στεφανος',
+                 'location': [11]},
             40: {'image': npc6_img,
-                'name': 'Σιμων',
-                'location': [3, 1, 2, 4, 7, 8],
-                },
+                 'name': 'Σιμων',
+                 'location': [3, 1, 2, 4, 7, 8]},
             41: {'image': npc11_img,
-                'name': 'Φοιβη',
-                'location': [3, 1, 4, 8],
-                },
+                 'name': 'Φοιβη',
+                 'location': [3, 1, 4, 8]},
             42: {'image': npc9_img,
-                'name': 'Ὑπατια',
-                'location': [3, 1, 2, 4, 12, 8],
-                }}
+                 'name': 'Ὑπατια',
+                 'location': [3, 1, 2, 4, 12, 8]}
+            }
 
-@pytest.fixture(params=[n for n in [1,2,30,101,125,126,127]])
+
+@pytest.fixture(params=[n for n in [1, 2, 30, 101, 125, 126, 127]])
 def mysteps(request):
     """
     Test fixture providing step information for unit tests.
@@ -108,102 +103,102 @@ def mysteps(request):
     """
     the_step = request.param
     steps = {1: {'type': 'StepText',
-                'widget_type': 1,
-                'npc_list': [],
-                'locations': [],
-                'raw_prompt': '',
-                'final_prompt': '',
-                'instructions': None,
-                'tags': [],
-                'tags_secondary': []},
-            2: {'type': 'StepText'
-                'widget_type': 1,
-                'npc_list': [],
-                'locations': [],
-                'raw_prompt': '',
-                'final_prompt': '',
-                'instructions': None,
-                'tags': [],
-                'tags_secondary': []},
-            30: {'type': 'StepRedirect',
-                'widget_type': 1,
-                'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
-                'locations': [],
-                'raw_prompt': '',
-                'final_prompt': '',
-                'instructions': None,
-                'tags': [],
-                'tags_secondary': []},
-            101: {'type': 'stepMultiple',
-                'widget_type': 1,
-                'locations': [8, 7],
-                'npc_list': []
-                'raw_prompt': '',
-                'final_prompt': '',
-                'instructions': None,
-                'tags': [],
-                'tags_secondary': []},
-            125: {'type': 'StepQuotaReached'
-                'widget_type': ???,
-                'locations': [8, 7],
-                'npc_list': [],
-                'raw_prompt': 'Well done, [[user]]. You\'ve finished enough '\
-                        'paths for today. But if you would like to keep '\
-                        'going, you\'re welcome to continue.',
-                'final_prompt': 'Well done, Ian. You\'ve finished enough '\
-                        'paths for today. But if you would like to keep '\
-                        'going, you\'re welcome to continue.'
-                'instructions': None,
-                'tags': [],
-                'tags_secondary': []},
-            126: {'type': 'stepAwardBadges',
-                'widget_type': 8,
-                'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10]}
-                'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
-                'raw_prompt': 'Congratulations, [[user]]![[new_badge_list]]'\
-                        '[[promoted_list]]You can click on your name above to '\
-                        'see details of your progress so far.',
-                'final_prompt': 'Congratulations, Ian! You\'ve earned a new '\
-                        'badge! '\
-                        '<ul class="new_badge_list">'\
-                        '<li>'\
-                        '<span class="badge_name">spaced out</span> '\
-                        'for using spatial adverbs to talk about the '\
-                        'location of events, people, places, or things'\
-                        '</li>'\
-                        '<li>'\
-                        '<span class="badge_name">nominative 1</span> for '\
-                        'the use of singular, first-declension nouns in the '\
-                        'nominative case'\
-                        '</li>'\
-                        '</ul>'\
-                        'You can click on your name above to '\
-                        'see details of your progress so far.',
-                'instructions': None,
-                'tags': [81],
-                'tags_secondary': []},
-            127: {'type': 'stepViewSlides',
-                'widget_type': 6,
-                'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
-                'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10],
-                'raw_prompt': 'Congratulations, [[user]]! You\'re ready to '\
-                    'start working on some new badges:[[badge_list]]. Before'\
-                    'you continue, take some time to view these slide sets:'\
-                    '[[slides]]You\'ll find the slides by clicking on the '\
-                    '"slides" menu item at top.',
-                'final_prompt': 'Congratulations, Ian! You\'re ready to '\
-                    'start working on some new badges:[[badge_list]]Before '\
-                    'you continue, take some time to view these slide sets:'\
-                    '<ul class="slide_list">'\
-                    '<li>The Alphabet III</li>'\
-                    '<li>Case Basics</li>'\
-                    '</ul>'
-                    'You\'ll find the slides by clicking on the "slides" '\
-                    'menu item at top.',
-                'instructions': None,
-                'tags': [80],
-                'tags_secondary': []}
-            }
+                 'widget_type': 1,
+                 'npc_list': [],
+                 'locations': [],
+                 'raw_prompt': '',
+                 'final_prompt': '',
+                 'instructions': None,
+                 'tags': [],
+                 'tags_secondary': []},
+             2: {'type': 'StepText',
+                 'widget_type': 1,
+                 'npc_list': [],
+                 'locations': [],
+                 'raw_prompt': '',
+                 'final_prompt': '',
+                 'instructions': None,
+                 'tags': [],
+                 'tags_secondary': []},
+             30: {'type': 'StepRedirect',
+                  'widget_type': 9,
+                  'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
+                  'locations': [],
+                  'raw_prompt': '',
+                  'final_prompt': '',
+                  'instructions': None,
+                  'tags': [],
+                  'tags_secondary': []},
+             101: {'type': 'stepMultiple',
+                   'widget_type': 4,
+                   'locations': [8, 7],
+                   'npc_list': [],
+                   'raw_prompt': '',
+                   'final_prompt': '',
+                   'instructions': None,
+                   'tags': [],
+                   'tags_secondary': []},
+             125: {'type': 'StepQuotaReached',
+                   'widget_type': 7,
+                   'locations': [8, 7],
+                   'npc_list': [],
+                   'raw_prompt': 'Well done, [[user]]. You\'ve finished enough '
+                                 'paths for today. But if you would like to keep '
+                                 'going, you\'re welcome to continue.',
+                   'final_prompt': 'Well done, Ian. You\'ve finished enough '
+                                   'paths for today. But if you would like to keep '
+                                   'going, you\'re welcome to continue.',
+                   'instructions': None,
+                   'tags': [],
+                   'tags_secondary': []},
+             126: {'type': 'stepAwardBadges',
+                   'widget_type': 8,
+                   'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10],
+                   'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
+                   'raw_prompt': 'Congratulations, [[user]]![[new_badge_list]]'
+                                 '[[promoted_list]]You can click on your name above to '
+                                 'see details of your progress so far.',
+                   'final_prompt': 'Congratulations, Ian! You\'ve earned a new '
+                                 'badge! '
+                                 '<ul class="new_badge_list">'
+                                 '<li>'
+                                 '<span class="badge_name">spaced out</span> '
+                                 'for using spatial adverbs to talk about the '
+                                 'location of events, people, places, or things'
+                                 '</li>'
+                                 '<li>'
+                                 '<span class="badge_name">nominative 1</span> for '
+                                 'the use of singular, first-declension nouns in the '
+                                 'nominative case'
+                                 '</li>'
+                                 '</ul>'
+                                 'You can click on your name above to '
+                                 'see details of your progress so far.',
+                   'instructions': None,
+                   'tags': [81],
+                   'tags_secondary': []},
+             127: {'type': 'stepViewSlides',
+                   'widget_type': 6,
+                   'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
+                   'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10],
+                   'raw_prompt': 'Congratulations, [[user]]! You\'re ready to '
+                                 'start working on some new badges:[[badge_list]]. Before'
+                                 'you continue, take some time to view these slide sets:'
+                                 '[[slides]]You\'ll find the slides by clicking on the '
+                                 '"slides" menu item at top.',
+                   'final_prompt': 'Congratulations, Ian! You\'re ready to '
+                                   'start working on some new badges:[[badge_list]]Before '
+                                   'you continue, take some time to view these slide sets:'
+                                   '<ul class="slide_list">'
+                                   '<li>The Alphabet III</li>'
+                                   '<li>Case Basics</li>'
+                                   '</ul>'
+                                   'You\'ll find the slides by clicking on the "slides" '
+                                   'menu item at top.',
+                   'instructions': None,
+                   'tags': [80],
+                   'tags_secondary': []}
+             }
     return steps[the_step]
 
 
@@ -217,148 +212,171 @@ def mycases(request, mysteps):
                 <ul class="promoted_list"><li></li></ul>
     """
     the_case = request.param
-    cases = {'case1': # same npc and location as previous step
-                {'loc': Location(8, db),
-                'user': 'Ian',
-                'prev_loc': Location(8, db),
-                'prev_npc_id': 1,
-                'tag_records': [],
-                'tag_progress': {},
-                'new_badges': [],
-                'promoted': {},
-                'demoted': {}
-                'categories': {}},
-            'case2': # same location as previous step, last npc 2
-                {'loc': Location(1, db),
-                'user': 'Ian',
-                'prev_loc': Location(1, db),
-                'prev_npc_id': 2,
-                'tag_records': [],
-                'tag_progress': {},
-                'new_badges': [],
-                'promoted': {},
-                'demoted': {}
-                'categories': {}},
-            {'case4': # same location as previous step, last npc stephanos
-                {'user': 'Ian',
-                'loc': Location(11, db), # synagogue
-                'prev_loc': Location(11, db),
-                'prev_npc_id': 31, # stephanos
-                'tag_records': [],
-                'tag_progress': {},
-                'new_badges': [],
-                'promoted': {},
-                'demoted': {}
-                'categories': {}},
-            {'case5': # different location than previous step
-                {'user': 'Ian',
-                'loc': Location(8, db),
-                'prev_loc': Location(7, db),
-                'prev_npc_id': 1,
-                'tag_records': [],
-                'tag_progress': {},
-                'new_badges': [],
-                'promoted': {},
-                'demoted': {}
-                'categories': {}},
-            {'case6': # new badges present
-                {'user': 'Ian',
-                'loc': Location(3, db),
-                'prev_loc': Location(3, db),
-                'prev_npc_id': 1,
-                'new_badges': [5,6]},
-            }
+    # same npc and location as previous step
+    cases = {'case1': {'casenum': 1,
+                       'loc': Location(1, db),
+                       'mynow': dt('2013-01-29'),
+                       'user': 'Ian',
+                       'uid': 1,
+                       'prev_loc': Location(1, db),
+                       'prev_npc_id': 2,
+                       'pathid': 3,
+                       'localias': 'shop_of_alexander',
+                       'tag_records': [{'tag_id': 1,
+                                        'last_right': dt('2013-01-29'),
+                                        'last_wrong': dt('2013-01-29'),
+                                        'times_right': 1,
+                                        'times_wrong': 1,
+                                        'secondary_right': []}],
+                       'tag_progress': {'latest_new': 1,
+                                        'cat1': [61], 'cat2': [],
+                                        'cat3': [], 'cat4': [],
+                                        'rev1': [], 'rev2': [],
+                                        'rev3': [], 'rev4': [],
+                                        'secondary_right': []},
+                       'paths': {'cat1': [1, 2, 3, 5, 8, 63, 64, 70, 95, 96,
+                                          97, 99, 102, 104, 256, 277],
+                                 'cat2': [],
+                                 'cat3': [],
+                                 'cat4': []},
+                       'completed': [],
+                       'new_badges': [],
+                       'promoted': {},
+                       'demoted': {}},
+             'case2':  # same location, last npc 2, promote tag to cat2
+                      {'casenum': 2,
+                       'mynow': dt('2013-01-29'),
+                       'loc': Location(8, db),
+                       'user': 'Ian',
+                       'uid': 1,
+                       'prev_loc': Location(8, db),
+                       'prev_npc_id': 1,
+                       'pathid': 89,
+                       'tag_records': [{'tag_id': 61,
+                                        'last_right': dt('2013-01-29'),
+                                        'last_wrong': dt('2013-01-28'),
+                                        'times_right': 10,
+                                        'times_wrong': 2,
+                                        'secondary_right': []}],
+                       'tag_progress': {'latest_new': 1,
+                                        'cat1': [61], 'cat2': [],
+                                        'cat3': [], 'cat4': [],
+                                        'rev1': [], 'rev2': [],
+                                        'rev3': [], 'rev4': [],
+                                        'secondary_right': []},
+                       'paths': {'cat1': [1, 2, 3, 5, 8, 63, 64, 70, 95, 96,
+                                          97, 99, 102, 104, 256, 277],
+                                 'cat2': [],
+                                 'cat3': [],
+                                 'cat4': []},
+                       'completed': [],
+                       'new_badges': [],
+                       'promoted': {},
+                       'demoted': {}},
+             'case3':  # same location as previous step, last npc stephanos
+                      {'casenum': 3,
+                       'mynow': dt('2013-01-29'),
+                       'user': 'Ian',
+                       'uid': 1,
+                       'loc': Location(11, db),  # synagogue
+                       'prev_loc': Location(11, db),
+                       'prev_npc_id': 31,  # stephanos
+                       'pathid': 19,
+                       'tag_records': [{'tag_id': 1,
+                                        'last_right': dt('2013-01-29'),
+                                        'last_wrong': dt('2013-01-28'),
+                                        'times_right': 10,
+                                        'times_wrong': 2,
+                                        'secondary_right': []}],
+                       'tag_progress': {'latest_new': 1,
+                                        'cat1': [62], 'cat2': [61], 'cat3': [], 'cat4': [],
+                                        'rev1': [], 'rev2': [], 'rev3': [], 'rev4': [],
+                                        'secondary_right': []},
+                       'paths': {'cat1': [1, 2, 3, 5, 8, 63, 64, 70, 95, 96,
+                                          97, 99, 102, 104, 256, 277],
+                                 'cat2': [4, 7, 9, 10, 11, 12, 13, 14, 15, 16,
+                                          17, 18, 19, 21, 22, 23, 34, 35, 97,
+                                          98, 100, 101, 103, 257, 261, 277],
+                                 'cat3': [],
+                                 'cat4': []},
+                       'completed': [],
+                       'new_badges': [],
+                       'promoted': {},
+                       'demoted': {}},
+             'case4':  # different location than previous step
+                      {'casenum': 4,
+                       'mynow': dt('2013-01-29'),
+                       'user': 'Ian',
+                       'uid': 1,
+                       'loc': Location(8, db),
+                       'prev_loc': Location(7, db),
+                       'prev_npc_id': 1,
+                       'pathid': 1,
+                       'tag_records': [{'tag_id': 1,
+                                        'last_right': dt('2013-01-29'),
+                                        'last_wrong': dt('2013-01-28'),
+                                        'times_right': 10,
+                                        'times_wrong': 2,
+                                        'secondary_right': []}],
+                       'tag_progress': {'latest_new': 1,
+                                        'cat1': [1], 'cat2': [], 'cat3': [], 'cat4': [],
+                                        'rev1': [], 'rev2': [], 'rev3': [], 'rev4': [],
+                                        'secondary_right': []},
+                       'completed': [],
+                       'new_badges': [],
+                       'promoted': {},
+                       'demoted': {}},
+             'case5':  # new badges present
+                      {'casenum': 5,
+                       'mynow': dt('2013-01-29'),
+                       'user': 'Ian',
+                       'uid': 1,
+                       'loc': Location(3, db),
+                       'prev_loc': Location(3, db),
+                       'prev_npc_id': 1,
+                       'pathid': 1,
+                       'tag_records': [{'tag_id': 1,
+                                        'last_right': dt('2013-01-29'),
+                                        'last_wrong': dt('2013-01-28'),
+                                        'times_right': 10,
+                                        'times_wrong': 2,
+                                        'secondary_right': []}],
+                       'tag_progress': {'latest_new': 1,
+                                        'cat1': [1], 'cat2': [], 'cat3': [], 'cat4': [],
+                                        'rev1': [], 'rev2': [], 'rev3': [], 'rev4': [],
+                                        'secondary_right': []},
+                       'completed': [],
+                       'new_badges': [5, 6],
+                       'promoted': {},
+                       'demoted': {}}
+             }
     for c in cases.iteritems():
         c['raw_prompt'] = mysteps['raw_prompt']
     return cases[the_case]
 
-@pytest.fixture(params=['case{}'.format(n) for n in range(1,2)])
-def myrecords(request):
-    """pytest fixture for providing user records."""
-    case = request.param
-    case1 = {'casenum': 1, 'mynow': dt('2013-01-29'),
-            'localias': 'shop_of_alexander',
-            'attempt_log': [{'step': None, 'path': None, 'score': None,
-                            'dt_attempted': None} ],
-            'tag_records': [{'tag_id': 1,
-                             'last_right': dt('2013-01-29'),
-                             'last_wrong': dt('2013-01-29'),
-                             'times_right': 1,
-                             'times_wrong': 1,
-                             'secondary_right': []}],
-            'tag_progress': {'latest_new': 1,
-                            'cat1': [], 'cat2': [], 'cat3': [], 'cat4': [],
-                            'rev1': [], 'rev2': [], 'rev3': [], 'rev4': [],
-                            'secondary_right': []}}
-
-    case2 = {'casenum': 2, 'mynow': dt('2013-01-29'),
-            'localias': 'domus_A',
-            'attempt_log': [{'step': None, 'path': None, 'score': None,
-                            'dt_attempted': None}],
-            'tag_records': [{'tag_id': 1,
-                             'last_right': dt('2013-01-29'),
-                             'last_wrong': dt('2013-01-28'),
-                             'times_right': 10,
-                             'times_wrong': 2,
-                             'secondary_right': []}],
-            'tag_progress': {'latest_new': 1,
-                            'cat1': [1], 'cat2': [], 'cat3': [], 'cat4': [],
-                            'rev1': [], 'rev2': [], 'rev3': [], 'rev4': []
-                            'secondary_right': []}}
-    return locals()[case]
-
-@pytest.fixture(params=['case{}'.format(n) for n in range(1,2)])
-def mysession(request):
-    """pytest fixture for providing a mock session object."""
-    case = request.param
-    # no user in session
-    case1 = {}
-    # user already in session
-    case2 = {'user': myuser}
-
-    return locals()[case]
 
 @pytest.fixture
-def mywalk(myrecords):
+def mywalk(mycases):
     """pytest fixture providing a paideia.Walk object for testing"""
-    userdata = {'first_name': 'Joe', 'id': 1}
-    tag_progress = myrecords['tag_progress']
-    tag_records = myrecords['tag_records']
-    localias = myrecords['localias']
-    return Walk(localias, userdata=userdata,
-            tag_records=tag_records, tag_progress=tag_progress, db=db)
+    userdata = {'first_name': mycases['user'], 'id': 1}
+    tag_progress = mycases['tag_progress']
+    tag_records = mycases['tag_records']
+    localias = mycases['loc'].get_alias()
+    return Walk(localias,
+                userdata=userdata,
+                tag_records=tag_records,
+                tag_progress=tag_progress,
+                db=db)
 
-@pytest.fixture(params=['case{}'.format(n) for n in range(1,2)])
-def mypathchooser(request, myloc):
+
+@pytest.fixture
+def mypathchooser(mycases):
     """pytest fixture providing a paideia.PathChooser object for testing"""
-    case = request.param
-    cases = {
-    'case1':
-        {'categories': {'cat1': [61], 'cat2': [], 'cat3': [], 'cat4': []},
-        'loc': 'domus_A',
-        'completed': [],
-        'paths':
-            {'cat1': [1, 2, 3, 5, 8, 63, 64, 70, 95, 96, 97, 99, 102,
-                        104, 256, 277],
-            'cat2': [],
-            'cat3': [],
-            'cat4': []}},
-    'case2':
-        {'categories': {'cat1': [62], 'cat2': [61], 'cat3': [], 'cat4': []},
-        'loc': 'domus_A',
-        'completed': [],
-        'paths':
-            {'cat1': [1, 2, 3, 5, 8, 63, 64, 70, 95, 96, 97, 99, 102,
-                        104, 256, 277],
-            'cat2': [4, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22,
-                    23, 34, 35, 97, 98, 100, 101, 103, 257, 261, 277],
-            'cat3': [],
-            'cat4': []}}
-    }
-    c = cases[request.param]
-    return {'pathchooser':
-                PathChooser(c['categories'], c['loc'], c['completed'], db=db),
-            'paths': c['paths']}
+    klist = ['cat1', 'cat2', 'cat3', 'cat4', 'rev1', 'rev2', 'rev3']
+    cats = {k: v for k, v in mycases['tag_progress'] if k in klist}
+    pc = PathChooser(cats, mycases['loc'], mycases['completed'], db=db)
+    return {'pathchooser': pc, 'paths': mycases['paths']}
+
 
 @pytest.fixture
 def mycategorizer(myrecords):
@@ -369,14 +387,16 @@ def mycategorizer(myrecords):
     return {'categorizer': Categorizer(rank, categories, tag_records),
             'casenum': myrecords['casenum']}
 
+
 @pytest.fixture
-def myuser(myrecords):
+def myuser(mycases):
     """A pytest fixture providing a paideia.User object for testing."""
     userdata = db.auth_user(1).as_dict()
-    tag_progress = myrecords['tag_progress']
-    tag_records = myrecords['tag_records']
-    localias = myrecords['localias']
+    tag_progress = mycases['tag_progress']
+    tag_records = mycases['tag_records']
+    localias = mycases['loc'].get_alias()
     return User(userdata, localias, tag_records, tag_progress)
+
 
 @pytest.fixture
 def mynpc():
@@ -385,12 +405,14 @@ def mynpc():
     '''
     return Npc(1, db)
 
+
 @pytest.fixture
 def mynpc_stephanos():
     '''
     A pytest fixture providing a paideia.Npc object for testing.
     '''
     return Npc(32, db)
+
 
 @pytest.fixture
 def myloc():
@@ -399,6 +421,7 @@ def myloc():
     """
     return Location(6, db)
 
+
 @pytest.fixture
 def myloc_synagogue():
     """
@@ -406,123 +429,140 @@ def myloc_synagogue():
     """
     return Location(11, db)
 
-@pytest.fixture(params=[p for p in range(1,2)])
-def mypath(request):
+
+@pytest.fixture
+def mypath(mycases):
     """
     A pytest fixture providing a paideia.Path object for testing.
     """
-    # StepText loc and prev_npc both work, no blocks
-    case = 'case{}'.format(request.param)
-    case1args = {'path_id': 3, 'blocks': [], 'loc': Location(1, db),
-            'prev_loc': Location(1, db), 'prev_npc_id': 2}
-    case1 = Path(db=db, **case1args)
-    # StepMultiple loc and prev_npc both work, no blocks
-    case2args = {'path_id': 89, 'blocks': [], 'loc': Location(8, db),
-            'prev_loc': Location(8, db), 'prev_npc_id': 1}
-    case2 = Path(db=db, **case2args)
-    return {'casenum': request.param,
-            'path': locals()[case]}
+    the_path = Path(path_id=mycases['pathid'],
+                    blocks=mycases['blocks'],
+                    loc=mycases['loc'],
+                    prev_loc=mycases['prev_loc'],
+                    prev_npc_id=mycases['prev_npc_id'],
+                    db=db)
+    return {'casenum': mycases['casenum'],
+            'path': the_path}
 
-@pytest.fixture(params=[s for s in range(1,3)])
-def mystep(request):
-    """
-    A pytest fixture providing a paideia.Step object for testing.
-    - same npc and location as previous step
-    TODO: write another fixture for a new location and for a new npc
-    """
-    ind = request.param - 1
-    cases = [(1, 'case1'),
-            (2, 'case1'),
-            (101, 'case2')]
-    sid = cases[ind][0]
-    case = cases[ind][1]
-    sd = step_data_store[sid][case]
-    out = {k:v for k, v in sd.iteritems()
-                if k in ['loc', 'prev_loc', 'prev_npc_id']}
-    return {'casenum': request.param,
-            'step': StepFactory().get_instance(step_id=sid, db=db, **out)}
 
 @pytest.fixture
-def myStepRedirect():
+def mystep(mycases, mysteps):
+    """
+    A pytest fixture providing a paideia.Step object for testing.
+    """
+    stepdata = mysteps
+    kwargs = {'step_id': mysteps['id'],
+              'loc': mycases['loc'],
+              'prev_loc': mycases['prevloc'],
+              'prev_npc_id': mycases['prev_npc_id'],
+              'db': db}
+    return {'casenum': mycases['casenum'],
+            'step': StepFactory().get_instance(**kwargs),
+            'stepdata': stepdata}
+
+
+@pytest.fixture
+def myStepRedirect(mycases, mysteps):
     """
     A pytest fixture providing a paideia.StepRedirect object for testing.
     - same npc and location as previous step
     TODO: write another fixture for a new location and for a new npc
     """
-    step_data = step_data_store[30]['case1']
-    out = {'step_id': 30,
-            'loc': step_data['loc'],
-            'prev_loc': step_data['prev_loc'],
-            'prev_npc_id': step_data['prev_npc_id']}
-    return StepRedirect(db=db, **out)
+    if mysteps['id'] == 30:
+        stepdata = mysteps
+        kwargs = {'step_id': 30,
+                  'loc': mycases['loc'],
+                  'prev_loc': mycases['prevloc'],
+                  'prev_npc_id': mycases['prev_npc_id'],
+                  'db': db}
+        return {'step': StepRedirect(**kwargs),
+                'stepdata': stepdata}
+    else:
+        pass
+
 
 @pytest.fixture
-def myStepAwardBadges():
+def myStepAwardBadges(mycases, mysteps):
     """
     A pytest fixture providing a paideia.StepAwardBadges object for testing.
     """
-    casenum = 1
-    step_data = step_data_store[126]['case1']
-    out = {'step_id': 126,
-            'loc': step_data['loc'],
-            'prev_loc': step_data['prev_loc'],
-            'prev_npc_id': step_data['prev_npc_id']}
-    return {'casenum': casenum, 'step': StepAwardBadges(db=db, **out)}
+    if mysteps['id'] == 126:
+        kwargs = {'step_id': 126,
+                  'loc': mycases['loc'],
+                  'prev_loc': mycases['prevloc'],
+                  'prev_npc_id': mycases['prev_npc_id'],
+                  'db': db}
+        return {'casenum': mycases['casenum'],
+                'step': StepAwardBadges(**kwargs)}
+    else:
+        pass
+
 
 @pytest.fixture
-def myStepViewSlides():
+def myStepViewSlides(mycases, mysteps):
     """
     A pytest fixture providing a paideia.StepViewSlides object for testing.
     """
-    step_data = step_data_store[127]['case1']
-    out = {'step_id': 127,
-            'loc': step_data['loc'],
-            'prev_loc': step_data['prev_loc'],
-            'prev_npc_id': step_data['prev_npc_id']}
-    return StepViewSlides(db=db, **out)
+    if mysteps['id'] == 127:
+        kwargs = {'step_id': 127,
+                  'loc': mycases['loc'],
+                  'prev_loc': mycases['prevloc'],
+                  'prev_npc_id': mycases['prev_npc_id'],
+                  'db': db}
+        return StepViewSlides(**kwargs)
+    else:
+        pass
+
 
 @pytest.fixture
-def myStepQuotaReached():
+def myStepQuotaReached(mycases, mysteps):
     """
     A pytest fixture providing a paideia.StepQuota object for testing.
     """
-    step_data = step_data_store[125]['case1']
-    out = {'step_id': 125,
-            'loc': step_data['loc'],
-            'prev_loc': step_data['prev_loc'],
-            'prev_npc_id': step_data['prev_npc_id']}
-    return  StepFactory().get_instance(**out)
+    if mysteps['id'] == 125:
+        kwargs = {'step_id': 125,
+                  'loc': mycases['loc'],
+                  'prev_loc': mycases['prevloc'],
+                  'prev_npc_id': mycases['prev_npc_id'],
+                  'db': db}
+        return  StepFactory().get_instance(**kwargs)
+    else:
+        pass
 
-@pytest.fixture(params=[s for s in range(1,2)])
-def myStepText(request):
+
+@pytest.fixture
+def myStepText(mycases, mysteps):
     """
     A pytest fixture providing a paideia.StepText object for testing.
     """
-    ind = request.param - 1
-    cases = [(1, 'case1'),
-            (2, 'case1')]
-    sid = cases[ind][0]
-    case = cases[ind][1]
-    sd = step_data_store[sid][case]
-    out = {k:v for k, v in sd.iteritems() if k in ['loc', 'prev_loc', 'prev_npc_id']}
-    return {'casenum': request.param,
-            'step': StepFactory().get_instance(step_id=sid, db=db, **out)}
+    if mysteps['widget'] == 1:
+        kwargs = {'step_id': mysteps['id'],
+                  'loc': mycases['loc'],
+                  'prev_loc': mycases['prev_loc'],
+                  'prev_npc_id': mycases['prev_npc_id'],
+                  'db': db}
+        return {'casenum': request.param,
+                'step': StepFactory().get_instance(**kwargs)}
+    else:
+        pass
 
-@pytest.fixture(params=[s for s in range(1,2)])
-def myStepMultiple(request):
+
+@pytest.fixture
+def myStepMultiple(mycases, mysteps):
     """ """
-    ind = request.param - 1
-    cases = [(101, 'case1'),
-            (101, 'case2')]
-    sid = cases[ind][0]
-    case = cases[ind][1]
-    sd = step_data_store[sid][case]
-    out = {k:v for k, v in sd.iteritems()
-                if k in ['loc', 'prev_loc', 'prev_npc_id']}
-    return {'casenum': request.param,
-            'step': StepFactory().get_instance(step_id=sid, db=db, **out)}
+    if mysteps['widget'] == 4:
+        kwargs = {'step_id': mysteps['id'],
+                  'loc': mycases['loc'],
+                  'prev_loc': mycases['prev_loc'],
+                  'prev_npc_id': mycases['prev_npc_id'],
+                  'db': db}
+        return {'casenum': request.param,
+                'step': StepFactory().get_instance(**kwargs)}
+    else:
+        pass
 
-@pytest.fixture(params=[s for s in range(1,2)])
+
+@pytest.fixture
 def myStepEvaluator(request):
     """
     A pytest fixture providing a paideia.StepEvaluator object for testing.
