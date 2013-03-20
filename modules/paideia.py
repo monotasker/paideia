@@ -52,9 +52,9 @@ class Walk(object):
         self.loc = Location(loc_id, db)
         self.response_string = response_string
         if not userdata:
-            auth = current.auth
-            user_id = auth.user_id
-            userdata = db.auth_user[user_id].as_dict()
+           auth = current.auth
+           user_id = auth.user_id
+           userdata = db.auth_user[user_id].as_dict()
 
         self.user = self._get_user(userdata=userdata,
                                    localias=localias,
@@ -477,6 +477,8 @@ class Step(object):
 
         instructions = self._get_instructions()
         npc = self.get_npc()  # duplicate choice prevented in get_npc()
+        if npc is False:
+            return 'redirect'
         npc_image = npc.get_image()
         # prompt no longer tagged or converted to markmin here, but in view
 
@@ -513,18 +515,32 @@ class Step(object):
         return responder
 
     def get_npc(self):
-        """Return an Npc object appropriate for this step"""
+        """
+        Return an Npc object appropriate for this step
+
+        If there is no suitable npc available here, returns false.
+        TODO: need to trigger redirect on false return
+        """
         if self.npc:  # ensure choice is made only once for each step
             return self.npc
         else:
             npcs_for_step = self.data['npcs']
-            npc_list = [n for n in npcs_for_step
+            print 'step-m', self.data['id']
+            print 'npcs_for_step-m', npcs_for_step
+            print 'loc-m', self.loc.get_id()
+            npc_list = [int(n) for n in npcs_for_step
                         if self.loc.get_id() in self.db.npcs[n].location]
-            if self.prev_npc_id in npc_list:
+            print 'npc_list-m', npc_list
+            if len(npc_list) < 1:
+                print len(npc_list)
+                return False
+            elif self.prev_npc_id in npc_list:
+                print 'elif'
                 self.npc = Npc(self.prev_npc_id, db=self.db)
                 return self.npc
             else:
-                pick = npc_list[randint(0, len(npc_list) - 1)]
+                print 'else'
+                pick = npc_list[randint(1, len(npc_list)) - 1]
                 self.npc = Npc(pick, db=self.db)
                 return self.npc
 
