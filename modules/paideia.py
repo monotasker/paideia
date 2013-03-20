@@ -52,9 +52,9 @@ class Walk(object):
         self.loc = Location(loc_id, db)
         self.response_string = response_string
         if not userdata:
-           auth = current.auth
-           user_id = auth.user_id
-           userdata = db.auth_user[user_id].as_dict()
+            auth = current.auth
+            user_id = auth.user_id
+            userdata = db.auth_user[user_id].as_dict()
 
         self.user = self._get_user(userdata=userdata,
                                    localias=localias,
@@ -620,6 +620,7 @@ class StepRedirect(Step):
             # find a location that actually has a readable name
             raw_locs = [db.locations[n].readable for n in next_locids]
             next_locs = [n for n in raw_locs if not n is None]
+            next_loc = next_locs[randint(0, len(next_locs))]
         else:
             pass
 
@@ -642,10 +643,10 @@ class StepQuotaReached(StepResponder, Step):
         substituted for tokens framed by [[]].
         """
         reps = None
-        new_string = super(StepQuotaReached, self)._make_replacements(
-                                                        raw_prompt=raw_prompt,
-                                                        username=username,
-                                                        reps=reps)
+        new_string = super(StepQuotaReached, self
+                           )._make_replacements(raw_prompt=raw_prompt,
+                                                username=username,
+                                                reps=reps)
         return new_string
 
 
@@ -687,10 +688,10 @@ class StepAwardBadges(StepResponder, Step):
         else:
             reps['[[promoted_list]]'] = ''
 
-        new_string = super(StepAwardBadges, self)._make_replacements(
-                                                    raw_prompt=raw_prompt,
-                                                    username=username,
-                                                    reps=reps)
+        new_string = super(StepAwardBadges, self
+                           )._make_replacements(raw_prompt=raw_prompt,
+                                                username=username,
+                                                reps=reps)
         return new_string
 
 
@@ -716,10 +717,10 @@ class StepViewSlides(Step):
             slides.append(LI(name))
         reps = {'[[slides]]': slides.xml(),
                 '[[user]]': username}
-        new_string = super(StepViewSlides, self)._make_replacements(
-                                                        raw_prompt=raw_prompt,
-                                                        username=username,
-                                                        reps=reps)
+        new_string = super(StepViewSlides, self
+                           )._make_replacements(raw_prompt=raw_prompt,
+                                                username=username,
+                                                reps=reps)
         return new_string
 
 
@@ -885,7 +886,9 @@ class StepEvaluator(object):
                 'times_right': times_right,
                 'reply': reply,
                 'user_response': user_response,
-                'tips': tips}
+                'tips': tips,
+                'readable_short': readable_short,
+                'readable_long': readable_long}
 
 
 class MultipleEvaluator(StepEvaluator):
@@ -1267,7 +1270,7 @@ class User(object):
         if not tag_records:
             tag_records = self.tag_records
         cats_counter = self.cats_counter
-        old_categories = self.old_categories
+        #old_categories = self.old_categories
         # only re-categorize every 10th evaluated step
         if cats_counter in range(1, 10):
             self.cats_counter = cats_counter + 1
