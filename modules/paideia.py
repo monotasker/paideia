@@ -444,6 +444,12 @@ class Step(object):
         """
         return self.data['id']
 
+    def get_npcs(self):
+        """
+        Return the id of the current step as an integer.
+        """
+        return self.data['npcs']
+
     def get_tags(self):
         """
         Return a list of tag id's
@@ -566,7 +572,8 @@ class StepRedirect(Step):
     sent to another location.
     '''
     def __init__(self, step_id=None, step_data=None, loc=None, prev_loc=None,
-                 prev_npc_id=None, username=None, next_step_id=None, db=None):
+                 prev_npc_id=None, username=None, next_step_id=None, db=None,
+                 **kwargs):
         """docstring for __init__"""
 
         self.username = username
