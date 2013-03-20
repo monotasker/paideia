@@ -40,56 +40,56 @@ def dt(string):
 
 # Constant values from db
 db = current.db
-npc1_img = '/paideia/static/images/images.image.bb48641f0122d2b6.696d616765732e696d6167652e383136303330663934646664646561312e34343732363137373639366536373230333432653733373636372e737667.svg'
-npc2_img = '/paideia/static/images/images.image.81e2d69e1aea4d99.44726177696e672031372e737667.svg'
-npc3_img = '/paideia/static/images/images.image.81e2d69e1aea4d99.44726177696e672031372e737667.svg'
-npc4_img = '/paideia/static/images/images.image.85a960241dc29f1b.776f6d616e312e706e67.png'
-npc5_img = '/paideia/static/images/images.image.a4d5140b25f87749.44726177696e672031392e737667.svg'
-npc6_img = '/paideia/static/images/images.image.a28124edf3480d82.696d616765732e696d6167652e383135323664663563326663623438302e343437323631373736393665363732303332333232653733373636372e737667.svg'
-npc7_img = '/paideia/static/images/images.image.993274ee0076fd2f.696d616765732e696d6167652e393636636434346165663238613839652e343437323631373736393665363732303332333732653733373636372e737667.svg'
-npc8_img = '/paideia/static/images/images.image.938be4c25c678bb5.323031322d30362d30352030335f35325f31312e706e67.png'
-npc9_img = ''
-npc10_img = '/paideia/static/images/images.image.961b44d8d322659c.323031322d30362d30372031345f34345f34302e706e67.png'
-npc11_img = '/paideia/static/images/images.image.ac58c3e138964719.70686f6562652e706e67.png'
-npc14_img = '/paideia/static/images/images.image.b5592e80d5fe4bb3.73796e61676f6775652e6a7067.jpg'
-npc15_img = '/paideia/static/images/images.image.9a515ff664f03aa3.323031322d30372d32312032335f35315f31322e706e67.png'
-npc16_img = '/paideia/static/images/images.image.8bb7c079634cf35a.44726177696e672033332e706e67.png'
-npc17_img = '/paideia/static/images/images.image.95fcf253d4dd7abd.44726177696e6720352e706e67.png'
+images = {'npc1_img': '/paideia/static/images/images.image.bb48641f0122d2b6.696d616765732e696d6167652e383136303330663934646664646561312e34343732363137373639366536373230333432653733373636372e737667.svg',
+'npc2_img': '/paideia/static/images/images.image.81e2d69e1aea4d99.44726177696e672031372e737667.svg',
+'npc3_img': '/paideia/static/images/images.image.81e2d69e1aea4d99.44726177696e672031372e737667.svg',
+'npc4_img': '/paideia/static/images/images.image.85a960241dc29f1b.776f6d616e312e706e67.png',
+'npc5_img': '/paideia/static/images/images.image.a4d5140b25f87749.44726177696e672031392e737667.svg',
+'npc6_img': '/paideia/static/images/images.image.a28124edf3480d82.696d616765732e696d6167652e383135323664663563326663623438302e343437323631373736393665363732303332333232653733373636372e737667.svg',
+'npc7_img': '/paideia/static/images/images.image.993274ee0076fd2f.696d616765732e696d6167652e393636636434346165663238613839652e343437323631373736393665363732303332333732653733373636372e737667.svg',
+'npc8_img': '/paideia/static/images/images.image.938be4c25c678bb5.323031322d30362d30352030335f35325f31312e706e67.png',
+'npc9_img': '',
+'npc10_img': '/paideia/static/images/images.image.961b44d8d322659c.323031322d30362d30372031345f34345f34302e706e67.png',
+'npc11_img': '/paideia/static/images/images.image.ac58c3e138964719.70686f6562652e706e67.png',
+'npc14_img': '/paideia/static/images/images.image.b5592e80d5fe4bb3.73796e61676f6775652e6a7067.jpg',
+'npc15_img': '/paideia/static/images/images.image.9a515ff664f03aa3.323031322d30372d32312032335f35315f31322e706e67.png',
+'npc16_img': '/paideia/static/images/images.image.8bb7c079634cf35a.44726177696e672033332e706e67.png',
+'npc17_img': '/paideia/static/images/images.image.95fcf253d4dd7abd.44726177696e6720352e706e67.png'}
 
-npc_data = {1: {'image': npc1_img,
+npc_data = {1: {'image': images['npc1_img'],
                 'name': 'Ἀλεξανδρος',
                 'location': [6, 8],
                 },
-            2: {'image': npc4_img,
+            2: {'image': images['npc4_img'],
                 'name': 'Μαρια',
                 'location': [3, 1, 2, 4],
                 },
-            8: {'image': npc5_img,
+            8: {'image': images['npc5_img'],
                 'name': 'Διοδωρος',
                 'location': [1],
                 },
-            14: {'image': npc2_img,
+            14: {'image': images['npc2_img'],
                  'name': 'Γεωργιος',
                  'location': [3, 1, 2, 4, 7, 8, 9, 10]},
-            17: {'image': npc7_img,
+            17: {'image': images['npc7_img'],
                  'name': 'Ἰασων',
                  'location': [3, 1, 2, 4, 7, 8]},
-            21: {'image': npc7_img,
+            21: {'image': images['npc7_img'],
                  'name': 'Νηρευς',
                  'location': [7, 8]},
-            31: {'image': npc3_img,
+            31: {'image': images['npc3_img'],
                  'name': 'Σοφια',
                  'location': [3, 1, 2, 4, 11]},
-            32: {'image': npc10_img,
+            32: {'image': images['npc10_img'],
                  'name': 'Στεφανος',
                  'location': [11]},
-            40: {'image': npc6_img,
+            40: {'image': images['npc6_img'],
                  'name': 'Σιμων',
                  'location': [3, 1, 2, 4, 7, 8]},
-            41: {'image': npc11_img,
+            41: {'image': images['npc11_img'],
                  'name': 'Φοιβη',
                  'location': [3, 1, 4, 8]},
-            42: {'image': npc9_img,
+            42: {'image': images['npc9_img'],
                  'name': 'Ὑπατια',
                  'location': [3, 1, 2, 4, 12, 8]}
             }
@@ -142,9 +142,9 @@ def mysteps(request):
                    'type': StepMultiple,
                    'widget_type': 4,
                    'locations': [7],
-                   'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
-                   'raw_prompt': 'Is this an English clause?\n\n"The cat sat."',
-                   'final_prompt': 'Is this an English clause?\n\n"The cat sat."',
+                   'npc_list': [14],
+                   'raw_prompt': 'Is this an English clause?\r\n\r\n"The cat sat."',
+                   'final_prompt': 'Is this an English clause?\r\n\r\n"The cat sat."',
                    'instructions': None,
                    'tags': [36],
                    'tags_secondary': [],
@@ -232,10 +232,11 @@ def mycases(request, mysteps):
     cases = {'case1': {'casenum': 1,
                        'loc': Location(1, db),
                        'mynow': dt('2013-01-29'),
-                       'user': 'Ian',
+                       'name': 'Ian',
                        'uid': 1,
                        'prev_loc': Location(1, db),
                        'prev_npc_id': 2,
+                       'npcs_here': [2, 8, 14, 17, 31, 40, 41, 42],
                        'pathid': 3,
                        'localias': 'shop_of_alexander',
                        'tag_records': [{'tag_id': 1,
@@ -264,10 +265,11 @@ def mycases(request, mysteps):
                       {'casenum': 2,
                        'mynow': dt('2013-01-29'),
                        'loc': Location(8, db),
-                       'user': 'Ian',
+                       'name': 'Ian',
                        'uid': 1,
                        'prev_loc': Location(8, db),
                        'prev_npc_id': 1,
+                       'npcs_here': [1, 14, 17, 21, 40, 41, 42],
                        'pathid': 89,
                        'tag_records': [{'tag_id': 61,
                                         'last_right': dt('2013-01-29'),
@@ -294,11 +296,12 @@ def mycases(request, mysteps):
              'case3':  # same location as previous step, last npc stephanos
                       {'casenum': 3,
                        'mynow': dt('2013-01-29'),
-                       'user': 'Ian',
+                       'name': 'Ian',
                        'uid': 1,
                        'loc': Location(11, db),  # synagogue
                        'prev_loc': Location(11, db),
                        'prev_npc_id': 31,  # stephanos
+                       'npcs_here': [31, 32],
                        'pathid': 19,
                        'tag_records': [{'tag_id': 1,
                                         'last_right': dt('2013-01-29'),
@@ -325,11 +328,12 @@ def mycases(request, mysteps):
              'case4':  # different location than previous step
                       {'casenum': 4,
                        'mynow': dt('2013-01-29'),
-                       'user': 'Ian',
+                       'name': 'Ian',
                        'uid': 1,
                        'loc': Location(8, db),
                        'prev_loc': Location(7, db),
                        'prev_npc_id': 1,
+                       'npcs_here': [1, 14, 17, 21, 40, 41, 42],
                        'pathid': 1,
                        'tag_records': [{'tag_id': 1,
                                         'last_right': dt('2013-01-29'),
@@ -349,11 +353,12 @@ def mycases(request, mysteps):
              'case5':  # new badges present
                       {'casenum': 5,
                        'mynow': dt('2013-01-29'),
-                       'user': 'Ian',
+                       'name': 'Ian',
                        'uid': 1,
                        'loc': Location(3, db),
                        'prev_loc': Location(3, db),
                        'prev_npc_id': 1,
+                       'npcs_here': [2, 14, 17, 31, 40, 41, 42],
                        'pathid': 1,
                        'tag_records': [{'tag_id': 1,
                                         'last_right': dt('2013-01-29'),
@@ -725,16 +730,30 @@ class TestStep():
 
     def test_step_get_prompt(self, mystep):
         """Test for method Step.get_prompt"""
-        username = mystep['casedata']['name']
-        oprompt = mystep['stepdata']['prompt_final']
-        oinstr = mystep['stepdata']['instructions']
-        stepnpcs = mystep['stepdata']['npc_list']
-        locnpcs = mystep['casedata']['npcs_here']
-        onpc_image = ['npc{}_image'.format(n) for n in stepnpcs
-                      if n in locnpcs]
-        assert mystep['step'].get_prompt(username)['prompt'] == oprompt
-        assert mystep['step'].get_prompt(username)['instructions'] == oinstr
-        assert mystep['step'].get_prompt(username)['npc_image'] == onpc_image
+        step = mystep['step']
+        sdata = mystep['stepdata']
+        case = mystep['casedata']
+        if sdata['widget_type'] in [1, 4]:
+            print 'step', sdata['id']
+            stepnpcs = sdata['npc_list']
+            print 'stepnpcs', stepnpcs
+            locnpcs = [int(n) for n in case['npcs_here'] if n in stepnpcs]
+            print 'npcs_here', case['npcs_here']
+            print 'locnpcs', locnpcs
+            username = case['name']
+            if locnpcs:
+                oprompt = sdata['final_prompt']
+                oinstr = sdata['instructions']
+                onpc_image = [npc_data[n]['image'] for n in stepnpcs if n in locnpcs]
+                #print 'prompt', step.get_prompt(username)
+                #print 'oprompt', oprompt
+                assert step.get_prompt(username)['prompt'] == oprompt
+                assert step.get_prompt(username)['instructions'] == oinstr
+                assert step.get_prompt(username)['npc_image'] in onpc_image
+            else:
+                assert step.get_prompt(username) == 'redirect'
+        else:
+            pass
 
     #def test_step_make_replacements(self, mystep):
         #"""Unit test for method Step._make_replacements()"""
