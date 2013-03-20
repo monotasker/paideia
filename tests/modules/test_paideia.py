@@ -3,15 +3,17 @@
 
 import pytest
 from paideia import Npc, Location, User, PathChooser, Path, Categorizer, Walk
-from paideia import StepFactory, Step, StepText, StepMultiple
+from paideia import StepFactory, StepText, StepMultiple, NpcChooser  # Step
 from paideia import StepRedirect, StepViewSlides, StepAwardBadges
 from paideia import StepEvaluator, MultipleEvaluator, StepQuotaReached
-from paideia import Block, BlockRedirect, BlockAwardBadges, BlockViewSlides
-from gluon import *
-#from gluon.dal import Rows
+#from paideia import Block, BlockRedirect, BlockAwardBadges, BlockViewSlides
+from gluon import current
+request = current.request
+# from gluon.dal import Rows
 import datetime
-from pprint import pprint
-import re
+# from pprint import pprint
+# import re
+
 # web2py library for functional testing
 from gluon.contrib.webclient import WebClient
 client = WebClient('http://127.0.0.1:8000/paideia/default/', postbacks=True)
@@ -102,46 +104,58 @@ def mysteps(request):
     test). This step fixture is also used in the mycases fixture.
     """
     the_step = request.param
-    steps = {1: {'type': 'StepText',
+    steps = {1: {'id': 1,
+                 'type': StepText,
                  'widget_type': 1,
-                 'npc_list': [],
-                 'locations': [],
-                 'raw_prompt': '',
-                 'final_prompt': '',
-                 'instructions': None,
-                 'tags': [],
-                 'tags_secondary': []},
-             2: {'type': 'StepText',
+                 'npc_list': [8, 2, 32, 1, 17],
+                 'locations': [3, 1, 13, 7, 8, 11],
+                 'raw_prompt': 'How could you write the word "meet" using Greek letters?',
+                 'final_prompt': 'How could you write the word "meet" using Greek letters?',
+                 'instructions': ['Focus on finding Greek letters that make the *sounds* of the English word. Don\'t look for Greek "equivalents" for each English letter.'],
+                 'tags': [61],
+                 'tags_secondary': [],
+                 'responses': {'response1': '^μιτ$'},
+                 'tips': None},
+             2: {'id': 2,
+                 'type': StepText,
                  'widget_type': 1,
-                 'npc_list': [],
-                 'locations': [],
-                 'raw_prompt': '',
-                 'final_prompt': '',
+                 'npc_list': [8, 2, 32, 1],
+                 'locations': [3, 1, 13, 7, 8, 11],
+                 'raw_prompt': 'How could you write the word "bought" using Greek letters?',
+                 'final_prompt': 'How could you write the word "bought" using Greek letters?',
                  'instructions': None,
-                 'tags': [],
-                 'tags_secondary': []},
-             30: {'type': 'StepRedirect',
+                 'tags': [61],
+                 'tags_secondary': [],
+                 'responses': {'response1': '^β(α|ο)τ$'},
+                 'tips': None},
+             30: {'id': 30,
+                  'type': StepRedirect,
                   'widget_type': 9,
                   'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
-                  'locations': [],
-                  'raw_prompt': '',
-                  'final_prompt': '',
+                  'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10],
+                  'raw_prompt': 'Hi there. Sorry, I don\'t have anything for you to do here at the moment. I think someone was looking for you at [[next_loc]].',
+                  'final_prompt': 'Hi there. Sorry, I don\'t have anything for you to do here at the moment. I think someone was looking for you at [[next_loc]].',
                   'instructions': None,
-                  'tags': [],
+                  'tags': [70],
                   'tags_secondary': []},
-             101: {'type': 'stepMultiple',
+             101: {'id': 101,
+                   'type': StepMultiple,
                    'widget_type': 4,
-                   'locations': [8, 7],
-                   'npc_list': [],
-                   'raw_prompt': '',
-                   'final_prompt': '',
+                   'locations': [7],
+                   'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
+                   'raw_prompt': 'Is this an English clause?\n\n"The cat sat."',
+                   'final_prompt': 'Is this an English clause?\n\n"The cat sat."',
                    'instructions': None,
-                   'tags': [],
-                   'tags_secondary': []},
-             125: {'type': 'StepQuotaReached',
+                   'tags': [36],
+                   'tags_secondary': [],
+                   'options': ['ναι', 'οὐ'],
+                   'responses': {'response1': 'ναι'},
+                   'tips': None},
+             125: {'id': 125,
+                   'type': StepQuotaReached,
                    'widget_type': 7,
-                   'locations': [8, 7],
-                   'npc_list': [],
+                   'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10],
+                   'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
                    'raw_prompt': 'Well done, [[user]]. You\'ve finished enough '
                                  'paths for today. But if you would like to keep '
                                  'going, you\'re welcome to continue.',
@@ -149,9 +163,10 @@ def mysteps(request):
                                    'paths for today. But if you would like to keep '
                                    'going, you\'re welcome to continue.',
                    'instructions': None,
-                   'tags': [],
+                   'tags': [79],
                    'tags_secondary': []},
-             126: {'type': 'stepAwardBadges',
+             126: {'id': 126,
+                   'type': StepAwardBadges,
                    'widget_type': 8,
                    'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10],
                    'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
@@ -177,7 +192,8 @@ def mysteps(request):
                    'instructions': None,
                    'tags': [81],
                    'tags_secondary': []},
-             127: {'type': 'stepViewSlides',
+             127: {'id': 127,
+                   'type': StepViewSlides,
                    'widget_type': 6,
                    'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
                    'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10],
@@ -239,6 +255,7 @@ def mycases(request, mysteps):
                                  'cat2': [],
                                  'cat3': [],
                                  'cat4': []},
+                       'steps_here': [1, 2, 30, 125, 126, 127],
                        'completed': [],
                        'new_badges': [],
                        'promoted': {},
@@ -269,6 +286,7 @@ def mycases(request, mysteps):
                                  'cat2': [],
                                  'cat3': [],
                                  'cat4': []},
+                       'steps_here': [1, 2, 30, 125, 126, 127],
                        'completed': [],
                        'new_badges': [],
                        'promoted': {},
@@ -299,6 +317,7 @@ def mycases(request, mysteps):
                                           98, 100, 101, 103, 257, 261, 277],
                                  'cat3': [],
                                  'cat4': []},
+                       'steps_here': [1, 2, 30, 125, 126, 127],
                        'completed': [],
                        'new_badges': [],
                        'promoted': {},
@@ -322,6 +341,7 @@ def mycases(request, mysteps):
                                         'cat1': [1], 'cat2': [], 'cat3': [], 'cat4': [],
                                         'rev1': [], 'rev2': [], 'rev3': [], 'rev4': [],
                                         'secondary_right': []},
+                       'steps_here': [1, 2, 30, 125, 126, 127],
                        'completed': [],
                        'new_badges': [],
                        'promoted': {},
@@ -345,14 +365,29 @@ def mycases(request, mysteps):
                                         'cat1': [1], 'cat2': [], 'cat3': [], 'cat4': [],
                                         'rev1': [], 'rev2': [], 'rev3': [], 'rev4': [],
                                         'secondary_right': []},
+                       'steps_here': [1, 2, 30, 125, 126, 127],
                        'completed': [],
                        'new_badges': [5, 6],
                        'promoted': {},
                        'demoted': {}}
              }
-    for c in cases.iteritems():
-        c['raw_prompt'] = mysteps['raw_prompt']
     return cases[the_case]
+
+
+@pytest.fixture
+def mynpcchooser(mysteps, mycases):
+    if mysteps['id'] in mycases['steps_here']:
+        if mycases['casenum'] == 1:
+            step = StepFactory().get_instance(db=db,
+                                              step_id=mysteps['id'],
+                                              loc=mycases['loc'],
+                                              prev_loc=mycases['prev_loc'],
+                                              prev_npc_id=mycases['prev_npc_id'])
+            location = mycases['loc']
+            prev_npc = Npc(mycases['prev_npc_id'], db)
+            prev_loc = mycases['prev_loc']
+            return {'chooser': NpcChooser(step, location, prev_npc, prev_loc),
+                    'stepdata': mysteps}
 
 
 @pytest.fixture
@@ -451,14 +486,14 @@ def mystep(mycases, mysteps):
     A pytest fixture providing a paideia.Step object for testing.
     """
     stepdata = mysteps
-    kwargs = {'step_id': mysteps['id'],
-              'loc': mycases['loc'],
-              'prev_loc': mycases['prevloc'],
-              'prev_npc_id': mycases['prev_npc_id'],
-              'db': db}
     return {'casenum': mycases['casenum'],
-            'step': StepFactory().get_instance(**kwargs),
-            'stepdata': stepdata}
+            'step': StepFactory().get_instance(db=db,
+                                               step_id=mysteps['id'],
+                                               loc=mycases['loc'],
+                                               prev_loc=mycases['prev_loc'],
+                                               prev_npc_id=mycases['prev_npc_id']),
+            'stepdata': stepdata,
+            'casedata': mycases}
 
 
 @pytest.fixture
@@ -470,12 +505,12 @@ def myStepRedirect(mycases, mysteps):
     """
     if mysteps['id'] == 30:
         stepdata = mysteps
-        kwargs = {'step_id': 30,
-                  'loc': mycases['loc'],
-                  'prev_loc': mycases['prevloc'],
-                  'prev_npc_id': mycases['prev_npc_id'],
-                  'db': db}
-        return {'step': StepRedirect(**kwargs),
+        my_args = {'step_id': 30,
+                   'loc': mycases['loc'],
+                   'prev_loc': mycases['prevloc'],
+                   'prev_npc_id': mycases['prev_npc_id'],
+                   'db': db}
+        return {'step': StepRedirect(**my_args),
                 'stepdata': stepdata}
     else:
         pass
@@ -563,46 +598,42 @@ def myStepMultiple(mycases, mysteps):
 
 
 @pytest.fixture
-def myStepEvaluator(request):
+def myStepEvaluator(mycases, mysteps):
     """
     A pytest fixture providing a paideia.StepEvaluator object for testing.
     """
-    case = 'case{}'.format(request.param)
-    case1 = {'casenum': 1,
-            'vals': {'step_id': 1,
-                    'responses': {'response1': '^μιτ$'},
-                    'tips': None}}
-    case2 = {'casenum': 2,
-            'vals': {'step_id': 2,
-                    'responses': {'response1': '^β(α|ο)τ$'},
-                    'tips': None}}
-    out = locals()[case]
-    return {'casenum': out['casenum'],
-            'eval': StepEvaluator(responses=out['vals']['responses'],
-                                    tips=out['vals']['tips'])}
+    if mysteps['widget_type'] == 1:
+        kwargs = {'responses': mysteps['responses'],
+                  'tips': mysteps['tips'],
+                  'db': db}
+        return {'casenum': mycases['casenum'],
+                'eval': StepEvaluator(**kwargs),
+                'stepdata': mysteps,
+                'casedata': mycases}
+    else:
+        pass
 
-@pytest.fixture(params=[s for s in range(1,2)])
+
+@pytest.fixture(params=[s for s in range(1, 2)])
 def myMultipleEvaluator(request):
     """
     A pytest fixture providing a paideia.MultipleEvaluator object for testing.
     """
-    case = 'case{}'.format(request.param)
-    case1 = {'casenum': 1,
-            'vals': {'step_id': 101,
-                    'answers': ['ναι'],
-                    'tips': None}}
-    case2 = {'casenum': 2,
-            'vals': {'step_id': 101,
-                    'answers': ['ναι'],
-                    'tips': None}}
-    out = locals()[case]
-    return {'casenum': out['casenum'],
-            'eval': MultipleEvaluator(responses=out['vals']['answers'],
-                                        tips=out['vals']['tips'])}
+    if mysteps['widget_type'] == 4:
+        kwargs = {'responses': mysteps['options'],
+                  'tips': mysteps['tips'],
+                  'db': db}
+        return {'casenum': mycases['casenum'],
+                'eval': MultipleEvaluator(**kwargs),
+                'stepdata': mysteps,
+                'casedata': mycases}
+    else:
+        pass
 
 # ===================================================================
 # Test Classes
 # ===================================================================
+
 
 class TestNpc():
     '''
@@ -632,9 +663,6 @@ class TestNpc():
         """Test for method Npc.get_description()"""
         assert mynpc.get_description() == "Ἀλεξανδρος is a shop owner and good friend of Simon's household. His shop is in the agora."
 
-    def test_npc_choose(self, mynpc):
-        """Test for method Npc.choose()"""
-        pass # TODO: write this test
 
 class TestLocation():
     """
@@ -657,9 +685,23 @@ class TestLocation():
     def test_location_get_bg(self, myloc):
         """Test for method Location.get_bg"""
         assert myloc.get_bg().xml() == '<img src="/paideia/static/images/images.image.9a515ff664f03aa3.323031322d30372d32312032335f35315f31322e706e67.png" />'
+
     def test_location_get_id(self, myloc):
         """Test for method Location.get_id"""
         assert myloc.get_id() == 6
+
+
+class TestNpcChooser():
+    """
+    Unit tests covering the NpcChooser class of the paideia module.
+    """
+
+    def test_npcchooser_choose(self, mynpcchooser):
+        if mynpcchooser:
+            possible = mynpcchooser['stepdata']['npc_list']
+            out = mynpcchooser['chooser'].choose()
+            assert out.get_id() in possible
+
 
 class TestStep():
     """
@@ -669,899 +711,884 @@ class TestStep():
 
     def test_step_get_id(self, mystep):
         """Test for method Step.get_id"""
-        casenum = mystep['casenum']
-        case = 'case{}'.format(casenum)
-        case1 = {'id':1, 'type': StepText}
-        case2 = {'id':2, 'type': StepText}
-        case3 = {'id':101, 'type': StepMultiple}
-        output = locals()[case]
-        assert mystep['step'].get_id() == output['id']
-        assert isinstance(mystep['step'], output['type']) == True
+        sid = mystep['stepdata']['id']
+        stype = mystep['stepdata']['type']
+        assert mystep['step'].get_id() == sid
+        assert isinstance(mystep['step'], stype) is True
 
     def test_step_get_tags(self, mystep):
         """Test for method Step.get_tags"""
-        casenum = mystep['casenum']
-        case = 'case{}'.format(casenum)
-        case1 = {'primary': [61], 'secondary': []}
-        case2 = {'primary': [61], 'secondary': []}
-        case3 = {'primary': [36], 'secondary': []}
-        output = locals()[case]
-        assert mystep['step'].get_tags() == output
+        primary = mystep['stepdata']['tags']
+        secondary = mystep['stepdata']['tags_secondary']
+        out = {'primary': primary, 'secondary': secondary}
+        assert mystep['step'].get_tags() == out
 
     def test_step_get_prompt(self, mystep):
         """Test for method Step.get_prompt"""
-        username = 'Ian'
-        casenum = mystep['casenum']
-        case = 'case{}'.format(casenum)
-        case1 = {'prompt': 'How could you write the word "meet" using Greek letters?',
-                'instructions': ['Focus on finding Greek letters that make the *sounds* of the English word. Don\'t look for Greek "equivalents" for each English letter.'],
-                'npc_image': npc1_img}
-        case2 = {'prompt': 'How could you write the word "bought" using Greek letters?',
-                'instructions': None,
-                'npc_image': npc4_img}
-        case3 = {'prompt': 'Is this an English clause?\n\n"The cat sat."',
-                'instructions': None,
-                'npc_image': npc1_img}
-        output = locals()[case]
-        assert mystep['step'].get_prompt(username)['prompt'] == output['prompt']
-        assert mystep['step'].get_prompt(username)['instructions'] == output['instructions']
-        assert mystep['step'].get_prompt(username)['npc_image'] == output['npc_image']
-
-    def test_step_make_replacements(self, mystep):
-        """Unit test for method Step._make_replacements()"""
-        casenum = mystep['casenum']
-        case = 'case{}'.format(casenum)
-        case1 = {'raw_string': 'Hi [[user]]!', 'username': 'Ian', 'result': 'Hi Ian!'}
-        case2 = {'raw_string': 'Hi there [[user]].', 'username': 'Ian', 'result': 'Hi there Ian.'}
-        output = locals()[case]
-        assert mystep['step']._make_replacements(raw_prompt=output['raw_string'],
-                                                username=output['username']
-                                                ) == output['result']
-
-    def test_step_get_responder(self, mystep):
-        """Test for method Step.get_responder"""
-        the_type = mystep['step'].__class__.__name__
-        # Step, StepRedirect, StepViewSlides steps
-        map_button = A("Map", _href=URL('walk'),
-                        cid='page',
-                        _class='button-yellow-grad back_to_map icon-location')
-        Step_output = StepRedirect_output = StepViewSlides_output = DIV(map_button).xml()
-        # StepText steps
-        resp = '<form action="" autocomplete="off" enctype="multipart/form-data" method="post">'
-        resp += '<table>'
-        resp += '<tr id="no_table_response__row">'
-        resp += '<td class="w2p_fl">'
-        resp += '<label for="no_table_response" id="no_table_response__label">Response: </label>'
-        resp += '</td>'
-        resp += '<td class="w2p_fw">'
-        resp += '<input class="string" id="no_table_response" name="response" type="text" value="" />'
-        resp += '</td>'
-        resp += '<td class="w2p_fc"></td>'
-        resp += '</tr>'
-        resp += '<tr id="submit_record__row">'
-        resp += '<td class="w2p_fl"></td>'
-        resp += '<td class="w2p_fw"><input type="submit" value="Submit" /></td>'
-        resp += '<td class="w2p_fc"></td></tr></table></form>'
-        StepText_output = resp
-        # StepMultiple steps #TODO: insert stepMultiple responder html here
-        StepMultiple_output = None
-        output = locals()['{}_output'.format(the_type)]
-
-        assert mystep['step'].get_responder().xml() == output
-
-    def test_step_get_npc(self, mystep):
-        """Test for method Step.get_npc"""
-        # TODO: make sure the npc really is randomized
-        casenum = mystep['casenum']
-        case = 'case{}'.format(casenum)
-        case1 = {'npc_id': [8, 2, 32, 1, 17],
-                'name': ['Διοδωρος', 'Μαρια', 'Στεφανος', 'Ἀλεξανδρος', 'Ἱασων'],
-                'locs': [3, 1, 2, 4, 6, 7, 8, 11]}
-        case2 = {'npc_id': [8, 2, 32, 1],
-                'name': ['Διοδωρος', 'Μαρια', 'Στεφανος', 'Ἀλεξανδρος'],
-                'locs': [3, 1, 2, 4, 6, 7, 8, 11]}
-        case3 = {'npc_id': [14],
-                'name': ['Γεωργιος'],
-                'locs': [3, 1, 2, 4, 7, 8, 9, 10]}
-        output = locals()[case]
-        assert mystep['step'].get_npc().get_id() in output['npc_id']
-        assert mystep['step'].get_npc().get_name() in output['name']
-        locs = mystep['step'].get_npc().get_locations()
-        for l in locs:
-            assert isinstance(l, Location)
-            assert (l.get_id() in output['locs']) == True
-
-    def test_step_get_instructions(self, mystep):
-        """Test for method Step._get_instructions"""
-        casenum = mystep['casenum']
-        case = 'case{}'.format(casenum)
-        case1 = ['Focus on finding Greek letters that make the *sounds* of the English word. Don\'t look for Greek "equivalents" for each English letter.']
-        case2 = None
-        case3 = None
-        output = locals()[case]
-        assert mystep['step']._get_instructions() == output
-
-class TestStepRedirect():
-    '''
-    A subclass of Step. Handles the user interaction when the user needs to be
-    sent to another location.
-    '''
-
-    def test_stepredirect_get_id(self, myStepRedirect):
-        """Test for method Step.get_id"""
-        assert myStepRedirect.get_id() == 30
-
-    def test_stepredirect_get_prompt(self, myStepRedirect):
-        """
-        Test method for the get_prompt method of the StepRedirect class.
-        This test assumes that the selected npc is Stephanos. It also assumes
-        that the step is 30.
-        """
-        username = 'Ian'
-        assert myStepRedirect.get_prompt(username)['prompt'] == "Hi there. Sorry, I don't have anything for you to do here at the moment. I think someone was looking for you at somewhere else in town."
-        assert myStepRedirect.get_prompt(username)['instructions'] == None
-        assert (myStepRedirect.get_prompt(username)['npc_image'] == '/paideia/static/images/images.image.a59978facee731f0.44726177696e672031382e737667.svg'
-                or myStepRedirect.get_prompt(username)['npc_image'] == '/paideia/static/images/images.image.961b44d8d322659c.323031322d30362d30372031345f34345f34302e706e67.png')
-
-    def test_stepredirect_make_replacements(self, myStepRedirect):
-        """docstring for test_stepredirect_make_replacements"""
-        string = 'Nothing to do here [[user]]. Try [[next_loc]].'
-        next_step = 1
-        kwargs = {'raw_prompt':string,
-                'username': 'Ian',
-                'db': db,
-                'next_step_id': next_step}
-        newstring = 'Nothing to do here Ian. Try somewhere else in town.'
-        assert myStepRedirect._make_replacements(**kwargs) == newstring
-
-    def test_stepredirect_get_tags(self, myStepRedirect):
-        """
-        Test for method StepRedirect.get_tags
-
-        The one tag that should be returned for all steps of this class is tag
-        70 ('default').
-        """
-        assert myStepRedirect.get_tags() == {'primary': [70], 'secondary': []}
-
-    def test_stepredirect_get_responder(self, myStepRedirect):
-        """Test for method Step.get_responder"""
-        map_button = A("Map", _href=URL('walk'),
-                        cid='page',
-                        _class='button-yellow-grad back_to_map icon-location')
-        assert myStepRedirect.get_responder().xml() == DIV(map_button).xml()
-
-    def test_stepredirect_get_npc(self, myStepRedirect):
-        """Test for method Step.get_npc"""
-        # TODO: allow for alternate possibility of Sophia
-        assert (myStepRedirect.get_npc().get_id() == 31
-                    or myStepRedirect.get_npc().get_id() == 32)
-        locs = myStepRedirect.get_npc().get_locations()
-        assert isinstance(locs[0], Location)
-        assert (locs[0].get_id() == 3) or (locs[0].get_id() == 11)
-
-class TestAwardBadges():
-    '''
-    A subclass of Step. Handles the user interaction when the user is awarded
-    new badges.
-    '''
-
-    def test_stepawardbadges_get_id(self, myStepAwardBadges):
-        """Test for method Step.get_id"""
-        assert myStepAwardBadges['step'].get_id() == 126
-
-    def test_stepawardbadges_get_prompt(self, myStepAwardBadges):
-        """
-        Test method for the get_prompt method of the StepRedirect class.
-        This test assumes that the selected npc is Stephanos. It also assumes
-        that the step is 126.
-        """
-        sd = step_data_store[126]['case1']
-        # TODO: remove npc numbers that can't be at this loc
-        npcimgs = [n['image'] for k, n in npc_data.iteritems()
-                        if k in sd['npc_list']]
-        out = {'raw_prompt': sd['raw_prompt'],
-                'username': sd['username'],
-                'new_badges': sd['new_badges'],
-                'db': db}
-        prompt = myStepAwardBadges['step'].get_prompt(**out)
-        assert prompt['prompt'] == sd['final_prompt']
-        assert prompt['instructions'] == sd['instructions']
-        assert prompt['npc_image'] in npcimgs
-
-    def test_stepawardbadges_make_replacements(self, myStepAwardBadges):
-        """docstring for test_step_stepawardbadges_make_replacements"""
-        case = myStepAwardBadges['casenum']
-        sd = step_data_store[126]['case{}'.format(case)]
-        out = {k: v for k, v in sd.iteritems()
-                if k in ['raw_prompt', 'username', 'new_badges', 'promoted']}
-        actual = myStepAwardBadges['step']._make_replacements(**out)
-        assert actual == sd['final_prompt']
-
-    def test_stepawardbadges_get_tags(self, myStepAwardBadges):
-        """
-        Test for method StepRedirect.get_tags
-
-        The one tag that should be returned for all steps of this class is 81
-        """
-        case = myStepAwardBadges['casenum']
-        sd = step_data_store[126]['case{}'.format(case)]
-        out = {'primary': sd['tags'], 'secondary': sd['tags_secondary']}
-        assert myStepAwardBadges['step'].get_tags() == out
-
-    def test_stepawardbadges_get_responder(self, myStepAwardBadges):
-        """Test for method StepAwardBadges.get_responder"""
-        request = current.request  # TODO: get loc below from self
-        map_button = A("Map", _href=URL('walk'),
-                        cid='page',
-                        _class='button-yellow-grad back_to_map icon-location')
-        continue_button = A("Continue", _href=URL('walk', args=['ask'],
-                                        vars={'loc':12}),
-                            cid='page',
-                            _class='button-green-grad next_q')
-        assert myStepAwardBadges['step'].get_responder().xml() == \
-                                        DIV(map_button, continue_button).xml()
-
-    def test_stepawardbadges_get_npc(self, myStepAwardBadges):
-        """Test for method StepAwardBadges.get_npc"""
-        assert myStepAwardBadges['step'].get_npc().get_id() in [14, 8, 2, 40, 31,
-                                                            32, 41, 1, 17, 42]
-        locs = myStepAwardBadges['step'].get_npc().get_locations()
-        assert isinstance(locs[0], Location)
-
-
-class TestStepViewSlides():
-    '''
-    A subclass of Step. Handles the user interaction when the user is awarded
-    new badges.
-    '''
-
-    def test_awardbadges_get_id(self, myStepViewSlides):
-        """Test for method Step.get_id"""
-        assert myStepViewSlides.get_id() == 127
-
-    def test_stepviewslides_get_prompt(self, myStepViewSlides):
-        """
-        Test method for the get_prompt method of the StepRedirect class.
-        This test assumes that the selected npc is Stephanos. It also assumes
-        that the step is 30.
-        """
-        sd = step_data_store[127]['case1']
-        # TODO: remove npc numbers that can't be at this
-        npcimgs = [n['image'] for k, n in npc_data.iteritems()
-                        if k in sd['npc_list']]
-        prompt = myStepViewSlides.get_prompt(username=sd['username'],
-                                           new_badges=sd['new_badges'])
-        print 'METHOD OUTPUT\n', sd['final_prompt']
-        print 'EXPECTED\n', prompt['prompt']
-        assert prompt['prompt'] == sd['final_prompt']
-        assert prompt['instructions'] == sd['instructions']
-        assert prompt['npc_image'] in npcimgs
-
-    def test_stepviewslides_make_replacements(self, myStepViewSlides):
-        """
-        docstring for test_step_stepviewslides_make_replacements
-
-        """
-        sd = step_data_store[127]['case1']
-        prompt = myStepViewSlides._make_replacements(raw_prompt=sd['raw_prompt'],
-                                                    username=sd['username'],
-                                                    new_badges=[5, 6])
-        print prompt, '\n'
-        print sd['final_prompt']
-        assert prompt == sd['final_prompt']
-
-    def test_stepviewslides_get_tags(self, myStepViewSlides):
-        """
-        Test for method StepViewSlides.get_tags
-
-        The one tag that should be returned for all steps of this class is tag
-        80.
-        """
-        assert myStepViewSlides.get_tags() == {'primary': [80], 'secondary': []}
-
-    def test_stepviewslides_get_responder(self, myStepViewSlides):
-        """Test for method StepViewSlides.get_responder"""
-        map_button = A("Map", _href=URL('walk'),
-                        cid='page',
-                        _class='button-yellow-grad back_to_map icon-location')
-        assert myStepViewSlides.get_responder().xml() == DIV(map_button).xml()
-
-    def test_stepviewslides_get_npc(self, myStepViewSlides):
-        """Test for method StepViewSlides.get_npc"""
-        assert myStepViewSlides.get_npc().get_id() in [14, 8, 2, 40, 31,
-                                                            32, 41, 1, 17, 42]
-        locs = myStepViewSlides.get_npc().get_locations()
-        assert isinstance(locs[0], Location)
-
-
-class TestStepText():
-    '''
-    Test class for paideia.StepText
-    '''
-    def test_steptext_get_responder(self, myStepText):
-        resp = '<form action="" autocomplete="off" enctype="multipart/form-data" method="post">'
-        resp += '<table>'
-        resp += '<tr id="no_table_response__row">'
-        resp += '<td class="w2p_fl">'
-        resp += '<label for="no_table_response" id="no_table_response__label">Response: </label>'
-        resp += '</td>'
-        resp += '<td class="w2p_fw">'
-        resp += '<input class="string" id="no_table_response" name="response" type="text" value="" />'
-        resp += '</td>'
-        resp += '<td class="w2p_fc"></td>'
-        resp += '</tr>'
-        resp += '<tr id="submit_record__row">'
-        resp += '<td class="w2p_fl"></td>'
-        resp += '<td class="w2p_fw"><input type="submit" value="Submit" /></td>'
-        resp += '<td class="w2p_fc"></td></tr></table></form>'
-        assert myStepText['step'].get_responder().xml() == resp
-
-    def test_steptext_get_readable(self, myStepText):
-        """Unit tests for StepText._get_readable() method"""
-        casenum = myStepText['casenum']
-        case = 'case{}'.format(casenum)
-        case1 = {'readable_long': None, 'readable_short': ['μιτ']}
-        case2 = {'readable_long': None, 'readable_short': ['βατ|βοτ']}
-        output = locals()[case]
-        assert myStepText['step']._get_readable() == output
-
-    def test_steptext_get_reply(self, myStepText):
-        """Unit tests for StepText._get_reply() method"""
-        casenum = myStepText['casenum']
-        case = 'case{}'.format(casenum)
-        case1 = {'response': 'μιτ',
-                'result': {'reply_text': 'Right. Κάλον.',
-                            'tips': [],
-                            'readable_short': ['μιτ'],
-                            'readable_long': None,
-                            'score': 1,
-                            'times_right': 1,
-                            'times_wrong': 0,
-                            'user_response': 'μιτ'}}
-
-        case2 = {'response': 'βλα',
-                'result': {'reply_text': 'bla',
-                            'tips': None,
-                            'readable_short': ['bla'],
-                            'readable_long': None,
-                            'score': 0,
-                            'times_right': 0,
-                            'times_wrong': 1,
-                            'user_response': 'βλα'}}
-        out = locals()[case]
-        func = myStepText['step'].get_reply(user_response=out['response'])
-        for k, f in func.iteritems():
-            assert  f == out['result'][k]
-
-class TestStepMultiple():
-    '''
-    Test class for paideia.StepMultiple
-    '''
-    def test_stepmultiple_get_responder(self, myStepMultiple):
-        """Unit testing for get_responder method of StepMultiple."""
-
-        # value of _formkey input near end is variable, so matched with .*
-        resp = '^<form action="" enctype="multipart/form-data" method="post">'
-        resp += '<table>'
-        resp += '<tr id="no_table_response__row">'
-        resp += '<td class="w2p_fl">'
-        resp += '<label for="no_table_response" id="no_table_response__label">Response: </label>'
-        resp += '</td>'
-        resp += '<td class="w2p_fw">'
-        resp += '<table class="generic-widget" id="no_table_response" name="response">'
-        resp += '<tr>'
-        resp += '<td>'
-        resp += '<input id="responseναι" name="response" type="radio" value="ναι" />'
-        resp += '<label for="responseναι">ναι</label>'
-        resp += '</td>'
-        resp += '</tr>'
-        resp += '<tr>'
-        resp += '<td>'
-        resp += '<input id="responseοὐ" name="response" type="radio" value="οὐ" />'
-        resp += '<label for="responseοὐ">οὐ</label>'
-        resp += '</td>'
-        resp += '</tr>'
-        resp += '</table>'
-        resp += '</td>'
-        resp += '<td class="w2p_fc"></td>'
-        resp += '</tr>'
-        resp += '<tr id="submit_record__row">'
-        resp += '<td class="w2p_fl"></td>'
-        resp += '<td class="w2p_fw">'
-        resp += '<input type="submit" value="Submit" /></td>'
-        resp += '<td class="w2p_fc"></td>'
-        resp += '</tr>'
-        resp += '</table>'
-        resp += '<div class="hidden">'
-        resp += '<input name="_formkey" type="hidden" value=".*" />'
-        resp += '<input name="_formname" type="hidden" value="no_table/create" />'
-        resp += '</div>'
-        resp += '</form>$'
-
-        testfunc = myStepMultiple['step'].get_responder().xml()
-        assert re.match(resp, testfunc)
-
-    def test_stepmultiple_get_reply(self, myStepMultiple):
-        """Unit testing for get_reply method of StepMultiple."""
-        casenum = myStepMultiple['casenum']
-        case = 'case{}'.format(casenum)
-        case1 = {'reply_text': 'Right. Κάλον.',
-                'tips': [],
-                'readable_short': ['ναι'],
-                'readable_long': None,
-                'score': 1,
-                'times_right': 1,
-                'times_wrong': 0,
-                'user_response': 'ναι'}
-        case2 = {'reply_text': 'Incorrect. Try again!',
-                'tips': [],
-                'readable_short': ['οὐ'],
-                'readable_long': None,
-                'score': 0,
-                'times_right': 0,
-                'times_wrong': 1,
-                'user_response': 'οὐ'}
-        out = locals()[case]
-        assert myStepMultiple['step'].get_reply(out['user_response']
-                                    )['reply_text'] == out['reply_text']
-        assert myStepMultiple['step'].get_reply(out['user_response']
-                                    )['tips'] == out['tips']
-        assert myStepMultiple['step'].get_reply(out['user_response']
-                                    )['readable_short'] == out['readable_short']
-        assert myStepMultiple['step'].get_reply(out['user_response']
-                                    )['readable_long'] == out['readable_long']
-        assert myStepMultiple['step'].get_reply(out['user_response']
-                                    )['score'] == out['score']
-        assert myStepMultiple['step'].get_reply(out['user_response']
-                                    )['times_right'] == out['times_right']
-        assert myStepMultiple['step'].get_reply(out['user_response']
-                                    )['times_wrong'] == out['times_wrong']
-        assert myStepMultiple['step'].get_reply(out['user_response']
-                                    )['user_response'] == out['user_response']
-
-
-class TestStepEvaluator():
-    """Class for evaluating the submitted response string for a Step"""
-
-    def test_stepevaluator_get_eval(self, myStepEvaluator):
-        """Unit tests for StepEvaluator.get_eval() method."""
-        casenum = myStepEvaluator['casenum']
-        case = 'case{}'.format(casenum)
-        case1 = {'reply_text': 'Right. Κάλον.',
-                'tips': None,
-                'readable_short': ['μιτ'],
-                'readable_long': None,
-                'score': 1,
-                'times_right': 1,
-                'times_wrong': 0,
-                'user_response': 'μιτ'}
-        case2 = {'reply_text': 'Right. Κάλον.',
-                'tips': None,
-                'readable_short': ['ναι'],
-                'readable_long': None,
-                'score': 1,
-                'times_right': 1,
-                'times_wrong': 0,
-                'user_response': 'βατ'}
-        out = locals()[case]
-
-        assert myStepEvaluator['eval'].get_eval(out['user_response']
-                                        )['score'] == out['score']
-        assert myStepEvaluator['eval'].get_eval(out['user_response']
-                                        )['times_wrong'] == out['times_wrong']
-        assert myStepEvaluator['eval'].get_eval(out['user_response']
-                                        )['reply'] == out['reply_text']
-        assert myStepEvaluator['eval'].get_eval(out['user_response']
-                                        )['user_response'] == out['user_response']
-        assert myStepEvaluator['eval'].get_eval(out['user_response']
-                                        )['tips'] == out['tips']
-
-
-class TestMultipleEvaluator():
-    """Class for evaluating the submitted response string for a StepMultiple"""
-
-    def test_multipleevaluator_get_eval(self, myMultipleEvaluator):
-        """Unit tests for StepEvaluator.get_eval() method."""
-        casenum = myMultipleEvaluator['casenum']
-        case = 'case{}'.format(casenum)
-        # step 101
-        case1 = {'reply_text': 'Right. Κάλον.',
-                'tips': None,
-                'readable_short': ['ναι'],
-                'readable_long': None,
-                'score': 1,
-                'times_right': 1,
-                'times_wrong': 0,
-                'user_response': 'ναι'}
-        # step 101
-        case2 = {'reply_text': 'Incorrect. Try again!',
-                'tips': None,
-                'readable_short': ['ναι'],
-                'readable_long': None,
-                'score': 1,
-                'times_right': 1,
-                'times_wrong': 0,
-                'user_response': 'οὐ'}
-        out = locals()[case]
-        assert myMultipleEvaluator['eval'].get_eval(out['user_response']
-                )['score'] == out['score']
-        assert myMultipleEvaluator['eval'].get_eval(out['user_response']
-                )['times_wrong'] == out['times_wrong']
-        assert myMultipleEvaluator['eval'].get_eval(out['user_response']
-                )['reply'] == out['reply_text']
-        assert myMultipleEvaluator['eval'].get_eval(out['user_response']
-                )['user_response'] == out['user_response']
-        assert myMultipleEvaluator['eval'].get_eval(out['user_response']
-                )['tips'] == out['tips']
-
-
-class TestPath():
-    """Unit testing class for the paideia.Path object"""
-
-    def test_path_get_step_for_prompt(self, mypath):
-        """docstring for test_get_next_step"""
-        output = 'output{}'.format(mypath['casenum'])
-        # for path 3, text, single step
-        output1 = StepFactory().get_instance(step_id=2, loc=Location(1, db),
-                                        prev_loc=1, prev_npc_id=2, db=db)
-        # for path 89, multiple, single step
-        output2 = StepFactory().get_instance(step_id=101, loc=Location(8, db),
-                                        prev_loc=None, prev_npc_id=1, db=db)
-        ready_path = mypath['path']
-        #ready_path._prepare_for_prompt()
-        pstep = ready_path.get_step_for_prompt()
-        ostep = locals()[output]
-        assert pstep.get_id() == ostep.get_id()
-        assert pstep.get_tags() == ostep.get_tags()
-        assert pstep.get_locations() == ostep.get_locations()
-        assert pstep.get_prompt(username='Joe') \
-                                        == ostep.get_prompt(username='Joe')
-
-    def test_path_prepare_for_answer(self, mypath):
-        """Unit test for method paideia.Path.get_step_for_reply."""
-        casenum = mypath['casenum']
-        case = 'case{}'.format(casenum)
-        # path 3, text
-        case1 = {'step_for_reply_end': 2,
-                'step_for_prompt_start': 2,
-                'step_for_prompt_end': None,
-                'step_sent_id': 2}
-        # path 89, multiple
-        case2 = {'step_for_reply_end': 101,
-                'step_for_prompt_start': 101,
-                'step_for_prompt_end': None,
-                'step_sent_id': 101}
-        output = locals()[case]
-        sent_id = output['step_sent_id']
-        test_func = mypath['path'].prepare_for_answer(
-                step_for_prompt=StepFactory().get_instance(
-                            db=db, step_id=output['step_for_prompt_start']),
-                step_for_reply=None,
-                step_sent_id=output['step_sent_id'])
-        assert test_func['step_sent_id'] == output['step_sent_id']
-        assert test_func['step_for_prompt'] == output['step_for_prompt_end']
-        assert test_func['step_for_reply'] == output['step_for_reply_end']
-
-    def test_path_remove_block(self, mypath):
-        """Unit test for method paideia.Path.remove_block."""
-        casenum = mypath['casenum']
-        if not casenum in [1, 2]:
-            case = 'case{}'.format(casenum)
-            case3 = {'block_done': Block(), 'blocks': []}
-            output = locals()[case]
-            assert mypath['path'].remove_block() == output
-
-    def test_path_get_step_for_reply(self, mypath):
-        """Unit test for method paideia.Path.get_step_for_reply."""
-        out = {1: StepFactory().get_instance(step_id=2, loc=Location(1, db),
-                                        prev_loc=1, prev_npc_id=2, db=db),
-              2: StepFactory().get_instance(step_id=101,
-                  loc=Location(8, db), prev_loc=None, prev_npc_id=1, db=db)
-              }
-        path = mypath['path']
-        pstep = path.get_step_for_prompt()
-        path.prepare_for_answer(step_for_prompt=pstep, step_sent_id=pstep.get_id())
-        rstep = path.get_step_for_reply()
-
-        assert path.step_for_prompt is None
-        assert path.step_for_reply.get_id() is out[mypath['casenum']].get_id()
-        assert rstep.get_id() == out[mypath['casenum']].get_id()
-
-
-class TestUser():
-    """unit testing class for the paideia.User class"""
-
-    def test_user_get_id(self, myuser):
-        assert myuser.get_id() == 1
-
-    def test_user_is_stale(self, myuser):
-        assert 0
-
-    def test_user_get_categories(self, myuser):
-        assert 0
-
-    def test_user_get_old_categories(self, myuser):
-        assert 0
-
-    def test_user_get_new_badges(self, myuser):
-        assert 0
-
-    def test_user_complete_path(self, myuser):
-        assert 0
-
-    def test_user_get_path(self, myuser):
-        assert 0
-
-
-class TestCategorizer():
-    """Unit testing class for the paideia.Categorizer class"""
-
-    def test_categorizer_categorize(self, mycategorizer):
-        """
-        Unit test for the paideia.Categorizer.categorize method.
-
-        Case numbers correspond to the cases (user performance scenarios) set
-        out in the myrecords fixture.
-        case 1: removes tag 1 (too early) and introduces untried tag 61
-        """
-        case = 'case{}'.format(mycategorizer['casenum'])
-        output = {
-            'case1': {'tag_progress': {'latest_new': 1,
-                                'cat1': [61], 'cat2': [],
-                                'cat3': [], 'cat4': [],
-                                'rev1': [], 'rev2': [],
-                                'rev3': [], 'rev4': []},
-                        'new_tags': {'cat1': [61]},
-                        'promoted': {'cat1': []},
-                        'demoted': {},
-                        'categories': {'cat1': [61], 'cat2': [],
-                                'cat3': [], 'cat4': [],
-                                'rev1': [], 'rev2': [],
-                                'rev3': [], 'rev4': []},
-                        },
-
-            'case2': {'tag_progress': {'latest_new': 1,
-                                'cat1': [61], 'cat2': [],
-                                'cat3': [], 'cat4': [],
-                                'rev1': [], 'rev2': [],
-                                'rev3': [], 'rev4': []},
-                        'new_tags': {'cat1': [61]},
-                        'promoted': {'cat1': []},
-                        'demoted': {},
-                        'categories': {'cat1': [61], 'cat2': [],
-                                'cat3': [], 'cat4': [],
-                                'rev1': [], 'rev2': [],
-                                'rev3': [], 'rev4': []},
-                        },
-            }
-        cats = mycategorizer['categorizer'].categorize_tags()
-        #print 'FROM METHOD\n', cats
-        #print 'EXPECTED\n', output[case]
-        assert cats == output[case]
-
-    def test_categorizer_core_algorithm(self, mycategorizer):
-        """
-        Unit test for the paideia.Categorizer._core_algorithm method
-
-        Case numbers correspond to the cases (user performance scenarios) set
-        out in the myrecords fixture.
-        """
-        case = 'case{}'.format(mycategorizer['casenum'])
-        output = {'case1': {'cat1': [1], 'cat2': [], 'cat3': [], 'cat4': []},
-                'case2': {'cat1': [1], 'cat2': [], 'cat3': [], 'cat4': []}}
-
-        assert mycategorizer['categorizer']._core_algorithm() == output[case]
-
-    def test_categorizer_introduce_tags(self):
-        """Unit test for the paideia.Categorizer._introduce_tags method"""
-        assert 0
-
-    def test_categorizer_add_untried_tags(self, mycategorizer):
-        """Unit test for the paideia.Categorizer._add_untried_tags method"""
-        input_cats = {'cat1': [1], 'cat2': [],
-                        'cat3': [], 'cat4': []}
-        output_cats = {'cat1': [1, 61], 'cat2': [],
-                        'cat3': [], 'cat4': []}
-        assert mycategorizer['categorizer']._add_untried_tags(input_cats) == \
-                                                                output_cats
-
-    def test_categorizer_find_cat_changes(self):
-        """docstring for test_"""
-        assert 0
-
-class TestWalk():
-    """
-    A unit testing class for the paideia.Walk class.
-    """
-
-    def test_walk_get_user(self, mywalk, myrecords, mysession):
-        """docstring for _get_user"""
-        localias = mywalk.localias
-        userdata = {'first_name': 'Joe', 'id': 1}
-        tag_records = myrecords['tag_records']
-        tag_progress = myrecords['tag_progress']
-        assert mywalk._get_user(userdata=userdata, localias=localias,
-                        tag_records=tag_records, tag_progress=tag_progress)
-
-    def test_walk_map(self, mywalk):
-        mapdata = {'map_image': '/paideia/static/images/town_map.svg',
-                    'locations': [
-                        {'alias': 'None',
-                        'bg_image': 8,
-                        'id': 3},
-                       {'alias': 'domus_A',
-                        'bg_image': 8,
-                        'id': 1},
-                       {'alias': '',
-                        'bg_image': 8,
-                        'id': 2},
-                       {'alias': None,
-                        'bg_image': None,
-                        'id': 4},
-                       {'alias': None,
-                        'bg_image': None,
-                        'id': 12},
-                       {'alias': 'bath',
-                        'bg_image': 17,
-                        'id': 13},
-                       {'alias': 'gymnasion',
-                        'bg_image': 15,
-                        'id': 14},
-                       {'alias': 'shop_of_alexander',
-                        'bg_image': 16,
-                        'id': 6},
-                       {'alias': 'ne_stoa',
-                        'bg_image': 18,
-                        'id': 7},
-                       {'alias': 'agora',
-                        'bg_image': 16,
-                        'id': 8},
-                       {'alias': 'synagogue',
-                        'bg_image': 15,
-                        'id': 11},
-                       {'alias': None,
-                        'bg_image': None,
-                        'id': 5},
-                       {'alias': None,
-                        'bg_image': None,
-                        'id': 9},
-                       {'alias': None,
-                        'bg_image': None,
-                        'id': 10}
-                       ]}
-        map = mywalk.map()
-        pprint(map)
-        for m in mapdata['locations']:
-            i = mapdata['locations'].index(m)
-            assert map['locations'][i]['alias'] == m['alias']
-            assert map['locations'][i]['bg_image'] == m['bg_image']
-            assert map['locations'][i]['id'] == m['id']
-        assert map['map_image'] == mapdata['map_image']
-
-    def test_walk_ask(self, mywalk):
-        prompt = 'How would you write the English word "head" using'\
-                ' Greek letters?'
-        instructions = None
-        image = '/paideia/static/images/images.image.bb48641f0122d2b6.696d616765732e696d6167652e383136303330663934646664646561312e34343732363137373639366536373230333432653733373636372e737667.svg'
-        responder = '<form action="" autocomplete="off" enctype="multipart/form-data" method="post"><table><tr id="no_table_response__row"><td class="w2p_fl"><label for="no_table_response" id="no_table_response__label">Response: </label></td><td class="w2p_fw"><input class="string" id="no_table_response" name="response" type="text" value="" /></td><td class="w2p_fc"></td></tr><tr id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw"><input type="submit" value="Submit" /></td><td class="w2p_fc"></td></tr></table></form>'
-        ask = mywalk.ask()
-        assert ask['prompt']['prompt'] == prompt
-        assert ask['prompt']['instructions'] == instructions
-        assert ask['prompt']['npc_image'] == image
-        assert ask['responder'].xml() == responder
-
-    def test_walk_reply(self, mywalk):
-        response_string = ''
-        reply = ''
-        bug_reporter = ''
-        # TODO: put in safety in case of empty form
-        returning = mywalk.reply(response_string)
-        out_reply = returning['reply']
-        out_bug_reporter = returning['bug_reporter']
-
-        assert out_reply == reply
-        assert out_bug_reporter == bug_reporter
-
-    def test_walk_record_cats(self, mywalk):
-        """
-        Unit tests for Walk._record_cats()
-        """
-        tag_progress = {'tag': 61,
-                        'latest_new': 2,
-                        'cat1': [1, 2, 3],
-                        'cat2': [4],
-                        'cat3': [5, 6],
-                        'cat4': [7],
-                        'rev1': [1, 2, 3],
-                        'rev2': [4],
-                        'rev3': [5, 6],
-                        'rev4': [7],
-                        'secondary_right': []}
-
-        categories =   {'cat1': [1, 2, 3],
-                        'cat2': [4],
-                        'cat3': [5, 6],
-                        'cat4': [7],
-                        'rev1': [1, 2, 3],
-                        'rev2': [4],
-                        'rev3': [5, 6],
-                        'rev4': [7]}
-        new_tags = [1, 2, 3]
-        promoted = {'cat1': [1, 2, 3],
-                    'cat2': [4],
-                    'cat3': [5, 6],
-                    'cat4': [7],
-                    'rev1': [1, 2, 3],
-                    'rev2': [4],
-                    'rev3': [5, 6],
-                    'rev4': [7]}
-        demoted = {'rev1': [1, 2, 3],
-                    'rev2': [4],
-                    'rev3': [5, 6],
-                    'rev4': [7]}
-        assert 0
-
-    def test_walk_record_step(self, mywalk):
-        id = mywalk._get_user().get_id()
-        loglength = len(db(db.attempt_log.name == id).select())
-        tag_records = ''
-
-        rec = mywalk._record_step(tag_records, categories, new_tags)
-        assert len(db(db.attempt_log.name == id).select()) == loglenth + 1
-        assert 0
-
-    def test_walk_store_user(self, mywalk):
-        """Unit test for Walk._store_user"""
-        session = current.session
-        assert mywalk._store_user() == True
-        assert isinstance(session.user, User)
-        assert session.user.get_id() == 1
-        assert 0
-
-class TestPathChooser():
-
-    def test_pathchooser_choose(self, mypathchooser):
-        newpath = mypathchooser['pathchooser'].choose()
-        assert newpath[0].id in [r for c in mypathchooser['paths'].values() for r in c if len(c) > 0]
-        assert newpath[2] in range(1,5)
-
-    def test_pathchooser_order_cats(self, mypathchooser):
-        pc = mypathchooser['pathchooser']._order_cats()
-        ind = pc.index(1)
-        if len(pc) >= (ind + 2):
-            assert pc[ind + 1] == 2
-        if len(pc) >= (ind + 3):
-            assert pc[ind + 2] == 3
-        if len(pc) >= (ind + 4):
-            assert pc[ind + 3] == 4
-        if ind != 0:
-            assert pc[ind - 1] == 4
-        assert len(pc) == 4
-        assert pc[0] in [1,2,3,4]
-        assert pc[1] in [1,2,3,4]
-        assert pc[2] in [1,2,3,4]
-        assert pc[3] in [1,2,3,4]
-
-    def test_pathchooser_paths_by_category(self, mypathchooser):
-        cpaths, category = mypathchooser['pathchooser']._paths_by_category('1')
-        allpaths = mypathchooser['paths']
-        pathids = allpaths['cat{}'.format(category)]
-        expected = db(db.paths).select()
-        expected = expected.find(lambda row: row.id in pathids)
-        assert len(cpaths) == len(expected)
-        for row in cpaths:
-            assert row.id in [r.id for r in expected]
-
-    def test_pathchooser_choose_from_cat(self, mypathchooser):
-        allpaths = mypathchooser['paths']
-        pathids = allpaths['cat{}'.format(1)]
-        expected = db(db.paths).select()
-        expected = expected.find(lambda row: row.id in pathids)
-        print expected
-
-        newpath = mypathchooser['pathchooser']._choose_from_cat(expected, 1)
-        assert newpath[0].id in mypathchooser['paths']['cat1']
-        assert newpath[1] in [l for l in db.steps(newpath[0].steps[0]).locations]
-        assert newpath[2] == 1
-
-
+        username = mystep['casedata']['name']
+        oprompt = mystep['stepdata']['prompt_final']
+        oinstr = mystep['stepdata']['instructions']
+        stepnpcs = mystep['stepdata']['npc_list']
+        locnpcs = mystep['casedata']['npcs_here']
+        onpc_image = ['npc{}_image'.format(n) for n in stepnpcs
+                      if n in locnpcs]
+        assert mystep['step'].get_prompt(username)['prompt'] == oprompt
+        assert mystep['step'].get_prompt(username)['instructions'] == oinstr
+        assert mystep['step'].get_prompt(username)['npc_image'] == onpc_image
+
+    #def test_step_make_replacements(self, mystep):
+        #"""Unit test for method Step._make_replacements()"""
+        #casenum = mystep['casenum']
+        #case = 'case{}'.format(casenum)
+        #case1 = {'raw_string': 'Hi [[user]]!', 'username': 'Ian', 'result': 'Hi Ian!'}
+        #case2 = {'raw_string': 'Hi there [[user]].', 'username': 'Ian', 'result': 'Hi there Ian.'}
+        #output = locals()[case]
+        #assert mystep['step']._make_replacements(raw_prompt=output['raw_string'],
+                                                #username=output['username']
+                                                #) == output['result']
+
+    #def test_step_get_responder(self, mystep):
+        #"""Test for method Step.get_responder"""
+        #the_type = mystep['step'].__class__.__name__
+        ## Step, StepRedirect, StepViewSlides steps
+        #map_button = A("Map", _href=URL('walk'),
+                        #cid='page',
+                        #_class='button-yellow-grad back_to_map icon-location')
+        #Step_output = StepRedirect_output = StepViewSlides_output = DIV(map_button).xml()
+        ## StepText steps
+        #resp = '<form action="" autocomplete="off" enctype="multipart/form-data" method="post">'
+        #resp += '<table>'
+        #resp += '<tr id="no_table_response__row">'
+        #resp += '<td class="w2p_fl">'
+        #resp += '<label for="no_table_response" id="no_table_response__label">Response: </label>'
+        #resp += '</td>'
+        #resp += '<td class="w2p_fw">'
+        #resp += '<input class="string" id="no_table_response" name="response" type="text" value="" />'
+        #resp += '</td>'
+        #resp += '<td class="w2p_fc"></td>'
+        #resp += '</tr>'
+        #resp += '<tr id="submit_record__row">'
+        #resp += '<td class="w2p_fl"></td>'
+        #resp += '<td class="w2p_fw"><input type="submit" value="Submit" /></td>'
+        #resp += '<td class="w2p_fc"></td></tr></table></form>'
+        #StepText_output = resp
+        ## StepMultiple steps #TODO: insert stepMultiple responder html here
+        #StepMultiple_output = None
+        #output = locals()['{}_output'.format(the_type)]
+
+        #assert mystep['step'].get_responder().xml() == output
+
+    #def test_step_get_npc(self, mystep):
+        #"""Test for method Step.get_npc"""
+        ## TODO: make sure the npc really is randomized
+        #casenum = mystep['casenum']
+        #case = 'case{}'.format(casenum)
+        #case1 = {'npc_id': [8, 2, 32, 1, 17],
+                #'name': ['Διοδωρος', 'Μαρια', 'Στεφανος', 'Ἀλεξανδρος', 'Ἱασων'],
+                #'locs': [3, 1, 2, 4, 6, 7, 8, 11]}
+        #case2 = {'npc_id': [8, 2, 32, 1],
+                #'name': ['Διοδωρος', 'Μαρια', 'Στεφανος', 'Ἀλεξανδρος'],
+                #'locs': [3, 1, 2, 4, 6, 7, 8, 11]}
+        #case3 = {'npc_id': [14],
+                #'name': ['Γεωργιος'],
+                #'locs': [3, 1, 2, 4, 7, 8, 9, 10]}
+        #output = locals()[case]
+        #assert mystep['step'].get_npc().get_id() in output['npc_id']
+        #assert mystep['step'].get_npc().get_name() in output['name']
+        #locs = mystep['step'].get_npc().get_locations()
+        #for l in locs:
+            #assert isinstance(l, Location)
+            #assert (l.get_id() in output['locs']) == True
+
+    #def test_step_get_instructions(self, mystep):
+        #"""Test for method Step._get_instructions"""
+        #casenum = mystep['casenum']
+        #case = 'case{}'.format(casenum)
+        #case1 = ['Focus on finding Greek letters that make the *sounds* of the English word. Don\'t look for Greek "equivalents" for each English letter.']
+        #case2 = None
+        #case3 = None
+        #output = locals()[case]
+        #assert mystep['step']._get_instructions() == output
+
+#class TestStepRedirect():
+    #'''
+    #A subclass of Step. Handles the user interaction when the user needs to be
+    #sent to another location.
+    #'''
+
+    #def test_stepredirect_get_id(self, myStepRedirect):
+        #"""Test for method Step.get_id"""
+        #assert myStepRedirect.get_id() == 30
+
+    #def test_stepredirect_get_prompt(self, myStepRedirect):
+        #"""
+        #Test method for the get_prompt method of the StepRedirect class.
+        #This test assumes that the selected npc is Stephanos. It also assumes
+        #that the step is 30.
+        #"""
+        #username = 'Ian'
+        #assert myStepRedirect.get_prompt(username)['prompt'] == "Hi there. Sorry, I don't have anything for you to do here at the moment. I think someone was looking for you at somewhere else in town."
+        #assert myStepRedirect.get_prompt(username)['instructions'] == None
+        #assert (myStepRedirect.get_prompt(username)['npc_image'] == '/paideia/static/images/images.image.a59978facee731f0.44726177696e672031382e737667.svg'
+                #or myStepRedirect.get_prompt(username)['npc_image'] == '/paideia/static/images/images.image.961b44d8d322659c.323031322d30362d30372031345f34345f34302e706e67.png')
+
+    #def test_stepredirect_make_replacements(self, myStepRedirect):
+        #"""docstring for test_stepredirect_make_replacements"""
+        #string = 'Nothing to do here [[user]]. Try [[next_loc]].'
+        #next_step = 1
+        #kwargs = {'raw_prompt':string,
+                #'username': 'Ian',
+                #'db': db,
+                #'next_step_id': next_step}
+        #newstring = 'Nothing to do here Ian. Try somewhere else in town.'
+        #assert myStepRedirect._make_replacements(**kwargs) == newstring
+
+    #def test_stepredirect_get_tags(self, myStepRedirect):
+        #"""
+        #Test for method StepRedirect.get_tags
+
+        #The one tag that should be returned for all steps of this class is tag
+        #70 ('default').
+        #"""
+        #assert myStepRedirect.get_tags() == {'primary': [70], 'secondary': []}
+
+    #def test_stepredirect_get_responder(self, myStepRedirect):
+        #"""Test for method Step.get_responder"""
+        #map_button = A("Map", _href=URL('walk'),
+                        #cid='page',
+                        #_class='button-yellow-grad back_to_map icon-location')
+        #assert myStepRedirect.get_responder().xml() == DIV(map_button).xml()
+
+    #def test_stepredirect_get_npc(self, myStepRedirect):
+        #"""Test for method Step.get_npc"""
+        ## TODO: allow for alternate possibility of Sophia
+        #assert (myStepRedirect.get_npc().get_id() == 31
+                    #or myStepRedirect.get_npc().get_id() == 32)
+        #locs = myStepRedirect.get_npc().get_locations()
+        #assert isinstance(locs[0], Location)
+        #assert (locs[0].get_id() == 3) or (locs[0].get_id() == 11)
+
+#class TestAwardBadges():
+    #'''
+    #A subclass of Step. Handles the user interaction when the user is awarded
+    #new badges.
+    #'''
+
+    #def test_stepawardbadges_get_id(self, myStepAwardBadges):
+        #"""Test for method Step.get_id"""
+        #assert myStepAwardBadges['step'].get_id() == 126
+
+    #def test_stepawardbadges_get_prompt(self, myStepAwardBadges):
+        #"""
+        #Test method for the get_prompt method of the StepRedirect class.
+        #This test assumes that the selected npc is Stephanos. It also assumes
+        #that the step is 126.
+        #"""
+        #sd = step_data_store[126]['case1']
+        ## TODO: remove npc numbers that can't be at this loc
+        #npcimgs = [n['image'] for k, n in npc_data.iteritems()
+                        #if k in sd['npc_list']]
+        #out = {'raw_prompt': sd['raw_prompt'],
+                #'username': sd['username'],
+                #'new_badges': sd['new_badges'],
+                #'db': db}
+        #prompt = myStepAwardBadges['step'].get_prompt(**out)
+        #assert prompt['prompt'] == sd['final_prompt']
+        #assert prompt['instructions'] == sd['instructions']
+        #assert prompt['npc_image'] in npcimgs
+
+    #def test_stepawardbadges_make_replacements(self, myStepAwardBadges):
+        #"""docstring for test_step_stepawardbadges_make_replacements"""
+        #case = myStepAwardBadges['casenum']
+        #sd = step_data_store[126]['case{}'.format(case)]
+        #out = {k: v for k, v in sd.iteritems()
+                #if k in ['raw_prompt', 'username', 'new_badges', 'promoted']}
+        #actual = myStepAwardBadges['step']._make_replacements(**out)
+        #assert actual == sd['final_prompt']
+
+    #def test_stepawardbadges_get_tags(self, myStepAwardBadges):
+        #"""
+        #Test for method StepRedirect.get_tags
+
+        #The one tag that should be returned for all steps of this class is 81
+        #"""
+        #case = myStepAwardBadges['casenum']
+        #sd = step_data_store[126]['case{}'.format(case)]
+        #out = {'primary': sd['tags'], 'secondary': sd['tags_secondary']}
+        #assert myStepAwardBadges['step'].get_tags() == out
+
+    #def test_stepawardbadges_get_responder(self, myStepAwardBadges):
+        #"""Test for method StepAwardBadges.get_responder"""
+        #request = current.request  # TODO: get loc below from self
+        #map_button = A("Map", _href=URL('walk'),
+                        #cid='page',
+                        #_class='button-yellow-grad back_to_map icon-location')
+        #continue_button = A("Continue", _href=URL('walk', args=['ask'],
+                                        #vars={'loc':12}),
+                            #cid='page',
+                            #_class='button-green-grad next_q')
+        #assert myStepAwardBadges['step'].get_responder().xml() == \
+                                        #DIV(map_button, continue_button).xml()
+
+    #def test_stepawardbadges_get_npc(self, myStepAwardBadges):
+        #"""Test for method StepAwardBadges.get_npc"""
+        #assert myStepAwardBadges['step'].get_npc().get_id() in [14, 8, 2, 40, 31,
+                                                            #32, 41, 1, 17, 42]
+        #locs = myStepAwardBadges['step'].get_npc().get_locations()
+        #assert isinstance(locs[0], Location)
+
+
+#class TestStepViewSlides():
+    #'''
+    #A subclass of Step. Handles the user interaction when the user is awarded
+    #new badges.
+    #'''
+
+    #def test_awardbadges_get_id(self, myStepViewSlides):
+        #"""Test for method Step.get_id"""
+        #assert myStepViewSlides.get_id() == 127
+
+    #def test_stepviewslides_get_prompt(self, myStepViewSlides):
+        #"""
+        #Test method for the get_prompt method of the StepRedirect class.
+        #This test assumes that the selected npc is Stephanos. It also assumes
+        #that the step is 30.
+        #"""
+        #sd = step_data_store[127]['case1']
+        ## TODO: remove npc numbers that can't be at this
+        #npcimgs = [n['image'] for k, n in npc_data.iteritems()
+                        #if k in sd['npc_list']]
+        #prompt = myStepViewSlides.get_prompt(username=sd['username'],
+                                           #new_badges=sd['new_badges'])
+        #print 'METHOD OUTPUT\n', sd['final_prompt']
+        #print 'EXPECTED\n', prompt['prompt']
+        #assert prompt['prompt'] == sd['final_prompt']
+        #assert prompt['instructions'] == sd['instructions']
+        #assert prompt['npc_image'] in npcimgs
+
+    #def test_stepviewslides_make_replacements(self, myStepViewSlides):
+        #"""
+        #docstring for test_step_stepviewslides_make_replacements
+
+        #"""
+        #sd = step_data_store[127]['case1']
+        #prompt = myStepViewSlides._make_replacements(raw_prompt=sd['raw_prompt'],
+                                                    #username=sd['username'],
+                                                    #new_badges=[5, 6])
+        #print prompt, '\n'
+        #print sd['final_prompt']
+        #assert prompt == sd['final_prompt']
+
+    #def test_stepviewslides_get_tags(self, myStepViewSlides):
+        #"""
+        #Test for method StepViewSlides.get_tags
+
+        #The one tag that should be returned for all steps of this class is tag
+        #80.
+        #"""
+        #assert myStepViewSlides.get_tags() == {'primary': [80], 'secondary': []}
+
+    #def test_stepviewslides_get_responder(self, myStepViewSlides):
+        #"""Test for method StepViewSlides.get_responder"""
+        #map_button = A("Map", _href=URL('walk'),
+                        #cid='page',
+                        #_class='button-yellow-grad back_to_map icon-location')
+        #assert myStepViewSlides.get_responder().xml() == DIV(map_button).xml()
+
+    #def test_stepviewslides_get_npc(self, myStepViewSlides):
+        #"""Test for method StepViewSlides.get_npc"""
+        #assert myStepViewSlides.get_npc().get_id() in [14, 8, 2, 40, 31,
+                                                            #32, 41, 1, 17, 42]
+        #locs = myStepViewSlides.get_npc().get_locations()
+        #assert isinstance(locs[0], Location)
+
+
+#class TestStepText():
+    #'''
+    #Test class for paideia.StepText
+    #'''
+    #def test_steptext_get_responder(self, myStepText):
+        #resp = '<form action="" autocomplete="off" enctype="multipart/form-data" method="post">'
+        #resp += '<table>'
+        #resp += '<tr id="no_table_response__row">'
+        #resp += '<td class="w2p_fl">'
+        #resp += '<label for="no_table_response" id="no_table_response__label">Response: </label>'
+        #resp += '</td>'
+        #resp += '<td class="w2p_fw">'
+        #resp += '<input class="string" id="no_table_response" name="response" type="text" value="" />'
+        #resp += '</td>'
+        #resp += '<td class="w2p_fc"></td>'
+        #resp += '</tr>'
+        #resp += '<tr id="submit_record__row">'
+        #resp += '<td class="w2p_fl"></td>'
+        #resp += '<td class="w2p_fw"><input type="submit" value="Submit" /></td>'
+        #resp += '<td class="w2p_fc"></td></tr></table></form>'
+        #assert myStepText['step'].get_responder().xml() == resp
+
+    #def test_steptext_get_readable(self, myStepText):
+        #"""Unit tests for StepText._get_readable() method"""
+        #casenum = myStepText['casenum']
+        #case = 'case{}'.format(casenum)
+        #case1 = {'readable_long': None, 'readable_short': ['μιτ']}
+        #case2 = {'readable_long': None, 'readable_short': ['βατ|βοτ']}
+        #output = locals()[case]
+        #assert myStepText['step']._get_readable() == output
+
+    #def test_steptext_get_reply(self, myStepText):
+        #"""Unit tests for StepText._get_reply() method"""
+        #casenum = myStepText['casenum']
+        #case = 'case{}'.format(casenum)
+        #case1 = {'response': 'μιτ',
+                #'result': {'reply_text': 'Right. Κάλον.',
+                            #'tips': [],
+                            #'readable_short': ['μιτ'],
+                            #'readable_long': None,
+                            #'score': 1,
+                            #'times_right': 1,
+                            #'times_wrong': 0,
+                            #'user_response': 'μιτ'}}
+
+        #case2 = {'response': 'βλα',
+                #'result': {'reply_text': 'bla',
+                            #'tips': None,
+                            #'readable_short': ['bla'],
+                            #'readable_long': None,
+                            #'score': 0,
+                            #'times_right': 0,
+                            #'times_wrong': 1,
+                            #'user_response': 'βλα'}}
+        #out = locals()[case]
+        #func = myStepText['step'].get_reply(user_response=out['response'])
+        #for k, f in func.iteritems():
+            #assert  f == out['result'][k]
+
+#class TestStepMultiple():
+    #'''
+    #Test class for paideia.StepMultiple
+    #'''
+    #def test_stepmultiple_get_responder(self, myStepMultiple):
+        #"""Unit testing for get_responder method of StepMultiple."""
+
+        ## value of _formkey input near end is variable, so matched with .*
+        #resp = '^<form action="" enctype="multipart/form-data" method="post">'
+        #resp += '<table>'
+        #resp += '<tr id="no_table_response__row">'
+        #resp += '<td class="w2p_fl">'
+        #resp += '<label for="no_table_response" id="no_table_response__label">Response: </label>'
+        #resp += '</td>'
+        #resp += '<td class="w2p_fw">'
+        #resp += '<table class="generic-widget" id="no_table_response" name="response">'
+        #resp += '<tr>'
+        #resp += '<td>'
+        #resp += '<input id="responseναι" name="response" type="radio" value="ναι" />'
+        #resp += '<label for="responseναι">ναι</label>'
+        #resp += '</td>'
+        #resp += '</tr>'
+        #resp += '<tr>'
+        #resp += '<td>'
+        #resp += '<input id="responseοὐ" name="response" type="radio" value="οὐ" />'
+        #resp += '<label for="responseοὐ">οὐ</label>'
+        #resp += '</td>'
+        #resp += '</tr>'
+        #resp += '</table>'
+        #resp += '</td>'
+        #resp += '<td class="w2p_fc"></td>'
+        #resp += '</tr>'
+        #resp += '<tr id="submit_record__row">'
+        #resp += '<td class="w2p_fl"></td>'
+        #resp += '<td class="w2p_fw">'
+        #resp += '<input type="submit" value="Submit" /></td>'
+        #resp += '<td class="w2p_fc"></td>'
+        #resp += '</tr>'
+        #resp += '</table>'
+        #resp += '<div class="hidden">'
+        #resp += '<input name="_formkey" type="hidden" value=".*" />'
+        #resp += '<input name="_formname" type="hidden" value="no_table/create" />'
+        #resp += '</div>'
+        #resp += '</form>$'
+
+        #testfunc = myStepMultiple['step'].get_responder().xml()
+        #assert re.match(resp, testfunc)
+
+    #def test_stepmultiple_get_reply(self, myStepMultiple):
+        #"""Unit testing for get_reply method of StepMultiple."""
+        #casenum = myStepMultiple['casenum']
+        #case = 'case{}'.format(casenum)
+        #case1 = {'reply_text': 'Right. Κάλον.',
+                #'tips': [],
+                #'readable_short': ['ναι'],
+                #'readable_long': None,
+                #'score': 1,
+                #'times_right': 1,
+                #'times_wrong': 0,
+                #'user_response': 'ναι'}
+        #case2 = {'reply_text': 'Incorrect. Try again!',
+                #'tips': [],
+                #'readable_short': ['οὐ'],
+                #'readable_long': None,
+                #'score': 0,
+                #'times_right': 0,
+                #'times_wrong': 1,
+                #'user_response': 'οὐ'}
+        #out = locals()[case]
+        #assert myStepMultiple['step'].get_reply(out['user_response']
+                                    #)['reply_text'] == out['reply_text']
+        #assert myStepMultiple['step'].get_reply(out['user_response']
+                                    #)['tips'] == out['tips']
+        #assert myStepMultiple['step'].get_reply(out['user_response']
+                                    #)['readable_short'] == out['readable_short']
+        #assert myStepMultiple['step'].get_reply(out['user_response']
+                                    #)['readable_long'] == out['readable_long']
+        #assert myStepMultiple['step'].get_reply(out['user_response']
+                                    #)['score'] == out['score']
+        #assert myStepMultiple['step'].get_reply(out['user_response']
+                                    #)['times_right'] == out['times_right']
+        #assert myStepMultiple['step'].get_reply(out['user_response']
+                                    #)['times_wrong'] == out['times_wrong']
+        #assert myStepMultiple['step'].get_reply(out['user_response']
+                                    #)['user_response'] == out['user_response']
+
+
+#class TestStepEvaluator():
+    #"""Class for evaluating the submitted response string for a Step"""
+
+    #def test_stepevaluator_get_eval(self, myStepEvaluator):
+        #"""Unit tests for StepEvaluator.get_eval() method."""
+        #casenum = myStepEvaluator['casenum']
+        #case = 'case{}'.format(casenum)
+        #case1 = {'reply_text': 'Right. Κάλον.',
+                #'tips': None,
+                #'readable_short': ['μιτ'],
+                #'readable_long': None,
+                #'score': 1,
+                #'times_right': 1,
+                #'times_wrong': 0,
+                #'user_response': 'μιτ'}
+        #case2 = {'reply_text': 'Right. Κάλον.',
+                #'tips': None,
+                #'readable_short': ['ναι'],
+                #'readable_long': None,
+                #'score': 1,
+                #'times_right': 1,
+                #'times_wrong': 0,
+                #'user_response': 'βατ'}
+        #out = locals()[case]
+
+        #assert myStepEvaluator['eval'].get_eval(out['user_response']
+                                        #)['score'] == out['score']
+        #assert myStepEvaluator['eval'].get_eval(out['user_response']
+                                        #)['times_wrong'] == out['times_wrong']
+        #assert myStepEvaluator['eval'].get_eval(out['user_response']
+                                        #)['reply'] == out['reply_text']
+        #assert myStepEvaluator['eval'].get_eval(out['user_response']
+                                        #)['user_response'] == out['user_response']
+        #assert myStepEvaluator['eval'].get_eval(out['user_response']
+                                        #)['tips'] == out['tips']
+
+
+#class TestMultipleEvaluator():
+    #"""Class for evaluating the submitted response string for a StepMultiple"""
+
+    #def test_multipleevaluator_get_eval(self, myMultipleEvaluator):
+        #"""Unit tests for StepEvaluator.get_eval() method."""
+        #casenum = myMultipleEvaluator['casenum']
+        #case = 'case{}'.format(casenum)
+        ## step 101
+        #case1 = {'reply_text': 'Right. Κάλον.',
+                #'tips': None,
+                #'readable_short': ['ναι'],
+                #'readable_long': None,
+                #'score': 1,
+                #'times_right': 1,
+                #'times_wrong': 0,
+                #'user_response': 'ναι'}
+        ## step 101
+        #case2 = {'reply_text': 'Incorrect. Try again!',
+                #'tips': None,
+                #'readable_short': ['ναι'],
+                #'readable_long': None,
+                #'score': 1,
+                #'times_right': 1,
+                #'times_wrong': 0,
+                #'user_response': 'οὐ'}
+        #out = locals()[case]
+        #assert myMultipleEvaluator['eval'].get_eval(out['user_response']
+                #)['score'] == out['score']
+        #assert myMultipleEvaluator['eval'].get_eval(out['user_response']
+                #)['times_wrong'] == out['times_wrong']
+        #assert myMultipleEvaluator['eval'].get_eval(out['user_response']
+                #)['reply'] == out['reply_text']
+        #assert myMultipleEvaluator['eval'].get_eval(out['user_response']
+                #)['user_response'] == out['user_response']
+        #assert myMultipleEvaluator['eval'].get_eval(out['user_response']
+                #)['tips'] == out['tips']
+
+
+#class TestPath():
+    #"""Unit testing class for the paideia.Path object"""
+
+    #def test_path_get_step_for_prompt(self, mypath):
+        #"""docstring for test_get_next_step"""
+        #output = 'output{}'.format(mypath['casenum'])
+        ## for path 3, text, single step
+        #output1 = StepFactory().get_instance(step_id=2, loc=Location(1, db),
+                                        #prev_loc=1, prev_npc_id=2, db=db)
+        ## for path 89, multiple, single step
+        #output2 = StepFactory().get_instance(step_id=101, loc=Location(8, db),
+                                        #prev_loc=None, prev_npc_id=1, db=db)
+        #ready_path = mypath['path']
+        ##ready_path._prepare_for_prompt()
+        #pstep = ready_path.get_step_for_prompt()
+        #ostep = locals()[output]
+        #assert pstep.get_id() == ostep.get_id()
+        #assert pstep.get_tags() == ostep.get_tags()
+        #assert pstep.get_locations() == ostep.get_locations()
+        #assert pstep.get_prompt(username='Joe') \
+                                        #== ostep.get_prompt(username='Joe')
+
+    #def test_path_prepare_for_answer(self, mypath):
+        #"""Unit test for method paideia.Path.get_step_for_reply."""
+        #casenum = mypath['casenum']
+        #case = 'case{}'.format(casenum)
+        ## path 3, text
+        #case1 = {'step_for_reply_end': 2,
+                #'step_for_prompt_start': 2,
+                #'step_for_prompt_end': None,
+                #'step_sent_id': 2}
+        ## path 89, multiple
+        #case2 = {'step_for_reply_end': 101,
+                #'step_for_prompt_start': 101,
+                #'step_for_prompt_end': None,
+                #'step_sent_id': 101}
+        #output = locals()[case]
+        #sent_id = output['step_sent_id']
+        #test_func = mypath['path'].prepare_for_answer(
+                #step_for_prompt=StepFactory().get_instance(
+                            #db=db, step_id=output['step_for_prompt_start']),
+                #step_for_reply=None,
+                #step_sent_id=output['step_sent_id'])
+        #assert test_func['step_sent_id'] == output['step_sent_id']
+        #assert test_func['step_for_prompt'] == output['step_for_prompt_end']
+        #assert test_func['step_for_reply'] == output['step_for_reply_end']
+
+    #def test_path_remove_block(self, mypath):
+        #"""Unit test for method paideia.Path.remove_block."""
+        #casenum = mypath['casenum']
+        #if not casenum in [1, 2]:
+            #case = 'case{}'.format(casenum)
+            #case3 = {'block_done': Block(), 'blocks': []}
+            #output = locals()[case]
+            #assert mypath['path'].remove_block() == output
+
+    #def test_path_get_step_for_reply(self, mypath):
+        #"""Unit test for method paideia.Path.get_step_for_reply."""
+        #out = {1: StepFactory().get_instance(step_id=2, loc=Location(1, db),
+                                        #prev_loc=1, prev_npc_id=2, db=db),
+              #2: StepFactory().get_instance(step_id=101,
+                  #loc=Location(8, db), prev_loc=None, prev_npc_id=1, db=db)
+              #}
+        #path = mypath['path']
+        #pstep = path.get_step_for_prompt()
+        #path.prepare_for_answer(step_for_prompt=pstep, step_sent_id=pstep.get_id())
+        #rstep = path.get_step_for_reply()
+
+        #assert path.step_for_prompt is None
+        #assert path.step_for_reply.get_id() is out[mypath['casenum']].get_id()
+        #assert rstep.get_id() == out[mypath['casenum']].get_id()
+
+
+#class TestUser():
+    #"""unit testing class for the paideia.User class"""
+
+    #def test_user_get_id(self, myuser):
+        #assert myuser.get_id() == 1
+
+    #def test_user_is_stale(self, myuser):
+        #assert 0
+
+    #def test_user_get_categories(self, myuser):
+        #assert 0
+
+    #def test_user_get_old_categories(self, myuser):
+        #assert 0
+
+    #def test_user_get_new_badges(self, myuser):
+        #assert 0
+
+    #def test_user_complete_path(self, myuser):
+        #assert 0
+
+    #def test_user_get_path(self, myuser):
+        #assert 0
+
+
+#class TestCategorizer():
+    #"""Unit testing class for the paideia.Categorizer class"""
+
+    #def test_categorizer_categorize(self, mycategorizer):
+        #"""
+        #Unit test for the paideia.Categorizer.categorize method.
+
+        #Case numbers correspond to the cases (user performance scenarios) set
+        #out in the myrecords fixture.
+        #case 1: removes tag 1 (too early) and introduces untried tag 61
+        #"""
+        #case = 'case{}'.format(mycategorizer['casenum'])
+        #output = {
+            #'case1': {'tag_progress': {'latest_new': 1,
+                                #'cat1': [61], 'cat2': [],
+                                #'cat3': [], 'cat4': [],
+                                #'rev1': [], 'rev2': [],
+                                #'rev3': [], 'rev4': []},
+                        #'new_tags': {'cat1': [61]},
+                        #'promoted': {'cat1': []},
+                        #'demoted': {},
+                        #'categories': {'cat1': [61], 'cat2': [],
+                                #'cat3': [], 'cat4': [],
+                                #'rev1': [], 'rev2': [],
+                                #'rev3': [], 'rev4': []},
+                        #},
+
+            #'case2': {'tag_progress': {'latest_new': 1,
+                                #'cat1': [61], 'cat2': [],
+                                #'cat3': [], 'cat4': [],
+                                #'rev1': [], 'rev2': [],
+                                #'rev3': [], 'rev4': []},
+                        #'new_tags': {'cat1': [61]},
+                        #'promoted': {'cat1': []},
+                        #'demoted': {},
+                        #'categories': {'cat1': [61], 'cat2': [],
+                                #'cat3': [], 'cat4': [],
+                                #'rev1': [], 'rev2': [],
+                                #'rev3': [], 'rev4': []},
+                        #},
+            #}
+        #cats = mycategorizer['categorizer'].categorize_tags()
+        ##print 'FROM METHOD\n', cats
+        ##print 'EXPECTED\n', output[case]
+        #assert cats == output[case]
+
+    #def test_categorizer_core_algorithm(self, mycategorizer):
+        #"""
+        #Unit test for the paideia.Categorizer._core_algorithm method
+
+        #Case numbers correspond to the cases (user performance scenarios) set
+        #out in the myrecords fixture.
+        #"""
+        #case = 'case{}'.format(mycategorizer['casenum'])
+        #output = {'case1': {'cat1': [1], 'cat2': [], 'cat3': [], 'cat4': []},
+                #'case2': {'cat1': [1], 'cat2': [], 'cat3': [], 'cat4': []}}
+
+        #assert mycategorizer['categorizer']._core_algorithm() == output[case]
+
+    #def test_categorizer_introduce_tags(self):
+        #"""Unit test for the paideia.Categorizer._introduce_tags method"""
+        #assert 0
+
+    #def test_categorizer_add_untried_tags(self, mycategorizer):
+        #"""Unit test for the paideia.Categorizer._add_untried_tags method"""
+        #input_cats = {'cat1': [1], 'cat2': [],
+                        #'cat3': [], 'cat4': []}
+        #output_cats = {'cat1': [1, 61], 'cat2': [],
+                        #'cat3': [], 'cat4': []}
+        #assert mycategorizer['categorizer']._add_untried_tags(input_cats) == \
+                                                                #output_cats
+
+    #def test_categorizer_find_cat_changes(self):
+        #"""docstring for test_"""
+        #assert 0
+
+#class TestWalk():
+    #"""
+    #A unit testing class for the paideia.Walk class.
+    #"""
+
+    #def test_walk_get_user(self, mywalk, myrecords, mysession):
+        #"""docstring for _get_user"""
+        #localias = mywalk.localias
+        #userdata = {'first_name': 'Joe', 'id': 1}
+        #tag_records = myrecords['tag_records']
+        #tag_progress = myrecords['tag_progress']
+        #assert mywalk._get_user(userdata=userdata, localias=localias,
+                        #tag_records=tag_records, tag_progress=tag_progress)
+
+    #def test_walk_map(self, mywalk):
+        #mapdata = {'map_image': '/paideia/static/images/town_map.svg',
+                    #'locations': [
+                        #{'alias': 'None',
+                        #'bg_image': 8,
+                        #'id': 3},
+                       #{'alias': 'domus_A',
+                        #'bg_image': 8,
+                        #'id': 1},
+                       #{'alias': '',
+                        #'bg_image': 8,
+                        #'id': 2},
+                       #{'alias': None,
+                        #'bg_image': None,
+                        #'id': 4},
+                       #{'alias': None,
+                        #'bg_image': None,
+                        #'id': 12},
+                       #{'alias': 'bath',
+                        #'bg_image': 17,
+                        #'id': 13},
+                       #{'alias': 'gymnasion',
+                        #'bg_image': 15,
+                        #'id': 14},
+                       #{'alias': 'shop_of_alexander',
+                        #'bg_image': 16,
+                        #'id': 6},
+                       #{'alias': 'ne_stoa',
+                        #'bg_image': 18,
+                        #'id': 7},
+                       #{'alias': 'agora',
+                        #'bg_image': 16,
+                        #'id': 8},
+                       #{'alias': 'synagogue',
+                        #'bg_image': 15,
+                        #'id': 11},
+                       #{'alias': None,
+                        #'bg_image': None,
+                        #'id': 5},
+                       #{'alias': None,
+                        #'bg_image': None,
+                        #'id': 9},
+                       #{'alias': None,
+                        #'bg_image': None,
+                        #'id': 10}
+                       #]}
+        #map = mywalk.map()
+        #pprint(map)
+        #for m in mapdata['locations']:
+            #i = mapdata['locations'].index(m)
+            #assert map['locations'][i]['alias'] == m['alias']
+            #assert map['locations'][i]['bg_image'] == m['bg_image']
+            #assert map['locations'][i]['id'] == m['id']
+        #assert map['map_image'] == mapdata['map_image']
+
+    #def test_walk_ask(self, mywalk):
+        #prompt = 'How would you write the English word "head" using'\
+                #' Greek letters?'
+        #instructions = None
+        #image = '/paideia/static/images/images.image.bb48641f0122d2b6.696d616765732e696d6167652e383136303330663934646664646561312e34343732363137373639366536373230333432653733373636372e737667.svg'
+        #responder = '<form action="" autocomplete="off" enctype="multipart/form-data" method="post"><table><tr id="no_table_response__row"><td class="w2p_fl"><label for="no_table_response" id="no_table_response__label">Response: </label></td><td class="w2p_fw"><input class="string" id="no_table_response" name="response" type="text" value="" /></td><td class="w2p_fc"></td></tr><tr id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw"><input type="submit" value="Submit" /></td><td class="w2p_fc"></td></tr></table></form>'
+        #ask = mywalk.ask()
+        #assert ask['prompt']['prompt'] == prompt
+        #assert ask['prompt']['instructions'] == instructions
+        #assert ask['prompt']['npc_image'] == image
+        #assert ask['responder'].xml() == responder
+
+    #def test_walk_reply(self, mywalk):
+        #response_string = ''
+        #reply = ''
+        #bug_reporter = ''
+        ## TODO: put in safety in case of empty form
+        #returning = mywalk.reply(response_string)
+        #out_reply = returning['reply']
+        #out_bug_reporter = returning['bug_reporter']
+
+        #assert out_reply == reply
+        #assert out_bug_reporter == bug_reporter
+
+    #def test_walk_record_cats(self, mywalk):
+        #"""
+        #Unit tests for Walk._record_cats()
+        #"""
+        #tag_progress = {'tag': 61,
+                        #'latest_new': 2,
+                        #'cat1': [1, 2, 3],
+                        #'cat2': [4],
+                        #'cat3': [5, 6],
+                        #'cat4': [7],
+                        #'rev1': [1, 2, 3],
+                        #'rev2': [4],
+                        #'rev3': [5, 6],
+                        #'rev4': [7],
+                        #'secondary_right': []}
+
+        #categories =   {'cat1': [1, 2, 3],
+                        #'cat2': [4],
+                        #'cat3': [5, 6],
+                        #'cat4': [7],
+                        #'rev1': [1, 2, 3],
+                        #'rev2': [4],
+                        #'rev3': [5, 6],
+                        #'rev4': [7]}
+        #new_tags = [1, 2, 3]
+        #promoted = {'cat1': [1, 2, 3],
+                    #'cat2': [4],
+                    #'cat3': [5, 6],
+                    #'cat4': [7],
+                    #'rev1': [1, 2, 3],
+                    #'rev2': [4],
+                    #'rev3': [5, 6],
+                    #'rev4': [7]}
+        #demoted = {'rev1': [1, 2, 3],
+                    #'rev2': [4],
+                    #'rev3': [5, 6],
+                    #'rev4': [7]}
+        #assert 0
+
+    #def test_walk_record_step(self, mywalk):
+        #id = mywalk._get_user().get_id()
+        #loglength = len(db(db.attempt_log.name == id).select())
+        #tag_records = ''
+
+        #rec = mywalk._record_step(tag_records, categories, new_tags)
+        #assert len(db(db.attempt_log.name == id).select()) == loglenth + 1
+        #assert 0
+
+    #def test_walk_store_user(self, mywalk):
+        #"""Unit test for Walk._store_user"""
+        #session = current.session
+        #assert mywalk._store_user() == True
+        #assert isinstance(session.user, User)
+        #assert session.user.get_id() == 1
+        #assert 0
+
+#class TestPathChooser():
+
+    #def test_pathchooser_choose(self, mypathchooser):
+        #newpath = mypathchooser['pathchooser'].choose()
+        #assert newpath[0].id in [r for c in mypathchooser['paths'].values() for r in c if len(c) > 0]
+        #assert newpath[2] in range(1,5)
+
+    #def test_pathchooser_order_cats(self, mypathchooser):
+        #pc = mypathchooser['pathchooser']._order_cats()
+        #ind = pc.index(1)
+        #if len(pc) >= (ind + 2):
+            #assert pc[ind + 1] == 2
+        #if len(pc) >= (ind + 3):
+            #assert pc[ind + 2] == 3
+        #if len(pc) >= (ind + 4):
+            #assert pc[ind + 3] == 4
+        #if ind != 0:
+            #assert pc[ind - 1] == 4
+        #assert len(pc) == 4
+        #assert pc[0] in [1,2,3,4]
+        #assert pc[1] in [1,2,3,4]
+        #assert pc[2] in [1,2,3,4]
+        #assert pc[3] in [1,2,3,4]
+
+    #def test_pathchooser_paths_by_category(self, mypathchooser):
+        #cpaths, category = mypathchooser['pathchooser']._paths_by_category('1')
+        #allpaths = mypathchooser['paths']
+        #pathids = allpaths['cat{}'.format(category)]
+        #expected = db(db.paths).select()
+        #expected = expected.find(lambda row: row.id in pathids)
+        #assert len(cpaths) == len(expected)
+        #for row in cpaths:
+            #assert row.id in [r.id for r in expected]
+
+    #def test_pathchooser_choose_from_cat(self, mypathchooser):
+        #allpaths = mypathchooser['paths']
+        #pathids = allpaths['cat{}'.format(1)]
+        #expected = db(db.paths).select()
+        #expected = expected.find(lambda row: row.id in pathids)
+        #print expected
+
+        #newpath = mypathchooser['pathchooser']._choose_from_cat(expected, 1)
+        #assert newpath[0].id in mypathchooser['paths']['cat1']
+        #assert newpath[1] in [l for l in db.steps(newpath[0].steps[0]).locations]
+        #assert newpath[2] == 1
