@@ -156,12 +156,14 @@ def mysteps(request):
                    'widget_type': 7,
                    'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10],
                    'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
-                   'raw_prompt': 'Well done, [[user]]. You\'ve finished enough '
-                                 'paths for today. But if you would like to keep '
-                                 'going, you\'re welcome to continue.',
-                   'final_prompt': 'Well done, Ian. You\'ve finished enough '
-                                   'paths for today. But if you would like to keep '
-                                   'going, you\'re welcome to continue.',
+                   'raw_prompt': 'Well done, [[user]]. You\'ve finished '
+                                 'enough paths for today. But if you would '
+                                 'like to keep going, you\'re welcome to '
+                                 'continue.',
+                   'final_prompt': 'Well done, [[user]]. You\'ve finished '
+                                   'enough paths for today. But if you would '
+                                   'like to keep going, you\'re welcome to '
+                                   'continue.',
                    'instructions': None,
                    'tags': [79],
                    'tags_secondary': []},
@@ -173,22 +175,22 @@ def mysteps(request):
                    'raw_prompt': 'Congratulations, [[user]]![[new_badge_list]]'
                                  '[[promoted_list]]You can click on your name above to '
                                  'see details of your progress so far.',
-                   'final_prompt': 'Congratulations, Ian! You\'ve earned a new '
-                                 'badge! '
-                                 '<ul class="new_badge_list">'
-                                 '<li>'
-                                 '<span class="badge_name">spaced out</span> '
-                                 'for using spatial adverbs to talk about the '
-                                 'location of events, people, places, or things'
-                                 '</li>'
-                                 '<li>'
-                                 '<span class="badge_name">nominative 1</span> for '
-                                 'the use of singular, first-declension nouns in the '
-                                 'nominative case'
-                                 '</li>'
-                                 '</ul>'
-                                 'You can click on your name above to '
-                                 'see details of your progress so far.',
+                   'final_prompt': 'Congratulations, [[user]]! You\'ve earned '
+                                   'a new badge!<ul class="new_badge_list">'
+                                   '<li>'
+                                   '<span class="badge_name">spaced out</span> '
+                                   'for using spatial adverbs to talk about '
+                                   'the location of events, people, places, or '
+                                   'things</li>'
+                                   '<li>'
+                                   '<span class="badge_name">nominative 1'
+                                   '</span> for the use of singular, '
+                                   'first-declension nouns in the nominative '
+                                   'case'
+                                   '</li>'
+                                   '</ul>'
+                                   'You can click on your name above to '
+                                   'see details of your progress so far.',
                    'instructions': None,
                    'tags': [81],
                    'tags_secondary': []},
@@ -491,14 +493,21 @@ def mystep(mycases, mysteps):
     A pytest fixture providing a paideia.Step object for testing.
     """
     stepdata = mysteps
-    return {'casenum': mycases['casenum'],
-            'step': StepFactory().get_instance(db=db,
-                                               step_id=mysteps['id'],
-                                               loc=mycases['loc'],
-                                               prev_loc=mycases['prev_loc'],
-                                               prev_npc_id=mycases['prev_npc_id']),
-            'stepdata': stepdata,
-            'casedata': mycases}
+    if mysteps['type'] == StepAwardBadges and mycases['casenum'] != 5:
+        pass
+    if mysteps['type'] == StepViewSlides and mycases['casenum'] != 5:
+        pass
+    if mysteps['type'] == StepRedirect and mycases['casenum'] != 5:
+        pass
+    else:
+        return {'casenum': mycases['casenum'],
+                'step': StepFactory().get_instance(db=db,
+                                                   step_id=mysteps['id'],
+                                                   loc=mycases['loc'],
+                                                   prev_loc=mycases['prev_loc'],
+                                                   prev_npc_id=mycases['prev_npc_id']),
+                'stepdata': stepdata,
+                'casedata': mycases}
 
 
 @pytest.fixture
@@ -734,19 +743,13 @@ class TestStep():
         sdata = mystep['stepdata']
         case = mystep['casedata']
         if sdata['widget_type'] in [1, 4]:
-            print 'step', sdata['id']
             stepnpcs = sdata['npc_list']
-            print 'stepnpcs', stepnpcs
             locnpcs = [int(n) for n in case['npcs_here'] if n in stepnpcs]
-            print 'npcs_here', case['npcs_here']
-            print 'locnpcs', locnpcs
             username = case['name']
             if locnpcs:
                 oprompt = sdata['final_prompt']
                 oinstr = sdata['instructions']
                 onpc_image = [npc_data[n]['image'] for n in stepnpcs if n in locnpcs]
-                #print 'prompt', step.get_prompt(username)
-                #print 'oprompt', oprompt
                 assert step.get_prompt(username)['prompt'] == oprompt
                 assert step.get_prompt(username)['instructions'] == oinstr
                 assert step.get_prompt(username)['npc_image'] in onpc_image
@@ -755,16 +758,20 @@ class TestStep():
         else:
             pass
 
-    #def test_step_make_replacements(self, mystep):
-        #"""Unit test for method Step._make_replacements()"""
-        #casenum = mystep['casenum']
-        #case = 'case{}'.format(casenum)
-        #case1 = {'raw_string': 'Hi [[user]]!', 'username': 'Ian', 'result': 'Hi Ian!'}
-        #case2 = {'raw_string': 'Hi there [[user]].', 'username': 'Ian', 'result': 'Hi there Ian.'}
-        #output = locals()[case]
-        #assert mystep['step']._make_replacements(raw_prompt=output['raw_string'],
-                                                #username=output['username']
-                                                #) == output['result']
+    def test_step_make_replacements(self, mystep):
+        """Unit test for method Step._make_replacements()"""
+        step = mystep['step']
+        sdata = mystep['stepdata']
+        case = mystep['casedata']
+        oargs = {'raw_prompt': sdata['raw_prompt'],
+                 'username': case['name']}
+        ofinal = sdata['final_prompt']
+        ofinal = ofinal.replace('[[user]]', oargs['username'])
+        if isinstance(step, StepAwardBadges) or isinstance(step,
+                                                           StepViewSlides):
+            oargs['reps'] = {'[[new_badges]]': case['new_badges']}
+
+        assert step._make_replacements(**oargs) == ofinal
 
     #def test_step_get_responder(self, mystep):
         #"""Test for method Step.get_responder"""

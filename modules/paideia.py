@@ -467,6 +467,10 @@ class Step(object):
         Return the prompt information for the step. In the Step base class
         this is a simple string. Before returning, though, any necessary
         replacements or randomizations are made.
+
+        If the step cannot be performed in this location, this method returns
+        the string 'redirect' so that the Walk.ask() method that called it can
+        set a redirect block.
         """
         if not raw_prompt:
             raw_prompt = self.data['prompt']
