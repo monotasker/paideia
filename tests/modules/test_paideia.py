@@ -428,13 +428,20 @@ def mypathchooser(mycases):
 
 
 @pytest.fixture
-def mycategorizer(myrecords):
+def mycategorizer(mycases):
     """A pytest fixture providing a paideia.Categorizer object for testing."""
-    rank = myrecords['tag_progress']['latest_new']
-    categories = myrecords['tag_progress']
-    tag_records = myrecords['tag_records']
+    rank = mycases['tag_progress']['latest_new']
+    categories = mycases['tag_progress']
+    tag_records = mycases['tag_records']
+    promoted = mycases['promoted']
+    demoted = mycases['demoted']
+
     return {'categorizer': Categorizer(rank, categories, tag_records),
-            'casenum': myrecords['casenum']}
+            'casenum': mycases['casenum'],
+            'categories': mycases['tag_progress']
+            'tag_records': mycases['tag_records']
+            'promoted': mycases['promoted']
+            'demoted': mycases['demoted']}
 
 
 @pytest.fixture
@@ -1386,64 +1393,40 @@ class TestStepText():
         #assert 0
 
 
-#class TestCategorizer():
-    #"""Unit testing class for the paideia.Categorizer class"""
+class TestCategorizer():
+    """Unit testing class for the paideia.Categorizer class"""
 
-    #def test_categorizer_categorize(self, mycategorizer):
-        #"""
-        #Unit test for the paideia.Categorizer.categorize method.
+    def test_categorizer_categorize(self, mycategorizer):
+        """
+        Unit test for the paideia.Categorizer.categorize method.
 
-        #Case numbers correspond to the cases (user performance scenarios) set
-        #out in the myrecords fixture.
-        #case 1: removes tag 1 (too early) and introduces untried tag 61
-        #"""
-        #case = 'case{}'.format(mycategorizer['casenum'])
-        #output = {
-            #'case1': {'tag_progress': {'latest_new': 1,
-                                #'cat1': [61], 'cat2': [],
-                                #'cat3': [], 'cat4': [],
-                                #'rev1': [], 'rev2': [],
-                                #'rev3': [], 'rev4': []},
-                        #'new_tags': {'cat1': [61]},
-                        #'promoted': {'cat1': []},
-                        #'demoted': {},
-                        #'categories': {'cat1': [61], 'cat2': [],
-                                #'cat3': [], 'cat4': [],
-                                #'rev1': [], 'rev2': [],
-                                #'rev3': [], 'rev4': []},
-                        #},
+        Case numbers correspond to the cases (user performance scenarios) set
+        out in the myrecords fixture.
+        case 1: removes tag 1 (too early) and introduces untried tag 61
+        """
+        case =
+        output = {'tag_progress': mycategorizer['tag_progress']
+                  'new_tags': mycategorizer['new_tags'],
+                  'promoted': mycategorizer['promoted'],
+                  'demoted': mycategorizer['demoted'],
+                  'categories': mycategorizer['categories']}
+        cats = mycategorizer['categorizer'].categorize_tags()
+        #print 'ACTUAL\n', cats
+        #print 'EXPECTED\n', output
+        assert cats == output
 
-            #'case2': {'tag_progress': {'latest_new': 1,
-                                #'cat1': [61], 'cat2': [],
-                                #'cat3': [], 'cat4': [],
-                                #'rev1': [], 'rev2': [],
-                                #'rev3': [], 'rev4': []},
-                        #'new_tags': {'cat1': [61]},
-                        #'promoted': {'cat1': []},
-                        #'demoted': {},
-                        #'categories': {'cat1': [61], 'cat2': [],
-                                #'cat3': [], 'cat4': [],
-                                #'rev1': [], 'rev2': [],
-                                #'rev3': [], 'rev4': []},
-                        #},
-            #}
-        #cats = mycategorizer['categorizer'].categorize_tags()
-        ##print 'FROM METHOD\n', cats
-        ##print 'EXPECTED\n', output[case]
-        #assert cats == output[case]
+    def test_categorizer_core_algorithm(self, mycategorizer):
+        """
+        Unit test for the paideia.Categorizer._core_algorithm method
 
-    #def test_categorizer_core_algorithm(self, mycategorizer):
-        #"""
-        #Unit test for the paideia.Categorizer._core_algorithm method
+        Case numbers correspond to the cases (user performance scenarios) set
+        out in the myrecords fixture.
+        """
+        case = 'case{}'.format(mycategorizer['casenum'])
+        output = {'case1': {'cat1': [1], 'cat2': [], 'cat3': [], 'cat4': []},
+                'case2': {'cat1': [1], 'cat2': [], 'cat3': [], 'cat4': []}}
 
-        #Case numbers correspond to the cases (user performance scenarios) set
-        #out in the myrecords fixture.
-        #"""
-        #case = 'case{}'.format(mycategorizer['casenum'])
-        #output = {'case1': {'cat1': [1], 'cat2': [], 'cat3': [], 'cat4': []},
-                #'case2': {'cat1': [1], 'cat2': [], 'cat3': [], 'cat4': []}}
-
-        #assert mycategorizer['categorizer']._core_algorithm() == output[case]
+        assert mycategorizer['categorizer']._core_algorithm() == output[case]
 
     #def test_categorizer_introduce_tags(self):
         #"""Unit test for the paideia.Categorizer._introduce_tags method"""
