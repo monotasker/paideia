@@ -1080,14 +1080,17 @@ class TestStepText():
         else:
             pass
 
-    #def test_steptext_get_readable(self, myStepText):
-        #"""Unit tests for StepText._get_readable() method"""
-        #casenum = myStepText['casenum']
-        #case = 'case{}'.format(casenum)
-        #case1 = {'readable_long': None, 'readable_short': ['μιτ']}
-        #case2 = {'readable_long': None, 'readable_short': ['βατ|βοτ']}
-        #output = locals()[case]
-        #assert myStepText['step']._get_readable() == output
+    def test_steptext_get_readable(self, myStepText):
+        """Unit tests for StepText._get_readable() method"""
+        if myStepText:
+            casenum = myStepText['casenum']
+            case = 'case{}'.format(casenum)
+            case1 = {'readable_long': None, 'readable_short': ['μιτ']}
+            case2 = {'readable_long': None, 'readable_short': ['βατ|βοτ']}
+            output = locals()[case]
+            assert myStepText['step']._get_readable() == output
+        else:
+            pass
 
     #def test_steptext_get_reply(self, myStepText):
         #"""Unit tests for StepText._get_reply() method"""
