@@ -238,6 +238,7 @@ def mycases(request, mysteps):
     """
     the_case = request.param
     # same npc and location as previous step
+    # replace tag too far ahead (1) with appropriate (61)
     cases = {'case1': {'casenum': 1,
                        'loc': Location(1, db),
                        'mynow': dt('2013-01-29'),
@@ -253,7 +254,8 @@ def mycases(request, mysteps):
                                         'last_wrong': dt('2013-01-29'),
                                         'times_right': 1,
                                         'times_wrong': 1,
-                                        'secondary_right': []}],
+                                        'secondary_right': []},
+                                       ],
                        'tag_progress': {'latest_new': 1,
                                         'cat1': [61], 'cat2': [],
                                         'cat3': [], 'cat4': [],
@@ -270,7 +272,8 @@ def mycases(request, mysteps):
                        'new_badges': [],
                        'promoted': {},
                        'demoted': {}},
-             'case2':  # same location, last npc 2, promote tag to cat2
+             'case2':  # same location, last npc 2,
+                       # promote tag based on ratio and min time
                       {'casenum': 2,
                        'mynow': dt('2013-01-29'),
                        'loc': Location(8, db),
@@ -286,12 +289,20 @@ def mycases(request, mysteps):
                                         'times_right': 10,
                                         'times_wrong': 2,
                                         'secondary_right': []}],
+                       'core_out': {'cat1': [], 'cat2': [61],
+                                   'cat3': [], 'cat4': []},
                        'tag_progress': {'latest_new': 1,
                                         'cat1': [61], 'cat2': [],
                                         'cat3': [], 'cat4': [],
                                         'rev1': [], 'rev2': [],
                                         'rev3': [], 'rev4': [],
                                         'secondary_right': []},
+                       'tag_progress_out': {'latest_new': 1,
+                                            'cat1': [62], 'cat2': [61],
+                                            'cat3': [], 'cat4': [],
+                                            'rev1': [], 'rev2': [],
+                                            'rev3': [], 'rev4': [],
+                                            'secondary_right': []},
                        'paths': {'cat1': [1, 2, 3, 5, 8, 63, 64, 70, 95, 96,
                                           97, 99, 102, 104, 256, 277],
                                  'cat2': [],
@@ -299,10 +310,11 @@ def mycases(request, mysteps):
                                  'cat4': []},
                        'steps_here': [1, 2, 30, 125, 126, 127],
                        'completed': [],
-                       'new_badges': [],
-                       'promoted': {},
+                       'new_badges': [62],
+                       'promoted': {'cat2': [61]},
                        'demoted': {}},
              'case3':  # same location as previous step, last npc stephanos
+                       # promote tag based on time (without ratio)
                       {'casenum': 3,
                        'mynow': dt('2013-01-29'),
                        'name': 'Ian',
@@ -312,16 +324,32 @@ def mycases(request, mysteps):
                        'prev_npc_id': 31,  # stephanos
                        'npcs_here': [31, 32],
                        'pathid': 19,
-                       'tag_records': [{'tag_id': 1,
-                                        'last_right': dt('2013-01-29'),
-                                        'last_wrong': dt('2013-01-28'),
-                                        'times_right': 10,
-                                        'times_wrong': 2,
-                                        'secondary_right': []}],
-                       'tag_progress': {'latest_new': 1,
-                                        'cat1': [62], 'cat2': [61], 'cat3': [], 'cat4': [],
-                                        'rev1': [], 'rev2': [], 'rev3': [], 'rev4': [],
+                       'tag_records': [{'tag_id': 61,
+                                        'last_right': dt('2013-01-22'),
+                                        'last_wrong': dt('2013-01-1'),
+                                        'times_right': 5,
+                                        'times_wrong': 5,
                                         'secondary_right': []},
+                                       {'tag_id': 62,
+                                        'last_right': dt('2013-01-10'),
+                                        'last_wrong': dt('2013-01-1'),
+                                        'times_right': 5,
+                                        'times_wrong': 5,
+                                        'secondary_right': []}],
+                       'core_out': {'cat1': [62], 'cat2': [61],
+                                    'cat3': [], 'cat4': []},
+                       'tag_progress': {'latest_new': 1,
+                                        'cat1': [61, 62], 'cat2': [],
+                                        'cat3': [], 'cat4': [],
+                                        'rev1': [], 'rev2': [],
+                                        'rev3': [], 'rev4': [],
+                                        'secondary_right': []},
+                       'tag_progress_out': {'latest_new': 1,
+                                            'cat1': [62], 'cat2': [61],
+                                            'cat3': [], 'cat4': [],
+                                            'rev1': [], 'rev2': [],
+                                            'rev3': [], 'rev4': [],
+                                            'secondary_right': []},
                        'paths': {'cat1': [1, 2, 3, 5, 8, 63, 64, 70, 95, 96,
                                           97, 99, 102, 104, 256, 277],
                                  'cat2': [4, 7, 9, 10, 11, 12, 13, 14, 15, 16,
@@ -332,7 +360,7 @@ def mycases(request, mysteps):
                        'steps_here': [1, 2, 30, 125, 126, 127],
                        'completed': [],
                        'new_badges': [],
-                       'promoted': {},
+                       'promoted': {'cat2': [61]},
                        'demoted': {}},
              'case4':  # different location than previous step
                       {'casenum': 4,
@@ -350,10 +378,20 @@ def mycases(request, mysteps):
                                         'times_right': 10,
                                         'times_wrong': 2,
                                         'secondary_right': []}],
+                       'core_out': {'cat1': [], 'cat2': [1],
+                                    'cat3': [], 'cat4': []},
                        'tag_progress': {'latest_new': 1,
-                                        'cat1': [1], 'cat2': [], 'cat3': [], 'cat4': [],
-                                        'rev1': [], 'rev2': [], 'rev3': [], 'rev4': [],
+                                        'cat1': [1], 'cat2': [],
+                                        'cat3': [], 'cat4': [],
+                                        'rev1': [], 'rev2': [],
+                                        'rev3': [], 'rev4': [],
                                         'secondary_right': []},
+                       'tag_progress_out': {'latest_new': 1,
+                                            'cat1': [], 'cat2': [1],
+                                            'cat3': [], 'cat4': [],
+                                            'rev1': [], 'rev2': [],
+                                            'rev3': [], 'rev4': [],
+                                            'secondary_right': []},
                        'steps_here': [1, 2, 30, 125, 126, 127],
                        'completed': [],
                        'new_badges': [],
@@ -375,14 +413,24 @@ def mycases(request, mysteps):
                                         'times_right': 10,
                                         'times_wrong': 2,
                                         'secondary_right': []}],
+                       'core_out': {'cat1': [], 'cat2': [1],
+                                    'cat3': [], 'cat4': []},
                        'tag_progress': {'latest_new': 1,
-                                        'cat1': [1], 'cat2': [], 'cat3': [], 'cat4': [],
-                                        'rev1': [], 'rev2': [], 'rev3': [], 'rev4': [],
+                                        'cat1': [1], 'cat2': [],
+                                        'cat3': [], 'cat4': [],
+                                        'rev1': [], 'rev2': [],
+                                        'rev3': [], 'rev4': [],
                                         'secondary_right': []},
+                       'tag_progress_out': {'latest_new': 1,
+                                            'cat1': [], 'cat2': [1],
+                                            'cat3': [], 'cat4': [],
+                                            'rev1': [], 'rev2': [],
+                                            'rev3': [], 'rev4': [],
+                                            'secondary_right': []},
                        'steps_here': [1, 2, 30, 125, 126, 127],
                        'completed': [],
                        'new_badges': [5, 6],
-                       'promoted': {},
+                       'promoted': {'cat2': [1]},
                        'demoted': {}}
              }
     return cases[the_case]
@@ -432,16 +480,16 @@ def mycategorizer(mycases):
     """A pytest fixture providing a paideia.Categorizer object for testing."""
     rank = mycases['tag_progress']['latest_new']
     categories = mycases['tag_progress']
-    tag_records = mycases['tag_records']
-    promoted = mycases['promoted']
-    demoted = mycases['demoted']
+    tag_rs = mycases['tag_records']
+    now = mycases['mynow']
 
-    return {'categorizer': Categorizer(rank, categories, tag_records),
-            'casenum': mycases['casenum'],
-            'categories': mycases['tag_progress']
-            'tag_records': mycases['tag_records']
-            'promoted': mycases['promoted']
-            'demoted': mycases['demoted']}
+    return {'categorizer': Categorizer(rank, categories, tag_rs, utcnow=now),
+            'categories': categories,
+            'tag_progress_out': mycases['tag_progress_out'],
+            'core_out': mycases['core_out'],
+            'promoted': mycases['promoted'],
+            'demoted': mycases['demoted'],
+            'new_tags': mycases['new_badges']}
 
 
 @pytest.fixture
@@ -1404,15 +1452,15 @@ class TestCategorizer():
         out in the myrecords fixture.
         case 1: removes tag 1 (too early) and introduces untried tag 61
         """
-        case =
-        output = {'tag_progress': mycategorizer['tag_progress']
-                  'new_tags': mycategorizer['new_tags'],
-                  'promoted': mycategorizer['promoted'],
-                  'demoted': mycategorizer['demoted'],
-                  'categories': mycategorizer['categories']}
-        cats = mycategorizer['categorizer'].categorize_tags()
-        #print 'ACTUAL\n', cats
-        #print 'EXPECTED\n', output
+        cat = mycategorizer
+        output = {'tag_progress': cat['tag_progress_out'],
+                  'new_tags': cat['new_tags'],
+                  'promoted': cat['promoted'],
+                  'demoted': cat['demoted'],
+                  'categories': cat['categories']}
+        cats = cat['categorizer'].categorize_tags()
+        print 'ACTUAL\n', cats
+        print 'EXPECTED\n', output
         assert cats == output
 
     def test_categorizer_core_algorithm(self, mycategorizer):
@@ -1422,11 +1470,12 @@ class TestCategorizer():
         Case numbers correspond to the cases (user performance scenarios) set
         out in the myrecords fixture.
         """
-        case = 'case{}'.format(mycategorizer['casenum'])
-        output = {'case1': {'cat1': [1], 'cat2': [], 'cat3': [], 'cat4': []},
-                'case2': {'cat1': [1], 'cat2': [], 'cat3': [], 'cat4': []}}
-
-        assert mycategorizer['categorizer']._core_algorithm() == output[case]
+        cat = mycategorizer
+        output = cat['core_out']
+        core = cat['categorizer']._core_algorithm()
+        print 'ACTUAL\n', core
+        print 'EXPECTED\n', output
+        assert  core == output
 
     #def test_categorizer_introduce_tags(self):
         #"""Unit test for the paideia.Categorizer._introduce_tags method"""
