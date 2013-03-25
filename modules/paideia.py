@@ -1321,17 +1321,19 @@ class Categorizer(object):
     (integers) of the tags that are currently in the given category.
     """
 
-    def __init__(self, rank, categories, tag_records):
+    def __init__(self, rank, categories, tag_records, utcnow=None):
         """Initialize a paideia.Categorizer object"""
         self.rank = rank
         self.tag_records = tag_records
         self.old_categories = categories
+        self.utcnow = utcnow
 
     def categorize_tags(self, rank=None, tag_records=None,
                         old_categories=None, db=None):
         """Return a categorized dictionary of tags"""
         if not rank:
             rank = self.rank
+            print 'rank', rank
         if not old_categories:
             old_categories = self.old_categories
         if not tag_records:
@@ -1384,11 +1386,11 @@ class Categorizer(object):
                     'demoted': demoted,
                     'categories': categories}
 
-    def _core_algorithm(self, tag_records=None, utcnow=None):
+    def _core_algorithm(self, tag_records=None):
         """
         Return dict of the user's active tags categorized by past performance.
 
-        The record_list argument should be a list of dictionaries, each of
+        The tag_records argument should be a list of dictionaries, each of
         which includes the following keys and value types:
             {'tag_id': <int>,
              'last_right': <datetime>,
@@ -1408,6 +1410,7 @@ class Categorizer(object):
         TODO: Look at secondary tags as well
         """
         categories = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
+        utcnow = self.utcnow
         if not utcnow:
             utcnow = datetime.datetime.utcnow()
         if not tag_records:
