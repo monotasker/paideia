@@ -205,14 +205,15 @@ def mysteps(request):
                                  '[[slides]]You\'ll find the slides by clicking on the '
                                  '"slides" menu item at top.',
                    'final_prompt': 'Congratulations, Ian! You\'re ready to '
-                                   'start working on some new badges:[[badge_list]]Before '
-                                   'you continue, take some time to view these slide sets:'
+                                   'start working on some new badges:'
+                                   '[[badge_list]]. Beforeyou continue, take '
+                                   'some time to view these slide sets:'
                                    '<ul class="slide_list">'
                                    '<li>The Alphabet III</li>'
                                    '<li>Case Basics</li>'
                                    '</ul>'
-                                   'You\'ll find the slides by clicking on the "slides" '
-                                   'menu item at top.',
+                                   'You\'ll find the slides by clicking on '
+                                   'the "slides" menu item at top.',
                    'instructions': None,
                    'tags': [80],
                    'tags_secondary': []}
@@ -494,11 +495,11 @@ def mystep(mycases, mysteps):
     """
     stepdata = mysteps
     if mysteps['type'] == StepAwardBadges and mycases['casenum'] != 5:
-        pass
+        return None
     if mysteps['type'] == StepViewSlides and mycases['casenum'] != 5:
-        pass
+        return None
     if mysteps['type'] == StepRedirect and mycases['casenum'] != 5:
-        pass
+        return None
     else:
         return {'casenum': mycases['casenum'],
                 'step': StepFactory().get_instance(db=db,
@@ -724,54 +725,72 @@ class TestStep():
     # TODO: parameterize to cover more locations
 
     def test_step_get_id(self, mystep):
-        """Test for method Step.get_id"""
-        sid = mystep['stepdata']['id']
-        stype = mystep['stepdata']['type']
-        assert mystep['step'].get_id() == sid
-        assert isinstance(mystep['step'], stype) is True
+        """Test for method Step.get_id
 
-    def test_step_get_tags(self, mystep):
-        """Test for method Step.get_tags"""
-        primary = mystep['stepdata']['tags']
-        secondary = mystep['stepdata']['tags_secondary']
-        out = {'primary': primary, 'secondary': secondary}
-        assert mystep['step'].get_tags() == out
-
-    def test_step_get_prompt(self, mystep):
-        """Test for method Step.get_prompt"""
-        step = mystep['step']
-        sdata = mystep['stepdata']
-        case = mystep['casedata']
-        if sdata['widget_type'] in [1, 4]:
-            stepnpcs = sdata['npc_list']
-            locnpcs = [int(n) for n in case['npcs_here'] if n in stepnpcs]
-            username = case['name']
-            if locnpcs:
-                oprompt = sdata['final_prompt']
-                oinstr = sdata['instructions']
-                onpc_image = [npc_data[n]['image'] for n in stepnpcs if n in locnpcs]
-                assert step.get_prompt(username)['prompt'] == oprompt
-                assert step.get_prompt(username)['instructions'] == oinstr
-                assert step.get_prompt(username)['npc_image'] in onpc_image
-            else:
-                assert step.get_prompt(username) == 'redirect'
+        mystep fixture will be None for invalid step/case combinations.
+        """
+        if mystep:
+            sid = mystep['stepdata']['id']
+            stype = mystep['stepdata']['type']
+            assert mystep['step'].get_id() == sid
+            assert isinstance(mystep['step'], stype) is True
         else:
             pass
 
+    def test_step_get_tags(self, mystep):
+        """Test for method Step.get_tags
+
+        mystep fixture will be None for invalid step/case combinations.
+        """
+        if mystep:
+            primary = mystep['stepdata']['tags']
+            secondary = mystep['stepdata']['tags_secondary']
+            out = {'primary': primary, 'secondary': secondary}
+            assert mystep['step'].get_tags() == out
+
+    def test_step_get_prompt(self, mystep):
+        """Test for method Step.get_prompt"""
+        if mystep:
+            step = mystep['step']
+            sdata = mystep['stepdata']
+            case = mystep['casedata']
+            if sdata['widget_type'] in [1, 4]:
+                stepnpcs = sdata['npc_list']
+                locnpcs = [int(n) for n in case['npcs_here'] if n in stepnpcs]
+                username = case['name']
+                if locnpcs:
+                    oprompt = sdata['final_prompt']
+                    oinstr = sdata['instructions']
+                    onpc_image = [npc_data[n]['image'] for n in stepnpcs if n in locnpcs]
+                    assert step.get_prompt(username)['prompt'] == oprompt
+                    assert step.get_prompt(username)['instructions'] == oinstr
+                    assert step.get_prompt(username)['npc_image'] in onpc_image
+                else:
+                    assert step.get_prompt(username) == 'redirect'
+            else:
+                pass
+        else:
+            pass
+
+
     def test_step_make_replacements(self, mystep):
         """Unit test for method Step._make_replacements()"""
-        step = mystep['step']
-        sdata = mystep['stepdata']
-        case = mystep['casedata']
-        oargs = {'raw_prompt': sdata['raw_prompt'],
-                 'username': case['name']}
-        ofinal = sdata['final_prompt']
-        ofinal = ofinal.replace('[[user]]', oargs['username'])
-        if isinstance(step, StepAwardBadges) or isinstance(step,
-                                                           StepViewSlides):
-            oargs['reps'] = {'[[new_badges]]': case['new_badges']}
+        if mystep:
+            step = mystep['step']
+            sdata = mystep['stepdata']
+            case = mystep['casedata']
+            oargs = {'raw_prompt': sdata['raw_prompt'],
+                     'username': case['name']}
+            ofinal = sdata['final_prompt']
+            ofinal = ofinal.replace('[[user]]', oargs['username'])
+            if isinstance(step, StepAwardBadges):
+                oargs['new_badges'] = case['new_badges']
+            elif isinstance(step, StepViewSlides):
+                oargs['new_badges'] = case['new_badges']
 
-        assert step._make_replacements(**oargs) == ofinal
+            assert step._make_replacements(**oargs) == ofinal
+        else:
+            pass
 
     #def test_step_get_responder(self, mystep):
         #"""Test for method Step.get_responder"""
