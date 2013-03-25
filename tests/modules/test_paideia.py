@@ -585,14 +585,14 @@ def myStepText(mycases, mysteps):
     """
     A pytest fixture providing a paideia.StepText object for testing.
     """
-    if mysteps['widget'] == 1:
+    if mysteps['widget_type'] == 1:
         return {'casenum': mycases['casenum'],
                 'step': StepFactory().get_instance(db=db,
                                                    step_id=mysteps['id'],
                                                    loc=mycases['loc'],
                                                    prev_loc=mycases['prev_loc'],
                                                    prev_npc_id=mycases['prev_npc_id']),
-                'stepdata': stepdata,
+                'stepdata': mysteps,
                 'casedata': mycases}
     else:
         pass
@@ -1054,25 +1054,27 @@ class TestStepText():
     '''
     def test_steptext_get_responder(self, myStepText):
         if myStepText:
-            resp = '<form action="" autocomplete="off" '
-                   'enctype="multipart/form-data" method="post">'
-            resp += '<table>'
-            resp += '<tr id="no_table_response__row">'
-            resp += '<td class="w2p_fl">'
-            resp += '<label for="no_table_response" '
-                    'id="no_table_response__label">Response: </label>'
-            resp += '</td>'
-            resp += '<td class="w2p_fw">'
-            resp += '<input class="string" id="no_table_response" '
-                    'name="response" type="text" value="" />'
-            resp += '</td>'
-            resp += '<td class="w2p_fc"></td>'
-            resp += '</tr>'
-            resp += '<tr id="submit_record__row">'
-            resp += '<td class="w2p_fl"></td>'
-            resp += '<td class="w2p_fw"><input type="submit" '
-                    'value="Submit" /></td>'
-            resp += '<td class="w2p_fc"></td></tr></table></form>'
+            resp = '<form action="#" autocomplete="off" '\
+                   'enctype="multipart/form-data" method="post">'\
+                   '<table>'\
+                   '<tr id="no_table_response__row">'\
+                   '<td class="w2p_fl">'\
+                   '<label for="no_table_response" '\
+                   'id="no_table_response__label">Response: </label>'\
+                   '</td>'\
+                   '<td class="w2p_fw">'\
+                   '<input class="string" id="no_table_response" '\
+                   'name="response" type="text" value="" />'\
+                   '</td>'\
+                   '<td class="w2p_fc"></td>'\
+                   '</tr>'\
+                   '<tr id="submit_record__row">'\
+                   '<td class="w2p_fl"></td>'\
+                   '<td class="w2p_fw"><input type="submit" '\
+                   'value="Submit" /></td>'\
+                   '<td class="w2p_fc"></td></tr></table></form>'
+            print 'actual\n', myStepText['step'].get_responder().xml()
+            print 'target\n', resp
             assert myStepText['step'].get_responder().xml() == resp
             assert isinstance(myStepText['step'], StepText)
         else:
