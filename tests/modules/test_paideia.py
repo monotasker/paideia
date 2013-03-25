@@ -115,6 +115,8 @@ def mysteps(request):
                  'tags': [61],
                  'tags_secondary': [],
                  'responses': {'response1': '^μιτ$'},
+                 'readable': {'readable_short': ['μιτ'],
+                              'readable_long': None},
                  'tips': None},
              2: {'id': 2,
                  'type': StepText,
@@ -127,6 +129,8 @@ def mysteps(request):
                  'tags': [61],
                  'tags_secondary': [],
                  'responses': {'response1': '^β(α|ο)τ$'},
+                 'readable': {'readable_short': [u'βατ', u'βοτ'],
+                              'readable_long': [u'βατ', u'βοτ']},
                  'tips': None},
              30: {'id': 30,
                   'type': StepRedirect,
@@ -150,6 +154,8 @@ def mysteps(request):
                    'tags_secondary': [],
                    'options': ['ναι', 'οὐ'],
                    'responses': {'response1': 'ναι'},
+                   'readable': {'readable_short': 'ναι',
+                                'readable_long': None},
                    'tips': None},
              125: {'id': 125,
                    'type': StepQuotaReached,
@@ -1087,7 +1093,7 @@ class TestStepText():
             case = 'case{}'.format(casenum)
             case1 = {'readable_long': None, 'readable_short': ['μιτ']}
             case2 = {'readable_long': None, 'readable_short': ['βατ|βοτ']}
-            output = locals()[case]
+            output = myStepText['stepdata']['readable']
             assert myStepText['step']._get_readable() == output
         else:
             pass
