@@ -1499,72 +1499,55 @@ class Categorizer(object):
 
         return categories
 
-    def _find_cat_changes(self, categories, old_categories):
+    def _find_cat_changes(self, cats, old_cats):
         """Determine whether any of the categorized tags are new or promoted"""
-        if old_categories:
+        if old_cats:
             demoted = {}
-            #new_tags = {}
             promoted = {}
-            for category, lst in categories.iteritems():
+            for c, lst in cats.iteritems():
                 if lst:
-                    catindex = categories.keys().index(category)
+                    cindex = cats.keys().index(c)
 
                     # was tag in a higher category before?
-                    # remove from current cat, place in same level review cat
-                    # then re-insert in its old cat (max reached)
-                    gt_oldcats = dict((k, old_categories[k]) for k
-                                      in ['cat1', 'cat2', 'cat3', 'cat4'][catindex + 1:])
-                    gt_oldcats_flat = [chain([val for cat
-                                              in gt_oldcats.values()
-                                              if cat for val in cat])]
-                    revcat = category.replace('cat', 'rev')
-                    for tag in lst:
-                        if tag in gt_oldcats_flat:
-                            categories[category].pop(tag)
-                            demoted[revcat].append(tag)
-                            oldcat = [k for k, v in gt_oldcats if v == tag]
-                            categories[oldcat].append(tag)
-
-                    # was tag already in this category? Just collect list.
-                    same_oldcat = [t for t in lst
-                                   if t in old_categories[category]]
+                    gt = {k: old_cats[k] for k in
+                          ['cat1', 'cat2', 'cat3', 'cat4'][cindex + 1:]}
+                    gt_flat = [v for l in gt.values() if l for v in l]
+                    revc = c.replace('cat', 'rev')
+                    for tag in [l for l in lst if l in gt_flat]:
+                        # move to review category
+                        cats[c].pop(tag)
+                        try:
+                            demoted[revc].append(tag)
+                        except Exception:
+                            print type(Exception), Exception
+                            demoted[revc] = [tag]
+                        # then re-insert tag in its old max level
+                        oldc = [k for k, v in gt if tag in v]
+                        if len(cats[oldc]):
+                            cats[oldc].append(tag)
+                        else:
+                            cats[oldc] = [tag]
 
                     # was tag in a lower category?
+                    lt = {k: old_cats[k] for k in
+                          ['cat1', 'cat2', 'cat3', 'cat4'][:cindex]}
+                    print 'lt:', lt
+                    lt_flat = [v for l in lt.values() if l for v in l]
                     # add to dictionary of 'promoted' tags
-                    lt_oldcats = dict((k, old_categories[k]) for k
-                                      in ['cat1', 'cat2', 'cat3',
-                                          'cat4'][:catindex])
-                    lt_oldcats_flat = [chain([val for cat
-                                       in lt_oldcats.values()
-                                       if cat for val in cat])]
-                    promoted[category] = [t for t in lst
-                                          if t in lt_oldcats_flat]
+                    if lt_flat:
+                        promoted[c] = [t for t in cats[c] if t in lt_flat]
+                        print 'promoted[', c, ']:', promoted[c]
                     print 'in _find_cat_changes:',
                     print 'lst:', lst
-                    print 'lt_oldcats_flat:', pprint(lt_oldcats_flat)
-                    print 'promoted[', category, ']:', promoted[category]
+                    print 'lt_flat:', lt_flat
 
-                    # was tag not in any dictionary?
-                    # add to dictionary of 'new_tags'
-                    # TODO: below is deprecated, since none should be new
-                    #new = [t for t in lst if (t not in same_oldcat) and
-                           #(t not in lt_oldcats_flat) and
-                           #(t not in gt_oldcats_flat)]
-                    #if new:
-                        #new_tags[category] = new
-                        # TODO: also record in badges_begun
-            # TODO: make sure to add any 'rev' categories that are empty
-            return {'categories': categories,
+            return {'categories': cats,
                     'demoted': demoted,
-                    'promoted': promoted,
-                    #'new_tags': new_tags,
-                    }
+                    'promoted': promoted}
         else:
-            return {'categories': categories,
+            return {'categories': cats,
                     'demoted': None,
-                    'promoted': None,
-                    #'new_tags': None
-                    }
+                    'promoted': None}
 
     def _clean_tag_records(record_list=None, db=None):
         """
