@@ -254,13 +254,19 @@ def mycases(request, mysteps):
                                         'last_wrong': dt('2013-01-29'),
                                         'times_right': 1,
                                         'times_wrong': 1,
-                                        'secondary_right': None},
-                                       ],
+                                        'secondary_right': None}],
+                       'core_out': {'cat1': [1], 'cat2': [],
+                                    'cat3': [], 'cat4': []},
                        'tag_progress': {'latest_new': 1,
-                                        'cat1': [61], 'cat2': [],
+                                        'cat1': [1], 'cat2': [],
                                         'cat3': [], 'cat4': [],
                                         'rev1': [], 'rev2': [],
                                         'rev3': [], 'rev4': []},
+                       'tag_progress_out': {'latest_new': 1,
+                                            'cat1': [61], 'cat2': [],
+                                            'cat3': [], 'cat4': [],
+                                            'rev1': [], 'rev2': [],
+                                            'rev3': [], 'rev4': []},
                        'paths': {'cat1': [1, 2, 3, 5, 8, 63, 64, 70, 95, 96,
                                           97, 99, 102, 104, 256, 277],
                                  'cat2': [],
@@ -272,7 +278,7 @@ def mycases(request, mysteps):
                        'promoted': {},
                        'demoted': {}},
              'case2':  # same location, last npc 2,
-                       # promote tag based on ratio and min time
+             # promote tag based on ratio and min time
                       {'casenum': 2,
                        'mynow': dt('2013-01-29'),
                        'loc': Location(8, db),
@@ -289,7 +295,7 @@ def mycases(request, mysteps):
                                         'times_wrong': 2,
                                         'secondary_right': []}],
                        'core_out': {'cat1': [], 'cat2': [61],
-                                   'cat3': [], 'cat4': []},
+                                    'cat3': [], 'cat4': []},
                        'tag_progress': {'latest_new': 1,
                                         'cat1': [61], 'cat2': [],
                                         'cat3': [], 'cat4': [],
@@ -311,7 +317,7 @@ def mycases(request, mysteps):
                        'promoted': {'cat2': [61]},
                        'demoted': {}},
              'case3':  # same location as previous step, last npc stephanos
-                       # promote tag based on time (without ratio)
+             # promote tag based on time (without ratio)
                       {'casenum': 3,
                        'mynow': dt('2013-01-29'),
                        'name': 'Ian',
@@ -332,7 +338,7 @@ def mycases(request, mysteps):
                                         'last_right': dt('2013-01-10'),
                                         'last_wrong': dt('2013-01-1'),
                                         'times_right': 10,
-                                        'times_wrong': 10,
+                                        'times_wrong': 0,
                                         'secondary_right': None},
                                        # don't promote for time bc t_r < 10
                                        {'tag_id': 63,
@@ -342,22 +348,24 @@ def mycases(request, mysteps):
                                         'times_wrong': 0,
                                         'secondary_right': None},
                                        # promote for time bc t_r >= 10
-                                       {'tag_id': 64,
+                                       {'tag_id': 66,
                                         'last_right': dt('2013-01-27'),
                                         'last_wrong': dt('2013-01-21'),
                                         'times_right': 10,
                                         'times_wrong': 0,
                                         'secondary_right': None}
                                        ],
-                       'core_out': {'cat1': [62, 63], 'cat2': [61, 64],
+                       'core_out': {'cat1': [62, 63], 'cat2': [61, 66],
                                     'cat3': [], 'cat4': []},
-                       'tag_progress': {'latest_new': 1,
-                                        'cat1': [61, 62, 63, 64], 'cat2': [],
+                       'tag_progress': {'latest_new': 4,
+                                        'cat1': [61, 62, 63, 66], 'cat2': [],
                                         'cat3': [], 'cat4': [],
                                         'rev1': [], 'rev2': [],
                                         'rev3': [], 'rev4': []},
                        'tag_progress_out': {'latest_new': 1,
-                                            'cat1': [62, 63], 'cat2': [61, 64],
+                                            'cat1': [62, 63, 68, 115, 72,
+                                                     89, 36],
+                                            'cat2': [61, 66],
                                             'cat3': [], 'cat4': [],
                                             'rev1': [], 'rev2': [],
                                             'rev3': [], 'rev4': []},
@@ -370,8 +378,8 @@ def mycases(request, mysteps):
                                  'cat4': []},
                        'steps_here': [1, 2, 30, 125, 126, 127],
                        'completed': [],
-                       'new_badges': [],
-                       'promoted': {'cat2': [61, 64]},
+                       'new_badges': [68, 89, 72, 36, 115],
+                       'promoted': {'cat2': [61, 66]},
                        'demoted': {}},
              'case4':  # different location than previous step
                       {'casenum': 4,
@@ -397,13 +405,13 @@ def mycases(request, mysteps):
                                         'rev1': [], 'rev2': [],
                                         'rev3': [], 'rev4': []},
                        'tag_progress_out': {'latest_new': 1,
-                                            'cat1': [], 'cat2': [61],
+                                            'cat1': [62], 'cat2': [61],
                                             'cat3': [], 'cat4': [],
                                             'rev1': [], 'rev2': [],
                                             'rev3': [], 'rev4': []},
                        'steps_here': [1, 2, 30, 125, 126, 127],
                        'completed': [],
-                       'new_badges': [],
+                       'new_badges': [62],
                        'promoted': {'cat2': [61]},
                        'demoted': {}},
              'case5':  # new badges present
@@ -486,13 +494,16 @@ def mypathchooser(mycases):
 def mycategorizer(mycases):
     """A pytest fixture providing a paideia.Categorizer object for testing."""
     rank = mycases['tag_progress']['latest_new']
-    categories = {k: v for k, v in mycases['tag_progress_out'].iteritems()
-                  if not k == 'latest_new'}
+    cats_in = {k: v for k, v in mycases['tag_progress'].iteritems()
+               if not k == 'latest_new'}
+    cats_out = {k: v for k, v in mycases['tag_progress_out'].iteritems()
+                if not k == 'latest_new'}
     tag_rs = mycases['tag_records']
     now = mycases['mynow']
 
-    return {'categorizer': Categorizer(rank, categories, tag_rs, utcnow=now),
-            'categories': categories,
+    return {'categorizer': Categorizer(rank, cats_in, tag_rs, utcnow=now),
+            'categories_in': cats_in,
+            'categories_out': cats_out,
             'tag_progress_out': mycases['tag_progress_out'],
             'core_out': mycases['core_out'],
             'promoted': mycases['promoted'],
@@ -665,6 +676,7 @@ def myStepText(mycases, mysteps):
                 'casedata': mycases}
     else:
         pass
+
 
 @pytest.fixture
 def myStepMultiple(mycases, mysteps):
@@ -840,7 +852,6 @@ class TestStep():
                 pass
         else:
             pass
-
 
     def test_step_make_replacements(self, mystep):
         """Unit test for method Step._make_replacements()"""
@@ -1152,10 +1163,6 @@ class TestStepText():
     def test_steptext_get_readable(self, myStepText):
         """Unit tests for StepText._get_readable() method"""
         if myStepText:
-            casenum = myStepText['casenum']
-            case = 'case{}'.format(casenum)
-            case1 = {'readable_long': None, 'readable_short': ['μιτ']}
-            case2 = {'readable_long': None, 'readable_short': ['βατ|βοτ']}
             output = myStepText['stepdata']['readable']
             assert myStepText['step']._get_readable() == output
         else:
@@ -1461,15 +1468,31 @@ class TestCategorizer():
         case 1: removes tag 1 (too early) and introduces untried tag 61
         """
         cat = mycategorizer
-        output = {'tag_progress': cat['tag_progress_out'],
-                  'new_tags': cat['new_tags'],
-                  'promoted': cat['promoted'],
-                  'demoted': cat['demoted'],
-                  'categories': cat['categories']}
-        cats = cat['categorizer'].categorize_tags()
-        print 'ACTUAL\n', cats
-        print 'EXPECTED\n', output
-        assert cats == output
+        out = {'cats': cat['categories_out'],
+               't_prog': cat['tag_progress_out'],
+               'nt': cat['new_tags'],
+               'pro': cat['promoted'],
+               'de': cat['demoted']}
+        real = cat['categorizer'].categorize_tags()
+        print 'ACTUAL\n', real
+        print 'EXPECTED\n', out
+        for c, l in out['t_prog'].iteritems():
+            if isinstance(l, int):
+                real['tag_progress'][c] == l
+            else:
+                for t in l: assert t in real['tag_progress'][c]
+        if out['nt']:
+            for t in real['new_tags']:
+                assert t in out['nt']
+        for c, l in out['pro'].iteritems():
+            for t in l:
+                assert t in real['promoted'][c]
+        for c, l in out['de'].iteritems():
+            for t in l:
+                assert t in real['demoted'][c]
+        for c, l in out['cats'].iteritems():
+            for t in l:
+                assert t in real['categories'][c]
 
     def test_categorizer_core_algorithm(self, mycategorizer):
         """
