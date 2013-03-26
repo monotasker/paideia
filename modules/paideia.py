@@ -8,6 +8,7 @@ import datetime
 from itertools import chain
 from inspect import getargvalues, stack
 from copy import copy
+from pprint import pprint
 
 # TODO: move these notes elsewhere
 """
@@ -1321,12 +1322,14 @@ class Categorizer(object):
     (integers) of the tags that are currently in the given category.
     """
 
-    def __init__(self, rank, categories, tag_records, utcnow=None):
+    def __init__(self, rank, categories, tag_records,
+                 secondary_right=None, utcnow=None):
         """Initialize a paideia.Categorizer object"""
         self.rank = rank
         self.tag_records = tag_records
         self.old_categories = categories
         self.utcnow = utcnow
+        self.secondary_right = secondary_right
 
     def categorize_tags(self, rank=None, tag_records=None,
                         old_categories=None, db=None):
@@ -1340,6 +1343,7 @@ class Categorizer(object):
             tag_records = self.tag_records
         if not db:
             db = current.db
+        new_tags = None
 
         # if user has not tried any tags yet, start first set
         if tag_records[0] is None:
@@ -1365,7 +1369,6 @@ class Categorizer(object):
             # changes in categorization since last time
             cat_changes = self._find_cat_changes(categories, old_categories)
             promoted = cat_changes['promoted']
-            new_tags = cat_changes['new_tags']
             demoted = cat_changes['demoted']
             tag_progress = copy(cat_changes['categories'])
 
@@ -1374,10 +1377,9 @@ class Categorizer(object):
                 starting = self._introduce_tags()
                 categories['cat1'] = starting
                 tag_progress['cat1'] = starting
-                new_tags['cat1'].append(starting)
+                new_tags = starting
 
             # Re-insert 'latest new' to match tag_progress table in db
-            # TODO: also re-insert secondary_right value
             tag_progress['latest_new'] = self.rank
 
             return {'tag_progress': tag_progress,
@@ -1415,47 +1417,43 @@ class Categorizer(object):
             utcnow = datetime.datetime.utcnow()
         if not tag_records:
             tag_records = self.tag_records
+        # TODO: Get secondary_right here
 
         for record in tag_records:
             #note: arithmetic operations yield datetime.timedelta objects
             right_dur = utcnow - record['last_right']
             right_wrong_dur = record['last_right'] - record['last_wrong']
 
-            # spaced repetition algorithm for promotion from cat1
+            # spaced repetition algorithm for promotion to
             # ======================================================
-            # for category 2
+            # category 2
             if ((right_dur < right_wrong_dur)
                     # don't allow promotion from cat1 within 1 day
                     and (right_wrong_dur > datetime.timedelta(days=1))
                     # require at least 10 right answers
                     and (record['times_right'] >= 10)) \
-                or ((record['times_right'] > 0)  # prevent zero division error
+                or ((record['times_right'] >= 10)
+                    # require ratio of at least 5 right to 1 wrong
                     and ((record['times_wrong'] / record['times_right'])
                          <= 0.2)
-                    and (right_dur <= datetime.timedelta(days=2))) \
-                or ((record['times_wrong'] == 0)  # prevent zero division error
-                    and (record['times_right'] >= 20)):
-                    # TODO: add condition here requiring recent correct after
-                    # a gap in activity.
-                    # allow for 1 wrong answer for every 5 correct
-                    # promote in any case if the user has never had a wrong
-                    # answer in 20+ attempts
+                    # require that tag has right answer within last 2 days
+                    and (right_dur <= datetime.timedelta(days=14))): \
                 # ==================================================
                 # for cat3
-                if right_wrong_dur.days >= 7:
+                if right_wrong_dur.days >= 14:
                     # ==============================================
                     # for cat4
-                    if right_wrong_dur.days > 30:
+                    if right_wrong_dur.days > 60:
                         # ==========================================
                         # for immediate review
                         if right_wrong_dur > datetime.timedelta(days=180):
                             category = 'cat1'  # Not tried for 6 months
                         else:
-                            category = 'cat4'  # Not due, delta > a month
+                            category = 'cat4'  # Not due, delta > 60 days
                     else:
-                        category = 'cat3'  # delta between a week and month
+                        category = 'cat3'  # delta between 14 and 60 days
                 else:
-                    category = 'cat2'  # Not due but delta is a week or less
+                    category = 'cat2'  # Not due but delta is 2 weeks or less
             else:
                 category = 'cat1'  # Spaced repetition requires review
 
@@ -1505,11 +1503,10 @@ class Categorizer(object):
         """Determine whether any of the categorized tags are new or promoted"""
         if old_categories:
             demoted = {}
-            new_tags = {}
+            #new_tags = {}
             promoted = {}
             for category, lst in categories.iteritems():
                 if lst:
-                    # TODO: does this work to index dictionary keys?
                     catindex = categories.keys().index(category)
 
                     # was tag in a higher category before?
@@ -1542,25 +1539,32 @@ class Categorizer(object):
                                        if cat for val in cat])]
                     promoted[category] = [t for t in lst
                                           if t in lt_oldcats_flat]
+                    print 'in _find_cat_changes:',
+                    print 'lst:', lst
+                    print 'lt_oldcats_flat:', pprint(lt_oldcats_flat)
+                    print 'promoted[', category, ']:', promoted[category]
 
                     # was tag not in any dictionary?
                     # add to dictionary of 'new_tags'
-                    new = [t for t in lst if (t not in same_oldcat) and
-                           (t not in lt_oldcats_flat) and
-                           (t not in gt_oldcats_flat)]
-                    if new:
-                        new_tags[category] = new
+                    # TODO: below is deprecated, since none should be new
+                    #new = [t for t in lst if (t not in same_oldcat) and
+                           #(t not in lt_oldcats_flat) and
+                           #(t not in gt_oldcats_flat)]
+                    #if new:
+                        #new_tags[category] = new
                         # TODO: also record in badges_begun
             # TODO: make sure to add any 'rev' categories that are empty
             return {'categories': categories,
                     'demoted': demoted,
                     'promoted': promoted,
-                    'new_tags': new_tags}
+                    #'new_tags': new_tags,
+                    }
         else:
             return {'categories': categories,
                     'demoted': None,
                     'promoted': None,
-                    'new_tags': None}
+                    #'new_tags': None
+                    }
 
     def _clean_tag_records(record_list=None, db=None):
         """
