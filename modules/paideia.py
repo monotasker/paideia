@@ -1346,7 +1346,7 @@ class Categorizer(object):
         new_tags = None
 
         # if user has not tried any tags yet, start first set
-        if tag_records[0] is None:
+        if len(tag_records) == 0:
             categories = {}
             categories['cat1'] = self._introduce_tags()
             return {'tag_progress': None,
@@ -1361,9 +1361,9 @@ class Categorizer(object):
             # Remove any duplicates and tags beyond the user's current ranking
             for k, v in categories.iteritems():
                 if v:
-                    newv = [t for t in v if db.tags(t)
+                    rankv = [t for t in v if db.tags(t)
                             and (db.tags[t].position <= rank)]
-                    categories[k] = list(set(newv))
+                    categories[k] = list(set(rankv))
             # 'rev' categories are reintroduced
             categories.update((c, []) for c in ['rev1', 'rev2', 'rev3', 'rev4'])
             # changes in categorization since last time
@@ -1374,10 +1374,10 @@ class Categorizer(object):
 
             # If there are no tags left in category 1, introduce next set
             if not tag_progress['cat1']:
-                starting = self._introduce_tags()
-                categories['cat1'] = starting
-                tag_progress['cat1'] = starting
-                new_tags = starting
+                newtags = self._introduce_tags()
+                categories['cat1'] = newtags
+                tag_progress['cat1'] = newtags
+                new_tags = newtags
 
             # Re-insert 'latest new' to match tag_progress table in db
             tag_progress['latest_new'] = self.rank
@@ -1500,7 +1500,9 @@ class Categorizer(object):
         return categories
 
     def _find_cat_changes(self, cats, old_cats):
-        """Determine whether any of the categorized tags are new or promoted"""
+        """
+        Determine whether any of the categorized tags are promoted or demoted.
+        """
         if old_cats:
             demoted = {}
             promoted = {}
