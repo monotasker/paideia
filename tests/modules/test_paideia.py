@@ -318,6 +318,7 @@ def mycases(request, mysteps):
                        'demoted': {}},
              'case3':  # same location as previous step, last npc stephanos
              # promote tag based on time (without ratio)
+             # add several untried tags for current rank
                       {'casenum': 3,
                        'mynow': dt('2013-01-29'),
                        'name': 'Ian',
@@ -362,7 +363,7 @@ def mycases(request, mysteps):
                                         'cat3': [], 'cat4': [],
                                         'rev1': [], 'rev2': [],
                                         'rev3': [], 'rev4': []},
-                       'tag_progress_out': {'latest_new': 1,
+                       'tag_progress_out': {'latest_new': 4,
                                             'cat1': [62, 63, 68, 115, 72,
                                                      89, 36],
                                             'cat2': [61, 66],
@@ -378,7 +379,8 @@ def mycases(request, mysteps):
                                  'cat4': []},
                        'steps_here': [1, 2, 30, 125, 126, 127],
                        'completed': [],
-                       'new_badges': [68, 89, 72, 36, 115],
+                       'untried': [68, 89, 72, 36, 115],
+                       'new_badges': None,
                        'promoted': {'cat2': [61, 66]},
                        'demoted': {}},
              'case4':  # different location than previous step
@@ -1463,9 +1465,8 @@ class TestCategorizer():
         """
         Unit test for the paideia.Categorizer.categorize method.
 
-        Case numbers correspond to the cases (user performance scenarios) set
-        out in the myrecords fixture.
-        case 1: removes tag 1 (too early) and introduces untried tag 61
+        Test case data provided (and parameterized) by mycases fixture via the
+        mycategorizer fixture.
         """
         cat = mycategorizer
         out = {'cats': cat['categories_out'],
