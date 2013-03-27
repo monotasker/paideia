@@ -257,6 +257,9 @@ def mycases(request, mysteps):
                                         'secondary_right': None}],
                        'core_out': {'cat1': [1], 'cat2': [],
                                     'cat3': [], 'cat4': []},
+                       'untried_out': {'cat1': [1, 61], 'cat2': [],
+                                       'cat3': [], 'cat4': []},
+                       'introduced': [62],
                        'tag_progress': {'latest_new': 1,
                                         'cat1': [1], 'cat2': [],
                                         'cat3': [], 'cat4': [],
@@ -296,11 +299,14 @@ def mycases(request, mysteps):
                                         'secondary_right': []}],
                        'core_out': {'cat1': [], 'cat2': [61],
                                     'cat3': [], 'cat4': []},
+                       'untried_out': {'cat1': [], 'cat2': [61],
+                                       'cat3': [], 'cat4': []},
                        'tag_progress': {'latest_new': 1,
                                         'cat1': [61], 'cat2': [],
                                         'cat3': [], 'cat4': [],
                                         'rev1': [], 'rev2': [],
                                         'rev3': [], 'rev4': []},
+                       'introduced': [62],
                        'tag_progress_out': {'latest_new': 1,
                                             'cat1': [62], 'cat2': [61],
                                             'cat3': [], 'cat4': [],
@@ -358,11 +364,15 @@ def mycases(request, mysteps):
                                        ],
                        'core_out': {'cat1': [62, 63], 'cat2': [61, 66],
                                     'cat3': [], 'cat4': []},
+                       'untried_out': {'cat1': [62, 63, 68, 115, 72, 89, 36],
+                                       'cat2': [61, 66],
+                                       'cat3': [], 'cat4': []},
                        'tag_progress': {'latest_new': 4,
                                         'cat1': [61, 62, 63, 66], 'cat2': [],
                                         'cat3': [], 'cat4': [],
                                         'rev1': [], 'rev2': [],
                                         'rev3': [], 'rev4': []},
+                       'introduced': [9, 16, 48, 76, 93],
                        'tag_progress_out': {'latest_new': 4,
                                             'cat1': [62, 63, 68, 115, 72,
                                                      89, 36],
@@ -401,11 +411,14 @@ def mycases(request, mysteps):
                                         'secondary_right': None}],
                        'core_out': {'cat1': [], 'cat2': [61],
                                     'cat3': [], 'cat4': []},
+                       'untried_out': {'cat1': [], 'cat2': [61],
+                                       'cat3': [], 'cat4': []},
                        'tag_progress': {'latest_new': 1,
                                         'cat1': [61], 'cat2': [],
                                         'cat3': [], 'cat4': [],
                                         'rev1': [], 'rev2': [],
                                         'rev3': [], 'rev4': []},
+                       'introduced': [62],
                        'tag_progress_out': {'latest_new': 1,
                                             'cat1': [62], 'cat2': [61],
                                             'cat3': [], 'cat4': [],
@@ -434,11 +447,14 @@ def mycases(request, mysteps):
                                         'secondary_right': None}],
                        'core_out': {'cat1': [], 'cat2': [61],
                                     'cat3': [], 'cat4': []},
+                       'untried_out': {'cat1': [], 'cat2': [61],
+                                       'cat3': [], 'cat4': []},
                        'tag_progress': {'latest_new': 1,
                                         'cat1': [61], 'cat2': [],
                                         'cat3': [], 'cat4': [],
                                         'rev1': [], 'rev2': [],
                                         'rev3': [], 'rev4': []},
+                       'introduced': [62],  # assuming we call _introduce_tags
                        'tag_progress_out': {'latest_new': 1,
                                             'cat1': [62], 'cat2': [61],
                                             'cat3': [], 'cat4': [],
@@ -506,11 +522,15 @@ def mycategorizer(mycases):
     return {'categorizer': Categorizer(rank, cats_in, tag_rs, utcnow=now),
             'categories_in': cats_in,
             'categories_out': cats_out,
+            'tag_progress': mycases['tag_progress'],
             'tag_progress_out': mycases['tag_progress_out'],
             'core_out': mycases['core_out'],
             'promoted': mycases['promoted'],
             'demoted': mycases['demoted'],
-            'new_tags': mycases['new_badges']}
+            'new_tags': mycases['new_badges'],
+            'introduced': mycases['introduced'],
+            'untried_out': mycases['untried_out'],
+            }
 
 
 @pytest.fixture
@@ -1509,21 +1529,50 @@ class TestCategorizer():
         print 'EXPECTED\n', output
         assert  core == output
 
-    #def test_categorizer_introduce_tags(self):
-        #"""Unit test for the paideia.Categorizer._introduce_tags method"""
+    def test_categorizer_introduce_tags(self, mycategorizer):
+        """Unit test for the paideia.Categorizer._introduce_tags method"""
+        catzer = mycategorizer['categorizer']
+        newlist = catzer._introduce_tags()
+        if newlist:
+            print newlist
+            for n in newlist:
+                assert n in mycategorizer['introduced']
+        else:
+            assert newlist is False
+        assert len(newlist) == len(mycategorizer['introduced'])
+        assert catzer.rank == mycategorizer['tag_progress']['latest_new'] + 1
+
+    def test_categorizer_add_untried_tags(self, mycategorizer):
+        """Unit test for the paideia.Categorizer._add_untried_tags method"""
+        mz = mycategorizer
+        catin = mz['core_out']
+        catout = mz['untried_out']
+        for cat, lst in mz['categorizer']._add_untried_tags(catin).iteritems():
+            for tag in lst:
+                assert tag in catout[cat]
+            assert len(lst) == len(catout[cat])
+
+    def test_categorizer_find_cat_changes(self, mycategorizer):
+        """Unit test for the paideia.Categorizer._find_cat_changes method."""
+        mz = mycategorizer
+        actual = mz['categorizer']._find_cat_changes(mz['untried_out'],
+                                        mz['categorizer'].old_categories)
+        for t in actual['categories']:
+            if actual['categories']:
+                assert t in mz['untried_out']
+        for t in actual['demoted']:
+            if actual['demoted']:
+                assert t in mz['demoted']
+        for t in actual['promoted']:
+            if actual['promoted']:
+                assert t in mz['promoted']
+
+    def test_categorizer_add_secondary_right(self, mycategorizer):
+        """Unit test for the paideia.Categorizer._add_secondary_right method."""
         #assert 0
 
-    #def test_categorizer_add_untried_tags(self, mycategorizer):
-        #"""Unit test for the paideia.Categorizer._add_untried_tags method"""
-        #input_cats = {'cat1': [1], 'cat2': [],
-                        #'cat3': [], 'cat4': []}
-        #output_cats = {'cat1': [1, 61], 'cat2': [],
-                        #'cat3': [], 'cat4': []}
-        #assert mycategorizer['categorizer']._add_untried_tags(input_cats) == \
-                                                                #output_cats
-
-    #def test_categorizer_find_cat_changes(self):
-        #"""docstring for test_"""
+    def test_categorizer_find_secondary_right(self, mycategorizer):
+        """Unit test for the paideia.Categorizer._add_secondary_right method."""
         #assert 0
 
 #class TestWalk():

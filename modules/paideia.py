@@ -1374,10 +1374,10 @@ class Categorizer(object):
 
             # If there are no tags left in category 1, introduce next set
             if not tag_progress['cat1']:
-                newtags = self._introduce_tags()
-                categories['cat1'] = newtags
-                tag_progress['cat1'] = newtags
-                new_tags = newtags
+                newlist = self._introduce_tags()
+                categories['cat1'] = newlist
+                tag_progress['cat1'] = newlist
+                new_tags = newlist
 
             # Re-insert 'latest new' to match tag_progress table in db
             tag_progress['latest_new'] = self.rank
@@ -1477,6 +1477,7 @@ class Categorizer(object):
             rank == 1
         else:
             rank += 1
+        self.rank = rank
 
         newtags = [t['id'] for t in db(db.tags.position == rank).select()]
 
