@@ -394,6 +394,8 @@ def mycases(request, mysteps):
                        'promoted': {'cat2': [61, 66]},
                        'demoted': {}},
              'case4':  # different location than previous step
+             # secondary_right records override date and ratio to allow promot.
+             # secondary_right list sliced accordingly
                       {'casenum': 4,
                        'mynow': dt('2013-01-29'),
                        'name': 'Ian',
@@ -403,31 +405,55 @@ def mycases(request, mysteps):
                        'prev_npc_id': 1,
                        'npcs_here': [1, 14, 17, 21, 40, 41, 42],
                        'pathid': 1,
-                       'tag_records': [{'tag_id': 61,
+                       'tag_records': [{'tag_id': 61, # 2ndary overrides time
+                                        'last_right': dt('2013-01-24'),
+                                        'last_wrong': dt('2013-01-21'),
+                                        'times_right': 2,
+                                        'times_wrong': 10,
+                                        'secondary_right': [dt('2013-01-28'),
+                                                            dt('2013-01-28'),
+                                                            dt('2013-01-28'),
+                                                            dt('2013-01-29')]},
+                                       {'tag_id': 62, # 2ndary overrides ratio
                                         'last_right': dt('2013-01-29'),
                                         'last_wrong': dt('2013-01-28'),
-                                        'times_right': 10,
+                                        'times_right': 9,
                                         'times_wrong': 2,
-                                        'secondary_right': None}],
-                       'core_out': {'cat1': [], 'cat2': [61],
+                                        'secondary_right': [dt('2013-01-28'),
+                                                            dt('2013-01-28'),
+                                                            dt('2013-01-28')]}],
+                       'tag_records_out': [{'tag_id': 61, # 2ndary overrides time
+                                            'last_right': dt('2013-01-28'),
+                                            'last_wrong': dt('2013-01-21'),
+                                            'times_right': 3,
+                                            'times_wrong': 10,
+                                            'secondary_right': [dt('2013-01-29')]
+                                            },
+                                           {'tag_id': 62, # 2ndary overrides ratio
+                                            'last_right': dt('2013-01-29'),
+                                            'last_wrong': dt('2013-01-28'),
+                                            'times_right': 10,
+                                            'times_wrong': 2,
+                                            'secondary_right': None}],
+                       'core_out': {'cat1': [], 'cat2': [61, 62],
                                     'cat3': [], 'cat4': []},
-                       'untried_out': {'cat1': [], 'cat2': [61],
+                       'untried_out': {'cat1': [], 'cat2': [61, 62],
                                        'cat3': [], 'cat4': []},
-                       'tag_progress': {'latest_new': 1,
-                                        'cat1': [61], 'cat2': [],
+                       'tag_progress': {'latest_new': 2,
+                                        'cat1': [61, 62], 'cat2': [],
                                         'cat3': [], 'cat4': [],
                                         'rev1': [], 'rev2': [],
                                         'rev3': [], 'rev4': []},
-                       'introduced': [62],
-                       'tag_progress_out': {'latest_new': 1,
-                                            'cat1': [62], 'cat2': [61],
+                       'introduced': [],
+                       'tag_progress_out': {'latest_new': 3,
+                                            'cat1': [], 'cat2': [61, 62],
                                             'cat3': [], 'cat4': [],
                                             'rev1': [], 'rev2': [],
                                             'rev3': [], 'rev4': []},
                        'steps_here': [1, 2, 30, 125, 126, 127],
                        'completed': [],
                        'new_badges': [62],
-                       'promoted': {'cat2': [61]},
+                       'promoted': {'cat2': [61, 62]},
                        'demoted': {}},
              'case5':  # new badges present
                       {'casenum': 5,
@@ -518,19 +544,24 @@ def mycategorizer(mycases):
                 if not k == 'latest_new'}
     tag_rs = mycases['tag_records']
     now = mycases['mynow']
+    out = {'categorizer': Categorizer(rank, cats_in, tag_rs, utcnow=now),
+           'categories_in': cats_in,
+           'categories_out': cats_out,
+           'tag_progress': mycases['tag_progress'],
+           'tag_progress_out': mycases['tag_progress_out'],
+           'core_out': mycases['core_out'],
+           'promoted': mycases['promoted'],
+           'demoted': mycases['demoted'],
+           'new_tags': mycases['new_badges'],
+           'introduced': mycases['introduced'],
+           'untried_out': mycases['untried_out'],
+           'tag_records': tag_rs}
+    if 'tag_records_out' in mycases.keys():
+        out['tag_records_out'] = mycases['tag_records_out']
+    else:
+        out['tag_records_out'] = mycases['tag_records']
 
-    return {'categorizer': Categorizer(rank, cats_in, tag_rs, utcnow=now),
-            'categories_in': cats_in,
-            'categories_out': cats_out,
-            'tag_progress': mycases['tag_progress'],
-            'tag_progress_out': mycases['tag_progress_out'],
-            'core_out': mycases['core_out'],
-            'promoted': mycases['promoted'],
-            'demoted': mycases['demoted'],
-            'new_tags': mycases['new_badges'],
-            'introduced': mycases['introduced'],
-            'untried_out': mycases['untried_out'],
-            }
+    return out
 
 
 @pytest.fixture
@@ -1569,11 +1600,18 @@ class TestCategorizer():
 
     def test_categorizer_add_secondary_right(self, mycategorizer):
         """Unit test for the paideia.Categorizer._add_secondary_right method."""
-        #assert 0
-
-    def test_categorizer_find_secondary_right(self, mycategorizer):
-        """Unit test for the paideia.Categorizer._add_secondary_right method."""
-        #assert 0
+        mz = mycategorizer
+        recsin = mz['tag_records']
+        expected = mz['tag_records_out']
+        realout = mz['categorizer']._add_secondary_right(recsin)
+        for r in realout:
+            ri = realout.index(r)
+            assert r['tag_id'] == expected[ri]['tag_id']
+            assert r['last_right'] == expected[ri]['last_right']
+            assert r['last_wrong'] == expected[ri]['last_wrong']
+            assert r['times_right'] == expected[ri]['times_right']
+            assert r['last_wrong'] == expected[ri]['last_wrong']
+            assert r['secondary_right'] == expected[ri]['secondary_right']
 
 #class TestWalk():
     #"""
