@@ -1356,6 +1356,7 @@ class Categorizer(object):
                     'categories': categories}
         else:
             # otherwise, categorize tags that have been tried
+            self.tag_records = self._add_secondary(tag_records)
             categories = self._core_algorithm()
             categories = self._add_untried_tags(categories)
             # Remove any duplicates and tags beyond the user's current ranking
@@ -1387,6 +1388,40 @@ class Categorizer(object):
                     'promoted': promoted,
                     'demoted': demoted,
                     'categories': categories}
+
+    def _add_secondary_right(self, tag_records):
+        """
+        Finds tag records with secondary attempts and adjusts records.
+
+        For every 3 secondary_right entries, add 1 to times_right and change
+        last_right based on the average of those three attempt dates.
+        """
+        for rec in tag_records:
+            if rec['secondary_right'] and len(rec['secondary_right']) >= 3:
+                rindex = tag_records.index(rec)
+                rlen = len(rec['secondary_right'])
+                # increment times_right by 1 per 3 secondary_right
+                rnum = rlen / 3
+                print 'rnum:', rnum
+                rmod = rlen % 3
+                print 'rmod:', rmod
+                rec['times_right'] += rnum
+                # move last_right forward based on mean of last 3 secondary_right
+                now = self.utcnow
+                last3 = rec['secondary_right'][-(rmod + 3): -(rmod)]
+                print 'last3:', last3
+                last3_deltas = [now - s for s in last3]
+                print 'deltas:', last3_deltas
+                avg_delta = sum(last3_deltas, datetime.timedelta(0)) / 3
+                rec['last_right'] = now - avg_delta
+
+                # remove counted entries from secondary_right, leave remainder
+                rec['secondary_right'] = rec['secondary_right'][-(rmod):]
+                tag_records[rindex] = rec
+            else:
+                continue
+
+        return tag_records
 
     def _core_algorithm(self, tag_records=None):
         """
@@ -1534,15 +1569,11 @@ class Categorizer(object):
                     # was tag in a lower category?
                     lt = {k: old_cats[k] for k in
                           ['cat1', 'cat2', 'cat3', 'cat4'][:cindex]}
-                    print 'lt:', lt
                     lt_flat = [v for l in lt.values() if l for v in l]
                     # add to dictionary of 'promoted' tags
                     if lt_flat:
                         promoted[c] = [t for t in cats[c] if t in lt_flat]
                         print 'promoted[', c, ']:', promoted[c]
-                    print 'in _find_cat_changes:',
-                    print 'lst:', lst
-                    print 'lt_flat:', lt_flat
 
             return {'categories': cats,
                     'demoted': demoted,
