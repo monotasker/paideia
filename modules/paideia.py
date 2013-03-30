@@ -1323,13 +1323,16 @@ class Categorizer(object):
     """
 
     def __init__(self, rank, categories, tag_records,
-                 secondary_right=None, utcnow=None):
+                 secondary_right=None, utcnow=None, db=None):
         """Initialize a paideia.Categorizer object"""
         self.rank = rank
         self.tag_records = tag_records
         self.old_categories = categories
         self.utcnow = utcnow
         self.secondary_right = secondary_right
+        if not db:
+            db = current.db
+        self.db = db
 
     def categorize_tags(self, rank=None, tag_records=None,
                         old_categories=None, db=None):
@@ -1396,27 +1399,51 @@ class Categorizer(object):
         For every 3 secondary_right entries, add 1 to times_right and change
         last_right based on the average of those three attempt dates.
         """
+        db = self.db
         for rec in tag_records:
+            print rec
+            # add new secondary_right attempts from attempt_log
+            # (TODO: this is temporary)
+            db_recs = db(
+                        (db.attempt_log.name == rec['name']) &
+                        (db.attempt_log.score == 1.0) &
+                        (db.attempt_log.dt_attempted >= rec['last_right']) &
+                        (db.attempt_log.step == db.steps.id) &
+                        (db.steps.tags_secondary.contains(rec['tag_id']))
+            ).select(db.attempt_log.dt_attempted).as_list()
+
+            if db_recs:
+                dates = [t for v in db_recs for t in v.iteritems()]
+                try:
+                    rec['secondary_right'].append(dates)
+                except AttributeError:
+                    rec['secondary_right'] = dates
+
             if rec['secondary_right'] and len(rec['secondary_right']) >= 3:
                 rindex = tag_records.index(rec)
                 rlen = len(rec['secondary_right'])
                 # increment times_right by 1 per 3 secondary_right
                 rnum = rlen / 3
-                print 'rnum:', rnum
                 rmod = rlen % 3
-                print 'rmod:', rmod
                 rec['times_right'] += rnum
                 # move last_right forward based on mean of last 3 secondary_right
                 now = self.utcnow
-                last3 = rec['secondary_right'][-(rmod + 3): -(rmod)]
+                if rlen > 3:
+                    last3 = rec['secondary_right'][-(rmod + 3): -(rmod)]
+                else:
+                    last3 = rec['secondary_right'][:]
                 print 'last3:', last3
                 last3_deltas = [now - s for s in last3]
-                print 'deltas:', last3_deltas
                 avg_delta = sum(last3_deltas, datetime.timedelta(0)) / 3
                 rec['last_right'] = now - avg_delta
+                print 'last_right:', rec['last_right']
 
                 # remove counted entries from secondary_right, leave remainder
-                rec['secondary_right'] = rec['secondary_right'][-(rmod):]
+                if rlen > 3:
+                    rec['secondary_right'] = rec['secondary_right'][-(rmod):]
+                else:
+                    rec['secondary_right'] = []
+                print 'secondary_right (out)', rec['secondary_right']
                 tag_records[rindex] = rec
             else:
                 continue
