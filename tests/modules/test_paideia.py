@@ -249,7 +249,8 @@ def mycases(request, mysteps):
                        'npcs_here': [2, 8, 14, 17, 31, 40, 41, 42],
                        'pathid': 3,
                        'localias': 'shop_of_alexander',
-                       'tag_records': [{'tag_id': 1,
+                       'tag_records': [{'name': 1,
+                                        'tag_id': 1,
                                         'last_right': dt('2013-01-29'),
                                         'last_wrong': dt('2013-01-29'),
                                         'times_right': 1,
@@ -291,7 +292,8 @@ def mycases(request, mysteps):
                        'prev_npc_id': 1,
                        'npcs_here': [1, 14, 17, 21, 40, 41, 42],
                        'pathid': 89,
-                       'tag_records': [{'tag_id': 61,
+                       'tag_records': [{'name': 1,
+                                        'tag_id': 61,
                                         'last_right': dt('2013-01-29'),
                                         'last_wrong': dt('2013-01-28'),
                                         'times_right': 10,
@@ -334,28 +336,32 @@ def mycases(request, mysteps):
                        'prev_npc_id': 31,  # stephanos
                        'npcs_here': [31, 32],
                        'pathid': 19,
-                       'tag_records': [{'tag_id': 61,  # promote to 2 for time
+                       'tag_records': [{'name': 1,
+                                        'tag_id': 61,  # promote to 2 for time
                                         'last_right': dt('2013-01-27'),
                                         'last_wrong': dt('2013-01-21'),
                                         'times_right': 10,
                                         'times_wrong': 10,
                                         'secondary_right': None},
                                        # don't promote for time bc dw > dr
-                                       {'tag_id': 62,
+                                       {'name': 1,
+                                        'tag_id': 62,
                                         'last_right': dt('2013-01-10'),
                                         'last_wrong': dt('2013-01-1'),
                                         'times_right': 10,
                                         'times_wrong': 0,
                                         'secondary_right': None},
                                        # don't promote for time bc t_r < 10
-                                       {'tag_id': 63,
+                                       {'name': 1,
+                                        'tag_id': 63,
                                         'last_right': dt('2013-01-27'),
                                         'last_wrong': dt('2013-01-21'),
                                         'times_right': 9,
                                         'times_wrong': 0,
                                         'secondary_right': None},
                                        # promote for time bc t_r >= 10
-                                       {'tag_id': 66,
+                                       {'name': 1,
+                                        'tag_id': 66,
                                         'last_right': dt('2013-01-27'),
                                         'last_wrong': dt('2013-01-21'),
                                         'times_right': 10,
@@ -405,7 +411,8 @@ def mycases(request, mysteps):
                        'prev_npc_id': 1,
                        'npcs_here': [1, 14, 17, 21, 40, 41, 42],
                        'pathid': 1,
-                       'tag_records': [{'tag_id': 61, # 2ndary overrides time
+                       'tag_records': [{'name': 1,
+                                        'tag_id': 61,  # 2ndary overrides time
                                         'last_right': dt('2013-01-24'),
                                         'last_wrong': dt('2013-01-21'),
                                         'times_right': 2,
@@ -414,7 +421,8 @@ def mycases(request, mysteps):
                                                             dt('2013-01-28'),
                                                             dt('2013-01-28'),
                                                             dt('2013-01-29')]},
-                                       {'tag_id': 62, # 2ndary overrides ratio
+                                       {'name': 1,
+                                        'tag_id': 62,  # 2ndary overrides ratio
                                         'last_right': dt('2013-01-29'),
                                         'last_wrong': dt('2013-01-28'),
                                         'times_right': 9,
@@ -422,14 +430,16 @@ def mycases(request, mysteps):
                                         'secondary_right': [dt('2013-01-28'),
                                                             dt('2013-01-28'),
                                                             dt('2013-01-28')]}],
-                       'tag_records_out': [{'tag_id': 61, # 2ndary overrides time
+                       'tag_records_out': [{'name': 1,
+                                            'tag_id': 61,  # 2ndary overrides time
                                             'last_right': dt('2013-01-28'),
                                             'last_wrong': dt('2013-01-21'),
                                             'times_right': 3,
                                             'times_wrong': 10,
                                             'secondary_right': [dt('2013-01-29')]
                                             },
-                                           {'tag_id': 62, # 2ndary overrides ratio
+                                           {'name': 1,
+                                            'tag_id': 62,  # 2ndary overrides ratio
                                             'last_right': dt('2013-01-29'),
                                             'last_wrong': dt('2013-01-28'),
                                             'times_right': 10,
@@ -446,13 +456,14 @@ def mycases(request, mysteps):
                                         'rev3': [], 'rev4': []},
                        'introduced': [],
                        'tag_progress_out': {'latest_new': 3,
-                                            'cat1': [], 'cat2': [61, 62],
+                                            'cat1': [63, 72, 115],
+                                            'cat2': [61, 62],
                                             'cat3': [], 'cat4': [],
                                             'rev1': [], 'rev2': [],
                                             'rev3': [], 'rev4': []},
                        'steps_here': [1, 2, 30, 125, 126, 127],
                        'completed': [],
-                       'new_badges': [62],
+                       'new_badges': [63, 72, 115],
                        'promoted': {'cat2': [61, 62]},
                        'demoted': {}},
              'case5':  # new badges present
@@ -465,7 +476,8 @@ def mycases(request, mysteps):
                        'prev_npc_id': 1,
                        'npcs_here': [2, 14, 17, 31, 40, 41, 42],
                        'pathid': 1,
-                       'tag_records': [{'tag_id': 61,
+                       'tag_records': [{'name': 1,
+                                        'tag_id': 61,
                                         'last_right': dt('2013-01-29'),
                                         'last_wrong': dt('2013-01-28'),
                                         'times_right': 10,
@@ -1532,7 +1544,8 @@ class TestCategorizer():
             if isinstance(l, int):
                 real['tag_progress'][c] == l
             else:
-                for t in l: assert t in real['tag_progress'][c]
+                for t in l:
+                    assert t in real['tag_progress'][c]
         if out['nt']:
             for t in real['new_tags']:
                 assert t in out['nt']
@@ -1587,7 +1600,8 @@ class TestCategorizer():
         """Unit test for the paideia.Categorizer._find_cat_changes method."""
         mz = mycategorizer
         actual = mz['categorizer']._find_cat_changes(mz['untried_out'],
-                                        mz['categorizer'].old_categories)
+                                                     mz['categorizer'
+                                                        ].old_categories)
         for t in actual['categories']:
             if actual['categories']:
                 assert t in mz['untried_out']

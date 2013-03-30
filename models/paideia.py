@@ -174,6 +174,7 @@ db.define_table('steps',
     Field('instructions', 'list:reference step_instructions'),
     Field('tags', 'list:reference tags'),
     Field('tags_secondary', 'list:reference tags'),
+    Field('tags_ahead', 'list:reference tags'),
     Field('npcs', 'list:reference npcs'),
     Field('locations', 'list:reference locations'),
     Field('status', db.step_status, default=1),
@@ -197,6 +198,14 @@ db.steps.tags_secondary.requires = IS_IN_DB(db, 'tags.id',
                                                 db.tags._format,
                                                 multiple=True)
 db.steps.tags_secondary.widget = lambda field, value: AjaxSelect().widget(
+                                                field, value, 'tags',
+                                                refresher=True,
+                                                multi='basic',
+                                                lister='editlinks')
+db.steps.tags_ahead.requires = IS_IN_DB(db, 'tags.id',
+                                                db.tags._format,
+                                                multiple=True)
+db.steps.tags_ahead.widget = lambda field, value: AjaxSelect().widget(
                                                 field, value, 'tags',
                                                 refresher=True,
                                                 multi='basic',
