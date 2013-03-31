@@ -1359,7 +1359,7 @@ class Categorizer(object):
                     'categories': categories}
         else:
             # otherwise, categorize tags that have been tried
-            self.tag_records = self._add_secondary(tag_records)
+            self.tag_records = self._add_secondary_right(tag_records)
             categories = self._core_algorithm()
             categories = self._add_untried_tags(categories)
             # Remove any duplicates and tags beyond the user's current ranking
@@ -1432,10 +1432,11 @@ class Categorizer(object):
                     last3 = rec['secondary_right'][-(rmod + 3): -(rmod)]
                 else:
                     last3 = rec['secondary_right'][:]
-                print 'last3:', last3
                 last3_deltas = [now - s for s in last3]
                 avg_delta = sum(last3_deltas, datetime.timedelta(0)) / 3
-                rec['last_right'] = now - avg_delta
+                avg_date = now - avg_delta
+                if avg_date > rec['last_right']:
+                    rec['last_right'] = avg_date
                 print 'last_right:', rec['last_right']
 
                 # remove counted entries from secondary_right, leave remainder
