@@ -117,7 +117,11 @@ def mysteps(request):
                  'responses': {'response1': '^μιτ$'},
                  'readable': {'readable_short': ['μιτ'],
                               'readable_long': None},
-                 'tips': None},
+                 'tips': None,
+                 'reply_text': {'correct': 'Right. Κάλον.'},
+                 'user_responses': {'correct': 'βλα',
+                                    'incorrect': 'μιτ'}
+                 },
              2: {'id': 2,
                  'type': StepText,
                  'widget_type': 1,
@@ -131,7 +135,11 @@ def mysteps(request):
                  'responses': {'response1': '^β(α|ο)τ$'},
                  'readable': {'readable_short': [u'βατ', u'βοτ'],
                               'readable_long': [u'βατ', u'βοτ']},
-                 'tips': None},
+                 'reply_text': {'correct': 'Right. Κάλον.'},
+                 'tips': None,
+                 'user_responses': {'correct': 'βλα',
+                                    'incorrect': 'βοτ'}
+                 },
              30: {'id': 30,
                   'type': StepRedirect,
                   'widget_type': 9,
@@ -731,14 +739,22 @@ def myStepText(mycases, mysteps):
     A pytest fixture providing a paideia.StepText object for testing.
     """
     if mysteps['widget_type'] == 1:
-        return {'casenum': mycases['casenum'],
-                'step': StepFactory().get_instance(db=db,
-                                                   step_id=mysteps['id'],
-                                                   loc=mycases['loc'],
-                                                   prev_loc=mycases['prev_loc'],
-                                                   prev_npc_id=mycases['prev_npc_id']),
-                'stepdata': mysteps,
-                'casedata': mycases}
+        # following switch alternates correct and incorrect answers
+        # actual answers taken from mysteps data
+        for n in range(0, 2):
+            responses = ['incorrect', 'correct']
+            return {'casenum': mycases['casenum'],
+                    'step': StepFactory().get_instance(db=db,
+                                        step_id=mysteps['id'],
+                                        loc=mycases['loc'],
+                                        prev_loc=mycases['prev_loc'],
+                                        prev_npc_id=mycases['prev_npc_id']),
+                    'stepdata': mysteps,
+                    'casedata': mycases,
+                    'user_response': mysteps['user_responses'][responses[n]],
+                    'score': n,
+                    'times_right': n,
+                    'times_wrong': [1, 0][n]}
     else:
         pass
 
@@ -1233,34 +1249,27 @@ class TestStepText():
         else:
             pass
 
-    #def test_steptext_get_reply(self, myStepText):
-        #"""Unit tests for StepText._get_reply() method"""
-        #casenum = myStepText['casenum']
-        #case = 'case{}'.format(casenum)
-        #case1 = {'response': 'μιτ',
-                #'result': {'reply_text': 'Right. Κάλον.',
-                            #'tips': [],
-                            #'readable_short': ['μιτ'],
-                            #'readable_long': None,
-                            #'score': 1,
-                            #'times_right': 1,
-                            #'times_wrong': 0,
-                            #'user_response': 'μιτ'}}
-
-        #case2 = {'response': 'βλα',
-                #'result': {'reply_text': 'bla',
-                            #'tips': None,
-                            #'readable_short': ['bla'],
-                            #'readable_long': None,
-                            #'score': 0,
-                            #'times_right': 0,
-                            #'times_wrong': 1,
-                            #'user_response': 'βλα'}}
-        #out = locals()[case]
-        #func = myStepText['step'].get_reply(user_response=out['response'])
-        #for k, f in func.iteritems():
-            #assert  f == out['result'][k]
-
+    def test_steptext_get_reply(self, myStepText):
+        """Unit tests for StepText._get_reply() method"""
+        if myStepText:
+            step = myStepText['stepdata']
+            response = myStepText['user_response']
+            expected = {'reply_text': step['reply_text']['correct'],
+                        'tips': step['tips'],
+                        'readable_short': step['readable']['readable_short'],
+                        'readable_long': step['readable']['readable_long'],
+                        'score': myStepText['score'],
+                        'times_right': myStepText['times_right'],
+                        'times_wrong': myStepText['times_wrong'],
+                        'user_response': myStepText['user_response']}
+            actual = myStepText['step'].get_reply(user_response=response)
+            assert actual['reply_text'] == expected['reply_text']
+            assert actual['readable_short'] == expected['readable_short']
+            assert actual['readable_long'] == expected['readable_long']
+            assert actual['tips'] == expected['tips']
+            assert actual['times_right'] == expected['times_right']
+            assert actual['times_wrong'] == expected['times_wrong']
+            assert actual['user_response'] == expected['user_response']
 #class TestStepMultiple():
     #'''
     #Test class for paideia.StepMultiple
