@@ -174,11 +174,11 @@ def mysteps(request):
                    'tags_secondary': [],
                    'options': ['ναι', 'οὐ'],
                    'responses': {'response1': 'ναι'},
-                   'readable': {'readable_short': 'ναι',
+                   'readable': {'readable_short': ['ναι'],
                                 'readable_long': None},
                    'reply_text': {'correct': 'Right. Κάλον.',
                                   'incorrect': 'Incorrect. Try again!'},
-                   'tips': None},
+                   'tips': []},
              125: {'id': 125,
                    'type': StepQuotaReached,
                    'widget_type': 7,
@@ -757,12 +757,14 @@ def myStepText(mycases, mysteps):
         # actual answers taken from mysteps data
         for n in [0, 1]:
             responses = ['incorrect', 'correct']
+            s = StepFactory()
+            step = s.get_instance(db=db,
+                                  step_id=mysteps['id'],
+                                  loc=mycases['loc'],
+                                  prev_loc=mycases['prev_loc'],
+                                  prev_npc_id=mycases['prev_npc_id'])
             return {'casenum': mycases['casenum'],
-                    'step': StepFactory().get_instance(db=db,
-                                        step_id=mysteps['id'],
-                                        loc=mycases['loc'],
-                                        prev_loc=mycases['prev_loc'],
-                                        prev_npc_id=mycases['prev_npc_id']),
+                    'step': step,
                     'stepdata': mysteps,
                     'casedata': mycases,
                     'user_response': mysteps['user_responses'][responses[n]],
@@ -781,13 +783,15 @@ def myStepMultiple(mycases, mysteps):
         for n in [0, 1]:
             responses = ['incorrect', 'correct']
             options = mysteps['options']
-            right_opt = mystep['responses']['response1']
+            right_opt = mysteps['responses']['response1']
             right_i = options.index(right_opt)
             wrong_opts = options[:]
-            if len(wrong_opts) > 1:
-                wrong_opt = wrong_opts[randint(0, len(wrong_opts)]
-
             right_opt = wrong_opts.pop(right_i)
+            if len(wrong_opts) > 1:
+                user_responses = wrong_opts[randint(0, len(wrong_opts))]
+            else:
+                user_responses = wrong_opts
+            user_responses.append(right_opt)
 
             opts = ''
             for opt in options:
@@ -839,7 +843,7 @@ def myStepMultiple(mycases, mysteps):
                     'casedata': mycases,
                     'stepdata': mysteps,
                     'resp_text': resp,
-                    'user_response': mysteps
+                    'user_response': user_responses[n],
                     'reply_text': mysteps['reply_text'][responses[n]],
                     'score': n,
                     'times_right': n,
@@ -1345,6 +1349,7 @@ class TestStepText():
             assert actual['times_wrong'] == expected['times_wrong']
             assert actual['user_response'] == expected['user_response']
 
+
 class TestStepMultiple():
     '''
     Test class for paideia.StepMultiple
@@ -1364,17 +1369,21 @@ class TestStepMultiple():
     def test_stepmultiple_get_reply(self, myStepMultiple):
         """Unit testing for get_reply method of StepMultiple."""
         if myStepMultiple:
-            step = myStepText['stepdata']
-            response = myStepText['user_response']
-            expected = {'reply_text': myStepText['reply_text'],
+            step = myStepMultiple['stepdata']
+            response = myStepMultiple['user_response']
+
+            expected = {'reply_text': myStepMultiple['reply_text'],
                         'tips': step['tips'],
                         'readable_short': step['readable']['readable_short'],
                         'readable_long': step['readable']['readable_long'],
-                        'score': myStepText['score'],
-                        'times_right': myStepText['times_right'],
-                        'times_wrong': myStepText['times_wrong'],
-                        'user_response': myStepText['user_response']}
-            actual = myStepText['step'].get_reply(user_response=response)
+                        'score': myStepMultiple['score'],
+                        'times_right': myStepMultiple['times_right'],
+                        'times_wrong': myStepMultiple['times_wrong'],
+                        'user_response': myStepMultiple['user_response']}
+            actual = myStepMultiple['step'].get_reply(user_response=response)
+
+            print 'expected', expected['readable_short']
+            print 'actual', actual['readable_short']
             assert actual['reply_text'] == expected['reply_text']
             assert actual['readable_short'] == expected['readable_short']
             assert actual['readable_long'] == expected['readable_long']
