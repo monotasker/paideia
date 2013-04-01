@@ -1046,68 +1046,35 @@ class TestStep():
         else:
             pass
 
-    #def test_step_get_responder(self, mystep):
-        #"""Test for method Step.get_responder"""
-        #the_type = mystep['step'].__class__.__name__
-        ## Step, StepRedirect, StepViewSlides steps
-        #map_button = A("Map", _href=URL('walk'),
-                        #cid='page',
-                        #_class='button-yellow-grad back_to_map icon-location')
-        #Step_output = StepRedirect_output = StepViewSlides_output = DIV(map_button).xml()
-        ## StepText steps
-        #resp = '<form action="" autocomplete="off" enctype="multipart/form-data" method="post">'
-        #resp += '<table>'
-        #resp += '<tr id="no_table_response__row">'
-        #resp += '<td class="w2p_fl">'
-        #resp += '<label for="no_table_response" id="no_table_response__label">Response: </label>'
-        #resp += '</td>'
-        #resp += '<td class="w2p_fw">'
-        #resp += '<input class="string" id="no_table_response" name="response" type="text" value="" />'
-        #resp += '</td>'
-        #resp += '<td class="w2p_fc"></td>'
-        #resp += '</tr>'
-        #resp += '<tr id="submit_record__row">'
-        #resp += '<td class="w2p_fl"></td>'
-        #resp += '<td class="w2p_fw"><input type="submit" value="Submit" /></td>'
-        #resp += '<td class="w2p_fc"></td></tr></table></form>'
-        #StepText_output = resp
-        ## StepMultiple steps #TODO: insert stepMultiple responder html here
-        #StepMultiple_output = None
-        #output = locals()['{}_output'.format(the_type)]
+    def test_step_get_npc(self, mystep):
+        """Test for method Step.get_npc"""
+        # TODO: make sure the npc really is randomized
+        casenum = mystep['casenum']
+        case = 'case{}'.format(casenum)
+        case1 = {'npc_id': [8, 2, 32, 1, 17],
+                'name': ['Διοδωρος', 'Μαρια', 'Στεφανος', 'Ἀλεξανδρος', 'Ἱασων'],
+                'locs': [3, 1, 2, 4, 6, 7, 8, 11]}
+        case2 = {'npc_id': [8, 2, 32, 1],
+                'name': ['Διοδωρος', 'Μαρια', 'Στεφανος', 'Ἀλεξανδρος'],
+                'locs': [3, 1, 2, 4, 6, 7, 8, 11]}
+        case3 = {'npc_id': [14],
+                'name': ['Γεωργιος'],
+                'locs': [3, 1, 2, 4, 7, 8, 9, 10]}
+        output = locals()[case]
+        assert mystep['step'].get_npc().get_id() in output['npc_id']
+        assert mystep['step'].get_npc().get_name() in output['name']
+        locs = mystep['step'].get_npc().get_locations()
+        for l in locs:
+            assert isinstance(l, Location)
+            assert (l.get_id() in output['locs']) == True
 
-        #assert mystep['step'].get_responder().xml() == output
-
-    #def test_step_get_npc(self, mystep):
-        #"""Test for method Step.get_npc"""
-        ## TODO: make sure the npc really is randomized
-        #casenum = mystep['casenum']
-        #case = 'case{}'.format(casenum)
-        #case1 = {'npc_id': [8, 2, 32, 1, 17],
-                #'name': ['Διοδωρος', 'Μαρια', 'Στεφανος', 'Ἀλεξανδρος', 'Ἱασων'],
-                #'locs': [3, 1, 2, 4, 6, 7, 8, 11]}
-        #case2 = {'npc_id': [8, 2, 32, 1],
-                #'name': ['Διοδωρος', 'Μαρια', 'Στεφανος', 'Ἀλεξανδρος'],
-                #'locs': [3, 1, 2, 4, 6, 7, 8, 11]}
-        #case3 = {'npc_id': [14],
-                #'name': ['Γεωργιος'],
-                #'locs': [3, 1, 2, 4, 7, 8, 9, 10]}
-        #output = locals()[case]
-        #assert mystep['step'].get_npc().get_id() in output['npc_id']
-        #assert mystep['step'].get_npc().get_name() in output['name']
-        #locs = mystep['step'].get_npc().get_locations()
-        #for l in locs:
-            #assert isinstance(l, Location)
-            #assert (l.get_id() in output['locs']) == True
-
-    #def test_step_get_instructions(self, mystep):
-        #"""Test for method Step._get_instructions"""
-        #casenum = mystep['casenum']
-        #case = 'case{}'.format(casenum)
-        #case1 = ['Focus on finding Greek letters that make the *sounds* of the English word. Don\'t look for Greek "equivalents" for each English letter.']
-        #case2 = None
-        #case3 = None
-        #output = locals()[case]
-        #assert mystep['step']._get_instructions() == output
+    def test_step_get_instructions(self, mystep):
+        """Test for method Step._get_instructions"""
+        if mystep:
+            # ['Focus on finding Greek letters that make the *sounds* of the English word. Don\'t look for Greek "equivalents" for each English letter.']
+            expected = mystep['stepdata']['instructions']
+            actual = mystep['step']._get_instructions()
+            assert actual == expected
 
 #class TestStepRedirect():
     #'''
