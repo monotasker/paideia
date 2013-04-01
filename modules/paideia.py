@@ -881,8 +881,6 @@ class StepEvaluator(object):
         except re.error:
             redirect(URL('index', args=['error', 'regex']))
             reply = 'Oops! I seem to have encountered an error in this step.'
-            readable_short = None
-            readable_long = None
 
         tips = self.tips  # TODO: customize tips for specific errors
 
@@ -891,9 +889,7 @@ class StepEvaluator(object):
                 'times_right': times_right,
                 'reply': reply,
                 'user_response': user_response,
-                'tips': tips,
-                'readable_short': readable_short,
-                'readable_long': readable_long}
+                'tips': tips}
 
 
 class MultipleEvaluator(StepEvaluator):
