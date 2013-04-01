@@ -13,6 +13,7 @@ request = current.request
 import datetime
 # from pprint import pprint
 import re
+from random import randint
 
 # web2py library for functional testing
 from gluon.contrib.webclient import WebClient
@@ -109,9 +110,14 @@ def mysteps(request):
                  'widget_type': 1,
                  'npc_list': [8, 2, 32, 1, 17],
                  'locations': [3, 1, 13, 7, 8, 11],
-                 'raw_prompt': 'How could you write the word "meet" using Greek letters?',
-                 'final_prompt': 'How could you write the word "meet" using Greek letters?',
-                 'instructions': ['Focus on finding Greek letters that make the *sounds* of the English word. Don\'t look for Greek "equivalents" for each English letter.'],
+                 'raw_prompt': 'How could you write the word "meet" using '
+                               'Greek letters?',
+                 'final_prompt': 'How could you write the word "meet" using '
+                                 'Greek letters?',
+                 'instructions': ['Focus on finding Greek letters that make '
+                                  'the *sounds* of the English word. Don\'t '
+                                  'look for Greek "equivalents" for each '
+                                  'English letter.'],
                  'tags': [61],
                  'tags_secondary': [],
                  'responses': {'response1': '^μιτ$'},
@@ -128,8 +134,10 @@ def mysteps(request):
                  'widget_type': 1,
                  'npc_list': [8, 2, 32, 1],
                  'locations': [3, 1, 13, 7, 8, 11],
-                 'raw_prompt': 'How could you write the word "bought" using Greek letters?',
-                 'final_prompt': 'How could you write the word "bought" using Greek letters?',
+                 'raw_prompt': 'How could you write the word "bought" using '
+                               'Greek letters?',
+                 'final_prompt': 'How could you write the word "bought" using '
+                                 'Greek letters?',
                  'instructions': None,
                  'tags': [61],
                  'tags_secondary': [],
@@ -168,6 +176,8 @@ def mysteps(request):
                    'responses': {'response1': 'ναι'},
                    'readable': {'readable_short': 'ναι',
                                 'readable_long': None},
+                   'reply_text': {'correct': 'Right. Κάλον.',
+                                  'incorrect': 'Incorrect. Try again!'},
                    'tips': None},
              125: {'id': 125,
                    'type': StepQuotaReached,
@@ -770,9 +780,17 @@ def myStepMultiple(mycases, mysteps):
     if mysteps['widget_type'] == 4:
         for n in [0, 1]:
             responses = ['incorrect', 'correct']
+            options = mysteps['options']
+            right_opt = mystep['responses']['response1']
+            right_i = options.index(right_opt)
+            wrong_opts = options[:]
+            if len(wrong_opts) > 1:
+                wrong_opt = wrong_opts[randint(0, len(wrong_opts)]
+
+            right_opt = wrong_opts.pop(right_i)
 
             opts = ''
-            for opt in mysteps['options']:
+            for opt in options:
                 opts += '<tr>' \
                         '<td>' \
                         '<input id="response{}" name="response" ' \
@@ -820,7 +838,12 @@ def myStepMultiple(mycases, mysteps):
                     'step': StepFactory().get_instance(**kwargs),
                     'casedata': mycases,
                     'stepdata': mysteps,
-                    'resp_text': resp}
+                    'resp_text': resp,
+                    'user_response': mysteps
+                    'reply_text': mysteps['reply_text'][responses[n]],
+                    'score': n,
+                    'times_right': n,
+                    'times_wrong': [1, 0][n]}
     else:
         pass
 
@@ -1338,44 +1361,27 @@ class TestStepMultiple():
         else:
             pass
 
-    #def test_stepmultiple_get_reply(self, myStepMultiple):
-        #"""Unit testing for get_reply method of StepMultiple."""
-        #casenum = myStepMultiple['casenum']
-        #case = 'case{}'.format(casenum)
-        #case1 = {'reply_text': 'Right. Κάλον.',
-                #'tips': [],
-                #'readable_short': ['ναι'],
-                #'readable_long': None,
-                #'score': 1,
-                #'times_right': 1,
-                #'times_wrong': 0,
-                #'user_response': 'ναι'}
-        #case2 = {'reply_text': 'Incorrect. Try again!',
-                #'tips': [],
-                #'readable_short': ['οὐ'],
-                #'readable_long': None,
-                #'score': 0,
-                #'times_right': 0,
-                #'times_wrong': 1,
-                #'user_response': 'οὐ'}
-        #out = locals()[case]
-        #assert myStepMultiple['step'].get_reply(out['user_response']
-                                    #)['reply_text'] == out['reply_text']
-        #assert myStepMultiple['step'].get_reply(out['user_response']
-                                    #)['tips'] == out['tips']
-        #assert myStepMultiple['step'].get_reply(out['user_response']
-                                    #)['readable_short'] == out['readable_short']
-        #assert myStepMultiple['step'].get_reply(out['user_response']
-                                    #)['readable_long'] == out['readable_long']
-        #assert myStepMultiple['step'].get_reply(out['user_response']
-                                    #)['score'] == out['score']
-        #assert myStepMultiple['step'].get_reply(out['user_response']
-                                    #)['times_right'] == out['times_right']
-        #assert myStepMultiple['step'].get_reply(out['user_response']
-                                    #)['times_wrong'] == out['times_wrong']
-        #assert myStepMultiple['step'].get_reply(out['user_response']
-                                    #)['user_response'] == out['user_response']
-
+    def test_stepmultiple_get_reply(self, myStepMultiple):
+        """Unit testing for get_reply method of StepMultiple."""
+        if myStepMultiple:
+            step = myStepText['stepdata']
+            response = myStepText['user_response']
+            expected = {'reply_text': myStepText['reply_text'],
+                        'tips': step['tips'],
+                        'readable_short': step['readable']['readable_short'],
+                        'readable_long': step['readable']['readable_long'],
+                        'score': myStepText['score'],
+                        'times_right': myStepText['times_right'],
+                        'times_wrong': myStepText['times_wrong'],
+                        'user_response': myStepText['user_response']}
+            actual = myStepText['step'].get_reply(user_response=response)
+            assert actual['reply_text'] == expected['reply_text']
+            assert actual['readable_short'] == expected['readable_short']
+            assert actual['readable_long'] == expected['readable_long']
+            assert actual['tips'] == expected['tips']
+            assert actual['times_right'] == expected['times_right']
+            assert actual['times_wrong'] == expected['times_wrong']
+            assert actual['user_response'] == expected['user_response']
 
 #class TestStepEvaluator():
     #"""Class for evaluating the submitted response string for a Step"""
