@@ -12,7 +12,7 @@ request = current.request
 # from gluon.dal import Rows
 import datetime
 # from pprint import pprint
-# import re
+import re
 
 # web2py library for functional testing
 from gluon.contrib.webclient import WebClient
@@ -157,8 +157,10 @@ def mysteps(request):
                    'widget_type': 4,
                    'locations': [7],
                    'npc_list': [14],
-                   'raw_prompt': 'Is this an English clause?\r\n\r\n"The cat sat."',
-                   'final_prompt': 'Is this an English clause?\r\n\r\n"The cat sat."',
+                   'raw_prompt': 'Is this an English clause?\r\n\r\n"The '
+                                 'cat sat."',
+                   'final_prompt': 'Is this an English clause?\r\n\r\n"The '
+                                   'cat sat."',
                    'instructions': None,
                    'tags': [36],
                    'tags_secondary': [],
@@ -765,14 +767,60 @@ def myStepText(mycases, mysteps):
 @pytest.fixture
 def myStepMultiple(mycases, mysteps):
     """ """
-    if mysteps['widget'] == 4:
-        kwargs = {'step_id': mysteps['id'],
-                  'loc': mycases['loc'],
-                  'prev_loc': mycases['prev_loc'],
-                  'prev_npc_id': mycases['prev_npc_id'],
-                  'db': db}
-        return {'casenum': request.param,
-                'step': StepFactory().get_instance(**kwargs)}
+    if mysteps['widget_type'] == 4:
+        for n in [0, 1]:
+            responses = ['incorrect', 'correct']
+
+            opts = ''
+            for opt in mysteps['options']:
+                opts += '<tr>' \
+                        '<td>' \
+                        '<input id="response{}" name="response" ' \
+                        'type="radio" value="{}" />' \
+                        '<label for="response{}">{}</label>' \
+                        '</td>' \
+                        '</tr>'.format(opt, opt, opt, opt)
+
+            resp = '^<form action="#" enctype="multipart/form-data" ' \
+                'method="post">' \
+                '<table>' \
+                '<tr id="no_table_response__row">' \
+                '<td class="w2p_fl">' \
+                '<label for="no_table_response" ' \
+                'id="no_table_response__label">Response: </label>' \
+                '</td>' \
+                '<td class="w2p_fw">' \
+                '<table class="generic-widget" ' \
+                'id="no_table_response" name="response">' \
+                '{}' \
+                '</table>' \
+                '</td>' \
+                '<td class="w2p_fc"></td>' \
+                '</tr>' \
+                '<tr id="submit_record__row">' \
+                '<td class="w2p_fl"></td>' \
+                '<td class="w2p_fw">' \
+                '<input type="submit" value="Submit" /></td>' \
+                '<td class="w2p_fc"></td>' \
+                '</tr>' \
+                '</table>' \
+                '<div style="display:none;">' \
+                '<input name="_formkey" type="hidden" value=".*" />' \
+                '<input name="_formname" type="hidden" ' \
+                'value="no_table/create" />' \
+                '</div>' \
+                '</form>$'.format(opts)
+
+            kwargs = {'step_id': mysteps['id'],
+                      'loc': mycases['loc'],
+                      'prev_loc': mycases['prev_loc'],
+                      'prev_npc_id': mycases['prev_npc_id'],
+                      'db': db}
+            return {'casenum': request.param,
+                    'step': StepFactory().get_instance(**kwargs),
+                    'casedata': mycases,
+                    'stepdata': mysteps,
+                    'resp_text': resp}
     else:
         pass
 
@@ -1273,53 +1321,22 @@ class TestStepText():
             assert actual['times_right'] == expected['times_right']
             assert actual['times_wrong'] == expected['times_wrong']
             assert actual['user_response'] == expected['user_response']
-#class TestStepMultiple():
-    #'''
-    #Test class for paideia.StepMultiple
-    #'''
-    #def test_stepmultiple_get_responder(self, myStepMultiple):
-        #"""Unit testing for get_responder method of StepMultiple."""
 
-        ## value of _formkey input near end is variable, so matched with .*
-        #resp = '^<form action="" enctype="multipart/form-data" method="post">'
-        #resp += '<table>'
-        #resp += '<tr id="no_table_response__row">'
-        #resp += '<td class="w2p_fl">'
-        #resp += '<label for="no_table_response" id="no_table_response__label">Response: </label>'
-        #resp += '</td>'
-        #resp += '<td class="w2p_fw">'
-        #resp += '<table class="generic-widget" id="no_table_response" name="response">'
-        #resp += '<tr>'
-        #resp += '<td>'
-        #resp += '<input id="responseναι" name="response" type="radio" value="ναι" />'
-        #resp += '<label for="responseναι">ναι</label>'
-        #resp += '</td>'
-        #resp += '</tr>'
-        #resp += '<tr>'
-        #resp += '<td>'
-        #resp += '<input id="responseοὐ" name="response" type="radio" value="οὐ" />'
-        #resp += '<label for="responseοὐ">οὐ</label>'
-        #resp += '</td>'
-        #resp += '</tr>'
-        #resp += '</table>'
-        #resp += '</td>'
-        #resp += '<td class="w2p_fc"></td>'
-        #resp += '</tr>'
-        #resp += '<tr id="submit_record__row">'
-        #resp += '<td class="w2p_fl"></td>'
-        #resp += '<td class="w2p_fw">'
-        #resp += '<input type="submit" value="Submit" /></td>'
-        #resp += '<td class="w2p_fc"></td>'
-        #resp += '</tr>'
-        #resp += '</table>'
-        #resp += '<div class="hidden">'
-        #resp += '<input name="_formkey" type="hidden" value=".*" />'
-        #resp += '<input name="_formname" type="hidden" value="no_table/create" />'
-        #resp += '</div>'
-        #resp += '</form>$'
-
-        #testfunc = myStepMultiple['step'].get_responder().xml()
-        #assert re.match(resp, testfunc)
+class TestStepMultiple():
+    '''
+    Test class for paideia.StepMultiple
+    '''
+    def test_stepmultiple_get_responder(self, myStepMultiple):
+        """Unit testing for get_responder method of StepMultiple."""
+        if myStepMultiple:
+            # value of _formkey input near end is variable, so matched with .*
+            expected = myStepMultiple['resp_text']
+            actual = myStepMultiple['step'].get_responder().xml()
+            print 'actual\n', actual
+            print 'expected\n', expected
+            assert re.match(expected, actual)
+        else:
+            pass
 
     #def test_stepmultiple_get_reply(self, myStepMultiple):
         #"""Unit testing for get_reply method of StepMultiple."""
