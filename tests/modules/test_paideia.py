@@ -117,10 +117,11 @@ def mysteps(request):
                  'responses': {'response1': '^μιτ$'},
                  'readable': {'readable_short': ['μιτ'],
                               'readable_long': None},
-                 'tips': None,
-                 'reply_text': {'correct': 'Right. Κάλον.'},
-                 'user_responses': {'correct': 'βλα',
-                                    'incorrect': 'μιτ'}
+                 'tips': [],
+                 'reply_text': {'correct': 'Right. Κάλον.',
+                                'incorrect': 'Incorrect. Try again!'},
+                 'user_responses': {'correct': 'μιτ',
+                                    'incorrect': 'βλα'}
                  },
              2: {'id': 2,
                  'type': StepText,
@@ -135,10 +136,11 @@ def mysteps(request):
                  'responses': {'response1': '^β(α|ο)τ$'},
                  'readable': {'readable_short': [u'βατ', u'βοτ'],
                               'readable_long': [u'βατ', u'βοτ']},
-                 'reply_text': {'correct': 'Right. Κάλον.'},
-                 'tips': None,
-                 'user_responses': {'correct': 'βλα',
-                                    'incorrect': 'βοτ'}
+                 'reply_text': {'correct': 'Right. Κάλον.',
+                                'incorrect': 'Incorrect. Try again!'},
+                 'tips': None,  # why is this None, but step 1 its []?
+                 'user_responses': {'correct': 'βοτ',
+                                    'incorrect': 'βλα'}
                  },
              30: {'id': 30,
                   'type': StepRedirect,
@@ -741,7 +743,7 @@ def myStepText(mycases, mysteps):
     if mysteps['widget_type'] == 1:
         # following switch alternates correct and incorrect answers
         # actual answers taken from mysteps data
-        for n in range(0, 2):
+        for n in [0, 1]:
             responses = ['incorrect', 'correct']
             return {'casenum': mycases['casenum'],
                     'step': StepFactory().get_instance(db=db,
@@ -752,6 +754,7 @@ def myStepText(mycases, mysteps):
                     'stepdata': mysteps,
                     'casedata': mycases,
                     'user_response': mysteps['user_responses'][responses[n]],
+                    'reply_text': mysteps['reply_text'][responses[n]],
                     'score': n,
                     'times_right': n,
                     'times_wrong': [1, 0][n]}
@@ -1254,7 +1257,7 @@ class TestStepText():
         if myStepText:
             step = myStepText['stepdata']
             response = myStepText['user_response']
-            expected = {'reply_text': step['reply_text']['correct'],
+            expected = {'reply_text': myStepText['reply_text'],
                         'tips': step['tips'],
                         'readable_short': step['readable']['readable_short'],
                         'readable_long': step['readable']['readable_long'],
