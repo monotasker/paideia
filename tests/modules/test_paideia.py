@@ -853,37 +853,52 @@ def myStepMultiple(mycases, mysteps):
 
 
 @pytest.fixture
-def myStepEvaluator(mycases, mysteps):
+def myStepEvaluator(mysteps):
     """
     A pytest fixture providing a paideia.StepEvaluator object for testing.
     """
     if mysteps['widget_type'] == 1:
-        kwargs = {'responses': mysteps['responses'],
-                  'tips': mysteps['tips'],
-                  'db': db}
-        return {'casenum': mycases['casenum'],
-                'eval': StepEvaluator(**kwargs),
-                'stepdata': mysteps,
-                'casedata': mycases}
+        for n in [0, 1]:
+            responses = ['incorrect', 'correct']
+            user_responses = ['bla', mysteps['responses']['response1']]
+            kwargs = {'responses': mysteps['responses'],
+                      'tips': mysteps['tips']}
+            return {'eval': StepEvaluator(**kwargs),
+                    'tips': mysteps['tips'],
+                    'reply_text': mysteps['reply_text'][responses[n]],
+                    'score': n,
+                    'times_right': n,
+                    'times_wrong': [1, 0][n],
+                    'user_response': user_responses[n]}
+        else:
+            pass
     else:
         pass
 
 
-@pytest.fixture(params=[s for s in range(1, 2)])
-def myMultipleEvaluator(request):
+@pytest.fixture()
+def myMultipleEvaluator(request, mysteps):
     """
     A pytest fixture providing a paideia.MultipleEvaluator object for testing.
     """
     if mysteps['widget_type'] == 4:
-        kwargs = {'responses': mysteps['options'],
-                  'tips': mysteps['tips'],
-                  'db': db}
-        return {'casenum': mycases['casenum'],
-                'eval': MultipleEvaluator(**kwargs),
-                'stepdata': mysteps,
-                'casedata': mycases}
+        for n in [0, 1]:
+            responses = ['incorrect', 'correct']
+            user_responses = ['bla', mysteps['responses']['response1']]
+            kwargs = {'responses': mysteps['responses'],
+                      'tips': mysteps['tips']}
+            return {'eval': MultipleEvaluator(**kwargs),
+                    'tips': mysteps['tips'],
+                    'reply_text': mysteps['reply_text'][responses[n]],
+                    'score': n,
+                    'times_right': n,
+                    'times_wrong': [1, 0][n],
+                    'user_response': user_responses[n]}
+        else:
+            pass
     else:
         pass
+
 
 # ===================================================================
 # Test Classes
@@ -1381,9 +1396,6 @@ class TestStepMultiple():
                         'times_wrong': myStepMultiple['times_wrong'],
                         'user_response': myStepMultiple['user_response']}
             actual = myStepMultiple['step'].get_reply(user_response=response)
-
-            print 'expected', expected['readable_short']
-            print 'actual', actual['readable_short']
             assert actual['reply_text'] == expected['reply_text']
             assert actual['readable_short'] == expected['readable_short']
             assert actual['readable_long'] == expected['readable_long']
@@ -1392,79 +1404,57 @@ class TestStepMultiple():
             assert actual['times_wrong'] == expected['times_wrong']
             assert actual['user_response'] == expected['user_response']
 
-#class TestStepEvaluator():
-    #"""Class for evaluating the submitted response string for a Step"""
 
-    #def test_stepevaluator_get_eval(self, myStepEvaluator):
-        #"""Unit tests for StepEvaluator.get_eval() method."""
-        #casenum = myStepEvaluator['casenum']
-        #case = 'case{}'.format(casenum)
-        #case1 = {'reply_text': 'Right. Κάλον.',
-                #'tips': None,
-                #'readable_short': ['μιτ'],
-                #'readable_long': None,
-                #'score': 1,
-                #'times_right': 1,
-                #'times_wrong': 0,
-                #'user_response': 'μιτ'}
-        #case2 = {'reply_text': 'Right. Κάλον.',
-                #'tips': None,
-                #'readable_short': ['ναι'],
-                #'readable_long': None,
-                #'score': 1,
-                #'times_right': 1,
-                #'times_wrong': 0,
-                #'user_response': 'βατ'}
-        #out = locals()[case]
+class TestStepEvaluator():
+    """Class for evaluating the submitted response string for a Step"""
 
-        #assert myStepEvaluator['eval'].get_eval(out['user_response']
-                                        #)['score'] == out['score']
-        #assert myStepEvaluator['eval'].get_eval(out['user_response']
-                                        #)['times_wrong'] == out['times_wrong']
-        #assert myStepEvaluator['eval'].get_eval(out['user_response']
-                                        #)['reply'] == out['reply_text']
-        #assert myStepEvaluator['eval'].get_eval(out['user_response']
-                                        #)['user_response'] == out['user_response']
-        #assert myStepEvaluator['eval'].get_eval(out['user_response']
-                                        #)['tips'] == out['tips']
+    def test_stepevaluator_get_eval(self, myStepEvaluator):
+        """Unit tests for StepEvaluator.get_eval() method."""
+        if myStepEvaluator:
+            evl = myStepEvaluator
+            response = evl['user_response']
+            expected = {'reply_text': evl['reply_text'],
+                        'tips': evl['tips'],
+                        'score': evl['score'],
+                        'times_wrong': evl['times_wrong'],
+                        'times_right': evl['times_right'],
+                        'user_response': response}
+
+            actual = myStepEvaluator['eval'].get_eval(response)
+            assert actual['score'] == expected['score']
+            assert actual['reply'] == expected['reply_text']
+            assert actual['times_wrong'] == expected['times_wrong']
+            assert actual['times_right'] == expected['times_right']
+            assert actual['user_response'] == expected['user_response']
+            assert actual['tips'] == expected['tips']
+        else:
+            pass
 
 
-#class TestMultipleEvaluator():
-    #"""Class for evaluating the submitted response string for a StepMultiple"""
+class TestMultipleEvaluator():
+    """Class for evaluating the submitted response string for a StepMultiple"""
 
-    #def test_multipleevaluator_get_eval(self, myMultipleEvaluator):
-        #"""Unit tests for StepEvaluator.get_eval() method."""
-        #casenum = myMultipleEvaluator['casenum']
-        #case = 'case{}'.format(casenum)
-        ## step 101
-        #case1 = {'reply_text': 'Right. Κάλον.',
-                #'tips': None,
-                #'readable_short': ['ναι'],
-                #'readable_long': None,
-                #'score': 1,
-                #'times_right': 1,
-                #'times_wrong': 0,
-                #'user_response': 'ναι'}
-        ## step 101
-        #case2 = {'reply_text': 'Incorrect. Try again!',
-                #'tips': None,
-                #'readable_short': ['ναι'],
-                #'readable_long': None,
-                #'score': 1,
-                #'times_right': 1,
-                #'times_wrong': 0,
-                #'user_response': 'οὐ'}
-        #out = locals()[case]
-        #assert myMultipleEvaluator['eval'].get_eval(out['user_response']
-                #)['score'] == out['score']
-        #assert myMultipleEvaluator['eval'].get_eval(out['user_response']
-                #)['times_wrong'] == out['times_wrong']
-        #assert myMultipleEvaluator['eval'].get_eval(out['user_response']
-                #)['reply'] == out['reply_text']
-        #assert myMultipleEvaluator['eval'].get_eval(out['user_response']
-                #)['user_response'] == out['user_response']
-        #assert myMultipleEvaluator['eval'].get_eval(out['user_response']
-                #)['tips'] == out['tips']
+    def test_multipleevaluator_get_eval(self, myMultipleEvaluator):
+        """Unit tests for multipleevaluator.get_eval() method."""
+        if myMultipleEvaluator:
+            evl = myMultipleEvaluator
+            response = evl['user_response']
+            expected = {'reply_text': evl['reply_text'],
+                        'tips': evl['tips'],
+                        'score': evl['score'],
+                        'times_wrong': evl['times_wrong'],
+                        'times_right': evl['times_right'],
+                        'user_response': response}
+
+            actual = myMultipleEvaluator['eval'].get_eval(response)
+            assert actual['score'] == expected['score']
+            assert actual['reply'] == expected['reply_text']
+            assert actual['times_wrong'] == expected['times_wrong']
+            assert actual['times_right'] == expected['times_right']
+            assert actual['user_response'] == expected['user_response']
+            assert actual['tips'] == expected['tips']
+        else:
+            pass
 
 
 #class TestPath():
