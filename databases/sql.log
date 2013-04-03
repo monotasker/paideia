@@ -748,3 +748,5 @@ CREATE TABLE badges_begun(
 success!
 timestamp: 2013-03-05T13:58:39.718009
 ALTER TABLE tag_records ADD secondary_right TEXT;
+timestamp: 2013-03-29T13:25:00.535823
+ALTER TABLE steps ADD tags_ahead TEXT;
