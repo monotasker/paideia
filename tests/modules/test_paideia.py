@@ -12,7 +12,8 @@ request = current.request
 # from gluon.dal import Rows
 import datetime
 # from pprint import pprint
-# import re
+import re
+from random import randint
 
 # web2py library for functional testing
 from gluon.contrib.webclient import WebClient
@@ -109,29 +110,46 @@ def mysteps(request):
                  'widget_type': 1,
                  'npc_list': [8, 2, 32, 1, 17],
                  'locations': [3, 1, 13, 7, 8, 11],
-                 'raw_prompt': 'How could you write the word "meet" using Greek letters?',
-                 'final_prompt': 'How could you write the word "meet" using Greek letters?',
-                 'instructions': ['Focus on finding Greek letters that make the *sounds* of the English word. Don\'t look for Greek "equivalents" for each English letter.'],
+                 'raw_prompt': 'How could you write the word "meet" using '
+                               'Greek letters?',
+                 'final_prompt': 'How could you write the word "meet" using '
+                                 'Greek letters?',
+                 'instructions': ['Focus on finding Greek letters that make '
+                                  'the *sounds* of the English word. Don\'t '
+                                  'look for Greek "equivalents" for each '
+                                  'English letter.'],
                  'tags': [61],
                  'tags_secondary': [],
                  'responses': {'response1': '^μιτ$'},
                  'readable': {'readable_short': ['μιτ'],
                               'readable_long': None},
-                 'tips': None},
+                 'tips': [],
+                 'reply_text': {'correct': 'Right. Κάλον.',
+                                'incorrect': 'Incorrect. Try again!'},
+                 'user_responses': {'correct': 'μιτ',
+                                    'incorrect': 'βλα'}
+                 },
              2: {'id': 2,
                  'type': StepText,
                  'widget_type': 1,
                  'npc_list': [8, 2, 32, 1],
                  'locations': [3, 1, 13, 7, 8, 11],
-                 'raw_prompt': 'How could you write the word "bought" using Greek letters?',
-                 'final_prompt': 'How could you write the word "bought" using Greek letters?',
+                 'raw_prompt': 'How could you write the word "bought" using '
+                               'Greek letters?',
+                 'final_prompt': 'How could you write the word "bought" using '
+                                 'Greek letters?',
                  'instructions': None,
                  'tags': [61],
                  'tags_secondary': [],
                  'responses': {'response1': '^β(α|ο)τ$'},
                  'readable': {'readable_short': [u'βατ', u'βοτ'],
                               'readable_long': [u'βατ', u'βοτ']},
-                 'tips': None},
+                 'reply_text': {'correct': 'Right. Κάλον.',
+                                'incorrect': 'Incorrect. Try again!'},
+                 'tips': None,  # why is this None, but step 1 its []?
+                 'user_responses': {'correct': 'βοτ',
+                                    'incorrect': 'βλα'}
+                 },
              30: {'id': 30,
                   'type': StepRedirect,
                   'widget_type': 9,
@@ -147,16 +165,20 @@ def mysteps(request):
                    'widget_type': 4,
                    'locations': [7],
                    'npc_list': [14],
-                   'raw_prompt': 'Is this an English clause?\r\n\r\n"The cat sat."',
-                   'final_prompt': 'Is this an English clause?\r\n\r\n"The cat sat."',
+                   'raw_prompt': 'Is this an English clause?\r\n\r\n"The '
+                                 'cat sat."',
+                   'final_prompt': 'Is this an English clause?\r\n\r\n"The '
+                                   'cat sat."',
                    'instructions': None,
                    'tags': [36],
                    'tags_secondary': [],
                    'options': ['ναι', 'οὐ'],
                    'responses': {'response1': 'ναι'},
-                   'readable': {'readable_short': 'ναι',
+                   'readable': {'readable_short': ['ναι'],
                                 'readable_long': None},
-                   'tips': None},
+                   'reply_text': {'correct': 'Right. Κάλον.',
+                                  'incorrect': 'Incorrect. Try again!'},
+                   'tips': []},
              125: {'id': 125,
                    'type': StepQuotaReached,
                    'widget_type': 7,
@@ -249,7 +271,8 @@ def mycases(request, mysteps):
                        'npcs_here': [2, 8, 14, 17, 31, 40, 41, 42],
                        'pathid': 3,
                        'localias': 'shop_of_alexander',
-                       'tag_records': [{'tag_id': 1,
+                       'tag_records': [{'name': 1,
+                                        'tag_id': 1,
                                         'last_right': dt('2013-01-29'),
                                         'last_wrong': dt('2013-01-29'),
                                         'times_right': 1,
@@ -257,6 +280,9 @@ def mycases(request, mysteps):
                                         'secondary_right': None}],
                        'core_out': {'cat1': [1], 'cat2': [],
                                     'cat3': [], 'cat4': []},
+                       'untried_out': {'cat1': [1, 61], 'cat2': [],
+                                       'cat3': [], 'cat4': []},
+                       'introduced': [62],
                        'tag_progress': {'latest_new': 1,
                                         'cat1': [1], 'cat2': [],
                                         'cat3': [], 'cat4': [],
@@ -288,7 +314,8 @@ def mycases(request, mysteps):
                        'prev_npc_id': 1,
                        'npcs_here': [1, 14, 17, 21, 40, 41, 42],
                        'pathid': 89,
-                       'tag_records': [{'tag_id': 61,
+                       'tag_records': [{'name': 1,
+                                        'tag_id': 61,
                                         'last_right': dt('2013-01-29'),
                                         'last_wrong': dt('2013-01-28'),
                                         'times_right': 10,
@@ -296,11 +323,14 @@ def mycases(request, mysteps):
                                         'secondary_right': []}],
                        'core_out': {'cat1': [], 'cat2': [61],
                                     'cat3': [], 'cat4': []},
+                       'untried_out': {'cat1': [], 'cat2': [61],
+                                       'cat3': [], 'cat4': []},
                        'tag_progress': {'latest_new': 1,
                                         'cat1': [61], 'cat2': [],
                                         'cat3': [], 'cat4': [],
                                         'rev1': [], 'rev2': [],
                                         'rev3': [], 'rev4': []},
+                       'introduced': [62],
                        'tag_progress_out': {'latest_new': 1,
                                             'cat1': [62], 'cat2': [61],
                                             'cat3': [], 'cat4': [],
@@ -318,6 +348,7 @@ def mycases(request, mysteps):
                        'demoted': {}},
              'case3':  # same location as previous step, last npc stephanos
              # promote tag based on time (without ratio)
+             # add several untried tags for current rank
                       {'casenum': 3,
                        'mynow': dt('2013-01-29'),
                        'name': 'Ian',
@@ -327,28 +358,32 @@ def mycases(request, mysteps):
                        'prev_npc_id': 31,  # stephanos
                        'npcs_here': [31, 32],
                        'pathid': 19,
-                       'tag_records': [{'tag_id': 61,  # promote to 2 for time
+                       'tag_records': [{'name': 1,
+                                        'tag_id': 61,  # promote to 2 for time
                                         'last_right': dt('2013-01-27'),
                                         'last_wrong': dt('2013-01-21'),
                                         'times_right': 10,
                                         'times_wrong': 10,
                                         'secondary_right': None},
                                        # don't promote for time bc dw > dr
-                                       {'tag_id': 62,
+                                       {'name': 1,
+                                        'tag_id': 62,
                                         'last_right': dt('2013-01-10'),
                                         'last_wrong': dt('2013-01-1'),
                                         'times_right': 10,
                                         'times_wrong': 0,
                                         'secondary_right': None},
                                        # don't promote for time bc t_r < 10
-                                       {'tag_id': 63,
+                                       {'name': 1,
+                                        'tag_id': 63,
                                         'last_right': dt('2013-01-27'),
                                         'last_wrong': dt('2013-01-21'),
                                         'times_right': 9,
                                         'times_wrong': 0,
                                         'secondary_right': None},
                                        # promote for time bc t_r >= 10
-                                       {'tag_id': 66,
+                                       {'name': 1,
+                                        'tag_id': 66,
                                         'last_right': dt('2013-01-27'),
                                         'last_wrong': dt('2013-01-21'),
                                         'times_right': 10,
@@ -357,12 +392,16 @@ def mycases(request, mysteps):
                                        ],
                        'core_out': {'cat1': [62, 63], 'cat2': [61, 66],
                                     'cat3': [], 'cat4': []},
+                       'untried_out': {'cat1': [62, 63, 68, 115, 72, 89, 36],
+                                       'cat2': [61, 66],
+                                       'cat3': [], 'cat4': []},
                        'tag_progress': {'latest_new': 4,
                                         'cat1': [61, 62, 63, 66], 'cat2': [],
                                         'cat3': [], 'cat4': [],
                                         'rev1': [], 'rev2': [],
                                         'rev3': [], 'rev4': []},
-                       'tag_progress_out': {'latest_new': 1,
+                       'introduced': [9, 16, 48, 76, 93],
+                       'tag_progress_out': {'latest_new': 4,
                                             'cat1': [62, 63, 68, 115, 72,
                                                      89, 36],
                                             'cat2': [61, 66],
@@ -378,10 +417,13 @@ def mycases(request, mysteps):
                                  'cat4': []},
                        'steps_here': [1, 2, 30, 125, 126, 127],
                        'completed': [],
-                       'new_badges': [68, 89, 72, 36, 115],
+                       'untried': [68, 89, 72, 36, 115],
+                       'new_badges': None,
                        'promoted': {'cat2': [61, 66]},
                        'demoted': {}},
              'case4':  # different location than previous step
+             # secondary_right records override date and ratio to allow promot.
+             # secondary_right list sliced accordingly
                       {'casenum': 4,
                        'mynow': dt('2013-01-29'),
                        'name': 'Ian',
@@ -391,28 +433,60 @@ def mycases(request, mysteps):
                        'prev_npc_id': 1,
                        'npcs_here': [1, 14, 17, 21, 40, 41, 42],
                        'pathid': 1,
-                       'tag_records': [{'tag_id': 61,
+                       'tag_records': [{'name': 1,
+                                        'tag_id': 61,  # 2ndary overrides time
+                                        'last_right': dt('2013-01-24'),
+                                        'last_wrong': dt('2013-01-21'),
+                                        'times_right': 9,
+                                        'times_wrong': 10,
+                                        'secondary_right': [dt('2013-01-28'),
+                                                            dt('2013-01-28'),
+                                                            dt('2013-01-28'),
+                                                            dt('2013-01-29')]},
+                                       {'name': 1,
+                                        'tag_id': 62,  # 2ndary overrides ratio
                                         'last_right': dt('2013-01-29'),
                                         'last_wrong': dt('2013-01-28'),
-                                        'times_right': 10,
+                                        'times_right': 9,
                                         'times_wrong': 2,
-                                        'secondary_right': None}],
-                       'core_out': {'cat1': [], 'cat2': [61],
+                                        'secondary_right': [dt('2013-01-28'),
+                                                            dt('2013-01-28'),
+                                                            dt('2013-01-28')]}],
+                       'tag_records_out': [{'name': 1,
+                                            'tag_id': 61,  # 2ndary overrides time
+                                            'last_right': dt('2013-01-28'),
+                                            'last_wrong': dt('2013-01-21'),
+                                            'times_right': 10,
+                                            'times_wrong': 10,
+                                            'secondary_right': [dt('2013-01-29')]
+                                            },
+                                           {'name': 1,
+                                            'tag_id': 62,  # 2ndary overrides ratio
+                                            'last_right': dt('2013-01-29'),
+                                            'last_wrong': dt('2013-01-28'),
+                                            'times_right': 10,
+                                            'times_wrong': 2,
+                                            'secondary_right': []}],
+                       'core_out': {'cat1': [61, 62], 'cat2': [],
                                     'cat3': [], 'cat4': []},
-                       'tag_progress': {'latest_new': 1,
-                                        'cat1': [61], 'cat2': [],
+                       'untried_out': {'cat1': [61, 62], 'cat2': [],
+                                       'cat3': [], 'cat4': []},
+                       'tag_progress': {'latest_new': 2,
+                                        'cat1': [61, 62], 'cat2': [],
                                         'cat3': [], 'cat4': [],
                                         'rev1': [], 'rev2': [],
                                         'rev3': [], 'rev4': []},
-                       'tag_progress_out': {'latest_new': 1,
-                                            'cat1': [62], 'cat2': [61],
+                       'introduced': [63, 72, 115],
+                       'tag_progress_out': {'latest_new': 3,
+                                            'cat1': [63, 72, 115],
+                                            'cat2': [61, 62],
                                             'cat3': [], 'cat4': [],
                                             'rev1': [], 'rev2': [],
                                             'rev3': [], 'rev4': []},
                        'steps_here': [1, 2, 30, 125, 126, 127],
                        'completed': [],
-                       'new_badges': [62],
-                       'promoted': {'cat2': [61]},
+                       'new_badges': [63, 72, 115],
+                       'promoted': {'cat2': [61, 62]},
                        'demoted': {}},
              'case5':  # new badges present
                       {'casenum': 5,
@@ -424,7 +498,8 @@ def mycases(request, mysteps):
                        'prev_npc_id': 1,
                        'npcs_here': [2, 14, 17, 31, 40, 41, 42],
                        'pathid': 1,
-                       'tag_records': [{'tag_id': 61,
+                       'tag_records': [{'name': 1,
+                                        'tag_id': 61,
                                         'last_right': dt('2013-01-29'),
                                         'last_wrong': dt('2013-01-28'),
                                         'times_right': 10,
@@ -432,11 +507,14 @@ def mycases(request, mysteps):
                                         'secondary_right': None}],
                        'core_out': {'cat1': [], 'cat2': [61],
                                     'cat3': [], 'cat4': []},
+                       'untried_out': {'cat1': [], 'cat2': [61],
+                                       'cat3': [], 'cat4': []},
                        'tag_progress': {'latest_new': 1,
                                         'cat1': [61], 'cat2': [],
                                         'cat3': [], 'cat4': [],
                                         'rev1': [], 'rev2': [],
                                         'rev3': [], 'rev4': []},
+                       'introduced': [62],  # assuming we call _introduce_tags
                        'tag_progress_out': {'latest_new': 1,
                                             'cat1': [62], 'cat2': [61],
                                             'cat3': [], 'cat4': [],
@@ -500,15 +578,24 @@ def mycategorizer(mycases):
                 if not k == 'latest_new'}
     tag_rs = mycases['tag_records']
     now = mycases['mynow']
+    out = {'categorizer': Categorizer(rank, cats_in, tag_rs, utcnow=now),
+           'categories_in': cats_in,
+           'categories_out': cats_out,
+           'tag_progress': mycases['tag_progress'],
+           'tag_progress_out': mycases['tag_progress_out'],
+           'core_out': mycases['core_out'],
+           'promoted': mycases['promoted'],
+           'demoted': mycases['demoted'],
+           'new_tags': mycases['new_badges'],
+           'introduced': mycases['introduced'],
+           'untried_out': mycases['untried_out'],
+           'tag_records': tag_rs}
+    if 'tag_records_out' in mycases.keys():
+        out['tag_records_out'] = mycases['tag_records_out']
+    else:
+        out['tag_records_out'] = mycases['tag_records']
 
-    return {'categorizer': Categorizer(rank, cats_in, tag_rs, utcnow=now),
-            'categories_in': cats_in,
-            'categories_out': cats_out,
-            'tag_progress_out': mycases['tag_progress_out'],
-            'core_out': mycases['core_out'],
-            'promoted': mycases['promoted'],
-            'demoted': mycases['demoted'],
-            'new_tags': mycases['new_badges']}
+    return out
 
 
 @pytest.fixture
@@ -666,14 +753,25 @@ def myStepText(mycases, mysteps):
     A pytest fixture providing a paideia.StepText object for testing.
     """
     if mysteps['widget_type'] == 1:
-        return {'casenum': mycases['casenum'],
-                'step': StepFactory().get_instance(db=db,
-                                                   step_id=mysteps['id'],
-                                                   loc=mycases['loc'],
-                                                   prev_loc=mycases['prev_loc'],
-                                                   prev_npc_id=mycases['prev_npc_id']),
-                'stepdata': mysteps,
-                'casedata': mycases}
+        # following switch alternates correct and incorrect answers
+        # actual answers taken from mysteps data
+        for n in [0, 1]:
+            responses = ['incorrect', 'correct']
+            s = StepFactory()
+            step = s.get_instance(db=db,
+                                  step_id=mysteps['id'],
+                                  loc=mycases['loc'],
+                                  prev_loc=mycases['prev_loc'],
+                                  prev_npc_id=mycases['prev_npc_id'])
+            return {'casenum': mycases['casenum'],
+                    'step': step,
+                    'stepdata': mysteps,
+                    'casedata': mycases,
+                    'user_response': mysteps['user_responses'][responses[n]],
+                    'reply_text': mysteps['reply_text'][responses[n]],
+                    'score': n,
+                    'times_right': n,
+                    'times_wrong': [1, 0][n]}
     else:
         pass
 
@@ -681,50 +779,126 @@ def myStepText(mycases, mysteps):
 @pytest.fixture
 def myStepMultiple(mycases, mysteps):
     """ """
-    if mysteps['widget'] == 4:
-        kwargs = {'step_id': mysteps['id'],
-                  'loc': mycases['loc'],
-                  'prev_loc': mycases['prev_loc'],
-                  'prev_npc_id': mycases['prev_npc_id'],
-                  'db': db}
-        return {'casenum': request.param,
-                'step': StepFactory().get_instance(**kwargs)}
+    if mysteps['widget_type'] == 4:
+        for n in [0, 1]:
+            responses = ['incorrect', 'correct']
+            options = mysteps['options']
+            right_opt = mysteps['responses']['response1']
+            right_i = options.index(right_opt)
+            wrong_opts = options[:]
+            right_opt = wrong_opts.pop(right_i)
+            if len(wrong_opts) > 1:
+                user_responses = wrong_opts[randint(0, len(wrong_opts))]
+            else:
+                user_responses = wrong_opts
+            user_responses.append(right_opt)
+
+            opts = ''
+            for opt in options:
+                opts += '<tr>' \
+                        '<td>' \
+                        '<input id="response{}" name="response" ' \
+                        'type="radio" value="{}" />' \
+                        '<label for="response{}">{}</label>' \
+                        '</td>' \
+                        '</tr>'.format(opt, opt, opt, opt)
+
+            resp = '^<form action="#" enctype="multipart/form-data" ' \
+                'method="post">' \
+                '<table>' \
+                '<tr id="no_table_response__row">' \
+                '<td class="w2p_fl">' \
+                '<label for="no_table_response" ' \
+                'id="no_table_response__label">Response: </label>' \
+                '</td>' \
+                '<td class="w2p_fw">' \
+                '<table class="generic-widget" ' \
+                'id="no_table_response" name="response">' \
+                '{}' \
+                '</table>' \
+                '</td>' \
+                '<td class="w2p_fc"></td>' \
+                '</tr>' \
+                '<tr id="submit_record__row">' \
+                '<td class="w2p_fl"></td>' \
+                '<td class="w2p_fw">' \
+                '<input type="submit" value="Submit" /></td>' \
+                '<td class="w2p_fc"></td>' \
+                '</tr>' \
+                '</table>' \
+                '<div style="display:none;">' \
+                '<input name="_formkey" type="hidden" value=".*" />' \
+                '<input name="_formname" type="hidden" ' \
+                'value="no_table/create" />' \
+                '</div>' \
+                '</form>$'.format(opts)
+
+            kwargs = {'step_id': mysteps['id'],
+                      'loc': mycases['loc'],
+                      'prev_loc': mycases['prev_loc'],
+                      'prev_npc_id': mycases['prev_npc_id'],
+                      'db': db}
+            return {'casenum': request.param,
+                    'step': StepFactory().get_instance(**kwargs),
+                    'casedata': mycases,
+                    'stepdata': mysteps,
+                    'resp_text': resp,
+                    'user_response': user_responses[n],
+                    'reply_text': mysteps['reply_text'][responses[n]],
+                    'score': n,
+                    'times_right': n,
+                    'times_wrong': [1, 0][n]}
     else:
         pass
 
 
 @pytest.fixture
-def myStepEvaluator(mycases, mysteps):
+def myStepEvaluator(mysteps):
     """
     A pytest fixture providing a paideia.StepEvaluator object for testing.
     """
     if mysteps['widget_type'] == 1:
-        kwargs = {'responses': mysteps['responses'],
-                  'tips': mysteps['tips'],
-                  'db': db}
-        return {'casenum': mycases['casenum'],
-                'eval': StepEvaluator(**kwargs),
-                'stepdata': mysteps,
-                'casedata': mycases}
+        for n in [0, 1]:
+            responses = ['incorrect', 'correct']
+            user_responses = ['bla', mysteps['responses']['response1']]
+            kwargs = {'responses': mysteps['responses'],
+                      'tips': mysteps['tips']}
+            return {'eval': StepEvaluator(**kwargs),
+                    'tips': mysteps['tips'],
+                    'reply_text': mysteps['reply_text'][responses[n]],
+                    'score': n,
+                    'times_right': n,
+                    'times_wrong': [1, 0][n],
+                    'user_response': user_responses[n]}
+        else:
+            pass
     else:
         pass
 
 
-@pytest.fixture(params=[s for s in range(1, 2)])
-def myMultipleEvaluator(request):
+@pytest.fixture()
+def myMultipleEvaluator(request, mysteps):
     """
     A pytest fixture providing a paideia.MultipleEvaluator object for testing.
     """
     if mysteps['widget_type'] == 4:
-        kwargs = {'responses': mysteps['options'],
-                  'tips': mysteps['tips'],
-                  'db': db}
-        return {'casenum': mycases['casenum'],
-                'eval': MultipleEvaluator(**kwargs),
-                'stepdata': mysteps,
-                'casedata': mycases}
+        for n in [0, 1]:
+            responses = ['incorrect', 'correct']
+            user_responses = ['bla', mysteps['responses']['response1']]
+            kwargs = {'responses': mysteps['responses'],
+                      'tips': mysteps['tips']}
+            return {'eval': MultipleEvaluator(**kwargs),
+                    'tips': mysteps['tips'],
+                    'reply_text': mysteps['reply_text'][responses[n]],
+                    'score': n,
+                    'times_right': n,
+                    'times_wrong': [1, 0][n],
+                    'user_response': user_responses[n]}
+        else:
+            pass
     else:
         pass
+
 
 # ===================================================================
 # Test Classes
@@ -872,68 +1046,35 @@ class TestStep():
         else:
             pass
 
-    #def test_step_get_responder(self, mystep):
-        #"""Test for method Step.get_responder"""
-        #the_type = mystep['step'].__class__.__name__
-        ## Step, StepRedirect, StepViewSlides steps
-        #map_button = A("Map", _href=URL('walk'),
-                        #cid='page',
-                        #_class='button-yellow-grad back_to_map icon-location')
-        #Step_output = StepRedirect_output = StepViewSlides_output = DIV(map_button).xml()
-        ## StepText steps
-        #resp = '<form action="" autocomplete="off" enctype="multipart/form-data" method="post">'
-        #resp += '<table>'
-        #resp += '<tr id="no_table_response__row">'
-        #resp += '<td class="w2p_fl">'
-        #resp += '<label for="no_table_response" id="no_table_response__label">Response: </label>'
-        #resp += '</td>'
-        #resp += '<td class="w2p_fw">'
-        #resp += '<input class="string" id="no_table_response" name="response" type="text" value="" />'
-        #resp += '</td>'
-        #resp += '<td class="w2p_fc"></td>'
-        #resp += '</tr>'
-        #resp += '<tr id="submit_record__row">'
-        #resp += '<td class="w2p_fl"></td>'
-        #resp += '<td class="w2p_fw"><input type="submit" value="Submit" /></td>'
-        #resp += '<td class="w2p_fc"></td></tr></table></form>'
-        #StepText_output = resp
-        ## StepMultiple steps #TODO: insert stepMultiple responder html here
-        #StepMultiple_output = None
-        #output = locals()['{}_output'.format(the_type)]
+    def test_step_get_npc(self, mystep):
+        """Test for method Step.get_npc"""
+        # TODO: make sure the npc really is randomized
+        casenum = mystep['casenum']
+        case = 'case{}'.format(casenum)
+        case1 = {'npc_id': [8, 2, 32, 1, 17],
+                'name': ['Διοδωρος', 'Μαρια', 'Στεφανος', 'Ἀλεξανδρος', 'Ἱασων'],
+                'locs': [3, 1, 2, 4, 6, 7, 8, 11]}
+        case2 = {'npc_id': [8, 2, 32, 1],
+                'name': ['Διοδωρος', 'Μαρια', 'Στεφανος', 'Ἀλεξανδρος'],
+                'locs': [3, 1, 2, 4, 6, 7, 8, 11]}
+        case3 = {'npc_id': [14],
+                'name': ['Γεωργιος'],
+                'locs': [3, 1, 2, 4, 7, 8, 9, 10]}
+        output = locals()[case]
+        assert mystep['step'].get_npc().get_id() in output['npc_id']
+        assert mystep['step'].get_npc().get_name() in output['name']
+        locs = mystep['step'].get_npc().get_locations()
+        for l in locs:
+            assert isinstance(l, Location)
+            assert (l.get_id() in output['locs']) == True
 
-        #assert mystep['step'].get_responder().xml() == output
-
-    #def test_step_get_npc(self, mystep):
-        #"""Test for method Step.get_npc"""
-        ## TODO: make sure the npc really is randomized
-        #casenum = mystep['casenum']
-        #case = 'case{}'.format(casenum)
-        #case1 = {'npc_id': [8, 2, 32, 1, 17],
-                #'name': ['Διοδωρος', 'Μαρια', 'Στεφανος', 'Ἀλεξανδρος', 'Ἱασων'],
-                #'locs': [3, 1, 2, 4, 6, 7, 8, 11]}
-        #case2 = {'npc_id': [8, 2, 32, 1],
-                #'name': ['Διοδωρος', 'Μαρια', 'Στεφανος', 'Ἀλεξανδρος'],
-                #'locs': [3, 1, 2, 4, 6, 7, 8, 11]}
-        #case3 = {'npc_id': [14],
-                #'name': ['Γεωργιος'],
-                #'locs': [3, 1, 2, 4, 7, 8, 9, 10]}
-        #output = locals()[case]
-        #assert mystep['step'].get_npc().get_id() in output['npc_id']
-        #assert mystep['step'].get_npc().get_name() in output['name']
-        #locs = mystep['step'].get_npc().get_locations()
-        #for l in locs:
-            #assert isinstance(l, Location)
-            #assert (l.get_id() in output['locs']) == True
-
-    #def test_step_get_instructions(self, mystep):
-        #"""Test for method Step._get_instructions"""
-        #casenum = mystep['casenum']
-        #case = 'case{}'.format(casenum)
-        #case1 = ['Focus on finding Greek letters that make the *sounds* of the English word. Don\'t look for Greek "equivalents" for each English letter.']
-        #case2 = None
-        #case3 = None
-        #output = locals()[case]
-        #assert mystep['step']._get_instructions() == output
+    def test_step_get_instructions(self, mystep):
+        """Test for method Step._get_instructions"""
+        if mystep:
+            # ['Focus on finding Greek letters that make the *sounds* of the English word. Don\'t look for Greek "equivalents" for each English letter.']
+            expected = mystep['stepdata']['instructions']
+            actual = mystep['step']._get_instructions()
+            assert actual == expected
 
 #class TestStepRedirect():
     #'''
@@ -1168,194 +1309,119 @@ class TestStepText():
         else:
             pass
 
-    #def test_steptext_get_reply(self, myStepText):
-        #"""Unit tests for StepText._get_reply() method"""
-        #casenum = myStepText['casenum']
-        #case = 'case{}'.format(casenum)
-        #case1 = {'response': 'μιτ',
-                #'result': {'reply_text': 'Right. Κάλον.',
-                            #'tips': [],
-                            #'readable_short': ['μιτ'],
-                            #'readable_long': None,
-                            #'score': 1,
-                            #'times_right': 1,
-                            #'times_wrong': 0,
-                            #'user_response': 'μιτ'}}
-
-        #case2 = {'response': 'βλα',
-                #'result': {'reply_text': 'bla',
-                            #'tips': None,
-                            #'readable_short': ['bla'],
-                            #'readable_long': None,
-                            #'score': 0,
-                            #'times_right': 0,
-                            #'times_wrong': 1,
-                            #'user_response': 'βλα'}}
-        #out = locals()[case]
-        #func = myStepText['step'].get_reply(user_response=out['response'])
-        #for k, f in func.iteritems():
-            #assert  f == out['result'][k]
-
-#class TestStepMultiple():
-    #'''
-    #Test class for paideia.StepMultiple
-    #'''
-    #def test_stepmultiple_get_responder(self, myStepMultiple):
-        #"""Unit testing for get_responder method of StepMultiple."""
-
-        ## value of _formkey input near end is variable, so matched with .*
-        #resp = '^<form action="" enctype="multipart/form-data" method="post">'
-        #resp += '<table>'
-        #resp += '<tr id="no_table_response__row">'
-        #resp += '<td class="w2p_fl">'
-        #resp += '<label for="no_table_response" id="no_table_response__label">Response: </label>'
-        #resp += '</td>'
-        #resp += '<td class="w2p_fw">'
-        #resp += '<table class="generic-widget" id="no_table_response" name="response">'
-        #resp += '<tr>'
-        #resp += '<td>'
-        #resp += '<input id="responseναι" name="response" type="radio" value="ναι" />'
-        #resp += '<label for="responseναι">ναι</label>'
-        #resp += '</td>'
-        #resp += '</tr>'
-        #resp += '<tr>'
-        #resp += '<td>'
-        #resp += '<input id="responseοὐ" name="response" type="radio" value="οὐ" />'
-        #resp += '<label for="responseοὐ">οὐ</label>'
-        #resp += '</td>'
-        #resp += '</tr>'
-        #resp += '</table>'
-        #resp += '</td>'
-        #resp += '<td class="w2p_fc"></td>'
-        #resp += '</tr>'
-        #resp += '<tr id="submit_record__row">'
-        #resp += '<td class="w2p_fl"></td>'
-        #resp += '<td class="w2p_fw">'
-        #resp += '<input type="submit" value="Submit" /></td>'
-        #resp += '<td class="w2p_fc"></td>'
-        #resp += '</tr>'
-        #resp += '</table>'
-        #resp += '<div class="hidden">'
-        #resp += '<input name="_formkey" type="hidden" value=".*" />'
-        #resp += '<input name="_formname" type="hidden" value="no_table/create" />'
-        #resp += '</div>'
-        #resp += '</form>$'
-
-        #testfunc = myStepMultiple['step'].get_responder().xml()
-        #assert re.match(resp, testfunc)
-
-    #def test_stepmultiple_get_reply(self, myStepMultiple):
-        #"""Unit testing for get_reply method of StepMultiple."""
-        #casenum = myStepMultiple['casenum']
-        #case = 'case{}'.format(casenum)
-        #case1 = {'reply_text': 'Right. Κάλον.',
-                #'tips': [],
-                #'readable_short': ['ναι'],
-                #'readable_long': None,
-                #'score': 1,
-                #'times_right': 1,
-                #'times_wrong': 0,
-                #'user_response': 'ναι'}
-        #case2 = {'reply_text': 'Incorrect. Try again!',
-                #'tips': [],
-                #'readable_short': ['οὐ'],
-                #'readable_long': None,
-                #'score': 0,
-                #'times_right': 0,
-                #'times_wrong': 1,
-                #'user_response': 'οὐ'}
-        #out = locals()[case]
-        #assert myStepMultiple['step'].get_reply(out['user_response']
-                                    #)['reply_text'] == out['reply_text']
-        #assert myStepMultiple['step'].get_reply(out['user_response']
-                                    #)['tips'] == out['tips']
-        #assert myStepMultiple['step'].get_reply(out['user_response']
-                                    #)['readable_short'] == out['readable_short']
-        #assert myStepMultiple['step'].get_reply(out['user_response']
-                                    #)['readable_long'] == out['readable_long']
-        #assert myStepMultiple['step'].get_reply(out['user_response']
-                                    #)['score'] == out['score']
-        #assert myStepMultiple['step'].get_reply(out['user_response']
-                                    #)['times_right'] == out['times_right']
-        #assert myStepMultiple['step'].get_reply(out['user_response']
-                                    #)['times_wrong'] == out['times_wrong']
-        #assert myStepMultiple['step'].get_reply(out['user_response']
-                                    #)['user_response'] == out['user_response']
+    def test_steptext_get_reply(self, myStepText):
+        """Unit tests for StepText._get_reply() method"""
+        if myStepText:
+            step = myStepText['stepdata']
+            response = myStepText['user_response']
+            expected = {'reply_text': myStepText['reply_text'],
+                        'tips': step['tips'],
+                        'readable_short': step['readable']['readable_short'],
+                        'readable_long': step['readable']['readable_long'],
+                        'score': myStepText['score'],
+                        'times_right': myStepText['times_right'],
+                        'times_wrong': myStepText['times_wrong'],
+                        'user_response': myStepText['user_response']}
+            actual = myStepText['step'].get_reply(user_response=response)
+            assert actual['reply_text'] == expected['reply_text']
+            assert actual['readable_short'] == expected['readable_short']
+            assert actual['readable_long'] == expected['readable_long']
+            assert actual['tips'] == expected['tips']
+            assert actual['times_right'] == expected['times_right']
+            assert actual['times_wrong'] == expected['times_wrong']
+            assert actual['user_response'] == expected['user_response']
 
 
-#class TestStepEvaluator():
-    #"""Class for evaluating the submitted response string for a Step"""
+class TestStepMultiple():
+    '''
+    Test class for paideia.StepMultiple
+    '''
+    def test_stepmultiple_get_responder(self, myStepMultiple):
+        """Unit testing for get_responder method of StepMultiple."""
+        if myStepMultiple:
+            # value of _formkey input near end is variable, so matched with .*
+            expected = myStepMultiple['resp_text']
+            actual = myStepMultiple['step'].get_responder().xml()
+            print 'actual\n', actual
+            print 'expected\n', expected
+            assert re.match(expected, actual)
+        else:
+            pass
 
-    #def test_stepevaluator_get_eval(self, myStepEvaluator):
-        #"""Unit tests for StepEvaluator.get_eval() method."""
-        #casenum = myStepEvaluator['casenum']
-        #case = 'case{}'.format(casenum)
-        #case1 = {'reply_text': 'Right. Κάλον.',
-                #'tips': None,
-                #'readable_short': ['μιτ'],
-                #'readable_long': None,
-                #'score': 1,
-                #'times_right': 1,
-                #'times_wrong': 0,
-                #'user_response': 'μιτ'}
-        #case2 = {'reply_text': 'Right. Κάλον.',
-                #'tips': None,
-                #'readable_short': ['ναι'],
-                #'readable_long': None,
-                #'score': 1,
-                #'times_right': 1,
-                #'times_wrong': 0,
-                #'user_response': 'βατ'}
-        #out = locals()[case]
+    def test_stepmultiple_get_reply(self, myStepMultiple):
+        """Unit testing for get_reply method of StepMultiple."""
+        if myStepMultiple:
+            step = myStepMultiple['stepdata']
+            response = myStepMultiple['user_response']
 
-        #assert myStepEvaluator['eval'].get_eval(out['user_response']
-                                        #)['score'] == out['score']
-        #assert myStepEvaluator['eval'].get_eval(out['user_response']
-                                        #)['times_wrong'] == out['times_wrong']
-        #assert myStepEvaluator['eval'].get_eval(out['user_response']
-                                        #)['reply'] == out['reply_text']
-        #assert myStepEvaluator['eval'].get_eval(out['user_response']
-                                        #)['user_response'] == out['user_response']
-        #assert myStepEvaluator['eval'].get_eval(out['user_response']
-                                        #)['tips'] == out['tips']
+            expected = {'reply_text': myStepMultiple['reply_text'],
+                        'tips': step['tips'],
+                        'readable_short': step['readable']['readable_short'],
+                        'readable_long': step['readable']['readable_long'],
+                        'score': myStepMultiple['score'],
+                        'times_right': myStepMultiple['times_right'],
+                        'times_wrong': myStepMultiple['times_wrong'],
+                        'user_response': myStepMultiple['user_response']}
+            actual = myStepMultiple['step'].get_reply(user_response=response)
+            assert actual['reply_text'] == expected['reply_text']
+            assert actual['readable_short'] == expected['readable_short']
+            assert actual['readable_long'] == expected['readable_long']
+            assert actual['tips'] == expected['tips']
+            assert actual['times_right'] == expected['times_right']
+            assert actual['times_wrong'] == expected['times_wrong']
+            assert actual['user_response'] == expected['user_response']
 
 
-#class TestMultipleEvaluator():
-    #"""Class for evaluating the submitted response string for a StepMultiple"""
+class TestStepEvaluator():
+    """Class for evaluating the submitted response string for a Step"""
 
-    #def test_multipleevaluator_get_eval(self, myMultipleEvaluator):
-        #"""Unit tests for StepEvaluator.get_eval() method."""
-        #casenum = myMultipleEvaluator['casenum']
-        #case = 'case{}'.format(casenum)
-        ## step 101
-        #case1 = {'reply_text': 'Right. Κάλον.',
-                #'tips': None,
-                #'readable_short': ['ναι'],
-                #'readable_long': None,
-                #'score': 1,
-                #'times_right': 1,
-                #'times_wrong': 0,
-                #'user_response': 'ναι'}
-        ## step 101
-        #case2 = {'reply_text': 'Incorrect. Try again!',
-                #'tips': None,
-                #'readable_short': ['ναι'],
-                #'readable_long': None,
-                #'score': 1,
-                #'times_right': 1,
-                #'times_wrong': 0,
-                #'user_response': 'οὐ'}
-        #out = locals()[case]
-        #assert myMultipleEvaluator['eval'].get_eval(out['user_response']
-                #)['score'] == out['score']
-        #assert myMultipleEvaluator['eval'].get_eval(out['user_response']
-                #)['times_wrong'] == out['times_wrong']
-        #assert myMultipleEvaluator['eval'].get_eval(out['user_response']
-                #)['reply'] == out['reply_text']
-        #assert myMultipleEvaluator['eval'].get_eval(out['user_response']
-                #)['user_response'] == out['user_response']
-        #assert myMultipleEvaluator['eval'].get_eval(out['user_response']
-                #)['tips'] == out['tips']
+    def test_stepevaluator_get_eval(self, myStepEvaluator):
+        """Unit tests for StepEvaluator.get_eval() method."""
+        if myStepEvaluator:
+            evl = myStepEvaluator
+            response = evl['user_response']
+            expected = {'reply_text': evl['reply_text'],
+                        'tips': evl['tips'],
+                        'score': evl['score'],
+                        'times_wrong': evl['times_wrong'],
+                        'times_right': evl['times_right'],
+                        'user_response': response}
+
+            actual = myStepEvaluator['eval'].get_eval(response)
+            assert actual['score'] == expected['score']
+            assert actual['reply'] == expected['reply_text']
+            assert actual['times_wrong'] == expected['times_wrong']
+            assert actual['times_right'] == expected['times_right']
+            assert actual['user_response'] == expected['user_response']
+            assert actual['tips'] == expected['tips']
+        else:
+            pass
+
+
+class TestMultipleEvaluator():
+    """Class for evaluating the submitted response string for a StepMultiple"""
+
+    def test_multipleevaluator_get_eval(self, myMultipleEvaluator):
+        """Unit tests for multipleevaluator.get_eval() method."""
+        if myMultipleEvaluator:
+            evl = myMultipleEvaluator
+            response = evl['user_response']
+            expected = {'reply_text': evl['reply_text'],
+                        'tips': evl['tips'],
+                        'score': evl['score'],
+                        'times_wrong': evl['times_wrong'],
+                        'times_right': evl['times_right'],
+                        'user_response': response}
+
+            actual = myMultipleEvaluator['eval'].get_eval(response)
+            assert actual['score'] == expected['score']
+            assert actual['reply'] == expected['reply_text']
+            assert actual['times_wrong'] == expected['times_wrong']
+            assert actual['times_right'] == expected['times_right']
+            assert actual['user_response'] == expected['user_response']
+            assert actual['tips'] == expected['tips']
+        else:
+            pass
 
 
 #class TestPath():
@@ -1463,9 +1529,8 @@ class TestCategorizer():
         """
         Unit test for the paideia.Categorizer.categorize method.
 
-        Case numbers correspond to the cases (user performance scenarios) set
-        out in the myrecords fixture.
-        case 1: removes tag 1 (too early) and introduces untried tag 61
+        Test case data provided (and parameterized) by mycases fixture via the
+        mycategorizer fixture.
         """
         cat = mycategorizer
         out = {'cats': cat['categories_out'],
@@ -1480,7 +1545,8 @@ class TestCategorizer():
             if isinstance(l, int):
                 real['tag_progress'][c] == l
             else:
-                for t in l: assert t in real['tag_progress'][c]
+                for t in l:
+                    assert t in real['tag_progress'][c]
         if out['nt']:
             for t in real['new_tags']:
                 assert t in out['nt']
@@ -1508,22 +1574,59 @@ class TestCategorizer():
         print 'EXPECTED\n', output
         assert  core == output
 
-    #def test_categorizer_introduce_tags(self):
-        #"""Unit test for the paideia.Categorizer._introduce_tags method"""
-        #assert 0
+    def test_categorizer_introduce_tags(self, mycategorizer):
+        """Unit test for the paideia.Categorizer._introduce_tags method"""
+        catzer = mycategorizer['categorizer']
+        newlist = catzer._introduce_tags()
+        if newlist:
+            print newlist
+            for n in newlist:
+                assert n in mycategorizer['introduced']
+        else:
+            assert newlist is False
+        assert len(newlist) == len(mycategorizer['introduced'])
+        assert catzer.rank == mycategorizer['tag_progress']['latest_new'] + 1
 
-    #def test_categorizer_add_untried_tags(self, mycategorizer):
-        #"""Unit test for the paideia.Categorizer._add_untried_tags method"""
-        #input_cats = {'cat1': [1], 'cat2': [],
-                        #'cat3': [], 'cat4': []}
-        #output_cats = {'cat1': [1, 61], 'cat2': [],
-                        #'cat3': [], 'cat4': []}
-        #assert mycategorizer['categorizer']._add_untried_tags(input_cats) == \
-                                                                #output_cats
+    def test_categorizer_add_untried_tags(self, mycategorizer):
+        """Unit test for the paideia.Categorizer._add_untried_tags method"""
+        mz = mycategorizer
+        catin = mz['core_out']
+        catout = mz['untried_out']
+        for cat, lst in mz['categorizer']._add_untried_tags(catin).iteritems():
+            for tag in lst:
+                assert tag in catout[cat]
+            assert len(lst) == len(catout[cat])
 
-    #def test_categorizer_find_cat_changes(self):
-        #"""docstring for test_"""
-        #assert 0
+    def test_categorizer_find_cat_changes(self, mycategorizer):
+        """Unit test for the paideia.Categorizer._find_cat_changes method."""
+        mz = mycategorizer
+        actual = mz['categorizer']._find_cat_changes(mz['untried_out'],
+                                                     mz['categorizer'
+                                                        ].old_categories)
+        for t in actual['categories']:
+            if actual['categories']:
+                assert t in mz['untried_out']
+        for t in actual['demoted']:
+            if actual['demoted']:
+                assert t in mz['demoted']
+        for t in actual['promoted']:
+            if actual['promoted']:
+                assert t in mz['promoted']
+
+    def test_categorizer_add_secondary_right(self, mycategorizer):
+        """Unit test for the paideia.Categorizer._add_secondary_right method."""
+        mz = mycategorizer
+        recsin = mz['tag_records']
+        expected = mz['tag_records_out']
+        realout = mz['categorizer']._add_secondary_right(recsin)
+        for r in realout:
+            ri = realout.index(r)
+            assert r['tag_id'] == expected[ri]['tag_id']
+            assert r['last_right'] == expected[ri]['last_right']
+            assert r['last_wrong'] == expected[ri]['last_wrong']
+            assert r['times_right'] == expected[ri]['times_right']
+            assert r['last_wrong'] == expected[ri]['last_wrong']
+            assert r['secondary_right'] == expected[ri]['secondary_right']
 
 #class TestWalk():
     #"""

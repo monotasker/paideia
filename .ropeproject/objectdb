@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 €}q(U/usr/lib/python2.7/pprint.py}qUpprintqcrope.base.oi.memorydb
 ScopeInfo
 q)q}q(UbuiltinqUlistqUunknown…q	‡Unone…q
@@ -5,3 +6,9 @@ h
 h
 h
 tUunknown…qs}q†bsUtests/modules/test_paideia.pyq}qUdth)q}qUbuiltinUstr†…Uunknown…s}q†bsu.
+=======
+€}q(U/usr/lib/python2.7/re.py}q(Ucompileqcrope.base.oi.memorydb
+ScopeInfo
+q)q}q(UbuiltinUstr†qUnone…q†Uunknown…q	hUunknown…q
+†h	u}q†bUsearchqh)q}qUunknown…qhh‡h	s}q†bUsubqh)q}q(hhhhhth	s}q†bUmatchqh)q}qhhh‡h	s}q†buU3/usr/local/lib/python2.7/dist-packages/termcolor.py}qUcoloredqh)q}q((hhhhth	(hhhhth	u}q†bsUtests/modules/test_paideia.pyq}qUdth)q }q!UbuiltinUstr†…Uunknown…s}q"†bsu.
+>>>>>>> 9f65cb36cc451684cf74988363b6e7988bc30738

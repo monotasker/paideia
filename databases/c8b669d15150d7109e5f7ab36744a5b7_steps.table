@@ -10,7 +10,7 @@ p5
 I00
 sS'sortable'
 p6
-I20
+I21
 sS'sql'
 p7
 S'INTEGER REFERENCES step_status (id) ON DELETE CASCADE'
@@ -97,7 +97,7 @@ I512
 sg5
 I00
 sg6
-I19
+I20
 sg7
 g25
 sg9
@@ -145,7 +145,7 @@ I512
 sg5
 I00
 sg6
-I18
+I19
 sg7
 g25
 sg9
@@ -170,9 +170,24 @@ I00
 sg10
 S'reference audio'
 p42
-ssS'response2'
+ssS'tags_ahead'
 p43
 (dp44
+g4
+I512
+sg5
+I00
+sg6
+I18
+sg7
+g25
+sg9
+I00
+sg10
+g26
+ssS'response2'
+p45
+(dp46
 g4
 I512
 sg5
@@ -181,14 +196,14 @@ sg6
 I10
 sg7
 S'CHAR(512)'
-p45
+p47
 sg9
 I00
 sg10
 g19
 ssS'outcome3'
-p46
-(dp47
+p48
+(dp49
 g4
 I512
 sg5
@@ -197,14 +212,14 @@ sg6
 I13
 sg7
 S'CHAR(512)'
-p48
+p50
 sg9
 I00
 sg10
 g19
 ssS'id'
-p49
-(dp50
+p51
+(dp52
 g4
 I512
 sg5
@@ -213,15 +228,15 @@ sg6
 I1
 sg7
 S'INTEGER PRIMARY KEY AUTOINCREMENT'
-p51
+p53
 sg9
 I00
 sg10
 S'id'
-p52
+p54
 ssS'hints'
-p53
-(dp54
+p55
+(dp56
 g4
 I512
 sg5
@@ -234,10 +249,10 @@ sg9
 I00
 sg10
 S'list:reference step_hints'
-p55
+p57
 ssS'widget_type'
-p56
-(dp57
+p58
+(dp59
 g4
 I512
 sg5
@@ -246,15 +261,15 @@ sg6
 I4
 sg7
 S'INTEGER REFERENCES step_types (id) ON DELETE CASCADE'
-p58
+p60
 sg9
 I00
 sg10
 S'reference step_types'
-p59
+p61
 ssS'widget_image'
-p60
-(dp61
+p62
+(dp63
 g4
 I512
 sg5
@@ -263,15 +278,15 @@ sg6
 I5
 sg7
 S'INTEGER REFERENCES images (id) ON DELETE CASCADE'
-p62
+p64
 sg9
 I00
 sg10
 S'reference images'
-p63
+p65
 ssS'readable_response'
-p64
-(dp65
+p66
+(dp67
 g4
 I512
 sg5
@@ -280,14 +295,14 @@ sg6
 I8
 sg7
 S'CHAR(512)'
-p66
+p68
 sg9
 I00
 sg10
 g19
 ssS'tags'
-p67
-(dp68
+p69
+(dp70
 g4
 I512
 sg5
@@ -301,8 +316,8 @@ I00
 sg10
 g26
 ssS'instructions'
-p69
-(dp70
+p71
+(dp72
 g4
 I512
 sg5
@@ -315,10 +330,10 @@ sg9
 I00
 sg10
 S'list:reference step_instructions'
-p71
+p73
 ssS'options'
-p72
-(dp73
+p74
+(dp75
 g4
 I512
 sg5
@@ -327,10 +342,10 @@ sg6
 I6
 sg7
 S'TEXT'
-p74
+p76
 sg9
 I00
 sg10
 S'list:string'
-p75
+p77
 ss.

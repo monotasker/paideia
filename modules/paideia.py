@@ -881,8 +881,6 @@ class StepEvaluator(object):
         except re.error:
             redirect(URL('index', args=['error', 'regex']))
             reply = 'Oops! I seem to have encountered an error in this step.'
-            readable_short = None
-            readable_long = None
 
         tips = self.tips  # TODO: customize tips for specific errors
 
@@ -891,9 +889,7 @@ class StepEvaluator(object):
                 'times_right': times_right,
                 'reply': reply,
                 'user_response': user_response,
-                'tips': tips,
-                'readable_short': readable_short,
-                'readable_long': readable_long}
+                'tips': tips}
 
 
 class MultipleEvaluator(StepEvaluator):
@@ -1323,13 +1319,16 @@ class Categorizer(object):
     """
 
     def __init__(self, rank, categories, tag_records,
-                 secondary_right=None, utcnow=None):
+                 secondary_right=None, utcnow=None, db=None):
         """Initialize a paideia.Categorizer object"""
         self.rank = rank
         self.tag_records = tag_records
         self.old_categories = categories
         self.utcnow = utcnow
         self.secondary_right = secondary_right
+        if not db:
+            db = current.db
+        self.db = db
 
     def categorize_tags(self, rank=None, tag_records=None,
                         old_categories=None, db=None):
@@ -1346,7 +1345,7 @@ class Categorizer(object):
         new_tags = None
 
         # if user has not tried any tags yet, start first set
-        if tag_records[0] is None:
+        if len(tag_records) == 0:
             categories = {}
             categories['cat1'] = self._introduce_tags()
             return {'tag_progress': None,
@@ -1356,14 +1355,15 @@ class Categorizer(object):
                     'categories': categories}
         else:
             # otherwise, categorize tags that have been tried
+            self.tag_records = self._add_secondary_right(tag_records)
             categories = self._core_algorithm()
             categories = self._add_untried_tags(categories)
             # Remove any duplicates and tags beyond the user's current ranking
             for k, v in categories.iteritems():
                 if v:
-                    newv = [t for t in v if db.tags(t)
+                    rankv = [t for t in v if db.tags(t)
                             and (db.tags[t].position <= rank)]
-                    categories[k] = list(set(newv))
+                    categories[k] = list(set(rankv))
             # 'rev' categories are reintroduced
             categories.update((c, []) for c in ['rev1', 'rev2', 'rev3', 'rev4'])
             # changes in categorization since last time
@@ -1374,10 +1374,10 @@ class Categorizer(object):
 
             # If there are no tags left in category 1, introduce next set
             if not tag_progress['cat1']:
-                starting = self._introduce_tags()
-                categories['cat1'] = starting
-                tag_progress['cat1'] = starting
-                new_tags = starting
+                newlist = self._introduce_tags()
+                categories['cat1'] = newlist
+                tag_progress['cat1'] = newlist
+                new_tags = newlist
 
             # Re-insert 'latest new' to match tag_progress table in db
             tag_progress['latest_new'] = self.rank
@@ -1387,6 +1387,65 @@ class Categorizer(object):
                     'promoted': promoted,
                     'demoted': demoted,
                     'categories': categories}
+
+    def _add_secondary_right(self, tag_records):
+        """
+        Finds tag records with secondary attempts and adjusts records.
+
+        For every 3 secondary_right entries, add 1 to times_right and change
+        last_right based on the average of those three attempt dates.
+        """
+        db = self.db
+        for rec in tag_records:
+            print rec
+            # add new secondary_right attempts from attempt_log
+            # (TODO: this is temporary)
+            db_recs = db(
+                        (db.attempt_log.name == rec['name']) &
+                        (db.attempt_log.score == 1.0) &
+                        (db.attempt_log.dt_attempted >= rec['last_right']) &
+                        (db.attempt_log.step == db.steps.id) &
+                        (db.steps.tags_secondary.contains(rec['tag_id']))
+            ).select(db.attempt_log.dt_attempted).as_list()
+
+            if db_recs:
+                dates = [t for v in db_recs for t in v.iteritems()]
+                try:
+                    rec['secondary_right'].append(dates)
+                except AttributeError:
+                    rec['secondary_right'] = dates
+
+            if rec['secondary_right'] and len(rec['secondary_right']) >= 3:
+                rindex = tag_records.index(rec)
+                rlen = len(rec['secondary_right'])
+                # increment times_right by 1 per 3 secondary_right
+                rnum = rlen / 3
+                rmod = rlen % 3
+                rec['times_right'] += rnum
+                # move last_right forward based on mean of last 3 secondary_right
+                now = self.utcnow
+                if rlen > 3:
+                    last3 = rec['secondary_right'][-(rmod + 3): -(rmod)]
+                else:
+                    last3 = rec['secondary_right'][:]
+                last3_deltas = [now - s for s in last3]
+                avg_delta = sum(last3_deltas, datetime.timedelta(0)) / 3
+                avg_date = now - avg_delta
+                if avg_date > rec['last_right']:
+                    rec['last_right'] = avg_date
+                print 'last_right:', rec['last_right']
+
+                # remove counted entries from secondary_right, leave remainder
+                if rlen > 3:
+                    rec['secondary_right'] = rec['secondary_right'][-(rmod):]
+                else:
+                    rec['secondary_right'] = []
+                print 'secondary_right (out)', rec['secondary_right']
+                tag_records[rindex] = rec
+            else:
+                continue
+
+        return tag_records
 
     def _core_algorithm(self, tag_records=None):
         """
@@ -1477,6 +1536,7 @@ class Categorizer(object):
             rank == 1
         else:
             rank += 1
+        self.rank = rank
 
         newtags = [t['id'] for t in db(db.tags.position == rank).select()]
 
@@ -1500,7 +1560,9 @@ class Categorizer(object):
         return categories
 
     def _find_cat_changes(self, cats, old_cats):
-        """Determine whether any of the categorized tags are new or promoted"""
+        """
+        Determine whether any of the categorized tags are promoted or demoted.
+        """
         if old_cats:
             demoted = {}
             promoted = {}
@@ -1531,15 +1593,11 @@ class Categorizer(object):
                     # was tag in a lower category?
                     lt = {k: old_cats[k] for k in
                           ['cat1', 'cat2', 'cat3', 'cat4'][:cindex]}
-                    print 'lt:', lt
                     lt_flat = [v for l in lt.values() if l for v in l]
                     # add to dictionary of 'promoted' tags
                     if lt_flat:
                         promoted[c] = [t for t in cats[c] if t in lt_flat]
                         print 'promoted[', c, ']:', promoted[c]
-                    print 'in _find_cat_changes:',
-                    print 'lst:', lst
-                    print 'lt_flat:', lt_flat
 
             return {'categories': cats,
                     'demoted': demoted,
