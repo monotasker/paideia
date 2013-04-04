@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#! /usr/bin/python
 # coding: utf8
 import re
 from termcolor import colored
@@ -14,12 +14,22 @@ from termcolor import colored
 # here all people are equal. The free woman and the slave(woman) are brothers.
 # you should address me as ???
 # please give this money to the ptwxos (image)
-lines = [
-'Οἱ πονηροι ἀνθρωποι.',
-]
+lines = ['Ὁ αὐτου οἰνος των Ἰουδαιων.',
+         'Των Ἰουδαιων ὁ οἰνος Ἀλεξανδρου.',
+         'Ὁ οἰνος Ἀλεξανδρου των Ἰουδαιων.',
+         ]
 
 regex = """
-^(Ο|ο)ἱ\s(?P<a>πονηροι\s)?ἀνθρωποι(?(a)|\sοἱ\sπονηροι)\.$
+^
+(?P<a>((τ|Τ)?ων\s)?Ἰουδαιων\s)?
+(?P<b>(Ἀλεξανδρου\s|(Α|α)ὐτου\s))?
+((Ὁ|ὁ)\s)?
+(?(a)|(?P<c>(Ἀλεξανδρου\s|(Α|α)ὐτου\s)))?
+οἰνος
+(?(b)|(?(c)|(\sἈλεξανδρου|\sαὐτου)))
+(?(a)|((\sτων)?\sἸουδαιων))
+\.
+$
 """
 
 Greek_only = True
@@ -27,7 +37,7 @@ Greek_only = True
 test_regex = re.compile(regex, re.X)
 roman_chars = re.compile(u'[\u0041-\u007a]|\d')
 print colored(regex, 'cyan')
-counter=1
+counter = 1
 for l in lines:
     print '==================='
     m = re.match(test_regex, l)
@@ -50,5 +60,3 @@ goodlist = '|'.join(lines)
 print '==================='
 print colored('condensed readable answers', 'white'), '\n'
 print goodlist, '\n\n'
-
-
