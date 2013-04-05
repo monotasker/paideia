@@ -746,7 +746,7 @@ CREATE TABLE badges_begun(
     cat4 TIMESTAMP
 );
 success!
-timestamp: 2013-03-05T13:58:39.718009
+timestamp: 2013-03-05T20:26:02.234838
 ALTER TABLE tag_records ADD secondary_right TEXT;
-timestamp: 2013-03-29T13:25:00.535823
+timestamp: 2013-04-03T21:28:51.356437
 ALTER TABLE steps ADD tags_ahead TEXT;

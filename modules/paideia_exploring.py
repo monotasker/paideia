@@ -19,6 +19,7 @@ logger.setLevel(logging.DEBUG)
 
 dtnow = datetime.datetime.utcnow
 
+
 # TODO: Deprecate eventually
 class Utils(object):
     '''
@@ -296,7 +297,7 @@ class Walk(object):
             'active_location': None,
             'quota_override': False,
             'session_start': self.session_start or datetime.datetime.utcnow()
-            }
+        }
 
         if self.path:
             session_data['path'] = self.path.id
@@ -427,8 +428,8 @@ class Walk(object):
         self.view_slides = tags
 
         db.tag_progress.update_or_insert(db.tag_progress.name == uid,
-                                          name=uid, latest_new=latest,
-                                          cat1=tags)
+                                         name=uid, latest_new=latest,
+                                         cat1=tags)
 
         return tags
 
@@ -622,8 +623,8 @@ class Walk(object):
                            in ['cat1', 'cat2', 'cat3', 'cat4'][catindex:])
                 # get flat list of all tags already in this or higher cat
                 # !! if cat is necessary in case of None in mycats
-                oldtags = list(chain([val for cat in mycats_gteq.values() if cat
-                                                            for val in cat]))
+                oldtags = list(chain([val for cat in mycats_gteq.values()
+                                      if cat for val in cat]))
                 if debug:
                     print 'looking in equal and higher cats:', mycats_gteq
                 # was each tag in list was already in this or higher cat?
@@ -645,7 +646,7 @@ class Walk(object):
         # build dictionary of values to record in tag_progress
         # - start with old values
         update_cats = dict((c, v) for c, v in mycats.as_dict().iteritems()
-                            if c in categories.keys())
+                           if c in categories.keys())
         if debug: print 'old categories were', update_cats
         # - if tags new or promoted, change 'cat' lists
         for cat in new_badges:
@@ -653,7 +654,7 @@ class Walk(object):
                 for t in new_badges[cat]:
                     try:
                         oldcat = [c for c, v in update_cats.iteritems()
-                                    if (type(v) == list) and (t in v)][0]
+                                  if (type(v) == list) and (t in v)][0]
                         update_cats[oldcat].remove(t)
                     except IndexError:
                         print 'This tag appears to be new; not removing from \
@@ -746,7 +747,7 @@ class Walk(object):
         # TODO: Replace hardcoded limit (20)
         if len(self.completed_paths) == 20:
             if 'quota_override' in session.walk and \
-                                                session.walk['quota_override']:
+               session.walk['quota_override']:
                 pass
             else:
                 return self._get_util_step('end of quota')  # tag id=79
@@ -1095,7 +1096,7 @@ class Walk(object):
                 if debug: print 'path list without those:', p_list
                 # avoid steps with right tag but no location
                 p_list.exclude(lambda row: db.steps[row.steps[0]].locations
-                                                                    is None)
+                               is None)
             # exclude paths whose steps have tags beyond user's active tags
             #if len(p_list) > 0:
                 #maxp = db.tag_progress[auth.user_id].latest_new
@@ -1199,9 +1200,9 @@ class Walk(object):
         if update_switch:
             try:
                 query = (db.path_log.path == path_id) & (db.path_log.name ==
-                                                                auth.user_id)
+                                                         auth.user_id)
                 log = db(query).select(orderby=
-                                            ~db.path_log.dt_started).first()
+                                       ~db.path_log.dt_started).first()
                 log.update_record(path=path_id, last_step=step_id)
             except AttributeError:
                 # handling active path/step that was never given path_log row
@@ -1383,7 +1384,7 @@ class Step(object):
             npc = npcs
         else:
             npcs = db(db.npcs.id.belongs(tuple([n for n
-                                                    in step.npcs]))).select()
+                                                in step.npcs]))).select()
             npcs = npcs.find(lambda row: location['id'] in row.location)
             if len(npcs) > 1:
                 npc = _get_npc_internal(npcs)
@@ -1509,15 +1510,15 @@ class Step(object):
         bug_reporter = DIV()
         text1 = SPAN('If you think your answer wasn\'t evaluated properly, ')
         link = A('click here',
-                    _href=URL('creating', 'bug',
-                                vars=dict(step=step.id,
-                                            path=path.id,
-                                            answer=request.vars.response,
-                                            log_id=log_id,
-                                            score=score,
-                                            loc=request.vars.loc)),
-                    cid='bug_reporter',
-                    _class='button-bug-reporter')
+                 _href=URL('creating', 'bug',
+                           vars=dict(step=step.id,
+                                     path=path.id,
+                                     answer=request.vars.response,
+                                     log_id=log_id,
+                                     score=score,
+                                     loc=request.vars.loc)),
+                 cid='bug_reporter',
+                 _class='button-bug-reporter')
         text2 = SPAN(' to submit a bug report for this question.')
         bug_reporter.append(text1)
         bug_reporter.append(link)
@@ -1600,39 +1601,6 @@ class Step(object):
                     )
                     if debug: print 'created new record for', tag_record.tag
 
-
-        # TODO: Work on more concise version below
-
-        # # Log this tag attempt for each tag in the step
-        # for tag in self.step.tags:
-        #     # Try to update an existing record for this tag
-        #     try:
-        #         tag_record = tag_records.find(lambda row:
-        #                                             row.tag == tag).first()
-
-        #         if tag_record:
-        #             if score == 1:
-        #                 time_last_wrong = tag_record.tlast_wrong
-        #             elif score == 0:
-        #                 time_last_right = tag_record.tlast_right
-        #             else:
-        #                 score = 0
-        #                 time_last_right = tag_record.tlast_right
-
-        #             times_right += tag_record.times_right
-        #             times_wrong += tag_record.times_wrong
-
-        #         db.tag_records.update_or_insert(
-        #                 {'name': auth.user_id,
-        #                 'tag': tag},
-        #                 tlast_right=time_last_right,
-        #                 tlast_wrong=time_last_wrong,
-        #                 times_right=times_right,
-        #                 times_wrong=times_wrong,
-        #                 path=self.path.id,
-        #                 step=self.step.id
-        #             )
-
             # Print any other error that is thrown
             # TODO: Put this in a server log instead/as well or create a ticket
             # TODO: Do we want to rollback the transaction?
@@ -1645,10 +1613,9 @@ class Step(object):
         # TODO: Merge this with Walk._update_path_log()?
         # TODO: Note that last_step has to be set to 0 either here or in
         # complete() *after* this.
-        log = db(
-                (db.path_log.path == self.path.id) &
-                (db.path_log.name == auth.user_id)
-                ).select(orderby=~db.path_log.dt_started).first()
+        log = db((db.path_log.path == self.path.id) &
+                 (db.path_log.name == auth.user_id)
+                 ).select(orderby=~db.path_log.dt_started).first()
 
         # Log this path completion/progress
         if log:
@@ -1661,8 +1628,8 @@ class Step(object):
                               score=score,
                               path=self.path.id)
         a_log = db((db.attempt_log.name == auth.user_id) &
-                    (db.attempt_log.step == self.step.id)
-                    ).select(orderby=~db.attempt_log.dt_attempted)
+                   (db.attempt_log.step == self.step.id)
+                   ).select(orderby=~db.attempt_log.dt_attempted)
 
         return a_log.first().id
 
@@ -1742,7 +1709,11 @@ class Step(object):
 
         try:
             if debug: print 'getting prompt image'
-            prompt.append(self._get_step_image())
+            img = self._get_step_image()
+            if img:
+                prompt.append(img)
+            else:
+                pass
         except AttributeError:
             if debug: print 'No step image for this Step type'
             pass
@@ -1781,12 +1752,11 @@ class Step(object):
         '''
         if self.verbose:
             print 'calling', type(self).__name__, '._get_responder--------'
-        debug = False
 
         form = SQLFORM.factory(
                     Field('response', 'string', requires=IS_NOT_EMPTY()),
                     _autocomplete='off'
-                )
+        )
 
         return form
 
@@ -1808,6 +1778,34 @@ class Step(object):
             return inst_list
         else:
             if debug: print 'no instructions found'
+            return None
+
+
+class StepImage(Step):
+    '''
+    This subclass of Step adds an image in the prompt area.
+    '''
+    verbose = False
+
+    def _get_step_image(self, db=None):
+        '''
+        Returns the image to be displayed in the step prompt, wrapped in a
+        web2py IMG() helper object.
+        '''
+        if self.verbose:
+            print 'calling', type(self).__name__, '._get_step_image -----'
+        if db is None:
+            db = current.db
+
+        try:
+            img = db.images(self.step.widget_image).image
+            if img:
+                url = URL('static/images', img)
+                return IMG(_src=url, _class='prompt_image')
+            else:
+                return None
+        except:
+            print '._get_image(): Could not find image for prompt'
             return None
 
 
@@ -1896,16 +1894,16 @@ class StepMultipleChoice(Step):
         return {'reply': reply,
                 'readable': answer1,
                 'bug_reporter': self._get_bug_reporter(self.step,
-                                                        self.path,
-                                                        user_response,
-                                                        log_id,
-                                                        score),
+                                                       self.path,
+                                                       user_response,
+                                                       log_id,
+                                                       score),
                 'npc_img': session.walk['npc_image'],
                 'bg_image': self.location['bg_image'],
                 'user_response': user_response}
 
 
-class StepStub(Step):
+class StepStub(StepImage, Step):
     '''
     A step type that does not require significant user response. Useful for
     giving the user information and then freeing her/him up to perform a task.
@@ -1938,7 +1936,7 @@ class StepStub(Step):
         # if this is part of a multi-step path
         # test with path 93 step 107
         if self.path and (len(self.path.steps) > 1) and (self.step.id !=
-                                                          self.path.steps[-1]):
+                                                         self.path.steps[-1]):
             # TODO: In some cases when a utility step is activated
             # between steps of a multi-step path, no other path is activated,
             # but the util step will not be found in the path.steps list
@@ -1978,8 +1976,8 @@ class StepStub(Step):
         if self.verbose:
             print 'calling', type(self).__name__, '._get_responder -------'
         map_button = A("Map", _href=URL('walk'),
-                        cid='page',
-                        _class='button-yellow-grad back_to_map icon-location')
+                     cid='page',
+                     _class='button-yellow-grad back_to_map icon-location')
         responder = DIV(map_button)
 
         self._complete()
@@ -2012,8 +2010,8 @@ class StepRedirect(StepStub):
         next_loc = 'another location in town'
 
         if 'active_paths' in session.walk \
-                            and session.walk['active_paths'] \
-                            and session.walk['active_paths'].keys()[0] != 30:
+           and session.walk['active_paths'] \
+           and session.walk['active_paths'].keys()[0] != 30:
             if debug: print 'getting loc for active path'
             next_step = session.walk['active_paths'].values()[0]
             if debug: print next_step
@@ -2029,7 +2027,7 @@ class StepRedirect(StepStub):
                 else:
                     break
         elif ('next_loc' in session.walk) and (session.walk['next_loc']
-                                                        not in (None, 'None')):
+                                               not in (None, 'None')):
             if debug: print 'getting loc from session.walk["next_loc"]'
             loc_rdbl = db.locations[session.walk['next_loc']].readable
             if not loc_rdbl is None:
@@ -2090,12 +2088,12 @@ class StepViewSlides(StepStub):
         slidelist = []
         badgelist = []
         if ('view_slides' in session.walk) and (session.walk['view_slides']
-                                                              is not None):
+                                                is not None):
             for t in session.walk['view_slides']:
                 # convert this to link once plugin_slider supports it
                 tag_slides = db.tags[t].slides
                 slidelist += [db.plugin_slider_decks[d].deck_name
-                                                        for d in tag_slides]
+                              for d in tag_slides]
 
                 badge = db(db.badges.tag == t).select().first()
                 badge_name = '{0} {1}'.format('beginner', badge.badge_name)
@@ -2179,7 +2177,7 @@ class StepAwardBadges(StepNonBlocking, StepStub):
                         b = db(db.badges.tag == tag).select()[0]
                         if debug: print 'badge =', b
                         ranks = ['beginner', 'apprentice',
-                                                'journeyman', 'master']
+                                 'journeyman', 'master']
                         try:
                             #TODO: chokes on this line if badge == None
                             badge_name = '{0} {1}'.format(ranks[n - 1],
@@ -2213,33 +2211,6 @@ class StepAwardBadges(StepNonBlocking, StepStub):
         print 'removed award badges flag'
 
 
-class StepImage(Step):
-    '''
-    This subclass of Step adds an image in the prompt area.
-    '''
-    verbose = False
-
-    def _get_step_image(self, db=None):
-        '''
-        Returns the image to be displayed in the step prompt, wrapped in a
-        web2py IMG() helper object.
-        '''
-        debug = False
-        if self.verbose:
-            print 'calling', type(self).__name__, '._get_step_image -----'
-        if db == None:
-            db = current.db
-
-        try:
-            url = URL('static/images', db.images(self.step.widget_image).image)
-            if debug:
-                print url
-            return IMG(_src=url, _class='prompt_image')
-        except:
-            print '._get_image(): Could not find image for prompt'
-            return
-
-
 class StepImageMultipleChoice(StepImage, StepMultipleChoice):
     '''
     This subclass of StepMultipleChoice adds an image in the prompt
@@ -2259,7 +2230,7 @@ STEP_CLASSES = {
         'step_awardBadges': StepAwardBadges,
         'step_dailyQuota': StepDailyQuota,
         'step_viewSlides': StepViewSlides
-    }
+}
 
 
 class Npc(object):
@@ -2414,4 +2385,3 @@ class Map(object):
         return db().select(db.locations.ALL,
                            orderby=db.locations.location,
                            cache=(cache.ram, 60 * 60)).as_list()
-
