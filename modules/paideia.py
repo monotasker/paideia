@@ -447,7 +447,7 @@ class Step(object):
 
     def get_npcs(self):
         """
-        Return the id of the current step as an integer.
+        Return the ids of the npcs available for current step as a list.
         """
         return self.data['npcs']
 
