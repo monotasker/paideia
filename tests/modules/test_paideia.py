@@ -59,16 +59,13 @@ images = {'npc1_img': '/paideia/static/images/images.image.bb48641f0122d2b6.696d
 
 npc_data = {1: {'image': images['npc1_img'],
                 'name': 'Ἀλεξανδρος',
-                'location': [6, 8],
-                },
+                'location': [6, 8]},
             2: {'image': images['npc4_img'],
                 'name': 'Μαρια',
-                'location': [3, 1, 2, 4],
-                },
+                'location': [3, 1, 2, 4]},
             8: {'image': images['npc5_img'],
                 'name': 'Διοδωρος',
-                'location': [1],
-                },
+                'location': [1]},
             14: {'image': images['npc2_img'],
                  'name': 'Γεωργιος',
                  'location': [3, 1, 2, 4, 7, 8, 9, 10]},
@@ -1049,29 +1046,24 @@ class TestStep():
     def test_step_get_npc(self, mystep):
         """Test for method Step.get_npc"""
         # TODO: make sure the npc really is randomized
-        casenum = mystep['casenum']
-        case = 'case{}'.format(casenum)
-        case1 = {'npc_id': [8, 2, 32, 1, 17],
-                'name': ['Διοδωρος', 'Μαρια', 'Στεφανος', 'Ἀλεξανδρος', 'Ἱασων'],
-                'locs': [3, 1, 2, 4, 6, 7, 8, 11]}
-        case2 = {'npc_id': [8, 2, 32, 1],
-                'name': ['Διοδωρος', 'Μαρια', 'Στεφανος', 'Ἀλεξανδρος'],
-                'locs': [3, 1, 2, 4, 6, 7, 8, 11]}
-        case3 = {'npc_id': [14],
-                'name': ['Γεωργιος'],
-                'locs': [3, 1, 2, 4, 7, 8, 9, 10]}
-        output = locals()[case]
-        assert mystep['step'].get_npc().get_id() in output['npc_id']
-        assert mystep['step'].get_npc().get_name() in output['name']
-        locs = mystep['step'].get_npc().get_locations()
-        for l in locs:
-            assert isinstance(l, Location)
-            assert (l.get_id() in output['locs']) == True
+        if mystep:
+            actual = mystep['step'].get_npc()
+            expected = mystep['stepdata']
+
+            assert actual.get_id() in expected['npc_list']
+            assert actual.get_name() == npc_data[actual.get_id()]['name']
+            assert actual.get_image() == npc_data[actual.get_id()]['image']
+            for l in actual.get_locations():
+                assert isinstance(l, Location)
+                assert l.get_id() in expected['locations']
+                assert l.get_id() in npc_data[actual.get_id()]['location']
 
     def test_step_get_instructions(self, mystep):
         """Test for method Step._get_instructions"""
         if mystep:
-            # ['Focus on finding Greek letters that make the *sounds* of the English word. Don\'t look for Greek "equivalents" for each English letter.']
+            # ['Focus on finding Greek letters that make the *sounds* of the
+            # English word. Don\'t look for Greek "equivalents" for each
+            # English letter.']
             expected = mystep['stepdata']['instructions']
             actual = mystep['step']._get_instructions()
             assert actual == expected
