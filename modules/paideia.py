@@ -622,9 +622,12 @@ class StepRedirect(Step):
         # available path if the current step is the last in its path.
         if next_step_id:
             next_locids = db.steps[next_step_id].locations
+            print 'next_locids', next_locids
             # find a location that actually has a readable name
             raw_locs = [db.locations[n].readable for n in next_locids]
+            print 'raw_locs', raw_locs
             next_locs = [n for n in raw_locs if not n is None]
+            print 'next_locs', next_locs
             next_loc = next_locs[randint(0, len(next_locs))]
         else:
             pass

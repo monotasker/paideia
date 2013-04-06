@@ -153,8 +153,13 @@ def mysteps(request):
                   'widget_type': 9,
                   'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
                   'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10],
-                  'raw_prompt': 'Hi there. Sorry, I don\'t have anything for you to do here at the moment. I think someone was looking for you at [[next_loc]].',
-                  'final_prompt': 'Hi there. Sorry, I don\'t have anything for you to do here at the moment. I think someone was looking for you at [[next_loc]].',
+                  'raw_prompt': 'Hi there. Sorry, I don\'t have anything for '
+                                'you to do here at the moment. I think '
+                                'someone was looking for you at [[next_loc]].',
+                  'final_prompt': 'Hi there. Sorry, I don\'t have anything '
+                                  'for you to do here at the moment. I think '
+                                  'someone was looking for you at '
+                                  '[[next_loc]].',
                   'instructions': None,
                   'tags': [70],
                   'tags_secondary': []},
@@ -1104,17 +1109,18 @@ class TestStepRedirect():
         if myStepRedirect:
             username = 'Ian'
             actual = myStepRedirect['step'].get_prompt(username)
-            assert actual['prompt'] == \
-                "Hi there. Sorry, I don't have anything for you to do here " \
-                "at the moment. I think someone was looking for you at " \
-                "somewhere else in town."
-            assert actual['instructions'] is None
-            assert (actual['npc_image'] ==
-                    '/paideia/static/images/images.image.a59978facee731f0.'
-                    '44726177696e672031382e737667.svg'
-                    or actual['npc_image'] ==
-                    '/paideia/static/images/images.image.961b44d8d322659c.'
-                    '323031322d30362d30372031345f34345f34302e706e67.png')
+            step = myStepRedirect['stepdata']
+            newstring = step['final_prompt'].replace('[[next_loc]]', '{}')
+            # TODO: figure out how to get test step to supply next loc
+            placenames = ['ἡ στοά', 'τὸ βαλανεῖον', 'ὁ οἰκος Σιμωνος',
+                          'ἡ ἀγορά', 'somewhere else in town']
+            expected_prompts = [newstring.format(p) for p in placenames]
+            expected_instructions = step['instructions']
+            expected_images = [npc_data[i]['image'] for i in step['npc_list']]
+
+            assert actual['prompt'] in expected_prompts
+            assert actual['instructions'] == expected_instructions
+            assert actual['npc_image'] in expected_images
         else:
             pass
 
@@ -1127,9 +1133,16 @@ class TestStepRedirect():
                       'username': 'Ian',
                       'db': db,
                       'next_step_id': next_step}
-            newstring = 'Nothing to do here Ian. Try somewhere else in town.'
-            assert myStepRedirect['step']._make_replacements(**kwargs) == \
-                newstring
+            newstring = 'Nothing to do here Ian. Try {}.'
+            placenames = ['ἡ στοά', 'τὸ βαλανεῖον', 'ὁ οἰκος Σιμωνος',
+                          'ἡ ἀγορά']
+            expecteds = [newstring.format(p) for p in placenames]
+            print 'actual \n', myStepRedirect['step']._make_replacements(**kwargs)
+            print 'expected \n'
+            for e in expecteds:
+                print e
+            assert myStepRedirect['step']._make_replacements(**kwargs) in \
+                expecteds
         else:
             pass
 
