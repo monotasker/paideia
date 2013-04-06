@@ -6,7 +6,7 @@ from paideia import Npc, Location, User, PathChooser, Path, Categorizer, Walk
 from paideia import StepFactory, StepText, StepMultiple, NpcChooser  # Step
 from paideia import StepRedirect, StepViewSlides, StepAwardBadges
 from paideia import StepEvaluator, MultipleEvaluator, StepQuotaReached
-from paideia import A, URL, DIV
+from paideia import A, URL, DIV, LI, UL, SPAN
 #from paideia import Block, BlockRedirect, BlockAwardBadges, BlockViewSlides
 from gluon import current
 request = current.request
@@ -203,23 +203,11 @@ def mysteps(request):
                    'widget_type': 8,
                    'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10],
                    'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
-                   'raw_prompt': 'Congratulations, [[user]]![[new_badge_list]]'
-                                 '[[promoted_list]]You can click on your name above to '
+                   'raw_prompt': 'Congratulations, [[user]]! You\'ve started'
+                                 'work on these new badges! [[new_badge_list]]'
+                                 'You can click on your name above to '
                                  'see details of your progress so far.',
-                   'final_prompt': 'Congratulations, [[user]]! You\'ve earned '
-                                   'a new badge!<ul class="new_badge_list">'
-                                   '<li>'
-                                   '<span class="badge_name">spaced out</span> '
-                                   'for using spatial adverbs to talk about '
-                                   'the location of events, people, places, or '
-                                   'things</li>'
-                                   '<li>'
-                                   '<span class="badge_name">nominative 1'
-                                   '</span> for the use of singular, '
-                                   'first-declension nouns in the nominative '
-                                   'case'
-                                   '</li>'
-                                   '</ul>'
+                   'final_prompt': 'Congratulations, [[user]]![[new_badge_list]]'
                                    'You can click on your name above to '
                                    'see details of your progress so far.',
                    'instructions': None,
@@ -1141,12 +1129,8 @@ class TestStepRedirect():
                       'next_step_id': next_step}
             newstring = 'Nothing to do here Ian. Try {}.'
             placenames = ['ἡ στοά', 'τὸ βαλανεῖον', 'ὁ οἰκος Σιμωνος',
-                          'ἡ ἀγορά']
+                          'ἡ ἀγορά', 'ἡ συναγωγή']
             expecteds = [newstring.format(p) for p in placenames]
-            print 'actual \n', myStepRedirect['step']._make_replacements(**kwargs)
-            print 'expected \n'
-            for e in expecteds:
-                print e
             assert myStepRedirect['step']._make_replacements(**kwargs) in \
                 expecteds
         else:
@@ -1202,27 +1186,50 @@ class TestAwardBadges():
     '''
 
     def test_stepawardbadges_get_id(self, myStepAwardBadges):
-        """Test for method Step.get_id"""
-        assert myStepAwardBadges['step'].get_id() == 126
+        """Test for method StepAwardBadges.get_id"""
+        if myStepAwardBadges:
+            expect_id = myStepAwardBadges['stepdata']['id']
+            assert myStepAwardBadges['step'].get_id() == expect_id
 
-    #def test_stepawardbadges_get_prompt(self, myStepAwardBadges):
-        #"""
-        #Test method for the get_prompt method of the StepRedirect class.
-        #This test assumes that the selected npc is Stephanos. It also assumes
-        #that the step is 126.
-        #"""
-        #sd = step_data_store[126]['case1']
-        ## TODO: remove npc numbers that can't be at this loc
-        #npcimgs = [n['image'] for k, n in npc_data.iteritems()
-                        #if k in sd['npc_list']]
-        #out = {'raw_prompt': sd['raw_prompt'],
-                #'username': sd['username'],
-                #'new_badges': sd['new_badges'],
-                #'db': db}
-        #prompt = myStepAwardBadges['step'].get_prompt(**out)
-        #assert prompt['prompt'] == sd['final_prompt']
-        #assert prompt['instructions'] == sd['instructions']
-        #assert prompt['npc_image'] in npcimgs
+    def test_stepawardbadges_get_prompt(self, myStepAwardBadges):
+        """
+        Test method for the get_prompt method of the StepAwardBadges class.
+        """
+        if myStepAwardBadges:
+            expect = myStepAwardBadges['stepdata']
+            case = myStepAwardBadges['casedata']
+            # TODO: remove npc numbers that can't be at this loc
+            npcimgs = [npc_data[n]['image'] for n in expect['npc_list']]
+            kwargs = {'raw_prompt': expect['raw_prompt'],
+                      'username': case['name'],
+                      'new_badges': case['new_badges'],
+                      'promoted': case['promoted'],
+                      'db': db}
+            print 'expected', case['new_badges']
+            actual = myStepAwardBadges['step'].get_prompt(**kwargs)
+            # assemble expected prompt string dynamically
+            badge_records = db(db.badges.id).select()
+            new_records = badge_records.find(lambda row:
+                                             row.id in case['new_badges'])
+            print 'new_records', new_records
+            expect_prompt = expect['raw_prompt'].replace('[[user]]',
+                                                         case['name'])
+            if new_records:
+                new_badge_list = UL(_class='new_badge_list')
+                for b in new_records:
+                    new_badge_list.append(LI(SPAN(b.badge_name,
+                                                  _class='badge_name'),
+                                             b.description))
+                expect_prompt = expect_prompt.replace('[[new_badge_list]]',
+                                                      new_badge_list.xml())
+            else:
+                # don't let test pass if there are no new badges for prompt
+                raise Exception
+            assert actual['prompt'] == expect_prompt
+            assert actual['instructions'] == expect['instructions']
+            assert actual['npc_image'] in npcimgs
+        else:
+            pass
 
     #def test_stepawardbadges_make_replacements(self, myStepAwardBadges):
         #"""docstring for test_step_stepawardbadges_make_replacements"""
