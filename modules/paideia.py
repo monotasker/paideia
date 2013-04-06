@@ -673,6 +673,7 @@ class StepAwardBadges(StepResponder, Step):
             username = self.username
         if not db:
             db = self.db
+        print 'new_badges', new_badges
 
         badges = [db(db.badges.tag == t).select()[0] for t in new_badges]
         nb = [LI(SPAN(n.badge_name, _class='badge_name'), ' for ', n.description)
