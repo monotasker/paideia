@@ -628,7 +628,7 @@ class StepRedirect(Step):
             print 'raw_locs', raw_locs
             next_locs = [n for n in raw_locs if not n is None]
             print 'next_locs', next_locs
-            next_loc = next_locs[randint(0, len(next_locs))]
+            next_loc = next_locs[randrange(len(next_locs))]
         else:
             pass
 
@@ -684,7 +684,9 @@ class StepAwardBadges(StepResponder, Step):
         reps = {'[[new_badge_list]]': '{}{}'.format(bstring, badgelist.xml()),
                 '[[user]]': username}
         if promoted:
-            proms = [db(db.badges.tag == t).select()[0] for t in promoted]
+            proms = [db(db.badges.tag == v).select()[0]
+                     for c, l in promoted.iteritems()
+                     for v in l]
             pr = [LI(SPAN(n.badge_name, _class='badge_name'),
                   ' for ', n.description)
                   for n in proms]
