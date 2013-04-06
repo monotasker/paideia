@@ -711,7 +711,9 @@ def myStepAwardBadges(mycases, mysteps):
                   'prev_npc_id': mycases['prev_npc_id'],
                   'db': db}
         return {'casenum': mycases['casenum'],
-                'step': StepAwardBadges(**kwargs)}
+                'step': StepAwardBadges(**kwargs),
+                'stepdata': mysteps,
+                'casedata': mycases}
     else:
         pass
 
@@ -727,7 +729,9 @@ def myStepViewSlides(mycases, mysteps):
                   'prev_loc': mycases['prev_loc'],
                   'prev_npc_id': mycases['prev_npc_id'],
                   'db': db}
-        return StepViewSlides(**kwargs)
+        return {'step': StepViewSlides(**kwargs),
+                'stepdata': mysteps,
+                'casedata': mycases}
     else:
         pass
 
@@ -743,7 +747,9 @@ def myStepQuotaReached(mycases, mysteps):
                   'prev_loc': mycases['prev_loc'],
                   'prev_npc_id': mycases['prev_npc_id'],
                   'db': db}
-        return StepFactory().get_instance(**kwargs)
+        return {'step': StepFactory().get_instance(**kwargs),
+                'stepdata': mysteps,
+                'casedata': mycases}
     else:
         pass
 
@@ -1175,15 +1181,16 @@ class TestStepRedirect():
         else:
             pass
 
-#class TestAwardBadges():
-    #'''
-    #A subclass of Step. Handles the user interaction when the user is awarded
-    #new badges.
-    #'''
 
-    #def test_stepawardbadges_get_id(self, myStepAwardBadges):
-        #"""Test for method Step.get_id"""
-        #assert myStepAwardBadges['step'].get_id() == 126
+class TestAwardBadges():
+    '''
+    A subclass of Step. Handles the user interaction when the user is awarded
+    new badges.
+    '''
+
+    def test_stepawardbadges_get_id(self, myStepAwardBadges):
+        """Test for method Step.get_id"""
+        assert myStepAwardBadges['step'].get_id() == 126
 
     #def test_stepawardbadges_get_prompt(self, myStepAwardBadges):
         #"""
