@@ -622,12 +622,9 @@ class StepRedirect(Step):
         # available path if the current step is the last in its path.
         if next_step_id:
             next_locids = db.steps[next_step_id].locations
-            print 'next_locids', next_locids
             # find a location that actually has a readable name
             raw_locs = [db.locations[n].readable for n in next_locids]
-            print 'raw_locs', raw_locs
             next_locs = [n for n in raw_locs if not n is None]
-            print 'next_locs', next_locs
             next_loc = next_locs[randrange(len(next_locs))]
         else:
             pass
@@ -681,8 +678,7 @@ class StepAwardBadges(StepResponder, Step):
         badgelist = UL(_class='new_badge_list')
         for n in nb:
             badgelist.append(n)
-        bstring = ' You\'ve earned a new badge! '
-        reps = {'[[new_badge_list]]': '{}{}'.format(bstring, badgelist.xml()),
+        reps = {'[[new_badge_list]]': badgelist.xml(),
                 '[[user]]': username}
         if promoted:
             proms = [db(db.badges.tag == v).select()[0]
