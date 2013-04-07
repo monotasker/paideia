@@ -1289,15 +1289,20 @@ class TestAwardBadges():
         else:
             pass
 
-#class TestStepViewSlides():
-    #'''
-    #A subclass of Step. Handles the user interaction when the user is awarded
-    #new badges.
-    #'''
 
-    #def test_awardbadges_get_id(self, myStepViewSlides):
-        #"""Test for method Step.get_id"""
-        #assert myStepViewSlides.get_id() == 127
+class TestStepViewSlides():
+    '''
+    A subclass of Step. Handles the user interaction when the user is awarded
+    new badges.
+    '''
+
+    def test_awardbadges_get_id(self, myStepViewSlides):
+        """Test for method Step.get_id"""
+        if myStepViewSlides:
+            step = myStepViewSlides['stepdata']
+            assert myStepViewSlides['step'].get_id() == step['id']
+        else:
+            pass
 
     #def test_stepviewslides_get_prompt(self, myStepViewSlides):
         #"""
