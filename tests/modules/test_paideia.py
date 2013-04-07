@@ -697,7 +697,7 @@ def myStepAwardBadges(mycases, mysteps):
     """
     A pytest fixture providing a paideia.StepAwardBadges object for testing.
     """
-    if mysteps['id'] == 126:
+    if (mysteps['id'] == 126) and not (mycases['new_badges'] is None):
         kwargs = {'step_id': 126,
                   'loc': mycases['loc'],
                   'prev_loc': mycases['prev_loc'],
@@ -1029,7 +1029,7 @@ class TestStep():
 
     def test_step_make_replacements(self, mystep):
         """Unit test for method Step._make_replacements()"""
-        if mystep:
+        if mystep and mystep['stepdata']['id'] not in [30, 125, 126, 127]:
             step = mystep['step']
             sdata = mystep['stepdata']
             case = mystep['casedata']
@@ -1208,18 +1208,19 @@ class TestAwardBadges():
             print 'expected', case['new_badges']
             actual = myStepAwardBadges['step'].get_prompt(**kwargs)
             # assemble expected prompt string dynamically
-            badge_records = db(db.badges.id).select()
-            new_records = badge_records.find(lambda row:
-                                             row.id in case['new_badges'])
+            tags_badges = db(db.badges.tag == db.tags.id).select()
+            new_records = tags_badges.find(lambda row:
+                                           row.tags.id in case['new_badges'])
             print 'new_records', new_records
             expect_prompt = expect['raw_prompt'].replace('[[user]]',
                                                          case['name'])
             if new_records:
                 new_badge_list = UL(_class='new_badge_list')
                 for b in new_records:
-                    new_badge_list.append(LI(SPAN(b.badge_name,
+                    new_badge_list.append(LI(SPAN(b.badges.badge_name,
                                                   _class='badge_name'),
-                                             b.description))
+                                             ' for ',
+                                             b.badges.description))
                 expect_prompt = expect_prompt.replace('[[new_badge_list]]',
                                                       new_badge_list.xml())
             else:
@@ -1231,6 +1232,7 @@ class TestAwardBadges():
         else:
             pass
 
+    # TODO: fix this test
     #def test_stepawardbadges_make_replacements(self, myStepAwardBadges):
         #"""docstring for test_step_stepawardbadges_make_replacements"""
         #case = myStepAwardBadges['casenum']
@@ -1240,37 +1242,52 @@ class TestAwardBadges():
         #actual = myStepAwardBadges['step']._make_replacements(**out)
         #assert actual == sd['final_prompt']
 
-    #def test_stepawardbadges_get_tags(self, myStepAwardBadges):
-        #"""
-        #Test for method StepRedirect.get_tags
+    def test_stepawardbadges_get_tags(self, myStepAwardBadges):
+        """
+        Test for method StepRedirect.get_tags
+        The one tag that should be returned for all steps of this class is 81
+        """
+        if myStepAwardBadges:
+            step = myStepAwardBadges['stepdata']
+            expected = {'primary': step['tags'],
+                        'secondary': step['tags_secondary']}
+            assert myStepAwardBadges['step'].get_tags() == expected
+        else:
+            pass
 
-        #The one tag that should be returned for all steps of this class is 81
-        #"""
-        #case = myStepAwardBadges['casenum']
-        #sd = step_data_store[126]['case{}'.format(case)]
-        #out = {'primary': sd['tags'], 'secondary': sd['tags_secondary']}
-        #assert myStepAwardBadges['step'].get_tags() == out
+    def test_stepawardbadges_get_responder(self, myStepAwardBadges):
+        """Test for method StepAwardBadges.get_responder"""
 
-    #def test_stepawardbadges_get_responder(self, myStepAwardBadges):
-        #"""Test for method StepAwardBadges.get_responder"""
-        #request = current.request  # TODO: get loc below from self
-        #map_button = A("Map", _href=URL('walk'),
-                        #cid='page',
-                        #_class='button-yellow-grad back_to_map icon-location')
-        #continue_button = A("Continue", _href=URL('walk', args=['ask'],
-                                        #vars={'loc':12}),
-                            #cid='page',
-                            #_class='button-green-grad next_q')
-        #assert myStepAwardBadges['step'].get_responder().xml() == \
-                                        #DIV(map_button, continue_button).xml()
+        if myStepAwardBadges:
+            case = myStepAwardBadges['casedata']
+            the_loc = case['loc'].get_id()
 
-    #def test_stepawardbadges_get_npc(self, myStepAwardBadges):
-        #"""Test for method StepAwardBadges.get_npc"""
-        #assert myStepAwardBadges['step'].get_npc().get_id() in [14, 8, 2, 40, 31,
-                                                            #32, 41, 1, 17, 42]
-        #locs = myStepAwardBadges['step'].get_npc().get_locations()
-        #assert isinstance(locs[0], Location)
+            map_button = A("Map", _href=URL('walk'),
+                           cid='page',
+                           _class='button-yellow-grad back_to_map icon-location')
+            continue_button = A("Continue", _href=URL('walk', args=['ask'],
+                                                      vars={'loc': the_loc}),
+                                cid='page',
+                                _class='button-green-grad next_q')
+            expected = DIV(map_button, continue_button).xml()
+            actual = myStepAwardBadges['step'].get_responder().xml()
+            print 'actual\n', actual
+            print 'expected\n', expected
+            assert actual == expected
+        else:
+            pass
 
+    def test_stepawardbadges_get_npc(self, myStepAwardBadges):
+        """Test for method StepAwardBadges.get_npc"""
+        if myStepAwardBadges:
+            npc = myStepAwardBadges['step'].get_npc()
+            step = myStepAwardBadges['stepdata']
+            case = myStepAwardBadges['casedata']
+            assert npc.get_id() in step['npc_list']
+            assert npc.get_id() in case['npcs_here']
+            assert isinstance(npc, Npc)
+        else:
+            pass
 
 #class TestStepViewSlides():
     #'''
