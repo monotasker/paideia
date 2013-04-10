@@ -219,10 +219,11 @@ def mysteps(request):
                    'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
                    'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10],
                    'raw_prompt': 'Congratulations, [[user]]! You\'re ready to '
-                                 'start working on some new badges:[[badge_list]]. Before'
-                                 'you continue, take some time to view these slide sets:'
-                                 '[[slides]]You\'ll find the slides by clicking on the '
-                                 '"slides" menu item at top.',
+                                 'start working on some new badges:'
+                                 '[[badge_list]]. Before you continue, take '
+                                 'some time to view these slide sets:'
+                                 '[[slides]]You\'ll find the slides by '
+                                 'clicking on the "slides" menu item at top.',
                    'final_prompt': 'Congratulations, Ian! You\'re ready to '
                                    'start working on some new badges:'
                                    '[[badge_list]]. Beforeyou continue, take '
@@ -1304,23 +1305,47 @@ class TestStepViewSlides():
         else:
             pass
 
-    #def test_stepviewslides_get_prompt(self, myStepViewSlides):
-        #"""
-        #Test method for the get_prompt method of the StepRedirect class.
-        #This test assumes that the selected npc is Stephanos. It also assumes
-        #that the step is 30.
-        #"""
-        #sd = step_data_store[127]['case1']
-        ## TODO: remove npc numbers that can't be at this
-        #npcimgs = [n['image'] for k, n in npc_data.iteritems()
-                        #if k in sd['npc_list']]
-        #prompt = myStepViewSlides.get_prompt(username=sd['username'],
-                                           #new_badges=sd['new_badges'])
-        #print 'METHOD OUTPUT\n', sd['final_prompt']
-        #print 'EXPECTED\n', prompt['prompt']
-        #assert prompt['prompt'] == sd['final_prompt']
-        #assert prompt['instructions'] == sd['instructions']
-        #assert prompt['npc_image'] in npcimgs
+    def test_stepviewslides_get_prompt(self, myStepViewSlides):
+        """
+        Test method for the get_prompt method of the StepRedirect class.
+        This test assumes that the selected npc is Stephanos. It also assumes
+        that the step is 30.
+        """
+        if myStepViewSlides:
+            case = myStepViewSlides['casedata']
+            step = myStepViewSlides['stepdata']
+            # get actual prompt output
+            actual = myStepViewSlides['step'].get_prompt(username=case['name'],
+                                                 new_badges=case['new_badges'])
+            # assemble expected prompt
+            nb = case['new_badges']
+            tags = db(db.tags.id.belongs(nb)).select(db.tags.slides).as_list()
+            deck_ids = set(d for row in tags
+                           for k, v in row.iteritems()
+                           for d in v
+                           if k == 'slides')
+            deck_table = db.plugin_slider_decks
+            deck_query = db(deck_table.id.belongs(deck_ids))
+            decknames = deck_query.select(deck_table.id,
+                                          deck_table.deck_name,
+                                          orderby=deck_table.position)
+            decklist = UL(_class='slide_list')
+            for d in decknames:
+                decklist.append(LI(A(d.deck_name, _href=URL('listing',
+                                                            'slides',
+                                                            args=[d.id]))))
+            p = step['raw_prompt']
+            expect_prompt = p.replace('[[user]]', case['name'])
+            expect_prompt = expect_prompt.replace('[[slides]]', decklist.xml())
+            # get list of expected npc images
+            npc_images = [npc_data[n]['image'] for n in step['npc_list']
+                          if n in case['npcs_here']]
+
+            print 'METHOD OUTPUT\n', actual['prompt']
+            print 'EXPECTED\n', expect_prompt
+            assert actual['prompt'] == expect_prompt
+            assert actual['instructions'] == step['instructions']
+            assert actual['npc_image'] in npc_images
 
     #def test_stepviewslides_make_replacements(self, myStepViewSlides):
         #"""
