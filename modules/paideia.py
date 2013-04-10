@@ -530,21 +530,14 @@ class Step(object):
             return self.npc
         else:
             npcs_for_step = self.data['npcs']
-            print 'step-m', self.data['id']
-            print 'npcs_for_step-m', npcs_for_step
-            print 'loc-m', self.loc.get_id()
             npc_list = [int(n) for n in npcs_for_step
                         if self.loc.get_id() in self.db.npcs[n].location]
-            print 'npc_list-m', npc_list
             if len(npc_list) < 1:
-                print len(npc_list)
                 return False
             elif self.prev_npc_id in npc_list:
-                print 'elif'
                 self.npc = Npc(self.prev_npc_id, db=self.db)
                 return self.npc
             else:
-                print 'else'
                 pick = npc_list[randint(1, len(npc_list)) - 1]
                 self.npc = Npc(pick, db=self.db)
                 return self.npc
@@ -670,7 +663,6 @@ class StepAwardBadges(StepResponder, Step):
             username = self.username
         if not db:
             db = self.db
-        print 'new_badges', new_badges
 
         badges = [db(db.badges.tag == t).select()[0] for t in new_badges]
         nb = [LI(SPAN(n.badge_name, _class='badge_name'), ' for ', n.description)
@@ -707,7 +699,8 @@ class StepViewSlides(Step):
     A Step that informs the user when s/he needs to view more grammar slides.
     '''
 
-    def _make_replacements(self, raw_prompt=None, username=None, new_badges=None):
+    def _make_replacements(self, raw_prompt=None, username=None,
+                           new_badges=None):
         """
         Return the string for the step prompt with context-based information
         substituted for tokens framed by [[]].
@@ -715,14 +708,39 @@ class StepViewSlides(Step):
         new_badges value should be a list of tag id's as integers
         """
         db = self.db
+        tags = db((db.tags.id == db.badges.tag) &
+                  (db.tags.id.belongs(new_badges))).select().as_list()
+        # get the relevant badges (id and name)
+        badges = [d for row in tags
+                  for name, table in row.iteritems()
+                  for k, v in table.iteritems()
+                  for d in v
+                  if (k == 'id') and
+                  (name == 'badges')]
+
+        # get the relevant slide sets (id and name)
+        decks = [d for row in tags
+                 for name, table in row.iteritems()
+                 for k, v in table.iteritems()
+                 for d in v
+                 if (k == 'slides') and
+                 (name == 'tags')]
+        print 'decks', decks
+        dtable = db.plugin_slider_decks
+        sliderows = db(dtable.id.belongs(decks)
+                       ).select(dtable.id,
+                                dtable.deck_name,
+                                orderby=dtable.position).as_list()
+
+        # build slide deck list
         slides = UL(_class='slide_list')
-        decks = db(db.tags.id.belongs(new_badges)).select(db.tags.slides).as_list()
-        decks = [d for i in decks for k, v in i.iteritems() for d in v]
-        sliderows = db(db.plugin_slider_decks.id.belongs(decks)
-                       ).select(db.plugin_slider_decks.deck_name).as_list()
-        for name in [n for r in sliderows for k, n in r.iteritems()]:
+        for name in [n for row in sliderows for k, n in row.iteritems()
+                     if k == 'deck_name']:
             slides.append(LI(name))
-        reps = {'[[slides]]': slides.xml(),
+
+        # collect replacements
+        reps = {'[[badge_list]]': '',
+                '[[slides]]': slides.xml(),
                 '[[user]]': username}
         new_string = super(StepViewSlides, self
                            )._make_replacements(raw_prompt=raw_prompt,
@@ -1337,7 +1355,6 @@ class Categorizer(object):
         """Return a categorized dictionary of tags"""
         if not rank:
             rank = self.rank
-            print 'rank', rank
         if not old_categories:
             old_categories = self.old_categories
         if not tag_records:
@@ -1399,7 +1416,6 @@ class Categorizer(object):
         """
         db = self.db
         for rec in tag_records:
-            print rec
             # add new secondary_right attempts from attempt_log
             # (TODO: this is temporary)
             db_recs = db(
@@ -1435,14 +1451,12 @@ class Categorizer(object):
                 avg_date = now - avg_delta
                 if avg_date > rec['last_right']:
                     rec['last_right'] = avg_date
-                print 'last_right:', rec['last_right']
 
                 # remove counted entries from secondary_right, leave remainder
                 if rlen > 3:
                     rec['secondary_right'] = rec['secondary_right'][-(rmod):]
                 else:
                     rec['secondary_right'] = []
-                print 'secondary_right (out)', rec['secondary_right']
                 tag_records[rindex] = rec
             else:
                 continue
@@ -1599,7 +1613,6 @@ class Categorizer(object):
                     # add to dictionary of 'promoted' tags
                     if lt_flat:
                         promoted[c] = [t for t in cats[c] if t in lt_flat]
-                        print 'promoted[', c, ']:', promoted[c]
 
             return {'categories': cats,
                     'demoted': demoted,
