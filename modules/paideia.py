@@ -735,6 +735,7 @@ class StepViewSlides(Step):
         if isinstance(decks[0], list):
             # anticipating possibility that decks could match multiple tags
             decks = [i for lst in decks for i in lst]
+        decks = list(set(decks))
 
         dtable = db.plugin_slider_decks
         sliderows = db(dtable.id.belongs(decks)

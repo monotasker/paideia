@@ -220,13 +220,13 @@ def mysteps(request):
                    'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10],
                    'raw_prompt': 'Congratulations, [[user]]! You\'re ready to '
                                  'start working on some new badges:'
-                                 '[[badge_list]]. Before you continue, take '
+                                 '[[badge_list]]Before you continue, take '
                                  'some time to view these slide sets:'
                                  '[[slides]]You\'ll find the slides by '
                                  'clicking on the "slides" menu item at top.',
                    'final_prompt': 'Congratulations, Ian! You\'re ready to '
                                    'start working on some new badges:'
-                                   '[[badge_list]]. Beforeyou continue, take '
+                                   '[[badge_list]]Beforeyou continue, take '
                                    'some time to view these slide sets:'
                                    '<ul class="slide_list">'
                                    '<li>The Alphabet III</li>'
@@ -717,7 +717,7 @@ def myStepViewSlides(mycases, mysteps):
     """
     A pytest fixture providing a paideia.StepViewSlides object for testing.
     """
-    if mysteps['id'] == 127:
+    if mysteps['id'] == 127 and mycases['new_badges']:
         kwargs = {'step_id': 127,
                   'loc': mycases['loc'],
                   'prev_loc': mycases['prev_loc'],
@@ -1318,12 +1318,36 @@ class TestStepViewSlides():
             actual = myStepViewSlides['step'].get_prompt(username=case['name'],
                                                  new_badges=case['new_badges'])
             # assemble expected prompt
-            nb = case['new_badges']
-            tags = db(db.tags.id.belongs(nb)).select(db.tags.slides).as_list()
-            deck_ids = set(d for row in tags
-                           for k, v in row.iteritems()
-                           for d in v
-                           if k == 'slides')
+            tags = db((db.tags.id == db.badges.tag) &
+                    (db.tags.id.belongs(case['new_badges']))).select().as_list()
+
+            # assemble the badge list
+            badges = [row['badges']['id'] for row in tags]
+            if isinstance(badges[0], list):
+                # anticipating possibility that badges could match multiple tags
+                badges = [i for lst in badges for i in lst]
+            else:
+                pass
+
+            # build list of badges
+            badgerows = db(db.badges.id.belongs(badges)
+                           ).select(db.badges.id,
+                                    db.badges.badge_name,
+                                    db.badges.description)
+
+            badge_list = UL(_class='badge_list')
+            for b in badgerows:
+                badge_list.append(LI(SPAN(b.badge_name, _class='badge_name'),
+                                    ' for ',
+                                    b.description))
+
+            # assemble deck list
+            deck_ids = [row['tags']['slides'] for row in tags]
+            if isinstance(deck_ids[0], list):
+                # anticipating possibility that decks could match multiple tags
+                deck_ids = (i for lst in deck_ids for i in lst)
+            deck_ids = list(set(deck_ids))
+
             deck_table = db.plugin_slider_decks
             deck_query = db(deck_table.id.belongs(deck_ids))
             decknames = deck_query.select(deck_table.id,
@@ -1336,7 +1360,10 @@ class TestStepViewSlides():
                                                             args=[d.id]))))
             p = step['raw_prompt']
             expect_prompt = p.replace('[[user]]', case['name'])
-            expect_prompt = expect_prompt.replace('[[slides]]', decklist.xml())
+            expect_prompt = expect_prompt.replace('[[badge_list]]',
+                                                  badge_list.xml())
+            expect_prompt = expect_prompt.replace('[[slides]]',
+                                                  decklist.xml())
             # get list of expected npc images
             npc_images = [npc_data[n]['image'] for n in step['npc_list']
                           if n in case['npcs_here']]
@@ -1360,28 +1387,46 @@ class TestStepViewSlides():
         #print sd['final_prompt']
         #assert prompt == sd['final_prompt']
 
-    #def test_stepviewslides_get_tags(self, myStepViewSlides):
-        #"""
-        #Test for method StepViewSlides.get_tags
+    def test_stepviewslides_get_tags(self, myStepViewSlides):
+        """
+        Test for method StepViewSlides.get_tags
 
-        #The one tag that should be returned for all steps of this class is tag
-        #80.
-        #"""
-        #assert myStepViewSlides.get_tags() == {'primary': [80], 'secondary': []}
+        The one tag that should be returned for all steps of this class is tag
+        80.
+        """
+        if myStepViewSlides:
+            actual = myStepViewSlides['step'].get_tags()
+            expected = myStepViewSlides['stepdata']
+            assert actual == {'primary': expected['tags'],
+                              'secondary': expected['tags_secondary']}
+            assert actual['primary'] == [80]
+        else:
+            pass
 
-    #def test_stepviewslides_get_responder(self, myStepViewSlides):
-        #"""Test for method StepViewSlides.get_responder"""
-        #map_button = A("Map", _href=URL('walk'),
-                        #cid='page',
-                        #_class='button-yellow-grad back_to_map icon-location')
-        #assert myStepViewSlides.get_responder().xml() == DIV(map_button).xml()
+    def test_stepviewslides_get_responder(self, myStepViewSlides):
+        """Test for method StepViewSlides.get_responder"""
+        if myStepViewSlides:
+            actual = myStepViewSlides['step'].get_responder().xml()
+            map_button = A("Map", _href=URL('walk'),
+                           cid='page',
+                           _class='button-yellow-grad back_to_map '
+                           'icon-location')
+            expected = DIV(map_button).xml()
+            assert actual == expected
+        else:
+            pass
 
-    #def test_stepviewslides_get_npc(self, myStepViewSlides):
-        #"""Test for method StepViewSlides.get_npc"""
-        #assert myStepViewSlides.get_npc().get_id() in [14, 8, 2, 40, 31,
-                                                            #32, 41, 1, 17, 42]
-        #locs = myStepViewSlides.get_npc().get_locations()
-        #assert isinstance(locs[0], Location)
+    def test_stepviewslides_get_npc(self, myStepViewSlides):
+        """Test for method StepViewSlides.get_npc"""
+        if myStepViewSlides:
+            actual = myStepViewSlides['step'].get_npc()
+            expected = myStepViewSlides['stepdata']
+            case = myStepViewSlides['casedata']
+            assert isinstance(actual, Npc)
+            assert actual.get_id() in expected['npc_list']
+            assert actual.get_id() in case['npcs_here']
+        else:
+            pass
 
 
 class TestStepText():
