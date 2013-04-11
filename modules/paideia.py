@@ -711,32 +711,30 @@ class StepViewSlides(Step):
         tags = db((db.tags.id == db.badges.tag) &
                   (db.tags.id.belongs(new_badges))).select().as_list()
         # get the relevant badges (id and name)
-        badges = [d for row in tags
-                  for name, table in row.iteritems()
-                  for k, v in table.iteritems()
-                  for d in v
-                  if (k == 'id') and
-                  (name == 'badges')]
+        badges = [row['badges']['id'] for row in tags]
+        if isinstance(badges[0], list):
+            # anticipating possibility that badges could match multiple tags
+            badges = [i for lst in badges for i in lst]
+        else:
+            pass
 
         # get the relevant slide sets (id and name)
-        decks = [d for row in tags
-                 for name, table in row.iteritems()
-                 for k, v in table.iteritems()
-                 for d in v
-                 if (k == 'slides') and
-                 (name == 'tags')]
-        print 'decks', decks
+        decks = [row['tags']['slides'] for row in tags]
+        if isinstance(decks[0], list):
+            # anticipating possibility that decks could match multiple tags
+            decks = [i for lst in decks for i in lst]
+
         dtable = db.plugin_slider_decks
         sliderows = db(dtable.id.belongs(decks)
                        ).select(dtable.id,
                                 dtable.deck_name,
-                                orderby=dtable.position).as_list()
+                                orderby=dtable.position)
 
         # build slide deck list
         slides = UL(_class='slide_list')
-        for name in [n for row in sliderows for k, n in row.iteritems()
-                     if k == 'deck_name']:
-            slides.append(LI(name))
+        for row in sliderows:
+            slides.append(LI(A(row.deck_name,
+                               _href=URL('listing', 'slides', args=[row.id]))))
 
         # collect replacements
         reps = {'[[badge_list]]': '',
