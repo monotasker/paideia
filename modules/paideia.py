@@ -710,13 +710,25 @@ class StepViewSlides(Step):
         db = self.db
         tags = db((db.tags.id == db.badges.tag) &
                   (db.tags.id.belongs(new_badges))).select().as_list()
-        # get the relevant badges (id and name)
+        # get the relevant badges (id, name, and description)
         badges = [row['badges']['id'] for row in tags]
         if isinstance(badges[0], list):
             # anticipating possibility that badges could match multiple tags
             badges = [i for lst in badges for i in lst]
         else:
             pass
+
+        # build list of badges
+        badgerows = db(db.badges.id.belongs(badges)
+                       ).select(db.badges.id,
+                                db.badges.badge_name,
+                                db.badges.description)
+
+        badge_list = UL(_class='badge_list')
+        for b in badgerows:
+            badge_list.append(LI(SPAN(b.badge_name, _class='badge_name'),
+                                 ' for ',
+                                 b.description))
 
         # get the relevant slide sets (id and name)
         decks = [row['tags']['slides'] for row in tags]
@@ -737,7 +749,7 @@ class StepViewSlides(Step):
                                _href=URL('listing', 'slides', args=[row.id]))))
 
         # collect replacements
-        reps = {'[[badge_list]]': '',
+        reps = {'[[badge_list]]': badge_list.xml(),
                 '[[slides]]': slides.xml(),
                 '[[user]]': username}
         new_string = super(StepViewSlides, self
