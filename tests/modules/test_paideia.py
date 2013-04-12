@@ -203,13 +203,16 @@ def mysteps(request):
                    'widget_type': 8,
                    'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10],
                    'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
-                   'raw_prompt': 'Congratulations, [[user]]! You\'ve started'
-                                 'work on these new badges! [[new_badge_list]]'
-                                 'You can click on your name above to '
-                                 'see details of your progress so far.',
-                   'final_prompt': 'Congratulations, [[user]]![[new_badge_list]]'
-                                   'You can click on your name above to '
-                                   'see details of your progress so far.',
+                   'raw_prompt': 'Congratulations, [[user]]! You\'ve reached '
+                                 'a new level with these badges:'
+                                 '[[promoted_list]]You can click on your name '
+                                 'above to see details of your progress '
+                                 'so far.',
+                   'final_prompt': 'Congratulations, [[user]]! You\'ve reached '
+                                   'a new level with these badges:'
+                                   '[[promoted_list]]You can click on your name '
+                                   'above to see details of your progress '
+                                   'so far.',
                    'instructions': None,
                    'tags': [81],
                    'tags_secondary': []},
@@ -698,14 +701,13 @@ def myStepAwardBadges(mycases, mysteps):
     """
     A pytest fixture providing a paideia.StepAwardBadges object for testing.
     """
-    if (mysteps['id'] == 126) and not (mycases['new_badges'] is None):
+    if (mysteps['id'] == 126) and mycases['promoted']:
         kwargs = {'step_id': 126,
                   'loc': mycases['loc'],
                   'prev_loc': mycases['prev_loc'],
                   'prev_npc_id': mycases['prev_npc_id'],
                   'db': db}
-        return {'casenum': mycases['casenum'],
-                'step': StepAwardBadges(**kwargs),
+        return {'step': StepAwardBadges(**kwargs),
                 'stepdata': mysteps,
                 'casedata': mycases}
     else:
@@ -1203,27 +1205,34 @@ class TestAwardBadges():
             npcimgs = [npc_data[n]['image'] for n in expect['npc_list']]
             kwargs = {'raw_prompt': expect['raw_prompt'],
                       'username': case['name'],
-                      'new_badges': case['new_badges'],
                       'promoted': case['promoted'],
                       'db': db}
-            print 'expected', case['new_badges']
+            print 'expected', case['promoted']
             actual = myStepAwardBadges['step'].get_prompt(**kwargs)
             # assemble expected prompt string dynamically
-            tags_badges = db(db.badges.tag == db.tags.id).select()
-            new_records = tags_badges.find(lambda row:
-                                           row.tags.id in case['new_badges'])
-            print 'new_records', new_records
+            flat_proms = [i for cat, lst in case['promoted'].iteritems()
+                          for i in lst if lst]
+            prom_records = db(db.badges.tag.belongs(flat_proms)
+                              ).select(db.badges.tag,
+                                       db.badges.badge_name).as_list()
+            print 'prom_records', prom_records
             expect_prompt = expect['raw_prompt'].replace('[[user]]',
                                                          case['name'])
-            if new_records:
-                new_badge_list = UL(_class='new_badge_list')
-                for b in new_records:
-                    new_badge_list.append(LI(SPAN(b.badges.badge_name,
-                                                  _class='badge_name'),
-                                             ' for ',
-                                             b.badges.description))
-                expect_prompt = expect_prompt.replace('[[new_badge_list]]',
-                                                      new_badge_list.xml())
+            if prom_records:
+                prom_list = UL(_class='promoted_list')
+                ranks = ['beginner', 'apprentice', 'journeyman', 'master']
+                for rank, lst in case['promoted'].iteritems():
+                    if lst:
+                        rank = rank.replace('cat', '')
+                        i = int(rank) - 1
+                        label = ranks[i]
+                        for l in lst:
+                            bname = [row['badge_name'] for row in prom_records
+                                     if row['tag'] == l]
+                            prom_list.append(LI(SPAN(label, ' ', bname,
+                                                     _class='badge_name')))
+                expect_prompt = expect_prompt.replace('[[promoted_list]]',
+                                                      prom_list.xml())
             else:
                 # don't let test pass if there are no new badges for prompt
                 raise Exception
@@ -1297,7 +1306,7 @@ class TestStepViewSlides():
     new badges.
     '''
 
-    def test_awardbadges_get_id(self, myStepViewSlides):
+    def test_stepviewslides_get_id(self, myStepViewSlides):
         """Test for method Step.get_id"""
         if myStepViewSlides:
             step = myStepViewSlides['stepdata']
