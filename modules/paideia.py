@@ -8,7 +8,7 @@ import datetime
 from itertools import chain
 from inspect import getargvalues, stack
 from copy import copy
-from pprint import pprint
+#from pprint import pprint
 
 # TODO: move these notes elsewhere
 """
@@ -502,6 +502,8 @@ class Step(object):
 
         new_string = raw_prompt
         for k, v in reps.iteritems():
+            print 'k', k
+            print 'v', v
             if not v:
                 v = ''
             new_string = new_string.replace(k, v)
@@ -664,28 +666,33 @@ class StepAwardBadges(StepResponder, Step):
         if not db:
             db = self.db
 
-        badges = [db(db.badges.tag == t).select()[0] for t in new_badges]
-        nb = [LI(SPAN(n.badge_name, _class='badge_name'), ' for ', n.description)
-              for n in badges]
-        badgelist = UL(_class='new_badge_list')
-        for n in nb:
-            badgelist.append(n)
-        reps = {'[[new_badge_list]]': badgelist.xml(),
-                '[[user]]': username}
-        if promoted:
-            proms = [db(db.badges.tag == v).select()[0]
-                     for c, l in promoted.iteritems()
-                     for v in l]
-            pr = [LI(SPAN(n.badge_name, _class='badge_name'),
-                  ' for ', n.description)
-                  for n in proms]
-            promlist = UL(_class='promoted_list')
-            for p in pr:
-                promlist.append(p)
-            promstring = 'You\'ve reached a new level in these badges:'
-            reps['[[promoted_list]]'] = '{}{}'.format(promstring, promlist.xml())
+        reps = {'[[user]]': username}
+
+        flat_proms = [i for cat, lst in promoted.iteritems() for i in lst if lst]
+        prom_records = db(db.badges.tag.belongs(flat_proms)
+                          ).select(db.badges.tag,
+                                   db.badges.badge_name).as_list()
+
+        if prom_records:
+            prom_list = UL(_class='promoted_list')
+            ranks = ['beginner', 'apprentice', 'journeyman', 'master']
+            for rank, lst in promoted.iteritems():
+                if lst:
+                    rank = rank.replace('cat', '')
+                    i = int(rank) - 1
+                    label = ranks[i]
+                    for l in lst:
+                        bname = [row['badge_name'] for row in prom_records
+                                if row['tag'] == l]
+                        line = LI(SPAN(label, ' ', bname, _class='badge_name'))
+                        prom_list.append(line)
+                else:
+                    pass
+            prom_list = prom_list.xml()
         else:
-            reps['[[promoted_list]]'] = ''
+            prom_list = ''
+
+        reps['[[promoted_list]]'] = prom_list
 
         new_string = super(StepAwardBadges, self
                            )._make_replacements(raw_prompt=raw_prompt,
