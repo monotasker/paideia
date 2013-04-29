@@ -49,10 +49,10 @@ class IS_VALID_REGEX(object):
 
 #TODO:Allow for different class profiles with different settings
 db.define_table('app_settings',
-    Field('class_id', 'string'),
-    Field('paths_per_day', 'integer', default=20),
-    Field('days_per_week', 'integer', default=5)
-    )
+                Field('class_id', 'string'),
+                Field('paths_per_day', 'integer', default=20),
+                Field('days_per_week', 'integer', default=5)
+                )
 db.app_settings.class_id.requires = IS_NOT_IN_DB(db, 'app_settings.class_id')
 
 db.define_table('images',
@@ -93,9 +93,9 @@ db.define_table('tags',
 db.tags.tag.requires = IS_NOT_IN_DB(db, 'tags.tag')
 
 db.tags.slides.requires = IS_IN_DB(db,
-                                    'plugin_slider_decks.id',
-                                    '%(deck_name)s',
-                                    multiple=True)
+                                   'plugin_slider_decks.id',
+                                   '%(deck_name)s',
+                                   multiple=True)
 db.tags.slides.widget = lambda field, value: \
                                     AjaxSelect().widget(
                                         field, value, 'plugin_slider_decks',
@@ -203,30 +203,30 @@ db.steps.tags_secondary.widget = lambda field, value: AjaxSelect().widget(
                                                 multi='basic',
                                                 lister='editlinks')
 db.steps.tags_ahead.requires = IS_IN_DB(db, 'tags.id',
-                                                db.tags._format,
-                                                multiple=True)
+                                            db.tags._format,
+                                            multiple=True)
 db.steps.tags_ahead.widget = lambda field, value: AjaxSelect().widget(
                                                 field, value, 'tags',
                                                 refresher=True,
                                                 multi='basic',
                                                 lister='editlinks')
 db.steps.locations.requires = IS_IN_DB(db, 'locations.id',
-                                                db.locations._format,
-                                                multiple=True)
+                                           db.locations._format,
+                                           multiple=True)
 db.steps.locations.widget = lambda field, value: AjaxSelect().widget(
                                                 field, value, 'locations',
                                                 multi='basic',
                                                 lister='editlinks')
 db.steps.hints.requires = IS_IN_DB(db, 'step_hints.id',
-                                                db.step_hints._format,
-                                                multiple=True)
+                                       db.step_hints._format,
+                                       multiple=True)
 db.steps.hints.widget = lambda field, value: AjaxSelect().widget(
                                                     field, value, 'step_hints',
                                                     multi='basic',
                                                     lister='editlinks')
 db.steps.instructions.requires = IS_IN_DB(db, 'step_instructions.id',
-                                                db.step_instructions._format,
-                                                multiple=True)
+                                              db.step_instructions._format,
+                                              multiple=True)
 db.steps.instructions.widget = lambda field, value: AjaxSelect().widget(
                                                     field, value,
                                                     'step_instructions',
@@ -277,39 +277,39 @@ class PathsVirtualFields(object):
 db.paths.virtualfields.append(PathsVirtualFields())
 
 db.define_table('path_log',
-    Field('name', db.auth_user, default=auth.user_id),
-    Field('path', db.paths),
-    Field('dt_started', 'datetime', default=dtnow),
-    Field('last_step', db.steps),
-    Field('dt_completed', 'datetime', default=None)
-    )
+                Field('name', db.auth_user, default=auth.user_id),
+                Field('path', db.paths),
+                Field('dt_started', 'datetime', default=dtnow),
+                Field('last_step', db.steps),
+                Field('dt_completed', 'datetime', default=None)
+                )
 db.path_log.name.requires = IS_IN_DB(db, 'auth_user.id', db.auth_user._format)
 db.path_log.path.requires = IS_IN_DB(db, 'paths.id', db.paths._format)
 db.path_log.last_step.requires = IS_IN_DB(db, 'steps.id', db.steps._format)
 
 db.define_table('attempt_log',
-    Field('name', db.auth_user, default=auth.user_id),
-    Field('step', db.steps),
-    Field('path', db.paths),
-    Field('score', 'double'),
-    Field('dt_attempted', 'datetime', default=dtnow)
-    )
+                Field('name', db.auth_user, default=auth.user_id),
+                Field('step', db.steps),
+                Field('path', db.paths),
+                Field('score', 'double'),
+                Field('dt_attempted', 'datetime', default=dtnow)
+                )
 db.attempt_log.name.requires = IS_IN_DB(db, 'auth_user.id',
                                 db.auth_user._format)
 db.attempt_log.step.requires = IS_IN_DB(db, 'steps.id', db.steps._format)
 db.attempt_log.path.requires = IS_IN_DB(db, 'paths.id', db.paths._format)
 
 db.define_table('tag_records',
-    Field('name', db.auth_user, default=auth.user_id),
-    Field('tag', db.tags),
-    Field('times_right', 'double'),
-    Field('times_wrong', 'double'),
-    Field('tlast_wrong', 'datetime', default=dtnow),
-    Field('tlast_right', 'datetime', default=dtnow),
-    Field('path', db.paths),
-    Field('step', db.steps),
-    Field('secondary_right', 'list:string')
-    )
+                Field('name', db.auth_user, default=auth.user_id),
+                Field('tag', db.tags),
+                Field('times_right', 'double'),
+                Field('times_wrong', 'double'),
+                Field('tlast_wrong', 'datetime', default=dtnow),
+                Field('tlast_right', 'datetime', default=dtnow),
+                Field('path', db.paths),
+                Field('step', db.steps),
+                Field('secondary_right', 'list:string')
+                )
 db.tag_records.name.requires = IS_IN_DB(db, 'auth_user.id',
                                     db.auth_user._format)
 db.tag_records.tag.requires = IS_IN_DB(db, 'tags.id', db.tags._format)
