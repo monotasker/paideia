@@ -155,59 +155,39 @@ class Walk(object):
 
         return {'reply': reply, 'bug_reporter': bug_reporter}
 
-    def _record_cats(self, tag_progress, categories, new_tags, db=None):
+    def _record_cats(self, tag_progress, categories, promoted,
+                     demoted, new_tags, db=None):
         """
         Record changes to the user's working tags and their categorization.
 
         Changes recorded in the following db tables:
-        - badges_begun: new tags
+        - badges_begun: new and promoted tags
         - tag_progress: changes to categorization (only if changes made)
         """
         if not db:
             db = self.db
         user = self.user.get_id()
-        # record awarding of and new tags in table db.badges_begun
-        if new_tags:
-            for n in new_tags:
-                tag_record = db((db.badges_begun.name == user) &
-                                (db.badges_begun.tag == n))
-                if not tag_record.count():
-                    db.badges_begun.insert(**{'name': user, 'tag': n,
-                                           category: datetime.datetime.utcnow()})
-                else:
-                    trecord.update({category: datetime.datetime.utcnow()})
+        now = datetime.datetime.utcnow()
+        # record awarding of promoted and new tags in table db.badges_begun
+        promoted['cat1'] = new_tags
 
-        # - if tags new or promoted, change 'cat' lists
-        for cat in new_badges:
-            if new_badges[cat] is not None:
-                for t in new_badges[cat]:
-                    try:
-                        oldcat = [c for c, v in update_cats.iteritems()
-                                  if (type(v) == list) and (t in v)][0]
-                        update_cats[oldcat].remove(t)
-                    except IndexError:
-                        print 'This tag appears to be new; not removing from \
-                                old position'
-                    if not update_cats[cat]:
-                        update_cats[cat] = [t]
-                    else:
-                        update_cats[cat].append(t)
+        if promoted:
+            for cat, lst in promoted.iteritems():
+                if lst:
+                    for tag in lst:
+                        tag_record = db((db.badges_begun.name == user) &
+                                        (db.badges_begun.tag == tag))
+                        if not tag_record.count():
+                            db.badges_begun.insert(**{'name': user,
+                                                      'tag': tag,
+                                                      cat: now})
+                        else:
+                            tag_record.update({cat: now})
 
-        # new max-category values
-        # record this session's working categorization as 'review' categories
-        update_cats['rev1'] = categories['cat1']
-        update_cats['rev2'] = categories['cat2']
-        update_cats['rev3'] = categories['cat3']
-        update_cats['rev4'] = categories['cat4']
+        # update tag_progress table with current categorization
+        db(db.tag_progress.name == user).update(**categories)
 
-        # do this here so that we can compare db to categories first
-        db(db.tag_progress.name == user).update(**update_cats)
-
-        result = []
-        if [result.append(lst) for k, lst in new_badges.iteritems() if lst]:
-            return new_badges
-        else:
-            return None
+        return categories
 
     def _record_step(self, tag_records, categories, new_tags):
         """
@@ -528,20 +508,28 @@ class Step(object):
         If there is no suitable npc available here, returns false.
         TODO: need to trigger redirect on false return
         """
-        if self.npc:  # ensure choice is made only once for each step
+        loc = self.loc.get_id()
+        print 'loc is', loc
+
+        if self.npc and (loc in self.npc.get_locations()):  # ensure choice is made only once for each step
             return self.npc
         else:
             npcs_for_step = self.data['npcs']
             npc_list = [int(n) for n in npcs_for_step
-                        if self.loc.get_id() in self.db.npcs[n].location]
+                        if loc in self.db.npcs[n].location]
+            print 'npcs in loc:', npc_list
+
             if len(npc_list) < 1:
+                print 'no npc to choose'
                 return False
             elif self.prev_npc_id in npc_list:
                 self.npc = Npc(self.prev_npc_id, db=self.db)
+                print 'choosing npc', self.npc.get_id()
                 return self.npc
             else:
                 pick = npc_list[randint(1, len(npc_list)) - 1]
                 self.npc = Npc(pick, db=self.db)
+                print 'choosing npc', self.npc.get_id()
                 return self.npc
 
     def _get_instructions(self):
@@ -824,16 +812,20 @@ class StepText(Step):
             assert isinstance(readable, str)
 
         if '|' in readable:
-            i = len(readable)
-            if i > 1:
-                i = 2
-            readable_short = readable.split('|')[:(i + 1)]
-            readable_short = [unicode(r, 'utf-8') for r in readable_short]
-            readable_long = readable.split('|')
-            readable_long = [unicode(r, 'utf-8') for r in readable_long]
+
+            # show first two answers for short readable
+            rsplit = readable.split('|')
+            readable_short = rsplit[:3]
+            if len(rsplit) <= 2:
+                readable_long = None
+            else:
+                readable_long = rsplit
         else:
             readable_short = [readable]
             readable_long = None
+
+        print 'readable_long:', readable_long
+        print 'len readable:', len(readable)
 
         return {'readable_short': readable_short,
                 'readable_long': readable_long}
@@ -1003,7 +995,10 @@ class Path(object):
         return self.step_for_prompt
 
     def get_step_for_prompt(self, loc=None):
-        """Find the next unanswered step in the current path and return it."""
+        """Find the next unanswered step in the current path and return it.
+        If the selected step cannot be performed at this location, set a
+        Block on condition
+        """
         # check for active step that hasn't been asked because of block
         if loc:
             self.loc = loc
@@ -1013,7 +1008,12 @@ class Path(object):
         # check that next step can be asked here, else redirect
         locs = next_step.get_locations()
         if not (self.loc.get_id() in locs):
-            self.blocks.append(Block.set_block('redirect', locs))
+            new_block = Block().set_block(condition='redirect', kwargs=None,
+                                          data=locs)
+            if self.blocks:
+                self.blocks.append(new_block)
+            else:
+                self.blocks = [new_block]
 
         # check for blocks
         if self.blocks:
@@ -1026,7 +1026,6 @@ class Path(object):
                 return block_step
 
         self.step_sent_id = self.step_for_prompt.get_id()
-
         return next_step
 
     def prepare_for_answer(self, step_for_prompt=None, step_for_reply=None,
@@ -1332,10 +1331,15 @@ class User(object):
         """docstring"""
         return self.blocks
 
-    def _set_block(self, block_type, *args):
+    def _set_block(self, condition, kwargs=None, data=None):
         """docstring for _set_block"""
-        if block_type == 'new_tags':
-            self.blocks.append(BlockAwardBadges(*args))
+        try:
+            self.blocks.append(Block(condition=condition,
+                                    kwargs=kwargs,
+                                    data=data))
+            return True
+        except Exception:
+            return False
 
     def _complete_path(self):
         """docstring"""
@@ -1661,43 +1665,46 @@ class Categorizer(object):
 
 
 class Block(object):
-    """docstring"""
+    """An object representing an interruption in the flow of the game."""
+
     def __init__(self):
-        """docstring for __init__"""
-        pass
+        """Initialize a new Block object"""
+        self.step = None
+        self.condition = None
+        self.data = None
+        self.db = current.db
 
-    def set_block(self, condition, data):
-        """Factory method to instantiate the appropriate Block subclass."""
-        pass
+    def set_block(self, condition, kwargs={}, data=None):
+        """Create correct Step subclass and store as an instance variable."""
+        step_type = {'redirect': StepRedirect,
+                     'award badges': StepAwardBadges,
+                     'view slides': StepViewSlides,
+                     'quota reached': StepQuotaReached}
+        self.condition = condition
+        if kwargs:
+            kwargs['db'] = self.db
+        else:
+            kwargs = {'db': self.db}
+        self.step = step_type[condition](**kwargs)
+        return True
 
-    def get_step():
+    def get_condition(self):
+        """Return a string representing the condition causing this block."""
+        if self.condition:
+            return self.condition
+        else:
+            return False
+
+    def get_step(self):
         """Return the appropriate step for the current blocking condition"""
-        pass
+        if self.step:
+            return self.step
+        else:
+            return False
 
-
-class BlockRedirect(Step):
-    """
-    A subclass of Block that redirects the user to another location.
-    """
-    pass
-
-
-class BlockAwardBadges(Step):
-    """
-    A subclass of Block that redirects the user to another location.
-    """
-    pass
-
-
-class BlockViewSlides(Step):
-    """
-    A subclass of Block that redirects the user to another location.
-    """
-    pass
-
-
-class BlockReachedQuota(Step):
-    """
-    A subclass of Block that redirects the user to another location.
-    """
-    pass
+    def get_data(self):
+        """Return the secondary data, if any, belonging to this Block."""
+        if self.data:
+            return self.data
+        else:
+            return False

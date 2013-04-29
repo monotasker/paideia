@@ -7,7 +7,7 @@ from paideia import StepFactory, StepText, StepMultiple, NpcChooser  # Step
 from paideia import StepRedirect, StepViewSlides, StepAwardBadges
 from paideia import StepEvaluator, MultipleEvaluator, StepQuotaReached
 from paideia import A, URL, DIV, LI, UL, SPAN
-#from paideia import Block, BlockRedirect, BlockAwardBadges, BlockViewSlides
+from paideia import Block
 from gluon import current
 request = current.request
 # from gluon.dal import Rows
@@ -94,7 +94,23 @@ npc_data = {1: {'image': images['npc1_img'],
             }
 
 
-@pytest.fixture(params=[n for n in [1, 2, 30, 101, 125, 126, 127]])
+@pytest.fixture(params=[n for n in [1, 2, 3, 4]])
+def myblocks(request):
+    """ """
+    casenum = request.param
+    block_args = {1: {'condition': 'redirect',
+                      'kwargs': None, 'data': None},
+                  2: {'condition': 'award badges',
+                      'kwargs': None, 'data': None},
+                  3: {'condition': 'view slides',
+                      'kwargs': None, 'data': None},
+                  4: {'condition': 'quota reached',
+                      'kwargs': None, 'data': None},
+                  }
+    return block_args[casenum]
+
+
+@pytest.fixture(params=[n for n in [1, 2, 19, 30, 101, 125, 126, 127]])
 def mysteps(request):
     """
     Test fixture providing step information for unit tests.
@@ -140,14 +156,38 @@ def mysteps(request):
                  'tags': [61],
                  'tags_secondary': [],
                  'responses': {'response1': '^β(α|ο)τ$'},
-                 'readable': {'readable_short': [u'βατ', u'βοτ'],
-                              'readable_long': [u'βατ', u'βοτ']},
+                 'readable': {'readable_short': ['βατ', 'βοτ'],
+                              'readable_long': None},
                  'reply_text': {'correct': 'Right. Κάλον.',
                                 'incorrect': 'Incorrect. Try again!'},
-                 'tips': None,  # why is this None, but step 1 its []?
+                 'tips': None,  # why is this None, but elsewhere it's []?
                  'user_responses': {'correct': 'βοτ',
                                     'incorrect': 'βλα'}
                  },
+             19: {'id': 19,
+                 'type': StepText,
+                 'widget_type': 1,
+                 'npc_list': [8, 2, 32, 1],
+                 'locations': [3, 1, 13, 8, 11],
+                 'raw_prompt': 'How could you spell the word "pole" with '
+                               'Greek letters?',
+                 'final_prompt': 'How could you spell the word "pole" with '
+                                 'Greek letters?',
+                 'instructions': ['Focus on finding Greek letters that make '
+                                  'the *sounds* of the English word. Don\'t '
+                                  'look for Greek "equivalents" for each '
+                                  'English letter.'],
+                 'tags': [62],
+                 'tags_secondary': [61],
+                 'responses': {'response1': '^πωλ$'},
+                 'readable': {'readable_short': ['πωλ'],
+                              'readable_long': None},
+                 'reply_text': {'correct': 'Right. Κάλον.',
+                                'incorrect': 'Incorrect. Try again!'},
+                 'tips': [],
+                 'user_responses': {'correct': 'πωλ',
+                                    'incorrect': 'βλα'}
+                  },
              30: {'id': 30,
                   'type': StepRedirect,
                   'widget_type': 9,
@@ -248,10 +288,7 @@ def mysteps(request):
 def mycases(request, mysteps):
     """
     Text fixture providing various cases for unit tests. For each step,
-    several cases are specified, including:
-    TODO: write another case to test with promotions present
-    promoted_list = You\'ve reached a new level in these badges:
-                <ul class="promoted_list"><li></li></ul>
+    several cases are specified.
     """
     the_case = request.param
     # same npc and location as previous step
@@ -265,6 +302,8 @@ def mycases(request, mysteps):
                        'prev_npc_id': 2,
                        'npcs_here': [2, 8, 14, 17, 31, 40, 41, 42],
                        'pathid': 3,
+                       'blocks_in': None,
+                       'blocks_out': None,
                        'localias': 'shop_of_alexander',
                        'tag_records': [{'name': 1,
                                         'tag_id': 1,
@@ -309,6 +348,8 @@ def mycases(request, mysteps):
                        'prev_npc_id': 1,
                        'npcs_here': [1, 14, 17, 21, 40, 41, 42],
                        'pathid': 89,
+                       'blocks_in': None,
+                       'blocks_out': None,
                        'tag_records': [{'name': 1,
                                         'tag_id': 61,
                                         'last_right': dt('2013-01-29'),
@@ -353,6 +394,8 @@ def mycases(request, mysteps):
                        'prev_npc_id': 31,  # stephanos
                        'npcs_here': [31, 32],
                        'pathid': 19,
+                       'blocks_in': None,
+                       'blocks_out': None,
                        'tag_records': [{'name': 1,
                                         'tag_id': 61,  # promote to 2 for time
                                         'last_right': dt('2013-01-27'),
@@ -428,6 +471,8 @@ def mycases(request, mysteps):
                        'prev_npc_id': 1,
                        'npcs_here': [1, 14, 17, 21, 40, 41, 42],
                        'pathid': 1,
+                       'blocks_in': None,
+                       'blocks_out': None,
                        'tag_records': [{'name': 1,
                                         'tag_id': 61,  # 2ndary overrides time
                                         'last_right': dt('2013-01-24'),
@@ -493,6 +538,8 @@ def mycases(request, mysteps):
                        'prev_npc_id': 1,
                        'npcs_here': [2, 14, 17, 31, 40, 41, 42],
                        'pathid': 1,
+                       'blocks_in': None,
+                       'blocks_out': None,
                        'tag_records': [{'name': 1,
                                         'tag_id': 61,
                                         'last_right': dt('2013-01-29'),
@@ -641,13 +688,17 @@ def mypath(mycases):
     A pytest fixture providing a paideia.Path object for testing.
     """
     the_path = Path(path_id=mycases['pathid'],
-                    blocks=mycases['blocks'],
+                    blocks=mycases['blocks_in'],
                     loc=mycases['loc'],
                     prev_loc=mycases['prev_loc'],
                     prev_npc_id=mycases['prev_npc_id'],
                     db=db)
-    return {'casenum': mycases['casenum'],
-            'path': the_path}
+    pid = the_path.get_id()
+    path_steps = db.paths[pid].steps
+    return {'path': the_path,
+            'id': pid,
+            'casedata': mycases,
+            'steps': path_steps}
 
 
 @pytest.fixture
@@ -880,7 +931,7 @@ def myStepEvaluator(mysteps):
 
 
 @pytest.fixture()
-def myMultipleEvaluator(request, mysteps):
+def myMultipleEvaluator(mysteps):
     """
     A pytest fixture providing a paideia.MultipleEvaluator object for testing.
     """
@@ -902,6 +953,13 @@ def myMultipleEvaluator(request, mysteps):
     else:
         pass
 
+
+@pytest.fixture()
+def myblock(myblocks):
+    """
+    A pytest fixture providing a paideia.Block object for testing.
+    """
+    return Block().set_block(**myblocks)
 
 # ===================================================================
 # Test Classes
@@ -1589,27 +1647,43 @@ class TestMultipleEvaluator():
             pass
 
 
-#class TestPath():
-    #"""Unit testing class for the paideia.Path object"""
+class TestPath():
+    """Unit testing class for the paideia.Path object"""
 
-    #def test_path_get_step_for_prompt(self, mypath):
-        #"""docstring for test_get_next_step"""
-        #output = 'output{}'.format(mypath['casenum'])
-        ## for path 3, text, single step
-        #output1 = StepFactory().get_instance(step_id=2, loc=Location(1, db),
-                                        #prev_loc=1, prev_npc_id=2, db=db)
-        ## for path 89, multiple, single step
-        #output2 = StepFactory().get_instance(step_id=101, loc=Location(8, db),
-                                        #prev_loc=None, prev_npc_id=1, db=db)
-        #ready_path = mypath['path']
-        ##ready_path._prepare_for_prompt()
-        #pstep = ready_path.get_step_for_prompt()
-        #ostep = locals()[output]
-        #assert pstep.get_id() == ostep.get_id()
-        #assert pstep.get_tags() == ostep.get_tags()
-        #assert pstep.get_locations() == ostep.get_locations()
-        #assert pstep.get_prompt(username='Joe') \
-                                        #== ostep.get_prompt(username='Joe')
+    def test_path_get_step_for_prompt(self, mypath, mysteps):
+        """unit test for Path.get_step_for_prompt()"""
+        # TODO: add logic to test progression to subsequent step of multistep
+        # path
+        # TODO: add logic to test block generation; returning block
+        pid = mypath['id']
+        sid = mypath['steps'][0]
+        if mysteps['id'] == sid:
+            step = mysteps
+            case = mypath['casedata']
+            expected = {'path_id': pid,
+                        'step_id': sid,
+                        'locations': step['locations'],
+                        'tags': {'primary': step['tags'],
+                                'secondary': step['tags_secondary']},
+                        'npc_list': [s for s in step['npc_list']
+                                    if s in case['npcs_here']],
+                        'loc': case['loc'].get_id(),
+                        }
+            path = mypath['path']
+            actual = mypath['path'].get_step_for_prompt()
+
+            assert path.get_id() == expected['path_id']
+            assert actual.get_id() == expected['step_id']
+            assert actual.get_tags() == expected['tags']
+            assert actual.get_locations() == expected['locations']
+            assert case['loc'].get_id() in expected['locations']
+            assert actual.get_npc().get_id() in expected['npc_list']
+            assert actual.get_npc().get_id() in case['npcs_here']
+            assert type(actual) == step['type']
+            assert isinstance(actual, step['type'])
+            #assert actual.get_prompt() == ostep.get_prompt()
+        else:
+            pass
 
     #def test_path_prepare_for_answer(self, mypath):
         #"""Unit test for method paideia.Path.get_step_for_reply."""
