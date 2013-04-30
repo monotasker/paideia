@@ -1014,8 +1014,7 @@ class Path(object):
                      'prev_loc': None,
                      'prev_npc_id': None}
 
-            new_block = Block().set_block(condition='redirect', kwargs=kwargs,
-                                          data=locs)
+            new_block = Block('redirect', kwargs=kwargs, data=locs)
             if self.blocks:
                 self.blocks.append(new_block)
             else:
@@ -1530,17 +1529,16 @@ class Categorizer(object):
             # spaced repetition algorithm for promotion to
             # ======================================================
             # category 2
-            if ((right_dur < right_wrong_dur)
-                    # don't allow promotion from cat1 within 1 day
-                    and (right_wrong_dur > datetime.timedelta(days=1))
-                    # require at least 10 right answers
-                    and (record['times_right'] >= 10)) \
-                or ((record['times_right'] >= 10)
+            if (((right_dur < right_wrong_dur) and
+                 # don't allow promotion from cat1 within 1 day
+                 (right_wrong_dur > datetime.timedelta(days=1)) and
+                 # require at least 10 right answers
+                 (record['times_right'] >= 10))
+                or ((record['times_right'] >= 10) and
                     # require ratio of at least 5 right to 1 wrong
-                    and ((record['times_wrong'] / record['times_right'])
-                         <= 0.2)
+                    ((record['times_wrong'] / record['times_right']) <= 0.2)
                     # require that tag has right answer within last 2 days
-                    and (right_dur <= datetime.timedelta(days=14))): \
+                    and (right_dur <= datetime.timedelta(days=14)))):
                 # ==================================================
                 # for cat3
                 if right_wrong_dur.days >= 14:
@@ -1673,26 +1671,26 @@ class Categorizer(object):
 class Block(object):
     """An object representing an interruption in the flow of the game."""
 
-    def __init__(self):
+    def __init__(self, condition, kwargs=None, data=None):
         """Initialize a new Block object"""
-        self.step = None
-        self.condition = None
-        self.data = None
+        self.condition = condition
+        self.data = data
+        self.kwargs = kwargs
         self.db = current.db
+        self.step = self.make_step(condition, kwargs=kwargs, data=data)
 
-    def set_block(self, condition, kwargs=None, data=None):
+    def make_step(self, condition, kwargs=None, data=None):
         """Create correct Step subclass and store as an instance variable."""
         step_type = {'redirect': StepRedirect,
                      'award badges': StepAwardBadges,
                      'view slides': StepViewSlides,
                      'quota reached': StepQuotaReached}
-        self.condition = condition
         if kwargs:
             kwargs['db'] = self.db
         else:
             kwargs = {'db': self.db}
-        self.step = step_type[condition](**kwargs)
-        return True
+        mystep = step_type[condition](**kwargs)
+        return mystep
 
     def get_condition(self):
         """Return a string representing the condition causing this block."""
