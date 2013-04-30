@@ -407,10 +407,10 @@ class Step(object):
     '''
 
     def __init__(self, step_id=None, loc=None, prev_loc=None, prev_npc_id=None,
-                 db=None, **kwargs):
+                 **kwargs):
         """Initialize a paideia.Step object"""
-        if db is None:
-            db == current.db
+        #if not db:
+        db = current.db
         self.db = db
         self.data = db.steps[step_id].as_dict()
         self.repeating = False  # set to true if step already done today
@@ -1008,7 +1008,13 @@ class Path(object):
         # check that next step can be asked here, else redirect
         locs = next_step.get_locations()
         if not (self.loc.get_id() in locs):
-            new_block = Block().set_block(condition='redirect', kwargs=None,
+            # TODO: do none defaults work here?
+            kwargs = {'step_id': 30,
+                     'loc': self.loc,
+                     'prev_loc': None,
+                     'prev_npc_id': None}
+
+            new_block = Block().set_block(condition='redirect', kwargs=kwargs,
                                           data=locs)
             if self.blocks:
                 self.blocks.append(new_block)
@@ -1674,7 +1680,7 @@ class Block(object):
         self.data = None
         self.db = current.db
 
-    def set_block(self, condition, kwargs={}, data=None):
+    def set_block(self, condition, kwargs=None, data=None):
         """Create correct Step subclass and store as an instance variable."""
         step_type = {'redirect': StepRedirect,
                      'award badges': StepAwardBadges,
