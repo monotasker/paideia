@@ -1650,6 +1650,29 @@ class TestMultipleEvaluator():
 class TestPath():
     """Unit testing class for the paideia.Path object"""
 
+    def test_path_prepare_for_prompt(self, mypath, mysteps):
+        """unit test for Path._prepare_for_prompt()"""
+        # TODO: add logic to test progression to subsequent step of multistep
+        # path
+        pid = mypath['id']
+        sid = mypath['steps'][0]
+        if mysteps['id'] == sid:
+            step = mysteps
+            #case = mypath['casedata']
+            expected = {'path_id': pid,
+                        'step_id': sid}
+
+            path = mypath['path']
+            actual = path._prepare_for_prompt()
+
+            assert actual.get_id() == expected['step_id']
+            assert path.step_for_prompt.get_id() == actual.get_id()
+            assert path.step_for_prompt.get_id() == expected['step_id']
+            assert path.steps == []
+            assert isinstance(actual, step['type'])
+        else:
+            pass
+
     def test_path_get_step_for_prompt(self, mypath, mysteps):
         """unit test for Path.get_step_for_prompt()"""
         # TODO: add logic to test progression to subsequent step of multistep
