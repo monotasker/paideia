@@ -1672,10 +1672,11 @@ class TestPath():
             # redirect step id in cases where redirect Block is triggered
             if (case['casenum'] == 2) and (sid == 101):
                 expected['step_id'] = 30
-                sdata = mysteps['steps'][30]
-                expected['tags'] = {'primary': sdata['tags'],
-                                    'secondary': sdata['tags_secondary']}
-                expected['npc_list'] = sdata['npc_list']
+                expected['tags'] = {'primary': [70],
+                                    'secondary': []}
+                expected['npc_list'] = [14, 8, 2, 40, 31, 32, 41, 1, 17, 42]
+                expected['locations'] = [3, 1, 2, 4, 12, 13, 14, 6, 7, 8, 11, 5, 9, 10]
+
             path = mypath['path']
             actual = mypath['path'].get_step_for_prompt()
 
