@@ -1676,6 +1676,7 @@ class TestPath():
                                     'secondary': []}
                 expected['npc_list'] = [14, 8, 2, 40, 31, 32, 41, 1, 17, 42]
                 expected['locations'] = [3, 1, 2, 4, 12, 13, 14, 6, 7, 8, 11, 5, 9, 10]
+                step['type'] = StepRedirect
 
             path = mypath['path']
             actual = mypath['path'].get_step_for_prompt()
