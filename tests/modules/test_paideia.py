@@ -1691,6 +1691,7 @@ class TestPath():
                         'npc_list': [s for s in step['npc_list']
                                     if s in case['npcs_here']],
                         'loc': case['loc'].get_id(),
+                        'steps': []  # only step has been removed
                         }
             # redirect step id in cases where redirect Block is triggered
             if (case['casenum'] == 2) and (sid == 101):
@@ -1700,6 +1701,7 @@ class TestPath():
                 expected['npc_list'] = [14, 8, 2, 40, 31, 32, 41, 1, 17, 42]
                 expected['locations'] = [3, 1, 2, 4, 12, 13, 14, 6, 7, 8, 11, 5, 9, 10]
                 step['type'] = StepRedirect
+                expected['steps'] = [101]
 
             path = mypath['path']
             actual = mypath['path'].get_step_for_prompt()
@@ -1713,6 +1715,7 @@ class TestPath():
             assert actual.get_npc().get_id() in case['npcs_here']
             assert type(actual) == step['type']
             assert isinstance(actual, step['type'])
+            assert path.steps == expected['steps']
             #assert actual.get_prompt() == ostep.get_prompt()
         else:
             pass
