@@ -1663,7 +1663,7 @@ class TestPath():
         pid = mypath['id']
         sid = mypath['steps'][0]
         if mysteps['id'] == sid:
-            step = mysteps
+            #step = mysteps
             #case = mypath['casedata']
             expected = {'path_id': pid,
                         'step_id': sid}
@@ -1671,11 +1671,9 @@ class TestPath():
             path = mypath['path']
             actual = path._prepare_for_prompt()
 
-            assert actual.get_id() == expected['step_id']
-            assert path.step_for_prompt.get_id() == actual.get_id()
+            assert actual is True
             assert path.step_for_prompt.get_id() == expected['step_id']
             assert path.steps == []
-            assert isinstance(actual, step['type'])
         else:
             pass
 
@@ -1691,40 +1689,49 @@ class TestPath():
             case = mypath['casedata']
             expected = {'path_id': pid,
                         'step_id': sid,
+                        'alternate_step_id': sid,
                         'locations': step['locations'],
                         'tags': {'primary': step['tags'],
                                 'secondary': step['tags_secondary']},
                         'npc_list': [s for s in step['npc_list']
                                     if s in case['npcs_here']],
                         'loc': case['loc'].get_id(),
-                        'steps': []  # only step has been removed
+                        'steps': [],  # only step has been removed
+                        'type': step['type']
                         }
             # redirect step id in cases where redirect Block is triggered
             if (case['casenum'] == 2) and (sid == 101):
-                expected['step_id'] = 30
+                expected['alternate_step_id'] = 30
                 expected['tags'] = {'primary': [70],
                                     'secondary': []}
                 expected['npc_list'] = [14, 8, 2, 40, 31, 32, 41, 1, 17, 42]
                 expected['locations'] = [3, 1, 2, 4, 12, 13, 14, 6, 7, 8, 11, 5, 9, 10]
-                step['type'] = StepRedirect
-                expected['steps'] = [101]
+                expected['type'] = StepRedirect
 
             path = mypath['path']
             actual = mypath['path'].get_step_for_prompt()
 
             assert path.get_id() == expected['path_id']
-            assert actual.get_id() == expected['step_id']
+            assert path.step_for_prompt.get_id() == expected['step_id']
+            assert actual.get_id() == expected['alternate_step_id']
             assert actual.get_tags() == expected['tags']
             assert actual.get_locations() == expected['locations']
             assert case['loc'].get_id() in expected['locations']
             assert actual.get_npc().get_id() in expected['npc_list']
             assert actual.get_npc().get_id() in case['npcs_here']
-            assert type(actual) == step['type']
-            assert isinstance(actual, step['type'])
+            assert type(actual) == expected['type']
+            assert isinstance(actual, expected['type'])
             assert path.steps == expected['steps']
-            #assert actual.get_prompt() == ostep.get_prompt()
         else:
             pass
+
+    def test_path_check_for_blocks(self, mypath):
+        """unit test for Path._check_for_blocks()"""
+        assert False
+
+    def test_path_redirect(self, mypath):
+        """unit test for Path._redirect()"""
+        assert False
 
     #def test_path_prepare_for_answer(self, mypath):
         #"""Unit test for method paideia.Path.get_step_for_reply."""
