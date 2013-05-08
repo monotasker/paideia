@@ -1725,13 +1725,58 @@ class TestPath():
         else:
             pass
 
-    def test_path_check_for_blocks(self, mypath):
+    def test_path_check_for_blocks(self, mypath, mysteps):
         """unit test for Path._check_for_blocks()"""
-        assert False
+        #pid = mypath['id']
+        sid = mypath['steps'][0]
+        if mysteps['id'] == sid:
+            #step = mysteps
+            case = mypath['casedata']
+            path = mypath['path']
+            locs = [2, 3]
 
-    def test_path_redirect(self, mypath):
-        """unit test for Path._redirect()"""
-        assert False
+            kwargs = {'step_id': 30,
+                      'loc': path.loc,
+                      'prev_loc': path.prev_loc_id,
+                      'prev_npc_id': path.prev_npc_id}
+            expected = Block('redirect', kwargs=kwargs, data=locs)
+
+            actual = path._check_for_blocks(locs)
+            if (sid == 101) and (case['casenum'] == 2):
+                assert actual == expected
+                assert actual.blocks == [expected]
+            else:
+                assert actual is False
+                assert actual.blocks == []
+        else:
+            pass
+
+    def test_path_redirect(self, mypath, mysteps):
+        """unit test for Path.redirect()"""
+        sid = mypath['steps'][0]
+        if mysteps['id'] == sid:
+            #step = mysteps
+            case = mypath['casedata']
+            path = mypath['path']
+            locs = [2, 3]
+
+            kwargs = {'step_id': 30,
+                      'loc': path.loc,
+                      'prev_loc': path.prev_loc_id,
+                      'prev_npc_id': path.prev_npc_id}
+            expected = Block('redirect', kwargs=kwargs, data=locs)
+
+            actual = path.redirect(locs)
+
+            if (sid == 101) and (case['casenum'] == 2):
+                assert path.blocks == [expected]
+                assert isinstance(path.blocks[0].get_step(), StepRedirect)
+                assert actual is None
+            else:
+                assert path.blocks == []
+                assert actual is None
+        else:
+            pass
 
     #def test_path_prepare_for_answer(self, mypath):
         #"""Unit test for method paideia.Path.get_step_for_reply."""
