@@ -985,14 +985,16 @@ class Path(object):
 
     def _prepare_for_prompt(self):
         """ move next step in this path into the 'step_for_prompt' variable"""
-        if len(self.steps) > 1:
-            next_step = self.steps.pop(0)
-        else:
-            next_step = copy(self.steps[0])
-            self.steps = []
-        self.step_for_prompt = next_step
-
-        return self.step_for_prompt
+        try:
+            if len(self.steps) > 1:
+                next_step = self.steps.pop(0)
+            else:
+                next_step = copy(self.steps[0])
+                self.steps = []
+            self.step_for_prompt = next_step
+            return True
+        except:
+            return False
 
     def get_step_for_prompt(self, loc=None):
         """Find the next unanswered step in the current path and return it.
@@ -1003,82 +1005,73 @@ class Path(object):
         if loc:
             self.loc = loc
 
-        next_step = self._prepare_for_prompt()
+        # first check whether next step was pulled out earlier
+        if self.step_for_prompt:
+            next_step = self.step_for_prompt
+        elif self._prepare_for_prompt():
+            next_step = self.step_for_prompt
+        else:
+            # TODO make this a more specific exception
+            raise Exception
 
+        # TODO make sure that current loc and npc get set for self.prev_loc etc
         # check that next step can be asked here, else redirect
         locs = next_step.get_locations()
         if not (self.loc.get_id() in locs):
-            # TODO: do none defaults work here?
-            kwargs = {'step_id': 30,
-                     'loc': self.loc,
-                     'prev_loc': None,
-                     'prev_npc_id': None}
+            self.redirect(locs)
 
-            new_block = Block('redirect', kwargs=kwargs, data=locs)
-            if self.blocks:
-                self.blocks.append(new_block)
-            else:
-                self.blocks = [new_block]
+        # check for blocks; block removed when its step retrieved here
+        # this is the ONLY place where blocks are triggered, but they can be
+        # set elsewhere
+        new_block = self.check_for_blocks(next_step)
+        if new_block:
+            return new_block
+        else:
+            self.step_sent_id = next_step.get_id()
+            self.step_for_prompt = None
+            self.step_for_reply = next_step
+            return next_step
 
-        # check for blocks
+    def redirect(self, locs, db=None):
+        """
+        Set a 'redirect' blocking condition on this Path object.
+
+        TODO: do none defaults work here?
+        """
+        kwargs = {'step_id': 30,
+                  'loc': self.loc,
+                  'prev_loc': self.prev_loc_id,
+                  'prev_npc_id': self.prev_npc_id}
+
+        new_block = Block('redirect', kwargs=kwargs, data=locs)
+        if self.blocks:
+            self.blocks.append(new_block)
+        else:
+            self.blocks = [new_block]
+
+    def check_for_blocks(self, next_step, db=None):
+        """
+        Check for any active blocking conditions and activate the first found.
+
+        If a block is found:
+        - Returns a step subclass instance (StepRedirect, StepQuotaReached,
+            StepAwardBadges, or StepViewSlides)
+        - also sets self.step_sent_id
+        If a block is not found:
+        - Returns False
+        """
         if self.blocks:
             block_step = self.blocks.pop(0).get_step()
             if block_step:
                 # TODO: make sure that the block step isn't added to completed
                 # or step_to_answer or last_step_id
-                # TODO: how will we remove the block?
                 self.step_sent_id = block_step.get_id()
                 return block_step
-
-        self.step_sent_id = self.step_for_prompt.get_id()
-        return next_step
-
-    def prepare_for_answer(self, step_for_prompt=None, step_for_reply=None,
-                           step_sent_id=None):
-        """
-        Prepare the class instance variables to receive the user's response.
-
-        This method needs to be called before the step prompt is sent to the
-        view. This includes:
-        - resetting step_for_prompt to None
-        - pop active step and either move to step_for_reply or simply delete
-        """
-        # TODO: make sure this doesn't run if the step was a block step
-        # block steps are never set in self.step_for_prompt since should
-        # not be re-activated
-        # TODO: in Walk, provide id of actual step being sent to view
-
-        if step_sent_id:
-            self.step_sent_id = step_sent_id  # for testing purposes
-        if not step_for_prompt:
-            step_for_prompt = self.step_for_prompt
-        if not step_for_reply:
-            step_for_reply = self.step_for_reply
-
-        if step_for_prompt.get_id() == step_sent_id:
-            # this type check filters out block steps (subclasses of Block)
-            if not isinstance(step_for_prompt, Block):
-                self.step_for_reply = copy(step_for_prompt)
-                self.step_for_prompt = None
             else:
-                self.step_for_reply = None
-
-        replynum = self.step_for_reply.get_id()
-        try:
-            promptnum = self.step_for_prompt.get_id()
-        except:
-            promptnum = None
-
-        return {'step_for_reply': replynum,
-                'step_for_prompt': promptnum,
-                'step_sent_id': self.step_sent_id}
-
-    def remove_block(self):
-        """Remove an active block once its step has been sent to view."""
-        # TODO: make sure that the block step isn't added to completed
-        # or step_to_answer or last_step_id
-        block_done = self.blocks.pop(0)
-        return {'block_done': block_done, 'blocks': self.blocks}
+                # TODO raise a more specific exception
+                raise Exception
+        else:
+            return False
 
     def get_step_for_reply(self, db=None):
         """Return the Step object that is currently active for this path."""

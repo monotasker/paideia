@@ -1650,6 +1650,33 @@ class TestMultipleEvaluator():
 class TestPath():
     """Unit testing class for the paideia.Path object"""
 
+    def test_path_get_id(self, mypath):
+        """unit test for Path.get_id()"""
+        expected = mypath['id']
+        actual = mypath['path'].get_id()
+        assert actual == expected
+
+    def test_path_prepare_for_prompt(self, mypath, mysteps):
+        """unit test for Path._prepare_for_prompt()"""
+        # TODO: add logic to test progression to subsequent step of multistep
+        # path
+        pid = mypath['id']
+        sid = mypath['steps'][0]
+        if mysteps['id'] == sid:
+            #step = mysteps
+            #case = mypath['casedata']
+            expected = {'path_id': pid,
+                        'step_id': sid}
+
+            path = mypath['path']
+            actual = path._prepare_for_prompt()
+
+            assert actual is True
+            assert path.step_for_prompt.get_id() == expected['step_id']
+            assert path.steps == []
+        else:
+            pass
+
     def test_path_get_step_for_prompt(self, mypath, mysteps):
         """unit test for Path.get_step_for_prompt()"""
         # TODO: add logic to test progression to subsequent step of multistep
@@ -1662,34 +1689,92 @@ class TestPath():
             case = mypath['casedata']
             expected = {'path_id': pid,
                         'step_id': sid,
+                        'alternate_step_id': sid,
                         'locations': step['locations'],
                         'tags': {'primary': step['tags'],
                                 'secondary': step['tags_secondary']},
                         'npc_list': [s for s in step['npc_list']
                                     if s in case['npcs_here']],
                         'loc': case['loc'].get_id(),
+                        'steps': [],  # only step has been removed
+                        'type': step['type']
                         }
             # redirect step id in cases where redirect Block is triggered
             if (case['casenum'] == 2) and (sid == 101):
-                expected['step_id'] = 30
+                expected['alternate_step_id'] = 30
                 expected['tags'] = {'primary': [70],
                                     'secondary': []}
                 expected['npc_list'] = [14, 8, 2, 40, 31, 32, 41, 1, 17, 42]
                 expected['locations'] = [3, 1, 2, 4, 12, 13, 14, 6, 7, 8, 11, 5, 9, 10]
+                expected['type'] = StepRedirect
 
             path = mypath['path']
             actual = mypath['path'].get_step_for_prompt()
 
             assert path.get_id() == expected['path_id']
-            assert actual.get_id() == expected['step_id']
+            assert path.step_for_prompt.get_id() == expected['step_id']
+            assert actual.get_id() == expected['alternate_step_id']
             assert actual.get_tags() == expected['tags']
             assert actual.get_locations() == expected['locations']
             assert case['loc'].get_id() in expected['locations']
             assert actual.get_npc().get_id() in expected['npc_list']
             assert actual.get_npc().get_id() in case['npcs_here']
-            assert type(actual) == step['type']
-            assert isinstance(actual, step['type'])
-            #assert actual.get_prompt() == ostep.get_prompt()
+            assert type(actual) == expected['type']
+            assert isinstance(actual, expected['type'])
+            assert path.steps == expected['steps']
+        else:
+            pass
+
+    def test_path_check_for_blocks(self, mypath, mysteps):
+        """unit test for Path._check_for_blocks()"""
+        #pid = mypath['id']
+        sid = mypath['steps'][0]
+        if mysteps['id'] == sid:
+            #step = mysteps
+            case = mypath['casedata']
+            path = mypath['path']
+            locs = [2, 3]
+
+            kwargs = {'step_id': 30,
+                      'loc': path.loc,
+                      'prev_loc': path.prev_loc_id,
+                      'prev_npc_id': path.prev_npc_id}
+            expected = Block('redirect', kwargs=kwargs, data=locs)
+
+            actual = path._check_for_blocks(locs)
+            if (sid == 101) and (case['casenum'] == 2):
+                assert actual == expected
+                assert actual.blocks == [expected]
+            else:
+                assert actual is False
+                assert actual.blocks == []
+        else:
+            pass
+
+    def test_path_redirect(self, mypath, mysteps):
+        """unit test for Path.redirect()"""
+        sid = mypath['steps'][0]
+        if mysteps['id'] == sid:
+            #step = mysteps
+            case = mypath['casedata']
+            path = mypath['path']
+            locs = [2, 3]
+
+            kwargs = {'step_id': 30,
+                      'loc': path.loc,
+                      'prev_loc': path.prev_loc_id,
+                      'prev_npc_id': path.prev_npc_id}
+            expected = Block('redirect', kwargs=kwargs, data=locs)
+
+            actual = path.redirect(locs)
+
+            if (sid == 101) and (case['casenum'] == 2):
+                assert path.blocks == [expected]
+                assert isinstance(path.blocks[0].get_step(), StepRedirect)
+                assert actual is None
+            else:
+                assert path.blocks == []
+                assert actual is None
         else:
             pass
 
