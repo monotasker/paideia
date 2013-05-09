@@ -5,8 +5,6 @@ if 0:
 import datetime
 import calendar
 from pytz import timezone
-import pprint
-from timeit import Timer
 import itertools
 
 # TODO: rework to use plugin_listandedit as a widget
@@ -15,7 +13,9 @@ import itertools
 @auth.requires_membership(role='administrators')
 def user():
     # define minimum daily required # of paths
-    target = 20
+    #TODO: add class selection here so that I can narrow these figures
+    target = db.classes.paths_per_day
+    freq = db.classes.days_per_week
     # find dates for this week, last week, and earliest possible span
     today = datetime.datetime.utcnow()
     now = timezone('UTC').localize(today)
@@ -26,7 +26,7 @@ def user():
     tw_index = thismonth.index(thisweek)
 
     lastweek = thismonth[tw_index - 1]
-    delta = datetime.timedelta(days = (8+today_index))
+    delta = datetime.timedelta(days=(8 + today_index))
     lw_firstday = today - delta
 
     tw_prev = None
@@ -58,8 +58,15 @@ def user():
         tz = timezone(tz_name)
         offset = now - tz.localize(today)  # How do I know when to use "ambiguous" instead?
         # alternative is to do tz.fromutc(datetime)
-
         tw_count = 0
+        for day in thisweek:
+            daycount = len([l for l in logs if (l.dt_attempted - offset).day == day])
+            #count = len(logs.find(lambda row: tz.fromutc(row.dt_attempted).day == day))
+            if daycount > 0:
+                tw_count += 1
+        print tw_count, '\n'
+
+        tw_min_count = 0
         for day in thisweek:
             daycount = len([l for l in logs if (l.dt_attempted - offset).day == day])
             #count = len(logs.find(lambda row: tz.fromutc(row.dt_attempted).day == day))
@@ -70,32 +77,47 @@ def user():
         lw_count = 0
         for day in lastweek:
             daycount = len([l for l in logs if (l.dt_attempted - offset).day == day])
+            if daycount > 0:
+                lw_count += 1
+        print lw_count
+
+        lw_min_count = 0
+        for day in lastweek:
+            daycount = len([l for l in logs if (l.dt_attempted - offset).day == day])
             if daycount >= target:
                 lw_count += 1
         print lw_count
 
-        countlist[user.auth_user.id] = (tw_count, lw_count)
+        countlist[user.auth_user.id] = (tw_count, tw_min_count,
+                                        lw_count, lw_min_count)
 
-    return dict(users=users, countlist=countlist)
+    return {'users': users, 'countlist': countlist,
+            'target': target, 'freq': freq}
 
 
 # TODO: rework using plugin_bloglet
 def news():
+    """
+    Display site news stories in a view.
+    """
     newslist = db(db.news).select(orderby=~db.news.date_submitted)
     if db(
         (db.auth_membership.user_id == auth.user_id) &
         (db.auth_membership.group_id == 1)
     ).select():
         button = A('new story',
-                    _href=URL('creating', 'news.load'),
-                    cid='modal_frame',
-                    _class='create_link news_create_link')
+                   _href=URL('creating', 'news.load'),
+                   cid='modal_frame',
+                   _class='create_link news_create_link')
     else:
         button = ''
     return dict(newslist=newslist, button=button)
 
 
 def slides():
+    """
+    Assemble a list of links to the slide sets and send to the view.
+    """
     debug = False
     slidelist = db(db.plugin_slider_decks.id > 0).select(
                                     orderby=db.plugin_slider_decks.position)
@@ -104,7 +126,7 @@ def slides():
     slides = UL()
     for s in slidelist:
         badges = db((db.tags.slides.contains(s.id))
-                      & (db.badges.tag == db.tags.id)).select()
+                    & (db.badges.tag == db.tags.id)).select()
         classes = ''
         try:
             if s.updated and (datetime.datetime.utcnow() - s.updated
@@ -113,16 +135,16 @@ def slides():
         except Exception:
             pass
         if progress and [t.tags.id for t in badges
-                            if t.tags.position <= progress.latest_new]:
+                         if t.tags.position <= progress.latest_new]:
             classes += 'plugin_slider_active '
         try:
             slides.append(LI(A(s.deck_name,
-                                _href=URL('plugin_slider',
+                               _href=URL('plugin_slider',
                                     'start_deck.load',
                                     args=[s.id]),
-                                cid='slideframe',
-                                _class=classes)
-                            ))
+                               cid='slideframe',
+                               _class=classes)
+                             ))
             for b in badges:
                 if debug: print b.badges.badge_name
                 slides[-1].append(SPAN(b.badges.badge_name))

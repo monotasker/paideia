@@ -750,3 +750,18 @@ timestamp: 2013-03-05T20:26:02.234838
 ALTER TABLE tag_records ADD secondary_right TEXT;
 timestamp: 2013-04-03T21:28:51.356437
 ALTER TABLE steps ADD tags_ahead TEXT;
+timestamp: 2013-05-08T20:25:42.946587
+CREATE TABLE classes(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    institution CHAR(512) UNIQUE,
+    year INTEGER,
+    term CHAR(512),
+    section CHAR(512),
+    instructor INTEGER REFERENCES auth_user (id) ON DELETE CASCADE,
+    start_date TIMESTAMP,
+    end_date TIMESTAMP,
+    paths_per_day INTEGER,
+    days_per_week INTEGER,
+    members TEXT
+);
+success!
