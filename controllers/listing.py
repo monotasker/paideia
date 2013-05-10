@@ -1,21 +1,36 @@
 # coding: utf8
 if 0:
-    from gluon import current, UL, LI, A, URL, SPAN
+    from gluon import current, UL, LI, A, URL, SPAN, SELECT, OPTION, FORM, INPUT
     db, auth, session = current.db, current.auth, current.session
+    request, response = current.request, current.response
 import datetime
 import calendar
 from pytz import timezone
 import itertools
 
-# TODO: rework to use plugin_listandedit as a widget
-
 
 @auth.requires_membership(role='administrators')
 def user():
+    myclasses = db(db.classes.instructor == auth.user_id).select()
+    chooser = FORM(SELECT(_id='class_chooser'), _id='class_chooser')
+    for m in myclasses:
+        optstring = '{} {} {}, {}'.format(m.year, m.term,
+                                          m.section, m.institution)
+        chooser[0].append(OPTION(optstring, _value=m.id))
+    chooser.append(INPUT(_type='submit'))
+
+    return {'chooser': chooser, 'row': myclasses[0].id}
+
+
+@auth.requires_membership(role='administrators')
+def userlist():
     # define minimum daily required # of paths
     #TODO: add class selection here so that I can narrow these figures
-    target = db.classes.paths_per_day
-    freq = db.classes.days_per_week
+    print 'starting'
+    row = db.classes(request.vars.row)
+    print row
+    target = row.paths_per_day
+    freq = row.days_per_week
     # find dates for this week, last week, and earliest possible span
     today = datetime.datetime.utcnow()
     now = timezone('UTC').localize(today)
