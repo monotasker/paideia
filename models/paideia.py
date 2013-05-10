@@ -20,7 +20,7 @@ response.files.insert(5, URL('static',
                       'plugin_ajaxselect/plugin_ajaxselect.js'))
 response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.css'))
 
-dtnow = datetime.datetime.utcnow
+dtnow = datetime.datetime.utcnow()
 
 
 #TODO: Fix this regex validator
@@ -48,12 +48,20 @@ class IS_VALID_REGEX(object):
         return (value, None)
 
 #TODO:Allow for different class profiles with different settings
-db.define_table('app_settings',
-                Field('class_id', 'string'),
-                Field('paths_per_day', 'integer', default=20),
-                Field('days_per_week', 'integer', default=5)
+db.define_table('classes',
+                Field('institution', 'string', default='Tyndale Seminary', unique=True),
+                Field('year', 'integer', default=dtnow.year),
+                Field('term', 'string'),
+                Field('section', 'string'),
+                Field('instructor', 'reference auth_user', default=auth.user_id),
+                Field('start_date', 'datetime'),
+                Field('end_date', 'datetime'),
+                Field('paths_per_day', 'integer', default=40),
+                Field('days_per_week', 'integer', default=5),
+                Field('members', 'list:reference auth_user'),
+                format='%(institution)s, %(year)s %(term)s %(section)s, '
+                       '%(instructor.last_name)s, %(instructor.first_name)s'
                 )
-db.app_settings.class_id.requires = IS_NOT_IN_DB(db, 'app_settings.class_id')
 
 db.define_table('images',
     Field('image', 'upload',

@@ -1,26 +1,12 @@
 {{extend 'layout.html'}}
-<table class='users_list'>
-    <tr>
-        <th>Name</th>
-        <th>Current Rank</th>
-        <th>days > 20 this week</th>
-        <th>days > 20 last week</th>
-    </tr>
-    {{for user in users:}}
-    <tr>
-        {{=TD(A(user.auth_user.last_name + ',' + user.auth_user.first_name, _href=URL('reporting', 'user', args=[user.auth_user.id])))}}
-        {{=TD(user.tag_progress.latest_new, _class='rank')}}
-        {{if user.auth_user.id in countlist:}}
-            {{=TD(countlist[user.auth_user.id][0], _class='this_week')}}
-            {{if countlist[user.auth_user.id][0] < 5:}}
-                {{=TD(countlist[user.auth_user.id][1], _class='last_week danger')}}
-            {{else:}}
-                {{=TD(countlist[user.auth_user.id][1], _class='last_week')}}
-            {{pass}}
-        {{else:}}
-            {{=TD(_class='this_week')}}
-            {{=TD(_class='last_week')}}
-        {{pass}}
-    </tr>
-    {{pass}}
-</table>
+{{=chooser}}
+{{=LOAD(c='listing', f='userlist.load', ajax=True, target='user_list', vars={'row': row})}}
+
+
+<script>
+    jQuery('#class_chooser').submit(function() {
+      ajax('{{=URL("listing", "userlist")}}',
+           ['Getting the records . . .'], 'user_list');
+      return false;
+    });
+</script>
