@@ -1742,12 +1742,13 @@ class TestPath():
             expected = Block('redirect', kwargs=kwargs, data=locs)
 
             actual = path.check_for_blocks(locs)
+
             if (sid == 101) and (case['casenum'] == 2):
                 assert actual == expected
-                assert actual.blocks == [expected]
+                assert path.blocks == [expected]
             else:
                 assert actual is False
-                assert actual.blocks == []
+                assert path.blocks == []
         else:
             pass
 
