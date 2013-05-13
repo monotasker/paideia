@@ -947,7 +947,7 @@ class Path(object):
     So far there is no infrastructure for paths without a set sequence.
     """
 
-    def __init__(self, path_id=None, blocks=None, loc=None, prev_loc=None,
+    def __init__(self, path_id=None, blocks=[], loc=None, prev_loc=None,
                  completed_steps=None, last_step_id=None, step_for_prompt=None,
                  step_for_reply=None, prev_npc_id=None, db=None):
         """
@@ -1019,11 +1019,11 @@ class Path(object):
         locs = next_step.get_locations()
         if not (self.loc.get_id() in locs):
             self.redirect(locs)
-
         # check for blocks; block removed when its step retrieved here
         # this is the ONLY place where blocks are triggered, but they can be
         # set elsewhere
         new_block = self.check_for_blocks(next_step)
+
         if new_block:
             return new_block
         else:
