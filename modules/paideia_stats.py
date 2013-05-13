@@ -8,6 +8,7 @@ import logging
 logger = logging.getLogger('web2py.app.paideia')
 logger.setLevel(logging.DEBUG)
 
+
 class Stats(object):
     '''
     Provides various statistics on student performance.
@@ -27,7 +28,7 @@ class Stats(object):
         self.tag_badges = {tb.tags.id: {'badge': tb.badges.badge_name,
                                         'description': tb.badges.description,
                                         'tag': tb.tags.tag}
-                            for tb in db(db.tags.id == db.badges.tag).select()}
+                           for tb in db(db.tags.id == db.badges.tag).select()}
 
     def step_log(self, logs=None, user_id=None, duration=None, db=None):
         '''
@@ -42,8 +43,8 @@ class Stats(object):
             db = current.db
         if not logs:
             logstart = now - duration  # yields datetime obj
-            logs = db((db.attempt_log.name==user_id) &
-                        (db.attempt_log.dt_attempted >= logstart)).select()
+            logs = db((db.attempt_log.name == user_id) &
+                      (db.attempt_log.dt_attempted >= logstart)).select()
 
         #TODO: Get utc time offset dynamically from user's locale
         logset = []
@@ -96,11 +97,11 @@ class Stats(object):
 
     def active_tags(self):
         '''
-        Find the
+        Find the tags that are currently active for this user, categorized 1-4.
         '''
         if self.verbose: print 'calling Stats.active_tags() ------------------'
         db = current.db
-        debug = False
+        #debug = False
         #try:
         atag_s = db(db.tag_progress.name == self.user_id).select().first()
         atags = {}
@@ -108,15 +109,15 @@ class Stats(object):
         atags2 = atags['cat2'] = list(set(atag_s.cat2))
         atags3 = atags['cat3'] = list(set(atag_s.cat3))
         atags4 = atags['cat4'] = list(set(atag_s.cat4))
-        atags5 = atags['rev1'] = list(set(atag_s.rev1))  # remove dup's
-        atags6 = atags['rev2'] = list(set(atag_s.rev2))
-        atags7 = atags['rev3'] = list(set(atag_s.rev3))
-        atags8 = atags['rev4'] = list(set(atag_s.rev4))
+        #atags5 = atags['rev1'] = list(set(atag_s.rev1))  # remove dup's
+        #atags6 = atags['rev2'] = list(set(atag_s.rev2))
+        #atags7 = atags['rev3'] = list(set(atag_s.rev3))
+        #atags8 = atags['rev4'] = list(set(atag_s.rev4))
         for c, lst in atags.iteritems():
             # allow for possibility that tag hasn't got badge yet
             try:
                 atags[c] = [self.tag_badges[t]['badge'] for t in lst
-                                if t in self.tag_badges.keys()]
+                            if t in self.tag_badges.keys()]
             except AttributeError:
                 # TODO: send notice here
                 pass
@@ -167,7 +168,7 @@ class Stats(object):
         local time zone.
         """
         if self.verbose: print 'calling Stats.log_list() ---------------------'
-        debug = False
+        #debug = False
         db = current.db
 
         log_query = db(db.attempt_log.name == self.user_id)
@@ -267,7 +268,7 @@ class Stats(object):
         # Create wrapper div with title line and month name
         mcal = DIV(SPAN('Questions answered each day in',
                         _class='monthcal_intro_line'),
-                    _class='paideia_monthcal')
+                   _class='paideia_monthcal')
 
         tbl = TABLE(_class='paideia_monthcal_table')
         tbl.append(THEAD(TR('Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun')))
@@ -298,9 +299,11 @@ class Stats(object):
         else:
             prev_year = year
         prev_link = A('previous', _href=URL('reporting', 'calendar.load',
-                        args=[self.user_id, prev_year, prev_month]),
-                        _class='monthcal_prev_link',
-                        cid='tab_calendar')
+                                            args=[self.user_id,
+                                                  prev_year,
+                                                  prev_month]),
+                      _class='monthcal_prev_link',
+                      cid='tab_calendar')
         mcal.append(prev_link)
 
         # build nav link for next month
@@ -311,9 +314,11 @@ class Stats(object):
             next_year = year
 
         next_link = A('next', _href=URL('reporting', 'calendar.load',
-                        args=[self.user_id, next_year, next_month]),
-                        _class='monthcal_next_link',
-                        cid='tab_calendar')
+                                        args=[self.user_id,
+                                              next_year,
+                                              next_month]),
+                      _class='monthcal_next_link',
+                      cid='tab_calendar')
         mcal.append(next_link)
         mcal.append(H4(monthname))
 

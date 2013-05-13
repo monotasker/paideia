@@ -2,12 +2,14 @@
 from gluon import current, redirect
 from gluon import IMG, URL, SQLFORM, SPAN, DIV, UL, LI, A, Field
 from gluon import IS_NOT_EMPTY, IS_IN_SET
+
+from inspect import getargvalues, stack
+from copy import copy
+from itertools import chain
 from random import randint, randrange
 import re
 import datetime
-from itertools import chain
-from inspect import getargvalues, stack
-from copy import copy
+from pytz import timezone
 #from pprint import pprint
 
 # TODO: move these notes elsewhere
@@ -1266,11 +1268,36 @@ class User(object):
         """Return the id (from db.auth_user) of the current user."""
         return self.user_id
 
-    def is_stale(self):
-        now = datetime.datetime.utcnow()
-        start = self.session_start
-        if now - start >= datetime.timedelta(days=1):
+    def is_stale(self, now=None, start=None, tz_name=None, db=None):
+        """
+        Return true if the currently stored User should be discarded.
+
+        User should be discarded (and a new one generated) at midnight local
+        time.
+
+        The arguments 'now', 'start', and 'tzone' are only used for dependency
+        injection in unit testing.
+        """
+        if not db:
+            db = current.db
+        if not now:
+            now = datetime.datetime.utcnow()
+        # get timezone offset from utc
+        if not tz_name:
+            tz_name = db.auth_user[self.user_id].time_zone
+        tz = timezone(tz_name)
+        # adjust now for local time
+        lnow = tz.fromutc(now)
+        # adjust start for local time
+        if not start:
+            start = self.session_start
+        lstart = tz.fromutc(start)
+
+        daystart = lnow.replace(hour=0, minute=0, second=0, microsecond=0)
+        if lstart < daystart:
             return True
+        elif lstart > lnow:
+            raise Exception  # TODO: make specific error
         else:
             return False
 
