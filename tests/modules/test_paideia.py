@@ -1831,12 +1831,33 @@ class TestUser():
     """unit testing class for the paideia.User class"""
 
     def test_user_get_id(self, myuser):
+        """
+        Unit test for User.get_id() method.
+        """
         #auth = current.auth
         uid = 1  # TODO: change to use auth.user_id
         assert myuser.get_id() == uid
 
-    #def test_user_is_stale(self, myuser):
-        #assert 0
+    def test_user_is_stale(self, myuser):
+        """
+        Unit test for User.is_stale() method.
+        """
+        now = datetime.datetime(2013, 01, 02, 14, 0, 0)
+        tzn = 'America/Toronto'
+        cases = [{'start': datetime.datetime(2013, 01, 02, 9, 0, 0),
+                  'expected': False},
+                 {'start': datetime.datetime(2013, 01, 02, 9, 0, 0),
+                  'expected': False},
+                 {'start': datetime.datetime(2013, 01, 02, 3, 0, 0),
+                  'expected': True},
+                 {'start': datetime.datetime(2012, 12, 29, 14, 0, 0),
+                  'expected': True}]
+        for c in cases:
+            print 'start:', c['start']
+            print 'expected:', c['expected']
+            actual = myuser.is_stale(now=now, start=c['start'],
+                                     tz_name=tzn, db=db)
+            assert actual == c['expected']
 
     #def test_user_get_categories(self, myuser):
         #assert 0
@@ -1902,7 +1923,7 @@ class TestCategorizer():
         cat = mycategorizer
         output = cat['core_out']
         core = cat['categorizer']._core_algorithm()
-        assert  core == output
+        assert core == output
 
     def test_categorizer_introduce_tags(self, mycategorizer):
         """Unit test for the paideia.Categorizer._introduce_tags method"""
