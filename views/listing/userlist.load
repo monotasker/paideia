@@ -1,0 +1,31 @@
+<table class='users_list_table'>
+    <tr>
+        <th>Name</th>
+        <th>Current Rank</th>
+        <th>days > {{=target}} this week</th>
+        <th>days > 0 this week</th>
+        <th>days > {{=target}} last week</th>
+        <th>days > 0 last week</th>
+    </tr>
+    {{for user in users:}}
+    <tr>
+        {{=TD(A(user.auth_user.last_name + ',' + user.auth_user.first_name, _href=URL('reporting', 'user', args=[user.auth_user.id])))}}
+        {{=TD(user.tag_progress.latest_new, _class='rank')}}
+        {{if user.auth_user.id in countlist:}}
+            {{=TD(countlist[user.auth_user.id][0], _class='this_week_target')}}
+            {{=TD(countlist[user.auth_user.id][1], _class='this_week_all')}}
+            {{if countlist[user.auth_user.id][1] < freq:}}
+                {{=TD(countlist[user.auth_user.id][1], _class='last_week_target danger')}}
+            {{else:}}
+                {{=TD(countlist[user.auth_user.id][1], _class='last_week_target')}}
+            {{pass}}
+            {{=TD(countlist[user.auth_user.id][1], _class='last_week_all')}}
+        {{else:}}
+            {{=TD(_class='this_week')}}
+            {{=TD(_class='this_week_target')}}
+            {{=TD(_class='last_week')}}
+            {{=TD(_class='last_week_target')}}
+        {{pass}}
+    </tr>
+    {{pass}}
+</table>
