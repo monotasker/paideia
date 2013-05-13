@@ -1074,8 +1074,24 @@ class Path(object):
             return False
 
     def get_step_for_reply(self, db=None):
-        """Return the Step object that is currently active for this path."""
-        reply_step = self.step_for_reply
+        """
+        Return the Step object that is currently active for this path.
+
+        This should be the path whose prompt has already been viewed by the user
+        and to which the user has submitted a response. This method should only
+        be called for steps which allow a user response, i.e. not for:
+            StepRedirect
+            StepQuotaReached
+            StepViewSlides
+            StepAwardBadges
+            or a bare Step instance
+        """
+        reply_step = copy(self.step_for_reply)
+        self.completed_steps.append(reply_step)
+        self.step_sent_id = reply_step.get_id()
+        assert self.step_for_prompt is None
+        self.step_for_reply = None
+
         return reply_step
 
 
