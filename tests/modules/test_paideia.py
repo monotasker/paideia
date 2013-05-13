@@ -15,6 +15,7 @@ import datetime
 # from pprint import pprint
 import re
 from random import randint
+from copy import copy
 
 # web2py library for functional testing
 from gluon.contrib.webclient import WebClient
@@ -643,7 +644,9 @@ def mycategorizer(mycases):
 @pytest.fixture
 def myuser(mycases):
     """A pytest fixture providing a paideia.User object for testing."""
-    userdata = db.auth_user(1).as_dict()
+    #auth = current.auth
+    uid = 1
+    userdata = db.auth_user(uid).as_dict()
     tag_progress = mycases['tag_progress']
     tag_records = mycases['tag_records']
     localias = mycases['loc'].get_alias()
@@ -1799,62 +1802,38 @@ class TestPath():
         else:
             pass
 
-    #def test_path_prepare_for_answer(self, mypath):
-        #"""Unit test for method paideia.Path.get_step_for_reply."""
-        #casenum = mypath['casenum']
-        #case = 'case{}'.format(casenum)
-        ## path 3, text
-        #case1 = {'step_for_reply_end': 2,
-                #'step_for_prompt_start': 2,
-                #'step_for_prompt_end': None,
-                #'step_sent_id': 2}
-        ## path 89, multiple
-        #case2 = {'step_for_reply_end': 101,
-                #'step_for_prompt_start': 101,
-                #'step_for_prompt_end': None,
-                #'step_sent_id': 101}
-        #output = locals()[case]
-        #sent_id = output['step_sent_id']
-        #test_func = mypath['path'].prepare_for_answer(
-                #step_for_prompt=StepFactory().get_instance(
-                            #db=db, step_id=output['step_for_prompt_start']),
-                #step_for_reply=None,
-                #step_sent_id=output['step_sent_id'])
-        #assert test_func['step_sent_id'] == output['step_sent_id']
-        #assert test_func['step_for_prompt'] == output['step_for_prompt_end']
-        #assert test_func['step_for_reply'] == output['step_for_reply_end']
+    def test_path_get_step_for_reply(self, mypath, mysteps):
+        """Unit test for method paideia.Path.get_step_for_reply."""
+        sid = mypath['steps'][0]
+        if mysteps['id'] == sid:
+            path = mypath['path']
+            case = mypath['casedata']
+            kwargs = {'step_id': sid,
+                      'loc': case['loc'],
+                      'prev_loc': case['prev_loc'],
+                      'prev_npc_id': case['prev_npc_id']}
+            expected = StepFactory().get_instance(db=db, **kwargs)
+            path.step_for_reply = copy(expected)
 
-    #def test_path_remove_block(self, mypath):
-        #"""Unit test for method paideia.Path.remove_block."""
-        #casenum = mypath['casenum']
-        #if not casenum in [1, 2]:
-            #case = 'case{}'.format(casenum)
-            #case3 = {'block_done': Block(), 'blocks': []}
-            #output = locals()[case]
-            #assert mypath['path'].remove_block() == output
+            actual = path.get_step_for_reply()
 
-    #def test_path_get_step_for_reply(self, mypath):
-        #"""Unit test for method paideia.Path.get_step_for_reply."""
-        #out = {1: StepFactory().get_instance(step_id=2, loc=Location(1, db),
-                                        #prev_loc=1, prev_npc_id=2, db=db),
-              #2: StepFactory().get_instance(step_id=101,
-                  #loc=Location(8, db), prev_loc=None, prev_npc_id=1, db=db)
-              #}
-        #path = mypath['path']
-        #pstep = path.get_step_for_prompt()
-        #path.prepare_for_answer(step_for_prompt=pstep, step_sent_id=pstep.get_id())
-        #rstep = path.get_step_for_reply()
-
-        #assert path.step_for_prompt is None
-        #assert path.step_for_reply.get_id() is out[mypath['casenum']].get_id()
-        #assert rstep.get_id() == out[mypath['casenum']].get_id()
+            assert path.step_for_prompt is None
+            assert path.step_for_reply is None
+            assert actual.get_id() == expected.get_id()
+            assert path.step_sent_id == expected.get_id()
+            assert not isinstance(actual, StepRedirect)
+            assert not isinstance(actual, StepQuotaReached)
+            assert not isinstance(actual, StepViewSlides)
+            assert not isinstance(actual, StepAwardBadges)
 
 
-#class TestUser():
-    #"""unit testing class for the paideia.User class"""
+class TestUser():
+    """unit testing class for the paideia.User class"""
 
-    #def test_user_get_id(self, myuser):
-        #assert myuser.get_id() == 1
+    def test_user_get_id(self, myuser):
+        #auth = current.auth
+        uid = 1  # TODO: change to use auth.user_id
+        assert myuser.get_id() == uid
 
     #def test_user_is_stale(self, myuser):
         #assert 0
@@ -1876,7 +1855,9 @@ class TestPath():
 
 
 class TestCategorizer():
-    """Unit testing class for the paideia.Categorizer class"""
+    """
+    Unit testing class for the paideia.Categorizer class
+    """
 
     def test_categorizer_categorize(self, mycategorizer):
         """
