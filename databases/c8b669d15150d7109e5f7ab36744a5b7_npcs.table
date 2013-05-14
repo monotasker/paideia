@@ -25,13 +25,13 @@ p11
 ssS'image'
 p12
 (dp13
-S'sortable'
+S'type'
 p14
-I4
-sS'type'
-p15
 S'reference images'
+p15
+sS'sortable'
 p16
+I4
 sS'sql'
 p17
 S'INTEGER REFERENCES images(id) ON DELETE CASCADE'
