@@ -650,7 +650,8 @@ def myuser(mycases):
     tag_progress = mycases['tag_progress']
     tag_records = mycases['tag_records']
     localias = mycases['loc'].get_alias()
-    return User(userdata, localias, tag_records, tag_progress)
+    return {'user': User(userdata, localias, tag_records, tag_progress),
+            'casedata': mycases}
 
 
 @pytest.fixture
@@ -1836,7 +1837,7 @@ class TestUser():
         """
         #auth = current.auth
         uid = 1  # TODO: change to use auth.user_id
-        assert myuser.get_id() == uid
+        assert myuser['user'].get_id() == uid
 
     def test_user_is_stale(self, myuser):
         """
@@ -1855,7 +1856,7 @@ class TestUser():
         for c in cases:
             print 'start:', c['start']
             print 'expected:', c['expected']
-            actual = myuser.is_stale(now=now, start=c['start'],
+            actual = myuser['user'].is_stale(now=now, start=c['start'],
                                      tz_name=tzn, db=db)
             assert actual == c['expected']
 
@@ -1863,7 +1864,13 @@ class TestUser():
         """
         Unit test for User._get_categories() method.
         """
-        assert 0
+        user = myuser['user']
+        case = myuser['casedata']
+        expected = case['tag_progress_out']
+        actual = user._get_categories(categories=case['tag_progress'],
+                                      old_categories=None)
+
+        assert actual == expected
 
     #def test_user_get_old_categories(self, myuser):
         #assert 0
