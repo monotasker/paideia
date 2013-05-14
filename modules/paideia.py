@@ -82,11 +82,13 @@ class Walk(object):
                     db = self.db
                 if not tag_records:
                     auth = current.auth
-                    tag_records = db(db.tag_records.name == auth.user_id).select()
+                    tag_records = db(db.tag_records.name ==
+                                     auth.user_id).select()
                     tag_records = tag_records.as_list()
                 if not tag_progress:
                     auth = current.auth
-                    tag_progress = db(db.tag_progress.name == auth.user_id).select()
+                    tag_progress = db(db.tag_progress.name ==
+                                      auth.user_id).select()
                     #tag_progress_length = len(tag_progress)  # TODO log if > 1
                     tag_progress = tag_progress.first().as_dict()
                     # Handle first-time users, who won't have db row to fetch
@@ -1351,10 +1353,12 @@ class User(object):
         cats_counter = self.cats_counter
         #old_categories = self.old_categories
         # only re-categorize every 10th evaluated step
-        if cats_counter in range(1, 10):
+        if cats_counter in range(1, 5):
             self.cats_counter = cats_counter + 1
+            print 'returning existing cats'
             return self.categories
         else:
+            print 're-categorizing'
             try:
                 self.old_categories = self.categories
             except AttributeError:

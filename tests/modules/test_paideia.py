@@ -328,6 +328,14 @@ def mycases(request, mysteps):
                                             'cat3': [], 'cat4': [],
                                             'rev1': [], 'rev2': [],
                                             'rev3': [], 'rev4': []},
+                       'categories_start': {'cat1': [61], 'cat2': [],
+                                            'cat3': [], 'cat4': [],
+                                            'rev1': [], 'rev2': [],
+                                            'rev3': [], 'rev4': []},
+                       'categories_out': {'cat1': [61], 'cat2': [],
+                                          'cat3': [], 'cat4': [],
+                                          'rev1': [], 'rev2': [],
+                                          'rev3': [], 'rev4': []},
                        'paths': {'cat1': [1, 2, 3, 5, 8, 63, 64, 70, 95, 96,
                                           97, 99, 102, 104, 256, 277],
                                  'cat2': [],
@@ -373,6 +381,14 @@ def mycases(request, mysteps):
                                             'cat3': [], 'cat4': [],
                                             'rev1': [], 'rev2': [],
                                             'rev3': [], 'rev4': []},
+                       'categories_start': {'cat1': [61], 'cat2': [],
+                                            'cat3': [], 'cat4': [],
+                                            'rev1': [], 'rev2': [],
+                                            'rev3': [], 'rev4': []},
+                       'categories_out': {'cat1': [62], 'cat2': [61],
+                                          'cat3': [], 'cat4': [],
+                                          'rev1': [], 'rev2': [],
+                                          'rev3': [], 'rev4': []},
                        'paths': {'cat1': [1, 2, 3, 5, 8, 63, 64, 70, 95, 96,
                                           97, 99, 102, 104, 256, 277],
                                  'cat2': [],
@@ -447,6 +463,17 @@ def mycases(request, mysteps):
                                             'cat3': [], 'cat4': [],
                                             'rev1': [], 'rev2': [],
                                             'rev3': [], 'rev4': []},
+                       'categories_start': {'cat1': [66, 68, 115, 72, 89, 36,
+                                                     61, 62, 63],
+                                            'cat2': [],
+                                            'cat3': [], 'cat4': [],
+                                            'rev1': [], 'rev2': [],
+                                            'rev3': [], 'rev4': []},
+                       'categories_out': {'cat1': [68, 115, 72, 89, 36, 62, 63],
+                                          'cat2': [61, 66],
+                                          'cat3': [], 'cat4': [],
+                                          'rev1': [], 'rev2': [],
+                                          'rev3': [], 'rev4': []},
                        'paths': {'cat1': [1, 2, 3, 5, 8, 63, 64, 70, 95, 96,
                                           97, 99, 102, 104, 256, 277],
                                  'cat2': [4, 7, 9, 10, 11, 12, 13, 14, 15, 16,
@@ -524,6 +551,15 @@ def mycases(request, mysteps):
                                             'cat3': [], 'cat4': [],
                                             'rev1': [], 'rev2': [],
                                             'rev3': [], 'rev4': []},
+                       'categories_start': {'cat1': [61, 62], 'cat2': [],
+                                            'cat3': [], 'cat4': [],
+                                            'rev1': [], 'rev2': [],
+                                            'rev3': [], 'rev4': []},
+                       'categories_out': {'cat1': [63, 72, 115],
+                                          'cat2': [61, 62],
+                                          'cat3': [], 'cat4': [],
+                                          'rev1': [], 'rev2': [],
+                                          'rev3': [], 'rev4': []},
                        'steps_here': [1, 2, 30, 125, 126, 127],
                        'completed': [],
                        'new_badges': [63, 72, 115],
@@ -563,6 +599,14 @@ def mycases(request, mysteps):
                                             'cat3': [], 'cat4': [],
                                             'rev1': [], 'rev2': [],
                                             'rev3': [], 'rev4': []},
+                       'categories_start': {'cat1': [61], 'cat2': [],
+                                            'cat3': [], 'cat4': [],
+                                            'rev1': [], 'rev2': [],
+                                            'rev3': [], 'rev4': []},
+                       'categories_out': {'cat1': [62], 'cat2': [61],
+                                          'cat3': [], 'cat4': [],
+                                          'rev1': [], 'rev2': [],
+                                          'rev3': [], 'rev4': []},
                        'new_badges': [62],
                        'promoted': {'cat2': [61]},
                        'demoted': {},
@@ -1866,11 +1910,19 @@ class TestUser():
         """
         user = myuser['user']
         case = myuser['casedata']
-        expected = case['tag_progress_out']
+        print 'cats_counter:', user.cats_counter
+        if user.cats_counter < 5:
+            expected = case['categories_start']
+        elif user.cats_counter >= 5:
+            expected = case['categories_out']
         actual = user._get_categories(categories=case['tag_progress'],
                                       old_categories=None)
+        print 'actual:\n', actual
+        print 'expected:\n', expected
 
-        assert actual == expected
+        # this avoids problem of lists being in different orders
+        for c, l in expected.iteritems():
+            assert len(actual[c]) == len([t for t in l if t in actual[c]])
 
     #def test_user_get_old_categories(self, myuser):
         #assert 0
