@@ -1859,8 +1859,11 @@ class TestUser():
                                      tz_name=tzn, db=db)
             assert actual == c['expected']
 
-    #def test_user_get_categories(self, myuser):
-        #assert 0
+    def test_user_get_categories(self, myuser):
+        """
+        Unit test for User._get_categories() method.
+        """
+        assert 0
 
     #def test_user_get_old_categories(self, myuser):
         #assert 0
