@@ -1338,7 +1338,7 @@ class User(object):
             return path
 
     def _get_categories(self, rank=None, categories=None, old_categories=None,
-                        tag_records=None):
+                        tag_records=None, utcnow=None):
         """
         Return a categorized dictionary with four lists of tag id's.
 
@@ -1350,6 +1350,8 @@ class User(object):
             rank = self.rank
         if not tag_records:
             tag_records = self.tag_records
+        if not utcnow:
+            utcnow = datetime.datetime.utcnow()
         cats_counter = self.cats_counter
         #old_categories = self.old_categories
         # only re-categorize every 10th evaluated step
@@ -1363,7 +1365,7 @@ class User(object):
                 self.old_categories = self.categories
             except AttributeError:
                 self.old_categories = None
-            c = Categorizer(rank, categories, tag_records)
+            c = Categorizer(rank, categories, tag_records, utcnow=utcnow)
             cat_result = c.categorize_tags()
             categories = cat_result['categories']
             self.categories = categories
