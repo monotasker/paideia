@@ -1304,8 +1304,12 @@ class User(object):
             return False
 
     def get_new_badges(self):
-        """Return a dictionary of tag ids newly introduced or promoted"""
+        """Return a list of tag ids newly introduced"""
         return self.new_badges
+
+    def get_promoted(self):
+        """Return a dictionary of tag ids newly promoted to categories 2-4."""
+        return self.promoted
 
     def get_path(self, loc, db=None):
         """
