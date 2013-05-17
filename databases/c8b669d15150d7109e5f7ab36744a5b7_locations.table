@@ -58,13 +58,13 @@ g11
 ssS'background'
 p19
 (dp20
-S'type'
+S'sortable'
 p21
-S'reference images'
-p22
-sS'sortable'
-p23
 I4
+sS'type'
+p22
+S'reference images'
+p23
 sS'sql'
 p24
 S'INTEGER REFERENCES images(id) ON DELETE CASCADE'

@@ -1393,10 +1393,13 @@ class User(object):
             return False
 
     def _complete_path(self):
-        """docstring"""
-        self.completed_paths.append(self.path.get_id())
-        self.last_npc = self.path.get_active_step().get_npc()['id']
-        self.last_loc = self.path.get_active_step().get_npc()['id']
+        """
+        Move the current path from the path variable to 'completed_paths' list.
+        Set last_npc and last_loc before removing the path.
+        """
+        self.completed_paths.append(self.path)
+        self.last_npc = self.path.completed_steps[-1].get_npc().get_(id)
+        self.last_loc = self.path.completed_steps[-1].get_loc().get_(id)
         self.path = None
         return True
 
