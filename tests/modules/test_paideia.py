@@ -474,8 +474,11 @@ def mycases(request, mysteps):
                                           'cat3': [], 'cat4': [],
                                           'rev1': [], 'rev2': [],
                                           'rev3': [], 'rev4': []},
-                       'paths': {'cat1': [1, 2, 3, 5, 8, 63, 64, 70, 95, 96,
-                                          97, 99, 102, 104, 256, 277],
+                       'paths': {'cat1': [1, 2, 3, 5, 8, 38, 39, 40, 41, 42,
+                                          43, 44, 56, 57, 58, 59, 61, 62, 63,
+                                          64, 70, 84, 86, 87, 88, 90, 95, 96,
+                                          97, 99, 102, 104, 127, 256, 267, 270,
+                                          277, 288, 289, 290, 301, 302],
                                  'cat2': [4, 7, 9, 10, 11, 12, 13, 14, 15, 16,
                                           17, 18, 19, 21, 22, 23, 34, 35, 97,
                                           98, 100, 101, 103, 257, 261, 277],
@@ -560,6 +563,24 @@ def mycases(request, mysteps):
                                           'cat3': [], 'cat4': [],
                                           'rev1': [], 'rev2': [],
                                           'rev3': [], 'rev4': []},
+                       'paths': {'cat1': [6, 20, 24, 25, 27, 28, 33, 37, 64,
+                                          65, 66, 67, 68, 69, 94, 103, 104,
+                                          259, 260, 277, 278, 279, 280, 284,
+                                          285, 286, 38, 39, 40, 41, 42, 43, 44,
+                                          56, 57, 58, 59, 61, 62, 84, 86, 87,
+                                          88, 90, 127, 267, 270, 288, 289, 290,
+                                          301, 302, 45, 46, 47, 48, 49, 50, 51,
+                                          52, 53, 54, 55, 56, 57, 58, 59, 60,
+                                          61, 62, 84, 85, 86, 87, 88, 135, 206,
+                                          262, 263, 264, 265, 266, 267, 268,
+                                          269, 270, 308, 309],
+                                 'cat2': [1, 2, 3, 5, 8, 63, 64, 70, 95, 96,
+                                          97, 99, 102, 104, 256, 277, 4, 7, 9,
+                                          10, 11, 12, 13, 14, 15, 16, 17, 18,
+                                          19, 20, 21, 22, 23, 34, 35, 97, 98,
+                                          100, 101, 103, 257, 261, 277],
+                                 'cat3': [],
+                                 'cat4': []},
                        'steps_here': [1, 2, 30, 125, 126, 127],
                        'completed': [],
                        'new_badges': [63, 72, 115],
@@ -607,6 +628,11 @@ def mycases(request, mysteps):
                                           'cat3': [], 'cat4': [],
                                           'rev1': [], 'rev2': [],
                                           'rev3': [], 'rev4': []},
+                       'paths': {'cat1': [1, 2, 3, 5, 8, 63, 64, 70, 95, 96,
+                                          97, 99, 102, 104, 256, 277],
+                                 'cat2': [],
+                                 'cat3': [],
+                                 'cat4': []},
                        'new_badges': [62],
                        'promoted': {'cat2': [61]},
                        'demoted': {},
@@ -1904,28 +1930,13 @@ class TestUser():
                                      tz_name=tzn, db=db)
             assert actual == c['expected']
 
-    def test_user_get_categories(self, myuser):
-        """
-        Unit test for User._get_categories() method.
-        """
+    def test_user_get_path(self, myuser):
         user = myuser['user']
         case = myuser['casedata']
-        print 'cats_counter:', user.cats_counter
-        if user.cats_counter < 5:
-            expected = case['categories_start']
-        elif user.cats_counter >= 5:
-            expected = case['categories_out']
-        actual = user._get_categories(categories=case['tag_progress'],
-                                      old_categories=None)
-        print 'actual:\n', actual
-        print 'expected:\n', expected
-
-        # this avoids problem of lists being in different orders
-        for c, l in expected.iteritems():
-            assert len(actual[c]) == len([t for t in l if t in actual[c]])
-
-    #def test_user_get_old_categories(self, myuser):
-        #assert 0
+        expected = [p for cat in case['paths'].values() for p in cat]
+        actual = user.get_path(case['loc'])
+        assert actual.get_id() in expected
+        assert isinstance(actual, Path)
 
     def test_user_get_new_badges(self, myuser):
         """
@@ -1949,11 +1960,41 @@ class TestUser():
 
         assert actual == expected
 
-    #def test_user_complete_path(self, myuser):
+    def test_user_get_categories(self, myuser):
+        """
+        Unit test for User._get_categories() method.
+        """
+        user = myuser['user']
+        case = myuser['casedata']
+        print 'cats_counter:', user.cats_counter
+        if user.cats_counter < 5:
+            expected = case['categories_start']
+        elif user.cats_counter >= 5:
+            expected = case['categories_out']
+        actual = user._get_categories(categories=case['tag_progress'],
+                                      old_categories=None)
+        print 'actual:\n', actual
+        print 'expected:\n', expected
+
+        # this avoids problem of lists being in different orders
+        for c, l in expected.iteritems():
+            assert len(actual[c]) == len([t for t in l if t in actual[c]])
+
+    #def test_user_get_old_categories(self, myuser):
         #assert 0
 
-    #def test_user_get_path(self, myuser):
-        #assert 0
+    def test_user_complete_path(self, myuser):
+        user = myuser['user']
+        case = myuser['casedata']
+        pathid = case['paths']['cat1'][0]
+        path = Path(pathid, case['loc'])
+        user.path = copy(path)
+        assert user._complete_path() is True
+        assert user.path is None
+        assert user.last_npc in case['npcs_here']
+        assert user.last_loc == case['loc']
+        assert user.completed_paths[-1] == path
+        assert isinstance(user.completed_paths[-1], path)
 
 
 class TestCategorizer():
