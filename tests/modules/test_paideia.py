@@ -1927,8 +1927,27 @@ class TestUser():
     #def test_user_get_old_categories(self, myuser):
         #assert 0
 
-    #def test_user_get_new_badges(self, myuser):
-        #assert 0
+    def test_user_get_new_badges(self, myuser):
+        """
+        Unit test for User.get_new_badges().
+        """
+        user = myuser['user']
+        user.new_badges = [1, 2, 3]
+        expected = [1, 2, 3]
+        actual = user.get_new_badges()
+
+        assert actual == expected
+
+    def test_user_get_promoted(self, myuser):
+        """
+        Unit test for User.get_promoted().
+        """
+        user = myuser['user']
+        user.promoted = {'cat2': [1], 'cat3': [2], 'cat4': [3]}
+        expected = {'cat2': [1], 'cat3': [2], 'cat4': [3]}
+        actual = user.get_promoted()
+
+        assert actual == expected
 
     #def test_user_complete_path(self, myuser):
         #assert 0
