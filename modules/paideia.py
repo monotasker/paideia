@@ -1293,8 +1293,12 @@ class User(object):
             return False
 
     def get_new_badges(self):
-        """Return a dictionary of tag ids newly introduced or promoted"""
+        """Return a list of tag ids newly introduced"""
         return self.new_badges
+
+    def get_promoted(self):
+        """Return a dictionary of tag ids newly promoted to categories 2-4."""
+        return self.promoted
 
     def get_path(self, loc, db=None):
         """
@@ -1389,10 +1393,13 @@ class User(object):
             return False
 
     def _complete_path(self):
-        """docstring"""
-        self.completed_paths.append(self.path.get_id())
-        self.last_npc = self.path.get_active_step().get_npc()['id']
-        self.last_loc = self.path.get_active_step().get_npc()['id']
+        """
+        Move the current path from the path variable to 'completed_paths' list.
+        Set last_npc and last_loc before removing the path.
+        """
+        self.completed_paths.append(self.path)
+        self.last_npc = self.path.completed_steps[-1].get_npc().get_(id)
+        self.last_loc = self.path.completed_steps[-1].get_loc().get_(id)
         self.path = None
         return True
 
