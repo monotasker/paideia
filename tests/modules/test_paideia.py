@@ -1924,8 +1924,17 @@ class TestUser():
         for c, l in expected.iteritems():
             assert len(actual[c]) == len([t for t in l if t in actual[c]])
 
-    #def test_user_get_old_categories(self, myuser):
-        #assert 0
+    def test_user_get_old_categories(self, myuser):
+        case = myuser['casedata']
+        user = myuser['user']
+        expected = case['tag_progress']
+        del expected['latest_new']
+
+        actual = user._get_old_categories()
+
+        for c, l in actual.iteritems():
+            assert len([i for i in l if i in expected[c]]) == len(expected[c])
+            assert len(l) == len(expected[c])
 
     #def test_user_get_new_badges(self, myuser):
         #assert 0
