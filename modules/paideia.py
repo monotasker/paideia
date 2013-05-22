@@ -10,7 +10,6 @@ from random import randint, randrange
 import re
 import datetime
 from pytz import timezone
-#from pprint import pprint
 
 # TODO: move these notes elsewhere
 """
@@ -486,8 +485,6 @@ class Step(object):
 
         new_string = raw_prompt
         for k, v in reps.iteritems():
-            print 'k', k
-            print 'v', v
             if not v:
                 v = ''
             new_string = new_string.replace(k, v)
@@ -513,7 +510,6 @@ class Step(object):
         TODO: need to trigger redirect on false return
         """
         loc = self.loc.get_id()
-        print 'loc is', loc
 
         if self.npc and (loc in self.npc.get_locations()):  # ensure choice is made only once for each step
             return self.npc
@@ -521,19 +517,15 @@ class Step(object):
             npcs_for_step = self.data['npcs']
             npc_list = [int(n) for n in npcs_for_step
                         if loc in self.db.npcs[n].location]
-            print 'npcs in loc:', npc_list
 
             if len(npc_list) < 1:
-                print 'no npc to choose'
                 return False
             elif self.prev_npc_id in npc_list:
                 self.npc = Npc(self.prev_npc_id, db=self.db)
-                print 'choosing npc', self.npc.get_id()
                 return self.npc
             else:
                 pick = npc_list[randint(1, len(npc_list)) - 1]
                 self.npc = Npc(pick, db=self.db)
-                print 'choosing npc', self.npc.get_id()
                 return self.npc
 
     def _get_instructions(self):
@@ -827,9 +819,6 @@ class StepText(Step):
         else:
             readable_short = [readable]
             readable_long = None
-
-        print 'readable_long:', readable_long
-        print 'len readable:', len(readable)
 
         return {'readable_short': readable_short,
                 'readable_long': readable_long}
@@ -1344,7 +1333,14 @@ class User(object):
 
         This method is important primarily to decide whether a new
         categorization is necessary before instantiating a Categorizer object
-        # do we need to create new categorizer object each time?
+
+        # TODO: do we need to create new categorizer object each time?
+
+        The method is intended to be called with no arguments.
+        The rank, categories, and old_categories arguments are not needed,
+        since the values can be drawn from the User class instance. They are
+        provided to help in unit testing. The arguments tag_records and utcnow
+        are required only for dependency injection during unit testing.
         """
         if not rank:
             rank = self.rank
@@ -1357,10 +1353,8 @@ class User(object):
         # only re-categorize every 10th evaluated step
         if cats_counter in range(1, 5):
             self.cats_counter = cats_counter + 1
-            print 'returning existing cats'
             return self.categories
         else:
-            print 're-categorizing'
             try:
                 self.old_categories = self.categories
             except AttributeError:
@@ -1373,6 +1367,12 @@ class User(object):
             if cat_result['new_tags']:
                 self.set_block('new_tags', cat_result['new_tags'])
             return categories
+
+    def _get_old_categories(self):
+        if self.old_categories:
+            return self.old_categories
+        else:
+            return None
 
     def _get_blocks(self):
         """docstring"""
