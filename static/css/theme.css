@@ -212,6 +212,7 @@ ul {
 }
 /* forms **************************************************/
 input[type=text],
+input[type=password],
 select,
 textarea {
   border: 1px solid #eee;
@@ -286,6 +287,11 @@ input[type=submit] {
   background-image: -o-linear-gradient(#84c63c, #489615);
   background-image: -ms-linear-gradient(#84c63c, #489615);
   border: 1px solid #5ba917;
+  font-size: 16px;
+  text-transform: uppercase;
+  font-family: ubuntu, calibri, arial, sans-serif;
+  letter-spacing: 2px;
+  font-size: 12.8px;
 }
 input[type=submit]:hover {
   -moz-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
@@ -303,11 +309,17 @@ input[type=submit]:hover {
 td {
   vertical-align: top;
 }
-form tr td {
+form table {
+  padding: 16px;
+}
+form table tr:first-child {
+  padding-top: 16px;
+}
+form table tr td {
   min-height: 36px;
 }
-form tr td:first-child {
-  text-align: right;
+form table tr td:first-child {
+  text-align: left;
   padding-right: 16px;
 }
 /* layout **************************************************/
@@ -682,11 +694,6 @@ div.error {
   line-height: 24px;
   padding: 0;
   text-align: center;
-  -moz-border-radius: 16px 16px 16px 16px;
-  -webkit-border-radius: 16px 16px 16px 16px;
-  -o-border-radius: 16px 16px 16px 16px;
-  -ms-border-radius: 16px 16px 16px 16px;
-  border-radius: 16px 16px 16px 16px;
   font-weight: bold;
   -moz-border-radius: 16px 16px 16px 16px;
   -webkit-border-radius: 16px 16px 16px 16px;
@@ -1525,6 +1532,43 @@ body #page #right_sidebar div:hover {
   background: #e4edf7;
   overflow: hidden;
 }
+#page.login .loginform {
+  width: 450px;
+  /*.centered-vertical-block(240px);*/
+
+  position: relative;
+  left: 50%;
+  margin-left: -225px;
+  margin-top: 36px;
+}
+#page.login .loginform form {
+  width: 100%;
+}
+#page.login .loginform form table {
+  border-collapse: collapse;
+  width: 100%;
+}
+#page.login .loginform form table input[type=text],
+#page.login .loginform form table input[type=password] {
+  width: 90%;
+}
+#page.login a {
+  display: block;
+  width: 100%;
+  background-color: #859900;
+  color: #ffffff;
+  line-height: 36px;
+  height: 36px;
+  padding-left: 24px;
+  font-size: 16px;
+  text-transform: uppercase;
+  font-family: ubuntu, calibri, arial, sans-serif;
+  letter-spacing: 2px;
+  font-size: 12.8px;
+}
+#page.login a:last-child {
+  background-color: #b58900;
+}
 #page.exploring {
   overflow: hidden;
 }
@@ -1641,11 +1685,9 @@ body #page #right_sidebar div:hover {
   font-size: 16px;
   line-height: 24px;
   color: #666666;
-  padding: 24px;
   left: -320px;
   top: -72px;
   margin-left: 0;
-  display: none;
   z-index: 10;
   position: relative;
   border-radius: 36px;
@@ -1731,14 +1773,7 @@ body #page #right_sidebar div:hover {
   display: inline-block;
   width: 36px;
   height: 36px;
-  line-height: 36px;
   padding: 0;
-  text-align: center;
-  -moz-border-radius: 24px 24px 24px 24px;
-  -webkit-border-radius: 24px 24px 24px 24px;
-  -o-border-radius: 24px 24px 24px 24px;
-  -ms-border-radius: 24px 24px 24px 24px;
-  border-radius: 24px 24px 24px 24px;
   font-weight: bold;
   -moz-border-radius: 24px 24px 24px 24px;
   -webkit-border-radius: 24px 24px 24px 24px;
@@ -2006,7 +2041,6 @@ body #page #right_sidebar div:hover {
 #page.user table.summary_stats td.total_cat3,
 #page.profile table.summary_stats td.total_cat4,
 #page.user table.summary_stats td.total_cat4 {
-  height: 40px;
   width: 40px;
   color: #fff;
   height: 40px;
