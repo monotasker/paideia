@@ -2,9 +2,10 @@
 
 from paideia_stats import Stats
 from paideia_bugs import Bug
-from gluon.tools import prettydate
+#from gluon.tools import prettydate
 
 if 0:
+    from gluon import HTML, A, URL, BODY
     from gluon import current
     from gluon.tools import Auth
     from gluon.dal import DAL
@@ -14,10 +15,13 @@ if 0:
     T, service = current.T, current.service
     request = current.request
 
+mail = current.mail
+
 
 def index():
     """    """
     return dict()
+
 
 def user():
     """
@@ -31,6 +35,7 @@ def user():
     """
     return {'form': auth()}
 
+
 def info():
     """
     Return data reporting on a user's performance record.
@@ -39,9 +44,6 @@ def info():
     page component, to be embedded in other views such as:
         default/user.html
         reporting/user.html
-    The modular approach allows one controller/view pair to present the
-    information at multiple places in the application, reducing maintenance
-    and duplicate code.
     """
     # Allow either passing explicit user or defaulting to current user
     if 'id' in request.vars:
@@ -59,8 +61,7 @@ def info():
     log = sl['loglist']
     duration = sl['duration']
 
-    max_set = db(db.tag_progress.name ==
-                  auth.user_id).select().first()
+    max_set = db(db.tag_progress.name == auth.user_id).select().first()
     if not max_set is None:
         max_set = max_set.latest_new
     else:
@@ -71,8 +72,8 @@ def info():
     tag_progress = db((db.tag_progress.name == user.id)).select().first().as_dict()
 
     tag_records = db((db.tag_records.name == user.id) &
-                        (db.tag_records.tag == db.tags.id)
-                    ).select(orderby=db.tags.position)
+                     (db.tag_records.tag == db.tags.id)
+                     ).select(orderby=db.tags.position)
 
     badge_dates = db(
                         (db.badges_begun.name == user.id) &
@@ -87,10 +88,10 @@ def info():
     for bd in badge_dates:
         for c in ['cat1', 'cat2', 'cat3', 'cat4']:
             if bd.badges_begun[c]:
-                tagbadge = db.badges(db.badges.tag==bd.tags.id)
+                tagbadge = db.badges(db.badges.tag == bd.tags.id)
                 badgelist.append({'id': tagbadge.badge_name,
                                 'description': tagbadge.description,
-                                'level': catlabels[int(c[3:])-1],
+                                'level': catlabels[int(c[3:]) - 1],
                                 'date': 'on {}'.format(bd.badges_begun[c].strftime('%b %e, %Y')),
                                 'dt': bd.badges_begun[c]})
     badgelist = sorted(badgelist, key=lambda row: row['dt'], reverse=True)
@@ -108,17 +109,22 @@ def info():
             'duration': duration,
             'badge_track': badgelist}
 
+
 def oops():
     """A controller to handle rerouted requests that return error codes."""
     code = request.vars.code
     ticket = request.vars.ticket
+
     requested_uri = request.vars.requested_uri
     request_url = request.vars.request_url
+
     # Return the original HTTP error code
     response.status = code
     if code == 500:
         title = 'Paideia - Internal error reported'
         msg = HTML(BODY('Hello Ian,<br>I seem to have run into an error!',
+                'requested uri:', requested_uri,
+                'request url:', request_url,
                 'Here is the ticket: '))
         link = A(ticket, _href=URL('admin', 'default', 'ticket', args=[ticket]),
                 _target='_blank')

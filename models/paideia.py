@@ -105,11 +105,11 @@ db.tags.slides.requires = IS_IN_DB(db,
                                    '%(deck_name)s',
                                    multiple=True)
 db.tags.slides.widget = lambda field, value: \
-                                    AjaxSelect().widget(
-                                        field, value, 'plugin_slider_decks',
-                                        refresher=True,
-                                        multi='basic',
-                                        lister='editlinks')
+                                    AjaxSelect(field, value,
+                                               'plugin_slider_decks',
+                                               refresher=True,
+                                               multi='basic',
+                                               lister='editlinks').widget()
 
 db.define_table('badges',
     Field('badge_name', 'string', unique=True),
@@ -139,10 +139,11 @@ db.define_table('npcs',
 db.npcs.name.requires = IS_NOT_IN_DB(db, 'npcs.name')
 db.npcs.location.requires = IS_IN_DB(db, 'locations.id',
                                     db.locations._format, multiple=True)
-db.npcs.location.widget = lambda field, value: \
-                        AjaxSelect().widget(field, value, 'locations',
-                                    multi='basic',
-                                    lister='editlinks')
+db.npcs.location.widget = lambda field, value: AjaxSelect(field, value,
+                                                          'locations',
+                                                          multi='basic',
+                                                          lister='editlinks'
+                                                          ).widget()
 
 db.define_table('step_types',
     Field('type', unique=True),
@@ -191,55 +192,61 @@ db.steps.options.widget = SQLFORM.widgets.list.widget
 #db.steps.response1.requires = IS_VALID_REGEX()
 db.steps.npcs.requires = IS_IN_DB(db, 'npcs.id',
                                       db.npcs._format, multiple=True)
-db.steps.npcs.widget = lambda field, value: AjaxSelect().widget(
-                                                field, value, 'npcs',
-                                                multi='basic',
-                                                lister='editlinks')
+db.steps.npcs.widget = lambda field, value: AjaxSelect(field, value, 'npcs',
+                                                       multi='basic',
+                                                       lister='editlinks'
+                                                       ).widget()
 db.steps.tags.requires = IS_IN_DB(db, 'tags.id',
                                       db.tags._format, multiple=True)
-db.steps.tags.widget = lambda field, value: AjaxSelect().widget(
-                                                field, value, 'tags',
-                                                refresher=True,
-                                                multi='basic',
-                                                lister='editlinks')
+db.steps.tags.widget = lambda field, value: AjaxSelect(field, value, 'tags',
+                                                       refresher=True,
+                                                       multi='basic',
+                                                       lister='editlinks'
+                                                       ).widget()
 db.steps.tags_secondary.requires = IS_IN_DB(db, 'tags.id',
                                                 db.tags._format,
                                                 multiple=True)
-db.steps.tags_secondary.widget = lambda field, value: AjaxSelect().widget(
-                                                field, value, 'tags',
-                                                refresher=True,
-                                                multi='basic',
-                                                lister='editlinks')
+db.steps.tags_secondary.widget = lambda field, value: \
+                                            AjaxSelect(field, value,
+                                                       'tags',
+                                                       refresher=True,
+                                                       multi='basic',
+                                                       lister='editlinks'
+                                                       ).widget()
 db.steps.tags_ahead.requires = IS_IN_DB(db, 'tags.id',
                                             db.tags._format,
                                             multiple=True)
-db.steps.tags_ahead.widget = lambda field, value: AjaxSelect().widget(
-                                                field, value, 'tags',
-                                                refresher=True,
-                                                multi='basic',
-                                                lister='editlinks')
+db.steps.tags_ahead.widget = lambda field, value: AjaxSelect(field, value,
+                                                             'tags',
+                                                             refresher=True,
+                                                             multi='basic',
+                                                             lister='editlinks'
+                                                             ).widget()
 db.steps.locations.requires = IS_IN_DB(db, 'locations.id',
                                            db.locations._format,
                                            multiple=True)
-db.steps.locations.widget = lambda field, value: AjaxSelect().widget(
-                                                field, value, 'locations',
-                                                multi='basic',
-                                                lister='editlinks')
+db.steps.locations.widget = lambda field, value: AjaxSelect(field, value,
+                                                            'locations',
+                                                            multi='basic',
+                                                            lister='editlinks'
+                                                            ).widget()
 db.steps.hints.requires = IS_IN_DB(db, 'step_hints.id',
                                        db.step_hints._format,
                                        multiple=True)
-db.steps.hints.widget = lambda field, value: AjaxSelect().widget(
-                                                    field, value, 'step_hints',
-                                                    multi='basic',
-                                                    lister='editlinks')
+db.steps.hints.widget = lambda field, value: AjaxSelect(field, value,
+                                                        'step_hints',
+                                                        multi='basic',
+                                                        lister='editlinks'
+                                                        ).widget()
 db.steps.instructions.requires = IS_IN_DB(db, 'step_instructions.id',
                                               db.step_instructions._format,
                                               multiple=True)
-db.steps.instructions.widget = lambda field, value: AjaxSelect().widget(
-                                                    field, value,
-                                                    'step_instructions',
-                                                    multi='basic',
-                                                    lister='editlinks')
+db.steps.instructions.widget = lambda field, value: \
+                                            AjaxSelect(field, value,
+                                                       'step_instructions',
+                                                       multi='basic',
+                                                       lister='editlinks'
+                                                       ).widget()
 
 db.define_table('badges_begun',
     Field('name', db.auth_user, default=auth.user_id),
@@ -269,12 +276,13 @@ db.define_table('paths',
     format='%(label)s')
 db.paths.steps.requires = IS_IN_DB(db, 'steps.id',
                                    db.steps._format, multiple=True)
-db.paths.steps.widget = lambda field, value: AjaxSelect().widget(
-                                        field, value, 'steps',
-                                        refresher=True,
-                                        multi='basic',
-                                        lister='editlinks',
-                                        sortable='true')
+db.paths.steps.widget = lambda field, value: AjaxSelect(field, value,
+                                                        'steps',
+                                                        refresher=True,
+                                                        multi='basic',
+                                                        lister='editlinks',
+                                                        sortable='true'
+                                                        ).widget()
 
 
 class PathsVirtualFields(object):

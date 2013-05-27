@@ -1,21 +1,21 @@
 {{extend 'layout.html'}}
 
 {{if request.args(0)=='login':}}
-    {{=form}}
-    {{if not 'register' in auth.settings.actions_disabled:}}
-        <br/><a href="{{=URL(r=request,args='register')}}">register</a>
-    {{pass}}
-    {{if not 'request_reset_password' in auth.settings.actions_disabled:}}
-    <br/><a href="{{=URL(r=request,
-                        args='request_reset_password')}}">lost password</a>
-    {{pass}}
+    <div class='loginform'>
+        {{=form}}
+        {{if not 'register' in auth.settings.actions_disabled:}}
+            <a href="{{=URL(r=request,args='register')}}">register</a>
+        {{pass}}
+        {{if not 'request_reset_password' in auth.settings.actions_disabled:}}
+            <a href="{{=URL(r=request,
+                             args='request_reset_password')}}">lost password</a>
+        {{pass}}
+    </div>
 {{pass}}
 
 {{if auth.is_logged_in():}}
     {{if request.args(0) == 'profile':}}
         {{=LOAD('default','info.load', ajax=True)}}
     {{pass}}
-{{else:}}
-    {{=form}}
 {{pass}}
 
