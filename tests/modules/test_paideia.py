@@ -3,7 +3,7 @@
 
 import pytest
 from paideia import Npc, Location, User, PathChooser, Path, Categorizer, Walk
-from paideia import StepFactory, StepText, StepMultiple, NpcChooser  # Step
+from paideia import StepFactory, StepText, StepMultiple, NpcChooser, Step
 from paideia import StepRedirect, StepViewSlides, StepAwardBadges
 from paideia import StepEvaluator, MultipleEvaluator, StepQuotaReached
 from paideia import A, URL, DIV, LI, UL, SPAN
@@ -30,6 +30,27 @@ data = dict(first_name='Homer',
             password_two='test',
             _formname='register')
 client.post('user/register', data=data)
+
+# ===================================================================
+# Controls governing which tests to run
+# ===================================================================
+global_runall = False
+global_run_TestNpc = False
+global_run_TestLocation = False
+global_run_TestNpcChooser = False
+global_run_TestStep = 1
+global_run_TestStepRedirect = False
+global_run_TestStepAwardBadges = False
+global_run_TestStepViewSlides = False
+global_run_TestStepText = False
+global_run_TestStepMultiple = False
+global_run_TestStepEvaluator = False
+global_run_TestMultipleEvaluator = False
+global_run_TestPath = False
+global_run_TestUser = 1
+global_run_TestCategorizer = False
+global_run_TestWalk = False
+global_run_TestPathChooser = False
 
 # ===================================================================
 # Test Fixtures
@@ -661,7 +682,7 @@ def mynpcchooser(mysteps, mycases):
 @pytest.fixture
 def mywalk(mycases):
     """pytest fixture providing a paideia.Walk object for testing"""
-    userdata = {'first_name': mycases['user'], 'id': 1}
+    userdata = {'first_name': mycases['name'], 'id': mycases['uid']}
     tag_progress = mycases['tag_progress']
     tag_records = mycases['tag_records']
     localias = mycases['loc'].get_alias()
@@ -676,7 +697,7 @@ def mywalk(mycases):
 def mypathchooser(mycases):
     """pytest fixture providing a paideia.PathChooser object for testing"""
     klist = ['cat1', 'cat2', 'cat3', 'cat4', 'rev1', 'rev2', 'rev3']
-    cats = {k: v for k, v in mycases['tag_progress'] if k in klist}
+    cats = {k: v for k, v in mycases['tag_progress'].iteritems() if k in klist}
     pc = PathChooser(cats, mycases['loc'], mycases['completed'], db=db)
     return {'pathchooser': pc, 'paths': mycases['paths']}
 
@@ -1044,6 +1065,9 @@ class TestNpc():
     '''
     Tests covering the Npc class of the paideia module.
     '''
+    pytestmark = pytest.mark.skipif('not global_runall and '
+                                    'not global_run_TestNpc')
+
     def test_npc_get_name(self, mynpc):
         """Test for method Npc.get_name()"""
         assert mynpc.get_name() == 'Ἀλεξανδρος'
@@ -1073,6 +1097,9 @@ class TestLocation():
     """
     Tests covering the Location class of the paideia module.
     """
+    pytestmark = pytest.mark.skipif('not global_runall and '
+                                    'not global_run_TestLocation')
+
     # TODO: parameterize to cover more locations
 
     def test_location_get_alias(self, myloc):
@@ -1100,6 +1127,8 @@ class TestNpcChooser():
     """
     Unit tests covering the NpcChooser class of the paideia module.
     """
+    pytestmark = pytest.mark.skipif('not global_runall and '
+                                    'not global_run_TestNpcChooser')
 
     def test_npcchooser_choose(self, mynpcchooser):
         if mynpcchooser:
@@ -1112,7 +1141,8 @@ class TestStep():
     """
     Unit tests covering the Step class of the paideia module.
     """
-    # TODO: parameterize to cover more locations
+    pytestmark = pytest.mark.skipif('not global_runall and '
+                                    'not global_run_TestStep')
 
     def test_step_get_id(self, mystep):
         """Test for method Step.get_id
@@ -1220,6 +1250,8 @@ class TestStepRedirect():
     A subclass of Step. Handles the user interaction when the user needs to be
     sent to another location.
     '''
+    pytestmark = pytest.mark.skipif('not global_runall and '
+                                    'not global_run_TestStepRedirect')
 
     def test_stepredirect_get_id(self, myStepRedirect):
         """Test for method Step.get_id"""
@@ -1314,11 +1346,13 @@ class TestStepRedirect():
             pass
 
 
-class TestAwardBadges():
+class TestStepAwardBadges():
     '''
     A subclass of Step. Handles the user interaction when the user is awarded
     new badges.
     '''
+    pytestmark = pytest.mark.skipif('not global_runall and '
+                                    'not global_run_TestStepAwardBadges')
 
     def test_stepawardbadges_get_id(self, myStepAwardBadges):
         """Test for method StepAwardBadges.get_id"""
@@ -1437,6 +1471,8 @@ class TestStepViewSlides():
     A subclass of Step. Handles the user interaction when the user is awarded
     new badges.
     '''
+    pytestmark = pytest.mark.skipif('not global_runall and '
+                                    'not global_run_TestStepViewSlides')
 
     def test_stepviewslides_get_id(self, myStepViewSlides):
         """Test for method Step.get_id"""
@@ -1574,6 +1610,9 @@ class TestStepText():
     '''
     Test class for paideia.StepText
     '''
+    pytestmark = pytest.mark.skipif('global_runall is False '
+                                    'and global_run_TestStepText is False')
+
     def test_steptext_get_responder(self, myStepText):
         if myStepText:
             resp = '<form action="#" autocomplete="off" '\
@@ -1635,6 +1674,9 @@ class TestStepMultiple():
     '''
     Test class for paideia.StepMultiple
     '''
+    pytestmark = pytest.mark.skipif('global_runall is False '
+                                    'and global_run_TestStepMultiple is False')
+
     def test_stepmultiple_get_responder(self, myStepMultiple):
         """Unit testing for get_responder method of StepMultiple."""
         if myStepMultiple:
@@ -1671,6 +1713,8 @@ class TestStepMultiple():
 
 class TestStepEvaluator():
     """Class for evaluating the submitted response string for a Step"""
+    pytestmark = pytest.mark.skipif('not global_runall and '
+                                    'not global_run_TestStepEvaluator')
 
     def test_stepevaluator_get_eval(self, myStepEvaluator):
         """Unit tests for StepEvaluator.get_eval() method."""
@@ -1696,7 +1740,12 @@ class TestStepEvaluator():
 
 
 class TestMultipleEvaluator():
-    """Class for evaluating the submitted response string for a StepMultiple"""
+    """
+    Unit testing class for paideia.MultipleEvaluator class.
+    """
+    pytestmark = pytest.mark.skipif('global_runall is False '
+                                    'and global_run_TestMultipleEvaluator '
+                                    'is False')
 
     def test_multipleevaluator_get_eval(self, myMultipleEvaluator):
         """Unit tests for multipleevaluator.get_eval() method."""
@@ -1723,6 +1772,8 @@ class TestMultipleEvaluator():
 
 class TestPath():
     """Unit testing class for the paideia.Path object"""
+    pytestmark = pytest.mark.skipif('global_runall is False '
+                                    'and global_run_TestPath is False')
 
     def test_path_get_id(self, mypath):
         """unit test for Path.get_id()"""
@@ -1874,7 +1925,9 @@ class TestPath():
             pass
 
     def test_path_get_step_for_reply(self, mypath, mysteps):
-        """Unit test for method paideia.Path.get_step_for_reply."""
+        """
+        Unit test for method paideia.Path.get_step_for_reply.
+        """
         sid = mypath['steps'][0]
         if mysteps['id'] == sid:
             path = mypath['path']
@@ -1900,35 +1953,37 @@ class TestPath():
 
 class TestUser():
     """unit testing class for the paideia.User class"""
+    pytestmark = pytest.mark.skipif('global_runall is False '
+                                    'and global_run_TestUser is False')
 
-    def test_user_get_id(self, myuser):
-        """
-        Unit test for User.get_id() method.
-        """
-        #auth = current.auth
-        uid = 1  # TODO: change to use auth.user_id
-        assert myuser['user'].get_id() == uid
+    #def test_user_get_id(self, myuser):
+        #"""
+        #Unit test for User.get_id() method.
+        #"""
+        ##auth = current.auth
+        #uid = 1  # TODO: change to use auth.user_id
+        #assert myuser['user'].get_id() == uid
 
-    def test_user_is_stale(self, myuser):
-        """
-        Unit test for User.is_stale() method.
-        """
-        now = datetime.datetime(2013, 01, 02, 14, 0, 0)
-        tzn = 'America/Toronto'
-        cases = [{'start': datetime.datetime(2013, 01, 02, 9, 0, 0),
-                  'expected': False},
-                 {'start': datetime.datetime(2013, 01, 02, 9, 0, 0),
-                  'expected': False},
-                 {'start': datetime.datetime(2013, 01, 02, 3, 0, 0),
-                  'expected': True},
-                 {'start': datetime.datetime(2012, 12, 29, 14, 0, 0),
-                  'expected': True}]
-        for c in cases:
-            print 'start:', c['start']
-            print 'expected:', c['expected']
-            actual = myuser['user'].is_stale(now=now, start=c['start'],
-                                     tz_name=tzn, db=db)
-            assert actual == c['expected']
+    #def test_user_is_stale(self, myuser):
+        #"""
+        #Unit test for User.is_stale() method.
+        #"""
+        #now = datetime.datetime(2013, 01, 02, 14, 0, 0)
+        #tzn = 'America/Toronto'
+        #cases = [{'start': datetime.datetime(2013, 01, 02, 9, 0, 0),
+                  #'expected': False},
+                 #{'start': datetime.datetime(2013, 01, 02, 9, 0, 0),
+                  #'expected': False},
+                 #{'start': datetime.datetime(2013, 01, 02, 3, 0, 0),
+                  #'expected': True},
+                 #{'start': datetime.datetime(2012, 12, 29, 14, 0, 0),
+                  #'expected': True}]
+        #for c in cases:
+            #print 'start:', c['start']
+            #print 'expected:', c['expected']
+            #actual = myuser['user'].is_stale(now=now, start=c['start'],
+                                     #tz_name=tzn, db=db)
+            #assert actual == c['expected']
 
     def test_user_get_path(self, myuser):
         user = myuser['user']
@@ -1937,66 +1992,71 @@ class TestUser():
         actual = user.get_path(case['loc'])
         assert actual.get_id() in expected
         assert isinstance(actual, Path)
+        assert issubclass(actual.steps[0], Step)
 
-    def test_user_get_new_badges(self, myuser):
-        """
-        Unit test for User.get_new_badges().
-        """
-        user = myuser['user']
-        user.new_badges = [1, 2, 3]
-        expected = [1, 2, 3]
-        actual = user.get_new_badges()
+    #def test_user_get_new_badges(self, myuser):
+        #"""
+        #Unit test for User.get_new_badges().
+        #"""
+        #user = myuser['user']
+        #user.new_badges = [1, 2, 3]
+        #expected = [1, 2, 3]
+        #actual = user.get_new_badges()
 
-        assert actual == expected
+        #assert actual == expected
 
-    def test_user_get_promoted(self, myuser):
-        """
-        Unit test for User.get_promoted().
-        """
-        user = myuser['user']
-        user.promoted = {'cat2': [1], 'cat3': [2], 'cat4': [3]}
-        expected = {'cat2': [1], 'cat3': [2], 'cat4': [3]}
-        actual = user.get_promoted()
+    #def test_user_get_promoted(self, myuser):
+        #"""
+        #Unit test for User.get_promoted().
+        #"""
+        #user = myuser['user']
+        #user.promoted = {'cat2': [1], 'cat3': [2], 'cat4': [3]}
+        #expected = {'cat2': [1], 'cat3': [2], 'cat4': [3]}
+        #actual = user.get_promoted()
 
-        assert actual == expected
+        #assert actual == expected
 
-    def test_user_get_categories(self, myuser):
-        """
-        Unit test for User._get_categories() method.
-        """
-        user = myuser['user']
-        case = myuser['casedata']
-        print 'cats_counter:', user.cats_counter
-        if user.cats_counter < 5:
-            expected = case['categories_start']
-        elif user.cats_counter >= 5:
-            expected = case['categories_out']
-        actual = user._get_categories(categories=case['tag_progress'],
-                                      old_categories=None)
-        print 'actual:\n', actual
-        print 'expected:\n', expected
+    #def test_user_get_categories(self, myuser):
+        #"""
+        #Unit test for User._get_categories() method.
+        #"""
+        #user = myuser['user']
+        #case = myuser['casedata']
+        #print 'cats_counter:', user.cats_counter
+        #if user.cats_counter < 5:
+            #expected = case['categories_start']
+        #elif user.cats_counter >= 5:
+            #expected = case['categories_out']
+        #actual = user._get_categories(categories=case['tag_progress'],
+                                      #old_categories=None)
+        #print 'actual:\n', actual
+        #print 'expected:\n', expected
 
-        # this avoids problem of lists being in different orders
-        for c, l in expected.iteritems():
-            assert len(actual[c]) == len([t for t in l if t in actual[c]])
+        ## this avoids problem of lists being in different orders
+        #for c, l in expected.iteritems():
+            #assert len(actual[c]) == len([t for t in l if t in actual[c]])
 
-    def test_user_get_old_categories(self, myuser):
-        case = myuser['casedata']
-        user = myuser['user']
-        expected = case['tag_progress']
-        del expected['latest_new']
+    #def test_user_get_old_categories(self, myuser):
+        #case = myuser['casedata']
+        #user = myuser['user']
+        #expected = case['tag_progress']
+        #del expected['latest_new']
 
-        actual = user._get_old_categories()
+        #actual = user._get_old_categories()
 
-        for c, l in actual.iteritems():
-            assert len([i for i in l if i in expected[c]]) == len(expected[c])
-            assert len(l) == len(expected[c])
+        #for c, l in actual.iteritems():
+            #assert len([i for i in l if i in expected[c]]) == len(expected[c])
+            #assert len(l) == len(expected[c])
 
     def test_user_complete_path(self, myuser):
         user = myuser['user']
         case = myuser['casedata']
         pathid = case['paths']['cat1'][0]
         path = Path(pathid, case['loc'])
+        print 'case.loc', case['loc']
+        print 'id', case['loc'].get_id()
+        path.completed_steps.append(path.steps.pop(0))
+        print 'completed_steps', path.completed_steps
         user.path = copy(path)
         assert user._complete_path() is True
         assert user.path is None
@@ -2010,6 +2070,8 @@ class TestCategorizer():
     """
     Unit testing class for the paideia.Categorizer class
     """
+    pytestmark = pytest.mark.skipif('global_runall is False '
+                                    'and global_run_TestCategorizer is False')
 
     def test_categorizer_categorize(self, mycategorizer):
         """
@@ -2109,103 +2171,104 @@ class TestCategorizer():
             assert r['last_wrong'] == expected[ri]['last_wrong']
             assert r['secondary_right'] == expected[ri]['secondary_right']
 
-#class TestWalk():
-    #"""
-    #A unit testing class for the paideia.Walk class.
-    #"""
 
-    #def test_walk_get_user(self, mywalk, myrecords, mysession):
-        #"""docstring for _get_user"""
-        #localias = mywalk.localias
-        #userdata = {'first_name': 'Joe', 'id': 1}
-        #tag_records = myrecords['tag_records']
-        #tag_progress = myrecords['tag_progress']
-        #assert mywalk._get_user(userdata=userdata, localias=localias,
-                        #tag_records=tag_records, tag_progress=tag_progress)
+class TestWalk():
+    """
+    A unit testing class for the paideia.Walk class.
+    """
+    pytestmark = pytest.mark.skipif('global_runall is False '
+                                    'and global_run_TestWalk is False')
 
-    #def test_walk_map(self, mywalk):
-        #mapdata = {'map_image': '/paideia/static/images/town_map.svg',
-                    #'locations': [
-                        #{'alias': 'None',
-                        #'bg_image': 8,
-                        #'id': 3},
-                       #{'alias': 'domus_A',
-                        #'bg_image': 8,
-                        #'id': 1},
-                       #{'alias': '',
-                        #'bg_image': 8,
-                        #'id': 2},
-                       #{'alias': None,
-                        #'bg_image': None,
-                        #'id': 4},
-                       #{'alias': None,
-                        #'bg_image': None,
-                        #'id': 12},
-                       #{'alias': 'bath',
-                        #'bg_image': 17,
-                        #'id': 13},
-                       #{'alias': 'gymnasion',
-                        #'bg_image': 15,
-                        #'id': 14},
-                       #{'alias': 'shop_of_alexander',
-                        #'bg_image': 16,
-                        #'id': 6},
-                       #{'alias': 'ne_stoa',
-                        #'bg_image': 18,
-                        #'id': 7},
-                       #{'alias': 'agora',
-                        #'bg_image': 16,
-                        #'id': 8},
-                       #{'alias': 'synagogue',
-                        #'bg_image': 15,
-                        #'id': 11},
-                       #{'alias': None,
-                        #'bg_image': None,
-                        #'id': 5},
-                       #{'alias': None,
-                        #'bg_image': None,
-                        #'id': 9},
-                       #{'alias': None,
-                        #'bg_image': None,
-                        #'id': 10}
-                       #]}
-        #map = mywalk.map()
-        #pprint(map)
-        #for m in mapdata['locations']:
-            #i = mapdata['locations'].index(m)
-            #assert map['locations'][i]['alias'] == m['alias']
-            #assert map['locations'][i]['bg_image'] == m['bg_image']
-            #assert map['locations'][i]['id'] == m['id']
-        #assert map['map_image'] == mapdata['map_image']
+    def test_walk_get_user(self, mywalk, myrecords, mysession):
+        """docstring for _get_user"""
+        localias = mywalk.localias
+        userdata = {'first_name': 'Joe', 'id': 1}
+        tag_records = myrecords['tag_records']
+        tag_progress = myrecords['tag_progress']
+        assert mywalk._get_user(userdata=userdata, localias=localias,
+                        tag_records=tag_records, tag_progress=tag_progress)
 
-    #def test_walk_ask(self, mywalk):
-        #prompt = 'How would you write the English word "head" using'\
-                #' Greek letters?'
-        #instructions = None
-        #image = '/paideia/static/images/images.image.bb48641f0122d2b6.696d616765732e696d6167652e383136303330663934646664646561312e34343732363137373639366536373230333432653733373636372e737667.svg'
-        #responder = '<form action="" autocomplete="off" enctype="multipart/form-data" method="post"><table><tr id="no_table_response__row"><td class="w2p_fl"><label for="no_table_response" id="no_table_response__label">Response: </label></td><td class="w2p_fw"><input class="string" id="no_table_response" name="response" type="text" value="" /></td><td class="w2p_fc"></td></tr><tr id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw"><input type="submit" value="Submit" /></td><td class="w2p_fc"></td></tr></table></form>'
-        #ask = mywalk.ask()
-        #assert ask['prompt']['prompt'] == prompt
-        #assert ask['prompt']['instructions'] == instructions
-        #assert ask['prompt']['npc_image'] == image
-        #assert ask['responder'].xml() == responder
+    def test_walk_map(self, mywalk):
+        mapdata = {'map_image': '/paideia/static/images/town_map.svg',
+                   'locations': [{'alias': 'None',
+                                  'bg_image': 8,
+                                  'id': 3},
+                                 {'alias': 'domus_A',
+                                  'bg_image': 8,
+                                  'id': 1},
+                                 {'alias': '',
+                                  'bg_image': 8,
+                                  'id': 2},
+                                 {'alias': None,
+                                  'bg_image': None,
+                                  'id': 4},
+                                 {'alias': None,
+                                  'bg_image': None,
+                                  'id': 12},
+                                 {'alias': 'bath',
+                                  'bg_image': 17,
+                                  'id': 13},
+                                 {'alias': 'gymnasion',
+                                  'bg_image': 15,
+                                  'id': 14},
+                                 {'alias': 'shop_of_alexander',
+                                  'bg_image': 16,
+                                  'id': 6},
+                                 {'alias': 'ne_stoa',
+                                  'bg_image': 18,
+                                  'id': 7},
+                                 {'alias': 'agora',
+                                  'bg_image': 16,
+                                  'id': 8},
+                                 {'alias': 'synagogue',
+                                  'bg_image': 15,
+                                  'id': 11},
+                                 {'alias': None,
+                                  'bg_image': None,
+                                  'id': 5},
+                                 {'alias': None,
+                                  'bg_image': None,
+                                  'id': 9},
+                                 {'alias': None,
+                                  'bg_image': None,
+                                  'id': 10}
+                                 ]}
+        map = mywalk.map()
+        for m in mapdata['locations']:
+            i = mapdata['locations'].index(m)
+            assert map['locations'][i]['alias'] == m['alias']
+            assert map['locations'][i]['bg_image'] == m['bg_image']
+            assert map['locations'][i]['id'] == m['id']
+        assert map['map_image'] == mapdata['map_image']
 
-    #def test_walk_reply(self, mywalk):
-        #response_string = ''
-        #reply = ''
-        #bug_reporter = ''
-        ## TODO: put in safety in case of empty form
-        #returning = mywalk.reply(response_string)
-        #out_reply = returning['reply']
-        #out_bug_reporter = returning['bug_reporter']
+    def test_walk_ask(self, mywalk):
+        prompt = 'How would you write the English word "head" using'\
+                ' Greek letters?'
+        instructions = None
+        image = '/paideia/static/images/images.image.bb48641f0122d2b6.696d616765732e696d6167652e383136303330663934646664646561312e34343732363137373639366536373230333432653733373636372e737667.svg'
+        responder = '<form action="" autocomplete="off" enctype="multipart/form-data" method="post"><table><tr id="no_table_response__row"><td class="w2p_fl"><label for="no_table_response" id="no_table_response__label">Response: </label></td><td class="w2p_fw"><input class="string" id="no_table_response" name="response" type="text" value="" /></td><td class="w2p_fc"></td></tr><tr id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw"><input type="submit" value="Submit" /></td><td class="w2p_fc"></td></tr></table></form>'
+        ask = mywalk.ask()
+        assert ask['prompt']['prompt'] == prompt
+        assert ask['prompt']['instructions'] == instructions
+        assert ask['prompt']['npc_image'] == image
+        assert ask['responder'].xml() == responder
 
-        #assert out_reply == reply
-        #assert out_bug_reporter == bug_reporter
+    def test_walk_reply(self, mywalk):
+        response_string = ''
+        reply = ''
+        bug_reporter = ''
+        # TODO: put in safety in case of empty form
+        returning = mywalk.reply(response_string)
+        out_reply = returning['reply']
+        out_bug_reporter = returning['bug_reporter']
 
-    #def test_walk_record_cats(self, mywalk):
-        #"""
-        #Unit tests for Walk._record_cats()
-        #"""
+        assert out_reply == reply
+        assert out_bug_reporter == bug_reporter
+
+    def test_walk_record_cats(self, mywalk):
+        """
+        Unit tests for Walk._record_cats()
+        """
         #tag_progress = {'tag': 61,
                         #'latest_new': 2,
                         #'cat1': [1, 2, 3],
@@ -2218,14 +2281,14 @@ class TestCategorizer():
                         #'rev4': [7],
                         #'secondary_right': []}
 
-        #categories =   {'cat1': [1, 2, 3],
-                        #'cat2': [4],
-                        #'cat3': [5, 6],
-                        #'cat4': [7],
-                        #'rev1': [1, 2, 3],
-                        #'rev2': [4],
-                        #'rev3': [5, 6],
-                        #'rev4': [7]}
+        #categories = {'cat1': [1, 2, 3],
+                      #'cat2': [4],
+                      #'cat3': [5, 6],
+                      #'cat4': [7],
+                      #'rev1': [1, 2, 3],
+                      #'rev2': [4],
+                      #'rev3': [5, 6],
+                      #'rev4': [7]}
         #new_tags = [1, 2, 3]
         #promoted = {'cat1': [1, 2, 3],
                     #'cat2': [4],
@@ -2236,70 +2299,76 @@ class TestCategorizer():
                     #'rev3': [5, 6],
                     #'rev4': [7]}
         #demoted = {'rev1': [1, 2, 3],
-                    #'rev2': [4],
-                    #'rev3': [5, 6],
-                    #'rev4': [7]}
-        #assert 0
+                   #'rev2': [4],
+                   #'rev3': [5, 6],
+                   #'rev4': [7]}
+        assert 0
 
-    #def test_walk_record_step(self, mywalk):
+    def test_walk_record_step(self, mywalk):
         #id = mywalk._get_user().get_id()
         #loglength = len(db(db.attempt_log.name == id).select())
         #tag_records = ''
 
         #rec = mywalk._record_step(tag_records, categories, new_tags)
         #assert len(db(db.attempt_log.name == id).select()) == loglenth + 1
-        #assert 0
+        assert 0
 
-    #def test_walk_store_user(self, mywalk):
-        #"""Unit test for Walk._store_user"""
+    def test_walk_store_user(self, mywalk):
+        """Unit test for Walk._store_user"""
         #session = current.session
         #assert mywalk._store_user() == True
         #assert isinstance(session.user, User)
         #assert session.user.get_id() == 1
-        #assert 0
+        assert 0
 
-#class TestPathChooser():
 
-    #def test_pathchooser_choose(self, mypathchooser):
-        #newpath = mypathchooser['pathchooser'].choose()
-        #assert newpath[0].id in [r for c in mypathchooser['paths'].values() for r in c if len(c) > 0]
-        #assert newpath[2] in range(1,5)
+class TestPathChooser():
+    '''
+    Unit testing class for the paideia.PathChooser class.
+    '''
+    pytestmark = pytest.mark.skipif('global_runall is False '
+                                    'and global_run_TestPathChooser is False')
 
-    #def test_pathchooser_order_cats(self, mypathchooser):
-        #pc = mypathchooser['pathchooser']._order_cats()
-        #ind = pc.index(1)
-        #if len(pc) >= (ind + 2):
-            #assert pc[ind + 1] == 2
-        #if len(pc) >= (ind + 3):
-            #assert pc[ind + 2] == 3
-        #if len(pc) >= (ind + 4):
-            #assert pc[ind + 3] == 4
-        #if ind != 0:
-            #assert pc[ind - 1] == 4
-        #assert len(pc) == 4
-        #assert pc[0] in [1,2,3,4]
-        #assert pc[1] in [1,2,3,4]
-        #assert pc[2] in [1,2,3,4]
-        #assert pc[3] in [1,2,3,4]
+    def test_pathchooser_choose(self, mypathchooser):
+        newpath = mypathchooser['pathchooser'].choose()
+        assert newpath[0].id in [r for c in mypathchooser['paths'].values() for r in c if len(c) > 0]
+        assert newpath[2] in range(1, 5)
 
-    #def test_pathchooser_paths_by_category(self, mypathchooser):
-        #cpaths, category = mypathchooser['pathchooser']._paths_by_category('1')
-        #allpaths = mypathchooser['paths']
-        #pathids = allpaths['cat{}'.format(category)]
-        #expected = db(db.paths).select()
-        #expected = expected.find(lambda row: row.id in pathids)
-        #assert len(cpaths) == len(expected)
-        #for row in cpaths:
-            #assert row.id in [r.id for r in expected]
+    def test_pathchooser_order_cats(self, mypathchooser):
+        pc = mypathchooser['pathchooser']._order_cats()
+        ind = pc.index(1)
+        if len(pc) >= (ind + 2):
+            assert pc[ind + 1] == 2
+        if len(pc) >= (ind + 3):
+            assert pc[ind + 2] == 3
+        if len(pc) >= (ind + 4):
+            assert pc[ind + 3] == 4
+        if ind != 0:
+            assert pc[ind - 1] == 4
+        assert len(pc) == 4
+        assert pc[0] in [1, 2, 3, 4]
+        assert pc[1] in [1, 2, 3, 4]
+        assert pc[2] in [1, 2, 3, 4]
+        assert pc[3] in [1, 2, 3, 4]
 
-    #def test_pathchooser_choose_from_cat(self, mypathchooser):
-        #allpaths = mypathchooser['paths']
-        #pathids = allpaths['cat{}'.format(1)]
-        #expected = db(db.paths).select()
-        #expected = expected.find(lambda row: row.id in pathids)
-        #print expected
+    def test_pathchooser_paths_by_category(self, mypathchooser):
+        cpaths, category = mypathchooser['pathchooser']._paths_by_category('1')
+        allpaths = mypathchooser['paths']
+        pathids = allpaths['cat{}'.format(category)]
+        expected = db(db.paths).select()
+        expected = expected.find(lambda row: row.id in pathids)
+        assert len(cpaths) == len(expected)
+        for row in cpaths:
+            assert row.id in [r.id for r in expected]
 
-        #newpath = mypathchooser['pathchooser']._choose_from_cat(expected, 1)
-        #assert newpath[0].id in mypathchooser['paths']['cat1']
-        #assert newpath[1] in [l for l in db.steps(newpath[0].steps[0]).locations]
-        #assert newpath[2] == 1
+    def test_pathchooser_choose_from_cat(self, mypathchooser):
+        allpaths = mypathchooser['paths']
+        pathids = allpaths['cat{}'.format(1)]
+        expected = db(db.paths).select()
+        expected = expected.find(lambda row: row.id in pathids)
+        print expected
+
+        newpath = mypathchooser['pathchooser']._choose_from_cat(expected, 1)
+        assert newpath[0].id in mypathchooser['paths']['cat1']
+        assert newpath[1] in [l for l in db.steps(newpath[0].steps[0]).locations]
+        assert newpath[2] == 1
