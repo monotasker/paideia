@@ -418,6 +418,7 @@ class Step(object):
         self.data = db.steps[step_id].as_dict()
         self.repeating = False  # set to true if step already done today
         self.loc = loc
+        print 'in Step.init(), loc', loc
         self.prev_loc = prev_loc
         self.prev_npc_id = prev_npc_id
         self.npc = None
@@ -509,6 +510,7 @@ class Step(object):
         If there is no suitable npc available here, returns false.
         TODO: need to trigger redirect on false return
         """
+        print 'in get_npc(), loc', self.loc
         loc = self.loc.get_id()
 
         if self.npc and (loc in self.npc.get_locations()):  # ensure choice is made only once for each step
@@ -1398,8 +1400,8 @@ class User(object):
         Set last_npc and last_loc before removing the path.
         """
         self.completed_paths.append(self.path)
-        self.last_npc = self.path.completed_steps[-1].get_npc().get_(id)
-        self.last_loc = self.path.completed_steps[-1].get_loc().get_(id)
+        self.last_npc = self.path.completed_steps[-1].get_npc().get_id()
+        self.last_loc = self.path.completed_steps[-1].get_loc().get_id()
         self.path = None
         return True
 
