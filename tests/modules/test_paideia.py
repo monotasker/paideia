@@ -1992,7 +1992,7 @@ class TestUser():
         actual = user.get_path(case['loc'])
         assert actual.get_id() in expected
         assert isinstance(actual, Path)
-        assert issubclass(actual.steps[0], Step)
+        assert isinstance(actual.steps[0], Step)
 
     #def test_user_get_new_badges(self, myuser):
         #"""
@@ -2052,18 +2052,15 @@ class TestUser():
         user = myuser['user']
         case = myuser['casedata']
         pathid = case['paths']['cat1'][0]
-        path = Path(pathid, case['loc'])
-        print 'case.loc', case['loc']
-        print 'id', case['loc'].get_id()
+        path = Path(path_id=pathid, loc=case['loc'])
         path.completed_steps.append(path.steps.pop(0))
-        print 'completed_steps', path.completed_steps
         user.path = copy(path)
         assert user._complete_path() is True
         assert user.path is None
-        assert user.last_npc in case['npcs_here']
-        assert user.last_loc == case['loc']
-        assert user.completed_paths[-1] == path
-        assert isinstance(user.completed_paths[-1], path)
+        assert user.last_npc.get_id() in case['npcs_here']
+        assert user.last_loc.get_id() == case['loc'].get_id()
+        assert user.completed_paths[-1].get_id() == path.get_id()
+        assert isinstance(user.completed_paths[-1], Path)
 
 
 class TestCategorizer():

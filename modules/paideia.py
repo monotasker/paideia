@@ -965,6 +965,7 @@ class Path(object):
         # assemble list of step objects for the whole path
         static_args = {'loc': self.loc, 'prev_loc': prev_loc,
                        'prev_npc_id': prev_npc_id, 'db': db}
+        print 'Path.loc is', self.loc
         self.steps = [StepFactory().get_instance(step_id=i, **static_args)
                       for i in self.path_dict['steps']]
         # allow for insertion of these values by argument for testing
@@ -1400,8 +1401,9 @@ class User(object):
         Set last_npc and last_loc before removing the path.
         """
         self.completed_paths.append(self.path)
-        self.last_npc = self.path.completed_steps[-1].get_npc().get_id()
-        self.last_loc = self.path.completed_steps[-1].get_loc().get_id()
+        self.last_npc = self.path.completed_steps[-1].get_npc()
+        # TODO: Work out handling of the location in paths/steps
+        self.last_loc = self.path.completed_steps[-1].loc
         self.path = None
         return True
 
