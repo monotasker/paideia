@@ -1,18 +1,16 @@
-{{left_sidebar_enabled=right_sidebar_enabled=False}}
-
 {{extend 'layout.html'}}
 
 <article id='intro'>
-<h2>Welcome!</h2>
-
-<section>
+<section class='hero-unit'>
+<h1>Welcome!</h1>
     <p>Paideia is an online space for learning New Testament Greek. To get started register for an account and then click the link below to "start exploring."</p>
-    <p>This is an early "alpha" version for use in my courses at Tyndale Seminary. While the site is functional, it is not yet polished, and I do appreciate feedback whenever you find something that looks odd or doesn't
-    work as expected. Feel free to follow the link below to get a sense of what the project is about.</p>
-    {{=A("start exploring", _href=URL('exploring', 'index'), _class='button-green-grad icon-next-circle')}}
-</section>
+    <span class='text-warning'>This is an early "alpha" version for use in my courses at Tyndale Seminary. While the site is functional, it is not yet polished, and I do appreciate feedback whenever you find something that looks odd or doesn't work as expected. Feel free to follow the link below to get a sense of what the project is about. 
+    </span>
+    <p>{{=A("start exploring", _href=URL('exploring', 'index'),
+         _class='btn btn-success pull-left')}}</p>
 
-<section>
+</section>
+<section class='clear'>
 <h3>Browser Requirements</h3>
 <p>This web-app does rely on some features built into newer browsers. To have a reliable experience, you will need to use an up-to-date version of Firefox, Google Chrome, or Safari. If you must use Internet Explorer, it needs to be at least version 9, available <a href="http://windows.microsoft.com/en-US/internet-explorer/downloads/ie-9/worldwide-languages">here</a>. But one of the other standard browsers is less likely to run into trouble.
 </p>
@@ -42,10 +40,3 @@ couple to serve in their house. From the start you are free to move around the t
 </p>
 </section>
 </article>
-
-<!-- <aside id='updates'>
-</ -->aside>
-
-{{block left_sidebar}}New Left Sidebar Content{{end}}
-
-{{block right_sidebar}}New Right Sidebar Content{{end}}
