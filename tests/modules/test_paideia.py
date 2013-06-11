@@ -1956,97 +1956,113 @@ class TestUser():
     pytestmark = pytest.mark.skipif('global_runall is False '
                                     'and global_run_TestUser is False')
 
-    #def test_user_get_id(self, myuser):
-        #"""
-        #Unit test for User.get_id() method.
-        #"""
-        ##auth = current.auth
-        #uid = 1  # TODO: change to use auth.user_id
-        #assert myuser['user'].get_id() == uid
+    def test_user_get_id(self, myuser):
+        """
+        Unit test for User.get_id() method.
+        """
+        #auth = current.auth
+        uid = 1  # TODO: change to use auth.user_id
+        assert myuser['user'].get_id() == uid
 
-    #def test_user_is_stale(self, myuser):
-        #"""
-        #Unit test for User.is_stale() method.
-        #"""
-        #now = datetime.datetime(2013, 01, 02, 14, 0, 0)
-        #tzn = 'America/Toronto'
-        #cases = [{'start': datetime.datetime(2013, 01, 02, 9, 0, 0),
-                  #'expected': False},
-                 #{'start': datetime.datetime(2013, 01, 02, 9, 0, 0),
-                  #'expected': False},
-                 #{'start': datetime.datetime(2013, 01, 02, 3, 0, 0),
-                  #'expected': True},
-                 #{'start': datetime.datetime(2012, 12, 29, 14, 0, 0),
-                  #'expected': True}]
-        #for c in cases:
-            #print 'start:', c['start']
-            #print 'expected:', c['expected']
-            #actual = myuser['user'].is_stale(now=now, start=c['start'],
-                                     #tz_name=tzn, db=db)
-            #assert actual == c['expected']
+    def test_user_is_stale(self, myuser):
+        """
+        Unit test for User.is_stale() method.
+        """
+        now = datetime.datetime(2013, 01, 02, 14, 0, 0)
+        tzn = 'America/Toronto'
+        cases = [{'start': datetime.datetime(2013, 01, 02, 9, 0, 0),
+                  'expected': False},
+                 {'start': datetime.datetime(2013, 01, 02, 9, 0, 0),
+                  'expected': False},
+                 {'start': datetime.datetime(2013, 01, 02, 3, 0, 0),
+                  'expected': True},
+                 {'start': datetime.datetime(2012, 12, 29, 14, 0, 0),
+                  'expected': True}]
+        for c in cases:
+            print 'start:', c['start']
+            print 'expected:', c['expected']
+            actual = myuser['user'].is_stale(now=now, start=c['start'],
+                                     tz_name=tzn, db=db)
+            assert actual == c['expected']
 
     def test_user_get_path(self, myuser):
         user = myuser['user']
         case = myuser['casedata']
-        expected = [p for cat in case['paths'].values() for p in cat]
+        if user.cats_counter < 5:
+            tags_due = [t for cat in case['categories_start'].values() for t in cat]
+        elif user.cats_counter >= 5:
+            tags_due = [t for cat in case['categories_out'].values() for t in cat]
+
+
+        path_rows = db(db.paths.id > 0
+                  ).select().find(lambda row:
+                                  [t for t in row.tags if t in tags_due]
+                                  and
+                                  db.steps(row.steps[0]).status != 2
+                                  and
+                                  db.steps(row.steps[0]).locations
+                                  and
+                                  [l for l in db.steps(row.steps[0]).locations
+                                   if l == case['loc'].get_id()])
+        expected_paths = [p.id for p in path_rows]
         actual = user.get_path(case['loc'])
-        assert actual.get_id() in expected
+        assert actual.get_id() in expected_paths
         assert isinstance(actual, Path)
         assert isinstance(actual.steps[0], Step)
 
-    #def test_user_get_new_badges(self, myuser):
-        #"""
-        #Unit test for User.get_new_badges().
-        #"""
-        #user = myuser['user']
-        #user.new_badges = [1, 2, 3]
-        #expected = [1, 2, 3]
-        #actual = user.get_new_badges()
+    def test_user_get_new_badges(self, myuser):
+        """
+        Unit test for User.get_new_badges().
+        """
+        user = myuser['user']
+        user.new_badges = [1, 2, 3]
+        expected = [1, 2, 3]
+        actual = user.get_new_badges()
 
-        #assert actual == expected
+        assert actual == expected
 
-    #def test_user_get_promoted(self, myuser):
-        #"""
-        #Unit test for User.get_promoted().
-        #"""
-        #user = myuser['user']
-        #user.promoted = {'cat2': [1], 'cat3': [2], 'cat4': [3]}
-        #expected = {'cat2': [1], 'cat3': [2], 'cat4': [3]}
-        #actual = user.get_promoted()
+    def test_user_get_promoted(self, myuser):
+        """
+        Unit test for User.get_promoted().
+        """
+        user = myuser['user']
+        user.promoted = {'cat2': [1], 'cat3': [2], 'cat4': [3]}
+        expected = {'cat2': [1], 'cat3': [2], 'cat4': [3]}
+        actual = user.get_promoted()
 
-        #assert actual == expected
+        assert actual == expected
 
-    #def test_user_get_categories(self, myuser):
-        #"""
-        #Unit test for User._get_categories() method.
-        #"""
-        #user = myuser['user']
-        #case = myuser['casedata']
-        #print 'cats_counter:', user.cats_counter
-        #if user.cats_counter < 5:
-            #expected = case['categories_start']
-        #elif user.cats_counter >= 5:
-            #expected = case['categories_out']
-        #actual = user._get_categories(categories=case['tag_progress'],
-                                      #old_categories=None)
-        #print 'actual:\n', actual
-        #print 'expected:\n', expected
+    def test_user_get_categories(self, myuser):
+        """
+        Unit test for User._get_categories() method.
+        """
+        user = myuser['user']
+        case = myuser['casedata']
+        print 'cats_counter:', user.cats_counter
+        if user.cats_counter < 5:
+            expected = case['categories_start']
+        elif user.cats_counter >= 5:
+            expected = case['categories_out']
+        actual = user._get_categories(categories=case['tag_progress'],
+                                      old_categories=None)
+        print 'actual:\n', actual
+        print 'expected:\n', expected
 
-        ## this avoids problem of lists being in different orders
-        #for c, l in expected.iteritems():
-            #assert len(actual[c]) == len([t for t in l if t in actual[c]])
+        # this avoids problem of lists being in different orders
+        for c, l in expected.iteritems():
+            assert len(actual[c]) == len([t for t in l if t in actual[c]])
 
-    #def test_user_get_old_categories(self, myuser):
-        #case = myuser['casedata']
-        #user = myuser['user']
-        #expected = case['tag_progress']
-        #del expected['latest_new']
+    def test_user_get_old_categories(self, myuser):
+        case = myuser['casedata']
+        user = myuser['user']
+        expected = case['tag_progress']
+        del expected['latest_new']
 
-        #actual = user._get_old_categories()
+        actual = user._get_old_categories()
 
-        #for c, l in actual.iteritems():
-            #assert len([i for i in l if i in expected[c]]) == len(expected[c])
-            #assert len(l) == len(expected[c])
+        for c, l in actual.iteritems():
+            assert len([i for i in l if i in expected[c]]) == len(expected[c])
+            assert len(l) == len(expected[c])
 
     def test_user_complete_path(self, myuser):
         user = myuser['user']
