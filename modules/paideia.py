@@ -1142,14 +1142,15 @@ class PathChooser(object):
         # filter out paths with a step that's not set to "active"
         # avoid steps with right tag but no location
         taglist = self.categories['cat{}'.format(cat)]
-        ps = ps.find(lambda row: [t for t in row.tags
-                                  if taglist and (t in taglist)]
-                                  and
-                                  [s for s in row.steps
-                                  if db.steps(s).status != 2]
-                                  and not
-                                  [s for s in row.steps
-                                  if db.steps(s).locations is None])
+        ps = ps.find(lambda row:
+                     [t for t in row.tags
+                      if taglist and (t in taglist)]
+                     and
+                     [s for s in row.steps
+                      if db.steps(s).status != 2]
+                     and not
+                     [s for s in row.steps
+                      if db.steps(s).locations is None])
 
         # TODO: exclude paths whose steps have tags beyond user's active tags
         #if len(p_list) > 0:
@@ -1365,10 +1366,10 @@ class User(object):
             self.cats_counter = cats_counter + 1
             return self.categories
         else:
-            try:
-                self.old_categories = self.categories
-            except AttributeError:
-                self.old_categories = None
+            #try:
+            self.old_categories = self.categories
+            #except AttributeError:
+                #self.old_categories = None
             c = Categorizer(rank, categories, tag_records, utcnow=utcnow)
             cat_result = c.categorize_tags()
             categories = cat_result['categories']
