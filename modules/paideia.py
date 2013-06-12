@@ -1138,15 +1138,18 @@ class PathChooser(object):
         db = self.db
 
         ps = db().select(db.paths.ALL, orderby='<random>')
-        # filter by category
+        # filter by category, then
+        # filter out paths with a step that's not set to "active"
+        # avoid steps with right tag but no location
         taglist = self.categories['cat{}'.format(cat)]
         ps = ps.find(lambda row: [t for t in row.tags
-                                  if taglist and (t in taglist)])
-        # filter out paths with a step that's not set to "active"
-        ps = ps.find(lambda row: [s for s in row.steps
-                                  if db.steps[s].status != 2])
-        # avoid steps with right tag but no location
-        ps.exclude(lambda row: db.steps[row.steps[0]].locations is None)
+                                  if taglist and (t in taglist)]
+                                  and
+                                  [s for s in row.steps
+                                  if db.steps(s).status != 2]
+                                  and not
+                                  [s for s in row.steps
+                                  if db.steps(s).locations is None])
 
         # TODO: exclude paths whose steps have tags beyond user's active tags
         #if len(p_list) > 0:

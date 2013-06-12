@@ -1,0 +1,15 @@
+{{for i in images:}}
+{{=SPAN(H4(A(i['title'],
+               _href=i['url'],
+               _class='plugin_img_chooser_titlelink')),
+        A(i['img'],
+          _href=i['url'],
+          _class='plugin_img_chooser_imagelink'),
+        SPAN(i['description'],
+          _class='plugin_img_chooser_descr')
+        _class='plugin_img_chooser_itemwrapper')}}
+{{pass}}
+
+<script type='text/javascript'>
+
+</script>
