@@ -292,6 +292,7 @@ class PathsVirtualFields(object):
         return list(chain.from_iterable(nlists))
 db.paths.virtualfields.append(PathsVirtualFields())
 
+# TODO: remove path_log table
 db.define_table('path_log',
                 Field('name', db.auth_user, default=auth.user_id),
                 Field('path', db.paths),
