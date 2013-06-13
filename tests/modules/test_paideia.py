@@ -38,7 +38,7 @@ global_runall = False
 global_run_TestNpc = False
 global_run_TestLocation = False
 global_run_TestNpcChooser = False
-global_run_TestStep = 1
+global_run_TestStep = False
 global_run_TestStepRedirect = False
 global_run_TestStepAwardBadges = False
 global_run_TestStepViewSlides = False
@@ -47,9 +47,9 @@ global_run_TestStepMultiple = False
 global_run_TestStepEvaluator = False
 global_run_TestMultipleEvaluator = False
 global_run_TestPath = False
-global_run_TestUser = 1
+global_run_TestUser = False
 global_run_TestCategorizer = False
-global_run_TestWalk = False
+global_run_TestWalk = 1
 global_run_TestPathChooser = False
 
 # ===================================================================
@@ -686,11 +686,12 @@ def mywalk(mycases):
     tag_progress = mycases['tag_progress']
     tag_records = mycases['tag_records']
     localias = mycases['loc'].get_alias()
-    return Walk(localias,
-                userdata=userdata,
-                tag_records=tag_records,
-                tag_progress=tag_progress,
-                db=db)
+    return {'walk': Walk(localias,
+                         userdata=userdata,
+                         tag_records=tag_records,
+                         tag_progress=tag_progress,
+                         db=db),
+            'casedata': mycases}
 
 
 @pytest.fixture
@@ -1993,17 +1994,16 @@ class TestUser():
         elif user.cats_counter >= 5:
             tags_due = [t for cat in case['categories_out'].values() for t in cat]
 
-
         path_rows = db(db.paths.id > 0
-                  ).select().find(lambda row:
-                                  [t for t in row.tags if t in tags_due]
-                                  and
-                                  db.steps(row.steps[0]).status != 2
-                                  and
-                                  db.steps(row.steps[0]).locations
-                                  and
-                                  [l for l in db.steps(row.steps[0]).locations
-                                   if l == case['loc'].get_id()])
+                       ).select().find(lambda row:
+                                       [t for t in row.tags if t in tags_due]
+                                       and
+                                       db.steps(row.steps[0]).status != 2
+                                       and
+                                       db.steps(row.steps[0]).locations
+                                       and
+                                       [l for l in db.steps(row.steps[0]).locations
+                                        if l == case['loc'].get_id()])
         expected_paths = [p.id for p in path_rows]
         actual = user.get_path(case['loc'])
         assert actual.get_id() in expected_paths
@@ -2053,16 +2053,22 @@ class TestUser():
             assert len(actual[c]) == len([t for t in l if t in actual[c]])
 
     def test_user_get_old_categories(self, myuser):
-        case = myuser['casedata']
+        """
+        TODO: at the moment this is only testing initial state in which there
+        are no old categories yet.
+        """
+        #case = myuser['casedata']
         user = myuser['user']
-        expected = case['tag_progress']
-        del expected['latest_new']
+        expected = None
+        #expected = case['tag_progress']
+        #del expected['latest_new']
 
         actual = user._get_old_categories()
 
-        for c, l in actual.iteritems():
-            assert len([i for i in l if i in expected[c]]) == len(expected[c])
-            assert len(l) == len(expected[c])
+        assert actual == expected
+        #for c, l in actual.iteritems():
+            #assert len([i for i in l if i in expected[c]]) == len(expected[c])
+            #assert len(l) == len(expected[c])
 
     def test_user_complete_path(self, myuser):
         user = myuser['user']
@@ -2194,77 +2200,103 @@ class TestWalk():
 
     def test_walk_get_user(self, mywalk, myrecords, mysession):
         """docstring for _get_user"""
-        localias = mywalk.localias
-        userdata = {'first_name': 'Joe', 'id': 1}
-        tag_records = myrecords['tag_records']
-        tag_progress = myrecords['tag_progress']
-        assert mywalk._get_user(userdata=userdata, localias=localias,
-                        tag_records=tag_records, tag_progress=tag_progress)
+        thiswalk = mywalk['walk']
+        case = mywalk['casedata']
+        if case['caseid'] == 1:
+            localias = thiswalk.localias
+            userdata = {'first_name': 'Joe', 'id': 1}
+            tag_records = myrecords['tag_records']
+            tag_progress = myrecords['tag_progress']
+            assert thiswalk._get_user(userdata=userdata, localias=localias,
+                            tag_records=tag_records, tag_progress=tag_progress)
+        else:
+            pass
 
     def test_walk_map(self, mywalk):
-        mapdata = {'map_image': '/paideia/static/images/town_map.svg',
-                   'locations': [{'alias': 'None',
-                                  'bg_image': 8,
-                                  'id': 3},
-                                 {'alias': 'domus_A',
-                                  'bg_image': 8,
-                                  'id': 1},
-                                 {'alias': '',
-                                  'bg_image': 8,
-                                  'id': 2},
-                                 {'alias': None,
-                                  'bg_image': None,
-                                  'id': 4},
-                                 {'alias': None,
-                                  'bg_image': None,
-                                  'id': 12},
-                                 {'alias': 'bath',
-                                  'bg_image': 17,
-                                  'id': 13},
-                                 {'alias': 'gymnasion',
-                                  'bg_image': 15,
-                                  'id': 14},
-                                 {'alias': 'shop_of_alexander',
-                                  'bg_image': 16,
-                                  'id': 6},
-                                 {'alias': 'ne_stoa',
-                                  'bg_image': 18,
-                                  'id': 7},
-                                 {'alias': 'agora',
-                                  'bg_image': 16,
-                                  'id': 8},
-                                 {'alias': 'synagogue',
-                                  'bg_image': 15,
-                                  'id': 11},
-                                 {'alias': None,
-                                  'bg_image': None,
-                                  'id': 5},
-                                 {'alias': None,
-                                  'bg_image': None,
-                                  'id': 9},
-                                 {'alias': None,
-                                  'bg_image': None,
-                                  'id': 10}
-                                 ]}
-        map = mywalk.map()
-        for m in mapdata['locations']:
-            i = mapdata['locations'].index(m)
-            assert map['locations'][i]['alias'] == m['alias']
-            assert map['locations'][i]['bg_image'] == m['bg_image']
-            assert map['locations'][i]['id'] == m['id']
-        assert map['map_image'] == mapdata['map_image']
+        thiswalk = mywalk['walk']
+        case = mywalk['casedata']
+        if case['caseid'] == 1:
+            expected = {'map_image': '/paideia/static/images/town_map.svg',
+                        'locations': [{'alias': 'None',
+                                    'bg_image': 8,
+                                    'id': 3},
+                                    {'alias': 'domus_A',
+                                    'bg_image': 8,
+                                    'id': 1},
+                                    {'alias': '',
+                                    'bg_image': 8,
+                                    'id': 2},
+                                    {'alias': None,
+                                    'bg_image': None,
+                                    'id': 4},
+                                    {'alias': None,
+                                    'bg_image': None,
+                                    'id': 12},
+                                    {'alias': 'bath',
+                                    'bg_image': 17,
+                                    'id': 13},
+                                    {'alias': 'gymnasion',
+                                    'bg_image': 15,
+                                    'id': 14},
+                                    {'alias': 'shop_of_alexander',
+                                    'bg_image': 16,
+                                    'id': 6},
+                                    {'alias': 'ne_stoa',
+                                    'bg_image': 18,
+                                    'id': 7},
+                                    {'alias': 'agora',
+                                    'bg_image': 16,
+                                    'id': 8},
+                                    {'alias': 'synagogue',
+                                    'bg_image': 15,
+                                    'id': 11},
+                                    {'alias': None,
+                                    'bg_image': None,
+                                    'id': 5},
+                                    {'alias': None,
+                                    'bg_image': None,
+                                    'id': 9},
+                                    {'alias': None,
+                                    'bg_image': None,
+                                    'id': 10}
+                                    ]}
+            actual = thiswalk.map()
+            for m in expected['locations']:
+                i = expected['locations'].index(m)
+                assert actual['locations'][i]['alias'] == m['alias']
+                assert actual['locations'][i]['bg_image'] == m['bg_image']
+                assert actual['locations'][i]['id'] == m['id']
+            assert actual['map_image'] == expected['map_image']
+        else:
+            pass
 
     def test_walk_ask(self, mywalk):
-        prompt = 'How would you write the English word "head" using'\
-                ' Greek letters?'
-        instructions = None
-        image = '/paideia/static/images/images.image.bb48641f0122d2b6.696d616765732e696d6167652e383136303330663934646664646561312e34343732363137373639366536373230333432653733373636372e737667.svg'
-        responder = '<form action="" autocomplete="off" enctype="multipart/form-data" method="post"><table><tr id="no_table_response__row"><td class="w2p_fl"><label for="no_table_response" id="no_table_response__label">Response: </label></td><td class="w2p_fw"><input class="string" id="no_table_response" name="response" type="text" value="" /></td><td class="w2p_fc"></td></tr><tr id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw"><input type="submit" value="Submit" /></td><td class="w2p_fc"></td></tr></table></form>'
-        ask = mywalk.ask()
-        assert ask['prompt']['prompt'] == prompt
-        assert ask['prompt']['instructions'] == instructions
-        assert ask['prompt']['npc_image'] == image
-        assert ask['responder'].xml() == responder
+        thiswalk = mywalk['walk']
+        case = mywalk['casedata']
+        if case['casenum'] == 1:
+            prompt = 'How would you write the English word "head" using'\
+                    ' Greek letters?'
+            instructions = None
+            image = '/paideia/static/images/images.image.bb48641f0122d2b6.'\
+                    '696d616765732e696d6167652e383136303330663934646664646561312e3'\
+                    '4343732363137373639366536373230333432653733373636372e737667.svg'
+            responder = '<form action="" autocomplete="off"' \
+                        'enctype="multipart/form-data" method="post"><table>' \
+                        '<tr id="no_table_response__row"><td class="w2p_fl">'\
+                        '<label for="no_table_response" id="no_table_response__label">'\
+                        'Response: </label></td><td class="w2p_fw">'\
+                        '<input class="string" id="no_table_response" name="response" '\
+                        'type="text" value="" /></td><td class="w2p_fc"></td></tr>'\
+                        '<tr id="submit_record__row"><td class="w2p_fl"></td>'\
+                        '<td class="w2p_fw"><input type="submit" value="Submit" />'\
+                        '</td><td class="w2p_fc"></td></tr></table></form>'
+            expected = thiswalk.expected()
+            assert expected['prompt']['prompt'] == prompt
+            assert expected['prompt']['instructions'] == instructions
+            assert expected['prompt']['npc_image'] == image
+            assert expected['responder'].xml() == responder
+        else:
+            pass
 
     def test_walk_reply(self, mywalk):
         response_string = ''
@@ -2282,57 +2314,102 @@ class TestWalk():
         """
         Unit tests for Walk._record_cats()
         """
-        #tag_progress = {'tag': 61,
-                        #'latest_new': 2,
-                        #'cat1': [1, 2, 3],
-                        #'cat2': [4],
-                        #'cat3': [5, 6],
-                        #'cat4': [7],
-                        #'rev1': [1, 2, 3],
-                        #'rev2': [4],
-                        #'rev3': [5, 6],
-                        #'rev4': [7],
-                        #'secondary_right': []}
+        thiswalk = mywalk['walk']
+        case = mywalk['casedata']
+        if case['casenum'] == 1:
+            tag_progress = case['tag_progress_out']
+            user_id = tag_progress['name']
+            promoted = case['promoted']
+            new_tags = case['new_tags']
+            promoted['cat1'] = new_tags
+            expected_progress = tag_progress
+            expected_begun = {t: cat for cat in promoted for t in cat}
 
-        #categories = {'cat1': [1, 2, 3],
-                      #'cat2': [4],
-                      #'cat3': [5, 6],
-                      #'cat4': [7],
-                      #'rev1': [1, 2, 3],
-                      #'rev2': [4],
-                      #'rev3': [5, 6],
-                      #'rev4': [7]}
-        #new_tags = [1, 2, 3]
-        #promoted = {'cat1': [1, 2, 3],
-                    #'cat2': [4],
-                    #'cat3': [5, 6],
-                    #'cat4': [7],
-                    #'rev1': [1, 2, 3],
-                    #'rev2': [4],
-                    #'rev3': [5, 6],
-                    #'rev4': [7]}
-        #demoted = {'rev1': [1, 2, 3],
-                   #'rev2': [4],
-                   #'rev3': [5, 6],
-                   #'rev4': [7]}
-        assert 0
+            # call the method and test its return value
+            assert thiswalk._record_cats(tag_progress, promoted,
+                                       new_tags, db) is True
+
+            # test record insertion for db.tag_progress
+            actual_select_tp = db(db.tag_progress.name == user_id).select()
+            assert len(actual_select_tp) == 1
+
+            actual_record_tp = actual_select_tp.first()
+            for k, v in actual_record_tp.iteritems():
+                assert v == expected_progress[k]
+
+            # test record insertion for db.badges_begun
+            actual_select_bb = db(db.badges_begun.name == user_id).select()
+            # one badges_begun row for each of user's tag_records rows
+            user_tag_records = db(db.tag_records.name == user_id).select()
+            assert len(actual_select_bb) == len(user_tag_records)
+            # check that new values were entered
+            now = datetime.datetime.utcnow()
+            for t, v in {tag: cat for tag, cat in expected_begun.iteritems()}:
+                actual_select_bb.find(lambda row: row.tag_id == t)
+                assert len(actual_select_bb) == 1
+                assert actual_select_bb.first()[v] == now
+        else:
+            pass
 
     def test_walk_record_step(self, mywalk):
-        #id = mywalk._get_user().get_id()
-        #loglength = len(db(db.attempt_log.name == id).select())
-        #tag_records = ''
+        """
+        Unit test for Paideia.Walk._record_step()
 
-        #rec = mywalk._record_step(tag_records, categories, new_tags)
-        #assert len(db(db.attempt_log.name == id).select()) == loglenth + 1
-        assert 0
+        At present this only runs for case 1, assuming path 3 and step 1.
+        """
+        thiswalk = mywalk['walk']
+        case = mywalk['casedata']
+        if case['casenum'] == 1:
+            user_id = thiswalk._get_user().get_id()
+            step_id = 1
+            path_id = 3
+            score = 1.0
+            loglength = len(db(db.attempt_log.name == id).select())
+            step_tags = [61]  # FIXME: hard coded until I properly parameterize
+
+            expected_tag_records = [t for t in case['tag_records'] if t in step_tags]
+
+            # call the method and collect return value
+            actual_log_id = thiswalk._record_step(user_id, step_id, path_id,
+                                                score, expected_tag_records)
+
+            # test writing to attempt_log
+            logs_out = db(db.attempt_log.name == id).select()
+            last_log = logs_out.last()
+            last_log_id = last_log.id
+
+            assert len(logs_out) == loglength + 1
+            assert actual_log_id == last_log_id
+
+            # test writing to tag_records
+            actual_tag_records = db(db.tag_records.name == user_id).select()
+            assert len(actual_tag_records) == len(expected_tag_records)
+            for l in expected_tag_records:
+                for_this_tag = actual_tag_records.find(lambda row:
+                                                       row.tag == l['tag_id'])
+                assert len(for_this_tag) == 1
+
+                for k in l.keys():
+                    assert for_this_tag[k] == l[k]
+        else:
+            pass
 
     def test_walk_store_user(self, mywalk):
         """Unit test for Walk._store_user"""
-        #session = current.session
-        #assert mywalk._store_user() == True
-        #assert isinstance(session.user, User)
-        #assert session.user.get_id() == 1
-        assert 0
+        session = current.session
+        case = mywalk['casedata']
+        thiswalk = mywalk['walk']
+        if case['casenum'] == 1:
+            session.user = None  # empty session variable as a baseline
+            user = thiswalk._get_user()
+            user_id = user.get_id()
+
+            actual = thiswalk._store_user(user)
+            assert actual is True
+            assert isinstance(session.user, User)
+            assert session.user.get_id() == user_id
+        else:
+            pass
 
 
 class TestPathChooser():

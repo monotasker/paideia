@@ -158,8 +158,8 @@ class Walk(object):
 
         return {'reply': reply, 'bug_reporter': bug_reporter}
 
-    def _record_cats(self, tag_progress, categories, promoted,
-                     demoted, new_tags, db=None):
+    def _record_cats(self, tag_progress, promoted,
+                     new_tags, db=None):
         """
         Record changes to the user's working tags and their categorization.
 
@@ -171,28 +171,25 @@ class Walk(object):
             db = self.db
         user = self.user.get_id()
         now = datetime.datetime.utcnow()
-        # record awarding of promoted and new tags in table db.badges_begun
+        # re-integrate new tags into single tag_progress dictionary
         promoted['cat1'] = new_tags
+
+        # record awarding of promoted and new tags in table db.badges_begun
 
         if promoted:
             for cat, lst in promoted.iteritems():
                 if lst:
                     for tag in lst:
-                        tag_record = db((db.badges_begun.name == user) &
-                                        (db.badges_begun.tag == tag))
-                        if not tag_record.count():
-                            db.badges_begun.insert(**{'name': user,
-                                                      'tag': tag,
-                                                      cat: now})
-                        else:
-                            tag_record.update({cat: now})
+                        conditions = {'name': user, 'tag': tag}
+                        data = {cat: now}
+                        db.badges_begun.insert_or_update(conditions, **data)
 
         # update tag_progress table with current categorization
-        db(db.tag_progress.name == user).update(**categories)
+        db.tag_progress.insert_or_update(name=user, **tag_progress)
 
-        return categories
+        return True
 
-    def _record_step(self, tag_records, categories, new_tags):
+    def _record_step(self, user_id, step_id, path_id, score, tag_records):
         """
         Record this step attempt and its impact on user's performance record.
 
@@ -204,24 +201,35 @@ class Walk(object):
                             - tlast_wrong
                             - tlast_right
                             - secondary_right (add datetime to list)
-        ** if secondary_right is sufficient length, delete it and
+
+        TODO: if secondary_right is sufficient length, delete it and
                 - add 1 to times_right
                 - set tlast_right to now
+            but best done along the way, when first updating tag_records
 
-        ** be sure not to log redirect and utility steps.
+        TODO: be sure not to log redirect and utility steps. (filter them out
+        before calling _record_step())
         """
+        db = self.db
+        for record_dict in tag_records:
+            # TODO: does record_dict include the right info?
+            db.tag_records.insert_or_update(name=user_id, **record_dict)
 
-        return True
+        log_args = {'name': user_id,
+                    'step': step_id,
+                    'path': path_id,
+                    'score': score}  # time recorded automatically in table
+        log_record_id = db.attempt_log.insert(log_args)
 
-    def _store_user(self, user=None):
+        return log_record_id
+
+    def _store_user(self, user):
         """
         Store the current User object (from self.user) in session.user
 
         Returns a boolean value indicating whether the storing was
         successful or not.
         """
-        if not user:
-            user = self.user
         session = current.session
         session.user = user
         return True
@@ -304,7 +312,7 @@ class Npc(object):
         Return a web2py IMG helper object with the image for the current
         npc character.
         """
-        img = URL('paideia', 'static', 'images/{}'.format(self.image))
+        img = IMG(_src=URL('paideia', 'static', 'images/{}'.format(self.image)))
         return img
 
     def get_locations(self):
@@ -325,6 +333,10 @@ class NpcChooser(object):
     def __init__(self, step, location, prev_npc, prev_loc):
         """
         Initialize an NpcChooser object.
+        step: Step
+        location: Location
+        prev_npc: Npc
+        prev_loc: Location
         """
         self.step = step
         self.location = location
@@ -341,19 +353,20 @@ class NpcChooser(object):
         location = self.location
         prev_npc = self.prev_npc
         prev_loc = self.prev_loc
-        # TODO: step.get_npcs returns ids or Npc objects?
+        # TODO: step.get_npcs should return ids, not Npc's
 
         if ((location.get_readable() == prev_loc.get_readable()) and
                 (prev_npc.get_id() in available)):
             return prev_npc
         else:
+            # TODO: is the list below right???
             available2 = [n for n in available
                           if n.get_id() == prev_npc.get_id()
                           and location.get_id() in n.get_locations()]
             if len(available2) > 1:
-                return available2[randint(0, len(available2) - 1)]
+                return Npc(available2[randint(0, len(available2) - 1)])
             else:
-                return available2[0]
+                return Npc(available2[0])
 
 
 class BugReporter(object):
@@ -361,15 +374,30 @@ class BugReporter(object):
     Class representing a bug-reporting widget to be presented along with the
     evaluation of the current step.
     """
-    def __init__(step_id, user_response, record_id):
+    def __init__():
         """Initialize a BugReporter object"""
-    pass
+        pass
+
+    def get_reporter(self, record_id, user_response, step_id, path_id):
+        """
+        Return a bug reporter widget to embed in the evaluation of a user
+        response.
+        """
+        # TODO: fill out logic
+        pass
 
 
 class StepFactory(object):
     """
     A factory class allowing automatic generation of correct Step subclasses.
+
+    This allows easy changing/extension of Step classes without having to
+    make changes to other application code. At present the decision is made
+    based on the "widget_type" field supplied in db.steps. But there is not a
+    1:1 relationship between widget type and Step subclass.
     """
+    #TODO: does this object need an __init__ method?
+
     def get_instance(self, db=None, **kwargs):
         """
         Return the correct subclass of Step based on record's 'widget_type'.
@@ -388,7 +416,6 @@ class StepFactory(object):
         args = util_get_args()  # get the args and kwargs submitted above
         if not db:
             db == current.db
-        # TODO: read db data here and pass it forward as a dict
         data = db.steps[locals()['step_id']].as_dict()
         del(args[0]['self'])
         step_classes = {1: StepText,
@@ -1249,7 +1276,7 @@ class User(object):
         self.path = None
         self.completed_paths = []
         self.cats_counter = 0
-        self.old_categories = None
+        self.old_categories = {}
         self.categories = self._get_categories()
         self.new_badges = None
         self.blocks = []
@@ -1366,10 +1393,10 @@ class User(object):
             self.cats_counter = cats_counter + 1
             return self.categories
         else:
-            #try:
-            self.old_categories = self.categories
-            #except AttributeError:
-                #self.old_categories = None
+            try:
+                self.old_categories = self.categories
+            except AttributeError:
+                self.old_categories = None
             c = Categorizer(rank, categories, tag_records, utcnow=utcnow)
             cat_result = c.categorize_tags()
             categories = cat_result['categories']
