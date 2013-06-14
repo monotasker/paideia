@@ -156,6 +156,16 @@ def mysteps(request):
                                   'English letter.'],
                  'tags': [61],
                  'tags_secondary': [],
+                 'responder': '<form action="" autocomplete="off"'
+                              'enctype="multipart/form-data" method="post"><table>'
+                              '<tr id="no_table_response__row"><td class="w2p_fl">'
+                              '<label for="no_table_response" id="no_table_response__label">'
+                              'Response: </label></td><td class="w2p_fw">'
+                              '<input class="string" id="no_table_response" name="response" '
+                              'type="text" value="" /></td><td class="w2p_fc"></td></tr>'
+                              '<tr id="submit_record__row"><td class="w2p_fl"></td>'
+                              '<td class="w2p_fw"><input type="submit" value="Submit" />'
+                              '</td><td class="w2p_fc"></td></tr></table></form>',
                  'responses': {'response1': '^μιτ$'},
                  'readable': {'readable_short': ['μιτ'],
                               'readable_long': None},
@@ -660,75 +670,91 @@ def mycases(request, mysteps):
                        'steps_here': [1, 2, 30, 125, 126, 127],
                        'completed': []}
              }
-    return cases[the_case]
+    return {'casedata': cases[the_case],
+            'stepdata': mysteps}
 
 
 @pytest.fixture
-def mynpcchooser(mysteps, mycases):
-    if mysteps['id'] in mycases['steps_here']:
-        if mycases['casenum'] == 1:
+def mynpcchooser(mycases):
+    case = mycases['casedata']
+    step = mycases['stepdata']
+    if step['id'] in case['steps_here']:
+        if case['casenum'] == 1:
             step = StepFactory().get_instance(db=db,
-                                              step_id=mysteps['id'],
-                                              loc=mycases['loc'],
-                                              prev_loc=mycases['prev_loc'],
-                                              prev_npc_id=mycases['prev_npc_id'])
-            location = mycases['loc']
-            prev_npc = Npc(mycases['prev_npc_id'], db)
-            prev_loc = mycases['prev_loc']
+                                              step_id=step['id'],
+                                              loc=case['loc'],
+                                              prev_loc=case['prev_loc'],
+                                              prev_npc_id=case['prev_npc_id'])
+            location = case['loc']
+            prev_npc = Npc(case['prev_npc_id'], db)
+            prev_loc = case['prev_loc']
             return {'chooser': NpcChooser(step, location, prev_npc, prev_loc),
-                    'stepdata': mysteps}
+                    'casedata': case,
+                    'stepdata': step}
 
 
 @pytest.fixture
 def mywalk(mycases):
     """pytest fixture providing a paideia.Walk object for testing"""
-    userdata = {'first_name': mycases['name'], 'id': mycases['uid']}
-    tag_progress = mycases['tag_progress']
-    tag_records = mycases['tag_records']
-    localias = mycases['loc'].get_alias()
+    case = mycases['casedata']
+    step = mycases['stepdata']
+    userdata = {'first_name': case['name'], 'id': case['uid']}
+    tag_progress = case['tag_progress']
+    tag_records = case['tag_records']
+    localias = case['loc'].get_alias()
     return {'walk': Walk(localias,
                          userdata=userdata,
                          tag_records=tag_records,
                          tag_progress=tag_progress,
                          db=db),
-            'casedata': mycases}
+            'casedata': case,
+            'userdata': userdata,
+            'stepdata': step}
 
 
 @pytest.fixture
 def mypathchooser(mycases):
     """pytest fixture providing a paideia.PathChooser object for testing"""
+    case = mycases['casedata']
+    step = mycases['stepdata']
     klist = ['cat1', 'cat2', 'cat3', 'cat4', 'rev1', 'rev2', 'rev3']
-    cats = {k: v for k, v in mycases['tag_progress'].iteritems() if k in klist}
-    pc = PathChooser(cats, mycases['loc'], mycases['completed'], db=db)
-    return {'pathchooser': pc, 'paths': mycases['paths']}
+    cats = {k: v for k, v in case['tag_progress'].iteritems() if k in klist}
+    pc = PathChooser(cats, case['loc'], case['completed'], db=db)
+    return {'pathchooser': pc,
+            'paths': case['paths'],
+            'casedata': case,
+            'stepdata': step}
 
 
 @pytest.fixture
 def mycategorizer(mycases):
     """A pytest fixture providing a paideia.Categorizer object for testing."""
-    rank = mycases['tag_progress']['latest_new']
-    cats_in = {k: v for k, v in mycases['tag_progress'].iteritems()
+    case = mycases['casedata']
+    step = mycases['stepdata']
+    rank = case['tag_progress']['latest_new']
+    cats_in = {k: v for k, v in case['tag_progress'].iteritems()
                if not k == 'latest_new'}
-    cats_out = {k: v for k, v in mycases['tag_progress_out'].iteritems()
+    cats_out = {k: v for k, v in case['tag_progress_out'].iteritems()
                 if not k == 'latest_new'}
-    tag_rs = mycases['tag_records']
-    now = mycases['mynow']
+    tag_rs = case['tag_records']
+    now = case['mynow']
     out = {'categorizer': Categorizer(rank, cats_in, tag_rs, utcnow=now),
            'categories_in': cats_in,
            'categories_out': cats_out,
-           'tag_progress': mycases['tag_progress'],
-           'tag_progress_out': mycases['tag_progress_out'],
-           'core_out': mycases['core_out'],
-           'promoted': mycases['promoted'],
-           'demoted': mycases['demoted'],
-           'new_tags': mycases['new_badges'],
-           'introduced': mycases['introduced'],
-           'untried_out': mycases['untried_out'],
-           'tag_records': tag_rs}
-    if 'tag_records_out' in mycases.keys():
-        out['tag_records_out'] = mycases['tag_records_out']
+           'tag_progress': case['tag_progress'],
+           'tag_progress_out': case['tag_progress_out'],
+           'core_out': case['core_out'],
+           'promoted': case['promoted'],
+           'demoted': case['demoted'],
+           'new_tags': case['new_badges'],
+           'introduced': case['introduced'],
+           'untried_out': case['untried_out'],
+           'tag_records': tag_rs,
+           'stepdata': step}
+    if 'tag_records_out' in case.keys():
+        out['tag_records_out'] = case['tag_records_out']
     else:
-        out['tag_records_out'] = mycases['tag_records']
+        out['tag_records_out'] = case['tag_records']
 
     return out
 
@@ -736,14 +762,16 @@ def mycategorizer(mycases):
 @pytest.fixture
 def myuser(mycases):
     """A pytest fixture providing a paideia.User object for testing."""
-    #auth = current.auth
-    uid = 1
+    case = mycases['casedata']
+    step = mycases['stepdata']
+    uid = case['uid']
     userdata = db.auth_user(uid).as_dict()
-    tag_progress = mycases['tag_progress']
-    tag_records = mycases['tag_records']
-    localias = mycases['loc'].get_alias()
+    tag_progress = case['tag_progress']
+    tag_records = case['tag_records']
+    localias = case['loc'].get_alias()
     return {'user': User(userdata, localias, tag_records, tag_progress),
-            'casedata': mycases}
+            'casedata': case,
+            'stepdata': step}
 
 
 @pytest.fixture
@@ -783,142 +811,155 @@ def mypath(mycases):
     """
     A pytest fixture providing a paideia.Path object for testing.
     """
-    the_path = Path(path_id=mycases['pathid'],
-                    blocks=mycases['blocks_in'],
-                    loc=mycases['loc'],
-                    prev_loc=mycases['prev_loc'],
-                    prev_npc_id=mycases['prev_npc_id'],
+    case = mycases['casedata']
+    step = mycases['stepdata']
+    the_path = Path(path_id=case['pathid'],
+                    blocks=case['blocks_in'],
+                    loc=case['loc'],
+                    prev_loc=case['prev_loc'],
+                    prev_npc_id=case['prev_npc_id'],
                     db=db)
     pid = the_path.get_id()
     path_steps = db.paths[pid].steps
     return {'path': the_path,
             'id': pid,
-            'casedata': mycases,
-            'steps': path_steps}
+            'casedata': case,
+            'steps': path_steps,
+            'stepdata': step}
 
 
 @pytest.fixture
-def mystep(mycases, mysteps):
+def mystep(mycases):
     """
     A pytest fixture providing a paideia.Step object for testing.
     """
-    stepdata = mysteps
-    if (not mycases['loc'].get_id() in mysteps['locations']) or \
-       (not [n for n in mycases['npcs_here'] if n in mysteps['npc_list']]):
+    case = mycases['casedata']
+    step = mycases['stepdata']
+    if (not case['loc'].get_id() in step['locations']) or \
+       (not [n for n in case['npcs_here'] if n in step['npc_list']]):
         return None
-    if mysteps['type'] == StepAwardBadges and mycases['casenum'] != 5:
+    if step['type'] == StepAwardBadges and case['casenum'] != 5:
         return None
-    if mysteps['type'] == StepViewSlides and mycases['casenum'] != 5:
+    if step['type'] == StepViewSlides and case['casenum'] != 5:
         return None
-    if mysteps['type'] == StepRedirect and mycases['casenum'] != 5:
+    if step['type'] == StepRedirect and case['casenum'] != 5:
         return None
     else:
-        return {'casenum': mycases['casenum'],
+        return {'casenum': case['casenum'],
                 'step': StepFactory().get_instance(db=db,
-                                                   step_id=mysteps['id'],
-                                                   loc=mycases['loc'],
-                                                   prev_loc=mycases['prev_loc'],
-                                                   prev_npc_id=mycases['prev_npc_id']),
-                'stepdata': stepdata,
-                'casedata': mycases}
+                                                   step_id=step['id'],
+                                                   loc=case['loc'],
+                                                   prev_loc=case['prev_loc'],
+                                                   prev_npc_id=case['prev_npc_id']),
+                'stepdata': step,
+                'casedata': case}
 
 
 @pytest.fixture
-def myStepRedirect(mycases, mysteps):
+def myStepRedirect(mycases):
     """
     A pytest fixture providing a paideia.StepRedirect object for testing.
     - same npc and location as previous step
     TODO: write another fixture for a new location and for a new npc
     """
-    if mysteps['id'] == 30:
-        stepdata = mysteps
+    case = mycases['casedata']
+    step = mycases['stepdata']
+    if step['id'] == 30:
         my_args = {'step_id': 30,
-                   'loc': mycases['loc'],
-                   'prev_loc': mycases['prev_loc'],
-                   'prev_npc_id': mycases['prev_npc_id'],
+                   'loc': case['loc'],
+                   'prev_loc': case['prev_loc'],
+                   'prev_npc_id': case['prev_npc_id'],
                    'db': db}
         return {'step': StepRedirect(**my_args),
-                'stepdata': stepdata}
+                'stepdata': step}
     else:
         pass
 
 
 @pytest.fixture
-def myStepAwardBadges(mycases, mysteps):
+def myStepAwardBadges(mycases):
     """
     A pytest fixture providing a paideia.StepAwardBadges object for testing.
     """
-    if (mysteps['id'] == 126) and mycases['promoted']:
+    case = mycases['casedata']
+    step = mycases['stepdata']
+    if (step['id'] == 126) and case['promoted']:
         kwargs = {'step_id': 126,
-                  'loc': mycases['loc'],
-                  'prev_loc': mycases['prev_loc'],
-                  'prev_npc_id': mycases['prev_npc_id'],
+                  'loc': case['loc'],
+                  'prev_loc': case['prev_loc'],
+                  'prev_npc_id': case['prev_npc_id'],
                   'db': db}
         return {'step': StepAwardBadges(**kwargs),
-                'stepdata': mysteps,
-                'casedata': mycases}
+                'stepdata': step,
+                'casedata': case}
     else:
         pass
 
 
 @pytest.fixture
-def myStepViewSlides(mycases, mysteps):
+def myStepViewSlides(mycases):
     """
     A pytest fixture providing a paideia.StepViewSlides object for testing.
     """
-    if mysteps['id'] == 127 and mycases['new_badges']:
+    case = mycases['casedata']
+    step = mycases['stepdata']
+    if step['id'] == 127 and case['new_badges']:
         kwargs = {'step_id': 127,
-                  'loc': mycases['loc'],
-                  'prev_loc': mycases['prev_loc'],
-                  'prev_npc_id': mycases['prev_npc_id'],
+                  'loc': case['loc'],
+                  'prev_loc': case['prev_loc'],
+                  'prev_npc_id': case['prev_npc_id'],
                   'db': db}
         return {'step': StepViewSlides(**kwargs),
-                'stepdata': mysteps,
-                'casedata': mycases}
+                'stepdata': step,
+                'casedata': case}
     else:
         pass
 
 
 @pytest.fixture
-def myStepQuotaReached(mycases, mysteps):
+def myStepQuotaReached(mycases):
     """
     A pytest fixture providing a paideia.StepQuota object for testing.
     """
-    if mysteps['id'] == 125:
+    case = mycases['casedata']
+    step = mycases['stepdata']
+    if step['id'] == 125:
         kwargs = {'step_id': 125,
-                  'loc': mycases['loc'],
-                  'prev_loc': mycases['prev_loc'],
-                  'prev_npc_id': mycases['prev_npc_id'],
+                  'loc': case['loc'],
+                  'prev_loc': case['prev_loc'],
+                  'prev_npc_id': case['prev_npc_id'],
                   'db': db}
         return {'step': StepFactory().get_instance(**kwargs),
-                'stepdata': mysteps,
-                'casedata': mycases}
+                'stepdata': step,
+                'casedata': case}
     else:
         pass
 
 
 @pytest.fixture
-def myStepText(mycases, mysteps):
+def myStepText(mycases):
     """
     A pytest fixture providing a paideia.StepText object for testing.
     """
-    if mysteps['widget_type'] == 1:
+    case = mycases['casedata']
+    step = mycases['stepdata']
+    if step['widget_type'] == 1:
         # following switch alternates correct and incorrect answers
-        # actual answers taken from mysteps data
+        # actual answers taken from step data
         for n in [0, 1]:
             responses = ['incorrect', 'correct']
             s = StepFactory()
-            step = s.get_instance(db=db,
-                                  step_id=mysteps['id'],
-                                  loc=mycases['loc'],
-                                  prev_loc=mycases['prev_loc'],
-                                  prev_npc_id=mycases['prev_npc_id'])
-            return {'casenum': mycases['casenum'],
-                    'step': step,
-                    'stepdata': mysteps,
-                    'casedata': mycases,
-                    'user_response': mysteps['user_responses'][responses[n]],
-                    'reply_text': mysteps['reply_text'][responses[n]],
+            step_instance = s.get_instance(db=db,
+                                           step_id=step['id'],
+                                           loc=case['loc'],
+                                           prev_loc=case['prev_loc'],
+                                           prev_npc_id=case['prev_npc_id'])
+            return {'casenum': case['casenum'],
+                    'step': step_instance,
+                    'stepdata': step,
+                    'casedata': case,
+                    'user_response': step['user_responses'][responses[n]],
+                    'reply_text': step['reply_text'][responses[n]],
                     'score': n,
                     'times_right': n,
                     'times_wrong': [1, 0][n]}
@@ -927,13 +968,15 @@ def myStepText(mycases, mysteps):
 
 
 @pytest.fixture
-def myStepMultiple(mycases, mysteps):
-    """ """
-    if mysteps['widget_type'] == 4:
+def myStepMultiple(mycases):
+    """A pytest fixture providing a paideia.StepMultiple object for testing."""
+    case = mycases['casedata']
+    step = mycases['stepdata']
+    if step['widget_type'] == 4:
         for n in [0, 1]:
             responses = ['incorrect', 'correct']
-            options = mysteps['options']
-            right_opt = mysteps['responses']['response1']
+            options = step['options']
+            right_opt = step['responses']['response1']
             right_i = options.index(right_opt)
             wrong_opts = options[:]
             right_opt = wrong_opts.pop(right_i)
@@ -983,18 +1026,18 @@ def myStepMultiple(mycases, mysteps):
                 '</div>' \
                 '</form>$'.format(opts)
 
-            kwargs = {'step_id': mysteps['id'],
-                      'loc': mycases['loc'],
-                      'prev_loc': mycases['prev_loc'],
-                      'prev_npc_id': mycases['prev_npc_id'],
+            kwargs = {'step_id': step['id'],
+                      'loc': case['loc'],
+                      'prev_loc': case['prev_loc'],
+                      'prev_npc_id': case['prev_npc_id'],
                       'db': db}
             return {'casenum': request.param,
                     'step': StepFactory().get_instance(**kwargs),
-                    'casedata': mycases,
-                    'stepdata': mysteps,
+                    'casedata': case,
+                    'stepdata': step,
                     'resp_text': resp,
                     'user_response': user_responses[n],
-                    'reply_text': mysteps['reply_text'][responses[n]],
+                    'reply_text': step['reply_text'][responses[n]],
                     'score': n,
                     'times_right': n,
                     'times_wrong': [1, 0][n]}
@@ -2278,42 +2321,44 @@ class TestWalk():
     def test_walk_ask(self, mywalk):
         thiswalk = mywalk['walk']
         case = mywalk['casedata']
+        step = mywalk['stepdata']
         if case['casenum'] == 1:
-            prompt = 'How would you write the English word "head" using'\
-                    ' Greek letters?'
-            instructions = None
-            image = '/paideia/static/images/images.image.bb48641f0122d2b6.'\
-                    '696d616765732e696d6167652e383136303330663934646664646561312e3'\
-                    '4343732363137373639366536373230333432653733373636372e737667.svg'
-            responder = '<form action="" autocomplete="off"' \
-                        'enctype="multipart/form-data" method="post"><table>' \
-                        '<tr id="no_table_response__row"><td class="w2p_fl">'\
-                        '<label for="no_table_response" id="no_table_response__label">'\
-                        'Response: </label></td><td class="w2p_fw">'\
-                        '<input class="string" id="no_table_response" name="response" '\
-                        'type="text" value="" /></td><td class="w2p_fc"></td></tr>'\
-                        '<tr id="submit_record__row"><td class="w2p_fl"></td>'\
-                        '<td class="w2p_fw"><input type="submit" value="Submit" />'\
-                        '</td><td class="w2p_fc"></td></tr></table></form>'
-            expected = thiswalk.expected()
-            assert expected['prompt']['prompt'] == prompt
-            assert expected['prompt']['instructions'] == instructions
-            assert expected['prompt']['npc_image'] == image
-            assert expected['responder'].xml() == responder
+            expected = {'prompt': step['final_prompt'],
+                        'instructions': step['instructions'],
+                        # TODO: check for image -- just hard to predict
+                        #image : '/paideia/static/images/images.image.bb48641f0122d2b6.'
+                        #'696d616765732e696d6167652e383136303330663934646664646561312e3'
+                        #'4343732363137373639366536373230333432653733373636372e737667.svg'
+                        'responder': step['responder']}
+
+            actual = thiswalk.ask()
+
+            assert actual['prompt']['prompt'] == expected['prompt']
+            assert actual['prompt']['instructions'] == expected['instructions']
+            assert actual['prompt']['npc_image'] == expected['image']
+            assert actual['responder'].xml() == expected['responder']
         else:
             pass
 
     def test_walk_reply(self, mywalk):
-        response_string = ''
-        reply = ''
-        bug_reporter = ''
-        # TODO: put in safety in case of empty form
-        returning = mywalk.reply(response_string)
-        out_reply = returning['reply']
-        out_bug_reporter = returning['bug_reporter']
+        """Unit test for paideia.Walk.reply() method."""
+        # TODO: make decorator for test methods to filter specific cases/steps
+        # coming from the parameterized fixtures
+        thiswalk = mywalk['walk']
+        case = mywalk['casedata']
+        step = mywalk['stepdata']
+        if case['casenum'] == 1:
+            for k, v in step['user_responses'].iteritems():
+                response_string = v
+                expected = {'reply': step['reply_text'][k],
+                            'bug_reporter': ''}
+                            # TODO: add bug reporter string
+                            # TODO: put in safety in case of empty form
 
-        assert out_reply == reply
-        assert out_bug_reporter == bug_reporter
+                actual = thiswalk.reply(response_string),
+
+                assert actual['reply'] == expected['reply']
+                assert actual['bug_reporter'] == expected['bug_reporter']
 
     def test_walk_record_cats(self, mywalk):
         """
@@ -2323,9 +2368,9 @@ class TestWalk():
         case = mywalk['casedata']
         if case['casenum'] == 1:
             tag_progress = case['tag_progress_out']
-            user_id = thiswalk.get_user()._get_id()
+            user_id = thiswalk._get_user().get_id()
             promoted = case['promoted']
-            new_tags = case['new_tags']
+            new_tags = case['new_badges']
             promoted['cat1'] = new_tags
             expected_progress = tag_progress
             expected_begun = {t: cat for cat in promoted for t in cat}
