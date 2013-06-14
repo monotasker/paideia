@@ -2323,7 +2323,7 @@ class TestWalk():
         case = mywalk['casedata']
         if case['casenum'] == 1:
             tag_progress = case['tag_progress_out']
-            user_id = thiswalk.get_user().get_id()
+            user_id = thiswalk.get_user()._get_id()
             promoted = case['promoted']
             new_tags = case['new_tags']
             promoted['cat1'] = new_tags
