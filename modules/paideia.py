@@ -219,7 +219,7 @@ class Walk(object):
                     'step': step_id,
                     'path': path_id,
                     'score': score}  # time recorded automatically in table
-        log_record_id = db.attempt_log.insert(log_args)
+        log_record_id = db.attempt_log.insert(**log_args)
 
         return log_record_id
 
@@ -1334,7 +1334,7 @@ class User(object):
         """Return a dictionary of tag ids newly promoted to categories 2-4."""
         return self.promoted
 
-    def get_path(self, loc, db=None):
+    def get_path(self, loc, categories=None, db=None):
         """
         Return the currently active Path object.
 
@@ -1344,6 +1344,9 @@ class User(object):
         """
         if not db:
             db = current.db
+        if not categories:
+            categories = self._get_categories()
+
         # If the user has a multi-step path in progress, use that path
         if self.path:
             self.loc = loc
@@ -1364,7 +1367,7 @@ class User(object):
             self.path = path
             return path
 
-    def _get_categories(self, rank=None, categories=None, old_categories=None,
+    def _get_categories(self, rank=None, old_categories=None,
                         tag_records=None, utcnow=None):
         """
         Return a categorized dictionary with four lists of tag id's.
@@ -1386,22 +1389,24 @@ class User(object):
             tag_records = self.tag_records
         if not utcnow:
             utcnow = datetime.datetime.utcnow()
+        if not old_categories:
+            old_categories = self.old_categories
         cats_counter = self.cats_counter
-        #old_categories = self.old_categories
+        try:
+            categories = self.categories
+        except AttributeError:
+            categories = None
+
         # only re-categorize every 10th evaluated step
         if cats_counter in range(1, 5):
             self.cats_counter = cats_counter + 1
-            return self.categories
+            return categories
         else:
-            try:
-                self.old_categories = self.categories
-            except AttributeError:
-                self.old_categories = None
             c = Categorizer(rank, categories, tag_records, utcnow=utcnow)
             cat_result = c.categorize_tags()
             categories = cat_result['categories']
             self.categories = categories
-            self.cats_counter = cats_counter + 1
+            self.cats_counter == 1  # reset counter
             if cat_result['new_tags']:
                 self.set_block('new_tags', cat_result['new_tags'])
             return categories

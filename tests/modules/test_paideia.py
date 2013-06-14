@@ -2198,24 +2198,29 @@ class TestWalk():
     pytestmark = pytest.mark.skipif('global_runall is False '
                                     'and global_run_TestWalk is False')
 
-    def test_walk_get_user(self, mywalk, myrecords, mysession):
-        """docstring for _get_user"""
+    def test_walk_get_user(self, mywalk):
+        """Unit test for paideia.Walk._get_user()"""
         thiswalk = mywalk['walk']
         case = mywalk['casedata']
-        if case['caseid'] == 1:
-            localias = thiswalk.localias
+        if case['casenum'] == 1:
+            localias = case['localias']
             userdata = {'first_name': 'Joe', 'id': 1}
-            tag_records = myrecords['tag_records']
-            tag_progress = myrecords['tag_progress']
-            assert thiswalk._get_user(userdata=userdata, localias=localias,
-                            tag_records=tag_records, tag_progress=tag_progress)
+            tag_records = case['tag_records']
+            tag_progress = case['tag_progress']
+
+            actual = thiswalk._get_user(userdata=userdata, localias=localias,
+                                        tag_records=tag_records,
+                                        tag_progress=tag_progress)
+            assert isinstance(actual, User)
+            assert actual.get_id() == userdata['id']
         else:
             pass
 
     def test_walk_map(self, mywalk):
+        """Unit test for paideia.Walk._get_user()"""
         thiswalk = mywalk['walk']
         case = mywalk['casedata']
-        if case['caseid'] == 1:
+        if case['casenum'] == 1:
             expected = {'map_image': '/paideia/static/images/town_map.svg',
                         'locations': [{'alias': 'None',
                                     'bg_image': 8,
@@ -2318,7 +2323,7 @@ class TestWalk():
         case = mywalk['casedata']
         if case['casenum'] == 1:
             tag_progress = case['tag_progress_out']
-            user_id = tag_progress['name']
+            user_id = thiswalk.get_user().get_id()
             promoted = case['promoted']
             new_tags = case['new_tags']
             promoted['cat1'] = new_tags
@@ -2364,7 +2369,7 @@ class TestWalk():
             step_id = 1
             path_id = 3
             score = 1.0
-            loglength = len(db(db.attempt_log.name == id).select())
+            loglength = len(db(db.attempt_log.name == user_id).select())
             step_tags = [61]  # FIXME: hard coded until I properly parameterize
 
             expected_tag_records = [t for t in case['tag_records'] if t in step_tags]
@@ -2374,7 +2379,7 @@ class TestWalk():
                                                 score, expected_tag_records)
 
             # test writing to attempt_log
-            logs_out = db(db.attempt_log.name == id).select()
+            logs_out = db(db.attempt_log.name == user_id).select()
             last_log = logs_out.last()
             last_log_id = last_log.id
 
