@@ -169,7 +169,7 @@ class Walk(object):
         """
         if not db:
             db = self.db
-        user = self.user.get_id()
+        user_id = self.user.get_id()
         now = datetime.datetime.utcnow()
         # re-integrate new tags into single tag_progress dictionary
         promoted['cat1'] = new_tags
@@ -180,12 +180,14 @@ class Walk(object):
             for cat, lst in promoted.iteritems():
                 if lst:
                     for tag in lst:
-                        conditions = {'name': user, 'tag': tag}
+                        conditions = {'db.tag_progress.name': user_id,
+                                      'db.tag_progress.tag': tag}
                         data = {cat: now}
-                        db.badges_begun.insert_or_update(conditions, **data)
+                        db.badges_begun.update_or_insert(conditions, **data)
 
         # update tag_progress table with current categorization
-        db.tag_progress.insert_or_update(name=user, **tag_progress)
+        db.tag_progress.update_or_insert(db.tag_progress.name == user_id,
+                                         **tag_progress)
 
         return True
 
@@ -213,7 +215,8 @@ class Walk(object):
         db = self.db
         for record_dict in tag_records:
             # TODO: does record_dict include the right info?
-            db.tag_records.insert_or_update(name=user_id, **record_dict)
+            db.tag_records.update_or_insert(db.tag_records.name == user_id,
+                                            **record_dict)
 
         log_args = {'name': user_id,
                     'step': step_id,
