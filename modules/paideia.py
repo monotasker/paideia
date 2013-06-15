@@ -169,7 +169,7 @@ class Walk(object):
         """
         if not db:
             db = self.db
-        user = self.user.get_id()
+        user_id = self.user.get_id()
         now = datetime.datetime.utcnow()
         # re-integrate new tags into single tag_progress dictionary
         promoted['cat1'] = new_tags
@@ -180,12 +180,14 @@ class Walk(object):
             for cat, lst in promoted.iteritems():
                 if lst:
                     for tag in lst:
-                        conditions = {'name': user, 'tag': tag}
+                        conditions = {'db.tag_progress.name': user_id,
+                                      'db.tag_progress.tag': tag}
                         data = {cat: now}
-                        db.badges_begun.insert_or_update(conditions, **data)
+                        db.badges_begun.update_or_insert(conditions, **data)
 
         # update tag_progress table with current categorization
-        db.tag_progress.insert_or_update(name=user, **tag_progress)
+        db.tag_progress.update_or_insert(db.tag_progress.name == user_id,
+                                         **tag_progress)
 
         return True
 
@@ -213,13 +215,14 @@ class Walk(object):
         db = self.db
         for record_dict in tag_records:
             # TODO: does record_dict include the right info?
-            db.tag_records.insert_or_update(name=user_id, **record_dict)
+            db.tag_records.update_or_insert(db.tag_records.name == user_id,
+                                            **record_dict)
 
         log_args = {'name': user_id,
                     'step': step_id,
                     'path': path_id,
                     'score': score}  # time recorded automatically in table
-        log_record_id = db.attempt_log.insert(log_args)
+        log_record_id = db.attempt_log.insert(**log_args)
 
         return log_record_id
 
@@ -1334,7 +1337,7 @@ class User(object):
         """Return a dictionary of tag ids newly promoted to categories 2-4."""
         return self.promoted
 
-    def get_path(self, loc, db=None):
+    def get_path(self, loc, categories=None, db=None):
         """
         Return the currently active Path object.
 
@@ -1344,6 +1347,9 @@ class User(object):
         """
         if not db:
             db = current.db
+        if not categories:
+            categories = self._get_categories()
+
         # If the user has a multi-step path in progress, use that path
         if self.path:
             self.loc = loc
@@ -1364,7 +1370,7 @@ class User(object):
             self.path = path
             return path
 
-    def _get_categories(self, rank=None, categories=None, old_categories=None,
+    def _get_categories(self, rank=None, old_categories=None,
                         tag_records=None, utcnow=None):
         """
         Return a categorized dictionary with four lists of tag id's.
@@ -1386,22 +1392,24 @@ class User(object):
             tag_records = self.tag_records
         if not utcnow:
             utcnow = datetime.datetime.utcnow()
+        if not old_categories:
+            old_categories = self.old_categories
         cats_counter = self.cats_counter
-        #old_categories = self.old_categories
+        try:
+            categories = self.categories
+        except AttributeError:
+            categories = None
+
         # only re-categorize every 10th evaluated step
         if cats_counter in range(1, 5):
             self.cats_counter = cats_counter + 1
-            return self.categories
+            return categories
         else:
-            try:
-                self.old_categories = self.categories
-            except AttributeError:
-                self.old_categories = None
             c = Categorizer(rank, categories, tag_records, utcnow=utcnow)
             cat_result = c.categorize_tags()
             categories = cat_result['categories']
             self.categories = categories
-            self.cats_counter = cats_counter + 1
+            self.cats_counter == 1  # reset counter
             if cat_result['new_tags']:
                 self.set_block('new_tags', cat_result['new_tags'])
             return categories
