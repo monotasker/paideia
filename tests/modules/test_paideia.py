@@ -141,7 +141,35 @@ def mysteps(request):
     test). This step fixture is also used in the mycases fixture.
     """
     the_step = request.param
+    text_responder = '<form action="" autocomplete="off"' \
+                     'enctype="multipart/form-data" method="post">' \
+                     '<table>' \
+                     '<tr id="no_table_response__row">' \
+                     '<td class="w2p_fl">' \
+                     '<label for="no_table_response" id="no_table_response__label">' \
+                     'Response: </label>' \
+                     '</td>' \
+                     '<td class="w2p_fw">' \
+                     '<input class="string" id="no_table_response" name="response" ' \
+                     'type="text" value="" />' \
+                     '</td>' \
+                     '<td class="w2p_fc"></td>' \
+                     '</tr>' \
+                     '<tr id="submit_record__row">' \
+                     '<td class="w2p_fl"></td>' \
+                     '<td class="w2p_fw">' \
+                     '<input type="submit" value="Submit" />' \
+                     '</td>' \
+                     '<td class="w2p_fc"></td>' \
+                     '</tr>' \
+                     '</table>' \
+                     '</form>'
+    multi_responder = text_responder
+    stub_responder = ''
+    continue_responder = ''
+
     steps = {1: {'id': 1,
+                 'paths': [2],
                  'type': StepText,
                  'widget_type': 1,
                  'npc_list': [8, 2, 32, 1, 17],
@@ -150,22 +178,10 @@ def mysteps(request):
                                'Greek letters?',
                  'final_prompt': 'How could you write the word "meet" using '
                                  'Greek letters?',
-                 'instructions': ['Focus on finding Greek letters that make '
-                                  'the *sounds* of the English word. Don\'t '
-                                  'look for Greek "equivalents" for each '
-                                  'English letter.'],
+                 'instructions': [],
                  'tags': [61],
                  'tags_secondary': [],
-                 'responder': '<form action="" autocomplete="off"'
-                              'enctype="multipart/form-data" method="post"><table>'
-                              '<tr id="no_table_response__row"><td class="w2p_fl">'
-                              '<label for="no_table_response" id="no_table_response__label">'
-                              'Response: </label></td><td class="w2p_fw">'
-                              '<input class="string" id="no_table_response" name="response" '
-                              'type="text" value="" /></td><td class="w2p_fc"></td></tr>'
-                              '<tr id="submit_record__row"><td class="w2p_fl"></td>'
-                              '<td class="w2p_fw"><input type="submit" value="Submit" />'
-                              '</td><td class="w2p_fc"></td></tr></table></form>',
+                 'responder': text_responder,
                  'responses': {'response1': '^μιτ$'},
                  'readable': {'readable_short': ['μιτ'],
                               'readable_long': None},
@@ -176,6 +192,7 @@ def mysteps(request):
                                     'incorrect': 'βλα'}
                  },
              2: {'id': 2,
+                 'paths': [3],
                  'type': StepText,
                  'widget_type': 1,
                  'npc_list': [8, 2, 32, 1],
@@ -184,9 +201,13 @@ def mysteps(request):
                                'Greek letters?',
                  'final_prompt': 'How could you write the word "bought" using '
                                  'Greek letters?',
-                 'instructions': None,
+                 'instructions': ['Focus on finding Greek letters that make '
+                                  'the *sounds* of the English word. Don\'t '
+                                  'look for Greek "equivalents" for each '
+                                  'English letter.'],
                  'tags': [61],
                  'tags_secondary': [],
+                 'responder': text_responder,
                  'responses': {'response1': '^β(α|ο)τ$'},
                  'readable': {'readable_short': ['βατ', 'βοτ'],
                               'readable_long': None},
@@ -197,13 +218,14 @@ def mysteps(request):
                                     'incorrect': 'βλα'}
                  },
              19: {'id': 19,
+                 'paths': [19],
                  'type': StepText,
                  'widget_type': 1,
                  'npc_list': [8, 2, 32, 1],
                  'locations': [3, 1, 13, 8, 11],
-                 'raw_prompt': 'How could you spell the word "pole" with '
+                 'raw_prompt': 'How could you spell the word "bet" in '
                                'Greek letters?',
-                 'final_prompt': 'How could you spell the word "pole" with '
+                 'final_prompt': 'How could you spell the word "bet" in '
                                  'Greek letters?',
                  'instructions': ['Focus on finding Greek letters that make '
                                   'the *sounds* of the English word. Don\'t '
@@ -212,6 +234,7 @@ def mysteps(request):
                  'tags': [62],
                  'tags_secondary': [61],
                  'responses': {'response1': '^πωλ$'},
+                 'responder': text_responder,
                  'readable': {'readable_short': ['πωλ'],
                               'readable_long': None},
                  'reply_text': {'correct': 'Right. Κάλον.',
@@ -221,6 +244,7 @@ def mysteps(request):
                                     'incorrect': 'βλα'}
                   },
              30: {'id': 30,
+                  'paths': [None],
                   'type': StepRedirect,
                   'widget_type': 9,
                   'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
@@ -234,8 +258,10 @@ def mysteps(request):
                                   '[[next_loc]].',
                   'instructions': None,
                   'tags': [70],
-                  'tags_secondary': []},
+                  'tags_secondary': [],
+                  'responder': stub_responder},
              101: {'id': 101,
+                   'paths': [89],
                    'type': StepMultiple,
                    'widget_type': 4,
                    'locations': [7],
@@ -249,12 +275,14 @@ def mysteps(request):
                    'tags_secondary': [],
                    'options': ['ναι', 'οὐ'],
                    'responses': {'response1': 'ναι'},
+                   'responder': multi_responder,
                    'readable': {'readable_short': ['ναι'],
                                 'readable_long': None},
                    'reply_text': {'correct': 'Right. Κάλον.',
                                   'incorrect': 'Incorrect. Try again!'},
                    'tips': []},
              125: {'id': 125,
+                   'paths': [None],
                    'type': StepQuotaReached,
                    'widget_type': 7,
                    'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10],
@@ -269,8 +297,10 @@ def mysteps(request):
                                    'continue.',
                    'instructions': None,
                    'tags': [79],
-                   'tags_secondary': []},
+                   'tags_secondary': [],
+                   'responder': continue_responder},
              126: {'id': 126,
+                   'paths': [None],
                    'type': StepAwardBadges,
                    'widget_type': 8,
                    'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10],
@@ -287,8 +317,10 @@ def mysteps(request):
                                    'so far.',
                    'instructions': None,
                    'tags': [81],
-                   'tags_secondary': []},
+                   'tags_secondary': [],
+                   'responder': continue_responder},
              127: {'id': 127,
+                   'paths': [None],
                    'type': StepViewSlides,
                    'widget_type': 6,
                    'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
@@ -311,7 +343,8 @@ def mysteps(request):
                                    'the "slides" menu item at top.',
                    'instructions': None,
                    'tags': [80],
-                   'tags_secondary': []}
+                   'tags_secondary': [],
+                   'responder': stub_responder}
              }
     return steps[the_step]
 
@@ -330,7 +363,7 @@ def mycases(request, mysteps):
                        'mynow': dt('2013-01-29'),
                        'name': 'Ian',
                        'uid': 1,
-                       'prev_loc': Location(1, db),
+                       'prev_loc': Location(7, db),
                        'prev_npc_id': 2,
                        'npcs_here': [2, 8, 14, 17, 31, 40, 41, 42],
                        'pathid': 3,
@@ -2321,17 +2354,26 @@ class TestWalk():
     def test_walk_ask(self, mywalk):
         thiswalk = mywalk['walk']
         case = mywalk['casedata']
+        c = case['casenum']
         step = mywalk['stepdata']
-        if case['casenum'] == 1:
+        s = step['id']
+        combinations = {1: 1,  # path 2
+                        1: 2,  # path 3
+                        1: 101,  # path 89, multiple
+                        2: 101,  # path 89, redirect (step 30)
+                        2: 19,  # path 19
+                        3: 19}  # path 19
+        if s == combinations[c]:
             expected = {'prompt': step['final_prompt'],
                         'instructions': step['instructions'],
+                        'responder': step['responder']}
                         # TODO: check for image -- just hard to predict
                         #image : '/paideia/static/images/images.image.bb48641f0122d2b6.'
                         #'696d616765732e696d6167652e383136303330663934646664646561312e3'
                         #'4343732363137373639366536373230333432653733373636372e737667.svg'
-                        'responder': step['responder']}
-
-            actual = thiswalk.ask()
+            print 'RESPONDER: \n'
+            print expected['responder']
+            actual = thiswalk.ask(path=step['paths'][0])
 
             assert actual['prompt']['prompt'] == expected['prompt']
             assert actual['prompt']['instructions'] == expected['instructions']
