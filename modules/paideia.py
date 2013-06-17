@@ -75,7 +75,6 @@ class Walk(object):
                 assert user.is_stale() is False
                 self.user = user
                 return user
-            # TODO: need error condition here for stale user
             except AttributeError:  # because no user yet in this session
                 if not db:
                     db = self.db
@@ -116,15 +115,24 @@ class Walk(object):
                                 cache=(cache.ram, 60 * 60)).as_list()
         return {'map_image': map_image, 'locations': locations}
 
-    def ask(self):
-        """Return the information necessary to initiate a step interaction."""
+    def ask(self, path=None):
+        """
+        Return the information necessary to initiate a step interaction.
+
+        The "step" and "path" arguments are used only for dependency
+        injection during unit testing.
+        """
         loc = self.loc
-        # TODO: switch the localias argument below to the ful Location obj
-        p = self.user.get_path(loc)
+        p = self.user.get_path(loc, path)
         s = p.get_step_for_prompt()
         prompt = s.get_prompt()
+        print '\nactual prompt:\n'
+        print prompt
         responder = s.get_responder()
-        p.prepare_for_answer()
+        print '\nactual responder:\n'
+        print responder
+        # TODO: is the method below needed?
+        #p.prepare_for_answer()
         self._store_user(self.user)
 
         return {'prompt': prompt, 'responder': responder}
@@ -143,9 +151,14 @@ class Walk(object):
         score = reply['score']
         times_right = reply['times_right']
         times_wrong = reply['times_wrong']
+        tag_progress = self.user.get_tag_progress()
+        promoted = self.user.get_promoted()
+        new_tags = self.user.get_new_tags()
 
+        assert self._record_cats(tag_progress, promoted, new_tags)
         record_id = self._record_step(path_id, step_id, tags, score,
                                       times_right, times_wrong, response_string)
+        assert record_id
 
         bug_reporter = BugReporter(record_id, path_id, step_id,
                                    tags, score, response_string)
@@ -448,7 +461,6 @@ class Step(object):
         self.data = db.steps[step_id].as_dict()
         self.repeating = False  # set to true if step already done today
         self.loc = loc
-        print 'in Step.init(), loc', loc
         self.prev_loc = prev_loc
         self.prev_npc_id = prev_npc_id
         self.npc = None
@@ -540,7 +552,6 @@ class Step(object):
         If there is no suitable npc available here, returns false.
         TODO: need to trigger redirect on false return
         """
-        print 'in get_npc(), loc', self.loc
         loc = self.loc.get_id()
 
         if self.npc and (loc in self.npc.get_locations()):  # ensure choice is made only once for each step
@@ -995,7 +1006,6 @@ class Path(object):
         # assemble list of step objects for the whole path
         static_args = {'loc': self.loc, 'prev_loc': prev_loc,
                        'prev_npc_id': prev_npc_id, 'db': db}
-        print 'Path.loc is', self.loc
         self.steps = [StepFactory().get_instance(step_id=i, **static_args)
                       for i in self.path_dict['steps']]
         # allow for insertion of these values by argument for testing
@@ -1022,7 +1032,7 @@ class Path(object):
         except:
             return False
 
-    def get_step_for_prompt(self, loc=None):
+    def get_step_for_prompt(self, loc=None, step=None):
         """Find the next unanswered step in the current path and return it.
         If the selected step cannot be performed at this location, set a
         Block on condition
@@ -1034,21 +1044,17 @@ class Path(object):
         # first check whether next step was pulled out earlier
         if self.step_for_prompt:
             next_step = self.step_for_prompt
-        elif self._prepare_for_prompt():
+        elif self._prepare_for_prompt():  # otherwise pull it now
             next_step = self.step_for_prompt
         else:
             # TODO make this a more specific exception
             raise Exception
 
-        # TODO make sure that current loc and npc get set for self.prev_loc etc
-        # check that next step can be asked here, else redirect
-        locs = next_step.get_locations()
-        if not (self.loc.get_id() in locs):
-            self.redirect(locs)
         # check for blocks; block removed when its step retrieved here
         # this is the ONLY place where blocks are triggered, but they can be
         # set elsewhere
-        new_block = self.check_for_blocks(next_step)
+        # TODO: should this be done by the User?
+        new_block = self._check_for_blocks(next_step)
 
         if new_block:
             return new_block
@@ -1075,17 +1081,24 @@ class Path(object):
         else:
             self.blocks = [new_block]
 
-    def check_for_blocks(self, next_step, db=None):
+    def _check_for_blocks(self, next_step, db=None):
         """
-        Check for any active blocking conditions and activate the first found.
+        Check whether new block needed, then activate first block (if any).
 
         If a block is found:
         - Returns a step subclass instance (StepRedirect, StepQuotaReached,
             StepAwardBadges, or StepViewSlides)
         - also sets self.step_sent_id
+
         If a block is not found:
         - Returns False
         """
+        # TODO make sure that current loc and npc get set for self.prev_loc etc
+        # check that next step can be asked here, else redirect
+        locs = next_step.get_locations()
+        if not (self.loc.get_id() in locs):
+            self.redirect(locs)
+
         if self.blocks:
             block_step = self.blocks.pop(0).get_step()
             if block_step:
@@ -1281,7 +1294,7 @@ class User(object):
         self.cats_counter = 0
         self.old_categories = {}
         self.categories = self._get_categories()
-        self.new_badges = None
+        self.new_tags = None
         self.blocks = []
         self.inventory = []
         self.session_start = datetime.datetime.utcnow()
@@ -1329,15 +1342,15 @@ class User(object):
         else:
             return False
 
-    def get_new_badges(self):
+    def get_new_tags(self):
         """Return a list of tag ids newly introduced"""
-        return self.new_badges
+        return self.new_tags
 
     def get_promoted(self):
         """Return a dictionary of tag ids newly promoted to categories 2-4."""
         return self.promoted
 
-    def get_path(self, loc, categories=None, db=None):
+    def get_path(self, loc, categories=None, db=None, path=None, step=None):
         """
         Return the currently active Path object.
 
@@ -1350,14 +1363,17 @@ class User(object):
         if not categories:
             categories = self._get_categories()
 
+        self.loc = loc
+        # If a path has been injected for testing
+        if path:
+            print 'INJECTED PATH path'
+            return Path(path_id=path, loc=loc)
         # If the user has a multi-step path in progress, use that path
         if self.path:
-            self.loc = loc
             self.path._set_loc(loc)
             return self.path
         # otherwise, select a new path
         else:
-            self.loc = loc
             choice = PathChooser(self.categories, loc.get_id(),
                                  self.completed_paths, db=self.db).choose()
             path = Path(path_id=choice[0].id, loc=loc)
@@ -1420,10 +1436,12 @@ class User(object):
         else:
             return None
 
+    # TODO: Move this method to Path?
     def _get_blocks(self):
         """docstring"""
         return self.blocks
 
+    # TODO: Move this method to Path?
     def _set_block(self, condition, kwargs=None, data=None):
         """docstring for _set_block"""
         try:
