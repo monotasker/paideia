@@ -123,7 +123,8 @@ class Walk(object):
         injection during unit testing.
         """
         loc = self.loc
-        p = self.user.get_path(loc, path)
+        print '\nask() received path', path
+        p = self.user.get_path(loc, path=path)
         s = p.get_step_for_prompt()
         prompt = s.get_prompt()
         print '\nactual prompt:\n'
@@ -994,23 +995,17 @@ class Path(object):
             loc_id
         The others are for dependency injection in testing
         """
-        if prev_loc:
-            self.prev_loc_id = prev_loc.get_id()
-        self.prev_npc_id = prev_npc_id
+        self.prev_loc_id = prev_loc.get_id() if prev_loc else None
+        self.prev_npc_id = prev_npc_id if prev_npc_id else None
         self.loc = loc
         self.blocks = blocks
-        if not db:
-            db = current.db
-        self.db = db
+        self.db = db if db else current.db
         self.path_dict = db.paths[path_id].as_dict()
-        # assemble list of step objects for the whole path
         static_args = {'loc': self.loc, 'prev_loc': prev_loc,
                        'prev_npc_id': prev_npc_id, 'db': db}
         self.steps = [StepFactory().get_instance(step_id=i, **static_args)
                       for i in self.path_dict['steps']]
-        # allow for insertion of these values by argument for testing
-        if not completed_steps:
-            self.completed_steps = []
+        self.completed_steps = completed_steps if completed_steps else []
         self.last_step_id = last_step_id
         self.step_for_prompt = step_for_prompt
         self.step_for_reply = step_for_reply
@@ -1281,9 +1276,7 @@ class User(object):
         - tag_progress: rows.as_dict()
         - tag_records: rows.as_dict
         """
-        if not db:
-            db = current.db
-        self.db = db
+        self.db = current.db if not db else db
         self.tag_progress = tag_progress
         self.tag_records = tag_records
         self.rank = tag_progress['latest_new']
@@ -1350,7 +1343,7 @@ class User(object):
         """Return a dictionary of tag ids newly promoted to categories 2-4."""
         return self.promoted
 
-    def get_path(self, loc, categories=None, db=None, path=None, step=None):
+    def get_path(self, loc, categories=None, db=None, path=None):
         """
         Return the currently active Path object.
 
@@ -1358,16 +1351,13 @@ class User(object):
         provided. The db argument is only used for dependency injection during
         testing.
         """
-        if not db:
-            db = current.db
-        if not categories:
-            categories = self._get_categories()
-
+        db = self.db if not db else db
+        categories = categories if categories else self._get_categories()
         self.loc = loc
         # If a path has been injected for testing
         if path:
             print 'INJECTED PATH path'
-            return Path(path_id=path, loc=loc)
+            return Path(path_id=path, loc=loc, db=db)
         # If the user has a multi-step path in progress, use that path
         if self.path:
             self.path._set_loc(loc)
@@ -1375,8 +1365,8 @@ class User(object):
         # otherwise, select a new path
         else:
             choice = PathChooser(self.categories, loc.get_id(),
-                                 self.completed_paths, db=self.db).choose()
-            path = Path(path_id=choice[0].id, loc=loc)
+                                 self.completed_paths, db=db).choose()
+            path = Path(path_id=choice[0].id, loc=loc, db=db)
 
             # check for a redirect location to start the selected path
             if choice[1]:

@@ -223,9 +223,9 @@ def mysteps(request):
                  'widget_type': 1,
                  'npc_list': [8, 2, 32, 1],
                  'locations': [3, 1, 13, 8, 11],
-                 'raw_prompt': 'How could you spell the word "bet" in '
+                 'raw_prompt': 'How could you spell the word "pole" with '
                                'Greek letters?',
-                 'final_prompt': 'How could you spell the word "bet" in '
+                 'final_prompt': 'How could you spell the word "pole" with '
                                  'Greek letters?',
                  'instructions': ['Focus on finding Greek letters that make '
                                   'the *sounds* of the English word. Don\'t '
@@ -2363,7 +2363,7 @@ class TestWalk():
                         2: 101,  # path 89, redirect (step 30)
                         2: 19,  # path 19
                         3: 19}  # path 19
-        if s == combinations[c]:
+        if c in combinations.keys() and s == combinations[c]:
             expected = {'prompt': step['final_prompt'],
                         'instructions': step['instructions'],
                         'responder': step['responder']}
@@ -2371,6 +2371,7 @@ class TestWalk():
                         #image : '/paideia/static/images/images.image.bb48641f0122d2b6.'
                         #'696d616765732e696d6167652e383136303330663934646664646561312e3'
                         #'4343732363137373639366536373230333432653733373636372e737667.svg'
+            print 'PATHS', step['paths'][0]
             print 'RESPONDER: \n'
             print expected['responder']
             actual = thiswalk.ask(path=step['paths'][0])
