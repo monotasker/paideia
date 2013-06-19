@@ -47,9 +47,7 @@ class Walk(object):
                  db=None):
         """Initialize a Walk object."""
         self.localias = localias
-        self.db = db
-        if not db:
-            self.db = current.db
+        self.db = db if db else current.db
         loc_id = db(db.locations.alias == localias).select().first().id
         self.loc = Location(loc_id, db)
         self.response_string = response_string
@@ -76,8 +74,7 @@ class Walk(object):
                 self.user = user
                 return user
             except AttributeError:  # because no user yet in this session
-                if not db:
-                    db = self.db
+                db = db if db else self.db
                 if not tag_records:
                     auth = current.auth
                     tag_records = db(db.tag_records.name ==
@@ -96,7 +93,8 @@ class Walk(object):
                                           self.user.get_id()).select()
                         tag_progress = tag_progress.first().as_dict()
 
-                self.user = User(userdata, localias, tag_records, tag_progress)
+                self.user = User(userdata, localias, tag_records, tag_progress,
+                                 db=db)
                 return self.user
 
     def map(self, db=None):
@@ -119,8 +117,8 @@ class Walk(object):
         """
         Return the information necessary to initiate a step interaction.
 
-        The "step" and "path" arguments are used only for dependency
-        injection during unit testing.
+        The "path" argument is used only for dependency injection during
+        unit testing.
         """
         loc = self.loc
         print '\nask() received path', path
@@ -132,20 +130,26 @@ class Walk(object):
         responder = s.get_responder()
         print '\nactual responder:\n'
         print responder
-        # TODO: is the method below needed?
-        #p.prepare_for_answer()
         self._store_user(self.user)
+        print 'user.path at end of ask()', self.user.get_path(loc).get_id()
 
         return {'prompt': prompt, 'responder': responder}
 
     def reply(self, response_string):
-        """docstring for __reply__"""
+        """
+
+        """
 
         p = self.user.get_path(self.loc)
         path_id = p.get_id()
+        print 'STARTING REPLY'
+        print 'PATH', path_id
+        print 'P.step_for_prompt', p.step_for_prompt
+        print 'P.step_for_reply', p.step_for_reply
 
         s = p.get_step_for_reply(self.db)
         step_id = s.get_id()
+        print 'STEP', step_id
 
         reply = s.get_reply(response_string)
         tags = reply['tags']
@@ -542,7 +546,7 @@ class Step(object):
         """
         map_button = A("Map", _href=URL('walk'),
                        cid='page',
-                       _class='button-yellow-grad back_to_map icon-location')
+                       _class='back_to_map')
         responder = DIV(map_button)
         return responder
 
@@ -590,7 +594,7 @@ class Step(object):
             return list
 
 
-class StepResponder(Step):
+class StepContinue(Step):
     """
     An abstract subclass of Step that adds a 'continue' button to the responder.
     """
@@ -599,12 +603,12 @@ class StepResponder(Step):
         Return the html form to allow the user to respond to the prompt for
         this step.
         """
-        responder = super(StepResponder, self).get_responder()
+        responder = super(StepContinue, self).get_responder()
 
         continue_button = A("Continue", _href=URL('walk', args=['ask'],
                             vars={'loc': self.loc.get_id()}),
                             cid='page',
-                            _class='button-green-grad next_q')
+                            _class='next_q')
         responder.append(continue_button)
 
         return responder
@@ -661,7 +665,7 @@ class StepRedirect(Step):
         return new_string
 
 
-class StepQuotaReached(StepResponder, Step):
+class StepQuotaReached(StepContinue, Step):
     '''
     A Step that tells the user s/he has completed the daily minimum # of steps.
     '''
@@ -678,7 +682,7 @@ class StepQuotaReached(StepResponder, Step):
         return new_string
 
 
-class StepAwardBadges(StepResponder, Step):
+class StepAwardBadges(StepContinue, Step):
     '''
     A Step that informs the user when s/he has earned new badges.
     '''
@@ -1027,36 +1031,46 @@ class Path(object):
         except:
             return False
 
-    def get_step_for_prompt(self, loc=None, step=None):
-        """Find the next unanswered step in the current path and return it.
-        If the selected step cannot be performed at this location, set a
-        Block on condition
+    def _prepare_for_reply(self):
         """
-        # check for active step that hasn't been asked because of block
+        Move the active step from self.step_for_prompt to self.step_for_reply.
+        This prepares a step for the evaluation of user-input.
+        """
+        if self.step_for_prompt:
+            self.step_for_reply = copy(self.step_for_prompt)
+            self.step_for_prompt = None
+            return True
+        else:
+            return False
+
+    def get_step_for_prompt(self, loc=None, step=None):
+        """
+        Find the next unanswered step in the current path and return it.
+        If the selected step cannot be performed at this location, return a
+        Block object instead.
+        """
         if loc:
             self.loc = loc
 
-        # first check whether next step was pulled out earlier
+        # make sure controller hasn't skipped processing an earlier step's reply
+        if self.step_for_reply:
+            # TODO handle this situation
+            raise Exception
+
         if self.step_for_prompt:
             next_step = self.step_for_prompt
-        elif self._prepare_for_prompt():  # otherwise pull it now
+        elif self._prepare_for_prompt():
             next_step = self.step_for_prompt
-        else:
-            # TODO make this a more specific exception
-            raise Exception
 
         # check for blocks; block removed when its step retrieved here
         # this is the ONLY place where blocks are triggered, but they can be
         # set elsewhere
-        # TODO: should this be done by the User?
         new_block = self._check_for_blocks(next_step)
-
         if new_block:
             return new_block
         else:
-            self.step_sent_id = next_step.get_id()
-            self.step_for_prompt = None
-            self.step_for_reply = next_step
+            if isinstance(next_step, (StepText, StepMultiple)):
+                assert self._prepare_for_reply()
             return next_step
 
     def redirect(self, locs, db=None):
@@ -1127,6 +1141,13 @@ class Path(object):
         self.step_for_reply = None
 
         return reply_step
+
+    def _set_loc(self, loc):
+        """
+        Set the active location for this path.
+        """
+        self.loc == loc
+        return True
 
 
 class PathChooser(object):
@@ -1361,6 +1382,7 @@ class User(object):
         # If the user has a multi-step path in progress, use that path
         if self.path:
             self.path._set_loc(loc)
+            print 'User returning path', self.path.get_id()
             return self.path
         # otherwise, select a new path
         else:
