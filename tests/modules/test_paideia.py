@@ -141,33 +141,61 @@ def mysteps(request):
     test). This step fixture is also used in the mycases fixture.
     """
     the_step = request.param
-    text_responder = '<form action="" autocomplete="off"' \
-                     'enctype="multipart/form-data" method="post">' \
-                     '<table>' \
-                     '<tr id="no_table_response__row">' \
-                     '<td class="w2p_fl">' \
-                     '<label for="no_table_response" id="no_table_response__label">' \
-                     'Response: </label>' \
-                     '</td>' \
-                     '<td class="w2p_fw">' \
-                     '<input class="string" id="no_table_response" name="response" ' \
-                     'type="text" value="" />' \
-                     '</td>' \
-                     '<td class="w2p_fc"></td>' \
-                     '</tr>' \
-                     '<tr id="submit_record__row">' \
-                     '<td class="w2p_fl"></td>' \
-                     '<td class="w2p_fw">' \
-                     '<input type="submit" value="Submit" />' \
-                     '</td>' \
-                     '<td class="w2p_fc"></td>' \
-                     '</tr>' \
-                     '</table>' \
-                     '</form>'
-    multi_responder = text_responder
-    stub_responder = ''
-    continue_responder = ''
-
+    responders = {'text': '<form action="#" autocomplete="off" '
+                          'enctype="multipart/form-data" method="post">'
+                          '<table>'
+                          '<tr id="no_table_response__row">'
+                          '<td class="w2p_fl">'
+                          '<label for="no_table_response" id="no_table_response__label">'
+                          'Response: </label>'
+                          '</td>'
+                          '<td class="w2p_fw">'
+                          '<input class="string" id="no_table_response" name="response" '
+                          'type="text" value="" />'
+                          '</td>'
+                          '<td class="w2p_fc"></td>'
+                          '</tr>'
+                          '<tr id="submit_record__row">'
+                          '<td class="w2p_fl"></td>'
+                          '<td class="w2p_fw">'
+                          '<input type="submit" value="Submit" />'
+                          '</td>'
+                          '<td class="w2p_fc"></td>'
+                          '</tr>'
+                          '</table>'
+                          '</form>',
+                  'multi': '<form action="#" autocomplete="off" '
+                           'enctype="multipart/form-data" method="post">'
+                           '<table>'
+                           '<tr id="no_table_response__row">'
+                           '<td class="w2p_fl">'
+                           '<label for="no_table_response" id="no_table_response__label">'
+                           'Response: </label>'
+                           '</td>'
+                           '<td class="w2p_fw">'
+                           '<input class="string" id="no_table_response" name="response" '
+                           'type="text" value="" />'
+                           '</td>'
+                           '<td class="w2p_fc"></td>'
+                           '</tr>'
+                           '<tr id="submit_record__row">'
+                           '<td class="w2p_fl"></td>'
+                           '<td class="w2p_fw">'
+                           '<input type="submit" value="Submit" />'
+                           '</td>'
+                           '<td class="w2p_fc"></td>'
+                           '</tr>'
+                           '</table>'
+                           '</form>',
+                  'stub': '<div>'
+                          '<a class="back_to_map" href="/paideia/default/walk" '
+                          'onclick="web2py_component(&quot;/paideia/default/'
+                          'walk&quot;,&quot;page&quot;);return false;">Map</a>'
+                          '</div>',
+                  'continue': ''}
+    prompts = {'redirect': 'Hi there. Sorry, I don\'t have anything for you to '
+               'do here at the moment. I think someone was looking for you at '
+               'somewhere else in town.'}
     steps = {1: {'id': 1,
                  'paths': [2],
                  'type': StepText,
@@ -178,10 +206,12 @@ def mysteps(request):
                                'Greek letters?',
                  'final_prompt': 'How could you write the word "meet" using '
                                  'Greek letters?',
+                 'redirect_prompt': prompts['redirect'],
                  'instructions': [],
                  'tags': [61],
                  'tags_secondary': [],
-                 'responder': text_responder,
+                 'responder': responders['text'],
+                 'redirect_responder': responders['stub'],
                  'responses': {'response1': '^μιτ$'},
                  'readable': {'readable_short': ['μιτ'],
                               'readable_long': None},
@@ -201,13 +231,15 @@ def mysteps(request):
                                'Greek letters?',
                  'final_prompt': 'How could you write the word "bought" using '
                                  'Greek letters?',
+                 'redirect_prompt': prompts['redirect'],
                  'instructions': ['Focus on finding Greek letters that make '
                                   'the *sounds* of the English word. Don\'t '
                                   'look for Greek "equivalents" for each '
                                   'English letter.'],
                  'tags': [61],
                  'tags_secondary': [],
-                 'responder': text_responder,
+                 'responder': responders['text'],
+                 'redirect_responder': responders['stub'],
                  'responses': {'response1': '^β(α|ο)τ$'},
                  'readable': {'readable_short': ['βατ', 'βοτ'],
                               'readable_long': None},
@@ -227,6 +259,7 @@ def mysteps(request):
                                'Greek letters?',
                  'final_prompt': 'How could you spell the word "pole" with '
                                  'Greek letters?',
+                 'redirect_prompt': prompts['redirect'],
                  'instructions': ['Focus on finding Greek letters that make '
                                   'the *sounds* of the English word. Don\'t '
                                   'look for Greek "equivalents" for each '
@@ -234,7 +267,8 @@ def mysteps(request):
                  'tags': [62],
                  'tags_secondary': [61],
                  'responses': {'response1': '^πωλ$'},
-                 'responder': text_responder,
+                 'responder': responders['text'],
+                 'redirect_responder': responders['stub'],
                  'readable': {'readable_short': ['πωλ'],
                               'readable_long': None},
                  'reply_text': {'correct': 'Right. Κάλον.',
@@ -256,10 +290,12 @@ def mysteps(request):
                                   'for you to do here at the moment. I think '
                                   'someone was looking for you at '
                                   '[[next_loc]].',
+                  'redirect_prompt': prompts['redirect'],
                   'instructions': None,
                   'tags': [70],
                   'tags_secondary': [],
-                  'responder': stub_responder},
+                  'redirect_responder': responders['stub'],
+                  'responder': responders['stub']},
              101: {'id': 101,
                    'paths': [89],
                    'type': StepMultiple,
@@ -270,14 +306,18 @@ def mysteps(request):
                                  'cat sat."',
                    'final_prompt': 'Is this an English clause?\r\n\r\n"The '
                                    'cat sat."',
+                   'redirect_prompt': prompts['redirect'],
                    'instructions': None,
                    'tags': [36],
                    'tags_secondary': [],
                    'options': ['ναι', 'οὐ'],
                    'responses': {'response1': 'ναι'},
-                   'responder': multi_responder,
+                   'responder': responders['multi'],
+                   'redirect_responder': responders['stub'],
                    'readable': {'readable_short': ['ναι'],
                                 'readable_long': None},
+                   'user_responses': {'correct': 'ναι',
+                                      'incorrect': 'οὐ'},
                    'reply_text': {'correct': 'Right. Κάλον.',
                                   'incorrect': 'Incorrect. Try again!'},
                    'tips': []},
@@ -298,7 +338,7 @@ def mysteps(request):
                    'instructions': None,
                    'tags': [79],
                    'tags_secondary': [],
-                   'responder': continue_responder},
+                   'responder': responders['continue']},
              126: {'id': 126,
                    'paths': [None],
                    'type': StepAwardBadges,
@@ -318,7 +358,7 @@ def mysteps(request):
                    'instructions': None,
                    'tags': [81],
                    'tags_secondary': [],
-                   'responder': continue_responder},
+                   'responder': responders['continue']},
              127: {'id': 127,
                    'paths': [None],
                    'type': StepViewSlides,
@@ -344,7 +384,7 @@ def mysteps(request):
                    'instructions': None,
                    'tags': [80],
                    'tags_secondary': [],
-                   'responder': stub_responder}
+                   'responder': responders['stub']}
              }
     return steps[the_step]
 
@@ -2359,18 +2399,24 @@ class TestWalk():
         s = step['id']
         combinations = {1: 1,  # path 2
                         1: 2,  # path 3
-                        1: 101,  # path 89, multiple
-                        2: 101,  # path 89, redirect (step 30)
+                        1: 101,  # path 89, multiple, redirect (step 30)
+                        2: 101,  # path 89, multiple
                         2: 19,  # path 19
                         3: 19}  # path 19
         if c in combinations.keys() and s == combinations[c]:
-            expected = {'prompt': step['final_prompt'],
-                        'instructions': step['instructions'],
-                        'responder': step['responder']}
-                        # TODO: check for image -- just hard to predict
-                        #image : '/paideia/static/images/images.image.bb48641f0122d2b6.'
-                        #'696d616765732e696d6167652e383136303330663934646664646561312e3'
-                        #'4343732363137373639366536373230333432653733373636372e737667.svg'
+            redirects = {1: 101}  # TODO: is this right for expected redirects?
+            if c in redirects and s == redirects[c]:
+                expected = {'prompt': step['redirect_prompt'],
+                            'instructions': None,
+                            'responder': step['redirect_responder']}
+            else:
+                expected = {'prompt': step['final_prompt'],
+                            'instructions': step['instructions'],
+                            'responder': step['responder']}
+                            # TODO: check for image -- just hard to predict
+                            #image : '/paideia/static/images/images.image.bb48641f0122d2b6.'
+                            #'696d616765732e696d6167652e383136303330663934646664646561312e3'
+                            #'4343732363137373639366536373230333432653733373636372e737667.svg'
             print 'PATHS', step['paths'][0]
             print 'RESPONDER: \n'
             print expected['responder']
@@ -2378,7 +2424,7 @@ class TestWalk():
 
             assert actual['prompt']['prompt'] == expected['prompt']
             assert actual['prompt']['instructions'] == expected['instructions']
-            assert actual['prompt']['npc_image'] == expected['image']
+            #assert actual['prompt']['npc_image'] == expected['image']
             assert actual['responder'].xml() == expected['responder']
         else:
             pass
@@ -2389,8 +2435,17 @@ class TestWalk():
         # coming from the parameterized fixtures
         thiswalk = mywalk['walk']
         case = mywalk['casedata']
+        c = case['casenum']
         step = mywalk['stepdata']
-        if case['casenum'] == 1:
+        s = step['id']
+        combinations = {1: 1,  # path 2
+                        1: 2,  # path 3
+                        1: 101,  # path 89, multiple, redirect (step 30)
+                        2: 101,  # path 89, multiple
+                        2: 19,  # path 19
+                        3: 19}  # path 19
+        if c in combinations.keys() and s == combinations[c]:
+            # test for both a correct and an incorrect response
             for k, v in step['user_responses'].iteritems():
                 response_string = v
                 expected = {'reply': step['reply_text'][k],
@@ -2398,14 +2453,21 @@ class TestWalk():
                             # TODO: add bug reporter string
                             # TODO: put in safety in case of empty form
 
+                thiswalk.ask(path=step['paths'][0])
+                u1 = thiswalk.user
                 actual = thiswalk.reply(response_string),
+                u2 = thiswalk.user
+                # TODO: does actual change u1, rendering this test redundant?
+                assert u1 == u2
 
                 assert actual['reply'] == expected['reply']
                 assert actual['bug_reporter'] == expected['bug_reporter']
+        else:
+            pass
 
     def test_walk_record_cats(self, mywalk):
         """
-        Unit tests for Walk._record_cats()
+        Unit tests for Walk._record_cats() method.
         """
         thiswalk = mywalk['walk']
         case = mywalk['casedata']
