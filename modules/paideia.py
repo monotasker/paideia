@@ -263,11 +263,9 @@ class Location(object):
 
     def __init__(self, id_num, db=None):
         """Initialize a Location object."""
-        if db is None:
-            db = current.db
-        self.db = db
+        self.db = db if db else current.db
         self.id_num = id_num
-        self.data = db.locations[id_num]
+        self.data = self.db.locations[id_num]
 
     def get_alias(self):
         """Return the alias of the current Location as a string."""
@@ -1142,11 +1140,17 @@ class Path(object):
 
         return reply_step
 
+    def _get_steps(self):
+        """
+        Return a list containing all the steps of this path as Step objects.
+        """
+        return self.steps
+
     def _set_loc(self, loc):
         """
         Set the active location for this path.
         """
-        self.loc == loc
+        self.loc = loc
         return True
 
 

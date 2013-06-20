@@ -46,10 +46,10 @@ global_run_TestStepText = False
 global_run_TestStepMultiple = False
 global_run_TestStepEvaluator = False
 global_run_TestMultipleEvaluator = False
-global_run_TestPath = False
+global_run_TestPath = 1
 global_run_TestUser = False
 global_run_TestCategorizer = False
-global_run_TestWalk = 1
+global_run_TestWalk = False
 global_run_TestPathChooser = False
 
 # ===================================================================
@@ -1976,16 +1976,16 @@ class TestPath():
 
     def test_path_check_for_blocks(self, mypath, mysteps):
         """
-        unit test for Path.check_for_blocks()
+        unit test for Path._check_for_blocks()
 
         Since this method only checks for the presence of blocks on the current
         path, it will return a blocking step for each test case (even if that
         case would not normally have a block set.)
         """
-        #pid = mypath['id']
-        sid = mypath['steps'][0]
-        if mysteps['id'] == sid:
-            path = mypath['path']
+        path = mypath['path']
+        sid = path['steps'][0]
+        step = mysteps
+        if step['id'] == sid:
             locs = [2, 3]
 
             kwargs = {'step_id': 30,
@@ -1996,7 +1996,7 @@ class TestPath():
             path.blocks = expected[:]
             path.step_for_prompt = sid
 
-            actual = path.check_for_blocks(locs)
+            actual = path._check_for_blocks(step)
 
             print expected
             assert actual == expected[0].get_step()
@@ -2012,7 +2012,7 @@ class TestPath():
 
         Since redirect() doesn't check any conditions before appending redirect
         Block, all cases tested should result in a Block (even if
-        check_for_blocks() would not normally call redirect() for the case).
+        _check_for_blocks() would not normally call redirect() for the case).
         """
         sid = mypath['steps'][0]
         if mysteps['id'] == sid:
@@ -2045,10 +2045,11 @@ class TestPath():
         """
         Unit test for method paideia.Path.get_step_for_reply.
         """
+        path = mypath['path']
+        case = mypath['casedata']
+        step = mypath['stepdata']
         sid = mypath['steps'][0]
-        if mysteps['id'] == sid:
-            path = mypath['path']
-            case = mypath['casedata']
+        if step['id'] == sid:
             kwargs = {'step_id': sid,
                       'loc': case['loc'],
                       'prev_loc': case['prev_loc'],
@@ -2066,6 +2067,21 @@ class TestPath():
             assert not isinstance(actual, StepQuotaReached)
             assert not isinstance(actual, StepViewSlides)
             assert not isinstance(actual, StepAwardBadges)
+        else:
+            pass
+
+    def test_path_set_loc(self, mypath):
+        """docstring for test_path_set_loc"""
+        path = mypath['path']
+        case = mypath['casedata']
+        step = mypath['stepdata']
+        sid = mypath['steps'][0]
+        if case['casenum'] == 1 and step['id'] == sid:
+            newloc = Location(11, db)
+            actual = path
+            actual._set_loc(newloc)
+        else:
+            pass
 
 
 class TestUser():
