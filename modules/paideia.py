@@ -335,12 +335,12 @@ class Npc(object):
         return img
 
     def get_locations(self):
-        """docstring for get_locations"""
-        locs = [Location(l) for l in self.data.location]
+        """docstring for Npc.get_locations"""
+        locs = [l for l in self.data.location]
         return locs
 
     def get_description(self):
-        """docstring for get_locations"""
+        """docstring for Npc.get_description"""
         return self.data.notes
 
 
@@ -369,23 +369,21 @@ class NpcChooser(object):
         one that can engage in the selected step.
         """
         available = self.step.get_npcs()
-        location = self.location
-        prev_npc = self.prev_npc
-        prev_loc = self.prev_loc
-        # TODO: step.get_npcs should return ids, not Npc's
 
-        if ((location.get_readable() == prev_loc.get_readable()) and
-                (prev_npc.get_id() in available)):
-            return prev_npc
+        if ((self.location.get_readable() == self.prev_loc.get_readable()) and
+                (self.prev_npc.get_id() in available)):
+            return self.prev_npc
         else:
             # TODO: is the list below right???
             available2 = [n for n in available
-                          if n.get_id() == prev_npc.get_id()
-                          and location.get_id() in n.get_locations()]
+                          if n == self.prev_npc.get_id()
+                          and self.location.get_id() in n.get_locations()]
             if len(available2) > 1:
                 return Npc(available2[randint(0, len(available2) - 1)])
             else:
                 return Npc(available2[0])
+
+            return False
 
 
 class BugReporter(object):
@@ -455,7 +453,7 @@ class Step(object):
     interaction) in the game.
     '''
 
-    def __init__(self, step_id=None, loc=None, prev_loc=None, prev_npc_id=None,
+    def __init__(self, step_id=None, loc=None, prev_loc=None, prev_npc=None,
                  **kwargs):
         """Initialize a paideia.Step object"""
         #if not db:
@@ -465,7 +463,7 @@ class Step(object):
         self.repeating = False  # set to true if step already done today
         self.loc = loc
         self.prev_loc = prev_loc
-        self.prev_npc_id = prev_npc_id
+        self.prev_npc = prev_npc
         self.npc = None
 
     def get_id(self):
@@ -482,7 +480,10 @@ class Step(object):
 
     def get_tags(self):
         """
-        Return a list of tag id's
+        Return a dictionary of tag id's associated with the current Step.
+
+        Keys for the dictionary are 'primary' and 'secondary'. Values are lists
+        of integers (db.tags row id's).
         """
         primary = self.data['tags']
         secondary = self.data['tags_secondary']
@@ -566,13 +567,15 @@ class Step(object):
 
             if len(npc_list) < 1:
                 return False
-            elif self.prev_npc_id in npc_list:
-                self.npc = Npc(self.prev_npc_id, db=self.db)
+            elif self.prev_npc and self.prev_npc.get_id() in npc_list:
+                self.npc = self.prev_npc
                 return self.npc
             else:
                 pick = npc_list[randint(1, len(npc_list)) - 1]
                 self.npc = Npc(pick, db=self.db)
                 return self.npc
+
+            return False
 
     def _get_instructions(self):
         """
@@ -618,7 +621,7 @@ class StepRedirect(Step):
     sent to another location.
     '''
     def __init__(self, step_id=None, step_data=None, loc=None, prev_loc=None,
-                 prev_npc_id=None, username=None, next_step_id=None, db=None,
+                 prev_npc=None, username=None, next_step_id=None, db=None,
                  **kwargs):
         """docstring for __init__"""
 
@@ -988,7 +991,7 @@ class Path(object):
 
     def __init__(self, path_id=None, blocks=[], loc=None, prev_loc=None,
                  completed_steps=None, last_step_id=None, step_for_prompt=None,
-                 step_for_reply=None, prev_npc_id=None, db=None):
+                 step_for_reply=None, prev_npc=None, db=None):
         """
         Initialize a paideia.Path object.
 
@@ -997,16 +1000,13 @@ class Path(object):
             loc_id
         The others are for dependency injection in testing
         """
-        self.prev_loc_id = prev_loc.get_id() if prev_loc else None
-        self.prev_npc_id = prev_npc_id if prev_npc_id else None
+        self.prev_loc = prev_loc if prev_loc else None
+        self.prev_npc = prev_npc if prev_npc else None
         self.loc = loc
         self.blocks = blocks
         self.db = db if db else current.db
-        self.path_dict = db.paths[path_id].as_dict()
-        static_args = {'loc': self.loc, 'prev_loc': prev_loc,
-                       'prev_npc_id': prev_npc_id, 'db': db}
-        self.steps = [StepFactory().get_instance(step_id=i, **static_args)
-                      for i in self.path_dict['steps']]
+        self.path_dict = self.db.paths[path_id].as_dict()
+        self.steps = self.get_steps()
         self.completed_steps = completed_steps if completed_steps else []
         self.last_step_id = last_step_id
         self.step_for_prompt = step_for_prompt
@@ -1079,8 +1079,8 @@ class Path(object):
         """
         kwargs = {'step_id': 30,
                   'loc': self.loc,
-                  'prev_loc': self.prev_loc_id,
-                  'prev_npc_id': self.prev_npc_id}
+                  'prev_loc': self.prev_loc,
+                  'prev_npc': self.prev_npc}
 
         new_block = Block('redirect', kwargs=kwargs, data=locs)
         if self.blocks:
@@ -1140,11 +1140,18 @@ class Path(object):
 
         return reply_step
 
-    def _get_steps(self):
+    def get_steps(self):
         """
         Return a list containing all the steps of this path as Step objects.
         """
-        return self.steps
+        static_args = {'loc': self.loc,
+                       'prev_loc': self.prev_loc,
+                       'prev_npc': self.prev_npc,
+                       'db': self.db}
+        steplist = [StepFactory().get_instance(step_id=i, **static_args)
+                    for i in self.path_dict['steps']]
+
+        return steplist
 
     def _set_loc(self, loc):
         """
@@ -1319,8 +1326,9 @@ class User(object):
         self.last_npc = None
         self.last_loc = None
         self.localias = localias
-        self.loc_id = db(db.locations.alias == localias).select().first().id
-        self.loc = Location(self.loc_id, db)
+        self.loc_id = self.db(self.db.locations.alias == localias
+                              ).select().first().id
+        self.loc = Location(self.loc_id, self.db)
         self.redirect_loc = None
 
     def get_id(self):
