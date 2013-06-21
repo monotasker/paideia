@@ -37,7 +37,7 @@ client.post('user/register', data=data)
 global_runall = False
 global_run_TestNpc = False
 global_run_TestLocation = False
-global_run_TestNpcChooser = False
+global_run_TestNpcChooser = 1
 global_run_TestStep = False
 global_run_TestStepRedirect = False
 global_run_TestStepAwardBadges = False
@@ -46,7 +46,7 @@ global_run_TestStepText = False
 global_run_TestStepMultiple = False
 global_run_TestStepEvaluator = False
 global_run_TestMultipleEvaluator = False
-global_run_TestPath = 1
+global_run_TestPath = False
 global_run_TestUser = False
 global_run_TestCategorizer = False
 global_run_TestWalk = False
@@ -404,7 +404,7 @@ def mycases(request, mysteps):
                        'name': 'Ian',
                        'uid': 1,
                        'prev_loc': Location(7, db),
-                       'prev_npc_id': 2,
+                       'prev_npc': Npc(2, db),
                        'npcs_here': [2, 8, 14, 17, 31, 40, 41, 42],
                        'pathid': 3,
                        'blocks_in': None,
@@ -458,7 +458,7 @@ def mycases(request, mysteps):
                        'name': 'Ian',
                        'uid': 1,
                        'prev_loc': Location(8, db),
-                       'prev_npc_id': 1,
+                       'prev_npc': Npc(1, db),
                        'npcs_here': [1, 14, 17, 21, 40, 41, 42],
                        'pathid': 89,
                        'blocks_in': None,
@@ -512,7 +512,7 @@ def mycases(request, mysteps):
                        'uid': 1,
                        'loc': Location(11, db),  # synagogue
                        'prev_loc': Location(11, db),
-                       'prev_npc_id': 31,  # stephanos
+                       'prev_npc': Npc(31, db),  # stephanos
                        'npcs_here': [31, 32],
                        'pathid': 19,
                        'blocks_in': None,
@@ -603,7 +603,7 @@ def mycases(request, mysteps):
                        'uid': 1,
                        'loc': Location(8, db),
                        'prev_loc': Location(7, db),
-                       'prev_npc_id': 1,
+                       'prev_npc': Npc(1, db),
                        'npcs_here': [1, 14, 17, 21, 40, 41, 42],
                        'pathid': 1,
                        'blocks_in': None,
@@ -697,7 +697,7 @@ def mycases(request, mysteps):
                        'uid': 1,
                        'loc': Location(3, db),
                        'prev_loc': Location(3, db),
-                       'prev_npc_id': 1,
+                       'prev_npc': Npc(1, db),
                        'npcs_here': [2, 14, 17, 31, 40, 41, 42],
                        'pathid': 1,
                        'blocks_in': None,
@@ -750,16 +750,16 @@ def mycases(request, mysteps):
 @pytest.fixture
 def mynpcchooser(mycases):
     case = mycases['casedata']
-    step = mycases['stepdata']
-    if step['id'] in case['steps_here']:
+    stepdata = mycases['stepdata']
+    if stepdata['id'] in case['steps_here']:
         if case['casenum'] == 1:
             step = StepFactory().get_instance(db=db,
-                                              step_id=step['id'],
+                                              step_id=stepdata['id'],
                                               loc=case['loc'],
                                               prev_loc=case['prev_loc'],
-                                              prev_npc_id=case['prev_npc_id'])
+                                              prev_npc=case['prev_npc'])
             location = case['loc']
-            prev_npc = Npc(case['prev_npc_id'], db)
+            prev_npc = case['prev_npc']
             prev_loc = case['prev_loc']
             return {'chooser': NpcChooser(step, location, prev_npc, prev_loc),
                     'casedata': case,
@@ -883,22 +883,28 @@ def myloc_synagogue():
 def mypath(mycases):
     """
     A pytest fixture providing a paideia.Path object for testing.
+
+    Outputs all valid path/step combinations from mypaths and mysteps (i.e.
+    only combinations whose step belongs to the path in question).
     """
     case = mycases['casedata']
     step = mycases['stepdata']
-    the_path = Path(path_id=case['pathid'],
-                    blocks=case['blocks_in'],
-                    loc=case['loc'],
-                    prev_loc=case['prev_loc'],
-                    prev_npc_id=case['prev_npc_id'],
-                    db=db)
-    pid = the_path.get_id()
-    path_steps = db.paths[pid].steps
-    return {'path': the_path,
-            'id': pid,
-            'casedata': case,
-            'steps': path_steps,
-            'stepdata': step}
+    if step['id'] in case['paths']:
+        the_path = Path(path_id=case['pathid'],
+                        blocks=case['blocks_in'],
+                        loc=case['loc'],
+                        prev_loc=case['prev_loc'],
+                        prev_npc=case['prev_npc'],
+                        db=db)
+        pid = the_path.get_id()
+        path_steps = db.paths[pid].steps
+        return {'path': the_path,
+                'id': pid,
+                'casedata': case,
+                'steps': path_steps,
+                'stepdata': step}
+    else:
+        pass
 
 
 @pytest.fixture
@@ -923,7 +929,7 @@ def mystep(mycases):
                                                    step_id=step['id'],
                                                    loc=case['loc'],
                                                    prev_loc=case['prev_loc'],
-                                                   prev_npc_id=case['prev_npc_id']),
+                                                   prev_npc=case['prev_npc']),
                 'stepdata': step,
                 'casedata': case}
 
@@ -941,7 +947,7 @@ def myStepRedirect(mycases):
         my_args = {'step_id': 30,
                    'loc': case['loc'],
                    'prev_loc': case['prev_loc'],
-                   'prev_npc_id': case['prev_npc_id'],
+                   'prev_npc': case['prev_npc'],
                    'db': db}
         return {'step': StepRedirect(**my_args),
                 'stepdata': step}
@@ -960,7 +966,7 @@ def myStepAwardBadges(mycases):
         kwargs = {'step_id': 126,
                   'loc': case['loc'],
                   'prev_loc': case['prev_loc'],
-                  'prev_npc_id': case['prev_npc_id'],
+                  'prev_npc': case['prev_npc'],
                   'db': db}
         return {'step': StepAwardBadges(**kwargs),
                 'stepdata': step,
@@ -980,7 +986,7 @@ def myStepViewSlides(mycases):
         kwargs = {'step_id': 127,
                   'loc': case['loc'],
                   'prev_loc': case['prev_loc'],
-                  'prev_npc_id': case['prev_npc_id'],
+                  'prev_npc': case['prev_npc'],
                   'db': db}
         return {'step': StepViewSlides(**kwargs),
                 'stepdata': step,
@@ -1000,7 +1006,7 @@ def myStepQuotaReached(mycases):
         kwargs = {'step_id': 125,
                   'loc': case['loc'],
                   'prev_loc': case['prev_loc'],
-                  'prev_npc_id': case['prev_npc_id'],
+                  'prev_npc': case['prev_npc'],
                   'db': db}
         return {'step': StepFactory().get_instance(**kwargs),
                 'stepdata': step,
@@ -1026,7 +1032,7 @@ def myStepText(mycases):
                                            step_id=step['id'],
                                            loc=case['loc'],
                                            prev_loc=case['prev_loc'],
-                                           prev_npc_id=case['prev_npc_id'])
+                                           prev_npc=case['prev_npc'])
             return {'casenum': case['casenum'],
                     'step': step_instance,
                     'stepdata': step,
@@ -1102,7 +1108,7 @@ def myStepMultiple(mycases):
             kwargs = {'step_id': step['id'],
                       'loc': case['loc'],
                       'prev_loc': case['prev_loc'],
-                      'prev_npc_id': case['prev_npc_id'],
+                      'prev_npc': case['prev_npc'],
                       'db': db}
             return {'casenum': request.param,
                     'step': StepFactory().get_instance(**kwargs),
@@ -1195,15 +1201,20 @@ class TestNpc():
 
     def test_npc_get_image(self, mynpc):
         """Test for method Npc.get_image()"""
-        assert mynpc.get_image() == '/paideia/static/images/images.image.bb48641f0122d2b6.696d616765732e696d6167652e383136303330663934646664646561312e34343732363137373639366536373230333432653733373636372e737667.svg'
+        expected = '<img src="/paideia/static/images/images.image.bb48641f0122d2b6.696' \
+                   'd616765732e696d6167652e383136303330663934646664646561312' \
+                   'e34343732363137373639366536373230333432653733373636372e7' \
+                   '37667.svg" />'
+        actual = mynpc.get_image().xml()
+        assert actual == expected
 
     def test_npc_get_locations(self, mynpc):
         """Test for method Npc.get_locations()"""
         locs = mynpc.get_locations()
-        assert isinstance(locs[0], Location)
-        assert locs[0].get_id() == 6
-        assert isinstance(locs[1], Location)
-        assert locs[1].get_id() == 8
+        assert isinstance(locs[0], (int, long))
+        assert locs[0] == 6
+        assert isinstance(locs[1], (int, long))
+        assert locs[1] == 8
 
     def test_npc_get_description(self, mynpc):
         """Test for method Npc.get_description()"""
@@ -1894,28 +1905,34 @@ class TestPath():
 
     def test_path_get_id(self, mypath):
         """unit test for Path.get_id()"""
-        expected = mypath['id']
-        actual = mypath['path'].get_id()
-        assert actual == expected
+        if mypath:
+            expected = mypath['id']
+            actual = mypath['path'].get_id()
+            assert actual == expected
+        else:
+            pass
 
     def test_path_prepare_for_prompt(self, mypath, mysteps):
         """unit test for Path._prepare_for_prompt()"""
         # TODO: add logic to test progression to subsequent step of multistep
         # path
-        pid = mypath['id']
-        sid = mypath['steps'][0]
-        if mysteps['id'] == sid:
-            #step = mysteps
-            #case = mypath['casedata']
-            expected = {'path_id': pid,
-                        'step_id': sid}
+        if mypath:
+            pid = mypath['id']
+            sid = mypath['steps'][0]
+            if mysteps['id'] == sid:
+                #step = mysteps
+                #case = mypath['casedata']
+                expected = {'path_id': pid,
+                            'step_id': sid}
 
-            path = mypath['path']
-            actual = path._prepare_for_prompt()
+                path = mypath['path']
+                actual = path._prepare_for_prompt()
 
-            assert actual is True
-            assert path.step_for_prompt.get_id() == expected['step_id']
-            assert path.steps == []
+                assert actual is True
+                assert path.step_for_prompt.get_id() == expected['step_id']
+                assert path.steps == []
+            else:
+                pass
         else:
             pass
 
@@ -1924,57 +1941,60 @@ class TestPath():
         # TODO: add logic to test progression to subsequent step of multistep
         # path
         # TODO: add logic to test block generation; returning block
-        pid = mypath['id']
-        sid = mypath['steps'][0]
-        if mysteps['id'] == sid:
-            step = mysteps
-            case = mypath['casedata']
-            expected = {'path_id': pid,
-                        'step_id': sid,
-                        'alternate_step_id': sid,
-                        'locations': step['locations'],
-                        'tags': {'primary': step['tags'],
-                                'secondary': step['tags_secondary']},
-                        'npc_list': [s for s in step['npc_list']
-                                    if s in case['npcs_here']],
-                        'loc': case['loc'].get_id(),
-                        'steps': [],  # only step has been removed
-                        'type': step['type']
-                        }
+        if mypath:
+            pid = mypath['id']
+            sid = mypath['steps'][0]
+            if mysteps['id'] == sid:
+                step = mysteps
+                case = mypath['casedata']
+                expected = {'path_id': pid,
+                            'step_id': sid,
+                            'alternate_step_id': sid,
+                            'locations': step['locations'],
+                            'tags': {'primary': step['tags'],
+                                    'secondary': step['tags_secondary']},
+                            'npc_list': [s for s in step['npc_list']
+                                        if s in case['npcs_here']],
+                            'loc': case['loc'].get_id(),
+                            'steps': [],  # only step has been removed
+                            'type': step['type']
+                            }
 
-            path = mypath['path']
-            actual = mypath['path'].get_step_for_prompt()
+                path = mypath['path']
+                actual = mypath['path'].get_step_for_prompt()
 
-            # redirect step id in cases where redirect Block is triggered
-            if (case['casenum'] == 2) and (sid == 101):
-                expected['tags'] = {'primary': [70],
-                                    'secondary': []}
-                expected['npc_list'] = [14, 8, 2, 40, 31, 32, 41, 1, 17, 42]
-                expected['locations'] = [3, 1, 2, 4, 12, 13, 14, 6, 7, 8,
-                                         11, 5, 9, 10]
-                expected['type'] = StepRedirect
+                # redirect step id in cases where redirect Block is triggered
+                if (case['casenum'] == 2) and (sid == 101):
+                    expected['tags'] = {'primary': [70],
+                                        'secondary': []}
+                    expected['npc_list'] = [14, 8, 2, 40, 31, 32, 41, 1, 17, 42]
+                    expected['locations'] = [3, 1, 2, 4, 12, 13, 14, 6, 7, 8,
+                                            11, 5, 9, 10]
+                    expected['type'] = StepRedirect
 
-                assert path.step_for_reply is None
-                assert path.step_for_prompt.get_id() == sid
-                assert actual.get_id() == 30
+                    assert path.step_for_reply is None
+                    assert path.step_for_prompt.get_id() == sid
+                    assert actual.get_id() == 30
+                else:
+                    assert path.step_for_prompt is None
+                    assert path.step_for_reply.get_id() == sid
+                    assert actual.get_id() == sid
+
+                assert path.get_id() == expected['path_id']
+                assert actual.get_tags() == expected['tags']
+                assert actual.get_locations() == expected['locations']
+                assert case['loc'].get_id() in expected['locations']
+                assert actual.get_npc().get_id() in expected['npc_list']
+                assert actual.get_npc().get_id() in case['npcs_here']
+                assert type(actual) == expected['type']
+                assert isinstance(actual, expected['type'])
+                assert path.steps == expected['steps']
             else:
-                assert path.step_for_prompt is None
-                assert path.step_for_reply.get_id() == sid
-                assert actual.get_id() == sid
-
-            assert path.get_id() == expected['path_id']
-            assert actual.get_tags() == expected['tags']
-            assert actual.get_locations() == expected['locations']
-            assert case['loc'].get_id() in expected['locations']
-            assert actual.get_npc().get_id() in expected['npc_list']
-            assert actual.get_npc().get_id() in case['npcs_here']
-            assert type(actual) == expected['type']
-            assert isinstance(actual, expected['type'])
-            assert path.steps == expected['steps']
+                pass
         else:
             pass
 
-    def test_path_check_for_blocks(self, mypath, mysteps):
+    def test_path_check_for_blocks(self, mypath):
         """
         unit test for Path._check_for_blocks()
 
@@ -1982,27 +2002,39 @@ class TestPath():
         path, it will return a blocking step for each test case (even if that
         case would not normally have a block set.)
         """
-        path = mypath['path']
-        sid = path['steps'][0]
-        step = mysteps
-        if step['id'] == sid:
-            locs = [2, 3]
+        # TODO: there's now some block-checking logic in the method. Ideally
+        # that should be isolated in its own method.
+        if mypath:
+            path = mypath['path']
+            stepdata = mypath['stepdata']
+            case = mypath['casedata']
+            sid = stepdata['id']
+            step = [s for s in path.get_steps() if s.get_id() == sid][0]
 
-            kwargs = {'step_id': 30,
-                      'loc': path.loc,
-                      'prev_loc': path.prev_loc_id,
-                      'prev_npc_id': path.prev_npc_id}
-            expected = [Block('redirect', kwargs=kwargs, data=locs)]
-            path.blocks = expected[:]
+            # set up starting Path instance vars
             path.step_for_prompt = sid
 
+            # run test method
             actual = path._check_for_blocks(step)
 
-            print expected
-            assert actual == expected[0].get_step()
-            assert path.blocks == []
-            assert path.step_for_prompt == sid
-            assert path.step_sent_id == 30
+            blockers = {2: 101}
+            cn = case['casenum']
+            if cn in blockers.keys() and blockers[cn] == sid:
+                # set up expected results
+                locs = [2, 3]
+                kwargs = {'step_id': 30,
+                        'loc': path.loc,
+                        'prev_loc': path.prev_loc,
+                        'prev_npc': path.prev_npc}
+                expected = [Block('redirect', kwargs=kwargs, data=locs)]
+
+                print expected
+                assert actual == expected[0].get_step()
+                assert len(path.blocks) == 1
+                assert path.step_for_prompt == sid
+                assert path.step_sent_id == 30
+            else:
+                assert actual is None
         else:
             pass
 
@@ -2014,30 +2046,33 @@ class TestPath():
         Block, all cases tested should result in a Block (even if
         _check_for_blocks() would not normally call redirect() for the case).
         """
-        sid = mypath['steps'][0]
-        if mysteps['id'] == sid:
-            #step = mysteps
-            path = mypath['path']
-            locs = [2, 3]
+        if mypath:
+            sid = mypath['steps'][0]
+            if mysteps['id'] == sid:
+                #step = mysteps
+                path = mypath['path']
+                locs = [2, 3]
 
-            kwargs = {'step_id': 30,
-                      'loc': path.loc,
-                      'prev_loc': path.prev_loc_id,
-                      'prev_npc_id': path.prev_npc_id}
-            expected = [Block('redirect', kwargs=kwargs, data=locs)]
+                kwargs = {'step_id': 30,
+                        'loc': path.loc,
+                        'prev_loc': path.prev_loc,
+                        'prev_npc': path.prev_npc}
+                expected = [Block('redirect', kwargs=kwargs, data=locs)]
 
-            actual = path.redirect(locs)
-            actualblocks = path.blocks
+                actual = path.redirect(locs)
+                actualblocks = path.blocks
 
-            assert isinstance(path.blocks, list)
-            assert len(actualblocks) == len(expected)
-            for n in range(0, len(expected)):
-                actualstep = path.blocks[n].get_step()
-                expectedstep = expected[n].get_step()
-                assert actualstep.get_id() == expectedstep.get_id()
-                assert actualstep.get_id() == kwargs['step_id']
-                assert isinstance(actualstep, StepRedirect)
-            assert actual is None
+                assert isinstance(path.blocks, list)
+                assert len(actualblocks) == len(expected)
+                for n in range(0, len(expected)):
+                    actualstep = path.blocks[n].get_step()
+                    expectedstep = expected[n].get_step()
+                    assert actualstep.get_id() == expectedstep.get_id()
+                    assert actualstep.get_id() == kwargs['step_id']
+                    assert isinstance(actualstep, StepRedirect)
+                assert actual is None
+            else:
+                pass
         else:
             pass
 
@@ -2045,41 +2080,47 @@ class TestPath():
         """
         Unit test for method paideia.Path.get_step_for_reply.
         """
-        path = mypath['path']
-        case = mypath['casedata']
-        step = mypath['stepdata']
-        sid = mypath['steps'][0]
-        if step['id'] == sid:
-            kwargs = {'step_id': sid,
-                      'loc': case['loc'],
-                      'prev_loc': case['prev_loc'],
-                      'prev_npc_id': case['prev_npc_id']}
-            expected = StepFactory().get_instance(db=db, **kwargs)
-            path.step_for_reply = copy(expected)
+        if mypath:
+            path = mypath['path']
+            case = mypath['casedata']
+            step = mypath['stepdata']
+            sid = mypath['steps'][0]
+            if step['id'] == sid:
+                kwargs = {'step_id': sid,
+                        'loc': case['loc'],
+                        'prev_loc': case['prev_loc'],
+                        'prev_npc': case['prev_npc']}
+                expected = StepFactory().get_instance(db=db, **kwargs)
+                path.step_for_reply = copy(expected)
 
-            actual = path.get_step_for_reply()
+                actual = path.get_step_for_reply()
 
-            assert path.step_for_prompt is None
-            assert path.step_for_reply is None
-            assert actual.get_id() == expected.get_id()
-            assert path.step_sent_id == expected.get_id()
-            assert not isinstance(actual, StepRedirect)
-            assert not isinstance(actual, StepQuotaReached)
-            assert not isinstance(actual, StepViewSlides)
-            assert not isinstance(actual, StepAwardBadges)
+                assert path.step_for_prompt is None
+                assert path.step_for_reply is None
+                assert actual.get_id() == expected.get_id()
+                assert path.step_sent_id == expected.get_id()
+                assert not isinstance(actual, StepRedirect)
+                assert not isinstance(actual, StepQuotaReached)
+                assert not isinstance(actual, StepViewSlides)
+                assert not isinstance(actual, StepAwardBadges)
+            else:
+                pass
         else:
             pass
 
     def test_path_set_loc(self, mypath):
         """docstring for test_path_set_loc"""
-        path = mypath['path']
-        case = mypath['casedata']
-        step = mypath['stepdata']
-        sid = mypath['steps'][0]
-        if case['casenum'] == 1 and step['id'] == sid:
-            newloc = Location(11, db)
-            actual = path
-            actual._set_loc(newloc)
+        if mypath:
+            path = mypath['path']
+            case = mypath['casedata']
+            step = mypath['stepdata']
+            sid = mypath['steps'][0]
+            if case['casenum'] == 1 and step['id'] == sid:
+                newloc = Location(11, db)
+                actual = path
+                actual._set_loc(newloc)
+            else:
+                pass
         else:
             pass
 
@@ -2142,14 +2183,14 @@ class TestUser():
         assert isinstance(actual, Path)
         assert isinstance(actual.steps[0], Step)
 
-    def test_user_get_new_badges(self, myuser):
+    def test_user_get_new_tags(self, myuser):
         """
-        Unit test for User.get_new_badges().
+        Unit test for User.get_new_tags().
         """
         user = myuser['user']
-        user.new_badges = [1, 2, 3]
+        user.new_tags = [1, 2, 3]
         expected = [1, 2, 3]
-        actual = user.get_new_badges()
+        actual = user.get_new_tags()
 
         assert actual == expected
 
@@ -2175,8 +2216,7 @@ class TestUser():
             expected = case['categories_start']
         elif user.cats_counter >= 5:
             expected = case['categories_out']
-        actual = user._get_categories(categories=case['tag_progress'],
-                                      old_categories=None)
+        actual = user._get_categories()
         print 'actual:\n', actual
         print 'expected:\n', expected
 
