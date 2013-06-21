@@ -6,8 +6,8 @@ from paideia import Npc, Location, User, PathChooser, Path, Categorizer, Walk
 from paideia import StepFactory, StepText, StepMultiple, NpcChooser, Step
 from paideia import StepRedirect, StepViewSlides, StepAwardBadges
 from paideia import StepEvaluator, MultipleEvaluator, StepQuotaReached
-from paideia import A, URL, DIV, LI, UL, SPAN
 from paideia import Block
+from gluon import A, URL, DIV, LI, UL, SPAN, IMG
 from gluon import current
 request = current.request
 # from gluon.dal import Rows
@@ -37,8 +37,8 @@ client.post('user/register', data=data)
 global_runall = False
 global_run_TestNpc = False
 global_run_TestLocation = False
-global_run_TestNpcChooser = 1
-global_run_TestStep = False
+global_run_TestNpcChooser = False  # deprecated for Step.get_npc()
+global_run_TestStep = 1
 global_run_TestStepRedirect = False
 global_run_TestStepAwardBadges = False
 global_run_TestStepViewSlides = False
@@ -207,7 +207,10 @@ def mysteps(request):
                  'final_prompt': 'How could you write the word "meet" using '
                                  'Greek letters?',
                  'redirect_prompt': prompts['redirect'],
-                 'instructions': [],
+                 'instructions': ['Focus on finding Greek letters that make '
+                                  'the *sounds* of the English word. Don\'t '
+                                  'look for Greek "equivalents" for each '
+                                  'English letter.'],
                  'tags': [61],
                  'tags_secondary': [],
                  'responder': responders['text'],
@@ -232,10 +235,7 @@ def mysteps(request):
                  'final_prompt': 'How could you write the word "bought" using '
                                  'Greek letters?',
                  'redirect_prompt': prompts['redirect'],
-                 'instructions': ['Focus on finding Greek letters that make '
-                                  'the *sounds* of the English word. Don\'t '
-                                  'look for Greek "equivalents" for each '
-                                  'English letter.'],
+                 'instructions': None,
                  'tags': [61],
                  'tags_secondary': [],
                  'responder': responders['text'],
@@ -763,7 +763,7 @@ def mynpcchooser(mycases):
             prev_loc = case['prev_loc']
             return {'chooser': NpcChooser(step, location, prev_npc, prev_loc),
                     'casedata': case,
-                    'stepdata': step}
+                    'step': step}
 
 
 @pytest.fixture
@@ -1260,7 +1260,7 @@ class TestNpcChooser():
 
     def test_npcchooser_choose(self, mynpcchooser):
         if mynpcchooser:
-            possible = mynpcchooser['stepdata']['npc_list']
+            possible = mynpcchooser['step'].get_npcs()
             out = mynpcchooser['chooser'].choose()
             assert out.get_id() in possible
 
@@ -1312,7 +1312,7 @@ class TestStep():
                     onpc_image = [npc_data[n]['image'] for n in stepnpcs if n in locnpcs]
                     assert step.get_prompt(username)['prompt'] == oprompt
                     assert step.get_prompt(username)['instructions'] == oinstr
-                    assert step.get_prompt(username)['npc_image'] in onpc_image
+                    assert step.get_prompt(username)['npc_image'].attributes['_src'] in onpc_image
                 else:
                     assert step.get_prompt(username) == 'redirect'
             else:
@@ -1349,23 +1349,20 @@ class TestStep():
             assert actual.get_id() in expected['npc_list']
             # make sure this npc has the right name for its id
             assert actual.get_name() == npc_data[actual.get_id()]['name']
-            assert actual.get_image() == npc_data[actual.get_id()]['image']
+            assert actual.get_image().xml() == IMG(_src=npc_data[actual.get_id()]['image']).xml()
             locs = actual.get_locations()
             # make sure there is common location shared by actual npc and step
-            assert [l.get_id() for l in locs
-                    if l.get_id() in expected['locations']]
+            assert [l for l in locs
+                    if l in expected['locations']]
             for l in locs:
-                assert isinstance(l, Location)
-                assert l.get_id() in npc_data[actual.get_id()]['location']
+                assert isinstance(l, (int, long))
+                assert l in npc_data[actual.get_id()]['location']
         else:
             pass
 
     def test_step_get_instructions(self, mystep):
         """Test for method Step._get_instructions"""
         if mystep:
-            # ['Focus on finding Greek letters that make the *sounds* of the
-            # English word. Don\'t look for Greek "equivalents" for each
-            # English letter.']
             expected = mystep['stepdata']['instructions']
             actual = mystep['step']._get_instructions()
             assert actual == expected
