@@ -30,11 +30,11 @@ global_run_TestCategorizer	test_paideia.py	/^global_run_TestCategorizer = False$
 global_run_TestLocation	test_paideia.py	/^global_run_TestLocation = False$/;"	v
 global_run_TestMultipleEvaluator	test_paideia.py	/^global_run_TestMultipleEvaluator = False$/;"	v
 global_run_TestNpc	test_paideia.py	/^global_run_TestNpc = False$/;"	v
-global_run_TestNpcChooser	test_paideia.py	/^global_run_TestNpcChooser = 1$/;"	v
+global_run_TestNpcChooser	test_paideia.py	/^global_run_TestNpcChooser = False  # deprecated for Step.get_npc()$/;"	v
 global_run_TestPath	test_paideia.py	/^global_run_TestPath = False$/;"	v
 global_run_TestPathChooser	test_paideia.py	/^global_run_TestPathChooser = False$/;"	v
 global_run_TestStep	test_paideia.py	/^global_run_TestStep = False$/;"	v
-global_run_TestStepAwardBadges	test_paideia.py	/^global_run_TestStepAwardBadges = False$/;"	v
+global_run_TestStepAwardBadges	test_paideia.py	/^global_run_TestStepAwardBadges = 1$/;"	v
 global_run_TestStepEvaluator	test_paideia.py	/^global_run_TestStepEvaluator = False$/;"	v
 global_run_TestStepMultiple	test_paideia.py	/^global_run_TestStepMultiple = False$/;"	v
 global_run_TestStepRedirect	test_paideia.py	/^global_run_TestStepRedirect = False$/;"	v
@@ -145,6 +145,7 @@ test_stepviewslides_get_npc	test_paideia.py	/^    def test_stepviewslides_get_np
 test_stepviewslides_get_prompt	test_paideia.py	/^    def test_stepviewslides_get_prompt(self, myStepViewSlides):$/;"	m	class:TestStepViewSlides
 test_stepviewslides_get_responder	test_paideia.py	/^    def test_stepviewslides_get_responder(self, myStepViewSlides):$/;"	m	class:TestStepViewSlides
 test_stepviewslides_get_tags	test_paideia.py	/^    def test_stepviewslides_get_tags(self, myStepViewSlides):$/;"	m	class:TestStepViewSlides
+test_stepviewslides_make_replacements	test_paideia.py	/^    def test_stepviewslides_make_replacements(self, myStepViewSlides):$/;"	m	class:TestStepViewSlides
 test_user_complete_path	test_paideia.py	/^    def test_user_complete_path(self, myuser):$/;"	m	class:TestUser
 test_user_get_categories	test_paideia.py	/^    def test_user_get_categories(self, myuser):$/;"	m	class:TestUser
 test_user_get_id	test_paideia.py	/^    def test_user_get_id(self, myuser):$/;"	m	class:TestUser
