@@ -38,8 +38,8 @@ global_runall = False
 global_run_TestNpc = False
 global_run_TestLocation = False
 global_run_TestNpcChooser = False  # deprecated for Step.get_npc()
-global_run_TestStep = 1
-global_run_TestStepRedirect = False
+global_run_TestStep = False
+global_run_TestStepRedirect = 1
 global_run_TestStepAwardBadges = False
 global_run_TestStepViewSlides = False
 global_run_TestStepText = False
@@ -1406,7 +1406,7 @@ class TestStepRedirect():
 
             assert actual['prompt'] in expected_prompts
             assert actual['instructions'] == expected_instructions
-            assert actual['npc_image'] in expected_images
+            assert actual['npc_image'].attributes['_src'] in expected_images
         else:
             pass
 
@@ -1447,7 +1447,7 @@ class TestStepRedirect():
         if myStepRedirect:
             map_button = A("Map", _href=URL('walk'),
                            cid='page',
-                           _class='button-yellow-grad back_to_map icon-location')
+                           _class='back_to_map')
             responder = myStepRedirect['step'].get_responder().xml()
             assert responder == DIV(map_button).xml()
         else:
@@ -1458,15 +1458,17 @@ class TestStepRedirect():
         # TODO: parameterize properly
         if myStepRedirect:
             expected = myStepRedirect['stepdata']
-            npc = myStepRedirect['step'].get_npc()
-            assert npc.get_id() in expected['npc_list']
-            assert npc.get_name() == npc_data[npc.get_id()]['name']
-            assert npc.get_image() == npc_data[npc.get_id()]['image']
-            locs = npc.get_locations()
-            assert [l.get_id() for l in locs if l.get_id() in expected['locations']]
+            actual = myStepRedirect['step'].get_npc()
+
+            assert actual.get_id() in expected['npc_list']
+            assert actual.get_name() == npc_data[actual.get_id()]['name']
+            imgsrc = npc_data[actual.get_id()]['image']
+            assert actual.get_image().xml() == IMG(_src=imgsrc).xml()
+            locs = actual.get_locations()
+            assert [l for l in locs if l in expected['locations']]
             for l in locs:
-                assert isinstance(l, Location)
-                assert l.get_id() in npc_data[npc.get_id()]['location']
+                assert isinstance(l, (int, long))
+                assert l in npc_data[actual.get_id()]['location']
         else:
             pass
 
@@ -1565,11 +1567,11 @@ class TestStepAwardBadges():
 
             map_button = A("Map", _href=URL('walk'),
                            cid='page',
-                           _class='button-yellow-grad back_to_map icon-location')
+                           _class='back_to_map')
             continue_button = A("Continue", _href=URL('walk', args=['ask'],
                                                       vars={'loc': the_loc}),
                                 cid='page',
-                                _class='button-green-grad next_q')
+                                _class='continue')
             expected = DIV(map_button, continue_button).xml()
             actual = myStepAwardBadges['step'].get_responder().xml()
             print 'actual\n', actual
@@ -1711,8 +1713,7 @@ class TestStepViewSlides():
             actual = myStepViewSlides['step'].get_responder().xml()
             map_button = A("Map", _href=URL('walk'),
                            cid='page',
-                           _class='button-yellow-grad back_to_map '
-                           'icon-location')
+                           _class='back_to_map')
             expected = DIV(map_button).xml()
             assert actual == expected
         else:
