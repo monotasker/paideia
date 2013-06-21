@@ -335,7 +335,9 @@ class Npc(object):
         return img
 
     def get_locations(self):
-        """docstring for Npc.get_locations"""
+        """
+        Return a list of ids (ints) for locations where this step can activate.
+        """
         locs = [l for l in self.data.location]
         return locs
 
