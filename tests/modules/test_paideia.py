@@ -39,8 +39,8 @@ global_run_TestNpc = False
 global_run_TestLocation = False
 global_run_TestNpcChooser = False  # deprecated for Step.get_npc()
 global_run_TestStep = False
-global_run_TestStepRedirect = 1
-global_run_TestStepAwardBadges = False
+global_run_TestStepRedirect = False
+global_run_TestStepAwardBadges = 1
 global_run_TestStepViewSlides = False
 global_run_TestStepText = False
 global_run_TestStepMultiple = False
@@ -192,10 +192,34 @@ def mysteps(request):
                           'onclick="web2py_component(&quot;/paideia/default/'
                           'walk&quot;,&quot;page&quot;);return false;">Map</a>'
                           '</div>',
-                  'continue': ''}
+                  'continue': '<div>'
+                              '<a class="back_to_map" href="/paideia/default/'
+                              'walk" onclick="web2py_component(&quot;/paideia/'
+                              'default/walk&quot;,&quot;page&quot;);return false;">'
+                              'Map'
+                              '</a><a class="next_q" href="/paideia/default/'
+                              'walk/ask?loc=[[loc]]" onclick="web2py_component('
+                              '&quot;/paideia/default/walk/ask?loc=[[loc]]&quot;'
+                              ',&quot;page&quot;);return false;">Continue</a>'
+                              '</div>'}
     prompts = {'redirect': 'Hi there. Sorry, I don\'t have anything for you to '
-               'do here at the moment. I think someone was looking for you at '
-               'somewhere else in town.'}
+                           'do here at the moment. I think someone was looking '
+                           'for you at somewhere else in town.',
+               'new_badges': 'Congratulations, [[user]]! You\'ve reached '
+                             'a new level with these badges:'
+                             '[[promoted_list]]You can click on your name '
+                             'above to see details of your progress '
+                             'so far.',
+               'quota': 'Well done, [[user]]. You\'ve finished '
+                        'enough paths for today. But if you would '
+                        'like to keep going, you\'re welcome to '
+                        'continue.',
+               'slides': 'Congratulations, [[user]]! You\'re ready to '
+                         'start working on some new badges:'
+                         '[[badge_list]]Before you continue, take '
+                         'some time to view these slide sets:'
+                         '[[slides]]You\'ll find the slides by '
+                         'clicking on the "slides" menu item at top.'}
     steps = {1: {'id': 1,
                  'paths': [2],
                  'type': StepText,
@@ -283,13 +307,7 @@ def mysteps(request):
                   'widget_type': 9,
                   'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
                   'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10],
-                  'raw_prompt': 'Hi there. Sorry, I don\'t have anything for '
-                                'you to do here at the moment. I think '
-                                'someone was looking for you at [[next_loc]].',
-                  'final_prompt': 'Hi there. Sorry, I don\'t have anything '
-                                  'for you to do here at the moment. I think '
-                                  'someone was looking for you at '
-                                  '[[next_loc]].',
+                  'raw_prompt': prompts['redirect'],
                   'redirect_prompt': prompts['redirect'],
                   'instructions': None,
                   'tags': [70],
@@ -304,8 +322,6 @@ def mysteps(request):
                    'npc_list': [14],
                    'raw_prompt': 'Is this an English clause?\r\n\r\n"The '
                                  'cat sat."',
-                   'final_prompt': 'Is this an English clause?\r\n\r\n"The '
-                                   'cat sat."',
                    'redirect_prompt': prompts['redirect'],
                    'instructions': None,
                    'tags': [36],
@@ -327,14 +343,7 @@ def mysteps(request):
                    'widget_type': 7,
                    'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10],
                    'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
-                   'raw_prompt': 'Well done, [[user]]. You\'ve finished '
-                                 'enough paths for today. But if you would '
-                                 'like to keep going, you\'re welcome to '
-                                 'continue.',
-                   'final_prompt': 'Well done, [[user]]. You\'ve finished '
-                                   'enough paths for today. But if you would '
-                                   'like to keep going, you\'re welcome to '
-                                   'continue.',
+                   'raw_prompt': prompts['quota'],
                    'instructions': None,
                    'tags': [79],
                    'tags_secondary': [],
@@ -345,16 +354,7 @@ def mysteps(request):
                    'widget_type': 8,
                    'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10],
                    'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
-                   'raw_prompt': 'Congratulations, [[user]]! You\'ve reached '
-                                 'a new level with these badges:'
-                                 '[[promoted_list]]You can click on your name '
-                                 'above to see details of your progress '
-                                 'so far.',
-                   'final_prompt': 'Congratulations, [[user]]! You\'ve reached '
-                                   'a new level with these badges:'
-                                   '[[promoted_list]]You can click on your name '
-                                   'above to see details of your progress '
-                                   'so far.',
+                   'raw_prompt': prompts['new_badges'],
                    'instructions': None,
                    'tags': [81],
                    'tags_secondary': [],
@@ -365,22 +365,7 @@ def mysteps(request):
                    'widget_type': 6,
                    'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
                    'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10],
-                   'raw_prompt': 'Congratulations, [[user]]! You\'re ready to '
-                                 'start working on some new badges:'
-                                 '[[badge_list]]Before you continue, take '
-                                 'some time to view these slide sets:'
-                                 '[[slides]]You\'ll find the slides by '
-                                 'clicking on the "slides" menu item at top.',
-                   'final_prompt': 'Congratulations, Ian! You\'re ready to '
-                                   'start working on some new badges:'
-                                   '[[badge_list]]Beforeyou continue, take '
-                                   'some time to view these slide sets:'
-                                   '<ul class="slide_list">'
-                                   '<li>The Alphabet III</li>'
-                                   '<li>Case Basics</li>'
-                                   '</ul>'
-                                   'You\'ll find the slides by clicking on '
-                                   'the "slides" menu item at top.',
+                   'raw_prompt': prompts['slides'],
                    'instructions': None,
                    'tags': [80],
                    'tags_secondary': [],
@@ -1560,19 +1545,12 @@ class TestStepAwardBadges():
 
     def test_stepawardbadges_get_responder(self, myStepAwardBadges):
         """Test for method StepAwardBadges.get_responder"""
-
         if myStepAwardBadges:
-            case = myStepAwardBadges['casedata']
-            the_loc = case['loc'].get_id()
-
-            map_button = A("Map", _href=URL('walk'),
-                           cid='page',
-                           _class='back_to_map')
-            continue_button = A("Continue", _href=URL('walk', args=['ask'],
-                                                      vars={'loc': the_loc}),
-                                cid='page',
-                                _class='continue')
-            expected = DIV(map_button, continue_button).xml()
+            # TODO: Change all of the responders to be complete web2py DIV
+            # objects like this.
+            thisloc = myStepAwardBadges['casedata']['loc'].get_id()
+            expected = myStepAwardBadges['stepdata']['responder']
+            expected = expected.replace('[[loc]]', thisloc)
             actual = myStepAwardBadges['step'].get_responder().xml()
             print 'actual\n', actual
             print 'expected\n', expected
@@ -1628,7 +1606,7 @@ class TestStepViewSlides():
             # assemble the badge list
             badges = [row['badges']['id'] for row in tags]
             if isinstance(badges[0], list):
-                # anticipating possibility that badges could match multiple tags
+                # TODO: anticipating possibility that badges could match multiple tags
                 badges = [i for lst in badges for i in lst]
             else:
                 pass
@@ -1676,20 +1654,30 @@ class TestStepViewSlides():
             print 'EXPECTED\n', expect_prompt
             assert actual['prompt'] == expect_prompt
             assert actual['instructions'] == step['instructions']
-            assert actual['npc_image'] in npc_images
+            assert actual['npc_image'].attributes['_src'] in npc_images
+        else:
+            pass
 
-    #def test_stepviewslides_make_replacements(self, myStepViewSlides):
-        #"""
-        #docstring for test_step_stepviewslides_make_replacements
-
-        #"""
-        #sd = step_data_store[127]['case1']
-        #prompt = myStepViewSlides._make_replacements(raw_prompt=sd['raw_prompt'],
-                                                    #username=sd['username'],
-                                                    #new_badges=[5, 6])
-        #print prompt, '\n'
-        #print sd['final_prompt']
-        #assert prompt == sd['final_prompt']
+    def test_stepviewslides_make_replacements(self, myStepViewSlides):
+        """
+        Unit test for StepViewSlides.make_replacements()
+        """
+        if myStepViewSlides:
+            step = myStepViewSlides['stepdata']
+            case = myStepViewSlides['casedata']
+            prompt = myStepViewSlides._make_replacements(raw_prompt=step['raw_prompt'],
+                                                        username=case['username'],
+                                                        new_badges=case['new_badges'])
+            print 'ACTUAL\n', prompt
+            badge_rows = db(db.badges.id.belongs(case['new_badges'])).select()
+            badge_names = ['<li>{}</li>'.format(r.badge_name) for r in badge_rows]
+            badges_str = '<ul>' + ''.join(badge_names) + '</ul>'
+            fullprompt = step['raw_prompt'].replace('[[user]]', case['username'])
+            fullprompt = fullprompt.replace('[[promoted_list]]', badges_str)
+            print 'EXPECTED\n', fullprompt
+            assert prompt == step['final_prompt']
+        else:
+            pass
 
     def test_stepviewslides_get_tags(self, myStepViewSlides):
         """
@@ -1711,10 +1699,7 @@ class TestStepViewSlides():
         """Test for method StepViewSlides.get_responder"""
         if myStepViewSlides:
             actual = myStepViewSlides['step'].get_responder().xml()
-            map_button = A("Map", _href=URL('walk'),
-                           cid='page',
-                           _class='back_to_map')
-            expected = DIV(map_button).xml()
+            expected = myStepViewSlides['stepdata']['responder']
             assert actual == expected
         else:
             pass
