@@ -197,7 +197,7 @@ def mysteps(request):
                               'walk" onclick="web2py_component(&quot;/paideia/'
                               'default/walk&quot;,&quot;page&quot;);return false;">'
                               'Map'
-                              '</a><a class="next_q" href="/paideia/default/'
+                              '</a><a class="continue" href="/paideia/default/'
                               'walk/ask?loc=[[loc]]" onclick="web2py_component('
                               '&quot;/paideia/default/walk/ask?loc=[[loc]]&quot;'
                               ',&quot;page&quot;);return false;">Continue</a>'
@@ -1516,7 +1516,7 @@ class TestStepAwardBadges():
                 raise Exception
             assert actual['prompt'] == expect_prompt
             assert actual['instructions'] == expect['instructions']
-            assert actual['npc_image'] in npcimgs
+            assert actual['npc_image'].attributes['_src'] in npcimgs
         else:
             pass
 
@@ -1550,7 +1550,7 @@ class TestStepAwardBadges():
             # objects like this.
             thisloc = myStepAwardBadges['casedata']['loc'].get_id()
             expected = myStepAwardBadges['stepdata']['responder']
-            expected = expected.replace('[[loc]]', thisloc)
+            expected = expected.replace('[[loc]]', str(thisloc))
             actual = myStepAwardBadges['step'].get_responder().xml()
             print 'actual\n', actual
             print 'expected\n', expected
