@@ -40,8 +40,8 @@ global_run_TestLocation = False
 global_run_TestNpcChooser = False  # deprecated for Step.get_npc()
 global_run_TestStep = False
 global_run_TestStepRedirect = False
-global_run_TestStepAwardBadges = 1
-global_run_TestStepViewSlides = False
+global_run_TestStepAwardBadges = False
+global_run_TestStepViewSlides = 1
 global_run_TestStepText = False
 global_run_TestStepMultiple = False
 global_run_TestStepEvaluator = False
@@ -1663,19 +1663,43 @@ class TestStepViewSlides():
         Unit test for StepViewSlides.make_replacements()
         """
         if myStepViewSlides:
-            step = myStepViewSlides['stepdata']
+            step = myStepViewSlides['step']
+            stepdata = myStepViewSlides['stepdata']
             case = myStepViewSlides['casedata']
-            prompt = myStepViewSlides._make_replacements(raw_prompt=step['raw_prompt'],
-                                                        username=case['username'],
-                                                        new_badges=case['new_badges'])
+            kwargs = {'raw_prompt': stepdata['raw_prompt'],
+                      'username': case['name'],
+                      'new_badges': case['new_badges']}
+            prompt = step._make_replacements(**kwargs)
             print 'ACTUAL\n', prompt
-            badge_rows = db(db.badges.id.belongs(case['new_badges'])).select()
-            badge_names = ['<li>{}</li>'.format(r.badge_name) for r in badge_rows]
-            badges_str = '<ul>' + ''.join(badge_names) + '</ul>'
-            fullprompt = step['raw_prompt'].replace('[[user]]', case['username'])
-            fullprompt = fullprompt.replace('[[promoted_list]]', badges_str)
+
+            # assemble badge list
+            badge_rows = db(db.badges.tag.belongs(case['new_badges'])
+                            ).select()
+            formatstring = '<li><span class="badge_name">{0}</span>' \
+                           'for {1}</li>'
+            badge_names = [formatstring.format(r.badge_name, r.description)
+                           for r in badge_rows]
+            badges_str = '<ul class="badge_list">'
+            badges_str += ''.join(badge_names)
+            badges_str += '</ul>'
+            # assemble slide deck list
+            tag_rows = db(db.tags.id.belongs(case['new_badges'])
+                          ).select(db.tags.slides)
+            deck_ids = [d for r in tag_rows for d in r]
+            slide_rows = db(db.plugin_slider_decks.id.belongs(deck_ids)
+                            ).select()
+            formatstring2 = '<li><a href="/paideia/listing/slides/{0}">' \
+                            '{1}</a></li>'
+            deck_names = [formatstring2.format(r.id, r.deck_name)
+                          for r in slide_rows]
+            decks_str = '<ul class="slide_list">'
+            decks_str += ''.join(deck_names)
+            decks_str += '</ul>'
+
+            fullprompt = stepdata['raw_prompt'].replace('[[slides]]', decks_str)
+            fullprompt = fullprompt.replace('[[badge_list]]', badges_str)
             print 'EXPECTED\n', fullprompt
-            assert prompt == step['final_prompt']
+            assert prompt == fullprompt
         else:
             pass
 
