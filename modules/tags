@@ -59,7 +59,7 @@ __init__	paideia.py	/^    def __init__(self, rank, categories, tag_records,$/;"	
 __init__	paideia.py	/^    def __init__(self, responses, tips):$/;"	m	class:MultipleEvaluator
 __init__	paideia.py	/^    def __init__(self, responses, tips):$/;"	m	class:StepEvaluator
 __init__	paideia.py	/^    def __init__(self, step, location, prev_npc, prev_loc):$/;"	m	class:NpcChooser
-__init__	paideia.py	/^    def __init__(self, step_id=None, loc=None, prev_loc=None, prev_npc_id=None,$/;"	m	class:Step
+__init__	paideia.py	/^    def __init__(self, step_id=None, loc=None, prev_loc=None, prev_npc=None,$/;"	m	class:Step
 __init__	paideia.py	/^    def __init__(self, step_id=None, step_data=None, loc=None, prev_loc=None,$/;"	m	class:StepRedirect
 __init__	paideia.py	/^    def __init__(self, userdata, localias, tag_records, tag_progress, db=None):$/;"	m	class:User
 __init__	paideia_bugs.py	/^    def __init__(self, step=None, path=None, location=None):$/;"	m	class:Bug
@@ -200,12 +200,14 @@ get_responder	paideia.py	/^    def get_responder(self):$/;"	m	class:StepText
 get_step	paideia.py	/^    def get_step(self):$/;"	m	class:Block
 get_step_for_prompt	paideia.py	/^    def get_step_for_prompt(self, loc=None, step=None):$/;"	m	class:Path
 get_step_for_reply	paideia.py	/^    def get_step_for_reply(self, db=None):$/;"	m	class:Path
+get_steps	paideia.py	/^    def get_steps(self):$/;"	m	class:Path
+get_tag_progress	paideia.py	/^    def get_tag_progress(self):$/;"	m	class:User
 get_tags	paideia.py	/^    def get_tags(self):$/;"	m	class:Step
 get_widget_index	plugin_ajaxselect.py	/^    def get_widget_index(self):$/;"	m	class:AjaxSelect
 get_wrappername	plugin_ajaxselect.py	/^    def get_wrappername(self, fieldset):$/;"	m	class:AjaxSelect
 hidden_ajax_field	plugin_ajaxselect.py	/^    def hidden_ajax_field(self):$/;"	m	class:AjaxSelect
 info	paideia_exploring.py	/^    def info(self):$/;"	m	class:Location
-is_stale	paideia.py	/^    def is_stale(self, now=None, start=None, tz_name=None, db=None):$/;"	m	class:User
+is_stale	paideia.py	/^    def is_stale(self, now=None, start=None, time_zone=None, db=None):$/;"	m	class:User
 listcheck	plugin_ajaxselect.py	/^def listcheck(val):$/;"	f
 log_list	paideia_stats.py	/^    def log_list(self):$/;"	m	class:Stats
 log_new	paideia_bugs.py	/^    def log_new(self, answer, log_id, score, step=None, path=None):$/;"	m	class:Bug
