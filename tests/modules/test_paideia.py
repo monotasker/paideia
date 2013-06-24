@@ -1675,7 +1675,7 @@ class TestStepViewSlides():
             # assemble badge list
             badge_rows = db(db.badges.tag.belongs(case['new_badges'])
                             ).select()
-            formatstring = '<li><span class="badge_name">{0}</span>' \
+            formatstring = '<li><span class="badge_name">{0}</span> ' \
                            'for {1}</li>'
             badge_names = [formatstring.format(r.badge_name, r.description)
                            for r in badge_rows]
@@ -1685,7 +1685,8 @@ class TestStepViewSlides():
             # assemble slide deck list
             tag_rows = db(db.tags.id.belongs(case['new_badges'])
                           ).select(db.tags.slides)
-            deck_ids = [d for r in tag_rows for d in r]
+            deck_ids = [d for r in tag_rows for d in r['slides']]
+            print tag_rows[0]
             slide_rows = db(db.plugin_slider_decks.id.belongs(deck_ids)
                             ).select()
             formatstring2 = '<li><a href="/paideia/listing/slides/{0}">' \
@@ -1696,7 +1697,8 @@ class TestStepViewSlides():
             decks_str += ''.join(deck_names)
             decks_str += '</ul>'
 
-            fullprompt = stepdata['raw_prompt'].replace('[[slides]]', decks_str)
+            fullprompt = stepdata['raw_prompt'].replace('[[user]]', case['name'])
+            fullprompt = fullprompt.replace('[[slides]]', decks_str)
             fullprompt = fullprompt.replace('[[badge_list]]', badges_str)
             print 'EXPECTED\n', fullprompt
             assert prompt == fullprompt
