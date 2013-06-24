@@ -41,7 +41,7 @@ global_run_TestNpcChooser = False  # deprecated for Step.get_npc()
 global_run_TestStep = False
 global_run_TestStepRedirect = False
 global_run_TestStepAwardBadges = False
-global_run_TestStepViewSlides = 1
+global_run_TestStepViewSlides = False
 global_run_TestStepText = False
 global_run_TestStepMultiple = False
 global_run_TestStepEvaluator = False
@@ -49,7 +49,7 @@ global_run_TestMultipleEvaluator = False
 global_run_TestPath = False
 global_run_TestUser = False
 global_run_TestCategorizer = False
-global_run_TestWalk = False
+global_run_TestWalk = 1
 global_run_TestPathChooser = False
 
 # ===================================================================
@@ -756,7 +756,9 @@ def mywalk(mycases):
     """pytest fixture providing a paideia.Walk object for testing"""
     case = mycases['casedata']
     step = mycases['stepdata']
-    userdata = {'first_name': case['name'], 'id': case['uid']}
+    userdata = {'first_name': case['name'],
+                'id': case['uid'],
+                'time_zone': 'America/Toronto'}
     tag_progress = case['tag_progress']
     tag_records = case['tag_records']
     localias = case['loc'].get_alias()
@@ -2479,14 +2481,11 @@ class TestWalk():
                             'instructions': step['instructions'],
                             'responder': step['responder']}
                             # TODO: check for image -- just hard to predict
-                            #image : '/paideia/static/images/images.image.bb48641f0122d2b6.'
-                            #'696d616765732e696d6167652e383136303330663934646664646561312e3'
-                            #'4343732363137373639366536373230333432653733373636372e737667.svg'
-            print 'PATHS', step['paths'][0]
-            print 'RESPONDER: \n'
-            print expected['responder']
-            actual = thiswalk.ask(path=step['paths'][0])
 
+            path = step['paths'][0]
+            actual = thiswalk.ask(path)
+
+            assert path == thiswalk.user.path.get_id()
             assert actual['prompt']['prompt'] == expected['prompt']
             assert actual['prompt']['instructions'] == expected['instructions']
             #assert actual['prompt']['npc_image'] == expected['image']
@@ -2518,9 +2517,11 @@ class TestWalk():
                             # TODO: add bug reporter string
                             # TODO: put in safety in case of empty form
 
-                thiswalk.ask(path=step['paths'][0])
+                path = step['paths'][0]
+                thiswalk.ask(path)
                 u1 = thiswalk.user
-                actual = thiswalk.reply(response_string),
+                assert path == thiswalk.user.path.get_id()
+                actual = thiswalk.start(response_string),
                 u2 = thiswalk.user
                 # TODO: does actual change u1, rendering this test redundant?
                 assert u1 == u2

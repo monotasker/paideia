@@ -51,11 +51,10 @@ class Walk(object):
         loc_id = db(db.locations.alias == localias).select().first().id
         self.loc = Location(loc_id, db)
         self.response_string = response_string
-        if not userdata:
-            auth = current.auth
-            user_id = auth.user_id
-            userdata = db.auth_user[user_id].as_dict()
-
+        userdata = db.auth_user[current.auth.user_id].as_dict() \
+            if not userdata else userdata
+        print [f for f in db.auth_user.fields]
+        print [f for f in userdata.keys()]
         self.user = self._get_user(userdata=userdata,
                                    localias=localias,
                                    tag_records=tag_records,
@@ -97,6 +96,18 @@ class Walk(object):
                                  db=db)
                 return self.user
 
+    def start(self, response_string=None, path=None):
+        """
+        Issue the correct method for this interaction and return the result.
+        This is the top-level interface for the Paideia module, to be called by
+        the controller. The method decides whether we're starting a new step or
+        responding to one in-process.
+        """
+        if response_string:
+            return self.reply(response_string=response_string)
+        else:
+            return self.ask(path)
+
     def map(self, db=None):
         """
         Return the information necessary to present the paideia navigation
@@ -120,18 +131,13 @@ class Walk(object):
         The "path" argument is used only for dependency injection during
         unit testing.
         """
+        user = self._get_user()
         loc = self.loc
-        print '\nask() received path', path
-        p = self.user.get_path(loc, path=path)
+        p = user.get_path(loc, path=path)
         s = p.get_step_for_prompt()
         prompt = s.get_prompt()
-        print '\nactual prompt:\n'
-        print prompt
         responder = s.get_responder()
-        print '\nactual responder:\n'
-        print responder
-        self._store_user(self.user)
-        print 'user.path at end of ask()', self.user.get_path(loc).get_id()
+        self._store_user(user)
 
         return {'prompt': prompt, 'responder': responder}
 
@@ -139,37 +145,36 @@ class Walk(object):
         """
 
         """
+        user = self._get_user()
+        db = self.db
 
-        p = self.user.get_path(self.loc)
+        p = user.get_path(self.loc)
         path_id = p.get_id()
-        print 'STARTING REPLY'
-        print 'PATH', path_id
-        print 'P.step_for_prompt', p.step_for_prompt
-        print 'P.step_for_reply', p.step_for_reply
 
-        s = p.get_step_for_reply(self.db)
+        s = p.get_step_for_reply(db)
         step_id = s.get_id()
-        print 'STEP', step_id
+        tags = s.get_tags()
 
         reply = s.get_reply(response_string)
-        tags = reply['tags']
+
         score = reply['score']
-        times_right = reply['times_right']
-        times_wrong = reply['times_wrong']
-        tag_progress = self.user.get_tag_progress()
-        promoted = self.user.get_promoted()
-        new_tags = self.user.get_new_tags()
+        #times_right = reply['times_right']
+        #times_wrong = reply['times_wrong']
+        tag_records = user.tag_records()
+        tag_progress = user.get_tag_progress()
+        promoted = user.get_promoted()
+        new_tags = user.get_new_tags()
 
         assert self._record_cats(tag_progress, promoted, new_tags)
-        record_id = self._record_step(path_id, step_id, tags, score,
-                                      times_right, times_wrong, response_string)
+        record_id = self._record_step(path_id, step_id, score,
+                                      tag_records, response_string)
         assert record_id
 
         bug_reporter = BugReporter(record_id, path_id, step_id,
                                    tags, score, response_string)
         p.complete_step(step_id)
 
-        if p.check_for_end() is True:
+        if p.check_for_end():
             self.user._complete_path(path_id)
 
         self._store_user()
@@ -190,7 +195,10 @@ class Walk(object):
         user_id = self.user.get_id()
         now = datetime.datetime.utcnow()
         # re-integrate new tags into single tag_progress dictionary
-        promoted['cat1'] = new_tags
+        if promoted:
+            promoted['cat1'] = new_tags
+        else:
+            promoted = {'cat1': new_tags}
 
         # record awarding of promoted and new tags in table db.badges_begun
 
@@ -209,7 +217,8 @@ class Walk(object):
 
         return True
 
-    def _record_step(self, user_id, step_id, path_id, score, tag_records):
+    def _record_step(self, user_id, step_id, path_id, score, tag_records,
+                     response_string):
         """
         Record this step attempt and its impact on user's performance record.
 
@@ -231,6 +240,8 @@ class Walk(object):
         before calling _record_step())
         """
         db = self.db
+        # TODO: add recording of response string
+        # TODO: make sure record_dict is updated before this (by User)
         for record_dict in tag_records:
             # TODO: does record_dict include the right info?
             db.tag_records.update_or_insert(db.tag_records.name == user_id,
@@ -1039,6 +1050,7 @@ class Path(object):
         if self.step_for_prompt:
             self.step_for_reply = copy(self.step_for_prompt)
             self.step_for_prompt = None
+            assert not self.step_for_prompt
             return True
         else:
             return False
@@ -1065,12 +1077,15 @@ class Path(object):
         # check for blocks; block removed when its step retrieved here
         # this is the ONLY place where blocks are triggered, but they can be
         # set elsewhere
-        new_block = self._check_for_blocks(next_step)
-        if new_block:
-            return new_block
+        active_block = self._check_for_blocks(next_step)
+        if active_block:
+            return active_block
         else:
             if isinstance(next_step, (StepText, StepMultiple)):
                 assert self._prepare_for_reply()
+            else:
+                # TODO: raise specific exception
+                raise Exception
             return next_step
 
     def redirect(self, locs, db=None):
@@ -1136,7 +1151,7 @@ class Path(object):
         """
         reply_step = copy(self.step_for_reply)
         self.completed_steps.append(reply_step)
-        self.step_sent_id = reply_step.get_id()
+        self.step_sent_id = reply_step.get_id() if reply_step else None
         assert self.step_for_prompt is None
         self.step_for_reply = None
 
@@ -1168,12 +1183,11 @@ class PathChooser(object):
     Select a new path to begin when the user begins another interaction.
     """
 
-    def __init__(self, categories, loc_id, paths_completed, db=None):
+    def __init__(self, tag_progress, loc_id, paths_completed, db=None):
         """Initialize a PathChooser object to select the user's next path."""
-        self.categories = categories
-        if not db:
-            self.db = current.db
-        self.db = db
+        self.categories = {k: v for k, v in tag_progress.iteritems()
+                           if not k in ['name', 'latest_new']}
+        self.db = current.db if not db else db
         self.loc_id = loc_id
         self.completed = paths_completed
 
@@ -1277,9 +1291,7 @@ class PathChooser(object):
         - has a tag that's not due & untried today
         - any random path
         """
-        if not db:
-            db = self.db
-        # loc_id = self.loc_id
+        db = self.db if not db else db
         cat_list = self._order_cats()
 
         # cycle through categories, starting with the one from _get_category()
@@ -1310,19 +1322,26 @@ class User(object):
         - tag_progress: rows.as_dict()
         - tag_records: rows.as_dict
         """
+
+        print 'Initializing new user'
+        self.time_zone = userdata['time_zone']
         self.db = current.db if not db else db
-        self.tag_progress = tag_progress
+        # TODO: Update tag_records as steps proceed
+        self.blocks = []
         self.tag_records = tag_records
-        self.rank = tag_progress['latest_new']
         self.name = userdata['first_name']
         self.user_id = userdata['id']
         self.path = None
         self.completed_paths = []
         self.cats_counter = 0
         self.old_categories = {}
-        self.categories = self._get_categories()
-        self.new_tags = None
-        self.blocks = []
+        cat_dict = self._get_categories(rank=tag_progress['latest_new'],
+                                        old_categories=None,
+                                        tag_records=tag_records)
+        self.tag_progress = cat_dict['tag_progress']
+        self.promoted = cat_dict['promoted']
+        self.new_tags = cat_dict['new_tags']
+        self.rank = tag_progress['latest_new']
         self.inventory = []
         self.session_start = datetime.datetime.utcnow()
         self.last_npc = None
@@ -1337,7 +1356,7 @@ class User(object):
         """Return the id (from db.auth_user) of the current user."""
         return self.user_id
 
-    def is_stale(self, now=None, start=None, tz_name=None, db=None):
+    def is_stale(self, now=None, start=None, time_zone=None, db=None):
         """
         Return true if the currently stored User should be discarded.
 
@@ -1347,27 +1366,32 @@ class User(object):
         The arguments 'now', 'start', and 'tzone' are only used for dependency
         injection in unit testing.
         """
-        if not db:
-            db = current.db
-        if not now:
-            now = datetime.datetime.utcnow()
-        # get timezone offset from utc
-        if not tz_name:
-            tz_name = db.auth_user[self.user_id].time_zone
-        tz = timezone(tz_name)
-        # adjust now for local time
-        lnow = tz.fromutc(now)
-        # adjust start for local time
-        if not start:
-            start = self.session_start
-        lstart = tz.fromutc(start)
+        # TODO: confirm that this stale check is being called by Walk
+        db = self.db if not db else db
+        now = datetime.datetime.utcnow() if not now else now
+        print 'now is', now
 
-        daystart = lnow.replace(hour=0, minute=0, second=0, microsecond=0)
+        # get timezone offset from utc
+        time_zone = self.time_zone if not time_zone else time_zone
+        tz = timezone(time_zone)
+        print 'tz offset =', tz
+        # adjust now for local time
+        local_now = tz.fromutc(now)
+        print 'adjusted local now =', local_now
+        # adjust start for local time
+        start = self.session_start if not start else start
+        lstart = tz.fromutc(start)
+        print 'session start was', lstart
+
+        daystart = local_now.replace(hour=0, minute=0, second=0, microsecond=0)
+        print 'start of day (local) was', daystart
         if lstart < daystart:
+            print 'user is stale, initializing a new one'
             return True
-        elif lstart > lnow:
+        elif lstart > local_now:
             raise Exception  # TODO: make specific error
         else:
+            print 'user not stale, continuing'
             return False
 
     def get_new_tags(self):
@@ -1378,6 +1402,14 @@ class User(object):
         """Return a dictionary of tag ids newly promoted to categories 2-4."""
         return self.promoted
 
+    def get_tag_progress(self):
+        """
+        Return a dictionary matching the fields of db.tag_progress.
+
+        This dictionary contains the user's overall progress data.
+        """
+        return self.tag_progress
+
     def get_path(self, loc, categories=None, db=None, path=None):
         """
         Return the currently active Path object.
@@ -1387,30 +1419,27 @@ class User(object):
         testing.
         """
         db = self.db if not db else db
-        categories = categories if categories else self._get_categories()
+        categories = self._get_categories() if not categories else categories
         self.loc = loc
         # If a path has been injected for testing
         if path:
-            print 'INJECTED PATH path'
-            return Path(path_id=path, loc=loc, db=db)
+            self.path = Path(path_id=path, loc=loc, db=db)
+            return self.path
         # If the user has a multi-step path in progress, use that path
         if self.path:
             self.path._set_loc(loc)
-            print 'User returning path', self.path.get_id()
             return self.path
         # otherwise, select a new path
         else:
-            choice = PathChooser(self.categories, loc.get_id(),
+            choice = PathChooser(self.tag_progress, loc.get_id(),
                                  self.completed_paths, db=db).choose()
             path = Path(path_id=choice[0].id, loc=loc, db=db)
-
             # check for a redirect location to start the selected path
             if choice[1]:
                 # TODO: get block logic working here
                 self._set_block('redirect', choice[1])
-
             self.path = path
-            return path
+            return self.path
 
     def _get_categories(self, rank=None, old_categories=None,
                         tag_records=None, utcnow=None):
@@ -1428,14 +1457,11 @@ class User(object):
         provided to help in unit testing. The arguments tag_records and utcnow
         are required only for dependency injection during unit testing.
         """
-        if not rank:
-            rank = self.rank
-        if not tag_records:
-            tag_records = self.tag_records
-        if not utcnow:
-            utcnow = datetime.datetime.utcnow()
-        if not old_categories:
-            old_categories = self.old_categories
+        rank = self.rank if not rank else rank
+        tag_records = self.tag_records if not tag_records else tag_records
+        utcnow = datetime.datetime.utcnow() if not utcnow else utcnow
+        old_categories = self.old_categories if not old_categories \
+            else old_categories
         cats_counter = self.cats_counter
         try:
             categories = self.categories
@@ -1444,17 +1470,23 @@ class User(object):
 
         # only re-categorize every 10th evaluated step
         if cats_counter in range(1, 5):
-            self.cats_counter = cats_counter + 1
-            return categories
+            return {'tag_progress': self.tag_progress,
+                    'promoted': self.promoted,
+                    'new_tags': self.new_tags,
+                    'cats_counter': self.cats_counter + 1}
         else:
             c = Categorizer(rank, categories, tag_records, utcnow=utcnow)
             cat_result = c.categorize_tags()
-            categories = cat_result['categories']
-            self.categories = categories
-            self.cats_counter == 1  # reset counter
+            # Set blocks for 'new_tags' (view_slides) and 'promoted' conditions
             if cat_result['new_tags']:
                 self.set_block('new_tags', cat_result['new_tags'])
-            return categories
+            if cat_result['promoted']:
+                self.set_block('promoted', cat_result['promoted'])
+            return {'categories': cat_result['categories'],
+                    'tag_progress': cat_result['tag_progress'],
+                    'promoted': cat_result['promoted'],
+                    'new_tags': cat_result['new_tags'],
+                    'cats_counter': 1}  # reset counter
 
     def _get_old_categories(self):
         if self.old_categories:
@@ -1483,6 +1515,7 @@ class User(object):
         Move the current path from the path variable to 'completed_paths' list.
         Set last_npc and last_loc before removing the path.
         """
+        'Completing path', self.path.get_id()
         self.completed_paths.append(self.path)
         self.last_npc = self.path.completed_steps[-1].get_npc()
         # TODO: Work out handling of the location in paths/steps
@@ -1516,14 +1549,10 @@ class Categorizer(object):
     def categorize_tags(self, rank=None, tag_records=None,
                         old_categories=None, db=None):
         """Return a categorized dictionary of tags"""
-        if not rank:
-            rank = self.rank
-        if not old_categories:
-            old_categories = self.old_categories
-        if not tag_records:
-            tag_records = self.tag_records
-        if not db:
-            db = current.db
+        rank = self.rank if not rank else rank
+        old_categories = self.old_categories if not old_categories else old_categories
+        tag_records = self.tag_records if not tag_records else tag_records
+        db = self.db if not db else db
         new_tags = None
 
         # if user has not tried any tags yet, start first set
