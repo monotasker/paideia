@@ -2587,12 +2587,15 @@ class TestWalk():
             score = 1.0
             loglength = len(db(db.attempt_log.name == user_id).select())
             step_tags = [61]  # FIXME: hard coded until I properly parameterize
+            response_string = 'blabla'
 
             expected_tag_records = [t for t in case['tag_records'] if t in step_tags]
 
             # call the method and collect return value
-            actual_log_id = thiswalk._record_step(user_id, step_id, path_id,
-                                                score, expected_tag_records)
+            actual_log_id = thiswalk._record_step(user_id, path_id, step_id,
+                                                  score,
+                                                  expected_tag_records,
+                                                  response_string)
 
             # test writing to attempt_log
             logs_out = db(db.attempt_log.name == user_id).select()
