@@ -16,20 +16,53 @@ import datetime
 import re
 from random import randint
 from copy import copy
-
 # web2py library for functional testing
 from gluon.contrib.webclient import WebClient
-client = WebClient('http://127.0.0.1:8000/paideia/default/', postbacks=True)
-client.get('index')
 
-#register
-data = dict(first_name='Homer',
-            last_name='Simpson',
-            email='scottianw@gmail.com',
-            password='test',
-            password_two='test',
-            _formname='register')
-client.post('user/register', data=data)
+
+@pytest.fixture(scope='module')
+def user_login(request):
+    """
+    Provide a new, registered, and logged-in user account for testing.
+    """
+    client = WebClient('http://127.0.0.1:8000/paideia/default/', postbacks=True)
+    client.get('index')
+
+    #register test user
+    data = {'first_name': 'Homer',
+            'last_name': 'Simpson',
+            'email': 'scottianw@gmail.com',
+            'password': 'test',
+            'password_two': 'test',
+            'time_zone': 'America/Toronto',
+            '_formname': 'register'}
+    client.post('user/register', data=data)
+
+    # log test user in
+    data = {'email': 'scottianw@gmail.com',
+            'password': 'test',
+            '_formname': 'login'}
+    client.post('user/login', data=data)
+    client.get('index')
+
+    # check registration and login were successful and get record
+    assert 'Welcome Homer' in client.text
+    user_query = db((db.auth_user.first_name == 'Homer') &
+                    (db.auth_user.last_name == 'Simpson') &
+                    (db.auth_user.email == 'scottianw@gmail.com'))
+    assert user_query.count() == 1
+    user_record = user_query.select()
+    assert user_record
+
+    def fin():
+        """
+        Delete the test user's account.
+        """
+        user_record.delete_record()
+        assert not user_query.count
+
+    request.addfinalizer(fin)
+    return user_record.as_dict()
 
 # ===================================================================
 # Controls governing which tests to run
@@ -2141,7 +2174,7 @@ class TestUser():
     pytestmark = pytest.mark.skipif('global_runall is False '
                                     'and global_run_TestUser is False')
 
-    def test_user_get_id(self, myuser):
+    def test_user_get_id(self, myuser, user_login):
         """
         Unit test for User.get_id() method.
         """
@@ -2632,6 +2665,9 @@ class TestWalk():
             assert actual is True
             assert isinstance(session.user, User)
             assert session.user.get_id() == user_id
+
+            # remove session user again
+            session.user = None
         else:
             pass
 
