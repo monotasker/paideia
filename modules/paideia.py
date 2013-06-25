@@ -137,6 +137,7 @@ class Walk(object):
         s = p.get_step_for_prompt()
         prompt = s.get_prompt()
         responder = s.get_responder()
+        # non-response steps end here
         self._store_user(user)
 
         return {'prompt': prompt, 'responder': responder}
@@ -146,6 +147,7 @@ class Walk(object):
 
         """
         user = self._get_user()
+        user_id = user.get_id()
         db = self.db
 
         p = user.get_path(self.loc)
@@ -160,23 +162,19 @@ class Walk(object):
         score = reply['score']
         #times_right = reply['times_right']
         #times_wrong = reply['times_wrong']
-        tag_records = user.tag_records()
+        tag_records = user.get_tag_records()
         tag_progress = user.get_tag_progress()
         promoted = user.get_promoted()
         new_tags = user.get_new_tags()
 
         assert self._record_cats(tag_progress, promoted, new_tags)
-        record_id = self._record_step(path_id, step_id, score,
+        record_id = self._record_step(user_id, path_id, step_id, score,
                                       tag_records, response_string)
         assert record_id
 
         bug_reporter = BugReporter(record_id, path_id, step_id,
                                    tags, score, response_string)
         p.complete_step(step_id)
-
-        if p.check_for_end():
-            self.user._complete_path(path_id)
-
         self._store_user()
 
         return {'reply': reply, 'bug_reporter': bug_reporter}
@@ -1055,6 +1053,19 @@ class Path(object):
         else:
             return False
 
+    def _complete(self):
+        """
+        Deactivate current step.
+        """
+        if self.step_for_reply:
+            self.step_for_reply = None
+            assert not self.step_for_prompt
+            return True
+        else:
+            self.step_for_prompt = None
+            assert not self.step_for_reply
+            return True
+
     def get_step_for_prompt(self, loc=None, step=None):
         """
         Find the next unanswered step in the current path and return it.
@@ -1070,22 +1081,23 @@ class Path(object):
             raise Exception
 
         if self.step_for_prompt:
-            next_step = self.step_for_prompt
+            next_step = copy(self.step_for_prompt)
         elif self._prepare_for_prompt():
-            next_step = self.step_for_prompt
+            next_step = copy(self.step_for_prompt)
 
-        # check for blocks; block removed when its step retrieved here
-        # this is the ONLY place where blocks are triggered, but they can be
-        # set elsewhere
+        # all blocks triggered here, but can be set elsewhere
         active_block = self._check_for_blocks(next_step)
         if active_block:
             return active_block
         else:
             if isinstance(next_step, (StepText, StepMultiple)):
                 assert self._prepare_for_reply()
+                assert self.get_step_for_reply
+                assert not self.step_for_prompt
             else:
-                # TODO: raise specific exception
-                raise Exception
+                assert self._complete()
+                assert not self.step_for_reply
+                assert not self.step_for_prompt
             return next_step
 
     def redirect(self, locs, db=None):
@@ -1149,11 +1161,14 @@ class Path(object):
             StepAwardBadges
             or a bare Step instance
         """
+        print 'in Path.get_step_for_reply():'
+        print 'self.step_for_reply', self.step_for_reply
         reply_step = copy(self.step_for_reply)
         self.completed_steps.append(reply_step)
         self.step_sent_id = reply_step.get_id() if reply_step else None
-        assert self.step_for_prompt is None
-        self.step_for_reply = None
+        self._complete()
+        assert not self.step_for_reply
+        assert not self.step_for_prompt
 
         return reply_step
 
@@ -1426,18 +1441,20 @@ class User(object):
             self.path = Path(path_id=path, loc=loc, db=db)
             return self.path
         # If the user has a multi-step path in progress, use that path
-        if self.path:
+        # check for len(path.steps) catches end-of-path and triggers new choice
+        if self.path and len(self.path.steps):
             self.path._set_loc(loc)
             return self.path
         # otherwise, select a new path
         else:
             choice = PathChooser(self.tag_progress, loc.get_id(),
                                  self.completed_paths, db=db).choose()
+            new_location = choice[1]
             path = Path(path_id=choice[0].id, loc=loc, db=db)
             # check for a redirect location to start the selected path
-            if choice[1]:
+            if new_location:
                 # TODO: get block logic working here
-                self._set_block('redirect', choice[1])
+                self._set_block('redirect', new_location)
             self.path = path
             return self.path
 

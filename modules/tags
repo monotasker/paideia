@@ -49,7 +49,6 @@ Utils	paideia_exploring.py	/^class Utils(object):$/;"	c
 Walk	paideia.py	/^class Walk(object):$/;"	c
 Walk	paideia_exploring.py	/^class Walk(object):$/;"	c
 __init__	paideia.py	/^    def __init__():$/;"	m	class:BugReporter
-__init__	paideia.py	/^    def __init__(self, categories, loc_id, paths_completed, db=None):$/;"	m	class:PathChooser
 __init__	paideia.py	/^    def __init__(self, condition, kwargs=None, data=None):$/;"	m	class:Block
 __init__	paideia.py	/^    def __init__(self, id_num, db=None):$/;"	m	class:Location
 __init__	paideia.py	/^    def __init__(self, id_num, db=None):$/;"	m	class:Npc
@@ -61,6 +60,7 @@ __init__	paideia.py	/^    def __init__(self, responses, tips):$/;"	m	class:StepE
 __init__	paideia.py	/^    def __init__(self, step, location, prev_npc, prev_loc):$/;"	m	class:NpcChooser
 __init__	paideia.py	/^    def __init__(self, step_id=None, loc=None, prev_loc=None, prev_npc=None,$/;"	m	class:Step
 __init__	paideia.py	/^    def __init__(self, step_id=None, step_data=None, loc=None, prev_loc=None,$/;"	m	class:StepRedirect
+__init__	paideia.py	/^    def __init__(self, tag_progress, loc_id, paths_completed, db=None):$/;"	m	class:PathChooser
 __init__	paideia.py	/^    def __init__(self, userdata, localias, tag_records, tag_progress, db=None):$/;"	m	class:User
 __init__	paideia_bugs.py	/^    def __init__(self, step=None, path=None, location=None):$/;"	m	class:Bug
 __init__	paideia_exploring.py	/^    def __init__(self):$/;"	m	class:Map
@@ -136,7 +136,7 @@ _prepare_for_prompt	paideia.py	/^    def _prepare_for_prompt(self):$/;"	m	class:
 _prepare_for_reply	paideia.py	/^    def _prepare_for_reply(self):$/;"	m	class:Path
 _record	paideia_exploring.py	/^    def _record(self, score, times_wrong_incr):$/;"	m	class:Step
 _record_cats	paideia.py	/^    def _record_cats(self, tag_progress, promoted,$/;"	m	class:Walk
-_record_step	paideia.py	/^    def _record_step(self, user_id, step_id, path_id, score, tag_records):$/;"	m	class:Walk
+_record_step	paideia.py	/^    def _record_step(self, user_id, step_id, path_id, score, tag_records,$/;"	m	class:Walk
 _remove_flag	paideia_exploring.py	/^    def _remove_flag(self, flag_name):$/;"	m	class:StepAwardBadges
 _save_session_data	paideia_exploring.py	/^    def _save_session_data(self):$/;"	m	class:Npc
 _save_session_data	paideia_exploring.py	/^    def _save_session_data(self):$/;"	m	class:Step
@@ -232,6 +232,7 @@ restrict	plugin_ajaxselect.py	/^    def restrict(self, restricted):$/;"	m	class:
 sanitize_int	plugin_ajaxselect.py	/^    def sanitize_int(self, val):$/;"	m	class:AjaxSelect
 sanitize_valstring	plugin_ajaxselect.py	/^    def sanitize_valstring(self, value):$/;"	m	class:AjaxSelect
 save_session_data	save_session_data.py	/^def save_session_data(self):$/;"	f
+start	paideia.py	/^    def start(self, response_string=None, path=None):$/;"	m	class:Walk
 stay	paideia_exploring.py	/^    def stay(self):$/;"	m	class:Walk
 step_log	paideia_stats.py	/^    def step_log(self, logs=None, user_id=None, duration=None, db=None):$/;"	m	class:Stats
 textarea	plugin_widgets.py	/^    def textarea(self, label, target, cname, fname, linkargs=None):$/;"	m	class:JQMODAL
