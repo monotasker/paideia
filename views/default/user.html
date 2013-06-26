@@ -1,5 +1,23 @@
 {{extend 'layout.html'}}
 
+{{if request.args(0)=='register' and not 'register' in auth.settings.actions_disabled:}}
+    <div class='registerform'>
+        {{=form}}
+    </div>
+{{pass}}
+
+{{if request.args(0)=='retrieve_password' and not 'retrieve_password' in auth.settings.actions_disabled:}}
+    <div class='getpasswordform'>
+        {{=form}}
+    </div>
+{{pass}}
+
+{{if request.args(0)=='change_password' and not 'change_password' in auth.settings.actions_disabled:}}
+    <div class='changepasswordform'>
+        {{=form}}
+    </div>
+{{pass}}
+
 {{if request.args(0)=='login':}}
     <div class='loginform'>
         {{=form}}
