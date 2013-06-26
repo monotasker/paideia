@@ -13,25 +13,64 @@ from gluon.globals import current
 response = current.response
 request = current.request
 
+
 #if request.is_local:  # disable in production enviroment
 from gluon.custom_import import track_changes
 track_changes(True)
 
+#-------------------------------------------------------------
+# Recognize when running in test environment
+#-------------------------------------------------------------
+# This section adapted from https://github.com/viniciusban/web2py.test
+# note: with Ubuntu, put test db on ramdisk with /dev/shm directory.
+temp_dir = '/dev/shm/' + request.application
+# temp_dir = '/tmp'
+
+
+def _i_am_running_under_test():
+    '''Check if Web2py is running under a test environment.
+    '''
+
+    test_running = False
+    if request.is_local:
+        # IMPORTANT: the temp_filename variable must be the same as the one set
+        # on your tests/conftest.py file.
+        temp_filename = '%s/tests_%s.tmp' % (temp_dir, request.application)
+
+        import glob
+        if glob.glob(temp_filename):
+            test_running = True
+
+    return test_running
+
+#-------------------------------------------------------------
+# define database storage
+#-------------------------------------------------------------
+if _i_am_running_under_test():
+    db = DAL('sqlite://test_storage.sqlite', folder=temp_dir)
+else:
+    # TODO: check these sqlite settings
+    db = DAL('sqlite://storage.sqlite', pool_size=1, check_reserved=['all'])
+
+
+#-------------------------------------------------------------
+# Set up logging
+#-------------------------------------------------------------
 logger = logging.getLogger('web2py.app.paideia')
 logger.setLevel(logging.DEBUG)
 
-# define database storage
-db = DAL('sqlite://storage.sqlite')
-# add db to current object so that it can be accessed from modules
-current.db = db
-
+#-------------------------------------------------------------
+# Generic views
+#-------------------------------------------------------------
 # by default give a view/generic.extension to all actions from localhost
 # none otherwise. a pattern can be 'controller/function.extension'
 response.generic_patterns = ['*'] if request.is_local else []
 
+
 crud = Crud(db)                 # for CRUD helpers using auth
 service = Service()             # for json, xml, jsonrpc, xmlrpc, amfrpc
 plugins = PluginManager()       # for configuring plugins
+current.db = db                 # to access db from modules
 
 # get private data from secure file
 keydata = {}
