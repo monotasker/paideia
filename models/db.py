@@ -77,8 +77,9 @@ current.auth = auth
 
 #enable recaptcha anti-spam for selected actions
 auth.settings.login_captcha = None
-auth.settings.register_captcha = Recaptcha(request,
-    keydata['captcha_public_key'], keydata['captcha_private_key'])
+# TODO: turn these back on!!!!
+#auth.settings.register_captcha = Recaptcha(request,
+    #keydata['captcha_public_key'], keydata['captcha_private_key'])
 auth.settings.retrieve_username_captcha = Recaptcha(request,
     keydata['captcha_public_key'], keydata['captcha_private_key'])
 auth.settings.retrieve_password_captcha = Recaptcha(request,
