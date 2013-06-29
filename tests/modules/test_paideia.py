@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 # Unit tests for the paideia module
+#
+# Configuration and some fixtures (client, web2py) declared in
+# the file tests/conftest.py
 
 import pytest
 from paideia import Npc, Location, User, PathChooser, Path, Categorizer, Walk
@@ -16,34 +19,45 @@ import datetime
 import re
 from random import randint
 from copy import copy
-# web2py library for functional testing
-from gluon.contrib.webclient import WebClient
 
+
+#db = current.db
+db = web2py.db
 
 @pytest.fixture(scope='module')
-def user_login(request):
+def user_login(request, client):
     """
     Provide a new, registered, and logged-in user account for testing.
     """
-    client = WebClient('http://127.0.0.1:8000/paideia/default/', postbacks=True)
     client.get('index')
 
     #register test user
-    data = {'first_name': 'Homer',
-            'last_name': 'Simpson',
-            'email': 'scottianw@gmail.com',
-            'password': 'test',
-            'password_two': 'test',
-            'time_zone': 'America/Toronto',
-            '_formname': 'register'}
-    client.post('user/register', data=data)
+    reg_data = {'first_name': 'Homer',
+                'last_name': 'Simpson',
+                'email': 'scottianw@gmail.com',
+                'password': 'test',
+                'password_two': 'test',
+                'time_zone': 'America/Toronto',
+                '_formname': 'register'}
+    client.post('user/register', data=reg_data)
+
+    print 'forms'
+    print client.forms, '\n'
+    print 'status'
+    print client.status, '\n'
+    print 'response'
+    print client.response, '\n'
+    print 'headers'
+    print client.headers, '\n'
+    #print 'text'
+    #print client.text, '\n'
+    #client.post('user/logout')
 
     # log test user in
-    data = {'email': 'scottianw@gmail.com',
-            'password': 'test',
-            '_formname': 'login'}
-    client.post('user/login', data=data)
-    client.get('index')
+    log_data = {'email': 'scottianw@gmail.com',
+                'password': 'test'}
+    client.post('user/login', data=log_data)
+    client.get('user/profile')
 
     # check registration and login were successful and get record
     assert 'Welcome Homer' in client.text
@@ -67,7 +81,7 @@ def user_login(request):
 # ===================================================================
 # Controls governing which tests to run
 # ===================================================================
-global_runall = False
+global_runall = 1
 global_run_TestNpc = False
 global_run_TestLocation = False
 global_run_TestNpcChooser = False  # deprecated for Step.get_npc()
@@ -95,8 +109,8 @@ def dt(string):
     format = "%Y-%m-%d"
     return datetime.datetime.strptime(string, format)
 
-# Constant values from db
-db = current.db
+
+# Constant values from
 images = {'npc1_img': '/paideia/static/images/images.image.bb48641f0122d2b6.696d616765732e696d6167652e383136303330663934646664646561312e34343732363137373639366536373230333432653733373636372e737667.svg',
           'npc2_img': '/paideia/static/images/images.image.81e2d69e1aea4d99.44726177696e672031372e737667.svg',
           'npc3_img': '/paideia/static/images/images.image.a59978facee731f0.44726177696e672031382e737667.svg',
@@ -408,7 +422,7 @@ def mysteps(request):
 
 
 @pytest.fixture(params=['case{}'.format(n) for n in range(1, 6)])
-def mycases(request, mysteps):
+def mycases(request, mysteps, user_login):
     """
     Text fixture providing various cases for unit tests. For each step,
     several cases are specified.
@@ -419,8 +433,8 @@ def mycases(request, mysteps):
     cases = {'case1': {'casenum': 1,
                        'loc': Location(1, db),
                        'mynow': dt('2013-01-29'),
-                       'name': 'Ian',
-                       'uid': 1,
+                       'name': user_login['first_name'],
+                       'uid': user_login['id'],
                        'prev_loc': Location(7, db),
                        'prev_npc': Npc(2, db),
                        'npcs_here': [2, 8, 14, 17, 31, 40, 41, 42],
@@ -473,8 +487,8 @@ def mycases(request, mysteps):
                       {'casenum': 2,
                        'mynow': dt('2013-01-29'),
                        'loc': Location(8, db),
-                       'name': 'Ian',
-                       'uid': 1,
+                       'name': user_login['first_name'],
+                       'uid': user_login['id'],
                        'prev_loc': Location(8, db),
                        'prev_npc': Npc(1, db),
                        'npcs_here': [1, 14, 17, 21, 40, 41, 42],
@@ -526,8 +540,8 @@ def mycases(request, mysteps):
              # add several untried tags for current rank
                       {'casenum': 3,
                        'mynow': dt('2013-01-29'),
-                       'name': 'Ian',
-                       'uid': 1,
+                       'name': user_login['first_name'],
+                       'uid': user_login['id'],
                        'loc': Location(11, db),  # synagogue
                        'prev_loc': Location(11, db),
                        'prev_npc': Npc(31, db),  # stephanos
@@ -617,8 +631,8 @@ def mycases(request, mysteps):
              # secondary_right list sliced accordingly
                       {'casenum': 4,
                        'mynow': dt('2013-01-29'),
-                       'name': 'Ian',
-                       'uid': 1,
+                       'name': user_login['first_name'],
+                       'uid': user_login['id'],
                        'loc': Location(8, db),
                        'prev_loc': Location(7, db),
                        'prev_npc': Npc(1, db),
@@ -711,8 +725,8 @@ def mycases(request, mysteps):
              'case5':  # new badges present
                       {'casenum': 5,
                        'mynow': dt('2013-01-29'),
-                       'name': 'Ian',
-                       'uid': 1,
+                       'name': user_login['first_name'],
+                       'uid': user_login['id'],
                        'loc': Location(3, db),
                        'prev_loc': Location(3, db),
                        'prev_npc': Npc(1, db),
@@ -785,13 +799,11 @@ def mynpcchooser(mycases):
 
 
 @pytest.fixture
-def mywalk(mycases):
+def mywalk(mycases, user_login):
     """pytest fixture providing a paideia.Walk object for testing"""
     case = mycases['casedata']
     step = mycases['stepdata']
-    userdata = {'first_name': case['name'],
-                'id': case['uid'],
-                'time_zone': 'America/Toronto'}
+    userdata = user_login
     tag_progress = case['tag_progress']
     tag_records = case['tag_records']
     localias = case['loc'].get_alias()
@@ -853,16 +865,14 @@ def mycategorizer(mycases):
 
 
 @pytest.fixture
-def myuser(mycases):
+def myuser(mycases, user_login):
     """A pytest fixture providing a paideia.User object for testing."""
     case = mycases['casedata']
     step = mycases['stepdata']
-    uid = case['uid']
-    userdata = db.auth_user(uid).as_dict()
     tag_progress = case['tag_progress']
     tag_records = case['tag_records']
     localias = case['loc'].get_alias()
-    return {'user': User(userdata, localias, tag_records, tag_progress),
+    return {'user': User(user_login, localias, tag_records, tag_progress),
             'casedata': case,
             'stepdata': step}
 
@@ -2174,13 +2184,15 @@ class TestUser():
     pytestmark = pytest.mark.skipif('global_runall is False '
                                     'and global_run_TestUser is False')
 
-    def test_user_get_id(self, myuser, user_login):
+    def test_user_get_id(self, myuser):
         """
         Unit test for User.get_id() method.
         """
-        #auth = current.auth
-        uid = 1  # TODO: change to use auth.user_id
-        assert myuser['user'].get_id() == uid
+        uid = myuser['user'].get_id()
+        expected = db((db.auth_user.first_name == 'Homer') &
+                      (db.auth_user.last_name == 'Simpson')).select()
+        assert len(expected) == 1
+        assert uid == expected.first().id
 
     def test_user_is_stale(self, myuser):
         """
