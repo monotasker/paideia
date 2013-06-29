@@ -33,7 +33,7 @@ def user():
     http://..../[app]/default/user/retrieve_password
     http://..../[app]/default/user/change_password
     """
-    return {'form': auth()}
+    return dict(form=auth())
 
 
 def info():
@@ -134,22 +134,23 @@ def oops():
 
     return {'code': code}
 
-#def download():
-    #"""
-    #allows downloading of uploaded files
-    #http://..../[app]/default/download/[filename]
-    #"""
-    #return response.download(request,db)
+
+def download():
+    """
+    allows downloading of uploaded files
+    http://..../[app]/default/download/[filename]
+    """
+    return response.download(request, db)
 
 
-#def call():
-    #"""
-    #exposes services. for example:
-    #http://..../[app]/default/call/jsonrpc
-    #decorate with @services.jsonrpc the functions to expose
-    #supports xml, json, xmlrpc, jsonrpc, amfrpc, rss, csv
-    #"""
-    #return service()
+def call():
+    """
+    exposes services. for example:
+    http://..../[app]/default/call/jsonrpc
+    decorate with @services.jsonrpc the functions to expose
+    supports xml, json, xmlrpc, jsonrpc, amfrpc, rss, csv
+    """
+    return service()
 
 
 #@auth.requires_signature()
