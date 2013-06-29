@@ -59,23 +59,29 @@ p19
 ssS'path'
 p20
 (dp21
-g4
-I512
-sg5
-I00
-sg6
-I3
-sg7
-S'INTEGER REFERENCES paths (id) ON DELETE CASCADE'
+S'sortable'
 p22
-sg9
-I00
-sg10
-S'reference paths'
+I3
+sS'sql'
 p23
-ssS'dt_completed'
+S'INTEGER REFERENCES paths (id) ON DELETE CASCADE'
 p24
-(dp25
+sS'length'
+p25
+I512
+sS'notnull'
+p26
+I00
+sS'unique'
+p27
+I00
+sS'type'
+p28
+S'reference paths'
+p29
+ssS'dt_completed'
+p30
+(dp31
 g4
 I512
 sg5
@@ -84,14 +90,31 @@ sg6
 I6
 sg7
 S'TIMESTAMP'
-p26
+p32
 sg9
 I00
 sg10
 g11
+ssS'in_path'
+p33
+(dp34
+g4
+I512
+sg5
+I00
+sg6
+I3
+sg7
+S'INTEGER REFERENCES paths (id) ON DELETE CASCADE'
+p35
+sg9
+I00
+sg10
+S'reference paths'
+p36
 ssS'id'
-p27
-(dp28
+p37
+(dp38
 g4
 I512
 sg5
@@ -100,10 +123,10 @@ sg6
 I1
 sg7
 S'INTEGER PRIMARY KEY AUTOINCREMENT'
-p29
+p39
 sg9
 I00
 sg10
 S'id'
-p30
+p40
 ss.

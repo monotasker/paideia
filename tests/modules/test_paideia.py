@@ -5,24 +5,25 @@
 # the file tests/conftest.py
 
 import pytest
-from paideia import Npc, Location, User, PathChooser, Path, Categorizer, Walk
-from paideia import StepFactory, StepText, StepMultiple, NpcChooser, Step
-from paideia import StepRedirect, StepViewSlides, StepAwardBadges
-from paideia import StepEvaluator, MultipleEvaluator, StepQuotaReached
-from paideia import Block
+if 0:
+    from paideia import Npc, Location, User, PathChooser, Path, Categorizer, Walk
+    from paideia import StepFactory, StepText, StepMultiple, NpcChooser, Step
+    from paideia import StepRedirect, StepViewSlides, StepAwardBadges
+    from paideia import StepEvaluator, MultipleEvaluator, StepQuotaReached
+    from paideia import Block
 from gluon import A, URL, DIV, LI, UL, SPAN, IMG
 from gluon import current
-request = current.request
 # from gluon.dal import Rows
 import datetime
 # from pprint import pprint
 import re
 from random import randint
 from copy import copy
-
+#from conftest import web2py
 
 #db = current.db
-db = web2py.db
+mydb = db
+
 
 @pytest.fixture(scope='module')
 def user_login(request, client):
@@ -271,7 +272,7 @@ def mysteps(request):
                          'clicking on the "slides" menu item at top.'}
     steps = {1: {'id': 1,
                  'paths': [2],
-                 'type': StepText,
+                 'step_type': StepText,
                  'widget_type': 1,
                  'npc_list': [8, 2, 32, 1, 17],
                  'locations': [3, 1, 13, 7, 8, 11],
@@ -299,7 +300,7 @@ def mysteps(request):
                  },
              2: {'id': 2,
                  'paths': [3],
-                 'type': StepText,
+                 'step_type': StepText,
                  'widget_type': 1,
                  'npc_list': [8, 2, 32, 1],
                  'locations': [3, 1, 13, 7, 8, 11],
@@ -324,7 +325,7 @@ def mysteps(request):
                  },
              19: {'id': 19,
                  'paths': [19],
-                 'type': StepText,
+                 'step_type': StepText,
                  'widget_type': 1,
                  'npc_list': [8, 2, 32, 1],
                  'locations': [3, 1, 13, 8, 11],
@@ -352,7 +353,7 @@ def mysteps(request):
                   },
              30: {'id': 30,
                   'paths': [None],
-                  'type': StepRedirect,
+                  'step_type': StepRedirect,
                   'widget_type': 9,
                   'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
                   'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10],
@@ -365,7 +366,7 @@ def mysteps(request):
                   'responder': responders['stub']},
              101: {'id': 101,
                    'paths': [89],
-                   'type': StepMultiple,
+                   'step_type': StepMultiple,
                    'widget_type': 4,
                    'locations': [7],
                    'npc_list': [14],
@@ -375,7 +376,7 @@ def mysteps(request):
                    'instructions': None,
                    'tags': [36],
                    'tags_secondary': [],
-                   'options': ['ναι', 'οὐ'],
+                   'step_options': ['ναι', 'οὐ'],
                    'responses': {'response1': 'ναι'},
                    'responder': responders['multi'],
                    'redirect_responder': responders['stub'],
@@ -388,7 +389,7 @@ def mysteps(request):
                    'tips': []},
              125: {'id': 125,
                    'paths': [None],
-                   'type': StepQuotaReached,
+                   'step_type': StepQuotaReached,
                    'widget_type': 7,
                    'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10],
                    'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
@@ -399,7 +400,7 @@ def mysteps(request):
                    'responder': responders['continue']},
              126: {'id': 126,
                    'paths': [None],
-                   'type': StepAwardBadges,
+                   'step_type': StepAwardBadges,
                    'widget_type': 8,
                    'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10],
                    'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
@@ -410,7 +411,7 @@ def mysteps(request):
                    'responder': responders['continue']},
              127: {'id': 127,
                    'paths': [None],
-                   'type': StepViewSlides,
+                   'step_type': StepViewSlides,
                    'widget_type': 6,
                    'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
                    'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10],
@@ -949,11 +950,11 @@ def mystep(mycases):
     if (not case['loc'].get_id() in step['locations']) or \
        (not [n for n in case['npcs_here'] if n in step['npc_list']]):
         return None
-    if step['type'] == StepAwardBadges and case['casenum'] != 5:
+    if step['step_type'] == StepAwardBadges and case['casenum'] != 5:
         return None
-    if step['type'] == StepViewSlides and case['casenum'] != 5:
+    if step['step_type'] == StepViewSlides and case['casenum'] != 5:
         return None
-    if step['type'] == StepRedirect and case['casenum'] != 5:
+    if step['step_type'] == StepRedirect and case['casenum'] != 5:
         return None
     else:
         return {'casenum': case['casenum'],
@@ -1079,14 +1080,14 @@ def myStepText(mycases):
 
 
 @pytest.fixture
-def myStepMultiple(mycases):
+def myStepMultiple(mycases, request):
     """A pytest fixture providing a paideia.StepMultiple object for testing."""
     case = mycases['casedata']
     step = mycases['stepdata']
     if step['widget_type'] == 4:
         for n in [0, 1]:
             responses = ['incorrect', 'correct']
-            options = step['options']
+            options = step['step_options']
             right_opt = step['responses']['response1']
             right_i = options.index(right_opt)
             wrong_opts = options[:]
@@ -1311,7 +1312,7 @@ class TestStep():
         """
         if mystep:
             sid = mystep['stepdata']['id']
-            stype = mystep['stepdata']['type']
+            stype = mystep['stepdata']['step_type']
             assert mystep['step'].get_id() == sid
             assert isinstance(mystep['step'], stype) is True
         else:
@@ -1681,7 +1682,7 @@ class TestStepViewSlides():
             deck_query = db(deck_table.id.belongs(deck_ids))
             decknames = deck_query.select(deck_table.id,
                                           deck_table.deck_name,
-                                          orderby=deck_table.position)
+                                          orderby=deck_table.deck_position)
             decklist = UL(_class='slide_list')
             for d in decknames:
                 decklist.append(LI(A(d.deck_name, _href=URL('listing',
@@ -2013,7 +2014,7 @@ class TestPath():
                                         if s in case['npcs_here']],
                             'loc': case['loc'].get_id(),
                             'steps': [],  # only step has been removed
-                            'type': step['type']
+                            'step_type': step['step_type']
                             }
 
                 path = mypath['path']
@@ -2026,7 +2027,7 @@ class TestPath():
                     expected['npc_list'] = [14, 8, 2, 40, 31, 32, 41, 1, 17, 42]
                     expected['locations'] = [3, 1, 2, 4, 12, 13, 14, 6, 7, 8,
                                             11, 5, 9, 10]
-                    expected['type'] = StepRedirect
+                    expected['step_type'] = StepRedirect
 
                     assert path.step_for_reply is None
                     assert path.step_for_prompt.get_id() == sid
@@ -2042,8 +2043,8 @@ class TestPath():
                 assert case['loc'].get_id() in expected['locations']
                 assert actual.get_npc().get_id() in expected['npc_list']
                 assert actual.get_npc().get_id() in case['npcs_here']
-                assert type(actual) == expected['type']
-                assert isinstance(actual, expected['type'])
+                assert type(actual) == expected['step_type']
+                assert isinstance(actual, expected['step_type'])
                 assert path.steps == expected['steps']
             else:
                 pass
@@ -2452,53 +2453,53 @@ class TestWalk():
         case = mywalk['casedata']
         if case['casenum'] == 1:
             expected = {'map_image': '/paideia/static/images/town_map.svg',
-                        'locations': [{'alias': 'None',
+                        'locations': [{'loc_alias': 'None',
                                     'bg_image': 8,
                                     'id': 3},
-                                    {'alias': 'domus_A',
+                                    {'loc_alias': 'domus_A',
                                     'bg_image': 8,
                                     'id': 1},
-                                    {'alias': '',
+                                    {'loc_alias': '',
                                     'bg_image': 8,
                                     'id': 2},
-                                    {'alias': None,
+                                    {'loc_alias': None,
                                     'bg_image': None,
                                     'id': 4},
-                                    {'alias': None,
+                                    {'loc_alias': None,
                                     'bg_image': None,
                                     'id': 12},
-                                    {'alias': 'bath',
+                                    {'loc_alias': 'bath',
                                     'bg_image': 17,
                                     'id': 13},
-                                    {'alias': 'gymnasion',
+                                    {'loc_alias': 'gymnasion',
                                     'bg_image': 15,
                                     'id': 14},
-                                    {'alias': 'shop_of_alexander',
+                                    {'loc_alias': 'shop_of_alexander',
                                     'bg_image': 16,
                                     'id': 6},
-                                    {'alias': 'ne_stoa',
+                                    {'loc_alias': 'ne_stoa',
                                     'bg_image': 18,
                                     'id': 7},
-                                    {'alias': 'agora',
+                                    {'loc_alias': 'agora',
                                     'bg_image': 16,
                                     'id': 8},
-                                    {'alias': 'synagogue',
+                                    {'loc_alias': 'synagogue',
                                     'bg_image': 15,
                                     'id': 11},
-                                    {'alias': None,
+                                    {'loc_alias': None,
                                     'bg_image': None,
                                     'id': 5},
-                                    {'alias': None,
+                                    {'loc_alias': None,
                                     'bg_image': None,
                                     'id': 9},
-                                    {'alias': None,
+                                    {'loc_alias': None,
                                     'bg_image': None,
                                     'id': 10}
                                     ]}
             actual = thiswalk.map()
             for m in expected['locations']:
                 i = expected['locations'].index(m)
-                assert actual['locations'][i]['alias'] == m['alias']
+                assert actual['locations'][i]['loc_alias'] == m['alias']
                 assert actual['locations'][i]['bg_image'] == m['bg_image']
                 assert actual['locations'][i]['id'] == m['id']
             assert actual['map_image'] == expected['map_image']

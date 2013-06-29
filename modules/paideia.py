@@ -48,7 +48,7 @@ class Walk(object):
         """Initialize a Walk object."""
         self.localias = localias
         self.db = db if db else current.db
-        loc_id = db(db.locations.alias == localias).select().first().id
+        loc_id = db(db.locations.loc_alias == localias).select().first().id
         self.loc = Location(loc_id, db)
         self.response_string = response_string
         userdata = db.auth_user[current.auth.user_id].as_dict() \
@@ -120,7 +120,7 @@ class Walk(object):
         map_image = '/paideia/static/images/town_map.svg'
         # TODO: Review cache time
         locations = db().select(db.locations.ALL,
-                                orderby=db.locations.location,
+                                orderby=db.locations.map_location,
                                 cache=(cache.ram, 60 * 60)).as_list()
         return {'map_image': map_image, 'locations': locations}
 
@@ -247,7 +247,7 @@ class Walk(object):
 
         log_args = {'name': user_id,
                     'step': step_id,
-                    'path': path_id,
+                    'in_path': path_id,
                     'score': score}  # time recorded automatically in table
         log_record_id = db.attempt_log.insert(**log_args)
 
@@ -278,12 +278,12 @@ class Location(object):
 
     def get_alias(self):
         """Return the alias of the current Location as a string."""
-        return self.data.alias
+        return self.data.loc_alias
 
     def get_name(self):
         """Return the name of the current Location as a string.
         This 'name' is used in the svg map to identify the location."""
-        return self.data.location
+        return self.data.map_location
 
     def get_readable(self):
         """
@@ -347,7 +347,7 @@ class Npc(object):
         """
         Return a list of ids (ints) for locations where this step can activate.
         """
-        locs = [l for l in self.data.location]
+        locs = [l for l in self.data.map_location]
         return locs
 
     def get_description(self):
@@ -574,7 +574,7 @@ class Step(object):
         else:
             npcs_for_step = self.data['npcs']
             npc_list = [int(n) for n in npcs_for_step
-                        if loc in self.db.npcs[n].location]
+                        if loc in self.db.npcs[n].map_location]
 
             if len(npc_list) < 1:
                 return False
@@ -600,7 +600,7 @@ class Step(object):
             list = []
             for item in instructions:
                 item_row = self.db.step_instructions[item]
-                item_text = item_row.text
+                item_text = item_row.instruction_text
                 list.append(item_text)
 
             return list
@@ -792,7 +792,7 @@ class StepViewSlides(Step):
         sliderows = db(dtable.id.belongs(decks)
                        ).select(dtable.id,
                                 dtable.deck_name,
-                                orderby=dtable.position)
+                                orderby=dtable.deck_position)
 
         # build slide deck list
         slides = UL(_class='slide_list')
@@ -900,7 +900,7 @@ class StepMultiple(StepText):
         """
         request = current.request
         session = current.session
-        vals = self.data['options']
+        vals = self.data['step_options']
         form = SQLFORM.factory(Field('response', 'string',
                                      requires=IS_IN_SET(v for v in vals),
                                      widget=SQLFORM.widgets.radio.widget))
@@ -1257,7 +1257,7 @@ class PathChooser(object):
         #if len(p_list) > 0:
             #maxp = db.tag_progress[auth.user_id].latest_new
             #p_list.exclude(lambda row:
-                #[t for t in row.tags if db.tags[t].position > maxp])
+                #[t for t in row.tags if db.tags[t].tag_position > maxp])
 
         return (ps, cat)
 
@@ -1362,7 +1362,7 @@ class User(object):
         self.last_npc = None
         self.last_loc = None
         self.localias = localias
-        self.loc_id = self.db(self.db.locations.alias == localias
+        self.loc_id = self.db(self.db.locations.loc_alias == localias
                               ).select().first().id
         self.loc = Location(self.loc_id, self.db)
         self.redirect_loc = None
@@ -1590,7 +1590,7 @@ class Categorizer(object):
             for k, v in categories.iteritems():
                 if v:
                     rankv = [t for t in v if db.tags(t)
-                            and (db.tags[t].position <= rank)]
+                            and (db.tags[t].tag_position <= rank)]
                     categories[k] = list(set(rankv))
             # 'rev' categories are reintroduced
             categories.update((c, []) for c in ['rev1', 'rev2', 'rev3', 'rev4'])
@@ -1762,7 +1762,7 @@ class Categorizer(object):
             rank += 1
         self.rank = rank
 
-        newtags = [t['id'] for t in db(db.tags.position == rank).select()]
+        newtags = [t['id'] for t in db(db.tags.tag_position == rank).select()]
 
         return newtags
 
@@ -1775,7 +1775,7 @@ class Categorizer(object):
 
         left_out = []
         for r in range(1, rank + 1):
-            newtags = [t.id for t in db(db.tags.position == r).select()]
+            newtags = [t.id for t in db(db.tags.tag_position == r).select()]
             alltags = list(chain(*categories.values()))
             left_out.extend([t for t in newtags if t not in alltags])
         if left_out:

@@ -132,7 +132,7 @@ def web2py(appname, fixture_create_testfile_for_application):
 
     # Uncomment next 2 lines to allow using global Web2py objects directly
     # in your test scripts.
-    # del web2py_env['__file__']  # avoid py.test import error
-    # globals().update(web2py_env)
+    del web2py_env['__file__']  # avoid py.test import error
+    globals().update(web2py_env)
 
     return Storage(web2py_env)
