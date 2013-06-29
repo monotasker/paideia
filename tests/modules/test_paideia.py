@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 # Unit tests for the paideia module
+#
+# Configuration and some fixtures (client, web2py) declared in
+# the file tests/conftest.py
 
 import pytest
 from paideia import Npc, Location, User, PathChooser, Path, Categorizer, Walk
@@ -16,17 +19,16 @@ import datetime
 import re
 from random import randint
 from copy import copy
-# web2py library for functional testing
-from gluon.contrib.webclient import WebClient
 
+
+#db = current.db
+db = web2py.db
 
 @pytest.fixture(scope='module')
-def user_login(request):
+def user_login(request, client):
     """
     Provide a new, registered, and logged-in user account for testing.
     """
-    #auth = current.auth
-    client = WebClient('http://127.0.0.1:8000/paideia/default/', postbacks=True)
     client.get('index')
 
     #register test user
@@ -51,7 +53,7 @@ def user_login(request):
     print client.headers, '\n'
     #print 'text'
     #print client.text, '\n'
-    client.post('user/logout')
+    #client.post('user/logout')
 
     # log test user in
     log_data = {'email': 'scottianw@gmail.com',
@@ -109,8 +111,8 @@ def dt(string):
     format = "%Y-%m-%d"
     return datetime.datetime.strptime(string, format)
 
-# Constant values from db
-db = current.db
+
+# Constant values from
 images = {'npc1_img': '/paideia/static/images/images.image.bb48641f0122d2b6.696d616765732e696d6167652e383136303330663934646664646561312e34343732363137373639366536373230333432653733373636372e737667.svg',
           'npc2_img': '/paideia/static/images/images.image.81e2d69e1aea4d99.44726177696e672031372e737667.svg',
           'npc3_img': '/paideia/static/images/images.image.a59978facee731f0.44726177696e672031382e737667.svg',
