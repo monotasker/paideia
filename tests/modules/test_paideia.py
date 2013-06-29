@@ -41,6 +41,8 @@ def user_login(request):
 
     print 'forms'
     print client.forms, '\n'
+    print 'forms'
+    print client.forms, '\n'
     print 'status'
     print client.status, '\n'
     print 'response'
