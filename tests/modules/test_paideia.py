@@ -5,81 +5,22 @@
 # the file tests/conftest.py
 
 import pytest
+from paideia import Npc, Location, User, PathChooser, Path, Categorizer, Walk
+from paideia import StepFactory, StepText, StepMultiple, NpcChooser, Step
+from paideia import StepRedirect, StepViewSlides, StepAwardBadges
+from paideia import StepEvaluator, MultipleEvaluator, StepQuotaReached
+from paideia import Block
+
 if 0:
-    from paideia import Npc, Location, User, PathChooser, Path, Categorizer, Walk
-    from paideia import StepFactory, StepText, StepMultiple, NpcChooser, Step
-    from paideia import StepRedirect, StepViewSlides, StepAwardBadges
-    from paideia import StepEvaluator, MultipleEvaluator, StepQuotaReached
-    from paideia import Block
-from gluon import A, URL, DIV, LI, UL, SPAN, IMG
-from gluon import current
-# from gluon.dal import Rows
+    from gluon import A, URL, DIV, LI, UL, SPAN, IMG
+    from gluon import current
+    # from gluon.dal import Rows
 import datetime
 # from pprint import pprint
 import re
 from random import randint
 from copy import copy
-#from conftest import web2py
 
-#db = current.db
-mydb = db
-
-
-@pytest.fixture(scope='module')
-def user_login(request, client):
-    """
-    Provide a new, registered, and logged-in user account for testing.
-    """
-    client.get('index')
-
-    #register test user
-    reg_data = {'first_name': 'Homer',
-                'last_name': 'Simpson',
-                'email': 'scottianw@gmail.com',
-                'password': 'test',
-                'password_two': 'test',
-                'time_zone': 'America/Toronto',
-                '_formname': 'register'}
-    client.post('user/register', data=reg_data)
-
-    print 'forms'
-    print client.forms, '\n'
-    print 'forms'
-    print client.forms, '\n'
-    print 'status'
-    print client.status, '\n'
-    print 'response'
-    print client.response, '\n'
-    print 'headers'
-    print client.headers, '\n'
-    #print 'text'
-    #print client.text, '\n'
-    #client.post('user/logout')
-
-    # log test user in
-    log_data = {'email': 'scottianw@gmail.com',
-                'password': 'test'}
-    client.post('user/login', data=log_data)
-    client.get('user/profile')
-
-    # check registration and login were successful and get record
-    assert 'Welcome Homer' in client.text
-    user_query = db((db.auth_user.first_name == 'Homer') &
-                    (db.auth_user.last_name == 'Simpson') &
-                    (db.auth_user.email == 'scottianw@gmail.com'))
-    assert user_query.count() == 1
-    user_record = user_query.select()
-    assert user_record
-
-    def fin():
-        """
-        Delete the test user's account.
-        """
-        user_record.delete_record()
-        assert not user_query.count
-
-    request.addfinalizer(fin)
-    return user_record.as_dict()
 
 # ===================================================================
 # Controls governing which tests to run
@@ -425,7 +366,7 @@ def mysteps(request):
 
 
 @pytest.fixture(params=['case{}'.format(n) for n in range(1, 6)])
-def mycases(request, mysteps, user_login):
+def mycases(request, mysteps, user_login, db):
     """
     Text fixture providing various cases for unit tests. For each step,
     several cases are specified.
@@ -783,7 +724,7 @@ def mycases(request, mysteps, user_login):
 
 
 @pytest.fixture
-def mynpcchooser(mycases):
+def mynpcchooser(mycases, db):
     case = mycases['casedata']
     stepdata = mycases['stepdata']
     if stepdata['id'] in case['steps_here']:
@@ -802,7 +743,7 @@ def mynpcchooser(mycases):
 
 
 @pytest.fixture
-def mywalk(mycases, user_login):
+def mywalk(mycases, user_login, db):
     """pytest fixture providing a paideia.Walk object for testing"""
     case = mycases['casedata']
     step = mycases['stepdata']
@@ -821,7 +762,7 @@ def mywalk(mycases, user_login):
 
 
 @pytest.fixture
-def mypathchooser(mycases):
+def mypathchooser(mycases, db):
     """pytest fixture providing a paideia.PathChooser object for testing"""
     case = mycases['casedata']
     step = mycases['stepdata']
@@ -881,7 +822,7 @@ def myuser(mycases, user_login):
 
 
 @pytest.fixture
-def mynpc():
+def mynpc(db):
     '''
     A pytest fixture providing a paideia.Npc object for testing.
     '''
@@ -889,7 +830,7 @@ def mynpc():
 
 
 @pytest.fixture
-def mynpc_stephanos():
+def mynpc_stephanos(db):
     '''
     A pytest fixture providing a paideia.Npc object for testing.
     '''
@@ -897,7 +838,7 @@ def mynpc_stephanos():
 
 
 @pytest.fixture
-def myloc():
+def myloc(db):
     """
     A pytest fixture providing a paideia.Location object for testing.
     """
@@ -905,7 +846,7 @@ def myloc():
 
 
 @pytest.fixture
-def myloc_synagogue():
+def myloc_synagogue(db):
     """
     A pytest fixture providing a paideia.Location object for testing.
     """
@@ -913,7 +854,7 @@ def myloc_synagogue():
 
 
 @pytest.fixture
-def mypath(mycases):
+def mypath(mycases, db):
     """
     A pytest fixture providing a paideia.Path object for testing.
 
@@ -941,7 +882,7 @@ def mypath(mycases):
 
 
 @pytest.fixture
-def mystep(mycases):
+def mystep(mycases, db):
     """
     A pytest fixture providing a paideia.Step object for testing.
     """
@@ -968,7 +909,7 @@ def mystep(mycases):
 
 
 @pytest.fixture
-def myStepRedirect(mycases):
+def myStepRedirect(mycases, db):
     """
     A pytest fixture providing a paideia.StepRedirect object for testing.
     - same npc and location as previous step
@@ -989,7 +930,7 @@ def myStepRedirect(mycases):
 
 
 @pytest.fixture
-def myStepAwardBadges(mycases):
+def myStepAwardBadges(mycases, db):
     """
     A pytest fixture providing a paideia.StepAwardBadges object for testing.
     """
@@ -1009,7 +950,7 @@ def myStepAwardBadges(mycases):
 
 
 @pytest.fixture
-def myStepViewSlides(mycases):
+def myStepViewSlides(mycases, db):
     """
     A pytest fixture providing a paideia.StepViewSlides object for testing.
     """
@@ -1029,7 +970,7 @@ def myStepViewSlides(mycases):
 
 
 @pytest.fixture
-def myStepQuotaReached(mycases):
+def myStepQuotaReached(mycases, db):
     """
     A pytest fixture providing a paideia.StepQuota object for testing.
     """
@@ -1049,7 +990,7 @@ def myStepQuotaReached(mycases):
 
 
 @pytest.fixture
-def myStepText(mycases):
+def myStepText(mycases, db):
     """
     A pytest fixture providing a paideia.StepText object for testing.
     """
@@ -1080,7 +1021,7 @@ def myStepText(mycases):
 
 
 @pytest.fixture
-def myStepMultiple(mycases, request):
+def myStepMultiple(mycases, request, db):
     """A pytest fixture providing a paideia.StepMultiple object for testing."""
     case = mycases['casedata']
     step = mycases['stepdata']
@@ -1443,7 +1384,7 @@ class TestStepRedirect():
         else:
             pass
 
-    def test_stepredirect_make_replacements(self, myStepRedirect):
+    def test_stepredirect_make_replacements(self, myStepRedirect, db):
         """docstring for test_stepredirect_make_replacements"""
         if myStepRedirect:
             string = 'Nothing to do here [[user]]. Try [[next_loc]].'
@@ -1520,7 +1461,7 @@ class TestStepAwardBadges():
             expect_id = myStepAwardBadges['stepdata']['id']
             assert myStepAwardBadges['step'].get_id() == expect_id
 
-    def test_stepawardbadges_get_prompt(self, myStepAwardBadges):
+    def test_stepawardbadges_get_prompt(self, myStepAwardBadges, db):
         """
         Test method for the get_prompt method of the StepAwardBadges class.
         """
@@ -1635,7 +1576,7 @@ class TestStepViewSlides():
         else:
             pass
 
-    def test_stepviewslides_get_prompt(self, myStepViewSlides):
+    def test_stepviewslides_get_prompt(self, myStepViewSlides, db):
         """
         Test method for the get_prompt method of the StepRedirect class.
         This test assumes that the selected npc is Stephanos. It also assumes
@@ -1706,7 +1647,7 @@ class TestStepViewSlides():
         else:
             pass
 
-    def test_stepviewslides_make_replacements(self, myStepViewSlides):
+    def test_stepviewslides_make_replacements(self, myStepViewSlides, db):
         """
         Unit test for StepViewSlides.make_replacements()
         """
@@ -2133,7 +2074,7 @@ class TestPath():
         else:
             pass
 
-    def test_path_get_step_for_reply(self, mypath, mysteps):
+    def test_path_get_step_for_reply(self, mypath, mysteps, db):
         """
         Unit test for method paideia.Path.get_step_for_reply.
         """
@@ -2165,7 +2106,7 @@ class TestPath():
         else:
             pass
 
-    def test_path_set_loc(self, mypath):
+    def test_path_set_loc(self, mypath, db):
         """docstring for test_path_set_loc"""
         if mypath:
             path = mypath['path']
@@ -2182,12 +2123,12 @@ class TestPath():
             pass
 
 
-class TestUser():
+class TestUser(object):
     """unit testing class for the paideia.User class"""
     pytestmark = pytest.mark.skipif('global_runall is False '
                                     'and global_run_TestUser is False')
 
-    def test_user_get_id(self, myuser):
+    def test_user_get_id(self, myuser, db):
         """
         Unit test for User.get_id() method.
         """
@@ -2197,7 +2138,7 @@ class TestUser():
         assert len(expected) == 1
         assert uid == expected.first().id
 
-    def test_user_is_stale(self, myuser):
+    def test_user_is_stale(self, myuser, db):
         """
         Unit test for User.is_stale() method.
         """
@@ -2218,7 +2159,7 @@ class TestUser():
                                      tz_name=tzn, db=db)
             assert actual == c['expected']
 
-    def test_user_get_path(self, myuser):
+    def test_user_get_path(self, myuser, db):
         user = myuser['user']
         case = myuser['casedata']
         if user.cats_counter < 5:
@@ -2579,7 +2520,7 @@ class TestWalk():
         else:
             pass
 
-    def test_walk_record_cats(self, mywalk):
+    def test_walk_record_cats(self, mywalk, db):
         """
         Unit tests for Walk._record_cats() method.
         """
@@ -2620,7 +2561,7 @@ class TestWalk():
         else:
             pass
 
-    def test_walk_record_step(self, mywalk):
+    def test_walk_record_step(self, mywalk, db):
         """
         Unit test for Paideia.Walk._record_step()
 
@@ -2716,7 +2657,7 @@ class TestPathChooser():
         assert pc[2] in [1, 2, 3, 4]
         assert pc[3] in [1, 2, 3, 4]
 
-    def test_pathchooser_paths_by_category(self, mypathchooser):
+    def test_pathchooser_paths_by_category(self, mypathchooser, db):
         cpaths, category = mypathchooser['pathchooser']._paths_by_category('1')
         allpaths = mypathchooser['paths']
         pathids = allpaths['cat{}'.format(category)]
@@ -2726,7 +2667,7 @@ class TestPathChooser():
         for row in cpaths:
             assert row.id in [r.id for r in expected]
 
-    def test_pathchooser_choose_from_cat(self, mypathchooser):
+    def test_pathchooser_choose_from_cat(self, mypathchooser, db):
         allpaths = mypathchooser['paths']
         pathids = allpaths['cat{}'.format(1)]
         expected = db(db.paths).select()

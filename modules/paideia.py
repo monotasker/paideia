@@ -322,7 +322,7 @@ class Npc(object):
         self.db = db
         self.id_num = id_num
         self.data = db.npcs[id_num]
-
+        print db(db.steps.id > 0).count()
         # get image here so that db interaction stays in __init__ method
         self.image_id = self.data.npc_image
         self.image = db.images[self.image_id].image

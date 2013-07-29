@@ -1,4 +1,4 @@
-# coding: utf8
+# -*- coding: utf8 -*-
 
 from plugin_ajaxselect import AjaxSelect
 from itertools import chain
@@ -51,7 +51,7 @@ class IS_VALID_REGEX(object):
 db.define_table('classes',
                 Field('institution', 'string', default='Tyndale Seminary',
                       unique=True),
-                Field('academic_year', 'integer', default=dtnow.year),
+                Field('academic_year', 'integer', default=dtnow.year),  # was year (reserved term)
                 Field('term', 'string'),
                 Field('course_section', 'string'),
                 Field('instructor', 'reference auth_user', default=auth.user_id),
@@ -81,12 +81,12 @@ db.define_table('audio',
 
 db.define_table('journals',
     Field('name', db.auth_user, default=auth.user_id),
-    Field('journal_pages', 'list:reference journal_pages'),
+    Field('journal_pages', 'list:reference journal_pages'),  # was pages (reserved term)
     format='%(name)s')
 db.journals.name.requires = IS_NOT_IN_DB(db, 'journals.name')
 
 db.define_table('journal_pages',
-    Field('journal_page', 'text'),
+    Field('journal_page', 'text'),  # was page (reserved term)
     format='%(page)s')
 
 db.define_table('categories',
@@ -96,7 +96,7 @@ db.define_table('categories',
 
 db.define_table('tags',
     Field('tag', 'string', unique=True),
-    Field('tag_position', 'integer'),
+    Field('tag_position', 'integer'),  # was position (reserved term)
     Field('slides', 'list:reference plugin_slider_decks'),
     format='%(tag)s')
 
@@ -122,8 +122,8 @@ db.badges.badge_name.requires = IS_NOT_IN_DB(db, 'badges.badge_name')
 db.badges.tag.requires = IS_EMPTY_OR(IS_IN_DB(db, 'tags.id', db.tags._format))
 
 db.define_table('locations',
-    Field('map_location'),  # , unique=True
-    Field('loc_alias'),  # , unique=True
+    Field('map_location'),  # , unique=True  # was location (reserved term)
+    Field('loc_alias'),  # , unique=True  # was alias (reserved term)
     Field('readable'),
     Field('bg_image', db.images),
     format='%(map_location)s')
@@ -134,7 +134,7 @@ db.locations.bg_image.requires = IS_EMPTY_OR(IS_IN_DB(db, 'images.id',
 
 db.define_table('npcs',
     Field('name', 'string', unique=True),
-    Field('map_location', 'list:reference locations'),
+    Field('map_location', 'list:reference locations'),  # was location (reserved term)
     Field('npc_image', db.images),
     Field('notes', 'text'),
     format='%(name)s')
@@ -148,19 +148,20 @@ db.npcs.map_location.widget = lambda field, value: AjaxSelect(field, value,
                                                               ).widget()
 
 db.define_table('step_types',
-    Field('step_type'),  # , unique=True
+    Field('step_type'),  # , unique=True   # was type (reserved term)
     Field('widget'),
     Field('step_class'),
     format='%(step_type)s')
 
 db.define_table('step_hints',
-    Field('hint_label'),  # , unique=True
-    Field('hint_text', 'text'),
+    Field('hint_label'),  # , unique=True  # was label (reserved term)
+    Field('hint_text', 'text'),   # was text (reserved term)
+
     format='%(hint_label)s')
 
 db.define_table('step_instructions',
-    Field('instruction_label'),  # , unique=True
-    Field('instruction_text', 'text'),
+    Field('instruction_label'),  # , unique=True  # was label (reserved term)
+    Field('instruction_text', 'text'),  # was text (reserved term)
     format='%(instruction_label)s')
 
 db.define_table('step_status',
@@ -173,7 +174,7 @@ db.define_table('steps',
     Field('prompt_audio', db.audio, default=0),
     Field('widget_type', db.step_types, default=1),
     Field('widget_image', db.images, default=0),
-    Field('step_options', 'list:string'),
+    Field('step_options', 'list:string'),  # was options (reserved term)
     Field('response1'),
     Field('readable_response'),
     Field('outcome1', default=None),
@@ -297,7 +298,8 @@ db.paths.virtualfields.append(PathsVirtualFields())
 # TODO: remove path_log table
 db.define_table('path_log',
                 Field('name', db.auth_user, default=auth.user_id),
-                Field('in_path', db.paths),
+                Field('path', db.paths),
+                Field('in_path', db.paths),  # was path (reserved term)
                 Field('dt_started', 'datetime', default=dtnow),
                 Field('last_step', db.steps),
                 Field('dt_completed', 'datetime', default=None)
@@ -309,7 +311,7 @@ db.path_log.last_step.requires = IS_IN_DB(db, 'steps.id', db.steps._format)
 db.define_table('attempt_log',
                 Field('name', db.auth_user, default=auth.user_id),
                 Field('step', db.steps),
-                Field('in_path', db.paths),
+                Field('in_path', db.paths),  # was path (reserved term)
                 Field('score', 'double'),
                 Field('dt_attempted', 'datetime', default=dtnow)
                 )
@@ -325,7 +327,7 @@ db.define_table('tag_records',
                 Field('times_wrong', 'double'),
                 Field('tlast_wrong', 'datetime', default=dtnow),
                 Field('tlast_right', 'datetime', default=dtnow),
-                Field('in_path', db.paths),
+                Field('in_path', db.paths),  # was path (reserved term)
                 Field('step', db.steps),
                 Field('secondary_right', 'list:string')
                 )
