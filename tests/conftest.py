@@ -14,10 +14,16 @@ web browser.
 - Propagates some application data to test cases via fixtures, like baseurl and
 automatic appname discovery.
 
+To write to db in test:
+
+web2py.db.table.insert(**data)
+web2py.db.commit()
+
 To run tests:
-$ cd web2py (you must be in web2py root directory to run tests)
-$ python web2py.py -a my_password --nogui &
-$ py.test -x -v -s applications/my_app_name/tests
+
+cd web2py (you must be in web2py root directory to run tests)
+python web2py.py -a my_password --nogui &
+py.test -x -v -s applications/my_app_name/tests
 '''
 
 import os
@@ -25,6 +31,15 @@ import pytest
 import sys
 
 sys.path.insert(0, '')
+
+# allow imports from modules and site-packages
+dirs = os.path.split(__file__)[0]
+appname = dirs.split(os.path.sep)[-2]
+modules_path = os.path.join('applications', appname, 'modules')
+if modules_path not in sys.path:
+    sys.path.append(modules_path)  # imports from app modules folder
+if 'site-packages' not in sys.path:
+    sys.path.append('site-packages')  # imports from site-packages
 
 
 @pytest.fixture(scope='module')
@@ -94,24 +109,74 @@ def fixture_cleanup_db(web2py):
     Automatically called by test.py due to decorator.
     '''
 
-    web2py.db.rollback()
-    for tab in web2py.db.tables:
-        web2py.db[tab].truncate()
-    web2py.db.commit()
+    # TODO: figure out db rollback to standard state (not truncate to None)
+    #web2py.db.rollback()
+    #for tab in web2py.db.tables:
+        #web2py.db[tab].truncate()
+    #web2py.db.commit()
+    pass
 
 
 @pytest.fixture(scope='module')
-def client(baseurl, fixture_create_testfile_to_application):
+def client(baseurl, fixture_create_testfile_for_application):
     '''Create a new WebClient instance once per module.
     '''
-
-    # TODO: why import here?
     from gluon.contrib.webclient import WebClient
     webclient = WebClient(baseurl)
     return webclient
 
 
-@pytest.fixture()
+@pytest.fixture(scope='module')
+def user_login(request, web2py, client, db):
+    """
+    Provide a new, registered, and logged-in user account for testing.
+    """
+    # navigate to index
+    client.get('/default/index')
+    assert client.status == 200
+
+    #register test user
+    client.get('/default/user/register')
+    print web2py.current.auth.url()
+    reg_data = {'first_name': 'Homer',
+                'last_name': 'Simpson',
+                'email': 'scottianw@gmail.com',
+                'password': 'testing',
+                'password_two': 'testing',
+                '_formname': 'register'}
+    client.post('/default/user/register', data=reg_data)
+    assert client.status == 200
+    print web2py.current.auth.url()
+
+    # log test user in
+    log_data = {'email': 'scottianw@gmail.com',
+                'password': 'test'}
+    client.post('/default/user/login', data=log_data)
+    assert client.status == 200
+    #print dir(web2py.current.auth)
+    #print dir(web2py.current.auth.register)
+
+    # check registration and login were successful and get record
+    #assert 'Welcome Homer' in client.text
+    user_query = db((db.auth_user.first_name == 'Homer') &
+                    (db.auth_user.last_name == 'Simpson') &
+                    (db.auth_user.email == 'scottianw@gmail.com'))
+    assert user_query.count() == 1
+    user_record = user_query.select()
+    assert user_record
+
+    def fin():
+        """
+        Delete the test user's account.
+        """
+        user_record.delete_record()
+        assert not user_query.count
+
+    request.addfinalizer(fin)
+    return user_record.as_dict()
+
+
+@pytest.fixture(scope='module')
 def web2py(appname, fixture_create_testfile_for_application):
     '''Create a Web2py environment similar to that achieved by
     Web2py shell.
@@ -135,4 +200,32 @@ def web2py(appname, fixture_create_testfile_for_application):
     del web2py_env['__file__']  # avoid py.test import error
     globals().update(web2py_env)
 
+    # FIXME hack for fixing migrations
+    #count = 0
+    #for row in db(db.path_log.id > 0).select():
+        #if row.path:
+            #row.update_record(in_path=row.path)
+            #db.commit()
+            #count += 1
+            #print count
+    #for row in db(db.attempt_log.id > 0).select():
+        #if row.path:
+            #row.update_record(in_path=row.path)
+            #db.commit()
+            #count += 1
+            #print count
+    #for row in db(db.tag_records.id > 0).select():
+        #if row.path:
+            #row.update_record(in_path=row.path)
+            #db.commit()
+            #count += 1
+            #print count
+    #print 'updated', count, 'records'
+
     return Storage(web2py_env)
+
+
+@pytest.fixture(scope='module')
+def db(web2py):
+    """docstring for db"""
+    return web2py.db

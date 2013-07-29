@@ -4,7 +4,7 @@ p2
 (dp3
 S'sortable'
 p4
-I3
+I4
 sS'sql'
 p5
 S'TEXT'
@@ -85,14 +85,14 @@ p30
 g4
 I2
 sg5
-S'CHAR(512) UNIQUE'
+S'CHAR(512)'
 p32
 sg7
 I512
 sg8
 I00
 sg9
-I01
+I00
 sg10
 S'string'
 p33

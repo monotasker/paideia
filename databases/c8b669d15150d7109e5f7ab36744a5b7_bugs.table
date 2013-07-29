@@ -36,26 +36,9 @@ sS'sql'
 p17
 S'TIMESTAMP'
 p18
-ssS'date_submitted'
+ssS'user_response'
 p19
 (dp20
-g4
-I512
-sg5
-I00
-sg6
-I9
-sg7
-S'TIMESTAMP'
-p21
-sg9
-I00
-sg10
-S'datetime'
-p22
-ssS'user_response'
-p23
-(dp24
 g4
 I512
 sg5
@@ -64,11 +47,28 @@ sg6
 I5
 sg7
 S'CHAR(512)'
-p25
+p21
 sg9
 I00
 sg10
 S'string'
+p22
+ssS'date_submitted'
+p23
+(dp24
+g4
+I512
+sg5
+I00
+sg6
+I9
+sg7
+S'TIMESTAMP'
+p25
+sg9
+I00
+sg10
+S'datetime'
 p26
 ssS'step'
 p27
@@ -103,26 +103,17 @@ p34
 S'sortable'
 p36
 I3
-sS'sql'
-p37
-S'INTEGER REFERENCES paths (id) ON DELETE CASCADE'
-p38
-sS'length'
-p39
-I512
-sS'notnull'
-p40
-I00
-sS'unique'
-p41
-I00
 sS'type'
-p42
+p37
 S'reference paths'
-p43
+p38
+sS'sql'
+p39
+S'INTEGER REFERENCES paths(id) ON DELETE CASCADE'
+p40
 ssS'id'
-p44
-(dp45
+p41
+(dp42
 g4
 I512
 sg5
@@ -131,15 +122,15 @@ sg6
 I1
 sg7
 S'INTEGER PRIMARY KEY AUTOINCREMENT'
-p46
+p43
 sg9
 I00
 sg10
 S'id'
-p47
+p44
 ssS'log_id'
-p48
-(dp49
+p45
+(dp46
 g4
 I512
 sg5
@@ -148,15 +139,15 @@ sg6
 I7
 sg7
 S'INTEGER REFERENCES attempt_log (id) ON DELETE CASCADE'
-p50
+p47
 sg9
 I00
 sg10
 S'reference attempt_log'
-p51
+p48
 ssS'bug_status'
-p52
-(dp53
+p49
+(dp50
 g4
 I512
 sg5
@@ -165,15 +156,15 @@ sg6
 I10
 sg7
 S'INTEGER REFERENCES bug_status (id) ON DELETE CASCADE'
-p54
+p51
 sg9
 I00
 sg10
 S'reference bug_status'
-p55
+p52
 ssS'in_path'
-p56
-(dp57
+p53
+(dp54
 g4
 I512
 sg5
@@ -182,15 +173,15 @@ sg6
 I3
 sg7
 S'INTEGER REFERENCES paths (id) ON DELETE CASCADE'
-p58
+p55
 sg9
 I00
 sg10
 S'reference paths'
-p59
+p56
 ssS'score'
-p60
-(dp61
+p57
+(dp58
 g4
 I512
 sg5
@@ -199,32 +190,26 @@ sg6
 I6
 sg7
 S'DOUBLE'
-p62
+p59
 sg9
 I00
 sg10
 S'double'
-p63
+p60
 ssS'location'
-p64
-(dp65
+p61
+(dp62
 g36
 I4
 sg37
-S'INTEGER REFERENCES locations (id) ON DELETE CASCADE'
-p66
-sg39
-I512
-sg40
-I00
-sg41
-I00
-sg42
 S'reference locations'
-p67
+p63
+sg39
+S'INTEGER REFERENCES locations(id) ON DELETE CASCADE'
+p64
 ssS'map_location'
-p68
-(dp69
+p65
+(dp66
 g4
 I512
 sg5
@@ -233,15 +218,15 @@ sg6
 I4
 sg7
 S'INTEGER REFERENCES locations (id) ON DELETE CASCADE'
-p70
+p67
 sg9
 I00
 sg10
 S'reference locations'
-p71
+p68
 ssS'hidden'
-p72
-(dp73
+p69
+(dp70
 g4
 I512
 sg5
@@ -250,15 +235,15 @@ sg6
 I12
 sg7
 S'CHAR(1)'
-p74
+p71
 sg9
 I00
 sg10
 S'boolean'
-p75
+p72
 ssS'user_name'
-p76
-(dp77
+p73
+(dp74
 g4
 I512
 sg5
@@ -267,10 +252,10 @@ sg6
 I8
 sg7
 S'INTEGER REFERENCES auth_user (id) ON DELETE CASCADE'
-p78
+p75
 sg9
 I00
 sg10
 S'reference auth_user'
-p79
+p76
 ss.
