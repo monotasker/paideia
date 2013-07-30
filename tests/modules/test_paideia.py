@@ -10,11 +10,10 @@ from paideia import StepFactory, StepText, StepMultiple, NpcChooser, Step
 from paideia import StepRedirect, StepViewSlides, StepAwardBadges
 from paideia import StepEvaluator, MultipleEvaluator, StepQuotaReached
 from paideia import Block
+from gluon import A, URL, DIV, LI, UL, SPAN, IMG
+from gluon import current
+# from gluon.dal import Rows
 
-if 0:
-    from gluon import A, URL, DIV, LI, UL, SPAN, IMG
-    from gluon import current
-    # from gluon.dal import Rows
 import datetime
 # from pprint import pprint
 import re
@@ -23,9 +22,9 @@ from copy import copy
 
 
 # ===================================================================
-# Controls governing which tests to run
+# Switches governing which tests to run
 # ===================================================================
-global_runall = 1
+global_runall = 0
 global_run_TestNpc = False
 global_run_TestLocation = False
 global_run_TestNpcChooser = False  # deprecated for Step.get_npc()
@@ -38,10 +37,10 @@ global_run_TestStepMultiple = False
 global_run_TestStepEvaluator = False
 global_run_TestMultipleEvaluator = False
 global_run_TestPath = False
-global_run_TestUser = False
-global_run_TestCategorizer = False
+global_run_TestUser = 1
+global_run_TestCategorizer = 1
 global_run_TestWalk = 1
-global_run_TestPathChooser = False
+global_run_TestPathChooser = 1
 
 # ===================================================================
 # Test Fixtures
@@ -198,7 +197,7 @@ def mysteps(request):
                            'for you at somewhere else in town.',
                'new_badges': 'Congratulations, [[user]]! You\'ve reached '
                              'a new level with these badges:'
-                             '[[promoted_list]]You can click on your name '
+                             '[[promoted_list]]\r\nYou can click on your name '
                              'above to see details of your progress '
                              'so far.',
                'quota': 'Well done, [[user]]. You\'ve finished '
@@ -206,10 +205,10 @@ def mysteps(request):
                         'like to keep going, you\'re welcome to '
                         'continue.',
                'slides': 'Congratulations, [[user]]! You\'re ready to '
-                         'start working on some new badges:'
-                         '[[badge_list]]Before you continue, take '
-                         'some time to view these slide sets:'
-                         '[[slides]]You\'ll find the slides by '
+                         'start working on some new badges: \r\n'
+                         '[[badge_list]]\r\nBefore you continue, take '
+                         'some time to view these slide sets:\r\n'
+                         '[[slides]]\r\nYou\'ll find the slides by '
                          'clicking on the "slides" menu item at top.'}
     steps = {1: {'id': 1,
                  'paths': [2],
@@ -1084,7 +1083,7 @@ def myStepMultiple(mycases, request, db):
                       'prev_loc': case['prev_loc'],
                       'prev_npc': case['prev_npc'],
                       'db': db}
-            return {'casenum': request.param,
+            return {'casenum': case['casenum'],
                     'step': StepFactory().get_instance(**kwargs),
                     'casedata': case,
                     'stepdata': step,
@@ -1225,18 +1224,18 @@ class TestLocation():
         assert myloc.get_id() == 6
 
 
-class TestNpcChooser():
-    """
-    Unit tests covering the NpcChooser class of the paideia module.
-    """
-    pytestmark = pytest.mark.skipif('not global_runall and '
-                                    'not global_run_TestNpcChooser')
+#class TestNpcChooser():
+    #"""
+    #Unit tests covering the NpcChooser class of the paideia module.
+    #"""
+    #pytestmark = pytest.mark.skipif('not global_runall and '
+                                    #'not global_run_TestNpcChooser')
 
-    def test_npcchooser_choose(self, mynpcchooser):
-        if mynpcchooser:
-            possible = mynpcchooser['step'].get_npcs()
-            out = mynpcchooser['chooser'].choose()
-            assert out.get_id() in possible
+    #def test_npcchooser_choose(self, mynpcchooser):
+        #if mynpcchooser:
+            #possible = mynpcchooser['step'].get_npcs()
+            #out = mynpcchooser['chooser'].choose()
+            #assert out.get_id() in possible
 
 
 class TestStep():
@@ -1370,7 +1369,7 @@ class TestStepRedirect():
             username = 'Ian'
             actual = myStepRedirect['step'].get_prompt(username)
             step = myStepRedirect['stepdata']
-            newstring = step['final_prompt'].replace('[[next_loc]]', '{}')
+            newstring = step['redirect_prompt'].replace('[[next_loc]]', '{}')
             # TODO: figure out how to get test step to supply next loc
             placenames = ['ἡ στοά', 'τὸ βαλανεῖον', 'ὁ οἰκος Σιμωνος',
                           'ἡ ἀγορά', 'somewhere else in town']
@@ -1474,7 +1473,6 @@ class TestStepAwardBadges():
                       'username': case['name'],
                       'promoted': case['promoted'],
                       'db': db}
-            print 'expected', case['promoted']
             actual = myStepAwardBadges['step'].get_prompt(**kwargs)
             # assemble expected prompt string dynamically
             flat_proms = [i for cat, lst in case['promoted'].iteritems()
@@ -1482,7 +1480,6 @@ class TestStepAwardBadges():
             prom_records = db(db.badges.tag.belongs(flat_proms)
                               ).select(db.badges.tag,
                                        db.badges.badge_name).as_list()
-            print 'prom_records', prom_records
             expect_prompt = expect['raw_prompt'].replace('[[user]]',
                                                          case['name'])
             if prom_records:
@@ -1503,6 +1500,7 @@ class TestStepAwardBadges():
             else:
                 # don't let test pass if there are no new badges for prompt
                 raise Exception
+            print 'ACTUAL\n', actual['prompt']
             assert actual['prompt'] == expect_prompt
             assert actual['instructions'] == expect['instructions']
             assert actual['npc_image'].attributes['_src'] in npcimgs
@@ -1541,8 +1539,6 @@ class TestStepAwardBadges():
             expected = myStepAwardBadges['stepdata']['responder']
             expected = expected.replace('[[loc]]', str(thisloc))
             actual = myStepAwardBadges['step'].get_responder().xml()
-            print 'actual\n', actual
-            print 'expected\n', expected
             assert actual == expected
         else:
             pass
@@ -1639,8 +1635,7 @@ class TestStepViewSlides():
             npc_images = [npc_data[n]['image'] for n in step['npc_list']
                           if n in case['npcs_here']]
 
-            print 'METHOD OUTPUT\n', actual['prompt']
-            print 'EXPECTED\n', expect_prompt
+            print 'ACTUAL\n', actual['prompt']
             assert actual['prompt'] == expect_prompt
             assert actual['instructions'] == step['instructions']
             assert actual['npc_image'].attributes['_src'] in npc_images
@@ -1659,7 +1654,6 @@ class TestStepViewSlides():
                       'username': case['name'],
                       'new_badges': case['new_badges']}
             prompt = step._make_replacements(**kwargs)
-            print 'ACTUAL\n', prompt
 
             # assemble badge list
             badge_rows = db(db.badges.tag.belongs(case['new_badges'])
@@ -1675,7 +1669,6 @@ class TestStepViewSlides():
             tag_rows = db(db.tags.id.belongs(case['new_badges'])
                           ).select(db.tags.slides)
             deck_ids = [d for r in tag_rows for d in r['slides']]
-            print tag_rows[0]
             slide_rows = db(db.plugin_slider_decks.id.belongs(deck_ids)
                             ).select()
             formatstring2 = '<li><a href="/paideia/listing/slides/{0}">' \
@@ -1689,7 +1682,6 @@ class TestStepViewSlides():
             fullprompt = stepdata['raw_prompt'].replace('[[user]]', case['name'])
             fullprompt = fullprompt.replace('[[slides]]', decks_str)
             fullprompt = fullprompt.replace('[[badge_list]]', badges_str)
-            print 'EXPECTED\n', fullprompt
             assert prompt == fullprompt
         else:
             pass
@@ -2026,7 +2018,6 @@ class TestPath():
                         'prev_npc': path.prev_npc}
                 expected = [Block('redirect', kwargs=kwargs, data=locs)]
 
-                print expected
                 assert actual == expected[0].get_step()
                 assert len(path.blocks) == 1
                 assert path.step_for_prompt == sid
@@ -2153,10 +2144,8 @@ class TestUser(object):
                  {'start': datetime.datetime(2012, 12, 29, 14, 0, 0),
                   'expected': True}]
         for c in cases:
-            print 'start:', c['start']
-            print 'expected:', c['expected']
             actual = myuser['user'].is_stale(now=now, start=c['start'],
-                                     tz_name=tzn, db=db)
+                                     time_zone=tzn, db=db)
             assert actual == c['expected']
 
     def test_user_get_path(self, myuser, db):
@@ -2211,18 +2200,15 @@ class TestUser(object):
         """
         user = myuser['user']
         case = myuser['casedata']
-        print 'cats_counter:', user.cats_counter
         if user.cats_counter < 5:
             expected = case['categories_start']
         elif user.cats_counter >= 5:
             expected = case['categories_out']
         actual = user._get_categories()
-        print 'actual:\n', actual
-        print 'expected:\n', expected
-
+        print 'ACTUAL\n', actual
         # this avoids problem of lists being in different orders
         for c, l in expected.iteritems():
-            assert len(actual[c]) == len([t for t in l if t in actual[c]])
+            assert len(actual['categories'][c]) == len([t for t in l])
 
     def test_user_get_old_categories(self, myuser):
         """
@@ -2376,7 +2362,9 @@ class TestWalk():
         case = mywalk['casedata']
         if case['casenum'] == 1:
             localias = case['localias']
-            userdata = {'first_name': 'Joe', 'id': 1}
+            userdata = {'first_name': 'Homer',
+                        'last_name': 'Simpson',
+                        'id': current.auth.user.id}
             tag_records = case['tag_records']
             tag_progress = case['tag_progress']
 
@@ -2440,7 +2428,7 @@ class TestWalk():
             actual = thiswalk.map()
             for m in expected['locations']:
                 i = expected['locations'].index(m)
-                assert actual['locations'][i]['loc_alias'] == m['alias']
+                assert actual['locations'][i]['loc_alias'] == m['loc_alias']
                 assert actual['locations'][i]['bg_image'] == m['bg_image']
                 assert actual['locations'][i]['id'] == m['id']
             assert actual['map_image'] == expected['map_image']
@@ -2672,7 +2660,6 @@ class TestPathChooser():
         pathids = allpaths['cat{}'.format(1)]
         expected = db(db.paths).select()
         expected = expected.find(lambda row: row.id in pathids)
-        print expected
 
         newpath = mypathchooser['pathchooser']._choose_from_cat(expected, 1)
         assert newpath[0].id in mypathchooser['paths']['cat1']

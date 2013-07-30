@@ -23,7 +23,7 @@ To run tests:
 
 cd web2py (you must be in web2py root directory to run tests)
 python web2py.py -a my_password --nogui &
-py.test -x -v -s applications/my_app_name/tests
+py.test -x -l -q|-v -s applications/my_app_name/tests
 '''
 
 import os
@@ -75,6 +75,8 @@ def fixture_create_testfile_for_application(request, appname):
     This fixture is automatically run by py.test at module level. So, there's
     no overhad to test performance.
     '''
+    import os
+    import shutil
 
     # note: if you use Ubuntu, you can allocate your test database on ramdisk
     # simply using the /dev/shm directory.
@@ -82,8 +84,8 @@ def fixture_create_testfile_for_application(request, appname):
     #temp_dir = '/tmp'
 
     # TODO: why import os and shutil below here and not at top?
-    import os
-    os.mkdir(temp_dir)
+    if not os.path.isdir(temp_dir):
+        os.mkdir(temp_dir)
 
     # IMPORTANT: the temp_filename variable must have the same value as set in
     # your app/models/db.py file.
@@ -93,7 +95,6 @@ def fixture_create_testfile_for_application(request, appname):
         tempfile.write('application %s running in test mode' % appname)
 
     def _remove_temp_file_after_tests():
-        import shutil
         shutil.rmtree(temp_dir)
         #os.remove(temp_filename)
     request.addfinalizer(_remove_temp_file_after_tests)
@@ -132,47 +133,42 @@ def user_login(request, web2py, client, db):
     Provide a new, registered, and logged-in user account for testing.
     """
     # navigate to index
-    client.get('/default/index')
-    assert client.status == 200
+    #client.get('/default/index')
+    #assert client.status == 200
 
     #register test user
-    client.get('/default/user/register')
-    print web2py.current.auth.url()
+    #client.get('/default/user/register')
+    auth = web2py.current.auth
     reg_data = {'first_name': 'Homer',
                 'last_name': 'Simpson',
                 'email': 'scottianw@gmail.com',
-                'password': 'testing',
-                'password_two': 'testing',
-                '_formname': 'register'}
-    client.post('/default/user/register', data=reg_data)
-    assert client.status == 200
-    print web2py.current.auth.url()
+                'password': 'testing'}
+    #client.post('/default/user/register', data=reg_data)
+    #assert client.status == 200
+    auth.table_user().insert(**reg_data)
 
-    # log test user in
-    log_data = {'email': 'scottianw@gmail.com',
-                'password': 'test'}
-    client.post('/default/user/login', data=log_data)
-    assert client.status == 200
-    #print dir(web2py.current.auth)
-    #print dir(web2py.current.auth.register)
-
-    # check registration and login were successful and get record
-    #assert 'Welcome Homer' in client.text
     user_query = db((db.auth_user.first_name == 'Homer') &
                     (db.auth_user.last_name == 'Simpson') &
                     (db.auth_user.email == 'scottianw@gmail.com'))
     assert user_query.count() == 1
-    user_record = user_query.select()
+    user_record = user_query.select().first()
     assert user_record
 
-    def fin():
-        """
-        Delete the test user's account.
-        """
-        user_record.delete_record()
-        assert not user_query.count
+    # log test user in
+    auth.login_user(user_record)
+    #log_data = {'email': 'scottianw@gmail.com',
+                #'password': 'test'}
+    #client.post('/default/user/login', data=log_data)
+    #assert client.status == 200
 
-    request.addfinalizer(fin)
+    #def fin():
+        #"""
+        #Delete the test user's account.
+        #"""
+        #user_record.delete_record()
+        #assert not user_query.count
+
+    #request.addfinalizer(fin)
     return user_record.as_dict()
 
 
