@@ -1277,8 +1277,8 @@ class PathChooser(object):
 
         # catpaths is already filtered by category
         p_new = cpaths.find(lambda row: row.id not in self.completed)
-        p_here = cpaths.find(lambda p: loc_id in db.steps[p.steps[0]].locations)
-        # TODO: or do I need db.steps[row.steps[0]].locations
+        # FIXME: p.steps[0] is yielding a long int
+        p_here = cpaths.find(lambda p: loc_id in db.steps[int(p.steps[0])].locations)
         p_here_new = p_here.find(lambda p: p in p_new)
 
         path = None
@@ -1348,15 +1348,13 @@ class User(object):
         self.user_id = userdata['id']
         self.path = None
         self.completed_paths = []
-        self.cats_counter = 0
+        self.cats_counter = 0  # timing re-categorization in _get_categories()
         self.old_categories = {}
-        cat_dict = self._get_categories(rank=tag_progress['latest_new'],
-                                        old_categories=None,
-                                        tag_records=tag_records)
+        self.rank = tag_progress['latest_new']
+        cat_dict = self._get_categories()
         self.tag_progress = cat_dict['tag_progress']
         self.promoted = cat_dict['promoted']
         self.new_tags = cat_dict['new_tags']
-        self.rank = tag_progress['latest_new']
         self.inventory = []
         self.session_start = datetime.datetime.utcnow()
         self.last_npc = None
