@@ -9,6 +9,7 @@ from itertools import chain
 from random import randint, randrange
 import re
 import datetime
+import traceback
 from pytz import timezone
 
 # TODO: move these notes elsewhere
@@ -53,8 +54,6 @@ class Walk(object):
         self.response_string = response_string
         userdata = db.auth_user[current.auth.user_id].as_dict() \
             if not userdata else userdata
-        print [f for f in db.auth_user.fields]
-        print [f for f in userdata.keys()]
         self.user = self._get_user(userdata=userdata,
                                    localias=localias,
                                    tag_records=tag_records,
@@ -103,15 +102,20 @@ class Walk(object):
         the controller. The method decides whether we're starting a new step or
         responding to one in-process.
         """
-        if response_string:
-            return self.reply(response_string=response_string)
-        else:
-            return self.ask(path)
+        try:
+            if response_string:
+                return self.reply(response_string)
+            else:
+                return self.ask(path)
+        except Exception:
+            print traceback.format_exc(5)
 
-    def map(self, db=None):
+    def map(self, mapnum=None, db=None):
         """
-        Return the information necessary to present the paideia navigation
-        map interface.
+        Return data for the paideia navigation map interface.
+
+        The mapnum argument is to facilitate future expansion to multiple
+        levels of the map.
         """
         if not db:
             db = self.db
@@ -142,9 +146,12 @@ class Walk(object):
 
         return {'prompt': prompt, 'responder': responder}
 
-    def reply(self, response_string):
+    def reply(self, response_string, path=None):
         """
+        Return the information necessary to complete a step interaction.
 
+        This includes evaluation of the user's reply and presentation of
+        the npc's response message.
         """
         user = self._get_user()
         user_id = user.get_id()
@@ -154,14 +161,13 @@ class Walk(object):
         path_id = p.get_id()
 
         s = p.get_step_for_reply(db)
+        print 'step:', s
         step_id = s.get_id()
         tags = s.get_tags()
 
         reply = s.get_reply(response_string)
 
         score = reply['score']
-        #times_right = reply['times_right']
-        #times_wrong = reply['times_wrong']
         tag_records = user.get_tag_records()
         tag_progress = user.get_tag_progress()
         promoted = user.get_promoted()
@@ -172,10 +178,11 @@ class Walk(object):
                                       tag_records, response_string)
         assert record_id
 
-        bug_reporter = BugReporter(record_id, path_id, step_id,
-                                   tags, score, response_string)
-        p.complete_step(step_id)
-        self._store_user()
+        br = BugReporter()
+        bug_reporter = br.get_reporter(record_id, path_id, step_id,
+                                       tags, score, response_string)
+        p.complete_step()  # removes path.step_for_reply
+        self._store_user(user)
 
         return {'reply': reply, 'bug_reporter': bug_reporter}
 
@@ -192,27 +199,44 @@ class Walk(object):
             db = self.db
         user_id = self.user.get_id()
         now = datetime.datetime.utcnow()
-        # re-integrate new tags into single tag_progress dictionary
+        # TODO: make sure promoted and new_tags info is passed on correctly
+
+        # combine promoted and new_tags for recording purposes
         if promoted:
             promoted['cat1'] = new_tags
-        else:
+        elif new_tags:
             promoted = {'cat1': new_tags}
+        else:
+            promoted is None
 
+        print 'PROMOTED', promoted
         # record awarding of promoted and new tags in table db.badges_begun
-
         if promoted:
-            for cat, lst in promoted.iteritems():
-                if lst:
-                    for tag in lst:
-                        conditions = {'db.tag_progress.name': user_id,
-                                      'db.tag_progress.tag': tag}
-                        data = {cat: now}
-                        db.badges_begun.update_or_insert(conditions, **data)
+            try:
+                for cat, lst in promoted.iteritems():
+                    if lst:
+                        for tag in lst:
+                            data = {'name': user_id,
+                                    'tag': tag,
+                                    cat: now}
+                            db.badges_begun.update_or_insert(
+                                    (db.badges_begun.name == user_id) &
+                                    (db.badges_begun.tag == tag), **data)
+            except Exception:
+                print traceback.format_exc(5)
+                return False
 
         # update tag_progress table with current categorization
-        db.tag_progress.update_or_insert(db.tag_progress.name == user_id,
-                                         **tag_progress)
-
+        print 'TAG_PROGRESS', tag_progress
+        try:
+            db.tag_progress.update_or_insert(db.tag_progress.name == user_id,
+                                             name=user_id, **tag_progress)
+            mycount = db(db.tag_progress.name == user_id).count()
+            assert mycount == 1
+            print 'tag_progress rows:', mycount
+        except Exception:
+            print traceback.format_exc(5)
+            return False
         return True
 
     def _record_step(self, user_id, step_id, path_id, score, tag_records,
@@ -322,7 +346,6 @@ class Npc(object):
         self.db = db
         self.id_num = id_num
         self.data = db.npcs[id_num]
-        print db(db.steps.id > 0).count()
         # get image here so that db interaction stays in __init__ method
         self.image_id = self.data.npc_image
         self.image = db.images[self.image_id].image
@@ -402,11 +425,12 @@ class BugReporter(object):
     Class representing a bug-reporting widget to be presented along with the
     evaluation of the current step.
     """
-    def __init__():
+    def __init__(self):
         """Initialize a BugReporter object"""
         pass
 
-    def get_reporter(self, record_id, user_response, step_id, path_id):
+    def get_reporter(self, record_id, path_id, step_id,
+                     tags, score, response_string):
         """
         Return a bug reporter widget to embed in the evaluation of a user
         response.
@@ -1053,7 +1077,7 @@ class Path(object):
         else:
             return False
 
-    def _complete(self):
+    def complete_step(self):
         """
         Deactivate current step.
         """
@@ -1092,10 +1116,9 @@ class Path(object):
         else:
             if isinstance(next_step, (StepText, StepMultiple)):
                 assert self._prepare_for_reply()
-                assert self.get_step_for_reply
                 assert not self.step_for_prompt
             else:
-                assert self._complete()
+                assert self.complete_step()
                 assert not self.step_for_reply
                 assert not self.step_for_prompt
             return next_step
@@ -1161,14 +1184,11 @@ class Path(object):
             StepAwardBadges
             or a bare Step instance
         """
-        print 'in Path.get_step_for_reply():'
-        print 'self.step_for_reply', self.step_for_reply
         reply_step = copy(self.step_for_reply)
+        # TODO is this too early to append step to completed_steps?
         self.completed_steps.append(reply_step)
+        # TODO: add step_sent_id check to unit test
         self.step_sent_id = reply_step.get_id() if reply_step else None
-        self._complete()
-        assert not self.step_for_reply
-        assert not self.step_for_prompt
 
         return reply_step
 
@@ -1338,7 +1358,6 @@ class User(object):
         - tag_records: rows.as_dict
         """
 
-        print 'Initializing new user'
         self.time_zone = userdata['time_zone']
         self.db = current.db if not db else db
         # TODO: Update tag_records as steps proceed
@@ -1382,29 +1401,22 @@ class User(object):
         # TODO: confirm that this stale check is being called by Walk
         db = self.db if not db else db
         now = datetime.datetime.utcnow() if not now else now
-        print 'now is', now
 
         # get timezone offset from utc
         time_zone = self.time_zone if not time_zone else time_zone
         tz = timezone(time_zone)
-        print 'tz offset =', tz
         # adjust now for local time
         local_now = tz.fromutc(now)
-        print 'adjusted local now =', local_now
         # adjust start for local time
         start = self.session_start if not start else start
         lstart = tz.fromutc(start)
-        print 'session start was', lstart
 
         daystart = local_now.replace(hour=0, minute=0, second=0, microsecond=0)
-        print 'start of day (local) was', daystart
         if lstart < daystart:
-            print 'user is stale, initializing a new one'
             return True
         elif lstart > local_now:
             raise Exception  # TODO: make specific error
         else:
-            print 'user not stale, continuing'
             return False
 
     def get_new_tags(self):
@@ -1414,6 +1426,15 @@ class User(object):
     def get_promoted(self):
         """Return a dictionary of tag ids newly promoted to categories 2-4."""
         return self.promoted
+
+    def get_tag_records(self):
+        """
+        Return a list of dictionaries matching the fields of db.tag_records.
+
+        Each dictionary contains the user's performance data for a single
+        grammatical tag.
+        """
+        return self.tag_records
 
     def get_tag_progress(self):
         """
@@ -1427,8 +1448,8 @@ class User(object):
         """
         Return the currently active Path object.
 
-        Neither argument is strictly necessary, but localias will usually be
-        provided. The db argument is only used for dependency injection during
+        None of the arguments is strictly necessary, but loc will usually be
+        provided. The others are only used for dependency injection during
         testing.
         """
         db = self.db if not db else db
@@ -1440,7 +1461,7 @@ class User(object):
             return self.path
         # If the user has a multi-step path in progress, use that path
         # check for len(path.steps) catches end-of-path and triggers new choice
-        if self.path and len(self.path.steps):
+        if self.path and (len(self.path.steps) or self.path.step_for_reply):
             self.path._set_loc(loc)
             return self.path
         # otherwise, select a new path
@@ -1477,19 +1498,19 @@ class User(object):
         utcnow = datetime.datetime.utcnow() if not utcnow else utcnow
         old_categories = self.old_categories if not old_categories \
             else old_categories
-        cats_counter = self.cats_counter
         try:
             categories = self.categories
         except AttributeError:
             categories = None
 
         # only re-categorize every 10th evaluated step
-        if cats_counter in range(1, 5):
+        if self.cats_counter in range(1, 5):
             return {'tag_progress': self.tag_progress,
                     'promoted': self.promoted,
                     'new_tags': self.new_tags,
                     'cats_counter': self.cats_counter + 1}
         else:
+            self.cats_counter = 0
             c = Categorizer(rank, categories, tag_records, utcnow=utcnow)
             cat_result = c.categorize_tags()
             # Set blocks for 'new_tags' (view_slides) and 'promoted' conditions
@@ -1563,7 +1584,17 @@ class Categorizer(object):
 
     def categorize_tags(self, rank=None, tag_records=None,
                         old_categories=None, db=None):
-        """Return a categorized dictionary of tags"""
+        """
+        Return a categorized dictionary of grammatical tags.
+
+        The keys are the four categories used in the path selection algorithm,
+        and the values are lists of integers (representing the tags to be
+        placed in each category). The categorization is based on user
+        performance (drawn from tag_records) and timing (spaced repetition).
+
+
+
+        """
         rank = self.rank if not rank else rank
         old_categories = self.old_categories if not old_categories else old_categories
         tag_records = self.tag_records if not tag_records else tag_records
@@ -1619,7 +1650,7 @@ class Categorizer(object):
         Finds tag records with secondary attempts and adjusts records.
 
         For every 3 secondary_right entries, add 1 to times_right and change
-        last_right based on the average of those three attempt dates.
+        tlast_right based on the average of those three attempt dates.
         """
         db = self.db
         for rec in tag_records:
@@ -1628,9 +1659,9 @@ class Categorizer(object):
             db_recs = db(
                         (db.attempt_log.name == rec['name']) &
                         (db.attempt_log.score == 1.0) &
-                        (db.attempt_log.dt_attempted >= rec['last_right']) &
+                        (db.attempt_log.dt_attempted >= rec['tlast_right']) &
                         (db.attempt_log.step == db.steps.id) &
-                        (db.steps.tags_secondary.contains(rec['tag_id']))
+                        (db.steps.tags_secondary.contains(rec['tag']))
             ).select(db.attempt_log.dt_attempted).as_list()
 
             if db_recs:
@@ -1647,7 +1678,7 @@ class Categorizer(object):
                 rnum = rlen / 3
                 rmod = rlen % 3
                 rec['times_right'] += rnum
-                # move last_right forward based on mean of last 3 secondary_right
+                # move tlast_right forward based on mean of last 3 secondary_right
                 now = self.utcnow
                 if rlen > 3:
                     last3 = rec['secondary_right'][-(rmod + 3): -(rmod)]
@@ -1656,8 +1687,8 @@ class Categorizer(object):
                 last3_deltas = [now - s for s in last3]
                 avg_delta = sum(last3_deltas, datetime.timedelta(0)) / 3
                 avg_date = now - avg_delta
-                if avg_date > rec['last_right']:
-                    rec['last_right'] = avg_date
+                if avg_date > rec['tlast_right']:
+                    rec['tlast_right'] = avg_date
 
                 # remove counted entries from secondary_right, leave remainder
                 if rlen > 3:
@@ -1676,9 +1707,9 @@ class Categorizer(object):
 
         The tag_records argument should be a list of dictionaries, each of
         which includes the following keys and value types:
-            {'tag_id': <int>,
-             'last_right': <datetime>,
-             'last_wrong': <datetime>,
+            {'tag': <int>,
+             'tlast_right': <datetime>,
+             'tlast_wrong': <datetime>,
              'times_right': <float>,
              'times_wrong': <float>}
 
@@ -1703,8 +1734,8 @@ class Categorizer(object):
 
         for record in tag_records:
             #note: arithmetic operations yield datetime.timedelta objects
-            right_dur = utcnow - record['last_right']
-            right_wrong_dur = record['last_right'] - record['last_wrong']
+            right_dur = utcnow - record['tlast_right']
+            right_wrong_dur = record['tlast_right'] - record['tlast_wrong']
 
             # spaced repetition algorithm for promotion to
             # ======================================================
@@ -1738,7 +1769,7 @@ class Categorizer(object):
             else:
                 category = 'cat1'  # Spaced repetition requires review
 
-            categories[category].append(record['tag_id'])
+            categories[category].append(record['tag'])
 
         return categories
 
