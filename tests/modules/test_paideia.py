@@ -9,7 +9,7 @@ from paideia import Npc, Location, User, PathChooser, Path, Categorizer, Walk
 from paideia import StepFactory, StepText, StepMultiple, NpcChooser, Step
 from paideia import StepRedirect, StepViewSlides, StepAwardBadges
 from paideia import StepEvaluator, MultipleEvaluator, StepQuotaReached
-from paideia import Block
+from paideia import Block, BugReporter
 from gluon import A, URL, DIV, LI, UL, SPAN, IMG
 from gluon import current
 # from gluon.dal import Rows
@@ -24,7 +24,7 @@ from copy import copy
 # ===================================================================
 # Switches governing which tests to run
 # ===================================================================
-global_runall = 0
+global_runall = False
 global_run_TestNpc = False
 global_run_TestLocation = False
 global_run_TestNpcChooser = False  # deprecated for Step.get_npc()
@@ -37,8 +37,8 @@ global_run_TestStepMultiple = False
 global_run_TestStepEvaluator = False
 global_run_TestMultipleEvaluator = False
 global_run_TestPath = False
-global_run_TestUser = 1
-global_run_TestCategorizer = 1
+global_run_TestUser = False
+global_run_TestCategorizer = False
 global_run_TestWalk = 1
 global_run_TestPathChooser = 1
 
@@ -312,6 +312,8 @@ def mysteps(request):
                    'npc_list': [14],
                    'raw_prompt': 'Is this an English clause?\r\n\r\n"The '
                                  'cat sat."',
+                   'final_prompt': 'Is this an English clause?\r\n\r\n"The '
+                                   'cat sat."',
                    'redirect_prompt': prompts['redirect'],
                    'instructions': None,
                    'tags': [36],
@@ -386,9 +388,9 @@ def mycases(request, mysteps, user_login, db):
                        'blocks_out': None,
                        'localias': 'shop_of_alexander',
                        'tag_records': [{'name': 1,
-                                        'tag_id': 1,
-                                        'last_right': dt('2013-01-29'),
-                                        'last_wrong': dt('2013-01-29'),
+                                        'tag': 1,
+                                        'tlast_right': dt('2013-01-29'),
+                                        'tlast_wrong': dt('2013-01-29'),
                                         'times_right': 1,
                                         'times_wrong': 1,
                                         'secondary_right': None}],
@@ -439,9 +441,9 @@ def mycases(request, mysteps, user_login, db):
                        'blocks_in': None,
                        'blocks_out': None,
                        'tag_records': [{'name': 1,
-                                        'tag_id': 61,
-                                        'last_right': dt('2013-01-29'),
-                                        'last_wrong': dt('2013-01-28'),
+                                        'tag': 61,
+                                        'tlast_right': dt('2013-01-29'),
+                                        'tlast_wrong': dt('2013-01-28'),
                                         'times_right': 10,
                                         'times_wrong': 2,
                                         'secondary_right': []}],
@@ -493,33 +495,33 @@ def mycases(request, mysteps, user_login, db):
                        'blocks_in': None,
                        'blocks_out': None,
                        'tag_records': [{'name': 1,
-                                        'tag_id': 61,  # promote to 2 for time
-                                        'last_right': dt('2013-01-27'),
-                                        'last_wrong': dt('2013-01-21'),
+                                        'tag': 61,  # promote to 2 for time
+                                        'tlast_right': dt('2013-01-27'),
+                                        'tlast_wrong': dt('2013-01-21'),
                                         'times_right': 10,
                                         'times_wrong': 10,
                                         'secondary_right': None},
                                        # don't promote for time bc dw > dr
                                        {'name': 1,
-                                        'tag_id': 62,
-                                        'last_right': dt('2013-01-10'),
-                                        'last_wrong': dt('2013-01-1'),
+                                        'tag': 62,
+                                        'tlast_right': dt('2013-01-10'),
+                                        'tlast_wrong': dt('2013-01-1'),
                                         'times_right': 10,
                                         'times_wrong': 0,
                                         'secondary_right': None},
                                        # don't promote for time bc t_r < 10
                                        {'name': 1,
-                                        'tag_id': 63,
-                                        'last_right': dt('2013-01-27'),
-                                        'last_wrong': dt('2013-01-21'),
+                                        'tag': 63,
+                                        'tlast_right': dt('2013-01-27'),
+                                        'tlast_wrong': dt('2013-01-21'),
                                         'times_right': 9,
                                         'times_wrong': 0,
                                         'secondary_right': None},
                                        # promote for time bc t_r >= 10
                                        {'name': 1,
-                                        'tag_id': 66,
-                                        'last_right': dt('2013-01-27'),
-                                        'last_wrong': dt('2013-01-21'),
+                                        'tag': 66,
+                                        'tlast_right': dt('2013-01-27'),
+                                        'tlast_wrong': dt('2013-01-21'),
                                         'times_right': 10,
                                         'times_wrong': 0,
                                         'secondary_right': None}
@@ -584,9 +586,9 @@ def mycases(request, mysteps, user_login, db):
                        'blocks_in': None,
                        'blocks_out': None,
                        'tag_records': [{'name': 1,
-                                        'tag_id': 61,  # 2ndary overrides time
-                                        'last_right': dt('2013-01-24'),
-                                        'last_wrong': dt('2013-01-21'),
+                                        'tag': 61,  # 2ndary overrides time
+                                        'tlast_right': dt('2013-01-24'),
+                                        'tlast_wrong': dt('2013-01-21'),
                                         'times_right': 9,
                                         'times_wrong': 10,
                                         'secondary_right': [dt('2013-01-28'),
@@ -594,26 +596,26 @@ def mycases(request, mysteps, user_login, db):
                                                             dt('2013-01-28'),
                                                             dt('2013-01-29')]},
                                        {'name': 1,
-                                        'tag_id': 62,  # 2ndary overrides ratio
-                                        'last_right': dt('2013-01-29'),
-                                        'last_wrong': dt('2013-01-28'),
+                                        'tag': 62,  # 2ndary overrides ratio
+                                        'tlast_right': dt('2013-01-29'),
+                                        'tlast_wrong': dt('2013-01-28'),
                                         'times_right': 9,
                                         'times_wrong': 2,
                                         'secondary_right': [dt('2013-01-28'),
                                                             dt('2013-01-28'),
                                                             dt('2013-01-28')]}],
                        'tag_records_out': [{'name': 1,
-                                            'tag_id': 61,  # 2ndary overrides time
-                                            'last_right': dt('2013-01-28'),
-                                            'last_wrong': dt('2013-01-21'),
+                                            'tag': 61,  # 2ndary overrides time
+                                            'tlast_right': dt('2013-01-28'),
+                                            'tlast_wrong': dt('2013-01-21'),
                                             'times_right': 10,
                                             'times_wrong': 10,
                                             'secondary_right': [dt('2013-01-29')]
                                             },
                                            {'name': 1,
-                                            'tag_id': 62,  # 2ndary overrides ratio
-                                            'last_right': dt('2013-01-29'),
-                                            'last_wrong': dt('2013-01-28'),
+                                            'tag': 62,  # 2ndary overrides ratio
+                                            'tlast_right': dt('2013-01-29'),
+                                            'tlast_wrong': dt('2013-01-28'),
                                             'times_right': 10,
                                             'times_wrong': 2,
                                             'secondary_right': []}],
@@ -678,9 +680,9 @@ def mycases(request, mysteps, user_login, db):
                        'blocks_in': None,
                        'blocks_out': None,
                        'tag_records': [{'name': 1,
-                                        'tag_id': 61,
-                                        'last_right': dt('2013-01-29'),
-                                        'last_wrong': dt('2013-01-28'),
+                                        'tag': 61,
+                                        'tlast_right': dt('2013-01-29'),
+                                        'tlast_wrong': dt('2013-01-28'),
                                         'times_right': 10,
                                         'times_wrong': 2,
                                         'secondary_right': None}],
@@ -1500,7 +1502,6 @@ class TestStepAwardBadges():
             else:
                 # don't let test pass if there are no new badges for prompt
                 raise Exception
-            print 'ACTUAL\n', actual['prompt']
             assert actual['prompt'] == expect_prompt
             assert actual['instructions'] == expect['instructions']
             assert actual['npc_image'].attributes['_src'] in npcimgs
@@ -1635,7 +1636,6 @@ class TestStepViewSlides():
             npc_images = [npc_data[n]['image'] for n in step['npc_list']
                           if n in case['npcs_here']]
 
-            print 'ACTUAL\n', actual['prompt']
             assert actual['prompt'] == expect_prompt
             assert actual['instructions'] == step['instructions']
             assert actual['npc_image'].attributes['_src'] in npc_images
@@ -2194,6 +2194,18 @@ class TestUser(object):
 
         assert actual == expected
 
+    def test_user_get_tag_progress(self, myuser):
+        """
+        Unit test for User._get_tag_progress() method.
+        """
+        assert False
+
+    def test_user_get_tag_records(self, myuser):
+        """
+        Unit test for User._get_tag_progress() method.
+        """
+        assert False
+
     def test_user_get_categories(self, myuser):
         """
         Unit test for User._get_categories() method.
@@ -2205,7 +2217,6 @@ class TestUser(object):
         elif user.cats_counter >= 5:
             expected = case['categories_out']
         actual = user._get_categories()
-        print 'ACTUAL\n', actual
         # this avoids problem of lists being in different orders
         for c, l in expected.iteritems():
             assert len(actual['categories'][c]) == len([t for t in l])
@@ -2341,11 +2352,11 @@ class TestCategorizer():
         realout = mz['categorizer']._add_secondary_right(recsin)
         for r in realout:
             ri = realout.index(r)
-            assert r['tag_id'] == expected[ri]['tag_id']
-            assert r['last_right'] == expected[ri]['last_right']
-            assert r['last_wrong'] == expected[ri]['last_wrong']
+            assert r['tag'] == expected[ri]['tag']
+            assert r['tlast_right'] == expected[ri]['tlast_right']
+            assert r['tlast_wrong'] == expected[ri]['tlast_wrong']
             assert r['times_right'] == expected[ri]['times_right']
-            assert r['last_wrong'] == expected[ri]['last_wrong']
+            assert r['tlast_wrong'] == expected[ri]['tlast_wrong']
             assert r['secondary_right'] == expected[ri]['secondary_right']
 
 
@@ -2441,33 +2452,53 @@ class TestWalk():
         c = case['casenum']
         step = mywalk['stepdata']
         s = step['id']
-        combinations = {1: 1,  # path 2
-                        1: 2,  # path 3
-                        1: 101,  # path 89, multiple, redirect (step 30)
-                        2: 101,  # path 89, multiple
-                        2: 19,  # path 19
-                        3: 19}  # path 19
-        if c in combinations.keys() and s == combinations[c]:
-            redirects = {1: 101}  # TODO: is this right for expected redirects?
-            if c in redirects and s == redirects[c]:
+
+        combinations = {1: [1, 2, 101],  # paths 2, 3, 89 (multi, redir(step 30))
+                        2: [101, 19],  # paths 89 (multiple), 19
+                        3: [19]}  # path 19
+        if c in combinations.keys() and s in combinations[c]:
+            redirects = {1: [101],
+                         2: [101]}  # TODO: why does case 2 redirect step 101?
+            if c in redirects and s in redirects[c]:
+                print 'redirecting'
                 expected = {'prompt': step['redirect_prompt'],
                             'instructions': None,
-                            'responder': step['redirect_responder']}
+                            'responder': step['redirect_responder'],
+                            'reply_step': False}
             else:
                 expected = {'prompt': step['final_prompt'],
                             'instructions': step['instructions'],
-                            'responder': step['responder']}
-                            # TODO: check for image -- just hard to predict
+                            'responder': step['responder'],
+                            'reply_step': False}
+                if step['step_type'] in (StepText, StepMultiple):
+                    # expect a reply step prepared for these step types
+                    expected['reply_step'] = True
 
             path = step['paths'][0]
+            print 'in test_walk_ask———————————————————————————–'
+            print 'asking path', path
             actual = thiswalk.ask(path)
-
+            # TODO: add the following new assertions to test for
+            # path.get_step_for_prompt
+            # check that right number of steps left in path.steps
+            # TODO: parameterize this when we add multi-step path tests
+            assert thiswalk.user.path.steps == []
+            # check that a step is prepared for reply when necessary
+            if expected['reply_step'] is True:
+                assert thiswalk.user.path.step_for_reply
+                print 'step_for_reply is', thiswalk.user.path.step_for_reply.get_id()
+            else:
+                assert not thiswalk.user.path.step_for_reply
+                print 'no step prepared for reply'
+            # check that correct path is active on user
             assert path == thiswalk.user.path.get_id()
             assert actual['prompt']['prompt'] == expected['prompt']
             assert actual['prompt']['instructions'] == expected['instructions']
+            # TODO: check for image -- just hard to predict
             #assert actual['prompt']['npc_image'] == expected['image']
             assert actual['responder'].xml() == expected['responder']
         else:
+            print 'skipping combination'
             pass
 
     def test_walk_reply(self, mywalk):
@@ -2479,32 +2510,50 @@ class TestWalk():
         c = case['casenum']
         step = mywalk['stepdata']
         s = step['id']
-        combinations = {1: 1,  # path 2
-                        1: 2,  # path 3
-                        1: 101,  # path 89, multiple, redirect (step 30)
-                        2: 101,  # path 89, multiple
-                        2: 19,  # path 19
-                        3: 19}  # path 19
-        if c in combinations.keys() and s == combinations[c]:
+        combinations = {1: [1, 2],  # path 2, 3  # TODO: handle redirect steps?
+                        2: [19],  # path 19
+                        3: [19]}  # path 19
+
+        if c in combinations.keys() and s in combinations[c]:
             # test for both a correct and an incorrect response
+            path = step['paths'][0]
             for k, v in step['user_responses'].iteritems():
+                thestring = re.compile(r'^Incorrect.*', re.U)
+                result = thestring.search(step['reply_text'][k])
+                if result:
+                    score = 0
+                    times_right = 0
+                    times_wrong = 1
+                else:
+                    score = 1
+                    times_right = 1
+                    times_wrong = 0
+
                 response_string = v
                 expected = {'reply': step['reply_text'][k],
-                            'bug_reporter': ''}
+                            'score': score,
+                            'times_right': times_right,
+                            'times_wrong': times_wrong,
+                            'bug_reporter': None}
                             # TODO: add bug reporter string
                             # TODO: put in safety in case of empty form
 
-                path = step['paths'][0]
                 thiswalk.ask(path)
-                u1 = thiswalk.user
                 assert path == thiswalk.user.path.get_id()
-                actual = thiswalk.start(response_string),
-                u2 = thiswalk.user
-                # TODO: does actual change u1, rendering this test redundant?
-                assert u1 == u2
+                # make sure ask() prepared the step for reply
+                assert thiswalk.user.path.step_for_reply.get_id() == s
+                # TODO: parameterize when multi-step path is tested
+                assert thiswalk.user.path.steps == []
 
-                assert actual['reply'] == expected['reply']
+                actual = thiswalk.start(response_string, path=path)
+                assert actual['reply']['reply_text'] == expected['reply']
+                assert actual['reply']['score'] == expected['score']
+                assert actual['reply']['times_right'] == expected['times_right']
+                assert actual['reply']['times_wrong'] == expected['times_wrong']
                 assert actual['bug_reporter'] == expected['bug_reporter']
+                assert not thiswalk.user.path.step_for_reply
+                assert not thiswalk.user.path.step_for_prompt
+                assert s == thiswalk.user.path.completed_steps[-1].get_id()
         else:
             pass
 
@@ -2517,23 +2566,35 @@ class TestWalk():
         if case['casenum'] == 1:
             tag_progress = case['tag_progress_out']
             user_id = thiswalk._get_user().get_id()
+            print 'USER ID'
+            print user_id
             promoted = case['promoted']
             new_tags = case['new_badges']
             promoted['cat1'] = new_tags
-            expected_progress = tag_progress
-            expected_begun = {t: cat for cat in promoted for t in cat}
+            promoted = {k: v for k, v in promoted.iteritems() if v}
+            expected_progress = copy(tag_progress)
+            expected_progress['name'] = user_id
+            if promoted:
+                print promoted.values()
+                expected_begun = {t: cat for cat, lst in promoted.iteritems()
+                                for t in lst if lst}
+            else:
+                expected_begun = None
+            # TODO: make sure there's a test that covers some promoted or new
+            # tags
 
             # call the method and test its return value
-            assert thiswalk._record_cats(tag_progress, promoted,
-                                       new_tags, db) is True
+            thiswalk._record_cats(tag_progress, promoted,
+                                  new_tags, db)
 
             # test record insertion for db.tag_progress
             actual_select_tp = db(db.tag_progress.name == user_id).select()
             assert len(actual_select_tp) == 1
 
-            actual_record_tp = actual_select_tp.first()
+            actual_record_tp = actual_select_tp.first().as_dict()
             for k, v in actual_record_tp.iteritems():
-                assert v == expected_progress[k]
+                if k != 'id':
+                    assert v == expected_progress[k]
 
             # test record insertion for db.badges_begun
             actual_select_bb = db(db.badges_begun.name == user_id).select()
@@ -2542,12 +2603,16 @@ class TestWalk():
             assert len(actual_select_bb) == len(user_tag_records)
             # check that new values were entered
             now = datetime.datetime.utcnow()
-            for t, v in {tag: cat for tag, cat in expected_begun.iteritems()}:
-                actual_select_bb.find(lambda row: row.tag_id == t)
-                assert len(actual_select_bb) == 1
-                assert actual_select_bb.first()[v] == now
+            if expected_begun:
+                print expected_begun
+                for t, v in {tag: cat for tag, cat in expected_begun.iteritems()}:
+                    actual_select_bb.find(lambda row: row.tag == t)
+                    assert len(actual_select_bb) == 1
+                    assert actual_select_bb.first()[v] == now
         else:
+            print 'skipping combination'
             pass
+        # TODO: make sure data is removed from db after test
 
     def test_walk_record_step(self, mywalk, db):
         """
@@ -2587,13 +2652,15 @@ class TestWalk():
             assert len(actual_tag_records) == len(expected_tag_records)
             for l in expected_tag_records:
                 for_this_tag = actual_tag_records.find(lambda row:
-                                                       row.tag == l['tag_id'])
+                                                       row.tag == l['tag'])
                 assert len(for_this_tag) == 1
 
                 for k in l.keys():
                     assert for_this_tag[k] == l[k]
         else:
+            print 'skipping combination'
             pass
+        # TODO make sure data is removed from db after test
 
     def test_walk_store_user(self, mywalk):
         """Unit test for Walk._store_user"""
@@ -2613,6 +2680,7 @@ class TestWalk():
             # remove session user again
             session.user = None
         else:
+            print 'skipping combination'
             pass
 
 
@@ -2665,3 +2733,26 @@ class TestPathChooser():
         assert newpath[0].id in mypathchooser['paths']['cat1']
         assert newpath[1] in [l for l in db.steps(newpath[0].steps[0]).locations]
         assert newpath[2] == 1
+
+
+class TestBugReporter():
+    '''
+    Unit testing class for the paideia.BugReporter class.
+    '''
+
+    def test_bugreporter_get_reporter(self):
+        """
+        Unit test for BugReporter.get_reporter() method.
+        """
+        data = {'record_id': 22,
+                'path_id': 4,
+                'step_id': 108,
+                'score': 0.5,
+                'response_string': 'hi'}
+        expected = '<a href="http://ianwscott.webfactional.com/paideia/' \
+                   'creating/bug.load?answer=hi&loc=agora&log_id=22&path=4&'\
+                   'score=0.5&step=108'
+
+        actual = BugReporter().get_reporter(**data)
+
+        assert actual.xml() == expected

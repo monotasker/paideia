@@ -145,11 +145,25 @@ def user_login(request, web2py, client, db):
                 'password': 'testing'}
     #client.post('/default/user/register', data=reg_data)
     #assert client.status == 200
-    auth.table_user().insert(**reg_data)
 
+    # create new user if necessary and delete if there's more than one test
+    # user
     user_query = db((db.auth_user.first_name == 'Homer') &
                     (db.auth_user.last_name == 'Simpson') &
                     (db.auth_user.email == 'scottianw@gmail.com'))
+    user_count = user_query.count()
+    if user_count == 0:
+        auth.table_user().insert(**reg_data)
+    elif user_count > 1:
+        u_count = user_count
+        userset = user_query.select()
+        while u_count > 1:
+            lastu = userset.last()
+            lastu.delete_record()
+            u_count -= 1
+    else:
+        pass
+
     assert user_query.count() == 1
     user_record = user_query.select().first()
     assert user_record
@@ -161,14 +175,14 @@ def user_login(request, web2py, client, db):
     #client.post('/default/user/login', data=log_data)
     #assert client.status == 200
 
-    #def fin():
-        #"""
-        #Delete the test user's account.
-        #"""
-        #user_record.delete_record()
-        #assert not user_query.count
+    def fin():
+        """
+        Delete the test user's account.
+        """
+        user_record.delete_record()
+        assert user_query.count() == 0
 
-    #request.addfinalizer(fin)
+    request.addfinalizer(fin)
     return user_record.as_dict()
 
 
