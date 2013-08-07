@@ -1249,7 +1249,7 @@ class PathChooser(object):
 
         return cat_list
 
-    def _paths_by_category(self, cat):
+    def _paths_by_category(self, cat, rank):
         """
         Assemble list of paths tagged with tags in each category for this user.
 
@@ -1257,27 +1257,33 @@ class PathChooser(object):
         as values.
         """
         db = self.db
-
+        # TODO: include paths with tag as secondary, maybe in second list
         ps = db().select(db.paths.ALL, orderby='<random>')
+        print len(ps)
         # filter by category, then
         # filter out paths with a step that's not set to "active"
         # avoid steps with right tag but no location
         taglist = self.categories['cat{}'.format(cat)]
+        print taglist
+        # TODO: make find below more efficient
         ps = ps.find(lambda row:
                      [t for t in row.tags
-                      if taglist and (t in taglist)]
-                     and
+                      if taglist and (t in taglist)])
+        print len(ps)
+        ps = ps.find(lambda row:
                      [s for s in row.steps
-                      if db.steps(s).status != 2]
-                     and not
-                     [s for s in row.steps
-                      if db.steps(s).locations is None])
+                      if db.steps(s).status != 2])
+        print len(ps)
+        ps.exclude(lambda row:
+                   [s for s in row.steps
+                    if db.steps(s).locations is None])
+        print len(ps)
+        ps.exclude(lambda row:
+                   [t for t in row.tags
+                    if db.tags[t].tag_position > rank])
 
-        # TODO: exclude paths whose steps have tags beyond user's active tags
-        #if len(p_list) > 0:
-            #maxp = db.tag_progress[auth.user_id].latest_new
-            #p_list.exclude(lambda row:
-                #[t for t in row.tags if db.tags[t].tag_position > maxp])
+        print [p.id for p in ps]
+        print len(ps)
 
         return (ps, cat)
 

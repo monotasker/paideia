@@ -417,8 +417,8 @@ def mycases(request, mysteps, user_login, db):
                                           'cat3': [], 'cat4': [],
                                           'rev1': [], 'rev2': [],
                                           'rev3': [], 'rev4': []},
-                       'paths': {'cat1': [1, 2, 3, 5, 8, 63, 64, 70, 95, 96,
-                                          97, 99, 102, 104, 256, 277],
+                       'paths': {'cat1': [1, 2, 3, 5, 8, 63, 95, 96,
+                                          99, 102, 256],  # removed 64, 70, 97, 104, 277
                                  'cat2': [],
                                  'cat3': [],
                                  'cat4': []},
@@ -457,7 +457,7 @@ def mycases(request, mysteps, user_login, db):
                                         'rev1': [], 'rev2': [],
                                         'rev3': [], 'rev4': []},
                        'introduced': [62],
-                       'tag_progress_out': {'latest_new': 1,
+                       'tag_progress_out': {'latest_new': 2,
                                             'cat1': [62], 'cat2': [61],
                                             'cat3': [], 'cat4': [],
                                             'rev1': [], 'rev2': [],
@@ -470,8 +470,9 @@ def mycases(request, mysteps, user_login, db):
                                           'cat3': [], 'cat4': [],
                                           'rev1': [], 'rev2': [],
                                           'rev3': [], 'rev4': []},
-                       'paths': {'cat1': [1, 2, 3, 5, 8, 63, 64, 70, 95, 96,
-                                          97, 99, 102, 104, 256, 277],
+                       'paths': {'cat1': [4, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17,
+                                          18, 19, 21, 22, 23, 34, 35,
+                                          97, 98, 100, 101, 257, 261],
                                  'cat2': [],
                                  'cat3': [],
                                  'cat4': []},
@@ -555,11 +556,18 @@ def mycases(request, mysteps, user_login, db):
                                           'cat3': [], 'cat4': [],
                                           'rev1': [], 'rev2': [],
                                           'rev3': [], 'rev4': []},
-                       'paths': {'cat1': [1, 2, 3, 5, 8, 38, 39, 40, 41, 42,
-                                          43, 44, 56, 57, 58, 59, 61, 62, 63,
-                                          64, 70, 84, 86, 87, 88, 90, 95, 96,
-                                          97, 99, 102, 104, 127, 256, 267, 270,
-                                          277, 288, 289, 290, 301, 302],
+                       'paths': {'cat1': [4, 6, 7, 9, 10, 11, 12, 13, 14,
+                                          15, 16, 17, 18, 19, 20, 21, 22,
+                                          23, 24, 25, 27, 28, 33, 34, 35,
+                                          37, 38, 39, 40, 41, 42, 43, 44,
+                                          64, 65, 66, 67, 69, 89, 94, 97,
+                                          98, 100, 101, 103, 104, 117, 119,
+                                          121, 135, 206, 257, 259, 260, 261,
+                                          262, 263, 265, 266, 267, 268, 269,
+                                          270, 277, 278, 279, 280, 284, 285,
+                                          286, 287, 288, 289, 290, 291, 292,
+                                          293, 294, 295, 296, 297, 298, 299,
+                                          300, 301, 302],
                                  'cat2': [4, 7, 9, 10, 11, 12, 13, 14, 15, 16,
                                           17, 18, 19, 21, 22, 23, 34, 35, 97,
                                           98, 100, 101, 103, 257, 261, 277],
@@ -644,17 +652,12 @@ def mycases(request, mysteps, user_login, db):
                                           'cat3': [], 'cat4': [],
                                           'rev1': [], 'rev2': [],
                                           'rev3': [], 'rev4': []},
-                       'paths': {'cat1': [6, 20, 24, 25, 27, 28, 33, 37, 64,
-                                          65, 66, 67, 68, 69, 94, 103, 104,
-                                          259, 260, 277, 278, 279, 280, 284,
-                                          285, 286, 38, 39, 40, 41, 42, 43, 44,
-                                          56, 57, 58, 59, 61, 62, 84, 86, 87,
-                                          88, 90, 127, 267, 270, 288, 289, 290,
-                                          301, 302, 45, 46, 47, 48, 49, 50, 51,
-                                          52, 53, 54, 55, 56, 57, 58, 59, 60,
-                                          61, 62, 84, 85, 86, 87, 88, 135, 206,
-                                          262, 263, 264, 265, 266, 267, 268,
-                                          269, 270, 308, 309],
+                       'paths': {'cat1': [6, 20, 24, 25, 27, 28, 33, 37,
+                                          38, 39, 40, 41, 42, 43, 44, 64,
+                                          65, 66, 67, 69, 94, 103, 135,
+                                          206, 259, 260, 262, 263, 265, 266,
+                                          267, 268, 269, 270, 277, 284, 285,
+                                          286],
                                  'cat2': [1, 2, 3, 5, 8, 63, 64, 70, 95, 96,
                                           97, 99, 102, 104, 256, 277, 4, 7, 9,
                                           10, 11, 12, 13, 14, 15, 16, 17, 18,
@@ -696,7 +699,7 @@ def mycases(request, mysteps, user_login, db):
                                         'rev1': [], 'rev2': [],
                                         'rev3': [], 'rev4': []},
                        'introduced': [62],  # assuming we call _introduce_tags
-                       'tag_progress_out': {'latest_new': 1,
+                       'tag_progress_out': {'latest_new': 2,
                                             'cat1': [62], 'cat2': [61],
                                             'cat3': [], 'cat4': [],
                                             'rev1': [], 'rev2': [],
@@ -709,8 +712,9 @@ def mycases(request, mysteps, user_login, db):
                                           'cat3': [], 'cat4': [],
                                           'rev1': [], 'rev2': [],
                                           'rev3': [], 'rev4': []},
-                       'paths': {'cat1': [1, 2, 3, 5, 8, 63, 64, 70, 95, 96,
-                                          97, 99, 102, 104, 256, 277],
+                       'paths': {'cat1': [4, 7, 9, 10, 11, 12, 13, 14, 15,
+                                          16, 17, 18, 19, 21, 22, 23, 34,
+                                          35, 97, 98, 100, 101, 257, 261],
                                  'cat2': [],
                                  'cat3': [],
                                  'cat4': []},
@@ -768,7 +772,7 @@ def mypathchooser(mycases, db):
     case = mycases['casedata']
     step = mycases['stepdata']
     klist = ['cat1', 'cat2', 'cat3', 'cat4', 'rev1', 'rev2', 'rev3']
-    cats = {k: v for k, v in case['tag_progress'].iteritems() if k in klist}
+    cats = {k: v for k, v in case['tag_progress_out'].iteritems() if k in klist}
     pc = PathChooser(cats, case['loc'], case['completed'], db=db)
     return {'pathchooser': pc,
             'paths': case['paths'],
@@ -2693,7 +2697,11 @@ class TestPathChooser():
 
     def test_pathchooser_choose(self, mypathchooser):
         newpath = mypathchooser['pathchooser'].choose()
-        assert newpath[0].id in [r for c in mypathchooser['paths'].values() for r in c if len(c) > 0]
+        print mypathchooser.keys()
+        print mypathchooser['pathchooser']
+        print newpath
+        assert newpath[0].id in [r for c in mypathchooser['paths'].values()
+                                 for r in c if len(c) > 0]
         assert newpath[2] in range(1, 5)
 
     def test_pathchooser_order_cats(self, mypathchooser):
@@ -2714,7 +2722,8 @@ class TestPathChooser():
         assert pc[3] in [1, 2, 3, 4]
 
     def test_pathchooser_paths_by_category(self, mypathchooser, db):
-        cpaths, category = mypathchooser['pathchooser']._paths_by_category('1')
+        rank = mypathchooser['casedata']['tag_progress_out']['latest_new']
+        cpaths, category = mypathchooser['pathchooser']._paths_by_category(1, rank)
         allpaths = mypathchooser['paths']
         pathids = allpaths['cat{}'.format(category)]
         expected = db(db.paths).select()
