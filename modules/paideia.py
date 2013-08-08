@@ -1222,6 +1222,7 @@ class PathChooser(object):
         """Initialize a PathChooser object to select the user's next path."""
         self.categories = {k: v for k, v in tag_progress.iteritems()
                            if not k in ['name', 'latest_new']}
+        self.rank = tag_progress['latest_new']
         self.db = current.db if not db else db
         self.loc_id = loc_id
         self.completed = paths_completed
@@ -1233,19 +1234,21 @@ class PathChooser(object):
 
         Returns a list with four members including the integers one-four.
         """
-        switch = randint(1, 101)
+        # TODO: Look at replacing this method with scipy.stats.rv_discrete()
+        switch = randint(1, 100)
+        print 'SWITCH is', switch
 
-        if switch in range(1, 75):
+        if switch in range(1, 76):
             cat = 1
-        elif switch in range(75, 90):
+        elif switch in range(75, 91):
             cat = 2
-        elif switch in range(90, 98):
+        elif switch in range(90, 99):
             cat = 3
         else:
             cat = 4
 
-        cat_range = range(1, 5)
-        cat_list = cat_range[cat:5] + cat_range[0:cat]
+        cat_list = range(1, 5)[(cat - 1):4] + range(1, 5)[0:(cat - 1)]
+        print 'CAT LIST is', cat_list
 
         return cat_list
 
@@ -1258,32 +1261,32 @@ class PathChooser(object):
         """
         db = self.db
         # TODO: include paths with tag as secondary, maybe in second list
+        # TODO: cache the select below and just re-order randomly
         ps = db().select(db.paths.ALL, orderby='<random>')
-        print len(ps)
         # filter by category, then
         # filter out paths with a step that's not set to "active"
         # avoid steps with right tag but no location
         taglist = self.categories['cat{}'.format(cat)]
+        print '\n\n————————————————\nCATEGORY', cat
         print taglist
         # TODO: make find below more efficient
+
         ps = ps.find(lambda row:
                      [t for t in row.tags
                       if taglist and (t in taglist)])
-        print len(ps)
         ps = ps.find(lambda row:
                      [s for s in row.steps
                       if db.steps(s).status != 2])
-        print len(ps)
         ps.exclude(lambda row:
                    [s for s in row.steps
                     if db.steps(s).locations is None])
-        print len(ps)
         ps.exclude(lambda row:
                    [t for t in row.tags
-                    if db.tags[t].tag_position > rank])
-
-        print [p.id for p in ps]
-        print len(ps)
+                    if db.tags[t].tag_position > self.rank])
+        print 'PATHSET in _paths_by_cateogry()'
+        pathset = [p.id for p in ps]
+        pathset.sort()
+        print pathset
 
         return (ps, cat)
 
@@ -1297,6 +1300,10 @@ class PathChooser(object):
         integer then the user should be redirected to that location. The third
         member is an integer between 1 and 4 corresponding to the category from
         which the path was chosen.
+
+        Note: This method is *not* intended to handle categories with no
+        available paths for this user. If such a category is supplied the
+        method will raise an error.
         """
         loc_id = self.loc_id
         db = self.db
@@ -1314,7 +1321,6 @@ class PathChooser(object):
         elif p_new:
             path = p_new[randrange(0, len(p_new))]
             new_locs = db.steps(path.steps[0]).locations
-            # TODO: do we need db.steps[p_elsewhere.steps[0].locations
             new_loc = new_locs[randrange(0, len(new_locs))]
         elif p_here:
             path = p_here[randrange(0, len(p_here))]
@@ -1331,13 +1337,25 @@ class PathChooser(object):
         - has a due tag & already tried today
         - has a tag that's not due & untried today
         - any random path
+
+        Returns a 3-member tuple:
+            [0] Path object chosen
+            [1] location id where Path must be started (or None if current loc)
+            [2] the category number for this new path (int in range 1-4)
         """
         db = self.db if not db else db
         cat_list = self._order_cats()
 
         # cycle through categories, starting with the one from _get_category()
         for cat in cat_list:
-            catpaths = self._paths_by_category(cat)
+            catpaths = self._paths_by_category(cat, self.rank)
+            print 'CATPATHS in choose()'
+            catpids = [p.id for p in catpaths[0]]
+            catpids.sort()
+            print catpids
+            print 'TAGS'
+            cattags = [p.tags for p in catpaths[0]]
+            print cattags
             if catpaths[0]:
                 return self._choose_from_cat(catpaths[0], catpaths[1])
             else:
@@ -1457,6 +1475,9 @@ class User(object):
         None of the arguments is strictly necessary, but loc will usually be
         provided. The others are only used for dependency injection during
         testing.
+
+        Note: redirect block is set here if the chosen path cannot be
+        begun in this location
         """
         db = self.db if not db else db
         categories = self._get_categories() if not categories else categories
