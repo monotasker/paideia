@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-
+#! /usr/bin/python
+# -*- coding: UTF-8 -*-
 # Unit tests for the paideia module
 #
 # Configuration and some fixtures (client, web2py) declared in
@@ -2535,12 +2536,11 @@ class TestWalk():
                     times_wrong = 0
 
                 response_string = v
+
                 expected = {'reply': step['reply_text'][k],
                             'score': score,
                             'times_right': times_right,
-                            'times_wrong': times_wrong,
-                            'bug_reporter': None}
-                            # TODO: add bug reporter string
+                            'times_wrong': times_wrong}
                             # TODO: put in safety in case of empty form
 
                 thiswalk.ask(path)
@@ -2555,7 +2555,24 @@ class TestWalk():
                 assert actual['reply']['score'] == expected['score']
                 assert actual['reply']['times_right'] == expected['times_right']
                 assert actual['reply']['times_wrong'] == expected['times_wrong']
-                assert actual['bug_reporter'] == expected['bug_reporter']
+                response_string = response_string.decode("utf-8")
+                print response_string
+                bug_info = (response_string.encode('utf-8'),
+                            case['loc'].get_alias(),
+                            thiswalk.record_id,
+                            thiswalk.user.path.get_id(),
+                            expected['score'],
+                            s)
+                bug_reporter = '<a class="bug_reporter_link" '\
+                               'href="/paideia/creating/bug.load?'\
+                               'answer={}&amp;'\
+                               'loc={}&amp;'\
+                               'log_id={}&amp;'\
+                               'path={}&amp;'\
+                               'score={}&amp;'\
+                               'step={}" '\
+                               'id="bug_reporter">click here</a>'.format(*bug_info)
+                assert actual['bug_reporter'].xml() == bug_reporter
                 assert not thiswalk.user.path.step_for_reply
                 assert not thiswalk.user.path.step_for_prompt
                 assert s == thiswalk.user.path.completed_steps[-1].get_id()
@@ -2762,10 +2779,12 @@ class TestBugReporter():
                 'path_id': 4,
                 'step_id': 108,
                 'score': 0.5,
-                'response_string': 'hi'}
-        expected = '<a href="http://ianwscott.webfactional.com/paideia/' \
-                   'creating/bug.load?answer=hi&loc=agora&log_id=22&path=4&'\
-                   'score=0.5&step=108'
+                'response_string': 'hi',
+                'loc_alias': 'agora'}
+        expected = '<a class="bug_reporter_link" '\
+                   'href="/paideia/creating/bug.load?'\
+                   'answer=hi&amp;loc=agora&amp;log_id=22&amp;path=4&amp;'\
+                   'score=0.5&amp;step=108" id="bug_reporter">click here</a>'
 
         actual = BugReporter().get_reporter(**data)
 
