@@ -473,7 +473,7 @@ def mycases(request, mysteps, user_login, db):
                        'paths': {'cat1': [4, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17,
                                           18, 19, 21, 22, 23, 34, 35,
                                           97, 98, 100, 101, 257, 261],
-                                 'cat2': [],
+                                 'cat2': [1, 2, 3, 5, 8, 63, 95, 96, 97, 99, 102, 256],
                                  'cat3': [],
                                  'cat4': []},
                        'steps_here': [1, 2, 30, 125, 126, 127],
@@ -538,7 +538,7 @@ def mycases(request, mysteps, user_login, db):
                                         'rev1': [], 'rev2': [],
                                         'rev3': [], 'rev4': []},
                        'introduced': [9, 16, 48, 76, 93],
-                       'tag_progress_out': {'latest_new': 4,
+                       'tag_progress_out': {'latest_new': 2,
                                             'cat1': [62, 63, 68, 115, 72,
                                                      89, 36],
                                             'cat2': [61, 66],
@@ -568,9 +568,10 @@ def mycases(request, mysteps, user_login, db):
                                           286, 287, 288, 289, 290, 291, 292,
                                           293, 294, 295, 296, 297, 298, 299,
                                           300, 301, 302],
-                                 'cat2': [4, 7, 9, 10, 11, 12, 13, 14, 15, 16,
-                                          17, 18, 19, 21, 22, 23, 34, 35, 97,
-                                          98, 100, 101, 103, 257, 261, 277],
+                                 'cat2': [1, 2, 3, 5, 8, 26, 36, 63, 64,
+                                          70, 95, 96, 97, 99, 102, 104, 256,
+                                          271, 272, 273, 274, 275, 276, 277,
+                                          278, 279, 280, 281, 282, 283],
                                  'cat3': [],
                                  'cat4': []},
                        'steps_here': [1, 2, 30, 125, 126, 127],
@@ -715,7 +716,8 @@ def mycases(request, mysteps, user_login, db):
                        'paths': {'cat1': [4, 7, 9, 10, 11, 12, 13, 14, 15,
                                           16, 17, 18, 19, 21, 22, 23, 34,
                                           35, 97, 98, 100, 101, 257, 261],
-                                 'cat2': [],
+                                 'cat2': [1, 2, 3, 5, 8, 63, 95, 96, 97, 99,
+                                          102, 256],
                                  'cat3': [],
                                  'cat4': []},
                        'new_badges': [62],
@@ -771,9 +773,8 @@ def mypathchooser(mycases, db):
     """pytest fixture providing a paideia.PathChooser object for testing"""
     case = mycases['casedata']
     step = mycases['stepdata']
-    klist = ['cat1', 'cat2', 'cat3', 'cat4', 'rev1', 'rev2', 'rev3']
-    cats = {k: v for k, v in case['tag_progress_out'].iteritems() if k in klist}
-    pc = PathChooser(cats, case['loc'], case['completed'], db=db)
+    pc = PathChooser(case['tag_progress_out'],
+                     case['loc'], case['completed'], db=db)
     return {'pathchooser': pc,
             'paths': case['paths'],
             'casedata': case,
@@ -2698,10 +2699,14 @@ class TestPathChooser():
     def test_pathchooser_choose(self, mypathchooser):
         newpath = mypathchooser['pathchooser'].choose()
         print mypathchooser.keys()
-        print mypathchooser['pathchooser']
-        print newpath
-        assert newpath[0].id in [r for c in mypathchooser['paths'].values()
-                                 for r in c if len(c) > 0]
+        print 'PATHCHOOSER PATHS'
+        print mypathchooser['paths']
+        print 'CHOSEN PATH'
+        print newpath[0].id
+        print 'EXPECTED PATHS'
+        expected = mypathchooser['paths']['cat{}'.format(newpath[2])]
+        print expected
+        assert newpath[0].id in expected
         assert newpath[2] in range(1, 5)
 
     def test_pathchooser_order_cats(self, mypathchooser):
@@ -2733,13 +2738,13 @@ class TestPathChooser():
             assert row.id in [r.id for r in expected]
 
     def test_pathchooser_choose_from_cat(self, mypathchooser, db):
-        allpaths = mypathchooser['paths']
-        pathids = allpaths['cat{}'.format(1)]
+        catnum = 1
+        pathids = mypathchooser['paths']['cat{}'.format(catnum)]
         expected = db(db.paths).select()
         expected = expected.find(lambda row: row.id in pathids)
 
-        newpath = mypathchooser['pathchooser']._choose_from_cat(expected, 1)
-        assert newpath[0].id in mypathchooser['paths']['cat1']
+        newpath = mypathchooser['pathchooser']._choose_from_cat(expected, catnum)
+        assert newpath[0].id in mypathchooser['paths']['cat{}'.format(catnum)]
         assert newpath[1] in [l for l in db.steps(newpath[0].steps[0]).locations]
         assert newpath[2] == 1
 
