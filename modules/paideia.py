@@ -58,6 +58,7 @@ class Walk(object):
                                    localias=localias,
                                    tag_records=tag_records,
                                    tag_progress=tag_progress)
+        self.record_id = None  # stores step log row id after db update
 
     def _get_user(self, userdata=None, localias=None, tag_records=None,
                   tag_progress=None, db=None):
@@ -157,31 +158,40 @@ class Walk(object):
         user_id = user.get_id()
         db = self.db
 
+        # evaluate user response and generate reply
         p = user.get_path(self.loc)
-        path_id = p.get_id()
-
         s = p.get_step_for_reply(db)
-        print 'step:', s
-        step_id = s.get_id()
-        tags = s.get_tags()
-
         reply = s.get_reply(response_string)
 
+        # retrieve data from generated reply
         score = reply['score']
         tag_records = user.get_tag_records()
         tag_progress = user.get_tag_progress()
         promoted = user.get_promoted()
         new_tags = user.get_new_tags()
 
+        # record data for this step in db
         assert self._record_cats(tag_progress, promoted, new_tags)
-        record_id = self._record_step(user_id, path_id, step_id, score,
-                                      tag_records, response_string)
+        record_id = self._record_step(user_id,
+                                      p.get_id(),
+                                      s.get_id(),
+                                      score,
+                                      tag_records,
+                                      response_string)
+        self.record_id = record_id
         assert record_id
 
-        br = BugReporter()
-        bug_reporter = br.get_reporter(record_id, path_id, step_id,
-                                       tags, score, response_string)
+        # create bug reporter
+        bug_reporter = BugReporter().get_reporter(record_id,
+                                                  p.get_id(),
+                                                  s.get_id(),
+                                                  score,
+                                                  response_string,
+                                                  self.loc.get_alias())
+
+        # remove step from active status
         p.complete_step()  # removes path.step_for_reply
+        # store User object for retrieval on next request
         self._store_user(user)
 
         return {'reply': reply, 'bug_reporter': bug_reporter}
@@ -424,19 +434,35 @@ class BugReporter(object):
     """
     Class representing a bug-reporting widget to be presented along with the
     evaluation of the current step.
+
     """
     def __init__(self):
         """Initialize a BugReporter object"""
         pass
 
     def get_reporter(self, record_id, path_id, step_id,
-                     tags, score, response_string):
+                     score, response_string, loc_alias):
         """
-        Return a bug reporter widget to embed in the evaluation of a user
-        response.
+        Return a link to trigger submission of a bug report for current step.
+
+        Returns a web2py A() html helper object, ready for embedding in a
+        web2py view template. This is meant to be embedded in the reply UI
+        which presents the user with an evaluation of the step input.
         """
-        # TODO: fill out logic
-        pass
+        response_string = response_string.decode('utf-8')
+        print response_string
+        vardict = {'answer': response_string.encode('utf-8'),
+                   'loc': loc_alias,
+                   'log_id': record_id,
+                   'path': path_id,
+                   'score': score,
+                   'step': step_id}
+        br = A('click here',
+               _id='bug_reporter',
+               _class='bug_reporter_link',
+               _href=URL('creating', 'bug.load', vars=vardict))
+
+        return br
 
 
 class StepFactory(object):
