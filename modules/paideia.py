@@ -106,8 +106,10 @@ class Walk(object):
         """
         try:
             if response_string:
+                print 'Getting reply'
                 return self.reply(response_string)
             else:
+                print 'Getting prompt'
                 return self.ask(path)
         except Exception:
             print traceback.format_exc(5)
@@ -123,6 +125,7 @@ class Walk(object):
             db = self.db
             cache = current.cache
 
+        print 'getting Map'
         map_image = '/paideia/static/images/town_map.svg'
         # TODO: Review cache time
         locations = db().select(db.locations.ALL,
@@ -139,12 +142,18 @@ class Walk(object):
         """
         user = self._get_user()
         loc = self.loc
+        print 'getting path'
         p = user.get_path(loc, path=path)
+        print 'getting step'
         s = p.get_step_for_prompt()
+        print 'getting prompt'
         prompt = s.get_prompt()
+        print 'getting responder'
         responder = s.get_responder()
+        print 'storing user'
         # non-response steps end here
         self._store_user(user)
+        print 'returning prompt to controller'
 
         return {'prompt': prompt, 'responder': responder}
 
@@ -310,25 +319,30 @@ class Location(object):
 
     def get_alias(self):
         """Return the alias of the current Location as a string."""
-        return self.data.loc_alias
+        return self.data['loc_alias']
 
     def get_name(self):
         """Return the name of the current Location as a string.
         This 'name' is used in the svg map to identify the location."""
-        return self.data.map_location
+        return self.data['map_location']
 
     def get_readable(self):
         """
         Return the readable name of the current Location as a string.
         This is used to identify the location in communication with the user.
         """
-        return self.data.readable
+        return self.data['readable']
 
     def get_bg(self):
         """Return the background image of the current Location as a web2py
         IMG helper object."""
-        url = URL('static/images', self.db.images[self.data.bg_image].image)
-        bg = IMG(_src=url)
+        try:
+            url = URL('static/images', self.db.images[self.data['bg_image']].image)
+            bg = IMG(_src=url)
+        except Exception:
+            print traceback.format_exc(5)
+            bg = SPAN('no image in db for location {}'.format(self.data['id']))
+        print bg
         return bg
 
     def get_id(self):
@@ -336,7 +350,7 @@ class Location(object):
         Return the id for the database row representing the current
         Location (as an int).
         """
-        return self.data.id
+        return self.data['id']
 
 
 class Npc(object):
@@ -523,6 +537,8 @@ class Step(object):
         self.prev_loc = prev_loc
         self.prev_npc = prev_npc
         self.npc = None
+        print 'hi'
+        print 'Step location is ', self.loc.get_alias()
 
     def get_id(self):
         """
@@ -577,6 +593,7 @@ class Step(object):
         npc_image = npc.get_image()
         # prompt no longer tagged or converted to markmin here, but in view
         bg_image = self.loc.get_bg().xml()
+        print 'got bg image'
 
         return {'prompt': prompt,
                 'instructions': instructions,
@@ -1734,7 +1751,6 @@ class Categorizer(object):
                     triplets2 = rlen / 3
                     remainder2 = rlen % 3
                     rec['times_right'] += triplets2
-                    print '\nadding', triplets2, 'to times_right'
 
                     # move tlast_right forward based on mean of oldest 3 secondary_right
                     now = self.utcnow
@@ -1742,27 +1758,21 @@ class Categorizer(object):
                         early3 = right2[: -(remainder2)]
                     else:
                         early3 = right2[:]
-                    print 'earliest 3 are '
-                    print early3
                     early3d = [now - s for s in early3]
                     avg_delta = sum(early3d, datetime.timedelta(0)) / len(early3d)
                     avg_date = now - avg_delta
-                    print 'old tlast_right'
-                    print rec['tlast_right'], type(rec['tlast_right'])
-                    print 'average of earliest 3'
-                    print avg_date, type(avg_date)
-                    if avg_date > rec['tlast_right']:  # parser.parse(rec['tlast_right'])
+                    # sanitize tlast_right in case db value is string
+                    tlr = rec['tlast_right'] \
+                        if isinstance(rec['tlast_right'], datetime.datetime) \
+                        else parser.parse(rec['tlast_right'])
+                    if avg_date > tlr:  #
                         rec['tlast_right'] = avg_date
-                    print 'new tlast_right'
-                    print rec['tlast_right'], type(rec['tlast_right'])
 
                     # remove counted entries from secondary_right, leave remainder
                     if remainder2:
                         rec['secondary_right'] = right2[-(remainder2):]
                     else:
                         rec['secondary_right'] = []
-                    print 'sliced secondary_right'
-                    print rec['secondary_right']
                     tag_records[rindex] = rec
                 else:
                     continue
