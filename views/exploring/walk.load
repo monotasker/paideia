@@ -2,45 +2,6 @@
     {{#=response.toolbar()}}
 {{pass}}
 
-{{if auth.has_membership('administrators'):}}
-<div id='utils'>
-{{=A("Force new session", _href=URL('index.html', vars={'force':'True'}))}}
-<form style='z-index:99' id='clear_session'>
-    <ul> <li>
-        <input type='text' value='all' name='session_var' id='session_var' />
-        <a id='session_clear' href='#'>Clear session</a>
-    </li> </ul>
-</form>
-<div id='session_data'>
-<ul>
-    {{if session.user:}}
-    <li>'found user in session'</li>
-    {{else:}}
-    <li>'no user found in session'</li>
-    {{pass}}
-</ul>
-</div>
-<form>
-    <ul>
-        <li>
-            <a id='test_this_step' href='#'>Test</a> path
-            <input type='text' value='all' name='test_path' id='test_path' />
-            step
-            <input type='text' value='all' name='test_step' id='test_step' />
-            <select id='test_loc'>
-                {{for l in db(db.locations.id > 0).select():}}
-                    {{=OPTION(l.loc_alias, _value=l.loc_alias)}}
-                {{pass}}
-            </select>
-        </li>
-    </ul>
-</form>
-<span class='icon-only icon-gear'>
-    <span class='accessible'>Admin</span>
-</span>;
-</div>
-{{pass}}
-
 <!--when an error is raised-->
 <!-- TODO: Rework this error message -->
 {{if request.args(0) == 'error':}}
@@ -106,13 +67,13 @@
 
 <!--present prompt for step-->
 {{elif not 'response' in request.vars:}}
-    <div class='bg_image'>{{=bg_image}}</div>
-    <div class='speaker'>{{=npc_image}}</div>
-    <div class="npc prompt">{{=prompt}}</div>
+    <div class='bg_image'>{{=prompt['bg_image']}}</div>
+    <div class='speaker'>{{=prompt['npc_image']}}</div>
+    <div class="npc prompt">{{=prompt['prompt']}}</div>
     <div class='responder'>
-        {{=form}}
-        {{if instructions:}}
-            {{=TOOLTIP('prompt_tips', 'tips', XML(instructions), 'left', 'star')}}
+        {{=responder}}
+        {{if prompt['instructions']:}}
+            {{=TOOLTIP('prompt_tips', 'tips', XML(prompt['instructions']), 'left', 'star')}}
         {{pass}}
     </div>
 {{pass}}
