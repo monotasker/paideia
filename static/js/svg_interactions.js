@@ -11,7 +11,7 @@ window.onload = function(){
 function go_there(evt){
     var tobj = evt.currentTarget;
     var oname = tobj.getAttribute('id');
-    window.parent.web2py_component("/paideia/exploring/walk.load/ask?loc=" + oname,"page");
+    window.parent.web2py_component("/paideia/exploring/walk.load/step?loc=" + oname,"page");
 }
 
 function mask_other(evt){

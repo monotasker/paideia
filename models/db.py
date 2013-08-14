@@ -52,7 +52,7 @@ if _i_am_running_under_test():
 else:
     # TODO: check these sqlite settings
     # check_reserved makes sure no column names conflict with back-end db's
-    db = DAL('sqlite://storage.sqlite', pool_size=1, check_reserved=['all'])
+    db = DAL('sqlite://storage.sqlite', pool_size=1, check_reserved=['sqlite', 'mysql'])
 
 
 #-------------------------------------------------------------
