@@ -13,10 +13,10 @@
 </form>
 <div id='session_data'>
 <ul>
-    {{for k,v in session.walk.iteritems():}}
-        {{if k != 'npc_image':}}
-            <li>{{=k}}: {{=v}}</li>
-        {{pass}}
+    {{if session.user:}}
+    <li>'found user in session'</li>
+    {{else:}}
+    <li>'no user found in session'</li>
     {{pass}}
 </ul>
 </div>
@@ -29,7 +29,7 @@
             <input type='text' value='all' name='test_step' id='test_step' />
             <select id='test_loc'>
                 {{for l in db(db.locations.id > 0).select():}}
-                    {{=OPTION(l.alias, _value=l.alias)}}
+                    {{=OPTION(l.loc_alias, _value=l.loc_alias)}}
                 {{pass}}
             </select>
         </li>
@@ -51,7 +51,7 @@
 
 <!--path selection-->
 {{elif request.args(0) == 'start' or not request.args:}}
-	<embed id='town_map' src='{{=map.image}}' type='image/svg+xml' />
+	<embed id='town_map' src='{{=map["map_image"]}}' type='image/svg+xml' />
     {{=TOOLTIP('townmap_key', 'Show map hotspots',
                 IMG(_src='../static/images/townmap.png'),
                 'left', 
@@ -107,11 +107,11 @@
 <!--present prompt for step-->
 {{elif not 'response' in request.vars:}}
     <div class='bg_image'>{{=bg_image}}</div>
-    <div class='speaker'>{{=npc_img}}</div>
+    <div class='speaker'>{{=npc_image}}</div>
     <div class="npc prompt">{{=prompt}}</div>
     <div class='responder'>
         {{=form}}
-        {{if not instructions is None:}}
+        {{if instructions:}}
             {{=TOOLTIP('prompt_tips', 'tips', XML(instructions), 'left', 'star')}}
         {{pass}}
     </div>

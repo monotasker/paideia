@@ -39,9 +39,9 @@ global_run_TestStepEvaluator = False
 global_run_TestMultipleEvaluator = False
 global_run_TestPath = False
 global_run_TestUser = False
-global_run_TestCategorizer = False
-global_run_TestWalk = 1
-global_run_TestPathChooser = 1
+global_run_TestCategorizer = 1
+global_run_TestWalk = False
+global_run_TestPathChooser = False
 
 # ===================================================================
 # Test Fixtures
@@ -2363,6 +2363,10 @@ class TestCategorizer():
             assert r['tlast_wrong'] == expected[ri]['tlast_wrong']
             assert r['times_right'] == expected[ri]['times_right']
             assert r['tlast_wrong'] == expected[ri]['tlast_wrong']
+            print 'REAL'
+            print r['secondary_right']
+            print 'EXPECT'
+            print expected[ri]['secondary_right']
             assert r['secondary_right'] == expected[ri]['secondary_right']
 
 
