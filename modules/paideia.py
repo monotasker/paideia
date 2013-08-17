@@ -1613,11 +1613,17 @@ class User(object):
         Move the current path from the path variable to 'completed_paths' list.
         Set last_npc and last_loc before removing the path.
         """
-        'Completing path', self.path.get_id()
-        self.completed_paths.append(self.path)
-        self.last_npc = self.path.completed_steps[-1].get_npc()
+        last_step = self.path.completed_steps[-1]
+        # TODO: How much does storing whole path obj affect memory use?
+        # If last_npc is None that means the step couldn't be completed in
+        # the current location (so last npc was elsewhere).
+        try:
+            self.last_npc = last_step.get_npc()
+        except AttributeError:
+            self.last_npc = None
         # TODO: Work out handling of the location in paths/steps
-        self.last_loc = self.path.completed_steps[-1].loc
+        self.last_loc = last_step.loc
+        self.completed_paths.append(self.path)
         self.path = None
         return True
 
