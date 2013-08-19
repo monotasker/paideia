@@ -1,84 +1,84 @@
 (dp1
-S'pages'
+S'id'
 p2
 (dp3
-S'sortable'
-p4
-I3
-sS'type'
-p5
-S'list:reference pages'
-p6
-sS'sql'
-p7
-S'TEXT'
-p8
-ssS'journal_pages'
-p9
-(dp10
 S'length'
-p11
+p4
 I512
 sS'unique'
-p12
+p5
 I00
 sS'sortable'
-p13
-I3
+p6
+I1
 sS'sql'
-p14
-S'TEXT'
-p15
+p7
+S'INTEGER PRIMARY KEY AUTOINCREMENT'
+p8
 sS'notnull'
-p16
+p9
 I00
 sS'type'
+p10
+S'id'
+p11
+ssS'user'
+p12
+(dp13
+S'type'
+p14
+S'reference auth_user'
+p15
+sS'sortable'
+p16
+I2
+sS'sql'
 p17
-S'list:reference journal_pages'
+S'INTEGER REFERENCES auth_user(id) ON DELETE CASCADE'
 p18
-ssS'id'
+ssS'pages'
 p19
 (dp20
-g11
-I512
-sg12
-I00
-sg13
-I1
-sg14
-S'INTEGER PRIMARY KEY AUTOINCREMENT'
+g14
+S'list:reference pages'
 p21
 sg16
-I00
+I3
 sg17
-S'id'
+S'TEXT'
 p22
 ssS'name'
 p23
 (dp24
-g11
+g4
 I512
-sg12
+sg5
 I00
-sg13
+sg6
 I2
-sg14
+sg7
 S'INTEGER REFERENCES auth_user (id) ON DELETE CASCADE'
 p25
-sg16
+sg9
 I00
-sg17
+sg10
 S'reference auth_user'
 p26
-ssS'user'
+ssS'journal_pages'
 p27
 (dp28
 g4
-I2
+I512
 sg5
-S'reference auth_user'
-p29
+I00
+sg6
+I3
 sg7
-S'INTEGER REFERENCES auth_user(id) ON DELETE CASCADE'
+S'TEXT'
+p29
+sg9
+I00
+sg10
+S'list:reference journal_pages'
 p30
 ss.
