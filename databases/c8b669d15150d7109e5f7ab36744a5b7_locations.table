@@ -97,13 +97,13 @@ g24
 ssS'background'
 p32
 (dp33
-S'sortable'
+S'type'
 p34
-I4
-sS'type'
-p35
 S'reference images'
+p35
+sS'sortable'
 p36
+I4
 sS'sql'
 p37
 S'INTEGER REFERENCES images(id) ON DELETE CASCADE'
