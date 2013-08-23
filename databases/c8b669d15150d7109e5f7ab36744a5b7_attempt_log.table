@@ -101,13 +101,13 @@ p40
 ssS'path'
 p41
 (dp42
-S'sortable'
+S'type'
 p43
-I4
-sS'type'
-p44
 S'reference paths'
+p44
+sS'sortable'
 p45
+I4
 sS'sql'
 p46
 S'INTEGER REFERENCES paths(id) ON DELETE CASCADE'

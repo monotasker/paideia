@@ -110,21 +110,12 @@ p35
 S'sortable'
 p37
 I3
-sS'sql'
-p38
-S'TEXT'
-p39
-sS'length'
-p40
-I512
-sS'notnull'
-p41
-I00
-sS'unique'
-p42
-I00
 sS'type'
-p43
+p38
 S'list:reference locations'
-p44
+p39
+sS'sql'
+p40
+S'TEXT'
+p41
 ss.
