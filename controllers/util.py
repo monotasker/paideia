@@ -1,31 +1,42 @@
-# coding: utf8
-"""
-import datetime
+# coding: utf-8
 
-def copytimes():
-    dates = db(db.q_bugs.id > 0).select()
+if 0:
+    from gluon import current
+    db = current.db
+
+
+def migrate_field():
+    fields = {'tags': ('position', 'tag_position')}
+
+    for t, f in fields.iteritems():
+        table = t
+        source_field = f[0]
+        target_field = f[1]
+        items = db(db[table].id > 0).select()
+        c = 0
+        for i in items:
+            values = {target_field: i[source_field]}
+            i.update_record(**values)
+            c += 1
+
+    return {'records_copied': c}
+
+
+def to_migrate_table():
+    items = db(db.pages.id > 0).select()
     c = 0
-    for d in dates:
-        t = datetime.time(12,0,0)
-        dt1 = datetime.datetime.combine(date1, t)
+    for i in items:
+        db.journal_pages.insert(**{'journal_page': i.page})
         c += 1
-        d.update_record(submitted = dt1)
-    form = SQLFORM.grid(db.q_bugs)
-        
-    return dict(records_update = c, form = form)
-    
-"""
-   
-"""       
-def copytimes_back():
-    dates = db(db.question_records.id > 0).select()
+
+    return dict(records_moved=c)
+
+
+def migrate_back():
+    items = db(db.images_migrate.id > 0).select()
     c = 0
-    for d in dates:
-        date1 = d.tlast_right
-        date2 = d.tlast_wrong
+    for i in items:
         c += 1
-        d.update_record(last_right = date1, last_wrong = date2)
-    form = SQLFORM.grid(db.question_records)
-        
-    return dict(records_update = c, form = form)
-"""        
+        db.images[i.id] = i.as_dict()
+
+    return dict(records_updated=c)

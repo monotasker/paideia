@@ -1,25 +1,105 @@
 {{extend 'layout.html'}}
 
-<h2>Number of paths in DB for each tag</h2>
 <section>
-<ul>
-{{cid = 0}}
-{{for t in taglist:}}
-    {{if t['position']:}}
-        {{cid += 1}}
-    <li id={{=cid}} class='collapsible_parent'>
-        {{=A(SPAN(('{}: '.format(t['position'])), _class='tag_position'),
-             SPAN(('{} '.format(t['name'])), _class='tag_count'),
-             SPAN(t['count'], _class='tag_count'),
-            _href=('#{}'.format(cid)),
-            _class='collapse_trigger')}}
-        <ul class='collapsible_child'>
-            {{for p in t['pathset']:}}
-            <li>{{=p.id}}: {{=p.label}}</li>
-            {{pass}}
-        </ul>
-    </li>
-    {{pass}}
+<h2>Number of paths in DB for each tag</h2>
+Steps without a path <span class="badge badge-warning">{{=len(not_in_path)}}</span>
+Deactivated steps <span class="badge badge-info">{{=len(deactivated)}}</span>
+{{=A('Find tag conflicts',
+      _href=URL('reporting', 'tag_conflicts.load'),
+      _class="btn btn-danger",
+      cid="conflicts")}}
+<div id="conflicts"></div> 
+
+<div class="panel-group" id="positions">
+
+{{for p, taglist in positions.iteritems():}}
+<div class="panel">
+    <div class="panel-heading">
+        <h3 class="panel-title">
+            <a class="accordion-toggle" data-toggle="collapse"
+                data-parent="#positions"
+                href="#position{{=p}}">Stage {{=p}}
+            </a>    
+        </h3>
+    </div> 
+    <div id="position{{=p}}" class="panel-collapse collapse">
+        <div class='panel-body'>
+        <div class="panel-group" id="stage-{{=p}}-group">
+
+        {{for t in taglist:}}
+            <div class="panel">
+                <div class="panel-heading">
+                    <h4 class="panel-title">
+                        <a class="accordion-toggle" data-toggle="collapse"
+                            data-parent="#accordion"
+                            href="#tag{{=t['id']}}">
+                            {{=t['name']}}
+                            <span class="count1 badge">{{=len(t['pathsdict']['tags'])}}</span>
+                            <span class="count2 badge">{{=len(t['pathsdict']['tags_secondary'])}}</span>
+                            <span class="count3 badge">{{=len(t['pathsdict']['tags_ahead'])}}</span>
+                        </a>    
+                    </h4>
+                </div>
+                <div id="tag{{=t['id']}}" class="panel-collapse collapse">
+                    <div class='panel-body'>
+                        {{for b in t['badge']:}}
+                        Badges: 
+                            <span class='tagbadge'>
+                                {{=A(b['badge_name'], 
+                                     _href=URL('listing',
+                                                'badges',
+                                                args=b['id']))
+                                 }}
+                            </span>
+                        {{pass}}
+
+                        {{if t['tag_slides']:}}
+                        Slide decks: 
+                        {{for deck in t['tag_slides']:}}
+                            <span class='slides'>
+                                {{=A(deck['deck_name'],
+                                     _href=URL('listing',
+                                                'slides',
+                                                args=deck['id']))
+                                 }}
+                            </span>
+                        {{pass}}
+                        {{pass}}
+
+                        {{for l in t['pathsdict'].keys():}}
+                        <div class="panel-group" id="tag{{=t['id']}}-{{=l}}">
+                            <div class="panel">
+                                <div class="panel-heading">
+                                    <h5 class="panel-title">
+                                        <a class="accordion-toggle"
+                                            data-toggle="collapse"
+                                            data-parent="#accordion"
+                                            href="tag{{=t['id']}}-{{=l}}">{{=l}}
+                                        </a>    
+                                    </h5>
+                                </div>
+                                <div id="tag{{=t['id']}}-{{=l}}" class="panel-collapse collapse">
+                                    <div class='panel-body'>
+                                    {{for path in t['pathsdict'][l]:}}
+                                        <li>{{=path['id']}}: {{=path['label']}}</li>
+                                    {{pass}}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {{pass}}
+                    </div>
+                </div>
+            </div>  <!--tag panel ends-->
+        {{pass}}
+
+        </div> <!--tag panel-group ends-->
+        </div> <!--position panel-body ends-->
+    </div> <!--position panel ends-->
+
+</div> <!--position panel ends-->
 {{pass}}
-</ul>
+
+</div> <!--position panel-group ends-->
+
 </section>
