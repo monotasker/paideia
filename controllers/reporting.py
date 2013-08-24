@@ -100,7 +100,7 @@ def paths_by_tag():
     not_in_path = steps.find(lambda row: not row.id in path_steps)
 
     # find any steps/paths that have been deactivated
-    deactivated = [s for s in steps if s.status == 1]
+    deactivated = [s for s in steps if s.status == 2]
 
     for l in [not_in_path, deactivated]:
         if len(l) == 0:
