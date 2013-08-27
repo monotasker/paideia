@@ -8,10 +8,10 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="792pt"
-   viewBox="0,0,792,612"
+   width="100%"
+   viewBox="100,100,792,612"
    version="1.1"
-   height="612pt"
+   <!--height="612pt"-->
    id="svg2"
    inkscape:version="0.48.3.1 r9886"
    sodipodi:docname="town_map.svg">

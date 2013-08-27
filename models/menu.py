@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 if 0:
-    from gluon import current, URL, SPAN, XML
+    from gluon import current, URL, SPAN, XML, A
     response, request, T = current.response, current.request, current.t
     auth = current.auth
 from datetime import datetime
@@ -24,8 +24,9 @@ response.meta.description = 'An online, interactive course in ' \
 response.meta.keywords = 'Greek, koine, New Testament, language, ' \
                          'education, learning'
 response.meta.generator = 'Web2py Enterprise Framework'
-response.meta.copyright = XML('All content copyright &copy; 2011-{}, Ian W. Scott. Source '
-    'code available on <a href="https://github.com/monotasker/paideia">GitHub</a>'.format(datetime.now().year))
+response.meta.copyright = XML('All content copyright &copy; 2011-{}, '
+                              'Ian W. Scott. Source code available on '.format(datetime.now().year),
+                              A('GitHub', _href="https://github.com/monotasker/paideia"))
 
 # Layout ===================================================================
 

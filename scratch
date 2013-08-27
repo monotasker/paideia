@@ -1,0 +1,4 @@
+test_user_get_tag_records
+test_user_get_tag_progress
+test_walk_reply (3-19, just unicode display issue)
+test_pathchooser_paths_by_category (case 3)

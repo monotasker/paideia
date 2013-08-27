@@ -9,6 +9,7 @@ from itertools import chain
 from random import randint, randrange
 import re
 import datetime
+from dateutil import parser
 import traceback
 from pytz import timezone
 
@@ -105,8 +106,10 @@ class Walk(object):
         """
         try:
             if response_string:
+                print 'Getting reply'
                 return self.reply(response_string)
             else:
+                print 'Getting prompt'
                 return self.ask(path)
         except Exception:
             print traceback.format_exc(5)
@@ -122,6 +125,7 @@ class Walk(object):
             db = self.db
             cache = current.cache
 
+        print 'getting Map'
         map_image = '/paideia/static/images/town_map.svg'
         # TODO: Review cache time
         locations = db().select(db.locations.ALL,
@@ -138,12 +142,18 @@ class Walk(object):
         """
         user = self._get_user()
         loc = self.loc
+        print 'getting path'
         p = user.get_path(loc, path=path)
+        print 'getting step'
         s = p.get_step_for_prompt()
+        print 'getting prompt'
         prompt = s.get_prompt()
+        print 'getting responder'
         responder = s.get_responder()
+        print 'storing user'
         # non-response steps end here
         self._store_user(user)
+        print 'returning prompt to controller'
 
         return {'prompt': prompt, 'responder': responder}
 
@@ -219,7 +229,6 @@ class Walk(object):
         else:
             promoted is None
 
-        print 'PROMOTED', promoted
         # record awarding of promoted and new tags in table db.badges_begun
         if promoted:
             try:
@@ -237,13 +246,11 @@ class Walk(object):
                 return False
 
         # update tag_progress table with current categorization
-        print 'TAG_PROGRESS', tag_progress
         try:
             db.tag_progress.update_or_insert(db.tag_progress.name == user_id,
                                              name=user_id, **tag_progress)
             mycount = db(db.tag_progress.name == user_id).count()
             assert mycount == 1
-            print 'tag_progress rows:', mycount
         except Exception:
             print traceback.format_exc(5)
             return False
@@ -312,25 +319,30 @@ class Location(object):
 
     def get_alias(self):
         """Return the alias of the current Location as a string."""
-        return self.data.loc_alias
+        return self.data['loc_alias']
 
     def get_name(self):
         """Return the name of the current Location as a string.
         This 'name' is used in the svg map to identify the location."""
-        return self.data.map_location
+        return self.data['map_location']
 
     def get_readable(self):
         """
         Return the readable name of the current Location as a string.
         This is used to identify the location in communication with the user.
         """
-        return self.data.readable
+        return self.data['readable']
 
     def get_bg(self):
         """Return the background image of the current Location as a web2py
         IMG helper object."""
-        url = URL('static/images', self.db.images[self.data.bg_image].image)
-        bg = IMG(_src=url)
+        try:
+            url = URL('static/images', self.db.images[self.data['bg_image']].image)
+            bg = IMG(_src=url)
+        except Exception:
+            print traceback.format_exc(5)
+            bg = SPAN('no image in db for location {}'.format(self.data['id']))
+        print bg
         return bg
 
     def get_id(self):
@@ -338,7 +350,7 @@ class Location(object):
         Return the id for the database row representing the current
         Location (as an int).
         """
-        return self.data.id
+        return self.data['id']
 
 
 class Npc(object):
@@ -450,7 +462,6 @@ class BugReporter(object):
         which presents the user with an evaluation of the step input.
         """
         response_string = response_string.decode('utf-8')
-        print response_string
         vardict = {'answer': response_string.encode('utf-8'),
                    'loc': loc_alias,
                    'log_id': record_id,
@@ -526,6 +537,8 @@ class Step(object):
         self.prev_loc = prev_loc
         self.prev_npc = prev_npc
         self.npc = None
+        print 'hi'
+        print 'Step location is ', self.loc.get_alias()
 
     def get_id(self):
         """
@@ -572,15 +585,21 @@ class Step(object):
                                          **kwargs)
 
         instructions = self._get_instructions()
+        # TODO: get the slide sets related to this step
+        slides = None
         npc = self.get_npc()  # duplicate choice prevented in get_npc()
         if npc is False:
             return 'redirect'
         npc_image = npc.get_image()
         # prompt no longer tagged or converted to markmin here, but in view
+        bg_image = self.loc.get_bg().xml()
+        print 'got bg image'
 
         return {'prompt': prompt,
                 'instructions': instructions,
-                'npc_image': npc_image}
+                'npc_image': npc_image,
+                'slides': slides,
+                'bg_image': bg_image}
 
     def _make_replacements(self, raw_prompt=None, username=None, reps=None):
         """
@@ -1262,7 +1281,6 @@ class PathChooser(object):
         """
         # TODO: Look at replacing this method with scipy.stats.rv_discrete()
         switch = randint(1, 100)
-        print 'SWITCH is', switch
 
         if switch in range(1, 76):
             cat = 1
@@ -1274,7 +1292,6 @@ class PathChooser(object):
             cat = 4
 
         cat_list = range(1, 5)[(cat - 1):4] + range(1, 5)[0:(cat - 1)]
-        print 'CAT LIST is', cat_list
 
         return cat_list
 
@@ -1293,8 +1310,6 @@ class PathChooser(object):
         # filter out paths with a step that's not set to "active"
         # avoid steps with right tag but no location
         taglist = self.categories['cat{}'.format(cat)]
-        print '\n\n————————————————\nCATEGORY', cat
-        print taglist
         # TODO: make find below more efficient
 
         ps = ps.find(lambda row:
@@ -1309,10 +1324,8 @@ class PathChooser(object):
         ps.exclude(lambda row:
                    [t for t in row.tags
                     if db.tags[t].tag_position > self.rank])
-        print 'PATHSET in _paths_by_cateogry()'
         pathset = [p.id for p in ps]
         pathset.sort()
-        print pathset
 
         return (ps, cat)
 
@@ -1375,13 +1388,9 @@ class PathChooser(object):
         # cycle through categories, starting with the one from _get_category()
         for cat in cat_list:
             catpaths = self._paths_by_category(cat, self.rank)
-            print 'CATPATHS in choose()'
             catpids = [p.id for p in catpaths[0]]
             catpids.sort()
-            print catpids
-            print 'TAGS'
-            cattags = [p.tags for p in catpaths[0]]
-            print cattags
+            #cattags = [p.tags for p in catpaths[0]]
             if catpaths[0]:
                 return self._choose_from_cat(catpaths[0], catpaths[1])
             else:
@@ -1604,11 +1613,17 @@ class User(object):
         Move the current path from the path variable to 'completed_paths' list.
         Set last_npc and last_loc before removing the path.
         """
-        'Completing path', self.path.get_id()
-        self.completed_paths.append(self.path)
-        self.last_npc = self.path.completed_steps[-1].get_npc()
+        last_step = self.path.completed_steps[-1]
+        # TODO: How much does storing whole path obj affect memory use?
+        # If last_npc is None that means the step couldn't be completed in
+        # the current location (so last npc was elsewhere).
+        try:
+            self.last_npc = last_step.get_npc()
+        except AttributeError:
+            self.last_npc = None
         # TODO: Work out handling of the location in paths/steps
-        self.last_loc = self.path.completed_steps[-1].loc
+        self.last_loc = last_step.loc
+        self.completed_paths.append(self.path)
         self.path = None
         return True
 
@@ -1706,51 +1721,69 @@ class Categorizer(object):
         tlast_right based on the average of those three attempt dates.
         """
         db = self.db
-        for rec in tag_records:
-            # add new secondary_right attempts from attempt_log
-            # (TODO: this is temporary)
-            db_recs = db(
-                        (db.attempt_log.name == rec['name']) &
-                        (db.attempt_log.score == 1.0) &
-                        (db.attempt_log.dt_attempted >= rec['tlast_right']) &
-                        (db.attempt_log.step == db.steps.id) &
-                        (db.steps.tags_secondary.contains(rec['tag']))
-            ).select(db.attempt_log.dt_attempted).as_list()
 
-            if db_recs:
-                dates = [t for v in db_recs for t in v.iteritems()]
-                try:
-                    rec['secondary_right'].append(dates)
-                except AttributeError:
-                    rec['secondary_right'] = dates
+        try:
+            for rec in tag_records:
+                # add new secondary_right attempts from attempt_log
+                # (TODO: this is temporary)
+                db_recs = db(
+                            (db.attempt_log.name == rec['name']) &
+                            (db.attempt_log.score == 1.0) &
+                            (db.attempt_log.dt_attempted >= rec['tlast_right']) &
+                            (db.attempt_log.step == db.steps.id) &
+                            (db.steps.tags_secondary.contains(rec['tag']))
+                ).select(db.attempt_log.dt_attempted).as_list()
 
-            if rec['secondary_right'] and len(rec['secondary_right']) >= 3:
-                rindex = tag_records.index(rec)
-                rlen = len(rec['secondary_right'])
-                # increment times_right by 1 per 3 secondary_right
-                rnum = rlen / 3
-                rmod = rlen % 3
-                rec['times_right'] += rnum
-                # move tlast_right forward based on mean of last 3 secondary_right
-                now = self.utcnow
-                if rlen > 3:
-                    last3 = rec['secondary_right'][-(rmod + 3): -(rmod)]
+                right2 = rec['secondary_right']
+
+                if db_recs:
+                    dates = [t for v in db_recs for t in v.iteritems()]
+                    try:
+                        right2.append(dates)
+                    except AttributeError:
+                        right2 = dates
+
+                # FIXME: sanitizing data where tuples stored instead of datetimes
+                # strings also have to be parsed into datetime objects
+                if right2:
+                    for t in right2:
+                        if isinstance(t, tuple):
+                            right2[right2.index(t)] = parser.parse(t[1])
+
+                if right2 and isinstance(right2, list) and len(right2) >= 3:
+                    rindex = tag_records.index(rec)
+                    # increment times_right by 1 per 3 secondary_right
+                    rlen = len(right2)
+                    triplets2 = rlen / 3
+                    remainder2 = rlen % 3
+                    rec['times_right'] += triplets2
+
+                    # move tlast_right forward based on mean of oldest 3 secondary_right
+                    now = self.utcnow
+                    if remainder2:
+                        early3 = right2[: -(remainder2)]
+                    else:
+                        early3 = right2[:]
+                    early3d = [now - s for s in early3]
+                    avg_delta = sum(early3d, datetime.timedelta(0)) / len(early3d)
+                    avg_date = now - avg_delta
+                    # sanitize tlast_right in case db value is string
+                    tlr = rec['tlast_right'] \
+                        if isinstance(rec['tlast_right'], datetime.datetime) \
+                        else parser.parse(rec['tlast_right'])
+                    if avg_date > tlr:  #
+                        rec['tlast_right'] = avg_date
+
+                    # remove counted entries from secondary_right, leave remainder
+                    if remainder2:
+                        rec['secondary_right'] = right2[-(remainder2):]
+                    else:
+                        rec['secondary_right'] = []
+                    tag_records[rindex] = rec
                 else:
-                    last3 = rec['secondary_right'][:]
-                last3_deltas = [now - s for s in last3]
-                avg_delta = sum(last3_deltas, datetime.timedelta(0)) / 3
-                avg_date = now - avg_delta
-                if avg_date > rec['tlast_right']:
-                    rec['tlast_right'] = avg_date
-
-                # remove counted entries from secondary_right, leave remainder
-                if rlen > 3:
-                    rec['secondary_right'] = rec['secondary_right'][-(rmod):]
-                else:
-                    rec['secondary_right'] = []
-                tag_records[rindex] = rec
-            else:
-                continue
+                    continue
+        except Exception:
+            print traceback.format_exc(5)
 
         return tag_records
 
@@ -1787,8 +1820,15 @@ class Categorizer(object):
 
         for record in tag_records:
             #note: arithmetic operations yield datetime.timedelta objects
-            right_dur = utcnow - record['tlast_right']
-            right_wrong_dur = record['tlast_right'] - record['tlast_wrong']
+            lastright = record['tlast_right']
+            lastwrong = record['tlast_wrong']
+            if isinstance(lastright, str):
+                lastright = parser.parse(lastright)
+            if isinstance(lastwrong, str):
+                lastwrong = parser.parse(lastwrong)
+
+            right_dur = utcnow - lastright
+            right_wrong_dur = lastright - lastwrong
 
             # spaced repetition algorithm for promotion to
             # ======================================================
@@ -1887,7 +1927,7 @@ class Categorizer(object):
                         try:
                             demoted[revc].append(tag)
                         except Exception:
-                            print type(Exception), Exception
+                            print traceback.format_exc(5)
                             demoted[revc] = [tag]
                         # then re-insert tag in its old max level
                         oldc = [k for k, v in gt if tag in v]
