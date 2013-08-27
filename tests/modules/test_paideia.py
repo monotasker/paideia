@@ -25,21 +25,21 @@ from copy import copy
 # ===================================================================
 # Switches governing which tests to run
 # ===================================================================
-global_runall = False
-global_run_TestNpc = False
-global_run_TestLocation = False
+global_runall = 1
+global_run_TestNpc = 1
+global_run_TestLocation = 1
 global_run_TestNpcChooser = False  # deprecated for Step.get_npc()
-global_run_TestStep = False
-global_run_TestStepRedirect = False
-global_run_TestStepAwardBadges = False
-global_run_TestStepViewSlides = False
-global_run_TestStepText = False
-global_run_TestStepMultiple = False
-global_run_TestStepEvaluator = False
-global_run_TestMultipleEvaluator = False
-global_run_TestPath = False
-global_run_TestUser = False
-global_run_TestCategorizer = False
+global_run_TestStep = 1
+global_run_TestStepRedirect = 1
+global_run_TestStepAwardBadges = 1
+global_run_TestStepViewSlides = 1
+global_run_TestStepText = 1
+global_run_TestStepMultiple = 1
+global_run_TestStepEvaluator = 1
+global_run_TestMultipleEvaluator = 1
+global_run_TestPath = 1
+global_run_TestUser = 1
+global_run_TestCategorizer = 1
 global_run_TestWalk = 1
 global_run_TestPathChooser = 1
 
@@ -777,7 +777,6 @@ def mypathchooser(mycases, db):
     pc = PathChooser(case['tag_progress_out'],
                      case['loc'], case['completed'], db=db)
     return {'pathchooser': pc,
-            'paths': case['paths'],
             'casedata': case,
             'stepdata': step}
 
@@ -2204,13 +2203,20 @@ class TestUser(object):
         """
         Unit test for User._get_tag_progress() method.
         """
-        assert False
+        user = myuser['user']
+        user.cats_counter = 0
+        actual = user.get_tag_progress()
+        expected = myuser['casedata']['tag_progress_out']
+        assert actual == expected
 
     def test_user_get_tag_records(self, myuser):
         """
         Unit test for User._get_tag_progress() method.
         """
-        assert False
+        user = myuser['user']
+        actual = user.get_tag_records()
+        expected = myuser['casedata']['tag_records']
+        assert actual == expected
 
     def test_user_get_categories(self, myuser):
         """
@@ -2251,10 +2257,15 @@ class TestUser(object):
         pathid = case['paths']['cat1'][0]
         path = Path(path_id=pathid, loc=case['loc'])
         path.completed_steps.append(path.steps.pop(0))
+
         user.path = copy(path)
         assert user._complete_path() is True
         assert user.path is None
-        assert user.last_npc.get_id() in case['npcs_here']
+        if case['casenum'] == 3:
+            print user.last_npc
+            assert not user.last_npc
+        else:
+            assert user.last_npc.get_id() in case['npcs_here']
         assert user.last_loc.get_id() == case['loc'].get_id()
         assert user.completed_paths[-1].get_id() == path.get_id()
         assert isinstance(user.completed_paths[-1], Path)
@@ -2363,6 +2374,10 @@ class TestCategorizer():
             assert r['tlast_wrong'] == expected[ri]['tlast_wrong']
             assert r['times_right'] == expected[ri]['times_right']
             assert r['tlast_wrong'] == expected[ri]['tlast_wrong']
+            print 'REAL'
+            print r['secondary_right']
+            print 'EXPECT'
+            print expected[ri]['secondary_right']
             assert r['secondary_right'] == expected[ri]['secondary_right']
 
 
@@ -2714,6 +2729,9 @@ class TestPathChooser():
                                     'and global_run_TestPathChooser is False')
 
     def test_pathchooser_choose(self, mypathchooser):
+        """
+        Unit test for the paideia.Pathchooser.choose() method.
+        """
         newpath = mypathchooser['pathchooser'].choose()
         print mypathchooser.keys()
         print 'PATHCHOOSER PATHS'
@@ -2727,6 +2745,9 @@ class TestPathChooser():
         assert newpath[2] in range(1, 5)
 
     def test_pathchooser_order_cats(self, mypathchooser):
+        """
+        Unit test for the paideia.Pathchooser._order_cats() method.
+        """
         pc = mypathchooser['pathchooser']._order_cats()
         ind = pc.index(1)
         if len(pc) >= (ind + 2):
@@ -2744,17 +2765,29 @@ class TestPathChooser():
         assert pc[3] in [1, 2, 3, 4]
 
     def test_pathchooser_paths_by_category(self, mypathchooser, db):
-        rank = mypathchooser['casedata']['tag_progress_out']['latest_new']
+        """
+        Unit test for the paideia.Pathchooser._paths_by_category() method.
+        """
+        tp = mypathchooser['casedata']['tag_progress_out']
+        rank = tp['latest_new']
         cpaths, category = mypathchooser['pathchooser']._paths_by_category(1, rank)
-        allpaths = mypathchooser['paths']
-        pathids = allpaths['cat{}'.format(category)]
-        expected = db(db.paths).select()
-        expected = expected.find(lambda row: row.id in pathids)
-        assert len(cpaths) == len(expected)
+        tagids = tp['cat{}'.format(category)]
+        x = db(db.paths).select()
+        x = x.find(lambda row: [t for t in tagids
+                                if t in db.paths[row.id].tags])
+        x = x.find(lambda row: [s for s in row.steps if db.steps(s).status != 2])
+        x.exclude(lambda row: [s for s in row.steps
+                               if db.steps(s).locations is None])
+        x.exclude(lambda row: [t for t in row.tags
+                               if db.tags[t].tag_position > rank])
+        assert len(cpaths) == len(x)
         for row in cpaths:
-            assert row.id in [r.id for r in expected]
+            assert row.id in [r.id for r in x]
 
     def test_pathchooser_choose_from_cat(self, mypathchooser, db):
+        """
+        Unit test for the paideia.Pathchooser._choose_from_cats() method.
+        """
         catnum = 1
         pathids = mypathchooser['paths']['cat{}'.format(catnum)]
         expected = db(db.paths).select()

@@ -18,7 +18,7 @@ if 0:
 #TODO: move these to an AjaxSelect model file
 response.files.insert(5, URL('static',
                       'plugin_ajaxselect/plugin_ajaxselect.js'))
-response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.css'))
+#response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.css'))
 
 dtnow = datetime.datetime.utcnow()
 
@@ -47,7 +47,6 @@ class IS_VALID_REGEX(object):
                 return (value, self.error_message)
         return (value, None)
 
-#TODO:Allow for different class profiles with different settings
 db.define_table('classes',
                 Field('institution', 'string', default='Tyndale Seminary',
                       unique=True),
@@ -66,17 +65,17 @@ db.define_table('classes',
                 )
 
 db.define_table('images',
-    Field('image', 'upload',
+    Field('image', 'upload', length=128,
           uploadfolder=os.path.join(request.folder, "static/images")),
-    Field('title', 'string'),
-    Field('description', 'string'),
+    Field('title', 'string', length=256),
+    Field('description', 'string', length=256),
     format='%(title)s')
 
 db.define_table('audio',
-    Field('clip', 'upload',
+    Field('clip', 'upload', length=128,
           uploadfolder=os.path.join(request.folder, "static/audio")),
-    Field('title', 'string'),
-    Field('description', 'string'),
+    Field('title', 'string', length=256),
+    Field('description', 'string', length=256),
     format='%(title)s')
 
 db.define_table('journals',
@@ -96,6 +95,7 @@ db.define_table('categories',
 
 db.define_table('tags',
     Field('tag', 'string', unique=True),
+    Field('position', 'integer'),
     Field('tag_position', 'integer'),  # was position (reserved term)
     Field('slides', 'list:reference plugin_slider_decks'),
     format='%(tag)s')
@@ -156,7 +156,6 @@ db.define_table('step_types',
 db.define_table('step_hints',
     Field('hint_label'),  # , unique=True  # was label (reserved term)
     Field('hint_text', 'text'),   # was text (reserved term)
-
     format='%(hint_label)s')
 
 db.define_table('step_instructions',
@@ -293,6 +292,20 @@ class PathsVirtualFields(object):
         steprows = db(db.steps.id.belongs(self.paths.steps)).select()
         nlists = [s.tags for s in steprows]
         return list(chain.from_iterable(nlists))
+
+    def tags_secondary(self):
+        steprows = db(db.steps.id.belongs(self.paths.steps)).select()
+        nlists = [s.tags_secondary for s in steprows]
+        return list(chain.from_iterable(nlists))
+
+    def tags_ahead(self):
+        try:
+            steprows = db(db.steps.id.belongs(self.paths.steps)).select()
+            nlists = [s.tags_ahead for s in steprows]
+            return list(chain.from_iterable(nlists))
+        except TypeError:
+            return None
+
 db.paths.virtualfields.append(PathsVirtualFields())
 
 # TODO: remove path_log table

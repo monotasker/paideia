@@ -98,7 +98,7 @@ def walk():
     """
     request = current.request
 
-    walk = Walk()
+    walk = Walk(request.vars.loc_alias, db=db)
     rvars = request.vars
     rargs = request.args
 
@@ -106,13 +106,12 @@ def walk():
     # form (require delay and require non-empty
 
     # When user begins exploring (also default) present map
-    if rargs[0] == 'map' or rargs is None:
+    if (not rargs) or (rargs[0] == 'map'):
         return {'map': walk.map()}
     elif rargs(0) == 'error':
         return patherror()
     else:
-        stepargs = {'tag_records': None,
-                  'tag_progress': None}
+        stepargs = {}
         stepargs['response_string'] = rvars['response'] if \
             ('response' in rvars and 'response' not in [' ', None]) else None
 

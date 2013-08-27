@@ -23,7 +23,7 @@ To run tests:
 
 cd web2py (you must be in web2py root directory to run tests)
 python web2py.py -a my_password --nogui &
-py.test -x -l -q|-v -s applications/my_app_name/tests
+py.test -x [-l] [-q|-v] -s applications/my_app_name/tests
 '''
 
 import os
@@ -180,6 +180,7 @@ def user_login(request, web2py, client, db):
         Delete the test user's account.
         """
         user_record.delete_record()
+        # TODO: remove test user's performance record
         assert user_query.count() == 0
 
     request.addfinalizer(fin)
