@@ -98,9 +98,12 @@ def walk():
     """
     request = current.request
 
-    walk = Walk(request.vars.loc_alias, db=db)
+    walk = Walk(request.vars.loc, db=db)
     rvars = request.vars
     rargs = request.args
+    print "in controller:"
+    print "args:", request.args
+    print "vars:", request.vars
 
     # TODO: implement failsafe here to avoid accidental submission of blank
     # form (require delay and require non-empty
