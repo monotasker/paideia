@@ -40,11 +40,11 @@
             {{pass}}
             </ul>
         </p>
-        <span class="q_counter">Currently working on
-            {{=len(session.walk['active_paths'].keys())}} paths;
-            {{=len(session.walk['completed_paths'])}}
-        paths already complete today.</span>
-        {{=ROLE(SPAN('select type: {}'.format(''), _class='select_type'))}}  
+        <!--<span class="q_counter">Currently working on-->
+            <!--{{=len(session.walk['active_paths'].keys())}} paths;-->
+            <!--{{=len(session.walk['completed_paths'])}}-->
+        <!--paths already complete today.</span>-->
+        <!--{{=ROLE(SPAN('select type: {}'.format(''), _class='select_type'))}}  -->
     </section>
     <div class='responder'>
         {{=A("Continue", _href=URL('walk', args=['ask'],

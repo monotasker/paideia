@@ -69,6 +69,7 @@ def index():
 
     :Permissions: user must be logged in.
     """
+    print 'getting index'
     return {}
 
 
@@ -98,7 +99,7 @@ def walk():
     """
     request = current.request
 
-    walk = Walk(request.vars.loc, db=db)
+    walk = Walk(request.vars.loc)
     rvars = request.vars
     rargs = request.args
     print "in controller:"

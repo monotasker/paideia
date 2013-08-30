@@ -458,7 +458,7 @@ class BugReporter(object):
         br = A('click here',
                _id='bug_reporter',
                _class='bug_reporter_link',
-               _href=URL('creating', 'bug.load', vars=vardict))
+               _href=URL('paideia', 'creating', 'bug.load', vars=vardict))
 
         return br
 
@@ -1332,19 +1332,29 @@ class PathChooser(object):
         db = current.db
 
         # catpaths is already filtered by category
-        p_new = cpaths.find(lambda row: row.id not in self.completed)
+        p_new = cpaths.find(lambda row: row.id not in self.completed).as_list()
         # FIXME: p.steps[0] is yielding a long int
-        p_here = cpaths.find(lambda p: loc_id in db.steps[int(p.steps[0])].locations)
-        p_here_new = p_here.find(lambda p: p in p_new)
+        # added 'if' condition to .find here for steps with no locations
+        # assigned (legacy data)
+        p_here = [p for p in cpaths.as_list()
+                  if db.steps[int(p['steps'][0])].locations
+                  and loc_id in db.steps[int(p['steps'][0])].locations]
+        p_here_new = [p for p in p_here if p in p_new]
 
         path = None
         new_loc = None
         if p_here_new:
             path = p_here_new[randrange(0, len(p_here_new))]
         elif p_new:
-            path = p_new[randrange(0, len(p_new))]
-            new_locs = db.steps(path.steps[0]).locations
-            new_loc = new_locs[randrange(0, len(new_locs))]
+            # While loop safeguards against looking for location for a step
+            # that has no locations assigned.
+            while path is None:
+                try:
+                    path = p_new[randrange(0, len(p_new))]
+                    new_locs = db.steps(path['steps'][0]).locations
+                    new_loc = new_locs[randrange(0, len(new_locs))]
+                except TypeError:
+                    path = None
         elif p_here:
             path = p_here[randrange(0, len(p_here))]
 
