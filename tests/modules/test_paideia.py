@@ -4,6 +4,7 @@
 #
 # Configuration and some fixtures (client, web2py) declared in
 # the file tests/conftest.py
+# run with py.test -xvs applications/paideia/tests/modules/
 
 import pytest
 from paideia import Npc, Location, User, PathChooser, Path, Categorizer, Walk
@@ -55,21 +56,21 @@ def dt(string):
 
 
 # Constant values from
-images = {'npc1_img': '/paideia/static/images/images.image.bb48641f0122d2b6.696d616765732e696d6167652e383136303330663934646664646561312e34343732363137373639366536373230333432653733373636372e737667.svg',
-          'npc2_img': '/paideia/static/images/images.image.81e2d69e1aea4d99.44726177696e672031372e737667.svg',
-          'npc3_img': '/paideia/static/images/images.image.a59978facee731f0.44726177696e672031382e737667.svg',
-          'npc4_img': '/paideia/static/images/images.image.85a960241dc29f1b.776f6d616e312e706e67.png',
-          'npc5_img': '/paideia/static/images/images.image.a4d5140b25f87749.44726177696e672031392e737667.svg',
-          'npc6_img': '/paideia/static/images/images.image.a28124edf3480d82.696d616765732e696d6167652e383135323664663563326663623438302e343437323631373736393665363732303332333232653733373636372e737667.svg',
-          'npc7_img': '/paideia/static/images/images.image.993274ee0076fd2f.696d616765732e696d6167652e393636636434346165663238613839652e343437323631373736393665363732303332333732653733373636372e737667.svg',
-          'npc8_img': '/paideia/static/images/images.image.938be4c25c678bb5.323031322d30362d30352030335f35325f31312e706e67.png',
+images = {'npc1_img': '/paideia/static/images/images_migrate.image.8a17687fb0eb8ba9.696d616765732e696d6167652e383136303330663934646664646561312e34343732363137373639366536.svg',
+          'npc2_img': '/paideia/static/images/images_migrate.image.8119e454d945549a.67656f7267696f732e737667.svg',
+          'npc3_img': '/paideia/static/images/images_migrate.image.9028799e75acfb82.736f706869612e737667.svg',
+          'npc4_img': '/paideia/static/images/images_migrate.image.89e1a8203792bf8a.6d617269612e706e67.png',
+          'npc5_img': '/paideia/static/images/images_migrate.image.9dc07aa38f2b944b.64696f646f726f732e737667.svg',
+          'npc6_img': '/paideia/static/images/images_migrate.image.aa20ae70a2664e8f.73696d6f6e2e737667.svg',
+          'npc7_img': '/paideia/static/images/images_migrate.image.a6e093499e771c20.6961736f6e2e737667.svg',
+          'npc8_img': '/paideia/static/images/images_migrate.image.91890b6cbd780c6b.646f6d75735f615f706572697374796c652e706e67.png',
           'npc9_img': '/paideia/static/images//',
-          'npc10_img': '/paideia/static/images/images.image.961b44d8d322659c.323031322d30362d30372031345f34345f34302e706e67.png',
-          'npc11_img': '/paideia/static/images/images.image.ac58c3e138964719.70686f6562652e706e67.png',
-          'npc14_img': '/paideia/static/images/images.image.b5592e80d5fe4bb3.73796e61676f6775652e6a7067.jpg',
-          'npc15_img': '/paideia/static/images/images.image.9a515ff664f03aa3.323031322d30372d32312032335f35315f31322e706e67.png',
-          'npc16_img': '/paideia/static/images/images.image.8bb7c079634cf35a.44726177696e672033332e706e67.png',
-          'npc17_img': '/paideia/static/images/images.image.95fcf253d4dd7abd.44726177696e6720352e706e67.png'}
+          'npc10_img': '/paideia/static/images/images_migrate.image.bbce859d57828f3c.7374657068616e6f732e706e67.png',
+          'npc11_img': '/paideia/static/images/images_migrate.image.ae28555aa0ec369f.70686f6562652e706e67.png',
+          'npc14_img': '/paideia/static/images/images_migrate.image.9c9516a0d901b770.73796e61676f6775652e6a7067.jpg',
+          'npc15_img': '/paideia/static/images/images_migrate.image.b8baa2f2e32c2bb0.706c616365735f616c6578616e646572732d73686f702e706e67.png',
+          'npc16_img': '/paideia/static/images/images_migrate.image.b440eedd65d027fa.706c616365735f62617468732e706e67.png',
+          'npc17_img': '/paideia/static/images/images_migrate.image.8d55597fb475dc15.706c616365735f73746f612e706e67.png'}
 
 npc_data = {1: {'image': images['npc1_img'],
                 'name': 'Ἀλεξανδρος',
@@ -179,20 +180,18 @@ def mysteps(request):
                            '</table>'
                            '</form>',
                   'stub': '<div>'
-                          '<a class="back_to_map" href="/paideia/default/walk" '
-                          'onclick="web2py_component(&quot;/paideia/default/'
-                          'walk&quot;,&quot;page&quot;);return false;">Map</a>'
+                          '<a class="back_to_map" data-w2p_disable_with="default" '
+                          'data-w2p_method="GET" data-w2p_target="page" '
+                          'href="/paideia/default/walk">Map</a>'
                           '</div>',
-                  'continue': '<div>'
-                              '<a class="back_to_map" href="/paideia/default/'
-                              'walk" onclick="web2py_component(&quot;/paideia/'
-                              'default/walk&quot;,&quot;page&quot;);return false;">'
-                              'Map'
-                              '</a><a class="continue" href="/paideia/default/'
-                              'walk/ask?loc=[[loc]]" onclick="web2py_component('
-                              '&quot;/paideia/default/walk/ask?loc=[[loc]]&quot;'
-                              ',&quot;page&quot;);return false;">Continue</a>'
-                              '</div>'}
+                  'continue': '<div><a class="back_to_map" '
+                              'data-w2p_disable_with="default" '
+                              'data-w2p_method="GET" data-w2p_target="page" '
+                              'href="/paideia/default/walk">Map</a>'
+                              '<a class="continue" data-w2p_disable_with="default" '
+                              'data-w2p_method="GET" data-w2p_target="page" '
+                              'href="/paideia/default/walk/ask?loc=[[loc]]">'
+                              'Continue</a></div>'}
     prompts = {'redirect': 'Hi there. Sorry, I don\'t have anything for you to '
                            'do here at the moment. I think someone was looking '
                            'for you at somewhere else in town.',
@@ -374,6 +373,8 @@ def mycases(request, mysteps, user_login, db):
     several cases are specified.
     """
     the_case = request.param
+    allpaths = db().select(db.paths.ALL)
+
     # same npc and location as previous step
     # replace tag too far ahead (1) with appropriate (61)
     cases = {'case1': {'casenum': 1,
@@ -418,8 +419,7 @@ def mycases(request, mysteps, user_login, db):
                                           'cat3': [], 'cat4': [],
                                           'rev1': [], 'rev2': [],
                                           'rev3': [], 'rev4': []},
-                       'paths': {'cat1': [1, 2, 3, 5, 8, 63, 95, 96,
-                                          99, 102, 256],  # removed 64, 70, 97, 104, 277
+                       'paths': {'cat1': [p.id for p in allpaths if 61 in p.tags],  # [1, 2, 3, 5, 8, 63, 95, 96, 99, 102, 256],  # removed 64, 70, 97, 104, 277
                                  'cat2': [],
                                  'cat3': [],
                                  'cat4': []},
@@ -471,10 +471,8 @@ def mycases(request, mysteps, user_login, db):
                                           'cat3': [], 'cat4': [],
                                           'rev1': [], 'rev2': [],
                                           'rev3': [], 'rev4': []},
-                       'paths': {'cat1': [4, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17,
-                                          18, 19, 21, 22, 23, 34, 35,
-                                          97, 98, 100, 101, 257, 261],
-                                 'cat2': [1, 2, 3, 5, 8, 63, 95, 96, 97, 99, 102, 256],
+                       'paths': {'cat1': [p.id for p in allpaths if 62 in p.tags],  # [4, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 34, 35, 97, 98, 100, 101, 257, 261],
+                                 'cat2': [p.id for p in allpaths if 61 in p.tags],  # [1, 2, 3, 5, 8, 63, 95, 96, 97, 99, 102, 256],
                                  'cat3': [],
                                  'cat4': []},
                        'steps_here': [1, 2, 30, 125, 126, 127],
@@ -557,22 +555,10 @@ def mycases(request, mysteps, user_login, db):
                                           'cat3': [], 'cat4': [],
                                           'rev1': [], 'rev2': [],
                                           'rev3': [], 'rev4': []},
-                       'paths': {'cat1': [4, 6, 7, 9, 10, 11, 12, 13, 14,
-                                          15, 16, 17, 18, 19, 20, 21, 22,
-                                          23, 24, 25, 27, 28, 33, 34, 35,
-                                          37, 38, 39, 40, 41, 42, 43, 44,
-                                          64, 65, 66, 67, 69, 89, 94, 97,
-                                          98, 100, 101, 103, 104, 117, 119,
-                                          121, 135, 206, 257, 259, 260, 261,
-                                          262, 263, 265, 266, 267, 268, 269,
-                                          270, 277, 278, 279, 280, 284, 285,
-                                          286, 287, 288, 289, 290, 291, 292,
-                                          293, 294, 295, 296, 297, 298, 299,
-                                          300, 301, 302],
-                                 'cat2': [1, 2, 3, 5, 8, 26, 36, 63, 64,
-                                          70, 95, 96, 97, 99, 102, 104, 256,
-                                          271, 272, 273, 274, 275, 276, 277,
-                                          278, 279, 280, 281, 282, 283],
+                       'paths': {'cat1': [p.id for t in [68, 115, 72, 89, 36, 62, 63]
+                                          for p in allpaths if t in p.tags],  # [4, 6, 7, 9, 10, 11, 12, 13, 14,
+                                 'cat2': [p.id for t in [61, 66]
+                                          for p in allpaths if t in p.tags],  # [1, 2, 3, 5, 8, 26, 36, 63, 64,
                                  'cat3': [],
                                  'cat4': []},
                        'steps_here': [1, 2, 30, 125, 126, 127],
@@ -654,17 +640,10 @@ def mycases(request, mysteps, user_login, db):
                                           'cat3': [], 'cat4': [],
                                           'rev1': [], 'rev2': [],
                                           'rev3': [], 'rev4': []},
-                       'paths': {'cat1': [6, 20, 24, 25, 27, 28, 33, 37,
-                                          38, 39, 40, 41, 42, 43, 44, 64,
-                                          65, 66, 67, 69, 94, 103, 135,
-                                          206, 259, 260, 262, 263, 265, 266,
-                                          267, 268, 269, 270, 277, 284, 285,
-                                          286],
-                                 'cat2': [1, 2, 3, 5, 8, 63, 64, 70, 95, 96,
-                                          97, 99, 102, 104, 256, 277, 4, 7, 9,
-                                          10, 11, 12, 13, 14, 15, 16, 17, 18,
-                                          19, 20, 21, 22, 23, 34, 35, 97, 98,
-                                          100, 101, 103, 257, 261, 277],
+                       'paths': {'cat1': [p.id for t in [63, 72, 115]
+                                          for p in allpaths if t in p.tags],  # [6, 20, 24, 25, 27, 28, 33, 37,
+                                 'cat2': [p.id for t in [61, 62]
+                                          for p in allpaths if t in p.tags],  # [1, 2, 3, 5, 8, 63, 64, 70, 95, 96,
                                  'cat3': [],
                                  'cat4': []},
                        'steps_here': [1, 2, 30, 125, 126, 127],
@@ -714,11 +693,10 @@ def mycases(request, mysteps, user_login, db):
                                           'cat3': [], 'cat4': [],
                                           'rev1': [], 'rev2': [],
                                           'rev3': [], 'rev4': []},
-                       'paths': {'cat1': [4, 7, 9, 10, 11, 12, 13, 14, 15,
-                                          16, 17, 18, 19, 21, 22, 23, 34,
-                                          35, 97, 98, 100, 101, 257, 261],
-                                 'cat2': [1, 2, 3, 5, 8, 63, 95, 96, 97, 99,
-                                          102, 256],
+                       'paths': {'cat1': [p.id for t in [62]
+                                          for p in allpaths if t in p.tags],  # [4, 7, 9, 10, 11, 12, 13, 14, 15,
+                                 'cat2': [p.id for t in [61]
+                                          for p in allpaths if t in p.tags],  # [1, 2, 3, 5, 8, 63, 95, 96, 97, 99,
                                  'cat3': [],
                                  'cat4': []},
                        'new_badges': [62],
@@ -1181,10 +1159,7 @@ class TestNpc():
 
     def test_npc_get_image(self, mynpc):
         """Test for method Npc.get_image()"""
-        expected = '<img src="/paideia/static/images/images.image.bb48641f0122d2b6.696' \
-                   'd616765732e696d6167652e383136303330663934646664646561312' \
-                   'e34343732363137373639366536373230333432653733373636372e7' \
-                   '37667.svg" />'
+        expected = '<img src="/paideia/static/images/images_migrate.image.8a17687fb0eb8ba9.696d616765732e696d6167652e383136303330663934646664646561312e34343732363137373639366536.svg" />'
         actual = mynpc.get_image().xml()
         assert actual == expected
 
@@ -1224,7 +1199,7 @@ class TestLocation():
 
     def test_location_get_bg(self, myloc):
         """Test for method Location.get_bg"""
-        assert myloc.get_bg().xml() == '<img src="/paideia/static/images/images.image.9a515ff664f03aa3.323031322d30372d32312032335f35315f31322e706e67.png" />'
+        assert myloc.get_bg().xml() == '<img src="/paideia/static/images/images_migrate.image.b8baa2f2e32c2bb0.706c616365735f616c6578616e646572732d73686f702e706e67.png" />'
 
     def test_location_get_id(self, myloc):
         """Test for method Location.get_id"""
@@ -1676,7 +1651,8 @@ class TestStepViewSlides():
             deck_ids = [d for r in tag_rows for d in r['slides']]
             slide_rows = db(db.plugin_slider_decks.id.belongs(deck_ids)
                             ).select()
-            formatstring2 = '<li><a href="/paideia/listing/slides/{0}">' \
+            formatstring2 = '<li><a data-w2p_disable_with="default" ' \
+                            'href="/paideia/listing/slides/{0}">' \
                             '{1}</a></li>'
             deck_names = [formatstring2.format(r.id, r.deck_name)
                           for r in slide_rows]
@@ -2206,7 +2182,7 @@ class TestUser(object):
         user = myuser['user']
         user.cats_counter = 0
         actual = user.get_tag_progress()
-        expected = myuser['casedata']['tag_progress_out']
+        expected = myuser['casedata']['tag_progress']
         assert actual == expected
 
     def test_user_get_tag_records(self, myuser):
@@ -2216,6 +2192,8 @@ class TestUser(object):
         user = myuser['user']
         actual = user.get_tag_records()
         expected = myuser['casedata']['tag_records']
+        print 'actual \n', actual
+        print 'expected \n', expected
         assert actual == expected
 
     def test_user_get_categories(self, myuser):
@@ -2733,15 +2711,14 @@ class TestPathChooser():
         Unit test for the paideia.Pathchooser.choose() method.
         """
         newpath = mypathchooser['pathchooser'].choose()
-        print mypathchooser.keys()
-        print 'PATHCHOOSER PATHS'
-        print mypathchooser['paths']
-        print 'CHOSEN PATH'
-        print newpath[0].id
-        print 'EXPECTED PATHS'
-        expected = mypathchooser['paths']['cat{}'.format(newpath[2])]
-        print expected
-        assert newpath[0].id in expected
+        paths = mypathchooser['casedata']['paths']
+        expected = paths['cat{}'.format(newpath[2])]
+
+        print 'PATHCHOOSER PATHS \n', paths
+        print 'CHOSEN PATH', newpath[0]['id']
+        print 'EXPECTED PATHS', expected
+
+        assert newpath[0]['id'] in expected
         assert newpath[2] in range(1, 5)
 
     def test_pathchooser_order_cats(self, mypathchooser):
@@ -2789,13 +2766,14 @@ class TestPathChooser():
         Unit test for the paideia.Pathchooser._choose_from_cats() method.
         """
         catnum = 1
-        pathids = mypathchooser['paths']['cat{}'.format(catnum)]
+        paths = mypathchooser['casedata']['paths']
+        pathids = paths['cat{}'.format(catnum)]
         expected = db(db.paths).select()
         expected = expected.find(lambda row: row.id in pathids)
 
         newpath = mypathchooser['pathchooser']._choose_from_cat(expected, catnum)
-        assert newpath[0].id in mypathchooser['paths']['cat{}'.format(catnum)]
-        assert newpath[1] in [l for l in db.steps(newpath[0].steps[0]).locations]
+        assert newpath[0]['id'] in paths['cat{}'.format(catnum)]
+        assert newpath[1] in [l for l in db.steps(newpath[0]['steps'][0]).locations]
         assert newpath[2] == 1
 
 
@@ -2814,9 +2792,9 @@ class TestBugReporter():
                 'score': 0.5,
                 'response_string': 'hi',
                 'loc_alias': 'agora'}
-        expected = '<a class="bug_reporter_link" '\
-                   'href="/paideia/creating/bug.load?'\
-                   'answer=hi&amp;loc=agora&amp;log_id=22&amp;path=4&amp;'\
+        expected = '<a class="bug_reporter_link" data-w2p_disable_with="default" ' \
+                   'href="/paideia/creating/bug.load?' \
+                   'answer=hi&amp;loc=agora&amp;log_id=22&amp;path=4&amp;' \
                    'score=0.5&amp;step=108" id="bug_reporter">click here</a>'
 
         actual = BugReporter().get_reporter(**data)
