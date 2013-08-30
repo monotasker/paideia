@@ -1525,7 +1525,7 @@ class User(object):
             choice = PathChooser(self.tag_progress, loc.get_id(),
                                  self.completed_paths).choose()
             new_location = choice[1]
-            path = Path(path_id=choice[0].id, loc=loc)
+            path = Path(path_id=choice[0]['id'], loc=loc)
             # check for a redirect location to start the selected path
             if new_location:
                 # TODO: get block logic working here
