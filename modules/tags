@@ -61,7 +61,7 @@ __init__	paideia.py	/^    def __init__(self, step, location, prev_npc, prev_loc)
 __init__	paideia.py	/^    def __init__(self, step_id=None, loc=None, prev_loc=None, prev_npc=None,$/;"	m	class:Step
 __init__	paideia.py	/^    def __init__(self, step_id=None, step_data=None, loc=None, prev_loc=None,$/;"	m	class:StepRedirect
 __init__	paideia.py	/^    def __init__(self, tag_progress, loc_id, paths_completed, db=None):$/;"	m	class:PathChooser
-__init__	paideia.py	/^    def __init__(self, userdata, localias, tag_records, tag_progress, db=None):$/;"	m	class:User
+__init__	paideia.py	/^    def __init__(self, userdata, loc, tag_records, tag_progress, db=None):$/;"	m	class:User
 __init__	paideia_bugs.py	/^    def __init__(self, step=None, path=None, location=None):$/;"	m	class:Bug
 __init__	paideia_exploring.py	/^    def __init__(self):$/;"	m	class:Map
 __init__	paideia_exploring.py	/^    def __init__(self):$/;"	m	class:Utils
@@ -91,7 +91,6 @@ _find_cat_changes	paideia.py	/^    def _find_cat_changes(self, cats, old_cats):$
 _find_cats	paideia_exploring.py	/^    def _find_cats(self, categories, record_list):$/;"	m	class:Walk
 _get_badge_display	paideia_exploring.py	/^    def _get_badge_display(self, step_id):$/;"	m	class:Step
 _get_badge_display	paideia_exploring.py	/^    def _get_badge_display(self, step_id):$/;"	m	class:StepStub
-_get_blocks	paideia.py	/^    def _get_blocks(self):$/;"	m	class:User
 _get_bug_reporter	paideia_exploring.py	/^    def _get_bug_reporter(self, step, path, answer, log_id, score):$/;"	m	class:Step
 _get_categories	paideia.py	/^    def _get_categories(self, rank=None, old_categories=None,$/;"	m	class:User
 _get_category	paideia_exploring.py	/^    def _get_category(self):$/;"	m	class:Walk
@@ -119,7 +118,7 @@ _get_session_data	paideia_exploring.py	/^    def _get_session_data(self):$/;"	m	
 _get_session_data	paideia_exploring.py	/^    def _get_session_data(self):$/;"	m	class:Walk
 _get_step_audio	paideia_exploring.py	/^    def _get_step_audio(self):$/;"	m	class:Step
 _get_step_image	paideia_exploring.py	/^    def _get_step_image(self, db=None):$/;"	m	class:StepImage
-_get_user	paideia.py	/^    def _get_user(self, userdata=None, localias=None, tag_records=None,$/;"	m	class:Walk
+_get_user	paideia.py	/^    def _get_user(self, userdata=None, loc=None, tag_records=None,$/;"	m	class:Walk
 _get_util_step	paideia_exploring.py	/^    def _get_util_step(self, tag, next_loc=None):$/;"	m	class:Walk
 _handle_blocks	paideia_exploring.py	/^    def _handle_blocks(self):$/;"	m	class:Walk
 _introduce	paideia_exploring.py	/^    def _introduce(self):$/;"	m	class:Walk
@@ -142,7 +141,7 @@ _save_session_data	paideia_exploring.py	/^    def _save_session_data(self):$/;"	
 _save_session_data	paideia_exploring.py	/^    def _save_session_data(self):$/;"	m	class:Step
 _save_session_data	paideia_exploring.py	/^    def _save_session_data(self, new=False):$/;"	m	class:Walk
 _session_to_db	paideia_exploring.py	/^    def _session_to_db(self, data):$/;"	m	class:Utils
-_set_block	paideia.py	/^    def _set_block(self, condition, kwargs=None, data=None):$/;"	m	class:User
+_set_block	paideia.py	/^    def _set_block(self, condition, kwargs=None, data=None):$/;"	m	class:Path
 _set_loc	paideia.py	/^    def _set_loc(self, loc):$/;"	m	class:Path
 _start_new_session	paideia_exploring.py	/^    def _start_new_session(self):$/;"	m	class:Walk
 _step_in_path	paideia_exploring.py	/^    def _step_in_path(self, path, step=None):$/;"	m	class:Walk
@@ -200,7 +199,7 @@ get_responder	paideia.py	/^    def get_responder(self):$/;"	m	class:StepMultiple
 get_responder	paideia.py	/^    def get_responder(self):$/;"	m	class:StepText
 get_step	paideia.py	/^    def get_step(self):$/;"	m	class:Block
 get_step_for_prompt	paideia.py	/^    def get_step_for_prompt(self, loc=None, step=None):$/;"	m	class:Path
-get_step_for_reply	paideia.py	/^    def get_step_for_reply(self, db=None):$/;"	m	class:Path
+get_step_for_reply	paideia.py	/^    def get_step_for_reply(self):$/;"	m	class:Path
 get_steps	paideia.py	/^    def get_steps(self):$/;"	m	class:Path
 get_tag_progress	paideia.py	/^    def get_tag_progress(self):$/;"	m	class:User
 get_tag_records	paideia.py	/^    def get_tag_records(self):$/;"	m	class:User
@@ -227,7 +226,6 @@ monthstats	paideia_stats.py	/^    def monthstats(self, year=None, month=None):$/
 next_step	paideia_exploring.py	/^    def next_step(self):$/;"	m	class:Walk
 process	paideia_exploring.py	/^    def process(self, user_response):$/;"	m	class:Step
 process	paideia_exploring.py	/^    def process(self, user_response):$/;"	m	class:StepMultipleChoice
-redirect	paideia.py	/^    def redirect(self, locs, db=None):$/;"	m	class:Path
 reply	paideia.py	/^    def reply(self, response_string, path=None):$/;"	m	class:Walk
 restrict	plugin_ajaxselect.py	/^    def restrict(self, restricted):$/;"	m	class:AjaxSelect
 restrict	plugin_ajaxselect.py	/^    def restrict(self, restricted):$/;"	m	class:FilteredAjaxSelect

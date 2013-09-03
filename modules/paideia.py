@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from gluon import current, redirect
-from gluon import IMG, URL, SQLFORM, SPAN, DIV, UL, LI, A, Field
+from gluon import IMG, URL, SQLFORM, SPAN, DIV, UL, LI, A, Field, P
 from gluon import IS_NOT_EMPTY, IS_IN_SET
 
 from inspect import getargvalues, stack
@@ -56,45 +56,62 @@ class Walk(object):
         userdata = db.auth_user[current.auth.user_id].as_dict() \
             if not userdata else userdata
         self.user = self._get_user(userdata=userdata,
-                                   localias=localias,
+                                   loc=self.loc,
                                    tag_records=tag_records,
                                    tag_progress=tag_progress)
         self.record_id = None  # stores step log row id after db update
 
-    def _get_user(self, userdata=None, localias=None, tag_records=None,
+    def _get_user(self, userdata=None, loc=None, tag_records=None,
                   tag_progress=None, db=None):
-        # initialize or re-activate User object
+        ''' initialize or re-activate User object '''
+        print 'starting Walk_get_user'
+        session = current.session
+        auth = current.auth
+        db = current.db if not db else db
         try:
+            print 'returning user already on this Walk obj'
+            print 'self.user is', self.user
             return self.user
         except AttributeError:  # because no user yet on this Walk
+            print '\noops! user didn\'t work'
             try:
-                session = current.session
-                user = session.user
+                print '\ngetting stored user'
+                'getting stored user from session'
+                if 'user' in session and session.user:
+                    user = session.user
+                else:
+                    sd = db(db.session_data.name ==
+                            auth.user_id).select().first()
+                    if sd:
+                        user = sd['other_data']
+                        print 'user was in db'
+                    else:
+                        user = None
                 assert user.is_stale() is False
                 self.user = user
+                self.user.last_response_text = 'bla'
                 return user
             except (AttributeError, AssertionError):
                 # because no user yet in this session or user is stale
-                db = current.db if not db else db
                 if not tag_records:
                     auth = current.auth
                     tag_records = db(db.tag_records.name ==
-                                     auth.user_id).select()
-                    tag_records = tag_records.as_list()
+                                     auth.user_id).select().as_list()
                 if not tag_progress:
                     auth = current.auth
                     tag_progress = db(db.tag_progress.name ==
-                                      auth.user_id).select()
+                                   auth.user_id).select().first()
                     #tag_progress_length = len(tag_progress)  # TODO log if > 1
-                    tag_progress = tag_progress.first().as_dict()
+                    tag_progress = tag_progress.as_dict()
                     # Handle first-time users, who won't have db row to fetch
                     if not tag_progress:
                         db.tag_progress.insert(latest_new=1)
                         tag_progress = db(db.tag_progress.name ==
-                                          self.user.get_id()).select()
-                        tag_progress = tag_progress.first().as_dict()
+                                          self.user.get_id()).select().first()
+                        tag_progress = tag_progress.as_dict()
 
-                self.user = User(userdata, localias, tag_records, tag_progress)
+                self.user = User(userdata, loc, tag_records, tag_progress)
+                print 'returning new user'
                 return self.user
 
     def start(self, response_string=None, path=None):
@@ -119,6 +136,7 @@ class Walk(object):
         The mapnum argument is to facilitate future expansion to multiple
         levels of the map.
         """
+        user = self._get_user()
         db = current.db if not db else db
         cache = current.cache
 
@@ -127,6 +145,11 @@ class Walk(object):
         locations = db().select(db.locations.ALL,
                                 orderby=db.locations.map_location,
                                 cache=(cache.ram, 60 * 60)).as_list()
+        # Store a user created at Walk instantiation, so it doesn't have to be
+        # re-initialized at the next http request.
+        print 'calling store_user'
+        self._store_user(user)
+
         return {'map_image': map_image, 'locations': locations}
 
     def ask(self, path=None):
@@ -135,11 +158,25 @@ class Walk(object):
 
         The "path" argument is used only for dependency injection during
         unit testing.
+
+        In the returned dictionary, 'reply' item has the following dict as its
+        value:
+            'prompt':
+            'instructions':
+            'npc_image':
+            'slides':
+            'bg_image':
+        The value of 'responder' is a web2py html helper object.
         """
         user = self._get_user()
         loc = self.loc
         p = user.get_path(loc, path=path)
         s = p.get_step_for_prompt()
+        if isinstance(s, Block):
+            print 'encountered Block', s
+            condition = s.get_condition()
+            if condition == 'need_to_reply':
+                return self.reply(user.last_response_text)
         prompt = s.get_prompt()
         responder = s.get_responder()
         # non-response steps end here
@@ -153,13 +190,31 @@ class Walk(object):
 
         This includes evaluation of the user's reply and presentation of
         the npc's response message.
+
+        In the returned dictionary, the item 'reply' has as its value a
+        dictionary with the following keys:
+            'bg_image':
+            'reply_text':
+            'tips':
+            'readable_short':
+            'readable_long':
+            'score':
+            'times_right':
+            'times_wrong':
+            'user_response':
         """
         user = self._get_user()
         user_id = user.get_id()
+        user.last_response_text = response_string  # in case need to recover step
 
         # evaluate user response and generate reply
         p = user.get_path(self.loc)
         s = p.get_step_for_reply()
+        if isinstance(s, Block):
+            print 'encountered block', s
+            condition = s.get_condition()
+            if condition == 'empty_response':
+                return self.ask()
         reply = s.get_reply(response_string)
 
         # retrieve data from generated reply
@@ -188,12 +243,27 @@ class Walk(object):
                                                   response_string,
                                                   self.loc.get_alias())
 
-        # remove step from active status
+        responder = DIV(A("Continue",
+                          _href=URL('walk', args=['ask'],
+                                    vars={'loc': self.loc.get_alias()}),
+                          cid='page',
+                          _class='btn btn-success next_q icon-next-circle'),
+                        A("Try that again",
+                          _href=URL('walk', args=['retry'],
+                                    vars={'loc': self.loc.get_alias()}),
+                          cid='page',
+                          _class='btn btn-warning retry icon-rotate-circle'),
+                        A("Go back to map",
+                          _href=URL('walk', args=['start'], vars={'loc': None}),
+                          cid='page',
+                          _class='btn btn-info back_to_map icon-location'),
+                        bug_reporter,
+                        _class='responder')
+
         p.complete_step()  # removes path.step_for_reply
-        # store User object for retrieval on next request
         self._store_user(user)
 
-        return {'reply': reply, 'bug_reporter': bug_reporter}
+        return {'npc': reply, 'responder': responder}
 
     def _record_cats(self, tag_progress, promoted,
                      new_tags, db=None):
@@ -289,9 +359,20 @@ class Walk(object):
         Returns a boolean value indicating whether the storing was
         successful or not.
         """
-        session = current.session
-        session.user = None
-        session.user = copy(user)
+        try:
+            print 'storing user in session'
+            session = current.session
+            session.user = None
+            session.user = copy(user)
+            print 'session.user is', session.user
+        except Exception:
+            print traceback.format_exc(5)
+            print 'storing user in db'
+            db = current.db
+            auth = current.auth
+            db.session_data.update_or_insert(db.session_data.name == auth.user_id,
+                                             other_data=self.user)
+        print 'successfully stored user'
         return True
 
 
@@ -575,11 +656,15 @@ class Step(object):
         npc_image = npc.get_image()
         # prompt no longer tagged or converted to markmin here, but in view
         bg_image = self.loc.get_bg()
+        npc = DIV(prompt,
+                  DIV(instructions, _class='instructions', _id='instructions'),
+                  A('instructions', _class='btn btn-info', _id='instructions_btn'),
+                  DIV(slides, _class='slides', _id='slides'),
+                  A('slides', _class='btn btn-info', _id='slides_btn'),
+                  _class='npc prompt')
 
-        return {'prompt': prompt,
-                'instructions': instructions,
+        return {'npc': npc,
                 'npc_image': npc_image,
-                'slides': slides,
                 'bg_image': bg_image}
 
     def _make_replacements(self, raw_prompt=None, username=None, reps=None):
@@ -607,7 +692,7 @@ class Step(object):
         map_button = A("Map", _href=URL('walk'),
                        cid='page',
                        _class='back_to_map')
-        responder = DIV(map_button)
+        responder = DIV(map_button, _class='responder')
         return responder
 
     def get_npc(self):
@@ -731,7 +816,7 @@ class StepQuotaReached(StepContinue, Step):
     '''
     A Step that tells the user s/he has completed the daily minimum # of steps.
     '''
-    def _make_replacements(self, raw_prompt=None, username=None):
+    def _make_replacements(self, raw_prompt=None, username=None, quota=None):
         """
         Return the string for the step prompt with context-based information
         substituted for tokens framed by [[]].
@@ -750,7 +835,7 @@ class StepAwardBadges(StepContinue, Step):
     '''
 
     def _make_replacements(self, raw_prompt=None, username=None,
-                           new_badges=None, promoted=None, db=None):
+                           new_tags=None, promoted=None, db=None):
         """
         Return the string for the step prompt with context-based information
         substituted for tokens framed by [[]].
@@ -800,16 +885,16 @@ class StepViewSlides(Step):
     '''
 
     def _make_replacements(self, raw_prompt=None, username=None,
-                           new_badges=None):
+                           new_tags=None):
         """
         Return the string for the step prompt with context-based information
         substituted for tokens framed by [[]].
 
-        new_badges value should be a list of tag id's as integers
+        new_tags value should be a list of tag id's as integers
         """
         db = current.db
         tags = db((db.tags.id == db.badges.tag) &
-                  (db.tags.id.belongs(new_badges))).select().as_list()
+                  (db.tags.id.belongs(new_tags))).select().as_list()
         # get the relevant badges (id, name, and description)
         badges = [row['badges']['id'] for row in tags]
         if isinstance(badges[0], list):
@@ -875,7 +960,8 @@ class StepText(Step):
                                      requires=IS_NOT_EMPTY()),
                                _autocomplete='off'
                                )
-        return form
+        responder = DIV(form, _class='responder')
+        return responder
 
     def get_reply(self, user_response=None, answers=None, tips=None):
         """docstring for get_reply"""
@@ -897,10 +983,22 @@ class StepText(Step):
 
         bg_image = self.loc.get_bg()
 
+        npc = DIV(_class='npc prompt')
+        npc.append(P(result['reply']))
+        npc.append(P('You said ', UL(LI(user_response))))
+
+        readable = UL(_class='readable_short')
+        if isinstance(result['readable'], list):
+            for r in result['readable']:
+                readable.append(LI(r))
+        else:
+            readable.append(LI(result['readable']))
+
+        npc.append(P('Correct answers would include ', readable))
+
         return {'bg_image': bg_image,
-                'reply_text': result['reply'],
+                'npc': npc,
                 'tips': tips,
-                'readable_short': readable['readable_short'],
                 'readable_long': readable['readable_long'],
                 'score': result['score'],
                 'times_right': result['times_right'],
@@ -958,8 +1056,9 @@ class StepMultiple(StepText):
                                      widget=SQLFORM.widgets.radio.widget))
         if form.process().accepted:
             session.response = request.vars.response
+        responder = DIV(form, _class='responder')
 
-        return form
+        return responder
 
 
 class StepEvaluator(object):
@@ -1098,9 +1197,13 @@ class Path(object):
         This prepares a step for the evaluation of user-input.
         """
         if self.step_for_prompt:
+            print 'step_for_prompt was', self.step_for_prompt
             self.step_for_reply = copy(self.step_for_prompt)
+            print 'step_for_reply is now', self.step_for_reply
             self.step_for_prompt = None
             assert not self.step_for_prompt
+            print 'after removing step_for_prompt'
+            print 'step_for_reply is now', self.step_for_reply
             return True
         else:
             return False
@@ -1109,6 +1212,7 @@ class Path(object):
         """
         Deactivate current step.
         """
+        print 'completing step'
         if self.step_for_reply:
             self.step_for_reply = None
             assert not self.step_for_prompt
@@ -1129,8 +1233,8 @@ class Path(object):
 
         # make sure controller hasn't skipped processing an earlier step's reply
         if self.step_for_reply:
-            # TODO handle this situation
-            raise Exception
+            'returning a Block: need_to_reply'
+            return Block('need_to_reply', data=self.step_for_reply)
 
         if self.step_for_prompt:
             next_step = copy(self.step_for_prompt)
@@ -1151,22 +1255,12 @@ class Path(object):
                 assert not self.step_for_prompt
             return next_step
 
-    def redirect(self, locs, db=None):
-        """
-        Set a 'redirect' blocking condition on this Path object.
-
-        TODO: do none defaults work here?
-        """
-        kwargs = {'step_id': 30,
-                  'loc': self.loc,
-                  'prev_loc': self.prev_loc,
-                  'prev_npc': self.prev_npc}
-
-        new_block = Block('redirect', kwargs=kwargs, data=locs)
-        if self.blocks:
-            self.blocks.append(new_block)
-        else:
-            self.blocks = [new_block]
+    def _set_block(self, condition, kwargs=None, data=None):
+        """ Set a blocking condition on this Path object. """
+        self.blocks.append(Block(condition=condition,
+                                 kwargs=kwargs,
+                                 data=data))
+        return True
 
     def _check_for_blocks(self, next_step, db=None):
         """
@@ -1184,7 +1278,8 @@ class Path(object):
         # check that next step can be asked here, else redirect
         locs = next_step.get_locations()
         if not (self.loc.get_id() in locs):
-            self.redirect(locs)
+            kwargs = {'next_loc': locs[randrange(len(locs))]}
+            self._set_block('redirect', kwargs=kwargs)
 
         if self.blocks:
             block_step = self.blocks.pop(0).get_step()
@@ -1193,13 +1288,10 @@ class Path(object):
                 # or step_to_answer or last_step_id
                 self.step_sent_id = block_step.get_id()
                 return block_step
-            else:
-                # TODO raise a more specific exception
-                raise Exception
         else:
             return False
 
-    def get_step_for_reply(self, db=None):
+    def get_step_for_reply(self):
         """
         Return the Step object that is currently active for this path.
 
@@ -1212,12 +1304,14 @@ class Path(object):
             StepAwardBadges
             or a bare Step instance
         """
+        print '\nin Path.get_step_for_reply'
         reply_step = copy(self.step_for_reply)
+        print 'reply step copy', reply_step
         # TODO is this too early to append step to completed_steps?
         self.completed_steps.append(reply_step)
         # TODO: add step_sent_id check to unit test
         self.step_sent_id = reply_step.get_id() if reply_step else None
-
+        print 'reply step copy', reply_step
         return reply_step
 
     def get_steps(self):
@@ -1400,7 +1494,7 @@ class User(object):
 
     """
 
-    def __init__(self, userdata, localias, tag_records, tag_progress, db=None):
+    def __init__(self, userdata, loc, tag_records, tag_progress, db=None):
         """
         Initialize a paideia.User object.
 
@@ -1410,32 +1504,36 @@ class User(object):
         - tag_progress: rows.as_dict()
         - tag_records: rows.as_dict
         """
-
-        self.time_zone = userdata['time_zone']
-        db = current.db if not db else db
-        # TODO: Update tag_records as steps proceed
-        self.blocks = []
-        self.tag_records = tag_records
-        self.name = userdata['first_name']
-        self.user_id = userdata['id']
-        self.path = None
-        self.completed_paths = []
-        self.cats_counter = 0  # timing re-categorization in _get_categories()
-        self.old_categories = {}
-        self.rank = tag_progress['latest_new']
-        cat_dict = self._get_categories()
-        self.tag_progress = cat_dict['tag_progress']
-        self.promoted = cat_dict['promoted']
-        self.new_tags = cat_dict['new_tags']
-        self.inventory = []
-        self.session_start = datetime.datetime.utcnow()
-        self.last_npc = None
-        self.last_loc = None
-        self.localias = localias
-        self.loc_id = db(db.locations.loc_alias == localias
-                         ).select().first().id
-        self.loc = Location(self.loc_id)
-        self.redirect_loc = None
+        try:
+            self.time_zone = userdata['time_zone']
+            db = current.db if not db else db
+            # TODO: Update tag_records as steps proceed
+            self.blocks = []
+            self.tag_records = tag_records
+            self.name = userdata['first_name']
+            self.user_id = userdata['id']
+            self.path = None
+            self.completed_paths = []
+            self.last_response_text = None
+            self.cats_counter = 0  # timing re-categorization in _get_categories()
+            self.old_categories = {}
+            self.rank = tag_progress['latest_new']
+            cat_dict = self._get_categories(rank=self.rank,
+                                            old_categories=self.old_categories,
+                                            tag_records=tag_records)
+            self.tag_progress = cat_dict['tag_progress']
+            self.promoted = cat_dict['promoted']
+            self.new_tags = cat_dict['new_tags']
+            self.inventory = []
+            self.session_start = datetime.datetime.utcnow()
+            self.last_npc = None
+            self.last_loc = None
+            self.loc = loc
+            self.loc_id = loc.get_id()
+            self.redirect_loc = None
+            self.quota = 40
+        except Exception:
+            print traceback.format_exc(5)
 
     def get_id(self):
         """Return the id (from db.auth_user) of the current user."""
@@ -1514,12 +1612,12 @@ class User(object):
         # If a path has been injected for testing
         if path:
             self.path = Path(path_id=path, loc=loc)
-            return self.path
-        # If the user has a multi-step path in progress, use that path
-        # check for len(path.steps) catches end-of-path and triggers new choice
-        if self.path and (len(self.path.steps) or self.path.step_for_reply):
+
+        # If the user has a multi-step path in progress, use that path. Also
+        # check for len(path.steps) to catch end-of-path and triggers new choice
+        elif self.path and (len(self.path.steps) or self.path.step_for_reply):
             self.path._set_loc(loc)
-            return self.path
+
         # otherwise, select a new path
         else:
             choice = PathChooser(self.tag_progress, loc.get_id(),
@@ -1529,9 +1627,20 @@ class User(object):
             # check for a redirect location to start the selected path
             if new_location:
                 # TODO: get block logic working here
-                self._set_block('redirect', new_location)
+                kwargs = {'step_id': 30,
+                          'loc': self.loc,
+                          'prev_loc': self.prev_loc,
+                          'prev_npc': self.prev_npc,
+                          'next_loc': new_location}
+                path._set_block('redirect', kwargs=kwargs)
             self.path = path
-            return self.path
+
+        # check for having reached the user's quota of paths for the day
+        if len(self.completed_paths) > self.quota:
+            kwargs = {'quota': self.quota}
+            self.path._set_block('quota reached', kwargs=kwargs)
+
+        return self.path
 
     def _get_categories(self, rank=None, old_categories=None,
                         tag_records=None, utcnow=None):
@@ -1558,7 +1667,6 @@ class User(object):
             categories = self.categories
         except AttributeError:
             categories = None
-
         # only re-categorize every 10th evaluated step
         if self.cats_counter in range(1, 5):
             return {'tag_progress': self.tag_progress,
@@ -1571,9 +1679,11 @@ class User(object):
             cat_result = c.categorize_tags()
             # Set blocks for 'new_tags' (view_slides) and 'promoted' conditions
             if cat_result['new_tags']:
-                self.set_block('new_tags', cat_result['new_tags'])
+                self.set_block('new tags', kwargs={'new_tags': cat_result['new_tags']})
+                self.set_block('view slides', kwargs={'new_tags': cat_result['new_tags']})
             if cat_result['promoted']:
-                self.set_block('promoted', cat_result['promoted'])
+                self.set_block('promoted', kwargs={'new_tags': cat_result['new_tags'],
+                                                   'promoted': cat_result['promoted']})
             return {'categories': cat_result['categories'],
                     'tag_progress': cat_result['tag_progress'],
                     'promoted': cat_result['promoted'],
@@ -1585,22 +1695,6 @@ class User(object):
             return self.old_categories
         else:
             return None
-
-    # TODO: Move this method to Path?
-    def _get_blocks(self):
-        """docstring"""
-        return self.blocks
-
-    # TODO: Move this method to Path?
-    def _set_block(self, condition, kwargs=None, data=None):
-        """docstring for _set_block"""
-        try:
-            self.blocks.append(Block(condition=condition,
-                                    kwargs=kwargs,
-                                    data=data))
-            return True
-        except Exception:
-            return False
 
     def _complete_path(self):
         """
@@ -1650,16 +1744,12 @@ class Categorizer(object):
         and the values are lists of integers (representing the tags to be
         placed in each category). The categorization is based on user
         performance (drawn from tag_records) and timing (spaced repetition).
-
-
-
         """
         rank = self.rank if not rank else rank
         old_categories = self.old_categories if not old_categories else old_categories
         tag_records = self.tag_records if not tag_records else tag_records
         db = current.db if not db else db
         new_tags = None
-
         # if user has not tried any tags yet, start first set
         if len(tag_records) == 0:
             categories = {}
@@ -1712,7 +1802,6 @@ class Categorizer(object):
         tlast_right based on the average of those three attempt dates.
         """
         db = current.db
-
         try:
             for rec in tag_records:
                 # add new secondary_right attempts from attempt_log
@@ -1740,35 +1829,40 @@ class Categorizer(object):
                 # to db field where they should be added with extend
                 if right2:
                     for t in right2:
-                        while not isinstance(t, datetime.datetime):
-                            if isinstance(t, list):
-                                vals = right2.pop(right2.index(t))
-                                print 'vals', vals
-                                right2.extend(vals)
-                            elif isinstance(t, tuple):
-                                try:
-                                    right2[right2.index(t)] = parser.parse(t[1])
-                                except:
-                                    right2.append(parser.parse(t[1]))
+                        if isinstance(t, list):
+                            vals = right2.pop(right2.index(t))
+                            right2.extend(vals)
+                        else:
+                            pass
+                    for t in right2:
+                        if isinstance(t, tuple):
+                            try:
+                                right2[right2.index(t)] = parser.parse(t[1])
+                            except TypeError:
+                                right2.append(parser.parse(t[1]))
+                        else:
+                            pass
+                    if right2 != rec['secondary_right']:
+                        #print rec
+                        #print right2
+                        right2.sort()
+                        db.tag_records[rec['id']].update(secondary_right=right2)
+                    rlen = len(right2)
+                    remainder2 = rlen % 3
 
-                    right2.sort()
-
-                if right2 and isinstance(right2, list) and len(right2) >= 3:
+                if right2 and (isinstance(right2, list)) and (rlen >= 3) \
+                        and (remainder2 > 0):
                     rindex = tag_records.index(rec)
                     # increment times_right by 1 per 3 secondary_right
-                    rlen = len(right2)
                     triplets2 = rlen / 3
-                    remainder2 = rlen % 3
                     rec['times_right'] += triplets2
 
                     # move tlast_right forward based on mean of oldest 3 secondary_right
                     now = self.utcnow
                     if remainder2 or rlen > 3:
-                        print 'right2', right2
                         early3 = right2[: -(remainder2)]
                     else:
                         early3 = right2[:]
-                    print 'early3', early3
                     early3d = [now - s for s in early3]
                     avg_delta = sum(early3d, datetime.timedelta(0)) / len(early3d)
                     avg_date = now - avg_delta
@@ -1887,7 +1981,8 @@ class Categorizer(object):
             rank += 1
         self.rank = rank
 
-        newtags = [t['id'] for t in db(db.tags.tag_position == rank).select()]
+        newtags = [t['id'] for t in
+                   db(db.tags.tag_position == rank).select().as_list()]
 
         return newtags
 
@@ -1898,7 +1993,8 @@ class Categorizer(object):
 
         left_out = []
         for r in range(1, rank + 1):
-            newtags = [t.id for t in db(db.tags.tag_position == r).select()]
+            newtags = [t['id'] for t in
+                       db(db.tags.tag_position == r).select().as_list()]
             alltags = list(chain(*categories.values()))
             left_out.extend([t for t in newtags if t not in alltags])
         if left_out:
@@ -1974,22 +2070,51 @@ class Categorizer(object):
 
 
 class Block(object):
-    """An object representing an interruption in the flow of the game."""
+    """
+    An object representing a pending interruption in the flow of the game.
+
+    The possible Block conditions are of two kinds. The first simply yield a
+    step that can be returned by Path.get_step_for_prompt in lieu of the
+    normally slated step:
+        'redirect'
+        'promoted'
+        'new tags'
+        'view slides'
+        'quota_reached'
+    The second category requires that the Block object be returned to Walk.ask()
+    or Walk.reply() for a more involved response:
+        'need to reply'
+        'empty response'
+    """
 
     def __init__(self, condition, kwargs=None, data=None):
-        """Initialize a new Block object"""
+        """
+        Initialize a new Block object
+        """
         self.condition = condition
         self.data = data
         self.kwargs = kwargs
-        self.step = self.make_step(condition, kwargs=kwargs, data=data)
+        if isinstance(data, Step):
+            self.step = data  # in some cases easiest to just pass existing step
+        else:
+            self.step = self.make_step(condition, kwargs=kwargs, data=data)
 
     def make_step(self, condition, kwargs=None, data=None):
         """Create correct Step subclass and store as an instance variable."""
-        step_type = {'redirect': StepRedirect,
-                     'award badges': StepAwardBadges,
-                     'view slides': StepViewSlides,
-                     'quota reached': StepQuotaReached}
-        mystep = step_type[condition](**kwargs)
+        db = current.db
+        kwargs = {} if not kwargs else kwargs
+        step_classes = {'view slides': 6,
+                        'quota reached': 7,
+                        'new tags': 8,
+                        'promoted': 8,
+                        'redirect': 9}
+        step = db(db.steps.widget_type ==
+                  step_classes[condition]).select(orderby='<random>').first()
+        common_args = {'step_id': step['id'],
+                       'prev_loc': self.prev_loc,
+                       'prev_npc': self.prev_npc}
+        kwargs.update(common_args)
+        mystep = StepFactory().get_instance(**kwargs)
         return mystep
 
     def get_condition(self):
