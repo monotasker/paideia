@@ -70,6 +70,8 @@ def index():
     :Permissions: user must be logged in.
     """
     print 'getting index'
+    print 'vars', request.vars
+    print 'args', request.args
     return {}
 
 
@@ -98,7 +100,10 @@ def walk():
     element of exploring/index.html.
     """
     request = current.request
+    print "starting walk controller"
 
+    if not request.vars.loc:
+        request.vars.loc = None
     walk = Walk(request.vars.loc)
     rvars = request.vars
     rargs = request.args

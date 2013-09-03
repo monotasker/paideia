@@ -5,77 +5,21 @@
 <!--when an error is raised-->
 <!-- TODO: Rework this error message -->
 {{if request.args(0) == 'error':}}
-    <section class='npc'>
-        {{=message}}
-        {{=button}}
-    </section>
+    <section class='npc'> {{=message}} {{=button}} </section>
 
-<!--path selection-->
+<!--map interface-->
 {{elif request.args(0) == 'start' or not request.args:}}
 	<embed id='town_map' src='{{=map["map_image"]}}' type='image/svg+xml' />
     {{=TOOLTIP('townmap_key', 'Show map hotspots',
                 IMG(_src='../static/images/townmap.png'),
                 'left', 
                 'search')}}
-    
-<!--present npc reply for user's response to step prompt-->
-{{elif 'response' in request.vars:}}
-    <div class='bg_image'>{{=XML(bg_image)}}</div>
-    <div class='speaker'>{{=npc_img}}</div>
-    <section class="npc prompt">
-        <p>{{=reply}}</p>
-        <p>You said
-            <ul>
-                <li>{{=user_response}}</li>
-            </ul>
-        </p>
-        <p>Correct answers would include
-            <ul class='readable_short'>
-            {{if type(readable) == list:}}
-                {{for r in readable:}}
-                    {{=LI(r)}}
-                {{pass}}
-            {{else:}}
-                {{=LI(readable)}}
-            {{pass}}
-            </ul>
-        </p>
-        <!--<span class="q_counter">Currently working on-->
-            <!--{{=len(session.walk['active_paths'].keys())}} paths;-->
-            <!--{{=len(session.walk['completed_paths'])}}-->
-        <!--paths already complete today.</span>-->
-        <!--{{=ROLE(SPAN('select type: {}'.format(''), _class='select_type'))}}  -->
-    </section>
-    <div class='responder'>
-        {{=A("Continue", _href=URL('walk', args=['ask'],
-                                    vars=dict(loc=request.vars['loc'])),
-            cid='page',
-            _class='button-green-grad next_q icon-next-circle')}}
-
-        {{=A("Retry", _href=URL('walk', args=['retry'],
-                                    vars=dict(loc=request.vars.loc)),
-            cid='page',
-            _class='button-yellow-grad retry icon-rotate-circle')}}
-
-        {{=A("Map", _href=URL('walk', args=['start'],
-                                    vars=dict(loc=None)),
-            cid='page',
-            _class='button-yellow-grad back_to_map icon-location')}}
-
-        {{=TOOLTIP('bug_reporter', 'bug', XML(bug_reporter), 'left', 'alert')}}
-    </div>
-
-<!--present prompt for step-->
-{{elif not 'response' in request.vars:}}
-    <div class='bg_image'>{{=prompt['bg_image']}}</div>
-    <div class='speaker'>{{=prompt['npc_image']}}</div>
-    <div class="npc prompt">{{=prompt['prompt']}}</div>
-    <div class='responder'>
-        {{=responder}}
-        {{if prompt['instructions']:}}
-            {{=TOOLTIP('prompt_tips', 'tips', XML(prompt['instructions']), 'left', 'star')}}
-        {{pass}}
-    </div>
+<!--step interface-->
+{{else:}}
+    <div class='bg_image'>{{=npc['bg_image']}}</div>
+    <div class='speaker'>{{=npc['npc_img']}}</div>
+    {{=npc['npc']}}
+    {{=responder}}
 {{pass}}
 
 <script>
