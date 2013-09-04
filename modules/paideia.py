@@ -170,7 +170,11 @@ class Walk(object):
         user = self._get_user()
         loc = self.loc
         p = user.get_path(loc, path=path)
+        user.set_location(loc)  # must be set before step is retrieved
         s = p.get_step_for_prompt()
+        cur_npc_id = s.get_npc().get_id()
+        user.set_npc(cur_npc_id)
+
         if isinstance(s, Block):
             print 'encountered Block', s
             condition = s.get_condition()
@@ -178,8 +182,8 @@ class Walk(object):
                 return self.reply(user.last_response_text)
         prompt = s.get_prompt()
         responder = s.get_responder()
-        # non-response steps end here
         self._store_user(user)
+        # non-response steps end here
 
         return {'npc': prompt, 'responder': responder}
 
@@ -253,7 +257,7 @@ class Walk(object):
                           cid='page',
                           _class='btn btn-warning retry icon-rotate-circle'),
                         A("Go back to map",
-                          _href=URL('walk', args=['start'], vars={'loc': None}),
+                          _href=URL('walk', args=['map'], vars={'loc': None}),
                           cid='page',
                           _class='btn btn-info back_to_map icon-location'),
                         bug_reporter,
@@ -1172,8 +1176,9 @@ class Path(object):
     """
 
     def __init__(self, path_id=None, blocks=[], loc=None, prev_loc=None,
-                 completed_steps=None, last_step_id=None, step_for_prompt=None,
-                 step_for_reply=None, prev_npc=None, db=None):
+                 completed_steps=None, last_step_id=None, step_sent_id=None,
+                 step_for_prompt=None, step_for_reply=None, prev_npc=None,
+                 db=None):
         """
         Initialize a paideia.Path object.
 
@@ -1185,12 +1190,14 @@ class Path(object):
         self.prev_loc = prev_loc if prev_loc else None
         self.prev_npc = prev_npc if prev_npc else None
         self.loc = loc
+        self.npc_id = None
         self.blocks = blocks
         db = current.db if not db else db
         self.path_dict = db.paths[path_id].as_dict()
         self.steps = self.get_steps()
         self.completed_steps = completed_steps if completed_steps else []
         self.last_step_id = last_step_id
+        self.step_sent_id = step_sent_id
         self.step_for_prompt = step_for_prompt
         self.step_for_reply = step_for_reply
 
@@ -1206,7 +1213,21 @@ class Path(object):
             else:
                 next_step = copy(self.steps[0])
                 self.steps = []
+
             self.step_for_prompt = next_step
+            # not affected by Block, picked up again on next valid interaction
+
+            self.step_sent_id = next_step.get_id()
+            # step_sent_id may be overridden if Block found
+
+            if len(self.completed_steps) > 0:
+                last_step = self.completed_steps[-1]
+                self.last_step_id = last_step.get_id()
+                self.prev_npc = last_step.get_npc().get_id()
+                # only updated here if mid-way through multi-step path
+                # otherwise should have been set at Path init by
+                # User.get_path()
+
             return True
         except:
             return False
@@ -1217,13 +1238,9 @@ class Path(object):
         This prepares a step for the evaluation of user-input.
         """
         if self.step_for_prompt:
-            print 'step_for_prompt was', self.step_for_prompt
             self.step_for_reply = copy(self.step_for_prompt)
-            print 'step_for_reply is now', self.step_for_reply
             self.step_for_prompt = None
             assert not self.step_for_prompt
-            print 'after removing step_for_prompt'
-            print 'step_for_reply is now', self.step_for_reply
             return True
         else:
             return False
@@ -1277,6 +1294,9 @@ class Path(object):
 
     def _set_block(self, condition, kwargs=None, data=None):
         """ Set a blocking condition on this Path object. """
+        newargs = {'prev_loc': self.prev_loc,
+                   'prev_npc': self.prev_npc}
+        kwargs.update(newargs)
         self.blocks.append(Block(condition=condition,
                                  kwargs=kwargs,
                                  data=data))
@@ -1348,11 +1368,28 @@ class Path(object):
 
         return steplist
 
-    def _set_loc(self, loc):
+    def set_location(self, loc):
         """
-        Set the active location for this path.
+        Set the active location after initialization of the Path object.
         """
-        self.loc = loc
+        old_loc_id = self.loc.get_id()
+        if loc.get_id() == old_loc_id:
+            pass
+        else:
+            self.prev_loc = old_loc_id
+            self.loc = loc
+        return True
+
+    def set_npc(self, new_npc_id):
+        """
+        Set the currently active npc after initialization of the Path object.
+        """
+        old_npc_id = self.npc_id
+        if new_npc_id == old_npc_id:
+            pass
+        else:
+            self.prev_npc = old_npc_id
+            self.npc_id = new_npc_id
         return True
 
 
@@ -1546,9 +1583,10 @@ class User(object):
             self.new_tags = cat_dict['new_tags']
             self.inventory = []
             self.session_start = datetime.datetime.utcnow()
+            self.npc_id = None
             self.last_npc = None
-            self.last_loc = None
             self.loc = loc
+            self.last_loc = None
             self.loc_id = loc.get_id()
             self.redirect_loc = None
             self.quota = 40
@@ -1589,6 +1627,41 @@ class User(object):
             raise Exception  # TODO: make specific error
         else:
             return False
+
+    def set_location(self, loc):
+        """
+        Update the user's location after initialization of the User object.
+
+        Includes setting of self.last_loc to the old location id and calling
+        of path.set_location().
+
+        Returns a boolean indicating success/failure.
+        """
+        if loc.get_id() == self.loc.get_id():
+            pass
+        else:
+            self.last_loc = self.loc.get_id()
+            self.loc = loc
+            self.loc_id = loc.get_id()
+            self.path.set_location(loc)
+        return True
+
+    def set_npc(self, npc_id):
+        """
+        Update the current npc after initialization of the User object.
+
+        Includes setting of self.last_npc to the old npc id and calling
+        of path.set_npc().
+
+        Returns a boolean indicating success/failure.
+        """
+        if npc_id == self.npc_id:
+            pass
+        else:
+            self.last_npc = self.npc_id
+            self.npc_id = npc_id
+            self.path.set_npc(npc_id)
+        return True
 
     def get_new_tags(self):
         """Return a list of tag ids newly introduced"""
@@ -1636,7 +1709,7 @@ class User(object):
         # If the user has a multi-step path in progress, use that path. Also
         # check for len(path.steps) to catch end-of-path and triggers new choice
         elif self.path and (len(self.path.steps) or self.path.step_for_reply):
-            self.path._set_loc(loc)
+            self.path.set_loc(loc)
 
         # otherwise, select a new path
         else:
@@ -1698,12 +1771,15 @@ class User(object):
             c = Categorizer(rank, categories, tag_records, utcnow=utcnow)
             cat_result = c.categorize_tags()
             # Set blocks for 'new_tags' (view_slides) and 'promoted' conditions
+            common_args = {'new_tags': cat_result['new_tags'],
+                           'prev_loc': self.last_loc,
+                           'prev_npc': self.prev_npc}
             if cat_result['new_tags']:
-                self.set_block('new tags', kwargs={'new_tags': cat_result['new_tags']})
-                self.set_block('view slides', kwargs={'new_tags': cat_result['new_tags']})
+                self.set_block('new tags', kwargs=common_args)
+                self.set_block('view slides', kwargs=common_args)
             if cat_result['promoted']:
-                self.set_block('promoted', kwargs={'new_tags': cat_result['new_tags'],
-                                                   'promoted': cat_result['promoted']})
+                common_args.update({'promoted': cat_result['promoted']})
+                self.set_block('promoted', kwargs=common_args)
             return {'categories': cat_result['categories'],
                     'tag_progress': cat_result['tag_progress'],
                     'promoted': cat_result['promoted'],
@@ -2130,10 +2206,7 @@ class Block(object):
                         'redirect': 9}
         step = db(db.steps.widget_type ==
                   step_classes[condition]).select(orderby='<random>').first()
-        common_args = {'step_id': step['id'],
-                       'prev_loc': self.prev_loc,
-                       'prev_npc': self.prev_npc}
-        kwargs.update(common_args)
+        kwargs.update({'step_id': step['id']})
         mystep = StepFactory().get_instance(**kwargs)
         return mystep
 

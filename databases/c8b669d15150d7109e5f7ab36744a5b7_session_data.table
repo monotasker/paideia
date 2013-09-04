@@ -75,13 +75,13 @@ p22
 ssS'data'
 p23
 (dp24
-S'type'
+S'sortable'
 p25
-S'text'
-p26
-sS'sortable'
-p27
 I6
+sS'type'
+p26
+S'text'
+p27
 sS'sql'
 p28
 S'TEXT'
@@ -107,10 +107,10 @@ ssS'user'
 p34
 (dp35
 g25
+I2
+sg26
 S'reference auth_user'
 p36
-sg27
-I2
 sg28
 S'INTEGER REFERENCES auth_user(id) ON DELETE CASCADE'
 p37
