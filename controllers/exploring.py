@@ -2,7 +2,7 @@
 from paideia import Walk
 
 if 0:
-    from gluon import current, A, URL
+    from gluon import current
     request = current.request
     session = current.session
     response = current.response
@@ -26,37 +26,9 @@ The controller functions interact with these views:
 - exploring/walk.load (main game ui)
 - exploring/patherror.load (error screen)
 - exploring/calendar.load (ajax calendar widget)
+
+Errors are sent (by routes.py) to default/oops
 """
-
-
-@auth.requires_login()
-def patherror():
-    """
-    Present a message informing the user of an error and logging error info.
-
-    ***TODO: This function is from the old app and depends on db tables and
-    session variables that may have changed. It is also not actually called
-    yet from any game logic, since I haven't re-implemented any error
-    handling.
-
-    :Implemented in:
-    none
-    """
-
-    if request.args[1] == 'unknown':
-        db.q_bugs.insert(question=session.qID, a_submitted=request.vars.answer)
-        #TODO: fix problem with changing column name for status
-    if request.args[1] == 'regex':
-        db.q_bugs.insert(question=session.qID, a_submitted=request.vars.answer)
-
-    message = """Oops! Something about that question confused me, and I'm not
-    sure whether your answer was right. Let's try another one."""
-    button = A('continue', _href=URL('index', args=['ask']),
-        _class='button-green-grad next_q', cid=request.cid)
-    #don't include this question in counting the number attempted
-    session.q_counter -= 1
-
-    return dict(message=message, button=button)
 
 
 @auth.requires_login()
@@ -117,17 +89,12 @@ def walk():
     # When user begins exploring (also default) present map
     if (not rargs) or (rargs[0] == 'map'):
         return {'map': walk.map()}
-    elif rargs(0) == 'error':
-        return patherror()
     else:
         stepargs = {}
         stepargs['response_string'] = rvars['response'] if \
             ('response' in rvars and 'response' not in [' ', None]) else None
 
         return walk.start(**stepargs)
-
-    # TODO: move map to separate controller function?
-    #TODO: why is error triggered by url arg?
 
     # TODO: re-implement in module
     # if user wants to retry a failed step

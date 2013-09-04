@@ -123,8 +123,8 @@ _get_util_step	paideia_exploring.py	/^    def _get_util_step(self, tag, next_loc
 _handle_blocks	paideia_exploring.py	/^    def _handle_blocks(self):$/;"	m	class:Walk
 _introduce	paideia_exploring.py	/^    def _introduce(self):$/;"	m	class:Walk
 _introduce_tags	paideia.py	/^    def _introduce_tags(self, rank=None, db=None):$/;"	m	class:Categorizer
-_make_replacements	paideia.py	/^    def _make_replacements(self, raw_prompt=None, username=None):$/;"	m	class:StepQuotaReached
 _make_replacements	paideia.py	/^    def _make_replacements(self, raw_prompt=None, username=None, db=None,$/;"	m	class:StepRedirect
+_make_replacements	paideia.py	/^    def _make_replacements(self, raw_prompt=None, username=None, quota=None):$/;"	m	class:StepQuotaReached
 _make_replacements	paideia.py	/^    def _make_replacements(self, raw_prompt=None, username=None, reps=None):$/;"	m	class:Step
 _make_replacements	paideia.py	/^    def _make_replacements(self, raw_prompt=None, username=None,$/;"	m	class:StepAwardBadges
 _make_replacements	paideia.py	/^    def _make_replacements(self, raw_prompt=None, username=None,$/;"	m	class:StepViewSlides

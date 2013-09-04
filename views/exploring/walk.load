@@ -17,17 +17,13 @@
 <!--step interface-->
 {{else:}}
     <div class='bg_image'>{{=npc['bg_image']}}</div>
-    <div class='speaker'>{{=npc['npc_img']}}</div>
+    <div class='speaker'>{{=npc['npc_image']}}</div>
     {{=npc['npc']}}
     {{=responder}}
 {{pass}}
 
 <script>
 
-$('#session_clear').click(function(event){
-    ajax('clear_session', ['session_var'], ':eval');
-    event.preventDefault();
-});
 $('#test_this_step').click(function(event){
     val = $(this).parent('li').find('#test_path').val();
     val2 = $(this).parent('li').find('#test_step').val();
@@ -39,44 +35,29 @@ $('#responder_submit').click(function(event){
     window.parent.web2py_component("/paideia/exploring/walk.load/reply","page");
     event.preventDefault();
 });
-$('.bug_reporter_icon').click(function(event){
-    var $tip = $('div.bug_reporter');
-    if ($tip.hasClass('tip-visible')){
-        $tip.removeClass('tip-visible');
-    }
-    else {
-        $tip.addClass('tip-visible');
-    }
-    return false;
-});
-$('.prompt_badges_icon').click(function(event){
-    var $tip = $('div.prompt_badges');
-    if ($tip.hasClass('tip-visible')){
-        $tip.removeClass('tip-visible');
-    }
-    else {
-        $tip.addClass('tip-visible');
-    }
-    return false;
-});
-$('.townmap_key_trigger').click(function(event){
-    var $tip = $('#townmap_key');
-    if ($tip.hasClass('tip-visible')){
-        $tip.removeClass('tip-visible');
-    }
-    else {
-        $tip.addClass('tip-visible');
-    }
-    return false;
-});
-$('.prompt_tips_icon').click(function(event){
-    var $tip = $('#prompt_tips');
-    if ($tip.hasClass('tip-visible')){
-        $tip.removeClass('tip-visible');
-    }
-    else {
-        $tip.addClass('tip-visible');
-    }
-    return false;
-});
+$('.bug_reporter').popover({
+    'html': true,
+    'animation': true, 
+    'pladement': 'left',
+    'title': 'Report a bug',});
+$('#instructions_btn').popover({'html': true,
+    'animation': true, 
+    'pladement': 'left',
+    'title': 'Instructions',});
+$('#slides_btn').popover({'html': true,
+    'animation': true, 
+    'pladement': 'left',
+    'title': 'Related slide decks',});
+$('#readable_btn').popover({'html': true,
+    'animation': true, 
+    'pladement': 'right',
+    'title': 'Other valid responses',});
+$('.prompt_badges').popover({'html': true,
+    'animation': true, 
+    'pladement': 'left',
+    'title': 'Badges in focus for this step',});
+$('.townmap_key_trigger').popover({'html': true,
+    'animation': true, 
+    'pladement': 'left',
+    'title': 'Map hotspots',});
 </script>

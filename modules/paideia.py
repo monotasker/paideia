@@ -89,7 +89,6 @@ class Walk(object):
                         user = None
                 assert user.is_stale() is False
                 self.user = user
-                self.user.last_response_text = 'bla'
                 return user
             except (AttributeError, AssertionError):
                 # because no user yet in this session or user is stale
@@ -182,7 +181,7 @@ class Walk(object):
         # non-response steps end here
         self._store_user(user)
 
-        return {'prompt': prompt, 'responder': responder}
+        return {'npc': prompt, 'responder': responder}
 
     def reply(self, response_string, path=None):
         """
@@ -652,15 +651,23 @@ class Step(object):
         slides = None
         npc = self.get_npc()  # duplicate choice prevented in get_npc()
         if npc is False:
-            return 'redirect'
+            return Block('redirect').get_step()
         npc_image = npc.get_image()
         # prompt no longer tagged or converted to markmin here, but in view
         bg_image = self.loc.get_bg()
+        instr_args = {'_class': 'btn btn-info',
+                     '_data-toggle': 'popover',
+                     '_data-content': instructions,
+                     '_id': 'instructions_btn',
+                     '_href': '#'}
+        slides_args = {'_class': 'btn btn-info',
+                       '_data-toggle': 'popover',
+                       '_data-content': slides,
+                       '_href': '#',
+                       '_id': 'slides_btn'}
         npc = DIV(prompt,
-                  DIV(instructions, _class='instructions', _id='instructions'),
-                  A('instructions', _class='btn btn-info', _id='instructions_btn'),
-                  DIV(slides, _class='slides', _id='slides'),
-                  A('slides', _class='btn btn-info', _id='slides_btn'),
+                  A('instructions', **instr_args),
+                  A('slides', **slides_args),
                   _class='npc prompt')
 
         return {'npc': npc,
@@ -970,6 +977,13 @@ class StepText(Step):
             user_response = request.vars['response']
 
         readable = self._get_readable()
+        rdbl = UL(_class='readable_short')
+        if isinstance(readable['readable_short'], list):
+            for r in readable:
+                rdbl.append(LI(r))
+        else:
+            rdbl.append(LI(readable['readable_short']))
+
         try:
             tips = self.data['hints']
             responses = {k: v for k, v in self.data.iteritems()
@@ -978,27 +992,33 @@ class StepText(Step):
             tips = self.data['step'].data['hints']
             responses = {k: v for k, v in self.data['step'].data.iteritems()
                          if k and (k in ['response1', 'response2', 'response3'])}
+        hints_args = {'_class': 'btn btn-info',
+                     '_data-toggle': 'popover',
+                     '_data-content': tips,
+                     '_id': 'instructions_btn',
+                     '_href': '#'}
+        readable_long_args = {'_class': 'btn btn-info',
+                              '_data-toggle': 'popover',
+                              '_data-content': readable['readable_long'],
+                              '_id': 'readable_btn',
+                              '_href': '#'}
 
         result = StepEvaluator(responses, tips).get_eval(user_response)
 
         bg_image = self.loc.get_bg()
 
-        npc = DIV(_class='npc prompt')
-        npc.append(P(result['reply']))
-        npc.append(P('You said ', UL(LI(user_response))))
+        npc = self.get_npc()  # duplicate choice prevented in get_npc()
+        npc_image = npc.get_image()
 
-        readable = UL(_class='readable_short')
-        if isinstance(result['readable'], list):
-            for r in result['readable']:
-                readable.append(LI(r))
-        else:
-            readable.append(LI(result['readable']))
-
-        npc.append(P('Correct answers would include ', readable))
+        reply = DIV(P(result['reply'], 'You said ', UL(LI(user_response)),
+                    'Correct answers would include ', rdbl),
+                  A('Hints', **hints_args),
+                  A('More answers', **readable_long_args),
+                  _class='npc prompt')
 
         return {'bg_image': bg_image,
-                'npc': npc,
-                'tips': tips,
+                'npc': reply,
+                'npc_image': npc_image,
                 'readable_long': readable['readable_long'],
                 'score': result['score'],
                 'times_right': result['times_right'],
