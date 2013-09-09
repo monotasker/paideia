@@ -1,3 +1,5 @@
+from gluon import A, URL
+
 
 def IMG_CHOOSER(table=None, downloadfield=None,
                 titlefield=None, descrfield=None):
