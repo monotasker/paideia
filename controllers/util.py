@@ -6,7 +6,7 @@ if 0:
 
 
 def migrate_field():
-    fields = {'tags': ('position', 'tag_position')}
+    fields = {'plugin_slider_slides': ('content', 'slide_content')}
 
     for t, f in fields.iteritems():
         table = t

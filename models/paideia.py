@@ -4,7 +4,7 @@ from plugin_ajaxselect import AjaxSelect
 from itertools import chain
 import datetime
 import os
-import re
+#import re
 
 if 0:
     from gluon import URL, current, Field, IS_IN_DB, IS_NOT_IN_DB, SQLFORM
@@ -24,28 +24,28 @@ dtnow = datetime.datetime.utcnow()
 
 
 #TODO: Fix this regex validator
-class IS_VALID_REGEX(object):
-    """
-    custom validator to check regex in step definitions against the given
-    readable responses.
-    """
-    def __init__(self):
-        self.error_message = 'Given answers do not satisfy regular expression.'
+#class IS_VALID_REGEX(object):
+    #"""
+    #custom validator to check regex in step definitions against the given
+    #readable responses.
+    #"""
+    #def __init__(self):
+        #self.error_message = 'Given answers do not satisfy regular expression.'
 
-    def __call__(self, value):
-        request = current.request
-        answers = request.vars.readable_response
-        alist = answers.split('|')
-        regex = value.encode('string-escape')
-        for a in alist:
-            if re.match(a.strip(), regex, re.I):
-                print a.strip()
-                print 'it matched!'
-            else:
-                print 'answer ', a, ' did not match the regex provided.'
-                print regex
-                return (value, self.error_message)
-        return (value, None)
+    #def __call__(self, value):
+        #request = current.request
+        #answers = request.vars.readable_response
+        #alist = answers.split('|')
+        #regex = value.encode('string-escape')
+        #for a in alist:
+            #if re.match(a.strip(), regex, re.I):
+                #print a.strip()
+                #print 'it matched!'
+            #else:
+                #print 'answer ', a, ' did not match the regex provided.'
+                #print regex
+                #return (value, self.error_message)
+        #return (value, None)
 
 db.define_table('classes',
                 Field('institution', 'string', default='Tyndale Seminary',

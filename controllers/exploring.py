@@ -89,21 +89,14 @@ def walk():
     # When user begins exploring (also default) present map
     if (not rargs) or (rargs[0] == 'map'):
         return {'map': walk.map()}
+    elif rargs[0] == 'repeat':
+        stepargs = {'repeat': True}
     else:
         stepargs = {}
         stepargs['response_string'] = rvars['response'] if \
             ('response' in rvars and 'response' not in [' ', None]) else None
 
-        return walk.start(**stepargs)
-
-    # TODO: re-implement in module
-    # if user wants to retry a failed step
-    #elif request.args(0) == 'retry':
-        #if debug: print '\ncontroller exploring.walk() state: retry'
-        #last_pathid = session.walk['retry'][0]
-        #last_stepid = session.walk['retry'][1]
-        #walk.activate_step(last_pathid, last_stepid)
-        #return walk.step.ask()
+    return walk.start(**stepargs)
 
     # TODO: re-implement in module
     # test a specific path

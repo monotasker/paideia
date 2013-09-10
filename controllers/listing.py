@@ -135,7 +135,7 @@ def slides():
     """
     debug = False
     slidelist = db(db.plugin_slider_decks.id > 0).select(
-                                    orderby=db.plugin_slider_decks.position)
+                                    orderby=db.plugin_slider_decks.deck_position)
     progress = db(db.tag_progress.name == auth.user_id).select().first()
 
     slides = UL()
@@ -165,8 +165,9 @@ def slides():
                 slides[-1].append(SPAN(b.badges.badge_name))
         except Exception, e:
             print type(e), e
-    if auth.is_logged_in():
-        if session.walk and 'view_slides' in session.walk:
-            del session.walk['view_slides']
+    # TODO: re-implement this flag to force users to view new slide decks
+    #if auth.is_logged_in():
+        #if session.walk and 'view_slides' in session.walk:
+            #del session.walk['view_slides']
 
     return dict(slides=slides)

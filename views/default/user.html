@@ -22,10 +22,10 @@
     <div class='loginform'>
         {{=form}}
         {{if not 'register' in auth.settings.actions_disabled:}}
-            <a href="{{=URL(r=request,args='register')}}">register</a>
+            <a class='btn btn-success' href="{{=URL(r=request,args='register')}}">register</a>
         {{pass}}
         {{if not 'request_reset_password' in auth.settings.actions_disabled:}}
-            <a href="{{=URL(r=request,
+            <a class='btn btn-info'href="{{=URL(r=request,
                              args='request_reset_password')}}">lost password</a>
         {{pass}}
     </div>
