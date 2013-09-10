@@ -2,18 +2,13 @@
     {{#=response.toolbar()}}
 {{pass}}
 
-<!--when an error is raised-->
-<!-- TODO: Rework this error message -->
-{{if request.args(0) == 'error':}}
-    <section class='npc'> {{=message}} {{=button}} </section>
+<div id='loading-mask' style="position:absolute; top:0; left:0; width:100%; height:100%; min-height:100%; background:#000000; background-color:rgba(0,0,0,0.6); text-align: center; display:none;">
+    <img src={{=URL('static', 'images/ajax-loader.gif')}} style="margin:40%;" alt='loading spinner image' />
+</div>
 
 <!--map interface-->
-{{elif request.args(0) == 'start' or not request.args:}}
+{{if request.args(0) == 'map' or not request.args:}}
 	<embed id='town_map' src='{{=map["map_image"]}}' type='image/svg+xml' />
-    {{=TOOLTIP('townmap_key', 'Show map hotspots',
-                IMG(_src='../static/images/townmap.png'),
-                'left', 
-                'search')}}
 <!--step interface-->
 {{else:}}
     <div class='bg_image'>{{=npc['bg_image']}}</div>
@@ -23,6 +18,19 @@
 {{pass}}
 
 <script>
+$('.popover-trigger').each(function() {
+    var $this = $(this);
+    $this.popover({html: true,
+                   animation: true,
+                   content: $this.find('.popover-content').html()
+    });
+});
+
+$('#responder submit').click(function(event){
+    $('#loading-mask').css({'display': 'block'});
+    window.parent.web2py_component("/paideia/exploring/walk.load/reply","page");
+    event.preventDefault();
+});
 
 $('#test_this_step').click(function(event){
     val = $(this).parent('li').find('#test_path').val();
@@ -31,33 +39,4 @@ $('#test_this_step').click(function(event){
     window.parent.web2py_component("/paideia/exploring/walk.load/test?path=" + val + "&step=" + val2 + "&loc=" + loc, "page");
     event.preventDefault();
 });
-$('#responder_submit').click(function(event){
-    window.parent.web2py_component("/paideia/exploring/walk.load/reply","page");
-    event.preventDefault();
-});
-$('.bug_reporter').popover({
-    'html': true,
-    'animation': true, 
-    'pladement': 'left',
-    'title': 'Report a bug',});
-$('#instructions_btn').popover({'html': true,
-    'animation': true, 
-    'pladement': 'left',
-    'title': 'Instructions',});
-$('#slides_btn').popover({'html': true,
-    'animation': true, 
-    'pladement': 'left',
-    'title': 'Related slide decks',});
-$('#readable_btn').popover({'html': true,
-    'animation': true, 
-    'pladement': 'right',
-    'title': 'Other valid responses',});
-$('.prompt_badges').popover({'html': true,
-    'animation': true, 
-    'pladement': 'left',
-    'title': 'Badges in focus for this step',});
-$('.townmap_key_trigger').popover({'html': true,
-    'animation': true, 
-    'pladement': 'left',
-    'title': 'Map hotspots',});
 </script>
