@@ -5,11 +5,12 @@ if 0:
     from gluon import current, URL, A, H3
     from gluon.dal import DAL
     from gluon.tools import Auth, Crud
-    request,session=current.request,current.session
-    response,T,cache=current.response,current.t,current.cache
+    request, session = current.request, current.session
+    response, T, cache = current.response, current.t, current.cache
     crud = Crud()
     db = DAL()
     auth = Auth()
+
 
 @auth.requires_membership(role="administrators")
 def tag():
@@ -17,17 +18,14 @@ def tag():
     closer = A('close', _href=URL('#'), _class='close_link')
     the_title = H3('Create a New Tag')
 
-    return dict(form = edit_form, closer=closer, the_title=the_title)
+    return {'form': edit_form, 'closer': closer, 'the_title': the_title}
+
 
 @auth.requires_login()
 def bug():
     """
     Create a new bug report for a step.
     """
-    b = Bug(request.vars.step, request.vars.path, session.walk['active_location'])
-    return dict(success=b.log_new(request.vars.answer,
-                                    request.vars.log_id,
-                                    request.vars.score,
-                                    request.vars.step,
-                                    request.vars.path))
-
+    rvars = request.vars
+    b = Bug(step_id=rvars.step_id, path_id=rvars.path_id, loc_id=rvars.loc_id)
+    return dict(success=b.log_new(rvars.answer, rvars.log_id, rvars.score))

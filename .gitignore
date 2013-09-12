@@ -2,6 +2,7 @@
 *.bak
 *.swp
 *.swo
+*.un~
 *~
 private/*
 errors/*

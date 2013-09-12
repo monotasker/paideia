@@ -1,7 +1,5 @@
-from gluon import current, BEAUTIFY, xmlescape, XML
+from gluon import current
 from datetime import timedelta
-import urllib2
-mail = current.mail
 
 
 class Bug(object):
@@ -12,122 +10,70 @@ class Bug(object):
     Handles the creation, manipulation, and reporting of bug
     reports for paideia.
     """
-    def __init__(self, step=None, path=None, location=None):
-        if self.verbose: print '\nInitializing Bug object ==================='
-        debug = False
-        session = current.session
+    def __init__(self, step_id=None, path_id=None, loc_id=None):
+        """
+        Initialize a Bug object for generating bug reports on specific user
+        interactions.
+        """
+        self.step_id = step_id
+        self.path_id = path_id
+        self.loc_id = loc_id
 
-        if (step is None) and (session.walk) and ('retry' in session.walk):
-            path = session.walk['retry'][0]
-            step = session.walk['retry'][1]
-        elif (step is None) and (session.walk) and ('step' in session.walk):
-            path = session.walk['path']
-            step = session.walk['step']
-        self.step = step
-        self.path = path
-        if (location is None) and (session.walk) and ('active_location'
-                                                           in session.walk):
-            location = session.walk['active_location']
-        self.location = location
-        if debug:
-            print 'initial arguments:', self.step, self.path, self.location
-
-        return
-
-    def log_new(self, answer, log_id, score, step=None, path=None):
+    def log_new(self, answer, log_id, score):
         """
         creates a new bug report and provides confirmation to the user.
         """
-        if self.verbose: print 'calling Bug.log_new object ================='
-        debug = True
         response = current.response
-        session = current.session
-        request = current.request
-        auth = current.auth
         db = current.db
-        if step is None:
-            step = self.step
-        if path is None:
-            path = self.path
-
-        location = db(db.locations.alias ==
-                                    self.location['alias']).select().first()
-        if debug:
-            print 'score =', score
-            print 'log_id =', log_id
-
-        # get most recent log entry if no log_id is provided
-        if log_id is None:
-            rows = db(db.attempt_log.name
-                    == auth.user_id).select(orderby=db.attempt_log.dt_attempted)
-            log_id = rows.last().id
-
-        if debug:
-            rows = db(db.attempt_log.name
-                    == auth.user_id).select(orderby=db.attempt_log.dt_attempted)
-            log_id = rows.last().id
-            print 'log_id retrieved from table:', log_id
 
         try:
-            db.bugs.insert(step=step,
-                            path=path,
-                            location=location.id,
-                            user_response=answer,
-                            log_id=log_id,
-                            score=score)
-            response.flash = 'Thanks for reporting this potential bug. We will\
-                    look at the question to see what the problem was. If there\
-                    turns out to be a problem with the question, this answer\
-                    will be ignored as we track your learning. Check your\
-                    profile page in the next few days to see the instructor\'s\
-                    response to your bug report.'
+            db.bugs.insert(step=self.step_id,
+                           path=self.path_id,
+                           location=self.loc_id,
+                           user_response=answer,
+                           log_id=log_id,
+                           score=score)
+            response.flash = 'Thanks for reporting this potential bug. We '\
+                             'will look at the question to see what the '\
+                             'problem was. If there turns out to be a '\
+                             'problem with the question, this answer will '\
+                             'be ignored as we track your learning. Check '\
+                             'your profile page in the next few days to see '\
+                             'the instructor\'s response to your bug report.'
             return True
-        except Exception, e:
-            response.flash = 'Sorry, something went wrong with your bug\
-                    report. An email including the details of your response\
-                    has been sent automatically to the instructor.'
-            mail.send(mail.settings.sender,
-                      'bug reporting error',
-                      '<html>A user tried to submit a step bug report, but the\
-                       report failed. The session data is:\n{}\nThe request\
-                       data is: {}</html>'.format(BEAUTIFY(session),
-                                           BEAUTIFY(request)))
+        except Exception:
+            mail = current.mail
+            response.flash = 'Sorry, something went wrong with your bug' \
+                             'report. An email including the details of ' \
+                             'your response has been sent automatically to ' \
+                             'the instructor.'
+            msg = '<html>A user tried to submit a step bug report, but the' \
+                  'report failed. The request data is:\n{}\nThe request' \
+                  'data is: n/a</html>'
+            mail.send(mail.settings.sender, 'bug reporting error', msg)
             # TODO: Log these errors.
-            print 'Error in Bug.log_new():', e
             return False
 
-    def undo(self, user_id, bug_id, log_id, step_id=None, db=None):
+    def undo(self, user_id, bug_id, log_id):
         '''
         Reverse the recorded effects of a single wrong answer for a given user.
 
         Intended to be run when an administrator or instructor sets a bug to
         'confirmed' or 'fixed'.
         '''
-        if self.verbose: print '\ncalling Bug.undo ==================='
-        debug = False
-
-        if db is None:
-            db = current.db
-        if step_id is None:
-            step_id = self.step
-            if debug: print 'step_id', step_id
-        if debug: print 'bug_id', bug_id
-        if debug: print 'log_id', log_id
-        response = current.response
+        db = current.db
+        step_id = self.step_id
 
         bug_row = db.bugs(bug_id)
-        if debug: print 'bug_row', bug_row
 
         # don't do anything if the original answer was counted as correct
         if bug_row.score == 1:
-            return
+            return True
 
         try:
             # correct score in the attempt_log table
             log_row = db.attempt_log(log_id)
             log_row.update_record(score=1)
-            if debug:
-                print 'updated log:', log_row
 
             # correct tag_records entry for each tag on the step
             step_id = bug_row.step
@@ -135,7 +81,6 @@ class Bug(object):
             for tag in tagset:
                 trecord = db((db.tag_records.tag == tag) &
                             (db.tag_records.name == user_id)).select().first()
-                if debug: print '\ntag:', trecord
                 args = {}
 
                 # revert the last right date
@@ -158,7 +103,7 @@ class Bug(object):
                     oldlogs = db((db.attempt_log.name == user_id) &
                                 (db.attempt_log.step == step_id) &
                                 (db.attempt_log.score < 1)
-                                ).select(orderby=~db.attempt_log.dt_attempted)
+                                 ).select(orderby=~db.attempt_log.dt_attempted)
                     oldlogs = oldlogs.find(lambda row:
                             (bugdate - row.dt_attempted) >
                             timedelta(seconds=1))
@@ -170,14 +115,12 @@ class Bug(object):
                 args['times_wrong'] = (trecord.times_wrong - 1)
 
                 trecord.update_record(**args)
-                if debug: print '\nupdated: ', trecord
 
                 return 'Bug {} reversed.'.format(bug_id)
 
         except Exception, e:
             print type(e), e
             return 'Bug {} could not be reversed.'.format(bug_id)
-
 
     def bugresponses(self, user):
         '''

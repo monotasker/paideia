@@ -25,13 +25,13 @@ p11
 ssS'date_attempted'
 p12
 (dp13
-S'type'
+S'sortable'
 p14
-S'date'
-p15
-sS'sortable'
-p16
 I6
+sS'type'
+p15
+S'date'
+p16
 sS'sql'
 p17
 S'DATE'
@@ -39,13 +39,13 @@ p18
 ssS'question'
 p19
 (dp20
-S'type'
+S'sortable'
 p21
-S'reference questions'
-p22
-sS'sortable'
-p23
 I3
+sS'type'
+p22
+S'reference questions'
+p23
 sS'sql'
 p24
 S'INTEGER REFERENCES questions(id) ON DELETE CASCADE'
@@ -53,13 +53,13 @@ p25
 ssS'quiz'
 p26
 (dp27
-S'type'
+S'sortable'
 p28
-S'reference quizzes'
-p29
-sS'sortable'
-p30
 I5
+sS'type'
+p29
+S'reference quizzes'
+p30
 sS'sql'
 p31
 S'INTEGER REFERENCES quizzes(id) ON DELETE CASCADE'
@@ -98,23 +98,9 @@ I00
 sg10
 S'double'
 p40
-ssS'path'
+ssS'dt_attempted'
 p41
 (dp42
-S'type'
-p43
-S'reference paths'
-p44
-sS'sortable'
-p45
-I4
-sS'sql'
-p46
-S'INTEGER REFERENCES paths(id) ON DELETE CASCADE'
-p47
-ssS'dt_attempted'
-p48
-(dp49
 g4
 I512
 sg5
@@ -123,11 +109,25 @@ sg6
 I6
 sg7
 S'TIMESTAMP'
-p50
+p43
 sg9
 I00
 sg10
 S'datetime'
+p44
+ssS'path'
+p45
+(dp46
+S'sortable'
+p47
+I4
+sS'type'
+p48
+S'reference paths'
+p49
+sS'sql'
+p50
+S'INTEGER REFERENCES paths(id) ON DELETE CASCADE'
 p51
 ssS'in_path'
 p52
