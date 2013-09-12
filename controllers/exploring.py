@@ -89,7 +89,7 @@ def walk():
     # When user begins exploring (also default) present map
     if (not rargs) or (rargs[0] == 'map'):
         return {'map': walk.map()}
-    elif rargs[0] == 'repeat':
+    elif rargs[0] == 'repeat' and not 'response' in rvars.keys():
         stepargs = {'repeat': True}
     else:
         stepargs = {}
