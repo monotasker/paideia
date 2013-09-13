@@ -783,7 +783,7 @@ class StepContinue(Step):
         responder = super(StepContinue, self).get_responder()
 
         continue_button = A("Continue", _href=URL('walk', args=['ask'],
-                            vars={'loc': self.loc.get_id()}),
+                            vars={'loc': self.loc.get_alias()}),
                             cid='page',
                             _class='continue btn btn-success')
         responder.append(continue_button)
