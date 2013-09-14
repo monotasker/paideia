@@ -4,11 +4,15 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+AjaxSelect	plugin_ajaxselect.py	/^class AjaxSelect(object):$/;"	c
 Block	paideia.py	/^class Block(object):$/;"	c
 Bug	paideia_bugs.py	/^class Bug(object):$/;"	c
 BugReporter	paideia.py	/^class BugReporter(object):$/;"	c
 Categorizer	paideia.py	/^class Categorizer(object):$/;"	c
+FilteredAjaxSelect	plugin_ajaxselect.py	/^class FilteredAjaxSelect(AjaxSelect):$/;"	c
+FilteredOptionsWidget	plugin_ajaxselect.py	/^class FilteredOptionsWidget(OptionsWidget):$/;"	c
 IMG_CHOOSER	plugin_img_chooser.py	/^def IMG_CHOOSER(table=None, downloadfield=None,$/;"	f
+JQMODAL	plugin_widgets.py	/^class JQMODAL():$/;"	c
 Location	paideia.py	/^class Location(object):$/;"	c
 Location	paideia_exploring.py	/^class Location(object):$/;"	c
 Map	paideia_exploring.py	/^class Map(object):$/;"	c
@@ -17,6 +21,7 @@ Name	paideia_stats.py	/^    Name = "paideia_stats"$/;"	v	class:Stats
 Npc	paideia.py	/^class Npc(object):$/;"	c
 Npc	paideia_exploring.py	/^class Npc(object):$/;"	c
 NpcChooser	paideia.py	/^class NpcChooser(object):$/;"	c
+POPOVER	plugin_widgets.py	/^class POPOVER():$/;"	c
 Path	paideia.py	/^class Path(object):$/;"	c
 PathChooser	paideia.py	/^class PathChooser(object):$/;"	c
 STEP_CLASSES	paideia_exploring.py	/^STEP_CLASSES = {$/;"	v
@@ -67,10 +72,12 @@ __init__	paideia_exploring.py	/^    def __init__(self, force_new_session=False):
 __init__	paideia_exploring.py	/^    def __init__(self, npc_id=None):$/;"	m	class:Npc
 __init__	paideia_exploring.py	/^    def __init__(self, step=None):$/;"	m	class:Step
 __init__	paideia_stats.py	/^    def __init__(self, user_id=None, auth=None):$/;"	m	class:Stats
+__init__	plugin_ajaxselect.py	/^    def __init__(self, field, value, linktable,$/;"	m	class:AjaxSelect
+__init__	plugin_widgets.py	/^    def __init__(self):$/;"	m	class:POPOVER
+__init__	plugin_widgets.py	/^    def __init__(self, field, value):$/;"	m	class:JQMODAL
 _add_secondary_right	paideia.py	/^    def _add_secondary_right(self, tag_records):$/;"	m	class:Categorizer
 _add_untried_tags	paideia.py	/^    def _add_untried_tags(self, categories, rank=None, db=None):$/;"	m	class:Categorizer
 _categorize_tags	paideia_exploring.py	/^    def _categorize_tags(self, user=None, auth=None, db=None, progress=None):$/;"	m	class:Walk
-_check_for_blocks	paideia.py	/^    def _check_for_blocks(self, next_step, db=None):$/;"	m	class:Path
 _check_for_session	paideia_exploring.py	/^    def _check_for_session(self):$/;"	m	class:Walk
 _choose_from_cat	paideia.py	/^    def _choose_from_cat(self, cpaths, category):$/;"	m	class:PathChooser
 _clean_tag_records	paideia.py	/^    def _clean_tag_records(record_list=None, db=None):$/;"	m	class:Categorizer
@@ -150,17 +157,22 @@ ask	paideia.py	/^    def ask(self, path=None, repeat=None):$/;"	m	class:Walk
 ask	paideia_exploring.py	/^    def ask(self):$/;"	m	class:Step
 bugresponses	paideia_bugs.py	/^    def bugresponses(self, user):$/;"	m	class:Bug
 categorize_tags	paideia.py	/^    def categorize_tags(self, rank=None, tag_records=None,$/;"	m	class:Categorizer
+check_for_blocks	paideia.py	/^    def check_for_blocks(self, next_step, db=None):$/;"	m	class:Path
 choose	paideia.py	/^    def choose(self):$/;"	m	class:NpcChooser
 choose	paideia.py	/^    def choose(self, db=None):$/;"	m	class:PathChooser
+choose_val	plugin_ajaxselect.py	/^    def choose_val(self, value):$/;"	m	class:AjaxSelect
 clear_session	paideia_exploring.py	/^    def clear_session(self):$/;"	m	class:Utils
 complete_path	paideia.py	/^    def complete_path(self):$/;"	m	class:User
 complete_step	paideia.py	/^    def complete_step(self):$/;"	m	class:Path
+create_widget	plugin_ajaxselect.py	/^    def create_widget(self):$/;"	m	class:AjaxSelect
+create_widget	plugin_ajaxselect.py	/^    def create_widget(self, field, value, clean_val, multi, restricted, rval):$/;"	m	class:FilteredAjaxSelect
 debug	paideia_exploring.py	/^    debug = False$/;"	v	class:Location
 dtnow	paideia_exploring.py	/^dtnow = datetime.datetime.utcnow$/;"	v
 end_prompt	paideia.py	/^    def end_prompt(self):$/;"	m	class:Path
 get_alias	paideia.py	/^    def get_alias(self):$/;"	m	class:Location
 get_bg	paideia.py	/^    def get_bg(self):$/;"	m	class:Location
 get_categories	paideia.py	/^    def get_categories(self, rank=None, old_categories=None,$/;"	m	class:User
+get_classes	plugin_ajaxselect.py	/^    def get_classes(self, linktable, restricted, restrictor, lister, sortable):$/;"	m	class:AjaxSelect
 get_condition	paideia.py	/^    def get_condition(self):$/;"	m	class:Block
 get_data	paideia.py	/^    def get_data(self):$/;"	m	class:Block
 get_description	paideia.py	/^    def get_description(self):$/;"	m	class:Npc
@@ -173,6 +185,7 @@ get_id	paideia.py	/^    def get_id(self):$/;"	m	class:Step
 get_id	paideia.py	/^    def get_id(self):$/;"	m	class:User
 get_image	paideia.py	/^    def get_image(self, db=None):$/;"	m	class:Npc
 get_instance	paideia.py	/^    def get_instance(self, db=None, **kwargs):$/;"	m	class:StepFactory
+get_linktable	plugin_ajaxselect.py	/^    def get_linktable(self, field):$/;"	m	class:AjaxSelect
 get_locations	paideia.py	/^    def get_locations(self):$/;"	m	class:Npc
 get_locations	paideia.py	/^    def get_locations(self):$/;"	m	class:Step
 get_locations	paideia_exploring.py	/^    def get_locations(self):$/;"	m	class:Map
@@ -198,13 +211,21 @@ get_steps	paideia.py	/^    def get_steps(self, username):$/;"	m	class:Path
 get_tag_progress	paideia.py	/^    def get_tag_progress(self):$/;"	m	class:User
 get_tag_records	paideia.py	/^    def get_tag_records(self):$/;"	m	class:User
 get_tags	paideia.py	/^    def get_tags(self):$/;"	m	class:Step
+get_widget_index	plugin_ajaxselect.py	/^    def get_widget_index(self):$/;"	m	class:AjaxSelect
+get_wrappername	plugin_ajaxselect.py	/^    def get_wrappername(self, fieldset):$/;"	m	class:AjaxSelect
+hidden_ajax_field	plugin_ajaxselect.py	/^    def hidden_ajax_field(self):$/;"	m	class:AjaxSelect
 info	paideia_exploring.py	/^    def info(self):$/;"	m	class:Location
 is_stale	paideia.py	/^    def is_stale(self, now=None, start=None, time_zone=None, db=None):$/;"	m	class:User
+listcheck	plugin_ajaxselect.py	/^def listcheck(val):$/;"	f
 log_list	paideia_stats.py	/^    def log_list(self):$/;"	m	class:Stats
 log_new	paideia_bugs.py	/^    def log_new(self, answer, log_id, score):$/;"	m	class:Bug
 logger	paideia_exploring.py	/^logger = logging.getLogger('web2py.app.paideia')$/;"	v
 logger	paideia_stats.py	/^logger = logging.getLogger('web2py.app.paideia')$/;"	v
+make_adder	plugin_ajaxselect.py	/^    def make_adder(self, wrappername, linktable):$/;"	m	class:AjaxSelect
+make_linklist	plugin_ajaxselect.py	/^    def make_linklist(self, value, linktable, uargs, uvars, sortable):$/;"	m	class:AjaxSelect
+make_refresher	plugin_ajaxselect.py	/^    def make_refresher(self, wrappername, linktable, uargs, uvars):$/;"	m	class:AjaxSelect
 make_step	paideia.py	/^    def make_step(self, condition, kwargs=None, data=None):$/;"	m	class:Block
+make_taglist	plugin_ajaxselect.py	/^    def make_taglist(self):$/;"	m	class:AjaxSelect
 map	paideia.py	/^    def map(self, mapnum=None, db=None):$/;"	m	class:Walk
 monthcal	paideia_stats.py	/^    def monthcal(self, year=None, month=None):$/;"	m	class:Stats
 monthstats	paideia_stats.py	/^    def monthstats(self, year=None, month=None):$/;"	m	class:Stats
@@ -212,6 +233,10 @@ next_step	paideia_exploring.py	/^    def next_step(self):$/;"	m	class:Walk
 process	paideia_exploring.py	/^    def process(self, user_response):$/;"	m	class:Step
 process	paideia_exploring.py	/^    def process(self, user_response):$/;"	m	class:StepMultipleChoice
 reply	paideia.py	/^    def reply(self, response_string, path=None):$/;"	m	class:Walk
+restrict	plugin_ajaxselect.py	/^    def restrict(self, restricted):$/;"	m	class:AjaxSelect
+restrict	plugin_ajaxselect.py	/^    def restrict(self, restricted):$/;"	m	class:FilteredAjaxSelect
+sanitize_int	plugin_ajaxselect.py	/^    def sanitize_int(self, val):$/;"	m	class:AjaxSelect
+sanitize_valstring	plugin_ajaxselect.py	/^    def sanitize_valstring(self, value):$/;"	m	class:AjaxSelect
 save_session_data	save_session_data.py	/^def save_session_data(self):$/;"	f
 set_location	paideia.py	/^    def set_location(self, loc):$/;"	m	class:Path
 set_location	paideia.py	/^    def set_location(self, loc):$/;"	m	class:User
@@ -220,8 +245,8 @@ set_npc	paideia.py	/^    def set_npc(self, npc):$/;"	m	class:Path
 start	paideia.py	/^    def start(self, response_string=None, path=None, repeat=None):$/;"	m	class:Walk
 stay	paideia_exploring.py	/^    def stay(self):$/;"	m	class:Walk
 step_log	paideia_stats.py	/^    def step_log(self, logs=None, user_id=None, duration=None, db=None):$/;"	m	class:Stats
+textarea	plugin_widgets.py	/^    def textarea(self, label, target, cname, fname, linkargs=None):$/;"	m	class:JQMODAL
 undo	paideia_bugs.py	/^    def undo(self, user_id, bug_id, log_id):$/;"	m	class:Bug
-update_data	paideia.py	/^    def update_data(self, loc, tag_records, tag_progress):$/;"	m	class:User
 util_get_args	paideia.py	/^def util_get_args():$/;"	f
 verbose	paideia_bugs.py	/^    verbose = False$/;"	v	class:Bug
 verbose	paideia_exploring.py	/^    verbose = False  # controls printing of initialization and method calls$/;"	v	class:Walk
@@ -235,3 +260,6 @@ verbose	paideia_exploring.py	/^    verbose = False$/;"	v	class:StepStub
 verbose	paideia_exploring.py	/^    verbose = False$/;"	v	class:StepViewSlides
 verbose	paideia_exploring.py	/^    verbose = False$/;"	v	class:Utils
 verbose	paideia_stats.py	/^    verbose = False$/;"	v	class:Stats
+widget	plugin_ajaxselect.py	/^    def widget(cls, field, value, restricted, rval, **attributes):$/;"	m	class:FilteredOptionsWidget
+widget	plugin_ajaxselect.py	/^    def widget(self):$/;"	m	class:AjaxSelect
+widget	plugin_widgets.py	/^    def widget(self, linktext, content, classnames=None,$/;"	m	class:POPOVER

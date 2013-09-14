@@ -14,6 +14,7 @@ import traceback
 from pytz import timezone
 from plugin_widgets import POPOVER
 import pickle
+#from pprint import pprint
 
 # TODO: move these notes elsewhere
 """
@@ -73,11 +74,14 @@ class Walk(object):
         Initialize or re-activate User object.
         All named arguments are necessary.
         '''
+        print('walk.get_user: loc is', self.loc.get_id())
+        loc = self.loc if not loc else loc
         auth = current.auth
         db = current.db if not db else db
         try:
             self.user.get_categories()
             self.user.set_location(loc)
+            print('walk.get_user: retrieved user in memory')
             return self.user
         except AttributeError:  # because no user yet on this Walk
             try:
@@ -87,8 +91,13 @@ class Walk(object):
                     user = pickle.loads(sd['other_data'])
                 else:
                     user = None
+                assert False  # just to force creation of new walk object
                 assert user.is_stale() is False
                 assert user.get_categories()
+                user.set_location(loc)
+                print('walk.get_user: loc is', self.loc.get_id())
+                print('walk.get_user: prev_loc is', self.prev_loc.get_id())
+                print('walk.get_user: retrieved user in memory')
                 self.user = user
                 return user
             except Exception:  # (AttributeError, AssertionError)
@@ -103,7 +112,9 @@ class Walk(object):
                         tag_progress = db(db.tag_progress.name == uid).select().first()
                     tag_progress = tag_progress.as_dict()
 
+                print 'creating new user'
                 user = User(userdata, loc, tag_records, tag_progress)
+                print 'success'
                 self.user = user
                 return self.user
 
@@ -177,7 +188,9 @@ class Walk(object):
             else:
                 s = block.get_step()
 
-        user.set_npc(s.get_npc)  # since npc decision has to follow step choice
+        mynpc = s.get_npc(prev_npc=user.prev_npc,
+                          prev_loc=user.prev_loc)
+        user.set_npc(mynpc)  # since npc decision has to follow step choice
 
         # get data to send to view
         prompt = s.get_prompt()
@@ -189,6 +202,7 @@ class Walk(object):
 
         print 'step_for_reply is', p.step_for_reply
         print 'END OF ASK IN MODULE'
+        print '==============================\n'
 
         return {'npc': prompt, 'responder': responder}
 
@@ -825,7 +839,7 @@ class Step(object):
                 # choose a new npc
                 print('Step.get_npc: selecting a new npc')
                 npc_list = [int(n) for n in self.get_npcs()
-                            if loc_id in db.npcs[n].map_location]
+                            if loc_id in db.npcs[n]['map_location']]
                 print(len(npc_list), 'npcs available for step')
 
                 if len(npc_list) < 1:
@@ -840,10 +854,10 @@ class Step(object):
                     print('Step.npc: found npc in loc', self.redirect_loc_id)
 
                     npcs_there = [n['id'] for n in db(db.npcs.id > 0).select()
-                                  if self.redirect_loc_id in n['map_locations']]
+                                  if self.redirect_loc_id in n['map_location']]
                     next_npc = npcs_there[randrange(len(npcs_there))]
                     self.npc = Npc(next_npc)
-                    print('Step.npc: setting next npc on Step for loc', self.next_loc_id)
+                    print('Step.npc: setting next npc on Step for loc', self.redirect_loc_id)
 
                     npcs_here = self.loc.get_npcs()
                     temp_npc_id = npcs_here[randrange(len(npcs_here))]
@@ -1365,22 +1379,13 @@ class Path(object):
             # TODO: why is this if condition necessary?
             if len(self.steps) > 1:
                 next_step = self.steps.pop(0)
+                print('path.prepare_for_prompt: got next in multi-step')
             else:
                 next_step = copy(self.steps[0])
                 self.steps = []
-
+                print('path.prepare_for_prompt: got last step')
             self.step_for_prompt = next_step
-            self.step_sent_id = next_step.get_id()
-            # TODO: what purpose does step_sent_id serve now?
-
-            if len(self.completed_steps) > 0:
-                last_step = self.completed_steps[-1]
-                self.prev_npc = last_step.get_npc().get_id()
-                print 'setting Path.prev_npc to', self.prev_npc
-                # only updated here if mid-way through multi-step path
-                # otherwise should have been set at Path init by
-                # User.get_path()
-
+            print('path.prepare_for_prompt: next step is', next_step.get_id())
             return True
         except:
             return False
@@ -1451,8 +1456,10 @@ class Path(object):
 
         # get step
         if not self.step_for_prompt:
+            print('path.get_step_for_prompt: no step_for_prompt ready, retrieving')
             assert self._prepare_for_prompt()
-        mystep = self.step_for_prompt()
+        mystep = self.step_for_prompt
+        print('path.get_step_for_prompt: initial step choice', mystep.get_id())
 
         # update location on step
         mystep.loc = self.loc
@@ -1487,7 +1494,7 @@ class Path(object):
                                  data=data))
         return True
 
-    def _check_for_blocks(self, next_step, db=None):
+    def check_for_blocks(self, next_step, db=None):
         """
         Check whether new block needed, then activate first block (if any).
 
@@ -1503,11 +1510,11 @@ class Path(object):
         # check that next step can be asked here, else redirect
 
         if self.blocks:
-            print 'blocks present:', [b.get_condition() for b in self.blocks]
+            print 'path.check_for_blocks: blocks present are', [b.get_condition() for b in self.blocks]
             myblock = self.blocks.pop(0)
             return myblock
         else:
-            return False
+            return None
 
     def get_step_for_reply(self):
         """
@@ -1554,7 +1561,10 @@ class Path(object):
         """
         Set the active location after initialization of the Path object.
         """
-        self.prev_loc = copy(self.loc)
+        if isinstance(self.prev_loc, int):
+            self.prev_loc = Location(self.prev_loc)
+        else:
+            self.prev_loc = copy(self.loc)
         self.loc = loc
         return True
 
@@ -1748,8 +1758,8 @@ class User(object):
             self.session_start = datetime.datetime.utcnow()
             self.loc = loc
             self.prev_loc = loc.get_id()
-            self.npc
-            self.prev_npc
+            self.npc = None
+            self.prev_npc = None
             self.quota = 40
         except Exception:
             print traceback.format_exc(5)
@@ -1789,6 +1799,13 @@ class User(object):
         else:
             return False
 
+    def set_npc(self, npc):
+        """
+        """
+        self.prev_npc = copy(self.npc)
+        self.npc = npc
+        return True
+
     def set_location(self, loc):
         """
         Update the user's location after initialization of the User object.
@@ -1798,8 +1815,13 @@ class User(object):
 
         Returns a boolean indicating success/failure.
         """
-        self.prev_loc = self.loc.get_id()
+        if isinstance(self.prev_loc, int):
+            self.prev_loc = Location(self.prev_loc)
+        else:
+            self.prev_loc = copy(self.loc)
         self.loc = loc
+        print('user.set_location: user.loc is', self.loc.get_id())
+        print('user.set_location: user.prev_loc is', self.prev_loc.get_id())
         return True
 
     def get_new_tags(self):
@@ -1840,6 +1862,8 @@ class User(object):
         """
         db = current.db if not db else db
         categories = self.get_categories() if not categories else categories
+        print('user.get_path: self.loc is', self.loc.get_id())
+        print('user.get_path: self.prev_loc is', self.prev_loc)
 
         if path:
             self.path = Path(path_id=path,
