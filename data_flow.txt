@@ -1,0 +1,70 @@
+Basic Step Cycle
+
+- loc and prev_loc are stored on User and Step (not Path)
+- prev_npc is stored on User and used by Step (not Walk or Path)
+
+If response present:
+
+Walk() 
+Walk._get_user()                            * Walk.user? 
+                                            Y 
+                                                * user stale?
+                                                Y   User() R
+                                                N   self.user R
+                                            N   User() R
+
+Walk.user.set_loc(loc)                      user.loc    > user.prev_loc
+                                            loc         > user.loc
+                                            
+
+Walk.user._get_path(user.loc,
+                    user.prev_loc)          ** user.path? 
+                                            Y    
+                                                ** more steps in the path?
+                                                Y   loc         > path.loc
+                                                    prev_loc    > path.prev_loc
+                                                    prev_npc    > path.prev_npc
+                                                    self.path R
+
+                                                N   self.path   > user.completed_paths
+                                                    Path(loc)   > self.path
+
+                                            N   PathChooser().choose()
+                                                Path() > self.path
+                                                self.path R
+
+Walk.user.path.get_step_for_prompt(user.loc,
+                                   user.prev_loc,
+                                   user.prev_npc)
+                                            ** path.step_for_reply? 
+                                            Y   path.Block ('need_to_reply')
+                                            N   
+                                                ** path.step_for_prompt?
+                                                Y   loc     > path.step_for_prompt.loc 
+                                                    loc     > path.step_for_prompt.prev_npc
+                                                    self.step_for_prompt R
+
+                                                N   path._prepare_for_prompt(loc)
+                                                        path.steps[0] > path.step_for_prompt 
+                                                    
+                                                    path._check_for_blocks
+
+
+Walk.user.path.step_for_prompt.get_prompt(user.name)            
+Walk.user.path.step_for_prompt.get_responder()            
+
+
+Walk.user.path.prepare_for_reply() [change: finish_prompt()]
+OR
+Walk.user.path.complete_step()              ** path.step is 2-stage?
+                                            Y   path.step_for_prompt > path.step_for_reply 
+                                                None > path.step_for_prompt
+
+                                            N   path.step_for_prompt > path.completed_steps
+                                                                
+R npc, responder, bg_image, npc_image
+
+-----------------------------------------------------------------------------------------------
+
+**if response string
+Walk.get_reply(response_string, loc)

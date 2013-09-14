@@ -74,6 +74,8 @@ db.define_table('images',
 db.define_table('audio',
     Field('clip', 'upload', length=128,
           uploadfolder=os.path.join(request.folder, "static/audio")),
+    Field('clip_ogg', 'upload', length=128,
+          uploadfolder=os.path.join(request.folder, "static/audio")),
     Field('title', 'string', length=256),
     Field('description', 'string', length=256),
     format='%(title)s')
