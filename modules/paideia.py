@@ -52,24 +52,32 @@ class Walk(object):
         """Initialize a Walk object."""
         self.localias = localias
         db = current.db if not db else db
+        # TODO: fix redundant db call here
         loc_id = db(db.locations.loc_alias == localias).select().first().id
         self.loc = Location(loc_id)
         self.response_string = response_string
+        # TODO: move retrieval of data to user init so it's not duplicated when
+        # just retrieving existing User.
         userdata = db.auth_user[current.auth.user_id].as_dict() \
             if not userdata else userdata
         self.user = self._get_user(userdata=userdata,
                                    loc=self.loc,
                                    tag_records=tag_records,
                                    tag_progress=tag_progress)
+        # TODO is record_id necessary?
         self.record_id = None  # stores step log row id after db update
 
     def _get_user(self, userdata=None, loc=None, tag_records=None,
                   tag_progress=None, db=None):
-        ''' initialize or re-activate User object '''
-        #session = current.session
+        '''
+        Initialize or re-activate User object.
+        All named arguments are necessary.
+        '''
         auth = current.auth
         db = current.db if not db else db
         try:
+            self.user.get_categories()
+            self.user.set_location(loc)
             return self.user
         except AttributeError:  # because no user yet on this Walk
             try:
@@ -80,6 +88,7 @@ class Walk(object):
                 else:
                     user = None
                 assert user.is_stale() is False
+                assert user.get_categories()
                 self.user = user
                 return user
             except Exception:  # (AttributeError, AssertionError)
@@ -154,29 +163,30 @@ class Walk(object):
         The value of 'responder' is a web2py html helper object.
         """
         user = self._get_user()
-        loc = self.loc
-        user.set_location(loc)  # must be set before step is retrieved
         p = user.get_path(path=path, repeat=repeat)  # call set_location here in get_path
-        user.last_response_text = None  # prevent using earlier response
-
         s = p.get_step_for_prompt(repeat=repeat)
-        if isinstance(s, Block):
-            condition = s.get_condition()
-            print 'encountered Block', condition
-            # a step needs to be finished (reply given or re-prompted)
-            if condition == 'need_to_reply' and user.last_response_text:
-                print 'found last response text'
-                type(user.last_response_text)
-                return self.reply(user.last_response_text)
-            elif condition == 'need_to_reply':
-                # TODO: this seems like a hack
+
+        # handle blocking conditions
+        block = p.check_for_blocks(s)
+        if block:
+            condition = block.get_condition()
+            print('encountered Block', condition)
+            if condition == 'need_to_reply':
                 s = copy(p.step_for_reply)
                 p.step_for_reply = None
+            else:
+                s = block.get_step()
 
+        user.set_npc(s.get_npc)  # since npc decision has to follow step choice
+
+        # get data to send to view
         prompt = s.get_prompt()
         responder = s.get_responder()
+
+        # clean up before return
+        assert p.end_prompt()  # non-response steps end here
         self._store_user(user)
-        # non-response steps end here
+
         print 'step_for_reply is', p.step_for_reply
         print 'END OF ASK IN MODULE'
 
@@ -201,23 +211,22 @@ class Walk(object):
             'times_wrong':
             'user_response':
         """
-        print 'START OF Walk.reply() IN MODULE'
+        print '\n================================'
+        print '\nSTART OF Walk.reply() IN MODULE'
         user = self._get_user()
         user_id = user.get_id()
 
-        user.last_response_text = response_string  # in case need to recover step
-
         # evaluate user response and generate reply
-        p = user.get_path(self.loc)
+        p = user.get_path(user.loc)
         # make sure there's a response to evaluate
         if not response_string or re.match(response_string, r'\s+'):
             p._set_block('empty_response')
 
         s = p.get_step_for_reply()
-        print 'step is', s
+        print 'walk.reply: step is', s
         if isinstance(s, Block):
-            print 'encountered block', s
             condition = s.get_condition()
+            print 'walk.reply: encountered block', condition
             if condition == 'empty_response':
                 return self.ask()
 
@@ -446,6 +455,13 @@ class Npc(object):
         locs = [l for l in self.data.map_location]
         return locs
 
+    def set_location(self, loc, prev_loc):
+        """
+        """
+        self.loc = loc
+        self.prev_loc = prev_loc
+        return True
+
     def get_description(self):
         """docstring for Npc.get_description"""
         return self.data.notes
@@ -581,19 +597,24 @@ class Step(object):
     def __init__(self, step_id=None, loc=None, prev_loc=None, prev_npc=None,
                  username=None, promoted=None, new_tags=None, **kwargs):
         """Initialize a paideia.Step object"""
+        # basic step data from db
         db = current.db
         self.data = db.steps[step_id].as_dict()
+
+        # flag
         self.repeating = False  # set to true if step already done today
-        self.loc = loc
-        print 'User.set_loc: loc is ', loc.get_id()
-        self.prev_loc = prev_loc
-        self.prev_npc = prev_npc
-        self.npc = None
-        self.get_npc()
+
+        # set by init args and used for prompt replacements
         self.username = username
         self.promoted = promoted
         self.new_tags = new_tags
-        print 'at init the Step npc is', self.npc
+
+        # set internally or later
+        self.npc = None  # must wait since all steps in path init at once
+        self.loc = None
+        self.prev_npc = None
+        self.prev_loc = None
+        self.redirect_loc_id = None
 
     def get_id(self):
         """
@@ -719,10 +740,6 @@ class Step(object):
             npc_prompt.append(slides_list)
 
         npc = self.get_npc()  # duplicate choice prevented in get_npc()
-        if not npc:
-            locs = self.get_locations()
-            kwargs = {'next_loc': locs[randrange(len(locs))]}
-            return Block('redirect', kwargs=kwargs).get_step()
         try:
             npc_image = npc.get_image()
         except AttributeError:
@@ -762,7 +779,7 @@ class Step(object):
         responder = DIV(map_button, _class='responder')
         return responder
 
-    def get_npc(self):
+    def get_npc(self, prev_npc=None, prev_loc=None):
         """
         Return an Npc object appropriate for this step
 
@@ -777,34 +794,68 @@ class Step(object):
         the Step has no access, the actual block is set by the Walk object
         after this method's value is returned.
         """
-        loc = self.loc.get_id()
+        # TODO: should this be where we do all checking for step-loc compat?
+        loc_id = self.loc.get_id()
         db = current.db
 
-        if self.npc and (loc in self.npc.get_locations()):  # ensure choice is made only once for each step
-            print 'continuing with the same npc', self.npc.get_id()
-            pass
+        if self.npc:
+            # ensure choice is made only once for each step
+
+            # make sure any redirects are to consistent npc/loc combo
+            if self.redirect_loc_id:
+                mynpc_locs = [self.redirect_loc_id]
+            else:
+                mynpc_locs = self.npc.get_locations()
+
+            if loc_id in mynpc_locs:
+                # pre-chosen npc is here
+                print('Step.get_npc: npc already chosen', self.npc.get_id())
+                pass
+            elif loc_id not in mynpc_locs:
+                # pre-chosen npc is elsewhere, redirect and choose temp
+                self.redirect_loc_id = mynpc_locs[randrange(len(mynpc_locs))]
+                return (self.redirect_loc_id, self.npc)
+
         else:
-            print 'selecting a new npc'
-            npc_list = [int(n) for n in self.get_npcs()
-                        if loc in db.npcs[n].map_location]
-            print len(npc_list), 'npcs available for step'
+            if prev_npc and (prev_loc.get_id() == loc_id):
+                # re-use last npc from this location
+                print('Step.get_npc: continuing with prev_npc')
+                self.npc = prev_npc
+            else:
+                # choose a new npc
+                print('Step.get_npc: selecting a new npc')
+                npc_list = [int(n) for n in self.get_npcs()
+                            if loc_id in db.npcs[n].map_location]
+                print(len(npc_list), 'npcs available for step')
 
-            if len(npc_list) < 1:
-                print 'no npc for this step here'
-                # no npc for this step available in this location
-                # choose an npc to redirect user elsewhere
-                good_locs = self.get_locations()
-                good_loc = good_locs[randrange(len(good_locs))]
-                print 'found npc in loc', good_loc
-                npcs_there = [n['id'] for n in db(db.npcs.id > 0).select()]
-                next_npc = npcs_there[randrange(len(npcs_there))]
-                self.npc = Npc(next_npc)
-                return (good_loc, next_npc)
+                if len(npc_list) < 1:
+                    # no npc for this step available here: choose and redirect
+                    print('Step.get_npc: no npc available here')
+                    if self.redirect_loc_id:
+                        pass
+                    else:
+                        good_locs = self.get_locations()
+                        self.redirect_loc_id = good_locs[randrange(len(good_locs))]
+                    assert loc_id != self.redirect_loc_id
+                    print('Step.npc: found npc in loc', self.redirect_loc_id)
 
-            print 'picking from suitable list'
-            pick = npc_list[randrange(len(npc_list))]
-            self.npc = Npc(pick)
+                    npcs_there = [n['id'] for n in db(db.npcs.id > 0).select()
+                                  if self.redirect_loc_id in n['map_locations']]
+                    next_npc = npcs_there[randrange(len(npcs_there))]
+                    self.npc = Npc(next_npc)
+                    print('Step.npc: setting next npc on Step for loc', self.next_loc_id)
 
+                    npcs_here = self.loc.get_npcs()
+                    temp_npc_id = npcs_here[randrange(len(npcs_here))]
+                    temp_npc = Npc(temp_npc_id)
+                    print ('Step.npc: returning temp npc', temp_npc_id, 'for redirect')
+
+                    return (self.redirect_loc_id, temp_npc)
+                else:
+                    # npc for this step is available here
+                    print('Step.npc: picking from suitable list available here')
+                    pick = npc_list[randrange(len(npc_list))]
+                    self.npc = Npc(pick)
         return self.npc
 
     def _get_instructions(self):
@@ -1284,21 +1335,25 @@ class Path(object):
             loc_id
         The others are for dependency injection in testing
         """
-        self.prev_loc = prev_loc if prev_loc else None
-        self.prev_npc = prev_npc if prev_npc else None
+        # first set from init args
         self.loc = loc
-        self.npc_id = None
-        self.blocks = blocks
+        self.prev_loc = prev_loc
+        self.prev_npc = prev_npc
+        self.username = username
+
+        # set later
+        self.npc = None
+
+        # basic path data
         db = current.db if not db else db
         self.path_dict = db.paths[path_id].as_dict()
-        self.username = username
+
+        # controlling step progression through path
+        self.blocks = blocks
         self.steps = self.get_steps(username)
         self.completed_steps = completed_steps if completed_steps else []
-        #self.last_step_id = last_step_id
-        #self.step_sent_id = step_sent_id
         self.step_for_prompt = step_for_prompt
         self.step_for_reply = step_for_reply
-        self.npc = None
 
     def get_id(self):
         """Return the id of the current Path object."""
@@ -1330,18 +1385,20 @@ class Path(object):
         except:
             return False
 
-    def _prepare_for_reply(self):
+    def end_prompt(self):
         """
-        Move the active step from self.step_for_prompt to self.step_for_reply.
-        This prepares a step for the evaluation of user-input.
+        End prompt cycle before sending prompt data to view.
+
+        For 1-stage steps this is the end of the step. For 2-stage steps
+        this prepares for the reply stage (processing of the user response).
         """
-        if self.step_for_prompt:
+        step = self.step_for_prompt
+        if isinstance(step, (StepText, StepMultiple)):
             self.step_for_reply = copy(self.step_for_prompt)
             self.step_for_prompt = None
-            assert not self.step_for_prompt
-            return True
         else:
-            return False
+            assert self.complete_step()
+        return True
 
     def complete_step(self):
         """
@@ -1349,13 +1406,14 @@ class Path(object):
         """
         if self.step_for_reply:
             self.completed_steps.append(copy(self.step_for_reply))
+            # TODO: should we handle (remove) steps that shouldn't be there?
             self.step_for_reply = None
+            assert not self.step_for_reply
             assert not self.step_for_prompt
-            return True
         else:
             self.step_for_prompt = None
             assert not self.step_for_reply
-            return True
+        return True
 
     def _reset_steps(self):
         """
@@ -1384,39 +1442,45 @@ class Path(object):
 
         if repeat:
             assert self._reset_steps()
+
         # make sure controller hasn't skipped processing an earlier step's reply
-        # TODO: Is this check duplicated in Walk.ask?
         if self.step_for_reply:
             return Block('need_to_reply',
                          kwargs={'username': self.username},
                          data=self.step_for_reply)
 
-        if self.step_for_prompt:
-            next_step = copy(self.step_for_prompt)
-        elif self._prepare_for_prompt():
-            next_step = copy(self.step_for_prompt)
+        # get step
+        if not self.step_for_prompt:
+            assert self._prepare_for_prompt()
+        mystep = self.step_for_prompt()
 
-        # all blocks triggered here, but can be set elsewhere
-        active_block = self._check_for_blocks(next_step)
-        if active_block:
-            return active_block
+        # update location on step
+        mystep.loc = self.loc
+        mystep.prev_loc = self.prev_loc
+
+        # get npc and redirect if no npc can perform step in this location
+        npc = mystep.get_npc()
+        if not isinstance(npc, Npc):
+            # if redirecting returns (next_loc_id, temp_npc)
+            print 'path.get_step_for_prompt: setting redirect block for loc', npc[0]
+            self._set_block('redirect', kwargs={'loc': self.loc,
+                                                'prev_loc': self.prev_loc,
+                                                'username': self.username,
+                                                'next_loc': npc[0]})
+            self.npc = npc[1]  # npc to give redirect message
         else:
-            if isinstance(next_step, (StepText, StepMultiple)):
-                assert self._prepare_for_reply()
-                assert not self.step_for_prompt
-            else:
-                assert self.complete_step()
-                assert not self.step_for_reply
-                assert not self.step_for_prompt
-            return next_step
+            self.npc = npc
+
+        return self.step_for_prompt
 
     def _set_block(self, condition, kwargs=None, data=None):
         """ Set a blocking condition on this Path object. """
         newargs = {'prev_loc': self.prev_loc,
                    'prev_npc': self.prev_npc,
-                   'loc': self.loc}
+                   'loc': self.loc,
+                   'npc': self.npc}
         if 'username' not in kwargs.keys():
-            kwargs['username'] = self.username
+            newargs['username'] = self.username
         kwargs.update(newargs)
         self.blocks.append(Block(condition=condition,
                                  kwargs=kwargs,
@@ -1437,22 +1501,11 @@ class Path(object):
         """
         # TODO make sure that current loc and npc get set for self.prev_loc etc
         # check that next step can be asked here, else redirect
-        npc = next_step.get_npc()
-        if not isinstance(npc, Npc):
-            self._set_block('redirect', kwargs={'next_loc': npc[0]})
-            print 'setting redirect block for loc', npc[0]
-        else:
-            self.npc = npc
-            self.prev_npc = copy(self.npc)
 
         if self.blocks:
             print 'blocks present:', [b.get_condition() for b in self.blocks]
-            block_step = self.blocks.pop(0).get_step()
-            if block_step:
-                # TODO: make sure that the block step isn't added to completed
-                # or step_to_answer or last_step_id
-                self.step_sent_id = block_step.get_id()
-                return block_step
+            myblock = self.blocks.pop(0)
+            return myblock
         else:
             return False
 
@@ -1489,24 +1542,20 @@ class Path(object):
 
         return steplist
 
+    def set_npc(self, npc):
+        """
+        Set the active location after initialization of the Path object.
+        """
+        self.prev_npc = copy(self.npc)
+        self.npc = npc
+        return True
+
     def set_location(self, loc):
         """
         Set the active location after initialization of the Path object.
         """
-        self.prev_loc = self.loc.get_id()
+        self.prev_loc = copy(self.loc)
         self.loc = loc
-        return True
-
-    def set_npc(self, new_npc_id):
-        """
-        Set the currently active npc after initialization of the Path object.
-        """
-        old_npc_id = self.npc_id
-        if new_npc_id == old_npc_id:
-            pass
-        else:
-            self.prev_npc = old_npc_id
-            self.npc_id = new_npc_id
         return True
 
 
@@ -1683,25 +1732,24 @@ class User(object):
             self.user_id = userdata['id']
             self.path = None
             self.completed_paths = []
-            self.last_response_text = None
-            self.cats_counter = 0  # timing re-categorization in _get_categories()
+            self.cats_counter = 0  # timing re-categorization in get_categories()
             self.old_categories = {}
             self.tag_records = tag_records
             self.rank = tag_progress['latest_new'] if tag_progress else None
             self.tag_progress = tag_progress
             self.promoted = None
             self.new_tags = None
-            # trigger categorization here
             # TODO: Is categorization triggered anywhere during a User's
             # valid lifetime?
-            self._get_categories(rank=self.rank,
-                                 old_categories=self.old_categories,
-                                 tag_records=tag_records)
+            self.get_categories(rank=self.rank,
+                                old_categories=self.old_categories,
+                                tag_records=tag_records)
             self.inventory = []
             self.session_start = datetime.datetime.utcnow()
             self.loc = loc
-            self.last_loc = loc.get_id()
-            self.loc_id = loc.get_id()
+            self.prev_loc = loc.get_id()
+            self.npc
+            self.prev_npc
             self.quota = 40
         except Exception:
             print traceback.format_exc(5)
@@ -1745,14 +1793,13 @@ class User(object):
         """
         Update the user's location after initialization of the User object.
 
-        Includes setting of self.last_loc to the old location id and calling
+        Includes setting of self.prev_loc to the old location id and calling
         of path.set_location().
 
         Returns a boolean indicating success/failure.
         """
-        self.last_loc = self.loc.get_id()
+        self.prev_loc = self.loc.get_id()
         self.loc = loc
-        self.loc_id = loc.get_id()
         return True
 
     def get_new_tags(self):
@@ -1792,45 +1839,58 @@ class User(object):
         begun in this location
         """
         db = current.db if not db else db
-        categories = self._get_categories() if not categories else categories
-        loc = self.loc
+        categories = self.get_categories() if not categories else categories
 
         if path:
-            self.path = Path(path_id=path, loc=loc, username=self.name)
+            self.path = Path(path_id=path,
+                             loc=self.loc,
+                             prev_loc=self.prev_loc,
+                             username=self.name)
         if repeat:
             if self.path:
-                pass  # do same path again
+                print('repeating path from self.path')
+                self.path.set_location(self.loc)
+                self.path.prev_loc = self.prev_loc
+                self.path.prev_npc = self.prev_npc
             else:
-                self.path = self.completed_paths.pop(-1)
+                path_id = self.completed_paths.pop(-1)
+                self.path = Path(path_id=path_id,
+                                 loc=self.loc,
+                                 prev_loc=self.prev_loc,
+                                 prev_npc=self.prev_npc,
+                                 username=self.name)
         elif self.path and (len(self.path.steps) or self.path.step_for_reply):
-            # continue with unfinished path, no new choice
-            # just update location
+            # there's still an unfinished step in self.path
             self.path.set_location(self.loc)
+            self.path.prev_npc = self.prev_npc
         else:
             if self.path:
-                self._complete_path()  # catch end-of-path and triggers new choice
+                self.complete_path()  # catch end-of-path and triggers new choice
             if not self.tag_progress:  # in case User was badly initialized
-                self._get_categories()
-            choice = PathChooser(self.tag_progress, loc.get_id(),
+                self.get_categories()
+            choice = PathChooser(self.tag_progress, self.loc.get_id(),
                                  self.completed_paths).choose()
             new_location = choice[1]
-            path = Path(path_id=choice[0]['id'], loc=loc, username=self.name)
+            path = Path(path_id=choice[0]['id'],
+                        loc=self.loc,
+                        prev_loc=self.prev_loc,
+                        prev_npc=self.prev_npc,
+                        username=self.name)
             # check for a redirect location to start the selected path
             if new_location:
-                kwargs = {'loc': self.loc,
-                          'next_loc': new_location}
-                path._set_block('redirect', kwargs=kwargs)
-                print 'redirecting to new loc', new_location
+                path._set_block('redirect', kwargs={'next_loc': new_location})
+                print('redirecting to new loc', new_location)
             self.path = path
 
         if len(self.completed_paths) > self.quota:
             kwargs = {'quota': self.quota}
             self.path._set_block('quota reached', kwargs=kwargs)
+            # TODO: move this block onto user?
 
         return self.path
 
-    def _get_categories(self, rank=None, old_categories=None,
-                        tag_records=None, utcnow=None):
+    def get_categories(self, rank=None, old_categories=None,
+                       tag_records=None, utcnow=None):
         """
         Return a categorized dictionary with four lists of tag id's.
 
@@ -1839,11 +1899,7 @@ class User(object):
 
         # TODO: do we need to create new categorizer object each time?
 
-        The method is intended to be called with no arguments.
-        The rank, categories, and old_categories arguments are not needed,
-        since the values can be drawn from the User class instance. They are
-        provided to help in unit testing. The arguments tag_records and utcnow
-        are required only for dependency injection during unit testing.
+        The method is intended to be called with no arguments
         """
         rank = self.rank if not rank else rank
         tag_records = self.tag_records if not tag_records else tag_records
@@ -1885,19 +1941,16 @@ class User(object):
         else:
             return None
 
-    def _complete_path(self):
+    def complete_path(self):
         """
         Move the current path from the path variable to 'completed_paths' list.
-        Set last_npc and last_loc before removing the path.
+        Set last_npc and prev_loc before removing the path.
         """
-        if self.path.completed_steps:
-            last_step = self.path.completed_steps[-1]
-            self.last_npc = last_step.get_npc()
-            self.last_loc = last_step.loc
-        # TODO: How much does storing whole path obj affect memory use?
-
-        # TODO: Work out handling of the location in paths/steps
-        self.completed_paths.append(copy(self.path))
+        # Only id of paths stored to converve memory.
+        # prev_loc and prev_user info not drawn from old paths but
+        # carried on User.
+        # Repeating path must be triggered before path is completed.
+        self.completed_paths.append(self.path.get_id())
         self.path = None
         return True
 

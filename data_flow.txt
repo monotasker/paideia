@@ -13,25 +13,45 @@ Walk._get_user()                            * Walk.user?
                                                 N   self.user R
                                             N   User() R
 
-Walk.user.set_loc(loc)                      user.loc    > user.prev_loc
-                                            loc         > user.loc
-                                            
+Walk.user.set_location(walk.loc)            user.loc    > user.prev_loc
+                                            walk.loc    > user.loc
 
 Walk.user._get_path(user.loc,
-                    user.prev_loc)          ** user.path? 
+                    user.prev_loc
+                    walk.repeat)            ** user.path? 
                                             Y    
+                                                ### but need to complete path before repeating?
+                                                ** is this a repeat?  
+                                                Y   user.path   > user.path
+                                                    user.loc    > path.loc
+                                                    user.prev_loc > path.prev_loc
+                                                    user.prev_npc > path.prev_npc
+                                                    user.name   > path.username
+
+                                                N   pass
+                                                    user.loc    > path.loc
+                                                    user.prev_loc > path.prev_loc
+                                                    user.prev_npc > path.prev_npc
+                                                    user.name   > path.username
+
                                                 ** more steps in the path?
-                                                Y   loc         > path.loc
-                                                    prev_loc    > path.prev_loc
-                                                    prev_npc    > path.prev_npc
-                                                    self.path R
+                                                Y   user.loc         > path.loc
+                                                    user.prev_loc    > path.prev_loc
+                                                    user.prev_npc    > path.prev_npc
+                                                    user.path R
 
-                                                N   self.path   > user.completed_paths
-                                                    Path(loc)   > self.path
+                                                N   user.path   + user.completed_paths
+                                                    Path()      > user.path
+                                                    user.loc         > path.loc
+                                                    user.prev_loc    > path.prev_loc
+                                                    user.prev_npc    > path.prev_npc
+                                                    user.path R
 
-                                            N   PathChooser().choose()
-                                                Path() > self.path
-                                                self.path R
+                                            N   
+                                                
+                                                N   PathChooser().choose()
+                                                    Path() > user.path
+                                                    user.path R
 
 Walk.user.path.get_step_for_prompt(user.loc,
                                    user.prev_loc,
@@ -40,19 +60,34 @@ Walk.user.path.get_step_for_prompt(user.loc,
                                             Y   path.Block ('need_to_reply')
                                             N   
                                                 ** path.step_for_prompt?
-                                                Y   loc     > path.step_for_prompt.loc 
-                                                    loc     > path.step_for_prompt.prev_npc
-                                                    self.step_for_prompt R
+                                                Y   
+                                                    ** does the step have a preset npc and loc?
+                                                    Y
+                                                        ** are they here?
+                                                        Y   path.step_for_prompt R
+                                                        N   path.Block('redirect')
+
+                                                    N   loc      > path.step_for_prompt.loc 
+                                                        prev_npc > path.step_for_prompt.prev_npc
+                                                        self.step_for_prompt R
 
                                                 N   path._prepare_for_prompt(loc)
                                                         path.steps[0] > path.step_for_prompt 
-                                                    
-                                                    path._check_for_blocks
+                                                    ** npc here? (step.get_npc())
+                                                    Y   Npc() > step.npc
+                                                        (loc_id, step.npc) R 
 
+                                                    N   Npc() > step.npc
+                                                        path.Block ('redirect')
+                                                        Loc() > step.next_loc_id
+                                                        (loc_id, step.npc) R
+
+Walk.user.path._check_for_blocks()  ** are there blocks on this step?
+                                    Y   path.block.action R
+                                    N   None R
 
 Walk.user.path.step_for_prompt.get_prompt(user.name)            
 Walk.user.path.step_for_prompt.get_responder()            
-
 
 Walk.user.path.prepare_for_reply() [change: finish_prompt()]
 OR
@@ -62,7 +97,7 @@ Walk.user.path.complete_step()              ** path.step is 2-stage?
 
                                             N   path.step_for_prompt > path.completed_steps
                                                                 
-R npc, responder, bg_image, npc_image
+R {npc, responder, bg_image, npc_image}
 
 -----------------------------------------------------------------------------------------------
 
