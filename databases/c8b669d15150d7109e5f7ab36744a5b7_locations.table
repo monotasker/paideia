@@ -41,13 +41,13 @@ g11
 ssS'alias'
 p15
 (dp16
-S'sortable'
+S'type'
 p17
-I3
-sS'type'
-p18
 S'string'
+p18
+sS'sortable'
 p19
+I3
 sS'sql'
 p20
 S'CHAR(512) UNIQUE'
@@ -73,22 +73,22 @@ ssS'location'
 p26
 (dp27
 g17
+g18
+sg19
 I2
-sg18
-g19
 sg20
 S'CHAR(512) UNIQUE'
 p28
 ssS'background'
 p29
 (dp30
-S'type'
+S'sortable'
 p31
-S'reference images'
-p32
-sS'sortable'
-p33
 I4
+sS'type'
+p32
+S'reference images'
+p33
 sS'sql'
 p34
 S'INTEGER REFERENCES images(id) ON DELETE CASCADE'

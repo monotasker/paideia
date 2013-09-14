@@ -2336,3 +2336,5 @@ success!
 success!
 success!
 success!
+timestamp: 2013-09-13T15:13:25.291567
+ALTER TABLE audio ADD clip_ogg CHAR(128);

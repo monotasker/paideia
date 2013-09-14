@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from gluon import current, redirect
-from gluon import IMG, URL, SQLFORM, SPAN, DIV, UL, LI, A, Field, P
+from gluon import IMG, URL, SQLFORM, SPAN, DIV, UL, LI, A, Field, P, TAG
 from gluon import IS_NOT_EMPTY, IS_IN_SET
 
 from inspect import getargvalues, stack
@@ -622,33 +622,12 @@ class Step(object):
         """Return a list of the location id's for this step."""
         return self.data['locations']
 
-    def get_prompt(self, username=None, raw_prompt=None, **kwargs):
+    def _get_slides(self):
         """
-        Return the prompt information for the step. In the Step base class
-        this is a simple string. Before returning, though, any necessary
-        replacements or randomizations are made.
-
-        If the step cannot be performed in this location, this method returns
-        the string 'redirect' so that the Walk.ask() method that called it can
-        set a redirect block.
+        Return a UL helper object listing the slide decks relevant to this step.
+        If this step has no associated slides, return False.
         """
         db = current.db
-
-        if not raw_prompt:
-            raw_prompt = self.data['prompt']
-
-        prompt = self._make_replacements(raw_prompt=raw_prompt, **kwargs)
-
-        npc_prompt = DIV(P(prompt, _class='prompt-text'), _class='npc prompt')
-
-        instructions = self._get_instructions()
-        if not instructions is None:
-            instr_args = {'classnames': 'btn btn-info instructions-popover',
-                          'title': 'Instructions for this step',
-                          'id': 'instructions_btn'}
-            npc_prompt.append(POPOVER().widget('Instructions', instructions,
-                                             **instr_args))
-
         slide_query = db(db.tags.id.belongs(self.data['tags'])).select()
         if slide_query:
             slides_list = UL(_class='prompt_slides')
@@ -661,11 +640,85 @@ class Step(object):
             slides_args = {'classnames': 'btn btn-info slides-popover',
                            'title': 'Relevant slide decks',
                            'id': 'Slides_btn'}
-            npc_prompt.append(POPOVER().widget('slides', slides_list,
-                              **slides_args))
+            s_pop = POPOVER().widget('slides',
+                                     slides_list,
+                                     **slides_args)
+
+            return s_pop
+        else:
+            return False
+
+    def _get_widget_image(self):
+        """
+        Return an IMG helper to display the widget image for the current step.
+        If this step requires no such image, return False.
+        """
+        if self.data['widget_image']:
+            db = current.db
+            img_row = db.images[self.data['widget_image']]
+            image = IMG(_src=img_row.image,
+                        _title=img_row.title,
+                        _alt=img_row.description,
+                        _class='widget-image')
+            return image
+
+    def _get_prompt_audio(self):
+        """
+        """
+        if self.data['prompt_audio'] not in [None, 'None', False, 0, '']:
+            db = current.db
+            aud_row = db.audio[self.data['prompt_audio']]
+            audio = TAG.audio('Sorry, your browser doesn\'t support the audio element',
+                              _controls='true',
+                              _autoplay='true',
+                              _id=aud_row['title'],
+                              _class='prompt_audio')
+            audio.append(TAG.source(_src=aud_row['clip'],
+                                    _type='audio/mp3'))
+            if aud_row['clip_ogg']:
+                audio.append(TAG.source(_src=aud_row['clip_ogg'],
+                             _type='audio/ogg'))
+            return audio
+        else:
+            return False
+
+    def get_prompt(self, username=None, raw_prompt=None, **kwargs):
+        """
+        Return the prompt information for the step. In the Step base class
+        this is a simple string. Before returning, though, any necessary
+        replacements or randomizations are made.
+
+        If the step cannot be performed in this location, this method returns
+        the string 'redirect' so that the Walk.ask() method that called it can
+        set a redirect block.
+        """
+        if not raw_prompt:
+            raw_prompt = self.data['prompt']
+
+        prompt = self._make_replacements(raw_prompt=raw_prompt, **kwargs)
+
+        npc_prompt = DIV(P(prompt, _class='prompt-text'), _class='npc prompt')
+
+        audio = self._get_prompt_audio()
+        if audio:
+            print audio
+            npc_prompt.append(audio)
+
+        widget_image = self._get_widget_image()
+        if widget_image:
+            print widget_image.xml()
+            npc_prompt.append(widget_image)
+
+        instructions = self._get_instructions()
+        if instructions:
+            print instructions.xml()
+            npc_prompt.append(instructions)
+
+        slides_list = self._get_slides()
+        if slides_list:
+            npc_prompt.append(slides_list)
 
         npc = self.get_npc()  # duplicate choice prevented in get_npc()
-
         if not npc:
             locs = self.get_locations()
             kwargs = {'next_loc': locs[randrange(len(locs))]}
@@ -674,6 +727,7 @@ class Step(object):
             npc_image = npc.get_image()
         except AttributeError:
             npc_image = Npc(npc[1]).get_image()
+
         bg_image = self.loc.get_bg()
 
         return {'npc': npc_prompt,
@@ -759,16 +813,21 @@ class Step(object):
         step. Value is returned as a web2py UL() object.
         """
         db = current.db
-        instructions = self.data['instructions']
-        if not instructions:
-            return None
+        ii = self.data['instructions']
+        if ii:
+            i_list = UL()
+            for i in ii:
+                i_text = db.step_instructions[i].instruction_text
+                i_list.append(LI(i_text))
+            i_args = {'classnames': 'btn btn-info instructions-popover',
+                      'title': 'Instructions for this step',
+                      'id': 'instructions_btn'}
+            i_pop = POPOVER().widget('Instructions',
+                                     i_list,
+                                     **i_args)
+            return i_pop
         else:
-            mylist = UL()
-            for item in instructions:
-                item_text = db.step_instructions[item].instruction_text
-                mylist.append(LI(item_text))
-
-            return mylist
+            return False
 
 
 class StepContinue(Step):
@@ -1235,8 +1294,8 @@ class Path(object):
         self.username = username
         self.steps = self.get_steps(username)
         self.completed_steps = completed_steps if completed_steps else []
-        self.last_step_id = last_step_id
-        self.step_sent_id = step_sent_id
+        #self.last_step_id = last_step_id
+        #self.step_sent_id = step_sent_id
         self.step_for_prompt = step_for_prompt
         self.step_for_reply = step_for_reply
         self.npc = None
