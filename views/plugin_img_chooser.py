@@ -1,1 +1,0 @@
-plugins/plugin_img_chooser/views/plugin_img_chooser.py
