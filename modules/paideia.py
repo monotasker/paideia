@@ -145,7 +145,7 @@ class Walk(object):
         except Exception:
             print traceback.format_exc(5)
             self.clean_user()  # get rid of path data if that's the problem
-            return self.ask()
+            return self.ask(localias=localias, path=path)
 
     def clean_user(self):
         """
