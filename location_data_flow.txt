@@ -1,0 +1,9 @@
+controller.walk                     request.vars.loc > 
+
+walk.init(localias)                 walk.localias > localias
+                                    walk.loc > Loc(localias)
+walk.ask()
+    user.set_location(loc)          user.prev_loc > copy(user.loc)
+                                    user.loc > loc
+
+    

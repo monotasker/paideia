@@ -1,5 +1,5 @@
 # coding: utf8
-from paideia import Walk
+from paideia import Walk, Map
 
 if 0:
     from gluon import current
@@ -72,37 +72,33 @@ def walk():
     element of exploring/index.html.
     """
     request = current.request
-    print "starting walk controller"
-
-    if not request.vars.loc:
-        request.vars.loc = None
-    walk = Walk(request.vars.loc)
+    print "\n\nstarting walk controller========================================"
     rvars = request.vars
     rargs = request.args
-    print "in controller:"
+    print "in controller.walk:"
     print "args:", request.args
     print "vars:", request.vars
 
-    # TODO: implement failsafe here to avoid accidental submission of blank
-    # form (require delay and require non-empty
-
     # When user begins exploring (also default) present map
     if (not rargs) or (rargs[0] == 'map'):
-        return {'map': walk.map()}
+        print "controller.walk: getting map"
+        return {'map': Map().show()}
     elif rargs[0] == 'repeat' and not 'response' in rvars.keys():
+        print "controller.walk: setting repeat signal"
         stepargs = {'repeat': True}
     else:
+        print "controller.walk: setting response string", rvars['response']
         stepargs = {}
+        # if condition prevents submission of blank response
         stepargs['response_string'] = rvars['response'] if \
             ('response' in rvars and 'response' not in [' ', None]) else None
 
-    return walk.start(**stepargs)
+    if not request.vars.loc:
+        request.vars.loc = None
+        print 'controller.walk: request.vars.loc is', request.vars.loc
+    print 'controller.walk: initializing walk and calling walk.start'
+
+    return Walk().start(request.vars.loc, **stepargs)
 
     # TODO: re-implement in module
     # test a specific path
-    #elif request.args(0) == 'test':
-        #if debug: print '\ncontroller exploring.walk() state: test'
-        #pathid = request.vars['path']
-        #stepid = request.vars['step']
-        #walk.activate_step(pathid, stepid)
-        #return walk.step.ask()
