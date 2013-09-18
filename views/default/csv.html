@@ -1,0 +1,9 @@
+{{extend 'layout.html'}}
+
+{{
+import cStringIO
+stream=cStringIO.StringIO()
+items.export_to_csv_file(stream)
+response.headers['Content-Type']='application/vnd.ms-excel'
+response.write(stream.getvalue(), escape=False)
+}}

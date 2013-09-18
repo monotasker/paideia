@@ -135,6 +135,18 @@ def oops():
     return {'code': code}
 
 
+@auth.requires_membership(role='administrators')
+def csv():
+    """
+    generic csv function to export a single table.
+
+    The table is set via the first url argument.
+    """
+    table = request.args[0]
+    items = db().select(db[table].ALL)
+    return {'items': items}
+
+
 def download():
     """
     allows downloading of uploaded files
@@ -143,14 +155,14 @@ def download():
     return response.download(request, db)
 
 
-def call():
-    """
-    exposes services. for example:
-    http://..../[app]/default/call/jsonrpc
-    decorate with @services.jsonrpc the functions to expose
-    supports xml, json, xmlrpc, jsonrpc, amfrpc, rss, csv
-    """
-    return service()
+#def call():
+    #"""
+    #exposes services. for example:
+    #http://..../[app]/default/call/jsonrpc
+    #decorate with @services.jsonrpc the functions to expose
+    #supports xml, json, xmlrpc, jsonrpc, amfrpc, rss, csv
+    #"""
+    #return service()
 
 
 #@auth.requires_signature()

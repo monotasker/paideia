@@ -27,10 +27,15 @@ $('.popover-trigger').each(function() {
 });
 
 $('#responder submit').click(function(event){
-    $('#loading-mask').css({'display': 'block'});
+    alert('hi');
+    $("#loading-mask").show();
+});
+
+$('#responder submit').click(function(event){
     window.parent.web2py_component("/paideia/exploring/walk.load/reply","page");
     event.preventDefault();
 });
+
 
 $('#test_this_step').click(function(event){
     val = $(this).parent('li').find('#test_path').val();

@@ -128,6 +128,7 @@ db.define_table('locations',
     Field('loc_alias'),  # , unique=True  # was alias (reserved term)
     Field('readable'),
     Field('bg_image', db.images),
+    Field('loc_active', 'boolean'),
     format='%(map_location)s')
 db.locations.map_location.requires = IS_NOT_IN_DB(db, 'locations.map_location')
 db.locations.loc_alias.requires = IS_NOT_IN_DB(db, 'locations.loc_alias')
