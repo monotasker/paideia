@@ -27,11 +27,6 @@ $('.popover-trigger').each(function() {
 });
 
 $('#responder submit').click(function(event){
-    alert('hi');
-    $("#loading-mask").show();
-});
-
-$('#responder submit').click(function(event){
     window.parent.web2py_component("/paideia/exploring/walk.load/reply","page");
     event.preventDefault();
 });

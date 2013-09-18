@@ -1,12 +1,13 @@
 {{extend 'layout.html'}}
 {{=chooser}}
-{{=LOAD(c='listing', f='userlist.load', ajax=True, target='user_list', vars={'row': row})}}
-
-
+<div class='user_list'>
+{{=LOAD('listing', 'userlist', vars=request.vars, ajax=True)}}
+</div>
+{{print 'done rendering view'}}
 <script>
     jQuery('#class_chooser').submit(function() {
       ajax('{{=URL("listing", "userlist")}}',
-           ['Getting the records . . .'], 'user_list');
+           [''], 'user_list');
       return false;
     });
 </script>
