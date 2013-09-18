@@ -1957,7 +1957,8 @@ class User(object):
         db = current.db if not db else db
         categories = self.get_categories() if not categories else categories
         print 'user.get_path: user.loc is', self.loc.get_id()
-        print 'user.get_path: user.prev_loc is', self.prev_loc.get_id()
+        if self.prev_loc:
+            print 'user.get_path: user.prev_loc is', self.prev_loc.get_id()
 
         if path:
             self.path = Path(path_id=path,

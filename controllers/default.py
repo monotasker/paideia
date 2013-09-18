@@ -94,7 +94,6 @@ def info():
                                 'date': 'on {}'.format(bd.badges_begun[c].strftime('%b %e, %Y')),
                                 'dt': bd.badges_begun[c]})
     badgelist = sorted(badgelist, key=lambda row: row['dt'], reverse=True)
-    print tag_records[0]
     return {'the_name': name,
             'tz': tz,
             'email': email,
