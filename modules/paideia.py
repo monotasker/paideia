@@ -310,7 +310,7 @@ class Walk(object):
 
         block = p.check_for_blocks(s)
         if block:
-            condition = s.get_condition()
+            condition = block.get_condition()
             print 'walk.reply: encountered block', condition
             s = block.get_step()
             print 'walk.reply: block step is', s.get_id()
