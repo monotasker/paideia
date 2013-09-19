@@ -186,12 +186,13 @@ class Walk(object):
         user.set_location(loc)
         print 'walk.ask: set user.loc to', user.loc.get_id()
 
-        p = user.get_path(path=path, repeat=repeat)  # call set_location here in get_path
+        p = user.get_path(path=path, repeat=repeat)
         #print 'walk.ask: path is', p.get_id()
         s = p.get_step_for_prompt(repeat=repeat)
 
         # get npc and redirect if no npc can perform step in this location
-        npc = s.get_npc()
+        npc = s.get_npc(prev_npc=user.prev_npc,
+                        prev_loc=user.prev_loc)
         assert npc
         self.npc = npc[0]
         if npc[1]:
@@ -224,7 +225,7 @@ class Walk(object):
             s.npc = npc[0]
 
         print 'walk.ask: setting npc on user'
-        user.set_npc(npc)  # since npc decision has to follow step choice
+        user.set_npc(npc[0])  # since npc decision has to follow step choice
 
         # get data to send to view
         print 'walk.ask: getting prompt'
@@ -312,12 +313,10 @@ class Walk(object):
         if block:
             condition = block.get_condition()
             print 'walk.reply: encountered block', condition
-            s = block.get_step()
-            print 'walk.reply: block step is', s.get_id()
 
         mynpc = s.get_npc(prev_npc=user.prev_npc,
                           prev_loc=user.prev_loc)
-        user.set_npc(mynpc)  # since npc decision has to follow step choice
+        user.set_npc(mynpc[0])  # since npc decision has to follow step choice
 
         # evaluate user response and generate reply
         reply = s.get_reply(response_string)
@@ -779,7 +778,8 @@ class Step(object):
         Return an IMG helper to display the widget image for the current step.
         If this step requires no such image, return False.
         """
-        if self.data['widget_image']:
+        if not self.data['widget_image'] in [9, None]:  # TODO: magic number here:
+            print 'get_widget_image: data is', self.data['widget_image']
             db = current.db
             img_row = db.images[self.data['widget_image']]
             image = IMG(_src=img_row.image,
@@ -787,11 +787,14 @@ class Step(object):
                         _alt=img_row.description,
                         _class='widget-image')
             return image
+        else:
+            return False
 
     def _get_prompt_audio(self):
         """
         """
-        if self.data['prompt_audio'] not in [None, 'None', False, 0, '']:
+        if not self.data['prompt_audio'] in [1, None]:  # TODO: magic number here:
+            print 'get_prompt_audio: data is', self.data['prompt_audio']
             db = current.db
             aud_row = db.audio[self.data['prompt_audio']]
             audio = TAG.audio('Sorry, your browser doesn\'t support the audio element',
@@ -825,25 +828,26 @@ class Step(object):
 
         npc_prompt = DIV(P(prompt, _class='prompt-text'), _class='npc prompt')
 
-        #audio = self._get_prompt_audio()
-        #if audio:
-            #print audio
-            #npc_prompt.append(audio)
+        audio = self._get_prompt_audio()
+        if audio:
+            print audio
+            npc_prompt.append(audio)
 
-        #widget_image = self._get_widget_image()
-        #if widget_image:
-            #print widget_image.xml()
-            #npc_prompt.append(widget_image)
+        widget_image = self._get_widget_image()
+        if widget_image:
+            print widget_image.xml()
+            npc_prompt.append(widget_image)
 
         instructions = self._get_instructions()
         if instructions:
-            print instructions.xml()
             npc_prompt.append(instructions)
 
         slides_list = self._get_slides()
         if slides_list:
             npc_prompt.append(slides_list)
 
+        if isinstance(self.npc, tuple):
+            self.npc = self.npc[0]  # TODO: this is a temporary hack for bad data
         npc_image = self.npc.get_image()
         bg_image = self.loc.get_bg()
 
@@ -901,6 +905,8 @@ class Step(object):
         db = current.db
 
         if self.npc:
+            if isinstance(self.npc, tuple):
+                self.npc = self.npc[0]
             # ensure choice is made only once for each step
 
             # make sure any redirects are to consistent npc/loc combo
@@ -924,7 +930,8 @@ class Step(object):
             if prev_npc and (prev_loc.get_id() == loc_id):
                 # re-use last npc from this location
                 # TODO: should check that npc can also do this step
-                print('Step.get_npc: continuing with prev_npc', prev_npc.get_id())
+                print('Step.get_npc: continuing with prev_npc',
+                      prev_npc)
                 self.npc = prev_npc
             else:
                 # choose a new npc
@@ -1097,19 +1104,24 @@ class StepAwardBadges(StepContinue, Step):
         if self.new_tags:
             conj = 'and you'
             nt_records = db(db.badges.tag.belongs(self.new_tags)
-                            ).select(db.badges.tag,
-                                    db.badges.badge_name).as_list()
+                            ).select(db.badges.tag, db.badges.badge_name).as_list()
+            print 'make_replacements: nt_records is', nt_records
 
             if nt_records:
-                nt_intro = P('You\'re ready to start working on some new badges:')
+                nt_intro = DIV('You\'re ready to start working on some new badges:')
+                print nt_intro
                 nt_list = UL(_class='new_tags_list')
+                print nt_list
                 for p in self.new_tags:
                     bname = [row['badge_name'] for row in nt_records
-                             if row['tag'] == p]
+                             if int(row['tag']) == p]
                     line = LI(SPAN('beginner {}'.format(bname),
                                    _class='badge_name'))
+                    print line
                     nt_list.append(line)
+                print nt_list
                 nt_rep = nt_intro.append(nt_list)
+                print nt_rep
                 nt_rep = nt_rep.xml()
             else:
                 nt_rep = ''
@@ -1120,10 +1132,11 @@ class StepAwardBadges(StepContinue, Step):
             flat_proms = [i for cat, lst in self.promoted.iteritems() for i in lst if lst]
             prom_records = db(db.badges.tag.belongs(flat_proms)
                               ).select(db.badges.tag,
-                                    db.badges.badge_name).as_list()
+                                       db.badges.badge_name).as_list()
+            print 'make_replacements: prom_records is', prom_records
 
             if prom_records:
-                prom_intro = P('{} have been promoted to these new badge '
+                prom_intro = DIV('{} have been promoted to these new badge '
                                'levels'.format(conj))
                 prom_list = UL(_class='promoted_list')
                 ranks = ['beginner', 'apprentice', 'journeyman', 'master']
@@ -1139,8 +1152,8 @@ class StepAwardBadges(StepContinue, Step):
                             prom_list.append(line)
                     else:
                         pass
-                prom_list = prom_list.xml()
                 prom_rep = prom_intro.append(prom_list)
+                prom_rep = prom_rep.xml()
             else:
                 prom_rep = ''
 
@@ -1643,7 +1656,8 @@ class Path(object):
         """
         Set the active location after initialization of the Path object.
         """
-        self.prev_npc = copy(self.npc)
+        if self.npc:
+            self.prev_npc = copy(self.npc)
         self.npc = npc
         return True
 
