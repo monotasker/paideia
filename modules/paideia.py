@@ -1283,6 +1283,7 @@ class StepText(Step):
         """
         Evaluate a user's response and return the resulting data and reply.
         """
+        db = current.db
         readable = self._get_readable()
 
         try:
@@ -1294,8 +1295,18 @@ class StepText(Step):
             tips = self.data['step'].data['hints']
             responses = {k: v for k, v in self.data['step'].data.iteritems()
                          if k and (k in rkeys)}
+        if tips:
+            tips_lst = db(db.step_hints.id.belongs(tips)).select(db.step_hints.hint_text).as_list()
+            tips_txt = UL()
+            tips_lst = [v for t in tips_lst for k, v in t.iteritems()]
+            print 'tips_lst is', tips_lst
+            for t in tips_lst:
+                tips_txt.append(LI(t))
+            print 'tips_txt is', tips_lst
+        else:
+            tips_txt = None
 
-        result = StepEvaluator(responses, tips).get_eval(user_response)
+        result = StepEvaluator(responses, tips_txt).get_eval(user_response)
 
         bg_image = self.loc.get_bg()
         npc_image = self.npc.get_image()
@@ -1309,7 +1320,7 @@ class StepText(Step):
         if tips:
             hints_args = {'classnames': 'btn btn-info',
                           'id': 'instructions_btn'}
-            reply.append(POPOVER().widget('Hints', tips, **hints_args))
+            reply.append(POPOVER().widget('Hints', tips_txt, **hints_args))
 
         if readable['readable_long']:
             readable_long_args = {'classnames': 'btn btn-info',
@@ -2065,7 +2076,7 @@ class User(object):
                 (hasattr(self, 'past_quota')):
             if (not hasattr(self, 'past_quota')) or (self.past_quota is False):
                 print 'user.get_path: user is finished quota, activating block'
-                self._set_block('quota reached', kwargs={'quota': self.quota})
+                self._set_block('quota_reached', kwargs={'quota': self.quota})
                 self.past_quota = True
         print 'user.get_path: no of initial path blocks is', len(self.blocks)
         if len(self.blocks) > 0:
