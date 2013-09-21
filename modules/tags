@@ -56,7 +56,7 @@ __init__	paideia.py	/^    def __init__(self):$/;"	m	class:Map
 __init__	paideia.py	/^    def __init__(self, condition, kwargs=None, data=None):$/;"	m	class:Block
 __init__	paideia.py	/^    def __init__(self, id_num, db=None):$/;"	m	class:Location
 __init__	paideia.py	/^    def __init__(self, id_num, db=None):$/;"	m	class:Npc
-__init__	paideia.py	/^    def __init__(self, path_id=None, blocks=[], loc=None, prev_loc=None,$/;"	m	class:Path
+__init__	paideia.py	/^    def __init__(self, path_id=None, loc=None, prev_loc=None,$/;"	m	class:Path
 __init__	paideia.py	/^    def __init__(self, rank, categories, tag_records,$/;"	m	class:Categorizer
 __init__	paideia.py	/^    def __init__(self, responses, tips):$/;"	m	class:MultipleEvaluator
 __init__	paideia.py	/^    def __init__(self, responses, tips):$/;"	m	class:StepEvaluator
@@ -65,7 +65,7 @@ __init__	paideia.py	/^    def __init__(self, step_id=None, loc=None, prev_loc=No
 __init__	paideia.py	/^    def __init__(self, step_id=None, step_data=None, loc=None, prev_loc=None,$/;"	m	class:StepRedirect
 __init__	paideia.py	/^    def __init__(self, tag_progress, loc_id, paths_completed, db=None):$/;"	m	class:PathChooser
 __init__	paideia.py	/^    def __init__(self, tag_records=None, tag_progress=None,$/;"	m	class:Walk
-__init__	paideia.py	/^    def __init__(self, userdata, tag_records, tag_progress, db=None):$/;"	m	class:User
+__init__	paideia.py	/^    def __init__(self, userdata, tag_records, tag_progress, blocks=[]):$/;"	m	class:User
 __init__	paideia_bugs.py	/^    def __init__(self, step_id=None, path_id=None, loc_id=None):$/;"	m	class:Bug
 __init__	paideia_exploring.py	/^    def __init__(self):$/;"	m	class:Map
 __init__	paideia_exploring.py	/^    def __init__(self):$/;"	m	class:Utils
@@ -131,7 +131,7 @@ _introduce_tags	paideia.py	/^    def _introduce_tags(self, rank=None, db=None):$
 _make_replacements	paideia.py	/^    def _make_replacements(self, raw_prompt=None):$/;"	m	class:StepRedirect
 _make_replacements	paideia.py	/^    def _make_replacements(self, raw_prompt=None):$/;"	m	class:StepViewSlides
 _make_replacements	paideia.py	/^    def _make_replacements(self, raw_prompt=None, db=None):$/;"	m	class:StepAwardBadges
-_make_replacements	paideia.py	/^    def _make_replacements(self, raw_prompt=None, reps=None):$/;"	m	class:Step
+_make_replacements	paideia.py	/^    def _make_replacements(self, raw_prompt=None, reps=None, appds=None):$/;"	m	class:Step
 _make_replacements	paideia.py	/^    def _make_replacements(self, raw_prompt=None, username=None, quota=None):$/;"	m	class:StepQuotaReached
 _new_badges	paideia_exploring.py	/^    def _new_badges(self, categories, user=None, db=None):$/;"	m	class:Walk
 _order_cats	paideia.py	/^    def _order_cats(self):$/;"	m	class:PathChooser
@@ -146,7 +146,7 @@ _save_session_data	paideia_exploring.py	/^    def _save_session_data(self):$/;"	
 _save_session_data	paideia_exploring.py	/^    def _save_session_data(self):$/;"	m	class:Step
 _save_session_data	paideia_exploring.py	/^    def _save_session_data(self, new=False):$/;"	m	class:Walk
 _session_to_db	paideia_exploring.py	/^    def _session_to_db(self, data):$/;"	m	class:Utils
-_set_block	paideia.py	/^    def _set_block(self, condition, kwargs=None, data=None):$/;"	m	class:Path
+_set_block	paideia.py	/^    def _set_block(self, condition, kwargs=None, data=None):$/;"	m	class:User
 _start_new_session	paideia_exploring.py	/^    def _start_new_session(self):$/;"	m	class:Walk
 _step_in_path	paideia_exploring.py	/^    def _step_in_path(self, path, step=None):$/;"	m	class:Walk
 _store_user	paideia.py	/^    def _store_user(self, user):$/;"	m	class:Walk
@@ -159,7 +159,7 @@ ask	paideia.py	/^    def ask(self, localias=None, path=None, repeat=None):$/;"	m
 ask	paideia_exploring.py	/^    def ask(self):$/;"	m	class:Step
 bugresponses	paideia_bugs.py	/^    def bugresponses(self, user):$/;"	m	class:Bug
 categorize_tags	paideia.py	/^    def categorize_tags(self, rank=None, tag_records=None,$/;"	m	class:Categorizer
-check_for_blocks	paideia.py	/^    def check_for_blocks(self, db=None):$/;"	m	class:Path
+check_for_blocks	paideia.py	/^    def check_for_blocks(self):$/;"	m	class:User
 choose	paideia.py	/^    def choose(self):$/;"	m	class:NpcChooser
 choose	paideia.py	/^    def choose(self, db=None):$/;"	m	class:PathChooser
 choose_val	plugin_ajaxselect.py	/^    def choose_val(self, value):$/;"	m	class:AjaxSelect
@@ -207,7 +207,7 @@ get_responder	paideia.py	/^    def get_responder(self):$/;"	m	class:Step
 get_responder	paideia.py	/^    def get_responder(self):$/;"	m	class:StepContinue
 get_responder	paideia.py	/^    def get_responder(self):$/;"	m	class:StepMultiple
 get_responder	paideia.py	/^    def get_responder(self):$/;"	m	class:StepText
-get_step	paideia.py	/^    def get_step(self):$/;"	m	class:Block
+get_step	paideia.py	/^    def get_step(self, loc=None, prev_loc=None, npc=None, prev_npc=None):$/;"	m	class:Block
 get_step_for_prompt	paideia.py	/^    def get_step_for_prompt(self, loc=None, step=None, repeat=None):$/;"	m	class:Path
 get_step_for_reply	paideia.py	/^    def get_step_for_reply(self):$/;"	m	class:Path
 get_steps	paideia.py	/^    def get_steps(self, username):$/;"	m	class:Path
