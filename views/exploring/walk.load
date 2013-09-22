@@ -2,176 +2,41 @@
     {{#=response.toolbar()}}
 {{pass}}
 
-{{if auth.has_membership('administrators'):}}
-<div id='utils'>
-{{=A("Force new session", _href=URL('index.html', vars={'force':'True'}))}}
-<form style='z-index:99' id='clear_session'>
-    <ul> <li>
-        <input type='text' value='all' name='session_var' id='session_var' />
-        <a id='session_clear' href='#'>Clear session</a>
-    </li> </ul>
-</form>
-<div id='session_data'>
-<ul>
-    {{for k,v in session.walk.iteritems():}}
-        {{if k != 'npc_image':}}
-            <li>{{=k}}: {{=v}}</li>
-        {{pass}}
-    {{pass}}
-</ul>
+<div id='loading-mask' style="position:absolute; top:0; left:0; width:100%; height:100%; min-height:100%; background:#000000; background-color:rgba(0,0,0,0.6); text-align: center; display:none;">
+    <img src={{=URL('static', 'images/ajax-loader.gif')}} style="margin:40%;" alt='loading spinner image' />
 </div>
-<form>
-    <ul>
-        <li>
-            <a id='test_this_step' href='#'>Test</a> path
-            <input type='text' value='all' name='test_path' id='test_path' />
-            step
-            <input type='text' value='all' name='test_step' id='test_step' />
-            <select id='test_loc'>
-                {{for l in db(db.locations.id > 0).select():}}
-                    {{=OPTION(l.alias, _value=l.alias)}}
-                {{pass}}
-            </select>
-        </li>
-    </ul>
-</form>
-<span class='icon-only icon-gear'>
-    <span class='accessible'>Admin</span>
-</span>;
-</div>
-{{pass}}
 
-<!--when an error is raised-->
-<!-- TODO: Rework this error message -->
-{{if request.args(0) == 'error':}}
-    <section class='npc'>
-        {{=message}}
-        {{=button}}
-    </section>
-
-<!--path selection-->
-{{elif request.args(0) == 'start' or not request.args:}}
-	<embed id='town_map' src='{{=map.image}}' type='image/svg+xml' />
-    {{=TOOLTIP('townmap_key', 'Show map hotspots',
-                IMG(_src='../static/images/townmap.png'),
-                'left', 
-                'search')}}
-    
-<!--present npc reply for user's response to step prompt-->
-{{elif 'response' in request.vars:}}
-    <div class='bg_image'>{{=XML(bg_image)}}</div>
-    <div class='speaker'>{{=npc_img}}</div>
-    <section class="npc prompt">
-        <p>{{=reply}}</p>
-        <p>You said
-            <ul>
-                <li>{{=user_response}}</li>
-            </ul>
-        </p>
-        <p>Correct answers would include
-            <ul class='readable_short'>
-            {{if type(readable) == list:}}
-                {{for r in readable:}}
-                    {{=LI(r)}}
-                {{pass}}
-            {{else:}}
-                {{=LI(readable)}}
-            {{pass}}
-            </ul>
-        </p>
-        <span class="q_counter">Currently working on
-            {{=len(session.walk['active_paths'].keys())}} paths;
-            {{=len(session.walk['completed_paths'])}}
-        paths already complete today.</span>
-        {{=ROLE(SPAN('select type: {}'.format(''), _class='select_type'))}}  
-    </section>
-    <div class='responder'>
-        {{=A("Continue", _href=URL('walk', args=['ask'],
-                                    vars=dict(loc=request.vars['loc'])),
-            cid='page',
-            _class='button-green-grad next_q icon-next-circle')}}
-
-        {{=A("Retry", _href=URL('walk', args=['retry'],
-                                    vars=dict(loc=request.vars.loc)),
-            cid='page',
-            _class='button-yellow-grad retry icon-rotate-circle')}}
-
-        {{=A("Map", _href=URL('walk', args=['start'],
-                                    vars=dict(loc=None)),
-            cid='page',
-            _class='button-yellow-grad back_to_map icon-location')}}
-
-        {{=TOOLTIP('bug_reporter', 'bug', XML(bug_reporter), 'left', 'alert')}}
-    </div>
-
-<!--present prompt for step-->
-{{elif not 'response' in request.vars:}}
-    <div class='bg_image'>{{=bg_image}}</div>
-    <div class='speaker'>{{=npc_img}}</div>
-    <div class="npc prompt">{{=prompt}}</div>
-    <div class='responder'>
-        {{=form}}
-        {{if not instructions is None:}}
-            {{=TOOLTIP('prompt_tips', 'tips', XML(instructions), 'left', 'star')}}
-        {{pass}}
-    </div>
+<!--map interface-->
+{{if request.args(0) == 'map' or not request.args:}}
+	<embed id='town_map' src='{{=map["map_image"]}}' type='image/svg+xml' />
+<!--step interface-->
+{{else:}}
+    <div class='bg_image'>{{=npc['bg_image']}}</div>
+    <div class='speaker'>{{=npc['npc_image']}}</div>
+    {{=npc['npc']}}
+    {{=responder}}
 {{pass}}
 
 <script>
+$('.popover-trigger').each(function() {
+    var $this = $(this);
+    $this.popover({html: true,
+                   animation: true,
+                   content: $this.find('.popover-content').html()
+    });
+});
 
-$('#session_clear').click(function(event){
-    ajax('clear_session', ['session_var'], ':eval');
+$('#responder submit').click(function(event){
+    window.parent.web2py_component("/paideia/exploring/walk.load/reply","page");
     event.preventDefault();
 });
+
+
 $('#test_this_step').click(function(event){
     val = $(this).parent('li').find('#test_path').val();
     val2 = $(this).parent('li').find('#test_step').val();
     loc = $(this).parent('li').find('#test_loc').val();
     window.parent.web2py_component("/paideia/exploring/walk.load/test?path=" + val + "&step=" + val2 + "&loc=" + loc, "page");
     event.preventDefault();
-});
-$('#responder_submit').click(function(event){
-    window.parent.web2py_component("/paideia/exploring/walk.load/reply","page");
-    event.preventDefault();
-});
-$('.bug_reporter_icon').click(function(event){
-    var $tip = $('div.bug_reporter');
-    if ($tip.hasClass('tip-visible')){
-        $tip.removeClass('tip-visible');
-    }
-    else {
-        $tip.addClass('tip-visible');
-    }
-    return false;
-});
-$('.prompt_badges_icon').click(function(event){
-    var $tip = $('div.prompt_badges');
-    if ($tip.hasClass('tip-visible')){
-        $tip.removeClass('tip-visible');
-    }
-    else {
-        $tip.addClass('tip-visible');
-    }
-    return false;
-});
-$('.townmap_key_trigger').click(function(event){
-    var $tip = $('#townmap_key');
-    if ($tip.hasClass('tip-visible')){
-        $tip.removeClass('tip-visible');
-    }
-    else {
-        $tip.addClass('tip-visible');
-    }
-    return false;
-});
-$('.prompt_tips_icon').click(function(event){
-    var $tip = $('#prompt_tips');
-    if ($tip.hasClass('tip-visible')){
-        $tip.removeClass('tip-visible');
-    }
-    else {
-        $tip.addClass('tip-visible');
-    }
-    return false;
 });
 </script>

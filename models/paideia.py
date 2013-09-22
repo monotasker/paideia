@@ -1,10 +1,10 @@
-# coding: utf8
+# -*- coding: utf8 -*-
 
 from plugin_ajaxselect import AjaxSelect
 from itertools import chain
 import datetime
 import os
-import re
+#import re
 
 if 0:
     from gluon import URL, current, Field, IS_IN_DB, IS_NOT_IN_DB, SQLFORM
@@ -18,73 +18,76 @@ if 0:
 #TODO: move these to an AjaxSelect model file
 response.files.insert(5, URL('static',
                       'plugin_ajaxselect/plugin_ajaxselect.js'))
-response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.css'))
+#response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.css'))
 
 dtnow = datetime.datetime.utcnow()
 
 
 #TODO: Fix this regex validator
-class IS_VALID_REGEX(object):
-    """
-    custom validator to check regex in step definitions against the given
-    readable responses.
-    """
-    def __init__(self):
-        self.error_message = 'Given answers do not satisfy regular expression.'
+#class IS_VALID_REGEX(object):
+    #"""
+    #custom validator to check regex in step definitions against the given
+    #readable responses.
+    #"""
+    #def __init__(self):
+        #self.error_message = 'Given answers do not satisfy regular expression.'
 
-    def __call__(self, value):
-        request = current.request
-        answers = request.vars.readable_response
-        alist = answers.split('|')
-        regex = value.encode('string-escape')
-        for a in alist:
-            if re.match(a.strip(), regex, re.I):
-                print a.strip()
-                print 'it matched!'
-            else:
-                print 'answer ', a, ' did not match the regex provided.'
-                print regex
-                return (value, self.error_message)
-        return (value, None)
+    #def __call__(self, value):
+        #request = current.request
+        #answers = request.vars.readable_response
+        #alist = answers.split('|')
+        #regex = value.encode('string-escape')
+        #for a in alist:
+            #if re.match(a.strip(), regex, re.I):
+                #print a.strip()
+                #print 'it matched!'
+            #else:
+                #print 'answer ', a, ' did not match the regex provided.'
+                #print regex
+                #return (value, self.error_message)
+        #return (value, None)
 
-#TODO:Allow for different class profiles with different settings
 db.define_table('classes',
-                Field('institution', 'string', default='Tyndale Seminary', unique=True),
-                Field('year', 'integer', default=dtnow.year),
+                Field('institution', 'string', default='Tyndale Seminary',
+                      unique=True),
+                Field('academic_year', 'integer', default=dtnow.year),  # was year (reserved term)
                 Field('term', 'string'),
-                Field('section', 'string'),
+                Field('course_section', 'string'),
                 Field('instructor', 'reference auth_user', default=auth.user_id),
                 Field('start_date', 'datetime'),
                 Field('end_date', 'datetime'),
                 Field('paths_per_day', 'integer', default=40),
                 Field('days_per_week', 'integer', default=5),
                 Field('members', 'list:reference auth_user'),
-                format='%(institution)s, %(year)s %(term)s %(section)s, '
-                       '%(instructor.last_name)s, %(instructor.first_name)s'
+                format='%(institution)s, %(academic_year)s %(term)s '
+                       '%(course_section)s %(instructor.last_name)s, '
+                       '%(instructor.first_name)s'
                 )
 
 db.define_table('images',
-    Field('image', 'upload',
+    Field('image', 'upload', length=128,
           uploadfolder=os.path.join(request.folder, "static/images")),
-    Field('title', 'string'),
-    Field('description', 'string'),
+    Field('title', 'string', length=256),
+    Field('description', 'string', length=256),
     format='%(title)s')
 
 db.define_table('audio',
-    Field('clip', 'upload',
+    Field('clip', 'upload', length=128,
           uploadfolder=os.path.join(request.folder, "static/audio")),
-    Field('title', 'string'),
-    Field('description', 'string'),
+    Field('clip_ogg', 'upload', length=128,
+          uploadfolder=os.path.join(request.folder, "static/audio")),
+    Field('title', 'string', length=256),
+    Field('description', 'string', length=256),
     format='%(title)s')
 
 db.define_table('journals',
-    Field('user', db.auth_user, default=auth.user_id),
-    Field('pages', 'list:reference pages'),
-    format='%(user)s')
-db.journals.user.requires = IS_NOT_IN_DB(db, 'journals.user')
+    Field('name', db.auth_user, default=auth.user_id),
+    Field('journal_pages', 'list:reference journal_pages'),  # was pages (reserved term)
+    format='%(name)s')
+db.journals.name.requires = IS_NOT_IN_DB(db, 'journals.name')
 
-db.define_table('pages',
-    Field('page', 'text'),
+db.define_table('journal_pages',
+    Field('journal_page', 'text'),  # was page (reserved term)
     format='%(page)s')
 
 db.define_table('categories',
@@ -95,6 +98,7 @@ db.define_table('categories',
 db.define_table('tags',
     Field('tag', 'string', unique=True),
     Field('position', 'integer'),
+    Field('tag_position', 'integer'),  # was position (reserved term)
     Field('slides', 'list:reference plugin_slider_decks'),
     format='%(tag)s')
 
@@ -120,46 +124,47 @@ db.badges.badge_name.requires = IS_NOT_IN_DB(db, 'badges.badge_name')
 db.badges.tag.requires = IS_EMPTY_OR(IS_IN_DB(db, 'tags.id', db.tags._format))
 
 db.define_table('locations',
-    Field('location', unique=True),
-    Field('alias', unique=True),
+    Field('map_location'),  # , unique=True  # was location (reserved term)
+    Field('loc_alias'),  # , unique=True  # was alias (reserved term)
     Field('readable'),
     Field('bg_image', db.images),
-    format='%(location)s')
-db.locations.location.requires = IS_NOT_IN_DB(db, 'locations.location')
-db.locations.alias.requires = IS_NOT_IN_DB(db, 'locations.alias')
+    Field('loc_active', 'boolean'),
+    format='%(map_location)s')
+db.locations.map_location.requires = IS_NOT_IN_DB(db, 'locations.map_location')
+db.locations.loc_alias.requires = IS_NOT_IN_DB(db, 'locations.loc_alias')
 db.locations.bg_image.requires = IS_EMPTY_OR(IS_IN_DB(db, 'images.id',
                                                      db.images._format))
 
 db.define_table('npcs',
     Field('name', 'string', unique=True),
-    Field('location', 'list:reference locations'),
+    Field('map_location', 'list:reference locations'),  # was location (reserved term)
     Field('npc_image', db.images),
     Field('notes', 'text'),
     format='%(name)s')
 db.npcs.name.requires = IS_NOT_IN_DB(db, 'npcs.name')
-db.npcs.location.requires = IS_IN_DB(db, 'locations.id',
+db.npcs.map_location.requires = IS_IN_DB(db, 'locations.id',
                                     db.locations._format, multiple=True)
-db.npcs.location.widget = lambda field, value: AjaxSelect(field, value,
-                                                          'locations',
-                                                          multi='basic',
-                                                          lister='editlinks'
-                                                          ).widget()
+db.npcs.map_location.widget = lambda field, value: AjaxSelect(field, value,
+                                                              'locations',
+                                                              multi='basic',
+                                                              lister='editlinks'
+                                                              ).widget()
 
 db.define_table('step_types',
-    Field('type', unique=True),
+    Field('step_type'),  # , unique=True   # was type (reserved term)
     Field('widget'),
     Field('step_class'),
-    format='%(type)s')
+    format='%(step_type)s')
 
 db.define_table('step_hints',
-    Field('label', unique=True),
-    Field('text', 'text'),
-    format='%(label)s')
+    Field('hint_label'),  # , unique=True  # was label (reserved term)
+    Field('hint_text', 'text'),   # was text (reserved term)
+    format='%(hint_label)s')
 
 db.define_table('step_instructions',
-    Field('label', unique=True),
-    Field('text', 'text'),
-    format='%(label)s')
+    Field('instruction_label'),  # , unique=True  # was label (reserved term)
+    Field('instruction_text', 'text'),  # was text (reserved term)
+    format='%(instruction_label)s')
 
 db.define_table('step_status',
     Field('status_num', 'integer', unique=True),
@@ -171,7 +176,7 @@ db.define_table('steps',
     Field('prompt_audio', db.audio, default=0),
     Field('widget_type', db.step_types, default=1),
     Field('widget_image', db.images, default=0),
-    Field('options', 'list:string'),
+    Field('step_options', 'list:string'),  # was options (reserved term)
     Field('response1'),
     Field('readable_response'),
     Field('outcome1', default=None),
@@ -188,7 +193,7 @@ db.define_table('steps',
     Field('locations', 'list:reference locations'),
     Field('status', db.step_status, default=1),
     format='%(prompt)s')
-db.steps.options.widget = SQLFORM.widgets.list.widget
+db.steps.step_options.widget = SQLFORM.widgets.list.widget
 #db.steps.response1.requires = IS_VALID_REGEX()
 db.steps.npcs.requires = IS_IN_DB(db, 'npcs.id',
                                       db.npcs._format, multiple=True)
@@ -290,31 +295,46 @@ class PathsVirtualFields(object):
         steprows = db(db.steps.id.belongs(self.paths.steps)).select()
         nlists = [s.tags for s in steprows]
         return list(chain.from_iterable(nlists))
+
+    def tags_secondary(self):
+        steprows = db(db.steps.id.belongs(self.paths.steps)).select()
+        nlists = [s.tags_secondary for s in steprows]
+        return list(chain.from_iterable(nlists))
+
+    def tags_ahead(self):
+        try:
+            steprows = db(db.steps.id.belongs(self.paths.steps)).select()
+            nlists = [s.tags_ahead for s in steprows]
+            return list(chain.from_iterable(nlists))
+        except TypeError:
+            return None
+
 db.paths.virtualfields.append(PathsVirtualFields())
 
 # TODO: remove path_log table
 db.define_table('path_log',
                 Field('name', db.auth_user, default=auth.user_id),
                 Field('path', db.paths),
+                Field('in_path', db.paths),  # was path (reserved term)
                 Field('dt_started', 'datetime', default=dtnow),
                 Field('last_step', db.steps),
                 Field('dt_completed', 'datetime', default=None)
                 )
 db.path_log.name.requires = IS_IN_DB(db, 'auth_user.id', db.auth_user._format)
-db.path_log.path.requires = IS_IN_DB(db, 'paths.id', db.paths._format)
+db.path_log.in_path.requires = IS_IN_DB(db, 'paths.id', db.paths._format)
 db.path_log.last_step.requires = IS_IN_DB(db, 'steps.id', db.steps._format)
 
 db.define_table('attempt_log',
                 Field('name', db.auth_user, default=auth.user_id),
                 Field('step', db.steps),
-                Field('path', db.paths),
+                Field('in_path', db.paths),  # was path (reserved term)
                 Field('score', 'double'),
                 Field('dt_attempted', 'datetime', default=dtnow)
                 )
 db.attempt_log.name.requires = IS_IN_DB(db, 'auth_user.id',
                                 db.auth_user._format)
 db.attempt_log.step.requires = IS_IN_DB(db, 'steps.id', db.steps._format)
-db.attempt_log.path.requires = IS_IN_DB(db, 'paths.id', db.paths._format)
+db.attempt_log.in_path.requires = IS_IN_DB(db, 'paths.id', db.paths._format)
 
 db.define_table('tag_records',
                 Field('name', db.auth_user, default=auth.user_id),
@@ -323,7 +343,7 @@ db.define_table('tag_records',
                 Field('times_wrong', 'double'),
                 Field('tlast_wrong', 'datetime', default=dtnow),
                 Field('tlast_right', 'datetime', default=dtnow),
-                Field('path', db.paths),
+                Field('in_path', db.paths),  # was path (reserved term)
                 Field('step', db.steps),
                 Field('secondary_right', 'list:string')
                 )
@@ -331,7 +351,7 @@ db.tag_records.name.requires = IS_IN_DB(db, 'auth_user.id',
                                     db.auth_user._format)
 db.tag_records.tag.requires = IS_IN_DB(db, 'tags.id', db.tags._format)
 db.tag_records.step.requires = IS_IN_DB(db, 'steps.id', db.steps._format)
-db.tag_records.path.requires = IS_IN_DB(db, 'paths.id', db.paths._format)
+db.tag_records.in_path.requires = IS_IN_DB(db, 'paths.id', db.paths._format)
 
 db.define_table('bug_status',
     Field('status_label'),
@@ -339,8 +359,8 @@ db.define_table('bug_status',
 
 db.define_table('bugs',
     Field('step', db.steps),
-    Field('path', db.paths),
-    Field('location', db.locations),
+    Field('in_path', db.paths),
+    Field('map_location', db.locations),
     Field('user_response'),
     Field('score', 'double'),
     Field('log_id', db.attempt_log),
@@ -351,9 +371,10 @@ db.define_table('bugs',
     Field('hidden', 'boolean'),
     format='%(step)s')
 
+# TODO: write session data to this table in paideia module
 db.define_table('session_data',
-    Field('user', db.auth_user, default=auth.user_id),
+    Field('name', db.auth_user, default=auth.user_id),
     Field('updated', 'datetime', default=dtnow),
     Field('session_start', 'datetime', default=dtnow),
-    Field('data', 'text'),
-    format='%(user)s')
+    Field('other_data', 'text'),
+    format='%(name)s')

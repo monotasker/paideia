@@ -5,7 +5,6 @@ from paideia_bugs import Bug
 #from gluon.tools import prettydate
 
 if 0:
-    from gluon import HTML, A, URL, BODY
     from gluon import current
     from gluon.tools import Auth
     from gluon.dal import DAL
@@ -33,7 +32,7 @@ def user():
     http://..../[app]/default/user/retrieve_password
     http://..../[app]/default/user/change_password
     """
-    return {'form': auth()}
+    return dict(form=auth())
 
 
 def info():
@@ -95,7 +94,6 @@ def info():
                                 'date': 'on {}'.format(bd.badges_begun[c].strftime('%b %e, %Y')),
                                 'dt': bd.badges_begun[c]})
     badgelist = sorted(badgelist, key=lambda row: row['dt'], reverse=True)
-    print tag_records[0]
     return {'the_name': name,
             'tz': tz,
             'email': email,
@@ -115,31 +113,45 @@ def oops():
     code = request.vars.code
     ticket = request.vars.ticket
 
-    requested_uri = request.vars.requested_uri
+    #requested_uri = request.vars.requested_uri
     request_url = request.vars.request_url
 
     # Return the original HTTP error code
     response.status = code
-    if code == 500:
-        title = 'Paideia - Internal error reported'
-        msg = HTML(BODY('Hello Ian,<br>I seem to have run into an error!',
-                'requested uri:', requested_uri,
-                'request url:', request_url,
-                'Here is the ticket: '))
-        link = A(ticket, _href=URL('admin', 'default', 'ticket', args=[ticket]),
-                _target='_blank')
-        msg[0].append(link)
+    #if code == 500:
+    title = 'Paideia - Internal error reported'
+    msg = '<html><body>Hello Ian,<br>I seem to have run into an error!' \
+          'request url:<br /><br />{url}' \
+          '<br /><br />' \
+          'Here is the ticket:<br /><br />' \
+          'local: <a href="http://127.0.0.1:8000/admin/default/ticket/{t}" target="_blank">{t}</a>' \
+          '<br /><br />' \
+          'remote: <a href="https://ianwscott.webfactional.com/admin/default/ticket/{t}" target="_blank">{t}</a>' \
+          '</body></html>'.format(url=request_url, t=ticket)
 
-        mail.send(mail.settings.sender, title, msg.xml())
+    mail.send(mail.settings.sender, title, msg)
 
     return {'code': code}
 
-#def download():
-    #"""
-    #allows downloading of uploaded files
-    #http://..../[app]/default/download/[filename]
-    #"""
-    #return response.download(request,db)
+
+@auth.requires_membership(role='administrators')
+def csv():
+    """
+    generic csv function to export a single table.
+
+    The table is set via the first url argument.
+    """
+    table = request.args[0]
+    items = db().select(db[table].ALL)
+    return {'items': items}
+
+
+def download():
+    """
+    allows downloading of uploaded files
+    http://..../[app]/default/download/[filename]
+    """
+    return response.download(request, db)
 
 
 #def call():

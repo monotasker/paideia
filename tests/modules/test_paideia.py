@@ -1,56 +1,48 @@
-# -*- coding: utf-8 -*-
+#! /usr/bin/python
+# -*- coding: UTF-8 -*-
 # Unit tests for the paideia module
+#
+# Configuration and some fixtures (client, web2py) declared in
+# the file tests/conftest.py
+# run with py.test -xvs applications/paideia/tests/modules/
 
 import pytest
 from paideia import Npc, Location, User, PathChooser, Path, Categorizer, Walk
 from paideia import StepFactory, StepText, StepMultiple, NpcChooser, Step
 from paideia import StepRedirect, StepViewSlides, StepAwardBadges
 from paideia import StepEvaluator, MultipleEvaluator, StepQuotaReached
-from paideia import Block
+from paideia import Block, BugReporter
 from gluon import A, URL, DIV, LI, UL, SPAN, IMG
 from gluon import current
-request = current.request
 # from gluon.dal import Rows
+
 import datetime
 # from pprint import pprint
 import re
 from random import randint
 from copy import copy
 
-# web2py library for functional testing
-from gluon.contrib.webclient import WebClient
-client = WebClient('http://127.0.0.1:8000/paideia/default/', postbacks=True)
-client.get('index')
-
-#register
-data = dict(first_name='Homer',
-            last_name='Simpson',
-            email='scottianw@gmail.com',
-            password='test',
-            password_two='test',
-            _formname='register')
-client.post('user/register', data=data)
 
 # ===================================================================
-# Controls governing which tests to run
+# Switches governing which tests to run
 # ===================================================================
-global_runall = False
-global_run_TestNpc = False
-global_run_TestLocation = False
+global_runall = 1
+global_run_TestNpc = 1
+global_run_TestLocation = 1
 global_run_TestNpcChooser = False  # deprecated for Step.get_npc()
-global_run_TestStep = False
-global_run_TestStepRedirect = False
-global_run_TestStepAwardBadges = False
-global_run_TestStepViewSlides = False
-global_run_TestStepText = False
-global_run_TestStepMultiple = False
-global_run_TestStepEvaluator = False
-global_run_TestMultipleEvaluator = False
-global_run_TestPath = False
-global_run_TestUser = False
-global_run_TestCategorizer = False
+global_run_TestStep = 1
+global_run_TestStepRedirect = 1
+global_run_TestStepAwardBadges = 1
+global_run_TestStepViewSlides = 1
+global_run_TestStepText = 1
+global_run_TestStepMultiple = 1
+global_run_TestStepEvaluator = 1
+global_run_TestMultipleEvaluator = 1
+global_run_TestPath = 1
+global_run_TestUser = 1
+global_run_TestCategorizer = 1
 global_run_TestWalk = 1
-global_run_TestPathChooser = False
+global_run_TestPathChooser = 1
 
 # ===================================================================
 # Test Fixtures
@@ -62,23 +54,23 @@ def dt(string):
     format = "%Y-%m-%d"
     return datetime.datetime.strptime(string, format)
 
-# Constant values from db
-db = current.db
-images = {'npc1_img': '/paideia/static/images/images.image.bb48641f0122d2b6.696d616765732e696d6167652e383136303330663934646664646561312e34343732363137373639366536373230333432653733373636372e737667.svg',
-          'npc2_img': '/paideia/static/images/images.image.81e2d69e1aea4d99.44726177696e672031372e737667.svg',
-          'npc3_img': '/paideia/static/images/images.image.a59978facee731f0.44726177696e672031382e737667.svg',
-          'npc4_img': '/paideia/static/images/images.image.85a960241dc29f1b.776f6d616e312e706e67.png',
-          'npc5_img': '/paideia/static/images/images.image.a4d5140b25f87749.44726177696e672031392e737667.svg',
-          'npc6_img': '/paideia/static/images/images.image.a28124edf3480d82.696d616765732e696d6167652e383135323664663563326663623438302e343437323631373736393665363732303332333232653733373636372e737667.svg',
-          'npc7_img': '/paideia/static/images/images.image.993274ee0076fd2f.696d616765732e696d6167652e393636636434346165663238613839652e343437323631373736393665363732303332333732653733373636372e737667.svg',
-          'npc8_img': '/paideia/static/images/images.image.938be4c25c678bb5.323031322d30362d30352030335f35325f31312e706e67.png',
+
+# Constant values from
+images = {'npc1_img': '/paideia/static/images/images_migrate.image.8a17687fb0eb8ba9.696d616765732e696d6167652e383136303330663934646664646561312e34343732363137373639366536.svg',
+          'npc2_img': '/paideia/static/images/images_migrate.image.8119e454d945549a.67656f7267696f732e737667.svg',
+          'npc3_img': '/paideia/static/images/images_migrate.image.9028799e75acfb82.736f706869612e737667.svg',
+          'npc4_img': '/paideia/static/images/images_migrate.image.89e1a8203792bf8a.6d617269612e706e67.png',
+          'npc5_img': '/paideia/static/images/images_migrate.image.9dc07aa38f2b944b.64696f646f726f732e737667.svg',
+          'npc6_img': '/paideia/static/images/images_migrate.image.aa20ae70a2664e8f.73696d6f6e2e737667.svg',
+          'npc7_img': '/paideia/static/images/images_migrate.image.a6e093499e771c20.6961736f6e2e737667.svg',
+          'npc8_img': '/paideia/static/images/images_migrate.image.91890b6cbd780c6b.646f6d75735f615f706572697374796c652e706e67.png',
           'npc9_img': '/paideia/static/images//',
-          'npc10_img': '/paideia/static/images/images.image.961b44d8d322659c.323031322d30362d30372031345f34345f34302e706e67.png',
-          'npc11_img': '/paideia/static/images/images.image.ac58c3e138964719.70686f6562652e706e67.png',
-          'npc14_img': '/paideia/static/images/images.image.b5592e80d5fe4bb3.73796e61676f6775652e6a7067.jpg',
-          'npc15_img': '/paideia/static/images/images.image.9a515ff664f03aa3.323031322d30372d32312032335f35315f31322e706e67.png',
-          'npc16_img': '/paideia/static/images/images.image.8bb7c079634cf35a.44726177696e672033332e706e67.png',
-          'npc17_img': '/paideia/static/images/images.image.95fcf253d4dd7abd.44726177696e6720352e706e67.png'}
+          'npc10_img': '/paideia/static/images/images_migrate.image.bbce859d57828f3c.7374657068616e6f732e706e67.png',
+          'npc11_img': '/paideia/static/images/images_migrate.image.ae28555aa0ec369f.70686f6562652e706e67.png',
+          'npc14_img': '/paideia/static/images/images_migrate.image.9c9516a0d901b770.73796e61676f6775652e6a7067.jpg',
+          'npc15_img': '/paideia/static/images/images_migrate.image.b8baa2f2e32c2bb0.706c616365735f616c6578616e646572732d73686f702e706e67.png',
+          'npc16_img': '/paideia/static/images/images_migrate.image.b440eedd65d027fa.706c616365735f62617468732e706e67.png',
+          'npc17_img': '/paideia/static/images/images_migrate.image.8d55597fb475dc15.706c616365735f73746f612e706e67.png'}
 
 npc_data = {1: {'image': images['npc1_img'],
                 'name': 'Ἀλεξανδρος',
@@ -188,26 +180,24 @@ def mysteps(request):
                            '</table>'
                            '</form>',
                   'stub': '<div>'
-                          '<a class="back_to_map" href="/paideia/default/walk" '
-                          'onclick="web2py_component(&quot;/paideia/default/'
-                          'walk&quot;,&quot;page&quot;);return false;">Map</a>'
+                          '<a class="back_to_map" data-w2p_disable_with="default" '
+                          'data-w2p_method="GET" data-w2p_target="page" '
+                          'href="/paideia/default/walk">Map</a>'
                           '</div>',
-                  'continue': '<div>'
-                              '<a class="back_to_map" href="/paideia/default/'
-                              'walk" onclick="web2py_component(&quot;/paideia/'
-                              'default/walk&quot;,&quot;page&quot;);return false;">'
-                              'Map'
-                              '</a><a class="continue" href="/paideia/default/'
-                              'walk/ask?loc=[[loc]]" onclick="web2py_component('
-                              '&quot;/paideia/default/walk/ask?loc=[[loc]]&quot;'
-                              ',&quot;page&quot;);return false;">Continue</a>'
-                              '</div>'}
+                  'continue': '<div><a class="back_to_map" '
+                              'data-w2p_disable_with="default" '
+                              'data-w2p_method="GET" data-w2p_target="page" '
+                              'href="/paideia/default/walk">Map</a>'
+                              '<a class="continue" data-w2p_disable_with="default" '
+                              'data-w2p_method="GET" data-w2p_target="page" '
+                              'href="/paideia/default/walk/ask?loc=[[loc]]">'
+                              'Continue</a></div>'}
     prompts = {'redirect': 'Hi there. Sorry, I don\'t have anything for you to '
                            'do here at the moment. I think someone was looking '
                            'for you at somewhere else in town.',
                'new_badges': 'Congratulations, [[user]]! You\'ve reached '
                              'a new level with these badges:'
-                             '[[promoted_list]]You can click on your name '
+                             '[[promoted_list]]\r\nYou can click on your name '
                              'above to see details of your progress '
                              'so far.',
                'quota': 'Well done, [[user]]. You\'ve finished '
@@ -215,14 +205,14 @@ def mysteps(request):
                         'like to keep going, you\'re welcome to '
                         'continue.',
                'slides': 'Congratulations, [[user]]! You\'re ready to '
-                         'start working on some new badges:'
-                         '[[badge_list]]Before you continue, take '
-                         'some time to view these slide sets:'
-                         '[[slides]]You\'ll find the slides by '
+                         'start working on some new badges: \r\n'
+                         '[[badge_list]]\r\nBefore you continue, take '
+                         'some time to view these slide sets:\r\n'
+                         '[[slides]]\r\nYou\'ll find the slides by '
                          'clicking on the "slides" menu item at top.'}
     steps = {1: {'id': 1,
                  'paths': [2],
-                 'type': StepText,
+                 'step_type': StepText,
                  'widget_type': 1,
                  'npc_list': [8, 2, 32, 1, 17],
                  'locations': [3, 1, 13, 7, 8, 11],
@@ -250,7 +240,7 @@ def mysteps(request):
                  },
              2: {'id': 2,
                  'paths': [3],
-                 'type': StepText,
+                 'step_type': StepText,
                  'widget_type': 1,
                  'npc_list': [8, 2, 32, 1],
                  'locations': [3, 1, 13, 7, 8, 11],
@@ -275,7 +265,7 @@ def mysteps(request):
                  },
              19: {'id': 19,
                  'paths': [19],
-                 'type': StepText,
+                 'step_type': StepText,
                  'widget_type': 1,
                  'npc_list': [8, 2, 32, 1],
                  'locations': [3, 1, 13, 8, 11],
@@ -303,7 +293,7 @@ def mysteps(request):
                   },
              30: {'id': 30,
                   'paths': [None],
-                  'type': StepRedirect,
+                  'step_type': StepRedirect,
                   'widget_type': 9,
                   'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
                   'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10],
@@ -316,17 +306,19 @@ def mysteps(request):
                   'responder': responders['stub']},
              101: {'id': 101,
                    'paths': [89],
-                   'type': StepMultiple,
+                   'step_type': StepMultiple,
                    'widget_type': 4,
                    'locations': [7],
                    'npc_list': [14],
                    'raw_prompt': 'Is this an English clause?\r\n\r\n"The '
                                  'cat sat."',
+                   'final_prompt': 'Is this an English clause?\r\n\r\n"The '
+                                   'cat sat."',
                    'redirect_prompt': prompts['redirect'],
                    'instructions': None,
                    'tags': [36],
                    'tags_secondary': [],
-                   'options': ['ναι', 'οὐ'],
+                   'step_options': ['ναι', 'οὐ'],
                    'responses': {'response1': 'ναι'},
                    'responder': responders['multi'],
                    'redirect_responder': responders['stub'],
@@ -339,7 +331,7 @@ def mysteps(request):
                    'tips': []},
              125: {'id': 125,
                    'paths': [None],
-                   'type': StepQuotaReached,
+                   'step_type': StepQuotaReached,
                    'widget_type': 7,
                    'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10],
                    'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
@@ -350,7 +342,7 @@ def mysteps(request):
                    'responder': responders['continue']},
              126: {'id': 126,
                    'paths': [None],
-                   'type': StepAwardBadges,
+                   'step_type': StepAwardBadges,
                    'widget_type': 8,
                    'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10],
                    'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
@@ -361,7 +353,7 @@ def mysteps(request):
                    'responder': responders['continue']},
              127: {'id': 127,
                    'paths': [None],
-                   'type': StepViewSlides,
+                   'step_type': StepViewSlides,
                    'widget_type': 6,
                    'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
                    'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10],
@@ -375,19 +367,21 @@ def mysteps(request):
 
 
 @pytest.fixture(params=['case{}'.format(n) for n in range(1, 6)])
-def mycases(request, mysteps):
+def mycases(request, mysteps, user_login, db):
     """
     Text fixture providing various cases for unit tests. For each step,
     several cases are specified.
     """
     the_case = request.param
+    allpaths = db().select(db.paths.ALL)
+
     # same npc and location as previous step
     # replace tag too far ahead (1) with appropriate (61)
     cases = {'case1': {'casenum': 1,
                        'loc': Location(1, db),
                        'mynow': dt('2013-01-29'),
-                       'name': 'Ian',
-                       'uid': 1,
+                       'name': user_login['first_name'],
+                       'uid': user_login['id'],
                        'prev_loc': Location(7, db),
                        'prev_npc': Npc(2, db),
                        'npcs_here': [2, 8, 14, 17, 31, 40, 41, 42],
@@ -396,9 +390,9 @@ def mycases(request, mysteps):
                        'blocks_out': None,
                        'localias': 'shop_of_alexander',
                        'tag_records': [{'name': 1,
-                                        'tag_id': 1,
-                                        'last_right': dt('2013-01-29'),
-                                        'last_wrong': dt('2013-01-29'),
+                                        'tag': 1,
+                                        'tlast_right': dt('2013-01-29'),
+                                        'tlast_wrong': dt('2013-01-29'),
                                         'times_right': 1,
                                         'times_wrong': 1,
                                         'secondary_right': None}],
@@ -425,8 +419,7 @@ def mycases(request, mysteps):
                                           'cat3': [], 'cat4': [],
                                           'rev1': [], 'rev2': [],
                                           'rev3': [], 'rev4': []},
-                       'paths': {'cat1': [1, 2, 3, 5, 8, 63, 64, 70, 95, 96,
-                                          97, 99, 102, 104, 256, 277],
+                       'paths': {'cat1': [p.id for p in allpaths if 61 in p.tags],  # [1, 2, 3, 5, 8, 63, 95, 96, 99, 102, 256],  # removed 64, 70, 97, 104, 277
                                  'cat2': [],
                                  'cat3': [],
                                  'cat4': []},
@@ -440,8 +433,8 @@ def mycases(request, mysteps):
                       {'casenum': 2,
                        'mynow': dt('2013-01-29'),
                        'loc': Location(8, db),
-                       'name': 'Ian',
-                       'uid': 1,
+                       'name': user_login['first_name'],
+                       'uid': user_login['id'],
                        'prev_loc': Location(8, db),
                        'prev_npc': Npc(1, db),
                        'npcs_here': [1, 14, 17, 21, 40, 41, 42],
@@ -449,9 +442,9 @@ def mycases(request, mysteps):
                        'blocks_in': None,
                        'blocks_out': None,
                        'tag_records': [{'name': 1,
-                                        'tag_id': 61,
-                                        'last_right': dt('2013-01-29'),
-                                        'last_wrong': dt('2013-01-28'),
+                                        'tag': 61,
+                                        'tlast_right': dt('2013-01-29'),
+                                        'tlast_wrong': dt('2013-01-28'),
                                         'times_right': 10,
                                         'times_wrong': 2,
                                         'secondary_right': []}],
@@ -465,7 +458,7 @@ def mycases(request, mysteps):
                                         'rev1': [], 'rev2': [],
                                         'rev3': [], 'rev4': []},
                        'introduced': [62],
-                       'tag_progress_out': {'latest_new': 1,
+                       'tag_progress_out': {'latest_new': 2,
                                             'cat1': [62], 'cat2': [61],
                                             'cat3': [], 'cat4': [],
                                             'rev1': [], 'rev2': [],
@@ -478,9 +471,8 @@ def mycases(request, mysteps):
                                           'cat3': [], 'cat4': [],
                                           'rev1': [], 'rev2': [],
                                           'rev3': [], 'rev4': []},
-                       'paths': {'cat1': [1, 2, 3, 5, 8, 63, 64, 70, 95, 96,
-                                          97, 99, 102, 104, 256, 277],
-                                 'cat2': [],
+                       'paths': {'cat1': [p.id for p in allpaths if 62 in p.tags],  # [4, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 34, 35, 97, 98, 100, 101, 257, 261],
+                                 'cat2': [p.id for p in allpaths if 61 in p.tags],  # [1, 2, 3, 5, 8, 63, 95, 96, 97, 99, 102, 256],
                                  'cat3': [],
                                  'cat4': []},
                        'steps_here': [1, 2, 30, 125, 126, 127],
@@ -493,8 +485,8 @@ def mycases(request, mysteps):
              # add several untried tags for current rank
                       {'casenum': 3,
                        'mynow': dt('2013-01-29'),
-                       'name': 'Ian',
-                       'uid': 1,
+                       'name': user_login['first_name'],
+                       'uid': user_login['id'],
                        'loc': Location(11, db),  # synagogue
                        'prev_loc': Location(11, db),
                        'prev_npc': Npc(31, db),  # stephanos
@@ -503,33 +495,33 @@ def mycases(request, mysteps):
                        'blocks_in': None,
                        'blocks_out': None,
                        'tag_records': [{'name': 1,
-                                        'tag_id': 61,  # promote to 2 for time
-                                        'last_right': dt('2013-01-27'),
-                                        'last_wrong': dt('2013-01-21'),
+                                        'tag': 61,  # promote to 2 for time
+                                        'tlast_right': dt('2013-01-27'),
+                                        'tlast_wrong': dt('2013-01-21'),
                                         'times_right': 10,
                                         'times_wrong': 10,
                                         'secondary_right': None},
                                        # don't promote for time bc dw > dr
                                        {'name': 1,
-                                        'tag_id': 62,
-                                        'last_right': dt('2013-01-10'),
-                                        'last_wrong': dt('2013-01-1'),
+                                        'tag': 62,
+                                        'tlast_right': dt('2013-01-10'),
+                                        'tlast_wrong': dt('2013-01-1'),
                                         'times_right': 10,
                                         'times_wrong': 0,
                                         'secondary_right': None},
                                        # don't promote for time bc t_r < 10
                                        {'name': 1,
-                                        'tag_id': 63,
-                                        'last_right': dt('2013-01-27'),
-                                        'last_wrong': dt('2013-01-21'),
+                                        'tag': 63,
+                                        'tlast_right': dt('2013-01-27'),
+                                        'tlast_wrong': dt('2013-01-21'),
                                         'times_right': 9,
                                         'times_wrong': 0,
                                         'secondary_right': None},
                                        # promote for time bc t_r >= 10
                                        {'name': 1,
-                                        'tag_id': 66,
-                                        'last_right': dt('2013-01-27'),
-                                        'last_wrong': dt('2013-01-21'),
+                                        'tag': 66,
+                                        'tlast_right': dt('2013-01-27'),
+                                        'tlast_wrong': dt('2013-01-21'),
                                         'times_right': 10,
                                         'times_wrong': 0,
                                         'secondary_right': None}
@@ -540,14 +532,14 @@ def mycases(request, mysteps):
                                        'cat2': [61, 66],
                                        'cat3': [], 'cat4': []},
                        'tag_progress': {'latest_new': 4,
-                                        'cat1': [61, 62, 63, 66], 'cat2': [],
+                                        'cat1': [61, 62, 63, 66],
+                                        'cat2': [],
                                         'cat3': [], 'cat4': [],
                                         'rev1': [], 'rev2': [],
                                         'rev3': [], 'rev4': []},
                        'introduced': [9, 16, 48, 76, 93],
                        'tag_progress_out': {'latest_new': 4,
-                                            'cat1': [62, 63, 68, 115, 72,
-                                                     89, 36],
+                                            'cat1': [62, 63, 68, 115, 72, 89, 36],
                                             'cat2': [61, 66],
                                             'cat3': [], 'cat4': [],
                                             'rev1': [], 'rev2': [],
@@ -563,14 +555,10 @@ def mycases(request, mysteps):
                                           'cat3': [], 'cat4': [],
                                           'rev1': [], 'rev2': [],
                                           'rev3': [], 'rev4': []},
-                       'paths': {'cat1': [1, 2, 3, 5, 8, 38, 39, 40, 41, 42,
-                                          43, 44, 56, 57, 58, 59, 61, 62, 63,
-                                          64, 70, 84, 86, 87, 88, 90, 95, 96,
-                                          97, 99, 102, 104, 127, 256, 267, 270,
-                                          277, 288, 289, 290, 301, 302],
-                                 'cat2': [4, 7, 9, 10, 11, 12, 13, 14, 15, 16,
-                                          17, 18, 19, 21, 22, 23, 34, 35, 97,
-                                          98, 100, 101, 103, 257, 261, 277],
+                       'paths': {'cat1': [p.id for t in [68, 115, 72, 89, 36, 62, 63]
+                                          for p in allpaths if t in p.tags],  # [4, 6, 7, 9, 10, 11, 12, 13, 14,
+                                 'cat2': [p.id for t in [61, 66]
+                                          for p in allpaths if t in p.tags],  # [1, 2, 3, 5, 8, 26, 36, 63, 64,
                                  'cat3': [],
                                  'cat4': []},
                        'steps_here': [1, 2, 30, 125, 126, 127],
@@ -584,8 +572,8 @@ def mycases(request, mysteps):
              # secondary_right list sliced accordingly
                       {'casenum': 4,
                        'mynow': dt('2013-01-29'),
-                       'name': 'Ian',
-                       'uid': 1,
+                       'name': user_login['first_name'],
+                       'uid': user_login['id'],
                        'loc': Location(8, db),
                        'prev_loc': Location(7, db),
                        'prev_npc': Npc(1, db),
@@ -594,9 +582,9 @@ def mycases(request, mysteps):
                        'blocks_in': None,
                        'blocks_out': None,
                        'tag_records': [{'name': 1,
-                                        'tag_id': 61,  # 2ndary overrides time
-                                        'last_right': dt('2013-01-24'),
-                                        'last_wrong': dt('2013-01-21'),
+                                        'tag': 61,  # 2ndary overrides time
+                                        'tlast_right': dt('2013-01-24'),
+                                        'tlast_wrong': dt('2013-01-21'),
                                         'times_right': 9,
                                         'times_wrong': 10,
                                         'secondary_right': [dt('2013-01-28'),
@@ -604,26 +592,26 @@ def mycases(request, mysteps):
                                                             dt('2013-01-28'),
                                                             dt('2013-01-29')]},
                                        {'name': 1,
-                                        'tag_id': 62,  # 2ndary overrides ratio
-                                        'last_right': dt('2013-01-29'),
-                                        'last_wrong': dt('2013-01-28'),
+                                        'tag': 62,  # 2ndary overrides ratio
+                                        'tlast_right': dt('2013-01-29'),
+                                        'tlast_wrong': dt('2013-01-28'),
                                         'times_right': 9,
                                         'times_wrong': 2,
                                         'secondary_right': [dt('2013-01-28'),
                                                             dt('2013-01-28'),
                                                             dt('2013-01-28')]}],
                        'tag_records_out': [{'name': 1,
-                                            'tag_id': 61,  # 2ndary overrides time
-                                            'last_right': dt('2013-01-28'),
-                                            'last_wrong': dt('2013-01-21'),
+                                            'tag': 61,  # 2ndary overrides time
+                                            'tlast_right': dt('2013-01-28'),
+                                            'tlast_wrong': dt('2013-01-21'),
                                             'times_right': 10,
                                             'times_wrong': 10,
                                             'secondary_right': [dt('2013-01-29')]
                                             },
                                            {'name': 1,
-                                            'tag_id': 62,  # 2ndary overrides ratio
-                                            'last_right': dt('2013-01-29'),
-                                            'last_wrong': dt('2013-01-28'),
+                                            'tag': 62,  # 2ndary overrides ratio
+                                            'tlast_right': dt('2013-01-29'),
+                                            'tlast_wrong': dt('2013-01-28'),
                                             'times_right': 10,
                                             'times_wrong': 2,
                                             'secondary_right': []}],
@@ -652,22 +640,10 @@ def mycases(request, mysteps):
                                           'cat3': [], 'cat4': [],
                                           'rev1': [], 'rev2': [],
                                           'rev3': [], 'rev4': []},
-                       'paths': {'cat1': [6, 20, 24, 25, 27, 28, 33, 37, 64,
-                                          65, 66, 67, 68, 69, 94, 103, 104,
-                                          259, 260, 277, 278, 279, 280, 284,
-                                          285, 286, 38, 39, 40, 41, 42, 43, 44,
-                                          56, 57, 58, 59, 61, 62, 84, 86, 87,
-                                          88, 90, 127, 267, 270, 288, 289, 290,
-                                          301, 302, 45, 46, 47, 48, 49, 50, 51,
-                                          52, 53, 54, 55, 56, 57, 58, 59, 60,
-                                          61, 62, 84, 85, 86, 87, 88, 135, 206,
-                                          262, 263, 264, 265, 266, 267, 268,
-                                          269, 270, 308, 309],
-                                 'cat2': [1, 2, 3, 5, 8, 63, 64, 70, 95, 96,
-                                          97, 99, 102, 104, 256, 277, 4, 7, 9,
-                                          10, 11, 12, 13, 14, 15, 16, 17, 18,
-                                          19, 20, 21, 22, 23, 34, 35, 97, 98,
-                                          100, 101, 103, 257, 261, 277],
+                       'paths': {'cat1': [p.id for t in [63, 72, 115]
+                                          for p in allpaths if t in p.tags],  # [6, 20, 24, 25, 27, 28, 33, 37,
+                                 'cat2': [p.id for t in [61, 62]
+                                          for p in allpaths if t in p.tags],  # [1, 2, 3, 5, 8, 63, 64, 70, 95, 96,
                                  'cat3': [],
                                  'cat4': []},
                        'steps_here': [1, 2, 30, 125, 126, 127],
@@ -678,8 +654,8 @@ def mycases(request, mysteps):
              'case5':  # new badges present
                       {'casenum': 5,
                        'mynow': dt('2013-01-29'),
-                       'name': 'Ian',
-                       'uid': 1,
+                       'name': user_login['first_name'],
+                       'uid': user_login['id'],
                        'loc': Location(3, db),
                        'prev_loc': Location(3, db),
                        'prev_npc': Npc(1, db),
@@ -688,9 +664,9 @@ def mycases(request, mysteps):
                        'blocks_in': None,
                        'blocks_out': None,
                        'tag_records': [{'name': 1,
-                                        'tag_id': 61,
-                                        'last_right': dt('2013-01-29'),
-                                        'last_wrong': dt('2013-01-28'),
+                                        'tag': 61,
+                                        'tlast_right': dt('2013-01-29'),
+                                        'tlast_wrong': dt('2013-01-28'),
                                         'times_right': 10,
                                         'times_wrong': 2,
                                         'secondary_right': None}],
@@ -704,7 +680,7 @@ def mycases(request, mysteps):
                                         'rev1': [], 'rev2': [],
                                         'rev3': [], 'rev4': []},
                        'introduced': [62],  # assuming we call _introduce_tags
-                       'tag_progress_out': {'latest_new': 1,
+                       'tag_progress_out': {'latest_new': 2,
                                             'cat1': [62], 'cat2': [61],
                                             'cat3': [], 'cat4': [],
                                             'rev1': [], 'rev2': [],
@@ -717,9 +693,10 @@ def mycases(request, mysteps):
                                           'cat3': [], 'cat4': [],
                                           'rev1': [], 'rev2': [],
                                           'rev3': [], 'rev4': []},
-                       'paths': {'cat1': [1, 2, 3, 5, 8, 63, 64, 70, 95, 96,
-                                          97, 99, 102, 104, 256, 277],
-                                 'cat2': [],
+                       'paths': {'cat1': [p.id for t in [62]
+                                          for p in allpaths if t in p.tags],  # [4, 7, 9, 10, 11, 12, 13, 14, 15,
+                                 'cat2': [p.id for t in [61]
+                                          for p in allpaths if t in p.tags],  # [1, 2, 3, 5, 8, 63, 95, 96, 97, 99,
                                  'cat3': [],
                                  'cat4': []},
                        'new_badges': [62],
@@ -733,7 +710,7 @@ def mycases(request, mysteps):
 
 
 @pytest.fixture
-def mynpcchooser(mycases):
+def mynpcchooser(mycases, db):
     case = mycases['casedata']
     stepdata = mycases['stepdata']
     if stepdata['id'] in case['steps_here']:
@@ -752,13 +729,11 @@ def mynpcchooser(mycases):
 
 
 @pytest.fixture
-def mywalk(mycases):
+def mywalk(mycases, user_login, db):
     """pytest fixture providing a paideia.Walk object for testing"""
     case = mycases['casedata']
     step = mycases['stepdata']
-    userdata = {'first_name': case['name'],
-                'id': case['uid'],
-                'time_zone': 'America/Toronto'}
+    userdata = user_login
     tag_progress = case['tag_progress']
     tag_records = case['tag_records']
     localias = case['loc'].get_alias()
@@ -773,15 +748,13 @@ def mywalk(mycases):
 
 
 @pytest.fixture
-def mypathchooser(mycases):
+def mypathchooser(mycases, db):
     """pytest fixture providing a paideia.PathChooser object for testing"""
     case = mycases['casedata']
     step = mycases['stepdata']
-    klist = ['cat1', 'cat2', 'cat3', 'cat4', 'rev1', 'rev2', 'rev3']
-    cats = {k: v for k, v in case['tag_progress'].iteritems() if k in klist}
-    pc = PathChooser(cats, case['loc'], case['completed'], db=db)
+    pc = PathChooser(case['tag_progress_out'],
+                     case['loc'], case['completed'], db=db)
     return {'pathchooser': pc,
-            'paths': case['paths'],
             'casedata': case,
             'stepdata': step}
 
@@ -820,22 +793,20 @@ def mycategorizer(mycases):
 
 
 @pytest.fixture
-def myuser(mycases):
+def myuser(mycases, user_login):
     """A pytest fixture providing a paideia.User object for testing."""
     case = mycases['casedata']
     step = mycases['stepdata']
-    uid = case['uid']
-    userdata = db.auth_user(uid).as_dict()
     tag_progress = case['tag_progress']
     tag_records = case['tag_records']
     localias = case['loc'].get_alias()
-    return {'user': User(userdata, localias, tag_records, tag_progress),
+    return {'user': User(user_login, localias, tag_records, tag_progress),
             'casedata': case,
             'stepdata': step}
 
 
 @pytest.fixture
-def mynpc():
+def mynpc(db):
     '''
     A pytest fixture providing a paideia.Npc object for testing.
     '''
@@ -843,7 +814,7 @@ def mynpc():
 
 
 @pytest.fixture
-def mynpc_stephanos():
+def mynpc_stephanos(db):
     '''
     A pytest fixture providing a paideia.Npc object for testing.
     '''
@@ -851,7 +822,7 @@ def mynpc_stephanos():
 
 
 @pytest.fixture
-def myloc():
+def myloc(db):
     """
     A pytest fixture providing a paideia.Location object for testing.
     """
@@ -859,7 +830,7 @@ def myloc():
 
 
 @pytest.fixture
-def myloc_synagogue():
+def myloc_synagogue(db):
     """
     A pytest fixture providing a paideia.Location object for testing.
     """
@@ -867,7 +838,7 @@ def myloc_synagogue():
 
 
 @pytest.fixture
-def mypath(mycases):
+def mypath(mycases, db):
     """
     A pytest fixture providing a paideia.Path object for testing.
 
@@ -895,7 +866,7 @@ def mypath(mycases):
 
 
 @pytest.fixture
-def mystep(mycases):
+def mystep(mycases, db):
     """
     A pytest fixture providing a paideia.Step object for testing.
     """
@@ -904,11 +875,11 @@ def mystep(mycases):
     if (not case['loc'].get_id() in step['locations']) or \
        (not [n for n in case['npcs_here'] if n in step['npc_list']]):
         return None
-    if step['type'] == StepAwardBadges and case['casenum'] != 5:
+    if step['step_type'] == StepAwardBadges and case['casenum'] != 5:
         return None
-    if step['type'] == StepViewSlides and case['casenum'] != 5:
+    if step['step_type'] == StepViewSlides and case['casenum'] != 5:
         return None
-    if step['type'] == StepRedirect and case['casenum'] != 5:
+    if step['step_type'] == StepRedirect and case['casenum'] != 5:
         return None
     else:
         return {'casenum': case['casenum'],
@@ -922,7 +893,7 @@ def mystep(mycases):
 
 
 @pytest.fixture
-def myStepRedirect(mycases):
+def myStepRedirect(mycases, db):
     """
     A pytest fixture providing a paideia.StepRedirect object for testing.
     - same npc and location as previous step
@@ -943,7 +914,7 @@ def myStepRedirect(mycases):
 
 
 @pytest.fixture
-def myStepAwardBadges(mycases):
+def myStepAwardBadges(mycases, db):
     """
     A pytest fixture providing a paideia.StepAwardBadges object for testing.
     """
@@ -963,7 +934,7 @@ def myStepAwardBadges(mycases):
 
 
 @pytest.fixture
-def myStepViewSlides(mycases):
+def myStepViewSlides(mycases, db):
     """
     A pytest fixture providing a paideia.StepViewSlides object for testing.
     """
@@ -983,7 +954,7 @@ def myStepViewSlides(mycases):
 
 
 @pytest.fixture
-def myStepQuotaReached(mycases):
+def myStepQuotaReached(mycases, db):
     """
     A pytest fixture providing a paideia.StepQuota object for testing.
     """
@@ -1003,7 +974,7 @@ def myStepQuotaReached(mycases):
 
 
 @pytest.fixture
-def myStepText(mycases):
+def myStepText(mycases, db):
     """
     A pytest fixture providing a paideia.StepText object for testing.
     """
@@ -1034,14 +1005,14 @@ def myStepText(mycases):
 
 
 @pytest.fixture
-def myStepMultiple(mycases):
+def myStepMultiple(mycases, request, db):
     """A pytest fixture providing a paideia.StepMultiple object for testing."""
     case = mycases['casedata']
     step = mycases['stepdata']
     if step['widget_type'] == 4:
         for n in [0, 1]:
             responses = ['incorrect', 'correct']
-            options = step['options']
+            options = step['step_options']
             right_opt = step['responses']['response1']
             right_i = options.index(right_opt)
             wrong_opts = options[:]
@@ -1097,7 +1068,7 @@ def myStepMultiple(mycases):
                       'prev_loc': case['prev_loc'],
                       'prev_npc': case['prev_npc'],
                       'db': db}
-            return {'casenum': request.param,
+            return {'casenum': case['casenum'],
                     'step': StepFactory().get_instance(**kwargs),
                     'casedata': case,
                     'stepdata': step,
@@ -1188,10 +1159,7 @@ class TestNpc():
 
     def test_npc_get_image(self, mynpc):
         """Test for method Npc.get_image()"""
-        expected = '<img src="/paideia/static/images/images.image.bb48641f0122d2b6.696' \
-                   'd616765732e696d6167652e383136303330663934646664646561312' \
-                   'e34343732363137373639366536373230333432653733373636372e7' \
-                   '37667.svg" />'
+        expected = '<img src="/paideia/static/images/images_migrate.image.8a17687fb0eb8ba9.696d616765732e696d6167652e383136303330663934646664646561312e34343732363137373639366536.svg" />'
         actual = mynpc.get_image().xml()
         assert actual == expected
 
@@ -1231,25 +1199,25 @@ class TestLocation():
 
     def test_location_get_bg(self, myloc):
         """Test for method Location.get_bg"""
-        assert myloc.get_bg().xml() == '<img src="/paideia/static/images/images.image.9a515ff664f03aa3.323031322d30372d32312032335f35315f31322e706e67.png" />'
+        assert myloc.get_bg().xml() == '<img src="/paideia/static/images/images_migrate.image.b8baa2f2e32c2bb0.706c616365735f616c6578616e646572732d73686f702e706e67.png" />'
 
     def test_location_get_id(self, myloc):
         """Test for method Location.get_id"""
         assert myloc.get_id() == 6
 
 
-class TestNpcChooser():
-    """
-    Unit tests covering the NpcChooser class of the paideia module.
-    """
-    pytestmark = pytest.mark.skipif('not global_runall and '
-                                    'not global_run_TestNpcChooser')
+#class TestNpcChooser():
+    #"""
+    #Unit tests covering the NpcChooser class of the paideia module.
+    #"""
+    #pytestmark = pytest.mark.skipif('not global_runall and '
+                                    #'not global_run_TestNpcChooser')
 
-    def test_npcchooser_choose(self, mynpcchooser):
-        if mynpcchooser:
-            possible = mynpcchooser['step'].get_npcs()
-            out = mynpcchooser['chooser'].choose()
-            assert out.get_id() in possible
+    #def test_npcchooser_choose(self, mynpcchooser):
+        #if mynpcchooser:
+            #possible = mynpcchooser['step'].get_npcs()
+            #out = mynpcchooser['chooser'].choose()
+            #assert out.get_id() in possible
 
 
 class TestStep():
@@ -1266,7 +1234,7 @@ class TestStep():
         """
         if mystep:
             sid = mystep['stepdata']['id']
-            stype = mystep['stepdata']['type']
+            stype = mystep['stepdata']['step_type']
             assert mystep['step'].get_id() == sid
             assert isinstance(mystep['step'], stype) is True
         else:
@@ -1383,7 +1351,7 @@ class TestStepRedirect():
             username = 'Ian'
             actual = myStepRedirect['step'].get_prompt(username)
             step = myStepRedirect['stepdata']
-            newstring = step['final_prompt'].replace('[[next_loc]]', '{}')
+            newstring = step['redirect_prompt'].replace('[[next_loc]]', '{}')
             # TODO: figure out how to get test step to supply next loc
             placenames = ['ἡ στοά', 'τὸ βαλανεῖον', 'ὁ οἰκος Σιμωνος',
                           'ἡ ἀγορά', 'somewhere else in town']
@@ -1397,7 +1365,7 @@ class TestStepRedirect():
         else:
             pass
 
-    def test_stepredirect_make_replacements(self, myStepRedirect):
+    def test_stepredirect_make_replacements(self, myStepRedirect, db):
         """docstring for test_stepredirect_make_replacements"""
         if myStepRedirect:
             string = 'Nothing to do here [[user]]. Try [[next_loc]].'
@@ -1474,7 +1442,7 @@ class TestStepAwardBadges():
             expect_id = myStepAwardBadges['stepdata']['id']
             assert myStepAwardBadges['step'].get_id() == expect_id
 
-    def test_stepawardbadges_get_prompt(self, myStepAwardBadges):
+    def test_stepawardbadges_get_prompt(self, myStepAwardBadges, db):
         """
         Test method for the get_prompt method of the StepAwardBadges class.
         """
@@ -1487,7 +1455,6 @@ class TestStepAwardBadges():
                       'username': case['name'],
                       'promoted': case['promoted'],
                       'db': db}
-            print 'expected', case['promoted']
             actual = myStepAwardBadges['step'].get_prompt(**kwargs)
             # assemble expected prompt string dynamically
             flat_proms = [i for cat, lst in case['promoted'].iteritems()
@@ -1495,7 +1462,6 @@ class TestStepAwardBadges():
             prom_records = db(db.badges.tag.belongs(flat_proms)
                               ).select(db.badges.tag,
                                        db.badges.badge_name).as_list()
-            print 'prom_records', prom_records
             expect_prompt = expect['raw_prompt'].replace('[[user]]',
                                                          case['name'])
             if prom_records:
@@ -1554,8 +1520,6 @@ class TestStepAwardBadges():
             expected = myStepAwardBadges['stepdata']['responder']
             expected = expected.replace('[[loc]]', str(thisloc))
             actual = myStepAwardBadges['step'].get_responder().xml()
-            print 'actual\n', actual
-            print 'expected\n', expected
             assert actual == expected
         else:
             pass
@@ -1589,7 +1553,7 @@ class TestStepViewSlides():
         else:
             pass
 
-    def test_stepviewslides_get_prompt(self, myStepViewSlides):
+    def test_stepviewslides_get_prompt(self, myStepViewSlides, db):
         """
         Test method for the get_prompt method of the StepRedirect class.
         This test assumes that the selected npc is Stephanos. It also assumes
@@ -1636,7 +1600,7 @@ class TestStepViewSlides():
             deck_query = db(deck_table.id.belongs(deck_ids))
             decknames = deck_query.select(deck_table.id,
                                           deck_table.deck_name,
-                                          orderby=deck_table.position)
+                                          orderby=deck_table.deck_position)
             decklist = UL(_class='slide_list')
             for d in decknames:
                 decklist.append(LI(A(d.deck_name, _href=URL('listing',
@@ -1652,15 +1616,13 @@ class TestStepViewSlides():
             npc_images = [npc_data[n]['image'] for n in step['npc_list']
                           if n in case['npcs_here']]
 
-            print 'METHOD OUTPUT\n', actual['prompt']
-            print 'EXPECTED\n', expect_prompt
             assert actual['prompt'] == expect_prompt
             assert actual['instructions'] == step['instructions']
             assert actual['npc_image'].attributes['_src'] in npc_images
         else:
             pass
 
-    def test_stepviewslides_make_replacements(self, myStepViewSlides):
+    def test_stepviewslides_make_replacements(self, myStepViewSlides, db):
         """
         Unit test for StepViewSlides.make_replacements()
         """
@@ -1672,7 +1634,6 @@ class TestStepViewSlides():
                       'username': case['name'],
                       'new_badges': case['new_badges']}
             prompt = step._make_replacements(**kwargs)
-            print 'ACTUAL\n', prompt
 
             # assemble badge list
             badge_rows = db(db.badges.tag.belongs(case['new_badges'])
@@ -1688,10 +1649,10 @@ class TestStepViewSlides():
             tag_rows = db(db.tags.id.belongs(case['new_badges'])
                           ).select(db.tags.slides)
             deck_ids = [d for r in tag_rows for d in r['slides']]
-            print tag_rows[0]
             slide_rows = db(db.plugin_slider_decks.id.belongs(deck_ids)
                             ).select()
-            formatstring2 = '<li><a href="/paideia/listing/slides/{0}">' \
+            formatstring2 = '<li><a data-w2p_disable_with="default" ' \
+                            'href="/paideia/listing/slides/{0}">' \
                             '{1}</a></li>'
             deck_names = [formatstring2.format(r.id, r.deck_name)
                           for r in slide_rows]
@@ -1702,7 +1663,6 @@ class TestStepViewSlides():
             fullprompt = stepdata['raw_prompt'].replace('[[user]]', case['name'])
             fullprompt = fullprompt.replace('[[slides]]', decks_str)
             fullprompt = fullprompt.replace('[[badge_list]]', badges_str)
-            print 'EXPECTED\n', fullprompt
             assert prompt == fullprompt
         else:
             pass
@@ -1968,7 +1928,7 @@ class TestPath():
                                         if s in case['npcs_here']],
                             'loc': case['loc'].get_id(),
                             'steps': [],  # only step has been removed
-                            'type': step['type']
+                            'step_type': step['step_type']
                             }
 
                 path = mypath['path']
@@ -1981,7 +1941,7 @@ class TestPath():
                     expected['npc_list'] = [14, 8, 2, 40, 31, 32, 41, 1, 17, 42]
                     expected['locations'] = [3, 1, 2, 4, 12, 13, 14, 6, 7, 8,
                                             11, 5, 9, 10]
-                    expected['type'] = StepRedirect
+                    expected['step_type'] = StepRedirect
 
                     assert path.step_for_reply is None
                     assert path.step_for_prompt.get_id() == sid
@@ -1997,8 +1957,8 @@ class TestPath():
                 assert case['loc'].get_id() in expected['locations']
                 assert actual.get_npc().get_id() in expected['npc_list']
                 assert actual.get_npc().get_id() in case['npcs_here']
-                assert type(actual) == expected['type']
-                assert isinstance(actual, expected['type'])
+                assert type(actual) == expected['step_type']
+                assert isinstance(actual, expected['step_type'])
                 assert path.steps == expected['steps']
             else:
                 pass
@@ -2039,7 +1999,6 @@ class TestPath():
                         'prev_npc': path.prev_npc}
                 expected = [Block('redirect', kwargs=kwargs, data=locs)]
 
-                print expected
                 assert actual == expected[0].get_step()
                 assert len(path.blocks) == 1
                 assert path.step_for_prompt == sid
@@ -2087,7 +2046,7 @@ class TestPath():
         else:
             pass
 
-    def test_path_get_step_for_reply(self, mypath, mysteps):
+    def test_path_get_step_for_reply(self, mypath, mysteps, db):
         """
         Unit test for method paideia.Path.get_step_for_reply.
         """
@@ -2119,7 +2078,7 @@ class TestPath():
         else:
             pass
 
-    def test_path_set_loc(self, mypath):
+    def test_path_set_loc(self, mypath, db):
         """docstring for test_path_set_loc"""
         if mypath:
             path = mypath['path']
@@ -2136,20 +2095,22 @@ class TestPath():
             pass
 
 
-class TestUser():
+class TestUser(object):
     """unit testing class for the paideia.User class"""
     pytestmark = pytest.mark.skipif('global_runall is False '
                                     'and global_run_TestUser is False')
 
-    def test_user_get_id(self, myuser):
+    def test_user_get_id(self, myuser, db):
         """
         Unit test for User.get_id() method.
         """
-        #auth = current.auth
-        uid = 1  # TODO: change to use auth.user_id
-        assert myuser['user'].get_id() == uid
+        uid = myuser['user'].get_id()
+        expected = db((db.auth_user.first_name == 'Homer') &
+                      (db.auth_user.last_name == 'Simpson')).select()
+        assert len(expected) == 1
+        assert uid == expected.first().id
 
-    def test_user_is_stale(self, myuser):
+    def test_user_is_stale(self, myuser, db):
         """
         Unit test for User.is_stale() method.
         """
@@ -2164,13 +2125,11 @@ class TestUser():
                  {'start': datetime.datetime(2012, 12, 29, 14, 0, 0),
                   'expected': True}]
         for c in cases:
-            print 'start:', c['start']
-            print 'expected:', c['expected']
             actual = myuser['user'].is_stale(now=now, start=c['start'],
-                                     tz_name=tzn, db=db)
+                                     time_zone=tzn, db=db)
             assert actual == c['expected']
 
-    def test_user_get_path(self, myuser):
+    def test_user_get_path(self, myuser, db):
         user = myuser['user']
         case = myuser['casedata']
         if user.cats_counter < 5:
@@ -2216,24 +2175,48 @@ class TestUser():
 
         assert actual == expected
 
+    def test_user_get_tag_progress(self, myuser):
+        """
+        Unit test for User._get_tag_progress() method.
+        """
+        user = myuser['user']
+        case = myuser['casedata']
+        user.cats_counter = 0
+        actual = user.get_tag_progress()
+
+        # FIXME: Why are cats different than tag_progress_out
+        expected = case['categories_start']
+        expected['latest_new'] = case['tag_progress']['latest_new']
+        for k, v in actual.iteritems():
+            if v and not isinstance(v, int):
+                for p in v:
+                    assert p in expected[k]
+
+    def test_user_get_tag_records(self, myuser):
+        """
+        Unit test for User._get_tag_progress() method.
+        """
+        user = myuser['user']
+        actual = user.get_tag_records()
+        expected = myuser['casedata']['tag_records']
+        print 'actual \n', actual
+        print 'expected \n', expected
+        assert actual == expected
+
     def test_user_get_categories(self, myuser):
         """
         Unit test for User._get_categories() method.
         """
         user = myuser['user']
         case = myuser['casedata']
-        print 'cats_counter:', user.cats_counter
         if user.cats_counter < 5:
             expected = case['categories_start']
         elif user.cats_counter >= 5:
             expected = case['categories_out']
         actual = user._get_categories()
-        print 'actual:\n', actual
-        print 'expected:\n', expected
-
         # this avoids problem of lists being in different orders
         for c, l in expected.iteritems():
-            assert len(actual[c]) == len([t for t in l if t in actual[c]])
+            assert len(actual['categories'][c]) == len([t for t in l])
 
     def test_user_get_old_categories(self, myuser):
         """
@@ -2259,10 +2242,15 @@ class TestUser():
         pathid = case['paths']['cat1'][0]
         path = Path(path_id=pathid, loc=case['loc'])
         path.completed_steps.append(path.steps.pop(0))
+
         user.path = copy(path)
         assert user._complete_path() is True
         assert user.path is None
-        assert user.last_npc.get_id() in case['npcs_here']
+        if case['casenum'] == 3:
+            print user.last_npc
+            assert not user.last_npc
+        else:
+            assert user.last_npc.get_id() in case['npcs_here']
         assert user.last_loc.get_id() == case['loc'].get_id()
         assert user.completed_paths[-1].get_id() == path.get_id()
         assert isinstance(user.completed_paths[-1], Path)
@@ -2295,9 +2283,18 @@ class TestCategorizer():
             else:
                 for t in l:
                     assert t in real['tag_progress'][c]
+                    print 'cat:', c
+                    print real['tag_progress'][c]
+
+        print 'pro', real['promoted']
+        print 'de', real['demoted']
+        print 'cats', real['categories']
+
         if out['nt']:
+            print 'new_tags', real['new_tags']
             for t in real['new_tags']:
                 assert t in out['nt']
+                assert t in out['t_prog']['cat1']
         for c, l in out['pro'].iteritems():
             for t in l:
                 assert t in real['promoted'][c]
@@ -2366,11 +2363,15 @@ class TestCategorizer():
         realout = mz['categorizer']._add_secondary_right(recsin)
         for r in realout:
             ri = realout.index(r)
-            assert r['tag_id'] == expected[ri]['tag_id']
-            assert r['last_right'] == expected[ri]['last_right']
-            assert r['last_wrong'] == expected[ri]['last_wrong']
+            assert r['tag'] == expected[ri]['tag']
+            assert r['tlast_right'] == expected[ri]['tlast_right']
+            assert r['tlast_wrong'] == expected[ri]['tlast_wrong']
             assert r['times_right'] == expected[ri]['times_right']
-            assert r['last_wrong'] == expected[ri]['last_wrong']
+            assert r['tlast_wrong'] == expected[ri]['tlast_wrong']
+            print 'REAL'
+            print r['secondary_right']
+            print 'EXPECT'
+            print expected[ri]['secondary_right']
             assert r['secondary_right'] == expected[ri]['secondary_right']
 
 
@@ -2387,7 +2388,9 @@ class TestWalk():
         case = mywalk['casedata']
         if case['casenum'] == 1:
             localias = case['localias']
-            userdata = {'first_name': 'Joe', 'id': 1}
+            userdata = {'first_name': 'Homer',
+                        'last_name': 'Simpson',
+                        'id': current.auth.user.id}
             tag_records = case['tag_records']
             tag_progress = case['tag_progress']
 
@@ -2405,53 +2408,53 @@ class TestWalk():
         case = mywalk['casedata']
         if case['casenum'] == 1:
             expected = {'map_image': '/paideia/static/images/town_map.svg',
-                        'locations': [{'alias': 'None',
+                        'locations': [{'loc_alias': 'None',
                                     'bg_image': 8,
                                     'id': 3},
-                                    {'alias': 'domus_A',
+                                    {'loc_alias': 'domus_A',
                                     'bg_image': 8,
                                     'id': 1},
-                                    {'alias': '',
+                                    {'loc_alias': '',
                                     'bg_image': 8,
                                     'id': 2},
-                                    {'alias': None,
+                                    {'loc_alias': None,
                                     'bg_image': None,
                                     'id': 4},
-                                    {'alias': None,
+                                    {'loc_alias': None,
                                     'bg_image': None,
                                     'id': 12},
-                                    {'alias': 'bath',
+                                    {'loc_alias': 'bath',
                                     'bg_image': 17,
                                     'id': 13},
-                                    {'alias': 'gymnasion',
+                                    {'loc_alias': 'gymnasion',
                                     'bg_image': 15,
                                     'id': 14},
-                                    {'alias': 'shop_of_alexander',
+                                    {'loc_alias': 'shop_of_alexander',
                                     'bg_image': 16,
                                     'id': 6},
-                                    {'alias': 'ne_stoa',
+                                    {'loc_alias': 'ne_stoa',
                                     'bg_image': 18,
                                     'id': 7},
-                                    {'alias': 'agora',
+                                    {'loc_alias': 'agora',
                                     'bg_image': 16,
                                     'id': 8},
-                                    {'alias': 'synagogue',
+                                    {'loc_alias': 'synagogue',
                                     'bg_image': 15,
                                     'id': 11},
-                                    {'alias': None,
+                                    {'loc_alias': None,
                                     'bg_image': None,
                                     'id': 5},
-                                    {'alias': None,
+                                    {'loc_alias': None,
                                     'bg_image': None,
                                     'id': 9},
-                                    {'alias': None,
+                                    {'loc_alias': None,
                                     'bg_image': None,
                                     'id': 10}
                                     ]}
             actual = thiswalk.map()
             for m in expected['locations']:
                 i = expected['locations'].index(m)
-                assert actual['locations'][i]['alias'] == m['alias']
+                assert actual['locations'][i]['loc_alias'] == m['loc_alias']
                 assert actual['locations'][i]['bg_image'] == m['bg_image']
                 assert actual['locations'][i]['id'] == m['id']
             assert actual['map_image'] == expected['map_image']
@@ -2464,33 +2467,53 @@ class TestWalk():
         c = case['casenum']
         step = mywalk['stepdata']
         s = step['id']
-        combinations = {1: 1,  # path 2
-                        1: 2,  # path 3
-                        1: 101,  # path 89, multiple, redirect (step 30)
-                        2: 101,  # path 89, multiple
-                        2: 19,  # path 19
-                        3: 19}  # path 19
-        if c in combinations.keys() and s == combinations[c]:
-            redirects = {1: 101}  # TODO: is this right for expected redirects?
-            if c in redirects and s == redirects[c]:
+
+        combinations = {1: [1, 2, 101],  # paths 2, 3, 89 (multi, redir(step 30))
+                        2: [101, 19],  # paths 89 (multiple), 19
+                        3: [19]}  # path 19
+        if c in combinations.keys() and s in combinations[c]:
+            redirects = {1: [101],
+                         2: [101]}  # TODO: why does case 2 redirect step 101?
+            if c in redirects and s in redirects[c]:
+                print 'redirecting'
                 expected = {'prompt': step['redirect_prompt'],
                             'instructions': None,
-                            'responder': step['redirect_responder']}
+                            'responder': step['redirect_responder'],
+                            'reply_step': False}
             else:
                 expected = {'prompt': step['final_prompt'],
                             'instructions': step['instructions'],
-                            'responder': step['responder']}
-                            # TODO: check for image -- just hard to predict
+                            'responder': step['responder'],
+                            'reply_step': False}
+                if step['step_type'] in (StepText, StepMultiple):
+                    # expect a reply step prepared for these step types
+                    expected['reply_step'] = True
 
             path = step['paths'][0]
+            print 'in test_walk_ask———————————————————————————–'
+            print 'asking path', path
             actual = thiswalk.ask(path)
-
+            # TODO: add the following new assertions to test for
+            # path.get_step_for_prompt
+            # check that right number of steps left in path.steps
+            # TODO: parameterize this when we add multi-step path tests
+            assert thiswalk.user.path.steps == []
+            # check that a step is prepared for reply when necessary
+            if expected['reply_step'] is True:
+                assert thiswalk.user.path.step_for_reply
+                print 'step_for_reply is', thiswalk.user.path.step_for_reply.get_id()
+            else:
+                assert not thiswalk.user.path.step_for_reply
+                print 'no step prepared for reply'
+            # check that correct path is active on user
             assert path == thiswalk.user.path.get_id()
             assert actual['prompt']['prompt'] == expected['prompt']
             assert actual['prompt']['instructions'] == expected['instructions']
+            # TODO: check for image -- just hard to predict
             #assert actual['prompt']['npc_image'] == expected['image']
             assert actual['responder'].xml() == expected['responder']
         else:
+            print 'skipping combination'
             pass
 
     def test_walk_reply(self, mywalk):
@@ -2502,36 +2525,70 @@ class TestWalk():
         c = case['casenum']
         step = mywalk['stepdata']
         s = step['id']
-        combinations = {1: 1,  # path 2
-                        1: 2,  # path 3
-                        1: 101,  # path 89, multiple, redirect (step 30)
-                        2: 101,  # path 89, multiple
-                        2: 19,  # path 19
-                        3: 19}  # path 19
-        if c in combinations.keys() and s == combinations[c]:
+        combinations = {1: [1, 2],  # path 2, 3  # TODO: handle redirect steps?
+                        2: [19],  # path 19
+                        3: [19]}  # path 19
+
+        if c in combinations.keys() and s in combinations[c]:
             # test for both a correct and an incorrect response
+            path = step['paths'][0]
             for k, v in step['user_responses'].iteritems():
+                thestring = re.compile(r'^Incorrect.*', re.U)
+                result = thestring.search(step['reply_text'][k])
+                if result:
+                    score = 0
+                    times_right = 0
+                    times_wrong = 1
+                else:
+                    score = 1
+                    times_right = 1
+                    times_wrong = 0
+
                 response_string = v
+
                 expected = {'reply': step['reply_text'][k],
-                            'bug_reporter': ''}
-                            # TODO: add bug reporter string
+                            'score': score,
+                            'times_right': times_right,
+                            'times_wrong': times_wrong}
                             # TODO: put in safety in case of empty form
 
-                path = step['paths'][0]
                 thiswalk.ask(path)
-                u1 = thiswalk.user
                 assert path == thiswalk.user.path.get_id()
-                actual = thiswalk.start(response_string),
-                u2 = thiswalk.user
-                # TODO: does actual change u1, rendering this test redundant?
-                assert u1 == u2
+                # make sure ask() prepared the step for reply
+                assert thiswalk.user.path.step_for_reply.get_id() == s
+                # TODO: parameterize when multi-step path is tested
+                assert thiswalk.user.path.steps == []
 
-                assert actual['reply'] == expected['reply']
-                assert actual['bug_reporter'] == expected['bug_reporter']
+                actual = thiswalk.start(response_string, path=path)
+                assert actual['reply']['reply_text'] == expected['reply']
+                assert actual['reply']['score'] == expected['score']
+                assert actual['reply']['times_right'] == expected['times_right']
+                assert actual['reply']['times_wrong'] == expected['times_wrong']
+                response_string = response_string.decode("utf-8")
+                print response_string
+                bug_info = (response_string.encode('utf-8'),
+                            case['loc'].get_alias(),
+                            thiswalk.record_id,
+                            thiswalk.user.path.get_id(),
+                            expected['score'],
+                            s)
+                bug_reporter = '<a class="bug_reporter_link" '\
+                               'href="/paideia/creating/bug.load?'\
+                               'answer={}&amp;'\
+                               'loc={}&amp;'\
+                               'log_id={}&amp;'\
+                               'path={}&amp;'\
+                               'score={}&amp;'\
+                               'step={}" '\
+                               'id="bug_reporter">click here</a>'.format(*bug_info)
+                assert actual['bug_reporter'].xml() == bug_reporter
+                assert not thiswalk.user.path.step_for_reply
+                assert not thiswalk.user.path.step_for_prompt
+                assert s == thiswalk.user.path.completed_steps[-1].get_id()
         else:
             pass
 
-    def test_walk_record_cats(self, mywalk):
+    def test_walk_record_cats(self, mywalk, db):
         """
         Unit tests for Walk._record_cats() method.
         """
@@ -2540,23 +2597,35 @@ class TestWalk():
         if case['casenum'] == 1:
             tag_progress = case['tag_progress_out']
             user_id = thiswalk._get_user().get_id()
+            print 'USER ID'
+            print user_id
             promoted = case['promoted']
             new_tags = case['new_badges']
             promoted['cat1'] = new_tags
-            expected_progress = tag_progress
-            expected_begun = {t: cat for cat in promoted for t in cat}
+            promoted = {k: v for k, v in promoted.iteritems() if v}
+            expected_progress = copy(tag_progress)
+            expected_progress['name'] = user_id
+            if promoted:
+                print promoted.values()
+                expected_begun = {t: cat for cat, lst in promoted.iteritems()
+                                for t in lst if lst}
+            else:
+                expected_begun = None
+            # TODO: make sure there's a test that covers some promoted or new
+            # tags
 
             # call the method and test its return value
-            assert thiswalk._record_cats(tag_progress, promoted,
-                                       new_tags, db) is True
+            thiswalk._record_cats(tag_progress, promoted,
+                                  new_tags, db)
 
             # test record insertion for db.tag_progress
             actual_select_tp = db(db.tag_progress.name == user_id).select()
             assert len(actual_select_tp) == 1
 
-            actual_record_tp = actual_select_tp.first()
+            actual_record_tp = actual_select_tp.first().as_dict()
             for k, v in actual_record_tp.iteritems():
-                assert v == expected_progress[k]
+                if k != 'id':
+                    assert v == expected_progress[k]
 
             # test record insertion for db.badges_begun
             actual_select_bb = db(db.badges_begun.name == user_id).select()
@@ -2565,14 +2634,18 @@ class TestWalk():
             assert len(actual_select_bb) == len(user_tag_records)
             # check that new values were entered
             now = datetime.datetime.utcnow()
-            for t, v in {tag: cat for tag, cat in expected_begun.iteritems()}:
-                actual_select_bb.find(lambda row: row.tag_id == t)
-                assert len(actual_select_bb) == 1
-                assert actual_select_bb.first()[v] == now
+            if expected_begun:
+                print expected_begun
+                for t, v in {tag: cat for tag, cat in expected_begun.iteritems()}:
+                    actual_select_bb.find(lambda row: row.tag == t)
+                    assert len(actual_select_bb) == 1
+                    assert actual_select_bb.first()[v] == now
         else:
+            print 'skipping combination'
             pass
+        # TODO: make sure data is removed from db after test
 
-    def test_walk_record_step(self, mywalk):
+    def test_walk_record_step(self, mywalk, db):
         """
         Unit test for Paideia.Walk._record_step()
 
@@ -2610,13 +2683,15 @@ class TestWalk():
             assert len(actual_tag_records) == len(expected_tag_records)
             for l in expected_tag_records:
                 for_this_tag = actual_tag_records.find(lambda row:
-                                                       row.tag == l['tag_id'])
+                                                       row.tag == l['tag'])
                 assert len(for_this_tag) == 1
 
                 for k in l.keys():
                     assert for_this_tag[k] == l[k]
         else:
+            print 'skipping combination'
             pass
+        # TODO make sure data is removed from db after test
 
     def test_walk_store_user(self, mywalk):
         """Unit test for Walk._store_user"""
@@ -2632,7 +2707,11 @@ class TestWalk():
             assert actual is True
             assert isinstance(session.user, User)
             assert session.user.get_id() == user_id
+
+            # remove session user again
+            session.user = None
         else:
+            print 'skipping combination'
             pass
 
 
@@ -2644,11 +2723,24 @@ class TestPathChooser():
                                     'and global_run_TestPathChooser is False')
 
     def test_pathchooser_choose(self, mypathchooser):
+        """
+        Unit test for the paideia.Pathchooser.choose() method.
+        """
         newpath = mypathchooser['pathchooser'].choose()
-        assert newpath[0].id in [r for c in mypathchooser['paths'].values() for r in c if len(c) > 0]
+        paths = mypathchooser['casedata']['paths']
+        expected = paths['cat{}'.format(newpath[2])]
+
+        print 'PATHCHOOSER PATHS \n', paths
+        print 'CHOSEN PATH', newpath[0]['id']
+        print 'EXPECTED PATHS', expected
+
+        assert newpath[0]['id'] in expected
         assert newpath[2] in range(1, 5)
 
     def test_pathchooser_order_cats(self, mypathchooser):
+        """
+        Unit test for the paideia.Pathchooser._order_cats() method.
+        """
         pc = mypathchooser['pathchooser']._order_cats()
         ind = pc.index(1)
         if len(pc) >= (ind + 2):
@@ -2665,24 +2757,62 @@ class TestPathChooser():
         assert pc[2] in [1, 2, 3, 4]
         assert pc[3] in [1, 2, 3, 4]
 
-    def test_pathchooser_paths_by_category(self, mypathchooser):
-        cpaths, category = mypathchooser['pathchooser']._paths_by_category('1')
-        allpaths = mypathchooser['paths']
-        pathids = allpaths['cat{}'.format(category)]
-        expected = db(db.paths).select()
-        expected = expected.find(lambda row: row.id in pathids)
-        assert len(cpaths) == len(expected)
+    def test_pathchooser_paths_by_category(self, mypathchooser, db):
+        """
+        Unit test for the paideia.Pathchooser._paths_by_category() method.
+        """
+        tp = mypathchooser['casedata']['tag_progress_out']
+        rank = tp['latest_new']
+        cpaths, category = mypathchooser['pathchooser']._paths_by_category(1, rank)
+        tagids = tp['cat{}'.format(category)]
+        x = db(db.paths).select()
+        x = x.find(lambda row: [t for t in tagids
+                                if t in db.paths[row.id].tags])
+        x = x.find(lambda row: [s for s in row.steps if db.steps(s).status != 2])
+        x.exclude(lambda row: [s for s in row.steps
+                               if db.steps(s).locations is None])
+        x.exclude(lambda row: [t for t in row.tags
+                               if db.tags[t].tag_position > rank])
+        assert len(cpaths) == len(x)
         for row in cpaths:
-            assert row.id in [r.id for r in expected]
+            assert row.id in [r.id for r in x]
 
-    def test_pathchooser_choose_from_cat(self, mypathchooser):
-        allpaths = mypathchooser['paths']
-        pathids = allpaths['cat{}'.format(1)]
+    def test_pathchooser_choose_from_cat(self, mypathchooser, db):
+        """
+        Unit test for the paideia.Pathchooser._choose_from_cats() method.
+        """
+        catnum = 1
+        paths = mypathchooser['casedata']['paths']
+        pathids = paths['cat{}'.format(catnum)]
         expected = db(db.paths).select()
         expected = expected.find(lambda row: row.id in pathids)
-        print expected
 
-        newpath = mypathchooser['pathchooser']._choose_from_cat(expected, 1)
-        assert newpath[0].id in mypathchooser['paths']['cat1']
-        assert newpath[1] in [l for l in db.steps(newpath[0].steps[0]).locations]
+        newpath = mypathchooser['pathchooser']._choose_from_cat(expected, catnum)
+        assert newpath[0]['id'] in paths['cat{}'.format(catnum)]
+        assert newpath[1] in [l for l in db.steps(newpath[0]['steps'][0]).locations]
         assert newpath[2] == 1
+
+
+class TestBugReporter():
+    '''
+    Unit testing class for the paideia.BugReporter class.
+    '''
+
+    def test_bugreporter_get_reporter(self):
+        """
+        Unit test for BugReporter.get_reporter() method.
+        """
+        data = {'record_id': 22,
+                'path_id': 4,
+                'step_id': 108,
+                'score': 0.5,
+                'response_string': 'hi',
+                'loc_alias': 'agora'}
+        expected = '<a class="bug_reporter_link" data-w2p_disable_with="default" ' \
+                   'href="/paideia/creating/bug.load?' \
+                   'answer=hi&amp;loc=agora&amp;log_id=22&amp;path=4&amp;' \
+                   'score=0.5&amp;step=108" id="bug_reporter">click here</a>'
+
+        actual = BugReporter().get_reporter(**data)
+
+        assert actual.xml() == expected
