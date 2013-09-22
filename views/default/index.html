@@ -4,39 +4,111 @@
 <section class='hero-unit'>
 <h1>Welcome!</h1>
     <p>Paideia is an online space for learning New Testament Greek. To get started register for an account and then click the link below to "start exploring."</p>
-    <span class='text-warning'>This is an early "alpha" version for use in my courses at Tyndale Seminary. While the site is functional, it is not yet polished, and I do appreciate feedback whenever you find something that looks odd or doesn't work as expected. Feel free to follow the link below to get a sense of what the project is about. 
-    </span>
-    <p>{{=A("start exploring", _href=URL('exploring', 'index'),
-         _class='btn btn-success pull-left')}}</p>
-
-</section>
-<section class='clear'>
-<h3>Browser Requirements</h3>
-<p>This web-app does rely on some features built into newer browsers. To have a reliable experience, you will need to use an up-to-date version of Firefox, Google Chrome, or Safari. If you must use Internet Explorer, it needs to be at least version 9, available <a href="http://windows.microsoft.com/en-US/internet-explorer/downloads/ie-9/worldwide-languages">here</a>. But one of the other standard browsers is less likely to run into trouble.
-</p>
+    <div id='alpha-warning'>This is an early "alpha" version for use in my courses at Tyndale Seminary. While the site is functional, it is not yet polished, and I do appreciate feedback whenever you find something that looks odd or doesn't work as expected. Feel free to follow the link below to get a sense of what the project is about. 
+    </div>
+    <p>
+    {{=A("start exploring",
+        _href=URL('exploring', 'index'),
+        _class='btn btn-success pull-left')}}
+    </p>
 </section>
 
-<section>
-<h3>How Does It Work?</h3>
-<p>Paideia revolves around a fictional hellenized town in eastern Anatolia, on
-the fringe of the Roman Empire where it runs up against Parthian territory. You will take the role of a foreign slave, recently bought by a middle-class Jewish
-couple to serve in their house. From the start you are free to move around the town, visiting various locations by clicking them on the town map (there's always a link back to the map in the top menu. In each location you may meet one of several townspeople who will ask you questions and give you jobs to do. Each interaction is called a "path" and you can track how many "paths" you have completed each day. Some paths will only involve one "step" (one interaction), while others will require you to go from one location to another and perform a few "steps" before you are done. Along the way, though, you will be introduced to more and more of the Greek language, using it to interact with the town's colourful population.</p>
-
-<p>Paideia is meant to give you something a little like an immersion experience, so that you learn the language naturally, by using it. You will not be asked to do much memorizing of vocabulary lists or verb charts. At the same time, some structured understanding of the language can be a real help. So, whenever you start work on a new badge (learning a new facet of the language) you will be told that it is time to go and view a few sets of slides. These slides will sketch out the grammar, new vocabulary, and new word-forms that you are about to start using in your exchanges in the town. The point of these is not to spend a lot of time memorizing the details. Rather, the slides are a primer for the learning that will take place as you dive back into town life your conversations with the townspeople. If you ever start to feel lost, you can always click the "slides" link in the top menu and go back to view any of the slide sets again.</p>
-
-<p>The biggest thing to realize about Paideia is that in this town there is no penalty for making mistakes. This is not a giant online test, and we do not count up how many wrong answers you have given. So after every interaction you will be given examples of some proper responses you could have given. You can, if you like, immediately repeat the "step" and give one of the correct responses, or try out a different response. In fact, you will often learn the most by making mistakes and then looking at the correct responses to see where you went wrong. You are free to learn at your own pace. Once you are able to use your new knowledge without making mistakes, the townspeople will know you are ready to start working on a new badge and they will start leading you on some new kinds of paths.</p>
+<section class="panel-group" id="accordion">
+    <div class="panel">
+        <div class="panel-heading">
+            <h3 class="panel-title">
+                <a class="accordion-toggle"
+                    data-toggle="collapse"
+                    data-parent="#accordion"
+                    href="#collapseOne">Browser Requirements
+                </a>    
+            </h3>
+        </div>
+        <div id="collapseOne" class="panel-collapse collapse">
+            <div class='panel-body'>
+                <p>This web-app does rely on some features built into newer browsers. To have a reliable experience, you will need to use an up-to-date version of Firefox, Google Chrome, or Safari. If you must use Internet Explorer, it needs to be at least version 9, available <a href="http://windows.microsoft.com/en-US/internet-explorer/downloads/ie-9/worldwide-languages">here</a>. But one of the other standard browsers is less likely to run into trouble.
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="panel">
+        <div class="panel-heading">
+            <h3 class="panel-title">
+                <a class="accordion-toggle"
+                    data-toggle="collapse"
+                    data-parent="#accordion"
+                    href="#collapseTwo">Typing in Greek
+                </a>    
+            </h3>
+        </div>
+        <div id="collapseTwo" class="panel-collapse collapse">
+            <div class='panel-body'>
+                <p>It's easy to type in Greek on your desktop or laptop computer. In fact, your computer already comes with a Greek "keyboard layout" built in. When you activate that "layout" your regular keyboard will automatically type the Greek characters.</p>
+                <p>The steps for activating your Greek keyboard vary from one 
+                operating system to another, so here are some links to tutorials 
+                that will walk you through the process for your computer:
+                <ul>
+                    <li>Mac OSX (<a href='http://www.youtube.com/watch?v=ujo7WTiFwBk1list=PLThwDZhkt_VeRDppYmwlQRUI2ekaU4zSo1index=4'>video</a> | <a href='http://symbolcodes.tlt.psu.edu/keyboards/mackey.html#activate'>written instructions</a>)
+                    </li>
+                    <li>Windows 7 (<a href='http://www.youtube.com/watch?v=UkcHC3aVcsc&feature=share&list=PLThwDZhkt_VeRDppYmwlQRUI2ekaU4zSo'>video</a> | <a href='http://www.teknia.com/freegreekfont/unicode-windows'>written instructions</a>)
+                    </li>
+                    <li>Windows XP (<a href='http://www.youtube.com/watch?v=5dYJ00mv0kg&feature=share&list=PLThwDZhkt_VeRDppYmwlQRUI2ekaU4zSo'>video</a>)
+                    </li>
+                    <li>Windows Vista (<a href='http://www.youtube.com/watch?v=1sZtLxFNILw1list=PLThwDZhkt_VeRDppYmwlQRUI2ekaU4zSo1index=3'>video</a>)
+                </ul>
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class='panel'>
+        <div class='panel-heading'>
+            <h3 class="panel-title">
+                <a class="accordion-toggle"
+                    data-toggle="collapse"
+                    data-parent="#accordion"
+                    href="#collapseThree">How Does It Work?
+                </a>    
+            </h3>
+        </div>
+        <div id="collapseThree" class="panel-collapse collapse">
+            <div class='panel-body'>
+                <h4>Explore a first-century town</h4>
+                <p>Paideia revolves around a fictional hellenized town in eastern Anatolia, on the fringe of the Roman Empire where it runs up against Parthian territory. You will take the role of a foreign slave, recently bought by a middle-class Jewish couple to serve in their house. From the start you are free to move around the town, visiting various locations by clicking them on the town map (there's always a link back to the map in the top menu.</p>
+                <h4>Talk with the people you meet</h4>
+                <p>In each location you may meet one of several townspeople who will ask you questions and give you jobs to do. Each interaction is called a "path" and you can track how many "paths" you have completed each day. Some paths will only involve one "step" (one interaction), while others will require you to go from one location to another and perform a few "steps" before you are done. Along the way, though, you will be introduced to more and more of the Greek language, using it to interact with the town's colourful population.</p>
+                <h4>Learn naturally</h4>
+                <p>Paideia is meant to give you something a little like an immersion experience, so that you learn the language naturally, by using it. You will not be asked to do much memorizing of vocabulary lists or verb charts. At the same time, some structured understanding of the language can be a real help. So, whenever you start work on a new badge (learning a new facet of the language) you will be told that it is time to go and view a few sets of slides. These slides will sketch out the grammar, new vocabulary, and new word-forms that you are about to start using in your exchanges in the town. The point of these is not to spend a lot of time memorizing the details. Rather, the slides are a primer for the learning that will take place as you dive back into town life your conversations with the townspeople. If you ever start to feel lost, you can always click the "slides" link in the top menu and go back to view any of the slide sets again.</p>
+                <h4>Learn at your own pace</h4>
+                <p>We all know that some of us pick up languages more quickly than others. Many people think they can't learn a language, just because they've never been able to learn at their own pace. In a traditional course, students are forced to match the instructor's pace. That means that some people feel from day one like they're being left behind, while other people get bored. Paideia is different. Each student is free to learn at his or her own pace. You don't have to keep up with anyone else, and you can take the time to really "get" one idea before you have to move on to the next. </p>
+                <h4>Mistakes are great</h4>
+                <p>The biggest thing to realize about Paideia is that in this town there is no penalty for making mistakes. This is not a giant online test. So after every interaction you will be given examples of some proper responses you could have given. You can, if you like, immediately repeat the "step" and give one of the correct responses, or try out a different response. In fact, you will often learn the most by making mistakes and then looking at the correct responses to see where you went wrong. You are free to learn at your own pace. Once you are able to use your new knowledge without making mistakes, the townspeople will know you are ready to start learning something new</p>
+            </div>
+        </div>
+    </div>
+    <div class='panel'>
+        <div class='panel-heading'>
+            <h3 class='panel-title'>
+                <a class="accordion-toggle"
+                    data-toggle="collapse"
+                    data-parent="#accordion"
+                    href="#collapseFour">Known Bugs and Issues
+                </a>    
+            </h3>
+        </div>
+        <div id="collapseFour" class="panel-collapse collapse">
+            <div class='panel-body'>
+                <p>Since this software is still very much a work in progress, there are a few things to be aware of:
+                <ul>
+                    <li>The town map is sometimes a bit unresponsive, and it may take a second or two to respond when you hover over or click on a location. Google Chrome also seems at times to require that you click on a location twice: once to see the highlight, and again to enter the location.</li>
+                    <li>The slides are still a bit ugly. The layout and styling is still a work in progress, and I will be adding slides throughout the fall.</li>
+                    <li>The automated evaluation of each response is quite tricky, and you may occasionally wonder whether the software is right about your response. In those cases, click on the triangular icon that looks like this <span class='icon-only icon-alert'><span class='accessible'>!</span></span> and a bug report will be submitted automatically. These bug reports will then be available for your review (including the instructor's response to the report) on your user profile page.</li>
+                    <li>Since this is new software, other random things may occasionally blow up without notice. I will do my best to fix these bugs quickly when they arise, and you can rest assured that none of them will affect your evaluation in the end.</li>
+                    <li>If you do get a scary "Internal Error" message, don't worry! You haven't broken anything. Just refresh your browser and you should be returned to the town map to continue your session.</li>
+                </ul>
+                </p>
+            </div>
+        </div>
+    </div>
 </section>
-<section>
-<h3>Known Bugs and Issues</h3>
-<p>Since this software is still very much a work in progress, there are a few things to be aware of:
-<ul>
-    <li>The town map is sometimes a bit unresponsive, and it may take a second or two to respond when you hover over or click on a location. Google Chrome also seems at times to require that you click on a location twice: once to see the highlight, and again to enter the location.</li>
-    <li>The slides are still a bit ugly. The layout and styling is still a work in progress, and I will be adding slides throughout the fall.</li>
-    <li>I'm still having some trouble with the automatic signal to go and view some slides. So if you suddenly find yourself looking at letters or words or forms that are totally unfamiliar, check the slides. It may be time to view the next few sets. This will be fixed, though, asap.</li>
-    <li>The automated evaluation of each response is quite tricky, and you may occasionally wonder whether the software is right about your response. In those cases, click on the triangular icon that looks like this <span class='icon-only icon-alert'><span class='accessible'>!</span></span> and a bug report will be submitted automatically. These bug reports will then be available for your review (including the instructor's response to the report) on your user profile page.</li>
-    <li>Since this is new software, other random things may occasionally blow up without notice. I will do my best to fix these bugs quickly when they arise, and you can rest assured that none of them will affect your evaluation in the end.</li>
-    <li>If you do get a scary "Internal Error" message, don't worry! You haven't broken anything. Just refresh your browser and you should be returned to the town map to continue your session.</li>
-</ul>
-</p>
-</section>
+
 </article>

@@ -2,8 +2,10 @@
 *.bak
 *.swp
 *.swo
+*.un~
 *~
 private/*
 errors/*
 sessions/*
 -MiniBufExplorer-
+.ropeproject/*

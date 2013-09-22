@@ -1,0 +1,1 @@
+../plugins/plugin_img_chooser/modules/plugin_img_chooser.py

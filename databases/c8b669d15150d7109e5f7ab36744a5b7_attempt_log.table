@@ -118,6 +118,20 @@ p44
 ssS'path'
 p45
 (dp46
+S'sortable'
+p47
+I4
+sS'type'
+p48
+S'reference paths'
+p49
+sS'sql'
+p50
+S'INTEGER REFERENCES paths(id) ON DELETE CASCADE'
+p51
+ssS'in_path'
+p52
+(dp53
 g4
 I512
 sg5
@@ -126,15 +140,15 @@ sg6
 I4
 sg7
 S'INTEGER REFERENCES paths (id) ON DELETE CASCADE'
-p47
+p54
 sg9
 I00
 sg10
 S'reference paths'
-p48
+p55
 ssS'id'
-p49
-(dp50
+p56
+(dp57
 g4
 I512
 sg5
@@ -143,10 +157,10 @@ sg6
 I1
 sg7
 S'INTEGER PRIMARY KEY AUTOINCREMENT'
-p51
+p58
 sg9
 I00
 sg10
 S'id'
-p52
+p59
 ss.

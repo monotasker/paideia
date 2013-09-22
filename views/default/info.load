@@ -1,38 +1,34 @@
-<div id='user_profile_tabs' class="tabs">
+<div class="tabbable">
+<ul class="nav nav-tabs">
+    <li><a href="#web2py_user_form" data-toggle='tab'>Me</a><li>
+    <li><a href="#tab_stats" data-toggle='tab'>Badges</a></li>
+    <li><a href="#tab_calendar" data-toggle='tab'>Calendar</a></li>
+    <li><a href="#tab_bug_reports" data-toggle='tab'>Bug Reports</a><li>
+    <li><a href="#tab_recent_paths" data-toggle='tab'>Recent</a></li>
+    <li><a href="#tab_tag_records" data-toggle='tab'>Badge Records</a></li>
+</ul>
 
-    <ul class="tab_row">
-        <li><a href="#web2py_user_form">Info</a></li>
-        <li><a href="#tab_stats">Badges</a></li>
-        <li><a href="#tab_calendar">Activity</a></li>
-        <li><a href="#tab_bug_reports">Bug Reports</a></li>
-        <li><a href="#tab_recent_paths">Recent</a></li>
-        <li><a href="#tab_tag_records">Tag Records</a></li>
-        <li><a href="#tab_badges_awarded">Progress</a></li>
+<div class='tab-content'>
+<div id="web2py_user_form" class="tab-pane active">
+    <ul>
+        <li class='name'><span class='label'>Name:</span> {{=the_name}}</li>
+        <li class='email'><span class='label'>Email:</span> {{=email}}</li>
+        <li class='timezone'><span class='label'>Time Zone:</span> {{=tz}}</li>
     </ul>
+</div>
 
-    <div id="web2py_user_form" class="tab active">
-        <!--TODO: add conditional ability to edit own info-->
-        {{#if 'id' in request.vars:}}
-        <ul>
-            <li class='name'><span class='label'>Name:</span> {{=the_name}}</li>
-            <li class='email'><span class='label'>Email:</span> {{=email}}</li>
-            <li class='timezone'><span class='label'>Time Zone:</span> {{=tz}}</li>
-        </ul>
-        {{#pass}}
-    </div>
-
-    <div id='tab_stats' class="tab">
-        <p class="overview">You are currently working on 
-            <span class='total_len'>{{=active['total']}}</span> grammar badges
-            and have reached set <span class='max_set'>{{=max_set}}</span>
-        </p>
-        <p class="overview">The most recent badges started are:
-        <ul class='most_recent'>
-            {{for l in active['latest']:}}
-                {{=LI(l)}}
-            {{pass}}
-        </ul>
-        </p>
+<div id='tab_stats' class="tab-pane">
+    <p class="overview">You are currently working on 
+        <span class='total_len'>{{=active['total']}}</span> grammar badges
+        and have reached set <span class='max_set'>{{=max_set}}</span>
+    </p>
+    <p class="overview">The most recent badges started are:
+    <ul class='most_recent'>
+        {{for l in active['latest']:}}
+            {{=LI(l)}}
+        {{pass}}
+    </ul>
+    </p>
 
     <table cellspacing='0' class='summary_stats'>
         <thead>
@@ -48,16 +44,16 @@
             <td>mastered</td>
             <td class='total_cat4'>{{=len(active['cat4']) if active['cat4'] else 0}}</td>
             <td>
-                {{if active['cat4'] and active['cat4'] != 0:}}
+                {{if 'rev4' in active.keys() and active['cat4'] != 0:}}
                 <ul>
                     {{for b in active['cat4']:}}
                     <li>{{=b}}</li>
                     {{pass}}
-                    {{if active['rev4'] and active['rev4'] != 0:}}
-                        {{for b in active['rev4']:}}
-                        <li>{{=b}}</li>
-                        {{pass}}
-                    {{pass}}
+                    <!--{{#if 'rev4' in active and active['rev4'] != 0:}}-->
+                        <!--{{#for b in active['rev4']:}}-->
+                        <!--<li>{{#=b}}</li>-->
+                        <!--{{#pass}}-->
+                    <!--{{#pass}}-->
                 </ul>
                 {{pass}}
             </td>
@@ -161,135 +157,123 @@
         <p>If you give a wrong answer during a review period, you don't lose your previous badge level. But the program recognizes that you may need to review that material more frequently. So, instead of the badge jumping right back to its original review level, you will see it move up through the review levels as if you were earning it again. This just means that the program is making sure you see it often enough. If you don't make more mistakes, you will quickly find the badge's review level is back up to the "badge level" you have attained.</p>
         </li>
     </ul>
+</div> <!--end of stats tab-->
 
-    </div>
-
-    <div class='tab' id='tab_calendar'>
+<section id='tab_calendar' class="tab-pane">
     {{=XML(cal)}}
-    </div>
+</section>
 
-    <div class='tab' id='tab_bug_reports'>
+<section id='tab_bug_reports' class="tab-pane">
+    <table>
+        <tr>
+            <th>question</th>
+            <th>your answer</th>
+            <th>submitted</th>
+            <th>evaluation</th>
+            <th>instructor's comments</th>
+        </tr>
+        {{for b in blist:}}
+        <tr>
+            {{for v in b:}}
+                <td>{{=v}}</td>
+            {{pass}}
+        </tr>
+        {{pass}}
+    </table>
+</section>
+
+<section id='tab_recent_paths' class="tab-pane">
+    <h4>Steps attempted in the last {{=duration.days}} days</h4>
+    {{=TABLE(THEAD(TR(
+            TH('step', _class='step'),
+            TH('prompt', _class='prompt'),
+            TH('count', _class='count'),
+            TH('right', _class='right'),
+            TH('wrong', _class='wrong'),
+            TH('last_wrong', _class='last_wrong'),
+            TH('right_since', _class='right_since'),
+            TH('tags', _class='tags'),
+            _class='step_log_table'
+            )
+            ) 
+        )}}
+    {{for l in log:}}
+        {{=DIV(TABLE(TR(
+            TD(l['step'], _class='step'),
+            TD(l['prompt'], _class='prompt'),
+            TD(l['count'], _class='count'),
+            TD(l['right'], _class='right'),
+            TD(l['wrong'], _class='wrong'),
+            TD(l['last_wrong'], _class='last_wrong'),
+            TD(l['right_since'], _class='right_since'),
+            TD([TOOLTIP(v['badge'], v['badge'], 'tag: {} ({})'.format(v['tagname'], k))
+                    for k, v in l['tags'].iteritems()], _class='tags'),
+            _class='step_log_table'
+            ) 
+            ), 
+            A('show logs', _href=('#logs' + str(l['step']))),
+            DIV(l['logs'], _class='collapsible_child'),
+        _class='collapsible_parent',
+        _id=('logs' + str(l['step']))
+        )}}
+    {{pass}}
+</section>
+
+<section id='tab_tag_records' class="tab-pane">
+    <h4>Your overall performance for each badge so far</h4>
+    <table id='tag_records_table'>
+        <thead>
+            {{=TD('badge')}}
+            {{=TD('times right / times wrong / ratio')}}
+            {{=TD('last right')}}
+            {{=TD('last wrong')}}
+            {{=TD('badge set')}}
+        </thead>
+        {{for row in tag_records:}}
+            {{timesr = row.tag_records.times_right
+            timesw = row.tag_records.times_wrong
+            try:
+                ratio = float(timesw)/timesr
+            except ZeroDivisionError:
+                ratio = 0}}
+            {{pass}}
+            <tr>
+                {{=TD(db(db.badges.tag==row.tags.id).select().first().badge_name)}}
+                {{=TD(
+                    SPAN('', _style='width: {}px;'.format(row.tag_records.times_right),
+                            _class='right'),
+                    SPAN(int(row.tag_records.times_right), _class='right_num'),
+                    BR(),
+                    SPAN('', _style='width: {}px;'.format(row.tag_records.times_wrong),
+                            _class='wrong'),
+                    SPAN(int(row.tag_records.times_wrong), _class='wrong_num'),
+                    BR(),
+                    SPAN('', _style='width: {}px'.format(ratio * 100),
+                            _class='ratio'),
+                    SPAN(round(ratio, 3), _class='ratio_num'),
+                )}}
+                {{=TD(row.tag_records.tlast_right)}}
+                {{=TD(row.tag_records.tlast_wrong)}}
+                {{=TD(row.tags.position)}}
+            </tr>
+        {{pass}}
+    </table>
+</section>
+
+<section id='tab_badges_awarded' class="tab-pane">
+    <a href="#tab_badges_awarded">Progress Timeline</a>
+    <h4>Timeline of your new badges earned</h4>
+    {{if badge_track == []:}}
+    <span>We've just started tracking the dates on which you earn each new badge, so there is no record here yet. Check back after you've earned your next badge.</span>
+    {{else:}}
         <table>
-            <tr>
-                <th>question</th>
-                <th>your answer</th>
-                <th>submitted</th>
-                <th>evaluation</th>
-                <th>instructor's comments</th>
-            </tr>
-            {{for b in blist:}}
-            <tr>
-                {{for v in b:}}
-                    <td>{{=v}}</td>
-                {{pass}}
-            </tr>
-            {{pass}}
-        </table>
-    </div>
-
-
-    <div id='tab_recent_paths' class="tab">
-        <h4>Steps attempted in the last {{=duration.days}} days</h4>
-        {{=TABLE(THEAD(TR(
-                TH('step', _class='step'),
-                TH('prompt', _class='prompt'),
-                TH('count', _class='count'),
-                TH('right', _class='right'),
-                TH('wrong', _class='wrong'),
-                TH('last_wrong', _class='last_wrong'),
-                TH('right_since', _class='right_since'),
-                TH('tags', _class='tags'),
-                _class='step_log_table'
-                )
-                ) 
-            )}}
-        {{for l in log:}}
-            {{=DIV(TABLE(TR(
-                TD(l['step'], _class='step'),
-                TD(l['prompt'], _class='prompt'),
-                TD(l['count'], _class='count'),
-                TD(l['right'], _class='right'),
-                TD(l['wrong'], _class='wrong'),
-                TD(l['last_wrong'], _class='last_wrong'),
-                TD(l['right_since'], _class='right_since'),
-                TD([TOOLTIP(v['badge'], v['badge'], 'tag: {} ({})'.format(v['tagname'], k))
-                        for k, v in l['tags'].iteritems()], _class='tags'),
-                _class='step_log_table'
-                ) 
-                ), 
-                A('show logs', _href=('#logs' + str(l['step']))),
-                DIV(l['logs'], _class='collapsible_child'),
-            _class='collapsible_parent',
-            _id=('logs' + str(l['step']))
-            )}}
+        {{for badgeline in badge_track:}}
+            {{=TR(TD(badgeline['id']),
+                TD(badgeline['level']),
+                TD(badgeline['date']))}}
         {{pass}}
-    </div>
-
-    <div id='tab_tag_records' class="tab">
-        <h4>Your overall performance for each badge so far</h4>
-        <table id='tag_records_table'>
-            <thead>
-                {{=TD('badge')}}
-                {{=TD('times right / times wrong / ratio')}}
-                {{=TD('last right')}}
-                {{=TD('last wrong')}}
-                {{=TD('badge set')}}
-            </thead>
-            {{for row in tag_records:}}
-                {{timesr = row.tag_records.times_right
-                timesw = row.tag_records.times_wrong
-                try:
-                    ratio = float(timesw)/timesr
-                except ZeroDivisionError:
-                    ratio = 0}}
-                {{pass}}
-                <tr>
-                    {{=TD(db(db.badges.tag==row.tags.id).select().first().badge_name)}}
-                    {{=TD(
-                        SPAN('', _style='width: {}px;'.format(row.tag_records.times_right),
-                             _class='right'),
-                        SPAN(int(row.tag_records.times_right), _class='right_num'),
-                        BR(),
-                        SPAN('', _style='width: {}px;'.format(row.tag_records.times_wrong),
-                             _class='wrong'),
-                        SPAN(int(row.tag_records.times_wrong), _class='wrong_num'),
-                        BR(),
-                        SPAN('', _style='width: {}px'.format(ratio * 100),
-                             _class='ratio'),
-                        SPAN(round(ratio, 3), _class='ratio_num'),
-                    )}}
-                    {{=TD(row.tag_records.tlast_right)}}
-                    {{=TD(row.tag_records.tlast_wrong)}}
-                    {{=TD(row.tags.position)}}
-                </tr>
-            {{pass}}
         </table>
-    </div>
-
-    <div id='tab_badges_awarded' class="tab">
-        <h4>Timeline of your new badges earned</h4>
-        {{if badge_track == []:}}
-        <span>We've just started tracking the dates on which you earn each new badge, so there is no record here yet. Check back after you've earned your next badge.</span>
-        {{else:}}
-            <table>
-            {{for badgeline in badge_track:}}
-                {{=TR(TD(badgeline['id']),
-                    TD(badgeline['level']),
-                    TD(badgeline['date']))}}
-            {{pass}}
-            </table>
-        {{pass}}
-    </div>
+    {{pass}}
+</section>
 
 </div>
-
-<script language="javascript">
-<!--
- $("#web2py_user_form input:visible:enabled:first").focus();
- $('#user_profile_tabs').tabs();
- $('.trigger').live('click', function(event){
-     event.preventDefault();
- });
-//-->
-
-</script>

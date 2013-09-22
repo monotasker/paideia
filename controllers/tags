@@ -14,6 +14,7 @@ auth	exploring.py	/^    auth = current.auth$/;"	v
 auth	reporting.py	/^    auth = Auth()$/;"	v
 bug	creating.py	/^def bug():$/;"	f
 calendar	reporting.py	/^def calendar():$/;"	f
+call	default.py	/^def call():$/;"	f
 ccache	appadmin.py	/^def ccache():$/;"	f
 crud	creating.py	/^    crud = Crud()$/;"	v
 csv	appadmin.py	/^def csv():$/;"	f
@@ -25,7 +26,9 @@ db	exploring.py	/^    db = current.db$/;"	v
 db	plugin_ajaxselect.py	/^    db = dal.DAL()$/;"	v
 db	plugin_listandedit.py	/^    db = current.db$/;"	v
 db	reporting.py	/^    db = DAL()$/;"	v
+db	util.py	/^    db = current.db$/;"	v
 download	appadmin.py	/^def download():$/;"	f
+download	default.py	/^def download():$/;"	f
 dupAndEdit	plugin_listandedit.py	/^def dupAndEdit():$/;"	f
 edit	plugin_listandedit.py	/^def edit():$/;"	f
 eval_in_global_env	appadmin.py	/^def eval_in_global_env(text):$/;"	f
@@ -46,13 +49,17 @@ index	exploring.py	/^def index():$/;"	f
 index	reporting.py	/^def index():$/;"	f
 info	default.py	/^def info():$/;"	f
 insert	appadmin.py	/^def insert():$/;"	f
+itemlist	plugin_listandedit.py	/^def itemlist():$/;"	f
 linked_create_form	plugin_ajaxselect.py	/^def linked_create_form():$/;"	f
 linked_edit_form	plugin_ajaxselect.py	/^def linked_edit_form():$/;"	f
-list	plugin_listandedit.py	/^def list():$/;"	f
 listing	editing.py	/^def listing():$/;"	f
+mail	default.py	/^mail = current.mail$/;"	v
 makeurl	plugin_listandedit.py	/^def makeurl(tablename, orderby, restrictor):$/;"	f
+migrate_back	util.py	/^def migrate_back():$/;"	f
+migrate_field	util.py	/^def migrate_field():$/;"	f
 news	listing.py	/^def news():$/;"	f
 next_slide	plugin_slider.py	/^def next_slide():$/;"	f
+oops	default.py	/^def oops():$/;"	f
 patherror	exploring.py	/^def patherror():$/;"	f
 paths_by_tag	reporting.py	/^def paths_by_tag():$/;"	f
 prev_slide	plugin_slider.py	/^def prev_slide():$/;"	f
@@ -67,11 +74,10 @@ response	exploring.py	/^    response = current.response$/;"	v
 response	plugin_listandedit.py	/^    response = current.response$/;"	v
 response	plugin_slider.py	/^    response = current.response$/;"	v
 select	appadmin.py	/^def select():$/;"	f
-send_mail	default.py	/^def send_mail():$/;"	f
+send_mail_to_user	default.py	/^def send_mail_to_user():$/;"	f
 session	exploring.py	/^    session = current.session$/;"	v
 session	plugin_listandedit.py	/^    session = current.session$/;"	v
 set_form_wrapper	plugin_ajaxselect.py	/^def set_form_wrapper():$/;"	f
-set_value	exploring.py	/^def set_value():$/;"	f
 set_widget	plugin_ajaxselect.py	/^def set_widget():$/;"	f
 setval	plugin_ajaxselect.py	/^def setval():$/;"	f
 show_slide	plugin_slider.py	/^def show_slide():$/;"	f
@@ -79,11 +85,13 @@ slides	listing.py	/^def slides():$/;"	f
 start_deck	plugin_slider.py	/^def start_deck():$/;"	f
 state	appadmin.py	/^def state():$/;"	f
 tag	creating.py	/^def tag():$/;"	f
+tag_conflicts	reporting.py	/^def tag_conflicts():$/;"	f
+to_migrate_table	util.py	/^def to_migrate_table():$/;"	f
 undo_bug	editing.py	/^def undo_bug():$/;"	f
 update	appadmin.py	/^def update():$/;"	f
 user	default.py	/^def user():$/;"	f
 user	listing.py	/^def user():$/;"	f
 user	reporting.py	/^def user():$/;"	f
+userlist	listing.py	/^def userlist():$/;"	f
 walk	exploring.py	/^def walk():$/;"	f
 widget	plugin_listandedit.py	/^def widget():$/;"	f
-x	exploring.py	/^def x():$/;"	f
