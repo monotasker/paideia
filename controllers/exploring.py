@@ -93,6 +93,9 @@ def walk():
         stepargs['response_string'] = rvars['response'] if \
             ('response' in rvars and 'response' not in [' ', None]) else None
 
+    if 'set_blocks' in rvars:
+        stepargs['set_blocks'] = rvars['set_blocks']
+
     if not request.vars.loc:
         request.vars.loc = None
         print 'controller.walk: request.vars.loc is', request.vars.loc
