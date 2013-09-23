@@ -2,8 +2,26 @@
     {{#=response.toolbar()}}
 {{pass}}
 
-<div id='loading-mask' style="position:absolute; top:0; left:0; width:100%; height:100%; min-height:100%; background:#000000; background-color:rgba(0,0,0,0.6); text-align: center; display:none;">
+<div id='loading-mask'>
     <img src={{=URL('static', 'images/ajax-loader.gif')}} style="margin:40%;" alt='loading spinner image' />
+</div>
+
+<div class='admin-panel'>
+    <h3>Admin Panel</h3>
+    <form id='path_test_form' action='' method='post'>
+        <label>Test Path</label>
+        <input type='text' id='path_test_input' name='path_test_input' value='' />
+        <label>Test Location</label>
+        <select id='loc_test_input' name='loc_test_input'>
+            {{for l in db(db.locations.id > 0).select():}}
+                {{=OPTION(l.readable, _value=l.loc_alias)}}
+            {{pass}}
+        </select>
+        <label>Blocks</label>
+        <input type='text' id='set_blocks_input' name='set_blocks_input' value='' />
+        <input type='submit' name='test_submit' value='Submit'
+            onsubmit=ajax('ask', ['loc_test_input'], 'page') />
+    </form>
 </div>
 
 <!--map interface-->
@@ -31,12 +49,11 @@ $('#responder submit').click(function(event){
     event.preventDefault();
 });
 
-
-$('#test_this_step').click(function(event){
-    val = $(this).parent('li').find('#test_path').val();
-    val2 = $(this).parent('li').find('#test_step').val();
-    loc = $(this).parent('li').find('#test_loc').val();
-    window.parent.web2py_component("/paideia/exploring/walk.load/test?path=" + val + "&step=" + val2 + "&loc=" + loc, "page");
+$('#path_test_form submit').click(function(event){
+    var path = $(this).parent().find('#path_test_input').val();
+    var loc = $(this).parent().find('#loc_test_input').val();
+    var blocks = $(this).parent().find('#set_blocks_input').val();
+    window.parent.web2py_component("{{=URL('exploring', 'walk.load', args=['ask'])}}?path=" + path + "&loc=" + loc + "&blocks=" + blocks, target="page");
     event.preventDefault();
 });
 </script>

@@ -128,7 +128,8 @@ class Walk(object):
                 print 'walk.get_user: success'
         return self.user
 
-    def start(self, localias, response_string=None, path=None, repeat=None):
+    def start(self, localias, response_string=None, path=None, repeat=None,
+              step=None, set_blocks=None):
         """
         Issue the correct method for this interaction and return the result.
         This is the top-level interface for the Paideia module, to be called by
@@ -139,13 +140,15 @@ class Walk(object):
         print 'response:', response_string
         try:
             if response_string:
-                return self.reply(localias=localias, response_string=response_string)
+                return self.reply(localias=localias, response_string=response_string,
+                                  set_blocks=set_blocks)
             else:
-                return self.ask(localias=localias, path=path, repeat=repeat)
+                return self.ask(localias=localias, path=path, repeat=repeat,
+                                set_blocks=set_blocks, step=step)
         except Exception:
             print traceback.format_exc(5)
             self.clean_user()  # get rid of path data if that's the problem
-            return self.ask(localias=localias, path=path)
+            return self.ask(localias=localias, path=path, step=step)
 
     def clean_user(self):
         """
