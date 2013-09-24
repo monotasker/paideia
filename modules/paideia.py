@@ -186,7 +186,7 @@ class Walk(object):
         user = self.user
         # allow artificial setting of blocks during interface testing
         if set_blocks:
-            for c, v in set_blocks:
+            for c, v in set_blocks.iteritems():
                 myargs = {n: a for n, a in v.iteritems()}
                 user.set_block(c, kwargs=myargs)
         user.get_categories()
@@ -312,7 +312,7 @@ class Walk(object):
         user_id = user.get_id()
         # allow manual setting of blocks for testing
         if set_blocks:
-            for c, v in set_blocks:
+            for c, v in set_blocks.iteritems():
                 myargs = {n: a for n, a in v.iteritems()}
                 user.set_block(c, kwargs=myargs)
 
@@ -2124,7 +2124,7 @@ class User(object):
             pr = cat_result['promoted']
             if nt:  # These blocks need to be on the User, not path
                 if (not hasattr(self, 'viewed_slides')) or (self.viewed_slides is False):
-                    self._set_block('view slides', kwargs={'new_tags': nt})
+                    self._set_block('view_slides', kwargs={'new_tags': nt})
                     self.viewed_slides = True
                 if (not hasattr(self, 'reported_badges')) or (self.reported_badges is False):
                     self._set_block('new_tags', kwargs={'new_tags': nt, 'promoted': pr})

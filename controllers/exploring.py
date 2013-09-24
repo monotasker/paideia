@@ -1,5 +1,6 @@
 # coding: utf8
 from paideia import Walk, Map
+from ast import literal_eval
 
 if 0:
     from gluon import current
@@ -93,8 +94,10 @@ def walk():
         stepargs['response_string'] = rvars['response'] if \
             ('response' in rvars and 'response' not in [' ', None]) else None
 
-    if 'set_blocks' in rvars:
-        stepargs['set_blocks'] = rvars['set_blocks']
+    if ('blocks' in rvars) and not (rvars['blocks'] in ['', None, False]):
+        stepargs['set_blocks'] = literal_eval(rvars['blocks'])
+    if 'path' in rvars:
+        stepargs['path'] = rvars['path']
 
     if not request.vars.loc:
         request.vars.loc = None

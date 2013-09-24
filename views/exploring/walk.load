@@ -8,19 +8,18 @@
 
 <div class='admin-panel'>
     <h3>Admin Panel</h3>
-    <form id='path_test_form' action='' method='post'>
+    <form id='path_test_form' action='' method=''>
         <label>Test Path</label>
-        <input type='text' id='path_test_input' name='path_test_input' value='' />
+        <input type='text' id='path' name='path' value='' />
         <label>Test Location</label>
-        <select id='loc_test_input' name='loc_test_input'>
+        <select id='loc' name='loc'>
             {{for l in db(db.locations.id > 0).select():}}
                 {{=OPTION(l.readable, _value=l.loc_alias)}}
             {{pass}}
         </select>
         <label>Blocks</label>
-        <input type='text' id='set_blocks_input' name='set_blocks_input' value='' />
-        <input type='submit' name='test_submit' value='Submit'
-            onsubmit=ajax('ask', ['loc_test_input'], 'page') />
+        <input type='text' id='blocks' name='blocks' value='' />
+        <a id="submitter" href="#" class="btn btn-info">Test it!</a>
     </form>
 </div>
 
@@ -49,10 +48,10 @@ $('#responder submit').click(function(event){
     event.preventDefault();
 });
 
-$('#path_test_form submit').click(function(event){
-    var path = $(this).parent().find('#path_test_input').val();
-    var loc = $(this).parent().find('#loc_test_input').val();
-    var blocks = $(this).parent().find('#set_blocks_input').val();
+$('#path_test_form #submitter').click(function(event){
+    var path = $(this).parent().find('#path').val();
+    var loc = $(this).parent().find('#loc').val();
+    var blocks = $(this).parent().find('#blocks').val();
     window.parent.web2py_component("{{=URL('exploring', 'walk.load', args=['ask'])}}?path=" + path + "&loc=" + loc + "&blocks=" + blocks, target="page");
     event.preventDefault();
 });
