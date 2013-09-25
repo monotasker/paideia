@@ -177,9 +177,9 @@ class Walk(object):
         The value of 'responder' is a web2py html helper object.
 
         The 'set_blocks' argument is used to set blocking conditions manually
-        for testing purposes. It's value is a tuple consisting of
-            set_blocks[0]: name of the blocking condition (str)
-            set_blocks[1]: dictionary of kwargs to be passed to the Block
+        for testing purposes. It's value is a dictionary consisting of
+            key: name of the blocking condition (str)
+            value: dictionary of kwargs to be passed to the Block
         """
         print 'STARTING WALK.ASK---------------------------------------'
         db = current.db
@@ -188,7 +188,7 @@ class Walk(object):
         if set_blocks:
             for c, v in set_blocks.iteritems():
                 myargs = {n: a for n, a in v.iteritems()}
-                user.set_block(c, kwargs=myargs)
+                user._set_block(c, kwargs=myargs)
         user.get_categories()
         #print 'walk.ask: refreshed user categories'
 
@@ -230,7 +230,7 @@ class Walk(object):
             if s.get_id() not in p.steps:
                 p.steps.insert(0, copy(s))
             print 'walk.ask: p.steps restored to', p.steps
-            if condition in ['new_tags', 'view slides']:
+            if condition in ['new_tags', 'view_slides']:
                 print 'checking block for new_tags:', block.kwargs['new_tags']
                 if not block.kwargs['new_tags']:
                     block.kwargs['new_tags'] = user.new_tags
@@ -314,7 +314,7 @@ class Walk(object):
         if set_blocks:
             for c, v in set_blocks.iteritems():
                 myargs = {n: a for n, a in v.iteritems()}
-                user.set_block(c, kwargs=myargs)
+                user._set_block(c, kwargs=myargs)
 
         print 'walk.reply: localias is', localias
         loc_id = db(db.locations.loc_alias == localias).select().first().id
@@ -335,10 +335,11 @@ class Walk(object):
             print 'walk.reply: no response string, re-prompting'
             return self.ask()
 
-        block = user.check_for_blocks()
-        if block:
-            condition = block.get_condition()
-            print 'walk.reply: encountered block', condition
+        # FIXME: should blocks be checked at all in reply()?
+        #block = user.check_for_blocks()
+        #if block:
+            #condition = block.get_condition()
+            #print 'walk.reply: encountered block', condition
 
         # FIXME: find a way to recognize changed npc without losing previous
         # step's npc
@@ -897,19 +898,25 @@ class Step(object):
             reps['[[user]]'] = self.username
 
         new_string = raw_prompt
+        print '\nnew_string:', new_string
         for k, v in reps.iteritems():
             if not v:
                 v = ''
             new_string = new_string.replace(k, v)
-
+        print '\nnew_string:', new_string
         # FIXME: this is a bit of a hack to handle embedded html better
         if appds:
+            new_string = DIV(new_string)
+            print '\nnew_string:', new_string
             for k, v in appds.iteritems():
                 if not v:
                     v = ''
-                new_string.replace(k, '')
-                new_string = DIV(new_string)
-                new_string = new_string.append(v)
+                print '\nk is', k
+                new_string[0] = new_string[0].replace(k, '')
+                print '\nnew_string:', new_string
+                new_string.append(v)
+                print '\nnew_string:', new_string
+        print '\nnew_string:', new_string
 
         return new_string
 
@@ -1142,37 +1149,14 @@ class StepAwardBadges(StepContinue, Step):
         appds = {}
         reps = {}
 
-        conj = 'You'
-        if self.new_tags:
-            conj = 'and you'
-            nt_records = db(db.badges.tag.belongs(self.new_tags)
-                            ).select(db.badges.tag, db.badges.badge_name).as_list()
-            print 'make_replacements: nt_records is', nt_records
-
-            if nt_records:
-                nt_rep = DIV('You\'re ready to start working on some new badges:')
-                nt_rep.append(UL(_class='new_tags_list'))
-                for p in self.new_tags:
-                    bname = [row['badge_name'] for row in nt_records
-                             if int(row['tag']) == p]
-                    line = LI(SPAN('beginner {}'.format(bname),
-                                   _class='badge_name'))
-                    nt_rep[1].append(line)
-                appds['[[new_tags_list]]'] = nt_rep
-            else:
-                nt_rep = ''
-                reps['[[new_tags_list]]'] = nt_rep
-
         if self.promoted:
             flat_proms = [i for cat, lst in self.promoted.iteritems() for i in lst if lst]
             prom_records = db(db.badges.tag.belongs(flat_proms)
                               ).select(db.badges.tag,
                                        db.badges.badge_name).as_list()
-            print 'make_replacements: prom_records is', prom_records
-
             if prom_records:
-                prom_rep = DIV('{} have been promoted to these new badge '
-                               'levels'.format(conj))
+                prom_rep = DIV('You have been promoted to these new badge '
+                               'levels:')
                 prom_rep.append(UL(_class='promoted_list'))
                 ranks = ['beginner', 'apprentice', 'journeyman', 'master']
                 for rank, lst in self.promoted.iteritems():
@@ -1182,15 +1166,33 @@ class StepAwardBadges(StepContinue, Step):
                         label = ranks[i]
                         for l in lst:
                             bname = [row['badge_name'] for row in prom_records
-                                    if row['tag'] == l]
+                                    if row['tag'] == l][0]
                             line = LI(SPAN(label, ' ', bname, _class='badge_name'))
                             prom_rep[1].append(line)
                     else:
                         pass
-                appds['[[promoted_list]]'] = prom_rep
-            else:
-                prom_rep = ''
-                reps['[[promoted_list]]'] = prom_rep
+        else:
+            prom_rep = ' '
+        appds['[[promoted_list]]'] = prom_rep
+
+        conj = 'You'
+        if self.new_tags:
+            conj = 'and you'
+            nt_records = db(db.badges.tag.belongs(self.new_tags)
+                            ).select(db.badges.tag, db.badges.badge_name).as_list()
+            if nt_records:
+                nt_rep = DIV('{}\'re ready to start working on some new '
+                             'badges:'.format(conj))
+                nt_rep.append(UL(_class='new_tags_list'))
+                for p in self.new_tags:
+                    bname = [row['badge_name'] for row in nt_records
+                             if row['tag'] == p][0]
+                    line = LI(SPAN('beginner {}'.format(bname),
+                                   _class='badge_name'))
+                    nt_rep[1].append(line)
+        else:
+            nt_rep = ' '
+        appds['[[new_tag_list]]'] = nt_rep
 
         new_string = super(StepAwardBadges, self
                            )._make_replacements(raw_prompt=raw_prompt,
@@ -1231,7 +1233,9 @@ class StepViewSlides(Step):
         slides = UL(_class='slide_list')
         for row in sliderows:
             slides.append(LI(A(row.deck_name,
-                               _href=URL('listing', 'slides', args=[row.id]))))
+                               _href=URL('listing', 'slides.html',
+                                         args=[row['id']])
+                               )))
 
         # collect replacements
         appds = {'[[slide_list]]': slides}
@@ -2550,7 +2554,7 @@ class Block(object):
         """Create correct Step subclass and store as an instance variable."""
         db = current.db
         kwargs = self.kwargs if not kwargs else kwargs
-        step_classes = {'slides': 6,
+        step_classes = {'view_slides': 6,
                         'quota_reached': 7,
                         'new_tags': 8,
                         'promoted': 8,
