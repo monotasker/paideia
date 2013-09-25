@@ -12,7 +12,7 @@ ap.append(FORM(LABEL('Test path'),
                LABEL('Test location'),
                SELECT(_id='loc', _name='loc'),
                LABEL('Blocks'),
-               INPUT(_type='text', id='blocks', name='blocks', value=''),
+               INPUT(_type='text', _id='blocks', name='blocks', value=''),
                A('Test it!', _id="submitter", _href="#", _class="btn btn-info"),
           _id='path_test_form', _action='', _method=''))
 for l in db(db.locations.id > 0).select():

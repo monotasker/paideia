@@ -251,10 +251,10 @@ class Walk(object):
         print 'walk.ask: getting prompt'
         prompt = s.get_prompt()
         print 'walk.ask: appending prompt'
-        progress = 'You have completed {} paths so far today.'.format(len(user.completed_paths))
-        prompt['npc'].append(SPAN(progress, _class='progress_text'))
+        progress = 'This will make {} paths so far today.'.format(len(user.completed_paths) + 1)
         print 'walk.ask: getting responder'
         responder = s.get_responder()
+        responder.append(SPAN(progress, _class='progress_text'))
 
         # clean up before return
         if type(s) not in [StepRedirect, StepQuotaReached, StepAwardBadges, StepViewSlides]:
@@ -349,8 +349,6 @@ class Walk(object):
 
         # evaluate user response and generate reply
         reply = s.get_reply(response_string)
-        progress = 'You have completed {} paths so far today.'.format(len(user.completed_paths))
-        reply['npc'].append(SPAN(progress, _class='progress_text'))
 
         score = reply['score']
 
@@ -372,6 +370,10 @@ class Walk(object):
 
         responder = s.get_final_responder(localias=user.loc.get_alias(),
                                           bug_reporter=bug_reporter)
+
+        progress = 'This will make {} paths ' \
+                   'so far today.'.format(len(user.completed_paths) + 1)
+        responder.append(SPAN(progress, _class='progress_text'))
 
         p.complete_step()  # removes path.step_for_reply
         # Note: path is completed (moved to user.completed_paths) in following
@@ -815,7 +817,7 @@ class Step(object):
             print 'get_widget_image: data is', self.data['widget_image']
             db = current.db
             img_row = db.images[self.data['widget_image']]
-            image = IMG(_src=img_row.image,
+            image = IMG(_src=URL('static/images/', img_row.image),
                         _title=img_row.title,
                         _alt=img_row.description,
                         _class='widget-image')
@@ -859,7 +861,7 @@ class Step(object):
 
         prompt = self._make_replacements(raw_prompt=raw_prompt, **kwargs)
 
-        npc_prompt = DIV(P(prompt, _class='prompt-text'), _class='npc prompt')
+        npc_prompt = DIV(_class='npc prompt')
 
         audio = self._get_prompt_audio()
         if audio:
@@ -870,6 +872,8 @@ class Step(object):
         if widget_image:
             print widget_image.xml()
             npc_prompt.append(widget_image)
+
+        npc_prompt.append(P(prompt, _class='prompt-text'))
 
         instructions = self._get_instructions()
         if instructions:
@@ -1149,6 +1153,7 @@ class StepAwardBadges(StepContinue, Step):
         appds = {}
         reps = {}
 
+        prom_rep = ' '
         if self.promoted:
             flat_proms = [i for cat, lst in self.promoted.iteritems() for i in lst if lst]
             prom_records = db(db.badges.tag.belongs(flat_proms)
@@ -1171,11 +1176,10 @@ class StepAwardBadges(StepContinue, Step):
                             prom_rep[1].append(line)
                     else:
                         pass
-        else:
-            prom_rep = ' '
         appds['[[promoted_list]]'] = prom_rep
 
         conj = 'You'
+        nt_rep = ''
         if self.new_tags:
             conj = 'and you'
             nt_records = db(db.badges.tag.belongs(self.new_tags)
@@ -1190,8 +1194,6 @@ class StepAwardBadges(StepContinue, Step):
                     line = LI(SPAN('beginner {}'.format(bname),
                                    _class='badge_name'))
                     nt_rep[1].append(line)
-        else:
-            nt_rep = ' '
         appds['[[new_tag_list]]'] = nt_rep
 
         new_string = super(StepAwardBadges, self
