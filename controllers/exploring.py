@@ -94,9 +94,9 @@ def walk():
         stepargs['response_string'] = rvars['response'] if \
             ('response' in rvars and 'response' not in [' ', None]) else None
 
-    if ('blocks' in rvars) and not (rvars['blocks'] in ['', None, False]):
+    if ('blocks' in rvars) and not (rvars['blocks'] in ['', None, 'undefined']):
         stepargs['set_blocks'] = literal_eval(rvars['blocks'])
-    if 'path' in rvars:
+    if 'path' in rvars and not (rvars['path'] in ['', None, 'undefined']):
         stepargs['path'] = rvars['path']
 
     if not request.vars.loc:
