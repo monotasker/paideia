@@ -80,6 +80,8 @@ def walk():
     print "args:", request.args
     print "vars:", request.vars
 
+    print "controller.walk: Auth.user_id is", auth.user_id
+    print "controller.walk: first_name is", db.auth_user(auth.user_id).first_name
     # When user begins exploring (also default) present map
     if (not rargs) or (rargs[0] == 'map'):
         print "controller.walk: getting map"
