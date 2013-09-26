@@ -3,7 +3,7 @@
 {{pass}}
 
 <div id='loading-mask'>
-    <img src={{=URL('static', 'images/ajax-loader.gif')}} style="margin:40%;" alt='loading spinner image' />
+    <img src={{=URL('static', 'images/ajax-loader.gif')}} style="margin:40%;" alt='loading' />
 </div>
 
 {{ap = DIV(H3('Admin Panel'), _class='admin-panel')
