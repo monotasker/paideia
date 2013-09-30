@@ -1,6 +1,4 @@
-{{if request.is_local:}}
-    {{#=response.toolbar()}}
-{{pass}}
+{{from plugin_widgets import TOOLTIP}}
 
 <div id='loading-mask'>
     <img src={{=URL('static', 'images/ajax-loader.gif')}} style="margin:40%;" alt='loading' />

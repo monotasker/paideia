@@ -3,6 +3,7 @@
 from paideia_stats import Stats
 from paideia_bugs import Bug
 #from gluon.tools import prettydate
+from plugin_widgets import TOOLTIP
 
 if 0:
     from gluon import current
