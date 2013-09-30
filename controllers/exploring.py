@@ -2,6 +2,7 @@
 from paideia import Walk, Map
 from ast import literal_eval
 
+
 if 0:
     from gluon import current
     request = current.request

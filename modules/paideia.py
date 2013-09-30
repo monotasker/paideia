@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from gluon import current, redirect
-from gluon import IMG, URL, SQLFORM, SPAN, DIV, UL, LI, A, Field, P, TAG
+from gluon import IMG, URL, SQLFORM, SPAN, DIV, UL, LI, A, Field, P, TAG, HTML
 from gluon import IS_NOT_EMPTY, IS_IN_SET
 
 from inspect import getargvalues, stack
@@ -97,7 +97,7 @@ class Walk(object):
         db = current.db if not db else db
         try:
             assert self.user
-            print 'walk.get_user: retrieved user in memory'
+            #print 'walk.get_user: retrieved user in memory'
             pass
         except AttributeError:  # because no user yet on this Walk
             try:
@@ -107,7 +107,7 @@ class Walk(object):
                     self.user = pickle.loads(sd['other_data'])
                 else:
                     self.user = None
-                print 'walk.get_user: retrieved user from db'
+                #print 'walk.get_user: retrieved user from db'
                 assert self.user.is_stale() is False
             except (AssertionError, AttributeError):
                 uid = auth.user_id
@@ -186,37 +186,28 @@ class Walk(object):
                 myargs = {n: a for n, a in v.iteritems()}
                 user._set_block(c, kwargs=myargs)
         user.get_categories()
-        print 'walk.ask: refreshed user categories'
 
-        # fix redundant db call here by sending localias to Loc() instead of id
+        # FIXME: fix redundant db call here by sending localias to Loc() instead of id
         loc_id = db(db.locations.loc_alias == localias).select().first().id
         loc = Location(loc_id)
         user.set_location(loc)  # called only in ask?
 
         p = user.get_path(path=path, repeat=repeat)
-        s = p.get_step_for_prompt(repeat=repeat)
+        print 'walk.ask: got path', p.get_id()
+        s, newloc_id = p.get_step_for_prompt(repeat=repeat)
+        print 'walk.ask: got step', s.get_id()
+        if newloc_id:
+            user._set_block('redirect', kwargs={'next_loc': newloc_id})
 
-        # get npc and redirect if no npc can perform step in this location
-        npc = s.get_npc(prev_npc=user.prev_npc,
-                        prev_loc=user.prev_loc)
-        user.set_npc(npc[0])  # since npc decision has to follow step choice
-
-        if npc[1]:
-            user._set_block('redirect', kwargs={'loc': user.loc,
-                                             'prev_loc': user.prev_loc,
-                                             'username': user.name,
-                                             'next_loc': npc[1]})
-        #try:
-            #print 'walk.ask: user.prev_loc is', user.prev_loc.get_id()
-        #except:
-            #pass
-        # handle blocking conditions
+        # TODO: make sure 'new_tags' is returned before 'view_slides'
         block = user.check_for_blocks()
         if block:
             condition = block.get_condition()
-            # necessary because p.step_for_reply is lost in step activation
-            if s.get_id() not in p.steps:
-                p.steps.insert(0, copy(s))
+            print 'walk.ask: activating block,', condition
+            # FIXME: necessary because p.step_for_reply is lost in step
+            # activation?
+            #if s.get_id() not in p.steps:
+                #p.steps.insert(0, copy(s))
             #print 'walk.ask: p.steps restored to', p.steps
             if condition in ['new_tags', 'view_slides']:
                 if not block.kwargs['new_tags']:
@@ -228,14 +219,20 @@ class Walk(object):
                                   'prev_npc': user.prev_npc,
                                   'loc': user.loc,
                                   'npc': user.npc})
-            #print 'walk.ask: new p.step_for_reply is', p.step_for_reply
-            s.npc = npc[0]
+            print 'walk.ask: got block step', s.get_id()
+            print 'walk.ask: path.step_for_reply is still', p.step_for_reply.get_id()
+
+        npc = s.get_npc(prev_npc=user.prev_npc, prev_loc=user.prev_loc)
+        print 'walk.ask: got npc', npc.get_id()
+        user.set_npc(npc)
+        if user.npc:
+            print 'walk.ask: user.prev_npc is now', user.prev_npc.get_id()
+        else:
+            print 'no previous npc'
 
         # get data to send to view
-        #print 'walk.ask: getting prompt'
         prompt = s.get_prompt()
         progress = 'This will make {} paths so far today.'.format(len(user.completed_paths) + 1)
-        #print 'walk.ask: getting responder'
         responder = s.get_responder()
         responder.append(SPAN(progress, _class='progress_text'))
 
@@ -244,13 +241,16 @@ class Walk(object):
             # only move prompt step to reply step (or to steps completed) if
             # its a content step
             assert p.end_prompt()  # non-response steps end here
+            print 'walk.ask: ended prompt'
+        else:
+            print 'walk.ask: info step, prompt doesn\'t need ending'
         self._store_user(user)
 
-        #print 'walk.ask: user.loc is', user.loc.get_id()
-        #try:
-            #print 'walk.ask: user.prev_loc is', user.prev_loc.get_id()
-        #except:
-            #pass
+        print 'walk.ask: user.loc is', user.loc.get_id()
+        try:
+            print 'walk.ask: user.prev_loc is', user.prev_loc.get_id()
+        except:
+            pass
 
         #if p:
             #print 'walk.ask: final path is', p.get_id()
@@ -318,20 +318,14 @@ class Walk(object):
             print 'walk.reply: no response string, re-prompting'
             return self.ask()  # TODO: will this actually re-prompt the same step?
 
-        # FIXME: should blocks be checked at all in reply()?
-        #block = user.check_for_blocks()
-        #if block:
-            #condition = block.get_condition()
-            #print 'walk.reply: encountered block', condition
-
+        # TODO: should blocks be checked at all in reply()?
         # FIXME: find a way to recognize changed npc without losing previous
         # step's npc
-        #mynpc = s.get_npc(prev_npc=user.prev_npc,
-                          #prev_loc=user.prev_loc)
+        # separate method to set_prev_npc that in turn calls set_npc.
+        # call the former in ask, but only the latter in reply.
         #user.set_npc(mynpc[0])  # since npc decision has to follow step choice
 
-        # evaluate user response and generate reply
-        reply = s.get_reply(response_string)
+        reply = s.get_reply(response_string)  # evaluate user response
 
         # record data for this step in db
         assert self._record_cats(user.tag_progress, user.promoted, user.new_tags)
@@ -346,15 +340,12 @@ class Walk(object):
                                            response_string)
         assert self.record_id
 
-        # create bug reporter
         bug_reporter = BugReporter().get_reporter(self.record_id, p.get_id(),
                                                   s.get_id(), reply['score'],
                                                   response_string,
                                                   user.loc.get_alias())
-
         responder = s.get_final_responder(localias=user.loc.get_alias(),
                                           bug_reporter=bug_reporter)
-
         progress = 'This will make {} paths ' \
                    'so far today.'.format(len(user.completed_paths) + 1)
         responder.append(SPAN(progress, _class='progress_text'))
@@ -445,10 +436,10 @@ class Walk(object):
         # TODO: should the threshold here be less than 1 for 'right'?
         got_right = True if ((score - 1) < 0.01) else False  # because of float inaccuracy
         for t in taglist['primary']:
-            print 'walk.record_step: recording tag', t
-            oldrec = [r for r in old_trecs if r['tag'] == t]
-            print 'walk.record_step: old record is', pprint(oldrec)
-            if len(oldrec) > 0:
+            #print 'walk.record_step: recording tag', t
+            oldrec = [r for r in old_trecs if r['tag'] == t] if old_trecs else None
+            #print 'walk.record_step: old record is', pprint(oldrec)
+            if oldrec:
                 tlast_wrong = oldrec[0]['tlast_wrong']
                 tlast_right = oldrec[0]['tlast_right']
                 try:  # in case oldrec is None, created for secondary right
@@ -466,10 +457,10 @@ class Walk(object):
             else:  # if no existing record, just set both to now as initial baseline
                 tlast_wrong = now
                 tlast_right = now
-            print 'walk.record_step: times right', times_right
-            print 'walk.record_step: times wrong', times_wrong
-            print 'walk.record_step: tlast_right', tlast_right
-            print 'walk.record_step: tlast_wrong', tlast_wrong
+            #print 'walk.record_step: times right', times_right
+            #print 'walk.record_step: times wrong', times_wrong
+            #print 'walk.record_step: tlast_right', tlast_right
+            #print 'walk.record_step: tlast_wrong', tlast_wrong
 
             condition = {'tag': t, 'name': user_id}
             db.tag_records.update_or_insert(condition,
@@ -483,11 +474,16 @@ class Walk(object):
             for t in taglist['secondary']:
                 print 'walk.record_step: appending sec right to tag', t
                 oldrec = [r for r in old_trecs if r['tag'] == t]
+                print 'oldrec is ', pprint(oldrec)
 
-                if (len(oldrec) > 0) and oldrec[0]:
+                sec_right = [now]  # default
+                if len(oldrec) and oldrec[0]:
                     sec_right = oldrec[0]['secondary_right']
-                    sec_right.append(now)
-                sec_right = [now]
+                    print 'secright is ', pprint(oldrec)
+                    try:
+                        sec_right.append(now)
+                    except AttributeError:  # because secondary_right is None
+                        pass  # use default set above
 
                 condition = {'tag': t, 'name': user_id}
                 db.tag_records.update_or_insert(condition,
@@ -966,90 +962,46 @@ class Step(object):
         """
         loc_id = self.loc.get_id()
         db = current.db
+        npc_list = self.get_npcs()
 
-        if self.npc:
+        if self.npc:  # keep pre-chosen npc
             if isinstance(self.npc, tuple):
                 self.npc = self.npc[0]
-            # ensure choice is made only once for each step
-
-            # make sure any redirects are to consistent npc/loc combo
-            #if self.redirect_loc_id:
-                #mynpc_locs = [self.redirect_loc_id]
-            #else:
-            #mynpc_locs = self.npc.get_locations()
-
-            #if loc_id in mynpc_locs:
-                ## pre-chosen npc is here
-                #print 'Step.get_npc: npc already chosen', self.npc.get_id(), '; available here'
-                #pass
-            #elif loc_id not in mynpc_locs:
-                ## pre-chosen npc is elsewhere, redirect and choose temp
-                #self.redirect_loc_id = mynpc_locs[randrange(len(mynpc_locs))]
-                #print 'step.get_npc: pre-chosen npc is elsewhere, redirecting to', self.redirect_loc_id
-                #return (self.npc, self.redirect_loc_id)
-            pass
-
-        else:
-            if prev_npc and (prev_loc.get_id() == loc_id):
-                # re-use last npc from this location
-                # TODO: should check that npc can also do this step
-                #print('Step.get_npc: continuing with prev_npc', prev_npc)
-                self.npc = prev_npc
             else:
-                # choose a new npc
-                #print('Step.get_npc: selecting a new npc')
-                npc_list = [int(n) for n in self.get_npcs()
-                            if loc_id in db.npcs[n]['map_location']]
-                #print(len(npc_list), 'npcs available for step')
+                pass
+        else:
+            if prev_npc and (prev_loc.get_id() == loc_id) \
+                    and (prev_npc.get_id() in npc_list):
+                # previous npc was in this loc and is valid for this step
+                print 'Step.get_npc: continuing with prev_npc', prev_npc
+                self.npc = copy(prev_npc)
+            else:
+                npc_here_list = [n for n in npc_list if loc_id in db.npcs[n]['map_location']]
+                print 'Step.get_npc:', len(npc_list), 'npcs available for step'
 
-                if len(npc_list) < 1:
-                    # no npc for this step available here: choose and redirect
-                    #print('Step.get_npc: no npc available here')
-                    # get new location for redirect
-                    if self.redirect_loc_id:
-                        #print 'step.get_npc: already have redirect loc', self.redirect_loc_id
-                        pass
-                    else:
-                        good_locs = self.get_locations()
-                        #print 'step.get_npc: current loc is', loc_id
-                        #print 'step.get_npc: good locations are', good_locs
-                        # prevent redirecting to current loc
-                        if (loc_id in good_locs) and (len(good_locs) > 1):
-                            good_locs.pop(good_locs.index(loc_id))
-                            self.redirect_loc_id = good_locs[randrange(len(good_locs))]
-                            #print 'redirecting to', self.redirect_loc_id
-                        elif (loc_id in good_locs) and (len(good_locs) < 2):
-                            # if this is only loc, make sure some combination
-                            # returned FIXME: this is data problem in db
-                            #print 'db has bad npc data'
-                            ns = self.get_npcs()
-                            npc_id = ns[randrange(len(ns))]
-                            assert npc_id
-                            #print 'chosen npc', npc_id
-                            return (Npc(npc_id), None)
-                    #print 'Step.npc: found npc in loc', self.redirect_loc_id
+                try:
+                    pick = npc_here_list[randrange(len(npc_here_list))]
+                except ValueError:  # "empty range for randrange()" if no npcs here
+                    mail = current.mail
+                    msg = HTML(P('In selecting an npc there were none found for'
+                                 'the combination:',
+                                 UL(LI('step =', self.get_id()),
+                                    LI('location =', loc_id)),
+                                 'The full list of npcs for the step is',
+                                 self.get_npcs()
+                                 )
+                               )
+                    mail.send(mail.settings.sender,
+                              'No valid npc was available',
+                              msg)
+                    print 'Step.get_npc: no valid npc here for chosen step'
 
-                    npcs = db(db.npcs.id > 0).select().as_list()
-                    #print 'Step.npc: all npcs are', len(npcs)
-                    npcs_here = [n['id'] for n in npcs
-                                 if loc_id in ['map_location']]
-                    #print 'Step.npc: all npcs here are', npcs_here
-                    if len(npcs_here) > 0:
-                        temp_npc_id = npcs_here[randrange(len(npcs_here))]
-                    else:
-                        temp_npc_id = npcs[randrange(len(npcs))]['id']
-                    #print 'Step.npc: tempt npc id is', temp_npc_id
-                    assert not temp_npc_id is None
-                    self.npc = Npc(temp_npc_id)
-                    #print 'Step.npc: returning temp npc', self.npc.get_id(), 'for redirect'
-
-                    return (self.npc, self.redirect_loc_id)
-                else:
-                    # npc for this step is available here
-                    #print('Step.npc: picking from suitable list available here')
                     pick = npc_list[randrange(len(npc_list))]
-                    self.npc = Npc(pick)
-        return (self.npc, None)
+
+                    print 'Step.npc: using fallback npc', pick
+                assert pick
+                self.npc = Npc(pick)
+        return self.npc
 
     def _get_instructions(self):
         """
@@ -1158,8 +1110,6 @@ class StepAwardBadges(StepContinue, Step):
         substituted for tokens framed by [[]].
         """
         db = current.db if not db else db
-        #print 'promoted', self.promoted
-        #print 'new_tags', self.new_tags
         appds = {}
         reps = {}
 
@@ -1620,13 +1570,20 @@ class Path(object):
         if not self.step_for_prompt:
             assert self._prepare_for_prompt()
         mystep = self.step_for_prompt
-        #print('path.get_step_for_prompt: initial step choice', mystep.get_id())
+        print 'path.get_step_for_prompt: initial step choice', mystep.get_id()
 
-        # update location on step
-        mystep.loc = self.loc
-        mystep.prev_loc = self.prev_loc
+        next_loc = None
+        goodlocs = mystep.get_locations()
+        if not loc.get_id() in goodlocs:
+            next_loc = goodlocs[randrange(len(goodlocs))]
+            print 'path.get_step_for_prompt: next step can\'t be done here'
+            print 'path.get_step_for_prompt: redirecting to loc', next_loc
+            # TODO: Putting redirect check here requires sane step data
+        else:
+            mystep.loc = self.loc  # update location on step
+            mystep.prev_loc = self.prev_loc
 
-        return self.step_for_prompt
+        return (mystep, next_loc)
 
     def get_step_for_reply(self):
         """
@@ -1779,8 +1736,10 @@ class PathChooser(object):
         path = None
         new_loc = None
         if p_here_new:
+            print 'PathChooser._choose_from_cat: choosing untried path for this loc'
             path = p_here_new[randrange(0, len(p_here_new))]
         elif p_new:
+            print 'PathChooser._choose_from_cat: choosing untried path for different loc'
             # While loop safeguards against looking for location for a step
             # that has no locations assigned.
             while path is None:
@@ -1791,6 +1750,7 @@ class PathChooser(object):
                 except TypeError:
                     path = None
         elif p_here:
+            print 'PathChooser._choose_from_cat: choosing repeat path for this loc'
             path = p_here[randrange(0, len(p_here))]
 
         return (path, new_loc, category)
@@ -1855,6 +1815,7 @@ class User(object):
             self.cats_counter = 0  # timing re-categorization in get_categories()
 
             self.old_categories = {}
+            self.categories = None
             self.tag_records = tag_records
             self.rank = tag_progress['latest_new'] if tag_progress else None
             self.tag_progress = tag_progress
@@ -1896,16 +1857,12 @@ class User(object):
         - Returns False
         """
         # TODO make sure that current loc and npc get set for self.prev_loc etc
-        # check that next step can be asked here, else redirect
-        #print 'user.check_for_blocks: checking for blocks'
-        #print 'user.check_for_blocks: initial user.blocks is', self.blocks
         if self.blocks:
             blockset = []
             for b in self.blocks:
                 if not b.get_condition() in [c.get_condition() for c in blockset]:
                     blockset.append(b)
             self.blocks = blockset
-            #print 'user.check_for_blocks: blocks present are', [b.get_condition() for b in self.blocks]
             myblock = self.blocks.pop(0)
             #print 'user.check_for_blocks: now blocks are', [b.get_condition() for b in self.blocks]
             return myblock
@@ -1977,11 +1934,6 @@ class User(object):
         else:
             self.prev_loc = copy(self.loc)
         self.loc = loc
-        #print 'user.set_location: user.loc is', self.loc.get_id()
-        #if self.prev_loc:
-            #print 'user.set_location: user.prev_loc is', self.prev_loc.get_id()
-        #else:
-            #print 'user.set_location: user.prev_loc is None'
         return True
 
     def get_new_tags(self):
@@ -2033,7 +1985,7 @@ class User(object):
                              username=self.name)
         if repeat:
             if self.path:
-                #print 'repeating path from self.path'
+                print 'repeating path from self.path'
                 self.path.set_location(self.loc)
                 self.path.prev_loc = self.prev_loc
                 self.path.prev_npc = self.prev_npc
@@ -2046,35 +1998,31 @@ class User(object):
                                  username=self.name)
         elif self.path and self.path.step_for_reply:
             # there's a step waiting for a reply
-            #print 'user.get_path: path has step needing reply'
+            print 'user.get_path: path has step needing reply'
             self.path.set_location(self.loc)
             self.path.prev_npc = self.prev_npc
         elif self.path and len(self.path.steps):
             # there's still an unfinished step in self.path
-            #print 'user.get_path: path includes a further step, continuing'
-            #print 'user.get_path:', len(self.path.steps), 'more steps'
+            print 'user.get_path: path includes a further step, continuing'
+            print 'user.get_path:', len(self.path.steps), 'more steps'
             self.path.set_location(self.loc)
             self.path.prev_npc = self.prev_npc
         else:
             if self.path:
-                #print 'user.get_path: completing path', self.path.get_id()
+                print 'user.get_path: completing path', self.path.get_id()
                 self.complete_path()  # catch end-of-path and triggers new choice
             if not self.tag_progress:  # in case User was badly initialized
                 self.get_categories()
-            #print 'user.get_path: choosing new path'
+            print 'user.get_path: choosing new path'
             choice = PathChooser(self.tag_progress, self.loc.get_id(),
                                  self.completed_paths).choose()
-            #new_location = choice[1]
             path = Path(path_id=choice[0]['id'],
                         loc=self.loc,
                         prev_loc=self.prev_loc,
                         prev_npc=self.prev_npc,
                         username=self.name)
-            # check for a redirect location to start the selected path
-            #if new_location:
-                # FIXME: this redirect (and check in chooser) is redundant (see
-                # step.get_npc()
-                #path._set_block('redirect', kwargs={'next_loc': new_location})
+            if choice[1]:  # check for a redirect location
+                self._set_block('redirect', kwargs={'next_loc': choice[1]})
             self.path = path
 
         if (len(self.completed_paths) == self.quota) and \
@@ -2082,13 +2030,13 @@ class User(object):
             if (not hasattr(self, 'past_quota')) or (self.past_quota is False):
                 self._set_block('quota_reached', kwargs={'quota': self.quota})
                 self.past_quota = True
-        #print 'user.get_path: no of initial path blocks is', len(self.blocks)
+        print 'user.get_path: no of initial path blocks is', len(self.blocks)
         if len(self.blocks) > 0:
-            #print 'user.get_path: type of blocks is', [b.get_condition() for b in self.blocks]
+            print 'user.get_path: type of blocks is', [b.get_condition() for b in self.blocks]
             # FIXME: This hack is to work around mysterious introduction of
             # redirect block after initial redirect has been triggered
             self.blocks = [b for b in self.blocks if not b.get_condition() is 'redirect']
-            #print 'user.get_path: now blocks is', [b.get_condition() for b in self.blocks]
+            print 'user.get_path: now blocks is', [b.get_condition() for b in self.blocks]
         return self.path
 
     def get_categories(self, rank=None, old_categories=None,
@@ -2103,14 +2051,14 @@ class User(object):
 
         The method is intended to be called with no arguments
         """
-        print 'user.get_categories: starting'
+        #print 'user.get_categories: starting'
         db = current.db
         auth = current.auth
         tag_records = db(db.tag_records.name == auth.user_id).select().as_list()
         self.tag_records = tag_records
-        print 'user.get_categories: tag_records length is', len(tag_records)
+        #print 'user.get_categories: tag_records length is', len(tag_records)
         # only re-categorize every 10th evaluated step
-        if (self.cats_counter in range(0, 4)) and self.tag_progress:
+        if (self.cats_counter in range(0, 4)) and hasattr(self, 'categories') and self.categories:
             self.cats_counter += 1
             print 'user.get_categories: no need for refresh yet - counter is', self.cats_counter
             return True
@@ -2125,13 +2073,13 @@ class User(object):
                                       ).select()
                 assert len(tag_progress_sel) == 1
                 self.tag_progress = tag_progress_sel.first().as_dict()
-                print 'user.get_categories: tag_progress from db is', pprint(self.tag_progress)
+                #print 'user.get_categories: tag_progress from db is', pprint(self.tag_progress)
                 rank = self.tag_progress['latest_new']
-                print 'user.get_categories: rank from db is', pprint(rank)
+                #print 'user.get_categories: rank from db is', pprint(rank)
                 # TODO: below is 'magic' hack based on specific db field names
                 categories = {k: v for k, v in self.tag_progress.iteritems()
                               if k[:4] in ['cat', 'rev']}
-                print 'user.get_categories: categories w/o extra items', pprint(categories)
+                #print 'user.get_categories: categories w/o extra items', pprint(categories)
             except AttributeError:
                 categories = None
             self.old_categories = copy(categories)
@@ -2139,7 +2087,7 @@ class User(object):
             # perform categorization
             c = Categorizer(rank, categories, tag_records, utcnow=utcnow)
             cat_result = c.categorize_tags()
-            print 'user.get_categories: cat_result is', pprint(cat_result)
+            #print 'user.get_categories: cat_result is', pprint(cat_result)
 
             # Set blocks for 'new_tags' (slides) and 'promoted' conditions
             nt = cat_result['new_tags']
@@ -2234,17 +2182,17 @@ class Categorizer(object):
         rank = self.rank if not rank else rank
         if not rank:
             rank = 1
-        print 'categorize_tags: rank is', rank
+        #print 'categorize_tags: rank is', rank
         old_categories = self.old_categories if not old_categories else old_categories
-        print 'categorize_tags: old_categories is', pprint(self.old_categories)
+        #print 'categorize_tags: old_categories is', pprint(self.old_categories)
         tag_records = self.tag_records if not tag_records else tag_records
         tag_records = self._sanitize_recs(tag_records)
-        print 'categorize_tags: tag_records is', pprint(self.tag_records)
+        #print 'categorize_tags: tag_records is', pprint(self.tag_records)
         db = current.db if not db else db
         new_tags = None
         # if user has not tried any tags yet, start first set
         if len(tag_records) == 0:
-            print 'categorize_tags: no tag_records found'
+            #print 'categorize_tags: no tag_records found'
             categories = {}
             categories['cat1'] = self._introduce_tags()
             tp = {'cat1': categories['cat1'],
@@ -2265,11 +2213,11 @@ class Categorizer(object):
         else:
             # otherwise, categorize tags that have been tried
             tag_records = self._add_secondary_right(tag_records)
-            print 'categorize_tags: after core algorithm, tag_records are', pprint(self.tag_records)
+            #print 'categorize_tags: after core algorithm, tag_records are', pprint(self.tag_records)
             categories = self._core_algorithm()
-            print '\ncategorize_tags: after core algorithm, cats are', pprint(categories)
+            #print '\ncategorize_tags: after core algorithm, cats are', pprint(categories)
             categories = self._add_untried_tags(categories)
-            print '\ncategorize_tags: after adding untried, cats are', pprint(categories)
+            #print '\ncategorize_tags: after adding untried, cats are', pprint(categories)
             # Remove any duplicates and tags beyond the user's current ranking
             for k, v in categories.iteritems():
                 if v:
@@ -2293,7 +2241,7 @@ class Categorizer(object):
 
             # Re-insert 'latest new' to match tag_progress table in db
             tag_progress['latest_new'] = self.rank
-            print 'categorize_tags: returning tag_progress as', tag_progress
+            #print 'categorize_tags: returning tag_progress as', tag_progress
 
             return {'tag_records': tag_records,
                     'tag_progress': tag_progress,
@@ -2494,9 +2442,9 @@ class Categorizer(object):
         """Return the categorized list with any untried tags added to cat1"""
         db = current.db if not db else db
         rank = self.rank if not rank else rank
-        print 'add_untried_tags: rank is', rank
+        #print 'add_untried_tags: rank is', rank
 
-        print 'add_untried_tags: level 1 cats are', categories['cat1']
+        #print 'add_untried_tags: level 1 cats are', categories['cat1']
 
         left_out = []
         for r in range(1, rank + 1):
@@ -2505,12 +2453,13 @@ class Categorizer(object):
             alltags = list(chain(*categories.values()))
             left_out.extend([t for t in newtags if t not in alltags])
         if left_out:
-            print 'add_untried_tags: adding some untried tags'
+            #print 'add_untried_tags: adding some untried tags'
             categories['cat1'].extend(left_out)
         else:
-            print 'add_untried_tags: no untried tags to add'
+            pass
+            #print 'add_untried_tags: no untried tags to add'
 
-        print 'add_untried_tags: level 1 cats are now', categories['cat1']
+        #print 'add_untried_tags: level 1 cats are now', categories['cat1']
 
         return categories
 
