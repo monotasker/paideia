@@ -16,7 +16,7 @@ class Stats(object):
     Name = "paideia_stats"
     verbose = False
 
-    def __init__(self, user_id=None, auth=None):
+    def __init__(self, user_id=None, auth=None, cache=None):
         if self.verbose: print '\nInitializing Stats object =================='
         if auth is None:
             auth = current.auth
@@ -28,11 +28,56 @@ class Stats(object):
         self.tag_badges = {tb.tags.id: {'badge': tb.badges.badge_name,
                                         'description': tb.badges.description,
                                         'tag': tb.tags.tag}
-                           for tb in db(db.tags.id == db.badges.tag).select()}
+                           for tb in db(db.tags.id == db.badges.tag
+                                        ).select(cache=(cache.ram, 360000),
+                                                 cacheable=True)}
+
+    def store_stats(self, user_id, weekstart, weekstop, weeknum):
+        '''
+        Store aggregate user statistics on a weekly basis to speed up analysis.
+        weekstart and weekstop should be datetime.datetime objects
+        TODO: Should there also be an annual aggregate?
+        '''
+        db = current.db
+        monthdays = calendar.Calendar().monthdatescalendar(weekstart.year,
+                                                           weekstart.month)
+        weekdays = [w for w in monthdays if weekstart.date() in w][0]
+        weeklogs_q = db((db.user_stats.name == user_id) &
+                        (db.user_stats.year == weekstart.year) &
+                        (db.user_stats.week == weeknum))
+        # FIXME: adjust for time zones (convert weekstart and weekstop)
+        if weeklogs_q.empty():
+            mylogs = db((db.attempt_log.name == user_id) &
+                        (db.attempt_log.dt_attempted >= weekstart) &
+                        (db.attempt_log.dt_attempted <= weekstop)
+                        ).select().as_list()
+            logsright = [s for s in mylogs if abs(s['score'] - 1) < 0.001]
+            myargs = {'logs_right': [l['id'] for l in logsright]}
+            logswrong = [s for s in mylogs if abs(s['score'] - 1) >= 0.001]
+            myargs['logs_wrong'] = [l['id'] for l in logswrong]
+            for n in range(7):
+                mykey = 'day{}'.format(n + 1)
+                myval = [l for l in mylogs
+                         if l['dt_attempted'].day == weekdays[n].day]
+                myargs.update({mykey: myval})
+        else:
+            weeklogs_s = weeklogs_q.select().as_list()
+            assert len(weeklogs_s) == 1
+            mylog = weeklogs_s[0]
+            updated = mylog['updated']
+            if updated < weekstop:
+                # TODO: Is there a risk of double-counting records with same
+                # datetime?
+                mylogs = db((db.attempt_log.name == user_id) &
+                            (db.attempt_log.dt_attempted >= updated) &
+                            (db.attempt_log.dt_attempted <= weekstop)
+                            ).select().as_list()
 
     def step_log(self, logs=None, user_id=None, duration=None, db=None):
         '''
         Get record of a user's steps attempted in the last seven days.
+
+        TODO: move this aggregate data to a db table "user_stats" on calculation.
         '''
         now = datetime.datetime.utcnow()
         if not user_id:
@@ -44,53 +89,56 @@ class Stats(object):
         if not logs:
             logstart = now - duration  # yields datetime obj
             logs = db((db.attempt_log.name == user_id) &
-                      (db.attempt_log.dt_attempted >= logstart)).select()
+                      (db.attempt_log.dt_attempted >= logstart)).select().as_list()
 
         #TODO: Get utc time offset dynamically from user's locale
         logset = []
-        stepset = set(l.step for l in logs)
+        stepset = set(l['step'] for l in logs)
         tag_badges = self.tag_badges
 
         for step in stepset:
-            steprow = db.steps[step]
-            steplogs = logs.find(lambda row: row.step == step)
+            steprow = db.steps[step].as_dict()
+            print 'got_steprow'
+            steplogs = [l for l in logs if l['step'] == step]
+            print 'got_steplogs'
             stepcount = len(steplogs)
-            stepright = steplogs.find(lambda row: row.score == 1)
-            stepwrong = steplogs.find(lambda row: row.score == 0)
+            stepright = [s for s in steplogs if abs(s['score'] - 1) < 0.001]
+            stepwrong = [s for s in steplogs if abs(s['score'] - 1) >= 0.001]
 
             try:
-                last_wrong = max([s.dt_attempted for s in stepwrong])
+                last_wrong = max([s['dt_attempted'] for s in stepwrong])
                 last_wrong = datetime.datetime.date(last_wrong)
             except ValueError:
                 last_wrong = 'never'
 
             try:
                 right_since = len([s for s in stepright
-                                if s.dt_attempted > last_wrong])
+                                if s['dt_attempted'] > last_wrong])
             except TypeError:
                 right_since = stepcount
             steptags = {t: {'tagname': tag_badges[t]['tag'],
                             'badge': tag_badges[t]['badge'],
                             'description': tag_badges[t]['description']}
-                        for t in steprow.tags
+                        for t in steprow['tags']
                         if t in tag_badges.keys()}
             # check for tags without badges
             # TODO: move this check to maintenance cron job
-            for t in steprow.tags:
+            for t in steprow['tags']:
                 if not t in tag_badges.keys():
+                    print 'There seems to be no badge for tag {}'.format(t)
                     mail = current.mail
                     mail.send(mail.settings.sender,
                             'Paideia error: Missing badge',
                             'There seems to be no badge for tag {}'.format(t))
             step_dict = {'step': step,
-                        'count': stepcount,
-                        'right': len(stepright),
-                        'wrong': len(stepwrong),
-                        'last_wrong': last_wrong,
-                        'right_since': right_since,
-                        'tags': steptags,
-                        'prompt': steprow.prompt,
-                        'logs': steplogs}
+                         'count': stepcount,
+                         'right': len(stepright),
+                         'wrong': len(stepwrong),
+                         'last_wrong': last_wrong,
+                         'right_since': right_since,
+                         'tags': steptags,
+                         'prompt': steprow['prompt'],
+                         'logs': steplogs}
             logset.append(step_dict)
 
         return {'loglist': logset, 'duration': duration}

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from gluon import current, redirect
 from gluon import IMG, URL, SQLFORM, SPAN, DIV, UL, LI, A, Field, P, TAG, HTML
+from gluon import I
 from gluon import IS_NOT_EMPTY, IS_IN_SET
 
 from inspect import getargvalues, stack
@@ -12,7 +13,7 @@ import datetime
 from dateutil import parser
 import traceback
 from pytz import timezone
-from plugin_widgets import POPOVER
+from plugin_widgets import POPOVER, ROLE
 import pickle
 from pprint import pprint
 
@@ -220,12 +221,15 @@ class Walk(object):
                                   'loc': user.loc,
                                   'npc': user.npc})
             print 'walk.ask: got block step', s.get_id()
-            print 'walk.ask: path.step_for_reply is still', p.step_for_reply.get_id()
+            try:
+                print 'walk.ask: path.step_for_prompt is still', p.step_for_prompt.get_id()
+            except AttributeError:
+                print 'walk.ask: path.step_for_prompt is None'
 
         npc = s.get_npc(prev_npc=user.prev_npc, prev_loc=user.prev_loc)
         print 'walk.ask: got npc', npc.get_id()
         user.set_npc(npc)
-        if user.npc:
+        if user.prev_npc:
             print 'walk.ask: user.prev_npc is now', user.prev_npc.get_id()
         else:
             print 'no previous npc'
@@ -235,6 +239,13 @@ class Walk(object):
         progress = 'This will make {} paths so far today.'.format(len(user.completed_paths) + 1)
         responder = s.get_responder()
         responder.append(SPAN(progress, _class='progress_text'))
+
+        # info for admin and debugging
+        try:
+            editlinks = self._get_editlinks(p.get_id(), s.get_id())
+            responder.append(editlinks)
+        except Exception:
+            pass
 
         # clean up before return
         if type(s) not in [StepRedirect, StepQuotaReached, StepAwardBadges, StepViewSlides]:
@@ -350,6 +361,13 @@ class Walk(object):
                    'so far today.'.format(len(user.completed_paths) + 1)
         responder.append(SPAN(progress, _class='progress_text'))
 
+        # info for admin and debugging
+        try:
+            editlinks = self._get_editlinks(p.get_id(), s.get_id())
+            responder.append(editlinks)
+        except Exception:
+            pass
+
         p.complete_step()  # removes path.step_for_reply
         # Note: path is completed (moved to user.completed_paths) in following
         # cycle in user.get_path. This simplifies repeating steps/paths
@@ -357,6 +375,21 @@ class Walk(object):
         self._store_user(user)
 
         return {'npc': reply, 'responder': responder}
+
+    def _get_editlinks(self, pid, sid):
+        """
+        Return an html helper object with links to edit current path and step.
+        """
+        stepedit = A('step {}'.format(sid),
+                     _href=URL('editing', 'listing', args=['steps', sid]),
+                     _class='prompt-s-editlink'
+                     )
+        pathedit = A('path {}'.format(pid),
+                     _href=URL('editing', 'listing', args=['paths', pid]),
+                     _class='prompt-p-editlink'
+                     )
+        links = ROLE(SPAN(pathedit, ', ', stepedit, _class='prompt-editlinks'))
+        return links
 
     def _record_cats(self, tag_progress, promoted,
                      new_tags, db=None):
@@ -688,12 +721,17 @@ class BugReporter(object):
                    'score': score,
                    'step_id': step_id}
         c = P('Think your answer should have been correct? ',
-              A('click here', _class='bug_reporter_link btn btn-danger',
-                _href=URL('paideia', 'creating', 'bug.load', vars=vardict)),
+              A('click here',
+                I(_class='icon-bug'),
+                _class='bug_reporter_link btn btn-danger',
+                _href=URL('paideia', 'creating', 'bug.load', vars=vardict),
+                cid='bug_reporter'),
               ' to submit a bug report. You can find the instructor\'s ',
               'response in the "bug reports" tab of your user profile.')
 
-        br = POPOVER().widget('Something wrong?', c, id='bug_reporter')
+        br = POPOVER().widget('Something wrong?', c,
+                              id='bug_reporter',
+                              placement='left')
 
         return br
 
@@ -993,7 +1031,7 @@ class Step(object):
                                )
                     mail.send(mail.settings.sender,
                               'No valid npc was available',
-                              msg)
+                              msg.xml())
                     print 'Step.get_npc: no valid npc here for chosen step'
 
                     pick = npc_list[randrange(len(npc_list))]

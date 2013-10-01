@@ -3,10 +3,9 @@
 from paideia_stats import Stats
 from paideia_bugs import Bug
 #from gluon.tools import prettydate
-from plugin_widgets import TOOLTIP
 
 if 0:
-    from gluon import current
+    from gluon import current, cache
     from gluon.tools import Auth
     from gluon.dal import DAL
     db = DAL()
@@ -54,7 +53,7 @@ def info():
     tz = user.time_zone
     email = user.email
 
-    stats = Stats(user.id)
+    stats = Stats(user.id, cache=cache)
     active = stats.active_tags()
     cal = stats.monthcal()
     sl = stats.step_log()
