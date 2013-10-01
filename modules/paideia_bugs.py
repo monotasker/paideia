@@ -13,9 +13,13 @@ class Bug(object):
         Initialize a Bug object for generating bug reports on specific user
         interactions.
         """
+        db = current.db
         self.step_id = step_id
         self.path_id = path_id
         self.loc_id = loc_id
+        if isinstance(loc_id, str):
+            self.loc_id = db(db.locations.loc_alias == loc_id
+                             ).select(db.locations.id).first()
         print 'bug.init: step_id is', self.step_id
         print 'bug.init: path_id is', self.path_id
         print 'bug.init: loc_id is', self.loc_id
