@@ -1,5 +1,7 @@
 import calendar
 import datetime
+import dateutil.parser
+import traceback
 from pytz import timezone
 from gluon import current, DIV, H4, TABLE, THEAD, TBODY, TR, TD, SPAN, A, URL
 from pprint import pprint
@@ -89,7 +91,8 @@ class Stats(object):
         if not logs:
             logstart = now - duration  # yields datetime obj
             logs = db((db.attempt_log.name == user_id) &
-                      (db.attempt_log.dt_attempted >= logstart)).select().as_list()
+                      (db.attempt_log.dt_attempted >= logstart)
+                      ).select().as_list()
 
         #TODO: Get utc time offset dynamically from user's locale
         logset = []
@@ -106,9 +109,13 @@ class Stats(object):
             stepwrong = [s for s in steplogs if abs(s['score'] - 1) >= 0.001]
 
             try:
-                last_wrong = max([s['dt_attempted'] for s in stepwrong])
+                last_wrong = max([s['dt_attempted'] for s in stepwrong if
+                                 s['dt_attempted']])
+                if isinstance(last_wrong, str):
+                    last_wrong = dateutil.parser.parse(last_wrong)
                 last_wrong = datetime.datetime.date(last_wrong)
             except ValueError:
+                print traceback.format_exc(5)
                 last_wrong = 'never'
 
             try:
