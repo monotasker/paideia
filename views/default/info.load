@@ -1,281 +1,229 @@
-{{from plugin_widgets import TOOLTIP}}
+{{from plugin_widgets import TOOLTIP, TABS}}
 
-<div class="tabbable">
-<ul class="nav nav-tabs">
-    <li><a href="#web2py_user_form" data-toggle='tab'>Me</a><li>
-    <li><a href="#tab_stats" data-toggle='tab'>Badges</a></li>
-    <li><a href="#tab_calendar" data-toggle='tab'>Calendar</a></li>
-    <li><a href="#tab_bug_reports" data-toggle='tab'>Bug Reports</a><li>
-    <li><a href="#tab_recent_paths" data-toggle='tab'>Recent</a></li>
-    <li><a href="#tab_tag_records" data-toggle='tab'>Badge Records</a></li>
-</ul>
+{{
+# TAB 1 - USER INFO ==========================================================
+tab1_content = UL(LI(SPAN('Name', _class='label'), the_name),
+                  LI(SPAN('Email', _class='email'), email),
+                  LI(SPAN('Time Zone', _class='timezone'), tz))
 
-<div class='tab-content'>
-<div id="web2py_user_form" class="tab-pane active">
-    <ul>
-        <li class='name'><span class='label'>Name:</span> {{=the_name}}</li>
-        <li class='email'><span class='label'>Email:</span> {{=email}}</li>
-        <li class='timezone'><span class='label'>Time Zone:</span> {{=tz}}</li>
-    </ul>
-</div>
+# TAB 2 - BADGES =============================================================
+tab2_content = CAT(P('You are currently working on ',
+                     SPAN(active['total'], _class='total_len'),
+                     ' grammar badges and have reached set ',
+                     SPAN(max_set, _class='max_set'),
+                     _class="overview"),
+                   P('The most recent badges started are:',
+                     UL(_class='most_recent'),
+                     _class="overview"))
+for l in active['latest']:
+    tab2_content[1][1].append(LI(l))
+pass
 
-<div id='tab_stats' class="tab-pane">
-    <p class="overview">You are currently working on 
-        <span class='total_len'>{{=active['total']}}</span> grammar badges
-        and have reached set <span class='max_set'>{{=max_set}}</span>
-    </p>
-    <p class="overview">The most recent badges started are:
-    <ul class='most_recent'>
-        {{for l in active['latest']:}}
-            {{=LI(l)}}
-        {{pass}}
-    </ul>
-    </p>
+sumtable = TABLE(THEAD(TR(TH(), TH(), TH('Badge level reached'), TH('Review level')
+                           )),
+                  _cellspacing='0', _class='summary_stats')
+catlist = [('cat4', 'mastered'),
+           ('cat3', 'making very good progress on'), 
+           ('cat2', 'made a good start with'),
+           ('cat1', 'just started or needing review')]
+active_len = active['total']
+if active_len > 0:
+    for cat in catlist:
+        if cat[0] in active.keys():
+            catlen = len(active[cat[0]]) if active[cat[0]] else 0
+            catrow = TR(TD(cat[1]),
+                        TD(catlen, _class='total_'.format(cat[0])),
+                        TD())
+            rcat = 'rev{}'.format(cat[0][3:])
+            if (rcat in active.keys()) and (active[rcat]) and (active[rcat] != 0):
+                revlist = UL()
+                for b in active['rev3']:
+                    revlist.append(LI(b))
+                catrow[-1].append(revlist)
+                pass
+            sumtable.append(catrow)
+            pass
+        pass
+    tab2_content.append(sumtable)
+    pass
+else:
+    tab2_content.append(SPAN('You don\'t yet have any badges to report on. '
+                             'Check back after you explore the town map a bit.'))
+pass
+tab2_content.append(CAT(H3('What do these levels mean?'),
+    P('It is important to realize that the four badge levels above are '
+      'not "grades" like the letter grades we earn in most courses. They are, '
+      'instead, stages in your learning of each element of Greek. Level 1 '
+      '(beginner) is awarded when you start to learn a topic. It simply means '
+      'that you are working on it. In your daily interactions in the town, the '
+      'program will prioritize conversations tagged with these "beginner" badges '
+      'since they are the ones you most need to review.'),
+    P('At the other end of the scale, Level 4 (master) is awarded when you no '
+      'longer need to learn anything more about that aspect of the language. '
+      'You have shown that this knowledge is now in your long-term memory, and '
+      'you are now on a permanent maintenance routine in which you only review '
+      'that material once every six months. Don\'t be discouraged if you find '
+      'that it takes a long time to reach "master" level for any badges. This '
+      'doesn\'t mean you aren\'t progressing. It just means that you\'re still '
+      'working on getting that topic into your long-term memory -- a process '
+      'that can\'t be rushed.'),
+    P('Between these two extremes, level 2 ("apprentice") and level 3 '
+      '("journeyman") represent increasing levels of mastery over a particular '
+      'element of Greek. You will review the material related to such badges '
+      'less and less often as you continue to provide good responses when such '
+      'conversations do come up. Normally, you will find that badges begun '
+      'during a term will remain at levels 2 or 3 through at least the balance '
+      'of that term. This doesn\'t mean anything is wrong. It just represents '
+      'the fact that true mastery is a longer-term goal.'),
+    H3('How do I earn new badges?'),
+    P('You begin a new badge at level 1 when all of your current badges have '
+      'been promoted to level 2 or higher. The program recognizes that you are '
+      'ready to learn something new.'),
+    P('There are two different ways to reach level 2 ("apprentice") with a '
+      'particular badge. (a) First, if you provide consistently right answers '
+      '(with no errors) over a period of a day or two, then that badge will be '
+      'promoted to level 2. (b) Alternately, you will be promoted despite some '
+      'errors if you have given at least 8 correct responses for each error over '
+      'the last two weeks. In either case you won\'t be promoted until you have '
+      'done at least 20 paths related to that badge, with at least 24 hours '
+      'between the first success and the most recent success. Keep in mind that '
+      'on a given day your paths will not all be focused on the same badges. '
+      'So even if you provide good answers on 20 paths in a row, this may mean '
+      'that you have only added 5 or 6 successes to your record for a particular '
+      'badge. This is one advantage of doing extra paths regularly - you will '
+      'progress more quickly because you are working on each of your level 1 '
+      'badges more often.'),
+    P('Levels 3 and 4 are reached as you go longer and longer without any '
+      'errors in your responses on a given topic. If you make no errors with a '
+      'badge over 7 days, it will be promoted to level 3. You are clearly '
+      'retaining that knowledge and beginning toward real mastery. If you then '
+      'go 30 days without any errors on that topic, the badge will be promoted '
+      'to level 4 (mastered).'),
+    H3('What are the "Badge Level" and "Review Level" columns?'),
+    P('In the "badge level" column you see the highest level you have achieved '
+      'so far for a particular badge. Periodically, though, the program will '
+      'decide that you need to review your level 2, 3, or 4 badges. At that '
+      'point, the badge will move to "level 1" in the "review level" column. '
+      'This doesn\'t mean you have been demoted. It just means that the program '
+      'is going to prioritize that badge as if it were brand new material. Even '
+      'for badges that you have mastered, you will review those topics at least '
+      'once every three months. If you give good responses to the review '
+      'material, this review level will last only a day. The next day you will '
+      'find the badge has returned to its normal review level and you will be '
+      'much less likely to see those paths until the next review period is up.'),
+    P('If you give a wrong answer during a review period, you don\'t lose your '
+      'previous badge level. But the program recognizes that you may need to '
+      'review that material more frequently. So, instead of the badge jumping '
+      'right back to its original review level, you will see it move up through '
+      'the review levels as if you were earning it again. This just means that '
+      'the program is making sure you see it often enough. If you don\'t make '
+      'more mistakes, you will quickly find the badge\'s review level is back '
+      'up to the "badge level" you have attained.')
+))
 
-    <table cellspacing='0' class='summary_stats'>
-        <thead>
-            <tr>
-                <th></th>
-                <th></th>
-                <th>Badge level reached</th>
-                <th>Review level</th>
-            </tr>
-        </thead>
-        {{if 'cat4' in active.keys():}}
-        <tr>
-            <td>mastered</td>
-            <td class='total_cat4'>{{=len(active['cat4']) if active['cat4'] else 0}}</td>
-            <td>
-                {{if 'rev4' in active.keys() and active['cat4'] != 0:}}
-                <ul>
-                    {{for b in active['cat4']:}}
-                    <li>{{=b}}</li>
-                    {{pass}}
-                    <!--{{#if 'rev4' in active and active['rev4'] != 0:}}-->
-                        <!--{{#for b in active['rev4']:}}-->
-                        <!--<li>{{#=b}}</li>-->
-                        <!--{{#pass}}-->
-                    <!--{{#pass}}-->
-                </ul>
-                {{pass}}
-            </td>
-            <td></td>
-        </tr>
-        {{pass}}
-        {{if 'cat3' in active.keys():}}
-        <tr>
-            <td>making very good progress on</td>
-            <td class='total_cat3'>{{=len(active['cat3']) if active['cat3'] else 0}}</td>
-            <td>
-                {{if active['cat3'] and active['cat3'] != 0:}}
-                <ul>
-                    {{for b in active['cat3']:}}
-                    <li>{{=b}}</li>
-                    {{pass}}
-                </ul>
-                {{pass}}
-            </td>
-            <td>
-                {{if ('rev3' in active.keys()) and (active['rev3']) and (active['rev3'] != 0):}}
-                <ul>
-                    {{for b in active['rev3']:}}
-                    <li>{{=b}}</li>
-                    {{pass}}
-                </ul>
-                {{pass}}
-            </td>
-        </tr>
-        {{pass}}
-        {{if 'cat2' in active.keys():}}
-        <tr>
-            <td>made a good start with</td>
-            <td class='total_cat2'>{{=len(active['cat2']) if active['cat2'] else 0}}</td>
-            <td>
-                {{if active['cat2'] and active['cat2'] != 0:}}
-                <ul>
-                    {{for b in active['cat2']:}}
-                    <li>{{=b}}</li>
-                    {{pass}}
-                </ul>
-                {{pass}}
-            </td>
-            <td>
-                {{if ('rev2' in active.keys()) and (active['rev2']) and (active['rev2'] != 0):}}
-                <ul>
-                    {{for b in active['rev2']:}}
-                    <li>{{=b}}</li>
-                    {{pass}}
-                </ul>
-                {{pass}}
-            </td>
-        </tr>
-        {{pass}}
-        {{if 'cat1' in active.keys():}}
-        <tr>
-            <td>just started or needing review</td>
-            <td class='total_cat1'>{{=len(active['cat1']) if active['cat1'] else 0}}</td>
-            <td>
-                {{if active['cat1'] and active['cat1'] != 0:}}
-                <ul>
-                    {{for b in active['cat1']:}}
-                    <li>{{=b}}</li>
-                    {{pass}}
-                </ul>
-                {{pass}}
-            </td>
-            <td>
-                {{if ('rev1' in active.keys()) and (active['rev1']) and (active['rev1'] != 0):}}
-                <ul>
-                    {{for b in active['rev1']:}}
-                    <li>{{=b}}</li>
-                    {{pass}}
-                </ul>
-                {{pass}}
-            </td>
-        </tr>
-    {{else:}}
-        <span>You don't yet have any badges to report on. Check back after 
-            you explore the town map a bit.</span>
-    {{pass}}
-    </table>
+# TAB 3 - CALENDAR ===========================================================
+tab3_content = XML(cal)
 
-    <ul>
-        <li class='collapsible_parent'>
-            <h3>What do these levels mean?</h3>
-            <p>It is important to realize that the four badge levels above are 
-            not "grades" like the letter grades we earn in most courses. They are, instead, stages in your learning of each element of Greek. Level 1 (beginner) is awarded when you start to learn a topic. It simply means that you are working on it. In your daily interactions in the town, the program will prioritize conversations tagged with these "beginner" badges since they are the ones you most need to review.</p>
-            <p>At the other end of the scale, Level 4 (master) is awarded when you no longer need to learn anything more about that aspect of the language. You have shown that this knowledge is now in your long-term memory, and you are now on a permanent maintenance routine in which you only review that material once every six months. Don't be discouraged if you find that it takes a long time to reach "master" level for any badges. This doesn't mean you aren't progressing. It just means that you're still working on getting that topic into your long-term memory -- a process that can't be rushed.</p>
-            <p>Between these two extremes, level 2 ("apprentice") and level 3 ("journeyman") represent increasing levels of mastery over a particular element of Greek. You will review the material related to such badges less and less often as you continue to provide good responses when such conversations do come up. Normally, you will find that badges begun during a term will remain at levels 2 or 3 through at least the balance of that term. This doesn't mean anything is wrong. It just represents the fact that true mastery is a longer-term goal.</p>
-        </li>
-        <li class='collapsible_parent'>
-            <h3>How do I earn new badges?</h3>
-            <p>You begin a new badge at level 1 when all of your current badges have been promoted to level 2 or higher. The program recognizes that you are ready to learn something new.</p>
-            <p>There are two different ways to reach level 2 ("apprentice") with a particular badge. (a) First, if you provide consistently right answers (with no errors) over a period of a day or two, then that badge will be promoted to level 2. (b) Alternately, you will be promoted despite some errors if you have given at least 8 correct responses for each error over the last two weeks. In either case you won't be promoted until you have done at least 20 paths related to that badge, with at least 24 hours between the first success and the most recent success. Keep in mind that on a given day your paths will not all be focused on the same badges. So even if you provide good answers on 20 paths in a row, this may mean that you have only added 5 or 6 successes to your record for a particular badge. This is one advantage of doing extra paths regularly - you will progress more quickly because you are working on each of your level 1 badges more often.</p>
-            <p>Levels 3 and 4 are reached as you go longer and longer without any errors in your responses on a given topic. If you make no errors with a badge over 7 days, it will be promoted to level 3. You are clearly retaining that knowledge and beginning toward real mastery. If you then go 30 days without any errors on that topic, the badge will be promoted to level 4 (mastered).</p>
-        </li>
-        <li>
-        <h3>What are the "Badge Level" and "Review Level" columns?</h3>
-        <p>In the "badge level" column you see the highest level you have achieved so far for a particular badge. Periodically, though, the program will decide that you need to review your level 2, 3, or 4 badges. At that point, the badge will move to "level 1" in the "review level" column. This doesn't mean you have been demoted. It just means that the program is going to prioritize that badge as if it were brand new material. Even for badges that you have mastered, you will review those topics at least once every three months. If you give good responses to the review material, this review level will last only a day. The next day you will find the badge has returned to its normal review level and you will be much less likely to see those paths until the next review period is up.</p>
-        <p>If you give a wrong answer during a review period, you don't lose your previous badge level. But the program recognizes that you may need to review that material more frequently. So, instead of the badge jumping right back to its original review level, you will see it move up through the review levels as if you were earning it again. This just means that the program is making sure you see it often enough. If you don't make more mistakes, you will quickly find the badge's review level is back up to the "badge level" you have attained.</p>
-        </li>
-    </ul>
-</div> <!--end of stats tab-->
+# TAB 4 - BUGS ===============================================================
+tab4_content = TABLE(TR(TH('question'),
+                        TH('your answer'),
+                        TH('submitted'), 
+                        TH('evaluation'),
+                        TH('instructor\'s comments')))
+for bug in blist:
+    row = TR()
+    for val in bug:
+        row.append(TD(val))
+    tab4_content.append(row)
+    pass
+pass
 
-<section id='tab_calendar' class="tab-pane">
-    {{=XML(cal)}}
-</section>
+# TAB 5 - RECENT PATHS =======================================================
+tab5_content = CAT(H4('Steps attempted in the last {} days'.format(duration.days)))
+logtable = TABLE(THEAD(TR(TH('step', _class='step'),
+                      TH('prompt', _class='prompt'),
+                      TH('count', _class='count'),
+                      TH('right', _class='right'),
+                      TH('wrong', _class='wrong'),
+                      TH('last_wrong', _class='last_wrong'),
+                      TH('right_since', _class='right_since'),
+                      TH('tags', _class='tags'),
+                      _class='step_log_table'))
+             )
+for l in log:
+    logrow = TR(TD(l['step'], _class='step'),
+                TD(l['prompt'], _class='prompt'),
+                TD(l['count'], _class='count'),
+                TD(l['right'], _class='right'),
+                TD(l['wrong'], _class='wrong'),
+                TD(l['last_wrong'], _class='last_wrong'),
+                TD(l['right_since'], _class='right_since'),
+                TD(_class='tags'),
+                _id=('logs' + str(l['step'])),
+                )
+    for k, v in l['tags'].iteritems():
+        tstring = 'tag: {} ({})'.format(v['tagname'], k)  # v['badge'] gives descr.
+        logrow[-1].append(tstring)
+    logtable.append(logrow)
+    pass
+tab5_content.append(logtable)
+pass
 
-<section id='tab_bug_reports' class="tab-pane">
-    <table>
-        <tr>
-            <th>question</th>
-            <th>your answer</th>
-            <th>submitted</th>
-            <th>evaluation</th>
-            <th>instructor's comments</th>
-        </tr>
-        {{for b in blist:}}
-        <tr>
-            {{for v in b:}}
-                <td>{{=v}}</td>
-            {{pass}}
-        </tr>
-        {{pass}}
-    </table>
-</section>
+# TAB 6 - BADGE RECORDS ======================================================
+tab6_content = CAT(H4('Your overall performance for each badge so far'),
+                   TABLE(THEAD(TD('badge'),
+                               TD('times right / times wrong / ratio'),
+                               TD('last right'),
+                               TD('last wrong'),
+                               TD('badge set')
+                               ),
+                    _id='tag_records_table')
+                    )
+for row in tag_records:
+    timesr = row.tag_records.times_right if row.tag_records.times_right else 0
+    timesw = row.tag_records.times_wrong if row.tag_records.times_wrong else 0
+    try:
+        ratio = float(timesw)/timesr
+    except ZeroDivisionError:
+        ratio = 0
+    row = TR(TD(db(db.badges.tag==row.tags.id).select().first().badge_name),
+                TD(SPAN('', _style='width: {}px;'.format(timesr),
+                    _class='right'),
+                   SPAN(int(timesr), _class='right_num'),
+                   BR(),
+                   SPAN('', _style='width: {}px;'.format(timesw),
+                        _class='wrong'),
+                   SPAN(int(timesw), _class='wrong_num'),
+                   BR(),
+                   SPAN('', _style='width: {}px'.format(ratio * 100),
+                        _class='ratio'),
+                   SPAN(round(ratio, 3), _class='ratio_num')),
+                TD(row.tag_records.tlast_right),
+                TD(row.tag_records.tlast_wrong),
+                TD(row.tags.position)
+                )
+    tab6_content[1].append(row)
+    pass
+pass
 
-<section id='tab_recent_paths' class="tab-pane">
-    <h4>Steps attempted in the last {{=duration.days}} days</h4>
-    {{=TABLE(THEAD(TR(
-            TH('step', _class='step'),
-            TH('prompt', _class='prompt'),
-            TH('count', _class='count'),
-            TH('right', _class='right'),
-            TH('wrong', _class='wrong'),
-            TH('last_wrong', _class='last_wrong'),
-            TH('right_since', _class='right_since'),
-            TH('tags', _class='tags'),
-            _class='step_log_table'
-            )
-            ) 
-        )}}
-    {{for l in log:}}
-        {{=DIV(TABLE(TR(
-            TD(l['step'], _class='step'),
-            TD(l['prompt'], _class='prompt'),
-            TD(l['count'], _class='count'),
-            TD(l['right'], _class='right'),
-            TD(l['wrong'], _class='wrong'),
-            TD(l['last_wrong'], _class='last_wrong'),
-            TD(l['right_since'], _class='right_since'),
-            TD([TOOLTIP(v['badge'], v['badge'], 'tag: {} ({})'.format(v['tagname'], k))
-                    for k, v in l['tags'].iteritems()], _class='tags'),
-            _class='step_log_table'
-            ) 
-            ), 
-            A('show logs', _href=('#logs' + str(l['step']))),
-            DIV(l['logs'], _class='collapsible_child'),
-        _class='collapsible_parent',
-        _id=('logs' + str(l['step']))
-        )}}
-    {{pass}}
-</section>
+# TAB 7 - TIMELINE OF BADGES =================================================
+tab7_content = CAT(H4('Timeline of your new badges earned'))
+if badge_track == []:
+    tab7_content.append(SPAN('We\'ve just started tracking the dates on which '
+                             'you earn each new badge, so there is no record '
+                             'here yet. Check back after you\'ve earned your '
+                             'next badge.'))
+else:
+    bl_table = TABLE()
+    for badgeline in badge_track:
+        row = TR(TD(badgeline['id']),
+                    TD(badgeline['level']),
+                    TD(badgeline['date']))
+        bl_table.append(row)
+    pass
+    tab7_content.append(bl_table)
+pass
 
-<section id='tab_tag_records' class="tab-pane">
-    <h4>Your overall performance for each badge so far</h4>
-    <table id='tag_records_table'>
-        <thead>
-            {{=TD('badge')}}
-            {{=TD('times right / times wrong / ratio')}}
-            {{=TD('last right')}}
-            {{=TD('last wrong')}}
-            {{=TD('badge set')}}
-        </thead>
-        {{for row in tag_records:}}
-            {{timesr = row.tag_records.times_right
-            timesw = row.tag_records.times_wrong
-            try:
-                ratio = float(timesw)/timesr
-            except ZeroDivisionError:
-                ratio = 0}}
-            {{pass}}
-            <tr>
-                {{=TD(db(db.badges.tag==row.tags.id).select().first().badge_name)}}
-                {{=TD(
-                    SPAN('', _style='width: {}px;'.format(row.tag_records.times_right),
-                            _class='right'),
-                    SPAN(int(row.tag_records.times_right), _class='right_num'),
-                    BR(),
-                    SPAN('', _style='width: {}px;'.format(row.tag_records.times_wrong),
-                            _class='wrong'),
-                    SPAN(int(row.tag_records.times_wrong), _class='wrong_num'),
-                    BR(),
-                    SPAN('', _style='width: {}px'.format(ratio * 100),
-                            _class='ratio'),
-                    SPAN(round(ratio, 3), _class='ratio_num'),
-                )}}
-                {{=TD(row.tag_records.tlast_right)}}
-                {{=TD(row.tag_records.tlast_wrong)}}
-                {{=TD(row.tags.position)}}
-            </tr>
-        {{pass}}
-    </table>
-</section>
-
-<section id='tab_badges_awarded' class="tab-pane">
-    <a href="#tab_badges_awarded">Progress Timeline</a>
-    <h4>Timeline of your new badges earned</h4>
-    {{if badge_track == []:}}
-    <span>We've just started tracking the dates on which you earn each new badge, so there is no record here yet. Check back after you've earned your next badge.</span>
-    {{else:}}
-        <table>
-        {{for badgeline in badge_track:}}
-            {{=TR(TD(badgeline['id']),
-                TD(badgeline['level']),
-                TD(badgeline['date']))}}
-        {{pass}}
-        </table>
-    {{pass}}
-</section>
-
-</div>
+# ASSEMBLE AND PRINT =========================================================
+=TABS([('Me', 'web2py_user_form', tab1_content, 'active'), ('Badges', 'tab_stats', tab2_content), ('Calendar', 'tab_calendar', tab3_content), ('Bug Reports', 'tab_bug_reports', tab4_content), ('Recent', 'tab_recent_paths', tab5_content), ('Badge Records', 'tab_tag_records', tab6_content), ('Progress Timeline', 'tab_badges_awarded', tab7_content)])
+}}
