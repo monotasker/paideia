@@ -2,9 +2,9 @@
 
 {{
 # TAB 1 - USER INFO ==========================================================
-tab1_content = UL(LI(SPAN('Name', _class='label'), the_name),
-                  LI(SPAN('Email', _class='email'), email),
-                  LI(SPAN('Time Zone', _class='timezone'), tz))
+tab1_content = UL(LI(SPAN('Name', _class='label-success label'), the_name),
+                  LI(SPAN('Email', _class='email label-success label'), email),
+                  LI(SPAN('Time Zone', _class='timezone label-success label'), tz))
 
 # TAB 2 - BADGES =============================================================
 tab2_content = CAT(P('You are currently working on ',
@@ -33,19 +33,21 @@ if active_len > 0:
             catlen = len(active[cat[0]]) if active[cat[0]] else 0
             catrow = TR(TD(cat[1]),
                         TD(catlen, _class='total_'.format(cat[0])),
-                        TD())
+                        TD(UL()),
+                        TD(UL()))
+            for badge in active[cat[0]]:
+                catrow[-2][0].append(LI(badge))
+            pass
             rcat = 'rev{}'.format(cat[0][3:])
             if (rcat in active.keys()) and (active[rcat]) and (active[rcat] != 0):
-                revlist = UL()
-                for b in active['rev3']:
-                    revlist.append(LI(b))
-                catrow[-1].append(revlist)
+                for badge in active[rcat]:
+                    catrow[-1][0].append(LI(badge))
                 pass
-            sumtable.append(catrow)
             pass
+            sumtable.append(catrow)
         pass
-    tab2_content.append(sumtable)
     pass
+    tab2_content.append(sumtable)
 else:
     tab2_content.append(SPAN('You don\'t yet have any badges to report on. '
                              'Check back after you explore the town map a bit.'))
