@@ -2298,24 +2298,7 @@ class Categorizer(object):
         db = current.db
         try:
             for rec in tag_records:
-                # add new secondary_right attempts from attempt_log
-                # (TODO: this is temporary)
-                #db_recs = db(
-                            #(db.attempt_log.name == rec['name']) &
-                            #(db.attempt_log.score == 1.0) &
-                            #(db.attempt_log.dt_attempted >= rec['tlast_right']) &
-                            #(db.attempt_log.step == db.steps.id) &
-                            #(db.steps.tags_secondary.contains(rec['tag']))
-                #).select(db.attempt_log.dt_attempted).as_list()
-
                 right2 = rec['secondary_right']
-
-                #if db_recs:
-                    #dates = [t for v in db_recs for t in v.iteritems()]
-                    #try:
-                        #right2.extend(dates)
-                    #except AttributeError:
-                        #right2 = dates
 
                 # FIXME: sanitizing data where tuples stored instead of
                 # datetimes strings also have to be parsed into datetime objects
@@ -2399,6 +2382,7 @@ class Categorizer(object):
         TODO: Require that a certain number of successes are recent
         TODO: Look at secondary tags as well
         """
+        db = current.db
         categories = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
         utcnow = self.utcnow
         if not utcnow:
@@ -2408,7 +2392,16 @@ class Categorizer(object):
         # TODO: Get secondary_right here
 
         for record in tag_records:
-            #note: arithmetic operations yield datetime.timedelta objects
+
+            # find ratio of wrong to right answers within past week
+            week_ago = utcnow - datetime.timedelta(days=14)
+            myavg = db.attempt_log.score.avg()
+            avg_score = db(db.attempt_log.date_attempted >= week_ago
+                           ).select(myavg)[myavg]
+            print 'categorizer.core_algorithm: avg_score is', avg_score
+
+            # get durations for spaced repetition calculations
+            # arithmetic operations yield datetime.timedelta objects
             lastright = record['tlast_right']
             lastwrong = record['tlast_wrong']
             if isinstance(lastright, str):
@@ -2425,13 +2418,14 @@ class Categorizer(object):
             if (((right_dur < right_wrong_dur) and
                  # don't allow promotion from cat1 within 1 day
                  (right_wrong_dur > datetime.timedelta(days=1)) and
-                 # require at least 10 right answers
-                 (record['times_right'] >= 10))
-                or ((record['times_right'] >= 10) and
-                    # require ratio of at least 5 right to 1 wrong
-                    ((record['times_wrong'] / record['times_right']) <= 0.2)
+                 # require at least 20 right answers
+                 (record['times_right'] >= 20))
+                or ((record['times_right'] >= 20) and
+                    # require an average score of at least 8.0
+                    # TODO: does float comparison inaccuracy matter here?
+                    (avg_score >= 8.0) and
                     # require that tag has right answer within last 2 days
-                    and (right_dur <= datetime.timedelta(days=14)))):
+                    (right_dur <= datetime.timedelta(days=2)))):
                 # ==================================================
                 # for cat3
                 if right_wrong_dur.days >= 14:
