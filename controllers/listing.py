@@ -6,6 +6,7 @@ TODO: rationalize this controller organization
 '''
 if 0:
     from gluon import INPUT, UL, LI, A, URL, SPAN, SELECT, OPTION, FORM
+    from gluon import TABLE, TR, TD
     from gluon import current, redirect
     db, auth, session = current.db, current.auth, current.session
     request, response = current.request, current.response
@@ -36,6 +37,57 @@ def user():
     chooser.append(INPUT(_type='submit'))
     print 'returning------------------------------------------'
     return {'chooser': chooser, 'row': myclasses[0]}
+
+
+@auth.requires_membership(role='administrators')
+def promote_user():
+    '''
+    Move the specified user ahead one badge set.
+    '''
+    uid = request.vars.uid
+    classid = request.vars.classid
+    tp = db(db.tag_progress.name == uid).select().first()
+    oldrank = tp['latest_new']
+    tp.update_record(latest_new=(oldrank + 1))
+    response.flash = 'User moved ahead to set {}'.format(oldrank + 1)
+    redirect(URL('listing', 'userlist.load', vars={'value': classid}))
+
+
+@auth.requires_membership(role='administrators')
+def demote_user():
+    '''
+    Move the specified user back one badge set.
+
+    Removes all tag_records rows for the user which cover tags in the demoted
+    tag set.
+    '''
+    uid = request.vars.uid
+    classid = request.vars.classid
+
+    tp = db(db.tag_progress.name == uid).select().first()
+    oldrank = tp['latest_new']
+    tp.update_record(latest_new=(oldrank - 1))
+
+    # TODO: do I have to somehow mark the actual log entries somehow as
+    # removed?
+    tags = db(db.tags.set == oldrank).select()
+    taglist = [t['id'] for t in tags]
+    print 'demoting tags:', taglist
+    trecs = db(db.tag_records.tag in (taglist))
+    print 'found trecs:', trecs.count()
+    trecs.delete()
+
+    response.flash = 'User moved back to set {}'.format(oldrank - 1)
+    redirect(URL('listing', 'userlist.load', vars={'value': classid}))
+
+
+@auth.requires_membership(role='administrators')
+def add_user():
+    '''
+    Adds one or more users to the specified course section.
+    '''
+    users = request.vars.value
+    print 'add_user: value is', users
 
 
 @auth.requires_membership(role='administrators')
@@ -152,10 +204,28 @@ def userlist():
 
             countlist[user.auth_user.id] = (spans[0]['count'], spans[0]['min_count'],
                                             spans[1]['count'], spans[1]['min_count'])
+
         return {'users': users, 'countlist': countlist,
                 'target': target, 'freq': freq, 'classid': row['id']}
     except Exception:
         print traceback.format_exc(5)
+
+
+def add_user_form():
+    '''
+    Return a checklist form for adding members to the current course section.
+    '''
+    print 'starting add user form()'
+    users = db(db.auth_user.id > 0).select()
+    form = FORM(TABLE(_id='user_add_form'),
+                _action=URL('add_user', vars={'classid': request.vars.classid}),
+                _method='POST')
+    for u in users:
+        form[0].append(TR(TD(INPUT(_type='checkbox', _name='user_to_add',
+                                _value=u['id'])),
+                       TD(SPAN(u['last_name'], u['first_name']))))
+    # submit button added to footer in view when modal assembled
+    return form
 
 
 # TODO: rework using plugin_bloglet

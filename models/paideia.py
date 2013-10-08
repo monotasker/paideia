@@ -97,7 +97,6 @@ db.define_table('categories',
 
 db.define_table('tags',
     Field('tag', 'string', unique=True),
-    Field('position', 'integer'),
     Field('tag_position', 'integer'),  # was position (reserved term)
     Field('slides', 'list:reference plugin_slider_decks'),
     format='%(tag)s')

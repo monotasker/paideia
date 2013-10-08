@@ -1,4 +1,23 @@
-
+{{from plugin_widgets import MODAL}}
+{{
+submit_args = {'_type': 'submit',
+               '_value': 'Add',
+               '_data-dismiss': 'modal',
+               '_class': 'btn btn-success pull-right'}
+cancel_args = {'_aria-hidden': 'true', 
+               '_data-dismiss': 'modal',
+               '_type': 'button',
+               '_class': 'btn pull-right'}
+ftr = CAT(INPUT(**submit_args),
+          BUTTON('Cancel', **cancel_args))
+modal = MODAL('Add members', 'Add new members to this class',
+               LOAD('listing', 'add_user_form.load',
+                    vars={'classid': classid}, ajax=True),
+               id='add_members',
+               footer=ftr,
+               trigger_classes='btn-success btn pull-right')
+}}
+{{=modal}}
 {{
 tbl = TABLE(TR(TH(),
                TH(),
@@ -35,21 +54,25 @@ for user in users:
             row.append(TD(_class='week-counts-{}'.format(n)))
         pass
     pass
-    row.append(CAT(TD(A('remove user',
-                           _class='btn btn-warning',
-                           _href=URL('listing', 'remove_user',
-                                     vars={'uid': uid, 'classid': classid}),
-                           cid=request.cid)),
-                   TD(A('demote',
-                           _class='btn btn-error',
-                           _href=URL('listing', 'remove_user',
-                                   vars={'uid': uid, 'rec': user.tag_progress.id}))),
-                   TD(A('promote',
-                           _class='btn btn-success',
-                           _href=URL('listing', 'remove_user',
-                                   vars={'uid': uid, 'rec': user.tag_progress.id})))
-                   )) 
-    tbl.append(row)
+    row.append(CAT(TD(DIV(A('remove',
+                            _class='btn btn-warning',
+                            _href=URL('listing', 'remove_user',
+                                      vars={'uid': uid, 'classid': classid}),
+                            cid=request.cid),
+                          A('back',
+                            _class='btn btn-error',
+                            _href=URL('listing', 'demote_user',
+                                    vars={'uid': uid, 'rec': user.tag_progress.id}),
+                            cid=request.cid),
+                          A('ahead',
+                            _class='btn btn-success',
+                            _href=URL('listing', 'promote_user',
+                                    vars={'uid': uid, 'rec': user.tag_progress.id}),
+                            cid=request.cid),
+                          _class='btn-group')
+                        ))) 
+tbl.append(row)
 pass
 }}
 {{=tbl}}
+
