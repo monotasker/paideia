@@ -335,6 +335,10 @@ db.attempt_log.name.requires = IS_IN_DB(db, 'auth_user.id',
                                 db.auth_user._format)
 db.attempt_log.step.requires = IS_IN_DB(db, 'steps.id', db.steps._format)
 db.attempt_log.in_path.requires = IS_IN_DB(db, 'paths.id', db.paths._format)
+db.executesql('CREATE INDEX IF NOT EXISTS idx_alog_1 ON attempt_log (name);')
+db.executesql('CREATE INDEX IF NOT EXISTS idx_alog_2 ON attempt_log (name, dt_attempted);')
+db.executesql('CREATE INDEX IF NOT EXISTS idx_alog_3 ON attempt_log (dt_attempted);')
+db.executesql('CREATE INDEX IF NOT EXISTS idx_alog_3 ON attempt_log (in_path);')
 
 db.define_table('tag_records',
                 Field('name', db.auth_user, default=auth.user_id),
@@ -352,6 +356,7 @@ db.tag_records.name.requires = IS_IN_DB(db, 'auth_user.id',
 db.tag_records.tag.requires = IS_IN_DB(db, 'tags.id', db.tags._format)
 db.tag_records.step.requires = IS_IN_DB(db, 'steps.id', db.steps._format)
 db.tag_records.in_path.requires = IS_IN_DB(db, 'paths.id', db.paths._format)
+db.executesql('CREATE INDEX IF NOT EXISTS idx_trecs_1 ON tag_records (name, tag);')
 
 db.define_table('bug_status',
     Field('status_label'),
@@ -370,6 +375,7 @@ db.define_table('bugs',
     Field('admin_comment', 'text'),
     Field('hidden', 'boolean'),
     format='%(step)s')
+db.executesql('CREATE INDEX IF NOT EXISTS idx_bugs_1 ON bugs (user_name, bug_status);')
 
 # TODO: write session data to this table in paideia module
 db.define_table('session_data',
