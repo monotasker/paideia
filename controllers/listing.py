@@ -1,4 +1,9 @@
 # coding: utf8
+'''
+Controller supplying data for views that list users (for admin) and list slides.
+
+TODO: rationalize this controller organization
+'''
 if 0:
     from gluon import INPUT, UL, LI, A, URL, SPAN, SELECT, OPTION, FORM
     from gluon import current, redirect
@@ -9,7 +14,6 @@ import calendar
 import traceback
 from pytz import timezone
 import itertools
-from ast import literal_eval
 
 
 @auth.requires_membership(role='administrators')
@@ -22,12 +26,13 @@ def user():
     admins = [a['user_id'] for a in admins]
     admins.append(auth.user_id)
     print 'admins', admins
-    myclasses = db((db.classes.instructor.belongs(admins))).select().as_list()
+    myclasses = db(db.auth_group.course_instructor.belongs(admins)
+                   ).select().as_list()
     chooser = FORM(SELECT(_id='class_chooser_select'), _id='class_chooser')
     for m in myclasses:
         optstring = '{} {} {}, {}'.format(m['academic_year'], m['term'],
                                           m['course_section'], m['institution'])
-        chooser[0].append(OPTION(optstring, _value=m))
+        chooser[0].append(OPTION(optstring, _value=m['id']))
     chooser.append(INPUT(_type='submit'))
     print 'returning------------------------------------------'
     return {'chooser': chooser, 'row': myclasses[0]}
@@ -47,10 +52,12 @@ def remove_user():
     '''
     uid = request.vars.uid
     classid = request.vars.classid
-    db((db.auth_membership.user_id == uid) &
-       (db.auth_membership.group_id == classid)).delete()
-    response.flash('User removed from class.')
-    redirect(URL('userlist'))
+    q = db((db.auth_membership.user_id == uid) &
+           (db.auth_membership.group_id == classid))
+    print 'found', q.count(), 'records'
+    q.delete()
+    print 'classid is', classid
+    redirect(URL('userlist.load', vars={'value': classid}))
 
 
 def week_bounds():
@@ -105,15 +112,19 @@ def userlist():
         # define minimum daily required # of paths
         # TODO: add class selection here so that I can narrow these figures
         try:
-            row = literal_eval(request.vars.value)
+            print 'value is', request.vars.value
+            row = db.auth_group[request.vars.value]
         except:
             print traceback.format_exc(5)
-            row = db(db.classes.instructor == auth.user_id).select().first()
+            row = db(db.auth_group.course_instructor == auth.user_id
+                     ).select().first()
         target = row['paths_per_day']
         freq = row['days_per_week']
 
+        member_sel = db(db.auth_membership.group_id == row['id']).select()
+        members = [m['user_id'] for m in member_sel]
         users = db((db.auth_user.id == db.tag_progress.name) &
-                   (db.auth_user.id.belongs([u for u in row['members']]))
+                   (db.auth_user.id.belongs([m['id'] for m in members]))
                    ).select(orderby=db.auth_user.last_name)
 
         lastweek, lw_firstday, thisweek = week_bounds()
