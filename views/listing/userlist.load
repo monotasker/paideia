@@ -1,31 +1,54 @@
-<table class='users_list_table'>
-    <tr>
-        <th>Name</th>
-        <th>Current Rank</th>
-        <th>days > {{=target}} this week</th>
-        <th>days > 0 this week</th>
-        <th>days > {{=target}} last week</th>
-        <th>days > 0 last week</th>
-    </tr>
-    {{for user in users:}}
-    <tr>
-        {{=TD(A(user.auth_user.last_name + ',' + user.auth_user.first_name, _href=URL('reporting', 'user', args=[user.auth_user.id])))}}
-        {{=TD(user.tag_progress.latest_new, _class='rank')}}
-        {{if user.auth_user.id in countlist:}}
-            {{=TD(countlist[user.auth_user.id][0], _class='this_week_target')}}
-            {{=TD(countlist[user.auth_user.id][1], _class='this_week_all')}}
-            {{if countlist[user.auth_user.id][1] < freq:}}
-                {{=TD(countlist[user.auth_user.id][1], _class='last_week_target danger')}}
-            {{else:}}
-                {{=TD(countlist[user.auth_user.id][1], _class='last_week_target')}}
-            {{pass}}
-            {{=TD(countlist[user.auth_user.id][1], _class='last_week_all')}}
-        {{else:}}
-            {{=TD(_class='this_week')}}
-            {{=TD(_class='this_week_target')}}
-            {{=TD(_class='last_week')}}
-            {{=TD(_class='last_week_target')}}
-        {{pass}}
-    </tr>
-    {{pass}}
-</table>
+
+{{
+tbl = TABLE(TR(TH(),
+               TH(),
+               TH('This Week', _colspan='2'),
+               TH('Last Week', _colspan='2'),
+               ),
+            TR(TH('Name'),
+               TH('Current Set'),
+               TH('days > {}'.format(target)),
+               TH('days > 0'),
+               TH('days > {}'.format(target)),
+               TH('days > 0')
+               ),
+            _class='users_list_table')
+
+for user in users:
+    row = TR(TD(A(user.auth_user.last_name + ',' + user.auth_user.first_name,
+                _href=URL('reporting', 'user', args=[user.auth_user.id]))),
+             TD(user.tag_progress.latest_new, _class='rank')
+             )
+    uid = user.auth_user.id
+    if uid in countlist:
+        for n in range(3):
+            num = countlist[uid][n]
+            if num < freq:
+                row['_class'] = 'error'
+                row.append(TD(num, _class='week-counts-{} error'.format(n)))
+            else:
+                row.append(TD(num, _class='week-counts-{}'.format(n)))
+            pass
+        pass
+    else:
+        for n in range(3):
+            row.append(TD(_class='week-counts-{}'.format(n)))
+        pass
+    pass
+    row.append(CAT(TD(A('remove user',
+                           _class='btn btn-warning',
+                           _href=URL('listing', 'remove_user',
+                                   vars={'uid': uid, 'class': classid}))),
+                   TD(A('demote',
+                           _class='btn btn-error',
+                           _href=URL('listing', 'remove_user',
+                                   vars={'uid': uid, 'rec': user.tag_progress.id}))),
+                   TD(A('promote',
+                           _class='btn btn-success',
+                           _href=URL('listing', 'remove_user',
+                                   vars={'uid': uid, 'rec': user.tag_progress.id})))
+                   )) 
+    tbl.append(row)
+pass
+}}
+{{=tbl}}

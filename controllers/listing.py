@@ -1,6 +1,7 @@
 # coding: utf8
 if 0:
-    from gluon import current, UL, LI, A, URL, SPAN, SELECT, OPTION, FORM, INPUT
+    from gluon import INPUT, UL, LI, A, URL, SPAN, SELECT, OPTION, FORM
+    from gluon import current, redirect
     db, auth, session = current.db, current.auth, current.session
     request, response = current.request, current.response
 import datetime
@@ -8,114 +9,140 @@ import calendar
 import traceback
 from pytz import timezone
 import itertools
+from ast import literal_eval
 
 
 @auth.requires_membership(role='administrators')
 def user():
     print 'starting user ----------------------------------'
-    myclasses = db(db.classes.instructor == auth.user_id).select()
+    print 'user is', auth.user_id
+    # TODO: magic number here -- admin group is 1
+    admins = db(db.auth_membership.group_id == 1
+                ).select(db.auth_membership.user_id).as_list()
+    admins = [a['user_id'] for a in admins]
+    admins.append(auth.user_id)
+    print 'admins', admins
+    myclasses = db((db.classes.instructor.belongs(admins))).select().as_list()
     chooser = FORM(SELECT(_id='class_chooser_select'), _id='class_chooser')
     for m in myclasses:
-        optstring = '{} {} {}, {}'.format(m.academic_year, m.term,
-                                          m.course_section, m.institution)
+        optstring = '{} {} {}, {}'.format(m['academic_year'], m['term'],
+                                          m['course_section'], m['institution'])
         chooser[0].append(OPTION(optstring, _value=m))
     chooser.append(INPUT(_type='submit'))
     print 'returning------------------------------------------'
     return {'chooser': chooser, 'row': myclasses[0]}
 
 
-#@auth.requires_membership(role='administrators')
+@auth.requires_membership(role='administrators')
+def remove_user():
+    '''
+    Removes a user from membership in a course section and refreshes the list.
+
+    Expects two variables to be supplied via request.vars:
+
+        uid         the id of the user to be removed (from db.auth_user)
+
+        classid     the id of the class from which s/he should
+                    be removed (from db.classes)
+    '''
+    uid = request.vars.uid
+    classid = request.vars.classid
+    db((db.auth_membership.user_id == uid) &
+       (db.auth_membership.group_id == classid)).delete()
+    response.flash('User removed from class.')
+    redirect(URL('userlist'))
+
+
+def week_bounds():
+    '''
+    Return datetime objects representing the last day of this week and previous.
+    '''
+    today = datetime.datetime.utcnow()
+    thismonth = calendar.monthcalendar(today.year, today.month)
+
+    thisweek = [w for w in thismonth if today.day in w][0]
+    today_index = thisweek.index(today.day)
+    tw_index = thismonth.index(thisweek)
+
+    lastweek = thismonth[tw_index - 1]
+    delta = datetime.timedelta(days=(8 + today_index))
+    lw_firstday = today - delta
+
+    tw_prev = None
+    if 0 in thisweek:
+        if thisweek.index(0) < thisweek.index(today.day):
+            lastmonth = calendar.monthcalendar(today.year, today.month - 1)
+            tw_prev = lastmonth[-1]
+            lastweek = lastmonth[-2]
+            thisweek = [d for d in itertools.chain(thisweek, tw_prev) if d != 0]
+
+    lw_prev = None
+    if 0 in lastweek:
+        lastmonth = calendar.monthcalendar(today.year, today.month - 1)
+        lw_prev = lastmonth[-1]
+        lastweek = [d for d in itertools.chain(lastweek, lw_prev) if d != 0]
+
+    return lastweek, lw_firstday, thisweek
+
+
+def get_offset(user):
+    '''
+    Return the user's offset from utc time based on their time zone.
+    '''
+    today = datetime.datetime.utcnow()
+    now = timezone('UTC').localize(today)
+    tz_name = user.auth_user.time_zone if user.auth_user.time_zone \
+        else 'America/Toronto'
+    offset = now - timezone(tz_name).localize(today)  # when to use "ambiguous"?
+    # alternative is to do tz.fromutc(datetime)
+
+    return offset
+
+
+@auth.requires_membership(role='administrators')
 def userlist():
-    print 'starting userlist'
     try:
         # define minimum daily required # of paths
-        #TODO: add class selection here so that I can narrow these figures
-        print 'starting'
+        # TODO: add class selection here so that I can narrow these figures
         try:
-            row = request.vars.value
+            row = literal_eval(request.vars.value)
         except:
+            print traceback.format_exc(5)
             row = db(db.classes.instructor == auth.user_id).select().first()
-        print row
         target = row['paths_per_day']
-        freq = row.days_per_week
-        # find dates for this week, last week, and earliest possible span
-        today = datetime.datetime.utcnow()
-        now = timezone('UTC').localize(today)
-        thismonth = calendar.monthcalendar(today.year, today.month)
+        freq = row['days_per_week']
 
-        thisweek = [w for w in thismonth if today.day in w][0]
-        today_index = thisweek.index(today.day)
-        tw_index = thismonth.index(thisweek)
+        users = db((db.auth_user.id == db.tag_progress.name) &
+                   (db.auth_user.id.belongs([u for u in row['members']]))
+                   ).select(orderby=db.auth_user.last_name)
 
-        lastweek = thismonth[tw_index - 1]
-        delta = datetime.timedelta(days=(8 + today_index))
-        lw_firstday = today - delta
-
-        tw_prev = None
-        if 0 in thisweek:
-            if thisweek.index(0) < thisweek.index(today.day):
-                lastmonth = calendar.monthcalendar(today.year, today.month - 1)
-                tw_prev = lastmonth[-1]
-                lastweek = lastmonth[-2]
-                thisweek = [d for d in itertools.chain(thisweek, tw_prev) if d != 0]
-
-        lw_prev = None
-        if 0 in lastweek:
-            lastmonth = calendar.monthcalendar(today.year, today.month - 1)
-            lw_prev = lastmonth[-1]
-            lastweek = [d for d in itertools.chain(lastweek, lw_prev) if d != 0]
-
-        users = db(db.auth_user.id == db.tag_progress.name).select(
-                                                orderby=db.auth_user.last_name)
+        lastweek, lw_firstday, thisweek = week_bounds()
 
         logs = db((db.attempt_log.name.belongs([u.auth_user.id for u in users])) &
-                (db.attempt_log.dt_attempted > lw_firstday)).select(db.attempt_log.dt_attempted)
+                  (db.attempt_log.dt_attempted > lw_firstday)
+                  ).select(db.attempt_log.dt_attempted, db.attempt_log.name)
 
         countlist = {}
         for user in users:
-            print 'user', user.auth_user.id
-            tz_name = user.auth_user.time_zone
-            if tz_name is None:
-                tz_name = 'America/Toronto'
-            tz = timezone(tz_name)
-            offset = now - tz.localize(today)  # How do I know when to use "ambiguous" instead?
-            # alternative is to do tz.fromutc(datetime)
-            tw_count = 0
-            for day in thisweek:
-                daycount = len([l for l in logs if (l.dt_attempted - offset).day == day])
-                #count = len(logs.find(lambda row: tz.fromutc(row.dt_attempted).day == day))
-                if daycount > 0:
-                    tw_count += 1
-            print tw_count, '\n'
+            offset = get_offset(user)
 
-            tw_min_count = 0
-            for day in thisweek:
-                daycount = len([l for l in logs if (l.dt_attempted - offset).day == day])
-                #count = len(logs.find(lambda row: tz.fromutc(row.dt_attempted).day == day))
-                if daycount >= target:
-                    tw_count += 1
-            print tw_count, '\n'
+            spans = [{'days': thisweek, 'count': 0, 'min_count': 0},
+                     {'days': lastweek, 'count': 0, 'min_count': 0}]
+            for span in spans:
+                for day in span['days']:
+                    mylogs = logs.find(lambda row: row.name == user.auth_user.id)
+                    daycount = len([l for l in mylogs if (l['dt_attempted'] - offset).day == day])
+                    #count = len(logs.find(lambda row: tz.fromutc(row.dt_attempted).day == day))
 
-            lw_count = 0
-            for day in lastweek:
-                daycount = len([l for l in logs if (l.dt_attempted - offset).day == day])
-                if daycount > 0:
-                    lw_count += 1
-            print lw_count
+                    if daycount > 0:
+                        span['count'] += 1
+                    if daycount >= target:
+                        span['min_count'] += 1
 
-            lw_min_count = 0
-            for day in lastweek:
-                daycount = len([l for l in logs if (l.dt_attempted - offset).day == day])
-                if daycount >= target:
-                    lw_count += 1
-            print lw_count
-
-            countlist[user.auth_user.id] = (tw_count, tw_min_count,
-                                            lw_count, lw_min_count)
-
-            return {'users': users, 'countlist': countlist,
-                    'target': target, 'freq': freq}
-
+            countlist[user.auth_user.id] = (spans[0]['count'], spans[0]['min_count'],
+                                            spans[1]['count'], spans[1]['min_count'])
+        return {'users': users, 'countlist': countlist,
+                'target': target, 'freq': freq, 'classid': row['id']}
     except Exception:
         print traceback.format_exc(5)
 
