@@ -62,12 +62,14 @@ for user in users:
                           A('back',
                             _class='btn btn-error',
                             _href=URL('listing', 'demote_user',
-                                    vars={'uid': uid, 'rec': user.tag_progress.id}),
+                                      vars={'uid': uid, 'classid': classid,
+                                            'rec': user.tag_progress.id}),
                             cid=request.cid),
                           A('ahead',
                             _class='btn btn-success',
                             _href=URL('listing', 'promote_user',
-                                    vars={'uid': uid, 'rec': user.tag_progress.id}),
+                                      vars={'uid': uid, 'classid': classid, 
+                                            'rec': user.tag_progress.id}),
                             cid=request.cid),
                           _class='btn-group')
                         ))) 

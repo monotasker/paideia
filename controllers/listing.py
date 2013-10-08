@@ -50,7 +50,7 @@ def promote_user():
     oldrank = tp['latest_new']
     tp.update_record(latest_new=(oldrank + 1))
     response.flash = 'User moved ahead to set {}'.format(oldrank + 1)
-    redirect(URL('listing', 'userlist.load', vars={'value': classid}))
+    redirect(URL('userlist.load', vars={'value': classid}))
 
 
 @auth.requires_membership(role='administrators')
@@ -69,16 +69,16 @@ def demote_user():
     tp.update_record(latest_new=(oldrank - 1))
 
     # TODO: do I have to somehow mark the actual log entries somehow as
-    # removed?
-    tags = db(db.tags.set == oldrank).select()
+    # removed? Should they be backed up?
+    tags = db(db.tags.tag_position == oldrank).select()
     taglist = [t['id'] for t in tags]
     print 'demoting tags:', taglist
-    trecs = db(db.tag_records.tag in (taglist))
+    trecs = db(db.tag_records.tag.belongs(taglist))
     print 'found trecs:', trecs.count()
     trecs.delete()
 
     response.flash = 'User moved back to set {}'.format(oldrank - 1)
-    redirect(URL('listing', 'userlist.load', vars={'value': classid}))
+    redirect(URL('userlist.load', vars={'value': classid}))
 
 
 @auth.requires_membership(role='administrators')
