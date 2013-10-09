@@ -5,7 +5,7 @@ from paideia_bugs import Bug
 #from gluon.tools import prettydate
 
 if 0:
-    from gluon import current
+    from gluon import current, cache
     from gluon.tools import Auth
     from gluon.dal import DAL
     db = DAL()
@@ -53,7 +53,7 @@ def info():
     tz = user.time_zone
     email = user.email
 
-    stats = Stats(user.id)
+    stats = Stats(user.id, cache=cache)
     active = stats.active_tags()
     cal = stats.monthcal()
     sl = stats.step_log()
@@ -72,12 +72,12 @@ def info():
 
     tag_records = db((db.tag_records.name == user.id) &
                      (db.tag_records.tag == db.tags.id)
-                     ).select(orderby=db.tags.position)
+                     ).select(orderby=db.tags.tag_position)
 
     badge_dates = db(
                         (db.badges_begun.name == user.id) &
                         (db.badges_begun.tag == db.tags.id)
-                    ).select(orderby=~db.tags.position)
+                    ).select(orderby=~db.tags.tag_position)
 
     badgelist = []
     catlabels = ['started at beginner level',

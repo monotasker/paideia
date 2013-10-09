@@ -26,6 +26,12 @@ def bug():
     """
     Create a new bug report for a step.
     """
+    print 'controller.bug:'
     rvars = request.vars
+    print 'vars are', rvars
     b = Bug(step_id=rvars.step_id, path_id=rvars.path_id, loc_id=rvars.loc_id)
-    return dict(success=b.log_new(rvars.answer, rvars.log_id, rvars.score))
+    print 'created bug object successfully'
+    print 'bug is', b
+    logged = b.log_new(rvars.answer, rvars.log_id, rvars.score)
+    print 'logged bug - response is', logged
+    return dict(success=logged)

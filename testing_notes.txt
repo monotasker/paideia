@@ -1,0 +1,11 @@
+# testing_notes
+
+## Blocks strings for testing
+{'new_tags': {'new_tags': [80]}}
+{'new_tags': {'new_tags': None, 'promoted': {'cat2': 32, 'cat3': 57}}}
+{'redirect': {'next_loc': 6}}
+
+## Paths with specific features
+Image in path: 317, 86
+Audio in path: 
+Multiple steps: 63, 64

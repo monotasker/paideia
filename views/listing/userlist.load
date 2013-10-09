@@ -1,31 +1,80 @@
-<table class='users_list_table'>
-    <tr>
-        <th>Name</th>
-        <th>Current Rank</th>
-        <th>days > {{=target}} this week</th>
-        <th>days > 0 this week</th>
-        <th>days > {{=target}} last week</th>
-        <th>days > 0 last week</th>
-    </tr>
-    {{for user in users:}}
-    <tr>
-        {{=TD(A(user.auth_user.last_name + ',' + user.auth_user.first_name, _href=URL('reporting', 'user', args=[user.auth_user.id])))}}
-        {{=TD(user.tag_progress.latest_new, _class='rank')}}
-        {{if user.auth_user.id in countlist:}}
-            {{=TD(countlist[user.auth_user.id][0], _class='this_week_target')}}
-            {{=TD(countlist[user.auth_user.id][1], _class='this_week_all')}}
-            {{if countlist[user.auth_user.id][1] < freq:}}
-                {{=TD(countlist[user.auth_user.id][1], _class='last_week_target danger')}}
-            {{else:}}
-                {{=TD(countlist[user.auth_user.id][1], _class='last_week_target')}}
-            {{pass}}
-            {{=TD(countlist[user.auth_user.id][1], _class='last_week_all')}}
-        {{else:}}
-            {{=TD(_class='this_week')}}
-            {{=TD(_class='this_week_target')}}
-            {{=TD(_class='last_week')}}
-            {{=TD(_class='last_week_target')}}
-        {{pass}}
-    </tr>
-    {{pass}}
-</table>
+{{from plugin_widgets import MODAL}}
+{{
+submit_args = {'_type': 'submit',
+               '_value': 'Add',
+               '_data-dismiss': 'modal',
+               '_class': 'btn btn-success pull-right'}
+cancel_args = {'_aria-hidden': 'true', 
+               '_data-dismiss': 'modal',
+               '_type': 'button',
+               '_class': 'btn pull-right'}
+ftr = CAT(INPUT(**submit_args),
+          BUTTON('Cancel', **cancel_args))
+modal = MODAL('Add members', 'Add new members to this class',
+               LOAD('listing', 'add_user_form.load',
+                    vars={'classid': classid}, ajax=True),
+               id='add_members',
+               footer=ftr,
+               trigger_classes='btn-success btn pull-right')
+}}
+{{=modal}}
+{{
+tbl = TABLE(TR(TH(),
+               TH(),
+               TH('This Week', _colspan='2'),
+               TH('Last Week', _colspan='2'),
+               ),
+            TR(TH('Name'),
+               TH('Current Set'),
+               TH('days > {}'.format(target)),
+               TH('days > 0'),
+               TH('days > {}'.format(target)),
+               TH('days > 0')
+               ),
+            _class='users_list_table')
+
+for user in users:
+    row = TR(TD(A(user.auth_user.last_name + ',' + user.auth_user.first_name,
+                _href=URL('reporting', 'user', args=[user.auth_user.id]))),
+             TD(user.tag_progress.latest_new, _class='rank')
+             )
+    uid = user.auth_user.id
+    if uid in countlist:
+        for n in range(3):
+            num = countlist[uid][n]
+            if num < freq:
+                row['_class'] = 'error'
+                row.append(TD(num, _class='week-counts-{} error'.format(n)))
+            else:
+                row.append(TD(num, _class='week-counts-{}'.format(n)))
+            pass
+        pass
+    else:
+        for n in range(3):
+            row.append(TD(_class='week-counts-{}'.format(n)))
+        pass
+    pass
+    row.append(CAT(TD(DIV(A('remove',
+                            _class='btn btn-warning',
+                            _href=URL('listing', 'remove_user',
+                                      vars={'uid': uid, 'classid': classid}),
+                            cid=request.cid),
+                          A('back',
+                            _class='btn btn-error',
+                            _href=URL('listing', 'demote_user',
+                                      vars={'uid': uid, 'classid': classid,
+                                            'rec': user.tag_progress.id}),
+                            cid=request.cid),
+                          A('ahead',
+                            _class='btn btn-success',
+                            _href=URL('listing', 'promote_user',
+                                      vars={'uid': uid, 'classid': classid, 
+                                            'rec': user.tag_progress.id}),
+                            cid=request.cid),
+                          _class='btn-group')
+                        ))) 
+tbl.append(row)
+pass
+}}
+{{=tbl}}
+

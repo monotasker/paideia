@@ -1,8 +1,10 @@
 # coding: utf8
 from paideia import Walk, Map
+from ast import literal_eval
+
 
 if 0:
-    from gluon import current
+    from gluon import current, SQLFORM, Field, URL, redirect
     request = current.request
     session = current.session
     response = current.response
@@ -79,10 +81,25 @@ def walk():
     print "args:", request.args
     print "vars:", request.vars
 
+    # form for testing paths; returned and embedded in view
+    testform = SQLFORM.factory(Field('path', 'integer'),
+                               Field('location', 'reference locations'),
+                               Field('blocks'),
+                               Field('new_user', 'boolean')
+                               )
+    if testform.process().accepted:
+        redirect(URL('exploring', 'walk.load', args=['ask']))
+    elif testform.errors:
+        response.flash = 'Form had errors'
+        print testform.errors
+
+    print "controller.walk: Auth.user_id is", auth.user_id
+    print "controller.walk: first_name is", db.auth_user(auth.user_id).first_name
     # When user begins exploring (also default) present map
     if (not rargs) or (rargs[0] == 'map'):
         print "controller.walk: getting map"
-        return {'map': Map().show()}
+        return {'map': Map().show(),
+                'form': testform}
     elif rargs[0] == 'repeat' and not 'response' in rvars.keys():
         print "controller.walk: setting repeat signal"
         stepargs = {'repeat': True}
@@ -93,12 +110,21 @@ def walk():
         stepargs['response_string'] = rvars['response'] if \
             ('response' in rvars and 'response' not in [' ', None]) else None
 
+    if ('blocks' in rvars) and not (rvars['blocks'] in ['', None, 'undefined']):
+        stepargs['set_blocks'] = literal_eval(rvars['blocks'])
+    if 'path' in rvars and not (rvars['path'] in ['', None, 'undefined']):
+        stepargs['path'] = rvars['path']
+
     if not request.vars.loc:
         request.vars.loc = None
         print 'controller.walk: request.vars.loc is', request.vars.loc
     print 'controller.walk: initializing walk and calling walk.start'
 
-    return Walk().start(request.vars.loc, **stepargs)
+    new_user = False
+    if 'new_user' in request.vars and request.vars.new_user == 'on':
+        new_user is True
 
-    # TODO: re-implement in module
-    # test a specific path
+    resp = Walk(new_user=new_user).start(request.vars.loc, **stepargs)
+    resp['form'] = testform
+
+    return resp

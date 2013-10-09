@@ -1,11 +1,9 @@
 from gluon import current
 from datetime import timedelta
+import traceback
 
 
 class Bug(object):
-
-    verbose = False
-
     """
     Handles the creation, manipulation, and reporting of bug
     reports for paideia.
@@ -15,9 +13,16 @@ class Bug(object):
         Initialize a Bug object for generating bug reports on specific user
         interactions.
         """
+        db = current.db
         self.step_id = step_id
         self.path_id = path_id
         self.loc_id = loc_id
+        if isinstance(loc_id, str):
+            self.loc_id = db(db.locations.loc_alias == loc_id
+                             ).select(db.locations.id).first()
+        print 'bug.init: step_id is', self.step_id
+        print 'bug.init: path_id is', self.path_id
+        print 'bug.init: loc_id is', self.loc_id
 
     def log_new(self, answer, log_id, score):
         """
@@ -25,11 +30,11 @@ class Bug(object):
         """
         response = current.response
         db = current.db
-
+        print 'in bug.log_new:'
         try:
             db.bugs.insert(step=self.step_id,
-                           path=self.path_id,
-                           location=self.loc_id,
+                           in_path=self.path_id,
+                           map_location=self.loc_id,
                            user_response=answer,
                            log_id=log_id,
                            score=score)
@@ -42,6 +47,7 @@ class Bug(object):
                              'the instructor\'s response to your bug report.'
             return True
         except Exception:
+            print traceback.format_exc(5)
             mail = current.mail
             response.flash = 'Sorry, something went wrong with your bug' \
                              'report. An email including the details of ' \
