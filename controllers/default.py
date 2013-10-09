@@ -72,12 +72,12 @@ def info():
 
     tag_records = db((db.tag_records.name == user.id) &
                      (db.tag_records.tag == db.tags.id)
-                     ).select(orderby=db.tags.position)
+                     ).select(orderby=db.tags.tag_position)
 
     badge_dates = db(
                         (db.badges_begun.name == user.id) &
                         (db.badges_begun.tag == db.tags.id)
-                    ).select(orderby=~db.tags.position)
+                    ).select(orderby=~db.tags.tag_position)
 
     badgelist = []
     catlabels = ['started at beginner level',

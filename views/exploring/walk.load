@@ -5,17 +5,9 @@
 </div>
 
 {{ap = DIV(H3('Admin Panel'), _class='admin-panel')
-ap.append(FORM(LABEL('Test path'),
-               INPUT(_type='text', _id='path', _name='path', _value=''),
-               LABEL('Test location'),
-               SELECT(_id='loc', _name='loc'),
-               LABEL('Blocks'),
-               INPUT(_type='text', _id='blocks', name='blocks', value=''),
-               A('Test it!', _id="submitter", _href="#", _class="btn btn-info"),
-          _id='path_test_form', _action='', _method=''))
-for l in db(db.locations.id > 0).select():
-    ap[1][3].append(OPTION(l.readable, _value=l.loc_alias))
-pass}}
+            
+ap.append(form)
+}}
 {{=ROLE(ap)}}
 
 <!--map interface-->
@@ -43,11 +35,4 @@ $('#responder submit').click(function(event){
     event.preventDefault();
 });
 
-$('#path_test_form #submitter').click(function(event){
-    var path = $(this).parent().find('#path').val();
-    var loc = $(this).parent().find('#loc').val();
-    var blocks = $(this).parent().find('#blocks').val();
-    window.parent.web2py_component("{{=URL('exploring', 'walk.load', args=['ask'])}}?path=" + path + "&loc=" + loc + "&blocks=" + blocks, target="page");
-    event.preventDefault();
-});
 </script>
