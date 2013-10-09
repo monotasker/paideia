@@ -9,6 +9,7 @@ from pytz import common_timezones
 from gluon.tools import Recaptcha, Mail, Auth, Crud, Service, PluginManager
 from gluon.tools import IS_IN_SET
 from gluon.globals import current
+import datetime
 
 response = current.response
 request = current.request
@@ -92,6 +93,19 @@ auth.settings.extra_fields['auth_user'] = [
           requires=IS_IN_SET((common_timezones)),
           widget=SQLFORM.widgets.options.widget
           )
+]
+
+#adding custom field for user time zone
+auth.settings.extra_fields['auth_group'] = [
+    Field('institution', 'string', default='Tyndale Seminary'),
+    Field('academic_year', 'integer', default=datetime.datetime.utcnow().year),  # was year (reserved term)
+    Field('term', 'string'),
+    Field('course_section', 'string'),
+    Field('course_instructor', 'reference auth_user', default=auth.user_id),
+    Field('start_date', 'datetime'),
+    Field('end_date', 'datetime'),
+    Field('paths_per_day', 'integer', default=40),
+    Field('days_per_week', 'integer', default=5)
 ]
 
 auth.define_tables()                           # creates all needed tables
