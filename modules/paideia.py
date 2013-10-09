@@ -73,7 +73,8 @@ class Walk(object):
     """
 
     def __init__(self, tag_records=None, tag_progress=None,
-                 response_string=None, userdata=None, db=None):
+                 response_string=None, userdata=None, db=None,
+                 new_user=None):
         """Initialize a Walk object."""
         db = current.db if not db else db
         # TODO: fix redundant db call here
@@ -84,21 +85,22 @@ class Walk(object):
             if not userdata else userdata
         self.user = self._get_user(userdata=userdata,
                                    tag_records=tag_records,
-                                   tag_progress=tag_progress)
+                                   tag_progress=tag_progress,
+                                   new_user=new_user)
         # TODO is record_id necessary?
         self.record_id = None  # stores step log row id after db update
 
     def _get_user(self, userdata=None, tag_records=None,
-                  tag_progress=None, db=None):
+                  tag_progress=None, new_user=None):
         '''
         Initialize or re-activate User object.
         All named arguments are necessary.
         '''
         auth = current.auth
-        db = current.db if not db else db
+        db = current.db
         try:
-            assert self.user
-            #print 'walk.get_user: retrieved user in memory'
+            assert self.user and not new_user
+            print 'walk.get_user: retrieved user in memory'
             pass
         except AttributeError:  # because no user yet on this Walk
             try:
@@ -108,8 +110,10 @@ class Walk(object):
                     self.user = pickle.loads(sd['other_data'])
                 else:
                     self.user = None
-                #print 'walk.get_user: retrieved user from db'
+                print 'walk.get_user: retrieved user from db'
                 assert self.user.is_stale() is False
+                print 'walk.get_user: new_user is', new_user
+                assert not new_user
             except (AssertionError, AttributeError):
                 uid = auth.user_id
                 # because no user yet in db or user is stale
@@ -127,7 +131,7 @@ class Walk(object):
         return self.user
 
     def start(self, localias, response_string=None, path=None, repeat=None,
-              step=None, set_blocks=None):
+              step=None, set_blocks=None, recategorize=None):
         """
         Issue the correct method for this interaction and return the result.
         This is the top-level interface for the Paideia module, to be called by
@@ -137,11 +141,16 @@ class Walk(object):
         print '\nIN START'
         try:
             if response_string:
-                return self.reply(localias=localias, response_string=response_string,
+                return self.reply(localias=localias,
+                                  response_string=response_string,
                                   set_blocks=set_blocks)
             else:
-                return self.ask(localias=localias, path=path, repeat=repeat,
-                                set_blocks=set_blocks, step=step)
+                return self.ask(localias=localias,
+                                path=path,
+                                repeat=repeat,
+                                set_blocks=set_blocks,
+                                recategorize=recategorize,
+                                step=step)
         except Exception:
             print traceback.format_exc(5)
             self.clean_user()  # get rid of path data if that's the problem
@@ -157,7 +166,7 @@ class Walk(object):
         self._store_user(user)
 
     def ask(self, localias=None, path=None, repeat=None,
-            step=None, set_blocks=None):
+            step=None, set_blocks=None, recategorize=None):
         """
         Return the information necessary to initiate a step interaction.
 
@@ -463,7 +472,7 @@ class Walk(object):
         TODO: be sure not to log redirect and utility steps. (filter them out
         before calling _record_step())
         """
-        print 'walk.record_step: starting locals are', pprint(locals())
+        #print 'walk.record_step: starting locals are', pprint(locals())
         db = current.db
         now = datetime.datetime.utcnow()
         # TODO: should the threshold here be less than 1 for 'right'?
@@ -505,14 +514,14 @@ class Walk(object):
 
         if got_right and ('secondary' in taglist.keys()):
             for t in taglist['secondary']:
-                print 'walk.record_step: appending sec right to tag', t
+                #print 'walk.record_step: appending sec right to tag', t
                 oldrec = [r for r in old_trecs if r['tag'] == t]
-                print 'oldrec is ', pprint(oldrec)
+                #print 'oldrec is ', pprint(oldrec)
 
                 sec_right = [now]  # default
                 if len(oldrec) and oldrec[0]:
                     sec_right = oldrec[0]['secondary_right']
-                    print 'secright is ', pprint(oldrec)
+                    #print 'secright is ', pprint(oldrec)
                     try:
                         sec_right.append(now)
                     except AttributeError:  # because secondary_right is None
@@ -976,7 +985,7 @@ class Step(object):
         """
         map_button = A("Back to map", _href=URL('walk'),
                        cid='page',
-                       _class='back_to_map btn btn-success icon-map-marker')
+                       _class='btn btn-success icon-map-marker')
         responder = DIV(map_button, _class='responder')
         return responder
 
@@ -1654,8 +1663,7 @@ class Path(object):
         """
         Set the active location after initialization of the Path object.
         """
-        if self.npc:
-            self.prev_npc = copy(self.npc)
+        self.prev_npc = copy(self.npc) if self.npc else copy(npc)
         self.npc = npc
         return True
 
@@ -1841,6 +1849,7 @@ class User(object):
         - tag_progress: rows.as_dict()
         - tag_records: rows.as_dict
         """
+        db = current.db
         try:
             self.time_zone = userdata['time_zone']
             self.blocks = blocks  # FIXME: somehow pass previous day's blocks in user._is_stale()?
@@ -1870,7 +1879,18 @@ class User(object):
             self.prev_loc = None
             self.npc = None
             self.prev_npc = None
-            self.quota = 40
+            msel = db((db.auth_membership.user_id == self.user_id) &
+                      (db.auth_membership.group_id == db.auth_group.id)).select()
+            pprint([m for m in msel.as_list()])
+            # FIXME: Handle registered users without a class assignment
+            # put everyone either in a class at registration or in (by default)
+            # a generic 'class' with generic presets
+            try:
+                target = [m.auth_group.paths_per_day for m in msel
+                          if m.auth_group.paths_per_day][0]
+            except:
+                target = 20
+            self.quota = target
 
             self.past_quota = False
             self.viewed_slides = False
@@ -2317,6 +2337,10 @@ class Categorizer(object):
                                 right2.append(parser.parse(t[1]))
                         else:
                             pass
+                    for t in right2:
+                        if not isinstance(t, datetime.datetime):
+                            right2[right2.index(t)] = parser.parse(t)
+
                     if right2 != rec['secondary_right']:
                         right2.sort()
                         db.tag_records[rec['id']].update(secondary_right=right2)
@@ -2328,6 +2352,8 @@ class Categorizer(object):
                     rindex = tag_records.index(rec)
                     # increment times_right by 1 per 3 secondary_right
                     triplets2 = rlen / 3
+                    if not rec['times_right']:
+                        rec['times_right'] = 0
                     rec['times_right'] += triplets2
 
                     # move tlast_right forward based on mean of oldest 3 secondary_right
@@ -2393,12 +2419,18 @@ class Categorizer(object):
 
         for record in tag_records:
 
-            # find ratio of wrong to right answers within past week
-            week_ago = utcnow - datetime.timedelta(days=14)
-            myavg = db.attempt_log.score.avg()
-            avg_score = db(db.attempt_log.date_attempted >= week_ago
-                           ).select(myavg)[myavg]
-            print 'categorizer.core_algorithm: avg_score is', avg_score
+            # find average score for steps with this tag over past week
+            week_ago = utcnow - datetime.timedelta(days=7)
+            print 'for tag', record['tag']
+            log_query = db((db.attempt_log.dt_attempted >= week_ago) &
+                           (db.attempt_log.step == db.steps.id) &
+                           (db.steps.tags.contains(record['tag']))).select()
+            scores = [l.attempt_log.score for l in log_query]
+            try:
+                avg_score = sum(scores) / float(len(scores))
+            except ZeroDivisionError:  # if tag not tried in past week
+                avg_score = 0
+                # FIXME: Will this not bring tags up too early?
 
             # get durations for spaced repetition calculations
             # arithmetic operations yield datetime.timedelta objects

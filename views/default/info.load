@@ -173,11 +173,12 @@ pass
 
 # TAB 6 - BADGE RECORDS ======================================================
 tab6_content = CAT(H4('Your overall performance for each badge so far'),
-                   TABLE(THEAD(TD('badge'),
-                               TD('times right / times wrong / ratio'),
-                               TD('last right'),
-                               TD('last wrong'),
-                               TD('badge set')
+                   TABLE(THEAD(TR(TH('badge'),
+                                  TH('times right / times wrong / ratio'),
+                                  TH('last right'),
+                                  TH('last wrong'),
+                                  TH('badge set')
+                                  )
                                ),
                     _id='tag_records_table')
                     )
@@ -202,7 +203,7 @@ for row in tag_records:
                    SPAN(round(ratio, 3), _class='ratio_num')),
                 TD(row.tag_records.tlast_right),
                 TD(row.tag_records.tlast_wrong),
-                TD(row.tags.position)
+                TD(row.tags.tag_position)
                 )
     tab6_content[1].append(row)
     pass

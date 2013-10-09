@@ -191,7 +191,7 @@ class Stats(object):
         if latest_rank == 0:
             atag_s.update_record(latest_new=1)
             latest_rank = 1
-        latest_tags = db(db.tags.position == latest_rank).select()
+        latest_tags = db(db.tags.tag_position == latest_rank).select()
         if latest_tags is None:
             latest_badges = ['Sorry, I can\'t find them!']
         else:
