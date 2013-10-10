@@ -2037,6 +2037,8 @@ class User(object):
             #print 'user.get_path: user.prev_loc is', self.prev_loc.get_id()
 
         if path:
+            if not self.prev_loc:  # FIXME: hack to handle error ticket
+                self.prev_loc = copy(self.loc)
             self.path = Path(path_id=path,
                              loc=self.loc,
                              prev_loc=self.prev_loc,
