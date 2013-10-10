@@ -189,6 +189,8 @@ for row in tag_records:
         ratio = float(timesw)/timesr
     except ZeroDivisionError:
         ratio = 0
+    except TypeError:  # FIXME: this is a hack to get around error ticket
+        ratio = 0
     row = TR(TD(db(db.badges.tag==row.tags.id).select().first().badge_name),
                 TD(SPAN('', _style='width: {}px;'.format(timesr),
                     _class='right'),

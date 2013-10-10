@@ -268,7 +268,7 @@ def slides():
         except Exception:
             pass
         if progress and [t.tags.id for t in badges
-                         if t.tags.position <= progress.latest_new]:
+                         if t.tags.tag_position <= progress.latest_new]:
             classes += 'plugin_slider_active '
         try:
             slides.append(LI(A(s.deck_name,
