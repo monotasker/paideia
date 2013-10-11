@@ -1,4 +1,4 @@
-{{from plugin_widgets import TOOLTIP, TABS}}
+{{from plugin_widgets import TOOLTIP, TABS, ROLE}}
 
 {{
 # TAB 1 - USER INFO ==========================================================
@@ -134,10 +134,15 @@ tab4_content = TABLE(TR(TH('question'),
                         TH('instructor\'s comments')))
 for bug in blist:
     row = TR()
-    for val in bug:
+    # first position is the id, used in edit link
+    for val in bug[1:]:  
         row.append(TD(val))
-    tab4_content.append(row)
     pass
+    row.append(ROLE(TD(A('edit', _href=URL('editing', 'listing.html',
+                                           args=['bugs', bug[0]],
+                                           vars=dict(restrictor={'bug_status': '5'}))
+                    ))))
+    tab4_content.append(row)
 pass
 
 # TAB 5 - RECENT PATHS =======================================================
@@ -191,24 +196,30 @@ for row in tag_records:
         ratio = 0
     except TypeError:  
         ratio = 0  # FIXME: this is a hack to get around error ticket
-    row = TR(TD(db(db.badges.tag==row.tags.id).select().first().badge_name),
-                TD(SPAN('', _style='width: {}px;'.format(timesr),
-                    _class='right'),
-                   SPAN(int(timesr), _class='right_num'),
-                   BR(),
-                   SPAN('', _style='width: {}px;'.format(timesw),
-                        _class='wrong'),
-                   SPAN(int(timesw), _class='wrong_num'),
-                   BR(),
-                   SPAN('', _style='width: {}px'.format(ratio * 100),
-                        _class='ratio'),
-                   SPAN(round(ratio, 3), _class='ratio_num')),
-                TD(row.tag_records.tlast_right),
-                TD(row.tag_records.tlast_wrong),
-                TD(row.tags.tag_position)
-                )
-    tab6_content[1].append(row)
     pass
+
+    try:
+        row = TR(TD(db(db.badges.tag==row.tags.id).select().first().badge_name),
+                    TD(SPAN('', _style='width: {}px;'.format(timesr),
+                        _class='right'),
+                    SPAN(int(timesr), _class='right_num'),
+                    BR(),
+                    SPAN('', _style='width: {}px;'.format(timesw),
+                            _class='wrong'),
+                    SPAN(int(timesw), _class='wrong_num'),
+                    BR(),
+                    SPAN('', _style='width: {}px'.format(ratio * 100),
+                            _class='ratio'),
+                    SPAN(round(ratio, 3), _class='ratio_num')),
+                    TD(row.tag_records.tlast_right),
+                    TD(row.tag_records.tlast_wrong),
+                    TD(row.tags.tag_position)
+                    )
+    except AttributeError:
+        row = TR(TD('Couldn\'t find matching badge '
+                    'for tag{}'.format(row.tags.id), _colspan='4'))
+    pass
+    tab6_content[1].append(row)
 pass
 
 # TAB 7 - TIMELINE OF BADGES =================================================

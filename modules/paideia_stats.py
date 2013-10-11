@@ -4,12 +4,12 @@ import dateutil.parser
 import traceback
 from pytz import timezone
 from gluon import current, DIV, H4, TABLE, THEAD, TBODY, TR, TD, SPAN, A, URL
-from pprint import pprint
+#from pprint import pprint
 #from guppy import hpy
 import logging
 import itertools
 logger = logging.getLogger('web2py.app.paideia')
-logger.setLevel(logging.DEBUG)
+#logger.setLevel(logging.DEBUG)
 
 
 class Stats(object):
@@ -157,7 +157,6 @@ class Stats(object):
         '''
         if self.verbose: print 'calling Stats.active_tags() ------------------'
         db = current.db
-        #debug = False
         #try:
         atag_s = db(db.tag_progress.name == self.user_id).select().first()
         atags = {}
@@ -224,7 +223,6 @@ class Stats(object):
         local time zone.
         """
         if self.verbose: print 'calling Stats.log_list() ---------------------'
-        #debug = False
         db = current.db
 
         log_query = db(db.attempt_log.name == self.user_id)
@@ -256,7 +254,6 @@ class Stats(object):
         year.
         '''
         if self.verbose: print 'calling Stats.monthstats() -------------------'
-        debug = False
 
         # get current year and month as default
         if not month:
@@ -266,7 +263,6 @@ class Stats(object):
 
         # use calendar module to get month structure
         monthcal = calendar.monthcalendar(year, month)
-        if debug: pprint(monthcal)
 
         monthdict = {'year': year, 'month_name': month}
 
@@ -284,7 +280,6 @@ class Stats(object):
                 week_list.append(day_set)
             month_list.append(week_list)
 
-        if debug: pprint(month_list)
         monthdict['calstats'] = month_list
 
         return monthdict
@@ -297,14 +292,7 @@ class Stats(object):
 
         The calendar is returned as a web2py DIV helper.
         '''
-        debug = False
-        db = current.db
         # TODO: get settings for this user's class requirements
-        memberships = db(
-                        (db.auth_group.id == db.auth_membership.group_id)
-                        & (db.auth_membership.user_id == self.user_id)
-                        ).select()
-        if debug: print memberships
 
         # get current year and month as default
         if not month:
@@ -316,7 +304,6 @@ class Stats(object):
 
         # get structured data to use in building table
         data = self.monthstats(year, month)
-        if debug: print 'data=', data
 
         nms = calendar.month_name
         monthname = nms[data['month_name']]
@@ -346,7 +333,6 @@ class Stats(object):
                     weekrow[-1].append(SPAN(str(day[1]),
                                         _class='cal_count'))
             tb.append(weekrow)  # append week to table body
-            if debug: print 'weekrow =', weekrow
 
         # build nav link for previous month
         prev_month = (month - 1) if month > 1 else 12
