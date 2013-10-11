@@ -11,10 +11,8 @@ if 0:
     db, auth, session = current.db, current.auth, current.session
     request, response = current.request, current.response
 import datetime
-import calendar
 import traceback
-from pytz import timezone
-import itertools
+from paideia_stats import week_bounds, get_offset
 
 
 @auth.requires_membership(role='administrators')
@@ -110,52 +108,6 @@ def remove_user():
     q.delete()
     print 'classid is', classid
     redirect(URL('userlist.load', vars={'value': classid}))
-
-
-def week_bounds():
-    '''
-    Return datetime objects representing the last day of this week and previous.
-    '''
-    today = datetime.datetime.utcnow()
-    thismonth = calendar.monthcalendar(today.year, today.month)
-
-    thisweek = [w for w in thismonth if today.day in w][0]
-    today_index = thisweek.index(today.day)
-    tw_index = thismonth.index(thisweek)
-
-    lastweek = thismonth[tw_index - 1]
-    delta = datetime.timedelta(days=(8 + today_index))
-    lw_firstday = today - delta
-
-    tw_prev = None
-    if 0 in thisweek:
-        if thisweek.index(0) < thisweek.index(today.day):
-            lastmonth = calendar.monthcalendar(today.year, today.month - 1)
-            tw_prev = lastmonth[-1]
-            lastweek = lastmonth[-2]
-            thisweek = [d for d in itertools.chain(thisweek, tw_prev) if d != 0]
-
-    lw_prev = None
-    if 0 in lastweek:
-        lastmonth = calendar.monthcalendar(today.year, today.month - 1)
-        lw_prev = lastmonth[-1]
-        lastweek = [d for d in itertools.chain(lastweek, lw_prev) if d != 0]
-
-    return lastweek, lw_firstday, thisweek
-
-
-def get_offset(user):
-    '''
-    Return the user's offset from utc time based on their time zone.
-    '''
-    today = datetime.datetime.utcnow()
-    now = timezone('UTC').localize(today)
-    tz_name = user.auth_user.time_zone if user.auth_user.time_zone \
-        else 'America/Toronto'
-    offset = now - timezone(tz_name).localize(today)  # when to use "ambiguous"?
-    # alternative is to do tz.fromutc(datetime)
-
-    return offset
 
 
 @auth.requires_membership(role='administrators')
