@@ -402,3 +402,16 @@ db.define_table('user_stats',
     Field('logs_wrong', 'list:reference attempt_log'),
     Field('done', 'integer', default=0),
     format='%(name)s, %(year)s, %(month)s, %(week)s')
+db.executesql('CREATE INDEX IF NOT EXISTS idx_userstats_1 '
+              'ON user_stats (week, year, name);')
+db.executesql('CREATE INDEX IF NOT EXISTS idx_userstats_1 '
+              'ON user_stats (name, week, year);')
+db.executesql('CREATE INDEX IF NOT EXISTS idx_userstats_1 '
+              'ON user_stats (year, week, name);')
+
+db.define_table('content_pages',
+    Field('content', 'text'),
+    Field('first_authored', 'datetime', default=dtnow),
+    Field('last_updated', 'datetime', default=dtnow),
+    Field('author', 'reference auth_user', default=auth.user_id),
+    format='%(page_title)s')
