@@ -136,24 +136,26 @@ class Bug(object):
         report.
         '''
         db = current.db
-        debug = False
 
-        bugs_q = (db.steps.id == db.bugs.step) & (db.bugs.user_name == user)
+        bugs_q = ((db.steps.id == db.bugs.step) & (db.bugs.user_name == user))
         bugs = db(bugs_q).select(orderby=~db.bugs.date_submitted)
-        if debug: print 'DEBUG: bugs.select() =', bugs
         lst = []
         for b in bugs:
-            display = []
-            display.append(b.steps.prompt)
-            display.append(b.bugs.user_response)
-            display.append(b.bugs.date_submitted)
-            #get status label instead of raw status reference
-            s = b.bugs.bug_status
-            if s is None:
-                s = 5
-            st = db(db.bug_status.id == s).select().first()
-            status = st.status_label
-            display.append(status)
-            display.append(b.bugs.admin_comment)
-            lst.append(display)
+            try:
+                display = []
+                display.append(b.bugs.id)
+                display.append(b.steps.prompt)
+                display.append(b.bugs.user_response)
+                display.append(b.bugs.date_submitted)
+                #get status label instead of raw status reference
+                s = b.bugs.bug_status
+                if s is None:
+                    s = 5
+                st = db(db.bug_status.id == s).select().first()
+                status = st.status_label
+                display.append(status)
+                display.append(b.bugs.admin_comment)
+                lst.append(display)
+            except Exception:
+                print traceback.format_exc(5)
         return lst

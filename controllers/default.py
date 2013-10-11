@@ -67,6 +67,7 @@ def info():
         max_set = 1
 
     b = Bug()
+    print 'creating bug object for displaying reports'
     blist = b.bugresponses(user.id)
     tag_progress = db((db.tag_progress.name == user.id)).select().first().as_dict()
 
