@@ -1,7 +1,7 @@
 import calendar
 import datetime
 import dateutil.parser
-import traceback
+#import traceback
 from pytz import timezone
 from gluon import current, DIV, H4, TABLE, THEAD, TBODY, TR, TD, SPAN, A, URL
 #from pprint import pprint
@@ -116,7 +116,7 @@ class Stats(object):
                     last_wrong = dateutil.parser.parse(last_wrong)
                 last_wrong = datetime.datetime.date(last_wrong)
             except ValueError:
-                print traceback.format_exc(5)
+                #print traceback.format_exc(5)
                 last_wrong = 'never'
 
             try:
@@ -131,13 +131,21 @@ class Stats(object):
                         if t in tag_badges.keys()}
             # check for tags without badges
             # TODO: move this check to maintenance cron job
+            print 'step', steprow['id'], 'has tags', steprow['tags']
             for t in steprow['tags']:
                 if not t in tag_badges.keys():
                     print 'There seems to be no badge for tag {}'.format(t)
+                    print 'Removing tag'
+                    newtags = steprow['tags']
+                    newtags.remove(t)
+                    print 'new tags are', newtags
+                    db.steps[step] = {'tags': newtags}  # shorthand update
                     mail = current.mail
                     mail.send(mail.settings.sender,
-                            'Paideia error: Missing badge',
-                            'There seems to be no badge for tag {}'.format(t))
+                            'Paideia error: Removed bad tag',
+                            'There seems to be no badge for tag {}. That tag '
+                            'number has been removed from step '
+                            '{}'.format(t, steprow['id']))
             step_dict = {'step': step,
                          'count': stepcount,
                          'right': len(stepright),
