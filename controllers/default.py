@@ -2,6 +2,7 @@
 
 from paideia_stats import Stats
 from paideia_bugs import Bug
+import traceback
 #from gluon.tools import prettydate
 
 if 0:
@@ -75,10 +76,9 @@ def info():
                      (db.tag_records.tag == db.tags.id)
                      ).select(orderby=db.tags.tag_position)
 
-    badge_dates = db(
-                        (db.badges_begun.name == user.id) &
-                        (db.badges_begun.tag == db.tags.id)
-                    ).select(orderby=~db.tags.tag_position)
+    badge_dates = db((db.badges_begun.name == user.id) &
+                     (db.badges_begun.tag == db.tags.id)
+                     ).select(orderby=~db.tags.tag_position)
 
     badgelist = []
     catlabels = ['started at beginner level',
@@ -89,11 +89,15 @@ def info():
         for c in ['cat1', 'cat2', 'cat3', 'cat4']:
             if bd.badges_begun[c]:
                 tagbadge = db.badges(db.badges.tag == bd.tags.id)
-                badgelist.append({'id': tagbadge.badge_name,
-                                'description': tagbadge.description,
-                                'level': catlabels[int(c[3:]) - 1],
-                                'date': 'on {}'.format(bd.badges_begun[c].strftime('%b %e, %Y')),
-                                'dt': bd.badges_begun[c]})
+                try:
+                    badgelist.append({'id': tagbadge.badge_name,
+                                    'description': tagbadge.description,
+                                    'level': catlabels[int(c[3:]) - 1],
+                                    'date': 'on {}'.format(bd.badges_begun[c].strftime('%b %e, %Y')),
+                                    'dt': bd.badges_begun[c]})
+                except Exception:
+                    print traceback.format_exc(5)
+                    print 'missing badge for tag',
     badgelist = sorted(badgelist, key=lambda row: row['dt'], reverse=True)
     return {'the_name': name,
             'tz': tz,

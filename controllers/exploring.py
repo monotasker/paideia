@@ -85,7 +85,8 @@ def walk():
     testform = SQLFORM.factory(Field('path', 'integer'),
                                Field('location', 'reference locations'),
                                Field('blocks'),
-                               Field('new_user', 'boolean')
+                               Field('new_user', 'boolean'),
+                               Field('shadow', 'integer')
                                )
     if testform.process().accepted:
         redirect(URL('exploring', 'walk.load', args=['ask']))
@@ -110,6 +111,7 @@ def walk():
         stepargs['response_string'] = rvars['response'] if \
             ('response' in rvars and 'response' not in [' ', None]) else None
 
+    # pass along test settings to Walk.ask()
     if ('blocks' in rvars) and not (rvars['blocks'] in ['', None, 'undefined']):
         stepargs['set_blocks'] = literal_eval(rvars['blocks'])
     if 'path' in rvars and not (rvars['path'] in ['', None, 'undefined']):
@@ -117,14 +119,19 @@ def walk():
 
     if not request.vars.loc:
         request.vars.loc = None
-        print 'controller.walk: request.vars.loc is', request.vars.loc
-    print 'controller.walk: initializing walk and calling walk.start'
 
+    # variables for Walk init
     new_user = False
     if 'new_user' in request.vars and request.vars.new_user == 'on':
+        print 'forcing new user'
         new_user is True
+    shadow = False
+    if 'shadow' in rvars and not (rvars['shadow'] in ['', None, 'undefined']):
+        print 'shadowing user', rvars['shadow']
+        stepargs['shadow'] = rvars['shadow']
 
-    resp = Walk(new_user=new_user).start(request.vars.loc, **stepargs)
+    resp = Walk(new_user=new_user, shadow=shadow).start(request.vars.loc,
+                                                        **stepargs)
     resp['form'] = testform
 
     return resp

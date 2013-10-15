@@ -25,8 +25,17 @@ def user():
     admins = [a['user_id'] for a in admins]
     admins.append(auth.user_id)
     print 'admins', admins
-    myclasses = db(db.auth_group.course_instructor.belongs(admins)
-                   ).select().as_list()
+    if auth.user_id in admins:
+        print 'user in admins'
+        myclasses = db(db.auth_group.course_instructor != None).select()
+        print myclasses
+    else:
+        print 'user not in admins'
+        myclasses = db(db.auth_group.course_instructor == auth.user_id).select()
+        print myclasses
+    myclasses = myclasses.as_list()
+    print myclasses
+
     chooser = FORM(SELECT(_id='class_chooser_select'), _id='class_chooser')
     for m in myclasses:
         optstring = '{} {} {}, {}'.format(m['academic_year'], m['term'],
