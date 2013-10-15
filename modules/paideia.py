@@ -16,6 +16,7 @@ from pytz import timezone
 from plugin_widgets import POPOVER, ROLE
 import pickle
 from pprint import pprint
+from paideia_utils import send_error
 
 # TODO: move these notes elsewhere
 """
@@ -2074,8 +2075,13 @@ class User(object):
             if not self.tag_progress:  # in case User was badly initialized
                 self.get_categories()
             print 'user.get_path: choosing new path'
-            choice = PathChooser(self.tag_progress, self.loc.get_id(),
-                                 self.completed_paths).choose()
+            choice = (None,)
+            while not choice[0]:
+                choice = PathChooser(self.tag_progress, self.loc.get_id(),
+                                    self.completed_paths).choose()
+                if not choice[0]:
+                    send_error(self, 'get_path', current.request)
+
             path = Path(path_id=choice[0]['id'],
                         loc=self.loc,
                         prev_loc=self.prev_loc,
