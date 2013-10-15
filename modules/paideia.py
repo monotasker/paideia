@@ -2075,12 +2075,23 @@ class User(object):
             if not self.tag_progress:  # in case User was badly initialized
                 self.get_categories()
             print 'user.get_path: choosing new path'
+            # FIXME: For some reason PathChooser.choose() is returning None for
+            # path sometimes
             choice = (None,)
-            while not choice[0]:
+            while not choice or not choice[0]:
                 choice = PathChooser(self.tag_progress, self.loc.get_id(),
                                     self.completed_paths).choose()
-                if not choice[0]:
+                if not choice:
+                    choice = (None,)
+                    print 'sending error'
                     send_error(self, 'get_path', current.request)
+                    print 'sent error'
+                elif not choice[0]:
+                    print 'sending error'
+                    send_error(self, 'get_path', current.request)
+                    print 'sent error'
+                else:
+                    pass
 
             path = Path(path_id=choice[0]['id'],
                         loc=self.loc,

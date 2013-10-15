@@ -9,4 +9,4 @@
 Image in path: 317, 86
 Audio in path: 
 Multiple steps: 63, 64
-Name in prompt: 301
+Name in prompt: 301, 70
