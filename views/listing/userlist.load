@@ -35,7 +35,7 @@ tbl = TABLE(TR(TH(),
 
 for user in users:
     row = TR(TD(A(user.auth_user.last_name + ',' + user.auth_user.first_name,
-                _href=URL('reporting', 'user', args=[user.auth_user.id]))),
+                _href=URL('reporting', 'user.html', args=[user.auth_user.id]))),
              TD(user.tag_progress.latest_new, _class='rank')
              )
     uid = user.auth_user.id

@@ -15,7 +15,7 @@ import traceback
 from pytz import timezone
 from plugin_widgets import POPOVER, ROLE
 import pickle
-from pprint import pprint
+#from pprint import pprint
 from paideia_utils import send_error
 
 # TODO: move these notes elsewhere
@@ -28,7 +28,7 @@ watched when upgrading web2py:
 
 def util_get_args():
     """
-    Returns a collection of all the calling functionos arguments.
+    Returns a collection of all the calling function's arguments.
 
     The returned collection is a tuple containing dictionary of calling
     function's named arguments and a list of calling function's unnamed
@@ -75,24 +75,23 @@ class Walk(object):
 
     def __init__(self, tag_records=None, tag_progress=None,
                  response_string=None, userdata=None, db=None,
-                 new_user=None):
+                 new_user=None, shadow=None):
         """Initialize a Walk object."""
         db = current.db if not db else db
         # TODO: fix redundant db call here
         self.response_string = response_string
         # TODO: move retrieval of data to user init so it's not duplicated when
         # just retrieving existing User.
-        userdata = db.auth_user[current.auth.user_id].as_dict() \
-            if not userdata else userdata
         self.user = self._get_user(userdata=userdata,
                                    tag_records=tag_records,
                                    tag_progress=tag_progress,
-                                   new_user=new_user)
+                                   new_user=new_user,
+                                   shadow=shadow)
         # TODO is record_id necessary?
         self.record_id = None  # stores step log row id after db update
 
     def _get_user(self, userdata=None, tag_records=None,
-                  tag_progress=None, new_user=None):
+                  tag_progress=None, new_user=None, shadow=None):
         '''
         Initialize or re-activate User object.
         All named arguments are necessary.
@@ -115,14 +114,19 @@ class Walk(object):
                 assert self.user.is_stale() is False
                 print 'walk.get_user: new_user is', new_user
                 assert not new_user
+                assert not shadow
             except (AssertionError, AttributeError):
-                uid = auth.user_id
-                # because no user yet in db or user is stale
+                uid = auth.user_id if not shadow else shadow
+                userdata = db.auth_user[uid] if not userdata else userdata
+                userdata = userdata.as_dict()
+
+                # because no user yet in db, user is stale, or flags present
+                # (new_user or shadow)
                 if not tag_records:
                     tag_records = db(db.tag_records.name == uid).select().as_list()
                 if not tag_progress:
                     tag_progress = db(db.tag_progress.name == uid).select().first()
-                    if not tag_progress:
+                    if not tag_progress and not shadow:
                         db.tag_progress.insert(latest_new=1)
                         tag_progress = db(db.tag_progress.name == uid).select().first()
                     tag_progress = tag_progress.as_dict()
@@ -167,7 +171,8 @@ class Walk(object):
         self._store_user(user)
 
     def ask(self, localias=None, path=None, repeat=None,
-            step=None, set_blocks=None, recategorize=None):
+            step=None, set_blocks=None, recategorize=None,
+            shadow=None):
         """
         Return the information necessary to initiate a step interaction.
 
@@ -196,7 +201,7 @@ class Walk(object):
             for c, v in set_blocks.iteritems():
                 myargs = {n: a for n, a in v.iteritems()}
                 user._set_block(c, kwargs=myargs)
-        user.get_categories()
+        user.get_categories(user_id=user.get_id())
 
         # FIXME: fix redundant db call here by sending localias to Loc() instead of id
         loc_id = db(db.locations.loc_alias == localias).select().first().id
@@ -411,45 +416,49 @@ class Walk(object):
         - tag_progress: changes to categorization (only if changes made)
         """
         db = current.db if not db else db
+        auth = current.auth
         user_id = self.user.get_id()
-        now = datetime.datetime.utcnow()
-        # TODO: make sure promoted and new_tags info is passed on correctly
+        if user_id == auth.user_id:
+            now = datetime.datetime.utcnow()
+            # TODO: make sure promoted and new_tags info is passed on correctly
 
-        # combine promoted and new_tags for recording purposes
-        if promoted:
-            promoted['cat1'] = new_tags
-        elif new_tags:
-            promoted = {'cat1': new_tags}
-        else:
-            promoted is None
+            # combine promoted and new_tags for recording purposes
+            if promoted:
+                promoted['cat1'] = new_tags
+            elif new_tags:
+                promoted = {'cat1': new_tags}
+            else:
+                promoted is None
 
-        # record awarding of promoted and new tags in table db.badges_begun
-        if promoted:
+            # record awarding of promoted and new tags in table db.badges_begun
+            if promoted:
+                try:
+                    for cat, lst in promoted.iteritems():
+                        if lst:
+                            for tag in lst:
+                                data = {'name': user_id,
+                                        'tag': tag,
+                                        cat: now}
+                                db.badges_begun.update_or_insert(
+                                        (db.badges_begun.name == user_id) &
+                                        (db.badges_begun.tag == tag), **data)
+                except Exception:
+                    print traceback.format_exc(5)
+                    return False
+
+            # update tag_progress table with current categorization
             try:
-                for cat, lst in promoted.iteritems():
-                    if lst:
-                        for tag in lst:
-                            data = {'name': user_id,
-                                    'tag': tag,
-                                    cat: now}
-                            db.badges_begun.update_or_insert(
-                                    (db.badges_begun.name == user_id) &
-                                    (db.badges_begun.tag == tag), **data)
+                db.tag_progress.update_or_insert(db.tag_progress.name == user_id,
+                                                **tag_progress)
+                mycount = db(db.tag_progress.name == user_id).count()
+                assert mycount == 1  # ensure there's never a duplicate
+                # TODO: eliminate need for this check by making name field unique
             except Exception:
                 print traceback.format_exc(5)
                 return False
-
-        # update tag_progress table with current categorization
-        try:
-            db.tag_progress.update_or_insert(db.tag_progress.name == user_id,
-                                             **tag_progress)
-            mycount = db(db.tag_progress.name == user_id).count()
-            assert mycount == 1  # ensure there's never a duplicate
-            # TODO: eliminate need for this check by making name field unique
-        except Exception:
-            print traceback.format_exc(5)
+            return True
+        else:  # auth.user_id != user_id because shadowing another user
             return False
-        return True
 
     def _record_step(self, user_id, step_id, path_id, score, times_right,
                      times_wrong, old_trecs, taglist, response_string):
@@ -475,71 +484,75 @@ class Walk(object):
         """
         #print 'walk.record_step: starting locals are', pprint(locals())
         db = current.db
-        now = datetime.datetime.utcnow()
-        # TODO: should the threshold here be less than 1 for 'right'?
-        got_right = True if ((score - 1) < 0.01) else False  # because of float inaccuracy
-        for t in taglist['primary']:
-            #print 'walk.record_step: recording tag', t
-            oldrec = [r for r in old_trecs if r['tag'] == t] if old_trecs else None
-            #print 'walk.record_step: old record is', pprint(oldrec)
-            if oldrec:
-                tlast_wrong = oldrec[0]['tlast_wrong']
-                tlast_right = oldrec[0]['tlast_right']
-                try:  # in case oldrec is None, created for secondary right
-                    times_right = oldrec[0]['times_right'] + times_right
-                except TypeError:
-                    pass
-                try:  # in case oldrec is None, created for secondary right
-                    times_wrong = oldrec[0]['times_wrong'] + times_wrong
-                except TypeError:
-                    pass
-                if got_right:  # because of float inaccuracy
-                    tlast_right = now
-                else:
+        auth = current.auth
+        if user_id != auth.user_id:  # shadowing another user
+            return False
+        else:
+            now = datetime.datetime.utcnow()
+            # TODO: should the threshold here be less than 1 for 'right'?
+            got_right = True if ((score - 1) < 0.01) else False  # because of float inaccuracy
+            for t in taglist['primary']:
+                #print 'walk.record_step: recording tag', t
+                oldrec = [r for r in old_trecs if r['tag'] == t] if old_trecs else None
+                #print 'walk.record_step: old record is', pprint(oldrec)
+                if oldrec:
+                    tlast_wrong = oldrec[0]['tlast_wrong']
+                    tlast_right = oldrec[0]['tlast_right']
+                    try:  # in case oldrec is None, created for secondary right
+                        times_right = oldrec[0]['times_right'] + times_right
+                    except TypeError:
+                        pass
+                    try:  # in case oldrec is None, created for secondary right
+                        times_wrong = oldrec[0]['times_wrong'] + times_wrong
+                    except TypeError:
+                        pass
+                    if got_right:  # because of float inaccuracy
+                        tlast_right = now
+                    else:
+                        tlast_wrong = now
+                else:  # if no existing record, just set both to now as initial baseline
                     tlast_wrong = now
-            else:  # if no existing record, just set both to now as initial baseline
-                tlast_wrong = now
-                tlast_right = now
-            #print 'walk.record_step: times right', times_right
-            #print 'walk.record_step: times wrong', times_wrong
-            #print 'walk.record_step: tlast_right', tlast_right
-            #print 'walk.record_step: tlast_wrong', tlast_wrong
-
-            condition = {'tag': t, 'name': user_id}
-            db.tag_records.update_or_insert(condition,
-                                            tag=t,
-                                            times_right=times_right,
-                                            times_wrong=times_wrong,
-                                            tlast_right=tlast_right,
-                                            tlast_wrong=tlast_wrong)
-
-        if got_right and ('secondary' in taglist.keys()):
-            for t in taglist['secondary']:
-                #print 'walk.record_step: appending sec right to tag', t
-                oldrec = [r for r in old_trecs if r['tag'] == t]
-                #print 'oldrec is ', pprint(oldrec)
-
-                sec_right = [now]  # default
-                if len(oldrec) and oldrec[0]:
-                    sec_right = oldrec[0]['secondary_right']
-                    #print 'secright is ', pprint(oldrec)
-                    try:
-                        sec_right.append(now)
-                    except AttributeError:  # because secondary_right is None
-                        pass  # use default set above
+                    tlast_right = now
+                #print 'walk.record_step: times right', times_right
+                #print 'walk.record_step: times wrong', times_wrong
+                #print 'walk.record_step: tlast_right', tlast_right
+                #print 'walk.record_step: tlast_wrong', tlast_wrong
 
                 condition = {'tag': t, 'name': user_id}
                 db.tag_records.update_or_insert(condition,
                                                 tag=t,
-                                                secondary_right=sec_right)
+                                                times_right=times_right,
+                                                times_wrong=times_wrong,
+                                                tlast_right=tlast_right,
+                                                tlast_wrong=tlast_wrong)
 
-        log_args = {'name': user_id,
-                    'step': step_id,
-                    'in_path': path_id,
-                    'score': score}  # time recorded automatically in table
-        log_record_id = db.attempt_log.insert(**log_args)
+            if got_right and ('secondary' in taglist.keys()):
+                for t in taglist['secondary']:
+                    #print 'walk.record_step: appending sec right to tag', t
+                    oldrec = [r for r in old_trecs if r['tag'] == t]
+                    #print 'oldrec is ', pprint(oldrec)
 
-        return log_record_id
+                    sec_right = [now]  # default
+                    if len(oldrec) and oldrec[0]:
+                        sec_right = oldrec[0]['secondary_right']
+                        #print 'secright is ', pprint(oldrec)
+                        try:
+                            sec_right.append(now)
+                        except AttributeError:  # because secondary_right is None
+                            pass  # use default set above
+
+                    condition = {'tag': t, 'name': user_id}
+                    db.tag_records.update_or_insert(condition,
+                                                    tag=t,
+                                                    secondary_right=sec_right)
+
+            log_args = {'name': user_id,
+                        'step': step_id,
+                        'in_path': path_id,
+                        'score': score}  # time recorded automatically in table
+            log_record_id = db.attempt_log.insert(**log_args)
+
+            return log_record_id
 
     def _store_user(self, user):
         """
@@ -548,12 +561,16 @@ class Walk(object):
         Returns a boolean value indicating whether the storing was
         successful or not.
         """
-        db = current.db
         auth = current.auth
-        user = pickle.dumps(self.user)
-        db.session_data.update_or_insert(db.session_data.name == auth.user_id,
-                                         other_data=user)
-        return True
+        db = current.db
+
+        if user.get_id() != auth.user_id:  # shadowing another user
+            return False
+        else:
+            user = pickle.dumps(self.user)
+            db.session_data.update_or_insert(db.session_data.name == auth.user_id,
+                                            other_data=user)
+            return True
 
 
 class Location(object):
@@ -1882,7 +1899,7 @@ class User(object):
             self.prev_npc = None
             msel = db((db.auth_membership.user_id == self.user_id) &
                       (db.auth_membership.group_id == db.auth_group.id)).select()
-            pprint([m for m in msel.as_list()])
+            #pprint([m for m in msel.as_list()])
             # FIXME: Handle registered users without a class assignment
             # put everyone either in a class at registration or in (by default)
             # a generic 'class' with generic presets
@@ -2116,7 +2133,7 @@ class User(object):
             print 'user.get_path: now blocks is', [b.get_condition() for b in self.blocks]
         return self.path
 
-    def get_categories(self, rank=None, old_categories=None,
+    def get_categories(self, user_id=None, rank=None, old_categories=None,
                        tag_records=None, utcnow=None):
         """
         Return a categorized dictionary with four lists of tag id's.
@@ -2130,10 +2147,10 @@ class User(object):
         """
         #print 'user.get_categories: starting'
         db = current.db
-        auth = current.auth
-        tag_records = db(db.tag_records.name == auth.user_id).select().as_list()
+        user_id = self.user_id if not user_id else user_id
+        tag_records = db(db.tag_records.name == user_id).select().as_list()
         self.tag_records = tag_records
-        #print 'user.get_categories: tag_records length is', len(tag_records)
+
         # only re-categorize every 10th evaluated step
         if (self.cats_counter in range(0, 4)) and hasattr(self, 'categories') and self.categories:
             self.cats_counter += 1
@@ -2146,39 +2163,41 @@ class User(object):
 
             # get tag_progress, rank, categories
             try:
-                tag_progress_sel = db(db.tag_progress.name == auth.user_id
+                tag_progress_sel = db(db.tag_progress.name == user_id
                                       ).select()
                 assert len(tag_progress_sel) == 1
                 self.tag_progress = tag_progress_sel.first().as_dict()
-                #print 'user.get_categories: tag_progress from db is', pprint(self.tag_progress)
                 rank = self.tag_progress['latest_new']
-                #print 'user.get_categories: rank from db is', pprint(rank)
                 # TODO: below is 'magic' hack based on specific db field names
                 categories = {k: v for k, v in self.tag_progress.iteritems()
                               if k[:4] in ['cat', 'rev']}
-                #print 'user.get_categories: categories w/o extra items', pprint(categories)
             except AttributeError:
                 categories = None
             self.old_categories = copy(categories)
 
             # perform categorization
-            c = Categorizer(rank, categories, tag_records, utcnow=utcnow)
+            c = Categorizer(rank, categories, tag_records, user_id,
+                            utcnow=utcnow)
             cat_result = c.categorize_tags()
-            #print 'user.get_categories: cat_result is', pprint(cat_result)
 
             # Set blocks for 'new_tags' (slides) and 'promoted' conditions
             nt = cat_result['new_tags']
             pr = cat_result['promoted']
             if nt:  # These blocks need to be on the User, not path
-                if (not hasattr(self, 'viewed_slides')) or (self.viewed_slides is False):
+                if (not hasattr(self, 'viewed_slides')) or (self.viewed_slides
+                                                            is False):
                     self._set_block('view_slides', kwargs={'new_tags': nt})
                     self.viewed_slides = True
-                if (not hasattr(self, 'reported_badges')) or (self.reported_badges is False):
-                    self._set_block('new_tags', kwargs={'new_tags': nt, 'promoted': pr})
+                if (not hasattr(self, 'reported_badges')) or \
+                        (self.reported_badges is False):
+                    self._set_block('new_tags',
+                                    kwargs={'new_tags': nt, 'promoted': pr})
                     self.reported_badges = True
             if pr:
-                if (not hasattr(self, 'reported_badges')) or (self.reported_badges is False):
-                    self._set_block('new_tags', kwargs={'new_tags': nt, 'promoted': pr})
+                if (not hasattr(self, 'reported_badges')) or \
+                        (self.reported_badges is False):
+                    self._set_block('new_tags',
+                                    kwargs={'new_tags': nt, 'promoted': pr})
                     self.viewed_slides = True
 
             self.tag_records = cat_result['tag_records']
@@ -2221,9 +2240,10 @@ class Categorizer(object):
     (integers) of the tags that are currently in the given category.
     """
 
-    def __init__(self, rank, categories, tag_records,
+    def __init__(self, rank, categories, tag_records, user_id,
                  secondary_right=None, utcnow=None, db=None):
         """Initialize a paideia.Categorizer object"""
+        self.user_id = user_id
         self.rank = rank
         self.tag_records = tag_records
         self.old_categories = categories
@@ -2235,13 +2255,12 @@ class Categorizer(object):
         Remove any illegitimate tag_records data.
         """
         db = current.db
-        auth = current.auth
 
         null_tags = [r for r in tag_records if r['tag'] is None]
         if null_tags:
             db(db.tag_records.tag == None).delete()
 
-        tag_records = db(db.tag_records.name == auth.user_id).select().as_list()
+        tag_records = db(db.tag_records.name == self.user_id).select().as_list()
         self.tag_records = tag_records
 
         return tag_records
@@ -2259,14 +2278,12 @@ class Categorizer(object):
         rank = self.rank if not rank else rank
         if not rank:
             rank = 1
-        #print 'categorize_tags: rank is', rank
         old_categories = self.old_categories if not old_categories else old_categories
-        #print 'categorize_tags: old_categories is', pprint(self.old_categories)
         tag_records = self.tag_records if not tag_records else tag_records
         tag_records = self._sanitize_recs(tag_records)
-        #print 'categorize_tags: tag_records is', pprint(self.tag_records)
         db = current.db if not db else db
         new_tags = None
+
         # if user has not tried any tags yet, start first set
         if len(tag_records) == 0:
             #print 'categorize_tags: no tag_records found'
