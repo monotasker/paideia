@@ -7,51 +7,59 @@ tab1_content = UL(LI(SPAN('Name', _class='label-success label'), the_name),
                   LI(SPAN('Time Zone', _class='timezone label-success label'), tz))
 
 # TAB 2 - BADGES =============================================================
-tab2_content = CAT(P('You are currently working on ',
-                     SPAN(active['total'], _class='total_len'),
-                     ' grammar badges and have reached set ',
-                     SPAN(max_set, _class='max_set'),
-                     _class="overview"),
-                   P('The most recent badges started are:',
-                     UL(_class='most_recent'),
-                     _class="overview"))
-for l in active['latest']:
-    tab2_content[1][1].append(LI(l))
+try:
+    tab2_content = CAT(P('You are currently working on ',
+                        SPAN(active['total'], _class='total_len'),
+                        ' grammar badges and have reached set ',
+                        SPAN(max_set, _class='max_set'),
+                        _class="overview"),
+                    P('The most recent badges started are:',
+                        UL(_class='most_recent'),
+                        _class="overview"))
+    for l in active['latest']:
+        tab2_content[1][1].append(LI(l))
+    pass
+
+    sumtable = TABLE(THEAD(TR(TH(), TH(), TH('Badge level reached'), TH('Review level')
+                            )),
+                    _cellspacing='0', _class='summary_stats')
+    catlist = [('cat4', 'mastered'),
+            ('cat3', 'making very good progress on'), 
+            ('cat2', 'made a good start with'),
+            ('cat1', 'just started or needing review')]
+    active_len = active['total']
+    if active_len > 0:
+        for cat in catlist:
+            if cat[0] in active.keys():
+                catlen = len(active[cat[0]]) if active[cat[0]] else 0
+                catrow = TR(TD(cat[1]),
+                            TD(catlen, _class='total_'.format(cat[0])),
+                            TD(UL()),
+                            TD(UL()))
+                for badge in active[cat[0]]:
+                    catrow[-2][0].append(LI(badge))
+                pass
+                rcat = 'rev{}'.format(cat[0][3:])
+                if (rcat in active.keys()) and (active[rcat]) and (active[rcat] != 0):
+                    for badge in active[rcat]:
+                        catrow[-1][0].append(LI(badge))
+                    pass
+                pass
+                sumtable.append(catrow)
+            pass
+        pass
+        tab2_content.append(sumtable)
+    else:
+        tab2_content.append(SPAN('You don\'t yet have any badges to report on. '
+                                'Check back after you explore the town map a bit.'))
+    pass
+
+except Exception:
+
+tab2_content = CAT(P('Sorry, something went wrong retrieving your badges.'))
+
 pass
 
-sumtable = TABLE(THEAD(TR(TH(), TH(), TH('Badge level reached'), TH('Review level')
-                           )),
-                  _cellspacing='0', _class='summary_stats')
-catlist = [('cat4', 'mastered'),
-           ('cat3', 'making very good progress on'), 
-           ('cat2', 'made a good start with'),
-           ('cat1', 'just started or needing review')]
-active_len = active['total']
-if active_len > 0:
-    for cat in catlist:
-        if cat[0] in active.keys():
-            catlen = len(active[cat[0]]) if active[cat[0]] else 0
-            catrow = TR(TD(cat[1]),
-                        TD(catlen, _class='total_'.format(cat[0])),
-                        TD(UL()),
-                        TD(UL()))
-            for badge in active[cat[0]]:
-                catrow[-2][0].append(LI(badge))
-            pass
-            rcat = 'rev{}'.format(cat[0][3:])
-            if (rcat in active.keys()) and (active[rcat]) and (active[rcat] != 0):
-                for badge in active[rcat]:
-                    catrow[-1][0].append(LI(badge))
-                pass
-            pass
-            sumtable.append(catrow)
-        pass
-    pass
-    tab2_content.append(sumtable)
-else:
-    tab2_content.append(SPAN('You don\'t yet have any badges to report on. '
-                             'Check back after you explore the town map a bit.'))
-pass
 tab2_content.append(CAT(H3('What do these levels mean?'),
     P('It is important to realize that the four badge levels above are '
       'not "grades" like the letter grades we earn in most courses. They are, '

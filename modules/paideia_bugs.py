@@ -1,6 +1,7 @@
 from gluon import current
 from datetime import timedelta
 import traceback
+from pprint import pprint
 
 
 class Bug(object):
@@ -54,10 +55,10 @@ class Bug(object):
                              'your response has been sent automatically to ' \
                              'the instructor.'
             msg = '<html>A user tried to submit a step bug report, but the' \
-                  'report failed. The request data is:\n{}\nThe request' \
-                  'data is: n/a</html>'
+                  'report failed. Traceback: {} \n\n' \
+                  'The request data is:\n{}\n' \
+                  '</html>'.format(traceback.format_exc(5), pprint(current.request))
             mail.send(mail.settings.sender, 'bug reporting error', msg)
-            # TODO: Log these errors.
             return False
 
     def undo(self, user_id, bug_id, log_id):
