@@ -3,6 +3,7 @@
 from paideia_stats import Stats
 from paideia_bugs import Bug
 import traceback
+from paideia_utils import send_error
 #from gluon.tools import prettydate
 
 if 0:
@@ -61,7 +62,7 @@ def info():
     log = sl['loglist']
     duration = sl['duration']
 
-    max_set = db(db.tag_progress.name == auth.user_id).select().first()
+    max_set = db(db.tag_progress.name == user['id']).select().first()
     if not max_set is None:
         max_set = max_set.latest_new
     else:
@@ -98,7 +99,10 @@ def info():
                 except Exception:
                     print traceback.format_exc(5)
                     print 'missing badge for tag',
+                    send_error('controllers/default', 'info', current.request)
+
     badgelist = sorted(badgelist, key=lambda row: row['dt'], reverse=True)
+
     return {'the_name': name,
             'tz': tz,
             'email': email,
