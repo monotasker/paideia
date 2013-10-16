@@ -5,7 +5,7 @@ import traceback
 from gluon import current
 
 
-def send_error(instance, mymethod, myrequest):
+def send_error(myclass, mymethod, myrequest):
     """
     Send an email reporting error and including debug info.
     """
@@ -13,7 +13,7 @@ def send_error(instance, mymethod, myrequest):
     msg = '<html>A user encountered an error in {myclass}.{mymethod}' \
           'report failed.\n\nTraceback: {tb}' \
           'Request:\n{rq}\n' \
-          '</html>'.format(myclass=instance.__class__.__name__,
+          '</html>'.format(myclass=myclass,
                            mymethod=mymethod,
                            tb=traceback.format_exc(5),
                            rq=myrequest)

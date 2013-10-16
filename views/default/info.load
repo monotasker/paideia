@@ -179,10 +179,10 @@ for l in log:
     for k, v in l['tags'].iteritems():
         tstring = 'tag: {} ({})'.format(v['tagname'], k)  # v['badge'] gives descr.
         logrow[-1].append(tstring)
-    logtable.append(logrow)
     pass
-tab5_content.append(logtable)
+    logtable.append(logrow)
 pass
+tab5_content.append(logtable)
 
 # TAB 6 - BADGE RECORDS ======================================================
 tab6_content = CAT(H4('Your overall performance for each badge so far'),

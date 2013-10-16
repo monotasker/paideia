@@ -217,7 +217,7 @@ class Stats(object):
             atags['total'] = 'Sorry, I can\'t calculate total number of ' \
                              'active badges.'
             atags['latest'] = ['Sorry, I can\'t find the most recent badges awarded.']
-            send_error(self, 'active_tags', current.request)
+            send_error(Stats, 'active_tags', current.request)
 
         return atags
 
