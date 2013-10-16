@@ -2101,11 +2101,11 @@ class User(object):
                 if not choice:
                     choice = (None,)
                     print 'sending error'
-                    send_error(self, 'get_path', current.request)
+                    send_error('User', 'get_path', current.request)
                     print 'sent error'
                 elif not choice[0]:
                     print 'sending error'
-                    send_error(self, 'get_path', current.request)
+                    send_error('User', 'get_path', current.request)
                     print 'sent error'
                 else:
                     pass
