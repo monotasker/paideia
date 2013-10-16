@@ -5,7 +5,6 @@ from ast import literal_eval
 
 if 0:
     from gluon import current, SQLFORM, Field, URL, redirect
-    request = current.request
     session = current.session
     response = current.response
     auth = current.auth
@@ -43,6 +42,7 @@ def index():
 
     :Permissions: user must be logged in.
     """
+    request = current.request
     print 'getting index'
     print 'vars', request.vars
     print 'args', request.args
@@ -89,7 +89,7 @@ def walk():
                                Field('shadow', 'integer')
                                )
     if testform.process().accepted:
-        redirect(URL('exploring', 'walk.load', args=['ask']))
+        redirect(URL('exploring', 'walk.load', args=['ask'], vars=request.vars))
     elif testform.errors:
         response.flash = 'Form had errors'
         print testform.errors
