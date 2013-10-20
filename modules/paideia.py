@@ -862,6 +862,7 @@ class Step(object):
     def get_locations(self):
         """Return a list of the location id's for this step."""
         db = current.db
+        print 'locations for step are', self.data['locations']
         return [l for l in self.data['locations']
                 if db.locations[l].loc_active is True]
 
@@ -1640,6 +1641,8 @@ class Path(object):
         next_loc = None
         goodlocs = mystep.get_locations()
         if not loc.get_id() in goodlocs:
+            print 'path.get_step_for_prompt: this loc is', loc.get_id()
+            print 'path.get_step_for_prompt: good locs are', goodlocs
             next_loc = goodlocs[randrange(len(goodlocs))]
             print 'path.get_step_for_prompt: next step can\'t be done here'
             print 'path.get_step_for_prompt: redirecting to loc', next_loc

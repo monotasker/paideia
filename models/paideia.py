@@ -196,10 +196,10 @@ db.steps.step_options.widget = SQLFORM.widgets.list.widget
 #db.steps.response1.requires = IS_VALID_REGEX()
 db.steps.npcs.requires = IS_IN_DB(db, 'npcs.id',
                                       db.npcs._format, multiple=True)
-db.steps.npcs.widget = lambda field, value: AjaxSelect(field, value, 'npcs',
-                                                       multi='basic',
-                                                       lister='editlinks'
-                                                       ).widget()
+#db.steps.npcs.widget = lambda field, value: AjaxSelect(field, value, 'npcs',
+                                                       #multi='basic',
+                                                       #lister='editlinks'
+                                                       #).widget()
 db.steps.tags.requires = IS_IN_DB(db, 'tags.id',
                                       db.tags._format, multiple=True)
 db.steps.tags.widget = lambda field, value: AjaxSelect(field, value, 'tags',
@@ -229,11 +229,11 @@ db.steps.tags_ahead.widget = lambda field, value: AjaxSelect(field, value,
 db.steps.locations.requires = IS_IN_DB(db, 'locations.id',
                                            db.locations._format,
                                            multiple=True)
-db.steps.locations.widget = lambda field, value: AjaxSelect(field, value,
-                                                            'locations',
-                                                            multi='basic',
-                                                            lister='editlinks'
-                                                            ).widget()
+#db.steps.locations.widget = lambda field, value: AjaxSelect(field, value,
+                                                            #'locations',
+                                                            #multi='basic',
+                                                            #lister='editlinks'
+                                                            #).widget()
 db.steps.hints.requires = IS_IN_DB(db, 'step_hints.id',
                                        db.step_hints._format,
                                        multiple=True)
