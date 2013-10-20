@@ -1,5 +1,15 @@
 {{extend 'layout.html'}}
 
+{{if request.args(0)=='impersonate' and not 'impersonate' in auth.settings.actions_disabled:}}
+    {{if auth.is_impersonating():
+        =A('Return to my usual identity', _href=URL('user', args=['impersonate', 0]), _class='btn btn-success')
+    else:
+        states={True: 'yes', False: 'no'}
+        state = auth.has_permission('impersonate', 'auth_user', auth.user_id)
+        =DIV(SPAN('Does current user have permission to impersonate? {}'.format(states[state])), form, _class='impersonateform')
+    pass}}
+{{pass}}
+
 {{if request.args(0)=='register' and not 'register' in auth.settings.actions_disabled:}}
     <div class='registerform'>
         {{=form}}

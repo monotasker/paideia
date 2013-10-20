@@ -16,3 +16,9 @@ multiple choice with image: 408(step 493)
 ## specific questions
 Path 378 - συκα - gets lost if you leave the location, but requires going to map
 Paths 265, 266 - also get lost if don't go directly
+
+
+- rather than adding auth to current, auth is already on current.session (draw 
+  from there.)
+- remove "shadow" variable from module since 'impersonate' web2py func does 
+  same
