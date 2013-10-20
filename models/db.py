@@ -69,21 +69,36 @@ logger.setLevel(logging.DEBUG)
 # none otherwise. a pattern can be 'controller/function.extension'
 response.generic_patterns = ['*'] if request.is_local else []
 
-
+#-------------------------------------------------------------
+# set up services
+#-------------------------------------------------------------
 crud = Crud(db)                 # for CRUD helpers using auth
 service = Service()             # for json, xml, jsonrpc, xmlrpc, amfrpc
 plugins = PluginManager()       # for configuring plugins
 current.db = db                 # to access db from modules
 
+#-------------------------------------------------------------
 # get private data from secure file
+#-------------------------------------------------------------
 keydata = {}
 with open('applications/paideia/private/app.keys', 'r') as keyfile:
     for line in keyfile:
         k, v = line.split()
         keydata[k] = v
 
+#-------------------------------------------------------------
 #configure authorization
+#-------------------------------------------------------------
 auth = Auth(db, hmac_key=Auth.get_or_create_key())  # authent/authorization
+
+#misc auth settings
+auth.settings.create_user_groups = False
+auth.settings.label_separator = ''
+
+
+#-------------------------------------------------------------
+# Customizing auth tables
+#-------------------------------------------------------------
 
 #adding custom field for user time zone
 auth.settings.extra_fields['auth_user'] = [
@@ -95,7 +110,7 @@ auth.settings.extra_fields['auth_user'] = [
           )
 ]
 
-#adding custom field for user time zone
+#adding custom field for class info in groups
 auth.settings.extra_fields['auth_group'] = [
     Field('institution', 'string', default='Tyndale Seminary'),
     Field('academic_year', 'integer', default=datetime.datetime.utcnow().year),  # was year (reserved term)
@@ -110,7 +125,11 @@ auth.settings.extra_fields['auth_group'] = [
 
 auth.define_tables()                           # creates all needed tables
 
-#configure mail
+
+#-------------------------------------------------------------
+# Mail config
+#-------------------------------------------------------------
+
 mail = Mail()
 mail.settings.server = keydata['email_sender']  # 'logging' # SMTP server
 mail.settings.sender = keydata['email_address']  # email
@@ -127,17 +146,28 @@ auth.settings.reset_password_requires_verification = True
 auth.messages.reset_password = 'Click on the link http://' \
     + request.env.http_host + URL('default', 'user', args=['reset_password'])\
     + '/%(key)s to reset your password'
-#place auth in current so it can be imported by modules
+
+#-------------------------------------------------------------
+# place auth in current so it can be imported by modules
+#-------------------------------------------------------------
+
 current.auth = auth
 
-#enable recaptcha anti-spam for selected actions
+#-------------------------------------------------------------
+# enable recaptcha anti-spam for selected actions
+#-------------------------------------------------------------
+
 auth.settings.login_captcha = None
 # TODO: turn these back on!!!!
-#auth.settings.register_captcha = Recaptcha(request,
-    #keydata['captcha_public_key'], keydata['captcha_private_key'])
+auth.settings.register_captcha = Recaptcha(request,
+    keydata['captcha_public_key'], keydata['captcha_private_key'])
 auth.settings.retrieve_username_captcha = Recaptcha(request,
     keydata['captcha_public_key'], keydata['captcha_private_key'])
 auth.settings.retrieve_password_captcha = Recaptcha(request,
     keydata['captcha_public_key'], keydata['captcha_private_key'])
 
-crud.settings.auth = None        # =auth to enforce authorization on crud
+#-------------------------------------------------------------
+# crud settings
+#-------------------------------------------------------------
+
+crud.settings.auth = auth  # =auth to enforce authorization on crud

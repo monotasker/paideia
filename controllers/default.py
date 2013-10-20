@@ -31,8 +31,19 @@ def user():
     http://..../[app]/default/user/logout
     http://..../[app]/default/user/register
     http://..../[app]/default/user/profile
-    http://..../[app]/default/user/retrieve_password
     http://..../[app]/default/user/change_password
+    http://..../[app]/default/user/verify_email
+    http://..../[app]/default/user/retrieve_username
+    http://..../[app]/default/user/request_reset_password
+    http://..../[app]/default/user/reset_password
+    http://..../[app]/default/user/impersonate  # user is request.args[0]
+        auth.is_impersonating() checks whether current user is shadowing another
+        only allowed if has_permission('impersonate', db.auth_user, user_id)
+    http://..../[app]/default/user/groups
+        lists user's group memberships
+    http://..../[app]/default/user/not_authorized
+
+    code for these actions is in gluon/tools.py in Auth() class
     """
     return dict(form=auth())
 
