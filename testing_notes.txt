@@ -7,8 +7,12 @@
 
 ## Paths with specific features
 Image in path: 317, 86
-Audio in path: 
+Audio in path: 386
 Multiple steps: 63, 64
 Name in prompt: 301, 70
 multiple choice: path 89(step 101)
 multiple choice with image: 408(step 493)
+
+## specific questions
+Path 378 - συκα - gets lost if you leave the location, but requires going to map
+Paths 265, 266 - also get lost if don't go directly
