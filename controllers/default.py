@@ -21,7 +21,19 @@ mail = current.mail
 
 def index():
     """    """
-    return dict()
+    mod_topic = db(db.topics.topic == 'index-modals').select(db.topics.id).first()
+    modals = db(db.content_pages.topics.contains([mod_topic.id])).select().as_list()
+    print len(modals)
+    hero_topic = db(db.topics.topic == 'hero').select(db.topics.id).first()
+    hero = db(db.content_pages.topics.contains([hero_topic.id])).select().as_list()
+    return {'modals': modals, 'hero': hero}
+
+
+def faqs():
+    """ """
+    faqs_topic = db(db.topics.topic == 'faqs').select(db.topics.id).first()
+    faqs = db(db.content_pages.topics.contains([faqs_topic.id])).select().as_list()
+    return {'faqs': faqs}
 
 
 def user():
