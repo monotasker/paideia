@@ -18,6 +18,8 @@ if 0:
 #TODO: move these to an AjaxSelect model file
 response.files.insert(5, URL('static',
                       'plugin_ajaxselect/plugin_ajaxselect.js'))
+response.files.insert(6, URL('static',
+                      'plugin_framework/js/jquery-ui-1.10.3.custom/js/jquery-ui-1.10.3.custom.min.js'))
 #response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.css'))
 
 dtnow = datetime.datetime.utcnow()
@@ -99,7 +101,7 @@ db.define_table('tags',
     Field('tag', 'string', unique=True),
     Field('tag_position', 'integer'),  # was position (reserved term)
     Field('slides', 'list:reference plugin_slider_decks'),
-    format='%(tag)s')
+    format=lambda row: row['tag'])
 
 db.tags.tag.requires = IS_NOT_IN_DB(db, 'tags.tag')
 
@@ -281,11 +283,11 @@ db.define_table('paths',
 db.paths.steps.requires = IS_IN_DB(db, 'steps.id',
                                    db.steps._format, multiple=True)
 db.paths.steps.widget = lambda field, value: AjaxSelect(field, value,
-                                                        'steps',
+                                                        indx=1,
                                                         refresher=True,
                                                         multi='basic',
                                                         lister='editlinks',
-                                                        sortable='true'
+                                                        sortable=True
                                                         ).widget()
 
 
