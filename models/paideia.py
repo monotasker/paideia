@@ -411,9 +411,15 @@ db.executesql('CREATE INDEX IF NOT EXISTS idx_userstats_1 '
 db.executesql('CREATE INDEX IF NOT EXISTS idx_userstats_1 '
               'ON user_stats (year, week, name);')
 
+db.define_table('topics',
+    Field('topic', 'string'),
+    format='%(topic)s')
+
 db.define_table('content_pages',
+    Field('title', 'string'),
     Field('content', 'text'),
     Field('first_authored', 'datetime', default=dtnow),
     Field('last_updated', 'datetime', default=dtnow),
     Field('author', 'reference auth_user', default=auth.user_id),
-    format='%(page_title)s')
+    Field('topics', 'list:reference topics'),
+    format='%(title)s')
