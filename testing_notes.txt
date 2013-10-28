@@ -22,3 +22,6 @@ Paths 265, 266 - also get lost if don't go directly
   from there.)
 - remove "shadow" variable from module since 'impersonate' web2py func does 
   same
+
+^I\s(am\s((beginning|starting|about|going)\sto\s)?)?(?P<a>repeatedly\s|over\sand\sover\s)?(?P<b>usually\s|always\s|often\s)?(go|mov(?P<c>e)?)(?(c)|ing)(?(a)|\s(repeatedly|\sover\sand\sover))?(?(b)|\s(usually|always|often))?\.?$
+
