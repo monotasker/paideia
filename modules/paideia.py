@@ -13,10 +13,10 @@ import datetime
 from dateutil import parser
 import traceback
 from pytz import timezone
-from plugin_widgets import POPOVER, ROLE
+from plugin_widgets import POPOVER, ROLE, MODAL
 import pickle
 #from pprint import pprint
-from paideia_utils import send_error
+#from paideia_utils import send_error
 
 # TODO: move these notes elsewhere
 """
@@ -208,10 +208,10 @@ class Walk(object):
         loc = Location(loc_id)
         user.set_location(loc)  # called only in ask?
 
-        p = user.get_path(path=path, repeat=repeat)
+        p, category = user.get_path(path=path, repeat=repeat)
         print 'walk.ask: got path', p.get_id()
-        s, newloc_id, category = p.get_step_for_prompt(repeat=repeat)
         user.active_cat = category
+        s, newloc_id = p.get_step_for_prompt(repeat=repeat)
         print 'walk.ask: got step', s.get_id()
         if newloc_id:
             user._set_block('redirect', kwargs={'next_loc': newloc_id})
@@ -320,29 +320,23 @@ class Walk(object):
         db = current.db
         user = self._get_user()
         user_id = user.get_id()
+
         # allow manual setting of blocks for testing
         if set_blocks:
             for c, v in set_blocks.iteritems():
                 myargs = {n: a for n, a in v.iteritems()}
                 user._set_block(c, kwargs=myargs)
 
-        #print 'walk.reply: localias is', localias
         loc_id = db(db.locations.loc_alias == localias).select().first().id
         if loc_id != user.loc.get_id():
-            #print 'walk.reply: different id than for prompt, updating'
             loc = Location(loc_id)
             user.set_location(loc)
-            #print 'walk.reply: set user.loc to', user.loc.get_id()
 
-        p = user.get_path(reply=True)
-        #print 'walk.reply: path is', p.get_id()
-        #print 'walk.reply: p.step_for_reply is', p.step_for_reply.get_id()
+        p, cat = user.get_path(reply=True)
         s = p.get_step_for_reply()
-        #print 'walk.reply: step is', s.get_id()
 
         # make sure there's a response to evaluate
         if (not response_string) or re.match(response_string, r'\s+'):
-            print 'walk.reply: no response string, re-prompting'
             return self.ask()  # TODO: will this actually re-prompt the same step?
 
         # TODO: should blocks be checked at all in reply()?
@@ -379,9 +373,10 @@ class Walk(object):
 
         # info for admin and debugging
         try:
-            editlinks = self._get_editlinks(p.get_id(), s.get_id(), self.active_cat)
+            editlinks = self._get_editlinks(p.get_id(), s.get_id(), user.active_cat)
             responder.append(editlinks)
         except Exception:
+            print traceback.format_exc(5)
             pass
 
         p.complete_step()  # removes path.step_for_reply
@@ -759,9 +754,12 @@ class BugReporter(object):
               ' to submit a bug report. You can find the instructor\'s ',
               'response in the "bug reports" tab of your user profile.')
 
-        br = POPOVER().widget('Something wrong?', c,
-                              id='bug_reporter',
-                              placement='left')
+        br = MODAL('Something wrong?',
+                   'Did you run into a problem?',
+                   c,
+                   trigger_type='link',
+                   trigger_classes='bug_reporter',
+                   id='bug_reporter_modal')
 
         return br
 
@@ -2056,9 +2054,9 @@ class User(object):
         """
         db = current.db if not db else db
         categories = self.categories if not categories else categories
-        #print 'user.get_path: user.loc is', self.loc.get_id()
-        #if self.prev_loc:
-            #print 'user.get_path: user.prev_loc is', self.prev_loc.get_id()
+        choice = None
+        redir = None
+        cat = None
 
         if path:
             if not self.prev_loc:  # FIXME: hack to handle error ticket
@@ -2082,47 +2080,37 @@ class User(object):
                                  username=self.name)
         elif self.path and self.path.step_for_reply:
             # there's a step waiting for a reply
-            print 'user.get_path: path has step needing reply'
             self.path.set_location(self.loc)
             self.path.prev_npc = self.prev_npc
         elif self.path and len(self.path.steps):
             # there's still an unfinished step in self.path
-            print 'user.get_path: path includes a further step, continuing'
-            print 'user.get_path:', len(self.path.steps), 'more steps'
             self.path.set_location(self.loc)
             self.path.prev_npc = self.prev_npc
         else:
             if self.path:
-                print 'user.get_path: completing path', self.path.get_id()
                 self.complete_path()  # catch end-of-path and triggers new choice
             if not self.tag_progress:  # in case User was badly initialized
                 self.get_categories()
-            print 'user.get_path: choosing new path'
             # FIXME: For some reason PathChooser.choose() is returning None for
             # path sometimes
-            choice = (None,)
-            while not choice or not choice[0]:
-                choice = PathChooser(self.tag_progress, self.loc.get_id(),
-                                    self.completed_paths).choose()
+            while not choice:
+                choice, redir, cat = PathChooser(self.tag_progress, self.loc.get_id(),
+                                                 self.completed_paths).choose()
                 if not choice:
-                    choice = (None,)
+                    choice = None
                     print 'sending error'
-                    send_error('User', 'get_path', current.request)
-                    print 'sent error'
-                elif not choice[0]:
-                    print 'sending error'
-                    send_error('User', 'get_path', current.request)
+                    #send_error('User', 'get_path', current.request)
                     print 'sent error'
                 else:
                     pass
 
-            path = Path(path_id=choice[0]['id'],
+            path = Path(path_id=choice['id'],
                         loc=self.loc,
                         prev_loc=self.prev_loc,
                         prev_npc=self.prev_npc,
                         username=self.name)
-            if choice[1]:  # check for a redirect location
-                self._set_block('redirect', kwargs={'next_loc': choice[1]})
+            if redir:
+                self._set_block('redirect', kwargs={'next_loc': redir})
             self.path = path
 
         if (len(self.completed_paths) == self.quota) and \
@@ -2137,7 +2125,7 @@ class User(object):
             # redirect block after initial redirect has been triggered
             self.blocks = [b for b in self.blocks if not b.get_condition() is 'redirect']
             print 'user.get_path: now blocks is', [b.get_condition() for b in self.blocks]
-        return self.path
+        return (self.path, cat)
 
     def get_categories(self, user_id=None, rank=None, old_categories=None,
                        tag_records=None, utcnow=None):

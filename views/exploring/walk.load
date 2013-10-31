@@ -15,13 +15,14 @@ ap.append(form)
 	<embed id='town_map' src='{{=map["map_image"]}}' type='image/svg+xml' />
 <!--step interface-->
 {{else:}}
-    <div class='bg_image'>{{=npc['bg_image']}}</div>
     <div class='speaker'>{{=npc['npc_image']}}</div>
     {{=npc['npc']}}
     {{=responder}}
+    <div class='bg_image'>{{=npc['bg_image']}}</div>
 {{pass}}
 
 <script>
+
 $('.popover-trigger').each(function() {
     var $this = $(this);
     $this.popover({html: true,
