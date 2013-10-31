@@ -30,21 +30,23 @@ from termcolor import colored
          #'Πωλῃ καρπους Ἀλεξανδρος.',
          #]
 
-lines = ['You are doing', 'You usually do', 'You often do', 'You do over and over']
+lines = ['I am giving', 'I usually give', 'I often provide', 'I donate over and over']
 
 regex = """
 ^
-(y|Y)ou\s
-(are\s((beginning|starting|about|going)\sto\s)?)?
+I\s
+(am\s((beginning|starting|about|lifting)\sto\s)?)?
 (?P<a>repeatedly\s|over\sand\sover\s)?
 (?P<b>usually\s|always\s|often\s)?
-(do|mak(?P<c>e)?)(?(c)|ing)?
+(donat|giv|provid)(?P<c>e)?(?(c)|ing)?
 (?(a)|\s(repeatedly|over\sand\sover))?
 (?(b)|\s(usually|always|often))?
 \.?
 $
 """
 
+
+#(buy|perceiv(?P<c>e)?)(?(c)|ing)?
 #lines = ['You are hearing', 'You usually listen', 'You often hear', 'You listen over and over']
 
 #regex = """
