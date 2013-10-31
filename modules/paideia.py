@@ -292,7 +292,7 @@ class Walk(object):
             #print 'walk.ask: final blocks on p is', [b for b in p.blocks]
         print 'END OF WALK.ASK'
         print '==============================\n'
-
+        print 'bg_image:', prompt['bg_image']
         return {'npc': prompt, 'responder': responder}
 
     def reply(self, localias, response_string, path=None,
@@ -603,8 +603,7 @@ class Location(object):
         IMG helper object."""
         db = current.db
         try:
-            url = URL('static/images', db.images[self.data['bg_image']].image)
-            bg = IMG(_src=url)
+            bg = URL('static/images', db.images[self.data['bg_image']].image)
         except Exception:
             print traceback.format_exc(5)
             bg = SPAN('no image in db for location {}'.format(self.data['id']))

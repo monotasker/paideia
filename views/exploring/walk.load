@@ -18,10 +18,14 @@ ap.append(form)
     <div class='speaker'>{{=npc['npc_image']}}</div>
     {{=npc['npc']}}
     {{=responder}}
-    <div class='bg_image'>{{=npc['bg_image']}}</div>
 {{pass}}
 
 <script>
+
+{{if 'npc' in globals():}}
+$('#page').css("background-image", "url({{=npc['bg_image']}})");
+$('#page').css("background-size", "auto 100%");
+{{pass}}
 
 $('.popover-trigger').each(function() {
     var $this = $(this);

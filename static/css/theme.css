@@ -10041,7 +10041,6 @@ body #main.exploring #page .responder {
   border-radius: 8px 8px 8px 8px;
   padding: 24px;
   background-color: #ffffff;
-  position: relative;
   -moz-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   -webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   -o-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
