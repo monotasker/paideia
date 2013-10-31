@@ -41,13 +41,13 @@ g11
 ssS'type'
 p15
 (dp16
-S'type'
+S'sortable'
 p17
-S'string'
-p18
-sS'sortable'
-p19
 I2
+sS'type'
+p18
+S'string'
+p19
 sS'sql'
 p20
 S'CHAR(512) UNIQUE'
