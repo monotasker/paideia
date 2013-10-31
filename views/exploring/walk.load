@@ -5,7 +5,7 @@
 </div>
 
 {{ap = DIV(H3('Admin Panel'), _class='admin-panel')
-            
+
 ap.append(form)
 }}
 {{=ROLE(ap)}}

@@ -210,7 +210,8 @@ class Walk(object):
 
         p = user.get_path(path=path, repeat=repeat)
         print 'walk.ask: got path', p.get_id()
-        s, newloc_id = p.get_step_for_prompt(repeat=repeat)
+        s, newloc_id, category = p.get_step_for_prompt(repeat=repeat)
+        user.active_cat = category
         print 'walk.ask: got step', s.get_id()
         if newloc_id:
             user._set_block('redirect', kwargs={'next_loc': newloc_id})
@@ -378,7 +379,7 @@ class Walk(object):
 
         # info for admin and debugging
         try:
-            editlinks = self._get_editlinks(p.get_id(), s.get_id())
+            editlinks = self._get_editlinks(p.get_id(), s.get_id(), self.active_cat)
             responder.append(editlinks)
         except Exception:
             pass
@@ -391,7 +392,7 @@ class Walk(object):
 
         return {'npc': reply, 'responder': responder}
 
-    def _get_editlinks(self, pid, sid):
+    def _get_editlinks(self, pid, sid, cat):
         """
         Return an html helper object with links to edit current path and step.
         """
@@ -403,7 +404,9 @@ class Walk(object):
                      _href=URL('editing', 'listing', args=['paths', pid]),
                      _class='prompt-p-editlink'
                      )
-        links = ROLE(SPAN(pathedit, ', ', stepedit, _class='prompt-editlinks'))
+        catnum = ' choosing from category {}'.format(cat)
+        links = ROLE(SPAN(pathedit, ', ', stepedit, catnum,
+                          _class='prompt-editlinks'))
         return links
 
     def _record_cats(self, tag_progress, promoted,
