@@ -86,7 +86,6 @@ def walk():
                                Field('location', 'reference locations'),
                                Field('blocks'),
                                Field('new_user', 'boolean'),
-                               Field('shadow', 'integer')
                                )
     if testform.process().accepted:
         redirect(URL('exploring', 'walk.load', args=['ask'], vars=request.vars))
@@ -117,7 +116,7 @@ def walk():
     if 'path' in rvars and not (rvars['path'] in ['', None, 'undefined']):
         stepargs['path'] = rvars['path']
 
-    if not request.vars.loc:
+    if not request.vars.loc:  # TODO: Does this do anything?
         request.vars.loc = None
 
     # variables for Walk init
@@ -125,13 +124,9 @@ def walk():
     if 'new_user' in request.vars and request.vars.new_user == 'on':
         print 'forcing new user'
         new_user is True
-    shadow = False
-    if 'shadow' in rvars and not (rvars['shadow'] in ['', None, 'undefined']):
-        print 'shadowing user', rvars['shadow']
-        stepargs['shadow'] = rvars['shadow']
 
-    resp = Walk(new_user=new_user, shadow=shadow).start(request.vars.loc,
-                                                        **stepargs)
+    resp = Walk(new_user=new_user).start(request.vars.loc,
+                                         **stepargs)
     resp['form'] = testform
 
     return resp
