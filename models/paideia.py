@@ -194,7 +194,7 @@ db.define_table('steps',
     Field('npcs', 'list:reference npcs'),
     Field('locations', 'list:reference locations'),
     Field('status', db.step_status, default=1),
-    format='%(prompt)s')
+    format='%(id)s: %(prompt)s')
 db.steps.step_options.widget = SQLFORM.widgets.list.widget
 #db.steps.response1.requires = IS_VALID_REGEX()
 db.steps.npcs.requires = IS_IN_DB(db, 'npcs.id', db.npcs._format, multiple=True)

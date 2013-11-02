@@ -15,7 +15,7 @@ import traceback
 from pytz import timezone
 from plugin_widgets import POPOVER, ROLE, MODAL
 import pickle
-#from pprint import pprint
+from pprint import pprint
 #from paideia_utils import send_error
 
 # TODO: move these notes elsewhere
@@ -1841,11 +1841,16 @@ class PathChooser(object):
 
         # cycle through categories, starting with the one from _get_category()
         for cat in cat_list:
+            print 'PathChooser.choose: trying cat', cat
             catpaths = self._paths_by_category(cat, self.rank)
             if catpaths[0]:
+                print 'PathChooser.choose: found', len(catpaths), 'paths in cat'
+                for c in catpaths[0]:
+                    print'catpath -', pprint(c)
                 return self._choose_from_cat(catpaths[0], catpaths[1])
             else:
-                pass
+                print 'PathChooser.choose: found NO paths in cat', cat
+                continue
 
         return False
 
@@ -2093,6 +2098,7 @@ class User(object):
             while not choice:
                 choice, redir, cat = PathChooser(self.tag_progress, self.loc.get_id(),
                                                  self.completed_paths).choose()
+                print 'PathChooser returned ', 'choice', choice, 'redir', redir, 'cat', cat
                 if not choice:
                     choice = None
                     print 'sending error'
