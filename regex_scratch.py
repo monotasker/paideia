@@ -30,10 +30,39 @@ from termcolor import colored
          #'Πωλῃ καρπους Ἀλεξανδρος.',
          #]
 
-lines = ['He is hearing', 'She is beginning to listen', 'She usually hears', 'He often hears', 'It listens']
+lines = ['I am giving', 'I usually give', 'I often provide', 'I donate over and over']
 
-regex = '^(He|She|It)\s(is\s((beginning|starting|about|going)\sto\s)?)?(?P<a>repeatedly\s|over\sand\sover\s)?(?P<b>usually\s|always\s|often\s)?((hear|listen|perceiv)(?P<c>(e)?s)?)(?(c)|ing)?(?(a)|\s(repeatedly|\sover\sand\sover))?(?(b)|\s(usually|always|often))?\.?$'
+regex = """
+^
+I\s
+(am\s((beginning|starting|about|lifting)\sto\s)?)?
+(?P<a>repeatedly\s|over\sand\sover\s)?
+(?P<b>usually\s|always\s|often\s)?
+(donat|giv|provid)(?P<c>e)?(?(c)|ing)?
+(?(a)|\s(repeatedly|over\sand\sover))?
+(?(b)|\s(usually|always|often))?
+\.?
+$
+"""
 
+
+#(buy|perceiv(?P<c>e)?)(?(c)|ing)?
+#lines = ['You are hearing', 'You usually listen', 'You often hear', 'You listen over and over']
+
+#regex = """
+#^
+#You\s
+#(are\s((beginning|starting|about|going)\sto\s)?)?
+#(?P<a>repeatedly\s|over\sand\sover\s)?
+#(?P<b>usually\s|always\s|often\s)?
+#(hear|listen)(ing)?
+#(?(a)|\s(repeatedly|over\sand\sover))?
+#(?(b)|\s(usually|always|often))?
+#\.?
+#$
+#"""
+
+#(hear|perceiv(?P<c>e)?)(?(c)|ing)?
 #regex = """
 #^
 #(Χαιρε((,)?\s((ὠ|Ὠ)\s)?(Ἀλεξανδρε|καλε|φιλε|γενναιε|κυριε))?[\.,!]\s)?
