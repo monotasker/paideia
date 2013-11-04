@@ -1,4 +1,7 @@
 # coding: utf-8
+"""
+Controller functions handling back-end utility tasks (mostly db maintenance).
+"""
 
 if 0:
     from gluon import current, SQLFORM, BEAUTIFY, Field, UL, LI, A, P, URL
