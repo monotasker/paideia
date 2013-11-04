@@ -1,13 +1,17 @@
 €}q(U	exploring]q(UindexqUdbqUrequestqUauthqUsessionqUwalkqUresponseq	eUtest_paideia]q
 (UmynpcqUTestStepEvaluatorqUglobal_run_TestStepAwardBadgesqUTestStepMultipleqUmyStepViewSlidesqUglobal_run_TestStepqUTestLocationqU global_run_TestMultipleEvaluatorqUTestStepqUmynpcchooserqUglobal_run_TestNpcChooserqUglobal_run_TestStepEvaluatorqUdtqUTestStepRedirectqUglobal_run_TestLocationqUglobal_run_TestStepTextqUglobal_runallqUTestMultipleEvaluatorqUglobal_run_TestStepViewSlidesqUmyblocksqUmyuserqUmystepq Umyblockq!Umywalkq"Uimagesq#Uglobal_run_TestWalkq$Umynpc_stephanosq%Uglobal_run_TestPathq&UTestStepViewSlidesq'Uglobal_run_TestPathChooserq(Unpc_dataq)UTestNpcq*UTestWalkq+UTestStepAwardBadgesq,UmyStepRedirectq-U
 myStepTextq.Umycategorizerq/Umypathchooserq0UmyStepAwardBadgesq1Uglobal_run_TestStepRedirectq2Uglobal_run_TestUserq3Uglobal_run_TestCategorizerq4UmyMultipleEvaluatorq5UTestCategorizerq6UmyStepQuotaReachedq7UTestUserq8Umypathq9UmyStepMultipleq:UTestBugReporterq;UmyStepEvaluatorq<UTestPathChooserq=Umyloc_synagogueq>Uglobal_run_TestNpcq?UTestStepTextq@UmylocqAUmycasesqBUmystepsqCUTestPathqDUglobal_run_TestStepMultipleqEeUcreating]qF(UcrudqGUbugqHUcacheqIUrequestqJUresponseqKUsessionqLUTUdbqMUtagqNUauthqOeUmodules.paideia_bugs]qPUBugqQaUplugin_listandedit]qR(UwidgetqSUmakeurlqTUdbqUUrequestqVUeditqWUsessionqXUitemlistqYU
-dupAndEditqZUresponseq[eUdefault]q\(Usend_mail_to_userq]Usessionq^Udownloadq_Uindexq`UserviceqaUmailqbUcsvqcUdbqdUauthqeUuserqfUresponseqgUinfoqhUrequestqiUoopsqjUTeUtest_exploring]qkUTestExploringqlaUmodules.paideia_utils]qmU
-send_errorqnaUmodules.paideia]qo(UStepFactoryqpUBugReporterqqUStepAwardBadgesqrUMapqsUNpcqtUStepquUStepContinueqvUStepTextqwUStepRedirectqxUUserqyUStepMultipleqzU
-NpcChooserq{UMultipleEvaluatorq|UStepQuotaReachedq}UStepEvaluatorq~UBlockqUCategorizerq€Uutil_get_argsqUStepViewSlidesq‚UPathqƒUWalkq„UPathChooserq…ULocationq†eUdb]q‡(UpluginsqˆhahgUtemp_dirq‰UloggerqŠUcrudq‹UkeydataqŒhdhehbUlineqUkhiUvUkeyfileqeUpaideia]q(UPathsVirtualFieldsqUdtnowq‘Udbq’Urequestq“Uauthq”Uresponseq•eUruntest]q–(U
-run_pytestq—Upathsq˜Urunpathq™eUtest_plugin_ajaxselect]qš(U	REFRESHERq›UFIELDSETqœU
-SELECT_XMLqUFIELDqUADDERqŸUTestAjaxSelectq Umyselectq¡eUconftest]q¢(Udirsq£Uappnameq¤Ufixture_cleanup_dbq¥Udbq¦Ubaseurlq§U'fixture_create_testfile_for_applicationq¨Uclientq©U
-user_loginqªUweb2pyq«Umodules_pathq¬eUregex_scratch]q­(Uregexq®U	condensedq¯Ugoodlistq°U
-test_regexq±UmUcounterq²Ulinesq³UlUroman_charsq´U
-Greek_onlyqµeUtest_controllers_exploring]q¶hlaUplugin_slider]q·(U Plugin_slider_decksVirtualFieldsq¸Udbq¹UresponseqºeUlisting]q»(Uadd_user_formq¼Uremove_userq½Usessionq¾Unewsq¿Udemote_userqÀUuserlistqÁUdbqÂUauthqÃUslidesqÄUuserqÅUresponseqÆUpromote_userqÇUrequestqÈUadd_userqÉeUplugin_ajaxselect]qÊ(UFilteredOptionsWidgetqËUFilteredAjaxSelectqÌU
-AjaxSelectqÍU	listcheckqÎeUmodules.paideia_stats]qÏ(UStatsqĞU
-get_offsetqÑUweek_boundsqÒeUplugin_widgets]qÓ(UJQMODALqÔU	ACCORDIONqÕUTOOLTIPqÖUTABSq×UROLEqØUMODALqÙUPOPOVERqÚUICONLINKqÛeu.
+dupAndEditqZUresponseq[eUdefault]q\(Usend_mail_to_userq]Usessionq^Udownloadq_Uindexq`UserviceqaUmailqbUcsvqcUdbqdUauthqeUuserqfUresponseqgUinfoqhUrequestqiUoopsqjUTeUtest_exploring]qkUTestExploringqlaUregex_scratch]qm(UregexqnU	condensedqoUgoodlistqpU
+test_regexqqUmUcounterqrUlinesqsUlUroman_charsqtU
+Greek_onlyqueUmodules.paideia]qv(UStepFactoryqwUBugReporterqxUStepAwardBadgesqyUMapqzUNpcq{UStepq|UStepContinueq}UStepTextq~UStepRedirectqUUserq€UStepMultipleqU
+NpcChooserq‚UMultipleEvaluatorqƒUStepQuotaReachedq„UStepEvaluatorq…UBlockq†UCategorizerq‡Uutil_get_argsqˆUStepViewSlidesq‰UPathqŠUWalkq‹UPathChooserqŒULocationqeUdb]q(UpluginsqhahgUtemp_dirqUloggerq‘Ucrudq’Ukeydataq“hdhehbUlineq”UkhiUvUkeyfileq•eUpaideia]q–(UPathsVirtualFieldsq—Udtnowq˜hUhVUauthq™h[eUruntest]qš(U
+run_pytestq›UpathsqœUrunpathqeUtest_plugin_ajaxselect]q(U	REFRESHERqŸUFIELDSETq U
+SELECT_XMLq¡UFIELDq¢UADDERq£UTestAjaxSelectq¤Umyselectq¥eUconftest]q¦(Udirsq§Uappnameq¨Ufixture_cleanup_dbq©UdbqªUbaseurlq«U'fixture_create_testfile_for_applicationq¬Uclientq­U
+user_loginq®Uweb2pyq¯Umodules_pathq°eUmodules.paideia_utils]q±U
+send_errorq²aUtest_controllers_exploring]q³hlaUplugin_slider]q´(U
+prev_slideqµU
+show_slideq¶hUhVhXU
+start_deckq·U
+next_slideq¸h[Ueditformq¹eUlisting]qº(Uadd_user_formq»Uremove_userq¼Usessionq½Unewsq¾Udemote_userq¿UuserlistqÀUdbqÁUauthqÂUslidesqÃUuserqÄUresponseqÅUpromote_userqÆUrequestqÇUadd_userqÈeUplugin_ajaxselect]qÉ(UFilteredOptionsWidgetqÊUFilteredAjaxSelectqËU
+AjaxSelectqÌU	listcheckqÍeUmodules.paideia_stats]qÎ(UStatsqÏU
+get_offsetqĞUweek_boundsqÑeUplugin_widgets]qÒ(UJQMODALqÓU	ACCORDIONqÔUTOOLTIPqÕUTABSqÖUROLEq×UMODALqØUPOPOVERqÙUICONLINKqÚeu.
