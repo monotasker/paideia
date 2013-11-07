@@ -15,7 +15,7 @@ import traceback
 from pytz import timezone
 from plugin_widgets import POPOVER, ROLE, MODAL
 import pickle
-#from pprint import pprint
+from pprint import pprint
 #from paideia_utils import send_error
 
 # TODO: move these notes elsewhere
@@ -75,7 +75,7 @@ class Walk(object):
 
     def __init__(self, tag_records=None, tag_progress=None,
                  response_string=None, userdata=None, db=None,
-                 new_user=None, shadow=None):
+                 new_user=None):
         """Initialize a Walk object."""
         db = current.db if not db else db
         # TODO: fix redundant db call here
@@ -85,54 +85,56 @@ class Walk(object):
         self.user = self._get_user(userdata=userdata,
                                    tag_records=tag_records,
                                    tag_progress=tag_progress,
-                                   new_user=new_user,
-                                   shadow=shadow)
+                                   new_user=new_user)
         # TODO is record_id necessary?
         self.record_id = None  # stores step log row id after db update
 
+    def _new_user(self, userdata, tag_records, tag_progress):
+        '''Return a new User object for the currently logged in user.'''
+        auth = current.auth
+        db = current.db
+        uid = auth.user_id
+        userdata = db.auth_user[uid] if not userdata else userdata
+        userdata = userdata.as_dict()
+        if not tag_records:
+            tag_records = db(db.tag_records.name == uid).select().as_list()
+        if not tag_progress:
+            tag_progress = db(db.tag_progress.name == uid).select().first()
+            if not tag_progress:
+                db.tag_progress.insert(latest_new=1)
+                tag_progress = db(db.tag_progress.name == uid).select().first()
+            tag_progress = tag_progress.as_dict()
+        print 'walk.get_user: creating new user'
+        return User(userdata, tag_records, tag_progress)
+
     def _get_user(self, userdata=None, tag_records=None,
-                  tag_progress=None, new_user=None, shadow=None):
+                  tag_progress=None, new_user=None):
         '''
         Initialize or re-activate User object.
         All named arguments are necessary.
         '''
         auth = current.auth
         db = current.db
-        try:
+        try:  # look for user object already on this Walk
             assert self.user and not new_user
             print 'walk.get_user: retrieved user in memory'
-            pass
         except AttributeError:  # because no user yet on this Walk
             try:
+                print 'walk.get_user: looking for session user in db'
                 sd = db(db.session_data.name ==
                         auth.user_id).select().first()
                 if sd:
                     self.user = pickle.loads(sd['other_data'])
                 else:
                     self.user = None
-                print 'walk.get_user: retrieved user from db'
                 assert self.user.is_stale() is False
-                print 'walk.get_user: new_user is', new_user
                 assert not new_user
-                assert not shadow
-            except (AssertionError, AttributeError):
-                uid = auth.user_id if not shadow else shadow
-                userdata = db.auth_user[uid] if not userdata else userdata
-                userdata = userdata.as_dict()
+            except (KeyError, TypeError):  # Problem with session data
+                print traceback.format_exc(5)
+                self.user = self._new_user(userdata, tag_records, tag_progress)
+            except (AssertionError, AttributeError):  # user stale or block
+                self.user = self._new_user(userdata, tag_records, tag_progress)
 
-                # because no user yet in db, user is stale, or flags present
-                # (new_user or shadow)
-                if not tag_records:
-                    tag_records = db(db.tag_records.name == uid).select().as_list()
-                if not tag_progress:
-                    tag_progress = db(db.tag_progress.name == uid).select().first()
-                    if not tag_progress and not shadow:
-                        db.tag_progress.insert(latest_new=1)
-                        tag_progress = db(db.tag_progress.name == uid).select().first()
-                    tag_progress = tag_progress.as_dict()
-
-                print 'walk.get_user: creating new user'
-                self.user = User(userdata, tag_records, tag_progress)
         return self.user
 
     def start(self, localias, response_string=None, path=None, repeat=None,
@@ -171,8 +173,7 @@ class Walk(object):
         self._store_user(user)
 
     def ask(self, localias=None, path=None, repeat=None,
-            step=None, set_blocks=None, recategorize=None,
-            shadow=None):
+            step=None, set_blocks=None, recategorize=None):
         """
         Return the information necessary to initiate a step interaction.
 
@@ -292,7 +293,7 @@ class Walk(object):
             #print 'walk.ask: final blocks on p is', [b for b in p.blocks]
         print 'END OF WALK.ASK'
         print '==============================\n'
-
+        print 'bg_image:', prompt['bg_image']
         return {'npc': prompt, 'responder': responder}
 
     def reply(self, localias, response_string, path=None,
@@ -317,7 +318,6 @@ class Walk(object):
         """
         print '\n================================'
         print '\nSTART OF Walk.reply()'
-        db = current.db
         user = self._get_user()
         user_id = user.get_id()
 
@@ -326,11 +326,6 @@ class Walk(object):
             for c, v in set_blocks.iteritems():
                 myargs = {n: a for n, a in v.iteritems()}
                 user._set_block(c, kwargs=myargs)
-
-        loc_id = db(db.locations.loc_alias == localias).select().first().id
-        if loc_id != user.loc.get_id():
-            loc = Location(loc_id)
-            user.set_location(loc)
 
         p, cat = user.get_path(reply=True)
         s = p.get_step_for_reply()
@@ -455,6 +450,7 @@ class Walk(object):
                 print traceback.format_exc(5)
                 return False
             return True
+        # FIXME: below shadowing system deprecated
         else:  # auth.user_id != user_id because shadowing another user
             return False
 
@@ -482,75 +478,75 @@ class Walk(object):
         """
         #print 'walk.record_step: starting locals are', pprint(locals())
         db = current.db
-        auth = current.auth
-        if user_id != auth.user_id:  # shadowing another user
-            return False
-        else:
-            now = datetime.datetime.utcnow()
-            # TODO: should the threshold here be less than 1 for 'right'?
-            got_right = True if ((score - 1) < 0.01) else False  # because of float inaccuracy
-            for t in taglist['primary']:
-                #print 'walk.record_step: recording tag', t
-                oldrec = [r for r in old_trecs if r['tag'] == t] if old_trecs else None
-                #print 'walk.record_step: old record is', pprint(oldrec)
-                if oldrec:
-                    tlast_wrong = oldrec[0]['tlast_wrong']
-                    tlast_right = oldrec[0]['tlast_right']
-                    try:  # in case oldrec is None, created for secondary right
-                        times_right = oldrec[0]['times_right'] + times_right
-                    except TypeError:
-                        pass
-                    try:  # in case oldrec is None, created for secondary right
-                        times_wrong = oldrec[0]['times_wrong'] + times_wrong
-                    except TypeError:
-                        pass
-                    if got_right:  # because of float inaccuracy
-                        tlast_right = now
-                    else:
-                        tlast_wrong = now
-                else:  # if no existing record, just set both to now as initial baseline
-                    tlast_wrong = now
+        # TODO: Store and roll back db changes if impersonating
+        #if auth.is_impersonating():  # shadowing another user
+            #return False  # don't record interactions in db (and skew user recs)
+        #else:
+        now = datetime.datetime.utcnow()
+        # TODO: should the threshold here be less than 1 for 'right'?
+        got_right = True if ((score - 1) < 0.01) else False  # because of float inaccuracy
+        for t in taglist['primary']:
+            #print 'walk.record_step: recording tag', t
+            oldrec = [r for r in old_trecs if r['tag'] == t] if old_trecs else None
+            #print 'walk.record_step: old record is', pprint(oldrec)
+            if oldrec:
+                tlast_wrong = oldrec[0]['tlast_wrong']
+                tlast_right = oldrec[0]['tlast_right']
+                try:  # in case oldrec is None, created for secondary right
+                    times_right = oldrec[0]['times_right'] + times_right
+                except TypeError:
+                    pass
+                try:  # in case oldrec is None, created for secondary right
+                    times_wrong = oldrec[0]['times_wrong'] + times_wrong
+                except TypeError:
+                    pass
+                if got_right:  # because of float inaccuracy
                     tlast_right = now
-                #print 'walk.record_step: times right', times_right
-                #print 'walk.record_step: times wrong', times_wrong
-                #print 'walk.record_step: tlast_right', tlast_right
-                #print 'walk.record_step: tlast_wrong', tlast_wrong
+                else:
+                    tlast_wrong = now
+            else:  # if no existing record, just set both to now as initial baseline
+                tlast_wrong = now
+                tlast_right = now
+            #print 'walk.record_step: times right', times_right
+            #print 'walk.record_step: times wrong', times_wrong
+            #print 'walk.record_step: tlast_right', tlast_right
+            #print 'walk.record_step: tlast_wrong', tlast_wrong
+
+            condition = {'tag': t, 'name': user_id}
+            db.tag_records.update_or_insert(condition,
+                                            tag=t,
+                                            times_right=times_right,
+                                            times_wrong=times_wrong,
+                                            tlast_right=tlast_right,
+                                            tlast_wrong=tlast_wrong)
+
+        if got_right and ('secondary' in taglist.keys()):
+            for t in taglist['secondary']:
+                #print 'walk.record_step: appending sec right to tag', t
+                oldrec = [r for r in old_trecs if r['tag'] == t]
+                #print 'oldrec is ', pprint(oldrec)
+
+                sec_right = [now]  # default
+                if len(oldrec) and oldrec[0]:
+                    sec_right = oldrec[0]['secondary_right']
+                    #print 'secright is ', pprint(oldrec)
+                    try:
+                        sec_right.append(now)
+                    except AttributeError:  # because secondary_right is None
+                        pass  # use default set above
 
                 condition = {'tag': t, 'name': user_id}
                 db.tag_records.update_or_insert(condition,
                                                 tag=t,
-                                                times_right=times_right,
-                                                times_wrong=times_wrong,
-                                                tlast_right=tlast_right,
-                                                tlast_wrong=tlast_wrong)
+                                                secondary_right=sec_right)
 
-            if got_right and ('secondary' in taglist.keys()):
-                for t in taglist['secondary']:
-                    #print 'walk.record_step: appending sec right to tag', t
-                    oldrec = [r for r in old_trecs if r['tag'] == t]
-                    #print 'oldrec is ', pprint(oldrec)
+        log_args = {'name': user_id,
+                    'step': step_id,
+                    'in_path': path_id,
+                    'score': score}  # time recorded automatically in table
+        log_record_id = db.attempt_log.insert(**log_args)
 
-                    sec_right = [now]  # default
-                    if len(oldrec) and oldrec[0]:
-                        sec_right = oldrec[0]['secondary_right']
-                        #print 'secright is ', pprint(oldrec)
-                        try:
-                            sec_right.append(now)
-                        except AttributeError:  # because secondary_right is None
-                            pass  # use default set above
-
-                    condition = {'tag': t, 'name': user_id}
-                    db.tag_records.update_or_insert(condition,
-                                                    tag=t,
-                                                    secondary_right=sec_right)
-
-            log_args = {'name': user_id,
-                        'step': step_id,
-                        'in_path': path_id,
-                        'score': score}  # time recorded automatically in table
-            log_record_id = db.attempt_log.insert(**log_args)
-
-            return log_record_id
+        return log_record_id
 
     def _store_user(self, user):
         """
@@ -562,13 +558,14 @@ class Walk(object):
         auth = current.auth
         db = current.db
 
-        if user.get_id() != auth.user_id:  # shadowing another user
-            return False
-        else:
-            user = pickle.dumps(self.user)
-            db.session_data.update_or_insert(db.session_data.name == auth.user_id,
-                                            other_data=user)
-            return True
+        # TODO: Store and roll back db changes if impersonating
+        #if auth.is_impersonating():  # shadowing another user
+            #return False  # don't record in db
+        #else:
+        user = pickle.dumps(self.user)
+        db.session_data.update_or_insert(db.session_data.name == auth.user_id,
+                                        other_data=user)
+        return True
 
 
 class Location(object):
@@ -603,8 +600,7 @@ class Location(object):
         IMG helper object."""
         db = current.db
         try:
-            url = URL('static/images', db.images[self.data['bg_image']].image)
-            bg = IMG(_src=url)
+            bg = URL('static/images', db.images[self.data['bg_image']].image)
         except Exception:
             print traceback.format_exc(5)
             bg = SPAN('no image in db for location {}'.format(self.data['id']))
@@ -1845,11 +1841,16 @@ class PathChooser(object):
 
         # cycle through categories, starting with the one from _get_category()
         for cat in cat_list:
+            print 'PathChooser.choose: trying cat', cat
             catpaths = self._paths_by_category(cat, self.rank)
             if catpaths[0]:
+                print 'PathChooser.choose: found', len(catpaths), 'paths in cat'
+                for c in catpaths[0]:
+                    print'catpath -', pprint(c)
                 return self._choose_from_cat(catpaths[0], catpaths[1])
             else:
-                pass
+                print 'PathChooser.choose: found NO paths in cat', cat
+                continue
 
         return False
 
@@ -1909,8 +1910,9 @@ class User(object):
             # a generic 'class' with generic presets
             try:
                 target = [m.auth_group.paths_per_day for m in msel
-                          if m.auth_group.paths_per_day][0]
-            except:
+                          if m.auth_group.paths_per_day]
+            except Exception:
+                print traceback.format_exc(5)
                 target = 20
             self.quota = target
 
@@ -2096,6 +2098,7 @@ class User(object):
             while not choice:
                 choice, redir, cat = PathChooser(self.tag_progress, self.loc.get_id(),
                                                  self.completed_paths).choose()
+                print 'PathChooser returned ', 'choice', choice, 'redir', redir, 'cat', cat
                 if not choice:
                     choice = None
                     print 'sending error'
