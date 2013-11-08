@@ -30,6 +30,17 @@
   </metadata>
   <style
      id="style29011">
+        @font-face {
+            font-family: 'SBLGreekRegular';
+            src: url('/paideia/static/plugin_framework/fonts/sbl_grk-webfont.eot');
+            src: local('☺'),
+            url('/paideia/static/plugin_framework/fonts/sbl_grk-webfont.woff') format('woff'),
+            url('/paideia/static/plugin_framework/fonts/sbl_grk-webfont.ttf') format('truetype'),
+            url('/paideia/static/plugin_framework/fonts/sbl_grk-webfont.svg#webfontRelj09Wi') format('svg');
+            font-weight: normal;
+            font-style: normal;
+        }
+        body                                {font-family: SBLGreekRegular;}
         #domus_A_mask, #domus_A_tip, 
         #bath_mask, #bath_tip,
         #agora_mask, #agora_tip,
@@ -49552,7 +49563,7 @@
            x="103.23759"
            style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Ubuntu;-inkscape-font-specification:Ubuntu"
            xml:space="preserve"><tspan
-             style="font-size:32px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;fill:#ffffff;font-family:SBL Greek;-inkscape-font-specification:SBL Greek"
+             style="font-size:32px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;fill:#ffffff;font-family:SBLGreekRegular;-inkscape-font-specification:SBLGreekRegular"
              y="411.18173"
              x="103.23759"
              id="tspan22932"
@@ -49581,7 +49592,7 @@
              id="tspan22945"
              x="103.98759"
              y="411.93173"
-             style="font-size:32px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;fill:#ffffff;font-family:SBL Greek;-inkscape-font-specification:SBL Greek">2</tspan></text>
+             style="font-size:32px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;fill:#ffffff;font-family:SBLGreekRegular;-inkscape-font-specification:SBLGreekRegular">2</tspan></text>
       </g>
       <g
          transform="translate(335.1686,-164.75587)"
@@ -49602,7 +49613,7 @@
            x="104.23759"
            style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Ubuntu;-inkscape-font-specification:Ubuntu"
            xml:space="preserve"><tspan
-             style="font-size:32px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;fill:#ffffff;font-family:SBL Greek;-inkscape-font-specification:SBL Greek"
+             style="font-size:32px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;fill:#ffffff;font-family:SBLGreekRegular;-inkscape-font-specification:SBLGreekRegular"
              y="410.18173"
              x="104.23759"
              id="tspan22953"
@@ -49631,7 +49642,7 @@
              id="tspan22961"
              x="102.48759"
              y="410.43173"
-             style="font-size:32px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;fill:#ffffff;font-family:SBL Greek;-inkscape-font-specification:SBL Greek">4</tspan></text>
+             style="font-size:32px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;fill:#ffffff;font-family:SBLGreekRegular;-inkscape-font-specification:SBLGreekRegular">4</tspan></text>
       </g>
       <g
          transform="translate(616.59708,-50.911684)"
@@ -49652,7 +49663,7 @@
            x="103.48759"
            style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Ubuntu;-inkscape-font-specification:Ubuntu"
            xml:space="preserve"><tspan
-             style="font-size:32px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;fill:#ffffff;font-family:SBL Greek;-inkscape-font-specification:SBL Greek"
+             style="font-size:32px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;fill:#ffffff;font-family:SBLGreekRegular;-inkscape-font-specification:SBLGreekRegular"
              y="409.68173"
              x="103.48759"
              id="tspan22969"
@@ -49681,7 +49692,7 @@
              id="tspan22977"
              x="102.48759"
              y="413.68173"
-             style="font-size:32px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;fill:#ffffff;font-family:SBL Greek;-inkscape-font-specification:SBL Greek">6</tspan></text>
+             style="font-size:32px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;fill:#ffffff;font-family:SBLGreekRegular;-inkscape-font-specification:SBLGreekRegular">6</tspan></text>
       </g>
     </g>
     <g 
@@ -49712,7 +49723,7 @@
            x="50.330116"
            style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;display:inline;font-family:Ubuntu;-inkscape-font-specification:Ubuntu"
            xml:space="preserve"><tspan
-             style="font-size:32px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:SBL Greek;-inkscape-font-specification:SBL Greek"
+             style="font-size:32px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:SBLGreekRegular;-inkscape-font-specification:SBLGreekRegular"
              y="81.981232"
              x="50.330116"
              id="tspan22872"
@@ -49747,7 +49758,7 @@
          sodipodi:nodetypes="ssssscccssss" />
       <text
          xml:space="preserve"
-         style="font-size:14.39999962px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#4d4d4d;fill-opacity:1;stroke:none;font-family:SBL Greek;-inkscape-font-specification:SBL Greek"
+         style="font-size:14.39999962px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#4d4d4d;fill-opacity:1;stroke:none;font-family:SBLGreekRegular;-inkscape-font-specification:SBLGreekRegular"
          x="57.95092"
          y="330.07114"
          id="text9319"
@@ -49782,7 +49793,7 @@
          id="text9319-0-7"
          y="329.1543"
          x="93.976288"
-         style="font-size:14.39999962px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#4d4d4d;fill-opacity:1;stroke:none;font-family:SBL Greek;-inkscape-font-specification:SBL Greek"
+         style="font-size:14.39999962px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#4d4d4d;fill-opacity:1;stroke:none;font-family:SBLGreekRegular;-inkscape-font-specification:SBLGreekRegular"
          xml:space="preserve"><tspan
            style="font-size:25.60000038px;fill:#4d4d4d"
            y="329.1543"
@@ -49814,7 +49825,7 @@
          id="text9319-0"
          y="330.07114"
          x="72.888931"
-         style="font-size:14.39999962px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#4d4d4d;fill-opacity:1;stroke:none;font-family:SBL Greek;-inkscape-font-specification:SBL Greek"
+         style="font-size:14.39999962px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#4d4d4d;fill-opacity:1;stroke:none;font-family:SBLGreekRegular;-inkscape-font-specification:SBLGreekRegular"
          xml:space="preserve"><tspan
            style="font-size:25.60000038px;fill:#4d4d4d"
            y="330.07114"
@@ -49843,7 +49854,7 @@
          sodipodi:nodetypes="ssssscccssss" />
       <text
          xml:space="preserve"
-         style="font-size:14.39999962px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#4d4d4d;fill-opacity:1;stroke:none;font-family:SBL Greek;-inkscape-font-specification:SBL Greek"
+         style="font-size:14.39999962px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#4d4d4d;fill-opacity:1;stroke:none;font-family:SBLGreekRegular;-inkscape-font-specification:SBLGreekRegular"
          x="100.45934"
          y="329.1543"
          id="text14957"
@@ -49878,7 +49889,7 @@
          id="text14969"
          y="330.4509"
          x="76.472054"
-         style="font-size:14.39999962px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#4d4d4d;fill-opacity:1;stroke:none;font-family:SBL Greek;-inkscape-font-specification:SBL Greek"
+         style="font-size:14.39999962px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#4d4d4d;fill-opacity:1;stroke:none;font-family:SBLGreekRegular;-inkscape-font-specification:SBLGreekRegular"
          xml:space="preserve"><tspan
            style="font-size:25.60000038px;fill:#4d4d4d"
            y="330.4509"
@@ -49907,7 +49918,7 @@
          sodipodi:nodetypes="ssssscccssss" />
       <text
          xml:space="preserve"
-         style="font-size:14.39999962px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#4d4d4d;fill-opacity:1;stroke:none;font-family:SBL Greek;-inkscape-font-specification:SBL Greek"
+         style="font-size:14.39999962px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#4d4d4d;fill-opacity:1;stroke:none;font-family:SBLGreekRegular;-inkscape-font-specification:SBLGreekRegular"
          x="71.933914"
          y="330.4509"
          id="text14983"
@@ -49942,7 +49953,7 @@
          id="text74943"
          y="330.07114"
          x="31.363707"
-         style="font-size:14.39999962px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#4d4d4d;fill-opacity:1;stroke:none;font-family:SBL Greek;-inkscape-font-specification:SBL Greek"
+         style="font-size:14.39999962px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#4d4d4d;fill-opacity:1;stroke:none;font-family:SBLGreekRegular;-inkscape-font-specification:SBLGreekRegular"
          xml:space="preserve"><tspan
            style="font-size:25.60000038px;fill:#4d4d4d"
            y="330.07114"
@@ -49978,7 +49989,7 @@
          id="text74967"
          y="329.1543"
          x="77.831924"
-         style="font-size:14.39999962px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#4d4d4d;fill-opacity:1;stroke:none;font-family:SBL Greek;-inkscape-font-specification:SBL Greek"
+         style="font-size:14.39999962px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#4d4d4d;fill-opacity:1;stroke:none;font-family:SBLGreekRegular;-inkscape-font-specification:SBLGreekRegular"
          xml:space="preserve"><tspan
            style="font-size:25.60000038px;fill:#4d4d4d"
            y="329.1543"
