@@ -1,4 +1,12 @@
+#! /etc/bin/python
 # -*- coding: utf8 -*-
+"""
+Model file defining abstracted data structure for dedicated Paideia fields.
+
+This uses the web2py Data Abstraction Layer to allow easy migrations and
+movement from one db system to another.
+
+"""
 
 from plugin_ajaxselect import AjaxSelect
 from itertools import chain
@@ -19,43 +27,20 @@ if 0:
 response.files.insert(5, URL('static',
                       'plugin_ajaxselect/plugin_ajaxselect.js'))
 response.files.insert(6, URL('static',
-                      'plugin_framework/js/jquery-ui-1.10.3.custom/js/jquery-ui-1.10.3.custom.min.js'))
+                             'plugin_framework/js/jquery-ui-1.10.3.custom/js/'
+                             'jquery-ui-1.10.3.custom.min.js'))
 #response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.css'))
 
 dtnow = datetime.datetime.utcnow()
 
-
-#TODO: Fix this regex validator
-#class IS_VALID_REGEX(object):
-    #"""
-    #custom validator to check regex in step definitions against the given
-    #readable responses.
-    #"""
-    #def __init__(self):
-        #self.error_message = 'Given answers do not satisfy regular expression.'
-
-    #def __call__(self, value):
-        #request = current.request
-        #answers = request.vars.readable_response
-        #alist = answers.split('|')
-        #regex = value.encode('string-escape')
-        #for a in alist:
-            #if re.match(a.strip(), regex, re.I):
-                #print a.strip()
-                #print 'it matched!'
-            #else:
-                #print 'answer ', a, ' did not match the regex provided.'
-                #print regex
-                #return (value, self.error_message)
-        #return (value, None)
-
 db.define_table('classes',
                 Field('institution', 'string', default='Tyndale Seminary',
                       unique=True),
-                Field('academic_year', 'integer', default=dtnow.year),  # was year (reserved term)
+                Field('academic_year', 'integer', default=dtnow.year),  # year
                 Field('term', 'string'),
                 Field('course_section', 'string'),
-                Field('instructor', 'reference auth_user', default=auth.user_id),
+                Field('instructor', 'reference auth_user',
+                      default=auth.user_id),
                 Field('start_date', 'datetime'),
                 Field('end_date', 'datetime'),
                 Field('paths_per_day', 'integer', default=40),
@@ -67,41 +52,41 @@ db.define_table('classes',
                 )
 
 db.define_table('images',
-    Field('image', 'upload', length=128,
-          uploadfolder=os.path.join(request.folder, "static/images")),
-    Field('title', 'string', length=256),
-    Field('description', 'string', length=256),
-    format='%(title)s')
+                Field('image', 'upload', length=128,
+                    uploadfolder=os.path.join(request.folder, "static/images")),
+                Field('title', 'string', length=256),
+                Field('description', 'string', length=256),
+                format='%(title)s')
 
 db.define_table('audio',
-    Field('clip', 'upload', length=128,
-          uploadfolder=os.path.join(request.folder, "static/audio")),
-    Field('clip_ogg', 'upload', length=128,
-          uploadfolder=os.path.join(request.folder, "static/audio")),
-    Field('title', 'string', length=256),
-    Field('description', 'string', length=256),
-    format='%(title)s')
+                Field('clip', 'upload', length=128,
+                    uploadfolder=os.path.join(request.folder, "static/audio")),
+                Field('clip_ogg', 'upload', length=128,
+                    uploadfolder=os.path.join(request.folder, "static/audio")),
+                Field('title', 'string', length=256),
+                Field('description', 'string', length=256),
+                format='%(title)s')
 
 db.define_table('journals',
-    Field('name', db.auth_user, default=auth.user_id),
-    Field('journal_pages', 'list:reference journal_pages'),  # was pages (reserved term)
-    format='%(name)s')
+                Field('name', db.auth_user, default=auth.user_id),
+                Field('journal_pages', 'list:reference journal_pages'),  # was pages
+                format='%(name)s')
 db.journals.name.requires = IS_NOT_IN_DB(db, 'journals.name')
 
 db.define_table('journal_pages',
-    Field('journal_page', 'text'),  # was page (reserved term)
-    format='%(page)s')
+                Field('journal_page', 'text'),  # was page (reserved term)
+                format='%(page)s')
 
 db.define_table('categories',
-    Field('category', unique=True),
-    Field('description'),
-    format='%(category)s')
+                Field('category', unique=True),
+                Field('description'),
+                format='%(category)s')
 
 db.define_table('tags',
-    Field('tag', 'string', unique=True),
-    Field('tag_position', 'integer'),  # was position (reserved term)
-    Field('slides', 'list:reference plugin_slider_decks'),
-    format=lambda row: row['tag'])
+                Field('tag', 'string', unique=True),
+                Field('tag_position', 'integer'),  # was position (reserved)
+                Field('slides', 'list:reference plugin_slider_decks'),
+                format=lambda row: row['tag'])
 
 db.tags.tag.requires = IS_NOT_IN_DB(db, 'tags.tag')
 
@@ -117,35 +102,105 @@ db.tags.slides.widget = lambda field, value: \
                                                lister='simple',
                                                orderby='deck_name').widget()
 
+# don't force uniqueness on lemma field to allow for homographs
+db.define_table('lemmas',
+                Field('lemma', 'string'),
+                Field('part_of_speech'),
+                Field('first_tag', db.tags),
+                Field('extra_tags', 'list:reference tags'),
+                format='%(lemma)s')
+db.lemmas.part_of_speech.requires = IS_IN_SET(('verb', 'adverb', 'noun',
+                                               'pronoun', 'proper_noun',
+                                               'conjunction', 'preposition',
+                                               'particle', 'adjective',
+                                               'interjection'))
+db.lemmas.extra_tags.requires = IS_IN_DB(db, 'tags.id',
+                                         db.tags._format,
+                                         multiple=True)
+db.lemmas.extra_tags.widget = lambda field, value: AjaxSelect(field, value,
+                                                              indx=1,
+                                                              multi='basic',
+                                                              lister='simple'
+                                                              ).widget()
+
+db.define_table('step_instructions',
+                Field('instruction_label'),  # was label (reserved term)
+                Field('instruction_text', 'text'),  # was text (reserved term)
+                format='%(instruction_label)s')
+
+db.define_table('constructions',
+                Field('construction_label', unique=True),
+                Field('readable_label', unique=True),
+                Field('trans_regex_eng'),
+                Field('trans_templates', 'list:string'),
+                Field('form_function'),
+                Field('instructions', 'list:reference step_instructions'),
+                Field('tags', 'list:reference tags'),
+                format='%(construction_label)s')
+db.constructions.instructions.requires = IS_IN_DB(db, 'step_instructions.id',
+                                                  db.step_instructions._format,
+                                                  multiple=True)
+db.constructions.instructions.widget = lambda field, value: \
+                                       AjaxSelect(field, value,
+                                                  indx=1,
+                                                  multi='basic',
+                                                  lister='simple',
+                                                  orderby='instruction_label'
+                                                  ).widget()
+db.constructions.tags.requires = IS_IN_DB(db, 'tags.id',
+                                          db.tags._format,
+                                          multiple=True)
+db.constructions.tags.widget = lambda field, value: \
+                                       AjaxSelect(field, value,
+                                                  indx=1,
+                                                  multi='basic',
+                                                  lister='simple',
+                                                  orderby='tag'
+                                                  ).widget()
+
+# don't force uniqueness on word_form field to allow for homographs
+db.define_table('word_forms',
+                Field('word_form', 'string'),
+                Field('source_lemma', db.lemmas),
+                Field('tense'),
+                Field('voice'),
+                Field('mood'),
+                Field('person'),
+                Field('number'),
+                Field('grammatical_case'),
+                Field('gender'),
+                Field('construction', db.constructions),
+                format='%(word_form)s')
+
 db.define_table('badges',
-    Field('badge_name', 'string', unique=True),
-    Field('tag', db.tags),
-    Field('description', 'text'),
-    format='%(badge_name)s')
+                Field('badge_name', 'string', unique=True),
+                Field('tag', db.tags),
+                Field('description', 'text'),
+                format='%(badge_name)s')
 db.badges.badge_name.requires = IS_NOT_IN_DB(db, 'badges.badge_name')
 db.badges.tag.requires = IS_EMPTY_OR(IS_IN_DB(db, 'tags.id', db.tags._format))
 
 db.define_table('locations',
-    Field('map_location'),  # , unique=True  # was location (reserved term)
-    Field('loc_alias'),  # , unique=True  # was alias (reserved term)
-    Field('readable'),
-    Field('bg_image', db.images),
-    Field('loc_active', 'boolean'),
-    format='%(map_location)s')
+                Field('map_location'),  # was location (reserved term)
+                Field('loc_alias'),  # was alias (reserved term)
+                Field('readable'),
+                Field('bg_image', db.images),
+                Field('loc_active', 'boolean'),
+                format='%(map_location)s')
 db.locations.map_location.requires = IS_NOT_IN_DB(db, 'locations.map_location')
 db.locations.loc_alias.requires = IS_NOT_IN_DB(db, 'locations.loc_alias')
 db.locations.bg_image.requires = IS_EMPTY_OR(IS_IN_DB(db, 'images.id',
                                                      db.images._format))
 
 db.define_table('npcs',
-    Field('name', 'string', unique=True),
-    Field('map_location', 'list:reference locations'),  # was location (reserved term)
-    Field('npc_image', db.images),
-    Field('notes', 'text'),
-    format='%(name)s')
+                Field('name', 'string', unique=True),
+                Field('map_location', 'list:reference locations'),  # location
+                Field('npc_image', db.images),
+                Field('notes', 'text'),
+                format='%(name)s')
 db.npcs.name.requires = IS_NOT_IN_DB(db, 'npcs.name')
 db.npcs.map_location.requires = IS_IN_DB(db, 'locations.id',
-                                    db.locations._format, multiple=True)
+                                db.locations._format, multiple=True)
 db.npcs.map_location.widget = lambda field, value: AjaxSelect(field, value,
                                                               indx=1,
                                                               multi='basic',
@@ -153,20 +208,15 @@ db.npcs.map_location.widget = lambda field, value: AjaxSelect(field, value,
                                                               ).widget()
 
 db.define_table('step_types',
-    Field('step_type'),  # , unique=True   # was type (reserved term)
+    Field('step_type'),  # was type (reserved term)
     Field('widget'),
     Field('step_class'),
     format='%(step_type)s')
 
 db.define_table('step_hints',
-    Field('hint_label'),  # , unique=True  # was label (reserved term)
+    Field('hint_label'),  # was label (reserved term)
     Field('hint_text', 'text'),   # was text (reserved term)
     format='%(hint_label)s')
-
-db.define_table('step_instructions',
-    Field('instruction_label'),  # , unique=True  # was label (reserved term)
-    Field('instruction_text', 'text'),  # was text (reserved term)
-    format='%(instruction_label)s')
 
 db.define_table('step_status',
     Field('status_num', 'integer', unique=True),
@@ -174,26 +224,27 @@ db.define_table('step_status',
     format='%(status_label)s')
 
 db.define_table('steps',
-    Field('prompt', 'text'),
-    Field('prompt_audio', db.audio, default=0),
-    Field('widget_type', db.step_types, default=1),
-    Field('widget_image', db.images, default=0),
-    Field('step_options', 'list:string'),  # was options (reserved term)
-    Field('response1'),
-    Field('readable_response'),
-    Field('outcome1', default=None),
-    Field('response2', default=None),
-    Field('outcome2', default=None),
-    Field('response3', default=None),
-    Field('outcome3', default=None),
-    Field('hints', 'list:reference step_hints'),
-    Field('instructions', 'list:reference step_instructions'),
-    Field('tags', 'list:reference tags'),
-    Field('tags_secondary', 'list:reference tags'),
-    Field('tags_ahead', 'list:reference tags'),
-    Field('npcs', 'list:reference npcs'),
-    Field('locations', 'list:reference locations'),
-    Field('status', db.step_status, default=1),
+                Field('prompt', 'text'),
+                Field('prompt_audio', db.audio, default=0),
+                Field('widget_type', db.step_types, default=1),
+                Field('widget_image', db.images, default=0),
+                Field('step_options', 'list:string'),  # was options (reserved)
+                Field('response1'),
+                Field('readable_response'),
+                Field('outcome1', default=None),
+                Field('response2', default=None),
+                Field('outcome2', default=None),
+                Field('response3', default=None),
+                Field('outcome3', default=None),
+                Field('hints', 'list:reference step_hints'),
+                Field('instructions', 'list:reference step_instructions'),
+                Field('tags', 'list:reference tags'),
+                Field('tags_secondary', 'list:reference tags'),
+                Field('tags_ahead', 'list:reference tags'),
+                Field('lemmas', 'list:reference lemmas'),
+                Field('npcs', 'list:reference npcs'),
+                Field('locations', 'list:reference locations'),
+                Field('status', db.step_status, default=1),
     format='%(id)s: %(prompt)s')
 db.steps.step_options.widget = SQLFORM.widgets.list.widget
 #db.steps.response1.requires = IS_VALID_REGEX()
@@ -262,31 +313,37 @@ db.steps.instructions.widget = lambda field, value: \
                                                        ).widget()
 
 db.define_table('badges_begun',
-    Field('name', db.auth_user, default=auth.user_id),
-    Field('tag', db.tags),
-    Field('cat1', 'datetime', default=dtnow),
-    Field('cat2', 'datetime'),
-    Field('cat3', 'datetime'),
-    Field('cat4', 'datetime'),
-    format='%(name)s, %(tag)s')
+                Field('name', db.auth_user, default=auth.user_id),
+                Field('tag', db.tags),
+                Field('cat1', 'datetime', default=dtnow),
+                Field('cat2', 'datetime'),
+                Field('cat3', 'datetime'),
+                Field('cat4', 'datetime'),
+                format='%(name)s, %(tag)s')
 
 db.define_table('tag_progress',
-    Field('name', db.auth_user, default=auth.user_id),
-    Field('latest_new', 'integer', default=1),  # not tag id but order ranking
-    Field('cat1', 'list:reference tags'),
-    Field('cat2', 'list:reference tags'),
-    Field('cat3', 'list:reference tags'),
-    Field('cat4', 'list:reference tags'),
-    Field('rev1', 'list:reference tags'),
-    Field('rev2', 'list:reference tags'),
-    Field('rev3', 'list:reference tags'),
-    Field('rev4', 'list:reference tags'),
-    format='%(name)s, %(latest_new)s')
+                Field('name', db.auth_user, default=auth.user_id),
+                Field('latest_new', 'integer', default=1),  # order ranking
+                Field('cat1', 'list:reference tags'),
+                Field('cat2', 'list:reference tags'),
+                Field('cat3', 'list:reference tags'),
+                Field('cat4', 'list:reference tags'),
+                Field('rev1', 'list:reference tags'),
+                Field('rev2', 'list:reference tags'),
+                Field('rev3', 'list:reference tags'),
+                Field('rev4', 'list:reference tags'),
+                format='%(name)s, %(latest_new)s')
 db.tag_progress.name.requires = IS_NOT_IN_DB(db, db.tag_progress.name)
+
+db.define_table('path_styles',
+                Field('style_label', unique=True),
+                Field('components', 'list:string'),
+                format='%(style_label)s')
 
 db.define_table('paths',
     Field('label'),
     Field('steps', 'list:reference steps'),
+    Field('path_style', db.path_styles),
     format='%(label)s')
 db.paths.steps.requires = IS_IN_DB(db, 'steps.id',
                                    db.steps._format, multiple=True)

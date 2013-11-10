@@ -1,5 +1,6 @@
 #! /usr/bin/python
-# coding: utf8
+# -*- coding: utf8 -*-
+""" Utility script for testing regular expressions in Paideia steps."""
 import re
 from termcolor import colored
 # who should sit πρωτος?
@@ -9,7 +10,8 @@ from termcolor import colored
 # proverb, a poor man is seldom strong
 # are rich men usually good?
 # give this bread to the poor woman
-# here all people are equal. The low-born and the noble are brothers and sisters.
+# here all people are equal. The low-born and the noble are brothers and
+# sisters.
 # here all people are equal. The free man and the slave are brothers.
 # here all people are equal. The free woman and the slave(woman) are brothers.
 # you should address me as ???
@@ -30,9 +32,10 @@ from termcolor import colored
          #'Πωλῃ καρπους Ἀλεξανδρος.',
          #]
 
-lines = ['I am giving', 'I usually give', 'I often provide', 'I donate over and over']
+lines = ['I am giving', 'I usually give', 'I often provide',
+         'I donate over and over']
 
-regex = """
+regex = r"""
 ^
 I\s
 (am\s((beginning|starting|about|lifting)\sto\s)?)?
@@ -47,7 +50,8 @@ $
 
 
 #(buy|perceiv(?P<c>e)?)(?(c)|ing)?
-#lines = ['You are hearing', 'You usually listen', 'You often hear', 'You listen over and over']
+#lines = ['You are hearing', 'You usually listen', 'You often hear',
+#'You listen over and over']
 
 #regex = """
 #^
