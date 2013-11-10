@@ -2,13 +2,13 @@
 S'npcs'
 p2
 (dp3
-S'sortable'
+S'type'
 p4
-I5
-sS'type'
-p5
 S'list:reference db.npcs'
+p5
+sS'sortable'
 p6
+I5
 sS'sql'
 p7
 S'TEXT'
@@ -36,19 +36,36 @@ sS'type'
 p17
 S'list:reference steps'
 p18
-ssS'tags'
+ssS'path_style'
 p19
 (dp20
-g4
-I6
-sg5
-S'list:reference db.tags'
+g11
+I512
+sg12
+I00
+sg13
+I4
+sg14
+S'INTEGER REFERENCES path_styles (id) ON DELETE CASCADE'
 p21
+sg16
+I00
+sg17
+S'reference path_styles'
+p22
+ssS'tags'
+p23
+(dp24
+g4
+S'list:reference db.tags'
+p25
+sg6
+I6
 sg7
 g8
 ssS'id'
-p22
-(dp23
+p26
+(dp27
 g11
 I512
 sg12
@@ -57,25 +74,25 @@ sg13
 I1
 sg14
 S'INTEGER PRIMARY KEY AUTOINCREMENT'
-p24
+p28
 sg16
 I00
 sg17
 S'id'
-p25
+p29
 ssS'locations'
-p26
-(dp27
+p30
+(dp31
 g4
-I4
-sg5
 S'list:reference db.locations'
-p28
+p32
+sg6
+I4
 sg7
 g8
 ssS'label'
-p29
-(dp30
+p33
+(dp34
 g11
 I512
 sg12
@@ -84,10 +101,10 @@ sg13
 I2
 sg14
 S'CHAR(512)'
-p31
+p35
 sg16
 I00
 sg17
 S'string'
-p32
+p36
 ss.

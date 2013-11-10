@@ -20,35 +20,7 @@ def make_path():
     """
     message = ''
     output = ''
-    form = SQLFORM.factory(Field('path_dicts', 'list:string'))
-    if form.process(dbio=False, keepvalues=True).accepted:
-        fact = paideia_utils.PathFactory()
-        stringlist = request.vars.path_dicts
-        for idx, strg in enumerate(stringlist):
-            if strg[-1] == ',':
-                stringlist[idx] = strg[:-1]
-        rawstring = ','.join(stringlist)
-        pd_string = '{{{}}}'.format(' '.join(rawstring.split()))
-        mydict = literal_eval(pd_string)
-        paths, result = fact.make_path(mydict)
-        successes = {r: v for r, v in result.iteritems() if r[0] != 'failure'}
-        failures = {r: v for r, v in result.iteritems() if r[0] == 'failure'}
-        message = 'Created {} new paths.\n' \
-                  '{} paths failed'.format(len(successes.keys()),
-                                           len(failures.keys()))
-        output = UL()
-        for s, v in successes.iteritems():
-            output.append(LI(s,
-                             A('path {}'.format(v[0]),
-                               _href=URL('paideia', 'editing', args=['paths', v[0]])),
-                             A('step {}'.format(v[1]),
-                               _href=URL('paideia', 'editing', args=['steps', v[1]])),
-                            _class='make_paths_success'))
-
-        for f, v in failures.iteritems():
-            output.append(LI(f, P(v[1]), _class='make_paths_failure'))
-    elif form.errors:
-        message = BEAUTIFY(form.errors)
+    form, message, output = TranslatePath().make_form()
 
     return {'form': form, 'message': message, 'output': BEAUTIFY(output)}
 

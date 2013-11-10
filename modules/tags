@@ -9,8 +9,8 @@ AjaxSelect	plugin_ajaxselect.py	/^class AjaxSelect(object):$/;"	c
 Block	paideia.py	/^class Block(object):$/;"	c
 Bug	paideia_bugs.py	/^class Bug(object):$/;"	c
 BugReporter	paideia.py	/^class BugReporter(object):$/;"	c
-CONSTRUCTIONS	paideia_utils.py	/^CONSTRUCTIONS = {'pres_act_inf': {'raw_regex': r'^(?P<a>to\\s)?({})(?(a)|ing)$',$/;"	v
 Categorizer	paideia.py	/^class Categorizer(object):$/;"	c
+Clause	greek_parser.py	/^class Clause(Parser):$/;"	c
 FilteredAjaxSelect	plugin_ajaxselect.py	/^class FilteredAjaxSelect(AjaxSelect):$/;"	c
 FilteredOptionsWidget	plugin_ajaxselect.py	/^class FilteredOptionsWidget(OptionsWidget):$/;"	c
 ICONLINK	plugin_widgets.py	/^def ICONLINK(title, text, icon):$/;"	f
@@ -19,15 +19,17 @@ JQMODAL	plugin_widgets.py	/^class JQMODAL():$/;"	c
 Location	paideia.py	/^class Location(object):$/;"	c
 Location	paideia_exploring.py	/^class Location(object):$/;"	c
 MODAL	plugin_widgets.py	/^def MODAL(triggertext, headertext, body,$/;"	f
-MYWORDS	paideia_utils.py	/^MYWORDS = {'πωλεω': {'glosses': ['sell'],$/;"	v
+MYWORDS	paideia_utils.py	/^MYWORDS = {u'πωλεω': {'glosses': ['sell'],$/;"	v
 Map	paideia.py	/^class Map(object):$/;"	c
 Map	paideia_exploring.py	/^class Map(object):$/;"	c
 MultipleEvaluator	paideia.py	/^class MultipleEvaluator(StepEvaluator):$/;"	c
 Name	paideia_stats.py	/^    Name = "paideia_stats"$/;"	v	class:Stats
+NounPhrase	greek_parser.py	/^class NounPhrase(Parser):$/;"	c
 Npc	paideia.py	/^class Npc(object):$/;"	c
 Npc	paideia_exploring.py	/^class Npc(object):$/;"	c
 NpcChooser	paideia.py	/^class NpcChooser(object):$/;"	c
 POPOVER	plugin_widgets.py	/^class POPOVER(object):$/;"	c
+Parser	greek_parser.py	/^class Parser(object):$/;"	c
 Path	paideia.py	/^class Path(object):$/;"	c
 PathChooser	paideia.py	/^class PathChooser(object):$/;"	c
 PathFactory	paideia_utils.py	/^class PathFactory(object):$/;"	c
@@ -56,10 +58,12 @@ StepViewSlides	paideia.py	/^class StepViewSlides(Step):$/;"	c
 StepViewSlides	paideia_exploring.py	/^class StepViewSlides(StepStub):$/;"	c
 TABS	plugin_widgets.py	/^def TABS(tablist):$/;"	f
 TOOLTIP	plugin_widgets.py	/^def TOOLTIP(title, text, content, icon=None):$/;"	f
+TranslateWordPathFactory	paideia_utils.py	/^class TranslateWordPathFactory(PathFactory):$/;"	c
 User	paideia.py	/^class User(object):$/;"	c
 Utils	paideia_exploring.py	/^class Utils(object):$/;"	c
 Walk	paideia.py	/^class Walk(object):$/;"	c
 Walk	paideia_exploring.py	/^class Walk(object):$/;"	c
+__init__	greek_parser.py	/^def __init__(self, string, *structures):$/;"	f
 __init__	paideia.py	/^    def __init__(self):$/;"	m	class:BugReporter
 __init__	paideia.py	/^    def __init__(self):$/;"	m	class:Map
 __init__	paideia.py	/^    def __init__(self, condition, kwargs=None, data=None):$/;"	m	class:Block
@@ -83,6 +87,8 @@ __init__	paideia_exploring.py	/^    def __init__(self, force_new_session=False):
 __init__	paideia_exploring.py	/^    def __init__(self, npc_id=None):$/;"	m	class:Npc
 __init__	paideia_exploring.py	/^    def __init__(self, step=None):$/;"	m	class:Step
 __init__	paideia_stats.py	/^    def __init__(self, user_id=None, auth=None, cache=None):$/;"	m	class:Stats
+__init__	paideia_utils.py	/^    def __init__(self):$/;"	m	class:PathFactory
+__init__	paideia_utils.py	/^    def __init__(self):$/;"	m	class:TranslateWordPathFactory
 __init__	plugin_ajaxselect.py	/^    def __init__(self, field, value, indx=0,$/;"	m	class:AjaxSelect
 __init__	plugin_widgets.py	/^    def __init__(self):$/;"	m	class:POPOVER
 __init__	plugin_widgets.py	/^    def __init__(self, field, value):$/;"	m	class:JQMODAL
@@ -172,9 +178,10 @@ ask	paideia_exploring.py	/^    def ask(self):$/;"	m	class:Step
 bugresponses	paideia_bugs.py	/^    def bugresponses(self, user):$/;"	m	class:Bug
 categorize_tags	paideia.py	/^    def categorize_tags(self, rank=None, tag_records=None,$/;"	m	class:Categorizer
 check_for_blocks	paideia.py	/^    def check_for_blocks(self):$/;"	m	class:User
+check_for_duplicates	paideia_utils.py	/^    def check_for_duplicates(self, step):$/;"	m	class:PathFactory
+check_for_roman	paideia_utils.py	/^    def check_for_roman(self):$/;"	m	class:PathFactory
 choose	paideia.py	/^    def choose(self):$/;"	m	class:NpcChooser
 choose	paideia.py	/^    def choose(self, db=None):$/;"	m	class:PathChooser
-choose_form	paideia_utils.py	/^    def choose_form(self, const_tpl, func, word):$/;"	m	class:PathFactory
 choose_val	plugin_ajaxselect.py	/^    def choose_val(self, value):$/;"	m	class:AjaxSelect
 clean_user	paideia.py	/^    def clean_user(self):$/;"	m	class:Walk
 clear_session	paideia_exploring.py	/^    def clear_session(self):$/;"	m	class:Utils
@@ -185,16 +192,18 @@ create_widget	plugin_ajaxselect.py	/^    def create_widget(self, field, value, c
 debug	paideia_exploring.py	/^    debug = False$/;"	v	class:Location
 dtnow	paideia_exploring.py	/^dtnow = datetime.datetime.utcnow$/;"	v
 end_prompt	paideia.py	/^    def end_prompt(self):$/;"	m	class:Path
-fact	paideia_utils.py	/^    fact = PathFactory()$/;"	v	class:PathFactory
 get_alias	paideia.py	/^    def get_alias(self):$/;"	m	class:Location
 get_bg	paideia.py	/^    def get_bg(self):$/;"	m	class:Location
 get_categories	paideia.py	/^    def get_categories(self, user_id=None, rank=None, old_categories=None,$/;"	m	class:User
 get_classes	plugin_ajaxselect.py	/^    def get_classes(self, linktable, restricted, restrictor, lister, sortable):$/;"	m	class:AjaxSelect
 get_condition	paideia.py	/^    def get_condition(self):$/;"	m	class:Block
+get_constructions	paideia_utils.py	/^    def get_constructions(self, lemma):$/;"	m	class:PathFactory
+get_constructions	paideia_utils.py	/^    def get_constructions(self, lemma):$/;"	m	class:TranslateWordPathFactory
 get_data	paideia.py	/^    def get_data(self):$/;"	m	class:Block
 get_description	paideia.py	/^    def get_description(self):$/;"	m	class:Npc
 get_eval	paideia.py	/^    def get_eval(self, user_response=None):$/;"	m	class:StepEvaluator
 get_final_responder	paideia.py	/^    def get_final_responder(self, localias=None, bug_reporter=None):$/;"	m	class:StepText
+get_form	paideia_utils.py	/^    def get_form(self, lemma, cst):$/;"	m	class:PathFactory
 get_id	paideia.py	/^    def get_id(self):$/;"	m	class:Location
 get_id	paideia.py	/^    def get_id(self):$/;"	m	class:Npc
 get_id	paideia.py	/^    def get_id(self):$/;"	m	class:Path
@@ -215,7 +224,10 @@ get_offset	paideia_stats.py	/^def get_offset(user):$/;"	f
 get_path	paideia.py	/^    def get_path(self, categories=None, reply=False, db=None, path=None, repeat=None):$/;"	m	class:User
 get_promoted	paideia.py	/^    def get_promoted(self):$/;"	m	class:User
 get_prompt	paideia.py	/^    def get_prompt(self, username=None, raw_prompt=None, **kwargs):$/;"	m	class:Step
+get_prompt	paideia_utils.py	/^    def get_prompt(self, word_form):$/;"	m	class:PathFactory
+get_prompt_list	paideia_utils.py	/^    def get_prompt_list(self, word_form):$/;"	m	class:PathFactory
 get_readable	paideia.py	/^    def get_readable(self):$/;"	m	class:Location
+get_readable_list	paideia_utils.py	/^    def get_readable_list(self):$/;"	m	class:PathFactory
 get_reply	paideia.py	/^    def get_reply(self, user_response=None, answers=None, tips=None):$/;"	m	class:StepText
 get_reporter	paideia.py	/^    def get_reporter(self, record_id, path_id, step_id,$/;"	m	class:BugReporter
 get_responder	paideia.py	/^    def get_responder(self):$/;"	m	class:Step
@@ -229,6 +241,7 @@ get_steps	paideia.py	/^    def get_steps(self, username):$/;"	m	class:Path
 get_tag_progress	paideia.py	/^    def get_tag_progress(self):$/;"	m	class:User
 get_tag_records	paideia.py	/^    def get_tag_records(self):$/;"	m	class:User
 get_tags	paideia.py	/^    def get_tags(self):$/;"	m	class:Step
+get_tags	paideia_utils.py	/^    def get_tags(self, lemma, cst_row):$/;"	m	class:PathFactory
 get_widget_index	plugin_ajaxselect.py	/^    def get_widget_index(self):$/;"	m	class:AjaxSelect
 get_wrappername	plugin_ajaxselect.py	/^    def get_wrappername(self, fieldset):$/;"	m	class:AjaxSelect
 info	paideia_exploring.py	/^    def info(self):$/;"	m	class:Location
@@ -238,14 +251,18 @@ log_list	paideia_stats.py	/^    def log_list(self):$/;"	m	class:Stats
 log_new	paideia_bugs.py	/^    def log_new(self, answer, log_id, score):$/;"	m	class:Bug
 logger	paideia_exploring.py	/^logger = logging.getLogger('web2py.app.paideia')$/;"	v
 make_adder	plugin_ajaxselect.py	/^    def make_adder(self, wrappername, linktable):$/;"	m	class:AjaxSelect
-make_glosslist	paideia_utils.py	/^    def make_glosslist(self, glosses):$/;"	m	class:PathFactory
+make_create_form	paideia_utils.py	/^    def make_create_form(self):$/;"	m	class:PathFactory
+make_form	paideia_utils.py	/^    def make_form():$/;"	m	class:TranslateWordPathFactory
+make_glosses	paideia_utils.py	/^    def make_glosses(self, lemma, cst):$/;"	m	class:PathFactory
 make_linklist	plugin_ajaxselect.py	/^    def make_linklist(self):$/;"	m	class:AjaxSelect
-make_path	paideia_utils.py	/^    def make_path(self, words=MYWORDS, consts=CONSTRUCTIONS):$/;"	m	class:PathFactory
-make_readable	paideia_utils.py	/^    def make_readable(self, glosses, templates):$/;"	m	class:PathFactory
+make_output	paideia_utils.py	/^    def make_output(self, paths, result):$/;"	m	class:PathFactory
+make_path	paideia_utils.py	/^    def make_path(self, lemmas, testing=False):$/;"	m	class:PathFactory
+make_readable	paideia_utils.py	/^    def make_readable(self, lemma, construction):$/;"	m	class:PathFactory
 make_refresher	plugin_ajaxselect.py	/^    def make_refresher(self, wrappername, linktable, uargs, uvars):$/;"	m	class:AjaxSelect
-make_regex	paideia_utils.py	/^    def make_regex(self, glosses, raw):$/;"	m	class:PathFactory
+make_regex	paideia_utils.py	/^    def make_regex(self, myglosses, raw):$/;"	m	class:PathFactory
 make_step	paideia.py	/^    def make_step(self, condition, kwargs=None, data=None):$/;"	m	class:Block
 make_taglist	plugin_ajaxselect.py	/^    def make_taglist(self):$/;"	m	class:AjaxSelect
+match_string	greek_parser.py	/^def match_string(self, tokens):$/;"	f
 monthcal	paideia_stats.py	/^    def monthcal(self, year=None, month=None):$/;"	m	class:Stats
 monthstats	paideia_stats.py	/^    def monthstats(self, year=None, month=None):$/;"	m	class:Stats
 next_step	paideia_exploring.py	/^    def next_step(self):$/;"	m	class:Walk
@@ -257,6 +274,7 @@ restrict	plugin_ajaxselect.py	/^    def restrict(self, restricted):$/;"	m	class:
 sanitize_int_list	plugin_ajaxselect.py	/^    def sanitize_int_list(self, val):$/;"	m	class:AjaxSelect
 sanitize_internal	plugin_ajaxselect.py	/^        def sanitize_internal(val):$/;"	f	function:AjaxSelect.sanitize_int_list
 save_session_data	save_session_data.py	/^def save_session_data(self):$/;"	f
+send_error	paideia_utils.py	/^def send_error(myclass, mymethod, myrequest):$/;"	f
 set_location	paideia.py	/^    def set_location(self, loc):$/;"	m	class:Path
 set_location	paideia.py	/^    def set_location(self, loc):$/;"	m	class:User
 set_location	paideia.py	/^    def set_location(self, loc, prev_loc):$/;"	m	class:Npc
@@ -268,9 +286,15 @@ start	paideia.py	/^    def start(self, localias, response_string=None, path=None
 stay	paideia_exploring.py	/^    def stay(self):$/;"	m	class:Walk
 step_log	paideia_stats.py	/^    def step_log(self, logs=None, user_id=None, duration=None, db=None):$/;"	m	class:Stats
 store_stats	paideia_stats.py	/^    def store_stats(self, user_id, weekstart, weekstop, weeknum):$/;"	m	class:Stats
+test_order	greek_parser.py	/^			def test_order(self, tokens) $/;"	m	class:Clause
+test_order	greek_parser.py	/^	  def test_order(self, tokens, words):$/;"	m	class:NounPhrase
+test_order	greek_parser.py	/^def test_order(self, tokens, words):$/;"	f
+test_regex	paideia_utils.py	/^    def test_regex(self, regex, readables):$/;"	m	class:PathFactory
 textarea	plugin_widgets.py	/^    def textarea(self, label, target, cname, fname, linkargs=None):$/;"	m	class:JQMODAL
+tokenize	greek_parser.py	/^def tokenize(str):$/;"	f
 undo	paideia_bugs.py	/^    def undo(self, user_id, bug_id, log_id):$/;"	m	class:Bug
 util_get_args	paideia.py	/^def util_get_args():$/;"	f
+validate	greek_parser.py	/^def validate(self, tokens)$/;"	f
 verbose	paideia_exploring.py	/^    verbose = False  # controls printing of initialization and method calls$/;"	v	class:Walk
 verbose	paideia_exploring.py	/^    verbose = False$/;"	v	class:Step
 verbose	paideia_exploring.py	/^    verbose = False$/;"	v	class:StepAwardBadges
@@ -287,3 +311,4 @@ widget	plugin_ajaxselect.py	/^    def widget(cls, field, value, restricted=None,
 widget	plugin_ajaxselect.py	/^    def widget(self):$/;"	m	class:AjaxSelect
 widget	plugin_widgets.py	/^    def widget(self, linktext, content, classnames=None,$/;"	m	class:POPOVER
 widget_contents	plugin_ajaxselect.py	/^    def widget_contents(self):$/;"	m	class:AjaxSelect
+write_to_db	paideia_utils.py	/^    def write_to_db(self, stepslist):$/;"	m	class:PathFactory
