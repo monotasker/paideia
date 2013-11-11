@@ -7,7 +7,7 @@ Part of the Paideia platform built with web2py.
 
 """
 import traceback
-from gluon import current, SQLFORM, Field, BEAUTIFY, IS_IN_DB
+from gluon import current, SQLFORM, Field, BEAUTIFY, IS_IN_SET
 from plugin_ajaxselect import AjaxSelect
 import re
 from random import randrange, shuffle
@@ -222,8 +222,8 @@ class PathFactory(object):
                 reg_str = crow['trans_regex_eng']
                 glosses = self.make_glosses(lemma['lemma'], cst)
                 rdbl = self.make_readable(glosses[:], crow['trans_templates'])
-                tagset = self.get_tags(lemma, cst_row)
-                word_form = self.get_word_form(lemma['lemma'], cst_row),
+                tagset = self.get_tags(lemma, crow)
+                word_form = self.get_word_form(lemma['lemma'], crow),
                 try:
                     step = {'prompt': self.get_prompt(word_form, cst_row),
                             'response1': self.make_regex(glosses[:], reg_str),
@@ -463,17 +463,21 @@ class TranslateWordPathFactory(PathFactory):
         db = current.db
         message = ''
         output = ''
-        form = SQLFORM.factory(Field('lemmas', 'list:reference lemmas'),
-                               Field('irregular_forms', 'list:string'))
-        form.fields[0].requires = IS_IN_DB(db, 'lemmas.id', '%(lemma)s',
-                                        multiple=True)
-        form.fields[0].widget = lambda field, value: AjaxSelect(field, value,
-                                                             indx=1,
-                                                             refresher=True,
-                                                             multi='basic',
-                                                             lister='simple',
-                                                             orderby='lemma'
-                                                             ).widget()
+        lemma_ids = db(db.lemmas.id > 0).select(db.lemmas.id)
+        lemmaset = [l.id for l in lemma_ids]
+        form = SQLFORM.factory(Field('lemmas',
+                                     type='list:reference lemmas',
+                                     requires=IS_IN_DB(db, 'lemmas.id', '%(lemma)s', multiple=True),
+                                     ),
+                               Field('irregular_forms', type='list:string'),
+                               Field('testing', type='boolean'))
+                               #widget=lambda f, v: AjaxSelect(f, v,
+                                                            #indx=1,
+                                                            #refresher=True,
+                                                            #multi='basic',
+                                                            #lister='simple',
+                                                            #orderby='lemmas'
+                                                            #).widget()
         if form.process(dbio=False, keepvalues=True).accepted:
             self.lemmaset = request.vars.lemmas
             irregs = request.vars.irregular_forms
@@ -518,4 +522,4 @@ class TranslateWordPathFactory(PathFactory):
             return self.verbcs
         # TODO: add conditions for other parts of speech
         else:
-            pass
+            return False
