@@ -7,7 +7,8 @@ Part of the Paideia platform built with web2py.
 
 """
 import traceback
-from gluon import current, SQLFORM
+from gluon import current, SQLFORM, Field, BEAUTIFY, IS_IN_DB
+from plugin_ajaxselect import AjaxSelect
 import re
 from random import randrange, shuffle
 
@@ -27,63 +28,13 @@ def send_error(myclass, mymethod, myrequest):
     print 'done sending '
 
 
-"""
-εὐγε
-εἰ δοκει
-*ἀκουω
-*ποιεω
-    Τί ποιεις Στεφανος?
-*διδωμι
-    Τί αύτη διδει?
-    Τίς διδει τουτον τον δωρον?
-
-φερω
-θελω
-    θελεις συ πωλειν ἠ ἀγοραζειν?
-    Ποσα θελεις ἀγοραζειν?
-ζητεω
-τιμαω
-    τιμαω
-λαμβανω
-ἀγοραζω
-    Βαινε και ἀγοραζε τρεις ἰχθυας.
-πωλεω
-    Τί πωλεις Ἀλεξανδρος?
-βλεπω
-βαινω
-ἐχω
-ὁραω
-σημαινω
-διδωμι
-πωλεω
-
-ποσος, -η, -ον
-ὁ μισθος
-ἡ χαρις
-ἡ δραχμη
-το δηναριον
-    Is this a gift or would you like a denarius?
-ὁ πωλης
-    συ ὁ πωλης?
-    βλεπει ὁ πωλης. θελω με ἠ Ἰασων ὁ υἱος μου?
-το πωλητηριον
-    τίνος ἡ πωλητηριον?
-το ἐλαιοπωλιον
-    ἀγοραζει τουτους του ἐλαιοπωλιου?
-οἰνοπωλιον
-ἀρτοπωλιον
-το δωρον
-    τίνος το δωρον?
-το -φορος
-"""
-
 MYWORDS = {u'πωλεω': {'glosses': ['sell'],
                       'constructions': [('pres_act_ind_2s', 'πωλεις'),
                                         ('pres_act_ind_3s', 'πωλει'),
                                         ('pres_act_ind_1p', 'πωλουμεν'),
                                         ('pres_act_ind_2p', 'πωλειτε'),
                                         ('pres_act_ind_3p', 'πωλουσι'),
-                                        ('pres_act_imper_2s', 'πωλει')
+                                        ('pres_act_imper_2s', 'πωλει'),
                                         ('pres_act_imper_2s', 'πωλειτε')
                                         ],
                       'xtags': [128, 121]},
@@ -99,15 +50,15 @@ MYWORDS = {u'πωλεω': {'glosses': ['sell'],
                                        ],
                      'xtags': [121]},
            u'βαινω': {'glosses': ['go', 'move'],
-                                  'constructions': [('pres_act_inf', None),
-                                                    ('pres_act_ind_2s', None),
-                                                    ('pres_act_ind_3s', None),
-                                                    ('pres_act_ind_1p', None),
-                                                    ('pres_act_ind_2p', None),
-                                                    ('pres_act_imper_2s', None),
-                                                    ('pres_act_imper_2p', None),
-                                                    ],
-                                  'xtags': [121]},
+                      'constructions': [('pres_act_inf', None),
+                                      ('pres_act_ind_2s', None),
+                                      ('pres_act_ind_3s', None),
+                                      ('pres_act_ind_1p', None),
+                                      ('pres_act_ind_2p', None),
+                                      ('pres_act_imper_2s', None),
+                                      ('pres_act_imper_2p', None),
+                                      ],
+                      'xtags': [121]},
            u'σημαινω': {'glosses': ['mean', 'signify|ie'],
                         'constructions': [('pres_act_ind_1s', 'σημαινω'),
                                           ('pres_act_ind_2s', 'σημαινεις'),
@@ -149,26 +100,26 @@ MYWORDS = {u'πωλεω': {'glosses': ['sell'],
                                        ],
                      'xtags': [121]},
            u'λαμβανω': {'glosses': ['tak|e', 'get', 'receiv|e'],
-                     'constructions': [('pres_act_inf', None),
-                                       ('pres_act_ind_2s', None),
-                                       ('pres_act_ind_3s', None),
-                                       ('pres_act_ind_1p', None),
-                                       ('pres_act_ind_2p', None),
-                                       ('pres_act_ind_3p', None),
-                                       ('pres_act_imper_2s', None),
-                                       ('pres_act_imper_2p', None),
-                                       ],
-                     'xtags': [121]},
+                        'constructions': [('pres_act_inf', None),
+                                        ('pres_act_ind_2s', None),
+                                        ('pres_act_ind_3s', None),
+                                        ('pres_act_ind_1p', None),
+                                        ('pres_act_ind_2p', None),
+                                        ('pres_act_ind_3p', None),
+                                        ('pres_act_imper_2s', None),
+                                        ('pres_act_imper_2p', None),
+                                        ],
+                        'xtags': [121]},
            u'ἀκουω': {'glosses': ['hear', 'listen', 'obey', 'perceiv|e'],
-                     'constructions': [('pres_act_inf', None),
-                                       ('pres_act_ind_2s', None),
-                                       ('pres_act_ind_3s', None),
-                                       ('pres_act_ind_1p', None),
-                                       ('pres_act_ind_2p', None),
-                                       ('pres_act_imper_2s', None),
-                                       ('pres_act_imper_2p', None),
-                                       ],
-                     'xtags': [121]},
+                      'constructions': [('pres_act_inf', None),
+                                      ('pres_act_ind_2s', None),
+                                      ('pres_act_ind_3s', None),
+                                      ('pres_act_ind_1p', None),
+                                      ('pres_act_ind_2p', None),
+                                      ('pres_act_imper_2s', None),
+                                      ('pres_act_imper_2p', None),
+                                      ],
+                      'xtags': [121]},
            u'ποιεω': {'glosses': ['do', 'mak|e'],
                       'constructions': [('pres_act_inf', None),
                                         ('pres_act_ind_1s', None),
@@ -176,7 +127,7 @@ MYWORDS = {u'πωλεω': {'glosses': ['sell'],
                                         ('pres_act_ind_3s', 'ποιει'),
                                         ('pres_act_ind_1p', 'ποιουμεν'),
                                         ('pres_act_ind_2p', 'ποιειτε'),
-                                        ('pres_act_ind_3p', 'ποιουσι')
+                                        ('pres_act_ind_3p', 'ποιουσι'),
                                         ('pres_act_imper_2s', 'ποιει֚'),
                                         ('pres_act_imper_2p', 'ποιειτε'),
                                         ],
@@ -186,7 +137,7 @@ MYWORDS = {u'πωλεω': {'glosses': ['sell'],
                                          ('pres_act_ind_3s', 'διδωσι'),
                                          ('pres_act_ind_1p', 'διδομεν'),
                                          ('pres_act_ind_2p', 'διδοτε'),
-                                         ('pres_act_ind_3p', 'διδοασι')
+                                         ('pres_act_ind_3p', 'διδοασι'),
                                          ('pres_act_imper_2s', 'διδου'),
                                          ('pres_act_imper_2p', 'διδοτε'),
                                          ],
@@ -196,22 +147,69 @@ MYWORDS = {u'πωλεω': {'glosses': ['sell'],
 
 class PathFactory(object):
 
-    """ An abstract parent class to create paths (with steps) procedurally. """
+    u"""
+    An abstract parent class to create paths (with steps) procedurally.
+
+    εὐγε
+    εἰ δοκει
+    *ἀκουω
+    *ποιεω
+        Τί ποιεις Στεφανος?
+    *διδωμι
+        Τί αύτη διδει?
+        Τίς διδει τουτον τον δωρον?
+
+    φερω
+    θελω
+        θελεις συ πωλειν ἠ ἀγοραζειν?
+        Ποσα θελεις ἀγοραζειν?
+    ζητεω
+    τιμαω
+        τιμαω
+    λαμβανω
+    ἀγοραζω
+        Βαινε και ἀγοραζε τρεις ἰχθυας.
+    πωλεω
+        Τί πωλεις Ἀλεξανδρος?
+    βλεπω
+    βαινω
+    ἐχω
+    ὁραω
+    σημαινω
+    διδωμι
+    πωλεω
+
+    ποσος, -η, -ον
+    ὁ μισθος
+    ἡ χαρις
+    ἡ δραχμη
+    το δηναριον
+        Is this a gift or would you like a denarius?
+    ὁ πωλης
+        συ ὁ πωλης?
+        βλεπει ὁ πωλης. θελω με ἠ Ἰασων ὁ υἱος μου?
+    το πωλητηριον
+        τίνος ἡ πωλητηριον?
+    το ἐλαιοπωλιον
+        ἀγοραζει τουτους του ἐλαιοπωλιου?
+    οἰνοπωλιον
+    ἀρτοπωλιον
+    το δωρον
+        τίνος το δωρον?
+    το -φορος
+
+    """
 
     def __init__(self):
-        """
-        """
+        """Initialize an object. """
         self.promptstrings = []
 
     def make_create_form(self):
-        """ """
+        """Initialize an object. """
         pass
 
     def make_path(self, lemmas, testing=False):
-        """
-        Create new paths asking the user the meaning (in English) of a single
-        Greek word.
-        """
+        """ Create new paths asking the user the meaning (in English) of a single Greek word. """
         db = current.db
         paths = []
         result = {}
@@ -453,7 +451,7 @@ class TranslateWordPathFactory(PathFactory):
                               'Σημαινει τί ὁ λογος οὑτος? {}']
 
 
-    def make_form():
+    def make_form(self):
         """
         Returns a form to make a translate-word path and processes the form on
         submission.
@@ -461,10 +459,21 @@ class TranslateWordPathFactory(PathFactory):
         This form, when submitted, calls self.
 
         """
+        request = current.request
+        db = current.db
         message = ''
         output = ''
         form = SQLFORM.factory(Field('lemmas', 'list:reference lemmas'),
                                Field('irregular_forms', 'list:string'))
+        form.fields[0].requires = IS_IN_DB(db, 'lemmas.id', '%(lemma)s',
+                                        multiple=True)
+        form.fields[0].widget = lambda field, value: AjaxSelect(field, value,
+                                                             indx=1,
+                                                             refresher=True,
+                                                             multi='basic',
+                                                             lister='simple',
+                                                             orderby='lemma'
+                                                             ).widget()
         if form.process(dbio=False, keepvalues=True).accepted:
             self.lemmaset = request.vars.lemmas
             irregs = request.vars.irregular_forms
