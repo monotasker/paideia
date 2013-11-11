@@ -20,7 +20,7 @@ def make_path():
     """
     message = ''
     output = ''
-    form, message, output = TranslatePath().make_form()
+    form, message, output = paideia_utils.TranslateWordPathFactory().make_form()
 
     return {'form': form, 'message': message, 'output': BEAUTIFY(output)}
 
