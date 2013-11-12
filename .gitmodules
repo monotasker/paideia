@@ -16,3 +16,6 @@
 [submodule "plugins/plugin_img_chooser"]
 	path = plugins/plugin_img_chooser
 	url = git@github.com:monotasker/plugin_img_chooser.git
+[submodule "plugins/plugin_d3"]
+	path = plugins/plugin_d3
+	url = git@github.com:monotasker/plugin_d3.git
