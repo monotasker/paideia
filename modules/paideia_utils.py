@@ -208,11 +208,72 @@ class PathFactory(object):
         """Initialize an object. """
         pass
 
-    def make_path(self, lemmas, testing=False):
-        """ Create new paths asking the user the meaning (in English) of a single Greek word. """
+    def make_path(self, widget_type, prompt_pieces, testing=False):
+        """ Create new paths asking the user the meaning (in English) of a single Greek word.
+
+        Generic function to automatically create a set of similar paths from provided variables.
+
+        Required arguments
+        ------------------
+
+        :arg:widget_type (int)      -- the id of the widget-type appropriate to this step.
+
+        :arg:pieces (list)          -- a list of dictionaries with the following keys:
+            'template string' (str) -- string with {} marking field for lemmas to be replaced.
+            'word_forms' (list)     -- words (strings) to sub into the template. If the 'piece'
+                                       template includes more than one place-holder for substitution,
+                                       each member of the list should be a tuple with the appropriate
+                                       number of strings.
+
+        :arg:npcs (list)            -- npc id's (int) which are valid for the steps
+
+        :arg:locs (list)            -- id's (int) for location in which the steps can be performed
+
+        Optional arguments
+        ------------------
+        :kwarg:avoid (list of tuples) each tuple specifies an invalid combinations of lemmas which
+        should be avoided in assembling step variations.
+
+        [{'template_string': 'Ποσ{adj} {noun} ἐχομεν?',
+          'word_forms': {'noun': ['καρπους|noun_masc_acc_plur_καρπος',
+                                  'συκα|noun_acc_plur_συκον',
+                                  'ἰχθυας|noun_acc_plur_ἰχθυς',
+                                  'ἀρτους|noun_acc_plur_ἀρτος']}
+          },
+         ]
+
+        [{'regex_string': '^(?P<a>Ἐχομεν\s)?(?P<b>{num}\s)?(?(a)|(?P<c>ἐχομεν))?{noun}(?(a)|(?(c)'
+                          '|(?P<d>\sἐχομεν)))?(?(b)|\s{num})(?(a)|(?(c)|(?(d)|(\sἐχομεν))))\.?',
+         {'word_forms': {'num': ['δυο', 'τρεις', 'τεσσαρες', 'πεντα', 'ἑξα', 'ἑπτα', 'ὀκτω', 'ἐννεα', 'δεκα']}
+         {'images': {'title': 'food_{num}_{noun}'}]
+        """
+
         db = current.db
         paths = []
         result = {}
+
+        prompt_parts = []
+        for idx, piece in enumerate(pieces):
+            piece_opts = []
+            for idx in range(0, len(piece.values()[0])):
+                words = {k: v[idx] for k, v in piece['word_forms'].iteritems()}
+                formatted = self.get_formatted(piece['template_string'], words)
+                piece_opts.append(formatted)
+            prompt_parts.append(piece_opts)
+
+        prompts = prompt_parts[0] if len(prompt_parts) == 1 else self.assemble_prompts(prompt_parts)
+
+        response1_parts = []
+        for idx, piece in enumerate(pieces):
+            piece_opts = []
+            for idx in range(0, len(piece.values()[0])):
+                words = {k: v[idx] for k, v in piece['word_forms'].iteritems()}
+                formatted = self.get_formatted(piece['template_string'], words)
+                piece_opts.append(formatted)
+            prompt_parts.append(piece_opts)
+
+
+
         for lemma in lemmas:
             lemma['constructions'] = self.get_constructions(lemma)
             for idx, cst in enumerate(lemma['constructions']):  # each path
