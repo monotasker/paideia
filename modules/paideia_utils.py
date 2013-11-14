@@ -56,7 +56,7 @@ Part of the Paideia platform built with web2py.
 
 """
 import traceback
-from gluon import current, SQLFORM, Field, BEAUTIFY, IS_IN_DB
+from gluon import current, SQLFORM, Field, BEAUTIFY, IS_IN_DB, UL, LI, A, URL, P
 #from plugin_ajaxselect import AjaxSelect
 import re
 from random import randrange, shuffle
@@ -227,30 +227,31 @@ abbrevs = {'acc': 'accusative',
            'mid-pass': 'middle or passive'}
 
 input = {'words1': ['καρπους|noun_acc_masc_plur_καρπος',
-                'συκα|noun_acc_neut_plur_συκον',
-                'ἰχθυας|noun_acc_masc_plur_ἰχθυς',
-                'ἀρτους|noun_acc_masc_plur_ἀρτος'],
-        'words2': ['δυο',
-                  'τρεις',
-                  'τεσσαρες',
-                  'πεντα',
-                  'ἑξα',
-                  'ἑπτα',
-                  'ὀκτω',
-                  'ἐννεα',
-                  'δεκα'],
-        'words3': [],
-        'prompt_template': ['{adj-ποσος} {words1} ἐχομεν?',
-                            '{words1} {adj-ποσος} ἐχομεν?',
-                            '{words1} ἐχομεν {adj-ποσος}?',
-                            'Ἐχομεν {words1} {adj-ποσος}?'],
-        'response_template': ['^(?P<a>Ἐχομεν\s)?(?P<b>{words2}\s)?(?(a)|(?P<c>ἐχομεν))?{words1}(?(a)|(?(c)|(?P<d>\sἐχομεν)))?(?(b)|\s{words2})(?(a)|(?(c)|(?(d)|(\sἐχομεν))))\.?'],
-        'readable_template': ['Ἐχομεν {words2} {words1}.',
-                               '{words2} ἐχομεν {words1}.',
-                               '{words1} ἐχομεν {words2}.',
-                               '{words1} {words2} ἐχομεν.',
-                               '{words2} {words1} ἐχομεν.'],
-        'image_template': 'food_{words2}_{words1}'}
+             'συκα|noun_acc_neut_plur_συκον',
+             'ἰχθυας|noun_acc_masc_plur_ἰχθυς',
+             'ἀρτους|noun_acc_masc_plur_ἀρτος'],
+         'words2': ['δυο',
+                 'τρεις',
+                 'τεσσαρες',
+                 'πεντα',
+                 'ἑξα',
+                 'ἑπτα',
+                 'ὀκτω',
+                 'ἐννεα',
+                 'δεκα'],
+         'words3': [],
+         'prompt_template': ['{adj-ποσος} {words1} ἐχομεν?',
+                             '{words1} {adj-ποσος} ἐχομεν?',
+                             '{words1} ἐχομεν {adj-ποσος}?',
+                             'Ἐχομεν {words1} {adj-ποσος}?'],
+         'response_template': ['^(?P<a>Ἐχομεν\s)?(?P<b>{words2}\s)?(?(a)|(?P<c>ἐχομεν))?{words1}(?(a)|(?(c)|(?P<d>\sἐχομεν)))?(?(b)|\s{words2})(?(a)|(?(c)|(?(d)|(\sἐχομεν))))\.?'],
+         'readable_template': ['Ἐχομεν {words2} {words1}.',
+                             '{words2} ἐχομεν {words1}.',
+                             '{words1} ἐχομεν {words2}.',
+                             '{words1} {words2} ἐχομεν.',
+                             '{words2} {words1} ἐχομεν.'],
+         'image_template': 'food_{words2}_{words1}',
+         'testing': True}
 
 class PathFactory(object):
 
@@ -382,6 +383,7 @@ class PathFactory(object):
                                          variations.
 
         """
+        print "starting module======================================"
         db = current.db
         paths = []
         result = {}
@@ -430,8 +432,8 @@ class PathFactory(object):
                       'tags': tags[0],
                       'tags_secondary': tags[1],
                       'tags_ahead': tags[2],
-                      'npcs': npcs[randrange(len(npcs))],
-                      'locations': locations[randrange(len(npcs))]}
+                      'npcs': npcs,  # [randrange(len(npcs))] if multiple
+                      'locations': locations}  # [randrange(len(npcs))] if mult
             try:
                 mtch = self.test_regex(kwargs)
                 dups = self.check_for_duplicates(kwargs)
@@ -498,7 +500,7 @@ class PathFactory(object):
                     myform, newform = self.make_form_agree(mod_form, mylemma,
                                                            testing)
                     print 'myform returned:', myform
-                    print 'newform returned:', newform['word_form']
+                    print 'newform returned:', newform
                     if newform:
                         newforms.append(newform)
                     formtags = db((db.word_forms.word_form == myform) &
@@ -523,7 +525,51 @@ class PathFactory(object):
             man_args = {a[0]: a[1] for a in man_args}
             print 'man_args', man_args
             parts[k] = p.format(**man_args)
-            parts[k] = parts[k][:1].upper() + parts[k][1:]
+            #first_letter = parts[k][:2].decode('utf-8').upper()
+            caps = {'α': 'Α',
+                    'ἀ': 'Ἀ',
+                    'ἁ': 'Ἁ',
+                    'β': 'Β',
+                    'γ': 'Γ',
+                    'δ': 'Δ',
+                    'ε': 'Ε',
+                    'ἐ': 'Ἐ',
+                    'ἑ': 'Ἑ',
+                    'ζ': 'Ζ',
+                    'η': 'Η',
+                    'ἠ': 'Ἠ',
+                    'ἡ': 'Ἡ',
+                    'θ': 'Θ',
+                    'ι': 'Ι',
+                    'ἰ': 'Ἰ',
+                    'ἱ': 'Ἱ',
+                    'κ': 'Κ',
+                    'λ': 'Λ',
+                    'μ': 'Μ',
+                    'ν': 'Ν',
+                    'ξ': 'Ξ',
+                    'ο': 'Ο',
+                    'ὀ': 'Ὀ',
+                    'ὁ': 'Ὁ',
+                    'π': 'Π',
+                    'ρ': 'Ρ',
+                    'σ': 'Σ',
+                    'τ': 'Τ',
+                    'υ': 'Υ',
+                    'υ': 'Υ',
+                    'υ': 'Υ',
+                    'φ': 'Φ',
+                    'χ': 'Χ',
+                    'ψ': 'Ψ',
+                    'ω': 'Ω',
+                    'ω': 'Ω',
+                    'ω': 'Ω'}
+            try:
+                first_letter = caps[parts[k][:3]]
+                parts[k] = first_letter + parts[k][3:]
+            except KeyError:
+                first_letter = caps[parts[k][:2]]
+                parts[k] = first_letter + parts[k][2:]
             print 'final formatted:', parts[k]
 
         readables = [r for k, r in parts.iteritems() if re.match('rdbl', k)]
@@ -741,11 +787,19 @@ class PathFactory(object):
         """
         Return formatted output for the make_path view after form submission.
         """
+        newforms = result['new_forms']
+        images = result['images_missing']
+        del(result['new_forms'])
+        del(result['images_missing'])
         successes = {r: v for r, v in result.iteritems() if r[0] != 'failure'}
         failures = {r: v for r, v in result.iteritems() if r[0] == 'failure'}
-        message = 'Created {} new paths.\n' \
-                  '{} paths failed'.format(len(successes.keys()),
-                                            len(failures.keys()))
+        message1 = ''
+        message2 = ''
+        if successes:
+            message1 = 'Created {} new paths.\n'.format(len(successes.keys()))
+        if failures:
+            message2 = '{} paths failed\n'.format(len(failures.keys()))
+        message = message1, message2
         output = UL()
         for s, v in successes.iteritems():
             output.append(LI(s,
