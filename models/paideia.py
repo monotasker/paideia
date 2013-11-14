@@ -16,7 +16,7 @@ import os
 
 if 0:
     from gluon import URL, current, Field, IS_IN_DB, IS_NOT_IN_DB, SQLFORM
-    from gluon import IS_EMPTY_OR
+    from gluon import IS_EMPTY_OR, IS_IN_SET
     response = current.response
     request = current.request
     auth = current.auth
@@ -106,6 +106,7 @@ db.tags.slides.widget = lambda field, value: \
 db.define_table('lemmas',
                 Field('lemma', 'string'),
                 Field('part_of_speech'),
+                Field('glosses', 'list:string'),
                 Field('first_tag', db.tags),
                 Field('extra_tags', 'list:reference tags'),
                 format='%(lemma)s')
@@ -120,7 +121,8 @@ db.lemmas.extra_tags.requires = IS_IN_DB(db, 'tags.id',
 db.lemmas.extra_tags.widget = lambda field, value: AjaxSelect(field, value,
                                                               indx=1,
                                                               multi='basic',
-                                                              lister='simple'
+                                                              lister='simple',
+                                                              orderby='tag'
                                                               ).widget()
 
 db.define_table('step_instructions',
@@ -162,15 +164,44 @@ db.constructions.tags.widget = lambda field, value: \
 db.define_table('word_forms',
                 Field('word_form', 'string'),
                 Field('source_lemma', db.lemmas),
-                Field('tense'),
-                Field('voice'),
-                Field('mood'),
-                Field('person'),
-                Field('number'),
+                Field('tense', 'string'),
+                Field('voice', 'string'),
+                Field('mood', 'string'),
+                Field('person', 'string'),
+                Field('number', 'string'),
                 Field('grammatical_case'),
-                Field('gender'),
+                Field('gender', 'string'),
                 Field('construction', db.constructions),
+                Field('tags', 'list:reference tags'),
                 format='%(word_form)s')
+db.word_forms.tense.requires = IS_IN_SET(('present', 'imperfect', 'future',
+                                          'aorist1', 'aorist2', 'perfect1',
+                                          'perfect2', 'pluperfect', 'none'))
+db.word_forms.voice.requires = IS_IN_SET(('active', 'middle', 'passive',
+                                          'middle/passive', 'none'))
+db.word_forms.mood.requires = IS_IN_SET(('indicative', 'imperative',
+                                         'infinitive', 'subjunctive',
+                                         'optative', 'participle', 'none'))
+db.word_forms.grammatical_case.requires = IS_IN_SET(('nominative', 'accusative',
+                                                     'genitive', 'dative',
+                                                     'vocative', 'undetermined',
+                                                     'none'))
+db.word_forms.person.requires = IS_IN_SET(('first', 'second', 'third', 'none'))
+db.word_forms.number.requires = IS_IN_SET(('singular', 'plural', 'none'))
+db.word_forms.gender.requires = IS_IN_SET(('masculine', 'feminine',
+                                           'neuter', 'masculine or feminine',
+                                           'undetermined', 'none'))
+db.constructions.tags.requires = IS_IN_DB(db, 'tags.id',
+                                          db.tags._format,
+                                          multiple=True)
+db.constructions.tags.widget = lambda field, value: \
+                                       AjaxSelect(field, value,
+                                                  indx=1,
+                                                  multi='basic',
+                                                  lister='simple',
+                                                  orderby='tag'
+                                                  ).widget()
+
 
 db.define_table('badges',
                 Field('badge_name', 'string', unique=True),
