@@ -1,14 +1,14 @@
-# coding: utf-8
+# _*_ coding: utf-8 _*_
+
 """
 Controller functions handling back-end utility tasks (mostly db maintenance).
 """
 
 if 0:
-    from gluon import current, SQLFORM, BEAUTIFY, Field, UL, LI, A, P, URL
+    from gluon import current, BEAUTIFY
     db = current.db
     auth = current.auth
     request = current.request
-from ast import literal_eval
 import paideia_utils
 #from pprint import pprint
 
@@ -16,11 +16,14 @@ import paideia_utils
 @auth.requires_membership('administrators')
 def make_path():
     """
-    Uses paideia_utils.PathFactory() class to programmatically create paths.
+    Uses paideia_utils.PathFactory classes to programmatically create paths.
     """
+    path_type = request.args[0] if request.args else 'default'
+    factories = {'default': paideia_utils.PathFactory,
+                 'translate_word': paideia_utils.TranslateWordPathFactory}
     message = ''
     output = ''
-    form, message, output = paideia_utils.TranslateWordPathFactory().make_form()
+    form, message, output = factories[path_type]().make_create_form()
 
     return {'form': form, 'message': message, 'output': BEAUTIFY(output)}
 
