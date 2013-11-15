@@ -63,6 +63,13 @@ from random import randrange, shuffle
 from itertools import product
 
 
+def flatten(self, items, seqtypes=(list, tuple)):
+    for i, x in enumerate(items):
+        while isinstance(items[i], seqtypes):
+            items[i:i+1] = items[i]
+    return items
+
+
 def send_error(myclass, mymethod, myrequest):
     """ Send an email reporting error and including debug info. """
     mail = current.mail
@@ -404,13 +411,15 @@ class PathFactory(object):
                 images_missing.append(img_title)
                 img_row = db(db.images.title == img_title).select().first()
             img_id = img_row.id
-            prompt, responses, readable, \
+            prompts, responses, readables, \
             xtags, new_forms = self.formatted(c,
                                               prompt_template,
                                               response_template,
                                               readable_template,
                                               testing
                                               )
+            print 'prompts: ', len(prompts)
+            print prompts
             response1 = responses[0]
             response2 = responses[1] if len(responses) > 1 else None
             response3 = responses[2] if len(responses) > 2 else None
@@ -418,12 +427,12 @@ class PathFactory(object):
             outcome2 = 0.0
             outcome3 = 0.0
             tags = self.get_tags(tags, tags_secondary, tags_ahead, xtags)
-            kwargs = {'prompt': prompt,
+            kwargs = {'prompt': prompts[randrange(len(prompts))],
                       'widget_type': step_type,
                       'widget_audio': None,
                       'widget_image': img_id,
                       'response1': response1,
-                      'readable_response': readable,
+                      'readable_response': '|'.join(readables),
                       'outcome1': outcome1,
                       'response2': response2,
                       'outcome2': outcome2,
@@ -435,14 +444,14 @@ class PathFactory(object):
                       'npcs': npcs,  # [randrange(len(npcs))] if multiple
                       'locations': locations}  # [randrange(len(npcs))] if mult
             try:
-                mtch = self.test_regex(kwargs)
-                dups = self.check_for_duplicates(kwargs)
-                roman = self.check_for_roman(kwargs)
-                if mtch and not testing and not dups and not roman:
+                mtch = self.test_regex(kwargs['response1'], readables)
+                dups = self.check_for_duplicates(kwargs, readables, prompts)
+                roman = self.check_for_roman(kwargs['prompt'], kwargs['readable_response'])
+                if mtch and not testing and not dups[0] and not roman[0]:
                     result[compname] = self.write_to_db(kwargs)
-                elif mtch and not dups and not roman and testing:
-                    result[compname] = ('testing', kwargs)
-                elif mtch and dups:
+                elif mtch and not dups[0] and not roman and testing:
+                    result[compname] = (' testing\n', kwargs)
+                elif mtch and dups[0]:
                     result[compname] = ('duplicate', dups)
                 elif mtch and roman:
                     result[compname] = ('roman characters', roman)
@@ -460,7 +469,7 @@ class PathFactory(object):
         Return a list of the template formatted with each of the words.
         """
         db = current.db
-        parts = {'prompt': prompts[randrange(len(prompts))]}
+        parts = {'prompt{}'.format(i): r for i, r in enumerate(prompts) if r}
         if type(resps) != list:
             resps = [resps]
         resps = {'resp{}'.format(i): r for i, r in enumerate(resps) if r}
@@ -556,26 +565,39 @@ class PathFactory(object):
                     'σ': 'Σ',
                     'τ': 'Τ',
                     'υ': 'Υ',
-                    'υ': 'Υ',
-                    'υ': 'Υ',
+                    'ὐ': 'ὐ',
+                    'ὑ': 'Ὑ',
                     'φ': 'Φ',
                     'χ': 'Χ',
                     'ψ': 'Ψ',
                     'ω': 'Ω',
-                    'ω': 'Ω',
-                    'ω': 'Ω'}
-            try:
-                first_letter = caps[parts[k][:3]]
-                parts[k] = first_letter + parts[k][3:]
-            except KeyError:
-                first_letter = caps[parts[k][:2]]
-                parts[k] = first_letter + parts[k][2:]
+                    'ὠ': 'Ὠ',
+                    'ὡ': 'Ὡ'}
+            if parts[k][:1] == '^':
+                pass
+            else:
+                try:
+                    print parts[k][:3]
+                    if parts[k][:3] in caps.values():
+                        first_letter = parts[k][:3]
+                    else:
+                        first_letter = caps[parts[k][:3]]
+                    parts[k] = first_letter + parts[k][3:]
+                except KeyError:
+                    if parts[k][:2] in caps.values():
+                        first_letter = parts[k][:2]
+                    else:
+                        print parts[k][:2]
+                        first_letter = caps[parts[k][:2]]
+                    parts[k] = first_letter + parts[k][2:]
             print 'final formatted:', parts[k]
 
         readables = [r for k, r in parts.iteritems() if re.match('rdbl', k)]
+        print 'readables: ', readables
         resps = [r for k, r in parts.iteritems() if re.match('resp', k)]
+        prompts = [r for k, r in parts.iteritems() if re.match('prompt', k)]
         mytags = [t for t in mytags if not t is None]
-        return parts['prompt'], resps, readables, mytags, newforms
+        return prompts, resps, readables, mytags, newforms
 
     def make_form_agree(self, mod_form, mylemma, testing):
         """
@@ -659,7 +681,7 @@ class PathFactory(object):
 
         return myform, newforms
 
-    def check_for_duplicates(self, step):
+    def check_for_duplicates(self, step, readables, prompts):
         """
         Returns a 2-member tuple identifying whether there is a duplicate in db.
 
@@ -669,36 +691,28 @@ class PathFactory(object):
 
         """
         db = current.db
-        prompts = self.get_prompt_list(step)
-        readables = self.get_readable_list(step)
         db_steps = db(db.steps.id > 0).select(db.steps.id,
                                               db.steps.prompt,
                                               db.steps.readable_response)
         for dbs in db_steps:
             db_readables = dbs.readable_response.split('|')
-            if (dbs.prompt in [prompts]) and [r for d in db_readables
+            if (dbs.prompt in prompts) and [r for d in db_readables
                                               for r in readables if r == d]:
                 return (True, dbs.id)
             else:
                 pass
         return (False, 0)
 
-    def check_for_roman(self, word):
+    def check_for_roman(self, prompt, readable):
         """
         Check for roman characters mixed with Greek.
         """
-        roman_chars = re.compile(r'[\u0041-\u007a]|\d')
-        if not re.search(roman_chars, word):
+        latin = re.compile(r'[\u0041-\u007a]|\d')
+        if not re.search(latin, prompt) and not re.search(latin, readable):
             return False
         else:
             # TOdo: sub if necessary
             return True
-
-    def flatten(self, items, seqtypes=(list, tuple)):
-        for i, x in enumerate(items):
-            while isinstance(items[i], seqtypes):
-                items[i:i+1] = items[i]
-        return items
 
     def get_tags(self, tags, tags2, tagsA, tags_extra):
         """
@@ -727,6 +741,7 @@ class PathFactory(object):
     def test_regex(self, regex, readables):
         """
         """
+        readables = readables if type(readables) == list else [readables]
         test_regex = re.compile(regex, re.X)
         mlist = [re.match(test_regex, rsp) for rsp in readables]
         return mlist
@@ -740,48 +755,6 @@ class PathFactory(object):
                         steps=[sid])
         pid = db(db.paths.id > 0).select().last().id
         return (pid, sid)
-
-    def make_readable(self, lemma, construction):
-        """
-        Return a list of readable glosses using the given template and a
-        string of glosses separated by |.
-
-        This includes removing or doubling the final letters of the gloss as
-        needed (e.g., before -ing, -ed, -er).
-        """
-        readables = []
-        glosses = lemma['glosses']
-        templates = construction['trans_templates']
-        for gloss in glosses:
-            for tplt in templates:
-                tplt_parts = tplt.split('{}')
-                if len(tplt_parts) == 2:
-                    suffix = re.match('^\(?(ing|ed|er)\)?', tplt_parts[1])
-                    if suffix:
-                        if re.match('e$', gloss):
-                            gloss = gloss[:-1]
-                        if re.match('p$', gloss) and (suffix.group() != 'ing'):
-                            gloss = '{}p'.format(gloss)
-                        if re.match('y$', gloss) and (suffix.group() != 'ing'):
-                            gloss = '{}ie'.format(gloss[:-1])
-                readables.append(tplt.format(gloss))
-        shuffle(readables)
-        readable_string = '|'.join(readables[:7])
-
-        return (readables, readable_string)
-
-    def make_regex(self, myglosses, raw):
-        """
-        Return the complete regex string based on a list of word myglosses and
-        a template regex string.
-        """
-        for i, v in enumerate(myglosses):
-            t = v.split('|')
-            if len(t) > 1:
-                myglosses[i] = '{}({})?'.format(t[0], t[1])
-        gloss_string = '|'.join(myglosses)
-        regex = raw.format(gloss_string)
-        return regex
 
     def make_output(self, paths, result):
         """
@@ -799,7 +772,7 @@ class PathFactory(object):
             message1 = 'Created {} new paths.\n'.format(len(successes.keys()))
         if failures:
             message2 = '{} paths failed\n'.format(len(failures.keys()))
-        message = message1, message2
+        message = message1 + message2
         output = UL()
         for s, v in successes.iteritems():
             output.append(LI(s,
@@ -1000,3 +973,46 @@ class TranslateWordPathFactory(PathFactory):
         tags2 = list(set(tags))
         tagsA = list(set(tags))
         return (tags, tags2, tagsA)
+
+    def make_readable(self, lemma, construction):
+        """
+        Return a list of readable glosses using the given template and a
+        string of glosses separated by |.
+
+        This includes removing or doubling the final letters of the gloss as
+        needed (e.g., before -ing, -ed, -er).
+        """
+        readables = []
+        glosses = lemma['glosses']
+        templates = construction['trans_templates']
+        for gloss in glosses:
+            for tplt in templates:
+                tplt_parts = tplt.split('{}')
+                if len(tplt_parts) == 2:
+                    suffix = re.match('^\(?(ing|ed|er)\)?', tplt_parts[1])
+                    if suffix:
+                        if re.match('e$', gloss):
+                            gloss = gloss[:-1]
+                        if re.match('p$', gloss) and (suffix.group() != 'ing'):
+                            gloss = '{}p'.format(gloss)
+                        if re.match('y$', gloss) and (suffix.group() != 'ing'):
+                            gloss = '{}ie'.format(gloss[:-1])
+                readables.append(tplt.format(gloss))
+        shuffle(readables)
+        readable_string = '|'.join(readables[:7])
+
+        return (readables, readable_string)
+
+    def make_regex(self, myglosses, raw):
+        """
+        Return the complete regex string based on a list of word myglosses and
+        a template regex string.
+        """
+        for i, v in enumerate(myglosses):
+            t = v.split('|')
+            if len(t) > 1:
+                myglosses[i] = '{}({})?'.format(t[0], t[1])
+        gloss_string = '|'.join(myglosses)
+        regex = raw.format(gloss_string)
+        return regex
+
