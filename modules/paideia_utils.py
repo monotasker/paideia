@@ -812,7 +812,7 @@ class PathFactory(object):
         message = message1 + message2 + nf + imgs
         output = UL()
         for s, v in successes.iteritems():
-            if re.search('testing', v[0]):
+            if type(v[0]) == str and re.search('testing', v[0]):
                 val = TABLE()
                 if v[1]['tags']:
                     v[1]['tags'] = BEAUTIFY([db.tags(n).tag
