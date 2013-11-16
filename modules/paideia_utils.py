@@ -57,10 +57,92 @@ Part of the Paideia platform built with web2py.
 """
 import traceback
 from gluon import current, SQLFORM, Field, BEAUTIFY, IS_IN_DB, UL, LI, A, URL, P
+from gluon import TABLE, TD, TR, LABEL
 #from plugin_ajaxselect import AjaxSelect
 import re
 from random import randrange, shuffle
 from itertools import product
+from pprint import pprint
+
+
+caps = {'α': 'Α',
+        'ἀ': 'Ἀ',
+        'ἁ': 'Ἁ',
+        'β': 'Β',
+        'γ': 'Γ',
+        'δ': 'Δ',
+        'ε': 'Ε',
+        'ἐ': 'Ἐ',
+        'ἑ': 'Ἑ',
+        'ζ': 'Ζ',
+        'η': 'Η',
+        'ἠ': 'Ἠ',
+        'ἡ': 'Ἡ',
+        'θ': 'Θ',
+        'ι': 'Ι',
+        'ἰ': 'Ἰ',
+        'ἱ': 'Ἱ',
+        'κ': 'Κ',
+        'λ': 'Λ',
+        'μ': 'Μ',
+        'ν': 'Ν',
+        'ξ': 'Ξ',
+        'ο': 'Ο',
+        'ὀ': 'Ὀ',
+        'ὁ': 'Ὁ',
+        'π': 'Π',
+        'ρ': 'Ρ',
+        'σ': 'Σ',
+        'τ': 'Τ',
+        'υ': 'Υ',
+        'ὐ': 'ὐ',
+        'ὑ': 'Ὑ',
+        'φ': 'Φ',
+        'χ': 'Χ',
+        'ψ': 'Ψ',
+        'ω': 'Ω',
+        'ὠ': 'Ὠ',
+        'ὡ': 'Ὡ'}
+
+
+def capitalize(letter):
+    #if letter in caps.values():
+    letter = letter.decode('utf-8').upper()
+    print 'capitalized'
+    print letter.encode('utf-8')
+    return letter.encode('utf-8')
+
+    #else:
+        #return caps[letter]
+
+
+def firstletter(mystring):
+    """
+    Find the first letter of a byte-encoded unicode string.
+    """
+    print mystring
+    print 'utf-8'
+    mystring = mystring.decode('utf-8')
+    print mystring
+    let, tail = mystring[:1], mystring[1:]
+    print 'in firstletter: ', mystring[:1], '||', mystring[1:]
+    let, tail = let.encode('utf-8'), tail.encode('utf-8')
+    return let, tail
+    #else:
+        #try:
+            #if mystring[:3] in caps.values():
+                #first_letter = mystring[:3]
+            #else:
+                #first_letter = mystring[:3]
+                #tail = mystring[3:]
+        #except KeyError:
+            #try:
+                #first_letter = mystring[:2]
+                #tail = mystring[2:]
+            #except KeyError:
+                #first_letter = mystring[:2]
+                #tail = mystring[2:]
+    #return first_letter, tail
 
 
 def flatten(self, items, seqtypes=(list, tuple)):
@@ -82,7 +164,6 @@ def send_error(myclass, mymethod, myrequest):
                            rq=myrequest)
     title = 'Paideia error'
     mail.send(mail.settings.sender, title, msg)
-    print 'done sending '
 
 
 MYWORDS = {u'πωλεω': {'glosses': ['sell'],
@@ -258,7 +339,8 @@ input = {'words1': ['καρπους|noun_acc_masc_plur_καρπος',
                              '{words1} {words2} ἐχομεν.',
                              '{words2} {words1} ἐχομεν.'],
          'image_template': 'food_{words2}_{words1}',
-         'testing': True}
+         'testing': True,
+         'npcs': [1]}
 
 class PathFactory(object):
 
@@ -305,6 +387,7 @@ class PathFactory(object):
                                      requires=IS_IN_DB(db, 'tags.id',
                                                        '%(tag)s', multiple=True)),
                                Field('npcs', 'list:reference npcs',
+                                     default=input['npcs'],
                                      requires=IS_IN_DB(db, 'npcs.id',
                                                        '%(name)s', multiple=True)),
                                Field('locations', 'list:reference locations',
@@ -316,7 +399,9 @@ class PathFactory(object):
                                Field('image_template',
                                      default=input['image_template']),
                                Field('avoid', 'list:string'),
-                               Field('testing', type='boolean'))
+                               Field('testing', type='boolean',
+                                     default=input['testing']))
+
         if form.process(dbio=False, keepvalues=True).accepted:
             vv = request.vars
             paths, result = self.make_path(words1=vv.words1,
@@ -394,15 +479,14 @@ class PathFactory(object):
         db = current.db
         paths = []
         result = {}
-        title_template = 'Counting fruit, {}'  # TODO: get from form
+        label_template = 'Counting fruit, {}'  # TODO: get from form
         images_missing = []
 
         wordlists = [l for l in [words1, words2, words3] if l]
         combos = product(*wordlists)
-        print combos
 
         for c in combos:
-            compname = title_template.format('-'.join(c))
+            compname = label_template.format('-'.join([i.split('|')[0] for i in c]))
             cdict = dict(zip(['words1', 'words2', 'words3'], c))
             img_title = image_template.format(**cdict) if image_template else 'none'
             img_row = db(db.images.title == img_title).select().first()
@@ -418,8 +502,6 @@ class PathFactory(object):
                                               readable_template,
                                               testing
                                               )
-            print 'prompts: ', len(prompts)
-            print prompts
             response1 = responses[0]
             response2 = responses[1] if len(responses) > 1 else None
             response3 = responses[2] if len(responses) > 2 else None
@@ -429,7 +511,7 @@ class PathFactory(object):
             tags = self.get_tags(tags, tags_secondary, tags_ahead, xtags)
             kwargs = {'prompt': prompts[randrange(len(prompts))],
                       'widget_type': step_type,
-                      'widget_audio': None,
+                      #'widget_audio': None,
                       'widget_image': img_id,
                       'response1': response1,
                       'readable_response': '|'.join(readables),
@@ -446,15 +528,19 @@ class PathFactory(object):
             try:
                 mtch = self.test_regex(kwargs['response1'], readables)
                 dups = self.check_for_duplicates(kwargs, readables, prompts)
-                roman = self.check_for_roman(kwargs['prompt'], kwargs['readable_response'])
-                if mtch and not testing and not dups[0] and not roman[0]:
-                    result[compname] = self.write_to_db(kwargs)
-                elif mtch and not dups[0] and not roman and testing:
+                rdbl = kwargs['readable_response']
+                prmt = kwargs['prompt']
+                latin = self.check_for_latin(prmt, rdbl)
+                if latin:
+                    kwargs['prompt'] = latin[0] if latin[0] else prmt
+                    kwargs['readable'] = latin[1] if latin[1] else rdbl
+                if mtch and not testing and not dups[0] and not latin:
+                    result[compname] = self.write_to_db(kwargs, compname,
+                                                        label_template)
+                elif mtch and not dups[0] and not latin and testing:
                     result[compname] = (' testing\n', kwargs)
                 elif mtch and dups[0]:
                     result[compname] = ('duplicate', dups)
-                elif mtch and roman:
-                    result[compname] = ('roman characters', roman)
                 else:
                     result[compname] = 'failure', 'readable didn\'t match regex'
             except Exception:
@@ -474,21 +560,13 @@ class PathFactory(object):
             resps = [resps]
         resps = {'resp{}'.format(i): r for i, r in enumerate(resps) if r}
         parts.update(resps)
-        rdbl = {'rdbl{i}'.format(i=i): r for i, r in enumerate(rdbls)}
+        rdbl = {'rdbl{}'.format(i): r for i, r in enumerate(rdbls) if r}
         parts.update(rdbl)
-        print '--------------------------------------'
-        print 'parts are:',
-        for k, v in parts.iteritems():
-            print k, ':', v
         newforms = []  # collect any new word forms created in db along the way
         mytags = []
 
         # perform substitutions for each "part" to be returned
         for k, p in parts.iteritems():
-            print '--------------------------------------'
-            print k
-            print p
-
             # isolate fields for substitution, both automatic and manual
             fields = re.findall(r'(?<={).*?(?=})', p)
             auto_fields = [f for f in fields if f not in ['words1', 'words2',
@@ -499,17 +577,12 @@ class PathFactory(object):
             for f in auto_fields:
                 mylemma = f.split('-')[1] if len(f.split('-')) > 1 else None
                 mytags = db(db.lemmas.lemma == mylemma).select().first().extra_tags
-                print 'mylemma:', mylemma
                 if re.search(r'adj|noun|pronoun', f):
                     modifies = man_fields[0]  # FIXME: only works for single sub
-                    print 'modifies:', modifies
                     mod_form = words[int(modifies[-1])-1]
-                    print 'mod_form:', mod_form
 
                     myform, newform = self.make_form_agree(mod_form, mylemma,
                                                            testing)
-                    print 'myform returned:', myform
-                    print 'newform returned:', newform
                     if newform:
                         newforms.append(newform)
                     formtags = db((db.word_forms.word_form == myform) &
@@ -525,75 +598,22 @@ class PathFactory(object):
                     pass
                 # replace this automatically substituted field
                 p = p.replace('{{{}}}'.format(f), myform)
-                print f, myform
-                print 'formatted A:', p
 
             # replace manually substituted fields
             wordlist = [w.split('|')[0] for w in words]
             man_args = zip(man_fields, wordlist)
             man_args = {a[0]: a[1] for a in man_args}
-            print 'man_args', man_args
+            # add qualification for capitals to regex
+            if re.match(r'resp', k):
+                for f, a in man_args.iteritems():
+                    lower, tail = firstletter(a)
+                    man_args[f] = '({}|{})?{}'.format(lower, capitalize(lower), tail)
             parts[k] = p.format(**man_args)
-            #first_letter = parts[k][:2].decode('utf-8').upper()
-            caps = {'α': 'Α',
-                    'ἀ': 'Ἀ',
-                    'ἁ': 'Ἁ',
-                    'β': 'Β',
-                    'γ': 'Γ',
-                    'δ': 'Δ',
-                    'ε': 'Ε',
-                    'ἐ': 'Ἐ',
-                    'ἑ': 'Ἑ',
-                    'ζ': 'Ζ',
-                    'η': 'Η',
-                    'ἠ': 'Ἠ',
-                    'ἡ': 'Ἡ',
-                    'θ': 'Θ',
-                    'ι': 'Ι',
-                    'ἰ': 'Ἰ',
-                    'ἱ': 'Ἱ',
-                    'κ': 'Κ',
-                    'λ': 'Λ',
-                    'μ': 'Μ',
-                    'ν': 'Ν',
-                    'ξ': 'Ξ',
-                    'ο': 'Ο',
-                    'ὀ': 'Ὀ',
-                    'ὁ': 'Ὁ',
-                    'π': 'Π',
-                    'ρ': 'Ρ',
-                    'σ': 'Σ',
-                    'τ': 'Τ',
-                    'υ': 'Υ',
-                    'ὐ': 'ὐ',
-                    'ὑ': 'Ὑ',
-                    'φ': 'Φ',
-                    'χ': 'Χ',
-                    'ψ': 'Ψ',
-                    'ω': 'Ω',
-                    'ὠ': 'Ὠ',
-                    'ὡ': 'Ὡ'}
-            if parts[k][:1] == '^':
-                pass
-            else:
-                try:
-                    print parts[k][:3]
-                    if parts[k][:3] in caps.values():
-                        first_letter = parts[k][:3]
-                    else:
-                        first_letter = caps[parts[k][:3]]
-                    parts[k] = first_letter + parts[k][3:]
-                except KeyError:
-                    if parts[k][:2] in caps.values():
-                        first_letter = parts[k][:2]
-                    else:
-                        print parts[k][:2]
-                        first_letter = caps[parts[k][:2]]
-                    parts[k] = first_letter + parts[k][2:]
-            print 'final formatted:', parts[k]
+            first, rest = firstletter(parts[k])
+            if first != '^':
+                parts[k] = '{}{}'.format(capitalize(first), rest)
 
         readables = [r for k, r in parts.iteritems() if re.match('rdbl', k)]
-        print 'readables: ', readables
         resps = [r for k, r in parts.iteritems() if re.match('resp', k)]
         prompts = [r for k, r in parts.iteritems() if re.match('prompt', k)]
         mytags = [t for t in mytags if not t is None]
@@ -615,24 +635,15 @@ class PathFactory(object):
             form = db(db.word_forms.word_form == mod_form
                         ).select().first()
             case = form.grammatical_case
-            print case
             gender = form.gender
-            print gender
             number = form.number
-            print number
         else:
             parsebits = mod_parse.split('_')
             case = abbrevs[parsebits[1]]
-            print case
             gender = abbrevs[parsebits[2]]
-            print gender
             number = abbrevs[parsebits[3]]
-            print number
             ref_lemma = parsebits[-1]
-            print ref_lemma
             pos = parsebits[0]
-            print pos
-            print 'newstuff111111111'
             ref_const = '{}_{}_{}_{}'.format(pos, parsebits[1],
                                                 parsebits[2],
                                                 parsebits[3])
@@ -642,7 +653,6 @@ class PathFactory(object):
                      (db.word_forms.gender == gender) &
                      (db.word_forms.number == number)
                      ).select().first()
-            print 'row is:', row
             if not row:
                 # Add the modified word form to db.word_forms
                 ref_const_id = db(db.constructions.construction_label == ref_const
@@ -655,7 +665,6 @@ class PathFactory(object):
                         'construction': ref_const_id}
                 db.word_forms.insert(**new)
                 newforms.append(new)
-                print 'added new form ', mod_parts[0]
         # Retrieve correct form from db. If none, try to create it.
         try:
             mylemma_id = db(db.lemmas.lemma == mylemma).select().first().id
@@ -663,15 +672,12 @@ class PathFactory(object):
             if gender in ['masculine', 'feminine']:
                 genders.append('masculine or feminine')
             for g in genders:
-                print 'gender is', g
                 myrow = db((db.word_forms.source_lemma == mylemma_id) &
                          (db.word_forms.grammatical_case == case) &
                          (db.word_forms.gender == g) &
                          (db.word_forms.number == number)
                          ).select().first()
-                print 'row is', myrow
                 if myrow:
-                    print 'found row!!!!!'
                     break
             myform = myrow.word_form
         except (AttributeError, IndexError):
@@ -703,16 +709,45 @@ class PathFactory(object):
                 pass
         return (False, 0)
 
-    def check_for_roman(self, prompt, readable):
+    def check_for_latin(self, prompt, readable):
         """
-        Check for roman characters mixed with Greek.
+        Check for latin characters mixed with Greek.
         """
-        latin = re.compile(r'[\u0041-\u007a]|\d')
-        if not re.search(latin, prompt) and not re.search(latin, readable):
+        latin = re.compile(ur'(?P<a>[Α-Ωα-ω])?([a-z]|[A-Z]|\d)(?(a).*|[Α-Ωα-ω])')
+        pmatch = re.search(latin, prompt.decode('utf-8'))
+        rmatch = re.search(latin, readable.decode('utf-8'))
+        if not pmatch and not rmatch:
             return False
         else:
-            # TOdo: sub if necessary
-            return True
+            subs = {'a': 'α',
+                    'A': 'Α',
+                    'd': 'δ',
+                    'e': 'ε',
+                    'E': 'Ε',
+                    'Z': 'Ζ',
+                    'H': 'Η',
+                    'i': 'ι',
+                    'I': 'Ι',
+                    'k': 'κ',
+                    'K': 'Κ',
+                    'n': 'ν',
+                    'N': 'Ν',
+                    'o': 'ο',
+                    'O': 'Ο',
+                    'r': 'ρ',
+                    'R': 'Ρ',
+                    't': 'τ',
+                    'T': 'Τ',
+                    'x': 'χ',
+                    'X': 'Χ',
+                    'w': 'ω'}
+            if pmatch:
+                print 'Latin character in prompt: ', pmatch.group()
+                readable.replace(pmatch.group(), subs[pmatch.group()])
+            if rmatch:
+                print 'Latin character in readable: ', rmatch.group()
+                readable.replace(rmatch.group(), subs[rmatch.group()])
+            return prompt, readable
 
     def get_tags(self, tags, tags2, tagsA, tags_extra):
         """
@@ -724,7 +759,6 @@ class PathFactory(object):
                 tags.extend(tags_extra)
             else:
                 tags = tags_extra
-            print 'tags are', tags
             tags = list(set(tags))
         else:
             tags = None
@@ -746,12 +780,12 @@ class PathFactory(object):
         mlist = [re.match(test_regex, rsp) for rsp in readables]
         return mlist
 
-    def write_to_db(self, step, compname):
+    def write_to_db(self, step, compname, label):
         """ """
         db = current.db
         db.steps.insert(**step)
         sid = db(db.steps.id > 0).select().last().id
-        db.paths.insert(label=self.path_label_template.format(compname),
+        db.paths.insert(label=label.format(compname),
                         steps=[sid])
         pid = db(db.paths.id > 0).select().last().id
         return (pid, sid)
@@ -760,8 +794,9 @@ class PathFactory(object):
         """
         Return formatted output for the make_path view after form submission.
         """
-        newforms = result['new_forms']
-        images = result['images_missing']
+        db = current.db
+        newforms = result['new_forms'][:]
+        images = result['images_missing'][:]
         del(result['new_forms'])
         del(result['images_missing'])
         successes = {r: v for r, v in result.iteritems() if r[0] != 'failure'}
@@ -772,17 +807,34 @@ class PathFactory(object):
             message1 = 'Created {} new paths.\n'.format(len(successes.keys()))
         if failures:
             message2 = '{} paths failed\n'.format(len(failures.keys()))
-        message = message1 + message2
+        nf = 'new word forms entered in db:\n{}\n'.format(BEAUTIFY(newforms))
+        imgs = 'images needed for db:\n{}\n'.format(BEAUTIFY(images))
+        message = message1 + message2 + nf + imgs
         output = UL()
         for s, v in successes.iteritems():
-            output.append(LI(s,
-                             A('path {}'.format(v[0]),
-                             _href=URL('paideia', 'editing', 'listing.html',
-                                     args=['paths', v[0]])),
-                             A('step {}'.format(v[1]),
-                             _href=URL('paideia', 'editing.html', 'listing.html',
-                                     args=['steps', v[1]])),
-                             _class='make_paths_success'))
+            if re.search('testing', v[0]):
+                val = TABLE()
+                if v[1]['tags']:
+                    v[1]['tags'] = BEAUTIFY([db.tags(n).tag
+                                             for n in v[1]['tags']])
+                v[1]['npcs'] = BEAUTIFY([db.npcs(n).name
+                                         for n in v[1]['npcs']])
+                v[1]['locations'] = BEAUTIFY([db.locations(n).map_location
+                                              for n in v[1]['locations']])
+                v[1]['widget_type'] = BEAUTIFY([db.step_types(n).step_type
+                                                for n in v[1]['widget_type']])
+                for label, field in v[1].iteritems():
+                    val.append(TR(TD(LABEL(label)), TD(field)))
+                output.append(LI('TESTING: ', s, val))
+            else:
+                output.append(LI(s,
+                                A('path {}'.format(v[0]),
+                                _href=URL('paideia', 'editing', 'listing.html',
+                                        args=['paths', v[0]])),
+                                A('step {}'.format(v[1]),
+                                _href=URL('paideia', 'editing.html', 'listing.html',
+                                        args=['steps', v[1]])),
+                                _class='make_paths_success'))
 
         for f, v in failures.iteritems():
             output.append(LI(f, P(v[1]), _class='make_paths_failure'))
@@ -849,9 +901,11 @@ class TranslateWordPathFactory(PathFactory):
         return form, message, output
 
 
-    def make_path(self, widget_type, lemmas, irregular):
+    def make_path(self, widget_type, lemmas, irregular, testing):
         '''
         '''
+        db = current.db
+        result = []
         for lemma in lemmas:
             lemma['constructions'] = self.get_constructions(lemma)
             for idx, cst in enumerate(lemma['constructions']):  # each path
@@ -864,7 +918,7 @@ class TranslateWordPathFactory(PathFactory):
                 tagset = self.get_tags(lemma, crow)
                 word_form = self.get_word_form(lemma['lemma'], crow),
                 try:
-                    step = {'prompt': self.get_prompt(word_form, cst_row),
+                    step = {'prompt': self.get_prompt(word_form, crow),
                             'response1': self.make_regex(glosses[:], reg_str),
                             'outcome1': 1.0,
                             'readable_response': rdbl,
@@ -881,10 +935,10 @@ class TranslateWordPathFactory(PathFactory):
                     mtch = self.test_regex()
                     dups = self.check_for_duplicates(step)
                     if mtch and not testing and not dups:
-                        self.write_to_db(step)
+                        pid, sid = self.write_to_db(step)
                         result[compname] = (pid, sid)
                     elif mtch and testing:
-                        result[compname] = ('testing', pth)
+                        result[compname] = ('testing', step)
                     else:
                         result[compname] = 'failure', 'readable didn\'t match'
                 except Exception:

@@ -180,7 +180,7 @@ bugresponses	paideia_bugs.py	/^    def bugresponses(self, user):$/;"	m	class:Bug
 categorize_tags	paideia.py	/^    def categorize_tags(self, rank=None, tag_records=None,$/;"	m	class:Categorizer
 check_for_blocks	paideia.py	/^    def check_for_blocks(self):$/;"	m	class:User
 check_for_duplicates	paideia_utils.py	/^    def check_for_duplicates(self, step, readables, prompts):$/;"	m	class:PathFactory
-check_for_roman	paideia_utils.py	/^    def check_for_roman(self, prompt, readable):$/;"	m	class:PathFactory
+check_for_latin	paideia_utils.py	/^    def check_for_latin(self, prompt, readable):$/;"	m	class:PathFactory
 choose	paideia.py	/^    def choose(self):$/;"	m	class:NpcChooser
 choose	paideia.py	/^    def choose(self, db=None):$/;"	m	class:PathChooser
 choose_val	plugin_ajaxselect.py	/^    def choose_val(self, value):$/;"	m	class:AjaxSelect
