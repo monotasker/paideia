@@ -6,6 +6,89 @@ tab1_content = UL(LI(SPAN('Name', _class='label-success label'), the_name),
                   LI(SPAN('Email', _class='email label-success label'), email),
                   LI(SPAN('Time Zone', _class='timezone label-success label'), tz))
 
+<div class='row'>
+    <div class='span6' id='dc-magnitude-chart'>
+        <h4>Furthest set reached</h4>
+    </div>
+    <div class='span6' id='blank'>
+        <h4>Blank</h4>
+    </div>    
+</div>
+
+<div class='container' style='font: 12px sans-serif;'>
+  <div class='row'>
+	<div class='span12'>
+      <table class='table table-hover' id='dc-table-graph'>
+        <thead>
+          <tr class='header'>
+            <th>Badge</th>
+            <th>In Set</th>
+            <th>Max Level</th>
+            <th>Review Level</th>
+            <th>Times Right</th>
+            <th>Last Right</th>
+            <th>Last Wrong</th>
+          </tr>
+        </thead>
+      </table>
+	</div>
+  </div>
+</div>
+
+
+<script>
+    // Create the dc.js chart objects & link to div
+    var dataTable = dc.dataTable("#dc-table-graph");
+    var magnitudeChart = dc.barChart("#dc-magnitude-chart");
+
+    // get data ==========================================================
+    data = {{response.write(json.dumps(badgelist), escape=False)}};
+    // Run the data through crossfilter and load our 'facts'
+    var facts = crossfilter(data);
+
+    // Structure data sets ================================================
+
+    // Create dataTable dimension
+    var setDimension = facts.dimension(function (d) {
+        return d.tag_progress.latest_new;
+    });
+
+    var setValueGroupCount = setDimension.group()
+        .reduceCount(function(d) { return d.tag_progress.latest_new; }) // counts 
+
+    // Set up the charts ===================================================
+
+    // bar chart of set data
+    magnitudeChart.width(480)
+        .height(150)
+        .margins({top: 10, right: 10, bottom: 20, left: 40})
+        .dimension(setDimension)
+        .group(setValueGroupCount)
+        .transitionDuration(500)
+        .centerBar(true)	
+        .gap(65)
+        .filter([3, 10])
+        .x(d3.scale.linear().domain([0.5, 12.5]))
+        .elasticY(true)
+        .xAxis().tickFormat();	
+
+    // Table of set data
+    dataTable.width(960).height(800)
+        .dimension(setDimension)
+        .group(function(d) { return "Progress Table"
+        })
+        .size(50)
+        .columns([
+            function(d) { return d.tag_progress.name; },
+            function(d) { return d.tag_progress.latest_new; }
+        ])
+        .sortBy(function(d){ return d.tag_progress.name; })
+        .order(d3.ascending);
+
+    // Render the Charts
+    dc.renderAll();
+  
+</script>
 # TAB 2 - BADGES =============================================================
 try:
     tab2_content = CAT(P('You are currently working on ',

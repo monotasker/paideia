@@ -84,7 +84,7 @@ class Stats(object):
         if not user_id:
             user_id = self.user_id
         if not duration:
-            duration = datetime.timedelta(days=7)
+            duration = datetime.timedelta(days=30)
         if not db:
             db = current.db
         if not logs:

@@ -68,7 +68,66 @@ def info():
     page component, to be embedded in other views such as:
         default/user.html
         reporting/user.html
+
+    Returns a dict with the following keys:
+
+    'the_name':         User's name from auth.user as lastname, firstname (str)
+    'tz':               User's time zone from auth.user (extended in db.py)
+    'email':            User's email (str)
+    'cal':              html calendar with user path stats (from stats.monthcal)
+    'blist': blist,     list of User's bug reports
+    'active': active,   User's active badges (from stats.active_tags)
+    'max_set': max_set, Badge set reached by user (int)
+    'tag_progress':     Dict of user's tag_progress record,
+        has these keys:
+        'name'          user's id from auth.user (int)
+        'cat1'          list of tags in category 1 (list of ints)
+        'cat2'          list of tags in category 2 (list of ints)
+        'cat3'          list of tags in category 3 (list of ints)
+        'cat4'          list of tags in category 4 (list of ints)
+        'rev1'          list of tags in review category 1 (list of ints)
+        'rev2'          list of tags in review category 2 (list of ints)
+        'rev3'          list of tags in review category 3 (list of ints)
+        'rev4'          list of tags in review category 4 (list of ints)
+        'latest_new'    furthest tag set reached to date (int)
+    'tag_records':      list of user's tag_records rows.
+        Each item is a dict with these keys:
+        'name'              user's id from auth.user (int)
+        'tag'               id of tag for this row (int)
+        'badge_name'**      ***
+        'badge_desc'**      ***
+        'tag_set'**         ***
+        'current_level'**   number of max level achieved so far (str)
+        'date_reached'**    readable form (str)
+        'dt_reached'**      machine-friendly form (datetime.datetime object)
+        'times_right'       cumulative number of times right (double)
+        'times_wrong'       cumulative number of times wrong (double)
+        'tlast_wrong'       date of last wrong answer (datetime.datetime)
+        'tlast_right'       date of last right answer (datetime.datetime)
+        'in_path'           path of last question for the tag
+        'step'              step of last question for the tag
+        'secondary_right'   list of dates (datetime.datetime) when step with
+                            this tag as secondary was answered correctly
+    'log':              stats.step_log['loglist']
+    'duration':         Default duration for recent paths info (from
+                        stats.step_log['duration'])
+    'badge_track':      list of user's badges with info re. date attained
+        Each item is dict with these keys:
+        'id':           badge id (int)
+        'description':  badge description (str)
+        'level':        catlabels[int(c[3:]) - 1],
+        'date':         date achieved as formatted readable (str)
+        'dt':           date achieved as datetime.datetime object
+        ** list is sorted by 'dt' field (i.e., by date descending)
+
+
     """
+    # make sure d3.js dc.js and crossfire.js are loaded
+    response.files.append(URL('static', 'plugin_d3/d3/d3.js'))
+    response.files.append(URL('static', 'plugin_d3/dc/dc.js'))
+    response.files.append(URL('static', 'plugin_d3/crossfilter/crossfilter.js'))
+    response.files.append(URL('static', 'plugin_d3/dc/dc.css'))
+
     # Allow either passing explicit user or defaulting to current user
     if 'id' in request.vars:
         user = db.auth_user[request.vars['id']]
@@ -110,15 +169,27 @@ def info():
                 'promoted to journeyman level',
                 'promoted to master level']
     for bd in badge_dates:
+        tagbadge = db.badges(db.badges.tag == bd.tags.id)
+        tag_record = tag_records.find(lambda r: r.tag == tagbadge.tags.id)
+        tag_record['badge_desc'] = tagbadge.description
+        tag_record['badge_name'] = tagbadge.badge_name
+        tag_record['current_level'] = int(c[3:])
         for c in ['cat1', 'cat2', 'cat3', 'cat4']:
             if bd.badges_begun[c]:
-                tagbadge = db.badges(db.badges.tag == bd.tags.id)
                 try:
+                    tag_record = tag_records.find(lambda r: r.tag == tagbadge.tags.id)
+                    tag_record['badge_desc'] = tagbadge.description
+                    tag_record['badge_name'] = tagbadge.badge_name
+                    tag_record['current_level'] = int(c[3:])
+                    tag_record['date_reached'] = 'on {}'.format(bd.badges_begun[c].strftime('%b %e, %Y')),
+                    tag_record['dt_reached'] = 'dt': bd.badges_begun[c]})
+                    # deprecated ************************
                     badgelist.append({'id': tagbadge.badge_name,
                                     'description': tagbadge.description,
                                     'level': catlabels[int(c[3:]) - 1],
                                     'date': 'on {}'.format(bd.badges_begun[c].strftime('%b %e, %Y')),
                                     'dt': bd.badges_begun[c]})
+                    # ************************
                 except Exception:
                     print traceback.format_exc(5)
                     print 'missing badge for tag',
