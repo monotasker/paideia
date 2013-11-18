@@ -5,6 +5,7 @@
 tab1_content = UL(LI(SPAN('Name', _class='label-success label'), the_name),
                   LI(SPAN('Email', _class='email label-success label'), email),
                   LI(SPAN('Time Zone', _class='timezone label-success label'), tz))
+}}
 
 <div class='row'>
     <div class='span6' id='dc-magnitude-chart'>
@@ -42,7 +43,7 @@ tab1_content = UL(LI(SPAN('Name', _class='label-success label'), the_name),
     var magnitudeChart = dc.barChart("#dc-magnitude-chart");
 
     // get data ==========================================================
-    data = {{response.write(json.dumps(badgelist), escape=False)}};
+    data = {{response.write(json.dumps(active), escape=False)}};
     // Run the data through crossfilter and load our 'facts'
     var facts = crossfilter(data);
 
@@ -50,11 +51,11 @@ tab1_content = UL(LI(SPAN('Name', _class='label-success label'), the_name),
 
     // Create dataTable dimension
     var setDimension = facts.dimension(function (d) {
-        return d.tag_progress.latest_new;
+        return d.badges.badge_name;
     });
 
     var setValueGroupCount = setDimension.group()
-        .reduceCount(function(d) { return d.tag_progress.latest_new; }) // counts 
+        .reduceCount(function(d) { return d.current_level; }) // counts 
 
     // Set up the charts ===================================================
 
@@ -67,77 +68,36 @@ tab1_content = UL(LI(SPAN('Name', _class='label-success label'), the_name),
         .transitionDuration(500)
         .centerBar(true)	
         .gap(65)
-        .filter([3, 10])
-        .x(d3.scale.linear().domain([0.5, 12.5]))
+        .filter([1, 4])
+        .x(d3.scale.linear().domain([1, 4]))
         .elasticY(true)
         .xAxis().tickFormat();	
 
     // Table of set data
     dataTable.width(960).height(800)
         .dimension(setDimension)
-        .group(function(d) { return "Progress Table"
-        })
+        .group(function(d) { return d.tag_records.latest_new })
         .size(50)
         .columns([
-            function(d) { return d.tag_progress.name; },
-            function(d) { return d.tag_progress.latest_new; }
+            function(d) { return d.badges.badge_name; },
+            function(d) { return d.badges.description; },
+            function(d) { return d.tag_records.latest_new; }
+            function(d) { return d.tag_records.times_right; }
+            function(d) { return d.tag_records.pretty_lwrong; }
+            function(d) { return d.tag_records.times_right; }
+            function(d) { return d.tag_records.pretty_lright; }
+            function(d) { return d.tag_records.pretty_lright; }
         ])
-        .sortBy(function(d){ return d.tag_progress.name; })
+        .sortBy(function(d){ return d.badges.badge_name; })
         .order(d3.ascending);
 
     // Render the Charts
     dc.renderAll();
   
 </script>
+
+{{
 # TAB 2 - BADGES =============================================================
-try:
-    tab2_content = CAT(P('You are currently working on ',
-                        SPAN(active['total'], _class='total_len'),
-                        ' grammar badges and have reached set ',
-                        SPAN(max_set, _class='max_set'),
-                        _class="overview"),
-                    P('The most recent badges started are:',
-                        UL(_class='most_recent'),
-                        _class="overview"))
-    for l in active['latest']:
-        tab2_content[1][1].append(LI(l))
-    pass
-
-    sumtable = TABLE(THEAD(TR(TH(), TH(), TH('Badge level reached'), TH('Review level')
-                            )),
-                    _cellspacing='0', _class='summary_stats')
-    catlist = [('cat4', 'mastered'),
-            ('cat3', 'making very good progress on'), 
-            ('cat2', 'made a good start with'),
-            ('cat1', 'just started or needing review')]
-    active_len = active['total']
-    if active_len > 0:
-        for cat in catlist:
-            if cat[0] in active.keys():
-                catlen = len(active[cat[0]]) if active[cat[0]] else 0
-                catrow = TR(TD(cat[1]),
-                            TD(catlen, _class='total_'.format(cat[0])),
-                            TD(UL()),
-                            TD(UL()))
-                for badge in active[cat[0]]:
-                    catrow[-2][0].append(LI(badge))
-                pass
-                rcat = 'rev{}'.format(cat[0][3:])
-                if (rcat in active.keys()) and (active[rcat]) and (active[rcat] != 0):
-                    for badge in active[rcat]:
-                        catrow[-1][0].append(LI(badge))
-                    pass
-                pass
-                sumtable.append(catrow)
-            pass
-        pass
-        tab2_content.append(sumtable)
-    else:
-        tab2_content.append(SPAN('You don\'t yet have any badges to report on. '
-                                'Check back after you explore the town map a bit.'))
-    pass
-
-except Exception:
 
 tab2_content = CAT(P('Sorry, something went wrong retrieving your badges.'))
 
@@ -267,70 +227,6 @@ for l in log:
 pass
 tab5_content.append(logtable)
 
-# TAB 6 - BADGE RECORDS ======================================================
-tab6_content = CAT(H4('Your overall performance for each badge so far'),
-                   TABLE(THEAD(TR(TH('badge'),
-                                  TH('times right / times wrong / ratio'),
-                                  TH('last right'),
-                                  TH('last wrong'),
-                                  TH('badge set')
-                                  )
-                               ),
-                    _id='tag_records_table')
-                    )
-for row in tag_records:
-    timesr = row.tag_records.times_right if row.tag_records.times_right else 0
-    timesw = row.tag_records.times_wrong if row.tag_records.times_wrong else 0
-    try:
-        ratio = float(timesw)/timesr
-    except ZeroDivisionError:
-        ratio = 0
-    except TypeError:  
-        ratio = 0  # FIXME: this is a hack to get around error ticket
-    pass
-
-    try:
-        row = TR(TD(db(db.badges.tag==row.tags.id).select().first().badge_name),
-                    TD(SPAN('', _style='width: {}px;'.format(timesr),
-                        _class='right'),
-                    SPAN(int(timesr), _class='right_num'),
-                    BR(),
-                    SPAN('', _style='width: {}px;'.format(timesw),
-                            _class='wrong'),
-                    SPAN(int(timesw), _class='wrong_num'),
-                    BR(),
-                    SPAN('', _style='width: {}px'.format(ratio * 100),
-                            _class='ratio'),
-                    SPAN(round(ratio, 3), _class='ratio_num')),
-                    TD(row.tag_records.tlast_right),
-                    TD(row.tag_records.tlast_wrong),
-                    TD(row.tags.tag_position)
-                    )
-    except AttributeError:
-        row = TR(TD('Couldn\'t find matching badge '
-                    'for tag{}'.format(row.tags.id), _colspan='4'))
-    pass
-    tab6_content[1].append(row)
-pass
-
-# TAB 7 - TIMELINE OF BADGES =================================================
-tab7_content = CAT(H4('Timeline of your new badges earned'))
-if badge_track == []:
-    tab7_content.append(SPAN('We\'ve just started tracking the dates on which '
-                             'you earn each new badge, so there is no record '
-                             'here yet. Check back after you\'ve earned your '
-                             'next badge.'))
-else:
-    bl_table = TABLE()
-    for badgeline in badge_track:
-        row = TR(TD(badgeline['id']),
-                    TD(badgeline['level']),
-                    TD(badgeline['date']))
-        bl_table.append(row)
-    pass
-    tab7_content.append(bl_table)
-pass
-
 # ASSEMBLE AND PRINT =========================================================
-=TABS([('Me', 'web2py_user_form', tab1_content, 'active'), ('Badges', 'tab_stats', tab2_content), ('Calendar', 'tab_calendar', tab3_content), ('Bug Reports', 'tab_bug_reports', tab4_content), ('Recent', 'tab_recent_paths', tab5_content), ('Badge Records', 'tab_tag_records', tab6_content), ('Progress Timeline', 'tab_badges_awarded', tab7_content)])
+=TABS([('Me', 'web2py_user_form', tab1_content, 'active'), ('Calendar', 'tab_calendar', tab3_content), ('Bug Reports', 'tab_bug_reports', tab4_content), ('Recent', 'tab_recent_paths', tab5_content)])
 }}

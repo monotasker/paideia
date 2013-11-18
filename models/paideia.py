@@ -87,6 +87,8 @@ db.define_table('tags',
                 Field('tag_position', 'integer'),  # was position (reserved)
                 Field('slides', 'list:reference plugin_slider_decks'),
                 format=lambda row: row['tag'])
+db.executesql('CREATE INDEX IF NOT EXISTS idx_tags1 ON tags (tag, tag_position);')
+db.executesql('CREATE INDEX IF NOT EXISTS idx_tags2 ON tags (tag_position);')
 
 db.tags.tag.requires = IS_NOT_IN_DB(db, 'tags.tag')
 
@@ -210,6 +212,7 @@ db.define_table('badges',
                 format='%(badge_name)s')
 db.badges.badge_name.requires = IS_NOT_IN_DB(db, 'badges.badge_name')
 db.badges.tag.requires = IS_EMPTY_OR(IS_IN_DB(db, 'tags.id', db.tags._format))
+db.executesql('CREATE INDEX IF NOT EXISTS idx_badges1 ON badges (tag);')
 
 db.define_table('locations',
                 Field('map_location'),  # was location (reserved term)
@@ -351,6 +354,8 @@ db.define_table('badges_begun',
                 Field('cat3', 'datetime'),
                 Field('cat4', 'datetime'),
                 format='%(name)s, %(tag)s')
+db.executesql('CREATE INDEX IF NOT EXISTS idx_bdgs_begun1 ON badges_begun (name)')
+db.executesql('CREATE INDEX IF NOT EXISTS idx_bdgs_begun2 ON badges_begun (tag)')
 
 db.define_table('tag_progress',
                 Field('name', db.auth_user, default=auth.user_id),
