@@ -76,51 +76,54 @@ def info():
     'email':            User's email (str)
     'cal':              html calendar with user path stats (from stats.monthcal)
     'blist': blist,     list of User's bug reports
-    'active': active,   User's active badges (from stats.active_tags)
-    'max_set': max_set, Badge set reached by user (int)
-    'tag_progress':     Dict of user's tag_progress record,
-        has these keys:
-        'name'          user's id from auth.user (int)
-        'cat1'          list of tags in category 1 (list of ints)
-        'cat2'          list of tags in category 2 (list of ints)
-        'cat3'          list of tags in category 3 (list of ints)
-        'cat4'          list of tags in category 4 (list of ints)
-        'rev1'          list of tags in review category 1 (list of ints)
-        'rev2'          list of tags in review category 2 (list of ints)
-        'rev3'          list of tags in review category 3 (list of ints)
-        'rev4'          list of tags in review category 4 (list of ints)
-        'latest_new'    furthest tag set reached to date (int)
-    'tag_records':      list of user's tag_records rows.
+    'max_set': `        max_set, Badge set reached by user (int)
+    'active':           list of user's active tags with performance and badge data
         Each item is a dict with these keys:
         'name'              user's id from auth.user (int)
-        'tag'               id of tag for this row (int)
-        'badge_name'**      ***
-        'badge_desc'**      ***
+        'tag_records'
+            'tag'           id of tag for this row (int)
+            'times_right'       cumulative number of times right (double)
+            'times_wrong'       cumulative number of times wrong (double)
+            'tlast_wrong'       date of last wrong answer (datetime.datetime)
+            'tlast_right'       date of last right answer (datetime.datetime)
+            'pretty_lwrong'**   readable form (str)
+            'pretty_lright'**   readable form (str)
+            'in_path'           path of last question for the tag
+            'step'              step of last question for the tag
+            'secondary_right'   list of dates (datetime.datetime) when step with
+                                this tag as secondary was answered correctly
+        'badges'
+            'badge_name'    ***
+            'description'   ***
+        'badges_begun'
+            'dt_cat1'**         machine-friendly form (datetime.datetime object)
+            'prettydate_cat1'** readable form (str)
+            'dt_cat2'**         machine-friendly form (datetime.datetime object)
+            'prettydate_cat2'** readable form (str)
+            'dt_cat3'**         machine-friendly form (datetime.datetime object)
+            'prettydate_cat3'** readable form (str)
+            'dt_cat4'**         machine-friendly form (datetime.datetime object)
+            'prettydate_cat4'** readable form (str)
         'tag_set'**         ***
         'current_level'**   number of max level achieved so far (str)
-        'date_reached'**    readable form (str)
-        'dt_reached'**      machine-friendly form (datetime.datetime object)
-        'times_right'       cumulative number of times right (double)
-        'times_wrong'       cumulative number of times wrong (double)
-        'tlast_wrong'       date of last wrong answer (datetime.datetime)
-        'tlast_right'       date of last right answer (datetime.datetime)
-        'in_path'           path of last question for the tag
-        'step'              step of last question for the tag
-        'secondary_right'   list of dates (datetime.datetime) when step with
-                            this tag as secondary was answered correctly
+        'logs'              list of dictionaries, each with the following keys:
+            'step'
+            'prompt'
+            'count'
+            'right'
+            'wrong'
+            'dt_attempted'
+            'dt_local'
     'log':              stats.step_log['loglist']
+        'step'
+        'prompt'
+        'count'
+        'right'
+        'wrong'
+        'last_wrong'
+        'right_since'
     'duration':         Default duration for recent paths info (from
                         stats.step_log['duration'])
-    'badge_track':      list of user's badges with info re. date attained
-        Each item is dict with these keys:
-        'id':           badge id (int)
-        'description':  badge description (str)
-        'level':        catlabels[int(c[3:]) - 1],
-        'date':         date achieved as formatted readable (str)
-        'dt':           date achieved as datetime.datetime object
-        ** list is sorted by 'dt' field (i.e., by date descending)
-
-
     """
     # make sure d3.js dc.js and crossfire.js are loaded
     response.files.append(URL('static', 'plugin_d3/d3/d3.js'))
@@ -128,7 +131,7 @@ def info():
     response.files.append(URL('static', 'plugin_d3/crossfilter/crossfilter.js'))
     response.files.append(URL('static', 'plugin_d3/dc/dc.css'))
 
-    # Allow either passing explicit user or defaulting to current user
+    # Allow passing explicit user but default to current user
     if 'id' in request.vars:
         user = db.auth_user[request.vars['id']]
     else:
@@ -140,62 +143,18 @@ def info():
     stats = Stats(user.id, cache=cache)
     active = stats.active_tags()
     cal = stats.monthcal()
-    sl = stats.step_log()
+    max_set = stats.get_max()
+    sl = stats.get_step_log()
     log = sl['loglist']
     duration = sl['duration']
 
-    max_set = db(db.tag_progress.name == user['id']).select().first()
-    if not max_set is None:
-        max_set = max_set.latest_new
-    else:
-        max_set = 1
-
     b = Bug()
-    print 'creating bug object for displaying reports'
     blist = b.bugresponses(user.id)
-    tag_progress = db((db.tag_progress.name == user.id)).select().first().as_dict()
 
-    tag_records = db((db.tag_records.name == user.id) &
-                     (db.tag_records.tag == db.tags.id)
-                     ).select(orderby=db.tags.tag_position)
-
-    badge_dates = db((db.badges_begun.name == user.id) &
-                     (db.badges_begun.tag == db.tags.id)
-                     ).select(orderby=~db.tags.tag_position)
-
-    badgelist = []
     catlabels = ['started at beginner level',
                 'promoted to apprentice level',
                 'promoted to journeyman level',
                 'promoted to master level']
-    for bd in badge_dates:
-        tagbadge = db.badges(db.badges.tag == bd.tags.id)
-        tag_record = tag_records.find(lambda r: r.tag == tagbadge.tags.id)
-        tag_record['badge_desc'] = tagbadge.description
-        tag_record['badge_name'] = tagbadge.badge_name
-        tag_record['current_level'] = int(c[3:])
-        for c in ['cat1', 'cat2', 'cat3', 'cat4']:
-            if bd.badges_begun[c]:
-                try:
-                    tag_record = tag_records.find(lambda r: r.tag == tagbadge.tags.id)
-                    tag_record['badge_desc'] = tagbadge.description
-                    tag_record['badge_name'] = tagbadge.badge_name
-                    tag_record['current_level'] = int(c[3:])
-                    tag_record['date_reached'] = 'on {}'.format(bd.badges_begun[c].strftime('%b %e, %Y')),
-                    tag_record['dt_reached'] = 'dt': bd.badges_begun[c]})
-                    # deprecated ************************
-                    badgelist.append({'id': tagbadge.badge_name,
-                                    'description': tagbadge.description,
-                                    'level': catlabels[int(c[3:]) - 1],
-                                    'date': 'on {}'.format(bd.badges_begun[c].strftime('%b %e, %Y')),
-                                    'dt': bd.badges_begun[c]})
-                    # ************************
-                except Exception:
-                    print traceback.format_exc(5)
-                    print 'missing badge for tag',
-                    send_error('controllers/default', 'info', current.request)
-
-    badgelist = sorted(badgelist, key=lambda row: row['dt'], reverse=True)
 
     return {'the_name': name,
             'tz': tz,
@@ -204,11 +163,8 @@ def info():
             'blist': blist,
             'active': active,
             'max_set': max_set,
-            'tag_progress': tag_progress,
-            'tag_records': tag_records,
             'log': log,
-            'duration': duration,
-            'badge_track': badgelist}
+            'duration': duration}
 
 
 def oops():
