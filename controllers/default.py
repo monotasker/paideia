@@ -4,6 +4,7 @@ from paideia_stats import Stats
 from paideia_bugs import Bug
 import traceback
 from paideia_utils import send_error
+from pprint import pprint
 #from gluon.tools import prettydate
 
 if 0:
@@ -57,6 +58,11 @@ def user():
 
     code for these actions is in gluon/tools.py in Auth() class
     """
+    # make sure d3.js dc.js and crossfire.js are loaded
+    response.files.append(URL('static', 'plugin_d3/d3/d3.js'))
+    response.files.append(URL('static', 'plugin_d3/dc/dc.js'))
+    response.files.append(URL('static', 'plugin_d3/crossfilter/crossfilter.js'))
+    response.files.append(URL('static', 'plugin_d3/dc/dc.css'))
     return dict(form=auth())
 
 
@@ -125,36 +131,36 @@ def info():
     'duration':         Default duration for recent paths info (from
                         stats.step_log['duration'])
     """
-    # make sure d3.js dc.js and crossfire.js are loaded
-    response.files.append(URL('static', 'plugin_d3/d3/d3.js'))
-    response.files.append(URL('static', 'plugin_d3/dc/dc.js'))
-    response.files.append(URL('static', 'plugin_d3/crossfilter/crossfilter.js'))
-    response.files.append(URL('static', 'plugin_d3/dc/dc.css'))
 
-    # Allow passing explicit user but default to current user
-    if 'id' in request.vars:
-        user = db.auth_user[request.vars['id']]
-    else:
-        user = db.auth_user[auth.user_id]
-    name = user.last_name + ', ' + user.first_name
-    tz = user.time_zone
-    email = user.email
+    try:
 
-    stats = Stats(user.id, cache=cache)
-    active = stats.active_tags()
-    cal = stats.monthcal()
-    max_set = stats.get_max()
-    sl = stats.get_step_log()
-    log = sl['loglist']
-    duration = sl['duration']
+        # Allow passing explicit user but default to current user
+        if 'id' in request.vars:
+            user = db.auth_user[request.vars['id']]
+        else:
+            user = db.auth_user[auth.user_id]
+        tz = user.time_zone
+        email = user.email
 
-    b = Bug()
-    blist = b.bugresponses(user.id)
+        stats = Stats(user.id, cache=cache)
+        name = stats.get_name()
+        active = stats.active_tags()
+        cal = stats.monthcal()
+        max_set = stats.get_max()
+        #sl = stats.step_log()
+        #log = sl['loglist']
+        #duration = sl['duration']
 
-    catlabels = ['started at beginner level',
-                'promoted to apprentice level',
-                'promoted to journeyman level',
-                'promoted to master level']
+        b = Bug()
+        blist = b.bugresponses(user.id)
+
+        catlabels = ['started at beginner level',
+                    'promoted to apprentice level',
+                    'promoted to journeyman level',
+                    'promoted to master level']
+        pprint(active)
+    except Exception:
+        print traceback.format_exc(5)
 
     return {'the_name': name,
             'tz': tz,
@@ -163,8 +169,9 @@ def info():
             'blist': blist,
             'active': active,
             'max_set': max_set,
-            'log': log,
-            'duration': duration}
+            #'log': log,
+            #'duration': duration
+            }
 
 
 def oops():

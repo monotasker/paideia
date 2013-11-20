@@ -110,8 +110,10 @@ auth.settings.extra_fields['auth_user'] = [
           requires=IS_IN_SET((common_timezones)),
           widget=SQLFORM.widgets.options.widget
           ),
-    Field.Virtual('tz_obj', lambda row: timezone(row.time_zone)),
-    Field.Virtual('offset', lambda row: now - tz_obj.localize(now))
+    Field.Virtual('tz_obj',
+                  lambda row: timezone(row.auth_user['time_zone'])
+                              if row.auth_user['time_zone'] else 'America/Toronto'
+                  )
 ]
 
 #adding custom field for class info in groups

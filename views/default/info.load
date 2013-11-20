@@ -1,5 +1,5 @@
 {{from plugin_widgets import TOOLTIP, TABS, ROLE}}
-
+{{import json}}
 {{
 # TAB 1 - USER INFO ==========================================================
 tab1_content = UL(LI(SPAN('Name', _class='label-success label'), the_name),
@@ -8,7 +8,7 @@ tab1_content = UL(LI(SPAN('Name', _class='label-success label'), the_name),
 }}
 
 <div class='row'>
-    <div class='span6' id='dc-magnitude-chart'>
+    <div class='span6' id='dc-rank-chart'>
         <h4>Furthest set reached</h4>
     </div>
     <div class='span6' id='blank'>
@@ -16,10 +16,10 @@ tab1_content = UL(LI(SPAN('Name', _class='label-success label'), the_name),
     </div>    
 </div>
 
-<div class='container' style='font: 12px sans-serif;'>
+<div class='dc_container' style='font: 12px sans-serif;'>
   <div class='row'>
 	<div class='span12'>
-      <table class='table table-hover' id='dc-table-graph'>
+      <table class='table table-hover' id='dc-table-badges'>
         <thead>
           <tr class='header'>
             <th>Badge</th>
@@ -38,18 +38,22 @@ tab1_content = UL(LI(SPAN('Name', _class='label-success label'), the_name),
 
 
 <script>
+
+    console.log('hi');
+
     // Create the dc.js chart objects & link to div
-    var dataTable = dc.dataTable("#dc-table-graph");
-    var magnitudeChart = dc.barChart("#dc-magnitude-chart");
+    var badgesTable = dc.dataTable("#dc-table-badges");
+    console.log('Ive used dc');
+    var rankChart = dc.barChart("#dc-rank-chart");
 
     // get data ==========================================================
     data = {{response.write(json.dumps(active), escape=False)}};
-    // Run the data through crossfilter and load our 'facts'
+    <!--// Run the data through crossfilter and load our 'facts'-->
     var facts = crossfilter(data);
 
     // Structure data sets ================================================
 
-    // Create dataTable dimension
+    // Create badgesTable dimension
     var setDimension = facts.dimension(function (d) {
         return d.badges.badge_name;
     });
@@ -60,32 +64,32 @@ tab1_content = UL(LI(SPAN('Name', _class='label-success label'), the_name),
     // Set up the charts ===================================================
 
     // bar chart of set data
-    magnitudeChart.width(480)
+    rankChart.width(480)
         .height(150)
         .margins({top: 10, right: 10, bottom: 20, left: 40})
-        .dimension(setDimension)
-        .group(setValueGroupCount)
+        .dimension(setDimension)  // y-scale
+        .group(setValueGroupCount) // x-scale
         .transitionDuration(500)
         .centerBar(true)	
-        .gap(65)
+        .gap(35)
         .filter([1, 4])
         .x(d3.scale.linear().domain([1, 4]))
         .elasticY(true)
         .xAxis().tickFormat();	
 
     // Table of set data
-    dataTable.width(960).height(800)
+    badgesTable.width(960).height(800)
         .dimension(setDimension)
-        .group(function(d) { return d.tag_records.latest_new })
+        .group()
         .size(50)
         .columns([
             function(d) { return d.badges.badge_name; },
             function(d) { return d.badges.description; },
-            function(d) { return d.tag_records.latest_new; }
-            function(d) { return d.tag_records.times_right; }
-            function(d) { return d.tag_records.pretty_lwrong; }
-            function(d) { return d.tag_records.times_right; }
-            function(d) { return d.tag_records.pretty_lright; }
+            function(d) { return d.tag_records.latest_new; },
+            function(d) { return d.tag_records.times_right; },
+            function(d) { return d.tag_records.pretty_lwrong; },
+            function(d) { return d.tag_records.times_right; },
+            function(d) { return d.tag_records.pretty_lright; },
             function(d) { return d.tag_records.pretty_lright; }
         ])
         .sortBy(function(d){ return d.badges.badge_name; })
@@ -93,7 +97,7 @@ tab1_content = UL(LI(SPAN('Name', _class='label-success label'), the_name),
 
     // Render the Charts
     dc.renderAll();
-  
+    console.log('hi');
 </script>
 
 {{
@@ -196,37 +200,6 @@ for bug in blist:
     tab4_content.append(row)
 pass
 
-# TAB 5 - RECENT PATHS =======================================================
-tab5_content = CAT(H4('Steps attempted in the last {} days'.format(duration.days)))
-logtable = TABLE(THEAD(TR(TH('step', _class='step'),
-                      TH('prompt', _class='prompt'),
-                      TH('count', _class='count'),
-                      TH('right', _class='right'),
-                      TH('wrong', _class='wrong'),
-                      TH('last_wrong', _class='last_wrong'),
-                      TH('right_since', _class='right_since'),
-                      TH('tags', _class='tags'),
-                      _class='step_log_table'))
-             )
-for l in log:
-    logrow = TR(TD(l['step'], _class='step'),
-                TD(l['prompt'], _class='prompt'),
-                TD(l['count'], _class='count'),
-                TD(l['right'], _class='right'),
-                TD(l['wrong'], _class='wrong'),
-                TD(l['last_wrong'], _class='last_wrong'),
-                TD(l['right_since'], _class='right_since'),
-                TD(_class='tags'),
-                _id=('logs' + str(l['step'])),
-                )
-    for k, v in l['tags'].iteritems():
-        tstring = 'tag: {} ({})'.format(v['tagname'], k)  # v['badge'] gives descr.
-        logrow[-1].append(tstring)
-    pass
-    logtable.append(logrow)
-pass
-tab5_content.append(logtable)
-
 # ASSEMBLE AND PRINT =========================================================
-=TABS([('Me', 'web2py_user_form', tab1_content, 'active'), ('Calendar', 'tab_calendar', tab3_content), ('Bug Reports', 'tab_bug_reports', tab4_content), ('Recent', 'tab_recent_paths', tab5_content)])
+=TABS([('Me', 'web2py_user_form', tab1_content, 'active'), ('Calendar', 'tab_calendar', tab3_content), ('Bug Reports', 'tab_bug_reports', tab4_content)])
 }}
