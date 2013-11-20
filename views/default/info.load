@@ -1,5 +1,4 @@
 {{from plugin_widgets import TOOLTIP, TABS, ROLE}}
-{{import json}}
 {{
 # TAB 1 - USER INFO ==========================================================
 tab1_content = UL(LI(SPAN('Name', _class='label-success label'), the_name),
@@ -13,12 +12,12 @@ tab1_content = UL(LI(SPAN('Name', _class='label-success label'), the_name),
     </div>
     <div class='span6' id='blank'>
         <h4>Blank</h4>
-    </div>    
+    </div>
 </div>
 
 <div class='dc_container' style='font: 12px sans-serif;'>
   <div class='row'>
-	<div class='span12'>
+    <div class='span12'>
       <table class='table table-hover' id='dc-table-badges'>
         <thead>
           <tr class='header'>
@@ -32,22 +31,19 @@ tab1_content = UL(LI(SPAN('Name', _class='label-success label'), the_name),
           </tr>
         </thead>
       </table>
-	</div>
+    </div>
   </div>
 </div>
 
 
 <script>
 
-    console.log('hi');
-
     // Create the dc.js chart objects & link to div
     var badgesTable = dc.dataTable("#dc-table-badges");
-    console.log('Ive used dc');
     var rankChart = dc.barChart("#dc-rank-chart");
 
     // get data ==========================================================
-    data = {{response.write(json.dumps(active), escape=False)}};
+    data = {{response.write(active, escape=False)}};
     <!--// Run the data through crossfilter and load our 'facts'-->
     var facts = crossfilter(data);
 
@@ -55,11 +51,12 @@ tab1_content = UL(LI(SPAN('Name', _class='label-success label'), the_name),
 
     // Create badgesTable dimension
     var setDimension = facts.dimension(function (d) {
-        return d.badges.badge_name;
+        console.log(d);
+        return d.badge_name;
     });
 
     var setValueGroupCount = setDimension.group()
-        .reduceCount(function(d) { return d.current_level; }) // counts 
+        .reduceCount(function(d) { return d.current_level; }) // counts
 
     // Set up the charts ===================================================
 
@@ -184,13 +181,13 @@ tab3_content = XML(cal)
 # TAB 4 - BUGS ===============================================================
 tab4_content = TABLE(TR(TH('question'),
                         TH('your answer'),
-                        TH('submitted'), 
+                        TH('submitted'),
                         TH('evaluation'),
                         TH('instructor\'s comments')))
 for bug in blist:
     row = TR()
     # first position is the id, used in edit link
-    for val in bug[1:]:  
+    for val in bug[1:]:
         row.append(TD(val))
     pass
     row.append(ROLE(TD(A('edit', _href=URL('editing', 'listing.html',

@@ -158,7 +158,6 @@ def info():
                     'promoted to apprentice level',
                     'promoted to journeyman level',
                     'promoted to master level']
-        pprint(active)
     except Exception:
         print traceback.format_exc(5)
 
