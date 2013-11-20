@@ -447,6 +447,7 @@ db.tag_records.tag.requires = IS_IN_DB(db, 'tags.id', db.tags._format)
 db.tag_records.step.requires = IS_IN_DB(db, 'steps.id', db.steps._format)
 db.tag_records.in_path.requires = IS_IN_DB(db, 'paths.id', db.paths._format)
 db.executesql('CREATE INDEX IF NOT EXISTS idx_trecs_1 ON tag_records (name, tag);')
+db.executesql('CREATE INDEX IF NOT EXISTS idx_trecs_2 ON tag_records (tag, name);')
 
 db.define_table('bug_status',
     Field('status_label'),

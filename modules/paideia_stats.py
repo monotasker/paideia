@@ -5,7 +5,7 @@ import traceback
 from pytz import timezone
 from gluon import current, DIV, H4, TABLE, THEAD, TBODY, TR, TD, SPAN, A, URL
 from paideia_utils import send_error
-#from pprint import pprint
+from pprint import pprint
 #import logging
 import itertools
 #logger = logging.getLogger('web2py.app.paideia')
@@ -19,32 +19,49 @@ class Stats(object):
     verbose = False
 
     def __init__(self, user_id=None, auth=None, cache=None, duration=None):
-        if self.verbose: print '\nInitializing Stats object =================='
+        """Initialize Stats object for tracking paideia user statistics."""
+        db = current.db
         if auth is None:
             auth = current.auth
         if user_id is None:
             user_id = auth.user_id
         self.user_id = user_id
         self.user = db.auth_user(user_id)
-        db = current.db
-        self.tag_progress = db(db.tag_progress.name == user.id
+        self.name = '{}, {}'.format(self.user.last_name, self.user.first_name)
+        self.tag_progress = db(db.tag_progress.name == self.user_id
                                ).select().first().as_dict()
-        self.tag_recs = db((db.tag_records.name == user.id) &
-                           (db.tag_records.tag == db.badges.tag) &
-                           (db.tag_records.tag == db.badges_begun.tag)
-                           ).select(orderby=~db.tags.tag_position,
-                                    cacheable=True,
-                                    )
-        for t in tag_recs:
-            # fix any leftover records with latest rank stuck at 0
-            if latest_new == 0:
-                t.update_record(latest_new=1)
-                t.latest_new = 1
-        self.duration = datetime.timedelta(days=30)
+        print 'init: starting to get self.tag_recs'
+        self.tag_recs = db(db.tag_records.name == self.user_id
+                           ).select(cacheable=True)
+        ids = [t.tag_records.tag for t in self.tag_recs]
+        names = [t.tag_records.name.last_name for t in self.tag_recs]
+        print 'found', len(ids), 'tag_recs'
+        print 'belonging to', pprint(list(set(names)))
+        dups = {}
+        for t in self.tag_recs:
+            if t.tag_records.tag in dups.keys():
+                dups[t.tag_records.tag] += 1
+            else:
+                dups[t.tag_records.tag] = 1
+        pprint(dups)
+
+        self.badges_begun = db((db.badges_begun.name == self.user_id) &
+                               (db.badges_begun.tag.belongs(ids))).select()
+        print 'found', len(self.badges_begun), 'badges_begun'
+        self.duration = datetime.timedelta(days=30) \
                         if not duration else duration
         self.utcnow = datetime.datetime.utcnow()
         self.cutoff = self.utcnow - self.duration
+        print 'init: starting to get self.logs'
         self.logs, self.loglist = self.log_list(self.cutoff)
+        print 'init: done getting self.logs'
+        print 'hi'
+
+    def get_name(self):
+        """
+        Return the specified user's name as a single string, last name first.
+        """
+        return self.name
 
     def store_stats(self, user_id, weekstart, weekstop, weeknum):
         '''
@@ -176,31 +193,59 @@ class Stats(object):
         '''
         if self.verbose: print 'calling Stats.active_tags() ------------------'
         db = current.db
+        try:
+            pprint(self.tag_progress)
+            for t in self.tag_recs:
+                #print 'tag record result'
+                #pprint(t.as_dict())
+                t['set'] = t.tags.tag_position
+                t['slides'] = t.tags.slides
+                missing_cat = []
+                missing_rev = []
 
-        for t in self.tag_recs:
-            t['set'] = t.tag_records.tag.tag_position
-            t['slides'] = t.tag_records.tag.slides
-            t['current_level'] = [k for k, v in tag_progress.iteritems()
-                                  if t.tag_records.tag in v and k[:3] == 'cat'][0][3:]
-            t['review_level'] = [k for k, v in tag_progress.iteritems()
-                                 if t.tag_records.tag in v and k[:3] == 'rev'][0][3:]
-            t['dt_cat1'] = t.badges_begun.cat1
-            t['prettydate_cat1'] = t['dt_cat1'].strftime('%b %e, %Y') \
-                                   if t['dt_cat1'] else 'n/a'
-            t['dt_cat2'] = t.badges_begun.cat2
-            t['prettydate_cat2'] = t['dt_cat1'].strftime('%b %e, %Y') \
-                                   if t['dt_cat1'] else 'n/a'
-            t['dt_cat3'] = t.badges_begun.cat3
-            t['prettydate_cat3'] = t['dt_cat1'].strftime('%b %e, %Y') \
-                                   if t['dt_cat1'] else 'n/a'
-            t['dt_cat4'] = t.badges_begun.cat4
-            t['prettydate_cat4'] = t['dt_cat1'].strftime('%b %e, %Y') \
-                                   if t['dt_cat1'] else 'n/a'
-            t['logs'] = [l for l in self.logs
-                         if t.tag_records.tag in l.step.tags]
+                # get current and review levels
+                tid = t.tag_records.tag
+                try:
+                    t['current_level'] = [k for k, v
+                                          in self.tag_progress.iteritems()
+                                          if k in ['cat1', 'cat2', 'cat3', 'cat4']
+                                          and tid in v][0][3:]
+                except IndexError:
+                    t['current_level'] = 1
+                    missing_cat.append(tid)
+                try:
+                    t['review_level'] = [k for k, v
+                                         in self.tag_progress.iteritems()
+                                         if k in ['rev1', 'rev2', 'rev3', 'rev4']
+                                         and tid in v][0][3:]
+                except IndexError:
+                    t['review_level'] = 1
+                    missing_rev.append(tid)
 
+                # Add dates from badges_begun
+                try:
+                    bb = [b for b in self.badges_begun if b.tag == tid][0]
+                except IndexError:
+                    bb = None
+                for k in range(1,5):
+                    nka = 'dt_cat{}'.format(k)
+                    dt = bb.cat1 if bb else 'n/a'
+                    nkb = 'prettydate_cat{}'.format(k)
+                    pdt = dt.strftime('%b %e, %Y') \
+                          if isinstance(dt, datetime.datetime) else 'n/a'
+                    t.update({nka: dt,
+                              nkb: pdt})
 
-        return atags
+                t['logs'] = [l for l in self.logs
+                             if tid in l.step.tags]
+
+            print 'these tags have no tag_records "cat" entry ' \
+                  'for user', self.user_id, ':', missing_cat
+            print 'these tags have no tag_records "rev" entry ' \
+                  'for user', self.user_id, ':', missing_rev
+            return self.tag_recs
+        except Exception:
+            print traceback.format_exc(5)
 
     def get_max(self):
         """
@@ -208,8 +253,8 @@ class Stats(object):
 
         The 'badge set' is actually the series of ints in db.tags.tag_position.
         """
-        max_set = self.tag_progress.latest_new \
-                  if self.tag_progress.latest_new else 1
+        max_set = self.tag_progress['latest_new'] \
+                  if self.tag_progress['latest_new'] else 1
         return max_set
 
     def log_list(self, cutoff):

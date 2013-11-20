@@ -1766,6 +1766,8 @@ class PathChooser(object):
         #ps.exclude(lambda row:
                    #[t for t in row.tags
                     #if db.tags[t].tag_position > self.rank])
+        print 'paths_by_category: Found', len(ps), 'paths in category', cat
+        print 'paths_by_category: using tags', taglist
 
         return (ps, cat)
 
