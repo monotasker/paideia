@@ -9,6 +9,7 @@ from pprint import pprint
 #import logging
 import itertools
 #logger = logging.getLogger('web2py.app.paideia')
+import json
 
 
 class Stats(object):
@@ -33,16 +34,16 @@ class Stats(object):
         print 'init: starting to get self.tag_recs'
         self.tag_recs = db(db.tag_records.name == self.user_id
                            ).select(cacheable=True)
-        ids = [t.tag_records.tag for t in self.tag_recs]
-        names = [t.tag_records.name.last_name for t in self.tag_recs]
+        ids = [t.tag for t in self.tag_recs]
+        names = [t.name.last_name for t in self.tag_recs]
         print 'found', len(ids), 'tag_recs'
         print 'belonging to', pprint(list(set(names)))
         dups = {}
         for t in self.tag_recs:
-            if t.tag_records.tag in dups.keys():
-                dups[t.tag_records.tag] += 1
+            if t.tag in dups.keys():
+                dups[t.tag] += 1
             else:
-                dups[t.tag_records.tag] = 1
+                dups[t.tag] = 1
         pprint(dups)
 
         self.badges_begun = db((db.badges_begun.name == self.user_id) &
@@ -55,7 +56,6 @@ class Stats(object):
         print 'init: starting to get self.logs'
         self.logs, self.loglist = self.log_list(self.cutoff)
         print 'init: done getting self.logs'
-        print 'hi'
 
     def get_name(self):
         """
@@ -194,17 +194,28 @@ class Stats(object):
         if self.verbose: print 'calling Stats.active_tags() ------------------'
         db = current.db
         try:
-            pprint(self.tag_progress)
             for t in self.tag_recs:
-                #print 'tag record result'
-                #pprint(t.as_dict())
-                t['set'] = t.tags.tag_position
-                t['slides'] = t.tags.slides
-                missing_cat = []
-                missing_rev = []
+                try:
+                    t['set'] = t.tag.tag_position
+                except RuntimeError:
+                    print 'no tag position for tag', t.tag
+                    t['set'] = 999
+                try:
+                    t['set'] = t.tag.tag_position
+                except RuntimeError:
+                    print 'no slides for tag', t.tag
+                    t['slides'] = None
+                try:
+                    t['badge_name'] = db.badges(t.tag).badge_name
+                except:
+                    RuntimeError
+                    print 'no badge for tag {}'.format(t.tag)
+                    t['badge_name'] = 'missing badge for tag {}'.format(t.tag)
 
                 # get current and review levels
-                tid = t.tag_records.tag
+                tid = t.tag
+                missing_cat = []
+                missing_rev = []
                 try:
                     t['current_level'] = [k for k, v
                                           in self.tag_progress.iteritems()
@@ -236,14 +247,25 @@ class Stats(object):
                     t.update({nka: dt,
                               nkb: pdt})
 
-                t['logs'] = [l for l in self.logs
-                             if tid in l.step.tags]
+                t['logs'] = [l.as_dict() for l in self.logs if tid in l.step.tags]
 
             print 'these tags have no tag_records "cat" entry ' \
                   'for user', self.user_id, ':', missing_cat
             print 'these tags have no tag_records "rev" entry ' \
                   'for user', self.user_id, ':', missing_rev
-            return self.tag_recs
+            tag_filter = lambda i: True if len(i['logs']) > 0 else False
+            itertools.ifilter(tag_filter, self.tag_recs)
+
+            # convert to json for dc and crossfilter js
+            date_handler = lambda obj: obj.isoformat() \
+                           if isinstance(obj, datetime.datetime) else None
+            myjson = json.dumps(self.tag_recs.as_list(),
+                                default=date_handler,
+                                indent=4,
+                                sort_keys=True)
+            print 'JSON\n'
+            print myjson
+            return myjson
         except Exception:
             print traceback.format_exc(5)
 
@@ -282,6 +304,8 @@ class Stats(object):
                 loglist[newdate] += 1
             else:
                 loglist[newdate] = 1
+            if not log.dt_local:
+                log.dt_local = 'n/a'
 
         return logs, loglist
 
