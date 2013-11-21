@@ -17,11 +17,14 @@
 </section>
 <section class='modal-set'>
 {{for m in modals:}}
-<div class='info-pane'>
-{{=MODAL(m['title'], m['title'], MARKMIN(m['content']),
-         modal_classes='index-modals', 
-         trigger_type='link',
-         id=(m['title'].replace(' ', '_')).replace('?', ''))}}
+<div class='info-pane span6'>
+{{=IMG(_src=URL('static', 'images/info_{}.svg'.format(m['title'].replace(' ', '_')[:-1])))}}
+{{=CAT(MODAL(m['title'], m['title'], MARKMIN(m['content']),
+           modal_classes='index-modals', 
+           trigger_type='link',
+           id=(m['title'].replace(' ', '_')).replace('?', '')),
+       P(MARKMIN(' '.join(m['content'].split(' ')[:80]) + ' ...' ), _class='info-teaser') 
+     )}}
 </div>
 {{pass}}
 </section>
