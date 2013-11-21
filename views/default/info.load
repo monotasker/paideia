@@ -4,43 +4,69 @@
 tab1_content = UL(LI(SPAN('Name', _class='label-success label'), the_name),
                   LI(SPAN('Email', _class='email label-success label'), email),
                   LI(SPAN('Time Zone', _class='timezone label-success label'), tz))
+tab1_content.append(DIV(DIV(DIV(H4('What level are my badges?'),
+                                SPAN('(Click a segment to see those badges below.)'),
+                                _class='span4 pull-left',
+                                _id='dc-level-pie'),
+                            DIV(H4('What level are my badges?'),
+                                SPAN('(Click a segment to see those badges below.)'),
+                                _class='span4',
+                                _id='dc-time-chart'),
+                            DIV(H4('What level are my badges?'),
+                                _class='span4',
+                                _id='dc-set-chart'),
+                            _class='row'),
+                        DIV(DIV(TABLE(THEAD(TR(TH('Badge'),
+                                               TH('In Set'),
+                                               TH('Max Level'),
+                                               TH('Times Right'),
+                                               TH('Last Right'),
+                                               TH('Times Wrong'),
+                                               TH('Last Wrong')
+                                               ),
+                                            _class='header'),
+                                        _class='table table-hover',
+                                        _id='dc-table-badges'),
+                                _class='span12'),
+                            _class='row'),
+                        _class='dc_container',
+                        _style='font: 12px sans-serif;')
+                    )
 }}
-
-<div class='row'>
-    <div class='span6' id='dc-rank-chart'>
-        <h4>Furthest set reached</h4>
-    </div>
-    <div class='span6' id='blank'>
-        <h4>Blank</h4>
-    </div>
-</div>
-
-<div class='dc_container' style='font: 12px sans-serif;'>
-  <div class='row'>
-    <div class='span12'>
-      <table class='table table-hover' id='dc-table-badges'>
-        <thead>
-          <tr class='header'>
-            <th>Badge</th>
-            <th>In Set</th>
-            <th>Max Level</th>
-            <th>Review Level</th>
-            <th>Times Right</th>
-            <th>Last Right</th>
-            <th>Last Wrong</th>
-          </tr>
-        </thead>
-      </table>
-    </div>
-  </div>
-</div>
-
-
 <script>
+    var days =   ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday",
+                  "Friday", "Saturday"];  
+    var months = ["January", "February", "March", "April", "May",   
+                  "June", "July", "August", "September", "October", "November",
+                  "December"];
+
+    //helper functions to separate out values from arrays returned
+    function reduceAdd(p, v) {
+    v.logs.forEach (function(val, idx) {
+        var dval = Date.parse(val.dt_attempted.split('T')[0]);
+        p[dval] = (p[dval] || 0) + 1; //increment counts
+    });
+    return p;
+    }
+
+    function reduceRemove(p, v) {
+    v.logs.forEach (function(val, idx) {
+        var dval = Date.parse(val.dt_attempted.split('T')[0]);
+        p[dval] = (p[dval] || 0) - 1; //dencrement counts
+    });
+    return p;
+
+    }
+
+    function reduceInitial() {
+    return {};  
+    }
 
     // Create the dc.js chart objects & link to div
     var badgesTable = dc.dataTable("#dc-table-badges");
-    var rankChart = dc.barChart("#dc-rank-chart");
+    var timeChart= dc.barChart("#dc-time-chart");
+    var setChart= dc.barChart("#dc-set-chart");
+    var levelPieChart = dc.pieChart("#dc-level-pie");
 
     // get data ==========================================================
     data = {{response.write(active, escape=False)}};
@@ -49,52 +75,201 @@ tab1_content = UL(LI(SPAN('Name', _class='label-success label'), the_name),
 
     // Structure data sets ================================================
 
-    // Create badgesTable dimension
-    var setDimension = facts.dimension(function (d) {
-        console.log(d);
+    // Badgename dimension (one record per badge)
+    var setDimensionBadgename = facts.dimension(function (d) {
         return d.badge_name;
     });
 
-    var setValueGroupCount = setDimension.group()
-        .reduceCount(function(d) { return d.current_level; }) // counts
+    // Level dimension (current level of tag/badge)
+    var levelDimension = facts.dimension(function (d) {
+        return d.current_level;
+    });
+    var levelGroupCount = levelDimension.group()
+        .reduceCount(function(d) { return d.current_level; }); 
+
+    // Sets dimension (set in which badge is found)
+    var setDimension = facts.dimension(function (d) {
+        return d.set;
+    });
+    var setGroupCount = setDimension.group()
+        .reduceCount(function(d) { return d.set; }); 
+
+    // Days dimension (date of log attempt)
+
+    var logs = facts.dimension(function(d){ return d.logs });
+    var logsGroup = logs.groupAll().reduce(reduceAdd, reduceRemove, reduceInitial).value();
+    console.log(logsGroup);
+    // hack to make dc.js charts work
+    logsGroup.all = function() {
+        var newObject = [];
+        for (var key in this) {
+            if (this.hasOwnProperty(key) && key != "all") {
+            newObject.push({
+                key: key,
+                value: this[key]
+            });
+            }
+        }
+    return newObject;
+    };
+
+    // Attempts dimension (number of total attempts)
+    var dimensionAttempts = facts.dimension(function (d) {
+        if(d.times_right != null){
+            tr = d.times_right;
+        }else if(d.times_right > 1000000000000){
+            tr = d.times_right / 1000000000000;
+        }else{
+            tr = 0;
+        }
+        if(d.times_wrong != null){
+            tw = d.times_wrong;
+        }else if(d.times_wrong > 1000000000000){
+            tw = d.times_wrong / 1000000000000;
+        }else{
+            tw = 0;
+        }
+        return  tr + tw;
+    });
+    var attemptsCount = dimensionAttempts.group()
+    .reduceCount(function(d) {
+        if(d.times_right != null){
+            tr = d.times_right;
+        }else{
+            tr = 0;
+        }
+        if(d.times_wrong != null){
+            tw = d.times_wrong;
+        }else{
+            tw = 0;
+        }
+        return  tr + tw;
+    });
 
     // Set up the charts ===================================================
 
-    // bar chart of set data
-    rankChart.width(480)
-        .height(150)
+    // bar chart of log counts by day
+    timeChart.width(500)
+        .height(250)
+        .margins({top: 10, right: 10, bottom: 20, left: 40})
+        .dimension(logs)  // y-scale
+        .group(logsGroup) // x-scale
+        .transitionDuration(800)
+        .centerBar(true)	
+        .gap(15)
+        .elasticY(true)
+        .elasticX(true)
+        .x(d3.time.scale())
+        .xUnits(d3.time.days)
+        .round(d3.time.day.round)
+        .filterHandler(function(dimension, filter){     
+            dimension.filter(function(d) {
+                return timeChart.filter() != null ? d.indexOf(timeChart.filter()) >= 0 : true;
+            }); // perform filtering
+            return filter; // return the actual filter value
+            })
+        .xAxis().tickFormat();	
+        //.filter([1, 4])
+
+    // bar chart of badge counts by set
+    setChart.width(500)
+        .height(250)
         .margins({top: 10, right: 10, bottom: 20, left: 40})
         .dimension(setDimension)  // y-scale
-        .group(setValueGroupCount) // x-scale
-        .transitionDuration(500)
+        .group(setGroupCount) // x-scale
+        .transitionDuration(800)
         .centerBar(true)	
-        .gap(35)
-        .filter([1, 4])
-        .x(d3.scale.linear().domain([1, 4]))
+        .gap(1)
         .elasticY(true)
+        .elasticX(false)
+        .x(d3.scale.linear())
+        .filter([1,100])
         .xAxis().tickFormat();	
+
+    // pie chart of level data
+    levelPieChart.width(300)
+        .height(300)
+        .radius(250)
+        .innerRadius(150)
+        .dimension(levelDimension)
+        .group(levelGroupCount)
+        .colors(d3.scale.category10())
+        .title(function(d){return "level " + d.current_level;});
 
     // Table of set data
     badgesTable.width(960).height(800)
-        .dimension(setDimension)
-        .group()
-        .size(50)
+        .dimension(setDimensionBadgename)
+        .group(function(d){return d.set})
+        .size(100)
         .columns([
-            function(d) { return d.badges.badge_name; },
-            function(d) { return d.badges.description; },
-            function(d) { return d.tag_records.latest_new; },
-            function(d) { return d.tag_records.times_right; },
-            function(d) { return d.tag_records.pretty_lwrong; },
-            function(d) { return d.tag_records.times_right; },
-            function(d) { return d.tag_records.pretty_lright; },
-            function(d) { return d.tag_records.pretty_lright; }
+            function(d) { return d.badge_name; },
+            function(d) { return d.set; },
+            function(d) { return d.current_level; },
+            function(d) { 
+                var num = d.times_right;
+                if(num != null){ 
+                    return num.toFixed(1); 
+                }else{
+                    return "none";
+                }
+            },
+            function(d) { 
+                var lastright = 0
+                for (var i=0;i<d.logs.length;i++){
+                    var dt = Date.parse(d.logs[i].dt_attempted.split("T")[0]);
+                    if(dt > lastright && d.logs[i].score > 0.999999){
+                        lastright = dt;
+                    }
+                }
+                if(lastright != 0){
+                    lastright = new Date(lastright * 1000);
+                    lr = days[lastright.getDay()];
+                    lr += ', '
+                    lr += months[lastright.getMonth()];
+                    lr += ' '
+                    lr += lastright.getDate();
+                    lr += lastright.getFullYear();
+                }else{
+                    lr = "n.a."
+                }
+                return lastright; 
+            },
+            function(d) {
+                var num = d.times_wrong;
+                if(num != null){ 
+                    return num.toFixed(1); 
+                }else{
+                    return "none";
+                }
+            },
+            function(d) {
+                var lastwrong = 0;
+                for (var i=0;i<d.logs.length;i++){
+                    var dt = Date.parse(d.logs[i].dt_attempted.split("T")[0]);
+                    if(dt > lastwrong && d.logs[i].score < 1){
+                        lastwrong = dt;
+                    }
+                }
+                if(lastwrong != 0){
+                    lastwrong = new Date(lastwrong * 1000);
+                    lr = days[lastwrong.getDay()];
+                    lr += ', '
+                    lr += months[lastwrong.getMonth()];
+                    lr += ' '
+                    lr += lastwrong.getDate();
+                    lr += ' '
+                    lr += lastwrong.getFullYear();
+                }else{
+                    lr = "n.a."
+                }
+                return lastwrong; 
+            }
         ])
-        .sortBy(function(d){ return d.badges.badge_name; })
+        .sortBy(function(d){ return d.current_level; })
         .order(d3.ascending);
 
     // Render the Charts
     dc.renderAll();
-    console.log('hi');
 </script>
 
 {{
