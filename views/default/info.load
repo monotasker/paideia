@@ -1,36 +1,34 @@
 {{from plugin_widgets import TOOLTIP, TABS, ROLE}}
 {{
 # TAB 1 - USER INFO ==========================================================
-tab1_content = UL(LI(SPAN('Name', _class='label-success label'), the_name),
-                  LI(SPAN('Email', _class='email label-success label'), email),
-                  LI(SPAN('Time Zone', _class='timezone label-success label'), tz))
-tab1_content.append(DIV(DIV(DIV(H4('What level are my badges?'),
-                                SPAN('(Click a segment to see those badges below.)'),
-                                _class='span4 pull-left',
-                                _id='dc-level-pie'),
-                            DIV(H4('What level are my badges?'),
-                                SPAN('(Click a segment to see those badges below.)'),
-                                _class='span4',
-                                _id='dc-time-chart'),
-                            DIV(H4('What level are my badges?'),
-                                _class='span4',
-                                _id='dc-set-chart'),
-                            _class='row'),
-                        DIV(DIV(TABLE(THEAD(TR(TH('Badge'),
-                                               TH('In Set'),
-                                               TH('Max Level'),
-                                               TH('Times Right'),
-                                               TH('Last Right'),
-                                               TH('Times Wrong'),
-                                               TH('Last Wrong')
-                                               ),
-                                            _class='header'),
-                                        _class='table table-hover',
-                                        _id='dc-table-badges'),
-                                _class='span12'),
-                            _class='row'),
+tab1_content = CAT(UL(LI(SPAN('Name', _class='profile-name-label'), the_name, 
+                         _class='profile-name'),
+                      LI(SPAN('Email', _class='profile-email-label'), email,
+                         _class='profile-email'),
+                      LI(SPAN('Time Zone', _class='profile-tz-label'), tz,
+                         _class='profile-name')),
+                   DIV(H4('What level are my badges?'),
+                       _id='dc-level-pie'),
+                   # DIV(H4('When did I work on each badge?'),
+                   #     _id='dc-time-chart'),
+                   # DIV(H4('Which badge sets do they belong to?'),
+                   #     _id='dc-set-chart'),
+                   DIV(TABLE(THEAD(TR(TH('Badge'),
+                                      TH('In Set'),
+                                      TH('Max Level'),
+                                      TH('Times Right'),
+                                      TH('Last Right'),
+                                      TH('Times Wrong'),
+                                      TH('Last Wrong')
+                                      ),
+                                    _class='header'
+                                    ),
+                              _class='table table-hover',
+                              _id='dc-table-badges'
+                              ),
                         _class='dc_container',
-                        _style='font: 12px sans-serif;')
+                        _style='font: 12px sans-serif;'
+                        )
                     )
 }}
 <script>
@@ -64,8 +62,8 @@ tab1_content.append(DIV(DIV(DIV(H4('What level are my badges?'),
 
     // Create the dc.js chart objects & link to div
     var badgesTable = dc.dataTable("#dc-table-badges");
-    var timeChart= dc.barChart("#dc-time-chart");
-    var setChart= dc.barChart("#dc-set-chart");
+    //var timeChart= dc.barChart("#dc-time-chart");
+    //var setChart= dc.barChart("#dc-set-chart");
     var levelPieChart = dc.pieChart("#dc-level-pie");
 
     // get data ==========================================================
@@ -96,101 +94,100 @@ tab1_content.append(DIV(DIV(DIV(H4('What level are my badges?'),
 
     // Days dimension (date of log attempt)
 
-    var logs = facts.dimension(function(d){ return d.logs });
-    var logsGroup = logs.groupAll().reduce(reduceAdd, reduceRemove, reduceInitial).value();
-    console.log(logsGroup);
+    //var logs = facts.dimension(function(d){ return d.logs });
+    //var logsGroup = logs.groupAll().reduce(reduceAdd, reduceRemove, reduceInitial).value();
     // hack to make dc.js charts work
-    logsGroup.all = function() {
-        var newObject = [];
-        for (var key in this) {
-            if (this.hasOwnProperty(key) && key != "all") {
-            newObject.push({
-                key: key,
-                value: this[key]
-            });
-            }
-        }
-    return newObject;
-    };
+    //logsGroup.all = function() {
+     //   var newObject = [];
+      //  for (var key in this) {
+       //     if (this.hasOwnProperty(key) && key != "all") {
+        //    newObject.push({
+         //       key: key,
+          //      value: this[key]
+           // });
+           // }
+       // }
+   // return newObject;
+   // };
 
     // Attempts dimension (number of total attempts)
-    var dimensionAttempts = facts.dimension(function (d) {
-        if(d.times_right != null){
-            tr = d.times_right;
-        }else if(d.times_right > 1000000000000){
-            tr = d.times_right / 1000000000000;
-        }else{
-            tr = 0;
-        }
-        if(d.times_wrong != null){
-            tw = d.times_wrong;
-        }else if(d.times_wrong > 1000000000000){
-            tw = d.times_wrong / 1000000000000;
-        }else{
-            tw = 0;
-        }
-        return  tr + tw;
-    });
-    var attemptsCount = dimensionAttempts.group()
-    .reduceCount(function(d) {
-        if(d.times_right != null){
-            tr = d.times_right;
-        }else{
-            tr = 0;
-        }
-        if(d.times_wrong != null){
-            tw = d.times_wrong;
-        }else{
-            tw = 0;
-        }
-        return  tr + tw;
-    });
+    //var dimensionAttempts = facts.dimension(function (d) {
+    //    if(d.times_right != null){
+    //        tr = d.times_right;
+    //    }else if(d.times_right > 1000000000000){
+    //        tr = d.times_right / 1000000000000;
+    //    }else{
+    //        tr = 0;
+    //    }
+    //    if(d.times_wrong != null){
+    //        tw = d.times_wrong;
+    //    }else if(d.times_wrong > 1000000000000){
+    //        tw = d.times_wrong / 1000000000000;
+    //    }else{
+    //        tw = 0;
+    //    }
+    //    return  tr + tw;
+    //});
+    //var attemptsCount = dimensionAttempts.group()
+    //.reduceCount(function(d) {
+    //    if(d.times_right != null){
+    //        tr = d.times_right;
+    //    }else{
+    //        tr = 0;
+    //    }
+    //    if(d.times_wrong != null){
+    //        tw = d.times_wrong;
+    //    }else{
+    //        tw = 0;
+    //    }
+    //    return  tr + tw;
+    //});
 
     // Set up the charts ===================================================
 
     // bar chart of log counts by day
-    timeChart.width(500)
-        .height(250)
-        .margins({top: 10, right: 10, bottom: 20, left: 40})
-        .dimension(logs)  // y-scale
-        .group(logsGroup) // x-scale
-        .transitionDuration(800)
-        .centerBar(true)	
-        .gap(15)
-        .elasticY(true)
-        .elasticX(true)
-        .x(d3.time.scale())
-        .xUnits(d3.time.days)
-        .round(d3.time.day.round)
-        .filterHandler(function(dimension, filter){     
-            dimension.filter(function(d) {
-                return timeChart.filter() != null ? d.indexOf(timeChart.filter()) >= 0 : true;
-            }); // perform filtering
-            return filter; // return the actual filter value
-            })
-        .xAxis().tickFormat();	
-        //.filter([1, 4])
-
+    //timeChart.width(500)
+    //    .height(250)
+    //    .margins({top: 10, right: 10, bottom: 20, left: 40})
+    //    .dimension(logs)  // y-scale
+    //    .group(logsGroup) // x-scale
+    //    .transitionDuration(800)
+    //    .centerBar(true)	
+    //    .gap(15)
+    //    .elasticY(true)
+    //    .elasticX(true)
+    //    .x(d3.time.scale())
+    //    .xUnits(d3.time.days)
+    //    .round(d3.time.day.round)
+    //    .filterHandler(function(dimension, filter){     
+    //        dimension.filter(function(d) {
+    //            return timeChart.filter() != null ? d.indexOf(timeChart.filter()) >= 0 : true;
+    //        }); // perform filtering
+    //        return filter; // return the actual filter value
+    //        })
+    //    .xAxis().tickFormat();	
+    //    //.filter([1, 4])
+//
     // bar chart of badge counts by set
-    setChart.width(500)
-        .height(250)
-        .margins({top: 10, right: 10, bottom: 20, left: 40})
-        .dimension(setDimension)  // y-scale
-        .group(setGroupCount) // x-scale
-        .transitionDuration(800)
-        .centerBar(true)	
-        .gap(1)
-        .elasticY(true)
-        .elasticX(false)
-        .x(d3.scale.linear())
-        .filter([1,100])
-        .xAxis().tickFormat();	
+    //setChart.width(500)
+    //    .height(250)
+    //    .margins({top: 10, right: 10, bottom: 20, left: 40})
+    //    .dimension(setDimension)  // y-scale
+    //    .group(setGroupCount) // x-scale
+    //    .transitionDuration(800)
+    //    .centerBar(true)	
+    //    .gap(1)
+    //    .elasticY(true)
+    //    .elasticX(false)
+    //    .x(d3.scale.linear())
+    //    .filter([1,100])
+    //    .xAxis().tickFormat();	
 
     // pie chart of level data
     levelPieChart.width(300)
         .height(300)
-        .radius(250)
-        .innerRadius(150)
+        .radius(150)
+        .innerRadius(50)
         .dimension(levelDimension)
         .group(levelGroupCount)
         .colors(d3.scale.category10())
