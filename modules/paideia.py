@@ -236,7 +236,8 @@ class Walk(object):
             s = block.get_step(**{'prev_loc': user.prev_loc,
                                   'prev_npc': user.prev_npc,
                                   'loc': user.loc,
-                                  'npc': user.npc})
+                                  'npc': user.npc,
+                                  'username': user.name})
             print 'walk.ask: got block step', s.get_id()
             try:
                 print 'walk.ask: path.step_for_prompt is still', p.step_for_prompt.get_id()
@@ -820,7 +821,7 @@ class Step(object):
 
         # set by init args and used for prompt replacements
         self.username = username
-        #print 'step.init: self.username is', self.username
+        print 'step.init: self.username is', self.username
         self.promoted = promoted
         #print 'step.init: self.promoted is', self.promoted
         self.new_tags = new_tags
@@ -1534,6 +1535,7 @@ class Path(object):
         self.prev_loc = prev_loc
         self.prev_npc = prev_npc
         self.username = username
+        print 'path.init: username is', self.username
 
         # set later
         self.npc = None
@@ -1543,7 +1545,7 @@ class Path(object):
         self.path_dict = db(db.paths.id == path_id).select().first().as_dict()
 
         # controlling step progression through path
-        self.steps = self.get_steps(username)
+        self.steps = self.get_steps()
         self.completed_steps = completed_steps if completed_steps else []
         self.step_for_prompt = step_for_prompt
         self.step_for_reply = step_for_reply
@@ -1665,13 +1667,14 @@ class Path(object):
         """
         return self.step_for_reply
 
-    def get_steps(self, username):
+    def get_steps(self):
         """
         Return a list containing all the steps of this path as Step objects.
         """
         static_args = {'loc': self.loc,
                        'prev_loc': self.prev_loc,
-                       'prev_npc': self.prev_npc}
+                       'prev_npc': self.prev_npc,
+                       'username': self.username}
         steplist = [StepFactory().get_instance(step_id=i, **static_args)
                     for i in self.path_dict['steps']]
 
@@ -2061,6 +2064,7 @@ class User(object):
         choice = None
         redir = None
         cat = None
+        print "user.get_path: username is", self.name
 
         if path:
             if not self.prev_loc:  # FIXME: hack to handle error ticket
@@ -2677,7 +2681,8 @@ class Block(object):
         else:
             return False
 
-    def get_step(self, loc=None, prev_loc=None, npc=None, prev_npc=None):
+    def get_step(self, loc=None, prev_loc=None, npc=None, prev_npc=None,
+                 username=None):
         """Return the appropriate step for the current blocking condition"""
         if isinstance(self.data, Step):
             step = self.data  # in some cases easiest to just pass existing step
@@ -2685,7 +2690,8 @@ class Block(object):
             newargs = {'loc': loc,
                        'prev_loc': prev_loc,
                        'npc': npc,
-                       'prev_npc': prev_npc}
+                       'prev_npc': prev_npc,
+                       'username': username}
             kwargs = self.kwargs.update(newargs)
             step = self.make_step(self.get_condition(), kwargs=kwargs, data=self.data)
         return step

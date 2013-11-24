@@ -11,8 +11,8 @@ tab1_content = CAT(UL(LI(SPAN('Name', _class='profile-name-label'), the_name,
                        _id='dc-level-pie'),
                    # DIV(H4('When did I work on each badge?'),
                    #     _id='dc-time-chart'),
-                   # DIV(H4('Which badge sets do they belong to?'),
-                   #     _id='dc-set-chart'),
+                   DIV(H4('Which badge sets do they belong to?'),
+                          _id='dc-set-chart'),
                    DIV(TABLE(THEAD(TR(TH('Badge'),
                                       TH('In Set'),
                                       TH('Max Level'),
@@ -63,7 +63,7 @@ tab1_content = CAT(UL(LI(SPAN('Name', _class='profile-name-label'), the_name,
     // Create the dc.js chart objects & link to div
     var badgesTable = dc.dataTable("#dc-table-badges");
     //var timeChart= dc.barChart("#dc-time-chart");
-    //var setChart= dc.barChart("#dc-set-chart");
+    var setChart= dc.barChart("#dc-set-chart");
     var levelPieChart = dc.pieChart("#dc-level-pie");
 
     // get data ==========================================================
@@ -85,12 +85,12 @@ tab1_content = CAT(UL(LI(SPAN('Name', _class='profile-name-label'), the_name,
     var levelGroupCount = levelDimension.group()
         .reduceCount(function(d) { return d.current_level; }); 
 
-    // Sets dimension (set in which badge is found)
+    // Set dimension (set in which badge is found)
     var setDimension = facts.dimension(function (d) {
         return d.set;
     });
     var setGroupCount = setDimension.group()
-        .reduceCount(function(d) { return d.set; }); 
+        .reduceCount(function(d) { return d.set; });  
 
     // Days dimension (date of log attempt)
 
@@ -167,31 +167,40 @@ tab1_content = CAT(UL(LI(SPAN('Name', _class='profile-name-label'), the_name,
     //        })
     //    .xAxis().tickFormat();	
     //    //.filter([1, 4])
-//
+
     // bar chart of badge counts by set
-    //setChart.width(500)
-    //    .height(250)
-    //    .margins({top: 10, right: 10, bottom: 20, left: 40})
-    //    .dimension(setDimension)  // y-scale
-    //    .group(setGroupCount) // x-scale
-    //    .transitionDuration(800)
-    //    .centerBar(true)	
-    //    .gap(1)
-    //    .elasticY(true)
-    //    .elasticX(false)
-    //    .x(d3.scale.linear())
-    //    .filter([1,100])
-    //    .xAxis().tickFormat();	
+    setChart.width(240)
+        .height(120)
+        .margins({top: 10, right: 10, bottom: 20, left: 40})
+        .dimension(setDimension)  // y-scale
+        .group(setGroupCount) // x-scale
+        .transitionDuration(800)
+        .centerBar(true)	
+        .gap(2)
+        .elasticY(true)
+        .elasticX(true)
+        .label(function(d){return d.value})
+        .brushOn(false)
+        .x(d3.scale.linear().domain([0,20]))
+        .filterHandler(function(dimension, filter){     
+                setDimension.filter(function(d) {
+                    return setChart.filter() != null ? d.set <= 100 : true;
+                }); // perform filtering
+                return filter; // return the actual filter value
+            })
+        .xAxis().tickFormat(function(v){return "set " + v});	
 
     // pie chart of level data
-    levelPieChart.width(300)
-        .height(300)
-        .radius(150)
-        .innerRadius(50)
+    levelPieChart.width(240)
+        .height(240)
+        .radius(96)
+        .innerRadius(64)
         .dimension(levelDimension)
-        .group(levelGroupCount)
+        .group(levelGroupCount, function(d){return "badges at level"})
+        .label(function(d){return d.value + " badges"})
         .colors(d3.scale.category10())
-        .title(function(d){return "level " + d.current_level;});
+        .legend(dc.legend().x(96).y(96).itemHeight(13).gap(5))
+        .title(function(d){console.log(d); return d.value + " badges";});
 
     // Table of set data
     badgesTable.width(960).height(800)
