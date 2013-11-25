@@ -455,8 +455,8 @@ class Walk(object):
         else:  # auth.user_id != user_id because shadowing another user
             return False
 
-    def _record_step(self, user_id, step_id, path_id, score, times_right,
-                     times_wrong, old_trecs, taglist, response_string):
+    def _record_step(self, user_id, step_id, path_id, score, raw_tright,
+                     raw_twrong, old_trecs, taglist, response_string):
         """
         Record this step attempt and its impact on user's performance record.
 
@@ -485,41 +485,59 @@ class Walk(object):
         #else:
         now = datetime.datetime.utcnow()
         # TODO: should the threshold here be less than 1 for 'right'?
+
+        print 'walk.record_step: score', score
+        print 'walk.record_step: times_right', raw_tright
+        print 'walk.record_step: times_wrong', raw_twrong
         got_right = True if ((score - 1) < 0.01) else False  # because of float inaccuracy
         for t in taglist['primary']:
             #print 'walk.record_step: recording tag', t
             oldrec = [r for r in old_trecs if r['tag'] == t] if old_trecs else None
             #print 'walk.record_step: old record is', pprint(oldrec)
+            tright = raw_tright
+            twrong = raw_twrong
             if oldrec:
-                tlast_wrong = oldrec[0]['tlast_wrong']
-                tlast_right = oldrec[0]['tlast_right']
+                tlwrong = oldrec[0]['tlast_wrong']
+                tlright = oldrec[0]['tlast_right']
+                otright = oldrec[0]['times_right']
+                otwrong = oldrec[0]['times_wrong']
+                print 'walk.record_step: old times right', otright
+                print 'walk.record_step: old times wrong', otwrong
                 try:  # in case oldrec is None, created for secondary right
-                    times_right = oldrec[0]['times_right'] + times_right
+                    tright += otright
+                    if otright > 100:
+                        print 'tright > 100'
+                        tright = 100
                 except TypeError:
+                    print 'type error: tright was', otright
                     pass
                 try:  # in case oldrec is None, created for secondary right
-                    times_wrong = oldrec[0]['times_wrong'] + times_wrong
+                    twrong += otwrong
+                    if otwrong > 100:
+                        print 'twrong > 100'
+                        twrong = 100
                 except TypeError:
+                    print 'type error: twrong was', otwrong
                     pass
                 if got_right:  # because of float inaccuracy
-                    tlast_right = now
+                    tlright = now
                 else:
-                    tlast_wrong = now
+                    tlwrong = now
             else:  # if no existing record, just set both to now as initial baseline
-                tlast_wrong = now
-                tlast_right = now
-            #print 'walk.record_step: times right', times_right
-            #print 'walk.record_step: times wrong', times_wrong
-            #print 'walk.record_step: tlast_right', tlast_right
-            #print 'walk.record_step: tlast_wrong', tlast_wrong
+                tlwrong = now
+                tlright = now
+            print 'walk.record_step: times right', tright
+            print 'walk.record_step: times wrong', twrong
+            print 'walk.record_step: tag', t
 
             condition = {'tag': t, 'name': user_id}
+            print 'walk.record_step: condition',
             db.tag_records.update_or_insert(condition,
                                             tag=t,
-                                            times_right=times_right,
-                                            times_wrong=times_wrong,
-                                            tlast_right=tlast_right,
-                                            tlast_wrong=tlast_wrong)
+                                            times_right=tright,
+                                            times_wrong=twrong,
+                                            tlast_right=tlright,
+                                            tlast_wrong=tlwrong)
 
         if got_right and ('secondary' in taglist.keys()):
             for t in taglist['secondary']:
@@ -1850,8 +1868,8 @@ class PathChooser(object):
             catpaths = self._paths_by_category(cat, self.rank)
             if catpaths[0]:
                 print 'PathChooser.choose: found', len(catpaths), 'paths in cat'
-                for c in catpaths[0]:
-                    print'catpath -', pprint(c)
+                #for c in catpaths[0]:
+                    #print'catpath -', pprint(c)
                 return self._choose_from_cat(catpaths[0], catpaths[1])
             else:
                 print 'PathChooser.choose: found NO paths in cat', cat
