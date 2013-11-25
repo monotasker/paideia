@@ -16,7 +16,7 @@ class TestExploring(object):
         Unit test for the index() function of the exploring.py controller.
         '''
         assert db
-        client.get('exploring/index')
+        client.get('/exploring/index')
         print client.status
         assert 2
 
