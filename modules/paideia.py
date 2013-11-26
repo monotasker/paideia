@@ -505,17 +505,17 @@ class Walk(object):
                 print 'walk.record_step: old times wrong', otwrong
                 try:  # in case oldrec is None, created for secondary right
                     tright += otright
-                    if otright > 100:
-                        print 'tright > 100'
-                        tright = 100
+                    if otright >= 1000:  # FIXME: hack for bad data
+                        print 'tright > 1000'
+                        tright = 1000
                 except TypeError:
                     print 'type error: tright was', otright
                     pass
                 try:  # in case oldrec is None, created for secondary right
                     twrong += otwrong
-                    if otwrong > 100:
-                        print 'twrong > 100'
-                        twrong = 100
+                    if otwrong >= 1000:  # FIXME: hack for bad data
+                        print 'twrong > 1000'
+                        twrong = 1000
                 except TypeError:
                     print 'type error: twrong was', otwrong
                     pass
