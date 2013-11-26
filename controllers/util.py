@@ -10,6 +10,7 @@ if 0:
     auth = current.auth
     request = current.request
 import paideia_utils
+import traceback
 #from pprint import pprint
 
 
@@ -27,6 +28,31 @@ def make_path():
 
     return {'form': form, 'message': message, 'output': BEAUTIFY(output)}
 
+
+@auth.requires_membership('administrators')
+def bulk_update():
+    """
+    Controller function to perform a programmatic update to a field in one table.
+    """
+    myrecs = None
+    form = SQLFORM.factory(
+        Field('table', requires=IS_IN_SET(db.tables)),
+        Field('field'),
+        Field('query'),
+        Field('new_value'))
+    if form.process().accepted:
+        query = eval(form.vars.query)
+        try:
+            recs = db(query)
+            recs.update(**{form.vars.field: form.vars.new_value})
+            myrecs = recs.select()
+            response.flash = 'update succeeded'
+        except Exception:
+            print traceback.format_exc(5)
+    elif form.errors:
+        response.flash = 'form has errors'
+
+    return dict(form=form, recs=myrecs)
 
 @auth.requires_membership('administrators')
 def migrate_field():
