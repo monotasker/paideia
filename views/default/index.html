@@ -5,7 +5,7 @@
 <section class='hero-unit'>
 <div class='hero-text-wrapper'>
 <h1>Welcome!</h1>
-    <p>Paideia is an online space for learning New Testament Greek. To get started register for an account and then click the link below to start exploring.</p>
+    <p>Paideia is a fun and interactive place to learn New Testament Greek. To get started, register for an account and then click the green button below to start exploring.</p>
     <div id='alpha-warning'>This is an early "alpha" version for use in my courses at Tyndale Seminary. The site is still rough, but feel free to register and follow the link below to try it out. Bug reports are appreciated. 
     </div>
     <p>
@@ -16,8 +16,9 @@
 </div>
 </section>
 <section class='modal-set'>
-{{for m in modals:}}
-<div class='info-pane'>
+{{for i, m in enumerate(modals):}}
+<div class='info-pane pane-{{=i}}'>
+<img class="info-pane-illustration" src="{{=URL('static', 'images/illustration_info{}.svg'.format(i))}}" />
 {{=MODAL(m['title'], m['title'], MARKMIN(m['content']),
          modal_classes='index-modals', 
          trigger_type='link',
