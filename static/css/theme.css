@@ -9594,41 +9594,50 @@ body .navbar.top .navbar-inner {
   font-family: 'SBLGreekRegular', Gentium, 'Palatino Linotype', Palatino, Georgia, 'Times New Roman', Times, serif;
   z-index: 999;
 }
-body .navbar.top .navbar-inner .container {
+body .navbar.top .navbar-inner .container,
+body .navbar.top .navbar-inner .container-fluid {
   height: 48px;
   background-color: transparent;
   overflow: visible;
   z-index: 999;
 }
-body .navbar.top .navbar-inner .container .nav li a {
+body .navbar.top .navbar-inner .container .nav li a,
+body .navbar.top .navbar-inner .container-fluid .nav li a {
   background-color: #d8d3b3;
   background-image: url('/paideia/static/images/mosaic_texture1.png');
   background-size: auto 100%;
   font-family: 'SBLGreekRegular', Gentium, 'Palatino Linotype', Palatino, Georgia, 'Times New Roman', Times, serif;
 }
-body .navbar.top .navbar-inner .container .nav li a:hover {
+body .navbar.top .navbar-inner .container .nav li a:hover,
+body .navbar.top .navbar-inner .container-fluid .nav li a:hover {
   background-color: #d8d3b3;
 }
-body .navbar.top .navbar-inner .container .nav li a:active {
+body .navbar.top .navbar-inner .container .nav li a:active,
+body .navbar.top .navbar-inner .container-fluid .nav li a:active {
   background-color: #d8d3b3;
 }
-body .navbar.top .navbar-inner .container .nav li li a {
+body .navbar.top .navbar-inner .container .nav li li a,
+body .navbar.top .navbar-inner .container-fluid .nav li li a {
   background-image: none;
   background-color: #d8d3b3;
   font-family: 'SBLGreekRegular', Gentium, 'Palatino Linotype', Palatino, Georgia, 'Times New Roman', Times, serif;
 }
-body .navbar.top .navbar-inner .container .nav li li a:hover {
+body .navbar.top .navbar-inner .container .nav li li a:hover,
+body .navbar.top .navbar-inner .container-fluid .nav li li a:hover {
   background-color: #d8d3b3;
   color: #fcfbf7;
 }
-body .navbar.top .navbar-inner .container .nav li li a:active {
+body .navbar.top .navbar-inner .container .nav li li a:active,
+body .navbar.top .navbar-inner .container-fluid .nav li li a:active {
   background-color: #d8d3b3;
   color: #fcfbf7;
 }
-body .navbar.top .navbar-inner .container .dropdown-open a.dropdown-toggle {
+body .navbar.top .navbar-inner .container .dropdown-open a.dropdown-toggle,
+body .navbar.top .navbar-inner .container-fluid .dropdown-open a.dropdown-toggle {
   background-color: #d8d3b3;
 }
-body .navbar.top .navbar-inner .container a.brand {
+body .navbar.top .navbar-inner .container a.brand,
+body .navbar.top .navbar-inner .container-fluid a.brand {
   display: block;
   color: #9d261d;
   font-size: 32px;
@@ -9639,13 +9648,15 @@ body .navbar.top .navbar-inner .container a.brand {
   background-image: url('/paideia/static/images/mosaic_texture1.png');
   background-size: auto 100%;
 }
-body .container {
+body .container,
+body .container-fluid {
   background-color: #fcfbf7;
   position: relative;
   max-height: 80%;
   overflow: hidden;
 }
-body .container .main {
+body .container .main,
+body .container-fluid .main {
   background-color: transparent;
   margin-top: 0;
   padding-top: 0;
@@ -9654,7 +9665,9 @@ body .container .main {
   max-height: 100%;
 }
 body .container .main .left-sidebar,
-body .container .main .right-sidebar {
+body .container-fluid .main .left-sidebar,
+body .container .main .right-sidebar,
+body .container-fluid .main .right-sidebar {
   display: none;
   background-color: #fcfbf7;
   background-image: url("/paideia/static/images/Drawing15_neutral_sides.svg");
@@ -9663,10 +9676,12 @@ body .container .main .right-sidebar {
   height: 100%;
   min-height: 480px;
 }
-body .container .main .right-sidebar {
+body .container .main .right-sidebar,
+body .container-fluid .main .right-sidebar {
   background-position: right;
 }
-body .container .main #page {
+body .container .main #page,
+body .container-fluid .main #page {
   background-color: #fcfbf7;
   overflow: hidden;
   min-height: 470px;
@@ -9676,7 +9691,8 @@ body .container .main #page {
   /* the background images for each map location */
 
 }
-body .container .main #page .admin-panel {
+body .container .main #page .admin-panel,
+body .container-fluid .main #page .admin-panel {
   position: absolute;
   width: 300px;
   height: 300px;
@@ -9687,16 +9703,20 @@ body .container .main #page .admin-panel {
   z-index: 100;
   padding-left: 24px;
 }
-body .container .main #page .admin-panel:hover {
+body .container .main #page .admin-panel:hover,
+body .container-fluid .main #page .admin-panel:hover {
   left: 0;
 }
-body .container .main #page .admin-panel h3 {
+body .container .main #page .admin-panel h3,
+body .container-fluid .main #page .admin-panel h3 {
   color: #ffffff;
 }
-body .container .main #page .admin-panel input[type=text] {
+body .container .main #page .admin-panel input[type=text],
+body .container-fluid .main #page .admin-panel input[type=text] {
   width: 60%;
 }
-body .container .main #page #loading-mask {
+body .container .main #page #loading-mask,
+body .container-fluid .main #page #loading-mask {
   position: absolute;
   top: 0;
   left: 0;
@@ -9708,15 +9728,27 @@ body .container .main #page #loading-mask {
   text-align: center;
   display: none;
 }
-body .container .main #page #loading-mask img {
+body .container .main #page #loading-mask img,
+body .container-fluid .main #page #loading-mask img {
   margin: 40%;
 }
-body .container .main #page #intro .hero-unit {
+body .container .main #page #intro .hero-unit,
+body .container-fluid .main #page #intro .hero-unit {
   background-image: url('/paideia/static/images/town_map.png');
   margin-top: 24px;
+  margin: 0;
   width: 100%;
+  -webkit-border-radius: 0;
+  -moz-border-radius: 0;
+  border-radius: 0;
+  -moz-border-radius: 0 0 0 0;
+  -webkit-border-radius: 0 0 0 0;
+  -o-border-radius: 0 0 0 0;
+  -ms-border-radius: 0 0 0 0;
+  border-radius: 0 0 0 0;
 }
-body .container .main #page #intro .hero-unit .hero-text-wrapper {
+body .container .main #page #intro .hero-unit .hero-text-wrapper,
+body .container-fluid .main #page #intro .hero-unit .hero-text-wrapper {
   background-color: rgba(255, 255, 255, 0.9);
   -moz-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   -webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
@@ -9736,15 +9768,19 @@ body .container .main #page #intro .hero-unit .hero-text-wrapper {
   max-width: 60%;
 }
 body .container .main #page #intro .hero-unit .hero-text-wrapper:before,
-body .container .main #page #intro .hero-unit .hero-text-wrapper:after {
+body .container-fluid .main #page #intro .hero-unit .hero-text-wrapper:before,
+body .container .main #page #intro .hero-unit .hero-text-wrapper:after,
+body .container-fluid .main #page #intro .hero-unit .hero-text-wrapper:after {
   display: table;
   content: "";
   line-height: 0;
 }
-body .container .main #page #intro .hero-unit .hero-text-wrapper:after {
+body .container .main #page #intro .hero-unit .hero-text-wrapper:after,
+body .container-fluid .main #page #intro .hero-unit .hero-text-wrapper:after {
   clear: both;
 }
-body .container .main #page #intro .hero-unit .hero-text-wrapper #alpha-warning {
+body .container .main #page #intro .hero-unit .hero-text-wrapper #alpha-warning,
+body .container-fluid .main #page #intro .hero-unit .hero-text-wrapper #alpha-warning {
   padding: 8px 35px 8px 14px;
   margin-bottom: 24px;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
@@ -9765,41 +9801,50 @@ body .container .main #page #intro .hero-unit .hero-text-wrapper #alpha-warning 
   font-size: 16px;
   line-height: 24px;
 }
-body .container .main #page #intro .modal-set div.info-pane {
+body .container .main #page #intro .modal-set div.info-pane,
+body .container-fluid .main #page #intro .modal-set div.info-pane {
   display: block;
   float: left;
-  width: 25%;
-  max-width: 25%;
-  text-align: center;
+  width: 38.29787234042553%;
   height: 192px;
   padding-top: 24px;
 }
-body .container .main #page #intro .modal-set div.info-pane a[id$='trigger'] {
+body .container .main #page #intro .modal-set div.info-pane:nth-child(2),
+body .container-fluid .main #page #intro .modal-set div.info-pane:nth-child(2) {
+  margin-left: 2.127659574468085%;
+}
+body .container .main #page #intro .modal-set div.info-pane a[id$='trigger'],
+body .container-fluid .main #page #intro .modal-set div.info-pane a[id$='trigger'] {
   text-transform: uppercase;
   letter-spacing: 0.1em;
   cursor: pointer;
 }
-body .container .main #page #town_map {
+body .container .main #page #town_map,
+body .container-fluid .main #page #town_map {
   width: 100%;
 }
-body .container .main #page .bg_image {
+body .container .main #page .bg_image,
+body .container-fluid .main #page .bg_image {
   position: absolute;
   z-index: 1;
   height: 100%;
   top: 0;
 }
-body .container .main #page .bg_image img {
+body .container .main #page .bg_image img,
+body .container-fluid .main #page .bg_image img {
   height: 100%;
   opacity: 0.5;
 }
-body .container .main #page .speaker {
+body .container .main #page .speaker,
+body .container-fluid .main #page .speaker {
   position: absolute;
   z-index: 2;
   left: 0px;
   top: 48px;
   width: 380px;
 }
-body .container .main #page .speaker img {
+body .container .main #page .speaker img,
+body .container-fluid .main #page .speaker img {
   position: relative;
   /*width:100%;*/
 
@@ -10283,56 +10328,6 @@ body #main.user #page .paideia_monthcal .paideia_monthcal_table td span.cal_coun
   padding-right: 2px;
   color: #0064cd;
 }
-/*[>** step logs on user profile **<]*/
-/*.step_log_table        {max-width:100%;*/
-/*min-width:100%;*/
-/*.step              {max-width: 7%;}*/
-/*.prompt            {max-width: 40%;*/
-/*min-width: 40%;}*/
-/*.count             {max-width: 7%;*/
-/*color: @accent6;}*/
-/*.right             {max-width: 7%;*/
-/*color: @accent4;}*/
-/*.wrong             {max-width: 7%;*/
-/*color: @accent12;}*/
-/*.last_wrong        {max-width: 14%;*/
-/*color: @accent12;*/
-/*min-width: 14%;}*/
-/*.right_since       {max-width: 7%;*/
-/*color: @accent4;}*/
-/*.tags              {width:auto;*/
-/*min-width: 20%;}*/
-/*}*/
-/*[>** tag records on user profile **<]*/
-/*#tag_records_table     {*/
-/*td:first-child     {max-width:7%;}*/
-/*td:nth-child(2)    {color: #fff;*/
-/*padding-left:0;*/
-/*padding-right:0;*/
-/*span           {height:@baseFontSize;*/
-/*display:inline-block;*/
-/*max-width:10em;*/
-/*position:relative;*/
-/*&.right    {.linear-gradient(lighten(@accent8, 10%), darken(@accent8, 5%));}*/
-/*&.right_num {color: @accent8;*/
-/*margin-left: @baseFontSize/4;*/
-/*top:-1px;*/
-/*vertical-align: top;}*/
-/*&.wrong    {.linear-gradient(lighten(@accent12, 10%), darken(@accent12, 5%));}*/
-/*&.wrong_num {color: @accent12;*/
-/*margin-left: @baseFontSize/4;*/
-/*top:-1px;*/
-/*vertical-align: top;}*/
-/*&.ratio    {.linear-gradient(lighten(@accent6, 10%), darken(@accent6, 5%));}*/
-/*&.ratio_num {color: @accent6;*/
-/*margin-left: @baseFontSize/4;*/
-/*top:-1px;*/
-/*vertical-align: top;}*/
-/*}*/
-/*}*/
-/*td:nth-child(3)    {color: @accent6;}*/
-/*td:nth-child(4)    {color: @accent12;}*/
-/*}*/
 /*[> ================= iPad in portrait ================= <]*/
 @media all and (orientation: portrait) {
   
@@ -10354,29 +10349,31 @@ body #main.user #page .paideia_monthcal .paideia_monthcal_table td span.cal_coun
   body {
     background-color: #fcfbf7;
   }
-  body .container {
+  body .container,
+  body .container-fluid {
     margin: 0;
   }
-  body .container .main {
+  body .container .main,
+  body .container-fluid .main {
     padding-top: 0;
     margin-top: 0;
   }
-  body .container .main #page #intro .hero-unit {
-    width: 100%;
-    -webkit-border-radius: 0;
-    -moz-border-radius: 0;
-    border-radius: 0;
-    -moz-border-radius: 0 0 0 0;
-    -webkit-border-radius: 0 0 0 0;
-    -o-border-radius: 0 0 0 0;
-    -ms-border-radius: 0 0 0 0;
-    border-radius: 0 0 0 0;
+  body .container .main #page #intro .hero-unit,
+  body .container-fluid .main #page #intro .hero-unit {
     margin: 0;
   }
-  body .container .main #page #intro .modal-set div.info-pane {
-    max-width: 100%;
-    width: 100%;
-    height: 48px;
+  body .container .main #page #intro .modal-set div.info-pane,
+  body .container-fluid .main #page #intro .modal-set div.info-pane {
+    min-height: 48px;
+    width: 5.801104972375691%;
+  }
+  body .container .main #page #intro .modal-set div.info-pane:nth-child(2),
+  body .container-fluid .main #page #intro .modal-set div.info-pane:nth-child(2) {
+    margin-left: 2.7624309392265194%;
+  }
+  body .container .main #page #intro .modal-set div.info-pane:nth-child(4),
+  body .container-fluid .main #page #intro .modal-set div.info-pane:nth-child(4) {
+    margin-left: 2.7624309392265194%;
   }
   body .left-sidebar,
   body .right-sidebar {
@@ -10388,23 +10385,25 @@ body #main.user #page .paideia_monthcal .paideia_monthcal_table td span.cal_coun
   body .navbar-fixed-top {
     margin-bottom: 0;
   }
-  body .navbar-fixed-top .container {
+  body .navbar-fixed-top .container,
+  body .navbar-fixed-top .container-fluid {
     height: 48px;
   }
   body .navbar-fixed-top .nav-collapse.collapse {
-    background-color: #d8d3b3;
-    color: #fcfbf7;
+    background-color: #fcfbf7;
+    color: #d8d3b3;
   }
-  body .container .main {
+  body .container .main,
+  body .container-fluid .main {
     padding-top: 0;
     margin-top: 0;
   }
-  body .container .main #page #intro .hero-unit {
+  body .container .main #page #intro .hero-unit,
+  body .container-fluid .main #page #intro .hero-unit {
     width: 100%;
   }
-  body .container .main #page #intro .modal-set div.info-pane {
-    max-width: 50%;
-    width: 50%;
+  body .container .main #page #intro .modal-set div.info-pane,
+  body .container-fluid .main #page #intro .modal-set div.info-pane {
     height: 96px;
   }
   body .left-sidebar,
@@ -10414,11 +10413,14 @@ body #main.user #page .paideia_monthcal .paideia_monthcal_table td span.cal_coun
 }
 /*[> ================= widest viewing area (980px +) =============== <]*/
 @media only screen and (min-width: 980px) {
-  body .container #main {
+  body .container #main,
+  body .container-fluid #main {
     margin-top: 48px;
   }
   body .container #main.exploring #page .prompt,
-  body .container #main.exploring #page .responder {
+  body .container-fluid #main.exploring #page .prompt,
+  body .container #main.exploring #page .responder,
+  body .container-fluid #main.exploring #page .responder {
     max-width: 480px;
     margin-left: 480px;
   }

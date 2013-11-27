@@ -32,6 +32,7 @@ response.meta.copyright = XML('All content copyright &copy; 2011-{}, '
 
 response.left_sidebar_enabled = 0
 response.right_sidebar_enabled = 0
+response.fluid_layout = True
 
 # Menu =====================================================================
 
