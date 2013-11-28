@@ -1,60 +1,278 @@
 {{from plugin_widgets import TOOLTIP, TABS, ROLE}}
-
 {{
 # TAB 1 - USER INFO ==========================================================
-tab1_content = UL(LI(SPAN('Name', _class='label-success label'), the_name),
-                  LI(SPAN('Email', _class='email label-success label'), email),
-                  LI(SPAN('Time Zone', _class='timezone label-success label'), tz))
+tab1_content = CAT(UL(LI(SPAN('Name', _class='profile-name-label'), the_name, 
+                         _class='profile-name'),
+                      LI(SPAN('Email', _class='profile-email-label'), email,
+                         _class='profile-email'),
+                      LI(SPAN('Time Zone', _class='profile-tz-label'), tz,
+                         _class='profile-name')),
+                   DIV(H4('What level are my badges?'),
+                       _id='dc-level-pie'),
+                   DIV(H4('How many badges each day?'),
+                       _id='dc-time-chart'),
+                   DIV(H4('Which badge sets do they belong to?'),
+                          _id='dc-set-chart'),
+                   DIV(TABLE(THEAD(TR(TH('Badge'),
+                                      TH('In Set'),
+                                      TH('Max Level'),
+                                      TH('Times Right'),
+                                      TH('Last Right'),
+                                      TH('Times Wrong'),
+                                      TH('Last Wrong')
+                                      ),
+                                    _class='header'
+                                    ),
+                              _class='table table-hover',
+                              _id='dc-table-badges'
+                              ),
+                        _class='dc_container',
+                        _style='font: 12px sans-serif;'
+                        )
+                    )
+}}
+<script>
+    var days =   ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday",
+                  "Friday", "Saturday"];  
+    var months = ["January", "February", "March", "April", "May",   
+                  "June", "July", "August", "September", "October", "November",
+                  "December"];
+    var dformat = d3.time.format("%Y-%m-%d")
 
+    //helper functions to separate out values from arrays returned
+    function reduceAdd(p, v) {
+        v.logs.forEach (function(val, idx) {
+            var dval = new Date(Date.parse(val.dt_attempted.split('T')[0]));
+            console.log("dval");
+            console.log(dval);
+            p[dval] = (p[dval] || 0) + 1; //increment counts
+        });
+    return p;
+    }
+
+    function reduceRemove(p, v) {
+        v.logs.forEach (function(val, idx) {
+            var dval = new Date(Date.parse(val.dt_attempted.split('T')[0]));
+            p[dval] = (p[dval] || 0) - 1; //decrement counts
+        });
+    return p;
+    }
+
+    function reduceInitial() {
+    return {};  
+    }
+
+    // Create the dc.js chart objects & link to div
+    var badgesTable = dc.dataTable("#dc-table-badges");
+    var timeChart= dc.lineChart("#dc-time-chart");
+    var setChart= dc.barChart("#dc-set-chart");
+    var levelPieChart = dc.pieChart("#dc-level-pie");
+
+    // get data ==========================================================
+    data = {{response.write(active, escape=False)}};
+    // Run the data through crossfilter and load our 'facts'
+    var facts = crossfilter(data);
+
+    // Structure data sets ================================================
+
+    // Badgename dimension (one record per badge)
+    var setDimensionBadgename = facts.dimension(function (d) {
+        return d.badge_name;
+    });
+
+    // Level dimension (current level of tag/badge)
+    var levelDimension = facts.dimension(function (d) {
+        return d.current_level;
+    });
+    var levelGroupCount = levelDimension.group()
+        .reduceCount(function(d) { return d.current_level; }); 
+
+    // Set dimension (set in which badge is found)
+    var setDimension = facts.dimension(function (d) {
+        return d.set;
+    });
+    var setGroupCount = setDimension.group()
+        .reduceCount(function(d) { return d.set; });  
+
+    // Days dimension (date of log attempt)
+
+    var daysDimension = facts.dimension(function(d){ return d.logs });
+    console.log("daysDimension");
+    console.log(daysDimension);
+    var daysGroupCount = daysDimension.groupAll().reduce(reduceAdd, reduceRemove, reduceInitial).value();
+    console.log("daysGroupCount");
+    console.log(daysGroupCount);
+    // hack to make dc.js charts work
+    daysGroupCount.all = function() {
+        var newObject = [];
+        for (var key in this) {
+            if (this.hasOwnProperty(key) && key != "all") {
+            newObject.push({
+                key: key,
+                value: this[key]
+            });
+            }
+        }
+        return newObject;
+        };
+
+    // Attempts dimension (number of total attempts)
+    //var dimensionAttempts = facts.dimension(function (d) {
+    //    if(d.times_right != null){
+    //        tr = d.times_right;
+    //    }else if(d.times_right > 1000000000000){
+    //        tr = d.times_right / 1000000000000;
+    //    }else{
+    //        tr = 0;
+    //    }
+    //    if(d.times_wrong != null){
+    //        tw = d.times_wrong;
+    //    }else if(d.times_wrong > 1000000000000){
+    //        tw = d.times_wrong / 1000000000000;
+    //    }else{
+    //        tw = 0;
+    //    }
+    //    return  tr + tw;
+    //});
+    //var attemptsCount = dimensionAttempts.group()
+    //.reduceCount(function(d) {
+    //    if(d.times_right != null){
+    //        tr = d.times_right;
+    //    }else{
+    //        tr = 0;
+    //    }
+    //    if(d.times_wrong != null){
+    //        tw = d.times_wrong;
+    //    }else{
+    //        tw = 0;
+    //    }
+    //    return  tr + tw;
+    //});
+
+    // Set up the charts ===================================================
+
+    // bar chart of log counts by day
+    timeChart.width(500)
+        .height(250)
+        .margins({top: 10, right: 10, bottom: 20, left: 40})
+        .dimension(daysDimension)   //y-scale
+        .group(daysGroupCount)  //x-scale
+        .transitionDuration(800)
+        .elasticY(true)
+        .x(d3.time.scale().domain(d3.extent(daysGroupCount, function(d) { return d.key; })))
+        .xAxis().tickFormat();	
+        //.xUnits(d3.time.days)
+        //.round(d3.time.days.round)
+        //.filterHandler(function(dimension, filter){
+        //    dimension.filter(function(d) {
+        //        return timeChart.filter() != null ? d.indexOf(timeChart.filter()) >= 0 : true;
+        //    });  
+        //    return filter;  
+        //    })
+
+    // bar chart of badge counts by set
+    setChart.width(240)
+        .height(120)
+        .margins({top: 10, right: 10, bottom: 20, left: 40})
+        .dimension(setDimension)  // y-scale
+        .group(setGroupCount) // x-scale
+        .transitionDuration(800)
+        .centerBar(true)	
+        .gap(2)
+        .elasticY(true)
+        .elasticX(true)
+        .label(function(d){return d.value})
+        .brushOn(false)
+        .x(d3.scale.linear().domain(d3.extent([0,100])))
+        .filterHandler(function(dimension, filter){     
+                setDimension.filter(function(d) {
+                    return setChart.filter() != null ? d.set <= 100 : true;
+                }); 
+                return filter; // return the actual filter value
+            })
+        .xAxis().tickFormat(function(v){return "set " + v});	
+
+    // pie chart of level data
+    levelPieChart.width(240)
+        .height(240)
+        .radius(96)
+        .innerRadius(64)
+        .dimension(levelDimension)
+        .group(levelGroupCount, function(d){return "badges at level"})
+        .label(function(d){return d.value + " badges"})
+        .colors(d3.scale.category10())
+        .legend(dc.legend().x(96).y(96).itemHeight(13).gap(5))
+        .title(function(d){return d.value + " badges";});
+
+    // Table of set data
+    badgesTable.width(960).height(800)
+        .dimension(setDimensionBadgename)
+        .group(function(d){return d.set})
+        .size(100)
+        .columns([
+            function(d) { return d.badge_name; },
+            function(d) { return d.set; },
+            function(d) { return d.current_level; },
+            function(d) { 
+                var num = d.times_right;
+                if(num != null){ 
+                    return num.toFixed(1); 
+                }else{
+                    return "none";
+                }
+            },
+            function(d) { 
+                var lastright = 0
+                for (var i=0;i<d.logs.length;i++){
+                    var dt = Date.parse(d.logs[i].dt_attempted.split("T")[0]);
+                    if(dt > lastright && d.logs[i].score > 0.999999){
+                        lastright = dt;
+                    }
+                }
+                if(lastright != 0){
+                    lr = lastright
+                    // format = d3.time.format("%a %e %b, %Y");
+                    // lr = format(new Date(lastright * 1000));
+                }else{
+                    lr = "n.a."
+                }
+                return lr 
+            },
+            function(d) {
+                var num = d.times_wrong;
+                if(num != null){ 
+                    return num.toFixed(1); 
+                }else{
+                    return "none";
+                }
+            },
+            function(d) {
+                var lastwrong = 0;
+                for (var i=0;i<d.logs.length;i++){
+                    var dt = Date.parse(d.logs[i].dt_attempted.split("T")[0]);
+                    if(dt > lastwrong && d.logs[i].score < 1){
+                        lastwrong = dt;
+                    }
+                }
+                if(lastwrong != 0){
+                    lw = lastwrong
+                    //format = d3.time.format("%a %e %b, %Y");
+                    //lw = format(new Date(lastwrong * 1000));
+                }else{
+                    lw = "n.a."
+                }
+                return lw 
+            }
+        ])
+        .sortBy(function(d){ return d.current_level; })
+        .order(d3.ascending);
+
+    // Render the Charts
+    dc.renderAll();
+</script>
+
+{{
 # TAB 2 - BADGES =============================================================
-try:
-    tab2_content = CAT(P('You are currently working on ',
-                        SPAN(active['total'], _class='total_len'),
-                        ' grammar badges and have reached set ',
-                        SPAN(max_set, _class='max_set'),
-                        _class="overview"),
-                    P('The most recent badges started are:',
-                        UL(_class='most_recent'),
-                        _class="overview"))
-    for l in active['latest']:
-        tab2_content[1][1].append(LI(l))
-    pass
-
-    sumtable = TABLE(THEAD(TR(TH(), TH(), TH('Badge level reached'), TH('Review level')
-                            )),
-                    _cellspacing='0', _class='summary_stats')
-    catlist = [('cat4', 'mastered'),
-            ('cat3', 'making very good progress on'), 
-            ('cat2', 'made a good start with'),
-            ('cat1', 'just started or needing review')]
-    active_len = active['total']
-    if active_len > 0:
-        for cat in catlist:
-            if cat[0] in active.keys():
-                catlen = len(active[cat[0]]) if active[cat[0]] else 0
-                catrow = TR(TD(cat[1]),
-                            TD(catlen, _class='total_'.format(cat[0])),
-                            TD(UL()),
-                            TD(UL()))
-                for badge in active[cat[0]]:
-                    catrow[-2][0].append(LI(badge))
-                pass
-                rcat = 'rev{}'.format(cat[0][3:])
-                if (rcat in active.keys()) and (active[rcat]) and (active[rcat] != 0):
-                    for badge in active[rcat]:
-                        catrow[-1][0].append(LI(badge))
-                    pass
-                pass
-                sumtable.append(catrow)
-            pass
-        pass
-        tab2_content.append(sumtable)
-    else:
-        tab2_content.append(SPAN('You don\'t yet have any badges to report on. '
-                                'Check back after you explore the town map a bit.'))
-    pass
-
-except Exception:
 
 tab2_content = CAT(P('Sorry, something went wrong retrieving your badges.'))
 
@@ -137,13 +355,13 @@ tab3_content = XML(cal)
 # TAB 4 - BUGS ===============================================================
 tab4_content = TABLE(TR(TH('question'),
                         TH('your answer'),
-                        TH('submitted'), 
+                        TH('submitted'),
                         TH('evaluation'),
                         TH('instructor\'s comments')))
 for bug in blist:
     row = TR()
     # first position is the id, used in edit link
-    for val in bug[1:]:  
+    for val in bug[1:]:
         row.append(TD(val))
     pass
     row.append(ROLE(TD(A('edit', _href=URL('editing', 'listing.html',
@@ -153,101 +371,7 @@ for bug in blist:
     tab4_content.append(row)
 pass
 
-# TAB 5 - RECENT PATHS =======================================================
-tab5_content = CAT(H4('Steps attempted in the last {} days'.format(duration.days)))
-logtable = TABLE(THEAD(TR(TH('step', _class='step'),
-                      TH('prompt', _class='prompt'),
-                      TH('count', _class='count'),
-                      TH('right', _class='right'),
-                      TH('wrong', _class='wrong'),
-                      TH('last_wrong', _class='last_wrong'),
-                      TH('right_since', _class='right_since'),
-                      TH('tags', _class='tags'),
-                      _class='step_log_table'))
-             )
-for l in log:
-    logrow = TR(TD(l['step'], _class='step'),
-                TD(l['prompt'], _class='prompt'),
-                TD(l['count'], _class='count'),
-                TD(l['right'], _class='right'),
-                TD(l['wrong'], _class='wrong'),
-                TD(l['last_wrong'], _class='last_wrong'),
-                TD(l['right_since'], _class='right_since'),
-                TD(_class='tags'),
-                _id=('logs' + str(l['step'])),
-                )
-    for k, v in l['tags'].iteritems():
-        tstring = 'tag: {} ({})'.format(v['tagname'], k)  # v['badge'] gives descr.
-        logrow[-1].append(tstring)
-    pass
-    logtable.append(logrow)
-pass
-tab5_content.append(logtable)
-
-# TAB 6 - BADGE RECORDS ======================================================
-tab6_content = CAT(H4('Your overall performance for each badge so far'),
-                   TABLE(THEAD(TR(TH('badge'),
-                                  TH('times right / times wrong / ratio'),
-                                  TH('last right'),
-                                  TH('last wrong'),
-                                  TH('badge set')
-                                  )
-                               ),
-                    _id='tag_records_table')
-                    )
-for row in tag_records:
-    timesr = row.tag_records.times_right if row.tag_records.times_right else 0
-    timesw = row.tag_records.times_wrong if row.tag_records.times_wrong else 0
-    try:
-        ratio = float(timesw)/timesr
-    except ZeroDivisionError:
-        ratio = 0
-    except TypeError:  
-        ratio = 0  # FIXME: this is a hack to get around error ticket
-    pass
-
-    try:
-        row = TR(TD(db(db.badges.tag==row.tags.id).select().first().badge_name),
-                    TD(SPAN('', _style='width: {}px;'.format(timesr),
-                        _class='right'),
-                    SPAN(int(timesr), _class='right_num'),
-                    BR(),
-                    SPAN('', _style='width: {}px;'.format(timesw),
-                            _class='wrong'),
-                    SPAN(int(timesw), _class='wrong_num'),
-                    BR(),
-                    SPAN('', _style='width: {}px'.format(ratio * 100),
-                            _class='ratio'),
-                    SPAN(round(ratio, 3), _class='ratio_num')),
-                    TD(row.tag_records.tlast_right),
-                    TD(row.tag_records.tlast_wrong),
-                    TD(row.tags.tag_position)
-                    )
-    except AttributeError:
-        row = TR(TD('Couldn\'t find matching badge '
-                    'for tag{}'.format(row.tags.id), _colspan='4'))
-    pass
-    tab6_content[1].append(row)
-pass
-
-# TAB 7 - TIMELINE OF BADGES =================================================
-tab7_content = CAT(H4('Timeline of your new badges earned'))
-if badge_track == []:
-    tab7_content.append(SPAN('We\'ve just started tracking the dates on which '
-                             'you earn each new badge, so there is no record '
-                             'here yet. Check back after you\'ve earned your '
-                             'next badge.'))
-else:
-    bl_table = TABLE()
-    for badgeline in badge_track:
-        row = TR(TD(badgeline['id']),
-                    TD(badgeline['level']),
-                    TD(badgeline['date']))
-        bl_table.append(row)
-    pass
-    tab7_content.append(bl_table)
-pass
-
 # ASSEMBLE AND PRINT =========================================================
-=TABS([('Me', 'web2py_user_form', tab1_content, 'active'), ('Badges', 'tab_stats', tab2_content), ('Calendar', 'tab_calendar', tab3_content), ('Bug Reports', 'tab_bug_reports', tab4_content), ('Recent', 'tab_recent_paths', tab5_content), ('Badge Records', 'tab_tag_records', tab6_content), ('Progress Timeline', 'tab_badges_awarded', tab7_content)])
+=TABS([('Me', 'web2py_user_form', tab1_content, 'active'), ('Calendar', 'tab_calendar', tab3_content), ('Bug Reports', 'tab_bug_reports', tab4_content)])
 }}
+
