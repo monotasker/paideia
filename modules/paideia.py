@@ -236,7 +236,8 @@ class Walk(object):
             s = block.get_step(**{'prev_loc': user.prev_loc,
                                   'prev_npc': user.prev_npc,
                                   'loc': user.loc,
-                                  'npc': user.npc})
+                                  'npc': user.npc,
+                                  'username': user.name})
             print 'walk.ask: got block step', s.get_id()
             try:
                 print 'walk.ask: path.step_for_prompt is still', p.step_for_prompt.get_id()
@@ -454,8 +455,8 @@ class Walk(object):
         else:  # auth.user_id != user_id because shadowing another user
             return False
 
-    def _record_step(self, user_id, step_id, path_id, score, times_right,
-                     times_wrong, old_trecs, taglist, response_string):
+    def _record_step(self, user_id, step_id, path_id, score, raw_tright,
+                     raw_twrong, old_trecs, taglist, response_string):
         """
         Record this step attempt and its impact on user's performance record.
 
@@ -484,41 +485,59 @@ class Walk(object):
         #else:
         now = datetime.datetime.utcnow()
         # TODO: should the threshold here be less than 1 for 'right'?
+
+        print 'walk.record_step: score', score
+        print 'walk.record_step: times_right', raw_tright
+        print 'walk.record_step: times_wrong', raw_twrong
         got_right = True if ((score - 1) < 0.01) else False  # because of float inaccuracy
         for t in taglist['primary']:
             #print 'walk.record_step: recording tag', t
             oldrec = [r for r in old_trecs if r['tag'] == t] if old_trecs else None
             #print 'walk.record_step: old record is', pprint(oldrec)
+            tright = raw_tright
+            twrong = raw_twrong
             if oldrec:
-                tlast_wrong = oldrec[0]['tlast_wrong']
-                tlast_right = oldrec[0]['tlast_right']
+                tlwrong = oldrec[0]['tlast_wrong']
+                tlright = oldrec[0]['tlast_right']
+                otright = oldrec[0]['times_right']
+                otwrong = oldrec[0]['times_wrong']
+                print 'walk.record_step: old times right', otright
+                print 'walk.record_step: old times wrong', otwrong
                 try:  # in case oldrec is None, created for secondary right
-                    times_right = oldrec[0]['times_right'] + times_right
+                    tright += otright
+                    if otright >= 1000:  # FIXME: hack for bad data
+                        print 'tright > 1000'
+                        tright = 1000
                 except TypeError:
+                    print 'type error: tright was', otright
                     pass
                 try:  # in case oldrec is None, created for secondary right
-                    times_wrong = oldrec[0]['times_wrong'] + times_wrong
+                    twrong += otwrong
+                    if otwrong >= 1000:  # FIXME: hack for bad data
+                        print 'twrong > 1000'
+                        twrong = 1000
                 except TypeError:
+                    print 'type error: twrong was', otwrong
                     pass
                 if got_right:  # because of float inaccuracy
-                    tlast_right = now
+                    tlright = now
                 else:
-                    tlast_wrong = now
+                    tlwrong = now
             else:  # if no existing record, just set both to now as initial baseline
-                tlast_wrong = now
-                tlast_right = now
-            #print 'walk.record_step: times right', times_right
-            #print 'walk.record_step: times wrong', times_wrong
-            #print 'walk.record_step: tlast_right', tlast_right
-            #print 'walk.record_step: tlast_wrong', tlast_wrong
+                tlwrong = now
+                tlright = now
+            print 'walk.record_step: times right', tright
+            print 'walk.record_step: times wrong', twrong
+            print 'walk.record_step: tag', t
 
             condition = {'tag': t, 'name': user_id}
+            print 'walk.record_step: condition',
             db.tag_records.update_or_insert(condition,
                                             tag=t,
-                                            times_right=times_right,
-                                            times_wrong=times_wrong,
-                                            tlast_right=tlast_right,
-                                            tlast_wrong=tlast_wrong)
+                                            times_right=tright,
+                                            times_wrong=twrong,
+                                            tlast_right=tlright,
+                                            tlast_wrong=tlwrong)
 
         if got_right and ('secondary' in taglist.keys()):
             for t in taglist['secondary']:
@@ -820,7 +839,7 @@ class Step(object):
 
         # set by init args and used for prompt replacements
         self.username = username
-        #print 'step.init: self.username is', self.username
+        print 'step.init: self.username is', self.username
         self.promoted = promoted
         #print 'step.init: self.promoted is', self.promoted
         self.new_tags = new_tags
@@ -1534,6 +1553,7 @@ class Path(object):
         self.prev_loc = prev_loc
         self.prev_npc = prev_npc
         self.username = username
+        print 'path.init: username is', self.username
 
         # set later
         self.npc = None
@@ -1543,7 +1563,7 @@ class Path(object):
         self.path_dict = db(db.paths.id == path_id).select().first().as_dict()
 
         # controlling step progression through path
-        self.steps = self.get_steps(username)
+        self.steps = self.get_steps()
         self.completed_steps = completed_steps if completed_steps else []
         self.step_for_prompt = step_for_prompt
         self.step_for_reply = step_for_reply
@@ -1665,13 +1685,14 @@ class Path(object):
         """
         return self.step_for_reply
 
-    def get_steps(self, username):
+    def get_steps(self):
         """
         Return a list containing all the steps of this path as Step objects.
         """
         static_args = {'loc': self.loc,
                        'prev_loc': self.prev_loc,
-                       'prev_npc': self.prev_npc}
+                       'prev_npc': self.prev_npc,
+                       'username': self.username}
         steplist = [StepFactory().get_instance(step_id=i, **static_args)
                     for i in self.path_dict['steps']]
 
@@ -1766,6 +1787,8 @@ class PathChooser(object):
         #ps.exclude(lambda row:
                    #[t for t in row.tags
                     #if db.tags[t].tag_position > self.rank])
+        print 'paths_by_category: Found', len(ps), 'paths in category', cat
+        print 'paths_by_category: using tags', taglist
 
         return (ps, cat)
 
@@ -1845,8 +1868,8 @@ class PathChooser(object):
             catpaths = self._paths_by_category(cat, self.rank)
             if catpaths[0]:
                 print 'PathChooser.choose: found', len(catpaths), 'paths in cat'
-                for c in catpaths[0]:
-                    print'catpath -', pprint(c)
+                #for c in catpaths[0]:
+                    #print'catpath -', pprint(c)
                 return self._choose_from_cat(catpaths[0], catpaths[1])
             else:
                 print 'PathChooser.choose: found NO paths in cat', cat
@@ -2059,6 +2082,7 @@ class User(object):
         choice = None
         redir = None
         cat = None
+        print "user.get_path: username is", self.name
 
         if path:
             if not self.prev_loc:  # FIXME: hack to handle error ticket
@@ -2675,7 +2699,8 @@ class Block(object):
         else:
             return False
 
-    def get_step(self, loc=None, prev_loc=None, npc=None, prev_npc=None):
+    def get_step(self, loc=None, prev_loc=None, npc=None, prev_npc=None,
+                 username=None):
         """Return the appropriate step for the current blocking condition"""
         if isinstance(self.data, Step):
             step = self.data  # in some cases easiest to just pass existing step
@@ -2683,7 +2708,8 @@ class Block(object):
             newargs = {'loc': loc,
                        'prev_loc': prev_loc,
                        'npc': npc,
-                       'prev_npc': prev_npc}
+                       'prev_npc': prev_npc,
+                       'username': username}
             kwargs = self.kwargs.update(newargs)
             step = self.make_step(self.get_condition(), kwargs=kwargs, data=self.data)
         return step

@@ -54,58 +54,93 @@ def dt(string):
     format = "%Y-%m-%d"
     return datetime.datetime.strptime(string, format)
 
+@pytest.fixture
+def bg_imgs():
+    """
+    Pytest fixture to provide background image info for each test location.
+    """
+    imgs = {3: '/paideia/static/images/images.image.9d1cc1a617c75069.'
+               '706c616365735f6f696b6f73415f706572697374796c652e737667.svg',
+            1: '',
+            6: '',
+            7: '',
+            8: '',
+            11: '',
+            13: ''}
+    return imgs
+
 
 # Constant values from
-images = {'npc1_img': '/paideia/static/images/images_migrate.image.8a17687fb0eb8ba9.696d616765732e696d6167652e383136303330663934646664646561312e34343732363137373639366536.svg',
-          'npc2_img': '/paideia/static/images/images_migrate.image.8119e454d945549a.67656f7267696f732e737667.svg',
-          'npc3_img': '/paideia/static/images/images_migrate.image.9028799e75acfb82.736f706869612e737667.svg',
-          'npc4_img': '/paideia/static/images/images_migrate.image.89e1a8203792bf8a.6d617269612e706e67.png',
-          'npc5_img': '/paideia/static/images/images_migrate.image.9dc07aa38f2b944b.64696f646f726f732e737667.svg',
-          'npc6_img': '/paideia/static/images/images_migrate.image.aa20ae70a2664e8f.73696d6f6e2e737667.svg',
-          'npc7_img': '/paideia/static/images/images_migrate.image.a6e093499e771c20.6961736f6e2e737667.svg',
-          'npc8_img': '/paideia/static/images/images_migrate.image.91890b6cbd780c6b.646f6d75735f615f706572697374796c652e706e67.png',
-          'npc9_img': '/paideia/static/images//',
-          'npc10_img': '/paideia/static/images/images_migrate.image.bbce859d57828f3c.7374657068616e6f732e706e67.png',
-          'npc11_img': '/paideia/static/images/images_migrate.image.ae28555aa0ec369f.70686f6562652e706e67.png',
-          'npc14_img': '/paideia/static/images/images_migrate.image.9c9516a0d901b770.73796e61676f6775652e6a7067.jpg',
-          'npc15_img': '/paideia/static/images/images_migrate.image.b8baa2f2e32c2bb0.706c616365735f616c6578616e646572732d73686f702e706e67.png',
-          'npc16_img': '/paideia/static/images/images_migrate.image.b440eedd65d027fa.706c616365735f62617468732e706e67.png',
-          'npc17_img': '/paideia/static/images/images_migrate.image.8d55597fb475dc15.706c616365735f73746f612e706e67.png'}
+@pytest.fixture
+def npc_imgs():
+    """
+    Pytest fixture to provide image info for each test npc.
+    """
+    images = {'npc1_img': '/paideia/static/images/images.image.a23c309d310405ba.'
+                          '70656f706c655f616c6578616e6465722e737667.svg',
+              'npc2_img': '/paideia/static/images/images.image.b10c0d75a57bdd23.'
+                          '70656f706c655f6d617269612e706e67.png',
+              'npc3_img': '/paideia/static/images/images_migrate.image.'
+                          '9028799e75acfb82.736f706869612e737667.svg',
+              'npc4_img': '/paideia/static/images/images.image.'
+                          'b10c0d75a57bdd23.70656f706c655f6d617269612e706e67.png',
+              'npc5_img': '/paideia/static/images/images_migrate.image.'
+                          '9dc07aa38f2b944b.64696f646f726f732e737667.svg',
+              'npc6_img': '/paideia/static/images/images_migrate.image.'
+                          'aa20ae70a2664e8f.73696d6f6e2e737667.svg',
+              'npc7_img': '/paideia/static/images/images_migrate.image.'
+                          'a6e093499e771c20.6961736f6e2e737667.svg',
+              'npc8_img': '/paideia/static/images/images_migrate.image.91890b6cbd780c6b.646f6d75735f615f706572697374796c652e706e67.png',
+              'npc9_img': '/paideia/static/images//',
+              'npc10_img': '/paideia/static/images/images_migrate.image.bbce859d57828f3c.7374657068616e6f732e706e67.png',
+              'npc11_img': '/paideia/static/images/images_migrate.image.ae28555aa0ec369f.70686f6562652e706e67.png',
+              'npc14_img': '/paideia/static/images/images_migrate.image.9c9516a0d901b770.73796e61676f6775652e6a7067.jpg',
+              'npc15_img': '/paideia/static/images/images_migrate.image.b8baa2f2e32c2bb0.706c616365735f616c6578616e646572732d73686f702e706e67.png',
+              'npc16_img': '/paideia/static/images/images_migrate.image.b440eedd65d027fa.706c616365735f62617468732e706e67.png',
+              'npc17_img': '/paideia/static/images/images_migrate.image.8d55597fb475dc15.706c616365735f73746f612e706e67.png'}
+    return images
 
-npc_data = {1: {'image': images['npc1_img'],
+
+@pytest.fixture
+def npc_data(npc_imgs):
+    """
+    Pytest fixture to provide npc data for tests.
+    """
+    npcs = {1: {'image': npc_imgs['npc1_img'],
                 'name': 'Ἀλεξανδρος',
                 'location': [6, 8]},
-            2: {'image': images['npc4_img'],
+            2: {'image': npc_imgs['npc4_img'],
                 'name': 'Μαρια',
                 'location': [3, 1, 2, 4]},
-            8: {'image': images['npc5_img'],
+            8: {'image': npc_imgs['npc5_img'],
                 'name': 'Διοδωρος',
                 'location': [1]},
-            14: {'image': images['npc2_img'],
+            14: {'image': npc_imgs['npc2_img'],
                  'name': 'Γεωργιος',
                  'location': [3, 1, 2, 4, 7, 8, 9, 10]},
-            17: {'image': images['npc7_img'],
+            17: {'image': npc_imgs['npc7_img'],
                  'name': 'Ἰασων',
                  'location': [3, 1, 2, 4, 7, 8]},
-            21: {'image': images['npc7_img'],
+            21: {'image': npc_imgs['npc7_img'],
                  'name': 'Νηρευς',
                  'location': [7, 8]},
-            31: {'image': images['npc3_img'],
+            31: {'image': npc_imgs['npc3_img'],
                  'name': 'Σοφια',
                  'location': [3, 1, 2, 4, 11]},
-            32: {'image': images['npc10_img'],
+            32: {'image': npc_imgs['npc10_img'],
                  'name': 'Στεφανος',
                  'location': [11]},
-            40: {'image': images['npc6_img'],
+            40: {'image': npc_imgs['npc6_img'],
                  'name': 'Σίμων',
                  'location': [3, 1, 2, 4, 7, 8]},
-            41: {'image': images['npc11_img'],
+            41: {'image': npc_imgs['npc11_img'],
                  'name': 'Φοιβη',
                  'location': [3, 1, 4, 8]},
-            42: {'image': images['npc9_img'],
+            42: {'image': npc_imgs['npc9_img'],
                  'name': 'Ὑπατια',
                  'location': [3, 1, 2, 4, 12, 8]}
             }
+    return npcs
 
 
 @pytest.fixture(params=[n for n in [1, 2, 3, 4]])
@@ -209,17 +244,43 @@ def mysteps(request):
                          '[[badge_list]]\r\nBefore you continue, take '
                          'some time to view these slide sets:\r\n'
                          '[[slides]]\r\nYou\'ll find the slides by '
-                         'clicking on the "slides" menu item at top.'}
+                         'clicking on the "slides" menu item at top.',
+                'prompt1': '<div class="npc prompt"><p class="prompt-text">'
+                           'How could you write the word &quot;meet&quot; using '
+                           'Greek letters?</p>'
+                           '<div class="popover-trigger btn btn-info '
+                           'instructions-popover" data-placement="bottom" '
+                           'data-title="Instructions for this step" '
+                           'data-toggle="popover" data-trigger="click" '
+                           'id="instructions_btn">Instructions<div '
+                           'class="popover-content" style="display: none">'
+                           '<ul><li>Focus on finding Greek letters that make '
+                           'the *sounds* of the English word. Don&#x27;t look '
+                           'for Greek &quot;equivalents&quot; for each English '
+                           'letter.</li></ul></div></div><div '
+                           'class="popover-trigger btn btn-info slides-popover" '
+                           'data-placement="bottom" data-title="Relevant slide '
+                           'decks" data-toggle="popover" data-trigger="click" '
+                           'id="Slides_btn">slides<div class="popover-content" '
+                           'style="display: none"><ul class="prompt_slides">'
+                           '<li><a data-w2p_disable_with="default" '
+                           'href="/paideia/listing/slides.html/7">Greek Words I'
+                           '</a></li><li><a data-w2p_disable_with="default" '
+                           'href="/paideia/listing/slides.html/1">Introduction'
+                           '</a></li><li><a data-w2p_disable_with="default" '
+                           'href="/paideia/listing/slides.html/6">Noun Basics'
+                           '</a></li><li><a data-w2p_disable_with="default" '
+                           'href="/paideia/listing/slides.html/2">The Alphabet'
+                           '</a></li></ul></div></div></div>'
+                }
     steps = {1: {'id': 1,
                  'paths': [2],
                  'step_type': StepText,
                  'widget_type': 1,
                  'npc_list': [8, 2, 32, 1, 17],
                  'locations': [3, 1, 13, 7, 8, 11],
-                 'raw_prompt': 'How could you write the word "meet" using '
-                               'Greek letters?',
-                 'final_prompt': 'How could you write the word "meet" using '
-                                 'Greek letters?',
+                 'raw_prompt': prompts['prompt1'],
+                 'final_prompt': prompts['prompt1'],
                  'redirect_prompt': prompts['redirect'],
                  'instructions': ['Focus on finding Greek letters that make '
                                   'the *sounds* of the English word. Don\'t '
@@ -359,7 +420,7 @@ def mysteps(request):
                    'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10],
                    'raw_prompt': prompts['slides'],
                    'instructions': None,
-                   'tags': [80],
+                   'tags': [],
                    'tags_secondary': [],
                    'responder': responders['stub']}
              }
@@ -793,14 +854,20 @@ def mycategorizer(mycases):
 
 
 @pytest.fixture
-def myuser(mycases, user_login):
+def myuser(mycases, user_login, db):
     """A pytest fixture providing a paideia.User object for testing."""
+    auth = current.auth
+    assert auth.is_logged_in()
+    user = db.auth_user(auth.user_id)
+    assert user
+    assert user.first_name == 'Homer'
+    assert user.time_zone == 'America/Toronto'
     case = mycases['casedata']
     step = mycases['stepdata']
     tag_progress = case['tag_progress']
     tag_records = case['tag_records']
     localias = case['loc'].get_alias()
-    return {'user': User(user_login, localias, tag_records, tag_progress),
+    return {'user': User(user, tag_records, tag_progress),
             'casedata': case,
             'stepdata': step}
 
@@ -866,7 +933,7 @@ def mypath(mycases, db):
 
 
 @pytest.fixture
-def mystep(mycases, db):
+def mystep(mycases, myuser, db):
     """
     A pytest fixture providing a paideia.Step object for testing.
     """
@@ -882,12 +949,18 @@ def mystep(mycases, db):
     if step['step_type'] == StepRedirect and case['casenum'] != 5:
         return None
     else:
+        theargs = {'db': db,
+                   'step_id': step['id'],
+                   'loc': case['loc'],
+                   'prev_loc': case['prev_loc'],
+                   'prev_npc': case['prev_npc'],
+                   'username': myuser['user'].name}
+        if step['step_type'] == StepRedirect:
+            theargs['next_step_id'] = 1
+            theargs['next_loc'] = 6
+        thestep = StepFactory().get_instance(**theargs)
         return {'casenum': case['casenum'],
-                'step': StepFactory().get_instance(db=db,
-                                                   step_id=step['id'],
-                                                   loc=case['loc'],
-                                                   prev_loc=case['prev_loc'],
-                                                   prev_npc=case['prev_npc']),
+                'step': thestep,
                 'stepdata': step,
                 'casedata': case}
 
@@ -1159,7 +1232,7 @@ class TestNpc():
 
     def test_npc_get_image(self, mynpc):
         """Test for method Npc.get_image()"""
-        expected = '<img src="/paideia/static/images/images_migrate.image.8a17687fb0eb8ba9.696d616765732e696d6167652e383136303330663934646664646561312e34343732363137373639366536.svg" />'
+        expected = '<img src="/paideia/static/images/images.image.a23c309d310405ba.70656f706c655f616c6578616e6465722e737667.svg" />'
         actual = mynpc.get_image().xml()
         assert actual == expected
 
@@ -1167,9 +1240,7 @@ class TestNpc():
         """Test for method Npc.get_locations()"""
         locs = mynpc.get_locations()
         assert isinstance(locs[0], (int, long))
-        assert locs[0] == 6
-        assert isinstance(locs[1], (int, long))
-        assert locs[1] == 8
+        assert locs[0] == 8  # 6 also in db but not yet active
 
     def test_npc_get_description(self, mynpc):
         """Test for method Npc.get_description()"""
@@ -1199,7 +1270,10 @@ class TestLocation():
 
     def test_location_get_bg(self, myloc):
         """Test for method Location.get_bg"""
-        assert myloc.get_bg().xml() == '<img src="/paideia/static/images/images_migrate.image.b8baa2f2e32c2bb0.706c616365735f616c6578616e646572732d73686f702e706e67.png" />'
+        actual = myloc.get_bg()
+        expected = '/paideia/static/images/images.image.b9c9c11590e5511a.' \
+                   '706c616365735f616c6578616e646572732d73686f702e706e67.png'
+        assert actual == expected
 
     def test_location_get_id(self, myloc):
         """Test for method Location.get_id"""
@@ -1248,10 +1322,13 @@ class TestStep():
         if mystep:
             primary = mystep['stepdata']['tags']
             secondary = mystep['stepdata']['tags_secondary']
-            out = {'primary': primary, 'secondary': secondary}
-            assert mystep['step'].get_tags() == out
+            expected = {'primary': primary, 'secondary': secondary}
+            actual = mystep['step'].get_tags()
+            assert actual == expected
+        else:
+            pass
 
-    def test_step_get_prompt(self, mystep):
+    def test_step_get_prompt(self, mystep, db, npc_data, bg_imgs):
         """Test for method Step.get_prompt"""
         if mystep:
             step = mystep['step']
@@ -1263,11 +1340,14 @@ class TestStep():
                 username = case['name']
                 if locnpcs:
                     oprompt = sdata['final_prompt']
-                    oinstr = sdata['instructions']
-                    onpc_image = [npc_data[n]['image'] for n in stepnpcs if n in locnpcs]
-                    assert step.get_prompt(username)['prompt'] == oprompt
-                    assert step.get_prompt(username)['instructions'] == oinstr
-                    assert step.get_prompt(username)['npc_image'].attributes['_src'] in onpc_image
+                    onpc_image = [npc_data[n]['image'] for n in stepnpcs
+                                  if n in locnpcs]
+                    obg_imgs = [bg_imgs[n] for n in sdata['locations']]
+                    step.npc = Npc(locnpcs[0], db)
+                    p = step.get_prompt(username)
+                    assert p['npc'].xml() == oprompt
+                    assert p['bg_image'] in obg_imgs
+                    assert p['npc_image'].attributes['_src'] in onpc_image
                 else:
                     assert step.get_prompt(username) == 'redirect'
             else:

@@ -4,6 +4,7 @@ from paideia_stats import Stats
 from paideia_bugs import Bug
 import traceback
 from paideia_utils import send_error
+from pprint import pprint
 #from gluon.tools import prettydate
 
 if 0:
@@ -57,6 +58,11 @@ def user():
 
     code for these actions is in gluon/tools.py in Auth() class
     """
+    # make sure d3.js dc.js and crossfire.js are loaded
+    response.files.append(URL('static', 'plugin_d3/d3/d3.js'))
+    response.files.append(URL('static', 'plugin_d3/dc/dc.js'))
+    response.files.append(URL('static', 'plugin_d3/crossfilter/crossfilter.js'))
+    response.files.append(URL('static', 'plugin_d3/dc/dc.css'))
     return dict(form=auth())
 
 
@@ -68,63 +74,93 @@ def info():
     page component, to be embedded in other views such as:
         default/user.html
         reporting/user.html
+
+    Returns a dict with the following keys:
+
+    'the_name':         User's name from auth.user as lastname, firstname (str)
+    'tz':               User's time zone from auth.user (extended in db.py)
+    'email':            User's email (str)
+    'cal':              html calendar with user path stats (from stats.monthcal)
+    'blist': blist,     list of User's bug reports
+    'max_set': `        max_set, Badge set reached by user (int)
+    'active':           list of user's active tags with performance and badge data
+        Each item is a dict with these keys:
+        'name'              user's id from auth.user (int)
+        'tag_records'
+            'tag'           id of tag for this row (int)
+            'times_right'       cumulative number of times right (double)
+            'times_wrong'       cumulative number of times wrong (double)
+            'tlast_wrong'       date of last wrong answer (datetime.datetime)
+            'tlast_right'       date of last right answer (datetime.datetime)
+            'pretty_lwrong'**   readable form (str)
+            'pretty_lright'**   readable form (str)
+            'in_path'           path of last question for the tag
+            'step'              step of last question for the tag
+            'secondary_right'   list of dates (datetime.datetime) when step with
+                                this tag as secondary was answered correctly
+        'badges'
+            'badge_name'    ***
+            'description'   ***
+        'badges_begun'
+            'dt_cat1'**         machine-friendly form (datetime.datetime object)
+            'prettydate_cat1'** readable form (str)
+            'dt_cat2'**         machine-friendly form (datetime.datetime object)
+            'prettydate_cat2'** readable form (str)
+            'dt_cat3'**         machine-friendly form (datetime.datetime object)
+            'prettydate_cat3'** readable form (str)
+            'dt_cat4'**         machine-friendly form (datetime.datetime object)
+            'prettydate_cat4'** readable form (str)
+        'tag_set'**         ***
+        'current_level'**   number of max level achieved so far (str)
+        'logs'              list of dictionaries, each with the following keys:
+            'step'
+            'prompt'
+            'count'
+            'right'
+            'wrong'
+            'dt_attempted'
+            'dt_local'
+    'log':              stats.step_log['loglist']
+        'step'
+        'prompt'
+        'count'
+        'right'
+        'wrong'
+        'last_wrong'
+        'right_since'
+    'duration':         Default duration for recent paths info (from
+                        stats.step_log['duration'])
     """
-    # Allow either passing explicit user or defaulting to current user
-    if 'id' in request.vars:
-        user = db.auth_user[request.vars['id']]
-    else:
-        user = db.auth_user[auth.user_id]
-    name = user.last_name + ', ' + user.first_name
-    tz = user.time_zone
-    email = user.email
 
-    stats = Stats(user.id, cache=cache)
-    active = stats.active_tags()
-    cal = stats.monthcal()
-    sl = stats.step_log()
-    log = sl['loglist']
-    duration = sl['duration']
+    try:
 
-    max_set = db(db.tag_progress.name == user['id']).select().first()
-    if not max_set is None:
-        max_set = max_set.latest_new
-    else:
-        max_set = 1
+        # Allow passing explicit user but default to current user
+        if 'id' in request.vars:
+            user = db.auth_user[request.vars['id']]
+        else:
+            user = db.auth_user[auth.user_id]
+        tz = user.time_zone
+        email = user.email
 
-    b = Bug()
-    print 'creating bug object for displaying reports'
-    blist = b.bugresponses(user.id)
-    tag_progress = db((db.tag_progress.name == user.id)).select().first().as_dict()
+        stats = Stats(user.id, cache=cache)
+        name = stats.get_name()
+        active = stats.active_tags()
+        loglist = stats.logs_with_tagrecs(active)
+        cal = stats.monthcal()
+        max_set = stats.get_max()
+        #sl = stats.step_log()
+        #log = sl['loglist']
+        #duration = sl['duration']
 
-    tag_records = db((db.tag_records.name == user.id) &
-                     (db.tag_records.tag == db.tags.id)
-                     ).select(orderby=db.tags.tag_position)
+        b = Bug()
+        blist = b.bugresponses(user.id)
 
-    badge_dates = db((db.badges_begun.name == user.id) &
-                     (db.badges_begun.tag == db.tags.id)
-                     ).select(orderby=~db.tags.tag_position)
-
-    badgelist = []
-    catlabels = ['started at beginner level',
-                'promoted to apprentice level',
-                'promoted to journeyman level',
-                'promoted to master level']
-    for bd in badge_dates:
-        for c in ['cat1', 'cat2', 'cat3', 'cat4']:
-            if bd.badges_begun[c]:
-                tagbadge = db.badges(db.badges.tag == bd.tags.id)
-                try:
-                    badgelist.append({'id': tagbadge.badge_name,
-                                    'description': tagbadge.description,
-                                    'level': catlabels[int(c[3:]) - 1],
-                                    'date': 'on {}'.format(bd.badges_begun[c].strftime('%b %e, %Y')),
-                                    'dt': bd.badges_begun[c]})
-                except Exception:
-                    print traceback.format_exc(5)
-                    print 'missing badge for tag',
-                    send_error('controllers/default', 'info', current.request)
-
-    badgelist = sorted(badgelist, key=lambda row: row['dt'], reverse=True)
+        catlabels = ['started at beginner level',
+                    'promoted to apprentice level',
+                    'promoted to journeyman level',
+                    'promoted to master level']
+    except Exception:
+        print traceback.format_exc(5)
 
     return {'the_name': name,
             'tz': tz,
@@ -132,12 +168,9 @@ def info():
             'cal': cal,
             'blist': blist,
             'active': active,
+            'loglist': loglist,
             'max_set': max_set,
-            'tag_progress': tag_progress,
-            'tag_records': tag_records,
-            'log': log,
-            'duration': duration,
-            'badge_track': badgelist}
+            }
 
 
 def oops():

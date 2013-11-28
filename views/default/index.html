@@ -16,13 +16,16 @@
 </div>
 </section>
 <section class='modal-set'>
-{{for i, m in enumerate(modals):}}
-<div class='info-pane pane-{{=i}}'>
-<img class="info-pane-illustration" src="{{=URL('static', 'images/illustration_info{}.svg'.format(i))}}" />
-{{=MODAL(m['title'], m['title'], MARKMIN(m['content']),
-         modal_classes='index-modals', 
-         trigger_type='link',
-         id=(m['title'].replace(' ', '_')).replace('?', ''))}}
+{{for n in [1, 2, 0, 3]:}}
+<div class='info-pane span6'>
+{{=IMG(_src=URL('static', 'images/info_{}.svg'.format(modals[n]['title'].replace(' ', '_')[:-1])),
+       _class='info-pane-illustration')}}
+{{=CAT(MODAL(modals[n]['title'], modals[n]['title'], MARKMIN(modals[n]['content']),
+           modal_classes='index-modals', 
+           trigger_type='link',
+           id=(modals[n]['title'].replace(' ', '_')).replace('?', '')),
+       P(MARKMIN(' '.join(modals[n]['content'].split(' ')[:80]) + ' ...' ), _class='info-teaser') 
+     )}}
 </div>
 {{pass}}
 </section>

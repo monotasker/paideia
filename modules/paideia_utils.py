@@ -63,6 +63,8 @@ import re
 from random import randrange, shuffle
 from itertools import product
 from pprint import pprint
+import datetime
+import json
 
 
 caps = {'α': 'Α',
@@ -110,10 +112,6 @@ def capitalize(letter):
     letter = letter.decode('utf-8').upper()
     print 'capitalized'
     print letter.encode('utf-8')
-    return letter.encode('utf-8')
-
-    #else:
-        #return caps[letter]
 
 
 def firstletter(mystring):
@@ -164,6 +162,19 @@ def send_error(myclass, mymethod, myrequest):
                            rq=myrequest)
     title = 'Paideia error'
     mail.send(mail.settings.sender, title, msg)
+
+
+def make_json(data):
+    """
+    Return json object representing the data provided in dictionary "data".
+    """
+    date_handler = lambda obj: obj.isoformat() \
+                    if isinstance(obj, datetime.datetime) else None
+    myjson = json.dumps(data,
+                        default=date_handler,
+                        indent=4,
+                        sort_keys=True)
+    return myjson
 
 
 MYWORDS = {u'πωλεω': {'glosses': ['sell'],
