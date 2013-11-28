@@ -145,7 +145,7 @@ def info():
         stats = Stats(user.id, cache=cache)
         name = stats.get_name()
         active = stats.active_tags()
-        loglist = stats.logs_with_tagrecs(active)
+        #loglist = stats.logs_with_tagrecs(active)
         cal = stats.monthcal()
         max_set = stats.get_max()
         #sl = stats.step_log()
@@ -168,7 +168,6 @@ def info():
             'cal': cal,
             'blist': blist,
             'active': active,
-            'loglist': loglist,
             'max_set': max_set,
             }
 
