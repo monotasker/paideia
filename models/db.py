@@ -6,6 +6,7 @@ if 0:
 
 import logging
 from pytz import common_timezones
+from pytz import timezone
 from gluon.tools import Recaptcha, Mail, Auth, Crud, Service, PluginManager
 from gluon.tools import IS_IN_SET
 from gluon.globals import current
@@ -13,6 +14,7 @@ import datetime
 
 response = current.response
 request = current.request
+now = datetime.datetime.utcnow()
 
 
 #if request.is_local:  # disable in production enviroment
@@ -107,13 +109,19 @@ auth.settings.extra_fields['auth_user'] = [
           default='America/Toronto',
           requires=IS_IN_SET((common_timezones)),
           widget=SQLFORM.widgets.options.widget
-          )
+          ),
+    Field.Virtual('tz_obj',
+                  lambda row: timezone(row.auth_user.time_zone)
+                              if (hasattr(row.auth_user, 'time_zone') and
+                                  row.auth_user.time_zone)
+                              else 'America/Toronto'
+                  )
 ]
 
 #adding custom field for class info in groups
 auth.settings.extra_fields['auth_group'] = [
     Field('institution', 'string', default='Tyndale Seminary'),
-    Field('academic_year', 'integer', default=datetime.datetime.utcnow().year),  # was year (reserved term)
+    Field('academic_year', 'integer', default=now.year),  # was year (reserved term)
     Field('term', 'string'),
     Field('course_section', 'string'),
     Field('course_instructor', 'reference auth_user', default=auth.user_id),

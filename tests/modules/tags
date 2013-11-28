@@ -4,11 +4,11 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+TestBugReporter	test_paideia.py	/^class TestBugReporter():$/;"	c
 TestCategorizer	test_paideia.py	/^class TestCategorizer():$/;"	c
 TestLocation	test_paideia.py	/^class TestLocation():$/;"	c
 TestMultipleEvaluator	test_paideia.py	/^class TestMultipleEvaluator():$/;"	c
 TestNpc	test_paideia.py	/^class TestNpc():$/;"	c
-TestNpcChooser	test_paideia.py	/^class TestNpcChooser():$/;"	c
 TestPath	test_paideia.py	/^class TestPath():$/;"	c
 TestPathChooser	test_paideia.py	/^class TestPathChooser():$/;"	c
 TestStep	test_paideia.py	/^class TestStep():$/;"	c
@@ -18,59 +18,51 @@ TestStepMultiple	test_paideia.py	/^class TestStepMultiple():$/;"	c
 TestStepRedirect	test_paideia.py	/^class TestStepRedirect():$/;"	c
 TestStepText	test_paideia.py	/^class TestStepText():$/;"	c
 TestStepViewSlides	test_paideia.py	/^class TestStepViewSlides():$/;"	c
-TestUser	test_paideia.py	/^class TestUser():$/;"	c
+TestUser	test_paideia.py	/^class TestUser(object):$/;"	c
 TestWalk	test_paideia.py	/^class TestWalk():$/;"	c
-_formname	test_paideia.py	/^            _formname='register')$/;"	v
-client	test_paideia.py	/^client = WebClient('http:\/\/127.0.0.1:8000\/paideia\/default\/', postbacks=True)$/;"	v
-data	test_paideia.py	/^data = dict(first_name='Homer',$/;"	v
-db	test_paideia.py	/^db = current.db$/;"	v
 dt	test_paideia.py	/^def dt(string):$/;"	f
-email	test_paideia.py	/^            email='scottianw@gmail.com',$/;"	v
-global_run_TestCategorizer	test_paideia.py	/^global_run_TestCategorizer = False$/;"	v
-global_run_TestLocation	test_paideia.py	/^global_run_TestLocation = False$/;"	v
-global_run_TestMultipleEvaluator	test_paideia.py	/^global_run_TestMultipleEvaluator = False$/;"	v
-global_run_TestNpc	test_paideia.py	/^global_run_TestNpc = False$/;"	v
+global_run_TestCategorizer	test_paideia.py	/^global_run_TestCategorizer = 1$/;"	v
+global_run_TestLocation	test_paideia.py	/^global_run_TestLocation = 1$/;"	v
+global_run_TestMultipleEvaluator	test_paideia.py	/^global_run_TestMultipleEvaluator = 1$/;"	v
+global_run_TestNpc	test_paideia.py	/^global_run_TestNpc = 1$/;"	v
 global_run_TestNpcChooser	test_paideia.py	/^global_run_TestNpcChooser = False  # deprecated for Step.get_npc()$/;"	v
-global_run_TestPath	test_paideia.py	/^global_run_TestPath = False$/;"	v
-global_run_TestPathChooser	test_paideia.py	/^global_run_TestPathChooser = False$/;"	v
-global_run_TestStep	test_paideia.py	/^global_run_TestStep = False$/;"	v
+global_run_TestPath	test_paideia.py	/^global_run_TestPath = 1$/;"	v
+global_run_TestPathChooser	test_paideia.py	/^global_run_TestPathChooser = 1$/;"	v
+global_run_TestStep	test_paideia.py	/^global_run_TestStep = 1$/;"	v
 global_run_TestStepAwardBadges	test_paideia.py	/^global_run_TestStepAwardBadges = 1$/;"	v
-global_run_TestStepEvaluator	test_paideia.py	/^global_run_TestStepEvaluator = False$/;"	v
-global_run_TestStepMultiple	test_paideia.py	/^global_run_TestStepMultiple = False$/;"	v
-global_run_TestStepRedirect	test_paideia.py	/^global_run_TestStepRedirect = False$/;"	v
-global_run_TestStepText	test_paideia.py	/^global_run_TestStepText = False$/;"	v
-global_run_TestStepViewSlides	test_paideia.py	/^global_run_TestStepViewSlides = False$/;"	v
-global_run_TestUser	test_paideia.py	/^global_run_TestUser = False$/;"	v
-global_run_TestWalk	test_paideia.py	/^global_run_TestWalk = False$/;"	v
-global_runall	test_paideia.py	/^global_runall = False$/;"	v
-images	test_paideia.py	/^images = {'npc1_img': '\/paideia\/static\/images\/images.image.bb48641f0122d2b6.696d616765732e696d6167652e383136303330663934646664646561312e34343732363137373639366536373230333432653733373636372e737667.svg',$/;"	v
-last_name	test_paideia.py	/^            last_name='Simpson',$/;"	v
+global_run_TestStepEvaluator	test_paideia.py	/^global_run_TestStepEvaluator = 1$/;"	v
+global_run_TestStepMultiple	test_paideia.py	/^global_run_TestStepMultiple = 1$/;"	v
+global_run_TestStepRedirect	test_paideia.py	/^global_run_TestStepRedirect = 1$/;"	v
+global_run_TestStepText	test_paideia.py	/^global_run_TestStepText = 1$/;"	v
+global_run_TestStepViewSlides	test_paideia.py	/^global_run_TestStepViewSlides = 1$/;"	v
+global_run_TestUser	test_paideia.py	/^global_run_TestUser = 1$/;"	v
+global_run_TestWalk	test_paideia.py	/^global_run_TestWalk = 1$/;"	v
+global_runall	test_paideia.py	/^global_runall = 1$/;"	v
+images	test_paideia.py	/^images = {'npc1_img': '\/paideia\/static\/images\/images.image.a23c309d310405ba.70656f706c655f616c6578616e6465722e737667.svg',$/;"	v
 myMultipleEvaluator	test_paideia.py	/^def myMultipleEvaluator(mysteps):$/;"	f
-myStepAwardBadges	test_paideia.py	/^def myStepAwardBadges(mycases):$/;"	f
+myStepAwardBadges	test_paideia.py	/^def myStepAwardBadges(mycases, db):$/;"	f
 myStepEvaluator	test_paideia.py	/^def myStepEvaluator(mysteps):$/;"	f
-myStepMultiple	test_paideia.py	/^def myStepMultiple(mycases):$/;"	f
-myStepQuotaReached	test_paideia.py	/^def myStepQuotaReached(mycases):$/;"	f
-myStepRedirect	test_paideia.py	/^def myStepRedirect(mycases):$/;"	f
-myStepText	test_paideia.py	/^def myStepText(mycases):$/;"	f
-myStepViewSlides	test_paideia.py	/^def myStepViewSlides(mycases):$/;"	f
+myStepMultiple	test_paideia.py	/^def myStepMultiple(mycases, request, db):$/;"	f
+myStepQuotaReached	test_paideia.py	/^def myStepQuotaReached(mycases, db):$/;"	f
+myStepRedirect	test_paideia.py	/^def myStepRedirect(mycases, db):$/;"	f
+myStepText	test_paideia.py	/^def myStepText(mycases, db):$/;"	f
+myStepViewSlides	test_paideia.py	/^def myStepViewSlides(mycases, db):$/;"	f
 myblock	test_paideia.py	/^def myblock(myblocks):$/;"	f
 myblocks	test_paideia.py	/^def myblocks(request):$/;"	f
-mycases	test_paideia.py	/^def mycases(request, mysteps):$/;"	f
+mycases	test_paideia.py	/^def mycases(request, mysteps, user_login, db):$/;"	f
 mycategorizer	test_paideia.py	/^def mycategorizer(mycases):$/;"	f
-myloc	test_paideia.py	/^def myloc():$/;"	f
-myloc_synagogue	test_paideia.py	/^def myloc_synagogue():$/;"	f
-mynpc	test_paideia.py	/^def mynpc():$/;"	f
-mynpc_stephanos	test_paideia.py	/^def mynpc_stephanos():$/;"	f
-mynpcchooser	test_paideia.py	/^def mynpcchooser(mycases):$/;"	f
-mypath	test_paideia.py	/^def mypath(mycases):$/;"	f
-mypathchooser	test_paideia.py	/^def mypathchooser(mycases):$/;"	f
-mystep	test_paideia.py	/^def mystep(mycases):$/;"	f
+myloc	test_paideia.py	/^def myloc(db):$/;"	f
+myloc_synagogue	test_paideia.py	/^def myloc_synagogue(db):$/;"	f
+mynpc	test_paideia.py	/^def mynpc(db):$/;"	f
+mynpc_stephanos	test_paideia.py	/^def mynpc_stephanos(db):$/;"	f
+mynpcchooser	test_paideia.py	/^def mynpcchooser(mycases, db):$/;"	f
+mypath	test_paideia.py	/^def mypath(mycases, db):$/;"	f
+mypathchooser	test_paideia.py	/^def mypathchooser(mycases, db):$/;"	f
+mystep	test_paideia.py	/^def mystep(mycases, db):$/;"	f
 mysteps	test_paideia.py	/^def mysteps(request):$/;"	f
-myuser	test_paideia.py	/^def myuser(mycases):$/;"	f
-mywalk	test_paideia.py	/^def mywalk(mycases):$/;"	f
+myuser	test_paideia.py	/^def myuser(mycases, user_login):$/;"	f
+mywalk	test_paideia.py	/^def mywalk(mycases, user_login, db):$/;"	f
 npc_data	test_paideia.py	/^npc_data = {1: {'image': images['npc1_img'],$/;"	v
-password	test_paideia.py	/^            password='test',$/;"	v
-password_two	test_paideia.py	/^            password_two='test',$/;"	v
 pytestmark	test_paideia.py	/^    pytestmark = pytest.mark.skipif('global_runall is False '$/;"	v	class:TestCategorizer
 pytestmark	test_paideia.py	/^    pytestmark = pytest.mark.skipif('global_runall is False '$/;"	v	class:TestMultipleEvaluator
 pytestmark	test_paideia.py	/^    pytestmark = pytest.mark.skipif('global_runall is False '$/;"	v	class:TestPath
@@ -81,13 +73,12 @@ pytestmark	test_paideia.py	/^    pytestmark = pytest.mark.skipif('global_runall 
 pytestmark	test_paideia.py	/^    pytestmark = pytest.mark.skipif('global_runall is False '$/;"	v	class:TestWalk
 pytestmark	test_paideia.py	/^    pytestmark = pytest.mark.skipif('not global_runall and '$/;"	v	class:TestLocation
 pytestmark	test_paideia.py	/^    pytestmark = pytest.mark.skipif('not global_runall and '$/;"	v	class:TestNpc
-pytestmark	test_paideia.py	/^    pytestmark = pytest.mark.skipif('not global_runall and '$/;"	v	class:TestNpcChooser
 pytestmark	test_paideia.py	/^    pytestmark = pytest.mark.skipif('not global_runall and '$/;"	v	class:TestStep
 pytestmark	test_paideia.py	/^    pytestmark = pytest.mark.skipif('not global_runall and '$/;"	v	class:TestStepAwardBadges
 pytestmark	test_paideia.py	/^    pytestmark = pytest.mark.skipif('not global_runall and '$/;"	v	class:TestStepEvaluator
 pytestmark	test_paideia.py	/^    pytestmark = pytest.mark.skipif('not global_runall and '$/;"	v	class:TestStepRedirect
 pytestmark	test_paideia.py	/^    pytestmark = pytest.mark.skipif('not global_runall and '$/;"	v	class:TestStepViewSlides
-request	test_paideia.py	/^request = current.request$/;"	v
+test_bugreporter_get_reporter	test_paideia.py	/^    def test_bugreporter_get_reporter(self):$/;"	m	class:TestBugReporter
 test_categorizer_add_secondary_right	test_paideia.py	/^    def test_categorizer_add_secondary_right(self, mycategorizer):$/;"	m	class:TestCategorizer
 test_categorizer_add_untried_tags	test_paideia.py	/^    def test_categorizer_add_untried_tags(self, mycategorizer):$/;"	m	class:TestCategorizer
 test_categorizer_categorize	test_paideia.py	/^    def test_categorizer_categorize(self, mycategorizer):$/;"	m	class:TestCategorizer
@@ -105,18 +96,17 @@ test_npc_get_id	test_paideia.py	/^    def test_npc_get_id(self, mynpc):$/;"	m	cl
 test_npc_get_image	test_paideia.py	/^    def test_npc_get_image(self, mynpc):$/;"	m	class:TestNpc
 test_npc_get_locations	test_paideia.py	/^    def test_npc_get_locations(self, mynpc):$/;"	m	class:TestNpc
 test_npc_get_name	test_paideia.py	/^    def test_npc_get_name(self, mynpc):$/;"	m	class:TestNpc
-test_npcchooser_choose	test_paideia.py	/^    def test_npcchooser_choose(self, mynpcchooser):$/;"	m	class:TestNpcChooser
 test_path_check_for_blocks	test_paideia.py	/^    def test_path_check_for_blocks(self, mypath):$/;"	m	class:TestPath
 test_path_get_id	test_paideia.py	/^    def test_path_get_id(self, mypath):$/;"	m	class:TestPath
 test_path_get_step_for_prompt	test_paideia.py	/^    def test_path_get_step_for_prompt(self, mypath, mysteps):$/;"	m	class:TestPath
-test_path_get_step_for_reply	test_paideia.py	/^    def test_path_get_step_for_reply(self, mypath, mysteps):$/;"	m	class:TestPath
+test_path_get_step_for_reply	test_paideia.py	/^    def test_path_get_step_for_reply(self, mypath, mysteps, db):$/;"	m	class:TestPath
 test_path_prepare_for_prompt	test_paideia.py	/^    def test_path_prepare_for_prompt(self, mypath, mysteps):$/;"	m	class:TestPath
 test_path_redirect	test_paideia.py	/^    def test_path_redirect(self, mypath, mysteps):$/;"	m	class:TestPath
-test_path_set_loc	test_paideia.py	/^    def test_path_set_loc(self, mypath):$/;"	m	class:TestPath
+test_path_set_loc	test_paideia.py	/^    def test_path_set_loc(self, mypath, db):$/;"	m	class:TestPath
 test_pathchooser_choose	test_paideia.py	/^    def test_pathchooser_choose(self, mypathchooser):$/;"	m	class:TestPathChooser
-test_pathchooser_choose_from_cat	test_paideia.py	/^    def test_pathchooser_choose_from_cat(self, mypathchooser):$/;"	m	class:TestPathChooser
+test_pathchooser_choose_from_cat	test_paideia.py	/^    def test_pathchooser_choose_from_cat(self, mypathchooser, db):$/;"	m	class:TestPathChooser
 test_pathchooser_order_cats	test_paideia.py	/^    def test_pathchooser_order_cats(self, mypathchooser):$/;"	m	class:TestPathChooser
-test_pathchooser_paths_by_category	test_paideia.py	/^    def test_pathchooser_paths_by_category(self, mypathchooser):$/;"	m	class:TestPathChooser
+test_pathchooser_paths_by_category	test_paideia.py	/^    def test_pathchooser_paths_by_category(self, mypathchooser, db):$/;"	m	class:TestPathChooser
 test_step_get_id	test_paideia.py	/^    def test_step_get_id(self, mystep):$/;"	m	class:TestStep
 test_step_get_instructions	test_paideia.py	/^    def test_step_get_instructions(self, mystep):$/;"	m	class:TestStep
 test_step_get_npc	test_paideia.py	/^    def test_step_get_npc(self, mystep):$/;"	m	class:TestStep
@@ -125,7 +115,7 @@ test_step_get_tags	test_paideia.py	/^    def test_step_get_tags(self, mystep):$/
 test_step_make_replacements	test_paideia.py	/^    def test_step_make_replacements(self, mystep):$/;"	m	class:TestStep
 test_stepawardbadges_get_id	test_paideia.py	/^    def test_stepawardbadges_get_id(self, myStepAwardBadges):$/;"	m	class:TestStepAwardBadges
 test_stepawardbadges_get_npc	test_paideia.py	/^    def test_stepawardbadges_get_npc(self, myStepAwardBadges):$/;"	m	class:TestStepAwardBadges
-test_stepawardbadges_get_prompt	test_paideia.py	/^    def test_stepawardbadges_get_prompt(self, myStepAwardBadges):$/;"	m	class:TestStepAwardBadges
+test_stepawardbadges_get_prompt	test_paideia.py	/^    def test_stepawardbadges_get_prompt(self, myStepAwardBadges, db):$/;"	m	class:TestStepAwardBadges
 test_stepawardbadges_get_responder	test_paideia.py	/^    def test_stepawardbadges_get_responder(self, myStepAwardBadges):$/;"	m	class:TestStepAwardBadges
 test_stepawardbadges_get_tags	test_paideia.py	/^    def test_stepawardbadges_get_tags(self, myStepAwardBadges):$/;"	m	class:TestStepAwardBadges
 test_stepevaluator_get_eval	test_paideia.py	/^    def test_stepevaluator_get_eval(self, myStepEvaluator):$/;"	m	class:TestStepEvaluator
@@ -136,28 +126,30 @@ test_stepredirect_get_npc	test_paideia.py	/^    def test_stepredirect_get_npc(se
 test_stepredirect_get_prompt	test_paideia.py	/^    def test_stepredirect_get_prompt(self, myStepRedirect):$/;"	m	class:TestStepRedirect
 test_stepredirect_get_responder	test_paideia.py	/^    def test_stepredirect_get_responder(self, myStepRedirect):$/;"	m	class:TestStepRedirect
 test_stepredirect_get_tags	test_paideia.py	/^    def test_stepredirect_get_tags(self, myStepRedirect):$/;"	m	class:TestStepRedirect
-test_stepredirect_make_replacements	test_paideia.py	/^    def test_stepredirect_make_replacements(self, myStepRedirect):$/;"	m	class:TestStepRedirect
+test_stepredirect_make_replacements	test_paideia.py	/^    def test_stepredirect_make_replacements(self, myStepRedirect, db):$/;"	m	class:TestStepRedirect
 test_steptext_get_readable	test_paideia.py	/^    def test_steptext_get_readable(self, myStepText):$/;"	m	class:TestStepText
 test_steptext_get_reply	test_paideia.py	/^    def test_steptext_get_reply(self, myStepText):$/;"	m	class:TestStepText
 test_steptext_get_responder	test_paideia.py	/^    def test_steptext_get_responder(self, myStepText):$/;"	m	class:TestStepText
 test_stepviewslides_get_id	test_paideia.py	/^    def test_stepviewslides_get_id(self, myStepViewSlides):$/;"	m	class:TestStepViewSlides
 test_stepviewslides_get_npc	test_paideia.py	/^    def test_stepviewslides_get_npc(self, myStepViewSlides):$/;"	m	class:TestStepViewSlides
-test_stepviewslides_get_prompt	test_paideia.py	/^    def test_stepviewslides_get_prompt(self, myStepViewSlides):$/;"	m	class:TestStepViewSlides
+test_stepviewslides_get_prompt	test_paideia.py	/^    def test_stepviewslides_get_prompt(self, myStepViewSlides, db):$/;"	m	class:TestStepViewSlides
 test_stepviewslides_get_responder	test_paideia.py	/^    def test_stepviewslides_get_responder(self, myStepViewSlides):$/;"	m	class:TestStepViewSlides
 test_stepviewslides_get_tags	test_paideia.py	/^    def test_stepviewslides_get_tags(self, myStepViewSlides):$/;"	m	class:TestStepViewSlides
-test_stepviewslides_make_replacements	test_paideia.py	/^    def test_stepviewslides_make_replacements(self, myStepViewSlides):$/;"	m	class:TestStepViewSlides
+test_stepviewslides_make_replacements	test_paideia.py	/^    def test_stepviewslides_make_replacements(self, myStepViewSlides, db):$/;"	m	class:TestStepViewSlides
 test_user_complete_path	test_paideia.py	/^    def test_user_complete_path(self, myuser):$/;"	m	class:TestUser
 test_user_get_categories	test_paideia.py	/^    def test_user_get_categories(self, myuser):$/;"	m	class:TestUser
-test_user_get_id	test_paideia.py	/^    def test_user_get_id(self, myuser):$/;"	m	class:TestUser
+test_user_get_id	test_paideia.py	/^    def test_user_get_id(self, myuser, db):$/;"	m	class:TestUser
 test_user_get_new_tags	test_paideia.py	/^    def test_user_get_new_tags(self, myuser):$/;"	m	class:TestUser
 test_user_get_old_categories	test_paideia.py	/^    def test_user_get_old_categories(self, myuser):$/;"	m	class:TestUser
-test_user_get_path	test_paideia.py	/^    def test_user_get_path(self, myuser):$/;"	m	class:TestUser
+test_user_get_path	test_paideia.py	/^    def test_user_get_path(self, myuser, db):$/;"	m	class:TestUser
 test_user_get_promoted	test_paideia.py	/^    def test_user_get_promoted(self, myuser):$/;"	m	class:TestUser
-test_user_is_stale	test_paideia.py	/^    def test_user_is_stale(self, myuser):$/;"	m	class:TestUser
+test_user_get_tag_progress	test_paideia.py	/^    def test_user_get_tag_progress(self, myuser):$/;"	m	class:TestUser
+test_user_get_tag_records	test_paideia.py	/^    def test_user_get_tag_records(self, myuser):$/;"	m	class:TestUser
+test_user_is_stale	test_paideia.py	/^    def test_user_is_stale(self, myuser, db):$/;"	m	class:TestUser
 test_walk_ask	test_paideia.py	/^    def test_walk_ask(self, mywalk):$/;"	m	class:TestWalk
 test_walk_get_user	test_paideia.py	/^    def test_walk_get_user(self, mywalk):$/;"	m	class:TestWalk
 test_walk_map	test_paideia.py	/^    def test_walk_map(self, mywalk):$/;"	m	class:TestWalk
-test_walk_record_cats	test_paideia.py	/^    def test_walk_record_cats(self, mywalk):$/;"	m	class:TestWalk
-test_walk_record_step	test_paideia.py	/^    def test_walk_record_step(self, mywalk):$/;"	m	class:TestWalk
+test_walk_record_cats	test_paideia.py	/^    def test_walk_record_cats(self, mywalk, db):$/;"	m	class:TestWalk
+test_walk_record_step	test_paideia.py	/^    def test_walk_record_step(self, mywalk, db):$/;"	m	class:TestWalk
 test_walk_reply	test_paideia.py	/^    def test_walk_reply(self, mywalk):$/;"	m	class:TestWalk
 test_walk_store_user	test_paideia.py	/^    def test_walk_store_user(self, mywalk):$/;"	m	class:TestWalk

@@ -142,15 +142,17 @@ def user_login(request, web2py, client, db):
     reg_data = {'first_name': 'Homer',
                 'last_name': 'Simpson',
                 'email': 'scottianw@gmail.com',
-                'password': 'testing'}
+                'password': 'testing',
+                'time_zone': 'America/Toronto'}
     #client.post('/default/user/register', data=reg_data)
     #assert client.status == 200
 
     # create new user if necessary and delete if there's more than one test
     # user
-    user_query = db((db.auth_user.first_name == 'Homer') &
-                    (db.auth_user.last_name == 'Simpson') &
-                    (db.auth_user.email == 'scottianw@gmail.com'))
+    user_query = db((db.auth_user.first_name == reg_data['first_name']) &
+                    (db.auth_user.last_name == reg_data['last_name']) &
+                    (db.auth_user.email == reg_data['email']) &
+                    (db.auth_user.time_zone == reg_data['time_zone']))
     user_count = user_query.count()
     if user_count == 0:
         auth.table_user().insert(**reg_data)
@@ -170,6 +172,7 @@ def user_login(request, web2py, client, db):
 
     # log test user in
     auth.login_user(user_record)
+    assert auth.is_logged_in()
     #log_data = {'email': 'scottianw@gmail.com',
                 #'password': 'test'}
     #client.post('/default/user/login', data=log_data)

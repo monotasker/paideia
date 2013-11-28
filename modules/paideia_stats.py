@@ -4,8 +4,8 @@ import dateutil.parser
 import traceback
 from pytz import timezone
 from gluon import current, DIV, H4, TABLE, THEAD, TBODY, TR, TD, SPAN, A, URL
-from paideia_utils import send_error
-#from pprint import pprint
+from paideia_utils import send_error, make_json
+from pprint import pprint
 #import logging
 import itertools
 #logger = logging.getLogger('web2py.app.paideia')
@@ -14,24 +14,83 @@ import itertools
 class Stats(object):
     '''
     Provides various statistics on student performance.
+
+    Allows reporting on:
+        - badges/level
+
+        - trw/day/badge
+        - trw/day/level
+        - trw/day/set
+        - trw/day/step
+
+        - attempts/day (total)
+        - attempts/day/level, badge, set, step
+
+        - count badges over time (total, by set, by level)
+        Flag:
+            - repeated steps the same day
+            - excessive changes in stats
     '''
     Name = "paideia_stats"
-    verbose = False
 
-    def __init__(self, user_id=None, auth=None, cache=None):
-        if self.verbose: print '\nInitializing Stats object =================='
-        if auth is None:
-            auth = current.auth
-        if user_id is None:
-            user_id = auth.user_id
-        self.user_id = user_id
-        self.loglist = self.log_list()
+    def __init__(self, user_id=None, auth=None, cache=None, duration=None):
+        """
+        Initialize Stats object for tracking paideia user statistics.
+
+        At this stage compiles
+        - basic user information (user_id, auth_user row, readable name)
+        - tag_progress information (dict)
+        - user's tag records,
+        """
         db = current.db
-        self.tag_badges = {tb.tags.id: {'badge': tb.badges.badge_name,
-                                        'description': tb.badges.description,
-                                        'tag': tb.tags.tag}
-                           for tb in db(db.tags.id == db.badges.tag
-                                        ).select(cacheable=True)}
+        auth = current.auth
+        self.alerts = {}
+
+        # user info
+        user_id = auth.user_id if user_id is None else user_id
+        self.user_id = user_id
+        self.user = db.auth_user(user_id)
+        self.name = '{}, {}'.format(self.user.last_name, self.user.first_name)
+
+        # overall progress through tag sets and levels
+        self.tag_progress = db(db.tag_progress.name == self.user_id
+                               ).select().first().as_dict()
+        #if len(self.tag_progress) > 1:
+            #ids = [t.id for t in self.tag_progress]
+            #self.alerts['duplicate tag_progress rows'] = ids
+
+        # performance on each tag
+        print 'init: starting to get self.tag_recs'
+        self.tag_recs = db(db.tag_records.name == self.user_id
+                           ).select(cacheable=True)
+        dups = {}
+        for t in self.tag_recs:
+            if t.tag in dups.keys():
+                dups[t.tag] += 1
+            else:
+                dups[t.tag] = 1
+        dups = {k: v for k, v in dups.iteritems() if v > 1}
+        if dups:
+            self.alerts['duplicate tag_records rows'] = dups
+
+        # date of each tag promotion
+        self.badges_begun = db(db.badges_begun.name == self.user_id).select()
+        if len(self.badges_begun) > 1:
+            self.alerts['duplicate badges_begun records'] = [bb.id for bb
+                                                        in self.badges_begun]
+
+        # log of individual attempts for duration (default is 30 days)
+        self.duration = datetime.timedelta(days=30) \
+                        if not duration else duration
+        self.utcnow = datetime.datetime.utcnow()
+        self.cutoff = self.utcnow - self.duration
+        self.logs, self.loglist = self.log_list(self.cutoff)
+
+    def get_name(self):
+        """
+        Return the specified user's name as a single string, last name first.
+        """
+        return self.name
 
     def store_stats(self, user_id, weekstart, weekstop, weeknum):
         '''
@@ -74,26 +133,18 @@ class Stats(object):
                             (db.attempt_log.dt_attempted <= weekstop)
                             ).select().as_list()
 
-    def step_log(self, logs=None, user_id=None, duration=None, db=None):
+    def step_log(self, logs=None, user_id=None, duration=None):
         '''
         Get record of a user's steps attempted in the last seven days.
 
         TODO: move this aggregate data to a db table "user_stats" on calculation.
         '''
-        now = datetime.datetime.utcnow()
-        if not user_id:
-            user_id = self.user_id
-        if not duration:
-            duration = datetime.timedelta(days=7)
-        if not db:
-            db = current.db
-        if not logs:
-            logstart = now - duration  # yields datetime obj
-            logs = db((db.attempt_log.name == user_id) &
-                      (db.attempt_log.dt_attempted >= logstart)
-                      ).select().as_list()
+        db = current.db
+        now = self.utcnow
+        user_id = self.user_id
+        duration = self.duration
+        logs = self.logs
 
-        #TODO: Get utc time offset dynamically from user's locale
         logset = []
         stepset = set(l['step'] for l in logs)
         tag_badges = self.tag_badges
@@ -157,71 +208,144 @@ class Stats(object):
 
         return {'loglist': logset, 'duration': duration}
 
+    def add_progress_data(self, tag_recs):
+        """
+        Return list of tag records with additional fields for progress data.
+        """
+        missing_cat = []
+        missing_rev = []
+        for t in tag_recs:
+            tid = t.tag
+            try:
+                t['current_level'] = [k for k, v
+                                      in self.tag_progress.iteritems()
+                                      if k in ['cat1', 'cat2', 'cat3', 'cat4']
+                                      and tid in v][0][3:]
+            except IndexError:
+                t['current_level'] = 1
+                missing_cat.append(tid)
+            try:
+                t['review_level'] = [k for k, v
+                                     in self.tag_progress.iteritems()
+                                     if k in ['rev1', 'rev2', 'rev3', 'rev4']
+                                     and tid in v][0][3:]
+            except IndexError:
+                t['review_level'] = 1
+                missing_rev.append(tid)
+
+        return tag_recs
+
+    def add_tag_data(self, tag_recs):
+        """
+        Return list of tag records with additional fields for tag information.
+        """
+        for t in tag_recs:
+            try:
+                t['set'] = t.tag.tag_position
+            except RuntimeError:
+                print 'no tag position for tag', t.tag
+                t['set'] = 999
+            try:
+                t['slides'] = t.tag.slides
+            except RuntimeError:
+                print 'no slides for tag', t.tag
+                t['slides'] = None
+            try:
+                t['badge_name'] = db.badges(t.tag).badge_name
+            except:
+                RuntimeError
+                print 'no badge for tag {}'.format(t.tag)
+                t['badge_name'] = 'missing badge for tag {}'.format(t.tag)
+        return tag_recs
+
+    def add_promotion_data(self, tag_recs):
+        """
+        Return list of tag records with additional fields for promoriont data.
+
+        New fields are:
+            - dt_cat1, dt_cat2, dt_cat3, dt_cat4
+            - prettydate_cat1, prettydate_cat2, prettydate_cat3,
+              prettydate_cat4
+        """
+        for t in tag_recs:
+            try:
+                bb = [b for b in self.badges_begun if b.tag == t['tag']][0]
+            except IndexError:
+                bb = None
+            for k in range(1,5):
+                nka = 'dt_cat{}'.format(k)
+                dt = bb.cat1 if bb else 'n/a'
+                nkb = 'prettydate_cat{}'.format(k)
+                pdt = dt.strftime('%b %e, %Y') \
+                        if isinstance(dt, datetime.datetime) else 'n/a'
+                t.update({nka: dt, nkb: pdt})
+        return tag_recs
+
     def active_tags(self):
         '''
         Find the tags that are currently active for this user, categorized 1-4.
         '''
-        if self.verbose: print 'calling Stats.active_tags() ------------------'
-        db = current.db
+        tr = self.tag_recs
         try:
-            atag_s = db(db.tag_progress.name == self.user_id).select().first()
-            atags = {}
-            atags1 = atags['cat1'] = list(set(atag_s.cat1))  # remove dup's
-            atags2 = atags['cat2'] = list(set(atag_s.cat2))
-            atags3 = atags['cat3'] = list(set(atag_s.cat3))
-            atags4 = atags['cat4'] = list(set(atag_s.cat4))
-            #atags5 = atags['rev1'] = list(set(atag_s.rev1))  # remove dup's
-            #atags6 = atags['rev2'] = list(set(atag_s.rev2))
-            #atags7 = atags['rev3'] = list(set(atag_s.rev3))
-            #atags8 = atags['rev4'] = list(set(atag_s.rev4))
-            for c, lst in atags.iteritems():
-                # allow for possibility that tag hasn't got badge yet
-                try:
-                    atags[c] = [self.tag_badges[t]['badge'] for t in lst
-                                if t in self.tag_badges.keys()]
-                except AttributeError:
-                    # TODO: send notice here
-                    pass
-            try:
-                total = []
-                for c in [atags1, atags2, atags3, atags4]:
-                    if c: total.extend(c)
-                atags['total'] = len(total)
-            except Exception:
-                print traceback.format_exc(5)
-                atags['total'] = 'an unknown number of'
-
-            latest_rank = atag_s.latest_new
-            # fix any leftover records with latest rank stuck at 0
-            if latest_rank == 0:
-                atag_s.update_record(latest_new=1)
-                latest_rank = 1
-
-            latest_tags = db(db.tags.tag_position == latest_rank).select()
-            if latest_tags is None:
-                latest_badges = ['Sorry, I can\'t find them!']
-            else:
-                latest_badges = []
-                for t in latest_tags:
-                    try:
-                        l = self.tag_badges[t.id]
-                        if l:
-                            latest_badges.append(l['badge'])
-                    except:
-                        pass
-                if latest_badges is None:
-                    latest_badges = ['Sorry, I couldn\'t find that!']
-                atags['latest'] = latest_badges
+            tr = self.add_progress_data(tr)
+            tr = self.add_tag_data(tr)
+            tr = self.add_promotion_data(tr)
+            self.tag_recs = tr
+            return tr
         except Exception:
             print traceback.format_exc(5)
-            atags['total'] = 'Sorry, I can\'t calculate total number of ' \
-                             'active badges.'
-            atags['latest'] = ['Sorry, I can\'t find the most recent badges awarded.']
-            send_error(Stats, 'active_tags', current.request)
+            return None
 
-        return atags
+    def logs_with_tagrecs(self, tag_recs):
+        """
+        Returns a flattened list of log entries cross-referenced with tag data.
 
-    def log_list(self):
+        The resulting list represents attempts for each tag. This means that
+        multiple entries may represent a single actual step attempt (since the
+        step could have multiple tags). The following reductions will help to
+        extract necessary data:
+            attempts by step:         count # for each "step" & "dt_attempted"
+                                      value, grouped by date
+            attempts by date:         count occurrences of each "dt_attempted"
+                                      value
+            attempts by step by date: count occurrences of each "step" and
+                                      "dt_attempted" combination
+            attempts by tag by date:  count occurrences of each "tag" and
+                                      "dt_attempted" combination
+            attempts by set by date:  ???
+            attempts by level by date:???
+            progress for each tag:    first row for each row['tag'] value
+            progress for each step:    first row for each row['step'] value
+            badges by level
+        """
+        fl = []
+        logs = self.logs
+        pprint(tag_recs)
+        for l in logs:
+            for tag in l.step.tags:
+                myl = l.as_dict()
+                myl['tag'] = tag
+                tagrec = [trow for trow in tag_recs if trow['tag'] == tag]
+                pprint(tagrec)
+                if not tagrec:
+                    continue
+                else:
+                    print tag
+                    myl.update(tagrec[0])
+                    fl.append(myl)
+        return make_json(fl)
+
+    def get_max(self):
+        """
+        Return an integer corresponding to the user's furthest badge set.
+
+        The 'badge set' is actually the series of ints in db.tags.tag_position.
+        """
+        max_set = self.tag_progress['latest_new'] \
+                  if self.tag_progress['latest_new'] else 1
+        return max_set
+
+    def log_list(self, cutoff):
         """
         Collect and return a dictionary in which the keys are datetime.date()
         objects and the values are an integer representing the number of
@@ -231,29 +355,25 @@ class Stats(object):
         These datetimes and totals are corrected from UTC to the user's
         local time zone.
         """
-        if self.verbose: print 'calling Stats.log_list() ---------------------'
         db = current.db
-
-        log_query = db(db.attempt_log.name == self.user_id)
-        logs = log_query.select(db.attempt_log.dt_attempted)
+        logs = db((db.attempt_log.name == self.user_id) &
+                  (db.attempt_log.dt_attempted >= self.cutoff)).select()
         loglist = {}
 
-        #offset from utc time used to generate and store time stamps
-        tz_name = db.auth_user[self.user_id].time_zone
-        tz = timezone(tz_name)
-
-        # count the number of attempts for each unique date
         for log in logs:
-            newdatetime = tz.fromutc(log.dt_attempted)
+            newdatetime = self.user.tz_obj.localize(log.dt_attempted)
             newdate = datetime.date(newdatetime.year,
                                     newdatetime.month,
                                     newdatetime.day)
+            log.dt_local = newdate
             if newdate in loglist:
                 loglist[newdate] += 1
             else:
                 loglist[newdate] = 1
+            if not log.dt_local:
+                log.dt_local = 'n/a'
 
-        return loglist
+        return logs, loglist
 
     def monthstats(self, year=None, month=None):
         '''
@@ -262,8 +382,6 @@ class Stats(object):
         this method will by default provide stats for the current month and
         year.
         '''
-        if self.verbose: print 'calling Stats.monthstats() -------------------'
-
         # get current year and month as default
         if not month:
             month = datetime.date.today().month
@@ -418,11 +536,9 @@ def get_offset(user):
     '''
     Return the user's offset from utc time based on their time zone.
     '''
-    today = datetime.datetime.utcnow()
-    now = timezone('UTC').localize(today)
-    tz_name = user.auth_user.time_zone if user.auth_user.time_zone \
-        else 'America/Toronto'
-    offset = now - timezone(tz_name).localize(today)  # when to use "ambiguous"?
-    # alternative is to do tz.fromutc(datetime)
-
-    return offset
+    #today = datetime.datetime.utcnow()
+    #now = timezone('UTC').localize(today)
+    #tz_name = user.auth_user.time_zone if user.auth_user.time_zone \
+        #else 'America/Toronto'
+    #offset = now - timezone(tz_name).localize(today)  # when to use "ambiguous"?
+    return user.auth_user.offset
