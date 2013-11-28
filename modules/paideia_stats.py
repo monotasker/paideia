@@ -239,19 +239,24 @@ class Stats(object):
         """
         Return list of tag records with additional fields for tag information.
         """
+        db = current.db
         for t in tag_recs:
             try:
-                t['set'] = t.tag.tag_position
+                if t.tag.tag_position > 100:
+                    t['set'] = None
+                else:
+                    t['set'] = t.tag.tag_position
+                print t['set']
             except RuntimeError:
                 print 'no tag position for tag', t.tag
-                t['set'] = 999
+                t['set'] = None
             try:
                 t['slides'] = t.tag.slides
             except RuntimeError:
                 print 'no slides for tag', t.tag
                 t['slides'] = None
             try:
-                t['badge_name'] = db.badges(t.tag).badge_name
+                t['badge_name'] = db(db.badges.tag == t.tag).select().first().badge_name
             except:
                 RuntimeError
                 print 'no badge for tag {}'.format(t.tag)
@@ -290,8 +295,10 @@ class Stats(object):
             tr = self.add_progress_data(tr)
             tr = self.add_tag_data(tr)
             tr = self.add_promotion_data(tr)
+            for t in tr:
+                t['logs'] = [l.as_dict() for l in self.logs if t['tag'] in l.step.tags]
             self.tag_recs = tr
-            return tr
+            return make_json(tr.as_list())
         except Exception:
             print traceback.format_exc(5)
             return None
