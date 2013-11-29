@@ -61,7 +61,7 @@ class Bug(object):
             mail.send(mail.settings.sender, 'bug reporting error', msg)
             return False
 
-    def undo(self, user_id, bug_id, log_id):
+    def undo(self, user_id, bug_id, log_id, newscore, comment):
         '''
         Reverse the recorded effects of a single wrong answer for a given user.
 
@@ -71,63 +71,80 @@ class Bug(object):
         db = current.db
         step_id = self.step_id
 
+        # Find all equivalent bug reports
         bug_row = db.bugs(bug_id)
+        bug_query = db((db.bugs.step == bug_row.step) &
+                       (db.bugs.in_path == bug_row.in_path) &
+                       (db.bugs.user_response == bug_row.user_response) &
+                       (db.bugs.score < 1))
+        bugrows = bug_query.select()
 
-        # don't do anything if the original answer was counted as correct
-        if bug_row.score == 1:
-            return True
+        # Update those bug reports with the new values
+        bug_query.update(**{'score': newscore,
+                            'admin_comment': comment,
+                            'bug_status': bugstatus})
 
-        try:
-            # correct score in the attempt_log table
-            log_row = db.attempt_log(log_id)
-            log_row.update_record(score=1)
+        # Fix scores for all identical attempts in log
+        # TODO: This will only work for bugs recorded since adding
+        # user_response to attempt_log table
+        logquery = db((db.attempt_log.step == bug_row.step) &
+                      (db.attempt_log.user_response == bug_row.user_response) &
+                      (db.attempt_log.score != newscore))
+        if not logquery.count():
+            # TODO: for now, also correct target log row directly by id
+            logquery = db(db.attempt_log.id == log_id)
+        logquery.update(**{'score': newscore})
+        logrows = logquery.select()
 
-            # correct tag_records entry for each tag on the step
-            step_id = bug_row.step
-            tagset = db.steps(step_id).tags
-            for tag in tagset:
-                trecord = db((db.tag_records.tag == tag) &
-                            (db.tag_records.name == user_id)).select().first()
-                args = {}
 
-                # revert the last right date
-                bugdate = bug_row.date_submitted
-                lastr = trecord.tlast_right
-                if lastr == bugdate:
-                    pass
-                elif lastr - bugdate >= timedelta(seconds=1):
-                    pass
-                else:
-                    args['tlast_right'] = bugdate
+        if newscore - 1 <= 0.000000009:  # account for float inaccuracy
+            # Fix last_right, last_wrong, times_right, and times_wrong in each
+            # tag_records row for each affected user
+            try:
+                tagids = db.steps(bug_row.step).tags
+                names = set([b.name for b in bugrows])
+                trecords = db((db.tag_records.tag.belongs(tagids) &
+                            (db.tag_records.name.belongs(names)).select()
+                for myname in names:
+                    myrecs = trecords.find(lambda r: r.name == myname)
+                    new_logs_right = logrows.find(lambda r:
+                                                  (r.name == myname) and
+                                                  (abs(r.score - 1) <= 0.000000009))
+                    newdates = [r.dt_attempted for r in new_logs_right]
+                    new_latest_right = max(newdates)
+                    new_earliest_right = min(newdates)
+                    for tr in myrecs:
+                        updates = {}
+                        # correct last right and last wrong dates
+                        if new_latest_right > tr.tlast_right:
+                            updates['tlast_right'] = new_latest_right
+                        if tr.tlast_wrong > new_earliest_right and \
+                                tr.tlast_wrong < new_latest_right:
+                            rightids = [r.id for r in new_logs_right]
+                            oldlogs = db((db.attempt_log.name == user_id) &
+                                         (db.attempt_log.dt_attempted
+                                          > new_earliest_right) &
+                                         (db.attempt_log.dt_attempted
+                                          < new_latest_right)
+                                         (db.attempt_log.step.tags.contains([tr.tag]) &
+                                         (abs(db.attempt_log.score - 1) > 0.00000009) &
+                                         ).select()
+                            oldlogs.exclude(lambda r: r.id in rightids)
+                            if oldlogs:
+                                odates = [l.dt_attempted for l in oldlogs]
+                                updates['tlast_wrong'] = max(odates)
 
-                # revert the last wrong date
-                lastw = trecord.tlast_wrong
-                if lastw == bugdate:
-                    pass
-                elif lastw - bugdate >= timedelta(seconds=1):
-                    pass
-                else:
-                    oldlogs = db((db.attempt_log.name == user_id) &
-                                (db.attempt_log.step == step_id) &
-                                (db.attempt_log.score < 1)
-                                 ).select(orderby=~db.attempt_log.dt_attempted)
-                    oldlogs = oldlogs.find(lambda row:
-                            (bugdate - row.dt_attempted) >
-                            timedelta(seconds=1))
-                    prev_log = oldlogs.first()
-                    args['tlast_wrong'] = prev_log.dt_attempted
-
-                # revert counts for times right and wrong
-                args['times_right'] = (trecord.times_right + 1)
-                args['times_wrong'] = (trecord.times_wrong - 1)
-
-                trecord.update_record(**args)
-
+                        # correct counts for times right and wrong
+                        rightcount = sum(l.score for l in new_logs_right)
+                        updates['times_right'] += rightcount
+                        updates['times_wrong'] -= rightcount
+                        # commit the updates to db
+                        tr.update_record(**updates)
                 return 'Bug {} reversed.'.format(bug_id)
 
-        except Exception, e:
-            print type(e), e
-            return 'Bug {} could not be reversed.'.format(bug_id)
+            except Exception, e:
+                print traceback.format_exc(5)
+                return 'Bug {} could not be reversed.'.format(bug_id)
 
     def bugresponses(self, user):
         '''
