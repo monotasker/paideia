@@ -12,10 +12,10 @@ pass}}
 
 <script>
 if ($('select#bugs_bug_status')){
-    $('select#bugs_bug_status').live('change', function(event){
+    $('select#bugs_bug_status').on('change', function(event){
         var newval = $(this).children('option:selected').val()
         if ((newval == 1)|(newval == 2)){
-            ajax('{{=URL('editing', 'undo_bug')}}', ['id', 'step', 'path', 'score', 'location', 'log_id', 'user_name'], ':eval');
+            ajax('{{=URL('editing', 'undo_bug')}}', ['id', 'log_id', 'score', 'bug_status', 'user_name', 'admin_comment'], ':eval');
         }
     });
 };
