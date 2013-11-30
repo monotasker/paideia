@@ -419,7 +419,8 @@ db.define_table('attempt_log',
                 Field('step', db.steps),
                 Field('in_path', db.paths),  # was path (reserved term)
                 Field('score', 'double'),
-                Field('dt_attempted', 'datetime', default=dtnow)
+                Field('dt_attempted', 'datetime', default=dtnow),
+                Field('user_response', 'string')
                 )
 db.attempt_log.name.requires = IS_IN_DB(db, 'auth_user.id',
                                 db.auth_user._format)

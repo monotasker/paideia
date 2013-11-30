@@ -111,7 +111,7 @@ auth.settings.extra_fields['auth_user'] = [
           widget=SQLFORM.widgets.options.widget
           ),
     Field.Virtual('tz_obj',
-                  lambda row: timezone(row.auth_user.time_zone)
+                  lambda row: timezone(row.auth_user.time_zone.replace('|', ''))
                               if (hasattr(row.auth_user, 'time_zone') and
                                   row.auth_user.time_zone)
                               else 'America/Toronto'
