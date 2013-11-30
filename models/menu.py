@@ -91,7 +91,7 @@ if auth.has_membership('administrators', auth.user_id) or auth.is_impersonating(
              [(SPAN(T(' Users'), _class='icon-group'), False,
                     URL('listing', 'user')),
               (SPAN(T(' Individual user'), _class='icon-group'), False,
-                    URL('reporting', 'user')),
+                    URL('reporting', 'user', args=[0])),
               (SPAN(T(' New Bug reports'), _class='icon-warning-sign'), False,
                     URL('editing',
                         'listing.html', args=['bugs'],
@@ -120,7 +120,8 @@ if auth.has_membership('administrators', auth.user_id) or auth.is_impersonating(
 
             (SPAN(T(' Web IDE'), _class='icon-code'), False,
                   URL('admin', 'default', 'index')),
-
+            (SPAN(T(' Web IDE'), _class='icon-frown'), False,
+                  URL('admin', 'default', 'errors/paideia')),
             (SPAN(T(' Database'), _class='icon-sitemap'), False,
                   URL('appadmin', 'index')),
             ])
