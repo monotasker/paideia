@@ -15,7 +15,7 @@ import traceback
 from pytz import timezone
 from plugin_widgets import POPOVER, ROLE, MODAL
 import pickle
-from pprint import pprint
+#from pprint import pprint
 #from paideia_utils import send_error
 
 # TODO: move these notes elsewhere
@@ -1468,18 +1468,18 @@ class StepEvaluator(object):
         responses = self.responses
         # Compare the student's response to the regular expressions
         try:
-            if re.match(responses['response1'], user_response, re.I):
+            if re.match(responses['response1'], user_response, re.I|re.U):
                 score = 1
                 reply = "Right. Κάλον."
             elif len(responses) > 1 and re.match(responses['response2'],
-                                                 user_response, re.I):
+                                                 user_response, re.I|re.U):
                 score = 0.5
                 #TODO: Get this score value from the db instead of hard
                 #coding it here.
                 reply = "Οὐ κάκον. You're close."
                 #TODO: Vary the replies
             elif len(responses) > 2 and re.match(responses['response3'],
-                                                 user_response, re.I):
+                                                 user_response, re.I|re.U):
                 #TODO: Get this score value from the db instead of hard
                 #coding it here.
                 score = 0.3
