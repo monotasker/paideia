@@ -112,6 +112,8 @@ if auth.has_membership('administrators', auth.user_id) or auth.is_impersonating(
             (SPAN(T(' Utils'), _class='icon-cog'), False, None,
              [(SPAN(T(' Make paths'), _class='icon-cog'), False,
                     URL('util', 'make_path')),
+              (SPAN(T(' Test step regex'), _class='icon-cog'), False,
+                    URL('util', 'test_regex')),
               (SPAN(T(' Bulk update'), _class='icon-cog'), False,
                     URL('util', 'bulk_update')),
               (SPAN(T(' Impersonate'), _class='icon-cog'), False,
@@ -120,7 +122,7 @@ if auth.has_membership('administrators', auth.user_id) or auth.is_impersonating(
 
             (SPAN(T(' Web IDE'), _class='icon-code'), False,
                   URL('admin', 'default', 'index')),
-            (SPAN(T(' Web IDE'), _class='icon-frown'), False,
+            (SPAN(T(' Error reports'), _class='icon-frown'), False,
                   URL('admin', 'default', 'errors/paideia')),
             (SPAN(T(' Database'), _class='icon-sitemap'), False,
                   URL('appadmin', 'index')),

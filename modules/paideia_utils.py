@@ -57,12 +57,12 @@ Part of the Paideia platform built with web2py.
 """
 import traceback
 from gluon import current, SQLFORM, Field, BEAUTIFY, IS_IN_DB, UL, LI, A, URL, P
-from gluon import TABLE, TD, TR, LABEL
+from gluon import TABLE, TD, TR, LABEL, SPAN
 #from plugin_ajaxselect import AjaxSelect
 import re
 from random import randrange, shuffle
 from itertools import product
-from pprint import pprint
+#from pprint import pprint
 import datetime
 import json
 
@@ -143,7 +143,46 @@ def firstletter(mystring):
     #return first_letter, tail
 
 
+def test_regex(regex, readables):
+    """
+    Return a re.match object for each given string, tested with the given regex.
+
+    The "readables" argument should be a list of strings to be tested.
+    """
+    readables = readables if type(readables) == list else [readables]
+    test_regex = re.compile(regex, re.I|re.U)
+    rdict = {}
+    for rsp in readables:
+        match = re.match(test_regex, rsp)
+        rdict[rsp] = SPAN('PASSED', _class='success') if match \
+                     else SPAN('FAILED', _class='success')
+    return rdict
+
+
+def test_step_regex():
+    """
+    Return a form that handles regex testing for individual steps.
+    """
+    db = current.db
+    result = None
+    form = SQLFORM.factory(Field('step_number', 'integer',
+                                 requires=IS_IN_DB(db, 'steps.id')))
+
+    if form.process(dbio=False, keepvalues=True).accepted:
+        sid = form.vars.step_number
+        row = db.steps(sid)
+        result = test_regex(row.response1, row.readable_response.split('|'))
+        result = BEAUTIFY(result)
+    elif form.errors:
+        result = BEAUTIFY(form.errors)
+
+    return form, result
+
+
 def flatten(self, items, seqtypes=(list, tuple)):
+    """
+    Convert an arbitrarily deep nested list into a single flat list.
+    """
     for i, x in enumerate(items):
         while isinstance(items[i], seqtypes):
             items[i:i+1] = items[i]
@@ -955,7 +994,7 @@ class TranslateWordPathFactory(PathFactory):
                 except Exception:
                     tbk = traceback.format_exc(5)
                     result[compname] = ('failure', tbk)
-        return paths, result
+        return result
 
     def get_constructions(self, lemma):
         """
@@ -972,17 +1011,17 @@ class TranslateWordPathFactory(PathFactory):
             self.numbers = ['s', 'p']
             # TODO: this is very high loop complexity; move to db as fixed list
             self.verbcs = ['{}{}{}{}{}'.format(t, v, m, p, n)
-                            for m in moods
-                            for t in tenses
-                            for v in voice
-                            for p in persons
-                            for n in numbers
+                            for m in self.moods
+                            for t in self.tenses
+                            for v in self.voice
+                            for p in self.persons
+                            for n in self.numbers
                             if not (m == '_inf')
                             and not (m == '_imper' and p in ['_1', '_3'])]
             self.verbcs2 = ['{}{}{}'.format(t, v, m)
-                            for m in moods
-                            for t in tenses
-                            for v in voice
+                            for m in self.moods
+                            for t in self.tenses
+                            for v in self.voice
                             if (m == '_inf')]
             self.verbcs = self.verbcs.extend(self.verbcs2)
             return self.verbcs

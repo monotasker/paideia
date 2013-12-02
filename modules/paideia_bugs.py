@@ -106,7 +106,7 @@ class Bug(object):
             # tag_records row for each affected user
             try:
                 tagids = db.steps(bug_row.step).tags
-                names = set([b.name for b in bugrows])
+                names = set([b.user_name for b in bugrows])
                 trecords = db((db.tag_records.tag.belongs(tagids)) &
                               (db.tag_records.name.belongs(names))).select()
                 for myname in names:
@@ -140,8 +140,10 @@ class Bug(object):
 
                         # correct counts for times right and wrong
                         rightcount = sum(l.score for l in new_logs_right)
-                        updates['times_right'] += rightcount
-                        updates['times_wrong'] -= rightcount
+                        updates['times_right'] = tr.times_right + rightcount
+                        updates['times_wrong'] = tr.times_wrong - rightcount
+                        if updates['times_wrong'] < 0:
+                            updates['times_wrong'] = 0
                         # commit the updates to db
                         print '\nupdating tag record', tr.id
                         pprint(updates)

@@ -5,13 +5,23 @@ Controller functions handling back-end utility tasks (mostly db maintenance).
 """
 
 if 0:
-    from gluon import current, BEAUTIFY
+    from gluon import current, BEAUTIFY, SQLFORM, Field, IS_IN_SET
     db = current.db
     auth = current.auth
     request = current.request
+    response = current.response
 import paideia_utils
 import traceback
 #from pprint import pprint
+
+
+@auth.requires_membership('administrators')
+def test_regex():
+    """
+    Test whether a step's regex is satisfied by all of its readable responses.
+    """
+    form, result = paideia_utils.test_step_regex()
+    return {'form': form, 'result': result}
 
 
 @auth.requires_membership('administrators')

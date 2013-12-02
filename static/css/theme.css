@@ -9841,11 +9841,11 @@ body .container-fluid .main #page .bg_image img {
 }
 body .container .main #page .speaker,
 body .container-fluid .main #page .speaker {
-  position: absolute;
-  z-index: 2;
-  left: 0px;
+  position: relative;
+  left: 0;
   top: 48px;
   width: 380px;
+  float: left;
 }
 body .container .main #page .speaker img,
 body .container-fluid .main #page .speaker img {
@@ -9880,7 +9880,6 @@ body #main.exploring #page .responder {
   margin-right: 12px;
   max-width: 65%;
   display: block;
-  z-index: 99;
   font-size: 20px;
   line-height: 30px;
   -webkit-border-radius: 4px 4px 4px 4px;
