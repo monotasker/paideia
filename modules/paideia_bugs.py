@@ -68,8 +68,10 @@ class Bug(object):
         Intended to be run when an administrator or instructor sets a bug to
         'confirmed' or 'fixed'.
         '''
+        message = ''
         newscore = 1.0
         db = current.db
+        response = current.response
 
         # Find all equivalent bug reports
         bug_row = db.bugs(bug_id)
@@ -83,10 +85,10 @@ class Bug(object):
         bug_query.update(**{'score': newscore,
                             'admin_comment': comment,
                             'bug_status': bugstatus})
+        bugusers = len(list(set([b.user_name for b in bugrows])))
+        message += "\nupdated {} bug reports for {} users".format(len(bugrows), bugusers)
 
-        # Fix scores for all identical attempts in log
-        # TODO: This will only work for bugs recorded since adding
-        # user_response to attempt_log table
+        # Find affected attempt log rows
         try:
             logquery = db((db.attempt_log.step == bug_row.step) &
                         (db.attempt_log.user_response == bug_row.user_response) &
@@ -96,63 +98,75 @@ class Bug(object):
                 logquery = db(db.attempt_log.id == log_id)
         except AttributeError:
             logquery = db(db.attempt_log.id == log_id)
-        logquery.update(**{'score': newscore})
         logrows = logquery.select()
-        print '\ncorrecting', logquery.count(), 'log entries'
-        print [l.id for l in logrows]
 
+        # Fix last_right, last_wrong, times_right, and times_wrong in each
+        # tag_records row for each affected user
         if newscore - 1 <= 0.000000009:  # account for float inaccuracy
-            # Fix last_right, last_wrong, times_right, and times_wrong in each
-            # tag_records row for each affected user
             try:
                 tagids = db.steps(bug_row.step).tags
                 names = set([b.user_name for b in bugrows])
                 trecords = db((db.tag_records.tag.belongs(tagids)) &
                               (db.tag_records.name.belongs(names))).select()
+                updated_list = []
                 for myname in names:
                     myrecs = trecords.find(lambda r: r.name == myname)
-                    new_logs_right = logrows.find(lambda r:
-                                                  (r.name == myname) and
-                                                  (abs(r.score - 1) <= 0.000000009))
-                    newdates = [r.dt_attempted for r in new_logs_right]
-                    new_latest_right = max(newdates)
-                    new_earliest_right = min(newdates)
-                    for tr in myrecs:
-                        updates = {}
-                        # correct last right and last wrong dates
-                        if new_latest_right > tr.tlast_right:
-                            updates['tlast_right'] = new_latest_right
-                        if tr.tlast_wrong > new_earliest_right and \
-                                tr.tlast_wrong < new_latest_right:
-                            rightids = [r.id for r in new_logs_right]
-                            oldlogs = db((db.attempt_log.name == myname) &
-                                         (db.attempt_log.dt_attempted
-                                          > new_earliest_right) &
-                                         (db.attempt_log.dt_attempted
-                                          < new_latest_right) &
-                                         (db.attempt_log.step.tags.contains([tr.tag])) &
-                                         (abs(db.attempt_log.score - 1) > 0.00000009)
-                                         ).select()
-                            oldlogs.exclude(lambda r: r.id in rightids)
-                            if oldlogs:
-                                odates = [l.dt_attempted for l in oldlogs]
-                                updates['tlast_wrong'] = max(odates)
+                    message += '\nuser {} has {} tag records'.format(myname, len(myrecs))
+                    new_logs_right = logrows.find(lambda r: r.name == myname)
+                    message += '\nuser {} has {} log rows to be corrected'.format(myname, len(new_logs_right))
+                    if len(new_logs_right):
+                        newdates = [r.dt_attempted for r in new_logs_right]
+                        new_latest_right = max(newdates)
+                        new_earliest_right = min(newdates)
+                        for tr in myrecs:
+                            message += '\ntrying to update tag_record {}'.format(tr.id)
+                            updates = {}
+                            # correct last right and last wrong dates
+                            if new_latest_right > tr.tlast_right:
+                                updates['tlast_right'] = new_latest_right
+                            if tr.tlast_wrong > new_earliest_right and \
+                                    tr.tlast_wrong < new_latest_right:
+                                rightids = [r.id for r in new_logs_right]
+                                oldlogs = db((db.attempt_log.name == myname) &
+                                            (db.attempt_log.dt_attempted
+                                            > new_earliest_right) &
+                                            (db.attempt_log.dt_attempted
+                                            < new_latest_right) &
+                                            (db.attempt_log.step.tags.contains([tr.tag])) &
+                                            (abs(db.attempt_log.score - 1) > 0.00000009)
+                                            ).select()
+                                oldlogs.exclude(lambda r: r.id in rightids)
+                                if oldlogs:
+                                    odates = [l.dt_attempted for l in oldlogs]
+                                    updates['tlast_wrong'] = max(odates)
 
-                        # correct counts for times right and wrong
-                        rightcount = sum(l.score for l in new_logs_right)
-                        updates['times_right'] = tr.times_right + rightcount
-                        updates['times_wrong'] = tr.times_wrong - rightcount
-                        if updates['times_wrong'] < 0:
-                            updates['times_wrong'] = 0
-                        # commit the updates to db
-                        print '\nupdating tag record', tr.id
-                        pprint(updates)
-                        tr.update_record(**updates)
-                return 'Bug {} reversed.'.format(bug_id)
+                            # correct counts for times right and wrong
+                            rightcount = sum(l.score for l in new_logs_right)
+                            updates['times_right'] = tr.times_right + rightcount
+                            updates['times_wrong'] = tr.times_wrong - rightcount
+                            if updates['times_wrong'] < 0:
+                                updates['times_wrong'] = 0
+                            # commit the updates to db
+                            updated_list.append(tr.id)
+                            pprint(updates)
+                            tr.update_record(**updates)
+                    else:  # user has no wrong logs to be changed
+                        pass
+                message += '\nupdated these tag records rows: {}'.format(updated_list)
 
             except Exception:
                 print traceback.format_exc(5)
-                return 'Bug {} could not be reversed.'.format(bug_id)
+                message += '\nTag_records rows for bug {} could not be reversed.'.format(bug_id)
+
+        # Fix scores for all identical attempts in log
+        # TODO: This will only work for bugs recorded since adding
+        # user_response to attempt_log table
+        logquery.update(**{'score': newscore})
+        logids = [l.id for l in logrows]
+        message += '\ncorrecting {} attempt log entries: {}'.format(str(logquery.count()), logids)
+        print message
+        response.flash = message
+        return message
 
     def bugresponses(self, user):
         '''

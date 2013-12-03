@@ -562,7 +562,8 @@ class Walk(object):
         log_args = {'name': user_id,
                     'step': step_id,
                     'in_path': path_id,
-                    'score': score}  # time recorded automatically in table
+                    'score': score,
+                    'user_response': response_string}  # time recorded automatically in table
         log_record_id = db.attempt_log.insert(**log_args)
 
         return log_record_id
