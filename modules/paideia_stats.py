@@ -443,6 +443,7 @@ class Stats(object):
         monthname = nms[data['month_name']]
 
         # Create wrapper div with title line and month name
+        newmcal = calendar.HTMLCalendar(6).formatmonth(year, month)
         mcal = DIV(SPAN('Questions answered each day in',
                         _class='monthcal_intro_line'),
                    _class='paideia_monthcal')
@@ -504,7 +505,7 @@ class Stats(object):
         #TODO: Add weekly summary counts to the end of each table
         #row (from self.dateset)
 
-        return mcal
+        return newmcal
 
 
 def week_bounds():
