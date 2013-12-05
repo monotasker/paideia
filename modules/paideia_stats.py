@@ -447,71 +447,41 @@ class Stats(object):
 
         # Create wrapper div with title line and month name
         newmcal = calendar.HTMLCalendar(6).formatmonth(year, month)
-        newmcal = TAG(newmcal)
-        pprint(newmcal.xml())
+        mycal = TAG(newmcal)
+        for week in mycal.elements('tr'):
+            for day in week.elements('td[class!="noday"]'):
+                print day[0]
+                try:
+                    mycount = [v for k, v in daycounts.iteritems()
+                               if k.day == int(day[0])][0]
+                    countspan = SPAN(mycount, _class='daycount')
+                    if mycount >= self.targetcount:
+                        countspan['_class'] = 'daycount full'
+                    day.append(countspan)
+                except (ValueError, IndexError):
+                    print traceback.format_exc(5)
 
-        mcal = DIV(SPAN('Questions answered each day in',
-                        _class='monthcal_intro_line'),
-                   _class='paideia_monthcal')
 
-        tbl = TABLE(_class='paideia_monthcal_table')
-        tbl.append(THEAD(TR('Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun')))
-        tb = TBODY()
-        for week in data['calstats']:
-            weeknum = data['calstats'].index(week)
-            weekrow = TR()
-            for day in week:
-                # add table cell for this day
-                weekrow.append(TD(_id='{}-{}'.format(weeknum, day[0])))
-                # append empty span if no day number
-                if day[0] == 0:
-                    weekrow[-1].append(SPAN('', _class='cal_num'))
-                else:
-                    weekrow[-1].append(SPAN(str(day[0]),
-                                    _class='cal_num'))
-                # append a span with the day's attempt-count (if non-zero)
-                if day[1] != 0:
-                    weekrow[-1].append(SPAN(str(day[1]),
-                                        _class='cal_count'))
-            tb.append(weekrow)  # append week to table body
-
-        # build nav link for previous month
+        # build nav links for previous/next
         prev_month = (month - 1) if month > 1 else 12
-        if prev_month == 12:
-            prev_year = year - 1
-        else:
-            prev_year = year
-        prev_link = A('previous', _href=URL('reporting', 'calendar.load',
-                                            args=[self.user_id,
-                                                  prev_year,
-                                                  prev_month]),
-                      _class='monthcal_prev_link',
-                      cid='tab_calendar')
-        mcal.append(prev_link)
-
-        # build nav link for next month
+        prev_year = year if prev_month > 1 else year - 1
         next_month = (month + 1) if month < 12 else 1
-        if next_month == 1:
-            next_year = year + 1
-        else:
-            next_year = year
+        next_year = year if prev_month < 12 else year + 1
+        links = {'next': (next_month, next_year),
+                 'previous': (prev_month, prev_year)}
+        for k, v in links.iteritems():
+            mylink = A(k, _href=URL('reporting', 'calendar.load',
+                                    args=[self.user_id, v[1], v[0]]),
+                       _class='monthcal_nav_link {}'.format(k),
+                       cid='tab_calendar')
+            mycal.elements('tr')[0].append(mylink)
 
-        next_link = A('next', _href=URL('reporting', 'calendar.load',
-                                        args=[self.user_id,
-                                              next_year,
-                                              next_month]),
-                      _class='monthcal_next_link',
-                      cid='tab_calendar')
-        mcal.append(next_link)
-        mcal.append(H4(monthname))
-
-        tbl.append(tb)
-        mcal.append(tbl)
-
+        mycal.elements('tr')[0].insert(1, SPAN('Questions answered each day in',
+                                                _class='monthcal_intro_line'))
         #TODO: Add weekly summary counts to the end of each table
         #row (from self.dateset)
 
-        return newmcal
+        return mycal
 
 
 def week_bounds():
