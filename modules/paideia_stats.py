@@ -4,6 +4,7 @@ import dateutil.parser
 import traceback
 from pytz import timezone
 from gluon import current, DIV, H4, TABLE, THEAD, TBODY, TR, TD, SPAN, A, URL
+from gluon import TAG
 from paideia_utils import send_error, make_json
 from pprint import pprint
 #import logging
@@ -389,34 +390,9 @@ class Stats(object):
         this method will by default provide stats for the current month and
         year.
         '''
-        # get current year and month as default
-        if not month:
-            month = datetime.date.today().month
-        if not year:
-            year = datetime.date.today().year
-
-        # use calendar module to get month structure
-        monthcal = calendar.monthcalendar(year, month)
-
-        monthdict = {'year': year, 'month_name': month}
-
-        month_list = []
-        #build nested list containing stats organized into weeks
-        for week in monthcal:
-            week_list = []
-            for day in week:
-                day_set = [day, 0]
-
-                for dtime, count in self.loglist.items():
-                    if dtime.month == month and dtime.day == day:
-                        day_set[1] = count
-
-                week_list.append(day_set)
-            month_list.append(week_list)
-
-        monthdict['calstats'] = month_list
-
-        return monthdict
+        daycounts = {k: v for k, v in self.loglist.iteritems()
+                     if k.month == month}
+        return daycounts
 
     def monthcal(self, year=None, month=None):
         '''
@@ -425,25 +401,55 @@ class Stats(object):
         by self.user_id.
 
         The calendar is returned as a web2py DIV helper.
+
+        The calendar html structure is:
+
+        <table border="0" cellpadding="0" cellspacing="0" class="month">\n
+        <tr>
+            <th class="month" colspan="7">December 2013</th>
+        </tr>\n
+        <tr>
+            <th class="sun">Sun</th>
+            <th class="mon">Mon</th>
+            <th>class="tue">Tue</th>
+            <th>class="wed">Wed</th>
+            <th>class="thu">Thu</th>
+            <th>class="fri">Fri</th>
+            <th>class="sat">Sat</th>
+        </tr>\n
+        <tr>
+            <td class="sun">1</td>
+            <td class="mon">2</td>
+            <td class="tue">3</td>
+            <td class="wed">4</td>
+            <td class="thu">5</td>
+            <td class="fri">6</td>
+            <td class="sat">7</td>
+        </tr>\n
+        ...
+        <tr>
+            <td class="sun">29</td>
+            <td class="mon">30</td>
+            <td class="tue">31</td>
+            <td class="noday">\xc2\xa0</td>
+            <td class="noday">\xc2\xa0</td>
+            <td class="noday">\xc2\xa0</td>
+            <td class="noday">\xc2\xa0</td>
+        </tr>\n
+        </table>\n
         '''
         # TODO: get settings for this user's class requirements
 
-        # get current year and month as default
-        if not month:
-            month = datetime.date.today().month
-        else: month = int(month)
-        if not year:
-            year = datetime.date.today().year
-        else: year = int(year)
-
-        # get structured data to use in building table
-        data = self.monthstats(year, month)
-
-        nms = calendar.month_name
-        monthname = nms[data['month_name']]
+        month = datetime.date.today().month if not month else month
+        year = datetime.date.today().year if not year else year
+        daycounts = self.monthstats(year, month)
+        monthname = calendar.month_name[month]
 
         # Create wrapper div with title line and month name
         newmcal = calendar.HTMLCalendar(6).formatmonth(year, month)
+        newmcal = TAG(newmcal)
+        pprint(newmcal.xml())
+
         mcal = DIV(SPAN('Questions answered each day in',
                         _class='monthcal_intro_line'),
                    _class='paideia_monthcal')
