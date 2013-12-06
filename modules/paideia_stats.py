@@ -2,10 +2,10 @@ import calendar
 import datetime
 import dateutil.parser
 import traceback
-from pytz import timezone
-from gluon import current, DIV, H4, TABLE, THEAD, TBODY, TR, TD, SPAN, A, URL
+#from pytz import timezone
+from gluon import current, DIV, SPAN, A, URL, UL, LI, B, TD
 from gluon import TAG
-from paideia_utils import send_error, make_json
+from paideia_utils import make_json
 from pprint import pprint
 #import logging
 import itertools
@@ -51,6 +51,14 @@ class Stats(object):
         user_id = auth.user_id if user_id is None else user_id
         self.user_id = user_id
         self.user = db.auth_user(user_id)
+        msel = db((db.auth_membership.user_id == self.user_id) &
+                  (db.auth_membership.group_id == db.auth_group.id)).select()
+        try:
+            self.targetcount = [m.auth_group.paths_per_day for m in msel
+                                if m.auth_group.paths_per_day]
+        except Exception:
+            print traceback.format_exc(5)
+            self.targetcount = 20
         self.name = '{}, {}'.format(self.user.last_name, self.user.first_name)
 
         # overall progress through tag sets and levels
@@ -61,7 +69,6 @@ class Stats(object):
             #self.alerts['duplicate tag_progress rows'] = ids
 
         # performance on each tag
-        print 'init: starting to get self.tag_recs'
         self.tag_recs = db(db.tag_records.name == self.user_id
                            ).select(cacheable=True)
         dups = {}
@@ -81,7 +88,7 @@ class Stats(object):
                                                         in self.badges_begun]
 
         # log of individual attempts for duration (default is 30 days)
-        self.duration = datetime.timedelta(days=30) \
+        self.duration = datetime.timedelta(days=120) \
                         if not duration else duration
         self.utcnow = datetime.datetime.utcnow()
         self.cutoff = self.utcnow - self.duration
@@ -141,8 +148,8 @@ class Stats(object):
         TODO: move this aggregate data to a db table "user_stats" on calculation.
         '''
         db = current.db
-        now = self.utcnow
-        user_id = self.user_id
+        #now = self.utcnow
+        #user_id = self.user_id
         duration = self.duration
         logs = self.logs
 
@@ -152,9 +159,7 @@ class Stats(object):
 
         for step in stepset:
             steprow = db.steps[step].as_dict()
-            print 'got_steprow'
             steplogs = [l for l in logs if l['step'] == step]
-            print 'got_steplogs'
             stepcount = len(steplogs)
             stepright = [s for s in steplogs if abs(s['score'] - 1) < 0.001]
             stepwrong = [s for s in steplogs if abs(s['score'] - 1) >= 0.001]
@@ -181,7 +186,6 @@ class Stats(object):
                         if t in tag_badges.keys()}
             # check for tags without badges
             # TODO: move this check to maintenance cron job
-            print 'step', steprow['id'], 'has tags', steprow['tags']
             for t in steprow['tags']:
                 if not t in tag_badges.keys():
                     print 'There seems to be no badge for tag {}'.format(t)
@@ -328,13 +332,11 @@ class Stats(object):
         """
         fl = []
         logs = self.logs
-        pprint(tag_recs)
         for l in logs:
             for tag in l.step.tags:
                 myl = l.as_dict()
                 myl['tag'] = tag
                 tagrec = [trow for trow in tag_recs if trow['tag'] == tag]
-                pprint(tagrec)
                 if not tagrec:
                     continue
                 else:
@@ -383,7 +385,7 @@ class Stats(object):
 
         return logs, loglist
 
-    def monthstats(self, year=None, month=None):
+    def monthstats(self, year, month):
         '''
         Assemble and return a dictionary with the weeks. If the year and
         month desired are not supplied as arguments (in integer form),
@@ -440,48 +442,87 @@ class Stats(object):
         '''
         # TODO: get settings for this user's class requirements
 
-        month = datetime.date.today().month if not month else month
-        year = datetime.date.today().year if not year else year
+        month = datetime.date.today().month if not month else int(month)
+        year = datetime.date.today().year if not year else int(year)
         daycounts = self.monthstats(year, month)
         monthname = calendar.month_name[month]
 
-        # Create wrapper div with title line and month name
+        # Create html calendar and add daily count numbers
         newmcal = calendar.HTMLCalendar(6).formatmonth(year, month)
         mycal = TAG(newmcal)
         for week in mycal.elements('tr'):
+            pprint(week)
+            weekcount = 0
             for day in week.elements('td[class!="noday"]'):
-                print day[0]
                 try:
                     mycount = [v for k, v in daycounts.iteritems()
                                if k.day == int(day[0])][0]
                     countspan = SPAN(mycount, _class='daycount')
                     if mycount >= self.targetcount:
                         countspan['_class'] = 'daycount full'
+                        weekcount += 1
                     day.append(countspan)
                 except (ValueError, IndexError):
-                    print traceback.format_exc(5)
+                    pass
+                day[0] = SPAN(day[0], _class='cal_num')
+            if weekcount >= 5:
+                week.append(TD(weekcount, _class='success'))
 
+        # Create drop-down month selector
+        years = range(year, 2011, -1)
+        picker_args = {'_class': 'dropdown-menu',
+                       '_role': 'menu',
+                       '_aria-labelledby': 'month-label'}
+        picker = UL(**picker_args)
+        for y in years:
+            for m in range(12, 1, -1):
+                if not (m > month and y == year):
+                    picker.append(LI(A('{} {}'.format(calendar.month_name[m], y),
+                                    _href=URL('reporting', 'calendar.load',
+                                                args=[self.user_id, y, m]),
+                                    _tabindex='-1')))
+            picker.append(LI(_class='divider'))
+
+        label_args = {'_id': 'month-label',
+                      '_role': 'button',
+                      '_class': 'dropdown-toggle',
+                      '_data-toggle': 'dropdown',
+                      '_data-target': '#',
+                      '_href': '#'}
+        dropdown = SPAN(A('{} {} '.format(monthname, year),
+                         B(_class='caret'),
+                         **label_args),
+                       picker,
+                       _class='dropdown')
+
+        # Replace table header with selector row
+        mycal.elements('th.month')[0][0] = dropdown
 
         # build nav links for previous/next
         prev_month = (month - 1) if month > 1 else 12
-        prev_year = year if prev_month > 1 else year - 1
+        prev_year = year if prev_month < 12 else year - 1
         next_month = (month + 1) if month < 12 else 1
-        next_year = year if prev_month < 12 else year + 1
-        links = {'next': (next_month, next_year),
-                 'previous': (prev_month, prev_year)}
+        next_year = year if next_month > 1 else year + 1
+        links = {'next': (next_month, next_year, 2),
+                 'previous': (prev_month, prev_year, 0)}
         for k, v in links.iteritems():
             mylink = A(k, _href=URL('reporting', 'calendar.load',
                                     args=[self.user_id, v[1], v[0]]),
                        _class='monthcal_nav_link {}'.format(k),
                        cid='tab_calendar')
-            mycal.elements('tr')[0].append(mylink)
+            mycal.elements('th.month')[0].insert(0, mylink)
 
-        mycal.elements('tr')[0].insert(1, SPAN('Questions answered each day in',
-                                                _class='monthcal_intro_line'))
+        # Create wrapper div with title line and month name
+        wrap = DIV(_class='paideia_monthcal')
+        wrap.append(SPAN('Questions answered each day in',
+                         _class='monthcal_intro_line'))
+
+        # Add calendar into wrapper
+        wrap.append(mycal)
         #TODO: Add weekly summary counts to the end of each table
         #row (from self.dateset)
 
-        return mycal
+        return wrap
 
 
 def week_bounds():
