@@ -6,7 +6,7 @@ import traceback
 from gluon import current, DIV, SPAN, A, URL, UL, LI, B, TD
 from gluon import TAG
 from paideia_utils import make_json
-from pprint import pprint
+#from pprint import pprint
 #import logging
 import itertools
 #logger = logging.getLogger('web2py.app.paideia')
@@ -55,7 +55,7 @@ class Stats(object):
                   (db.auth_membership.group_id == db.auth_group.id)).select()
         try:
             self.targetcount = [m.auth_group.paths_per_day for m in msel
-                                if m.auth_group.paths_per_day]
+                                if m.auth_group.paths_per_day][0]
         except Exception:
             print traceback.format_exc(5)
             self.targetcount = 20
@@ -451,7 +451,6 @@ class Stats(object):
         newmcal = calendar.HTMLCalendar(6).formatmonth(year, month)
         mycal = TAG(newmcal)
         for week in mycal.elements('tr'):
-            pprint(week)
             weekcount = 0
             for day in week.elements('td[class!="noday"]'):
                 try:
@@ -466,7 +465,7 @@ class Stats(object):
                     pass
                 day[0] = SPAN(day[0], _class='cal_num')
             if weekcount >= 5:
-                week.append(TD(weekcount, _class='success'))
+                week[-1].append(SPAN(_class='icon-ok success'))
 
         # Create drop-down month selector
         years = range(year, 2011, -1)
@@ -503,10 +502,12 @@ class Stats(object):
         prev_year = year if prev_month < 12 else year - 1
         next_month = (month + 1) if month < 12 else 1
         next_year = year if next_month > 1 else year + 1
-        links = {'next': (next_month, next_year, 2),
-                 'previous': (prev_month, prev_year, 0)}
+        links = {'next': (next_month, next_year, 2,
+                          SPAN(_class='icon-chevron-right')),
+                 'previous': (prev_month, prev_year, 0,
+                              SPAN(_class='icon-chevron-left'))}
         for k, v in links.iteritems():
-            mylink = A(k, _href=URL('reporting', 'calendar.load',
+            mylink = A(v[3], _href=URL('reporting', 'calendar.load',
                                     args=[self.user_id, v[1], v[0]]),
                        _class='monthcal_nav_link {}'.format(k),
                        cid='tab_calendar')
