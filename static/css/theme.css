@@ -10151,6 +10151,8 @@ body #main.user #page {
 
   /* common styles for reporting tables */
 
+  /* user info */
+
   /*summary stats (badges) tab*/
 
   /*calendar for monthly user statistics */
@@ -10168,17 +10170,42 @@ body #main.user #page .tab-pane h4 {
 body #main.profile #page table,
 body #main.user #page table {
   text-align: left;
-  /*border-collapse:separate;*/
-
-  /*border-spacing:2px;*/
-
 }
-body #main.profile #page table th,
-body #main.user #page table th {
-  /*background-color:@white;*/
-
-  /*vertical-align:middle;*/
-
+body #main.profile #page ul.nav-tabs,
+body #main.user #page ul.nav-tabs {
+  background-color: #f2eed5;
+  border-bottom: 1px solid #d8d3b3;
+}
+body #main.profile #page ul.nav-tabs li.active,
+body #main.user #page ul.nav-tabs li.active {
+  background-color: #fcfbf7;
+  border-top: 1px solid #d8d3b3;
+  border-left: 1px solid #d8d3b3;
+  border-right: 1px solid #d8d3b3;
+}
+body #main.profile #page ul.profile-user-info,
+body #main.user #page ul.profile-user-info {
+  list-style-type: none;
+  background-color: #f2eed5;
+  display: block;
+  padding: 12px;
+  margin: 0;
+}
+body #main.profile #page ul.profile-user-info li,
+body #main.user #page ul.profile-user-info li {
+  display: inline-block;
+  margin-right: 24px;
+  font-size: 13.6px;
+  color: #f89406;
+}
+body #main.profile #page ul.profile-user-info li .profile-label,
+body #main.user #page ul.profile-user-info li .profile-label {
+  display: none;
+}
+body #main.profile #page ul.profile-user-info li:first-child,
+body #main.user #page ul.profile-user-info li:first-child {
+  font-size: 20px;
+  color: #333333;
 }
 body #main.profile #page p.overview table.dc-table-label,
 body #main.user #page p.overview table.dc-table-label {
@@ -10272,7 +10299,7 @@ body #main.profile #page .paideia_monthcal .monthcal_intro_line,
 body #main.user #page .paideia_monthcal .monthcal_intro_line {
   /*zoom: 1; activate hasLayout in ie6-7; */
 
-  color: #d8d3b3;
+  color: #809240;
   margin-bottom: 8px;
 }
 body #main.profile #page .paideia_monthcal .monthcal_intro_line:before,
@@ -10286,42 +10313,37 @@ body #main.user #page .paideia_monthcal .monthcal_intro_line:after {
   display: table;
   clear: both;
 }
-body #main.profile #page .paideia_monthcal h4,
-body #main.user #page .paideia_monthcal h4 {
-  display: block;
-  margin: 8px 120px;
-  text-align: center;
-}
-body #main.profile #page .paideia_monthcal .monthcal_nav_link.previous,
-body #main.user #page .paideia_monthcal .monthcal_nav_link.previous,
-body #main.profile #page .paideia_monthcal .monthcal_nav_link.next,
-body #main.user #page .paideia_monthcal .monthcal_nav_link.next {
-  color: #f89406;
-  font-size: 13.6px;
-  margin-top: 8px;
-}
-body #main.profile #page .paideia_monthcal .monthcal_nav_link.previous:after,
-body #main.user #page .paideia_monthcal .monthcal_nav_link.previous:after,
-body #main.profile #page .paideia_monthcal .monthcal_nav_link.next:after,
-body #main.user #page .paideia_monthcal .monthcal_nav_link.next:after {
-  opacity: 0.7;
-}
-body #main.profile #page .paideia_monthcal .monthcal_nav_link.next,
-body #main.user #page .paideia_monthcal .monthcal_nav_link.next {
-  float: right;
-}
-body #main.profile #page .paideia_monthcal .monthcal_nav_link.previous,
-body #main.user #page .paideia_monthcal .monthcal_nav_link.previous {
-  float: left;
-}
 body #main.profile #page .paideia_monthcal table.month,
 body #main.user #page .paideia_monthcal table.month {
   border-spacing: 2px;
-  border: 1px solid #f2eed5;
+  border: 0px solid transparent;
+}
+body #main.profile #page .paideia_monthcal table.month tr:first-child,
+body #main.user #page .paideia_monthcal table.month tr:first-child {
+  font-size: 32px;
 }
 body #main.profile #page .paideia_monthcal table.month tr:first-child th,
 body #main.user #page .paideia_monthcal table.month tr:first-child th {
   text-align: center;
+  padding: 12px;
+}
+body #main.profile #page .paideia_monthcal table.month tr:first-child th .monthcal_nav_link.previous,
+body #main.user #page .paideia_monthcal table.month tr:first-child th .monthcal_nav_link.previous,
+body #main.profile #page .paideia_monthcal table.month tr:first-child th .monthcal_nav_link.next,
+body #main.user #page .paideia_monthcal table.month tr:first-child th .monthcal_nav_link.next {
+  font-size: 20px;
+}
+body #main.profile #page .paideia_monthcal table.month tr:first-child th .monthcal_nav_link.next,
+body #main.user #page .paideia_monthcal table.month tr:first-child th .monthcal_nav_link.next {
+  float: right;
+}
+body #main.profile #page .paideia_monthcal table.month tr:first-child th .monthcal_nav_link.previous,
+body #main.user #page .paideia_monthcal table.month tr:first-child th .monthcal_nav_link.previous {
+  float: left;
+}
+body #main.profile #page .paideia_monthcal table.month tr:first-child th #month-label,
+body #main.user #page .paideia_monthcal table.month tr:first-child th #month-label {
+  font-size: 20px;
 }
 body #main.profile #page .paideia_monthcal table.month th,
 body #main.user #page .paideia_monthcal table.month th {
@@ -10329,34 +10351,47 @@ body #main.user #page .paideia_monthcal table.month th {
   font-weight: normal;
   font-size: 16px;
   background-color: #f2eed5;
+  border: 1px solid #f2eed5;
   color: #a09552;
 }
 body #main.profile #page .paideia_monthcal table.month td,
 body #main.user #page .paideia_monthcal table.month td {
   width: 60px;
   height: 60px;
-  color: #96bc44;
+  color: #666;
   font-size: 16px;
   border: 1px solid #f2eed5;
-  /*position:relative;*/
-
-  /*padding:2px;*/
-
+  position: relative;
 }
 body #main.profile #page .paideia_monthcal table.month td span.cal_num,
 body #main.user #page .paideia_monthcal table.month td span.cal_num {
   position: relative;
   padding: 4px, 2px;
+  color: #aaa;
+  font-family: "League Gothic";
 }
 body #main.profile #page .paideia_monthcal table.month td span.daycount,
 body #main.user #page .paideia_monthcal table.month td span.daycount {
   position: relative;
-  font-size: 24px;
-  font-weight: bold;
+  font-size: 20px;
+  /*font-weight:bold;*/
+
   top: 24px;
   float: right;
   padding-right: 2px;
-  color: #006699;
+  color: #f89406;
+}
+body #main.profile #page .paideia_monthcal table.month td span.daycount.full,
+body #main.user #page .paideia_monthcal table.month td span.daycount.full {
+  color: #96bc44;
+}
+body #main.profile #page .paideia_monthcal table.month td span.success,
+body #main.user #page .paideia_monthcal table.month td span.success {
+  position: absolute;
+  left: 72px;
+  top: 24px;
+  font-size: 32px;
+  color: #96bc44;
 }
 /*[> ================= iPad in portrait ================= <]*/
 @media all and (orientation: portrait) {

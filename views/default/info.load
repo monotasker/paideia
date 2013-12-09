@@ -1,13 +1,17 @@
 {{from plugin_widgets import TOOLTIP, TABS, ROLE}}
-{{
-# TAB 1 - USER INFO ==========================================================
-tab1_content = CAT(UL(LI(SPAN('Name', _class='profile-name-label'), the_name, 
+
+<!--Above Tabs ================================================================-->
+{{=UL(LI(SPAN('Name', _class='profile-label'), the_name,
                          _class='profile-name'),
-                      LI(SPAN('Email', _class='profile-email-label'), email,
+                      LI(SPAN('Email', _class='profile-label'), email,
                          _class='profile-email'),
-                      LI(SPAN('Time Zone', _class='profile-tz-label'), tz,
-                         _class='profile-name')),
-                   DIV(H4('What level are my badges?'),
+                      LI(SPAN('Time Zone', _class='profile-label'), tz,
+                         _class='profile-name'),
+      _class='profile-user-info')
+}}
+{{
+# TAB 1 - BADGE INFO ==========================================================
+tab1_content = CAT(DIV(H4('What level are my badges?'),
                        _id='dc-level-pie'),
                    #DIV(H4('How many badges each day?'),
                    #    _id='dc-time-chart'),
