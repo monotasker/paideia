@@ -1087,7 +1087,6 @@ td.w2p_fw ul {
 /*google light background*/
 /* ocp - text on latte */
 /*google black*/
-/*@blueDark:              #0064cd;*/
 .clearfix {
   *zoom: 1;
 }
@@ -1293,12 +1292,12 @@ body {
   background-color: #fcfbf7;
 }
 a {
-  color: #006699;
+  color: #0064cd;
   text-decoration: none;
 }
 a:hover,
 a:focus {
-  color: #00334d;
+  color: #003f81;
   text-decoration: underline;
 }
 .img-rounded {
@@ -2359,7 +2358,7 @@ input[readonly],
 select[readonly],
 textarea[readonly] {
   cursor: not-allowed;
-  background-color: #f2eed5;
+  background-color: #f8f0e5;
 }
 input[type="radio"][disabled],
 input[type="checkbox"][disabled],
@@ -3097,11 +3096,11 @@ table {
 }
 .table-striped tbody > tr:nth-child(odd) > td,
 .table-striped tbody > tr:nth-child(odd) > th {
-  background-color: #f2eed5;
+  background-color: #f8f0e5;
 }
 .table-hover tbody tr:hover > td,
 .table-hover tbody tr:hover > th {
-  background-color: #fefefc;
+  background-color: #ffffff;
 }
 table td[class*="span"],
 table th[class*="span"],
@@ -3448,8 +3447,8 @@ table th[class*="span"],
   min-height: 20px;
   padding: 19px;
   margin-bottom: 20px;
-  background-color: #f2eed5;
-  border: 1px solid #eae3ba;
+  background-color: #f8f0e5;
+  border: 1px solid #f0e0c9;
   -webkit-border-radius: 0px 0px 0px 0px;
   -moz-border-radius: 0px 0px 0px 0px;
   border-radius: 0px 0px 0px 0px;
@@ -3565,17 +3564,17 @@ button.close {
   cursor: pointer;
   color: #333333;
   text-shadow: 0 1px 1px rgba(255, 255, 255, 0.75);
-  background-color: #ede8c5;
-  background-image: -moz-linear-gradient(top, #f2eed5, #e6deae);
-  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#f2eed5), to(#e6deae));
-  background-image: -webkit-linear-gradient(top, #f2eed5, #e6deae);
-  background-image: -o-linear-gradient(top, #f2eed5, #e6deae);
-  background-image: linear-gradient(to bottom, #f2eed5, #e6deae);
+  background-color: #f4e7d5;
+  background-image: -moz-linear-gradient(top, #f8f0e5, #edd9bd);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#f8f0e5), to(#edd9bd));
+  background-image: -webkit-linear-gradient(top, #f8f0e5, #edd9bd);
+  background-image: -o-linear-gradient(top, #f8f0e5, #edd9bd);
+  background-image: linear-gradient(to bottom, #f8f0e5, #edd9bd);
   background-repeat: repeat-x;
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#fff2eed5', endColorstr='#ffe6deae', GradientType=0);
-  border-color: #e6deae #e6deae #d4c774;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#fff8f0e5', endColorstr='#ffedd9bd', GradientType=0);
+  border-color: #edd9bd #edd9bd #ddb681;
   border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
-  *background-color: #e6deae;
+  *background-color: #edd9bd;
   /* Darken IE7 buttons by default so they stand out more given they won't have borders */
 
   filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
@@ -3607,12 +3606,12 @@ button.close {
 .btn.disabled,
 .btn[disabled] {
   color: #333333;
-  background-color: #e6deae;
-  *background-color: #e0d69b;
+  background-color: #edd9bd;
+  *background-color: #e8cda9;
 }
 .btn:active,
 .btn.active {
-  background-color: #dace87 \9;
+  background-color: #e2c295 \9;
 }
 .btn:first-child {
   *margin-left: 0;
@@ -3741,17 +3740,17 @@ input[type="button"].btn-block {
 .btn-primary {
   color: #ffffff;
   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
-  background-color: #005299;
-  background-image: -moz-linear-gradient(top, #006699, #003399);
-  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#006699), to(#003399));
-  background-image: -webkit-linear-gradient(top, #006699, #003399);
-  background-image: -o-linear-gradient(top, #006699, #003399);
-  background-image: linear-gradient(to bottom, #006699, #003399);
+  background-color: #0049cd;
+  background-image: -moz-linear-gradient(top, #0064cd, #0020cd);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#0064cd), to(#0020cd));
+  background-image: -webkit-linear-gradient(top, #0064cd, #0020cd);
+  background-image: -o-linear-gradient(top, #0064cd, #0020cd);
+  background-image: linear-gradient(to bottom, #0064cd, #0020cd);
   background-repeat: repeat-x;
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff006699', endColorstr='#ff003399', GradientType=0);
-  border-color: #003399 #003399 #001a4d;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff0064cd', endColorstr='#ff0020cd', GradientType=0);
+  border-color: #0020cd #0020cd #001481;
   border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
-  *background-color: #003399;
+  *background-color: #0020cd;
   /* Darken IE7 buttons by default so they stand out more given they won't have borders */
 
   filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
@@ -3763,12 +3762,12 @@ input[type="button"].btn-block {
 .btn-primary.disabled,
 .btn-primary[disabled] {
   color: #ffffff;
-  background-color: #003399;
-  *background-color: #002b80;
+  background-color: #0020cd;
+  *background-color: #001cb4;
 }
 .btn-primary:active,
 .btn-primary.active {
-  background-color: #002266 \9;
+  background-color: #00189a \9;
 }
 .btn-warning {
   color: #ffffff;
@@ -3972,7 +3971,7 @@ input[type="submit"].btn.btn-mini {
 .btn-link {
   border-color: transparent;
   cursor: pointer;
-  color: #006699;
+  color: #0064cd;
   -webkit-border-radius: 0;
   -moz-border-radius: 0;
   border-radius: 0;
@@ -3984,7 +3983,7 @@ input[type="submit"].btn.btn-mini {
 }
 .btn-link:hover,
 .btn-link:focus {
-  color: #00334d;
+  color: #003f81;
   text-decoration: underline;
   background-color: transparent;
 }
@@ -4137,10 +4136,10 @@ input[type="submit"].btn.btn-mini {
   box-shadow: inset 0 2px 4px rgba(0,0,0,.15), 0 1px 2px rgba(0,0,0,.05) 2px 6px rgba(0, 0, 0, 0.3);
 }
 .btn-group.open .btn.dropdown-toggle {
-  background-color: #e6deae;
+  background-color: #edd9bd;
 }
 .btn-group.open .btn-primary.dropdown-toggle {
-  background-color: #003399;
+  background-color: #0020cd;
 }
 .btn-group.open .btn-warning.dropdown-toggle {
   background-color: #f89406;
@@ -4365,7 +4364,7 @@ input[type="submit"].btn.btn-mini {
 .nav-list > .active > a:focus {
   color: #ffffff;
   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.2);
-  background-color: #006699;
+  background-color: #0064cd;
 }
 .nav-list [class^="icon-"],
 .nav-list [class*=" icon-"] {
@@ -4458,7 +4457,7 @@ input[type="submit"].btn.btn-mini {
 .nav-pills > .active > a:hover,
 .nav-pills > .active > a:focus {
   color: #ffffff;
-  background-color: #006699;
+  background-color: #0064cd;
 }
 .nav-stacked > li {
   float: none;
@@ -4528,14 +4527,14 @@ input[type="submit"].btn.btn-mini {
   border-radius: 6px 0 0 0;
 }
 .nav .dropdown-toggle .caret {
-  border-top-color: #006699;
-  border-bottom-color: #006699;
+  border-top-color: #0064cd;
+  border-bottom-color: #0064cd;
   margin-top: 6px;
 }
 .nav .dropdown-toggle:hover .caret,
 .nav .dropdown-toggle:focus .caret {
-  border-top-color: #00334d;
-  border-bottom-color: #00334d;
+  border-top-color: #003f81;
+  border-bottom-color: #003f81;
 }
 /* move down carets for tabs */
 .nav-tabs .dropdown-toggle .caret {
@@ -5910,7 +5909,7 @@ input[type="submit"].btn.btn-mini {
 }
 a.thumbnail:hover,
 a.thumbnail:focus {
-  border-color: #006699;
+  border-color: #0064cd;
   -webkit-box-shadow: 0 1px 4px rgba(0, 105, 214, 0.25);
   -moz-box-shadow: 0 1px 4px rgba(0, 105, 214, 0.25);
   box-shadow: 0 1px 4px rgba(0, 105, 214, 0.25);
@@ -6442,7 +6441,7 @@ a.badge:focus {
   font-weight: 200;
   line-height: 36px;
   color: inherit;
-  background-color: #f2eed5;
+  background-color: #f8f0e5;
   -webkit-border-radius: 6px;
   -moz-border-radius: 6px;
   border-radius: 6px;
@@ -6529,7 +6528,6 @@ a.badge:focus {
 /*google light background*/
 /* ocp - text on latte */
 /*google black*/
-/*@blueDark:              #0064cd;*/
 @-ms-viewport {
   width: device-width;
 }
@@ -9648,7 +9646,6 @@ body .navbar.top .navbar-inner .container-fluid a.brand {
 body .container,
 body .container-fluid {
   background-color: #fcfbf7;
-  position: relative;
   max-height: 80%;
   overflow: hidden;
   padding-right: 0;
@@ -9660,8 +9657,7 @@ body .container-fluid .main {
   margin-top: 0;
   padding-top: 0;
   padding-bottom: 0;
-  position: relative;
-  max-height: 100%;
+  max-height: 80%;
 }
 body .container .main .left-sidebar,
 body .container-fluid .main .left-sidebar,
@@ -9683,8 +9679,8 @@ body .container .main #page,
 body .container-fluid .main #page {
   background-color: #fcfbf7;
   overflow: hidden;
+  height: 75%;
   min-height: 470px;
-  position: relative;
   /* The main map for navigating the town */
 
   /* the background images for each map location */
@@ -9843,11 +9839,10 @@ body .container-fluid .main #page .bg_image img {
 }
 body .container .main #page .speaker,
 body .container-fluid .main #page .speaker {
-  position: relative;
+  position: absolute;
   left: 0;
   top: 48px;
   width: 380px;
-  float: left;
 }
 body .container .main #page .speaker img,
 body .container-fluid .main #page .speaker img {
@@ -9870,7 +9865,7 @@ body .footer .footer-content {
   width: 60%;
 }
 body #main.listing #page table tr {
-  border-top: 1px solid #f2eed5;
+  border-top: 1px solid #f8f0e5;
 }
 body #main.listing #page table tr td {
   background-color: transparent;
@@ -9882,6 +9877,7 @@ body #main.exploring #page .responder {
   margin-right: 12px;
   max-width: 65%;
   display: block;
+  position: relative;
   font-size: 20px;
   line-height: 30px;
   -webkit-border-radius: 4px 4px 4px 4px;
@@ -10062,7 +10058,7 @@ body #main.exploring #page .prompt ul {
 }
 body #main.exploring #page .prompt .popover-title {
   color: #a09552;
-  background-color: #f2eed5;
+  background-color: #f8f0e5;
 }
 body #main.exploring #page .prompt .popover-content ul {
   margin-left: 0;
@@ -10086,12 +10082,12 @@ body #main.exploring #page .prompt .slides-popover:before {
   padding-right: 0.3333333333333333em;
 }
 body #main.exploring #page .prompt .slides-popover ul li {
-  color: #006699;
+  color: #0064cd;
 }
 body #main.exploring #page .responder {
   color: #333333;
   z-index: 3;
-  background-color: #f2eed5;
+  background-color: #f8f0e5;
   margin-bottom: 12px;
   margin-top: 6px;
 }
@@ -10162,7 +10158,7 @@ body #main.user #page .tab-pane {
 }
 body #main.profile #page .tab-pane h4,
 body #main.user #page .tab-pane h4 {
-  color: #006699;
+  color: #0064cd;
   font-size: 20px;
 }
 body #main.profile #page table,
@@ -10188,14 +10184,14 @@ body #main.user #page p.overview table.dc-table-label {
 }
 body #main.profile #page p.overview li,
 body #main.user #page p.overview li {
-  color: #006699;
+  color: #0064cd;
   padding-left: 48px;
 }
 body #main.profile #page p.overview .total_len,
 body #main.user #page p.overview .total_len,
 body #main.profile #page p.overview .max_set,
 body #main.user #page p.overview .max_set {
-  background: #f2eed5;
+  background: #f8f0e5;
   border: 3px solid #d8d3b3;
   display: inline-block;
   height: 36px;
@@ -10208,7 +10204,7 @@ body #main.user #page p.overview .max_set {
 }
 body #main.profile #page .most_recent,
 body #main.user #page .most_recent {
-  color: #006699;
+  color: #0064cd;
 }
 body #main.profile #page table.summary_stats,
 body #main.user #page table.summary_stats {
@@ -10221,7 +10217,7 @@ body #main.user #page table.summary_stats {
 body #main.profile #page table.summary_stats td,
 body #main.user #page table.summary_stats td {
   vertical-align: middle;
-  background: #f2eed5;
+  background: #f8f0e5;
   padding: 12px 24px;
 }
 body #main.profile #page table.summary_stats td ul,
@@ -10255,7 +10251,7 @@ body #main.user #page table.summary_stats td.total_cat3 {
 }
 body #main.profile #page table.summary_stats td.total_cat2,
 body #main.user #page table.summary_stats td.total_cat2 {
-  background-color: #006699;
+  background-color: #0064cd;
 }
 body #main.profile #page table.summary_stats td.total_cat1,
 body #main.user #page table.summary_stats td.total_cat1 {
@@ -10292,71 +10288,61 @@ body #main.user #page .paideia_monthcal h4 {
   margin: 8px 120px;
   text-align: center;
 }
-body #main.profile #page .paideia_monthcal .monthcal_nav_link.previous,
-body #main.user #page .paideia_monthcal .monthcal_nav_link.previous,
-body #main.profile #page .paideia_monthcal .monthcal_nav_link.next,
-body #main.user #page .paideia_monthcal .monthcal_nav_link.next {
+body #main.profile #page .paideia_monthcal .monthcal_next_link,
+body #main.user #page .paideia_monthcal .monthcal_next_link,
+body #main.profile #page .paideia_monthcal .monthcal_prev_link,
+body #main.user #page .paideia_monthcal .monthcal_prev_link {
   color: #f89406;
   font-size: 13.6px;
   margin-top: 8px;
 }
-body #main.profile #page .paideia_monthcal .monthcal_nav_link.previous:after,
-body #main.user #page .paideia_monthcal .monthcal_nav_link.previous:after,
-body #main.profile #page .paideia_monthcal .monthcal_nav_link.next:after,
-body #main.user #page .paideia_monthcal .monthcal_nav_link.next:after {
+body #main.profile #page .paideia_monthcal .monthcal_next_link:after,
+body #main.user #page .paideia_monthcal .monthcal_next_link:after,
+body #main.profile #page .paideia_monthcal .monthcal_prev_link:after,
+body #main.user #page .paideia_monthcal .monthcal_prev_link:after {
   opacity: 0.7;
 }
-body #main.profile #page .paideia_monthcal .monthcal_nav_link.next,
-body #main.user #page .paideia_monthcal .monthcal_nav_link.next {
+body #main.profile #page .paideia_monthcal .monthcal_next_link,
+body #main.user #page .paideia_monthcal .monthcal_next_link {
   float: right;
 }
-body #main.profile #page .paideia_monthcal .monthcal_nav_link.previous,
-body #main.user #page .paideia_monthcal .monthcal_nav_link.previous {
+body #main.profile #page .paideia_monthcal .monthcal_prev_link,
+body #main.user #page .paideia_monthcal .monthcal_prev_link {
   float: left;
 }
-body #main.profile #page .paideia_monthcal table.month,
-body #main.user #page .paideia_monthcal table.month {
+body #main.profile #page .paideia_monthcal .paideia_monthcal_table,
+body #main.user #page .paideia_monthcal .paideia_monthcal_table {
   border-spacing: 2px;
-  border: 1px solid #f2eed5;
 }
-body #main.profile #page .paideia_monthcal table.month tr:first-child th,
-body #main.user #page .paideia_monthcal table.month tr:first-child th {
-  text-align: center;
+body #main.profile #page .paideia_monthcal .paideia_monthcal_table thead td,
+body #main.user #page .paideia_monthcal .paideia_monthcal_table thead td {
+  height: 24px;
+  font-size: 13.6px;
+  background: transparent;
 }
-body #main.profile #page .paideia_monthcal table.month th,
-body #main.user #page .paideia_monthcal table.month th {
-  font-family: "League Gothic";
-  font-weight: normal;
-  font-size: 16px;
-  background-color: #f2eed5;
-  color: #a09552;
-}
-body #main.profile #page .paideia_monthcal table.month td,
-body #main.user #page .paideia_monthcal table.month td {
+body #main.profile #page .paideia_monthcal .paideia_monthcal_table td,
+body #main.user #page .paideia_monthcal .paideia_monthcal_table td {
   width: 60px;
   height: 60px;
   color: #96bc44;
   font-size: 16px;
-  border: 1px solid #f2eed5;
-  /*position:relative;*/
-
-  /*padding:2px;*/
-
+  position: relative;
+  padding: 2px;
 }
-body #main.profile #page .paideia_monthcal table.month td span.cal_num,
-body #main.user #page .paideia_monthcal table.month td span.cal_num {
+body #main.profile #page .paideia_monthcal .paideia_monthcal_table td span.cal_num,
+body #main.user #page .paideia_monthcal .paideia_monthcal_table td span.cal_num {
   position: relative;
   padding: 4px, 2px;
 }
-body #main.profile #page .paideia_monthcal table.month td span.daycount,
-body #main.user #page .paideia_monthcal table.month td span.daycount {
+body #main.profile #page .paideia_monthcal .paideia_monthcal_table td span.cal_count,
+body #main.user #page .paideia_monthcal .paideia_monthcal_table td span.cal_count {
   position: relative;
   font-size: 24px;
   font-weight: bold;
   top: 24px;
   float: right;
   padding-right: 2px;
-  color: #006699;
+  color: #0064cd;
 }
 /*[> ================= iPad in portrait ================= <]*/
 @media all and (orientation: portrait) {
