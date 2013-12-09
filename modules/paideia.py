@@ -357,12 +357,13 @@ class Walk(object):
                                            response_string)
         assert self.record_id
 
-        bug_reporter = BugReporter().get_reporter(self.record_id, p.get_id(),
-                                                  s.get_id(), reply['score'],
-                                                  response_string,
-                                                  user.loc.get_alias())
+        breporter = BugReporter().get_reporter(self.record_id,
+                                               p.get_id(),
+                                               s.get_id(), reply['score'],
+                                               response_string,
+                                               user.loc.get_alias())
         responder = s.get_final_responder(localias=user.loc.get_alias(),
-                                          bug_reporter=bug_reporter)
+                                          bug_reporter=breporter[0])
         progress = 'This will make {} paths ' \
                    'so far today.'.format(len(user.completed_paths) + 1)
         responder.append(SPAN(progress, _class='progress_text'))
@@ -381,7 +382,7 @@ class Walk(object):
         # considerably.
         self._store_user(user)
 
-        return {'npc': reply, 'responder': responder}
+        return {'npc': reply, 'responder': responder, 'bmodal': breporter[1]}
 
     def _get_editlinks(self, pid, sid, cat):
         """
