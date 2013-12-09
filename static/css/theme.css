@@ -1088,33 +1088,6 @@ td.w2p_fw ul {
 /* ocp - text on latte */
 /*google black*/
 /*@blueDark:              #0064cd;*/
-.clearfix {
-  *zoom: 1;
-}
-.clearfix:before,
-.clearfix:after {
-  display: table;
-  content: "";
-  line-height: 0;
-}
-.clearfix:after {
-  clear: both;
-}
-.hide-text {
-  font: 0/0 a;
-  color: transparent;
-  text-shadow: none;
-  background-color: transparent;
-  border: 0;
-}
-.input-block-level {
-  display: block;
-  width: 100%;
-  min-height: 34px;
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  box-sizing: border-box;
-}
 article,
 aside,
 details,
@@ -6530,6 +6503,33 @@ a.badge:focus {
 /* ocp - text on latte */
 /*google black*/
 /*@blueDark:              #0064cd;*/
+.clearfix {
+  *zoom: 1;
+}
+.clearfix:before,
+.clearfix:after {
+  display: table;
+  content: "";
+  line-height: 0;
+}
+.clearfix:after {
+  clear: both;
+}
+.hide-text {
+  font: 0/0 a;
+  color: transparent;
+  text-shadow: none;
+  background-color: transparent;
+  border: 0;
+}
+.input-block-level {
+  display: block;
+  width: 100%;
+  min-height: 34px;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
 @-ms-viewport {
   width: device-width;
 }
@@ -9648,7 +9648,6 @@ body .navbar.top .navbar-inner .container-fluid a.brand {
 body .container,
 body .container-fluid {
   background-color: #fcfbf7;
-  position: relative;
   max-height: 80%;
   overflow: hidden;
   padding-right: 0;
@@ -9660,8 +9659,7 @@ body .container-fluid .main {
   margin-top: 0;
   padding-top: 0;
   padding-bottom: 0;
-  position: relative;
-  max-height: 100%;
+  max-height: 80%;
 }
 body .container .main .left-sidebar,
 body .container-fluid .main .left-sidebar,
@@ -9683,8 +9681,8 @@ body .container .main #page,
 body .container-fluid .main #page {
   background-color: #fcfbf7;
   overflow: hidden;
+  height: 75%;
   min-height: 470px;
-  position: relative;
   /* The main map for navigating the town */
 
   /* the background images for each map location */
@@ -9843,11 +9841,10 @@ body .container-fluid .main #page .bg_image img {
 }
 body .container .main #page .speaker,
 body .container-fluid .main #page .speaker {
-  position: relative;
+  position: absolute;
   left: 0;
   top: 48px;
   width: 380px;
-  float: left;
 }
 body .container .main #page .speaker img,
 body .container-fluid .main #page .speaker img {
@@ -9857,17 +9854,17 @@ body .container-fluid .main #page .speaker img {
   height: 680px;
 }
 body .footer {
-  /*background-size: auto 200%;*/
-
-  margin-top: 24px;
   background-color: #f89406;
-  height: 48px;
 }
 body .footer .footer-content {
-  bottom: 0;
-  margin-right: 20px;
-  margin-left: 20px;
-  width: 60%;
+  width: 100%;
+  position: static;
+  font-family: "League Gothic";
+  font-size: 20px;
+}
+body .footer .footer-content div,
+body .footer .footer-content span {
+  margin: 0 24px;
 }
 body #main.listing #page table tr {
   border-top: 1px solid #f2eed5;
@@ -9882,6 +9879,7 @@ body #main.exploring #page .responder {
   margin-right: 12px;
   max-width: 65%;
   display: block;
+  position: relative;
   font-size: 20px;
   line-height: 30px;
   -webkit-border-radius: 4px 4px 4px 4px;
@@ -10175,13 +10173,33 @@ body #main.profile #page ul.nav-tabs,
 body #main.user #page ul.nav-tabs {
   background-color: #f2eed5;
   border-bottom: 1px solid #d8d3b3;
+  font-size: 20px;
+  font-family: "League Gothic";
+}
+body #main.profile #page ul.nav-tabs li a,
+body #main.user #page ul.nav-tabs li a {
+  border: 1px solid transparent;
+}
+body #main.profile #page ul.nav-tabs li a:hover,
+body #main.user #page ul.nav-tabs li a:hover {
+  background-color: #d8d3b3;
 }
 body #main.profile #page ul.nav-tabs li.active,
 body #main.user #page ul.nav-tabs li.active {
+  border: 1px solid transparent;
+  background-color: transparent;
+}
+body #main.profile #page ul.nav-tabs li.active a,
+body #main.user #page ul.nav-tabs li.active a {
   background-color: #fcfbf7;
   border-top: 1px solid #d8d3b3;
   border-left: 1px solid #d8d3b3;
   border-right: 1px solid #d8d3b3;
+  border-bottom: 1px solid transparent;
+}
+body #main.profile #page ul.nav-tabs li.active a:hover,
+body #main.user #page ul.nav-tabs li.active a:hover {
+  background-color: #fcfbf7;
 }
 body #main.profile #page ul.profile-user-info,
 body #main.user #page ul.profile-user-info {
@@ -10206,6 +10224,10 @@ body #main.profile #page ul.profile-user-info li:first-child,
 body #main.user #page ul.profile-user-info li:first-child {
   font-size: 20px;
   color: #333333;
+}
+body #main.profile #page ul.profile-user-info li:nth-child(2),
+body #main.user #page ul.profile-user-info li:nth-child(2) {
+  color: #96bc44;
 }
 body #main.profile #page p.overview table.dc-table-label,
 body #main.user #page p.overview table.dc-table-label {
@@ -10315,8 +10337,7 @@ body #main.user #page .paideia_monthcal .monthcal_intro_line:after {
 }
 body #main.profile #page .paideia_monthcal table.month,
 body #main.user #page .paideia_monthcal table.month {
-  border-spacing: 2px;
-  border: 0px solid transparent;
+  border: 1px solid #d8d3b3;
 }
 body #main.profile #page .paideia_monthcal table.month tr:first-child,
 body #main.user #page .paideia_monthcal table.month tr:first-child {
