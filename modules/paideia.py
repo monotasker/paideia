@@ -1927,7 +1927,6 @@ class User(object):
             self.prev_loc = None
             self.npc = None
             self.prev_npc = None
-            import pdb; pdb.set_trace()  # XXX BREAKPOINT
             msel = db((db.auth_membership.user_id == self.user_id) &
                       (db.auth_membership.group_id == db.auth_group.id)).select()
             #pprint([m for m in msel.as_list()])
