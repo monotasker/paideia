@@ -133,8 +133,12 @@ class Walk(object):
                 print traceback.format_exc(5)
                 self.user = self._new_user(userdata, tag_records, tag_progress)
             except (AssertionError, AttributeError):  # user stale or block
+                print 'creating new user'
                 self.user = self._new_user(userdata, tag_records, tag_progress)
 
+        print 'target is', self.user.quota
+        if isinstance(self.user.quota, list):
+            self.user.quota = self.user.quota[0]
         return self.user
 
     def start(self, localias, response_string=None, path=None, repeat=None,
@@ -245,12 +249,14 @@ class Walk(object):
                 print 'walk.ask: path.step_for_prompt is None'
 
         npc = s.get_npc(prev_npc=user.prev_npc, prev_loc=user.prev_loc)
-        print 'walk.ask: got npc', npc.get_id()
+        #print 'walk.ask: got npc', npc.get_id()
         user.set_npc(npc)
         if user.prev_npc:
-            print 'walk.ask: user.prev_npc is now', user.prev_npc.get_id()
+            pass
+            #print 'walk.ask: user.prev_npc is now', user.prev_npc.get_id()
         else:
-            print 'no previous npc'
+            pass
+            #print 'no previous npc'
 
         # get data to send to view
         prompt = s.get_prompt()
@@ -270,14 +276,16 @@ class Walk(object):
             # only move prompt step to reply step (or to steps completed) if
             # its a content step
             assert p.end_prompt()  # non-response steps end here
-            print 'walk.ask: ended prompt'
+            #print 'walk.ask: ended prompt'
         else:
-            print 'walk.ask: info step, prompt doesn\'t need ending'
+            pass
+            #print 'walk.ask: info step, prompt doesn\'t need ending'
         self._store_user(user)
 
-        print 'walk.ask: user.loc is', user.loc.get_id()
+        #print 'walk.ask: user.loc is', user.loc.get_id()
         try:
-            print 'walk.ask: user.prev_loc is', user.prev_loc.get_id()
+            pass
+            #print 'walk.ask: user.prev_loc is', user.prev_loc.get_id()
         except:
             pass
 
@@ -294,7 +302,7 @@ class Walk(object):
             #print 'walk.ask: final blocks on p is', [b for b in p.blocks]
         print 'END OF WALK.ASK'
         print '==============================\n'
-        print 'bg_image:', prompt['bg_image']
+        #print 'bg_image:', prompt['bg_image']
         return {'npc': prompt, 'responder': responder}
 
     def reply(self, localias, response_string, path=None,
@@ -487,9 +495,9 @@ class Walk(object):
         now = datetime.datetime.utcnow()
         # TODO: should the threshold here be less than 1 for 'right'?
 
-        print 'walk.record_step: score', score
-        print 'walk.record_step: times_right', raw_tright
-        print 'walk.record_step: times_wrong', raw_twrong
+        #print 'walk.record_step: score', score
+        #print 'walk.record_step: times_right', raw_tright
+        #print 'walk.record_step: times_wrong', raw_twrong
         got_right = True if ((score - 1) < 0.01) else False  # because of float inaccuracy
         for t in taglist['primary']:
             #print 'walk.record_step: recording tag', t
@@ -502,23 +510,23 @@ class Walk(object):
                 tlright = oldrec[0]['tlast_right']
                 otright = oldrec[0]['times_right']
                 otwrong = oldrec[0]['times_wrong']
-                print 'walk.record_step: old times right', otright
-                print 'walk.record_step: old times wrong', otwrong
+                #print 'walk.record_step: old times right', otright
+                #print 'walk.record_step: old times wrong', otwrong
                 try:  # in case oldrec is None, created for secondary right
                     tright += otright
                     if otright >= 1000:  # FIXME: hack for bad data
-                        print 'tright > 1000'
+                        #print 'tright > 1000'
                         tright = 1000
                 except TypeError:
-                    print 'type error: tright was', otright
+                    #print 'type error: tright was', otright
                     pass
                 try:  # in case oldrec is None, created for secondary right
                     twrong += otwrong
                     if otwrong >= 1000:  # FIXME: hack for bad data
-                        print 'twrong > 1000'
+                        #print 'twrong > 1000'
                         twrong = 1000
                 except TypeError:
-                    print 'type error: twrong was', otwrong
+                    #print 'type error: twrong was', otwrong
                     pass
                 if got_right:  # because of float inaccuracy
                     tlright = now
@@ -527,12 +535,12 @@ class Walk(object):
             else:  # if no existing record, just set both to now as initial baseline
                 tlwrong = now
                 tlright = now
-            print 'walk.record_step: times right', tright
-            print 'walk.record_step: times wrong', twrong
-            print 'walk.record_step: tag', t
+            #print 'walk.record_step: times right', tright
+            #print 'walk.record_step: times wrong', twrong
+            #print 'walk.record_step: tag', t
 
             condition = {'tag': t, 'name': user_id}
-            print 'walk.record_step: condition',
+            #print 'walk.record_step: condition',
             db.tag_records.update_or_insert(condition,
                                             tag=t,
                                             times_right=tright,
@@ -646,7 +654,7 @@ class Npc(object):
         with the provided id
         """
         db = current.db if not db else db
-        print 'npc.init: id_num is', id_num
+        #print 'npc.init: id_num is', id_num
         # FIXME: this is a hack to handle being passed npc obj somewhere
         if isinstance(id_num, Npc):
             self.id_num = id_num.get_id()
@@ -841,7 +849,7 @@ class Step(object):
 
         # set by init args and used for prompt replacements
         self.username = username
-        print 'step.init: self.username is', self.username
+        #print 'step.init: self.username is', self.username
         self.promoted = promoted
         #print 'step.init: self.promoted is', self.promoted
         self.new_tags = new_tags
@@ -880,7 +888,7 @@ class Step(object):
     def get_locations(self):
         """Return a list of the location id's for this step."""
         db = current.db
-        print 'locations for step are', self.data['locations']
+        #print 'locations for step are', self.data['locations']
         return [l for l in self.data['locations']
                 if db.locations[l].loc_active is True]
 
@@ -1057,11 +1065,11 @@ class Step(object):
             if prev_npc and (prev_loc.get_id() == loc_id) \
                     and (prev_npc.get_id() in npc_list):
                 # previous npc was in this loc and is valid for this step
-                print 'Step.get_npc: continuing with prev_npc', prev_npc
+                #print 'Step.get_npc: continuing with prev_npc', prev_npc
                 self.npc = copy(prev_npc)
             else:
                 npc_here_list = [n for n in npc_list if loc_id in db.npcs[n]['map_location']]
-                print 'Step.get_npc:', len(npc_list), 'npcs available for step'
+                #print 'Step.get_npc:', len(npc_list), 'npcs available for step'
 
                 try:
                     pick = npc_here_list[randrange(len(npc_here_list))]
@@ -1078,11 +1086,11 @@ class Step(object):
                     mail.send(mail.settings.sender,
                               'No valid npc was available',
                               msg.xml())
-                    print 'Step.get_npc: no valid npc here for chosen step'
+                    #print 'Step.get_npc: no valid npc here for chosen step'
 
                     pick = npc_list[randrange(len(npc_list))]
 
-                    print 'Step.npc: using fallback npc', pick
+                    #print 'Step.npc: using fallback npc', pick
                 assert pick
                 self.npc = Npc(pick)
         return self.npc
@@ -1555,7 +1563,6 @@ class Path(object):
         self.prev_loc = prev_loc
         self.prev_npc = prev_npc
         self.username = username
-        print 'path.init: username is', self.username
 
         # set later
         self.npc = None
@@ -1660,11 +1667,11 @@ class Path(object):
         next_loc = None
         goodlocs = mystep.get_locations()
         if not loc.get_id() in goodlocs:
-            print 'path.get_step_for_prompt: this loc is', loc.get_id()
-            print 'path.get_step_for_prompt: good locs are', goodlocs
+            #print 'path.get_step_for_prompt: this loc is', loc.get_id()
+            #print 'path.get_step_for_prompt: good locs are', goodlocs
             next_loc = goodlocs[randrange(len(goodlocs))]
-            print 'path.get_step_for_prompt: next step can\'t be done here'
-            print 'path.get_step_for_prompt: redirecting to loc', next_loc
+            #print 'path.get_step_for_prompt: next step can\'t be done here'
+            #print 'path.get_step_for_prompt: redirecting to loc', next_loc
             # TODO: Putting redirect check here requires sane step data
         else:
             mystep.loc = self.loc  # update location on step
@@ -1735,6 +1742,7 @@ class PathChooser(object):
         db = current.db if not db else db
         self.loc_id = loc_id
         self.completed = paths_completed
+        print 'PathChooser.init: completed paths', paths_completed
 
     def _order_cats(self):
         """
@@ -1789,8 +1797,8 @@ class PathChooser(object):
         #ps.exclude(lambda row:
                    #[t for t in row.tags
                     #if db.tags[t].tag_position > self.rank])
-        print 'paths_by_category: Found', len(ps), 'paths in category', cat
-        print 'paths_by_category: using tags', taglist
+        #print 'paths_by_category: Found', len(ps), 'paths in category', cat
+        #print 'paths_by_category: using tags', taglist
 
         return (ps, cat)
 
@@ -1815,12 +1823,11 @@ class PathChooser(object):
         # cpaths is already filtered by category
         p_new = cpaths.find(lambda row: row.id not in self.completed).as_list()
         # FIXME: p.steps[0] is yielding a long int
-        # added 'if' condition to .find here for steps with no locations
-        # assigned (legacy data)
         p_here = [p for p in cpaths.as_list()
                   if db.steps[int(p['steps'][0])].locations
                   and loc_id in db.steps[int(p['steps'][0])].locations]
         p_here_new = [p for p in p_here if p in p_new]
+        print 'PathChooser.choose_from_cat: found', len(p_here_new), 'new paths here'
 
         path = None
         new_loc = None
@@ -1868,8 +1875,8 @@ class PathChooser(object):
         for cat in cat_list:
             print 'PathChooser.choose: trying cat', cat
             catpaths = self._paths_by_category(cat, self.rank)
-            if catpaths[0]:
-                print 'PathChooser.choose: found', len(catpaths), 'paths in cat'
+            if len(catpaths[0]):
+                print 'PathChooser.choose: found', len(catpaths[0]), 'paths in cat'
                 #for c in catpaths[0]:
                     #print'catpath -', pprint(c)
                 return self._choose_from_cat(catpaths[0], catpaths[1])
@@ -1935,7 +1942,7 @@ class User(object):
             # a generic 'class' with generic presets
             try:
                 target = [m.auth_group.paths_per_day for m in msel
-                          if m.auth_group.paths_per_day]
+                          if m.auth_group.paths_per_day][0]
             except Exception:
                 print traceback.format_exc(5)
                 target = 20
@@ -2124,7 +2131,7 @@ class User(object):
             while not choice:
                 choice, redir, cat = PathChooser(self.tag_progress, self.loc.get_id(),
                                                  self.completed_paths).choose()
-                print 'PathChooser returned ', 'choice', choice, 'redir', redir, 'cat', cat
+                print 'PathChooser returned ', 'redir', redir, 'cat', cat  # 'choice', choice,
                 if not choice:
                     choice = None
                     print 'sending error'
