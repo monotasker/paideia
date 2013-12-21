@@ -66,7 +66,6 @@ from itertools import product
 import datetime
 import json
 
-
 caps = {'α': 'Α',
         'ἀ': 'Ἀ',
         'ἁ': 'Ἁ',
@@ -107,11 +106,60 @@ caps = {'α': 'Α',
         'ὡ': 'Ὡ'}
 
 
+def clr(string, mycol='white'):
+    """
+    Return a string surrounded by ansi colour escape sequences.
+
+    This function is intended to simplify colourizing terminal output.
+    The default color is white. The function can take any number of positional
+    arguments as component strings, which will be joined (space delimited)
+    before being colorized.
+    """
+    col = {'white': '\033[95m',
+           'blue': '\033[94m',
+           'green': '\033[92m',
+           'orange': '\033[93m',
+           'red': '\033[91m',
+           'lightblue': '\033[1;34m',
+           'lightgreen': '\033[1;32m',
+           'lightcyan': '\033[1;36m',
+           'lightred': '\033[1;31m',
+           'lightpurple': '\033[1;35m',
+           'white': '\033[1;37m',
+           'endc': '\033[0m'
+           }
+    thecol = col[mycol]
+    endc = col['endc']
+    if isinstance(string, list):
+        try:
+            string = ' '.join(string)
+        except TypeError:
+            string = ' '.join([str(s) for s in string])
+
+    newstring = '{}{}{}'.format(thecol, string, endc)
+    return newstring
+
+
+def printutf(string):
+    """Convert unicode string to readable characters for printing."""
+    string = string.decode('utf-8').encode('utf-8')
+    return string
+
+
 def capitalize(letter):
     #if letter in caps.values():
     letter = letter.decode('utf-8').upper()
     print 'capitalized'
     print letter.encode('utf-8')
+    return letter
+
+
+def lowercase(string):
+    """
+    Convert string to lower case in utf-8 safe way.
+    """
+    string = string.decode('utf-8').lower()
+    return string.encode('utf-8')
 
 
 def firstletter(mystring):

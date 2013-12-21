@@ -18,6 +18,7 @@ ap.append(form)
     <div class='speaker'>{{=npc['npc_image']}}</div>
     {{=npc['npc']}}
     {{=responder}}
+    {{=bmodal}}
 {{pass}}
 
 <script>

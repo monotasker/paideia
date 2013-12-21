@@ -127,6 +127,8 @@ def walk():
 
     resp = Walk(new_user=new_user).start(request.vars.loc,
                                          **stepargs)
+    if 'bmodal' not in resp.keys():
+        resp['bmodal'] = ''
     resp['form'] = testform
 
     return resp

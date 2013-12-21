@@ -4,3 +4,23 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+col	greek_parser.py	/^col = {'PURPLE': '\\033[95m',$/;"	v
+tokenize	greek_parser.py	/^def tokenize(str):$/;"	f
+Parser	greek_parser.py	/^class Parser(object):$/;"	c
+mycol	greek_parser.py	/^    mycol = col['WHITE']$/;"	v	class:Parser
+__init__	greek_parser.py	/^    def __init__(self, restring='', structures=[]):$/;"	m	class:Parser
+clr	greek_parser.py	/^    def clr(self, string):$/;"	m	class:Parser
+validate	greek_parser.py	/^    def validate(self, tokens):$/;"	m	class:Parser
+match_string	greek_parser.py	/^    def match_string(self, tokens):$/;"	m	class:Parser
+test_order	greek_parser.py	/^    def test_order(self, tokens, words):$/;"	m	class:Parser
+Clause	greek_parser.py	/^class Clause(Parser):$/;"	c
+test_order	greek_parser.py	/^    def test_order(self, tokens):$/;"	m	class:Clause
+NounPhrase	greek_parser.py	/^class NounPhrase(Parser):$/;"	c
+test_order	greek_parser.py	/^    def test_order(self, tokens, words):$/;"	m	class:NounPhrase
+Noun	greek_parser.py	/^class Noun(Parser):$/;"	c
+mycol	greek_parser.py	/^    mycol = col['BLUE']$/;"	v	class:Noun
+Art	greek_parser.py	/^class Art(Parser):$/;"	c
+mycol	greek_parser.py	/^    mycol = col['GREEN']$/;"	v	class:Art
+string	greek_parser.py	/^    string = 'οἰκος'$/;"	v
+np	greek_parser.py	/^    np = Parser('', [Noun('οἰκος')])$/;"	v
+tokens	greek_parser.py	/^    tokens = tokenize(string)$/;"	v
