@@ -1,17 +1,31 @@
 Paideia
-v. 0.2 (beta)
+v. 0.4 (alpha)
 
 # Overview
 
-Paideia is a web application for learning New Testament Greek. It is written in Python (along with some JavaScript) using the web2py framework (http://www.web2py.com). 
+Paideia is a dynamic, interactive application for learning New Testament Greek written in Python (along with some JavaScript) using the web2py framework (http://www.web2py.com). 
 
 # License
 
-Copyright 2011 Ian W. Scott (scottianw@gmail.com)
-Licensed under GPL 3.0, the Paideia platform (application code) is free
-open-source software.  
+Copyright 2011—2014 Ian W. Scott (scottianw@gmail.com)
+The Paideia platform is free open-source software, licensed under GPL version 3, with the one additional condition that it may not be used for instruction in ancient Greek (whether Koine/Hellenistic or Classical/Attic). In other words, you may re-use any part of this application framework to build instructional applications for other languages, and you may use pieces of the application code for other kinds of software application. You just can't use it to compete against my own Greek instructional app. 
 
-All images and creative content (including the text of the actual language-instruction interactions) are licensed under a Creative Commons Attribution Non-commercial license. In other words, you may re-use the content (not just the platform) as long as you give credit to me and do not charge money for it.
+The platform may be freely re-used and distributed in applications for teaching any modern language and for any ancient Asian, sub-saharan African, or North or South American languages. Along with ancient Greek, I also reserve the exclusive right to use Paideia for teaching other ancient European and Semitic languages ("reserved" languages). At present I have no plans to develop applications for these other ancient languages, and I will happily consider opening up permissions for specific "reserved" languages if and when individual developers are prepared to start work on them. For the present, though, I want to leave myself the option of working on other Paideia-based language applications without competition.  This category of "reserved" languages includes (but is not limited to) Latin, Classical Hebrew, Classical Aramaic, Classical Syriac, Coptic, and Ethiopic (Ge'ez). If you are interested in developing a Paideia app for one of these languages, you must contact Ian W. Scott to obtain prior written permission.
+
+While the platform is free software, the instructional content specific to the Greek language is not. I include it along with the source code (a) because it's practically simpler, and (b) because it may help others to see how the platform can be used. But the instructional content may not be reproduced or redistributed in any form without the express written permission of its creator, Ian W. Scott. By "instructional content" I mean:
+
+- the contents of any database fields
+- all images and audio recordings included in the folders "static/images," and "static/audio" and its subfolders.
+
+Although the content of the database fields are non-free, the database structure (arrangement of tables and fields as defined in "model" files) is considered part of the platform and is thus included under the GPL-3 licensed material.
+
+Since Paideia is build on top of other open-source tools, those tools are subject to their own varied licenses (even where they are distributed with the Paideia code). These include:
+
+- web2py application framework (http://www.web2py.com)
+- jquery and jquery-ui libraries
+- d3.js, crossfilter.js, and dc.js data visualization libraries
+- bootstrap css framework
+- all included fonts
 
 # Terminology
 
@@ -35,25 +49,4 @@ several other classes, allowing for different kinds of user response. These clas
 Following the same metaphor, the movement through the steps of a path (and from one path to the next) is referred to as a "walk." So the controller function handling this movement is called walk() and the module includes a Walk class that holds logic related to transitions from one step to the next.
 
 These transitions are complicated because the steps in a path often have to be completed in different locations around the fictional town of the game setting. Since the user is free to move as they choose from one town location to another, they may sometimes begin a second path in a new location before moving on to the location where the original path can be completed.
-
-Session variables:
-
-The movement between steps and between paths is controlled by means of
-several variables set on the web2py session object:
-- session.walk
-    - tag_set (stores categorized grammatical tags for selecting paths; this
-    information is calculated at the beginning of a new user session
-    and then persists until the session expires.)
-    - session.active_paths (tracks the paths that are currently active, along
-    with the last step that has been initiated for each one)
-    - session.completed (a cumulative list of the paths completed during the
-    current user session)
-    - session.location (reset to None whenever the user returns to town map)
-    - session.path
-    - session.step (stores the Step instance initialized in the 'ask' state
-    so that it can be reused to evaluate the user response; reset to None
-    just before 'reply' view is presented to user)
-
-Several other session variables provide data persistence across the various
-states of a single step.
 
