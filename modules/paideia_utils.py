@@ -1,5 +1,6 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
+
 """
 A collection of miscellaneous utility functions to be used in multiple modules.
 
@@ -56,12 +57,14 @@ Part of the Paideia platform built with web2py.
 
 """
 import traceback
+#import locale
 from gluon import current, SQLFORM, Field, BEAUTIFY, IS_IN_DB, UL, LI, A, URL, P
 from gluon import TABLE, TD, TR, LABEL, SPAN
 #from plugin_ajaxselect import AjaxSelect
 import re
 from random import randrange, shuffle
 from itertools import product
+from itertools import chain
 #from pprint import pprint
 import datetime
 import json
@@ -198,12 +201,12 @@ def test_regex(regex, readables):
     The "readables" argument should be a list of strings to be tested.
     """
     readables = readables if type(readables) == list else [readables]
-    test_regex = re.compile(regex, re.I|re.U)
+    test_regex = re.compile(regex, re.I | re.U)
     rdict = {}
     for rsp in readables:
         match = re.match(test_regex, rsp)
         rdict[rsp] = SPAN('PASSED', _class='success') if match \
-                     else SPAN('FAILED', _class='success')
+            else SPAN('FAILED', _class='success')
     return rdict
 
 
@@ -233,7 +236,7 @@ def flatten(self, items, seqtypes=(list, tuple)):
     """
     for i, x in enumerate(items):
         while isinstance(items[i], seqtypes):
-            items[i:i+1] = items[i]
+            items[i:i + 1] = items[i]
     return items
 
 
@@ -256,12 +259,138 @@ def make_json(data):
     Return json object representing the data provided in dictionary "data".
     """
     date_handler = lambda obj: obj.isoformat() \
-                    if isinstance(obj, datetime.datetime) else None
+        if isinstance(obj, datetime.datetime) else None
     myjson = json.dumps(data,
                         default=date_handler,
                         indent=4,
                         sort_keys=True)
     return myjson
+
+
+def normalize_accents(strings):
+    """
+    Return a polytonic Greek unicode string with accents removed.
+
+    The one argument should be a list of strings to be normalized. It can
+    also handle a single string.
+
+    So far this function only handles lowercase strings.
+    """
+    if not isinstance(strings, list):
+        strings = [strings]
+
+    equivs = {'α': ['ά', 'ὰ', 'ᾶ'],
+              'ἀ': ['ἄ', 'ἂ', 'ἆ'],
+              'ἁ': ['ἅ', 'ἃ', 'ἇ'],
+              'ᾳ': ['ᾷ', 'ᾲ', 'ᾴ'],
+              'ᾀ': ['ᾄ', 'ᾂ', 'ᾆ'],
+              'ᾁ': ['ᾅ', 'ᾃ', 'ᾇ'],
+              'ε': ['έ', 'ὲ'],
+              'ἐ': ['ἔ', 'ἒ'],
+              'ἑ': ['ἕ', 'ἓ'],
+              'η': ['ῆ', 'ή', 'ὴ'],
+              'ἠ': ['ἤ', 'ἢ', 'ἦ'],
+              'ἡ': ['ἥ', 'ἣ', 'ἧ'],
+              'ῃ': ['ῇ', 'ῄ', 'ῂ'],
+              'ᾐ': ['ᾔ', 'ᾒ', 'ᾖ'],
+              'ᾑ': ['ᾕ', 'ᾓ', 'ᾗ'],
+              'ι': ['ῖ', 'ϊ', 'ί', 'ὶ'],
+              'ἰ': ['ἴ', 'ἲ', 'ἶ'],
+              'ἱ': ['ἵ', 'ἳ', 'ἷ'],
+              'ο': ['ό', 'ὸ'],
+              'ὀ': ['ὄ', 'ὂ'],
+              'ὁ': ['ὅ', 'ὃ'],
+              'υ': ['ῦ', 'ϋ', 'ύ', 'ὺ'],
+              'ὐ': ['ὔ', 'ὒ', 'ὖ'],
+              'ὑ': ['ὕ', 'ὓ', 'ὗ'],
+              'ω': ['ῶ', 'ώ', 'ὼ'],
+              'ὠ': ['ὤ', 'ὢ', 'ὦ'],
+              'ὡ': ['ὥ', 'ὣ', 'ὧ'],
+              'ῳ': ['ῷ', 'ῴ', 'ῲ'],
+              'ᾠ': ['ᾤ', 'ᾢ', 'ᾦ'],
+              'ᾡ': ['ᾥ', 'ᾣ', 'ᾧ'],
+              }
+    accented = chain(*equivs.values())
+    restr = '|'.join(accented)
+    newstrings = []
+    for mystring in strings:
+        if mystring not in ['τίνος', 'τί', 'τίς', 'τίνα', 'τίνας', 'τίνι']:
+            search = re.search(restr, mystring)
+            if search:
+                matching_letters = search.group()  # could be multiple
+                # get relevant subset of equivs dictionary
+                edict = {k: v for k, v in equivs.iteritems()
+                        if [m for m in v if m in matching_letters]}
+                # eliminate absent accented letters from values
+                for k, v in edict.iteritems():
+                    edict[k] = [l for l in v if l in matching_letters]
+                    pairs = edict.items()
+                    for idx, p in enumerate(pairs):
+                        if len(p[1]) > 1:  # handle multiple matching values
+                            newpairs = [(v, p[0]) for v in p[1][1:]]
+                            pairs.extend(newpairs)
+                        pairs[idx] = (p[1][0], p[0])
+                newstrings.append(multiple_replace(mystring, *pairs))
+            else:
+                newstrings.append(mystring)
+        else:
+            newstrings.append(mystring)
+        #myloc = locale.getdefaultlocale()
+        # TODO: get alphabetical sorting working here
+        #print 'default locale is', myloc
+        #locale.setlocale(locale.LC_ALL, 'el_GR.UTF-8')
+        newstrings = sorted(newstrings)
+        #locale.setlocale(locale.LC_ALL, myloc)
+    return newstrings
+
+
+def gather_vocab():
+    """
+    Return a list of all Greek words used in steps.
+    """
+    db = current.db
+    steps = db(db.steps.id > 0).select()
+
+    words = []
+    for s in steps:
+        regex = re.compile(u'[^\w\.,\?!\"\'\-\*\s\|\<\>;\(\)\\\:\[\]\/]+')
+        strings = ' '.join([s.prompt, s.readable_response])
+        words.extend(regex.findall(strings))
+    lower_words = [w.decode('utf-8').lower().encode('utf-8') for w in words]
+    normal_words = normalize_accents(lower_words)
+    unique_words = list(set(normal_words))
+    x = ['πιλ', 'βοδυ', 'μειδ', 'νηλ', 'ἰλ', 'σαγγ', 'ἁμ', 'ἱτ', 'ἑλπ', 'ἑλω', 'ο',
+         'βοτ', 'ὁλ', 'ὁγ', 'παθ', 'τιψ', 'β', 'σωλ', 'κορπ', 'ὡλ', 'κατς', 'γγς',
+         'μωλτεγγ', 'δεκ', 'φιξ', 'βαλ', 'διλ', 'δαξ', 'δρομα', 'δακ', 'δαγ', 'ἁγ',
+         'λοξ', 'δυδ', 'βωθ', 'ὐψ', 'καν', 'καβ', 'ὀτ', 'βαδ', 'μωστ', 'μοισδ',
+         'μιλ', 'βελ', 'ἑδ', 'θοτ', 'κιλ', 'κρω', 'βοχ', 'ω', 'μεντ', 'ἁτ', 'νεατ',
+         'σπηρ', 'βοδι', 'πιτ', 'βονδ', 'ἁρδ', 'δοκς', 'μελτ', 'βεδ', 'μαλ', 'δατς',
+         'σωπ', 'α', 'πενσιλ', 'κς', 'δεκς', 'αριας', 'βαγγ', 'σετ', 'βρουμ', 'ἀδ',
+         'πωλ', 'δατ', 'ἁγγ', 'πραυδ', 'αὐτης', 'νειλ', 'σογγ', 'ζαπ', 'κλαδ',
+         'νιτ', 'φαξ', 'βολ', 'κεπτ', 'μοιστ', 'ἁμερ', 'τουνα', 'προγγ', 'τ',
+         'κλυν', 'λοβ', 'πλειαρ', 'κροπ', 'βανδ', 'μωλτεν', 'υτ', 'κοτ', 'κοπ',
+         'ἀτ', 'φυξ', 'ὡλι', 'μυτ', 'θατ', 'δοτ', 'βικς', 'ἁμαρ', 'λωφερ', 'δοκ',
+         'ταπ', 'ἀβωδ', 'ὑτος', 'λωφρ', 'ἁμρ', 'ροκ', 'πς', 'βαδυ', 'οὐψ', 'πραγγ',
+         'σπειρ', 'ἀγγλ', 'σλαψ', 'πλαυ', 'δραμα', 'φοξ', 'ἱτεδ', 'ὁτ', 'δογ',
+         'δολ', 'ρω', 'δοξ', 'ὗτος', 'μιτ', 'αὑ', 'ἱτς', 'μωλτ', 'βατ', 'βαχ',
+         'βικ', 'μιαλ', 'μολ', 'μιελ', 'κον', 'μωισδ', 'κραπ', 'καπ', 'ὑπ', 'ἀγκλ',
+         'λιξ', 'ρωλ', 'λαβ', 'ὀδ', 'λαξ', 'δοτς', 'ἀνκλ', 'ρακ', 'πεγ', 'τυνα',
+         'βρυμ', 'καρπ', 'βρεδ', 'κιπ', 'μηδ', 'δαλ', 'βετ', 'διπ', 'κλιν', 'πετ',
+         'βαδι', 'λικς', 'δακς']
+    mywords = [l for l in unique_words if not l in x]
+
+    return mywords
+
+
+def multiple_replacer(*key_values):
+    replace_dict = dict(key_values)
+    replacement_function = lambda match: replace_dict[match.group(0)]
+    pattern = re.compile("|".join([re.escape(k) for k, v in key_values]), re.M)
+    return lambda string: pattern.sub(replacement_function, string)
+
+
+def multiple_replace(string, *key_values):
+    return multiple_replacer(*key_values)(string)
 
 
 MYWORDS = {u'πωλεω': {'glosses': ['sell'],
@@ -440,6 +569,7 @@ input = {'words1': ['καρπους|noun_acc_masc_plur_καρπος',
          'testing': True,
          'npcs': [1]}
 
+
 class PathFactory(object):
 
     u"""
@@ -594,12 +724,12 @@ class PathFactory(object):
                 img_row = db(db.images.title == img_title).select().first()
             img_id = img_row.id
             prompts, responses, readables, \
-            xtags, new_forms = self.formatted(c,
-                                              prompt_template,
-                                              response_template,
-                                              readable_template,
-                                              testing
-                                              )
+                xtags, new_forms = self.formatted(c,
+                                                  prompt_template,
+                                                  response_template,
+                                                  readable_template,
+                                                  testing
+                                                  )
             response1 = responses[0]
             response2 = responses[1] if len(responses) > 1 else None
             response3 = responses[2] if len(responses) > 2 else None
@@ -677,7 +807,7 @@ class PathFactory(object):
                 mytags = db(db.lemmas.lemma == mylemma).select().first().extra_tags
                 if re.search(r'adj|noun|pronoun', f):
                     modifies = man_fields[0]  # FIXME: only works for single sub
-                    mod_form = words[int(modifies[-1])-1]
+                    mod_form = words[int(modifies[-1]) - 1]
 
                     myform, newform = self.make_form_agree(mod_form, mylemma,
                                                            testing)
@@ -731,7 +861,7 @@ class PathFactory(object):
         newforms = []
         if not mod_parse:
             form = db(db.word_forms.word_form == mod_form
-                        ).select().first()
+                      ).select().first()
             case = form.grammatical_case
             gender = form.gender
             number = form.number
@@ -743,8 +873,8 @@ class PathFactory(object):
             ref_lemma = parsebits[-1]
             pos = parsebits[0]
             ref_const = '{}_{}_{}_{}'.format(pos, parsebits[1],
-                                                parsebits[2],
-                                                parsebits[3])
+                                             parsebits[2],
+                                             parsebits[3])
             ref_lemma_id = db(db.lemmas.lemma == ref_lemma).select().first().id
             row = db((db.word_forms.source_lemma == ref_lemma_id) &
                      (db.word_forms.grammatical_case == case) &
@@ -756,11 +886,11 @@ class PathFactory(object):
                 ref_const_id = db(db.constructions.construction_label == ref_const
                                   ).select().first().id
                 new = {'word_form': mod_parts[0],
-                        'source_lemma': ref_lemma_id,
-                        'grammatical_case': case,
-                        'gender': gender,
-                        'number': number,
-                        'construction': ref_const_id}
+                       'source_lemma': ref_lemma_id,
+                       'grammatical_case': case,
+                       'gender': gender,
+                       'number': number,
+                       'construction': ref_const_id}
                 db.word_forms.insert(**new)
                 newforms.append(new)
         # Retrieve correct form from db. If none, try to create it.
@@ -771,10 +901,10 @@ class PathFactory(object):
                 genders.append('masculine or feminine')
             for g in genders:
                 myrow = db((db.word_forms.source_lemma == mylemma_id) &
-                         (db.word_forms.grammatical_case == case) &
-                         (db.word_forms.gender == g) &
-                         (db.word_forms.number == number)
-                         ).select().first()
+                           (db.word_forms.grammatical_case == case) &
+                           (db.word_forms.gender == g) &
+                           (db.word_forms.number == number)
+                           ).select().first()
                 if myrow:
                     break
             myform = myrow.word_form
@@ -801,7 +931,7 @@ class PathFactory(object):
         for dbs in db_steps:
             db_readables = dbs.readable_response.split('|')
             if (dbs.prompt in prompts) and [r for d in db_readables
-                                              for r in readables if r == d]:
+                                            for r in readables if r == d]:
                 return (True, dbs.id)
             else:
                 pass
@@ -940,7 +1070,6 @@ class PathFactory(object):
         return (message, output)
 
 
-
 class TranslateWordPathFactory(PathFactory):
 
     """
@@ -998,7 +1127,6 @@ class TranslateWordPathFactory(PathFactory):
 
         return form, message, output
 
-
     def make_path(self, widget_type, lemmas, irregular, testing):
         '''
         '''
@@ -1009,7 +1137,7 @@ class TranslateWordPathFactory(PathFactory):
             for idx, cst in enumerate(lemma['constructions']):  # each path
                 compname = '{} {}'.format(lemma['lemma'], cst[0])
                 crow = db(db.constructions.construction_label == cst
-                             ).select().first()
+                          ).select().first()
                 reg_str = crow['trans_regex_eng']
                 glosses = self.make_glosses(lemma['lemma'], cst)
                 rdbl = self.make_readable(glosses[:], crow['trans_templates'])
@@ -1055,17 +1183,17 @@ class TranslateWordPathFactory(PathFactory):
             self.tenses = ['pres', 'aor', 'imperf', 'perf']
             self.voices = ['_act', '_mid', '_pass']
             self.moods = ['_ind', '_imper', '_inf']
-            self.persons = ['_{}'.format(n) for n in range(1,4)]
+            self.persons = ['_{}'.format(n) for n in range(1, 4)]
             self.numbers = ['s', 'p']
             # TODO: this is very high loop complexity; move to db as fixed list
             self.verbcs = ['{}{}{}{}{}'.format(t, v, m, p, n)
-                            for m in self.moods
-                            for t in self.tenses
-                            for v in self.voice
-                            for p in self.persons
-                            for n in self.numbers
-                            if not (m == '_inf')
-                            and not (m == '_imper' and p in ['_1', '_3'])]
+                           for m in self.moods
+                           for t in self.tenses
+                           for v in self.voice
+                           for p in self.persons
+                           for n in self.numbers
+                           if not (m == '_inf')
+                           and not (m == '_imper' and p in ['_1', '_3'])]
             self.verbcs2 = ['{}{}{}'.format(t, v, m)
                             for m in self.moods
                             for t in self.tenses
@@ -1167,4 +1295,3 @@ class TranslateWordPathFactory(PathFactory):
         gloss_string = '|'.join(myglosses)
         regex = raw.format(gloss_string)
         return regex
-
