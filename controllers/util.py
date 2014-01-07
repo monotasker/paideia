@@ -12,7 +12,7 @@ if 0:
     response = current.response
 import paideia_utils
 import traceback
-#from pprint import pprint
+from pprint import pprint
 
 
 @auth.requires_membership('administrators')
@@ -22,6 +22,13 @@ def test_regex():
     """
     form, result = paideia_utils.test_step_regex()
     return {'form': form, 'result': result}
+
+
+@auth.requires_membership('administrators')
+def gather_vocab():
+    vocab = paideia_utils.gather_vocab()
+    pprint(vocab)
+    return {'vocab': vocab}
 
 
 @auth.requires_membership('administrators')
