@@ -1,4 +1,11 @@
 {{extend 'layout.html'}}
-{{for v in vocab:}}
-{{=v}}</br>
+
+<h2>Added new word forms</h2>
+{{for v, id in vocab.iteritems():}}
+    {{=LI(A(v, _href=URL('editing', 'listing', args=['word_forms', id])))}}</br>
+{{pass}}
+
+<h2>Duplicate forms skipped</h2>
+{{for v, id in vocab.iteritems():}}
+    {{=LI(A(v, _href=URL('editing', 'listing', args=['word_forms', id])))}}</br>
 {{pass}}

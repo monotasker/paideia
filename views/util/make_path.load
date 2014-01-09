@@ -1,3 +1,103 @@
-{{=form}}
+{{=form.custom.begin}}
+    {{=LABEL('label_template')}}
+    {{=form.custom.widget.label_template}}
+    {{=LABEL('word sets')}}
+    {{=form.custom.widget.words}}
+    {{=LABEL('avoid')}}
+    {{=form.custom.widget.avoid}}
+    {{=LABEL('testing')}}
+    {{=form.custom.widget.testing}}
+    <label for="fs1_toggle">step 1</label>
+    <input type="checkbox" class="form_hider" name="fs1" id="fs1_toggle" value="fs1">
+    <div id='fs1' class='stepdiv'>
+        <ul>
+        {{=LI(LABEL('prompt_template'), form.custom.widget.one_prompt_template)}}
+        {{=LI(LABEL('response_template'), form.custom.widget.one_response_template)}}
+        {{=LI(LABEL('readable_template'), form.custom.widget.one_readable_template)}}
+        {{=LI(LABEL('tags'), form.custom.widget.one_tags)}}
+        {{=LI(LABEL('tags_secondary'), form.custom.widget.one_tags_secondary)}}
+        {{=LI(LABEL('tags_ahead'), form.custom.widget.one_tags_ahead)}}
+        {{=LI(LABEL('npcs'), form.custom.widget.one_npcs)}}
+        {{=LI(LABEL('locations'), form.custom.widget.one_locations)}}
+        {{=LI(LABEL('step_type'), form.custom.widget.one_step_type)}}
+        {{=LI(LABEL('image_template'), form.custom.widget.one_image_template)}}
+        </ul>
+    </div>
+    <label for="fs2_toggle">step 2</label>
+    <input type="checkbox" class="form_hider" id="fs2_toggle" name="fs2" value="fs2">
+    <div id='fs2' class='stepdiv'>
+        <ul>
+        {{=LI(LABEL('prompt_template'), form.custom.widget.two_prompt_template)}}
+        {{=LI(LABEL('response_template'), form.custom.widget.two_response_template)}}
+        {{=LI(LABEL('readable_template'), form.custom.widget.two_readable_template)}}
+        {{=LI(LABEL('tags'), form.custom.widget.two_tags)}}
+        {{=LI(LABEL('tags_secondary'), form.custom.widget.two_tags_secondary)}}
+        {{=LI(LABEL('tags_ahead'), form.custom.widget.two_tags_ahead)}}
+        {{=LI(LABEL('npcs'), form.custom.widget.two_npcs)}}
+        {{=LI(LABEL('locations'), form.custom.widget.two_locations)}}
+        {{=LI(LABEL('step_type'), form.custom.widget.two_step_type)}}
+        {{=LI(LABEL('image_template'), form.custom.widget.two_image_template)}}
+        </ul>
+    </div>
+    <label for="fs3_toggle">step 3</label>
+    <input type="checkbox" class="form_hider" id="fs3_toggle" name="fs3" value="fs3">
+    <div id='fs3' class='stepdiv'>
+        <ul>
+        {{=LI(LABEL('prompt_template'), form.custom.widget.three_prompt_template)}}
+        {{=LI(LABEL('response_template'), form.custom.widget.three_response_template)}}
+        {{=LI(LABEL('readable_template'), form.custom.widget.three_readable_template)}}
+        {{=LI(LABEL('tags'), form.custom.widget.three_tags)}}
+        {{=LI(LABEL('tags_secondary'), form.custom.widget.three_tags_secondary)}}
+        {{=LI(LABEL('tags_ahead'), form.custom.widget.three_tags_ahead)}}
+        {{=LI(LABEL('npcs'), form.custom.widget.three_npcs)}}
+        {{=LI(LABEL('locations'), form.custom.widget.three_locations)}}
+        {{=LI(LABEL('step_type'), form.custom.widget.three_step_type)}}
+        {{=LI(LABEL('image_template'), form.custom.widget.three_image_template)}}
+        </ul>
+    </div>
+    <label for="fs4_toggle">step 4</label>
+    <input type="checkbox" class="form_hider" id="fs4_toggle" name="fs4" value="fs4">
+    <div id='fs4' class='stepdiv'>
+        <ul>
+        {{=LI(LABEL('prompt_template'), form.custom.widget.four_prompt_template)}}
+        {{=LI(LABEL('response_template'), form.custom.widget.four_response_template)}}
+        {{=LI(LABEL('readable_template'), form.custom.widget.four_readable_template)}}
+        {{=LI(LABEL('tags'), form.custom.widget.four_tags)}}
+        {{=LI(LABEL('tags_secondary'), form.custom.widget.four_tags_secondary)}}
+        {{=LI(LABEL('tags_ahead'), form.custom.widget.four_tags_ahead)}}
+        {{=LI(LABEL('npcs'), form.custom.widget.four_npcs)}}
+        {{=LI(LABEL('locations'), form.custom.widget.four_locations)}}
+        {{=LI(LABEL('step_type'), form.custom.widget.four_step_type)}}
+        {{=LI(LABEL('image_template'), form.custom.widget.four_image_template)}}
+        </ul>
+    </div>
+    <label for="fs5_toggle">step 5</label>
+    <input type="checkbox" class="form_hider" id="fs5_toggle" name="fs5_toggle" value="fs5">
+    <div id='fs5' class='stepdiv'>
+        <ul>
+        {{=LI(LABEL('prompt_template'), form.custom.widget.five_prompt_template)}}
+        {{=LI(LABEL('response_template'), form.custom.widget.five_response_template)}}
+        {{=LI(LABEL('readable_template'), form.custom.widget.five_readable_template)}}
+        {{=LI(LABEL('tags'), form.custom.widget.five_tags)}}
+        {{=LI(LABEL('tags_secondary'), form.custom.widget.five_tags_secondary)}}
+        {{=LI(LABEL('tags_ahead'), form.custom.widget.five_tags_ahead)}}
+        {{=LI(LABEL('npcs'), form.custom.widget.five_npcs)}}
+        {{=LI(LABEL('locations'), form.custom.widget.five_locations)}}
+        {{=LI(LABEL('step_type'), form.custom.widget.five_step_type)}}
+        {{=LI(LABEL('image_template'), form.custom.widget.five_image_template)}}
+        </ul>
+    </div>
+    {{=form.custom.end}}
 {{=message}}
 {{=output}}
+
+<script>
+jQuery(document).ready(function($){
+    $('.stepdiv').each(function(){$(this).css({'display': 'none'})});
+    $('.form_hider').each(function(){$(this).css({'display': 'none'})});
+    $('input[type="checkbox"].form_hider').on('change', function(event) {
+        theid = $(this).val();
+        $('#' + theid).toggle();
+    });       
+});
+</script>
