@@ -10,9 +10,10 @@ if 0:
     auth = current.auth
     request = current.request
     response = current.response
-import paideia_utils
+from paideia_utils import test_step_regex, gather_vocab
+import paideia_path_factory
 import traceback
-from pprint import pprint
+#from pprint import pprint
 
 
 @auth.requires_membership('administrators')
@@ -20,15 +21,14 @@ def test_regex():
     """
     Test whether a step's regex is satisfied by all of its readable responses.
     """
-    form, result = paideia_utils.test_step_regex()
+    form, result = test_step_regex()
     return {'form': form, 'result': result}
 
 
 @auth.requires_membership('administrators')
-def gather_vocab():
-    vocab = paideia_utils.gather_vocab()
-    pprint(vocab)
-    return {'vocab': vocab}
+def collect_step_vocab():
+    vocab, dups = gather_vocab()
+    return {'vocab': vocab, 'dups': dups}
 
 
 @auth.requires_membership('administrators')
@@ -37,8 +37,8 @@ def make_path():
     Uses paideia_utils.PathFactory classes to programmatically create paths.
     """
     path_type = request.args[0] if request.args else 'default'
-    factories = {'default': paideia_utils.PathFactory,
-                 'translate_word': paideia_utils.TranslateWordPathFactory}
+    factories = {'default': paideia_path_factory.PathFactory,
+                 'translate_word': paideia_path_factory.TranslateWordPathFactory}
     message = ''
     output = ''
     form, message, output = factories[path_type]().make_create_form()
@@ -70,6 +70,7 @@ def bulk_update():
         response.flash = 'form has errors'
 
     return dict(form=form, recs=myrecs)
+
 
 @auth.requires_membership('administrators')
 def migrate_field():
