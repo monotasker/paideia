@@ -146,48 +146,40 @@ def printutf(string):
 
 
 def capitalize(letter):
+    """
+    Convert string to upper case in utf-8 safe way.
+    """
     #if letter in caps.values():
-    letter = letter.decode('utf-8').upper()
-    print 'capitalized'
-    print letter.encode('utf-8')
-    return letter
+    newletter = letter.decode('utf-8').upper()
+    return newletter.encode('utf-8')
 
 
-def lowercase(string):
+def lowercase(letter):
     """
     Convert string to lower case in utf-8 safe way.
     """
-    string = string.decode('utf-8').lower()
-    return string.encode('utf-8')
+    newletter = string.decode('utf-8').lower()
+    return newletter.encode('utf-8')
 
 
 def firstletter(mystring):
     """
     Find the first letter of a byte-encoded unicode string.
     """
-    print mystring
-    print 'utf-8'
     mystring = mystring.decode('utf-8')
-    print mystring
     let, tail = mystring[:1], mystring[1:]
-    print 'in firstletter: ', mystring[:1], '||', mystring[1:]
+    #print 'in firstletter: ', mystring[:1], '||', mystring[1:]
     let, tail = let.encode('utf-8'), tail.encode('utf-8')
     return let, tail
-    #else:
-        #try:
-            #if mystring[:3] in caps.values():
-                #first_letter = mystring[:3]
-            #else:
-                #first_letter = mystring[:3]
-                #tail = mystring[3:]
-        #except KeyError:
-            #try:
-                #first_letter = mystring[:2]
-                #tail = mystring[2:]
-            #except KeyError:
-                #first_letter = mystring[:2]
-                #tail = mystring[2:]
-    #return first_letter, tail
+
+
+def capitalize_first(mystring):
+    """
+    Return the supplied string with its first letter capitalized.
+    """
+    first, rest = firstletter(mystring)
+    newstring = '{}{}'.format(capitalize(first), rest)
+    return newstring
 
 
 def test_regex(regex, readables):
