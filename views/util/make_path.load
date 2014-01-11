@@ -1,4 +1,5 @@
 {{=form.custom.begin}}
+<form>
     {{=LABEL('label_template')}}
     {{=form.custom.widget.label_template}}
     {{=LABEL('word sets')}}
@@ -87,6 +88,8 @@
         {{=LI(LABEL('image_template'), form.custom.widget.five_image_template)}}
         </ul>
     </div>
+    <input type='submit' value='submit form' />
+    </form>
     {{=form.custom.end}}
 {{=message}}
 {{=output}}

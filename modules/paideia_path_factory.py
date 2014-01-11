@@ -1,38 +1,31 @@
 #! /etc/bin/python
 # -*- coding:utf-8 -*-
 
-"""
-Paideia Path Factory
+u"""
+Paideia Path Factory.
+
 Copyright 2013—2014, Ian W. Scott
 
 Provides classes for the procedural creation of paths/steps for the Paideia
 web-app.
 
-path
-    num of steps
-    words (list of lemma sets to be used in substitution slots)
-    step
-        prompt
-            prompt_template (subs)
-        response
-            eval_regex (subs)
-            response_template (subs)
-        tags
-        locs
-        npcs
-        avoid
+PathFactory:class
+: This is the base class that handles generic path creation.
+
+TranslateWordPathFactory:class (extends PathFactory)
+: A subclass that includes extra helper logic for simple translation paths.
 
 """
 
 import traceback
-from gluon import current, SQLFORM, Field, BEAUTIFY, IS_IN_DB, UL, LI, A, URL, P
-from gluon import TABLE, TD, TR, LABEL, IS_NOT_EMPTY
-#from plugin_ajaxselect import AjaxSelect
+from gluon import current, SQLFORM, Field, BEAUTIFY, IS_IN_DB, UL, LI, IS_NOT_EMPTY
+from gluon import CAT, H2
+#from gluon import TABLE, TD, TR, LABEL, P, A, URL
 import re
 from random import randrange, shuffle
-from itertools import product
-#from pprint import pprint
-from paideia_utils import firstletter, capitalize, sanitize_greek
+from itertools import product, chain
+from paideia_utils import firstletter, capitalize, capitalize_first
+from paideia_utils import sanitize_greek, flatten
 
 
 class PathFactory(object):
@@ -59,189 +52,68 @@ class PathFactory(object):
         db = current.db
         message = ''
         output = ''
-        form = SQLFORM.factory(Field('label_template', 'string',
-                                     requires=IS_NOT_EMPTY),
-                               Field('testing', type='boolean'),
-                               Field('words', 'list:string',
-                                     requires=IS_NOT_EMPTY),
-                               Field('avoid', 'list:string'),
+        flds = [Field('label_template', 'string', requires=IS_NOT_EMPTY),
+                Field('testing', type='boolean'),
+                Field('words', 'list:string', requires=IS_NOT_EMPTY),
+                Field('avoid', 'list:string')]
 
-                               Field('one_prompt_template', 'list:string',
-                                     requires=IS_NOT_EMPTY),
-                               Field('one_response_template', 'list:string',
-                                     requires=IS_NOT_EMPTY),
-                               Field('one_readable_template', 'list:string',
-                                     requires=IS_NOT_EMPTY),
-                               Field('one_tags', 'list:reference ',
-                                     requires=IS_IN_DB(db, 'tags.id',
-                                                       '%(tag)s',
-                                                       multiple=True)),
-                               Field('one_tags_secondary', 'list:reference tags',
-                                     requires=IS_IN_DB(db, 'tags.id',
-                                                       '%(tag)s',
-                                                       multiple=True)),
-                               Field('one_tags_ahead', 'list:reference tags',
-                                     requires=IS_IN_DB(db, 'tags.id',
-                                                       '%(tag)s',
-                                                       multiple=True)),
-                               Field('one_npcs', 'list:reference npcs',
-                                     requires=IS_IN_DB(db, 'npcs.id',
-                                                       '%(name)s',
-                                                       multiple=True)),
-                               Field('one_locations', 'list:reference locations',
-                                     requires=IS_IN_DB(db, 'locations.id',
-                                                       '%(map_location)s',
-                                                       multiple=True)),
-                               Field('one_step_type', 'list:reference step_types',
-                                     requires=IS_IN_DB(db, 'step_types.id',
-                                                       '%(step_type)s',
-                                                       multiple=True)),
-                               Field('one_image_template', 'string'),
+        for n in ['one', 'two', 'three', 'four', 'five']:
+            flds.extend([Field('{}_prompt_template'.format(n),
+                               'list:string'),
+                         Field('{}_response_template'.format(n),
+                               'list:string'),
+                         Field('{}_readable_template'.format(n),
+                               'list:string'),
+                         Field('{}_tags'.format(n),
+                               'list:reference tags',
+                               requires=IS_IN_DB(db, 'tags.id',
+                                                 '%(tag)s',
+                                                 multiple=True)),
+                         Field('{}_tags_secondary'.format(n),
+                               'list:reference tags',
+                               requires=IS_IN_DB(db, 'tags.id',
+                                                 '%(tag)s',
+                                                 multiple=True)),
+                         Field('{}_tags_ahead'.format(n),
+                               'list:reference tags',
+                               requires=IS_IN_DB(db, 'tags.id',
+                                                 '%(tag)s',
+                                                 multiple=True)),
+                         Field('{}_npcs'.format(n),
+                               'list:reference npcs',
+                               requires=IS_IN_DB(db, 'npcs.id',
+                                                 '%(name)s',
+                                                 multiple=True)),
+                         Field('{}_locations'.format(n),
+                               'list:reference locations',
+                               requires=IS_IN_DB(db, 'locations.id',
+                                                 '%(map_location)s',
+                                                 multiple=True)),
+                         Field('{}_step_type'.format(n),
+                               'list:reference step_types',
+                               requires=IS_IN_DB(db, 'step_types.id',
+                                                 '%(step_type)s',
+                                                 multiple=True)),
+                         Field('{}_image_template'.format(n), 'string')])
 
-                               Field('two_prompt_template', 'list:string',
-                                     requires=IS_NOT_EMPTY),
-                               Field('two_response_template', 'list:string',
-                                     requires=IS_NOT_EMPTY),
-                               Field('two_readable_template', 'list:string',
-                                     requires=IS_NOT_EMPTY),
-                               Field('two_tags', 'list:reference ',
-                                     requires=IS_IN_DB(db, 'tags.id',
-                                                       '%(tag)s',
-                                                       multiple=True)),
-                               Field('two_tags_secondary', 'list:reference tags',
-                                     requires=IS_IN_DB(db, 'tags.id',
-                                                       '%(tag)s',
-                                                       multiple=True)),
-                               Field('two_tags_ahead', 'list:reference tags',
-                                     requires=IS_IN_DB(db, 'tags.id',
-                                                       '%(tag)s',
-                                                       multiple=True)),
-                               Field('two_npcs', 'list:reference npcs',
-                                     requires=IS_IN_DB(db, 'npcs.id',
-                                                       '%(name)s',
-                                                       multiple=True)),
-                               Field('two_locations', 'list:reference locations',
-                                     requires=IS_IN_DB(db, 'locations.id',
-                                                       '%(map_location)s',
-                                                       multiple=True)),
-                               Field('two_step_type', 'list:reference step_types',
-                                     requires=IS_IN_DB(db, 'step_types.id',
-                                                       '%(step_type)s',
-                                                       multiple=True)),
-                               Field('two_image_template', 'string'),
+        form = SQLFORM.factory(*flds)
 
-                               Field('three_prompt_template', 'list:string',
-                                     requires=IS_NOT_EMPTY),
-                               Field('three_response_template', 'list:string',
-                                     requires=IS_NOT_EMPTY),
-                               Field('three_readable_template', 'list:string',
-                                     requires=IS_NOT_EMPTY),
-                               Field('three_tags', 'list:reference ',
-                                     requires=IS_IN_DB(db, 'tags.id',
-                                                       '%(tag)s',
-                                                       multiple=True)),
-                               Field('three_tags_secondary', 'list:reference tags',
-                                     requires=IS_IN_DB(db, 'tags.id',
-                                                       '%(tag)s',
-                                                       multiple=True)),
-                               Field('three_tags_ahead', 'list:reference tags',
-                                     requires=IS_IN_DB(db, 'tags.id',
-                                                       '%(tag)s',
-                                                       multiple=True)),
-                               Field('three_npcs', 'list:reference npcs',
-                                     requires=IS_IN_DB(db, 'npcs.id',
-                                                       '%(name)s',
-                                                       multiple=True)),
-                               Field('three_locations', 'list:reference locations',
-                                     requires=IS_IN_DB(db, 'locations.id',
-                                                       '%(map_location)s',
-                                                       multiple=True)),
-                               Field('three_step_type', 'list:reference step_types',
-                                     requires=IS_IN_DB(db, 'step_types.id',
-                                                       '%(step_type)s',
-                                                       multiple=True)),
-                               Field('three_image_template', 'string'),
-
-                               Field('four_prompt_template', 'list:string',
-                                     requires=IS_NOT_EMPTY),
-                               Field('four_response_template', 'list:string',
-                                     requires=IS_NOT_EMPTY),
-                               Field('four_readable_template', 'list:string',
-                                     requires=IS_NOT_EMPTY),
-                               Field('four_tags', 'list:reference ',
-                                     requires=IS_IN_DB(db, 'tags.id',
-                                                       '%(tag)s',
-                                                       multiple=True)),
-                               Field('four_tags_secondary', 'list:reference tags',
-                                     requires=IS_IN_DB(db, 'tags.id',
-                                                       '%(tag)s',
-                                                       multiple=True)),
-                               Field('four_tags_ahead', 'list:reference tags',
-                                     requires=IS_IN_DB(db, 'tags.id',
-                                                       '%(tag)s',
-                                                       multiple=True)),
-                               Field('four_npcs', 'list:reference npcs',
-                                     requires=IS_IN_DB(db, 'npcs.id',
-                                                       '%(name)s',
-                                                       multiple=True)),
-                               Field('four_locations', 'list:reference locations',
-                                     requires=IS_IN_DB(db, 'locations.id',
-                                                       '%(map_location)s',
-                                                       multiple=True)),
-                               Field('four_step_type', 'list:reference step_types',
-                                     requires=IS_IN_DB(db, 'step_types.id',
-                                                       '%(step_type)s',
-                                                       multiple=True)),
-                               Field('four_image_template', 'string'),
-
-                               Field('five_prompt_template', 'list:string',
-                                     requires=IS_NOT_EMPTY),
-                               Field('five_response_template', 'list:string',
-                                     requires=IS_NOT_EMPTY),
-                               Field('five_readable_template', 'list:string',
-                                     requires=IS_NOT_EMPTY),
-                               Field('five_tags', 'list:reference ',
-                                     requires=IS_IN_DB(db, 'tags.id',
-                                                       '%(tag)s',
-                                                       multiple=True)),
-                               Field('five_tags_secondary', 'list:reference tags',
-                                     requires=IS_IN_DB(db, 'tags.id',
-                                                       '%(tag)s',
-                                                       multiple=True)),
-                               Field('five_tags_ahead', 'list:reference tags',
-                                     requires=IS_IN_DB(db, 'tags.id',
-                                                       '%(tag)s',
-                                                       multiple=True)),
-                               Field('five_npcs', 'list:reference npcs',
-                                     requires=IS_IN_DB(db, 'npcs.id',
-                                                       '%(name)s',
-                                                       multiple=True)),
-                               Field('five_locations', 'list:reference locations',
-                                     requires=IS_IN_DB(db, 'locations.id',
-                                                       '%(map_location)s',
-                                                       multiple=True)),
-                               Field('five_step_type', 'list:reference step_types',
-                                     requires=IS_IN_DB(db, 'step_types.id',
-                                                       '%(step_type)s',
-                                                       multiple=True)),
-                               Field('five_image_template', 'string'),
-                               )
         if form.process(dbio=False, keepvalues=True).accepted:
             vv = request.vars
-            paths, result = self.make_path(words1=vv.words1,
-                                           prompt_template=vv.prompt_template,
-                                           response_template=vv.response_template,
-                                           readable_template=vv.readable_template,
-                                           tags=vv.tags,
-                                           tags_secondary=vv.tags_secondary,
-                                           tags_ahead=vv.tags_ahead,
-                                           npcs=vv.npcs,
-                                           locations=vv.locations,
-                                           step_type=vv.step_type,
-                                           image_template=vv.image_template,
-                                           testing=vv.testing
-                                           )
-            message, output = self.make_output(paths, result)
+            stepdata = []
+            for n in ['one', 'two', 'three', 'four', 'five']:
+                nkeys = [k for k in vv.keys() if re.match('{}.*'.format(n), k)]
+                filledfields = [k for k in nkeys if vv[k] not in ['', None]]
+                if filledfields:
+                    ndict = {k: vv[k] for k in nkeys}
+                    stepdata.append(ndict)
+
+            paths = self.make_path(wordlists=[w.split('|') for w in vv['words']],
+                                   label_template=vv.label_template,
+                                   testing=vv.testing,
+                                   avoid=vv.avoid,
+                                   stepdata=stepdata)
+            message, output = self.make_output(paths)
         elif form.errors:
             message = BEAUTIFY(form.errors)
 
@@ -300,11 +172,30 @@ class PathFactory(object):
         ------------------
         points (tuple of doubles)   -- point value for each of the responses
 
+        Return values
+        --------------------
+        The method returns a single list. Each member is a dictionary
+        representing the result of the attempt to create a single path. Each
+        of these dictionaries has the following keys:
+
+        path id (int)           : id of the path created (or string indicating
+                                why a path was not made: 'duplicate',
+                                'failure', 'testing').
+        steps (dict)            : keys are either path ids or a string
+                                indicating why no step was created. The value
+                                for each step is either a dict of the values
+                                passed for step creation, a list of duplicate
+                                step ids, or a string indicating failure.
+        new_forms (list)        : each member is a string, a word form newly
+                                added to db.word_forms during step creation.
+        images_missing (list)   : A list of ids for newly created image records.
+                                These will need to be populated with the actual
+                                images manually.
+
         """
         print "starting module======================================"
 
         paths = []
-        result = {}
         images_missing = []
         new_forms = []
         combos = product(*wordlists)
@@ -314,23 +205,43 @@ class PathFactory(object):
 
         # loop to create one path for each combo
         for c in combos:
-            compname = label_template.format('-'.join([i.split('|')[0] for i in c]))
+            label = label_template.format('-'.join([i.split('|')[0] for i in c]))
             combodict = dict(zip(['words1', 'words2', 'words3'], c))
 
-            pathresult = {}
+            pathresult = {'steps': {}}
             pathsteps = []
             for s in stepdata:  # loop to create each step in path
-                stepid, stepresult = self.make_step(combodict, s)
-                pathsteps.append(stepid)
-                pathresult[stepid] = stepresult
+                stepresult, newforms = self.make_step(combodict, s)
+                pathsteps.append(stepresult[0])
+                pathresult['steps'][stepresult[0]] = stepresult[1]
+                new_forms.append(newforms)
+            if all([isinstance(k, int) for k in pathresult['steps'].keys()]):
+                pid = self.write_to_db(pathsteps, label)
+            else:
+                pid = 'path not written'
+            paths.append(pid)
+            pathresult['path id'] = pid
+            pathresult['new_forms'] = new_forms
+            pathresult['images_missing'] = images_missing
+            paths.append(pathresult)
 
-        result['new_forms'] = new_forms
-        result['images_missing'] = images_missing
-        return paths, result
+        return paths
 
     def make_step(self, combodict, stepdata):
         """
         Create one step with given data.
+
+        Returns a 2-member tuple
+        [0] stepresult      : A 2-member tuple consisting of a string[0]
+                              indicating the result of the step-creation
+                              attempt and a second member [1] which gives
+                              the content of that attempt. This content can be
+                              - a step id (if success)
+                              - a dict of step field values (if testing)
+                              - a list of duplicate steps (duplicates)
+                              - an error traceback (if failure)
+        [1] newfs           : A list of inflected word forms newly added to
+                              db.word_forms in the course of step creation.
         """
         mytype = stepdata['step_type']
         ptemp = stepdata['prompt_template']
@@ -346,46 +257,41 @@ class PathFactory(object):
 
         imgid, ititle = self.make_image(combodict, itemp) if itemp else None
 
-        prompts, responses, readables, \
-            xtags, new_forms = self.formatted(combodict, ptemp, xtemp, rtemp)
-        tags = self.get_tags(tags1, tags2, tags3, xtags)
-        kwargs = {'prompt': prompts[randrange(len(prompts))],
+        pros, rxs, rdbls, newfs = self.formatted(combodict, ptemp, xtemp, rtemp)
+        tags = self.get_step_tags(tags1, tags2, tags3, pros, rdbls)
+        kwargs = {'prompt': sanitize_greek(pros[randrange(len(pros))]),
                   'widget_type': mytype,
                   #'widget_audio': None,
                   'widget_image': imgid,
-                  'response1': responses[0],
-                  'readable_response': '|'.join(readables),
+                  'response1': rxs[0],
+                  'readable_response': '|'.join([sanitize_greek(r)
+                                                 for r in rdbls]),
                   'outcome1': points[0],
-                  'response2': responses[1],
+                  'response2': rxs[1] if len(rxs) > 1 else None,
                   'outcome2': points[1],
-                  'response3': responses[2],
+                  'response3': rxs[2] if len(rxs) > 2 else None,
                   'outcome3': points[2],
                   'tags': tags[0],
                   'tags_secondary': tags[1],
                   'tags_ahead': tags[2],
                   'npcs': npcs,  # [randrange(len(npcs))] if multiple
                   'locations': locs}  # [randrange(len(npcs))] if mult
-
         try:
-            mtch = self.test_regex(kwargs['response1'], readables)
-            dups = self.check_for_duplicates(kwargs, readables, prompts)
-            kwargs['readable_response'] = sanitize_greek(kwargs['readable_response'])
-            kwargs['prompt'] = sanitize_greek(kwargs['prompt'])
-
+            mtch = self.test_regex(kwargs['response1'], rdbls)
+            dups = self.check_for_duplicates(kwargs, rdbls, pros)
             if mtch and not self.mock and not dups[0]:
-                stepresult = self.write_to_db(kwargs)
+                stepresult = self.write_step_to_db(kwargs), kwargs
             elif mtch and not dups[0] and self.mock:
                 stepresult = 'testing', kwargs
             elif mtch and dups[0]:
                 stepresult = 'duplicate step', dups
             else:
                 stepresult = 'failure', 'readable didn\'t match regex'
-
         except Exception:
             tracebk = traceback.format_exc(5)
             stepresult = ('failure', tracebk)
 
-        return stepresult
+        return stepresult, newfs
 
     def make_image(self, combodict, itemp):
         """
@@ -416,14 +322,12 @@ class PathFactory(object):
                 for automatic substitution (word parsed to agree with another
                 being substituted elsewhere).
         """
-        db = current.db
         newforms = []  # collect any new word forms created in db along the way
-        mytags = []
         readables = []
-        regexes = []
+        regexes = {}  # need keys to ensure proper priority
         prompts = []
 
-        parts = {'prompt'.format(i): r for i, r in enumerate(ptemps) if r}
+        parts = {'prompt{}'.format(i): r for i, r in enumerate(ptemps) if r}
         xtemps = [xtemps] if type(xtemps) != list else xtemps
         regexes = {'regex{}'.format(i): r for i, r in enumerate(xtemps) if r}
         rdbls = {'rdbl{}'.format(i): r for i, r in enumerate(rtemps) if r}
@@ -432,63 +336,57 @@ class PathFactory(object):
 
         # perform substitutions for each "part" to be returned
         for k, p in parts.iteritems():
-            # isolate fields for substitution
+            inflected = []
             fields = re.findall(r'(?<={).*?(?=})', p)
-            parsed_fields = [f for f in fields if len(f.split('-')) > 1]
-            lemma_fields = [f for f in parsed_fields if not len(f.split('-')) > 1]
-            simple_fields = [f for f in fields if len(f.split('-')) > 1]
-            manual_fields = [f for f in fields if f not in parsed_fields]
+            inflected_fields = [f for f in fields if len(f.split('-')) > 1]
 
-            # handle any automatic fields
-            for f in parsed_fields:
-                lemma, mod = f.split('-')
-                # if lemma is pointer to a word list
-                if re.match(r'\w+', lemma):
-                    lemma = combodict[lemma]
-                    # allow for passing parsed form instead of lemma
-                    if not db.lemmas(db.lemmas.lemma == lemma):
-                        myrow = db.word_forms(db.word_forms.word_form == lemma)
-                        lemid = myrow.lemma
+            # get inflected forms to substitute
+            for f in fields:
+                if f in inflected_fields:
+                    myform, newform = self.get_inflected(f, combodict)
+                    if newform:  # note any additions to db.word_forms
+                        newforms.append(newform)
+                else:
+                    myform = combodict[f]
+                # add case handling for fields in regex
+                if re.match(r'regex', k):
+                    lower, tail = firstletter(myform)
+                    myform = '({}|{})?{}'.format(lower, capitalize(lower), tail)
 
-                modifier = combodict[form]
-                myform, newform = self.make_form_agree(mod_form, lemma)
-                if newform:
-                    newforms.append(newform)
+                inflected.append(('{{{}}}'.format(f), myform))
 
-                    formtags = db((db.word_forms.word_form == myform) &
-                                  (db.word_forms.construction == db.constructions.id)
-                                  ).select()
-                    if formtags:
-                        for form in formtags:
-                            if form.constructions.tags:
-                                mytags.extend(form.constructions.tags)
-                            if form.word_forms.tags:
-                                mytags.extend(form.word_forms.tags)
-                elif re.search(r'verb', p):  # how about participles?
-                    pass
-                # replace this automatically substituted field
-                p = p.replace('{{{}}}'.format(f), myform)
+            formatted = p.multiple_replace(inflected, p)
 
-                mytags = db(db.lemmas.lemma == mylemma).select().first().extra_tags
+            # add formatted string to appropriate collection for return
+            if re.match(r'regex.*', k):
+                idx = k.replace('regex', '')
+                regexes[idx] = formatted
+            elif re.match(r'rdbl.*', k):
+                readables.append(capitalize_first(formatted))
+            else:
+                prompts.append(capitalize_first(formatted))
 
-            # replace manually substituted fields
-            wordlist = [w.split('|')[0] for w in words]
-            man_args = zip(man_fields, wordlist)
-            man_args = {a[0]: a[1] for a in man_args}
-            # add qualification for capitals to regex
-            if re.match(r'resp', k):
-                for f, a in man_args.iteritems():
-                    lower, tail = firstletter(a)
-                    man_args[f] = '({}|{})?{}'.format(lower, capitalize(lower), tail)
-            parts[k] = p.format(**man_args)
-            first, rest = firstletter(parts[k])
-            if first != '^':
-                parts[k] = '{}{}'.format(capitalize(first), rest)
+        return prompts, regexes, readables, newforms
 
-        mytags = [t for t in mytags if not t is None]
-        return prompts, regexes, readables, mytags, newforms
+    def get_inflected(self, field, combodict):
+        """
+        Get the properly inflected word form for the supplied field.
+        """
+        db = current.db
+        lemma, mod = field.split('-')
+        # if lemma is pointer to a word list
+        lemma = combodict[lemma] if lemma in combodict.keys() else lemma
+        # allow for passing inflected form instead of lemma
+        if not db.lemmas(db.lemmas.lemma == lemma):
+            myrow = db.word_forms(db.word_forms.word_form == lemma)
+            lemma = myrow.lemma.lemma
+        # inflect lemma to agree with its governing word
+        modform = combodict[mod]
+        myform, newform = self.make_form_agree(modform, lemma)
 
-    def make_form_agree(self, mod_form, mylemma, testing):
+        return myform, newform
+
+    def make_form_agree(self, mod_form, mylemma):
         """
         Return a form of the lemma "mylemma" agreeing with the supplied mod_form.
 
@@ -497,66 +395,62 @@ class PathFactory(object):
         handled elsewhere.
         """
         db = current.db
-        mod_parts = mod_form.split('|')
-        mod_parse = mod_parts[1] if len(mod_parts) > 1 else None
-        newforms = []
-        if not mod_parse:
-            form = db(db.word_forms.word_form == mod_form
-                      ).select().first()
-            case = form.grammatical_case
-            gender = form.gender
-            number = form.number
-        else:
-            parsebits = mod_parse.split('_')
-            case = abbrevs[parsebits[1]]
-            gender = abbrevs[parsebits[2]]
-            number = abbrevs[parsebits[3]]
-            ref_lemma = parsebits[-1]
-            pos = parsebits[0]
-            ref_const = '{}_{}_{}_{}'.format(pos, parsebits[1],
-                                             parsebits[2],
-                                             parsebits[3])
-            ref_lemma_id = db(db.lemmas.lemma == ref_lemma).select().first().id
-            row = db((db.word_forms.source_lemma == ref_lemma_id) &
-                     (db.word_forms.grammatical_case == case) &
-                     (db.word_forms.gender == gender) &
-                     (db.word_forms.number == number)
-                     ).select().first()
-            if not row:
-                # Add the modified word form to db.word_forms
-                ref_const_id = db(db.constructions.construction_label == ref_const
-                                  ).select().first().id
-                new = {'word_form': mod_parts[0],
-                       'source_lemma': ref_lemma_id,
-                       'grammatical_case': case,
-                       'gender': gender,
-                       'number': number,
-                       'construction': ref_const_id}
-                db.word_forms.insert(**new)
-                newforms.append(new)
+        newform = None
+
+        form = db(db.word_forms.word_form == mod_form).select().first()
+        case = form.grammatical_case
+        gender = form.gender
+        number = form.number
+        #else:
+            #parsebits = mod_parse.split('_')
+            #case = abbrevs[parsebits[1]]
+            #gender = abbrevs[parsebits[2]]
+            #number = abbrevs[parsebits[3]]
+            #ref_lemma = parsebits[-1]
+            #pos = parsebits[0]
+            #ref_const = '{}_{}_{}_{}'.format(pos, parsebits[1],
+                                             #parsebits[2],
+                                             #parsebits[3])
+            #ref_lemma_id = db(db.lemmas.lemma == ref_lemma).select().first().id
+            #row = db((db.word_forms.source_lemma == ref_lemma_id) &
+                     #(db.word_forms.grammatical_case == case) &
+                     #(db.word_forms.gender == gender) &
+                     #(db.word_forms.number == number)
+                     #).select().first()
+            #if not row:
+                ## Add the modified word form to db.word_forms
+                #ref_const_id = db(db.constructions.construction_label == ref_const
+                                  #).select().first().id
+                #new = {'word_form': mod_parts[0],
+                       #'source_lemma': ref_lemma_id,
+                       #'grammatical_case': case,
+                       #'gender': gender,
+                       #'number': number,
+                       #'construction': ref_const_id}
+                #db.word_forms.insert(**new)
+                #newforms.append(new)
         # Retrieve correct form from db. If none, try to create it.
         try:
             mylemma_id = db(db.lemmas.lemma == mylemma).select().first().id
+            # allow for ambiguous gender forms
             genders = [gender, 'undetermined']
             if gender in ['masculine', 'feminine']:
                 genders.append('masculine or feminine')
-            for g in genders:
-                myrow = db((db.word_forms.source_lemma == mylemma_id) &
-                           (db.word_forms.grammatical_case == case) &
-                           (db.word_forms.gender == g) &
-                           (db.word_forms.number == number)
-                           ).select().first()
-                if myrow:
-                    break
+            myrow = db((db.word_forms.source_lemma == mylemma_id) &
+                       (db.word_forms.grammatical_case == case) &
+                       (db.word_forms.gender.belongs(genders)) &
+                       (db.word_forms.number == number)
+                       ).select().first()
             myform = myrow.word_form
         except (AttributeError, IndexError):
             print traceback.format_exc(5)
             print 'no pre-made form in db for', mylemma, mod_form
             myform = None  # FIXME: try to create and save new declined form
+            newform = 'I\'m new'
 
-        return myform, newforms
+        return myform, newform
 
-    def check_for_duplicates(self, step, readables, prompts):
+    def check_for_duplicates(self, step, readables, prompt):
         """
         Returns a 2-member tuple identifying whether there is a duplicate in db.
 
@@ -571,102 +465,136 @@ class PathFactory(object):
                                               db.steps.readable_response)
         for dbs in db_steps:
             db_readables = dbs.readable_response.split('|')
-            if (dbs.prompt in prompts) and [r for d in db_readables
-                                            for r in readables if r == d]:
-                return (True, dbs.id)
+            if dbs.prompt == prompt and [r for d in db_readables
+                                         for r in readables if r == d]:
+                return True, dbs.id
             else:
                 pass
-        return (False, 0)
+        return False, 0
 
-    def get_tags(self, tags, tags2, tagsA, tags_extra):
+    def get_step_tags(self, tags1, tags2, tags3, prompts, rdbls):
         """
         Return a 3-member tuple of lists holding the tags for the current step.
         """
-        # TODO: fix to separate out secondary etc.
-        if tags and len(tags):
-            if type(tags) == list:
-                tags.extend(tags_extra)
+        db = current.db
+        tags1 = tags1 if tags1 else []
+        tags2 = tags2 if tags2 else []
+        tags3 = tags3 if tags3 else []
+
+        words = [p.split(' ') for p in prompts]
+        words.extend([r.split(' ') for r in rdbls])
+        allforms = chain(*words)
+        allforms = list(set(allforms))
+
+        # Get tags for all lemmas and forms in allforms
+        # TODO: Should allforms include all words or only substitutions?
+        formrows = db((db.word_forms.word_form.belongs(allforms)) &
+                      (db.word_forms.construction == db.constructions.id)
+                      ).select()
+        constags = [f.constructions.tags for f in formrows]
+        formtags = [f.word_forms.tags for f in formrows]
+        firsttags = [f.word_forms.lemma.first_tag for f in formrows]
+        xtags = [f.word_forms.lemma.extra_tags for f in formrows]
+
+        newtags = chain(constags, formtags, firsttags, xtags)
+        newtags = list(set(flatten(formtags)))
+        # assume at first that all form tags are secondary
+        tags2.extend(newtags)
+
+        newtags1, newtags2, newtags3 = [], [], []
+        alltags = chain(tags1, tags2, tags3)
+        tagrows = db(db.tags.id.belongs(alltags)).select(db.tags.id,
+                                                         db.tags.position)
+        steplevel = max([t.position for t in tagrows])
+        for t in tagrows:
+            if t.position == steplevel:
+                newtags1.append(t)
+            elif t.position < steplevel:
+                newtags2.append(t)
             else:
-                tags = tags_extra
-            tags = list(set(tags))
-        else:
-            tags = None
-        if tags2:
-            tags2 = list(set(tags2))
-        else:
-            tags2 = None
-        if tagsA:
-            tagsA = list(set(tagsA))
-        else:
-            tagsA = None
-        return (tags, tags2, tagsA)
+                newtags3.append(t)
+
+        return (newtags1, newtags2, newtags3)
 
     def test_regex(self, regex, readables):
         """
+        Return True if the supplied strings satisfy the supplied regex.
         """
         readables = readables if type(readables) == list else [readables]
         test_regex = re.compile(regex, re.X)
         mlist = [re.match(test_regex, rsp) for rsp in readables]
-        return mlist
+        if all(mlist):
+            return True
+        else:
+            return False
 
-    def write_to_db(self, step, compname, label):
+    def write_step_to_db(self, kwargs):
         """ """
         db = current.db
-        db.steps.insert(**step)
-        sid = db(db.steps.id > 0).select().last().id
-        db.paths.insert(label=label.format(compname),
-                        steps=[sid])
-        pid = db(db.paths.id > 0).select().last().id
-        return (pid, sid)
+        try:
+            sid = db.steps.insert(**kwargs)
+            return sid
+        except Exception:
+            print traceback.format_exc(5)
+            return False
 
-    def make_output(self, paths, result):
+    def write_to_db(self, steps, label):
+        """ """
+        db = current.db
+        try:
+            pid = db.paths.insert(label=label, steps=steps)
+            return pid
+        except Exception:
+            print traceback.format_exc(5)
+            return False
+
+    def make_output(self, paths):
         """
         Return formatted output for the make_path view after form submission.
+
         """
-        db = current.db
-        newforms = result['new_forms'][:]
-        images = result['images_missing'][:]
-        del(result['new_forms'])
-        del(result['images_missing'])
-        successes = {r: v for r, v in result.iteritems() if r[0] != 'failure'}
-        failures = {r: v for r, v in result.iteritems() if r[0] == 'failure'}
-        message1 = ''
-        message2 = ''
-        if successes:
-            message1 = 'Created {} new paths.\n'.format(len(successes.keys()))
-        if failures:
-            message2 = '{} paths failed\n'.format(len(failures.keys()))
+        opts = {'goodpaths': [p for p in paths if isinstance(p['path id'], int)],
+                'badpaths': [p for p in paths if not isinstance(p['path id'], int)]}
+        outs = {'goodpaths': UL(),
+                'badpaths': UL()}
+        newforms = []
+        images = []
+
+        for opt in ['goodpaths', 'badpaths']:
+            badcount = 0
+
+            for p in opts[opt]:
+                if opt == 'badpaths':
+                    badcount += 1
+
+                successes = [s for s, v in p['steps'].iteritems()
+                             if s not in ['failure', 'duplicate step']]
+                failures = [s for s, v in p['steps'].iteritems()
+                            if s == 'failure']
+                duplicates = [s for s, v in p['steps'].iteritems()
+                              if s == 'duplicate step']
+
+                pout = LI('Path {}'.format(p['path id']))
+                pout.append(LI('steps succeeded: {}'.format(len(successes))))
+                pout.append(LI('steps failed: {}'.format(len(failures))))
+                pout.append(LI('steps were duplicates: {}'.format(len(duplicates))))
+                steps = UL()
+                for s in p['steps']:
+                    steps.append(LI(BEAUTIFY(s)))
+                pout.append(LI(steps))
+
+                outs[opt].append(pout)
+
+        output = CAT(H2('successes'), outs['goodpaths'],
+                     H2('failures'), outs['badpaths'])
+
+        message1 = 'Created {} new paths.\n'.format(len(outs['goodpaths'])) \
+                   if len(outs['goodpaths']) else 'no'
+        message2 = '{} paths failed\n'.format(len(outs['badpaths'])) \
+                   if len(outs['badpaths']) else 'no'
         nf = 'new word forms entered in db:\n{}\n'.format(BEAUTIFY(newforms))
         imgs = 'images needed for db:\n{}\n'.format(BEAUTIFY(images))
         message = message1 + message2 + nf + imgs
-        output = UL()
-        for s, v in successes.iteritems():
-            if type(v[0]) == str and re.search('testing', v[0]):
-                val = TABLE()
-                if v[1]['tags']:
-                    v[1]['tags'] = BEAUTIFY([db.tags(n).tag
-                                             for n in v[1]['tags']])
-                v[1]['npcs'] = BEAUTIFY([db.npcs(n).name
-                                         for n in v[1]['npcs']])
-                v[1]['locations'] = BEAUTIFY([db.locations(n).map_location
-                                              for n in v[1]['locations']])
-                v[1]['widget_type'] = BEAUTIFY([db.step_types(n).step_type
-                                                for n in v[1]['widget_type']])
-                for label, field in v[1].iteritems():
-                    val.append(TR(TD(LABEL(label)), TD(field)))
-                output.append(LI('TESTING: ', s, val))
-            else:
-                output.append(LI(s,
-                                A('path {}'.format(v[0]),
-                                _href=URL('paideia', 'editing', 'listing.html',
-                                        args=['paths', v[0]])),
-                                A('step {}'.format(v[1]),
-                                _href=URL('paideia', 'editing.html', 'listing.html',
-                                        args=['steps', v[1]])),
-                                _class='make_paths_success'))
-
-        for f, v in failures.iteritems():
-            output.append(LI(f, P(v[1]), _class='make_paths_failure'))
 
         return (message, output)
 
@@ -742,7 +670,7 @@ class TranslateWordPathFactory(PathFactory):
                 reg_str = crow['trans_regex_eng']
                 glosses = self.make_glosses(lemma['lemma'], cst)
                 rdbl = self.make_readable(glosses[:], crow['trans_templates'])
-                tagset = self.get_tags(lemma, crow)
+                tagset = self.get_step_tags(lemma, crow)
                 word_form = self.get_word_form(lemma['lemma'], crow),
                 try:
                     step = {'prompt': self.get_prompt(word_form, crow),
@@ -843,7 +771,7 @@ class TranslateWordPathFactory(PathFactory):
         else:
             return cst['form_function'](lemma)
 
-    def get_tags(self, lemma, cst_row):
+    def get_step_tags(self, lemma, cst_row):
         """
         Return a 3-member tuple of lists holding the tags for the current step.
         """
@@ -948,122 +876,6 @@ class TranslateWordPathFactory(PathFactory):
     το -φορος
 """
 
-MYWORDS = {u'πωλεω': {'glosses': ['sell'],
-                      'constructions': [('pres_act_ind_2s', 'πωλεις'),
-                                        ('pres_act_ind_3s', 'πωλει'),
-                                        ('pres_act_ind_1p', 'πωλουμεν'),
-                                        ('pres_act_ind_2p', 'πωλειτε'),
-                                        ('pres_act_ind_3p', 'πωλουσι'),
-                                        ('pres_act_imper_2s', 'πωλει'),
-                                        ('pres_act_imper_2s', 'πωλειτε')
-                                        ],
-                      'xtags': [128, 121]},
-           u'ὁραω': {'glosses': ['see', 'perceiv|e'],
-                     'constructions': [('pres_act_inf', 'ὁρᾳν'),
-                                       ('pres_act_ind_2s', 'ὁρᾳς'),
-                                       ('pres_act_ind_3s', 'ὁρᾳ'),
-                                       ('pres_act_ind_1p', 'ὁρωμεν'),
-                                       ('pres_act_ind_2p', 'ὁρατε'),
-                                       ('pres_act_ind_3p', 'ὁρωσι'),
-                                       ('pres_act_imper_2s', 'ὁρα'),
-                                       ('pres_act_imper_2p', 'ὁρατε'),
-                                       ],
-                     'xtags': [121]},
-           u'βαινω': {'glosses': ['go', 'move'],
-                      'constructions': [('pres_act_inf', None),
-                                      ('pres_act_ind_2s', None),
-                                      ('pres_act_ind_3s', None),
-                                      ('pres_act_ind_1p', None),
-                                      ('pres_act_ind_2p', None),
-                                      ('pres_act_imper_2s', None),
-                                      ('pres_act_imper_2p', None),
-                                      ],
-                      'xtags': [121]},
-           u'σημαινω': {'glosses': ['mean', 'signify|ie'],
-                        'constructions': [('pres_act_ind_1s', 'σημαινω'),
-                                          ('pres_act_ind_2s', 'σημαινεις'),
-                                          ('pres_act_ind_3s', 'σημαινει'),
-                                          ('pres_act_ind_1p', 'σημαινομεν'),
-                                          ('pres_act_ind_2p', 'σημαινετε'),
-                                          ],
-                        'xtags': [121]},
-           u'ἀγοραζω': {'glosses': ['buy', 'shop|p'],
-                        'constructions': [('pres_act_ind_1s', None),
-                                          ('pres_act_ind_2s', 'ἀγοραζεις'),
-                                          ('pres_act_ind_3s', 'ἀγοραζει'),
-                                          ('pres_act_ind_1p', 'ἀγοραζομεν'),
-                                          ('pres_act_ind_2p', 'ἀγοραζετε'),
-                                          ('pres_act_imper_2s', None),
-                                          ('pres_act_imper_2p', None),
-                                          ],
-                        'xtags': [121]},
-           u'φερω': {'glosses': ['lift', 'carry', 'bear', 'tolerat|e',
-                                 'endur|e'],
-                     'constructions': [('pres_act_ind_2s',),
-                                       ('pres_act_ind_3s',),
-                                       ('pres_act_ind_1p',),
-                                       ('pres_act_ind_2p',),
-                                       ('pres_act_ind_3p',),
-                                       ('pres_act_imper_2s', None),
-                                       ('pres_act_imper_2p', None),
-                                       ],
-                     'xtags': [121]},
-           u'θελω': {'glosses': ['want', 'wish', 'desir|e'],
-                     'constructions': [('pres_act_inf', None),
-                                       ('pres_act_ind_2s', None),
-                                       ('pres_act_ind_3s', None),
-                                       ('pres_act_ind_1p', None),
-                                       ('pres_act_ind_2p', None),
-                                       ('pres_act_ind_3p', None),
-                                       ('pres_act_imper_2s', None),
-                                       ('pres_act_imper_2p', None),
-                                       ],
-                     'xtags': [121]},
-           u'λαμβανω': {'glosses': ['tak|e', 'get', 'receiv|e'],
-                        'constructions': [('pres_act_inf', None),
-                                        ('pres_act_ind_2s', None),
-                                        ('pres_act_ind_3s', None),
-                                        ('pres_act_ind_1p', None),
-                                        ('pres_act_ind_2p', None),
-                                        ('pres_act_ind_3p', None),
-                                        ('pres_act_imper_2s', None),
-                                        ('pres_act_imper_2p', None),
-                                        ],
-                        'xtags': [121]},
-           u'ἀκουω': {'glosses': ['hear', 'listen', 'obey', 'perceiv|e'],
-                      'constructions': [('pres_act_inf', None),
-                                      ('pres_act_ind_2s', None),
-                                      ('pres_act_ind_3s', None),
-                                      ('pres_act_ind_1p', None),
-                                      ('pres_act_ind_2p', None),
-                                      ('pres_act_imper_2s', None),
-                                      ('pres_act_imper_2p', None),
-                                      ],
-                      'xtags': [121]},
-           u'ποιεω': {'glosses': ['do', 'mak|e'],
-                      'constructions': [('pres_act_inf', None),
-                                        ('pres_act_ind_1s', None),
-                                        ('pres_act_ind_2s', 'ποιεις'),
-                                        ('pres_act_ind_3s', 'ποιει'),
-                                        ('pres_act_ind_1p', 'ποιουμεν'),
-                                        ('pres_act_ind_2p', 'ποιειτε'),
-                                        ('pres_act_ind_3p', 'ποιουσι'),
-                                        ('pres_act_imper_2s', 'ποιει֚'),
-                                        ('pres_act_imper_2p', 'ποιειτε'),
-                                        ],
-                      'xtags': [121]},
-           u'διδωμι': {'glosses': ['give'],
-                       'constructions': [('pres_act_ind_2s', 'διδως'),
-                                         ('pres_act_ind_3s', 'διδωσι'),
-                                         ('pres_act_ind_1p', 'διδομεν'),
-                                         ('pres_act_ind_2p', 'διδοτε'),
-                                         ('pres_act_ind_3p', 'διδοασι'),
-                                         ('pres_act_imper_2s', 'διδου'),
-                                         ('pres_act_imper_2p', 'διδοτε'),
-                                         ],
-                       'xtags': [121]}
-           }
-
 abbrevs = {'acc': 'accusative',
            'dat': 'dative',
            'nom': 'nominative',
@@ -1095,31 +907,3 @@ abbrevs = {'acc': 'accusative',
            'mid': 'middle',
            'pass': 'passive',
            'mid-pass': 'middle or passive'}
-
-input = {'words1': ['καρπους|noun_acc_masc_plur_καρπος',
-             'συκα|noun_acc_neut_plur_συκον',
-             'ἰχθυας|noun_acc_masc_plur_ἰχθυς',
-             'ἀρτους|noun_acc_masc_plur_ἀρτος'],
-         'words2': ['δυο',
-                 'τρεις',
-                 'τεσσαρες',
-                 'πεντα',
-                 'ἑξα',
-                 'ἑπτα',
-                 'ὀκτω',
-                 'ἐννεα',
-                 'δεκα'],
-         'words3': [],
-         'prompt_template': ['{adj-ποσος} {words1} ἐχομεν?',
-                             '{words1} {adj-ποσος} ἐχομεν?',
-                             '{words1} ἐχομεν {adj-ποσος}?',
-                             'Ἐχομεν {words1} {adj-ποσος}?'],
-         'response_template': ['^(?P<a>Ἐχομεν\s)?(?P<b>{words2}\s)?(?(a)|(?P<c>ἐχομεν))?{words1}(?(a)|(?(c)|(?P<d>\sἐχομεν)))?(?(b)|\s{words2})(?(a)|(?(c)|(?(d)|(\sἐχομεν))))\.?'],
-         'readable_template': ['Ἐχομεν {words2} {words1}.',
-                             '{words2} ἐχομεν {words1}.',
-                             '{words1} ἐχομεν {words2}.',
-                             '{words1} {words2} ἐχομεν.',
-                             '{words2} {words1} ἐχομεν.'],
-         'image_template': 'food_{words2}_{words1}',
-         'testing': True,
-         'npcs': [1]}
