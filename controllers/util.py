@@ -5,7 +5,7 @@ Controller functions handling back-end utility tasks (mostly db maintenance).
 """
 
 if 0:
-    from gluon import current, BEAUTIFY, SQLFORM, Field, IS_IN_SET
+    from gluon import current, SQLFORM, Field, IS_IN_SET
     db = current.db
     auth = current.auth
     request = current.request
@@ -36,14 +36,16 @@ def make_path():
     """
     Uses paideia_utils.PathFactory classes to programmatically create paths.
     """
+    print "Got controller==========================================="
     path_type = request.args[0] if request.args else 'default'
     factories = {'default': paideia_path_factory.PathFactory,
                  'translate_word': paideia_path_factory.TranslateWordPathFactory}
     message = ''
     output = ''
     form, message, output = factories[path_type]().make_create_form()
+    print "Returning initial form"
 
-    return {'form': form, 'message': message, 'output': BEAUTIFY(output)}
+    return {'form': form, 'message': message, 'output': output}
 
 
 @auth.requires_membership('administrators')
