@@ -16,16 +16,16 @@ TranslateWordPathFactory:class (extends PathFactory)
 : A subclass that includes extra helper logic for simple translation paths.
 
 """
-
+from pprint import pprint
 import traceback
-from gluon import current, SQLFORM, Field, BEAUTIFY, IS_IN_DB, UL, LI, IS_NOT_EMPTY
+from gluon import current, SQLFORM, Field, BEAUTIFY, IS_IN_DB, UL, LI
 from gluon import CAT, H2
 #from gluon import TABLE, TD, TR, LABEL, P, A, URL
 import re
 from random import randrange, shuffle
 from itertools import product, chain
 from paideia_utils import firstletter, capitalize, capitalize_first
-from paideia_utils import sanitize_greek, flatten
+from paideia_utils import sanitize_greek, flatten, multiple_replace
 
 
 class PathFactory(object):
@@ -52,75 +52,69 @@ class PathFactory(object):
         db = current.db
         message = ''
         output = ''
-        flds = [Field('label_template', 'string', requires=IS_NOT_EMPTY),
-                Field('testing', type='boolean'),
-                Field('words', 'list:string', requires=IS_NOT_EMPTY),
-                Field('avoid', 'list:string')]
+        flds = [Field('label_template', 'string'),
+                Field('words', 'list:string'),
+                Field('avoid', 'list:string'),
+                Field('testing', 'boolean')]
 
         for n in ['one', 'two', 'three', 'four', 'five']:
-            flds.extend([Field('{}_prompt_template'.format(n),
-                               'list:string'),
-                         Field('{}_response_template'.format(n),
-                               'list:string'),
-                         Field('{}_readable_template'.format(n),
-                               'list:string'),
-                         Field('{}_tags'.format(n),
-                               'list:reference tags',
-                               requires=IS_IN_DB(db, 'tags.id',
-                                                 '%(tag)s',
-                                                 multiple=True)),
-                         Field('{}_tags_secondary'.format(n),
-                               'list:reference tags',
-                               requires=IS_IN_DB(db, 'tags.id',
-                                                 '%(tag)s',
-                                                 multiple=True)),
-                         Field('{}_tags_ahead'.format(n),
-                               'list:reference tags',
-                               requires=IS_IN_DB(db, 'tags.id',
-                                                 '%(tag)s',
-                                                 multiple=True)),
-                         Field('{}_npcs'.format(n),
-                               'list:reference npcs',
-                               requires=IS_IN_DB(db, 'npcs.id',
-                                                 '%(name)s',
-                                                 multiple=True)),
-                         Field('{}_locations'.format(n),
-                               'list:reference locations',
-                               requires=IS_IN_DB(db, 'locations.id',
-                                                 '%(map_location)s',
-                                                 multiple=True)),
-                         Field('{}_step_type'.format(n),
-                               'list:reference step_types',
-                               requires=IS_IN_DB(db, 'step_types.id',
-                                                 '%(step_type)s',
-                                                 multiple=True)),
-                         Field('{}_image_template'.format(n), 'string')])
-
+            fbs = [Field('{}_prompt_template'.format(n), 'list:string'),
+                   Field('{}_response_template'.format(n), 'list:string'),
+                   Field('{}_readable_template'.format(n), 'list:string'),
+                   Field('{}_tags'.format(n), 'list:reference tags',
+                         requires=IS_IN_DB(db, 'tags.id', '%(tag)s',
+                                           multiple=True)),
+                   Field('{}_tags_secondary'.format(n), 'list:reference tags',
+                         requires=IS_IN_DB(db, 'tags.id',
+                                           '%(tag)s',
+                                           multiple=True)),
+                   Field('{}_tags_ahead'.format(n), 'list:reference tags',
+                         requires=IS_IN_DB(db, 'tags.id', '%(tag)s',
+                                           multiple=True)),
+                   Field('{}_npcs'.format(n), 'list:reference npcs',
+                         requires=IS_IN_DB(db, 'npcs.id', '%(name)s',
+                                           multiple=True)),
+                   Field('{}_locations'.format(n), 'list:reference locations',
+                         requires=IS_IN_DB(db, 'locations.id', '%(map_location)s',
+                                           multiple=True)),
+                   Field('{}_step_type'.format(n), 'list:reference step_types',
+                         requires=IS_IN_DB(db, 'step_types.id', '%(step_type)s',
+                                           multiple=True)),
+                   Field('{}_image_template'.format(n), 'string')]
+            flds.extend(fbs)
+        pprint(flds)
         form = SQLFORM.factory(*flds)
 
-        if form.process(dbio=False, keepvalues=True).accepted:
+        if form.process().accepted:
+            print "form was processed"
             vv = request.vars
-            stepdata = []
+            stepsdata = []
             for n in ['one', 'two', 'three', 'four', 'five']:
                 nkeys = [k for k in vv.keys() if re.match('{}.*'.format(n), k)]
+                print 'nkeys'
+                print nkeys
                 filledfields = [k for k in nkeys if vv[k] not in ['', None]]
                 if filledfields:
                     ndict = {k: vv[k] for k in nkeys}
-                    stepdata.append(ndict)
+                    stepsdata.append(ndict)
 
             paths = self.make_path(wordlists=[w.split('|') for w in vv['words']],
                                    label_template=vv.label_template,
                                    testing=vv.testing,
                                    avoid=vv.avoid,
-                                   stepdata=stepdata)
+                                   stepsdata=stepsdata)
+            print 'got paths: ', len(paths)
             message, output = self.make_output(paths)
+
+            print 'got output\nmessage is: ', message
         elif form.errors:
             message = BEAUTIFY(form.errors)
+            print 'form had errors:', message
 
         return form, message, output
 
-    def make_path(self, wordlists, label_template=None, stepdata=None,
-                  avoid=None, mock=False):
+    def make_path(self, wordlists, label_template=None, stepsdata=None,
+                  avoid=None, testing=False):
         """
         Create a set of similar paths programmatically from provided variables.
 
@@ -195,10 +189,15 @@ class PathFactory(object):
         """
         print "starting module======================================"
 
+        if testing:
+            self.mock = True
         paths = []
         images_missing = []
         new_forms = []
-        combos = product(*wordlists)
+        if len(wordlists) > 1:
+            combos = list(product(*wordlists))
+        else:
+            combos = wordlists[0]
         if avoid:
             combos = [x for x in combos
                       if not any([set(y).issubset(set(x)) for y in avoid])]
@@ -206,15 +205,24 @@ class PathFactory(object):
         # loop to create one path for each combo
         for c in combos:
             label = label_template.format('-'.join([i.split('|')[0] for i in c]))
-            combodict = dict(zip(['words1', 'words2', 'words3'], c))
+            mykeys = ['words{}'.format(n) for n in range(len(c))]
+            combodict = dict(zip(mykeys, c))
+            #print 'combos'
+            #pprint(combodict)
 
             pathresult = {'steps': {}}
             pathsteps = []
-            for s in stepdata:  # loop to create each step in path
-                stepresult, newforms = self.make_step(combodict, s)
+            for i, s in enumerate(stepsdata):  # loop for each step in path
+                print 'step', i
+                pprint(s)
+                # filter out step identifier prefixes from field names
+                numstrings = ['one_', 'two_', 'three_', 'four_', 'five_']
+                s = {k.replace(numstrings[i], ''): v for k, v in s.iteritems()}
+                stepresult, newforms, imiss = self.make_step(combodict, s)
                 pathsteps.append(stepresult[0])
                 pathresult['steps'][stepresult[0]] = stepresult[1]
                 new_forms.append(newforms)
+                images_missing.extend(imiss)
             if all([isinstance(k, int) for k in pathresult['steps'].keys()]):
                 pid = self.write_to_db(pathsteps, label)
             else:
@@ -227,7 +235,7 @@ class PathFactory(object):
 
         return paths
 
-    def make_step(self, combodict, stepdata):
+    def make_step(self, combodict, sdata):
         """
         Create one step with given data.
 
@@ -243,19 +251,27 @@ class PathFactory(object):
         [1] newfs           : A list of inflected word forms newly added to
                               db.word_forms in the course of step creation.
         """
-        mytype = stepdata['step_type']
-        ptemp = stepdata['prompt_template']
-        xtemp = stepdata['response_template']
-        rtemp = stepdata['readable_template']
-        tags1 = stepdata['tags']
-        itemp = stepdata['image_template']
-        tags2 = stepdata['tags_secondary']
-        tags3 = stepdata['tags_ahead']
-        npcs = stepdata['npcs']
-        locs = stepdata['locations']
-        points = stepdata['points'] if stepdata['points'] else 1.0, 0.0, 0.0
+        mytype = sdata['step_type']
+        ptemp = sdata['prompt_template']
+        ptemp = ptemp.split('|')
+        ptemp = [ptemp] if not isinstance(ptemp, list) else ptemp
+        xtemp = sdata['response_template']
+        xtemp = [xtemp] if not isinstance(xtemp, list) else xtemp
+        rtemp = sdata['readable_template']
+        rtemp = rtemp.split('|')
+        rtemp = [rtemp] if not isinstance(rtemp, list) else rtemp
+        tags1 = sdata['tags']
+        itemp = sdata['image_template']
+        tags2 = sdata['tags_secondary']
+        tags3 = sdata['tags_ahead'] if 'tags_ahead' in sdata.keys() else None
+        npcs = sdata['npcs']
+        locs = sdata['locations']
+        points = sdata['points'] if 'points' in sdata.keys() else 1.0, 0.0, 0.0
 
-        imgid, ititle = self.make_image(combodict, itemp) if itemp else None
+        img = self.make_image(combodict, itemp) if itemp else None
+        imgid = img[0] if img else None
+        #ititle = img[1] if img else None
+        images_missing = img[2] if img else None
 
         pros, rxs, rdbls, newfs = self.formatted(combodict, ptemp, xtemp, rtemp)
         tags = self.get_step_tags(tags1, tags2, tags3, pros, rdbls)
@@ -291,7 +307,7 @@ class PathFactory(object):
             tracebk = traceback.format_exc(5)
             stepresult = ('failure', tracebk)
 
-        return stepresult, newfs
+        return stepresult, newfs, images_missing
 
     def make_image(self, combodict, itemp):
         """
@@ -302,15 +318,16 @@ class PathFactory(object):
 
         """
         db = current.db
+        images_missing = []
         mytitle = itemp.format(**combodict)
         img_row = db(db.images.title == mytitle).select().first()
         if not img_row:
             myid = db.images.insert(title=mytitle)
-            self.images_missing.append((myid, mytitle))
+            images_missing.append((myid, mytitle))
         else:
             myid = img_row.id
 
-        return myid, mytitle
+        return myid, mytitle, images_missing
 
     def formatted(self, combodict, ptemps, xtemps, rtemps):
         """
@@ -328,17 +345,30 @@ class PathFactory(object):
         prompts = []
 
         parts = {'prompt{}'.format(i): r for i, r in enumerate(ptemps) if r}
+        print 'parts is: =================================='
+        pprint(parts)
         xtemps = [xtemps] if type(xtemps) != list else xtemps
         regexes = {'regex{}'.format(i): r for i, r in enumerate(xtemps) if r}
+        print 'regexes is: =================================='
+        pprint(regexes)
         rdbls = {'rdbl{}'.format(i): r for i, r in enumerate(rtemps) if r}
+        print 'rdbls is: =================================='
+        pprint(rdbls)
         parts.update(regexes)
         parts.update(rdbls)
+        print 'parts is: =================================='
+        pprint(parts)
 
         # perform substitutions for each "part" to be returned
         for k, p in parts.iteritems():
             inflected = []
-            fields = re.findall(r'(?<={).*?(?=})', p)
+            print 'for part ', k, p, '------------------------------'
+            fields = re.findall(r'(?<={{).*?(?=}})', p)
+            print 'fields ==============================='
+            pprint(fields)
             inflected_fields = [f for f in fields if len(f.split('-')) > 1]
+            print 'inflected_fields ==============================='
+            pprint(inflected_fields)
 
             # get inflected forms to substitute
             for f in fields:
@@ -354,8 +384,14 @@ class PathFactory(object):
                     myform = '({}|{})?{}'.format(lower, capitalize(lower), tail)
 
                 inflected.append(('{{{}}}'.format(f), myform))
+                print 'myform is: =================================='
+                print myform
+                print 'f is: =================================='
+                print f
 
-            formatted = p.multiple_replace(inflected, p)
+            print 'inflected are: ==================================='
+            pprint(inflected)
+            formatted = multiple_replace(inflected, p)
 
             # add formatted string to appropriate collection for return
             if re.match(r'regex.*', k):
@@ -567,12 +603,10 @@ class PathFactory(object):
                 if opt == 'badpaths':
                     badcount += 1
 
-                successes = [s for s, v in p['steps'].iteritems()
-                             if s not in ['failure', 'duplicate step']]
-                failures = [s for s, v in p['steps'].iteritems()
-                            if s == 'failure']
-                duplicates = [s for s, v in p['steps'].iteritems()
-                              if s == 'duplicate step']
+                successes = [s for s, v in p['steps']
+                             if s[0] not in ['failure', 'duplicate step']]
+                failures = [s for s, v in p['steps'] if s[0] == 'failure']
+                duplicates = [s for s, v in p['steps'] if s[0] == 'duplicate step']
 
                 pout = LI('Path {}'.format(p['path id']))
                 pout.append(LI('steps succeeded: {}'.format(len(successes))))
