@@ -91,19 +91,27 @@ class PathFactory(object):
             stepsdata = []
             for n in ['one', 'two', 'three', 'four', 'five']:
                 nkeys = [k for k in vv.keys() if re.match('{}.*'.format(n), k)]
-                print 'nkeys'
-                print nkeys
+                #print 'nkeys'
+                #print nkeys
                 filledfields = [k for k in nkeys if vv[k] not in ['', None]]
                 if filledfields:
                     ndict = {k: vv[k] for k in nkeys}
                     stepsdata.append(ndict)
+            if isinstance(vv['words'], list):
+                wordlists = [w.split('|') for w in vv['words']]
+            else:
+                wordlists = [vv['words'].split('|')]
+            print 'words =========================='
+            pprint(vv['words'])
+            print 'wordlists =========================='
+            pprint(wordlists)
 
-            paths = self.make_path(wordlists=[w.split('|') for w in vv['words']],
+            paths = self.make_path(wordlists,
                                    label_template=vv.label_template,
                                    testing=vv.testing,
                                    avoid=vv.avoid,
                                    stepsdata=stepsdata)
-            print 'got paths: ', len(paths)
+            #print 'got paths: ', len(paths)
             message, output = self.make_output(paths)
 
             print 'got output\nmessage is: ', message
@@ -197,24 +205,25 @@ class PathFactory(object):
         if len(wordlists) > 1:
             combos = list(product(*wordlists))
         else:
-            combos = wordlists[0]
+            combos = [(l) for l in wordlists[0]]
         if avoid:
             combos = [x for x in combos
                       if not any([set(y).issubset(set(x)) for y in avoid])]
+        print "combos ==================================="
+        pprint(combos)
 
         # loop to create one path for each combo
         for c in combos:
             label = label_template.format('-'.join([i.split('|')[0] for i in c]))
             mykeys = ['words{}'.format(n) for n in range(len(c))]
             combodict = dict(zip(mykeys, c))
-            #print 'combos'
-            #pprint(combodict)
+
+            pprint(combodict)
 
             pathresult = {'steps': {}}
             pathsteps = []
             for i, s in enumerate(stepsdata):  # loop for each step in path
                 print 'step', i
-                pprint(s)
                 # filter out step identifier prefixes from field names
                 numstrings = ['one_', 'two_', 'three_', 'four_', 'five_']
                 s = {k.replace(numstrings[i], ''): v for k, v in s.iteritems()}
@@ -345,53 +354,53 @@ class PathFactory(object):
         prompts = []
 
         parts = {'prompt{}'.format(i): r for i, r in enumerate(ptemps) if r}
-        print 'parts is: =================================='
-        pprint(parts)
         xtemps = [xtemps] if type(xtemps) != list else xtemps
         regexes = {'regex{}'.format(i): r for i, r in enumerate(xtemps) if r}
-        print 'regexes is: =================================='
-        pprint(regexes)
         rdbls = {'rdbl{}'.format(i): r for i, r in enumerate(rtemps) if r}
-        print 'rdbls is: =================================='
-        pprint(rdbls)
         parts.update(regexes)
         parts.update(rdbls)
-        print 'parts is: =================================='
-        pprint(parts)
+        print 'combodict ==============================='
+        pprint(combodict)
 
         # perform substitutions for each "part" to be returned
         for k, p in parts.iteritems():
             inflected = []
             print 'for part ', k, p, '------------------------------'
-            fields = re.findall(r'(?<={{).*?(?=}})', p)
+            fields = re.findall(r'(?<={).*?(?=})', p)
             print 'fields ==============================='
             pprint(fields)
             inflected_fields = [f for f in fields if len(f.split('-')) > 1]
             print 'inflected_fields ==============================='
             pprint(inflected_fields)
 
-            # get inflected forms to substitute
-            for f in fields:
-                if f in inflected_fields:
-                    myform, newform = self.get_inflected(f, combodict)
-                    if newform:  # note any additions to db.word_forms
-                        newforms.append(newform)
-                else:
-                    myform = combodict[f]
-                # add case handling for fields in regex
-                if re.match(r'regex', k):
-                    lower, tail = firstletter(myform)
-                    myform = '({}|{})?{}'.format(lower, capitalize(lower), tail)
+            if fields:
+                # get inflected forms to substitute
+                for f in fields:
+                    if f in inflected_fields:
+                        myform, newform = self.get_inflected(f, combodict)
+                        if newform:  # note any additions to db.word_forms
+                            newforms.append(newform)
+                    else:
+                        myform = combodict[f]
+                    # add case handling for fields in regex
+                    if re.match(r'regex', k):
+                        lower, tail = firstletter(myform.decode('utf8'))
+                        myform = '({}|{})?{}'.format(lower, capitalize(lower), tail)
 
-                inflected.append(('{{{}}}'.format(f), myform))
-                print 'myform is: =================================='
-                print myform
-                print 'f is: =================================='
-                print f
+                    inflected.append(('{{{}}}'.format(f), myform))
+                    print 'myform is: =================================='
+                    print myform
+                    print 'f is: =================================='
+                    print f
 
-            print 'inflected are: ==================================='
-            pprint(inflected)
-            formatted = multiple_replace(inflected, p)
+                print 'inflected are: ==================================='
+                pprint(inflected)
+                formatted = multiple_replace(p, inflected[0])
+
+                print 'formatted is: ==================================='
+                pprint(formatted)
+            else:
+                formatted = p
 
             # add formatted string to appropriate collection for return
             if re.match(r'regex.*', k):
