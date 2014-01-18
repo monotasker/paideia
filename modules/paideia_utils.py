@@ -141,7 +141,7 @@ def clr(string, mycol='white'):
 
 def printutf(string):
     """Convert unicode string to readable characters for printing."""
-    string = string.decode('utf-8').encode('utf-8')
+    string = makeutf8(string)
     return string
 
 
@@ -149,8 +149,8 @@ def capitalize(letter):
     """
     Convert string to upper case in utf-8 safe way.
     """
-    #if letter in caps.values():
-    newletter = letter.decode('utf-8').upper()
+    letter = makeutf8(letter)
+    newletter = letter.upper()
     return newletter.encode('utf-8')
 
 
@@ -158,18 +158,30 @@ def lowercase(letter):
     """
     Convert string to lower case in utf-8 safe way.
     """
-    newletter = string.decode('utf-8').lower()
+    letter = makeutf8(letter)
+    newletter = letter.lower()
     return newletter.encode('utf-8')
+
+
+def makeutf8(rawstring):
+    """Return the string decoded as utf8 if it wasn't already."""
+    try:
+        rawstring = rawstring.decode('utf8')
+        print 'decoded'
+    except (UnicodeDecodeError, UnicodeEncodeError):
+        rawstring = rawstring
+        'left same'
+    return rawstring
 
 
 def firstletter(mystring):
     """
     Find the first letter of a byte-encoded unicode string.
     """
-    mystring = mystring.decode('utf-8')
+    mystring = makeutf8(mystring)
     let, tail = mystring[:1], mystring[1:]
     #print 'in firstletter: ', mystring[:1], '||', mystring[1:]
-    let, tail = let.encode('utf-8'), tail.encode('utf-8')
+    let, tail = let.encode('utf8'), tail.encode('utf8')
     return let, tail
 
 
@@ -218,7 +230,7 @@ def test_step_regex():
     return form, result
 
 
-def flatten(self, items, seqtypes=(list, tuple)):
+def flatten(items, seqtypes=(list, tuple)):
     """
     Convert an arbitrarily deep nested list into a single flat list.
     """
