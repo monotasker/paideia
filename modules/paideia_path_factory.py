@@ -205,7 +205,7 @@ class PathFactory(object):
         if len(wordlists) > 1:
             combos = list(product(*wordlists))
         else:
-            combos = [(l) for l in wordlists[0]]
+            combos = [(l,) for l in wordlists[0]]
         if avoid:
             combos = [x for x in combos
                       if not any([set(y).issubset(set(x)) for y in avoid])]
@@ -215,7 +215,7 @@ class PathFactory(object):
         # loop to create one path for each combo
         for c in combos:
             label = label_template.format('-'.join([i.split('|')[0] for i in c]))
-            mykeys = ['words{}'.format(n) for n in range(len(c))]
+            mykeys = ['words{}'.format(n + 1) for n in range(len(c))]
             combodict = dict(zip(mykeys, c))
 
             pprint(combodict)
@@ -424,7 +424,7 @@ class PathFactory(object):
         # allow for passing inflected form instead of lemma
         if not db.lemmas(db.lemmas.lemma == lemma):
             myrow = db.word_forms(db.word_forms.word_form == lemma)
-            lemma = myrow.lemma.lemma
+            lemma = myrow.source_lemma.lemma
         # inflect lemma to agree with its governing word
         modform = combodict[mod]
         myform, newform = self.make_form_agree(modform, lemma)
@@ -538,8 +538,8 @@ class PathFactory(object):
                       ).select()
         constags = [f.constructions.tags for f in formrows]
         formtags = [f.word_forms.tags for f in formrows]
-        firsttags = [f.word_forms.lemma.first_tag for f in formrows]
-        xtags = [f.word_forms.lemma.extra_tags for f in formrows]
+        firsttags = [f.word_forms.source_lemma.first_tag for f in formrows]
+        xtags = [f.word_forms.source_lemma.extra_tags for f in formrows]
 
         newtags = chain(constags, formtags, firsttags, xtags)
         newtags = list(set(flatten(formtags)))
