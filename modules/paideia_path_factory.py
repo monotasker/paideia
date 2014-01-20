@@ -24,7 +24,7 @@ from gluon import CAT, H2
 import re
 from random import randrange, shuffle
 from itertools import product, chain
-from paideia_utils import firstletter, capitalize, capitalize_first
+from paideia_utils import firstletter, capitalize, capitalize_first, makeutf8
 from paideia_utils import sanitize_greek, flatten, multiple_replace
 
 
@@ -82,11 +82,11 @@ class PathFactory(object):
                                            multiple=True)),
                    Field('{}_image_template'.format(n), 'string')]
             flds.extend(fbs)
-        pprint(flds)
+        #pprint(flds)
         form = SQLFORM.factory(*flds)
 
         if form.process().accepted:
-            print "form was processed"
+            #print "form was processed"
             vv = request.vars
             stepsdata = []
             for n in ['one', 'two', 'three', 'four', 'five']:
@@ -101,10 +101,10 @@ class PathFactory(object):
                 wordlists = [w.split('|') for w in vv['words']]
             else:
                 wordlists = [vv['words'].split('|')]
-            print 'words =========================='
-            pprint(vv['words'])
-            print 'wordlists =========================='
-            pprint(wordlists)
+            #print 'words =========================='
+            #pprint(vv['words'])
+            #print 'wordlists =========================='
+            #pprint(wordlists)
 
             paths = self.make_path(wordlists,
                                    label_template=vv.label_template,
@@ -114,7 +114,7 @@ class PathFactory(object):
             #print 'got paths: ', len(paths)
             message, output = self.make_output(paths)
 
-            print 'got output\nmessage is: ', message
+            #print 'got output\nmessage is: ', message
         elif form.errors:
             message = BEAUTIFY(form.errors)
             print 'form had errors:', message
@@ -199,7 +199,7 @@ class PathFactory(object):
 
         if testing:
             self.mock = True
-        paths = []
+        paths = {}
         images_missing = []
         new_forms = []
         if len(wordlists) > 1:
@@ -218,12 +218,10 @@ class PathFactory(object):
             mykeys = ['words{}'.format(n + 1) for n in range(len(c))]
             combodict = dict(zip(mykeys, c))
 
-            pprint(combodict)
-
             pathresult = {'steps': {}}
             pathsteps = []
             for i, s in enumerate(stepsdata):  # loop for each step in path
-                print 'step', i
+                #print 'step', i
                 # filter out step identifier prefixes from field names
                 numstrings = ['one_', 'two_', 'three_', 'four_', 'five_']
                 s = {k.replace(numstrings[i], ''): v for k, v in s.iteritems()}
@@ -236,11 +234,9 @@ class PathFactory(object):
                 pid = self.write_to_db(pathsteps, label)
             else:
                 pid = 'path not written'
-            paths.append(pid)
-            pathresult['path id'] = pid
             pathresult['new_forms'] = new_forms
             pathresult['images_missing'] = images_missing
-            paths.append(pathresult)
+            paths[pid] = pathresult
 
         return paths
 
@@ -284,17 +280,20 @@ class PathFactory(object):
 
         pros, rxs, rdbls, newfs = self.formatted(combodict, ptemp, xtemp, rtemp)
         tags = self.get_step_tags(tags1, tags2, tags3, pros, rdbls)
+        #print 'rdbls returned from formatted ================================'
+        #for r in rdbls:
+            #print makeutf8(r)
         kwargs = {'prompt': sanitize_greek(pros[randrange(len(pros))]),
                   'widget_type': mytype,
                   #'widget_audio': None,
                   'widget_image': imgid,
-                  'response1': rxs[0],
-                  'readable_response': '|'.join([sanitize_greek(r)
-                                                 for r in rdbls]),
+                  'response1': rxs.values()[0],
+                  'readable_response': '|'.join([r for r
+                                                 in sanitize_greek(rdbls)]),
                   'outcome1': points[0],
-                  'response2': rxs[1] if len(rxs) > 1 else None,
+                  'response2': rxs.values()[1] if len(rxs.values()) > 1 else None,
                   'outcome2': points[1],
-                  'response3': rxs[2] if len(rxs) > 2 else None,
+                  'response3': rxs.values()[2] if len(rxs.values()) > 2 else None,
                   'outcome3': points[2],
                   'tags': tags[0],
                   'tags_secondary': tags[1],
@@ -359,19 +358,19 @@ class PathFactory(object):
         rdbls = {'rdbl{}'.format(i): r for i, r in enumerate(rtemps) if r}
         parts.update(regexes)
         parts.update(rdbls)
-        print 'combodict ==============================='
-        pprint(combodict)
+        #print 'combodict ==============================='
+        #pprint(combodict)
 
         # perform substitutions for each "part" to be returned
         for k, p in parts.iteritems():
             inflected = []
-            print 'for part ', k, p, '------------------------------'
+            #print 'for part ', k, p, '------------------------------'
             fields = re.findall(r'(?<={).*?(?=})', p)
-            print 'fields ==============================='
-            pprint(fields)
+            #print 'fields ==============================='
+            #pprint(fields)
             inflected_fields = [f for f in fields if len(f.split('-')) > 1]
-            print 'inflected_fields ==============================='
-            pprint(inflected_fields)
+            #print 'inflected_fields ==============================='
+            #pprint(inflected_fields)
 
             if fields:
                 # get inflected forms to substitute
@@ -388,19 +387,19 @@ class PathFactory(object):
                         myform = '({}|{})?{}'.format(lower, capitalize(lower), tail)
 
                     inflected.append(('{{{}}}'.format(f), myform))
-                    print 'myform is: =================================='
-                    print myform
-                    print 'f is: =================================='
-                    print f
+                    #print 'myform is: =================================='
+                    #print myform
+                    #print 'f is: =================================='
+                    #print f
 
-                print 'inflected are: ==================================='
-                pprint(inflected)
+                #print 'inflected are: ==================================='
+                #pprint(inflected)
                 formatted = multiple_replace(p, inflected[0])
 
-                print 'formatted is: ==================================='
-                pprint(formatted)
             else:
                 formatted = p
+            #print 'formatted is: ==================================='
+            #pprint(formatted)
 
             # add formatted string to appropriate collection for return
             if re.match(r'regex.*', k):
@@ -410,7 +409,8 @@ class PathFactory(object):
                 readables.append(capitalize_first(formatted))
             else:
                 prompts.append(capitalize_first(formatted))
-
+        #print 'regexes returned from formatted ==========================='
+        #pprint(regexes)
         return prompts, regexes, readables, newforms
 
     def get_inflected(self, field, combodict):
@@ -549,12 +549,12 @@ class PathFactory(object):
         newtags1, newtags2, newtags3 = [], [], []
         alltags = chain(tags1, tags2, tags3)
         tagrows = db(db.tags.id.belongs(alltags)).select(db.tags.id,
-                                                         db.tags.position)
-        steplevel = max([t.position for t in tagrows])
+                                                         db.tags.tag_position)
+        steplevel = max([t.tag_position for t in tagrows])
         for t in tagrows:
-            if t.position == steplevel:
+            if t.tag_position == steplevel:
                 newtags1.append(t)
-            elif t.position < steplevel:
+            elif t.tag_position < steplevel:
                 newtags2.append(t)
             else:
                 newtags3.append(t)
@@ -566,6 +566,10 @@ class PathFactory(object):
         Return True if the supplied strings satisfy the supplied regex.
         """
         readables = readables if type(readables) == list else [readables]
+        print 'testing regex =================================='
+        print makeutf8(regex)
+        for r in readables:
+            print makeutf8(r)
         test_regex = re.compile(regex, re.X)
         mlist = [re.match(test_regex, rsp) for rsp in readables]
         if all(mlist):
@@ -598,8 +602,9 @@ class PathFactory(object):
         Return formatted output for the make_path view after form submission.
 
         """
-        opts = {'goodpaths': [p for p in paths if isinstance(p['path id'], int)],
-                'badpaths': [p for p in paths if not isinstance(p['path id'], int)]}
+        pprint(paths)
+        opts = {'goodpaths': {p: v for p, v in paths.iteritems() if isinstance(p, int)},
+                'badpaths': {p: v for p, v in paths.iteritems() if isinstance(p, int)}}
         outs = {'goodpaths': UL(),
                 'badpaths': UL()}
         newforms = []
@@ -608,23 +613,20 @@ class PathFactory(object):
         for opt in ['goodpaths', 'badpaths']:
             badcount = 0
 
-            for p in opts[opt]:
+            for pk, pv in opts[opt].iteritems():
                 if opt == 'badpaths':
                     badcount += 1
 
-                successes = [s for s, v in p['steps']
-                             if s[0] not in ['failure', 'duplicate step']]
-                failures = [s for s, v in p['steps'] if s[0] == 'failure']
-                duplicates = [s for s, v in p['steps'] if s[0] == 'duplicate step']
+                successes = [s for s in pv['steps'].keys()
+                             if s not in ['failure', 'duplicate step']]
+                failures = [s for s in pv['steps'].keys() if s == 'failure']
+                duplicates = [s for s in pv['steps'].keys() if s == 'duplicate step']
 
-                pout = LI('Path {}'.format(p['path id']))
+                pout = LI('Path {}'.format(pk))
                 pout.append(LI('steps succeeded: {}'.format(len(successes))))
                 pout.append(LI('steps failed: {}'.format(len(failures))))
                 pout.append(LI('steps were duplicates: {}'.format(len(duplicates))))
-                steps = UL()
-                for s in p['steps']:
-                    steps.append(LI(BEAUTIFY(s)))
-                pout.append(LI(steps))
+                pout.append(LI(pv))
 
                 outs[opt].append(pout)
 
@@ -703,7 +705,7 @@ class TranslateWordPathFactory(PathFactory):
         '''
         '''
         db = current.db
-        result = []
+        result = {}
         for lemma in lemmas:
             lemma['constructions'] = self.get_constructions(lemma)
             for idx, cst in enumerate(lemma['constructions']):  # each path

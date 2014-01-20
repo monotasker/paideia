@@ -67,8 +67,12 @@ def sanitize_greek(strings):
     try:
         newstrings = []
         for string in strings:
-            latin = re.compile(ur'(?P<a>[Α-Ωα-ω])?([a-z]|[A-Z]|\d)(?(a).*|[Α-Ωα-ω])')
-            mymatch = re.search(latin, string.decode('utf-8'))
+            string = makeutf8(string)
+            rgx = makeutf8(r'(?P<a>[Α-Ωα-ω])?([a-z]|[A-Z]|\d)(?(a).*|[Α-Ωα-ω])')
+            #print 'filterrgx ==============================='
+            #print rgx
+            latin = re.compile(rgx, re.U)
+            mymatch = re.search(latin, string)
             if not mymatch:
                 newstring = string
             else:
@@ -99,6 +103,8 @@ def sanitize_greek(strings):
                 newstring = multiple_replace(string, *subs)
                 print 'replaced with Greek characters:'
                 print newstring
+            #print 'newstring is ============================'
+            #print newstring
             newstrings.append(newstring)
         return newstrings
     except Exception:
@@ -167,10 +173,8 @@ def makeutf8(rawstring):
     """Return the string decoded as utf8 if it wasn't already."""
     try:
         rawstring = rawstring.decode('utf8')
-        print 'decoded'
     except (UnicodeDecodeError, UnicodeEncodeError):
         rawstring = rawstring
-        'left same'
     return rawstring
 
 
