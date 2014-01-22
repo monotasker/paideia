@@ -20,44 +20,14 @@ from itertools import chain
 import datetime
 import json
 
-caps = {'α': 'Α',
-        'ἀ': 'Ἀ',
-        'ἁ': 'Ἁ',
-        'β': 'Β',
-        'γ': 'Γ',
-        'δ': 'Δ',
-        'ε': 'Ε',
-        'ἐ': 'Ἐ',
-        'ἑ': 'Ἑ',
-        'ζ': 'Ζ',
-        'η': 'Η',
-        'ἠ': 'Ἠ',
-        'ἡ': 'Ἡ',
-        'θ': 'Θ',
-        'ι': 'Ι',
-        'ἰ': 'Ἰ',
-        'ἱ': 'Ἱ',
-        'κ': 'Κ',
-        'λ': 'Λ',
-        'μ': 'Μ',
-        'ν': 'Ν',
-        'ξ': 'Ξ',
-        'ο': 'Ο',
-        'ὀ': 'Ὀ',
-        'ὁ': 'Ὁ',
-        'π': 'Π',
-        'ρ': 'Ρ',
-        'σ': 'Σ',
-        'τ': 'Τ',
-        'υ': 'Υ',
-        'ὐ': 'ὐ',
-        'ὑ': 'Ὑ',
-        'φ': 'Φ',
-        'χ': 'Χ',
-        'ψ': 'Ψ',
-        'ω': 'Ω',
-        'ὠ': 'Ὠ',
-        'ὡ': 'Ὡ'}
+
+def islist(dat):
+    """
+    Return the supplied object converted to a list if it is not already.
+    """
+    if not isinstance(dat, list):
+        dat = [dat]
+    return dat
 
 
 def sanitize_greek(strings):

@@ -20,16 +20,14 @@ from pprint import pprint
 import traceback
 from gluon import current, SQLFORM, Field, BEAUTIFY, IS_IN_DB, UL, LI
 from gluon import CAT, H2
-#from gluon import TABLE, TD, TR, LABEL, P, A, URL
 import re
 from random import randrange, shuffle
 from itertools import product, chain
-from paideia_utils import firstletter, capitalize, capitalize_first, makeutf8
-from paideia_utils import sanitize_greek, flatten, multiple_replace
+from paideia_utils import capitalize_first, makeutf8, test_regex
+from paideia_utils import sanitize_greek, flatten, multiple_replace, islist
 
 
 class PathFactory(object):
-
     """
     An abstract parent class to create paths (with steps) procedurally.
 
@@ -196,12 +194,40 @@ class PathFactory(object):
 
         """
         print "starting module======================================"
-
         if testing:
             self.mock = True
+
+        combos = self.make_combos(wordlists, avoid)
         paths = {}
-        images_missing = []
-        new_forms = []
+        for c in combos:  # one path for each combo
+            label = label_template.format('-'.join([i.split('|')[0] for i in c]))
+            mykeys = ['words{}'.format(n + 1) for n in range(len(c))]
+            combodict = dict(zip(mykeys, c))  # keys are template placeholders
+
+            pdata = {'steps': {}}
+            for i, s in enumerate(stepsdata):  # each step in path
+                numstrings = ['one_', 'two_', 'three_', 'four_', 'five_']
+                sdata = {k.replace(numstrings[i], ''): v for k, v in s.iteritems()}
+                # create steps
+                stepdata, newforms, imgs = self.make_step(combodict, sdata)
+                # collect result
+                pdata['steps'][stepdata[0]] = stepdata[1]
+                pdata['new_forms'].setdefault([]).append(newforms)
+                pdata['images_missing'].setdefault([]).append(imgs)
+            pgood = [isinstance(k, int) for k in pdata['steps'].keys()]
+            pid = self.path_to_db(pdata['steps'], label) \
+                if all(pgood) and not self.mock else 'path not written'
+            paths[pid] = pdata
+
+        return paths
+
+    def make_combos(self, wordlists, avoid):
+        """
+        Return a list of tuples holding all valid combinations of given words.
+
+        Avoid parameter allows exclusion of certain combinations.
+
+        """
         if len(wordlists) > 1:
             combos = list(product(*wordlists))
         else:
@@ -210,35 +236,12 @@ class PathFactory(object):
             combos = [x for x in combos
                       if not any([set(y).issubset(set(x)) for y in avoid])]
         print "combos ==================================="
-        pprint(combos)
-
-        # loop to create one path for each combo
         for c in combos:
-            label = label_template.format('-'.join([i.split('|')[0] for i in c]))
-            mykeys = ['words{}'.format(n + 1) for n in range(len(c))]
-            combodict = dict(zip(mykeys, c))
-
-            pathresult = {'steps': {}}
-            pathsteps = []
-            for i, s in enumerate(stepsdata):  # loop for each step in path
-                #print 'step', i
-                # filter out step identifier prefixes from field names
-                numstrings = ['one_', 'two_', 'three_', 'four_', 'five_']
-                s = {k.replace(numstrings[i], ''): v for k, v in s.iteritems()}
-                stepresult, newforms, imiss = self.make_step(combodict, s)
-                pathsteps.append(stepresult[0])
-                pathresult['steps'][stepresult[0]] = stepresult[1]
-                new_forms.append(newforms)
-                images_missing.extend(imiss)
-            if all([isinstance(k, int) for k in pathresult['steps'].keys()]):
-                pid = self.write_to_db(pathsteps, label)
-            else:
-                pid = 'path not written'
-            pathresult['new_forms'] = new_forms
-            pathresult['images_missing'] = images_missing
-            paths[pid] = pathresult
-
-        return paths
+            print '(',
+            for i in c:
+                print makeutf8(i),
+            print ')'
+        return combos
 
     def make_step(self, combodict, sdata):
         """
@@ -257,14 +260,11 @@ class PathFactory(object):
                               db.word_forms in the course of step creation.
         """
         mytype = sdata['step_type']
-        ptemp = sdata['prompt_template']
-        ptemp = ptemp.split('|')
-        ptemp = [ptemp] if not isinstance(ptemp, list) else ptemp
-        xtemp = sdata['response_template']
-        xtemp = [xtemp] if not isinstance(xtemp, list) else xtemp
-        rtemp = sdata['readable_template']
-        rtemp = rtemp.split('|')
-        rtemp = [rtemp] if not isinstance(rtemp, list) else rtemp
+
+        ptemp = islist(sdata['prompt_template'].split('|'))
+        xtemp = islist(sdata['response_template'].split('|'))
+        rtemp = islist(sdata['readable_template'].split('|'))
+
         tags1 = sdata['tags']
         itemp = sdata['image_template']
         tags2 = sdata['tags_secondary']
@@ -280,9 +280,9 @@ class PathFactory(object):
 
         pros, rxs, rdbls, newfs = self.formatted(combodict, ptemp, xtemp, rtemp)
         tags = self.get_step_tags(tags1, tags2, tags3, pros, rdbls)
-        #print 'rdbls returned from formatted ================================'
-        #for r in rdbls:
-            #print makeutf8(r)
+        print 'rxs returned from formatted ================================'
+        for r in rxs:
+            print makeutf8(r)
         kwargs = {'prompt': sanitize_greek(pros[randrange(len(pros))]),
                   'widget_type': mytype,
                   #'widget_audio': None,
@@ -301,10 +301,10 @@ class PathFactory(object):
                   'npcs': npcs,  # [randrange(len(npcs))] if multiple
                   'locations': locs}  # [randrange(len(npcs))] if mult
         try:
-            mtch = self.test_regex(kwargs['response1'], rdbls)
+            mtch = all([test_regex(x, rdbls) for x in rxs.values()])
             dups = self.check_for_duplicates(kwargs, rdbls, pros)
             if mtch and not self.mock and not dups[0]:
-                stepresult = self.write_step_to_db(kwargs), kwargs
+                stepresult = self.step_to_db(kwargs), kwargs
             elif mtch and not dups[0] and self.mock:
                 stepresult = 'testing', kwargs
             elif mtch and dups[0]:
@@ -347,71 +347,44 @@ class PathFactory(object):
                 for automatic substitution (word parsed to agree with another
                 being substituted elsewhere).
         """
-        newforms = []  # collect any new word forms created in db along the way
-        readables = []
-        regexes = {}  # need keys to ensure proper priority
-        prompts = []
+        prompts, p_new = [self.do_substitution(p, combodict) for p in ptemps]
+        prompts = [capitalize_first(p) for p in prompts]
+        rxs, x_new = [self.do_substitution(x, combodict) for x in xtemps]
+        rdbls, r_new = [self.do_substitution(r, combodict) for r in rtemps]
+        rdbls = [capitalize_first(r) for r in rdbls]
+        newforms = chain(p_new, x_new, r_new)
+        print 'Fomatted regex==========================================='
+        for x in rxs:
+            print makeutf8(x)
 
-        parts = {'prompt{}'.format(i): r for i, r in enumerate(ptemps) if r}
-        xtemps = [xtemps] if type(xtemps) != list else xtemps
-        regexes = {'regex{}'.format(i): r for i, r in enumerate(xtemps) if r}
-        rdbls = {'rdbl{}'.format(i): r for i, r in enumerate(rtemps) if r}
-        parts.update(regexes)
-        parts.update(rdbls)
-        #print 'combodict ==============================='
-        #pprint(combodict)
+        return prompts, rxs, rdbls, newforms
 
-        # perform substitutions for each "part" to be returned
-        for k, p in parts.iteritems():
-            inflected = []
-            #print 'for part ', k, p, '------------------------------'
-            fields = re.findall(r'(?<={).*?(?=})', p)
-            #print 'fields ==============================='
-            #pprint(fields)
-            inflected_fields = [f for f in fields if len(f.split('-')) > 1]
-            #print 'inflected_fields ==============================='
-            #pprint(inflected_fields)
+    def do_substitution(self, temp, combodict):
+        """
+        Make the necessary replacements for the suplied template string.
 
-            if fields:
-                # get inflected forms to substitute
-                for f in fields:
-                    if f in inflected_fields:
-                        myform, newform = self.get_inflected(f, combodict)
-                        if newform:  # note any additions to db.word_forms
-                            newforms.append(newform)
-                    else:
-                        myform = combodict[f]
-                    # add case handling for fields in regex
-                    if re.match(r'regex', k):
-                        lower, tail = firstletter(myform.decode('utf8'))
-                        myform = '({}|{})?{}'.format(lower, capitalize(lower), tail)
+        Returns a list of strings, one for each valid combination of words
+        supplied in the combodict parameter.
+        """
+        ready_strings = []
+        subpairs = []
+        newforms = []
 
-                    inflected.append(('{{{}}}'.format(f), myform))
-                    #print 'myform is: =================================='
-                    #print myform
-                    #print 'f is: =================================='
-                    #print f
-
-                #print 'inflected are: ==================================='
-                #pprint(inflected)
-                formatted = multiple_replace(p, inflected[0])
-
+        fields = re.findall(r'(?<={).*?(?=})', temp)
+        if not fields:
+            return temp, None
+        inflected_fields = [f for f in fields if len(f.split('-')) > 1]
+        for f in fields:
+            if f in inflected_fields:
+                myform, newform = self.get_inflected(f, combodict)
+                if newform:  # note any additions to db.word_forms
+                    newforms.append(newform)
             else:
-                formatted = p
-            #print 'formatted is: ==================================='
-            #pprint(formatted)
+                myform = combodict[f]
+            subpairs.append(('{{{}}}'.format(f), myform))
 
-            # add formatted string to appropriate collection for return
-            if re.match(r'regex.*', k):
-                idx = k.replace('regex', '')
-                regexes[idx] = formatted
-            elif re.match(r'rdbl.*', k):
-                readables.append(capitalize_first(formatted))
-            else:
-                prompts.append(capitalize_first(formatted))
-        #print 'regexes returned from formatted ==========================='
-        #pprint(regexes)
-        return prompts, regexes, readables, newforms
+        ready_strings = multiple_replace(temp, subpairs)
+        return ready_strings, newforms
 
     def get_inflected(self, field, combodict):
         """
@@ -561,23 +534,7 @@ class PathFactory(object):
 
         return (newtags1, newtags2, newtags3)
 
-    def test_regex(self, regex, readables):
-        """
-        Return True if the supplied strings satisfy the supplied regex.
-        """
-        readables = readables if type(readables) == list else [readables]
-        print 'testing regex =================================='
-        print makeutf8(regex)
-        for r in readables:
-            print makeutf8(r)
-        test_regex = re.compile(regex, re.X)
-        mlist = [re.match(test_regex, rsp) for rsp in readables]
-        if all(mlist):
-            return True
-        else:
-            return False
-
-    def write_step_to_db(self, kwargs):
+    def step_to_db(self, kwargs):
         """ """
         db = current.db
         try:
@@ -587,7 +544,7 @@ class PathFactory(object):
             print traceback.format_exc(5)
             return False
 
-    def write_to_db(self, steps, label):
+    def path_to_db(self, steps, label):
         """ """
         db = current.db
         try:
@@ -732,7 +689,7 @@ class TranslateWordPathFactory(PathFactory):
                             }
                             # response3  # todo: build from groups in regex
                             # pth['outcome2'] = 0.4
-                    mtch = self.test_regex()
+                    mtch = test_regex()
                     dups = self.check_for_duplicates(step)
                     if mtch and not testing and not dups:
                         pid, sid = self.write_to_db(step)
