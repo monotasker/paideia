@@ -2,13 +2,13 @@
 S'category'
 p2
 (dp3
-S'sortable'
+S'type'
 p4
-I8
-sS'type'
-p5
 S'reference categories'
+p5
+sS'sortable'
 p6
+I8
 sS'sql'
 p7
 S'INTEGER REFERENCES categories(id) ON DELETE CASCADE'
@@ -27,7 +27,7 @@ p13
 I2
 sS'sql'
 p14
-S'INTEGER REFERENCES auth_user (id) ON DELETE CASCADE'
+S'INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE'
 p15
 sS'notnull'
 p16
@@ -56,13 +56,13 @@ p22
 ssS'question'
 p23
 (dp24
-S'sortable'
+S'type'
 p25
-I3
-sS'type'
-p26
 S'reference questions'
+p26
+sS'sortable'
 p27
+I3
 sS'sql'
 p28
 S'INTEGER REFERENCES questions(id) ON DELETE CASCADE'
@@ -126,7 +126,7 @@ I00
 sg13
 I9
 sg14
-S'INTEGER REFERENCES steps (id) ON DELETE CASCADE'
+S'INTEGER REFERENCES "steps" ("id") ON DELETE CASCADE'
 p42
 sg16
 I00
@@ -143,7 +143,7 @@ I00
 sg13
 I3
 sg14
-S'INTEGER REFERENCES tags (id) ON DELETE CASCADE'
+S'INTEGER REFERENCES "tags" ("id") ON DELETE CASCADE'
 p46
 sg16
 I00
@@ -153,13 +153,13 @@ p47
 ssS'path'
 p48
 (dp49
-S'type'
+S'sortable'
 p50
-S'reference paths'
-p51
-sS'sortable'
-p52
 I8
+sS'type'
+p51
+S'reference paths'
+p52
 sS'sql'
 p53
 S'INTEGER REFERENCES paths(id) ON DELETE CASCADE'
@@ -174,7 +174,7 @@ I00
 sg13
 I8
 sg14
-S'INTEGER REFERENCES paths (id) ON DELETE CASCADE'
+S'INTEGER REFERENCES "paths" ("id") ON DELETE CASCADE'
 p57
 sg16
 I00

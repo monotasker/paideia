@@ -25,13 +25,13 @@ p11
 ssS'prev_lastright'
 p12
 (dp13
-S'type'
+S'sortable'
 p14
-S'datetime'
-p15
-sS'sortable'
-p16
 I10
+sS'type'
+p15
+S'datetime'
+p16
 sS'sql'
 p17
 S'TIMESTAMP'
@@ -80,7 +80,7 @@ I00
 sg6
 I2
 sg7
-S'INTEGER REFERENCES steps (id) ON DELETE CASCADE'
+S'INTEGER REFERENCES "steps" ("id") ON DELETE CASCADE'
 p29
 sg9
 I00
@@ -91,22 +91,22 @@ ssS'prev_lastwrong'
 p31
 (dp32
 g14
-g15
-sg16
 I11
+sg15
+g16
 sg17
 S'TIMESTAMP'
 p33
 ssS'path'
 p34
 (dp35
-S'type'
+S'sortable'
 p36
-S'reference paths'
-p37
-sS'sortable'
-p38
 I3
+sS'type'
+p37
+S'reference paths'
+p38
 sS'sql'
 p39
 S'INTEGER REFERENCES paths(id) ON DELETE CASCADE'
@@ -138,7 +138,7 @@ I00
 sg6
 I7
 sg7
-S'INTEGER REFERENCES attempt_log (id) ON DELETE CASCADE'
+S'INTEGER REFERENCES "attempt_log" ("id") ON DELETE CASCADE'
 p47
 sg9
 I00
@@ -155,7 +155,7 @@ I00
 sg6
 I10
 sg7
-S'INTEGER REFERENCES bug_status (id) ON DELETE CASCADE'
+S'INTEGER REFERENCES "bug_status" ("id") ON DELETE CASCADE'
 p51
 sg9
 I00
@@ -172,7 +172,7 @@ I00
 sg6
 I3
 sg7
-S'INTEGER REFERENCES paths (id) ON DELETE CASCADE'
+S'INTEGER REFERENCES "paths" ("id") ON DELETE CASCADE'
 p55
 sg9
 I00
@@ -200,10 +200,10 @@ ssS'location'
 p61
 (dp62
 g36
+I5
+sg37
 S'reference locations'
 p63
-sg38
-I5
 sg39
 S'INTEGER REFERENCES locations(id) ON DELETE CASCADE'
 p64
@@ -217,7 +217,7 @@ I00
 sg6
 I4
 sg7
-S'INTEGER REFERENCES locations (id) ON DELETE CASCADE'
+S'INTEGER REFERENCES "locations" ("id") ON DELETE CASCADE'
 p67
 sg9
 I00
@@ -251,7 +251,7 @@ I00
 sg6
 I8
 sg7
-S'INTEGER REFERENCES auth_user (id) ON DELETE CASCADE'
+S'INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE'
 p75
 sg9
 I00

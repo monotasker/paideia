@@ -13,7 +13,7 @@ p6
 I22
 sS'sql'
 p7
-S'INTEGER REFERENCES step_status (id) ON DELETE CASCADE'
+S'INTEGER REFERENCES "step_status" ("id") ON DELETE CASCADE'
 p8
 sS'notnull'
 p9
@@ -147,7 +147,7 @@ I00
 sg6
 I4
 sg7
-S'INTEGER REFERENCES step_types (id) ON DELETE CASCADE'
+S'INTEGER REFERENCES "step_types" ("id") ON DELETE CASCADE'
 p38
 sg9
 I00
@@ -164,7 +164,7 @@ I00
 sg6
 I3
 sg7
-S'INTEGER REFERENCES audio (id) ON DELETE CASCADE'
+S'INTEGER REFERENCES "audio" ("id") ON DELETE CASCADE'
 p42
 sg9
 I00
@@ -277,7 +277,7 @@ I00
 sg6
 I5
 sg7
-S'INTEGER REFERENCES images (id) ON DELETE CASCADE'
+S'INTEGER REFERENCES "images" ("id") ON DELETE CASCADE'
 p64
 sg9
 I00
@@ -367,13 +367,13 @@ p80
 ssS'options'
 p81
 (dp82
-S'type'
+S'sortable'
 p83
-S'list:string'
-p84
-sS'sortable'
-p85
 I6
+sS'type'
+p84
+S'list:string'
+p85
 sS'sql'
 p86
 S'TEXT'
