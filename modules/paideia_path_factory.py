@@ -16,14 +16,14 @@ TranslateWordPathFactory:class (extends PathFactory)
 : A subclass that includes extra helper logic for simple translation paths.
 
 """
-from pprint import pprint
+#from pprint import pprint
 import traceback
 from gluon import current, SQLFORM, Field, BEAUTIFY, IS_IN_DB, UL, LI
 from gluon import CAT, H2
 import re
 from random import randrange, shuffle
 from itertools import product, chain
-from paideia_utils import capitalize_first, makeutf8, test_regex
+from paideia_utils import capitalize_first, test_regex, uprint
 from paideia_utils import sanitize_greek, flatten, multiple_replace, islist
 
 
@@ -89,8 +89,6 @@ class PathFactory(object):
             stepsdata = []
             for n in ['one', 'two', 'three', 'four', 'five']:
                 nkeys = [k for k in vv.keys() if re.match('{}.*'.format(n), k)]
-                #print 'nkeys'
-                #print nkeys
                 filledfields = [k for k in nkeys if vv[k] not in ['', None]]
                 if filledfields:
                     ndict = {k: vv[k] for k in nkeys}
@@ -99,10 +97,6 @@ class PathFactory(object):
                 wordlists = [w.split('|') for w in vv['words']]
             else:
                 wordlists = [vv['words'].split('|')]
-            #print 'words =========================='
-            #pprint(vv['words'])
-            #print 'wordlists =========================='
-            #pprint(wordlists)
 
             paths = self.make_path(wordlists,
                                    label_template=vv.label_template,
@@ -204,7 +198,7 @@ class PathFactory(object):
             mykeys = ['words{}'.format(n + 1) for n in range(len(c))]
             combodict = dict(zip(mykeys, c))  # keys are template placeholders
 
-            pdata = {'steps': {}}
+            pdata = {'steps': {}, 'new_forms': [], 'images_missing': []}
             for i, s in enumerate(stepsdata):  # each step in path
                 numstrings = ['one_', 'two_', 'three_', 'four_', 'five_']
                 sdata = {k.replace(numstrings[i], ''): v for k, v in s.iteritems()}
@@ -212,8 +206,8 @@ class PathFactory(object):
                 stepdata, newforms, imgs = self.make_step(combodict, sdata)
                 # collect result
                 pdata['steps'][stepdata[0]] = stepdata[1]
-                pdata['new_forms'].setdefault([]).append(newforms)
-                pdata['images_missing'].setdefault([]).append(imgs)
+                pdata['new_forms'].append(newforms)
+                pdata['images_missing'].append(imgs)
             pgood = [isinstance(k, int) for k in pdata['steps'].keys()]
             pid = self.path_to_db(pdata['steps'], label) \
                 if all(pgood) and not self.mock else 'path not written'
@@ -236,11 +230,7 @@ class PathFactory(object):
             combos = [x for x in combos
                       if not any([set(y).issubset(set(x)) for y in avoid])]
         print "combos ==================================="
-        for c in combos:
-            print '(',
-            for i in c:
-                print makeutf8(i),
-            print ')'
+        uprint(combos)
         return combos
 
     def make_step(self, combodict, sdata):
@@ -262,7 +252,7 @@ class PathFactory(object):
         mytype = sdata['step_type']
 
         ptemp = islist(sdata['prompt_template'].split('|'))
-        xtemp = islist(sdata['response_template'].split('|'))
+        xtemp = islist(sdata['response_template'].split('||'))
         rtemp = islist(sdata['readable_template'].split('|'))
 
         tags1 = sdata['tags']
@@ -278,22 +268,25 @@ class PathFactory(object):
         #ititle = img[1] if img else None
         images_missing = img[2] if img else None
 
-        pros, rxs, rdbls, newfs = self.formatted(combodict, ptemp, xtemp, rtemp)
+        pros, rxs, rdbls, newfs = self.format_strings(combodict, ptemp, xtemp, rtemp)
         tags = self.get_step_tags(tags1, tags2, tags3, pros, rdbls)
+        print 'pros returned from formatted ================================'
+        uprint(pros)
+        print 'rdbls returned from formatted ================================'
+        uprint(rdbls)
         print 'rxs returned from formatted ================================'
-        for r in rxs:
-            print makeutf8(r)
+        uprint(rxs)
         kwargs = {'prompt': sanitize_greek(pros[randrange(len(pros))]),
                   'widget_type': mytype,
                   #'widget_audio': None,
                   'widget_image': imgid,
-                  'response1': rxs.values()[0],
+                  'response1': rxs[0],
                   'readable_response': '|'.join([r for r
                                                  in sanitize_greek(rdbls)]),
                   'outcome1': points[0],
-                  'response2': rxs.values()[1] if len(rxs.values()) > 1 else None,
+                  'response2': rxs[1] if len(rxs) > 1 else None,
                   'outcome2': points[1],
-                  'response3': rxs.values()[2] if len(rxs.values()) > 2 else None,
+                  'response3': rxs[2] if len(rxs) > 2 else None,
                   'outcome3': points[2],
                   'tags': tags[0],
                   'tags_secondary': tags[1],
@@ -301,7 +294,7 @@ class PathFactory(object):
                   'npcs': npcs,  # [randrange(len(npcs))] if multiple
                   'locations': locs}  # [randrange(len(npcs))] if mult
         try:
-            mtch = all([test_regex(x, rdbls) for x in rxs.values()])
+            mtch = all([test_regex(x, rdbls) for x in rxs])
             dups = self.check_for_duplicates(kwargs, rdbls, pros)
             if mtch and not self.mock and not dups[0]:
                 stepresult = self.step_to_db(kwargs), kwargs
@@ -337,8 +330,8 @@ class PathFactory(object):
 
         return myid, mytitle, images_missing
 
-    def formatted(self, combodict, ptemps, xtemps, rtemps):
-        """
+    def format_strings(self, combodict, ptemps, xtemps, rtemps):
+        u"""
         Return a list of the template formatted with each of the words.
 
         The substitution format in each string looks like:
@@ -347,15 +340,22 @@ class PathFactory(object):
                 for automatic substitution (word parsed to agree with another
                 being substituted elsewhere).
         """
-        prompts, p_new = [self.do_substitution(p, combodict) for p in ptemps]
-        prompts = [capitalize_first(p) for p in prompts]
-        rxs, x_new = [self.do_substitution(x, combodict) for x in xtemps]
-        rdbls, r_new = [self.do_substitution(r, combodict) for r in rtemps]
-        rdbls = [capitalize_first(r) for r in rdbls]
+        prompts = [self.do_substitution(p, combodict) for p in ptemps]
+        print 'got prompts'
+        uprint(prompts)
+        p_new = [p[1] for p in prompts]
+        prompts = [capitalize_first(p[0]) for p in prompts]
+        rxs = [self.do_substitution(x, combodict) for x in xtemps]
+        print 'got regexes'
+        uprint(rxs)
+        x_new = [x[1] for x in rxs]
+        rxs = [x[0] for x in rxs]
+        rdbls = [self.do_substitution(r, combodict) for r in rtemps]
+        print 'got readables'
+        uprint(rdbls)
+        r_new = [r[1] for r in rdbls]
+        rdbls = [capitalize_first(r[0]) for r in rdbls]
         newforms = chain(p_new, x_new, r_new)
-        print 'Fomatted regex==========================================='
-        for x in rxs:
-            print makeutf8(x)
 
         return prompts, rxs, rdbls, newforms
 
@@ -383,7 +383,9 @@ class PathFactory(object):
                 myform = combodict[f]
             subpairs.append(('{{{}}}'.format(f), myform))
 
-        ready_strings = multiple_replace(temp, subpairs)
+        #print 'subpairs ==================================='
+        #uprint(subpairs)
+        ready_strings = multiple_replace(temp, subpairs[0])
         return ready_strings, newforms
 
     def get_inflected(self, field, combodict):
@@ -462,7 +464,7 @@ class PathFactory(object):
             myform = myrow.word_form
         except (AttributeError, IndexError):
             print traceback.format_exc(5)
-            print 'no pre-made form in db for', mylemma, mod_form
+            uprint(('no pre-made form in db for', mylemma, mod_form))
             myform = None  # FIXME: try to create and save new declined form
             newform = 'I\'m new'
 
@@ -559,7 +561,7 @@ class PathFactory(object):
         Return formatted output for the make_path view after form submission.
 
         """
-        pprint(paths)
+        uprint(paths)
         opts = {'goodpaths': {p: v for p, v in paths.iteritems() if isinstance(p, int)},
                 'badpaths': {p: v for p, v in paths.iteritems() if isinstance(p, int)}}
         outs = {'goodpaths': UL(),

@@ -21,6 +21,82 @@ import datetime
 import json
 
 
+def uprint(myobj):
+    """
+    """
+    if isinstance(myobj, None):
+        print 'None'
+    calls = {dict: uprint_dict,
+             list: uprint_list,
+             tuple: uprint_tuple,
+             str: makeutf8}
+    printfunc = calls[type(myobj)]
+    printfunc(myobj)
+
+
+def uprint_dict(mydict, lvl=0):
+    """
+    """
+    assert isinstance(mydict, dict)
+    indent = '    ' * lvl if lvl > 0 else ''
+    print indent + '{',
+    for k, i in mydict.iteritems():
+        if isinstance(i, dict):
+            i = uprint_dict(i, lvl=lvl + 1)
+        elif isinstance(i, list):
+            i = uprint_list(i, lvl=lvl + 1)
+        elif isinstance(i, tuple):
+            i = uprint_tuple(i, lvl=lvl + 1)
+        else:
+            i = makeutf8(i) if i != None else 'N'
+        if not i:
+            i = 'N'
+        print indent + ' ' + k + ': ' + i + ','
+    print indent + ' }'
+
+
+def uprint_list(mylist, lvl=0):
+    """
+    """
+    assert isinstance(mylist, list)
+    indent = '    ' * lvl if lvl > 0 else ''
+    print indent + '['
+    for i in mylist:
+        if isinstance(i, dict):
+            i = uprint_dict(i, lvl=lvl + 1)
+        elif isinstance(i, list):
+            i = uprint_list(i, lvl=lvl + 1)
+        elif isinstance(i, tuple):
+            i = uprint_tuple(i, lvl=lvl + 1)
+        else:
+            i = makeutf8(i) if i != None else 'N'
+        if not i:
+            i = 'N'
+        print indent + ' ' + i + ','
+    print indent + ' ]'
+
+
+def uprint_tuple(mytup, lvl=0):
+    """
+    """
+    assert isinstance(mytup, tuple)
+    indent = '    ' * lvl if lvl > 0 else ''
+    print indent + '('
+    for i in mytup:
+        if isinstance(i, dict):
+            i = uprint_dict(i, lvl=lvl + 1)
+        elif isinstance(i, list):
+            i = uprint_list(i, lvl=lvl + 1)
+        elif isinstance(i, tuple):
+            i = uprint_tuple(i, lvl=lvl + 1)
+        else:
+            i = makeutf8(i) if i != None else 'None'
+        if not i:
+            i = 'N'
+        print indent + ' ' + i + ','
+    print indent + ' )'
+
+
 def islist(dat):
     """
     Return the supplied object converted to a list if it is not already.
@@ -143,8 +219,12 @@ def makeutf8(rawstring):
     """Return the string decoded as utf8 if it wasn't already."""
     try:
         rawstring = rawstring.decode('utf8')
-    except (UnicodeDecodeError, UnicodeEncodeError):
-        rawstring = rawstring
+    except (UnicodeEncodeError, UnicodeDecodeError):
+        try:
+            rawstring = rawstring.encode('utf8').decode('utf8')
+        except Exception:
+            print traceback.format_exc(5)
+            rawstring = rawstring
     return rawstring
 
 
