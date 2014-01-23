@@ -195,7 +195,6 @@ between	greek_parser.py	/^    def between(self, p1, p2, allow=[], exclude=[], re
 bugresponses	paideia_bugs.py	/^    def bugresponses(self, user):$/;"	m	class:Bug
 capitalize	paideia_utils.py	/^def capitalize(letter):$/;"	f
 capitalize_first	paideia_utils.py	/^def capitalize_first(mystring):$/;"	f
-caps	paideia_utils.py	/^caps = {'α': 'Α',$/;"	v
 categorize_tags	paideia.py	/^    def categorize_tags(self, rank=None, tag_records=None,$/;"	m	class:Categorizer
 check_for_blocks	paideia.py	/^    def check_for_blocks(self):$/;"	m	class:User
 check_for_duplicates	paideia_path_factory.py	/^    def check_for_duplicates(self, step, readables, prompt):$/;"	m	class:PathFactory
@@ -210,12 +209,13 @@ complete_step	paideia.py	/^    def complete_step(self):$/;"	m	class:Path
 create_widget	plugin_ajaxselect.py	/^    def create_widget(self):$/;"	m	class:AjaxSelect
 create_widget	plugin_ajaxselect.py	/^    def create_widget(self, field, value, clean_val, multi, restricted, rval):$/;"	m	class:FilteredAjaxSelect
 debug	paideia_exploring.py	/^    debug = False$/;"	v	class:Location
+do_substitution	paideia_path_factory.py	/^    def do_substitution(self, temp, combodict):$/;"	m	class:PathFactory
 dtnow	paideia_exploring.py	/^dtnow = datetime.datetime.utcnow$/;"	v
 end_prompt	paideia.py	/^    def end_prompt(self):$/;"	m	class:Path
 find_article	greek_parser.py	/^    def find_article(self, nominal, leaf):$/;"	m	class:NounPhrase
 firstletter	paideia_utils.py	/^def firstletter(mystring):$/;"	f
 flatten	paideia_utils.py	/^def flatten(items, seqtypes=(list, tuple)):$/;"	f
-formatted	paideia_path_factory.py	/^    def formatted(self, combodict, ptemps, xtemps, rtemps):$/;"	m	class:PathFactory
+format_strings	paideia_path_factory.py	/^    def format_strings(self, combodict, ptemps, xtemps, rtemps):$/;"	m	class:PathFactory
 gather_vocab	paideia_utils.py	/^def gather_vocab():$/;"	f
 get_alias	paideia.py	/^    def get_alias(self):$/;"	m	class:Location
 get_bg	paideia.py	/^    def get_bg(self):$/;"	m	class:Location
@@ -277,6 +277,7 @@ getform	greek_parser.py	/^    def getform(self, **kwargs):$/;"	m	class:Parser
 hidden_ajax_field	plugin_ajaxselect.py	/^    def hidden_ajax_field(self):$/;"	m	class:AjaxSelect
 info	paideia_exploring.py	/^    def info(self):$/;"	m	class:Location
 is_stale	paideia.py	/^    def is_stale(self, now=None, start=None, time_zone=None, db=None):$/;"	m	class:User
+islist	paideia_utils.py	/^def islist(dat):$/;"	f
 listcheck	plugin_ajaxselect.py	/^def listcheck(val):$/;"	f
 log_list	paideia_stats.py	/^    def log_list(self, cutoff):$/;"	m	class:Stats
 log_new	paideia_bugs.py	/^    def log_new(self, answer, log_id, score):$/;"	m	class:Bug
@@ -285,6 +286,7 @@ logs_with_tagrecs	paideia_stats.py	/^    def logs_with_tagrecs(self, tag_recs):$
 lowercase	paideia_utils.py	/^def lowercase(letter):$/;"	f
 main	greek_parser.py	/^def main():$/;"	f
 make_adder	plugin_ajaxselect.py	/^    def make_adder(self, wrappername, linktable):$/;"	m	class:AjaxSelect
+make_combos	paideia_path_factory.py	/^    def make_combos(self, wordlists, avoid):$/;"	m	class:PathFactory
 make_create_form	paideia_path_factory.py	/^    def make_create_form(self):$/;"	m	class:PathFactory
 make_create_form	paideia_path_factory.py	/^    def make_create_form(self):$/;"	m	class:TranslateWordPathFactory
 make_form_agree	paideia_path_factory.py	/^    def make_form_agree(self, mod_form, mylemma):$/;"	m	class:PathFactory
@@ -315,6 +317,7 @@ myc	greek_parser.py	/^    myc = 'white'$/;"	v	class:Parser
 next_step	paideia_exploring.py	/^    def next_step(self):$/;"	m	class:Walk
 normalize_accents	paideia_utils.py	/^def normalize_accents(strings):$/;"	f
 parseform	greek_parser.py	/^    def parseform(self, token):$/;"	m	class:Parser
+path_to_db	paideia_path_factory.py	/^    def path_to_db(self, steps, label):$/;"	m	class:PathFactory
 printutf	paideia_utils.py	/^def printutf(string):$/;"	f
 process	paideia_exploring.py	/^    def process(self, user_response):$/;"	m	class:Step
 process	paideia_exploring.py	/^    def process(self, user_response):$/;"	m	class:StepMultipleChoice
@@ -339,11 +342,11 @@ show	paideia.py	/^    def show(self, mapnum=None, db=None):$/;"	m	class:Map
 start	paideia.py	/^    def start(self, localias, response_string=None, path=None, repeat=None,$/;"	m	class:Walk
 stay	paideia_exploring.py	/^    def stay(self):$/;"	m	class:Walk
 step_log	paideia_stats.py	/^    def step_log(self, logs=None, user_id=None, duration=None):$/;"	m	class:Stats
+step_to_db	paideia_path_factory.py	/^    def step_to_db(self, kwargs):$/;"	m	class:PathFactory
 store_stats	paideia_stats.py	/^    def store_stats(self, user_id, weekstart, weekstop, weeknum):$/;"	m	class:Stats
 tag_token	greek_parser.py	/^        def tag_token(matchstring, leaf):$/;"	f	function:Parser.match_string
 test_order	greek_parser.py	/^    def test_order(self, tokens):$/;"	m	class:NounPhrase
 test_order	greek_parser.py	/^    def test_order(self, tokens):$/;"	m	class:Parser
-test_regex	paideia_path_factory.py	/^    def test_regex(self, regex, readables):$/;"	m	class:PathFactory
 test_regex	paideia_utils.py	/^def test_regex(regex, readables):$/;"	f
 test_step_regex	paideia_utils.py	/^def test_step_regex():$/;"	f
 textarea	plugin_widgets.py	/^    def textarea(self, label, target, cname, fname, linkargs=None):$/;"	m	class:JQMODAL
@@ -366,5 +369,3 @@ widget	plugin_ajaxselect.py	/^    def widget(cls, field, value, restricted, rval
 widget	plugin_ajaxselect.py	/^    def widget(self):$/;"	m	class:AjaxSelect
 widget	plugin_widgets.py	/^    def widget(self, linktext, content, classnames=None,$/;"	m	class:POPOVER
 wordforms	greek_parser.py	/^wordforms = {'ἀνηρ': {'gender': 'masc',$/;"	v
-write_step_to_db	paideia_path_factory.py	/^    def write_step_to_db(self, kwargs):$/;"	m	class:PathFactory
-write_to_db	paideia_path_factory.py	/^    def write_to_db(self, steps, label):$/;"	m	class:PathFactory
