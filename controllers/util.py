@@ -12,6 +12,7 @@ if 0:
     request = current.request
     response = current.response
 from paideia_utils import test_step_regex, gather_vocab
+#from plugin_utils import capitalize
 import paideia_path_factory
 import traceback
 #from pprint import pprint

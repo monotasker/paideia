@@ -12,7 +12,6 @@ Part of the Paideia platform built with web2py.
 import traceback
 #import locale
 from gluon import current, SQLFORM, Field, BEAUTIFY, IS_IN_DB
-from gluon import SPAN
 #from plugin_ajaxselect import AjaxSelect
 import re
 from itertools import chain
@@ -24,22 +23,28 @@ import json
 def uprint(myobj):
     """
     """
-    if isinstance(myobj, None):
+    if type(myobj) == None:
         print 'None'
     calls = {dict: uprint_dict,
              list: uprint_list,
              tuple: uprint_tuple,
+             unicode: makeutf8,
+             int: makeutf8,
+             long: makeutf8,
+             float: makeutf8,
              str: makeutf8}
     printfunc = calls[type(myobj)]
-    printfunc(myobj)
+    prettystring = printfunc(myobj)
+    #print prettystring
+    return prettystring
 
 
-def uprint_dict(mydict, lvl=0):
+def uprint_dict(mydict, lvl=0, html=False):
     """
     """
     assert isinstance(mydict, dict)
     indent = '    ' * lvl if lvl > 0 else ''
-    print indent + '{',
+    newdict = '\n' + indent + '{\n'
     for k, i in mydict.iteritems():
         if isinstance(i, dict):
             i = uprint_dict(i, lvl=lvl + 1)
@@ -47,12 +52,13 @@ def uprint_dict(mydict, lvl=0):
             i = uprint_list(i, lvl=lvl + 1)
         elif isinstance(i, tuple):
             i = uprint_tuple(i, lvl=lvl + 1)
+        elif isinstance(i, (int, long, float, complex)):
+            i = str(i)
         else:
-            i = makeutf8(i) if i != None else 'N'
-        if not i:
-            i = 'N'
-        print indent + ' ' + k + ': ' + i + ','
-    print indent + ' }'
+            i = makeutf8(i)
+        newdict += indent + ' ' + makeutf8(k) + ': ' + i + ',\n'
+    newdict += '\n' + indent + ' }'
+    return newdict
 
 
 def uprint_list(mylist, lvl=0):
@@ -60,7 +66,7 @@ def uprint_list(mylist, lvl=0):
     """
     assert isinstance(mylist, list)
     indent = '    ' * lvl if lvl > 0 else ''
-    print indent + '['
+    newlist = '\n' + indent + '['
     for i in mylist:
         if isinstance(i, dict):
             i = uprint_dict(i, lvl=lvl + 1)
@@ -68,12 +74,13 @@ def uprint_list(mylist, lvl=0):
             i = uprint_list(i, lvl=lvl + 1)
         elif isinstance(i, tuple):
             i = uprint_tuple(i, lvl=lvl + 1)
+        elif isinstance(i, (int, long, float, complex)):
+            i = str(i)
         else:
-            i = makeutf8(i) if i != None else 'N'
-        if not i:
-            i = 'N'
-        print indent + ' ' + i + ','
-    print indent + ' ]'
+            i = makeutf8(i)
+        newlist += indent + ' ' + i + ',\n'
+    newlist += indent + ' ]'
+    return newlist
 
 
 def uprint_tuple(mytup, lvl=0):
@@ -81,7 +88,7 @@ def uprint_tuple(mytup, lvl=0):
     """
     assert isinstance(mytup, tuple)
     indent = '    ' * lvl if lvl > 0 else ''
-    print indent + '('
+    newtup = '\n' + indent + '('
     for i in mytup:
         if isinstance(i, dict):
             i = uprint_dict(i, lvl=lvl + 1)
@@ -89,12 +96,13 @@ def uprint_tuple(mytup, lvl=0):
             i = uprint_list(i, lvl=lvl + 1)
         elif isinstance(i, tuple):
             i = uprint_tuple(i, lvl=lvl + 1)
+        elif isinstance(i, (int, long, float, complex)):
+            i = str(i)
         else:
-            i = makeutf8(i) if i != None else 'None'
-        if not i:
-            i = 'N'
-        print indent + ' ' + i + ','
-    print indent + ' )'
+            i = makeutf8(i)
+        newtup += indent + ' ' + i + ',\n'
+    newtup += indent + ' )'
+    return newtup
 
 
 def islist(dat):
@@ -154,7 +162,7 @@ def sanitize_greek(strings):
             newstrings.append(newstring)
         return newstrings
     except Exception:
-        print traceback.format_exc(5)
+        print traceback.format_exc(12)
 
 
 def clr(string, mycol='white'):
@@ -203,7 +211,7 @@ def capitalize(letter):
     """
     letter = makeutf8(letter)
     newletter = letter.upper()
-    return newletter.encode('utf-8')
+    return newletter
 
 
 def lowercase(letter):
@@ -212,19 +220,21 @@ def lowercase(letter):
     """
     letter = makeutf8(letter)
     newletter = letter.lower()
-    return newletter.encode('utf-8')
+    return newletter
 
 
 def makeutf8(rawstring):
     """Return the string decoded as utf8 if it wasn't already."""
     try:
         rawstring = rawstring.decode('utf8')
-    except (UnicodeEncodeError, UnicodeDecodeError):
-        try:
-            rawstring = rawstring.encode('utf8').decode('utf8')
-        except Exception:
-            print traceback.format_exc(5)
-            rawstring = rawstring
+    except (UnicodeEncodeError, UnicodeDecodeError):  # if already decoded
+        #try:
+            #rawstring = rawstring.encode('utf8').decode('utf8')
+        #except Exception:
+            #print 'encountered unicode error in makeutf8'
+        rawstring = rawstring
+    except (AttributeError, TypeError):  # if rawstring is NoneType
+        rawstring = 'None'
     return rawstring
 
 
@@ -235,7 +245,7 @@ def firstletter(mystring):
     mystring = makeutf8(mystring)
     let, tail = mystring[:1], mystring[1:]
     #print 'in firstletter: ', mystring[:1], '||', mystring[1:]
-    let, tail = let.encode('utf8'), tail.encode('utf8')
+    #let, tail = let.encode('utf8'), tail.encode('utf8')
     return let, tail
 
 
@@ -244,7 +254,8 @@ def capitalize_first(mystring):
     Return the supplied string with its first letter capitalized.
     """
     first, rest = firstletter(mystring)
-    newstring = '{}{}'.format(capitalize(first), rest)
+    first = capitalize(first)
+    newstring = first + makeutf8(rest)
     return newstring
 
 
@@ -254,13 +265,22 @@ def test_regex(regex, readables):
 
     The "readables" argument should be a list of strings to be tested.
     """
-    readables = readables if type(readables) == list else [readables]
-    test_regex = re.compile(regex, re.I | re.U)
+    print 'testing regex ====================================='
+    uprint(regex)
+    readables = islist(readables)
+    test_regex = re.compile(makeutf8(regex), re.I | re.U)
     rdict = {}
     for rsp in readables:
-        match = re.match(test_regex, rsp)
-        rdict[rsp] = SPAN('PASSED', _class='success') if match \
-            else SPAN('FAILED', _class='success')
+        match = re.match(test_regex, makeutf8(rsp))
+        print 'string is--------------------------------------'
+        print rsp
+        print 'match is --------------------------------------'
+        print match
+        if match:
+            print 'if match:', True
+        else:
+            print 'if match:', False
+        rdict[rsp] = True if match else False
     return rdict
 
 
@@ -289,8 +309,11 @@ def flatten(items, seqtypes=(list, tuple)):
     Convert an arbitrarily deep nested list into a single flat list.
     """
     for i, x in enumerate(items):
-        while isinstance(items[i], seqtypes):
-            items[i:i + 1] = items[i]
+        try:
+            while isinstance(items[i], seqtypes):
+                items[i:i + 1] = items[i]
+        except IndexError:
+            continue
     return items
 
 

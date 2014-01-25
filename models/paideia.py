@@ -145,22 +145,22 @@ db.constructions.instructions.requires = IS_IN_DB(db, 'step_instructions.id',
                                                   db.step_instructions._format,
                                                   multiple=True)
 db.constructions.instructions.widget = lambda field, value: \
-                                       AjaxSelect(field, value,
-                                                  indx=1,
-                                                  multi='basic',
-                                                  lister='simple',
-                                                  orderby='instruction_label'
-                                                  ).widget()
+                                        AjaxSelect(field, value,
+                                                   indx=1,
+                                                   multi='basic',
+                                                   lister='simple',
+                                                   orderby='instruction_label'
+                                                   ).widget()
 db.constructions.tags.requires = IS_IN_DB(db, 'tags.id',
                                           db.tags._format,
                                           multiple=True)
 db.constructions.tags.widget = lambda field, value: \
-                                       AjaxSelect(field, value,
-                                                  indx=1,
-                                                  multi='basic',
-                                                  lister='simple',
-                                                  orderby='tag'
-                                                  ).widget()
+                                        AjaxSelect(field, value,
+                                                   indx=1,
+                                                   multi='basic',
+                                                   lister='simple',
+                                                   orderby='tag'
+                                                   ).widget()
 
 # don't force uniqueness on word_form field to allow for homographs
 db.define_table('word_forms',
@@ -197,12 +197,12 @@ db.constructions.tags.requires = IS_IN_DB(db, 'tags.id',
                                           db.tags._format,
                                           multiple=True)
 db.constructions.tags.widget = lambda field, value: \
-                                       AjaxSelect(field, value,
-                                                  indx=1,
-                                                  multi='basic',
-                                                  lister='simple',
-                                                  orderby='tag'
-                                                  ).widget()
+                                        AjaxSelect(field, value,
+                                                   indx=1,
+                                                   multi='basic',
+                                                   lister='simple',
+                                                   orderby='tag'
+                                                   ).widget()
 
 
 db.define_table('badges',
