@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 
+if 0:
+    from gluon import URL
 from paideia_stats import Stats
 from paideia_bugs import Bug
 import traceback
-from paideia_utils import send_error
-from pprint import pprint
+#from paideia_utils import send_error
+#from pprint import pprint
 #from gluon.tools import prettydate
 
 if 0:
@@ -131,7 +133,6 @@ def info():
     'duration':         Default duration for recent paths info (from
                         stats.step_log['duration'])
     """
-
     try:
 
         # Allow passing explicit user but default to current user
@@ -155,10 +156,10 @@ def info():
         b = Bug()
         blist = b.bugresponses(user.id)
 
-        catlabels = ['started at beginner level',
-                    'promoted to apprentice level',
-                    'promoted to journeyman level',
-                    'promoted to master level']
+        #catlabels = ['started at beginner level',
+                    #'promoted to apprentice level',
+                    #'promoted to journeyman level',
+                    #'promoted to master level']
     except Exception:
         print traceback.format_exc(5)
 

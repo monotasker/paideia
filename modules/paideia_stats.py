@@ -1,9 +1,10 @@
 import calendar
 import datetime
+from collections import Counter
 import dateutil.parser
 import traceback
 #from pytz import timezone
-from gluon import current, DIV, SPAN, A, URL, UL, LI, B, TD
+from gluon import current, DIV, SPAN, A, URL, UL, LI, B
 from gluon import TAG
 from paideia_utils import make_json
 #from pprint import pprint
@@ -64,20 +65,12 @@ class Stats(object):
         # overall progress through tag sets and levels
         self.tag_progress = db(db.tag_progress.name == self.user_id
                                ).select().first().as_dict()
-        #if len(self.tag_progress) > 1:
-            #ids = [t.id for t in self.tag_progress]
-            #self.alerts['duplicate tag_progress rows'] = ids
 
         # performance on each tag
         self.tag_recs = db(db.tag_records.name == self.user_id
                            ).select(cacheable=True)
-        dups = {}
-        for t in self.tag_recs:
-            if t.tag in dups.keys():
-                dups[t.tag] += 1
-            else:
-                dups[t.tag] = 1
-        dups = {k: v for k, v in dups.iteritems() if v > 1}
+        tags = [rec.tag for rec in self.tag_recs]
+        dups = [tag for tag, count in Counter(tags).items() if count > 1]
         if dups:
             self.alerts['duplicate tag_records rows'] = dups
 
@@ -88,11 +81,12 @@ class Stats(object):
                                                         in self.badges_begun]
 
         # log of individual attempts for duration (default is 30 days)
-        self.duration = datetime.timedelta(days=120) \
-                        if not duration else duration
+        self.duration = datetime.timedelta(days=120) if not duration else duration
         self.utcnow = datetime.datetime.utcnow()
         self.cutoff = self.utcnow - self.duration
         self.logs, self.loglist = self.log_list(self.cutoff)
+        print '=========================================='
+        print self.user.tz_obj
 
     def get_name(self):
         """
@@ -104,8 +98,8 @@ class Stats(object):
         '''
         Store aggregate user statistics on a weekly basis to speed up analysis.
         weekstart and weekstop should be datetime.datetime objects
-        TODO: Should there also be an annual aggregate?
         '''
+        # TODO: Should there also be an annual aggregate?
         db = current.db
         monthdays = calendar.Calendar().monthdatescalendar(weekstart.year,
                                                            weekstart.month)
@@ -282,12 +276,12 @@ class Stats(object):
                 bb = [b for b in self.badges_begun if b.tag == t['tag']][0]
             except IndexError:
                 bb = None
-            for k in range(1,5):
+            for k in range(1, 5):
                 nka = 'dt_cat{}'.format(k)
                 dt = bb.cat1 if bb else 'n/a'
                 nkb = 'prettydate_cat{}'.format(k)
                 pdt = dt.strftime('%b %e, %Y') \
-                        if isinstance(dt, datetime.datetime) else 'n/a'
+                    if isinstance(dt, datetime.datetime) else 'n/a'
                 t.update({nka: dt, nkb: pdt})
         return tag_recs
 
@@ -352,18 +346,33 @@ class Stats(object):
         The 'badge set' is actually the series of ints in db.tags.tag_position.
         """
         max_set = self.tag_progress['latest_new'] \
-                  if self.tag_progress['latest_new'] else 1
+            if self.tag_progress['latest_new'] else 1
         return max_set
+
+    def _local(self, dt):
+        """
+        Return a datetime object localized to self.user's time zone.
+
+        NB: The pytz.localize function just adds timezone information to the
+        utc datetime object. To actually adjust the datetime you need to get
+        the local offset from utc and add it manually.
+        """
+        tz = self.user.tz_obj
+        offset = tz.utcoffset(dt)  # handles dst adjustments
+        newdt = dt + offset
+        return newdt
 
     def log_list(self, cutoff):
         """
-        Collect and return a dictionary in which the keys are datetime.date()
-        objects and the values are an integer representing the number of
-        attempt_log entries on that date by the user represented by
-        self.user_id.
+        Return a list of logs and a dict of attempt counts per day.
+
+        The keys of the dict are datetime objects, while the values are
+        integers representing the number of attempt_log entries on that date
+        by the user represented by self.user_id.
 
         These datetimes and totals are corrected from UTC to the user's
         local time zone.
+
         """
         db = current.db
         logs = db((db.attempt_log.name == self.user_id) &
@@ -371,10 +380,12 @@ class Stats(object):
         loglist = {}
 
         for log in logs:
-            newdatetime = self.user.tz_obj.localize(log.dt_attempted)
-            newdate = datetime.date(newdatetime.year,
-                                    newdatetime.month,
-                                    newdatetime.day)
+            print 'UTC time:', log.dt_attempted
+            newdt = self._local(log.dt_attempted)
+            print 'localized:', newdt
+            newdate = datetime.date(newdt.year, newdt.month, newdt.day)
+            print 'localized:', newdate
+            print '-------------------------------------------------'
             log.dt_local = newdate
             if newdate in loglist:
                 loglist[newdate] += 1
@@ -467,7 +478,44 @@ class Stats(object):
             if weekcount >= 5:
                 week[-1].append(SPAN(_class='icon-ok success'))
 
-        # Create drop-down month selector
+        dropdown = self._monthpicker(calendar, year, month, monthname)
+        mycal.elements('th.month')[0][0] = dropdown
+        for link in self._navlinks(year, month):
+            mycal.elements('th.month')[0].insert(0, link)
+        wrap = DIV(_class='paideia_monthcal')
+        wrap.append(SPAN('Questions answered each day in',
+                         _class='monthcal_intro_line'))
+        wrap.append(mycal)
+        #TODO: Add weekly summary counts to the end of each table
+
+        return wrap
+
+    def _navlinks(self, year, month):
+        """
+        Return two html anchor elements for navigating to the previous and next
+        months.
+        """
+        prev_month = (month - 1) if month > 1 else 12
+        prev_year = year if prev_month < 12 else year - 1
+        next_month = (month + 1) if month < 12 else 1
+        next_year = year if next_month > 1 else year + 1
+        links = {'next': (next_month, next_year, 2,
+                          SPAN(_class='icon-chevron-right')),
+                 'previous': (prev_month, prev_year, 0,
+                              SPAN(_class='icon-chevron-left'))}
+        linktags = []
+        for k, v in links.iteritems():
+            mylink = A(v[3], _href=URL('reporting', 'calendar.load',
+                                       args=[self.user_id, v[1], v[0]]),
+                       _class='monthcal_nav_link {}'.format(k),
+                       cid='tab_calendar')
+            linktags.append(mylink)
+        return linktags
+
+    def _monthpicker(self, calendar, year, month, monthname):
+        """
+        Return an html dropdown menu of months since 2011.
+        """
         years = range(year, 2011, -1)
         picker_args = {'_class': 'dropdown-menu',
                        '_role': 'menu',
@@ -478,7 +526,7 @@ class Stats(object):
                 if not (m > month and y == year):
                     picker.append(LI(A('{} {}'.format(calendar.month_name[m], y),
                                     _href=URL('reporting', 'calendar.load',
-                                                args=[self.user_id, y, m]),
+                                              args=[self.user_id, y, m]),
                                     _tabindex='-1')))
             picker.append(LI(_class='divider'))
 
@@ -494,36 +542,7 @@ class Stats(object):
                        picker,
                        _class='dropdown')
 
-        # Replace table header with selector row
-        mycal.elements('th.month')[0][0] = dropdown
-
-        # build nav links for previous/next
-        prev_month = (month - 1) if month > 1 else 12
-        prev_year = year if prev_month < 12 else year - 1
-        next_month = (month + 1) if month < 12 else 1
-        next_year = year if next_month > 1 else year + 1
-        links = {'next': (next_month, next_year, 2,
-                          SPAN(_class='icon-chevron-right')),
-                 'previous': (prev_month, prev_year, 0,
-                              SPAN(_class='icon-chevron-left'))}
-        for k, v in links.iteritems():
-            mylink = A(v[3], _href=URL('reporting', 'calendar.load',
-                                    args=[self.user_id, v[1], v[0]]),
-                       _class='monthcal_nav_link {}'.format(k),
-                       cid='tab_calendar')
-            mycal.elements('th.month')[0].insert(0, mylink)
-
-        # Create wrapper div with title line and month name
-        wrap = DIV(_class='paideia_monthcal')
-        wrap.append(SPAN('Questions answered each day in',
-                         _class='monthcal_intro_line'))
-
-        # Add calendar into wrapper
-        wrap.append(mycal)
-        #TODO: Add weekly summary counts to the end of each table
-        #row (from self.dateset)
-
-        return wrap
+        return dropdown
 
 
 def week_bounds():
