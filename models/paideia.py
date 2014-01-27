@@ -166,13 +166,13 @@ db.constructions.tags.widget = lambda field, value: \
 db.define_table('word_forms',
                 Field('word_form', 'string'),
                 Field('source_lemma', db.lemmas),
-                Field('tense', 'string'),
-                Field('voice', 'string'),
-                Field('mood', 'string'),
-                Field('person', 'string'),
-                Field('number', 'string'),
-                Field('grammatical_case'),
-                Field('gender', 'string'),
+                Field('tense', 'string', default='none'),
+                Field('voice', 'string', default='none'),
+                Field('mood', 'string', default='none'),
+                Field('person', 'string', default='none'),
+                Field('number', 'string', default='none'),
+                Field('grammatical_case', default='none'),
+                Field('gender', 'string', default='none'),
                 Field('construction', db.constructions),
                 Field('tags', 'list:reference tags'),
                 format='%(word_form)s')
@@ -186,7 +186,9 @@ db.word_forms.mood.requires = IS_IN_SET(('indicative', 'imperative',
                                          'optative', 'participle', 'none'))
 db.word_forms.grammatical_case.requires = IS_IN_SET(('nominative', 'accusative',
                                                      'genitive', 'dative',
-                                                     'vocative', 'undetermined',
+                                                     'vocative',
+                                                     'nominative or accusative',
+                                                     'undetermined',
                                                      'none'))
 db.word_forms.person.requires = IS_IN_SET(('first', 'second', 'third', 'none'))
 db.word_forms.number.requires = IS_IN_SET(('singular', 'plural', 'none'))
