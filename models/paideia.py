@@ -192,17 +192,17 @@ db.word_forms.person.requires = IS_IN_SET(('first', 'second', 'third', 'none'))
 db.word_forms.number.requires = IS_IN_SET(('singular', 'plural', 'none'))
 db.word_forms.gender.requires = IS_IN_SET(('masculine', 'feminine',
                                            'neuter', 'masculine or feminine',
+                                           'masculine or neuter',
                                            'undetermined', 'none'))
-db.constructions.tags.requires = IS_IN_DB(db, 'tags.id',
-                                          db.tags._format,
-                                          multiple=True)
-db.constructions.tags.widget = lambda field, value: \
-                                        AjaxSelect(field, value,
-                                                   indx=1,
-                                                   multi='basic',
-                                                   lister='simple',
-                                                   orderby='tag'
-                                                   ).widget()
+db.word_forms.tags.requires = IS_IN_DB(db, 'tags.id',
+                                       db.tags._format,
+                                       multiple=True)
+db.word_forms.tags.widget = lambda field, value: AjaxSelect(field, value,
+                                                            indx=1,
+                                                            multi='basic',
+                                                            lister='simple',
+                                                            orderby='tag'
+                                                            ).widget()
 
 
 db.define_table('badges',

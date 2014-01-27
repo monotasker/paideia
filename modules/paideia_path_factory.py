@@ -419,9 +419,22 @@ class PathFactory(object):
     def get_wordform(self, field, combodict):
         """
         Get the properly inflected word form for the supplied field.
+
+        The expected field format is {lemma-modform-constraint}. For example,
+        {αὐτος-words1-case:nom}. This will inflect the lemma αὐτος to agree with
+        the current words1 except that the case will be constrained as
+        nominative. If no constraint is given the lemma will be inflected to
+        agree with the modform in all relevant aspects.
+
         """
         db = current.db
-        lemma, mod = field.split('-')
+        splits = field.split('-')
+        lemma = splits[0]
+        mod = splits[1]
+        try:
+            aspect = splits[2]
+        except KeyError:
+            aspect = None
         # if lemma is pointer to a word list
         lemma = combodict[lemma] if lemma in combodict.keys() else lemma
         # allow for passing inflected form instead of lemma
@@ -430,11 +443,11 @@ class PathFactory(object):
             lemma = myrow.source_lemma.lemma
         # inflect lemma to agree with its governing word
         modform = combodict[mod]
-        myform, newform = self.make_form_agree(modform, lemma)
+        myform, newform = self.make_form_agree(modform, lemma, aspect)
 
         return myform, newform
 
-    def make_form_agree(self, mod_form, mylemma):
+    def make_form_agree(self, mod_form, mylemma, constraint=None):
         """
         Return a form of the lemma "mylemma" agreeing with the supplied mod_form.
 
@@ -444,58 +457,68 @@ class PathFactory(object):
         """
         db = current.db
         newform = None
-
-        form = db(db.word_forms.word_form == mod_form).select().first()
-        case = form.grammatical_case
-        gender = form.gender
-        number = form.number
-        #else:
-            #parsebits = mod_parse.split('_')
-            #case = abbrevs[parsebits[1]]
-            #gender = abbrevs[parsebits[2]]
-            #number = abbrevs[parsebits[3]]
-            #ref_lemma = parsebits[-1]
-            #pos = parsebits[0]
-            #ref_const = '{}_{}_{}_{}'.format(pos, parsebits[1],
-                                             #parsebits[2],
-                                             #parsebits[3])
-            #ref_lemma_id = db(db.lemmas.lemma == ref_lemma).select().first().id
-            #row = db((db.word_forms.source_lemma == ref_lemma_id) &
-                     #(db.word_forms.grammatical_case == case) &
-                     #(db.word_forms.gender == gender) &
-                     #(db.word_forms.number == number)
-                     #).select().first()
-            #if not row:
-                ## Add the modified word form to db.word_forms
-                #ref_const_id = db(db.constructions.construction_label == ref_const
-                                  #).select().first().id
-                #new = {'word_form': mod_parts[0],
-                       #'source_lemma': ref_lemma_id,
-                       #'grammatical_case': case,
-                       #'gender': gender,
-                       #'number': number,
-                       #'construction': ref_const_id}
-                #db.word_forms.insert(**new)
-                #newforms.append(new)
-        # Retrieve correct form from db. If none, try to create it.
-        try:
-            mylemma_id = db(db.lemmas.lemma == mylemma).select().first().id
-            # allow for ambiguous gender forms
-            genders = [gender, 'undetermined']
-            if gender in ['masculine', 'feminine']:
-                genders.append('masculine or feminine')
-            myrow = db((db.word_forms.source_lemma == mylemma_id) &
-                       (db.word_forms.grammatical_case == case) &
-                       (db.word_forms.gender.belongs(genders)) &
-                       (db.word_forms.number == number)
-                       ).select().first()
-            myform = myrow.word_form
-        except (AttributeError, IndexError):
-            print traceback.format_exc(5)
-            uprint(('no pre-made form in db for', mylemma, mod_form))
-            myform = None  # FIXME: try to create and save new declined form
-            newform = 'I\'m new'
-
+        lem = db(db.lemmas.lemma == mylemma).select.first()
+        ref = db(db.word_forms.word_form == mod_form).select().first()
+        # use provided constraints where present in field
+        # allow for use of short forms
+        cdict = {}
+        if constraint:
+            cparsebits = constraint.split('_')
+            cparsing = [b.split(':') for b in cparsebits]
+            cdict = {cp[0]: cp[1] for cp in cparsing}
+        equivs = {'masc': 'masculine',
+                  'fem': 'feminine',
+                  'neut': 'neuter',
+                  'nome': 'nominative',
+                  'gen': 'genitive',
+                  'dat': 'dative',
+                  'acc': 'accusative',
+                  'sing': 'singular',
+                  'plu': 'plural',
+                  'plur': 'plural'}
+        case = cdict['case'] if 'case' in cdict.keys() else ref.grammatical_case
+        gender = cdict['gender'] if 'gender' in cdict.keys() else ref.gender
+        number = cdict['number'] if 'number' in cdict.keys() else ref.number
+        for n in [case, gender, number]:
+            n = equivs[n] if n in equivs.keys() else n
+        # allow for ambiguously gendered forms
+        genders = [gender, 'undetermined']
+        if gender in ['masculine', 'feminine']:
+            genders.append('masculine or feminine')
+        if gender in ['masculine', 'neuter']:
+            genders.append('masculine or neuter')
+        # get the inflected form from the db
+        myrow = db((db.word_forms.source_lemma == lem.id) &
+                   (db.word_forms.grammatical_case == case) &
+                   (db.word_forms.gender.belongs(genders)) &
+                   (db.word_forms.number == number)
+                   ).select().first()
+        myform = myrow.word_form
+        # TODO: automatically create form if not in db
+        #if not row:
+            ## Add the modified word form to db.word_forms
+            #ref_const_id = db(db.constructions.construction_label == ref_const
+                                #).select().first().id
+            #db.word_forms.insert(**new)
+            #newforms.append(new)
+                #'grammatical_case': case,
+                #'gender': gender,
+                #'number': number,
+                #'construction': ref_const_id}
+        #case = abbrevs[parsebits[1]]
+        #gender = abbrevs[parsebits[2]]
+        #number = abbrevs[parsebits[3]]
+        #ref_lemma = parsebits[-1]
+        #pos = parsebits[0]
+        #ref_const = '{}_{}_{}_{}'.format(pos, parsebits[1],
+                                            #parsebits[2],
+                                            #parsebits[3])
+        #ref_lemma_id = db(db.lemmas.lemma == ref_lemma).select().first().id
+        #except (AttributeError, IndexError):
+            #print traceback.format_exc(5)
+            #uprint(('no pre-made form in db for', mylemma, mod_form))
+            #myform = None  # FIXME: try to create and save new declined form
+            #newform = 'I\'m new'
         return myform, newform
 
     def check_for_duplicates(self, step, readables, prompt):
