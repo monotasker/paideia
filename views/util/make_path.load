@@ -20,6 +20,8 @@
         {{=LI(LABEL('npcs'), form.custom.widget.one_npcs)}}
         {{=LI(LABEL('locations'), form.custom.widget.one_locations)}}
         {{=LI(LABEL('step_type'), form.custom.widget.one_step_type)}}
+        {{=LI(LABEL('instructions'), form.custom.widget.one_instructions)}}
+        {{=LI(LABEL('hints'), form.custom.widget.one_hints)}}
         {{=LI(LABEL('image_template'), form.custom.widget.one_image_template)}}
         </ul>
     </div>
@@ -36,6 +38,8 @@
         {{=LI(LABEL('npcs'), form.custom.widget.two_npcs)}}
         {{=LI(LABEL('locations'), form.custom.widget.two_locations)}}
         {{=LI(LABEL('step_type'), form.custom.widget.two_step_type)}}
+        {{=LI(LABEL('instructions'), form.custom.widget.two_instructions)}}
+        {{=LI(LABEL('hints'), form.custom.widget.two_hints)}}
         {{=LI(LABEL('image_template'), form.custom.widget.two_image_template)}}
         </ul>
     </div>
@@ -52,6 +56,8 @@
         {{=LI(LABEL('npcs'), form.custom.widget.three_npcs)}}
         {{=LI(LABEL('locations'), form.custom.widget.three_locations)}}
         {{=LI(LABEL('step_type'), form.custom.widget.three_step_type)}}
+        {{=LI(LABEL('instructions'), form.custom.widget.three_instructions)}}
+        {{=LI(LABEL('hints'), form.custom.widget.three_hints)}}
         {{=LI(LABEL('image_template'), form.custom.widget.three_image_template)}}
         </ul>
     </div>
@@ -68,6 +74,8 @@
         {{=LI(LABEL('npcs'), form.custom.widget.four_npcs)}}
         {{=LI(LABEL('locations'), form.custom.widget.four_locations)}}
         {{=LI(LABEL('step_type'), form.custom.widget.four_step_type)}}
+        {{=LI(LABEL('instructions'), form.custom.widget.four_instructions)}}
+        {{=LI(LABEL('hints'), form.custom.widget.four_hints)}}
         {{=LI(LABEL('image_template'), form.custom.widget.four_image_template)}}
         </ul>
     </div>
@@ -84,6 +92,8 @@
         {{=LI(LABEL('npcs'), form.custom.widget.five_npcs)}}
         {{=LI(LABEL('locations'), form.custom.widget.five_locations)}}
         {{=LI(LABEL('step_type'), form.custom.widget.five_step_type)}}
+        {{=LI(LABEL('instructions'), form.custom.widget.five_instructions)}}
+        {{=LI(LABEL('hints'), form.custom.widget.five_hints)}}
         {{=LI(LABEL('image_template'), form.custom.widget.five_image_template)}}
         </ul>
     </div>

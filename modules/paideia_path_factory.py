@@ -25,6 +25,7 @@ from itertools import product, chain
 from paideia_utils import capitalize_first, test_regex, uprint
 from paideia_utils import flatten, multiple_replace, islist  # sanitize_greek,
 import datetime
+#from plugin_ajaxselect import AjaxSelect
 
 
 class PathFactory(object):
@@ -61,20 +62,75 @@ class PathFactory(object):
                    Field('{}_readable_template'.format(n), 'list:string'),
                    Field('{}_tags'.format(n), 'list:reference tags',
                          requires=IS_IN_DB(db, 'tags.id', '%(tag)s',
-                                           multiple=True)),
+                                           multiple=True),
+                         #widget=lambda field, value: AjaxSelect(field, value,
+                         #indx=1,
+                         #multi='basic',
+                         #lister='simple',
+                         #orderby='tag'
+                         #).widget()
+                         ),
                    Field('{}_tags_secondary'.format(n), 'list:reference tags',
                          requires=IS_IN_DB(db, 'tags.id',
                                            '%(tag)s',
-                                           multiple=True)),
+                                           multiple=True),
+                         #widget=lambda field, value: AjaxSelect(field, value,
+                         #indx=2,
+                         #multi='basic',
+                         #lister='simple',
+                         #orderby='tag'
+                         #).widget()
+                         ),
                    Field('{}_tags_ahead'.format(n), 'list:reference tags',
                          requires=IS_IN_DB(db, 'tags.id', '%(tag)s',
-                                           multiple=True)),
+                                           multiple=True),
+                         #widget=lambda field, value: AjaxSelect(field, value,
+                         #indx=3,
+                         #multi='basic',
+                         #lister='simple',
+                         #orderby='tag'
+                         #).widget()
+                         ),
                    Field('{}_npcs'.format(n), 'list:reference npcs',
                          requires=IS_IN_DB(db, 'npcs.id', '%(name)s',
-                                           multiple=True)),
+                                           multiple=True),
+                         #widget=lambda field, value: AjaxSelect(field, value,
+                         #indx=1,
+                         #multi='basic',
+                         #lister='simple',
+                         #orderby='name'
+                         #).widget()
+                         ),
                    Field('{}_locations'.format(n), 'list:reference locations',
                          requires=IS_IN_DB(db, 'locations.id', '%(map_location)s',
-                                           multiple=True)),
+                                           multiple=True),
+                         #widget=lambda field, value: AjaxSelect(field, value,
+                         #indx=1,
+                         #multi='basic',
+                         #lister='simple',
+                         #orderby='map_location'
+                         #).widget()
+                         ),
+                   Field('{}_instructions'.format(n), 'list:reference step_instructions',
+                         requires=IS_IN_DB(db, 'step_instructions.id', '%(instruction_label)s',
+                                           multiple=True),
+                         #widget=lambda field, value: AjaxSelect(field, value,
+                         #indx=1,
+                         #multi='basic',
+                         #lister='simple',
+                         #orderby='instruction_label'
+                         #).widget()
+                         ),
+                   Field('{}_hints'.format(n), 'list:reference step_hints',
+                         requires=IS_IN_DB(db, 'step_hints.id', '%(hint_label)s',
+                                           multiple=True),
+                         #widget=lambda field, value: AjaxSelect(field, value,
+                         #indx=1,
+                         #multi='basic',
+                         #lister='simple',
+                         #orderby='hint_label'
+                         #).widget()
+                         ),
                    Field('{}_step_type'.format(n), 'list:reference step_types',
                          requires=IS_IN_DB(db, 'step_types.id', '%(step_type)s',
                                            multiple=True)),
@@ -84,7 +140,7 @@ class PathFactory(object):
         form = SQLFORM.factory(*flds)
 
         if form.process().accepted:
-            #print "form was processed"
+            print "form was processed"
             vv = request.vars
             stepsdata = []
             for n in ['one', 'two', 'three', 'four', 'five']:
@@ -97,12 +153,13 @@ class PathFactory(object):
                 wordlists = [w.split('|') for w in vv['words']]
             else:
                 wordlists = [vv['words'].split('|')]
-
+            print 'testing is', vv['testing'], type(vv['testing'])
             paths = self.make_path(wordlists,
                                    label_template=vv.label_template,
+                                   stepsdata=stepsdata,
                                    testing=vv.testing,
                                    avoid=vv.avoid,
-                                   stepsdata=stepsdata)
+                                   )
             #print 'got paths: ', len(paths)
             message, output = self.make_output(paths)
 
@@ -191,7 +248,10 @@ class PathFactory(object):
         print datetime.datetime.now()
         print "======================================"
 
-        if testing:
+        print 'testing is', testing
+        if testing is None:
+            self.mock = False
+        else:
             self.mock = True
 
         combos = self.make_combos(wordlists, avoid)
@@ -217,13 +277,13 @@ class PathFactory(object):
                     pdata['new_forms'].append(newforms)
                 if imgs:
                     pdata['images_missing'].append(imgs)
-            pgood = [isinstance(k, int) for k in pdata['steps'].keys()]
-            pid = self.path_to_db(pdata['steps'], label) \
+            print 'keys:', pdata['steps'].keys()
+            pgood = [isinstance(k, (int, long)) for k in pdata['steps'].keys()]
+            print 'good paths:', pgood
+            print 'self.mock:', self.mock
+            pid = self.path_to_db(pdata['steps'].keys(), label) \
                 if all(pgood) and not self.mock else 'path not written {}'.format(idx)
             paths[pid] = pdata
-            #uprint(pdata)
-        #print 'paths ====================================================='
-        #print paths.keys()
 
         return paths
 
@@ -270,19 +330,15 @@ class PathFactory(object):
         rtemp = islist(sdata['readable_template'].split('|'))
 
         tags1 = sdata['tags']
-        #print 'tags received from form ======================================='
-        #print tags1
         itemp = sdata['image_template']
         tags2 = sdata['tags_secondary']
-        #print 'tags received from form ======================================='
-        #print tags2
         tags3 = sdata['tags_ahead'] if 'tags_ahead' in sdata.keys() else None
-        #print 'tags received from form ======================================='
-        #print tags3
         npcs = sdata['npcs']
         locs = sdata['locations']
         points = sdata['points'] if 'points' in sdata.keys() and sdata['points'] \
             else 1.0, 0.0, 0.0
+        instrs = sdata['instructions']
+        hints = sdata['hints']
 
         img = self.make_image(combodict, itemp) if itemp else None
         imgid = img[0] if img else None
@@ -291,12 +347,6 @@ class PathFactory(object):
 
         pros, rxs, rdbls, newfs = self.format_strings(combodict, ptemp, xtemp, rtemp)
         tags = self.get_step_tags(tags1, tags2, tags3, pros, rdbls)
-        #print 'pros returned from formatted ================================'
-        #uprint(pros)
-        #print 'rdbls returned from formatted ================================'
-        #uprint(rdbls)
-        #print 'rxs returned from formatted ================================'
-        #uprint(rxs)
         kwargs = {'prompt': pros[randrange(len(pros))],  # sanitize_greek(pros[randrange(len(pros))]),
                   'widget_type': mytype,
                   #'widget_audio': None,
@@ -312,7 +362,9 @@ class PathFactory(object):
                   'tags_secondary': tags[1],
                   'tags_ahead': tags[2],
                   'npcs': npcs,  # [randrange(len(npcs))] if multiple
-                  'locations': locs}  # [randrange(len(npcs))] if mult
+                  'locations': locs,
+                  'instructions': instrs,
+                  'hints': hints}  # [randrange(len(npcs))] if mult
 
         try:
             matchdicts = [test_regex(x, rdbls) for x in rxs]
@@ -598,8 +650,10 @@ class PathFactory(object):
         db = current.db
         try:
             sid = db.steps.insert(**kwargs)
+            print 'wrote step', sid
             return sid
         except Exception:
+            print 'writing step'
             print traceback.format_exc(5)
             return False
 
@@ -608,8 +662,10 @@ class PathFactory(object):
         db = current.db
         try:
             pid = db.paths.insert(label=label, steps=steps)
+            print 'wrote path ', pid
             return pid
         except Exception:
+            print 'writing path'
             print traceback.format_exc(5)
             return False
 
@@ -618,14 +674,11 @@ class PathFactory(object):
         Return formatted output for the make_path view after form submission.
 
         """
-        #print 'output keys =============================================='
-        #print paths.values()[0]
+        db = current.db
         opts = {'goodpaths': {p: v for p, v in paths.iteritems()
                               if isinstance(p, int)},
                 'badpaths': {p: v for p, v in paths.iteritems()
                              if not isinstance(p, int)}}
-        #print len(opts['goodpaths'].keys())
-        #print len(opts['badpaths'].keys())
         outs = {'goodpaths': UL(),
                 'badpaths': UL()}
         newforms = []
@@ -649,9 +702,60 @@ class PathFactory(object):
                 psub.append(LI('steps succeeded: {}'.format(len(successes))))
                 psub.append(LI('steps failed: {}'.format(len(failures))))
                 psub.append(LI('steps were duplicates: {}'.format(len(duplicates))))
-                content = uprint(pv['steps'])
-                #content = uprint(pformat(pv['steps']))
-                psub.append(LI(content))
+                content = pv['steps']
+                mycontent = UL()
+                for key, c in content.iteritems():
+                    mycontent.append(LI(key))
+                    mystep = UL()
+                    mystep.append(LI('widget_type:', db.step_types(c['widget_type']).step_type))
+                    mystep.append(LI('prompt:', uprint(c['prompt'])))
+                    mystep.append(LI('readable_response:', uprint(c['readable_response'])))
+                    mystep.append(LI('response1:', uprint(c['response1'])))
+                    mystep.append(LI('outcome1:', c['outcome1']))
+                    mystep.append(LI('response2:', uprint(c['response2'])
+                                     if c['response2'] else None))
+                    mystep.append(LI('outcome2:', c['outcome2']))
+                    mystep.append(LI('response3:', uprint(c['response3'])
+                                     if c['response3'] else None))
+                    mystep.append(LI('outcome3:', c['outcome3']))
+                    tags = [t['tag'] for t in
+                            db(db.tags.id.belongs(c['tags'])).select()]
+                    mystep.append(LI('tags:', tags))
+                    tags_secondary = [t['tag'] for t in
+                                      db(db.tags.id.belongs(c['tags_secondary'])
+                                         ).select()]
+                    mystep.append(LI('tags_secondary:', tags_secondary))
+                    tags_ahead = [t['tag'] for t in
+                                  db(db.tags.id.belongs(islist(c['tags_ahead']))
+                                     ).select()]
+                    mystep.append(LI('tags_ahead:', tags_ahead))
+                    mycontent.append(LI(mystep))
+                    npcs = [uprint(t['name']) for t in
+                            db(db.npcs.id.belongs(islist(c['npcs']))).select()]
+                    print c['npcs']
+                    mystep.append(LI('npcs:', npcs))
+                    locations = [t['map_location'] for t in
+                                 db(db.locations.id.belongs(c['locations'])
+                                    ).select()
+                                 ]
+                    mystep.append(LI('locations:', uprint(locations)))
+                    lemmas = [t['lemma'] for t in
+                              db(db.lemmas.id.belongs(c['lemmas'])).select()] \
+                        if 'lemmas' in c.keys() else None
+                    mystep.append(LI('lemmas:', uprint(lemmas)
+                                     if lemmas else None))
+                    mystep.append(LI('status:',
+                                     db.step_status(c['status']).status_label
+                                     if 'status' in c.keys() else None))
+                    instructions = [t['instruction_label'] for t in
+                                    db(db.step_instructions.id.belongs(c['instructions'])
+                                       ).select()]
+                    mystep.append(LI('instructions:', instructions))
+                    hints = [t['hint_label'] for t in
+                             db(db.step_hints.id.belongs(c['hints'])
+                                ).select()]
+                    mystep.append(LI('hints:', hints))
+                psub.append(mycontent)
                 pout.append(psub)
 
                 outs[opt].append(pout)
