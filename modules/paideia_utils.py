@@ -272,14 +272,14 @@ def test_regex(regex, readables):
     rdict = {}
     for rsp in readables:
         match = re.match(test_regex, makeutf8(rsp))
-        print 'string is--------------------------------------'
-        print rsp
-        print 'match is --------------------------------------'
-        print match
-        if match:
-            print 'if match:', True
-        else:
-            print 'if match:', False
+        #print 'string is--------------------------------------'
+        #print rsp
+        #print 'match is --------------------------------------'
+        #print match
+        #if match:
+            #print 'if match:', True
+        #else:
+            #print 'if match:', False
         rdict[rsp] = True if match else False
     return rdict
 
