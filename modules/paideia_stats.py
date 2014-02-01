@@ -17,6 +17,23 @@ class Stats(object):
     '''
     Provides various statistics on student performance.
 
+    Exposes the following methods as its public interface:
+
+    :active_tags():         Returns
+    :get_max():             Returns the user's current set
+    :get_sets():            Returns a list of the tag id's in each of the four
+                                categories, along with their badge names.
+    :tags_over_time():      Returns a dictionary of dates with the number of
+                                attempts for each active tag on that date.
+    :sets_over_time():
+    :paths_over_time():     Returns a dictionary of dates with the number of
+                                attempts for each active tag on that date.
+    :monthcal():            Returns an html calendar for one month of user
+                                performance stats.
+    :store_stats():         Returns True if it successfully collates any
+                                fresh performance data for the current user in
+                                db.user_stats. Otherwise returns False
+
     Allows reporting on:
         - badges/level
 
@@ -288,6 +305,37 @@ class Stats(object):
     def active_tags(self):
         '''
         Find the tags that are currently active for this user, categorized 1-4.
+
+        Returns a list of dictionaries, one per active tag for this user. Each
+        dictionary includes the following keys:
+        - from db.tag_records
+            [name]
+            [tag]
+            [times_right]           double, total number of times right
+            [times_wrong]           double, total number of times wrong
+            [tlast_wrong]           datetime
+            [tlast_right]           datetime
+            [secondary_right]       list of datetime objects for successes
+                                        where the step had the tag as secondary.
+        - calculated
+            [rw_ratio]              ratio of times_right to times_wrong as
+                                        a double.
+            [delta_wrong]           length of time since last wrong answer
+            [delta_right]           length of time since last right answer
+            [delta_right_wrong]     length of time between last right answer
+                                        and previous wrong answer (0 if last
+                                        answer was wrong).
+        - from db.tag_progress
+            [current_level]         highest level attained for tag
+            [review_level]          current level used for path selection
+        - from db.badges_begun
+            [cat1]                  a tuple of (datetime, prettydate string)
+            [cat2]                  a tuple of (datetime, prettydate string)
+            [cat3]                  a tuple of (datetime, prettydate string)
+            [cat4]                  a tuple of (datetime, prettydate string)
+        - from db.user_stats
+
+
         '''
         tr = self.tag_recs
         try:
