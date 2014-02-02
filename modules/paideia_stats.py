@@ -34,6 +34,22 @@ class Stats(object):
                                 fresh performance data for the current user in
                                 db.user_stats. Otherwise returns False
 
+
+    :set_badges_scale():    Returns a dictionary of set numbers with lists of
+                             badges in each set as values. The badges should
+                             be represented by a tuple including tag_id,
+                             badge_name, and badge_description.
+    badge_level_ring - ring chart of badges in each
+    badges_time_line - multiple line chart showing number of badges in
+                        each level over time.
+    attempts_time_line - line chart showing number of attempts per day (week)?
+    attempts_step_time_line - stacked area chart showing number of attempts
+                                for each step attempted per day.
+    attempts_tag_time_line - stacked area chart showing number of attempts
+                                for each step attempted per day.
+    attempts_set_time_line - stacked area chart showing number of attempts
+                                for each step attempted per day.
+
     Allows reporting on:
         - badges/level
 
@@ -111,19 +127,18 @@ class Stats(object):
         """
         return self.name
 
-    def store_stats(self, user_id, weekstart, weekstop, weeknum):
+    def store_stats(self, user_id):
         '''
         Store aggregate user statistics on a weekly basis to speed up analysis.
         weekstart and weekstop should be datetime.datetime objects
         '''
         # TODO: Should there also be an annual aggregate?
         db = current.db
+        logs = db(db.user_stats.name == user_id).select()
         monthdays = calendar.Calendar().monthdatescalendar(weekstart.year,
                                                            weekstart.month)
-        weekdays = [w for w in monthdays if weekstart.date() in w][0]
-        weeklogs_q = db((db.user_stats.name == user_id) &
-                        (db.user_stats.year == weekstart.year) &
-                        (db.user_stats.week == weeknum))
+        weekdays = [w[0] for w in monthdays]
+                        # (db.user_stats.year == weekstart.year) &
         # FIXME: adjust for time zones (convert weekstart and weekstop)
         if weeklogs_q.empty():
             mylogs = db((db.attempt_log.name == user_id) &
@@ -317,6 +332,8 @@ class Stats(object):
             [tlast_right]           datetime
             [secondary_right]       list of datetime objects for successes
                                         where the step had the tag as secondary.
+        - from db.tags
+            [set]                   the "position" in set progression, int
         - calculated
             [rw_ratio]              ratio of times_right to times_wrong as
                                         a double.
@@ -325,6 +342,9 @@ class Stats(object):
             [delta_right_wrong]     length of time between last right answer
                                         and previous wrong answer (0 if last
                                         answer was wrong).
+        - from db.badges
+            [badge_name]
+            [badge_id]
         - from db.tag_progress
             [current_level]         highest level attained for tag
             [review_level]          current level used for path selection
@@ -334,7 +354,14 @@ class Stats(object):
             [cat3]                  a tuple of (datetime, prettydate string)
             [cat4]                  a tuple of (datetime, prettydate string)
         - from db.user_stats
-
+            [datecounts]            a dictionary of dates with the number of
+                                        right and wrong attempts on each day.
+        - from db.steps
+            [steplist]              a list of steps tagged with this tag
+            [steplist2]             a list of steps tagged with this tag as
+                                        tags_secondary
+            [steplist3]             a list of steps tagged with this tag as
+                                        tags_ahead
 
         '''
         tr = self.tag_recs
@@ -593,11 +620,24 @@ class Stats(object):
         return dropdown
 
 
-def week_bounds():
+def week_bounds(weekday=None):
     '''
     Return datetime objects representing the last day of this week and previous.
+
+    alternate version:
+
+    def week_magic(day):
+        day_of_week = day.weekday()
+
+        to_beginning_of_week = datetime.timedelta(days=day_of_week)
+        beginning_of_week = day - to_beginning_of_week
+
+        to_end_of_week = datetime.timedelta(days=6 - day_of_week)
+        end_of_week = day + to_end_of_week
+
+        return (beginning_of_week, end_of_week)
     '''
-    today = datetime.datetime.utcnow()
+    today = datetime.datetime.utcnow() if not weekday else weekday
     thismonth = calendar.monthcalendar(today.year, today.month)
 
     thisweek = [w for w in thismonth if today.day in w][0]
@@ -623,6 +663,24 @@ def week_bounds():
         lastweek = [d for d in itertools.chain(lastweek, lw_prev) if d != 0]
 
     return lastweek, lw_firstday, thisweek
+
+
+def get_weeks(year=None):
+    """
+    Return a list of lists, one for each week in the year.
+
+    The list for each week contains seven datetime.datetime objects, one for
+    each weekday, in their calendar order.
+    """
+    year = datetime.datetime.utcnow().year if not year else year
+    cal = calendar.Calendar().yeardatescalendar(year)
+    months = [m for row in cal for m in row]
+    weeks = []
+    for m in months:
+        for w in m:
+            if not w in weeks:
+                weeks.append(w)
+    return weeks
 
 
 def get_offset(user):
