@@ -1,20 +1,7 @@
 {{extend 'layout.html'}}
-{{mystate = '' if request.args else 'initial_state'}}
-{{=DIV(H4('Slide Sets'),
-       slides,
-       _class='plugin_slider_slidemenu {}'.format(mystate))
+<div id='slideframe'>
+{{=LOAD('plugin_slider', 'start_deck.load',
+        args=request.args, ajax=False, target='slideframe')
 }}
-
-<div id="slideframe">
-    {{if request.args:}}
-        {{=LOAD('plugin_slider', 'start_deck.load',
-                args=[request.args[0]],
-                ajax=True, target='slideframe')}}
-    {{pass}}
 </div>
 
-<script type="text/javascript">
-$('.plugin_slider_slidemenu a').click(function(event){
-    $(this).parents('.plugin_slider_slidemenu').removeClass('initial_state');
-});
-</script>
