@@ -212,41 +212,8 @@ def slides():
     """
     Assemble a list of links to the slide sets and send to the view.
     """
-    debug = False
-    slidelist = db(db.plugin_slider_decks.id > 0).select(
-                                    orderby=db.plugin_slider_decks.deck_position)
-    progress = db(db.tag_progress.name == auth.user_id).select().first()
-
-    slides = UL()
-    for s in slidelist:
-        badges = db((db.tags.slides.contains(s.id))
-                    & (db.badges.tag == db.tags.id)).select()
-        classes = ''
-        try:
-            if s.updated and (datetime.datetime.utcnow() - s.updated
-                              < datetime.timedelta(days=14)):
-                classes = 'plugin_slider_new '
-        except Exception:
-            pass
-        if progress and [t.tags.id for t in badges
-                         if t.tags.tag_position <= progress.latest_new]:
-            classes += 'plugin_slider_active '
-        try:
-            slides.append(LI(A(s.deck_name,
-                               _href=URL('plugin_slider',
-                                    'start_deck.load',
-                                    args=[s.id]),
-                               cid='slideframe',
-                               _class=classes)
-                             ))
-            for b in badges:
-                if debug: print b.badges.badge_name
-                slides[-1].append(SPAN(b.badges.badge_name))
-        except Exception, e:
-            print type(e), e
     # TODO: re-implement this flag to force users to view new slide decks
     #if auth.is_logged_in():
         #if session.walk and 'view_slides' in session.walk:
             #del session.walk['view_slides']
-
-    return dict(slides=slides)
+    return dict()
