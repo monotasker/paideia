@@ -22,26 +22,9 @@ sS'type'
 p10
 S'id'
 p11
-ssS'name'
+ssS'journal_pages'
 p12
 (dp13
-g4
-I512
-sg5
-I00
-sg6
-I2
-sg7
-S'INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE'
-p14
-sg9
-I00
-sg10
-S'reference auth_user'
-p15
-ssS'journal_pages'
-p16
-(dp17
 g4
 I512
 sg5
@@ -50,10 +33,27 @@ sg6
 I3
 sg7
 S'TEXT'
-p18
+p14
 sg9
 I00
 sg10
 S'list:reference journal_pages'
+p15
+ssS'name'
+p16
+(dp17
+g4
+I512
+sg5
+I00
+sg6
+I2
+sg7
+S'INTEGER REFERENCES auth_user (id) ON DELETE CASCADE'
+p18
+sg9
+I00
+sg10
+S'reference auth_user'
 p19
 ss.

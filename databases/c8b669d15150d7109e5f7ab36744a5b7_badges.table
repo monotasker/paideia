@@ -1,43 +1,43 @@
 (dp1
-S'description'
+S'tag'
 p2
 (dp3
 S'length'
 p4
-I32768
+I512
 sS'unique'
 p5
 I00
 sS'sortable'
 p6
-I4
+I3
 sS'sql'
 p7
-S'TEXT'
+S'INTEGER REFERENCES tags (id) ON DELETE CASCADE'
 p8
 sS'notnull'
 p9
 I00
 sS'type'
 p10
-S'text'
+S'reference tags'
 p11
-ssS'tag'
+ssS'badge_name'
 p12
 (dp13
 g4
 I512
 sg5
-I00
+I01
 sg6
-I3
+I2
 sg7
-S'INTEGER REFERENCES "tags" ("id") ON DELETE CASCADE'
+S'CHAR(512) UNIQUE'
 p14
 sg9
 I00
 sg10
-S'reference tags'
+S'string'
 p15
 ssS'id'
 p16
@@ -56,21 +56,21 @@ I00
 sg10
 S'id'
 p19
-ssS'badge_name'
+ssS'description'
 p20
 (dp21
 g4
-I512
+I32768
 sg5
-I01
+I00
 sg6
-I2
+I4
 sg7
-S'CHAR(512) UNIQUE'
+S'TEXT'
 p22
 sg9
 I00
 sg10
-S'string'
+S'text'
 p23
 ss.
