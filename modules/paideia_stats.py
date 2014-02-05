@@ -7,7 +7,7 @@ import traceback
 from gluon import current, DIV, SPAN, A, URL, UL, LI, B
 from gluon import TAG
 from paideia_utils import make_json
-#from pprint import pprint
+from pprint import pprint
 #import logging
 import itertools
 #logger = logging.getLogger('web2py.app.paideia')
@@ -106,6 +106,7 @@ class Stats(object):
         dups = [tag for tag, count in Counter(tags).items() if count > 1]
         if dups:
             self.alerts['duplicate tag_records rows'] = dups
+            # TODO: mail notice of this
 
         # date of each tag promotion
         self.badges_begun = db(db.badges_begun.name == self.user_id).select()
@@ -118,8 +119,6 @@ class Stats(object):
         self.utcnow = datetime.datetime.utcnow()
         self.cutoff = self.utcnow - self.duration
         self.logs, self.loglist = self.log_list(self.cutoff)
-        print '=========================================='
-        print self.user.tz_obj
 
     def get_name(self):
         """
@@ -245,25 +244,31 @@ class Stats(object):
         """
         missing_cat = []
         missing_rev = []
+        tag_progress = self.tag_progress
         for t in tag_recs:
-            tid = t.tag
+            tid = t['tag']
             try:
-                t['current_level'] = [k for k, v
-                                      in self.tag_progress.iteritems()
-                                      if k in ['cat1', 'cat2', 'cat3', 'cat4']
-                                      and tid in v][0][3:]
+                for k, v in tag_progress.iteritems():
+                    if k in ['cat1', 'cat2', 'cat3', 'cat4']:
+                        if v and tid in [int(i) for i in v]:
+                            t['current_level'] = k[3:]
+                            break
+                    else:
+                        pass
             except IndexError:
                 t['current_level'] = 1
                 missing_cat.append(tid)
             try:
-                t['review_level'] = [k for k, v
-                                     in self.tag_progress.iteritems()
-                                     if k in ['rev1', 'rev2', 'rev3', 'rev4']
-                                     and tid in v][0][3:]
+                for k, v in tag_progress.iteritems():
+                    if k in ['rev1', 'rev2', 'rev3', 'rev4']:
+                        if v and tid in [int(i) for i in v]:
+                            t['review_level'] = k[3:]
+                            break
+                    else:
+                        pass
             except IndexError:
                 t['review_level'] = 1
                 missing_rev.append(tid)
-
         return tag_recs
 
     def add_tag_data(self, tag_recs):
@@ -277,20 +282,16 @@ class Stats(object):
                     t['set'] = None
                 else:
                     t['set'] = t.tag.tag_position
-                print t['set']
             except RuntimeError:
-                print 'no tag position for tag', t.tag
                 t['set'] = None
             try:
                 t['slides'] = t.tag.slides
             except RuntimeError:
-                print 'no slides for tag', t.tag
                 t['slides'] = None
             try:
                 t['badge_name'] = db(db.badges.tag == t.tag).select().first().badge_name
             except:
                 RuntimeError
-                print 'no badge for tag {}'.format(t.tag)
                 t['badge_name'] = 'missing badge for tag {}'.format(t.tag)
         return tag_recs
 
@@ -365,6 +366,8 @@ class Stats(object):
 
         '''
         tr = self.tag_recs
+        for t in tr:
+            del(t['id'])
         try:
             tr = self.add_progress_data(tr)
             tr = self.add_tag_data(tr)
@@ -372,7 +375,7 @@ class Stats(object):
             for t in tr:
                 t['logs'] = [l.as_dict() for l in self.logs if t['tag'] in l.step.tags]
             self.tag_recs = tr
-            return make_json(tr.as_list())
+            return tr  # make_json(tr.as_list())
         except Exception:
             print traceback.format_exc(5)
             return None
@@ -409,7 +412,6 @@ class Stats(object):
                 if not tagrec:
                     continue
                 else:
-                    print tag
                     myl.update(tagrec[0])
                     fl.append(myl)
         return make_json(fl)
@@ -424,15 +426,17 @@ class Stats(object):
             if self.tag_progress['latest_new'] else 1
         return max_set
 
-    def _local(self, dt):
+    def _local(self, dt, tz=None):
         """
         Return a datetime object localized to self.user's time zone.
 
         NB: The pytz.localize function just adds timezone information to the
         utc datetime object. To actually adjust the datetime you need to get
         the local offset from utc and add it manually.
+
+        The tz argument is simply for dependency injection during testing.
         """
-        tz = self.user.tz_obj
+        tz = self.user.tz_obj if not tz else tz
         offset = tz.utcoffset(dt)  # handles dst adjustments
         newdt = dt + offset
         return newdt
@@ -455,12 +459,8 @@ class Stats(object):
         loglist = {}
 
         for log in logs:
-            print 'UTC time:', log.dt_attempted
             newdt = self._local(log.dt_attempted)
-            print 'localized:', newdt
             newdate = datetime.date(newdt.year, newdt.month, newdt.day)
-            print 'localized:', newdate
-            print '-------------------------------------------------'
             log.dt_local = newdate
             if newdate in loglist:
                 loglist[newdate] += 1
