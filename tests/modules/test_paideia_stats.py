@@ -26,6 +26,17 @@ def myStats(user_login, web2py):  # request
     """
     # case = request.param
     db = web2py.db
+
+    bbrows = db(db.badges_begun.name == user_login['id'])
+    if not bbrows.isempty():
+        bbrows.delete()
+    bbdata = {'name': user_login['id'],
+              'cat1': datetime.datetime(2014, 1, 1, 0, 0),
+              'tag': 72
+              }
+    db.badges_begun.insert(**bbdata)
+    db.commit()
+
     tprows = db(db.tag_progress.name == user_login['id'])
     if not tprows.isempty():
         tprows.delete()
@@ -157,28 +168,83 @@ class TestStats():
         assert actual.month == expected['month']
         assert actual.day == expected['day']
 
+    def test_add_promotion_data(self, myStats, web2py, user_login):
+        """
+        """
+        db = web2py.db
+        tr = db(db.tag_records.name == user_login['id']).select().as_list()
+        for idx, t in enumerate(tr):
+            tr[idx] = {k: v for k, v in t.iteritems()
+                    if k not in ['id', 'name', 'in_path', 'step']}
+        expected = [{'secondary_right': [],
+                     'tag': 72L,
+                     'times_right': 3.5,
+                     'times_wrong': 2.0,
+                     'tlast_right': datetime.datetime(2014, 2, 1, 20, 0),
+                     'tlast_wrong': datetime.datetime(2014, 1, 31, 10, 0),
+                     # below is newly added to input
+                     'cat1_reached':  (datetime.datetime(2014, 1, 1, 0, 0),
+                                       'Jan  1, 2014'),
+                     'cat2_reached':  (None, None),
+                     'cat3_reached':  (None, None),
+                     'cat4_reached':  (None, None)}]
+
+        actual = myStats._add_promotion_data(tr)
+        pprint(actual)
+        assert len(actual) == len(expected)
+        for k in expected[0].keys():
+            assert actual[0][k] == expected[0][k]
+
     def test_add_progress_data(self, myStats, web2py, user_login):
         """
         """
         db = web2py.db
         tr = db(db.tag_records.name == user_login['id']).select().as_list()
-        expected = [{'current_level': '1',
-                     'in_path': None,
-                     'name': 139L,
-                     'secondary_right': [],
-                     'step': None,
+        for idx, t in enumerate(tr):
+            tr[idx] = {k: v for k, v in t.iteritems()
+                    if k not in ['id', 'name', 'in_path', 'step']}
+        expected = [{'secondary_right': [],
                      'tag': 72L,
                      'times_right': 3.5,
                      'times_wrong': 2.0,
                      'tlast_right': datetime.datetime(2014, 2, 1, 20, 0),
-                     'tlast_wrong': datetime.datetime(2014, 1, 31, 10, 0)}]
-
-        actual = myStats.add_progress_data(tr)
+                     'tlast_wrong': datetime.datetime(2014, 1, 31, 10, 0),
+                     # below is added by this method
+                     'current_level': '1'}]
+        actual = myStats._add_progress_data(tr)
         pprint(actual)
 
         assert len(actual) == len(expected)
-        for k in expected[0].keys():
+        for k in actual[0].keys():
             assert actual[0][k] == expected[0][k]
+
+    def test_add_tag_data(self, myStats, web2py, user_login):
+        """docstring for test_add_tag_data"""
+        db = web2py.db
+        tr = db(db.tag_records.name == user_login['id']).select().as_list()
+        for idx, t in enumerate(tr):
+            tr[idx] = {k: v for k, v in t.iteritems()
+                    if k not in ['id', 'name', 'in_path', 'step']}
+        expected = [{'secondary_right': [],
+                     'tag': 72L,
+                     'times_right': 3.5,
+                     'times_wrong': 2.0,
+                     'tlast_right': datetime.datetime(2014, 2, 1, 20, 0),
+                     'tlast_wrong': datetime.datetime(2014, 1, 31, 10, 0),
+                     # below is added by this method
+                     'set': 3,
+                     'badge_name': 'missing badge for tag 72',
+                     'badge_description': None,
+                     'slides': [10]}]
+        actual = myStats._add_tag_data(tr)
+        pprint(actual)
+        assert len(actual) == len(expected)
+        for k in actual[0].keys():
+            assert actual[0][k] == expected[0][k]
+
+    def test_add_log_data(self):
+        """docstring for test_add_log_data"""
+        pass
 
     def test_active_tags(self, user_login, myStats, web2py):
         """
@@ -189,20 +255,20 @@ class TestStats():
         dtr = datetime.datetime(2014, 2, 1, 20, 0)
         tagnum = 72
         badgenum = db.badges(db.badges.tag == tagnum).id
-        expected = [{'name': user_login['id'],
-                     'tag': tagnum,
-                     'times_right': 2.0,
-                     'times_wrong': 1.5,
+        expected = [{'tag': tagnum,
+                     'times_right': 3.5,
+                     'times_wrong': 2.0,
                      'tlast_wrong': dtw,
                      'tlast_right': dtr,
                      'secondary_right': [],
                      'set': 1,
-                     'rw_ratio': 2.0 / 1.5,
+                     'rw_ratio': 3.5 / 2.0,
                      'delta_wrong': now - dtw,
                      'delta_right': now - dtr,
                      'delta_right_wrong': dtr - dtw if dtr > dtw else datetime.timedelta(days=0),
                      'badge_name': db.badges(badgenum).badge_name,
-                     'badge_id': badgenum,
+                     'badge_description': '',
+                     'slides': [10],
                      'current_level': 'cat1',
                      'review_level': None,
                      'cat1_reached':  (datetime.datetime(2014, 1, 1, 0, 0), ''),
