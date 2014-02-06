@@ -7,7 +7,7 @@ import traceback
 from gluon import current, DIV, SPAN, A, URL, UL, LI, B
 from gluon import TAG
 from paideia_utils import make_json
-from pprint import pprint
+#from pprint import pprint
 #import logging
 import itertools
 #logger = logging.getLogger('web2py.app.paideia')
@@ -131,40 +131,41 @@ class Stats(object):
         Store aggregate user statistics on a weekly basis to speed up analysis.
         weekstart and weekstop should be datetime.datetime objects
         '''
+        pass
         # TODO: Should there also be an annual aggregate?
-        db = current.db
-        logs = db(db.user_stats.name == user_id).select()
-        monthdays = calendar.Calendar().monthdatescalendar(weekstart.year,
-                                                           weekstart.month)
-        weekdays = [w[0] for w in monthdays]
-                        # (db.user_stats.year == weekstart.year) &
-        # FIXME: adjust for time zones (convert weekstart and weekstop)
-        if weeklogs_q.empty():
-            mylogs = db((db.attempt_log.name == user_id) &
-                        (db.attempt_log.dt_attempted >= weekstart) &
-                        (db.attempt_log.dt_attempted <= weekstop)
-                        ).select().as_list()
-            logsright = [s for s in mylogs if abs(s['score'] - 1) < 0.001]
-            myargs = {'logs_right': [l['id'] for l in logsright]}
-            logswrong = [s for s in mylogs if abs(s['score'] - 1) >= 0.001]
-            myargs['logs_wrong'] = [l['id'] for l in logswrong]
-            for n in range(7):
-                mykey = 'day{}'.format(n + 1)
-                myval = [l for l in mylogs
-                         if l['dt_attempted'].day == weekdays[n].day]
-                myargs.update({mykey: myval})
-        else:
-            weeklogs_s = weeklogs_q.select().as_list()
-            assert len(weeklogs_s) == 1
-            mylog = weeklogs_s[0]
-            updated = mylog['updated']
-            if updated < weekstop:
-                # TODO: Is there a risk of double-counting records with same
-                # datetime?
-                mylogs = db((db.attempt_log.name == user_id) &
-                            (db.attempt_log.dt_attempted >= updated) &
-                            (db.attempt_log.dt_attempted <= weekstop)
-                            ).select().as_list()
+        #db = current.db
+        #logs = db(db.user_stats.name == user_id).select()
+        #monthdays = calendar.Calendar().monthdatescalendar(weekstart.year,
+                                                           #weekstart.month)
+        #weekdays = [w[0] for w in monthdays]
+                        ## (db.user_stats.year == weekstart.year) &
+        ## FIXME: adjust for time zones (convert weekstart and weekstop)
+        #if weeklogs_q.empty():
+            #mylogs = db((db.attempt_log.name == user_id) &
+                        #(db.attempt_log.dt_attempted >= weekstart) &
+                        #(db.attempt_log.dt_attempted <= weekstop)
+                        #).select().as_list()
+            #logsright = [s for s in mylogs if abs(s['score'] - 1) < 0.001]
+            #myargs = {'logs_right': [l['id'] for l in logsright]}
+            #logswrong = [s for s in mylogs if abs(s['score'] - 1) >= 0.001]
+            #myargs['logs_wrong'] = [l['id'] for l in logswrong]
+            #for n in range(7):
+                #mykey = 'day{}'.format(n + 1)
+                #myval = [l for l in mylogs
+                         #if l['dt_attempted'].day == weekdays[n].day]
+                #myargs.update({mykey: myval})
+        #else:
+            #weeklogs_s = weeklogs_q.select().as_list()
+            #assert len(weeklogs_s) == 1
+            #mylog = weeklogs_s[0]
+            #updated = mylog['updated']
+            #if updated < weekstop:
+                ## TODO: Is there a risk of double-counting records with same
+                ## datetime?
+                #mylogs = db((db.attempt_log.name == user_id) &
+                            #(db.attempt_log.dt_attempted >= updated) &
+                            #(db.attempt_log.dt_attempted <= weekstop)
+                            #).select().as_list()
 
     def step_log(self, logs=None, user_id=None, duration=None):
         '''
@@ -238,7 +239,7 @@ class Stats(object):
 
         return {'loglist': logset, 'duration': duration}
 
-    def add_progress_data(self, tag_recs):
+    def _add_progress_data(self, tag_recs):
         """
         Return list of tag records with additional fields for progress data.
         """
@@ -271,31 +272,35 @@ class Stats(object):
                 missing_rev.append(tid)
         return tag_recs
 
-    def add_tag_data(self, tag_recs):
+    def _add_tag_data(self, tag_recs):
         """
         Return list of tag records with additional fields for tag information.
         """
         db = current.db
         for t in tag_recs:
+            trow = db.tags(t['tag'])
+            brow = db.badges(trow.id)
             try:
-                if t.tag.tag_position > 100:
+                if trow.tag_position > 100:
                     t['set'] = None
                 else:
-                    t['set'] = t.tag.tag_position
+                    t['set'] = trow.tag_position
             except RuntimeError:
                 t['set'] = None
             try:
-                t['slides'] = t.tag.slides
+                t['slides'] = trow.slides
             except RuntimeError:
                 t['slides'] = None
             try:
-                t['badge_name'] = db(db.badges.tag == t.tag).select().first().badge_name
+                t['badge_name'] = brow.badge_name
+                t['badge_description'] = brow.badge_description
             except:
                 RuntimeError
-                t['badge_name'] = 'missing badge for tag {}'.format(t.tag)
+                t['badge_name'] = 'missing badge for tag {}'.format(t['tag'])
+                t['badge_description'] = None
         return tag_recs
 
-    def add_promotion_data(self, tag_recs):
+    def _add_promotion_data(self, tag_recs):
         """
         Return list of tag records with additional fields for promoriont data.
 
@@ -306,17 +311,20 @@ class Stats(object):
         """
         for t in tag_recs:
             try:
-                bb = [b for b in self.badges_begun if b.tag == t['tag']][0]
+                bbrows = [b for b in self.badges_begun if b.tag == t['tag']][0]
             except IndexError:
-                bb = None
+                bbrows = None
             for k in range(1, 5):
-                nka = 'dt_cat{}'.format(k)
-                dt = bb.cat1 if bb else 'n/a'
-                nkb = 'prettydate_cat{}'.format(k)
-                pdt = dt.strftime('%b %e, %Y') \
-                    if isinstance(dt, datetime.datetime) else 'n/a'
-                t.update({nka: dt, nkb: pdt})
+                cat = 'cat{}_reached'.format(k)
+                dt = bbrows['cat{}'.format(k)] if bbrows else None
+                prettydate = dt.strftime('%b %e, %Y') \
+                    if isinstance(dt, datetime.datetime) else None
+                t.update({cat: (dt, prettydate)})
         return tag_recs
+
+    def _add_log_data(self, tag_recs):
+        """docstring for _add_log_data"""
+        pass
 
     def active_tags(self):
         '''
@@ -325,7 +333,6 @@ class Stats(object):
         Returns a list of dictionaries, one per active tag for this user. Each
         dictionary includes the following keys:
         - from db.tag_records
-            [name]
             [tag]
             [times_right]           double, total number of times right
             [times_wrong]           double, total number of times wrong
@@ -345,15 +352,15 @@ class Stats(object):
                                         answer was wrong).
         - from db.badges
             [badge_name]
-            [badge_id]
+            [badge_description]
         - from db.tag_progress
             [current_level]         highest level attained for tag
             [review_level]          current level used for path selection
         - from db.badges_begun
-            [cat1]                  a tuple of (datetime, prettydate string)
-            [cat2]                  a tuple of (datetime, prettydate string)
-            [cat3]                  a tuple of (datetime, prettydate string)
-            [cat4]                  a tuple of (datetime, prettydate string)
+            [cat1_reached]          a tuple of (datetime, prettydate string)
+            [cat2_reached]          a tuple of (datetime, prettydate string)
+            [cat3_reached]          a tuple of (datetime, prettydate string)
+            [cat4_reached]          a tuple of (datetime, prettydate string)
         - from db.user_stats
             [datecounts]            a dictionary of dates with the number of
                                         right and wrong attempts on each day.
@@ -365,13 +372,14 @@ class Stats(object):
                                         tags_ahead
 
         '''
-        tr = self.tag_recs
-        for t in tr:
-            del(t['id'])
+        tr = self.tag_recs.as_list()
+        for idx, t in enumerate(tr):
+            tr[idx] = {k: v for k, v in t.iteritems()
+                    if k not in ['id', 'name', 'in_path', 'step']}
         try:
-            tr = self.add_progress_data(tr)
-            tr = self.add_tag_data(tr)
-            tr = self.add_promotion_data(tr)
+            tr = self._add_progress_data(tr)
+            tr = self._add_tag_data(tr)
+            tr = self._add_promotion_data(tr)
             for t in tr:
                 t['logs'] = [l.as_dict() for l in self.logs if t['tag'] in l.step.tags]
             self.tag_recs = tr
@@ -379,42 +387,6 @@ class Stats(object):
         except Exception:
             print traceback.format_exc(5)
             return None
-
-    def logs_with_tagrecs(self, tag_recs):
-        """
-        Returns a flattened list of log entries cross-referenced with tag data.
-
-        The resulting list represents attempts for each tag. This means that
-        multiple entries may represent a single actual step attempt (since the
-        step could have multiple tags). The following reductions will help to
-        extract necessary data:
-            attempts by step:         count # for each "step" & "dt_attempted"
-                                      value, grouped by date
-            attempts by date:         count occurrences of each "dt_attempted"
-                                      value
-            attempts by step by date: count occurrences of each "step" and
-                                      "dt_attempted" combination
-            attempts by tag by date:  count occurrences of each "tag" and
-                                      "dt_attempted" combination
-            attempts by set by date:  ???
-            attempts by level by date:???
-            progress for each tag:    first row for each row['tag'] value
-            progress for each step:    first row for each row['step'] value
-            badges by level
-        """
-        fl = []
-        logs = self.logs
-        for l in logs:
-            for tag in l.step.tags:
-                myl = l.as_dict()
-                myl['tag'] = tag
-                tagrec = [trow for trow in tag_recs if trow['tag'] == tag]
-                if not tagrec:
-                    continue
-                else:
-                    myl.update(tagrec[0])
-                    fl.append(myl)
-        return make_json(fl)
 
     def get_max(self):
         """
