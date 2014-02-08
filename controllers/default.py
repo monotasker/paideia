@@ -140,19 +140,26 @@ def info():
             user = db.auth_user[request.vars['id']]
         else:
             user = db.auth_user[auth.user_id]
-        tz = user.time_zone
-        email = user.email
 
         stats = Stats(user.id, cache=cache)
-        name = stats.get_name()
-        active = stats.active_tags()
-        #loglist = stats.logs_with_tagrecs(active)
-        cal = stats.monthcal()
-        max_set = stats.get_max()
-        #sl = stats.step_log()
-        #log = sl['loglist']
-        #duration = sl['duration']
 
+        # tab1
+        name = stats.get_name()
+        tz = user.time_zone
+        email = user.email
+        max_set = stats.get_max()
+        goal = stats.get_goal()
+        badges_active_over_time = stats.badges_active_over_time()
+        badge_table_data = stats.active_tags()
+        print 'done tab 1'
+
+        # tab2
+        mycal = stats.monthcal()
+        badges_tested_over_time = stats.badges_tested_over_time()
+        sets_tested_over_time = stats.sets_tested_over_time()
+        steps_most_wrong = stats.steps_most_wrong()
+
+        # tab3
         b = Bug()
         blist = b.bugresponses(user.id)
 
@@ -166,10 +173,15 @@ def info():
     return {'the_name': name,
             'tz': tz,
             'email': email,
-            'cal': cal,
+            'cal': mycal,
             'blist': blist,
-            'active': active,
             'max_set': max_set,
+            'goal': goal,
+            'badge_table_data': badge_table_data,
+            'badges_active_over_time': badges_active_over_time,
+            'badges_tested_over_time': badges_tested_over_time,
+            'sets_tested_over_time': sets_tested_over_time,
+            'steps_most_wrong': steps_most_wrong
             }
 
 

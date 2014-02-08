@@ -344,6 +344,14 @@ def make_json(data):
     return myjson
 
 
+def load_json(data):
+    """
+    Read a json object and return as a simple python type object.
+    """
+    obj = json.loads(data)
+    return obj
+
+
 def normalize_accents(strings):
     """
     Return a polytonic Greek unicode string with accents removed.
