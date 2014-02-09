@@ -145,10 +145,7 @@ def attempts():
 
 @auth.requires_membership(role='administrators')
 def user():
-    response.files.append(URL('static', 'plugin_d3/d3/d3.js'))
-    response.files.append(URL('static', 'plugin_d3/dc/dc.js'))
-    response.files.append(URL('static', 'plugin_d3/crossfilter/crossfilter.js'))
-    response.files.append(URL('static', 'plugin_d3/dc/dc.css'))
+    # response.files.append(URL('static', 'plugin_d3/d3/d3.js'))
     user = request.args[0]
     return {'id': user}
 
