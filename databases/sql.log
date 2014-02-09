@@ -8083,3 +8083,90 @@ success!
 success!
 timestamp: 2013-12-02T22:47:26.020850
 ALTER TABLE attempt_log ADD user_response CHAR(512);
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+timestamp: 2014-02-09T15:33:32.906164
+ALTER TABLE "user_stats" ADD count1 TEXT;
+timestamp: 2014-02-09T15:33:33.058075
+ALTER TABLE "user_stats" ADD count3 TEXT;
+timestamp: 2014-02-09T15:33:33.203441
+ALTER TABLE "user_stats" ADD count2 TEXT;
+timestamp: 2014-02-09T15:33:33.348734
+ALTER TABLE "user_stats" ADD count5 TEXT;
+timestamp: 2014-02-09T15:33:33.508091
+ALTER TABLE "user_stats" ADD count7 TEXT;
+timestamp: 2014-02-09T15:33:33.661572
+ALTER TABLE "user_stats" ADD count6 TEXT;
+timestamp: 2014-02-09T15:33:33.811748
+ALTER TABLE "user_stats" ADD count4 TEXT;
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
