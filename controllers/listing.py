@@ -13,28 +13,23 @@ if 0:
 import datetime
 import traceback
 from paideia_stats import week_bounds, get_offset
+from pprint import pprint
 
 
 @auth.requires_membership(role='administrators')
 def user():
     print 'starting user ----------------------------------'
-    print 'user is', auth.user_id
     # TODO: magic number here -- admin group is 1
     admins = db(db.auth_membership.group_id == 1
                 ).select(db.auth_membership.user_id).as_list()
     admins = [a['user_id'] for a in admins]
     admins.append(auth.user_id)
-    print 'admins', admins
     if auth.user_id in admins:
-        print 'user in admins'
         myclasses = db(db.auth_group.course_instructor != None).select()
-        print myclasses
     else:
-        print 'user not in admins'
         myclasses = db(db.auth_group.course_instructor == auth.user_id).select()
-        print myclasses
     myclasses = myclasses.as_list()
-    print myclasses
+    pprint(myclasses)
 
     chooser = FORM(SELECT(_id='class_chooser_select'), _id='class_chooser')
     for m in myclasses:
@@ -43,7 +38,7 @@ def user():
         chooser[0].append(OPTION(optstring, _value=m['id']))
     chooser.append(INPUT(_type='submit'))
     print 'returning------------------------------------------'
-    return {'chooser': chooser, 'row': myclasses[0]}
+    return {'chooser': chooser, 'classid': myclasses[0]['id']}
 
 
 @auth.requires_membership(role='administrators')
