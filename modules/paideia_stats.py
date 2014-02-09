@@ -3,11 +3,12 @@ import datetime
 from collections import Counter
 import dateutil.parser
 import traceback
-#from pytz import timezone
+from copy import copy
+from pytz import timezone
 from gluon import current, DIV, SPAN, A, URL, UL, LI, B
 from gluon import TAG
 from paideia_utils import make_json, load_json
-from pprint import pprint
+#from pprint import pprint
 import itertools
 
 
@@ -412,27 +413,33 @@ class Stats(object):
         logs_wrong:     list of log ids for incorret attempts with this tag.
         """
         db = current.db
-        usrows = db(db.user_stats.name == self.user_id).select()
+        #usrows = db(db.user_stats.name == self.user_id).select()
+        usrows = self._get_logs_for_range()
         for t in tag_recs:
-            print 'tag is', t['tag']
-            t['logs_by_week'] = {}
+            tag = t['tag']
+            t['logs_by_week'] = copy(usrows)
             t['logs_right'] = []
             t['logs_wrong'] = []
-            for row in usrows:
-                logsbytag = load_json(row['logs_by_tag'])
-                mytag = str(t['tag'])
-                weeklogs = {}
-                for n in range(1, 8):
-                    myday = row['day{}'.format(n)].date()
-                    mycount = row['count{}'.format(n)]
-                    weeklogs[myday] = [c for c in mycount
-                                       if c in logsbytag[mytag]]
-                t['logs_right'].extend([l for l in row['logs_right']
-                                        if l in logsbytag[mytag]])
-                t['logs_wrong'].extend([l for l in row['logs_wrong']
-                                        if l in logsbytag[mytag]])
-                t['logs_by_week'][row['week']] = weeklogs
-
+            for year, yeardata in usrows.iteritems():
+                for weeknum, yrdata in yeardata.iteritems():
+                    try:
+                        bytag = yrdata[1]
+                        weeklogs = {}
+                        for day, count in yrdata[0].iteritems():
+                                weeklogs[day] = [c for c in count if c in bytag[tag]]
+                        t['logs_by_week'][weeknum] = weeklogs
+                        t['logs_right'].extend([l for l in yrdata[2] if l in bytag[tag]])
+                        t['logs_wrong'].extend([l for l in yrdata[3] if l in bytag[tag]])
+                    except KeyError:  # no logs for this tag that week
+                        pass
+                    except IndexError:
+                        print 'malformed usrows for ', tag, 'in week', weeknum
+            all_logs = t['logs_right'] + t['logs_wrong']
+            all_rows = db(db.attempt_log.id.belongs(all_logs)).select(db.attempt_log.score)
+            t['avg_score'] = sum([r.score for r in all_rows]) / len(all_rows) \
+                             if all_rows else None
+            if isinstance(t['avg_score'], float):
+                t['avg_score'] = round(t['avg_score'], 1)
         return tag_recs
 
     def active_tags(self):
@@ -486,14 +493,22 @@ class Stats(object):
             tr[idx] = {k: v for k, v in t.iteritems()
                     if k not in ['id', 'name', 'in_path', 'step']}
             try:
-                t['rw_ratio'] = t['times_right'] / t['times_wrong'],
+                tr[idx]['rw_ratio'] = t['times_right'] / t['times_wrong']
             except (ZeroDivisionError, TypeError):
-                t['rw_ratio'] = 0
-            t['delta_wrong'] = self.utcnow - t['tlast_wrong'],
-            t['delta_right'] = self.utcnow - t['tlast_right'],
-            t['delta_right_wrong'] = t['tlast_right'] - t['tlast_wrong'] \
+                tr[idx]['rw_ratio'] = t['times_right']
+            tr[idx]['delta_wrong'] = self.utcnow - t['tlast_wrong']
+            tr[idx]['delta_right'] = self.utcnow - t['tlast_right']
+            tr[idx]['delta_right_wrong'] = t['tlast_right'] - t['tlast_wrong'] \
                 if t['tlast_right'] > t['tlast_wrong'] \
                 else datetime.timedelta(days=0)
+            strfr = '%b %e' if t['tlast_right'].year == self.utcnow.year \
+                    else '%b %e, %Y'
+            tr[idx]['tlast_right'] = (t['tlast_right'],
+                                t['tlast_right'].strftime(strfr))
+            strfw = '%b %e' if t['tlast_right'].year == self.utcnow.year \
+                    else '%b %e, %Y'
+            tr[idx]['tlast_wrong'] = (t['tlast_wrong'],
+                                t['tlast_wrong'].strftime(strfw))
         try:
             tr = self._add_progress_data(tr)
             tr = self._add_tag_data(tr)
@@ -501,7 +516,7 @@ class Stats(object):
             tr = self._add_log_data(tr)
             self.tag_recs = tr
             print 'active_tags returns ======================================'
-            pprint(tr)
+            #pprint(tr[0])
             return tr  # make_json(tr.as_list())
         except Exception:
             print traceback.format_exc(5)
@@ -564,6 +579,18 @@ class Stats(object):
 
         #return logs, loglist
 
+    def get_badge_levels(self, statsdicts):
+        """
+        """
+        badge_levels = {1: [], 2: [], 3: [], 4: []}
+        for data in statsdicts:
+            tag = int(data['tag'])
+            lvl = int(data['current_level']) if 'current_level' in data.keys() else 0
+            name = data['badge_name'] if 'badge_name' in data.keys() \
+                else 'tag id: {}'.format(tag)
+            badge_levels[lvl].append(name)
+        return badge_levels
+
     def get_goal(self):
         """
         """
@@ -572,7 +599,7 @@ class Stats(object):
         sets_left = None
         return term, set_target, sets_left
 
-    def badges_active_over_time(self):
+    def badges_active_over_time(self, statsdicts):
         """
         """
         pass
@@ -582,17 +609,17 @@ class Stats(object):
         """
         pass
 
-    def badges_tested_over_time(self):
+    def badges_tested_over_time(self, statsdicts):
         """
         """
         pass
 
-    def sets_tested_over_time(self):
+    def sets_tested_over_time(self, statsdicts):
         """
         """
         pass
 
-    def steps_most_wrong(self, dur=None):
+    def steps_most_wrong(self, statsdicts, dur=None):
         """
         Return a list of the steps the user has gotten wrong most frequently.
 
@@ -604,7 +631,7 @@ class Stats(object):
         """
         pass
 
-    def steps_most_repeated(self, dur=None):
+    def steps_most_repeated(self, statsdicts, dur=None):
         """
         """
         pass
@@ -652,7 +679,7 @@ class Stats(object):
             weekstats[yr] = weeksdict
         return weekstats
 
-    def _get_logs_for_range(self, startdate, stopdate=None):
+    def _get_logs_for_range(self, startdate=None, stopdate=None):
         '''
         Assemble and return a dictionary of weeks with log-data for each day.
 
@@ -673,6 +700,7 @@ class Stats(object):
         '''
         db = current.db
         stopdate = stopdate if stopdate else self.utcnow
+        startdate = startdate if startdate else datetime.datetime(2012, 1, 1, 0, 0)
         usdict = {}
         usrows = db((db.user_stats.name == self.user_id) &
                     (db.user_stats.day7 > startdate) &
@@ -921,9 +949,12 @@ def get_offset(user):
     '''
     Return the user's offset from utc time based on their time zone.
     '''
-    #today = datetime.datetime.utcnow()
-    #now = timezone('UTC').localize(today)
-    #tz_name = user.auth_user.time_zone if user.auth_user.time_zone \
-        #else 'America/Toronto'
-    #offset = now - timezone(tz_name).localize(today)  # when to use "ambiguous"?
-    return user.auth_user.offset
+    try:
+        user.auth_user.offset
+    except AttributeError:
+        today = datetime.datetime.utcnow()
+        now = timezone('UTC').localize(today)
+        tz_name = user.auth_user.time_zone if user.auth_user.time_zone \
+            else 'America/Toronto'
+        offset = now - timezone(tz_name).localize(today)  # when to use "ambiguous"?
+    return offset

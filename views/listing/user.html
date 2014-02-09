@@ -2,6 +2,6 @@
 
 {{=chooser}}
 <div class='user_list'>
-    {{=LOAD('listing', 'userlist.load', vars={'value': row['id']}, ajax=True)}}
+    {{=LOAD('listing', 'userlist.load', vars={'value': classid}, ajax=False)}}
 </div>
 {{print 'done rendering view'}}
