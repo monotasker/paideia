@@ -186,8 +186,8 @@ class TestStats():
                      'tlast_right': datetime.datetime(2014, 2, 1, 20, 0),
                      'tlast_wrong': datetime.datetime(2014, 1, 31, 10, 0),
                      # below is newly added to input
-                     'cat1_reached':  (datetime.datetime(2014, 1, 1, 0, 0),
-                                       'Jan  1, 2014'),
+                     'cat1_reached':  (datetime.datetime(2013, 12, 31, 19, 0),
+                                       'Dec 31, 2013'),
                      'cat2_reached':  (None, None),
                      'cat3_reached':  (None, None),
                      'cat4_reached':  (None, None)}]
@@ -213,7 +213,8 @@ class TestStats():
                      'tlast_right': datetime.datetime(2014, 2, 1, 20, 0),
                      'tlast_wrong': datetime.datetime(2014, 1, 31, 10, 0),
                      # below is added by this method
-                     'current_level': '1'}]
+                     'current_level': 1,
+                     'review_level': 1}]
         actual = myStats[0]._add_progress_data(tr)
         pprint(actual)
         assert len(actual) == len(expected)
@@ -249,16 +250,16 @@ class TestStats():
         """docstring for _get_stats_from_logs"""
         db = web2py.db
         logs = myStats[1]
-        expected = {2014: {5: ({datetime.date(2014, 1, 27): [logs[0]],
-                                datetime.date(2014, 1, 29): logs[1:4],
-                                datetime.date(2014, 1, 31): [logs[4]],
-                                datetime.date(2014, 2, 1): [logs[5]]},
-                               {72L: logs},
-                               [logs[0], logs[1], logs[5]],
-                               [logs[2], logs[3], logs[4]]
-                               )
-                           }
-                    }
+        expected = {2014: {4: ({datetime.date(2014, 1, 26): [243906L]},
+                               {72L: [243906L]},
+                               [243906L],
+                               []),
+                           5: ({datetime.date(2014, 1, 28): [243907L, 243908L, 243909L],
+                               datetime.date(2014, 1, 30): [243910L],
+                               datetime.date(2014, 1, 31): [243911L]},
+                               {72L: [243907L, 243908L, 243909L, 243910L, 243911L]},
+                               [243907L, 243911L],
+                               [243908L, 243909L, 243910L])}}
         logs = db(db.attempt_log.id.belongs(myStats[1])).select()
         actual = myStats[0]._make_logs_into_weekstats(logs)
         pprint(actual)
@@ -279,21 +280,25 @@ class TestStats():
             tr[idx] = {k: v for k, v in t.iteritems()
                     if k not in ['id', 'name', 'in_path', 'step']}
         expected = [{'secondary_right': [],
+                     'avg_score': 0.6,
                      'tag': 72L,
                      'times_right': 3.5,
                      'times_wrong': 2.0,
                      'tlast_right': datetime.datetime(2014, 2, 1, 20, 0),
                      'tlast_wrong': datetime.datetime(2014, 1, 31, 10, 0),
                      # below is added by this method
-                     'logs_by_week': {5: {datetime.date(2014, 1, 26): [],
-                                          datetime.date(2014, 1, 27):  [logs[0]],
-                                          datetime.date(2014, 1, 28):  [],
-                                          datetime.date(2014, 1, 29):  [l for l
-                                                                        in logs[1:4]],
-                                          datetime.date(2014, 1, 30):  [],
-                                          datetime.date(2014, 1, 31):  [logs[4]],
-                                          datetime.date(2014, 2, 1):  [logs[5]]
-                                          }
+                     'logs_by_week': {2012: {},
+                                      2013: {},
+                                      2014: {5L: {datetime.datetime(2014, 1, 26, 0, 0): [],
+                                                  datetime.datetime(2014, 1, 27, 0, 0): [logs[0]],
+                                                  datetime.datetime(2014, 1, 28, 0, 0): [],
+                                                  datetime.datetime(2014, 1, 29, 0, 0): [logs[1],
+                                                                                         logs[2],
+                                                                                         logs[3]],
+                                                  datetime.datetime(2014, 1, 30, 0, 0): [],
+                                                  datetime.datetime(2014, 1, 31, 0, 0): [logs[4]],
+                                                  datetime.datetime(2014, 2, 1, 0, 0): [logs[5]]},
+                                             }
                                       },
                      'logs_right': [logs[0], logs[1], logs[5]],
                      'logs_wrong': [logs[2], logs[3], logs[4]]
@@ -319,15 +324,15 @@ class TestStats():
         db = web2py.db
         logs = myStats[1]
         now = datetime.datetime(2014, 2, 2, 2, 0)
-        dtw = datetime.datetime(2014, 1, 31, 10, 0)
-        dtr = datetime.datetime(2014, 2, 1, 20, 0)
+        dtw = datetime.datetime(2014, 1, 31, 5, 0)
+        dtr = datetime.datetime(2014, 2, 1, 15, 0)
         tagnum = 72
         badgerow = db.badges(db.badges.tag == tagnum)
         expected = [{'tag': tagnum,
                      'times_right': 3.5,
                      'times_wrong': 2.0,
-                     'tlast_wrong': dtw,
-                     'tlast_right': dtr,
+                     'tlast_wrong': (dtw, 'Feb 1'),
+                     'tlast_right': (dtr, 'Jan 31'),
                      'secondary_right': [],
                      'set': 3,
                      'rw_ratio': 3.5 / 2.0,
@@ -337,8 +342,8 @@ class TestStats():
                      'badge_name': badgerow.badge_name,
                      'badge_description': badgerow.description,
                      'slides': [10],
-                     'current_level': '1',
-                     'review_level': None,
+                     'current_level': 1,
+                     'review_level': 1,
                      'cat1_reached':  (datetime.datetime(2014, 1, 1, 0, 0), 'Jan  1, 2014'),
                      'cat2_reached':  (None, None),
                      'cat3_reached':  (None, None),
@@ -365,7 +370,7 @@ class TestStats():
                                       ).select()],
                      }]
 
-        actual = myStats[0].active_tags()
+        actual = myStats[0].active_tags(now=now)
         pprint(actual)
         assert len(actual) == len(expected)
         for k in actual[0].keys():
