@@ -388,17 +388,19 @@ class Stats(object):
             - prettydate_cat1, prettydate_cat2, prettydate_cat3,
               prettydate_cat4
         """
-        for t in tag_recs:
+        for idx, t in enumerate(tag_recs):
             try:
                 bbrows = [b for b in self.badges_begun if b.tag == t['tag']][0]
             except IndexError:
                 bbrows = None
+
             for k in range(1, 5):
                 cat = 'cat{}'.format(k)
                 dt = self._local(bbrows[cat]) if bbrows and bbrows[cat] else None
                 prettydate = dt.strftime('%b %e, %Y') \
                     if isinstance(dt, datetime.datetime) else None
-                t.update({'{}_reached'.format(cat): (dt, prettydate)})
+                tag_recs[idx]['{}_reached'.format(cat)] = (dt, prettydate)
+
         return tag_recs
 
     def _add_log_data(self, tag_recs):
@@ -415,10 +417,8 @@ class Stats(object):
         db = current.db
         #usrows = db(db.user_stats.name == self.user_id).select()
         usrows = self._get_logs_for_range()
-        pprint(usrows)
         for t in tag_recs:
             tag = t['tag']
-            print 'tag is', tag
             t['logs_by_week'] = copy(usrows)
             t['logs_right'] = []
             t['logs_wrong'] = []
@@ -426,9 +426,11 @@ class Stats(object):
                 for weeknum, yrdata in yeardata.iteritems():
                     try:
                         bytag = yrdata[1][str(tag)]
-                        print 'bytag is', bytag
                         weeklogs = {}
                         for day, count in yrdata[0].iteritems():
+                            try:
+                                weeklogs[dateutil.parser.parse(day)] = [c for c in count if c in bytag]
+                            except TypeError:
                                 weeklogs[day] = [c for c in count if c in bytag]
                         t['logs_by_week'][year][weeknum] = weeklogs
                         t['logs_right'].extend([l for l in yrdata[2] if l in bytag])
@@ -500,10 +502,12 @@ class Stats(object):
                 tr[idx]['rw_ratio'] = t['times_right'] / t['times_wrong']
             except (ZeroDivisionError, TypeError):
                 tr[idx]['rw_ratio'] = t['times_right']
+            t['tlast_wrong'] = tr[idx]['tlast_wrong'] = dateutil.parser.parse(t['tlast_wrong'])
+            t['tlast_right'] = tr[idx]['tlast_right'] = dateutil.parser.parse(t['tlast_right'])
             tr[idx]['delta_wrong'] = now - t['tlast_wrong']
             tr[idx]['delta_right'] = now - t['tlast_right']
-            tr[idx]['delta_right_wrong'] = t['tlast_right'] - t['tlast_wrong'] \
-                if t['tlast_right'] > t['tlast_wrong'] \
+            tr[idx]['delta_right_wrong'] = tr[idx]['tlast_right'] - tr[idx]['tlast_wrong'] \
+                if tr[idx]['tlast_right'] > tr[idx]['tlast_wrong'] \
                 else datetime.timedelta(days=0)
             # localize datetimes before displaying on user profile
             t['tlast_right'] = self._local(t['tlast_right'])
@@ -552,7 +556,11 @@ class Stats(object):
 
         """
         tz = self.user.tz_obj if not tz else tz
-        offset = tz.utcoffset(dt)  # handles dst adjustments
+        try:
+            offset = tz.utcoffset(dt)  # handles dst adjustments
+        except (TypeError, AttributeError):
+            dt = dateutil.parser.parse(dt)
+            offset = tz.utcoffset(dt)
         newdt = dt + offset
         return newdt
 
@@ -718,16 +726,12 @@ class Stats(object):
         startwtz = tz.localize(naivestart)
         ustop = stopwtz.astimezone(utc)
         ustart = startwtz.astimezone(utc)
-        print 'ustop', ustop
-        print 'ustart', ustart
 
         usdict = {}
         usrows = db((db.user_stats.name == self.user_id) &
                     (db.user_stats.day7 > ustart) &
                     (db.user_stats.day7 < ustop)).select()
         usrows = usrows.as_list()
-        print 'in logs for range=================================='
-        pprint(usrows)
         if usrows:
             # weeks and days organized by user's local time
             # but datetimes themselves are still utc
@@ -818,9 +822,14 @@ class Stats(object):
         newmcal = calendar.HTMLCalendar(6).formatmonth(year, month)
         mycal = TAG(newmcal)
         try:
-            daycounts = {k: len(v)
-                         for week in rangelogs[year].values()
-                         for k, v in week[0].iteritems()}
+            try:
+                daycounts = {dateutil.parser.parse(k): len(v)
+                             for week in rangelogs[year].values()
+                             for k, v in week[0].iteritems()}
+            except TypeError:
+                daycounts = {k: len(v)
+                             for week in rangelogs[year].values()
+                             for k, v in week[0].iteritems()}
             # Create html calendar and add daily count numbers
             for week in mycal.elements('tr'):
                 weekcount = 0
