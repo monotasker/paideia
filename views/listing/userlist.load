@@ -17,7 +17,7 @@ modal = MODAL('Add members', 'Add new members to this class',
                footer=ftr,
                trigger_classes='btn-success btn pull-right')
 }}
-{{=modal}}
+{{=modal[0]}}
 {{
 tbl = TABLE(TR(TH(),
                TH(),
@@ -77,4 +77,4 @@ tbl.append(row)
 pass
 }}
 {{=tbl}}
-
+{{=modal[1]}}
