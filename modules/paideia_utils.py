@@ -18,6 +18,7 @@ from itertools import chain
 #from pprint import pprint
 import datetime
 import json
+import plugin_utils
 
 
 def uprint(myobj):
@@ -108,10 +109,10 @@ def uprint_tuple(mytup, lvl=0):
 def islist(dat):
     """
     Return the supplied object converted to a list if it is not already.
+
+    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
     """
-    if not isinstance(dat, list):
-        dat = [dat]
-    return dat
+    return plugin_utils.islist(dat)
 
 
 def sanitize_greek(strings):
@@ -173,90 +174,64 @@ def clr(string, mycol='white'):
     The default color is white. The function can take any number of positional
     arguments as component strings, which will be joined (space delimited)
     before being colorized.
-    """
-    col = {'white': '\033[95m',
-           'blue': '\033[94m',
-           'green': '\033[92m',
-           'orange': '\033[93m',
-           'red': '\033[91m',
-           'lightblue': '\033[1;34m',
-           'lightgreen': '\033[1;32m',
-           'lightcyan': '\033[1;36m',
-           'lightred': '\033[1;31m',
-           'lightpurple': '\033[1;35m',
-           'white': '\033[1;37m',
-           'endc': '\033[0m'
-           }
-    thecol = col[mycol]
-    endc = col['endc']
-    if isinstance(string, list):
-        try:
-            string = ' '.join(string)
-        except TypeError:
-            string = ' '.join([str(s) for s in string])
 
-    newstring = '{}{}{}'.format(thecol, string, endc)
-    return newstring
+    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
+    """
+    return plugin_utils.clr(string, mycol)
 
 
 def printutf(string):
-    """Convert unicode string to readable characters for printing."""
-    string = makeutf8(string)
-    return string
+    """
+    Convert unicode string to readable characters for printing.
+
+    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
+    """
+    return plugin_utils.printutf(string)
 
 
 def capitalize(letter):
     """
     Convert string to upper case in utf-8 safe way.
+
+    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
     """
-    letter = makeutf8(letter)
-    newletter = letter.upper()
-    return newletter
+    return plugin_utils.capitalize(letter)
 
 
 def lowercase(letter):
     """
     Convert string to lower case in utf-8 safe way.
+
+    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
     """
-    letter = makeutf8(letter)
-    newletter = letter.lower()
-    return newletter
+    return plugin_utils.lowercase(letter)
 
 
 def makeutf8(rawstring):
-    """Return the string decoded as utf8 if it wasn't already."""
-    try:
-        rawstring = rawstring.decode('utf8')
-    except (UnicodeEncodeError, UnicodeDecodeError):  # if already decoded
-        #try:
-            #rawstring = rawstring.encode('utf8').decode('utf8')
-        #except Exception:
-            #print 'encountered unicode error in makeutf8'
-        rawstring = rawstring
-    except (AttributeError, TypeError):  # if rawstring is NoneType
-        rawstring = 'None'
-    return rawstring
+    """
+    Return the string decoded as utf8 if it wasn't already.
+
+    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
+    """
+    return plugin_utils.makeutf8(rawstring)
 
 
 def firstletter(mystring):
     """
     Find the first letter of a byte-encoded unicode string.
+
+    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
     """
-    mystring = makeutf8(mystring)
-    let, tail = mystring[:1], mystring[1:]
-    #print 'in firstletter: ', mystring[:1], '||', mystring[1:]
-    #let, tail = let.encode('utf8'), tail.encode('utf8')
-    return let, tail
+    return plugin_utils.firstletter(mystring)
 
 
 def capitalize_first(mystring):
     """
     Return the supplied string with its first letter capitalized.
+
+    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
     """
-    first, rest = firstletter(mystring)
-    first = capitalize(first)
-    newstring = first + makeutf8(rest)
-    return newstring
+    return plugin_utils.capitalize_first(mystring)
 
 
 def test_regex(regex, readables):
@@ -264,22 +239,14 @@ def test_regex(regex, readables):
     Return a re.match object for each given string, tested with the given regex.
 
     The "readables" argument should be a list of strings to be tested.
+
+    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
     """
-    print 'testing regex ====================================='
-    uprint(regex)
     readables = islist(readables)
     test_regex = re.compile(makeutf8(regex), re.I | re.U)
     rdict = {}
     for rsp in readables:
         match = re.match(test_regex, makeutf8(rsp))
-        #print 'string is--------------------------------------'
-        #print rsp
-        #print 'match is --------------------------------------'
-        #print match
-        #if match:
-            #print 'if match:', True
-        #else:
-            #print 'if match:', False
         rdict[rsp] = True if match else False
     return rdict
 
@@ -307,49 +274,37 @@ def test_step_regex():
 def flatten(items, seqtypes=(list, tuple)):
     """
     Convert an arbitrarily deep nested list into a single flat list.
+
+    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
     """
-    for i, x in enumerate(items):
-        try:
-            while isinstance(items[i], seqtypes):
-                items[i:i + 1] = items[i]
-        except IndexError:
-            continue
-    return items
+    return plugin_utils.flatten(items, seqtypes)
 
 
 def send_error(myclass, mymethod, myrequest):
-    """ Send an email reporting error and including debug info. """
-    mail = current.mail
-    msg = '<html>A user encountered an error in {myclass}.{mymethod}' \
-          'report failed.\n\nTraceback: {tb}' \
-          'Request:\n{rq}\n' \
-          '</html>'.format(myclass=myclass,
-                           mymethod=mymethod,
-                           tb=traceback.format_exc(5),
-                           rq=myrequest)
-    title = 'Paideia error'
-    mail.send(mail.settings.sender, title, msg)
+    """
+    Send an email reporting error and including debug info.
+
+    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
+    """
+    plugin_utils.send_error(myclass, mymethod, myrequest)
 
 
 def make_json(data):
     """
     Return json object representing the data provided in dictionary "data".
+
+    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
     """
-    date_handler = lambda obj: obj.isoformat() \
-        if isinstance(obj, datetime.datetime) else None
-    myjson = json.dumps(data,
-                        default=date_handler,
-                        indent=4,
-                        sort_keys=True)
-    return myjson
+    return plugin_utils.myjson(data)
 
 
 def load_json(data):
     """
     Read a json object and return as a simple python type object.
+
+    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
     """
-    obj = json.loads(data)
-    return obj
+    return plugin_utils.load_json(data)
 
 
 def normalize_accents(strings):
@@ -476,12 +431,8 @@ def gather_vocab():
     return mywords_dict, dups_dict
 
 
-def multiple_replacer(*key_values):
-    replace_dict = dict(key_values)
-    replacement_function = lambda match: replace_dict[match.group(0)]
-    pattern = re.compile("|".join([re.escape(k) for k, v in key_values]), re.M)
-    return lambda string: pattern.sub(replacement_function, string)
-
-
 def multiple_replace(string, *key_values):
-    return multiple_replacer(*key_values)(string)
+    """
+    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
+    """
+    return plugin_utils.multiple_replacer(string, *key_values)

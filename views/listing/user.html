@@ -1,27 +1,7 @@
-{{from plugin_widgets import MODAL}}
 {{extend 'layout.html'}}
 
-{{
-submit_args = {'_type': 'submit',
-               '_value': 'Add',
-               '_data-dismiss': 'modal',
-               '_class': 'btn btn-success pull-right'}
-cancel_args = {'_aria-hidden': 'true',
-               '_data-dismiss': 'modal',
-               '_type': 'button',
-               '_class': 'btn pull-right'}
-ftr = CAT(INPUT(**submit_args),
-          BUTTON('Cancel', **cancel_args))
-modal = MODAL('Add members', 'Add new members to this class',
-               LOAD('listing', 'add_user_form.load',
-                    vars={'classid': classid}, ajax=True),
-               id='add_members',
-               footer=ftr,
-               trigger_classes='btn-success btn pull-right')
-}}
-{{=modal[0]}}
 {{=chooser}}
 <div class='user_list'>
     {{=LOAD('listing', 'userlist.load', vars={'value': classid}, ajax=False)}}
 </div>
-{{=modal[1]}}
+{{print 'done rendering view'}}
