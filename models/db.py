@@ -132,6 +132,7 @@ auth.settings.extra_fields['auth_group'] = [
 ]
 
 auth.define_tables()                           # creates all needed tables
+db.auth_user._format = lambda row: '{}:{}, {}'.format(row.id, row.last_name, row.first_name)
 
 
 #-------------------------------------------------------------
