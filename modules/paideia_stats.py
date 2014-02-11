@@ -8,7 +8,7 @@ from pytz import timezone, utc
 from gluon import current, DIV, SPAN, A, URL, UL, LI, B
 from gluon import TAG
 from paideia_utils import make_json, load_json
-from pprint import pprint
+#from pprint import pprint
 import itertools
 
 
@@ -502,8 +502,11 @@ class Stats(object):
                 tr[idx]['rw_ratio'] = t['times_right'] / t['times_wrong']
             except (ZeroDivisionError, TypeError):
                 tr[idx]['rw_ratio'] = t['times_right']
-            t['tlast_wrong'] = tr[idx]['tlast_wrong'] = dateutil.parser.parse(t['tlast_wrong'])
-            t['tlast_right'] = tr[idx]['tlast_right'] = dateutil.parser.parse(t['tlast_right'])
+            try:
+                t['tlast_wrong'] = tr[idx]['tlast_wrong'] = dateutil.parser.parse(t['tlast_wrong'])
+                t['tlast_right'] = tr[idx]['tlast_right'] = dateutil.parser.parse(t['tlast_right'])
+            except AttributeError:
+                pass
             tr[idx]['delta_wrong'] = now - t['tlast_wrong']
             tr[idx]['delta_right'] = now - t['tlast_right']
             tr[idx]['delta_right_wrong'] = tr[idx]['tlast_right'] - tr[idx]['tlast_wrong'] \
@@ -826,7 +829,7 @@ class Stats(object):
                 daycounts = {dateutil.parser.parse(k): len(v)
                              for week in rangelogs[year].values()
                              for k, v in week[0].iteritems()}
-            except TypeError:
+            except (TypeError, AttributeError):
                 daycounts = {k: len(v)
                              for week in rangelogs[year].values()
                              for k, v in week[0].iteritems()}
