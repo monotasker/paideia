@@ -4,7 +4,7 @@ if 0:
     from gluon import URL
 from paideia_stats import Stats
 from paideia_bugs import Bug
-import traceback
+#import traceback
 #from paideia_utils import send_error
 from pprint import pprint
 #from gluon.tools import prettydate
@@ -133,44 +133,40 @@ def info():
     'duration':         Default duration for recent paths info (from
                         stats.step_log['duration'])
     """
-    try:
+    # Allow passing explicit user but default to current user
+    if 'id' in request.vars:
+        user = db.auth_user[request.vars['id']]
+    else:
+        user = db.auth_user[auth.user_id]
 
-        # Allow passing explicit user but default to current user
-        if 'id' in request.vars:
-            user = db.auth_user[request.vars['id']]
-        else:
-            user = db.auth_user[auth.user_id]
+    stats = Stats(user.id, cache=cache)
 
-        stats = Stats(user.id, cache=cache)
+    # tab1
+    name = stats.get_name()
+    tz = user.time_zone
+    email = user.email
+    max_set = stats.get_max()
+    goal = stats.get_goal()
+    badge_table_data = stats.active_tags()
+    print 'badge_table_data'
+    pprint(badge_table_data[0])
+    badge_levels = stats.get_badge_levels(badge_table_data)
+    badges_active_over_time = stats.badges_active_over_time(badge_table_data)
 
-        # tab1
-        name = stats.get_name()
-        tz = user.time_zone
-        email = user.email
-        max_set = stats.get_max()
-        goal = stats.get_goal()
-        badge_table_data = stats.active_tags()
-        print 'badge_table_data'
-        pprint(badge_table_data[0])
-        badge_levels = stats.get_badge_levels(badge_table_data)
-        badges_active_over_time = stats.badges_active_over_time(badge_table_data)
+    # tab2
+    mycal = stats.monthcal()
+    badges_tested_over_time = stats.badges_tested_over_time(badge_table_data)
+    sets_tested_over_time = stats.sets_tested_over_time(badge_table_data)
+    steps_most_wrong = stats.steps_most_wrong(badge_table_data)
 
-        # tab2
-        mycal = stats.monthcal()
-        badges_tested_over_time = stats.badges_tested_over_time(badge_table_data)
-        sets_tested_over_time = stats.sets_tested_over_time(badge_table_data)
-        steps_most_wrong = stats.steps_most_wrong(badge_table_data)
+    # tab3
+    b = Bug()
+    blist = b.bugresponses(user.id)
 
-        # tab3
-        b = Bug()
-        blist = b.bugresponses(user.id)
-
-        #catlabels = ['started at beginner level',
-                    #'promoted to apprentice level',
-                    #'promoted to journeyman level',
-                    #'promoted to master level']
-    except Exception:
-        print traceback.format_exc(5)
+    #catlabels = ['started at beginner level',
+                #'promoted to apprentice level',
+                #'promoted to journeyman level',
+                #'promoted to master level']
 
     return {'the_name': name,
             'tz': tz,
