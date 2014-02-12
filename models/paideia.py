@@ -282,6 +282,10 @@ db.define_table('steps',
                 Field('locations', 'list:reference locations'),
                 Field('status', db.step_status, default=1),
     format='%(id)s: %(prompt)s')
+db.steps.prompt_audio.requires = IS_EMPTY_OR(IS_IN_DB(db, 'audio.id',
+                                                      db.audio._format))
+db.steps.widget_image.requires = IS_EMPTY_OR(IS_IN_DB(db, 'images.id',
+                                                      db.images._format))
 db.steps.step_options.widget = SQLFORM.widgets.list.widget
 #db.steps.response1.requires = IS_VALID_REGEX()
 db.steps.npcs.requires = IS_IN_DB(db, 'npcs.id', db.npcs._format, multiple=True)
@@ -326,9 +330,9 @@ db.steps.locations.widget = lambda field, value: AjaxSelect(field, value,
                                                             multi='basic',
                                                             lister='simple'
                                                             ).widget()
-db.steps.hints.requires = IS_IN_DB(db, 'step_hints.id',
-                                   db.step_hints._format,
-                                   multiple=True)
+db.steps.hints.requires = IS_EMPTY_OR(IS_IN_DB(db, 'step_hints.id',
+                                               db.step_hints._format,
+                                               multiple=True))
 db.steps.hints.widget = lambda field, value: AjaxSelect(field, value,
                                                         indx=6,
                                                         refresher=True,
@@ -336,9 +340,9 @@ db.steps.hints.widget = lambda field, value: AjaxSelect(field, value,
                                                         lister='simple',
                                                         orderby='hint_label'
                                                         ).widget()
-db.steps.instructions.requires = IS_IN_DB(db, 'step_instructions.id',
-                                          db.step_instructions._format,
-                                          multiple=True)
+db.steps.instructions.requires = IS_EMPTY_OR(IS_IN_DB(db, 'step_instructions.id',
+                                                      db.step_instructions._format,
+                                                      multiple=True))
 db.steps.instructions.widget = lambda field, value: \
                                             AjaxSelect(field, value,
                                                        indx=7,
@@ -346,6 +350,17 @@ db.steps.instructions.widget = lambda field, value: \
                                                        multi='basic',
                                                        lister='simple',
                                                        orderby='instruction_label'
+                                                       ).widget()
+db.steps.lemmas.requires = IS_EMPTY_OR(IS_IN_DB(db, 'lemmas.id',
+                                                      db.lemmas._format,
+                                                      multiple=True))
+db.steps.lemmas.widget = lambda field, value: \
+                                            AjaxSelect(field, value,
+                                                       indx=7,
+                                                       refresher=True,
+                                                       multi='basic',
+                                                       lister='simple',
+                                                       orderby='lemma'
                                                        ).widget()
 
 db.define_table('badges_begun',
