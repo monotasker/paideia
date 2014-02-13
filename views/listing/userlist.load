@@ -4,7 +4,7 @@ submit_args = {'_type': 'submit',
                '_value': 'Add',
                '_data-dismiss': 'modal',
                '_class': 'btn btn-success pull-right'}
-cancel_args = {'_aria-hidden': 'true', 
+cancel_args = {'_aria-hidden': 'true',
                '_data-dismiss': 'modal',
                '_type': 'button',
                '_class': 'btn pull-right'}
@@ -17,7 +17,7 @@ modal = MODAL('Add members', 'Add new members to this class',
                footer=ftr,
                trigger_classes='btn-success btn pull-right')
 }}
-{{=modal}}
+{{=modal[0]}}
 {{
 tbl = TABLE(TR(TH(),
                TH(),
@@ -31,7 +31,7 @@ tbl = TABLE(TR(TH(),
                TH('days > {}'.format(target)),
                TH('days > 0')
                ),
-            _class='users_list_table')
+            _class='table table-condensed users_list_table')
 
 for user in users:
     row = TR(TD(A(user.auth_user.last_name + ',' + user.auth_user.first_name,
@@ -68,13 +68,13 @@ for user in users:
                           A('ahead',
                             _class='btn btn-success',
                             _href=URL('listing', 'promote_user',
-                                      vars={'uid': uid, 'classid': classid, 
+                                      vars={'uid': uid, 'classid': classid,
                                             'rec': user.tag_progress.id}),
                             cid=request.cid),
                           _class='btn-group')
-                        ))) 
+                        )))
 tbl.append(row)
 pass
 }}
 {{=tbl}}
-
+{{=modal[1]}}

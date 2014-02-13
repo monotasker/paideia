@@ -19,3 +19,6 @@
 [submodule "plugins/plugin_d3"]
 	path = plugins/plugin_d3
 	url = git@github.com:monotasker/plugin_d3.git
+[submodule "plugins/plugin_utils"]
+	path = plugins/plugin_utils
+	url = git@github.com:monotasker/plugin_utils.git

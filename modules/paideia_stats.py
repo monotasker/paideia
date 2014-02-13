@@ -4,7 +4,7 @@ from collections import Counter
 import dateutil.parser
 import traceback
 from copy import copy
-from pytz import timezone
+from pytz import timezone, utc
 from gluon import current, DIV, SPAN, A, URL, UL, LI, B
 from gluon import TAG
 from paideia_utils import make_json, load_json
@@ -329,7 +329,7 @@ class Stats(object):
                 for k, v in tag_progress.iteritems():
                     if k in ['cat1', 'cat2', 'cat3', 'cat4']:
                         if v and tid in [int(i) for i in v]:
-                            t['current_level'] = k[3:]
+                            t['current_level'] = int(k[3:])
                             break
                     else:
                         t['current_level'] = 1
@@ -340,7 +340,7 @@ class Stats(object):
                 for k, v in tag_progress.iteritems():
                     if k in ['rev1', 'rev2', 'rev3', 'rev4']:
                         if v and tid in [int(i) for i in v]:
-                            t['review_level'] = k[3:]
+                            t['review_level'] = int(k[3:])
                             break
                     else:
                         t['review_level'] = 1
@@ -388,17 +388,19 @@ class Stats(object):
             - prettydate_cat1, prettydate_cat2, prettydate_cat3,
               prettydate_cat4
         """
-        for t in tag_recs:
+        for idx, t in enumerate(tag_recs):
             try:
                 bbrows = [b for b in self.badges_begun if b.tag == t['tag']][0]
             except IndexError:
                 bbrows = None
+
             for k in range(1, 5):
-                cat = 'cat{}_reached'.format(k)
-                dt = bbrows['cat{}'.format(k)] if bbrows else None
+                cat = 'cat{}'.format(k)
+                dt = self._local(bbrows[cat]) if bbrows and bbrows[cat] else None
                 prettydate = dt.strftime('%b %e, %Y') \
                     if isinstance(dt, datetime.datetime) else None
-                t.update({cat: (dt, prettydate)})
+                tag_recs[idx]['{}_reached'.format(cat)] = (dt, prettydate)
+
         return tag_recs
 
     def _add_log_data(self, tag_recs):
@@ -423,13 +425,16 @@ class Stats(object):
             for year, yeardata in usrows.iteritems():
                 for weeknum, yrdata in yeardata.iteritems():
                     try:
-                        bytag = yrdata[1]
+                        bytag = yrdata[1][str(tag)]
                         weeklogs = {}
                         for day, count in yrdata[0].iteritems():
-                                weeklogs[day] = [c for c in count if c in bytag[tag]]
-                        t['logs_by_week'][weeknum] = weeklogs
-                        t['logs_right'].extend([l for l in yrdata[2] if l in bytag[tag]])
-                        t['logs_wrong'].extend([l for l in yrdata[3] if l in bytag[tag]])
+                            try:
+                                weeklogs[dateutil.parser.parse(day)] = [c for c in count if c in bytag]
+                            except TypeError:
+                                weeklogs[day] = [c for c in count if c in bytag]
+                        t['logs_by_week'][year][weeknum] = weeklogs
+                        t['logs_right'].extend([l for l in yrdata[2] if l in bytag])
+                        t['logs_wrong'].extend([l for l in yrdata[3] if l in bytag])
                     except KeyError:  # no logs for this tag that week
                         pass
                     except IndexError:
@@ -437,12 +442,12 @@ class Stats(object):
             all_logs = t['logs_right'] + t['logs_wrong']
             all_rows = db(db.attempt_log.id.belongs(all_logs)).select(db.attempt_log.score)
             t['avg_score'] = sum([r.score for r in all_rows]) / len(all_rows) \
-                             if all_rows else None
+                if all_rows else None
             if isinstance(t['avg_score'], float):
                 t['avg_score'] = round(t['avg_score'], 1)
         return tag_recs
 
-    def active_tags(self):
+    def active_tags(self, now=None):
         '''
         Find the tags that are currently active for this user, categorized 1-4.
 
@@ -489,6 +494,7 @@ class Stats(object):
 
         '''
         tr = self.tag_recs.as_list()
+        now = self.utcnow if not now else now
         for idx, t in enumerate(tr):
             tr[idx] = {k: v for k, v in t.iteritems()
                     if k not in ['id', 'name', 'in_path', 'step']}
@@ -496,19 +502,27 @@ class Stats(object):
                 tr[idx]['rw_ratio'] = t['times_right'] / t['times_wrong']
             except (ZeroDivisionError, TypeError):
                 tr[idx]['rw_ratio'] = t['times_right']
-            tr[idx]['delta_wrong'] = self.utcnow - t['tlast_wrong']
-            tr[idx]['delta_right'] = self.utcnow - t['tlast_right']
-            tr[idx]['delta_right_wrong'] = t['tlast_right'] - t['tlast_wrong'] \
-                if t['tlast_right'] > t['tlast_wrong'] \
+            try:
+                t['tlast_wrong'] = tr[idx]['tlast_wrong'] = dateutil.parser.parse(t['tlast_wrong'])
+                t['tlast_right'] = tr[idx]['tlast_right'] = dateutil.parser.parse(t['tlast_right'])
+            except AttributeError:
+                pass
+            tr[idx]['delta_wrong'] = now - t['tlast_wrong']
+            tr[idx]['delta_right'] = now - t['tlast_right']
+            tr[idx]['delta_right_wrong'] = tr[idx]['tlast_right'] - tr[idx]['tlast_wrong'] \
+                if tr[idx]['tlast_right'] > tr[idx]['tlast_wrong'] \
                 else datetime.timedelta(days=0)
-            strfr = '%b %e' if t['tlast_right'].year == self.utcnow.year \
+            # localize datetimes before displaying on user profile
+            t['tlast_right'] = self._local(t['tlast_right'])
+            strfr = '%b %e' if t['tlast_right'].year == now.year \
                     else '%b %e, %Y'
             tr[idx]['tlast_right'] = (t['tlast_right'],
-                                t['tlast_right'].strftime(strfr))
-            strfw = '%b %e' if t['tlast_right'].year == self.utcnow.year \
+                                      t['tlast_right'].strftime(strfr))
+            t['tlast_wrong'] = self._local(t['tlast_wrong'])
+            strfw = '%b %e' if t['tlast_right'].year == now.year \
                     else '%b %e, %Y'
             tr[idx]['tlast_wrong'] = (t['tlast_wrong'],
-                                t['tlast_wrong'].strftime(strfw))
+                                      t['tlast_wrong'].strftime(strfw))
         try:
             tr = self._add_progress_data(tr)
             tr = self._add_tag_data(tr)
@@ -545,7 +559,11 @@ class Stats(object):
 
         """
         tz = self.user.tz_obj if not tz else tz
-        offset = tz.utcoffset(dt)  # handles dst adjustments
+        try:
+            offset = tz.utcoffset(dt)  # handles dst adjustments
+        except (TypeError, AttributeError):
+            dt = dateutil.parser.parse(dt)
+            offset = tz.utcoffset(dt)
         newdt = dt + offset
         return newdt
 
@@ -649,7 +667,9 @@ class Stats(object):
         db = current.db
         logs = logs.as_list()
         for log in logs:
-            log['isocal'] = log['dt_attempted'].isocalendar()
+            # use local time for organizing of weeks/days
+            # but keep dt_attempted as utc
+            log['isocal'] = self._local(log['dt_attempted']).isocalendar()
 
         years_iter = itertools.groupby(logs, key=lambda log: log['isocal'][0])
         weekstats = {}
@@ -670,7 +690,7 @@ class Stats(object):
                     for t in tags:
                         logs_by_tag.setdefault(t, []).append(log['id'])
                 days_iter = itertools.groupby(weeklogs,
-                                              key=lambda d: d['dt_attempted'].date())
+                                              key=lambda d: self._local(d['dt_attempted']).date())
                 for day, daylogs in days_iter:
                     daylogs = [d['id'] for d in daylogs]
                     counts[day] = daylogs
@@ -699,15 +719,26 @@ class Stats(object):
          }
         '''
         db = current.db
-        stopdate = stopdate if stopdate else self.utcnow
-        startdate = startdate if startdate else datetime.datetime(2012, 1, 1, 0, 0)
+        # get utc equivalents of start and stop in user's time zone
+        naivestop = stopdate if stopdate else self.utcnow
+        naivestart = startdate if startdate else datetime.datetime(2012, 1, 1, 0, 0)
+        tz_name = self.user.time_zone if self.user.time_zone \
+            else 'America/Toronto'
+        tz = timezone(tz_name)
+        stopwtz = tz.localize(naivestop)
+        startwtz = tz.localize(naivestart)
+        ustop = stopwtz.astimezone(utc)
+        ustart = startwtz.astimezone(utc)
+
         usdict = {}
         usrows = db((db.user_stats.name == self.user_id) &
-                    (db.user_stats.day7 > startdate) &
-                    (db.user_stats.day7 < stopdate)).select()
+                    (db.user_stats.day7 > ustart) &
+                    (db.user_stats.day7 < ustop)).select()
         usrows = usrows.as_list()
         if usrows:
-            years = range(startdate.year, stopdate.year)
+            # weeks and days organized by user's local time
+            # but datetimes themselves are still utc
+            years = range(ustart.year, ustop.year + 1)
             usdict = {}
             for year in years:
                 myrows = [r for r in usrows if r['year'] == year]
@@ -725,9 +756,9 @@ class Stats(object):
                                                m['logs_right'],
                                                m['logs_wrong'])
         # add new logs without user_stats rows
-        updated = usrows.last().updated if usrows else startdate
+        updated = usrows[-1]['updated'] if usrows else ustart
         newlogs = db((db.attempt_log.name == self.user_id) &
-                     (db.attempt_log.dt_attempted < stopdate) &
+                     (db.attempt_log.dt_attempted < ustop) &
                      (db.attempt_log.dt_attempted > updated)).select()
         if newlogs:
             newus = self._make_logs_into_weekstats(logs=newlogs)
@@ -794,14 +825,21 @@ class Stats(object):
         newmcal = calendar.HTMLCalendar(6).formatmonth(year, month)
         mycal = TAG(newmcal)
         try:
-            daycounts = {k: len(v) for week in rangelogs[year].values() for k, v in week[0].iteritems()}
+            try:
+                daycounts = {dateutil.parser.parse(k): len(v)
+                             for week in rangelogs[year].values()
+                             for k, v in week[0].iteritems()}
+            except (TypeError, AttributeError):
+                daycounts = {k: len(v)
+                             for week in rangelogs[year].values()
+                             for k, v in week[0].iteritems()}
             # Create html calendar and add daily count numbers
             for week in mycal.elements('tr'):
                 weekcount = 0
                 for day in week.elements('td[class!="noday"]'):
                     try:
                         mycount = [v for k, v in daycounts.iteritems()
-                                if k.day == int(day[0])][0]
+                                   if k.day == int(day[0])][0]
                         countspan = SPAN(mycount, _class='daycount')
                         if mycount >= self.targetcount:
                             countspan['_class'] = 'daycount full'
