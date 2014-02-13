@@ -22,3 +22,6 @@
 [submodule "plugins/plugin_utils"]
 	path = plugins/plugin_utils
 	url = git@github.com:monotasker/plugin_utils.git
+[submodule "plugins/plugin_markmin_extras"]
+	path = plugins/plugin_markmin_extras
+	url = git@github.com:monotasker/plugin_markmin_extras.git
