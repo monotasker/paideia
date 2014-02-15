@@ -1,10 +1,13 @@
 #! /usr/bin/python
 # -*- coding: UTF-8 -*-
+
+"""
 # Unit tests for the paideia module
 #
 # Configuration and some fixtures (client, web2py) declared in
 # the file tests/conftest.py
 # run with py.test -xvs applications/paideia/tests/modules/
+"""
 
 import pytest
 from paideia import Npc, Location, User, PathChooser, Path, Categorizer, Walk
@@ -53,6 +56,7 @@ def dt(string):
     """Return datetime object parsed from the string argument supplied"""
     format = "%Y-%m-%d"
     return datetime.datetime.strptime(string, format)
+
 
 @pytest.fixture
 def bg_imgs():
@@ -272,7 +276,7 @@ def mysteps(request):
                            '</a></li><li><a data-w2p_disable_with="default" '
                            'href="/paideia/listing/slides.html/2">The Alphabet'
                            '</a></li></ul></div></div></div>'
-                }
+               }
     steps = {1: {'id': 1,
                  'paths': [2],
                  'step_type': StepText,
@@ -866,7 +870,7 @@ def myuser(mycases, user_login, db):
     step = mycases['stepdata']
     tag_progress = case['tag_progress']
     tag_records = case['tag_records']
-    localias = case['loc'].get_alias()
+    #localias = case['loc'].get_alias()
     return {'user': User(user, tag_records, tag_progress),
             'casedata': case,
             'stepdata': step}
