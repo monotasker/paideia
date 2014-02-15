@@ -1,5 +1,5 @@
 (dp1
-S'journal_pages'
+S'id'
 p2
 (dp3
 S'length'
@@ -10,19 +10,19 @@ p5
 I00
 sS'sortable'
 p6
-I3
+I1
 sS'sql'
 p7
-S'TEXT'
+S'INTEGER PRIMARY KEY AUTOINCREMENT'
 p8
 sS'notnull'
 p9
 I00
 sS'type'
 p10
-S'list:reference journal_pages'
+S'id'
 p11
-ssS'id'
+ssS'journal_pages'
 p12
 (dp13
 g4
@@ -30,17 +30,18 @@ I512
 sg5
 I00
 sg6
-I1
+I3
 sg7
-S'INTEGER PRIMARY KEY AUTOINCREMENT'
+S'TEXT'
 p14
 sg9
 I00
 sg10
-g12
-ssS'name'
+S'list:reference journal_pages'
 p15
-(dp16
+ssS'name'
+p16
+(dp17
 g4
 I512
 sg5
@@ -49,10 +50,10 @@ sg6
 I2
 sg7
 S'INTEGER REFERENCES auth_user (id) ON DELETE CASCADE'
-p17
+p18
 sg9
 I00
 sg10
 S'reference auth_user'
-p18
+p19
 ss.
