@@ -17,9 +17,9 @@ request = current.request
 now = datetime.datetime.utcnow()
 
 
-#if request.is_local:  # disable in production enviroment
-from gluon.custom_import import track_changes
-track_changes(True)
+if request.is_local:  # disable in production enviroment
+    from gluon.custom_import import track_changes
+    track_changes(True)
 
 #-------------------------------------------------------------
 # Recognize when running in test environment
@@ -93,10 +93,17 @@ with open('applications/paideia/private/app.keys', 'r') as keyfile:
 #-------------------------------------------------------------
 auth = Auth(db, hmac_key=Auth.get_or_create_key())  # authent/authorization
 
+#-------------------------------------------------------------
+# place auth in current so it can be imported by modules
+#-------------------------------------------------------------
+
+current.auth = auth
+
+#-------------------------------------------------------------
 #misc auth settings
+#-------------------------------------------------------------
 auth.settings.create_user_groups = False
 auth.settings.label_separator = ''
-
 
 #-------------------------------------------------------------
 # Customizing auth tables
@@ -155,12 +162,6 @@ auth.settings.reset_password_requires_verification = True
 auth.messages.reset_password = 'Click on the link http://' \
     + request.env.http_host + URL('default', 'user', args=['reset_password'])\
     + '/%(key)s to reset your password'
-
-#-------------------------------------------------------------
-# place auth in current so it can be imported by modules
-#-------------------------------------------------------------
-
-current.auth = auth
 
 #-------------------------------------------------------------
 # enable recaptcha anti-spam for selected actions
