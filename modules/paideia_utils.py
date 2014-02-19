@@ -295,7 +295,7 @@ def make_json(data):
 
     DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
     """
-    return plugin_utils.myjson(data)
+    return plugin_utils.make_json(data)
 
 
 def load_json(data):

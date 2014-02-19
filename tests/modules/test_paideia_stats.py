@@ -177,12 +177,12 @@ class TestStats():
         """
         db = web2py.db
         tr = db(db.tag_records.name == user_login['id']).select().as_list()
+        toronto = timezone('America/Toronto')
         for idx, t in enumerate(tr):
             tr[idx] = {k: v for k, v in t.iteritems()
                     if k not in ['id', 'name', 'in_path', 'step']}
-            print 'lastright = ', parser.parse(t['tlast_right'])
-            tr[idx]['tlast_right'] = parser.parse(t['tlast_right'])
-            tr[idx]['tlast_wrong'] = parser.parse(t['tlast_wrong'])
+            tr[idx]['tlast_right'] = t['tlast_right']
+            tr[idx]['tlast_wrong'] = t['tlast_wrong']
 
         expected = [{'secondary_right': [],
                      'tag': 72L,
@@ -191,7 +191,7 @@ class TestStats():
                      'tlast_right': datetime.datetime(2014, 2, 1, 20, 0),
                      'tlast_wrong': datetime.datetime(2014, 1, 31, 10, 0),
                      # below is newly added to input
-                     'cat1_reached':  (datetime.datetime(2013, 12, 31, 19, 0),
+                     'cat1_reached':  (toronto.localize(datetime.datetime(2013, 12, 31, 19, 0)),
                                        'Dec 31, 2013'),
                      'cat2_reached':  (None, None),
                      'cat3_reached':  (None, None),
@@ -200,6 +200,9 @@ class TestStats():
         actual = myStats[0]._add_promotion_data(tr)
         assert len(actual) == len(expected)
         for k in expected[0].keys():
+            print k
+            print 'actual:', actual[0][k]
+            print 'expected:', expected[0][k]
             assert actual[0][k] == expected[0][k]
 
     def test_add_progress_data(self, myStats, web2py, user_login):
@@ -210,9 +213,9 @@ class TestStats():
         for idx, t in enumerate(tr):
             tr[idx] = {k: v for k, v in t.iteritems()
                     if k not in ['id', 'name', 'in_path', 'step']}
-            print 'lastright = ', parser.parse(t['tlast_right'])
-            tr[idx]['tlast_right'] = parser.parse(t['tlast_right'])
-            tr[idx]['tlast_wrong'] = parser.parse(t['tlast_wrong'])
+            #print 'lastright = ', parser.parse(t['tlast_right'])
+            #tr[idx]['tlast_right'] = parser.parse(t['tlast_right'])
+            #tr[idx]['tlast_wrong'] = parser.parse(t['tlast_wrong'])
 
         expected = [{'secondary_right': [],
                      'tag': 72L,
@@ -235,9 +238,9 @@ class TestStats():
         for idx, t in enumerate(tr):
             tr[idx] = {k: v for k, v in t.iteritems()
                     if k not in ['id', 'name', 'in_path', 'step']}
-            print 'lastright = ', parser.parse(t['tlast_right'])
-            tr[idx]['tlast_right'] = parser.parse(t['tlast_right'])
-            tr[idx]['tlast_wrong'] = parser.parse(t['tlast_wrong'])
+            #print 'lastright = ', parser.parse(t['tlast_right'])
+            #tr[idx]['tlast_right'] = parser.parse(t['tlast_right'])
+            #tr[idx]['tlast_wrong'] = parser.parse(t['tlast_wrong'])
         expected = [{'secondary_right': [],
                      'tag': 72L,
                      'times_right': 3.5,
@@ -260,16 +263,16 @@ class TestStats():
         """docstring for _get_stats_from_logs"""
         db = web2py.db
         logs = myStats[1]
-        expected = {2014: {4: ({datetime.date(2014, 1, 26): [243906L]},
-                               {72L: [243906L]},
-                               [243906L],
+        expected = {2014: {4: ({datetime.date(2014, 1, 26): [logs[0]]},
+                               {72L: [logs[0]]},
+                               [logs[0]],
                                []),
-                           5: ({datetime.date(2014, 1, 28): [243907L, 243908L, 243909L],
-                               datetime.date(2014, 1, 30): [243910L],
-                               datetime.date(2014, 1, 31): [243911L]},
-                               {72L: [243907L, 243908L, 243909L, 243910L, 243911L]},
-                               [243907L, 243911L],
-                               [243908L, 243909L, 243910L])}}
+                           5: ({datetime.date(2014, 1, 28): logs[1:4],
+                               datetime.date(2014, 1, 30): [logs[4]],
+                               datetime.date(2014, 1, 31): [logs[5]]},
+                               {72L: logs[1:6]},
+                               [logs[1], logs[5]],
+                               logs[2:5])}}
         logs = db(db.attempt_log.id.belongs(myStats[1])).select()
         actual = myStats[0]._make_logs_into_weekstats(logs)
         pprint(actual)
@@ -289,9 +292,9 @@ class TestStats():
         for idx, t in enumerate(tr):
             tr[idx] = {k: v for k, v in t.iteritems()
                     if k not in ['id', 'name', 'in_path', 'step']}
-            print 'lastright = ', parser.parse(t['tlast_right'])
-            tr[idx]['tlast_right'] = parser.parse(t['tlast_right'])
-            tr[idx]['tlast_wrong'] = parser.parse(t['tlast_wrong'])
+            #print 'lastright = ', parser.parse(t['tlast_right'])
+            #tr[idx]['tlast_right'] = parser.parse(t['tlast_right'])
+            #tr[idx]['tlast_wrong'] = parser.parse(t['tlast_wrong'])
         expected = [{'secondary_right': [],
                      'avg_score': 0.6,
                      'tag': 72L,
@@ -335,12 +338,13 @@ class TestStats():
         """
         """
         db = web2py.db
+        toronto = timezone('America/Toronto')
         logs = myStats[1]
         now = datetime.datetime(2014, 2, 2, 2, 0)
         dtw = datetime.datetime(2014, 1, 31, 10, 0)
         dtr = datetime.datetime(2014, 2, 1, 20, 0)
-        dtw_local = datetime.datetime(2014, 1, 31, 05, 0)
-        dtr_local = datetime.datetime(2014, 2, 1, 15, 0)
+        dtw_local = toronto.localize(datetime.datetime(2014, 1, 31, 05, 0))
+        dtr_local = toronto.localize(datetime.datetime(2014, 2, 1, 15, 0))
         print 'delta_right:', now - dtr
         print 'delta_wrong:', now - dtw
         tagnum = 72
@@ -362,7 +366,8 @@ class TestStats():
                      'slides': [10],
                      'current_level': 1,
                      'review_level': 1,
-                     'cat1_reached':  (datetime.datetime(2013, 12, 31, 19, 0), 'Dec 31, 2013'),
+                     'cat1_reached':  (toronto.localize(datetime.datetime(2013, 12, 31, 19, 0)),
+                                       'Dec 31, 2013'),
                      'cat2_reached':  (None, None),
                      'cat3_reached':  (None, None),
                      'cat4_reached':  (None, None),
@@ -392,11 +397,14 @@ class TestStats():
                      }]
 
         actual = myStats[0].active_tags(now=now)
-        print 'actal dw:', actual[0]['delta_wrong']
-        print 'actal dr:', actual[0]['delta_right']
-        pprint(actual)
+        #print 'actal dw:', actual[0]['delta_wrong']
+        #print 'actal dr:', actual[0]['delta_right']
+        #pprint(actual)
         assert len(actual) == len(expected)
         for k in actual[0].keys():
+            print k
+            print 'actual:', actual[0][k]
+            print 'expected:', expected[0][k]
             assert actual[0][k] == expected[0][k]
 
     def test_monthcal(self, myStats):
@@ -407,72 +415,68 @@ class TestStats():
                    '<tr>' \
                    '<th class="month" colspan="7">' \
                    '<a class="monthcal_nav_link next" ' \
-                   'href="/paideia/reporting/calendar.load/139/2014/2" ' \
-                   'onclick="web2py_component(&quot;/paideia/reporting/' \
-                   'calendar.load/139/2014/2&quot;,&quot;tab_calendar&quot;);return ' \
-                   'false;">' \
+                   'data-w2p_disable_with="default" data-w2p_method="GET" data-w2p_target="tab_calendar" ' \
+                   'href="/paideia/reporting/calendar.load/139/2014/2">' \
                    '<span class="icon-chevron-right"></span>' \
                    '</a>' \
                    '<a class="monthcal_nav_link previous" ' \
-                   'href="/paideia/reporting/calendar.load/139/2013/12" ' \
-                   'onclick="web2py_component(&quot;/paideia/reporting/' \
-                   'calendar.load/139/2013/12&quot;,&quot;tab_calendar&quot;);return ' \
-                   'false;">' \
+                   'data-w2p_disable_with="default" data-w2p_method="GET" data-w2p_target="tab_calendar" ' \
+                   'href="/paideia/reporting/calendar.load/139/2013/12">' \
                    '<span class="icon-chevron-left"></span>' \
                    '</a>' \
                    '<span class="dropdown">' \
                    '<a class="dropdown-toggle" data-target="#" ' \
-                   'data-toggle="dropdown" href="#" id="month-label" role="button">' \
+                   'data-toggle="dropdown" data-w2p_disable_with="default" href="#" id="month-label" role="button">' \
                    'January 2014 <b class="caret"></b>' \
                    '</a>' \
                    '<ul aria-labelledby="month-label" class="dropdown-menu" role="menu">' \
                    '<li class="divider"></li>' \
-                   '<li><a href="/paideia/reporting/calendar.load/139/2013/12" ' \
+                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2013/12" ' \
                    'tabindex="-1">December 2013' \
                    '</a></li>' \
-                   '<li><a href="/paideia/reporting/calendar.load/139/2013/11" ' \
+                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2013/11" ' \
                    'tabindex="-1">November 2013' \
                    '</a></li>' \
-                   '<li><a href="/paideia/reporting/calendar.load/139/2013/10" ' \
+                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2013/10" ' \
                    'tabindex="-1">October 2013</a></li>' \
-                   '<li><a href="/paideia/reporting/calendar.load/139/2013/9" ' \
+                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2013/9" ' \
                    'tabindex="-1">September 2013</a></li>' \
-                   '<li><a href="/paideia/reporting/calendar.load/139/2013/8" ' \
+                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2013/8" ' \
                    'tabindex="-1">August 2013</a></li>' \
-                   '<li><a href="/paideia/reporting/calendar.load/139/2013/7" ' \
+                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2013/7" ' \
                    'tabindex="-1">July 2013</a></li>' \
-                   '<li><a href="/paideia/reporting/calendar.load/139/2013/6" ' \
+                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2013/6" ' \
                    'tabindex="-1">June 2013</a></li>' \
-                   '<li><a href="/paideia/reporting/calendar.load/139/2013/5" ' \
+                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2013/5" ' \
                    'tabindex="-1">May 2013</a></li>' \
-                   '<li><a href="/paideia/reporting/calendar.load/139/2013/4" ' \
+                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2013/4" ' \
                    'tabindex="-1">April 2013</a></li>' \
-                   '<li><a href="/paideia/reporting/calendar.load/139/2013/3" ' \
+                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2013/3" ' \
                    'tabindex="-1">March 2013</a></li>' \
-                   '<li><a href="/paideia/reporting/calendar.load/139/2013/2" ' \
+                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2013/2" ' \
                    'tabindex="-1">February 2013</a></li>' \
                    '<li class="divider"></li>' \
-                   '<li><a href="/paideia/reporting/calendar.load/139/2012/12" ' \
+                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2012/12" ' \
                    'tabindex="-1">December 2012</a></li>' \
-                   '<li><a href="/paideia/reporting/calendar.load/139/2012/11" ' \
+                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2012/11" ' \
                    'tabindex="-1">November 2012</a></li>' \
-                   '<li><a href="/paideia/reporting/calendar.load/139/2012/10" ' \
+                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2012/10" ' \
                    'tabindex="-1">October 2012</a></li>' \
-                   '<li><a href="/paideia/reporting/calendar.load/139/2012/9" ' \
+                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2012/9" ' \
                    'tabindex="-1">September 2012</a></li>' \
-                   '<li><a href="/paideia/reporting/calendar.load/139/2012/8" ' \
+                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2012/8" ' \
                    'tabindex="-1">August 2012</a></li>' \
-                   '<li><a href="/paideia/reporting/calendar.load/139/2012/7" ' \
+                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2012/7" ' \
                    'tabindex="-1">July 2012</a></li>' \
-                   '<li><a href="/paideia/reporting/calendar.load/139/2012/6" ' \
+                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2012/6" ' \
                    'tabindex="-1">June 2012</a></li>' \
-                   '<li><a href="/paideia/reporting/calendar.load/139/2012/5" ' \
+                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2012/5" ' \
                    'tabindex="-1">May 2012</a></li>' \
-                   '<li><a href="/paideia/reporting/calendar.load/139/2012/4" ' \
+                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2012/4" ' \
                    'tabindex="-1">April 2012</a></li>' \
-                   '<li><a href="/paideia/reporting/calendar.load/139/2012/3" ' \
+                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2012/3" ' \
                    'tabindex="-1">March 2012</a></li>' \
-                   '<li><a href="/paideia/reporting/calendar.load/139/2012/2" ' \
+                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2012/2" ' \
                    'tabindex="-1">February 2012</a></li>' \
                    '<li class="divider"></li>' \
                    '</ul>' \
