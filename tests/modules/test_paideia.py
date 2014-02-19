@@ -29,9 +29,9 @@ from copy import copy
 # ===================================================================
 # Switches governing which tests to run
 # ===================================================================
-global_runall = 1
-global_run_TestNpc = 1
-global_run_TestLocation = 1
+global_runall = 0
+global_run_TestNpc = 0
+global_run_TestLocation = 0
 global_run_TestNpcChooser = False  # deprecated for Step.get_npc()
 global_run_TestStep = 1
 global_run_TestStepRedirect = 1
@@ -250,7 +250,7 @@ def mysteps(request):
                          '[[slides]]\r\nYou\'ll find the slides by '
                          'clicking on the "slides" menu item at top.',
                 'prompt1': '<div class="npc prompt"><p class="prompt-text">'
-                           'How could you write the word &quot;meet&quot; using '
+                           'How could you write the word &quot;SLUG&quot; using '
                            'Greek letters?</p>'
                            '<div class="popover-trigger btn btn-info '
                            'instructions-popover" data-placement="bottom" '
@@ -283,8 +283,8 @@ def mysteps(request):
                  'widget_type': 1,
                  'npc_list': [8, 2, 32, 1, 17],
                  'locations': [3, 1, 13, 7, 8, 11],
-                 'raw_prompt': prompts['prompt1'],
-                 'final_prompt': prompts['prompt1'],
+                 'raw_prompt': prompts['prompt1'].replace('SLUG', 'meet'),
+                 'final_prompt': prompts['prompt1'].replace('SLUG', 'meet'),
                  'redirect_prompt': prompts['redirect'],
                  'instructions': ['Focus on finding Greek letters that make '
                                   'the *sounds* of the English word. Don\'t '
@@ -309,10 +309,8 @@ def mysteps(request):
                  'widget_type': 1,
                  'npc_list': [8, 2, 32, 1],
                  'locations': [3, 1, 13, 7, 8, 11],
-                 'raw_prompt': 'How could you write the word "bought" using '
-                               'Greek letters?',
-                 'final_prompt': 'How could you write the word "bought" using '
-                                 'Greek letters?',
+                 'raw_prompt': prompts['prompt1'].replace('SLUG', 'bought'),
+                 'final_prompt': prompts['prompt1'].replace('SLUG', 'bought'),
                  'redirect_prompt': prompts['redirect'],
                  'instructions': None,
                  'tags': [61],
@@ -1284,32 +1282,25 @@ class TestLocation():
         assert myloc.get_id() == 6
 
 
-#class TestNpcChooser():
-    #"""
-    #Unit tests covering the NpcChooser class of the paideia module.
-    #"""
-    #pytestmark = pytest.mark.skipif('not global_runall and '
-                                    #'not global_run_TestNpcChooser')
-
-    #def test_npcchooser_choose(self, mynpcchooser):
-        #if mynpcchooser:
-            #possible = mynpcchooser['step'].get_npcs()
-            #out = mynpcchooser['chooser'].choose()
-            #assert out.get_id() in possible
-
-
 class TestStep():
     """
     Unit tests covering the Step class of the paideia module.
     """
     pytestmark = pytest.mark.skipif('not global_runall and '
                                     'not global_run_TestStep')
+    run_getid = 0
+    run_getinstructions = 0
+    run_getnpc = 0
+    run_getprompt = 1
+    run_gettags = 1
+    run_makereplacemts = 1
 
     def test_step_get_id(self, mystep):
         """Test for method Step.get_id
 
         mystep fixture will be None for invalid step/case combinations.
         """
+        pytestmark = pytest.mark.skipif('not run_getid')
         if mystep:
             sid = mystep['stepdata']['id']
             stype = mystep['stepdata']['step_type']
@@ -1323,6 +1314,7 @@ class TestStep():
 
         mystep fixture will be None for invalid step/case combinations.
         """
+        pytestmark = pytest.mark.skipif('not run_gettags')
         if mystep:
             primary = mystep['stepdata']['tags']
             secondary = mystep['stepdata']['tags_secondary']
@@ -1334,24 +1326,25 @@ class TestStep():
 
     def test_step_get_prompt(self, mystep, db, npc_data, bg_imgs):
         """Test for method Step.get_prompt"""
+        pytestmark = pytest.mark.skipif('not run_getprompt')
         if mystep:
             step = mystep['step']
-            sdata = mystep['stepdata']
+            expected = mystep['stepdata']
             case = mystep['casedata']
-            if sdata['widget_type'] in [1, 4]:
-                stepnpcs = sdata['npc_list']
-                locnpcs = [int(n) for n in case['npcs_here'] if n in stepnpcs]
+            if expected['widget_type'] in [1, 4]:
+                npcs_available = [int(n) for n in case['npcs_here']
+                                  if n in expected['npc_list']]
                 username = case['name']
-                if locnpcs:
-                    oprompt = sdata['final_prompt']
-                    onpc_image = [npc_data[n]['image'] for n in stepnpcs
-                                  if n in locnpcs]
-                    obg_imgs = [bg_imgs[n] for n in sdata['locations']]
-                    step.npc = Npc(locnpcs[0], db)
-                    p = step.get_prompt(username)
-                    assert p['npc'].xml() == oprompt
-                    assert p['bg_image'] in obg_imgs
-                    assert p['npc_image'].attributes['_src'] in onpc_image
+                if npcs_available:
+                    expected_nimgs = [npc_data[n]['image']
+                                      for n in expected['npc_list']
+                                      if n in npcs_available]
+                    expected_bgs = [bg_imgs[n] for n in expected['locations']]
+                    step.npc = Npc(npcs_available[0], db)
+                    actual = step.get_prompt(username)
+                    assert actual['npc'].xml() == expected['final_prompt']
+                    assert actual['bg_image'] in expected_bgs
+                    assert actual['npc_image'].attributes['_src'] in expected_nimgs
                 else:
                     assert step.get_prompt(username) == 'redirect'
             else:
@@ -1361,6 +1354,7 @@ class TestStep():
 
     def test_step_make_replacements(self, mystep):
         """Unit test for method Step._make_replacements()"""
+        pytestmark = pytest.mark.skipif('not run_makereplacemts')
         if mystep and mystep['stepdata']['id'] not in [30, 125, 126, 127]:
             step = mystep['step']
             sdata = mystep['stepdata']
@@ -1380,6 +1374,7 @@ class TestStep():
 
     def test_step_get_npc(self, mystep):
         """Test for method Step.get_npc"""
+        pytestmark = pytest.mark.skipif('not run_getnpc')
         # TODO: make sure the npc really is randomized
         if mystep:
             actual = mystep['step'].get_npc()
@@ -1401,6 +1396,7 @@ class TestStep():
 
     def test_step_get_instructions(self, mystep):
         """Test for method Step._get_instructions"""
+        pytestmark = pytest.mark.skipif('not run_getinstructions')
         if mystep:
             expected = mystep['stepdata']['instructions']
             actual = mystep['step']._get_instructions()
