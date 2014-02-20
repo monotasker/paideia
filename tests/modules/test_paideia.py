@@ -17,6 +17,7 @@ from paideia import StepEvaluator, MultipleEvaluator, StepQuotaReached
 from paideia import Block, BugReporter
 from gluon import A, URL, DIV, LI, UL, SPAN, IMG
 from gluon import current
+from pprint import pprint
 # from gluon.dal import Rows
 
 import datetime
@@ -63,14 +64,15 @@ def bg_imgs():
     """
     Pytest fixture to provide background image info for each test location.
     """
-    imgs = {3: '/paideia/static/images/images.image.9d1cc1a617c75069.'
+    imgs = {3: 'images.image.9d1cc1a617c75069.'
                '706c616365735f6f696b6f73415f706572697374796c652e737667.svg',
-            1: '',
-            6: '',
-            7: '',
-            8: '',
-            11: '',
-            13: ''}
+            1: 'images.image.9d1cc1a617c75069.'
+               '706c616365735f6f696b6f73415f706572697374796c652e737667.svg',
+            6: 'images.image.b9c9c11590e5511a.706c616365735f616c6578616e646572732d73686f702e706e67.png',
+            7: 'images.image.a6a5dfde3018f62b.706c616365735f73746f612e706e67.png',
+            8: 'images.image.b9c9c11590e5511a.706c616365735f616c6578616e646572732d73686f702e706e67.png',
+            11: 'images.image.aef941740cc3753d.706c616365735f73796e61676f6775652e6a7067.jpg',
+            13: 'images.image.a53149204f5d92a1.706c616365735f62617468732e706e67.png'}
     return imgs
 
 
@@ -248,48 +250,29 @@ def mysteps(request):
                          '[[badge_list]]\r\nBefore you continue, take '
                          'some time to view these slide sets:\r\n'
                          '[[slides]]\r\nYou\'ll find the slides by '
-                         'clicking on the "slides" menu item at top.',
-                'prompt1': '<div class="npc prompt"><p class="prompt-text">'
-                           'How could you write the word &quot;meet&quot; using '
-                           'Greek letters?</p>'
-                           '<div class="popover-trigger btn btn-info '
-                           'instructions-popover" data-placement="bottom" '
-                           'data-title="Instructions for this step" '
-                           'data-toggle="popover" data-trigger="click" '
-                           'id="instructions_btn">Instructions<div '
-                           'class="popover-content" style="display: none">'
-                           '<ul><li>Focus on finding Greek letters that make '
-                           'the *sounds* of the English word. Don&#x27;t look '
-                           'for Greek &quot;equivalents&quot; for each English '
-                           'letter.</li></ul></div></div><div '
-                           'class="popover-trigger btn btn-info slides-popover" '
-                           'data-placement="bottom" data-title="Relevant slide '
-                           'decks" data-toggle="popover" data-trigger="click" '
-                           'id="Slides_btn">slides<div class="popover-content" '
-                           'style="display: none"><ul class="prompt_slides">'
-                           '<li><a data-w2p_disable_with="default" '
-                           'href="/paideia/listing/slides.html/7">Greek Words I'
-                           '</a></li><li><a data-w2p_disable_with="default" '
-                           'href="/paideia/listing/slides.html/1">Introduction'
-                           '</a></li><li><a data-w2p_disable_with="default" '
-                           'href="/paideia/listing/slides.html/6">Noun Basics'
-                           '</a></li><li><a data-w2p_disable_with="default" '
-                           'href="/paideia/listing/slides.html/2">The Alphabet'
-                           '</a></li></ul></div></div></div>'
+                         'clicking on the "slides" menu item at top.'
                }
+
     steps = {1: {'id': 1,
                  'paths': [2],
                  'step_type': StepText,
                  'widget_type': 1,
                  'npc_list': [8, 2, 32, 1, 17],
                  'locations': [3, 1, 13, 7, 8, 11],
-                 'raw_prompt': prompts['prompt1'],
-                 'final_prompt': prompts['prompt1'],
+                 'raw_prompt': 'How could you write the word "meet" '
+                               'using Greek letters?',
+                 'final_prompt': 'How could you write the word "meet" '
+                                 'using Greek letters?',
                  'redirect_prompt': prompts['redirect'],
                  'instructions': ['Focus on finding Greek letters that make '
                                   'the *sounds* of the English word. Don\'t '
                                   'look for Greek "equivalents" for each '
                                   'English letter.'],
+                 'tips': [],
+                 'slidedecks': {1: 'Introduction',
+                                2: 'The Alphabet',
+                                6: 'Noun Basics',
+                                7: 'Greek Words I'},
                  'tags': [61],
                  'tags_secondary': [],
                  'responder': responders['text'],
@@ -297,11 +280,11 @@ def mysteps(request):
                  'responses': {'response1': '^μιτ$'},
                  'readable': {'readable_short': ['μιτ'],
                               'readable_long': None},
-                 'tips': [],
                  'reply_text': {'correct': 'Right. Κάλον.',
                                 'incorrect': 'Incorrect. Try again!'},
                  'user_responses': {'correct': 'μιτ',
-                                    'incorrect': 'βλα'}
+                                    'incorrect': 'βλα'},
+                 'widget_image': None
                  },
              2: {'id': 2,
                  'paths': [3],
@@ -315,6 +298,7 @@ def mysteps(request):
                                  'Greek letters?',
                  'redirect_prompt': prompts['redirect'],
                  'instructions': None,
+                 'slidedecks': None,
                  'tags': [61],
                  'tags_secondary': [],
                  'responder': responders['text'],
@@ -326,7 +310,8 @@ def mysteps(request):
                                 'incorrect': 'Incorrect. Try again!'},
                  'tips': None,  # why is this None, but elsewhere it's []?
                  'user_responses': {'correct': 'βοτ',
-                                    'incorrect': 'βλα'}
+                                    'incorrect': 'βλα'},
+                 'widget_image': None
                  },
              19: {'id': 19,
                  'paths': [19],
@@ -343,6 +328,7 @@ def mysteps(request):
                                   'the *sounds* of the English word. Don\'t '
                                   'look for Greek "equivalents" for each '
                                   'English letter.'],
+                 'slidedecks': None,
                  'tags': [62],
                  'tags_secondary': [61],
                  'responses': {'response1': '^πωλ$'},
@@ -354,7 +340,8 @@ def mysteps(request):
                                 'incorrect': 'Incorrect. Try again!'},
                  'tips': [],
                  'user_responses': {'correct': 'πωλ',
-                                    'incorrect': 'βλα'}
+                                    'incorrect': 'βλα'},
+                 'widget_image': None
                   },
              30: {'id': 30,
                   'paths': [None],
@@ -365,10 +352,13 @@ def mysteps(request):
                   'raw_prompt': prompts['redirect'],
                   'redirect_prompt': prompts['redirect'],
                   'instructions': None,
+                  'slidedecks': None,
                   'tags': [70],
                   'tags_secondary': [],
                   'redirect_responder': responders['stub'],
-                  'responder': responders['stub']},
+                  'responder': responders['stub'],
+                  'widget_image': None
+                  },
              101: {'id': 101,
                    'paths': [89],
                    'step_type': StepMultiple,
@@ -381,6 +371,7 @@ def mysteps(request):
                                    'cat sat."',
                    'redirect_prompt': prompts['redirect'],
                    'instructions': None,
+                   'slidedecks': None,
                    'tags': [36],
                    'tags_secondary': [],
                    'step_options': ['ναι', 'οὐ'],
@@ -393,7 +384,9 @@ def mysteps(request):
                                       'incorrect': 'οὐ'},
                    'reply_text': {'correct': 'Right. Κάλον.',
                                   'incorrect': 'Incorrect. Try again!'},
-                   'tips': []},
+                   'tips': [],
+                   'widget_image': None
+                   },
              125: {'id': 125,
                    'paths': [None],
                    'step_type': StepQuotaReached,
@@ -402,9 +395,12 @@ def mysteps(request):
                    'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
                    'raw_prompt': prompts['quota'],
                    'instructions': None,
+                   'slidedecks': None,
                    'tags': [79],
                    'tags_secondary': [],
-                   'responder': responders['continue']},
+                   'responder': responders['continue'],
+                   'widget_image': None
+                   },
              126: {'id': 126,
                    'paths': [None],
                    'step_type': StepAwardBadges,
@@ -413,9 +409,12 @@ def mysteps(request):
                    'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
                    'raw_prompt': prompts['new_badges'],
                    'instructions': None,
+                   'slidedecks': None,
                    'tags': [81],
                    'tags_secondary': [],
-                   'responder': responders['continue']},
+                   'responder': responders['continue'],
+                   'widget_image': None
+                   },
              127: {'id': 127,
                    'paths': [None],
                    'step_type': StepViewSlides,
@@ -424,9 +423,12 @@ def mysteps(request):
                    'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10],
                    'raw_prompt': prompts['slides'],
                    'instructions': None,
+                   'slidedecks': None,
                    'tags': [],
                    'tags_secondary': [],
-                   'responder': responders['stub']}
+                   'responder': responders['stub'],
+                   'widget_image': None
+                   }
              }
     return steps[the_step]
 
@@ -1284,27 +1286,14 @@ class TestLocation():
         assert myloc.get_id() == 6
 
 
-#class TestNpcChooser():
-    #"""
-    #Unit tests covering the NpcChooser class of the paideia module.
-    #"""
-    #pytestmark = pytest.mark.skipif('not global_runall and '
-                                    #'not global_run_TestNpcChooser')
-
-    #def test_npcchooser_choose(self, mynpcchooser):
-        #if mynpcchooser:
-            #possible = mynpcchooser['step'].get_npcs()
-            #out = mynpcchooser['chooser'].choose()
-            #assert out.get_id() in possible
-
-
 class TestStep():
     """
     Unit tests covering the Step class of the paideia module.
     """
-    pytestmark = pytest.mark.skipif('not global_runall and '
-                                    'not global_run_TestStep')
+    pytestmark = pytest.mark.skipif(not global_runall and
+                                    not global_run_TestStep)
 
+    @pytest.mark.skipif('True')
     def test_step_get_id(self, mystep):
         """Test for method Step.get_id
 
@@ -1318,6 +1307,7 @@ class TestStep():
         else:
             pass
 
+    @pytest.mark.skipif('True')
     def test_step_get_tags(self, mystep):
         """Test for method Step.get_tags
 
@@ -1332,26 +1322,38 @@ class TestStep():
         else:
             pass
 
+    @pytest.mark.skipif('False', reason="why not")
     def test_step_get_prompt(self, mystep, db, npc_data, bg_imgs):
         """Test for method Step.get_prompt"""
         if mystep:
             step = mystep['step']
-            sdata = mystep['stepdata']
+            expected = mystep['stepdata']
             case = mystep['casedata']
-            if sdata['widget_type'] in [1, 4]:
-                stepnpcs = sdata['npc_list']
+            if case['casenum'] != 1 or step.get_id() != 1:
+                pytest.mark.skip("True", reason="wrong case")
+            if expected['widget_type'] in [1, 4]:
+                stepnpcs = expected['npc_list']
                 locnpcs = [int(n) for n in case['npcs_here'] if n in stepnpcs]
                 username = case['name']
                 if locnpcs:
-                    oprompt = sdata['final_prompt']
                     onpc_image = [npc_data[n]['image'] for n in stepnpcs
                                   if n in locnpcs]
-                    obg_imgs = [bg_imgs[n] for n in sdata['locations']]
+                    obg_imgs = [bg_imgs[n] for n in expected['locations']]
                     step.npc = Npc(locnpcs[0], db)
-                    p = step.get_prompt(username)
-                    assert p['npc'].xml() == oprompt
-                    assert p['bg_image'] in obg_imgs
-                    assert p['npc_image'].attributes['_src'] in onpc_image
+                    actual = step.get_prompt(username)
+                    pprint(actual)
+                    assert actual['prompt'] == expected['final_prompt']
+                    assert actual['instructions'] == expected['instructions']
+                    if expected['slidedecks']:
+                        for k, v in actual['slidedecks'].iteritems():
+                            assert v == expected['slidedecks'][k]
+                    if expected['widget_image']:
+                        assert actual['widget_image']['title'] == expected['widget_image']['title']
+                        assert actual['widget_image']['file'] == expected['widget_image']['file']
+                        assert actual['widget_image']['description'] == expected['widget_image']['description']
+                    assert actual['bg_image'] in ['/paideia/static/images/{}'.format(i)
+                                                  for i in obg_imgs]
+                    assert actual['npc_image'].attributes['_src'] in onpc_image
                 else:
                     assert step.get_prompt(username) == 'redirect'
             else:

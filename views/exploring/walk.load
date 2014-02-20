@@ -1,22 +1,88 @@
-{{from plugin_widgets import TOOLTIP, ROLE}}
+{{from plugin_widgets import TOOLTIP, ROLE, POPUP}}
 
 <div id='loading-mask'>
-    <img src={{=URL('static', 'images/ajax-loader.gif')}} style="margin:40%;" alt='loading' />
+    <img src={{=URL('static', 'images/ajax-loader.gif')}}
+        style="margin:40%;" alt='loading' />
 </div>
 
 {{ap = DIV(H3('Admin Panel'), _class='admin-panel')
-
-ap.append(form)
-}}
+ap.append(form) }}
 {{=ROLE(ap)}}
 
-<!--map interface-->
+{{# ======================================================================
+{{# MAP INTERFACE ========================================================
+{{# ======================================================================
+
 {{if request.args(0) == 'map' or not request.args:}}
 	<embed id='town_map' src='{{=map["map_image"]}}' type='image/svg+xml' />
-<!--step interface-->
+
+{{# ======================================================================
+{{# STEP INTERFACE========================================================
+{{# ======================================================================
 {{else:}}
-    <div class='speaker'>{{=npc['npc_image']}}</div>
-    {{=npc['npc']}}
+
+    {{# ======================================================================
+    {{# PROMPT ===============================================================
+    {{# ======================================================================
+
+    {{# npc image on left =================================================
+    {{=DIV(npc['npc_image'], _class='speaker')}}
+
+    {{# prompt div ========================================================
+    <div class='npc prompt'>
+        <p class='prompt-text'>
+        {{# audio for prompt===============================================
+        if audio:}}
+            <audio controls="true" autoplay="true" id="{{=audio['title']}}"
+                class="prompt_audio">
+                "Sorry, your browser doesn\'t support the audio element"
+                <source src="{{=URL('default', 'download',
+                                    args=[audio['mp3']])}}" type='audio/mp3' />
+                {{if audio_ogg:}}
+                    <source src="{{=URL('default', 'download',
+                                        args=['ogg'])}}" type='audio/ogg' />
+                {{pass}}
+            </audio>
+        {{pass
+
+        # image for prompt===============================================
+        if widget_img:
+            img = IMG(_src=URL('static/images/', widget_img['file']),
+                        _title=widget_img['title'],
+                        _alt=widget_img['description'],
+                        _class='widget-image')}}
+            {{=img}}
+        {{pass
+
+        # instructions popup for prompt===================================
+        if instructions:
+            ilist = UL(_class='prompt_instructions')
+            for itext in instructions:
+                i_list.append(LI(itext))
+            pass
+            i_args = {'classnames': 'btn btn-info instructions-popover',
+                      'title': 'Instructions for this step',
+                      'id': 'instructions_btn'}
+            i_pop = POPOVER().widget('Instructions', ilist, **i_args)}}
+            {{=i_pop}}
+        {{pass
+
+        # slides popup for prompt========================================
+        if slidedecks:
+            decklist = UL(_class='prompt_slides')
+            for did, dname in slidedecks.iteritems():
+                decklist.append(LI(A(dname, _href=URL('listing', 'slides.html',
+                                                      args=[did]))))
+            pass
+            slides_args = {'classnames': 'btn btn-info slides-popover',
+                           'title': 'Relevant slide decks',
+                           'id': 'Slides_btn'}
+            s_pop = POPOVER().widget('slides', decklist, **slides_args)}}
+            {{=s_pop}}
+        {{pass}}
+        </p>
+    </div>
+
     {{=responder}}
     {{=bmodal}}
 {{pass}}
