@@ -30,9 +30,9 @@ from copy import copy
 # ===================================================================
 # Switches governing which tests to run
 # ===================================================================
-global_runall = 1
-global_run_TestNpc = 1
-global_run_TestLocation = 1
+global_runall = 0
+global_run_TestNpc = 0
+global_run_TestLocation = 0
 global_run_TestNpcChooser = False  # deprecated for Step.get_npc()
 global_run_TestStep = 1
 global_run_TestStepRedirect = 1
@@ -292,10 +292,8 @@ def mysteps(request):
                  'widget_type': 1,
                  'npc_list': [8, 2, 32, 1],
                  'locations': [3, 1, 13, 7, 8, 11],
-                 'raw_prompt': 'How could you write the word "bought" using '
-                               'Greek letters?',
-                 'final_prompt': 'How could you write the word "bought" using '
-                                 'Greek letters?',
+                 'raw_prompt': prompts['prompt1'].replace('SLUG', 'bought'),
+                 'final_prompt': prompts['prompt1'].replace('SLUG', 'bought'),
                  'redirect_prompt': prompts['redirect'],
                  'instructions': None,
                  'slidedecks': None,
@@ -1299,6 +1297,7 @@ class TestStep():
 
         mystep fixture will be None for invalid step/case combinations.
         """
+        pytestmark = pytest.mark.skipif('not run_getid')
         if mystep:
             sid = mystep['stepdata']['id']
             stype = mystep['stepdata']['step_type']
@@ -1313,6 +1312,7 @@ class TestStep():
 
         mystep fixture will be None for invalid step/case combinations.
         """
+        pytestmark = pytest.mark.skipif('not run_gettags')
         if mystep:
             primary = mystep['stepdata']['tags']
             secondary = mystep['stepdata']['tags_secondary']
@@ -1325,6 +1325,7 @@ class TestStep():
     @pytest.mark.skipif('False', reason="why not")
     def test_step_get_prompt(self, mystep, db, npc_data, bg_imgs):
         """Test for method Step.get_prompt"""
+        pytestmark = pytest.mark.skipif('not run_getprompt')
         if mystep:
             step = mystep['step']
             expected = mystep['stepdata']
@@ -1363,6 +1364,7 @@ class TestStep():
 
     def test_step_make_replacements(self, mystep):
         """Unit test for method Step._make_replacements()"""
+        pytestmark = pytest.mark.skipif('not run_makereplacemts')
         if mystep and mystep['stepdata']['id'] not in [30, 125, 126, 127]:
             step = mystep['step']
             sdata = mystep['stepdata']
@@ -1382,6 +1384,7 @@ class TestStep():
 
     def test_step_get_npc(self, mystep):
         """Test for method Step.get_npc"""
+        pytestmark = pytest.mark.skipif('not run_getnpc')
         # TODO: make sure the npc really is randomized
         if mystep:
             actual = mystep['step'].get_npc()
@@ -1403,6 +1406,7 @@ class TestStep():
 
     def test_step_get_instructions(self, mystep):
         """Test for method Step._get_instructions"""
+        pytestmark = pytest.mark.skipif('not run_getinstructions')
         if mystep:
             expected = mystep['stepdata']['instructions']
             actual = mystep['step']._get_instructions()
