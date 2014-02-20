@@ -430,7 +430,7 @@ class Stats(object):
                         for day, count in yrdata[0].iteritems():
                             try:
                                 weeklogs[dateutil.parser.parse(day)] = [c for c in count if c in bytag]
-                            except TypeError:
+                            except (AttributeError, TypeError):
                                 weeklogs[day] = [c for c in count if c in bytag]
                         t['logs_by_week'][year][weeknum] = weeklogs
                         t['logs_right'].extend([l for l in yrdata[2] if l in bytag])
@@ -559,12 +559,18 @@ class Stats(object):
 
         """
         tz = self.user.tz_obj if not tz else tz
+        #try:
+            # is_dst can be false because utc has no dst shifts
+        dt = utc.localize(dt)
         try:
-            offset = tz.utcoffset(dt)  # handles dst adjustments
+            newdt = tz.normalize(dt.astimezone(tz))
+            #offset = tz.utcoffset(dt)  # handles dst adjustments
         except (TypeError, AttributeError):
             dt = dateutil.parser.parse(dt)
-            offset = tz.utcoffset(dt)
-        newdt = dt + offset
+            newdt = tz.normalize(dt.astimezone(tz))
+            #newdt = tz.normalize(dt.astimezone(tz, is_dst=False))
+            #offset = tz.utcoffset(dt)
+            #newdt = dt + offset
         return newdt
 
     #def log_list(self, cutoff):
