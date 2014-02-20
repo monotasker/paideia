@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from gluon import current, redirect
-from gluon import IMG, URL, SQLFORM, SPAN, DIV, UL, LI, A, Field, P, TAG, HTML
+from gluon import IMG, URL, SQLFORM, SPAN, DIV, UL, LI, A, Field, P, HTML
 from gluon import I
 from gluon import IS_NOT_EMPTY, IS_IN_SET
 
@@ -225,12 +225,9 @@ class Walk(object):
         block = user.check_for_blocks()
         if block:
             condition = block.get_condition()
-            print 'walk.ask: activating block,', condition
-            # FIXME: necessary because p.step_for_reply is lost in step
-            # activation?
+            # FIXME: necessary because p.step_for_reply is lost in step activation?
             #if s.get_id() not in p.steps:
                 #p.steps.insert(0, copy(s))
-            #print 'walk.ask: p.steps restored to', p.steps
             if condition in ['new_tags', 'view_slides']:
                 if not block.kwargs['new_tags']:
                     block.kwargs['new_tags'] = user.new_tags
@@ -242,25 +239,12 @@ class Walk(object):
                                   'loc': user.loc,
                                   'npc': user.npc,
                                   'username': user.name})
-            print 'walk.ask: got block step', s.get_id()
-            try:
-                print 'walk.ask: path.step_for_prompt is still', p.step_for_prompt.get_id()
-            except AttributeError:
-                print 'walk.ask: path.step_for_prompt is None'
-
         npc = s.get_npc(prev_npc=user.prev_npc, prev_loc=user.prev_loc)
-        #print 'walk.ask: got npc', npc.get_id()
         user.set_npc(npc)
-        if user.prev_npc:
-            pass
-            #print 'walk.ask: user.prev_npc is now', user.prev_npc.get_id()
-        else:
-            pass
-            #print 'no previous npc'
 
-        # get data to send to view
         prompt = s.get_prompt()
-        progress = 'This will make {} paths so far today.'.format(len(user.completed_paths) + 1)
+        progress = 'This will make {} paths so far today.' \
+                   ''.format(len(user.completed_paths) + 1)
         responder = s.get_responder()
         responder.append(SPAN(progress, _class='progress_text'))
 
@@ -271,38 +255,12 @@ class Walk(object):
         except Exception:
             pass
 
-        # clean up before return
-        if type(s) not in [StepRedirect, StepQuotaReached, StepAwardBadges, StepViewSlides]:
-            # only move prompt step to reply step (or to steps completed) if
-            # its a content step
+        if type(s) not in [StepRedirect, StepQuotaReached, StepAwardBadges,
+                           StepViewSlides]:
             assert p.end_prompt()  # non-response steps end here
-            #print 'walk.ask: ended prompt'
-        else:
-            pass
-            #print 'walk.ask: info step, prompt doesn\'t need ending'
         self._store_user(user)
-
-        #print 'walk.ask: user.loc is', user.loc.get_id()
-        try:
-            pass
-            #print 'walk.ask: user.prev_loc is', user.prev_loc.get_id()
-        except:
-            pass
-
-        #if p:
-            #print 'walk.ask: final path is', p.get_id()
-            #if p.step_for_reply:
-                #print 'walk.ask: final step_for_reply is', p.step_for_reply.get_id()
-            #else:
-                #print 'walk.ask: final step_for_reply is None'
-            #print 'walk.ask: final step_for_prompt is', p.step_for_prompt
-        #else:
-            #print 'walk.ask: no final path'
-        #if hasattr(p, 'blocks'):
-            #print 'walk.ask: final blocks on p is', [b for b in p.blocks]
         print 'END OF WALK.ASK'
         print '==============================\n'
-        #print 'bg_image:', prompt['bg_image']
         return {'npc': prompt, 'responder': responder}
 
     def reply(self, localias, response_string, path=None,
@@ -849,11 +807,8 @@ class Step(object):
 
         # set by init args and used for prompt replacements
         self.username = username
-        #print 'step.init: self.username is', self.username
         self.promoted = promoted
-        #print 'step.init: self.promoted is', self.promoted
         self.new_tags = new_tags
-        #print 'step.init: self.new_tags is', self.new_tags
 
         # set internally or later
         self.npc = None  # must wait since all steps in path init at once
@@ -894,62 +849,51 @@ class Step(object):
 
     def _get_slides(self):
         """
-        Return a UL helper object listing the slide decks relevant to this step.
-        If this step has no associated slides, return False.
+        Return a dictionary of info on slide decks relevant to this step.
+
+        The keys are deck ids, while the values are the deck names (as
+        strings). If this step has no associated slides, returns None.
+
         """
         db = current.db
-        slide_query = db(db.tags.id.belongs(self.data['tags'])).select()
-        if slide_query:
-            slides_list = UL(_class='prompt_slides')
-            for s in slide_query:
-                if s.slides:
-                    for d in s.slides:
-                        slides_list.append(LI(A(d.deck_name,
-                                                _href=URL('listing', 'slides.html',
-                                                        args=[d.id]))))
-            slides_args = {'classnames': 'btn btn-info slides-popover',
-                           'title': 'Relevant slide decks',
-                           'id': 'Slides_btn'}
-            s_pop = POPOVER().widget('slides',
-                                     slides_list,
-                                     **slides_args)
-
-            return s_pop
+        tags = db(db.tags.id.belongs(self.data['tags'])).select()
+        if tags:
+            decks = {d.id: d.deck_name
+                     for t in tags
+                     for d in t.slides
+                     if t.slides}
+            return decks
         else:
-            return False
+            return None
 
     def _get_widget_image(self):
         """
-        Return an IMG helper to display the widget image for the current step.
-        If this step requires no such image, return False.
+        Return a dictionary of information on the widget image for the step.
+
+        If this step requires no such image, return None
         """
         if not self.data['widget_image'] in [9, None]:  # TODO: magic number here:
             db = current.db
             img_row = db.images[self.data['widget_image']]
-            image = IMG(_src=URL('static/images/', img_row.image),
-                        _title=img_row.title,
-                        _alt=img_row.description,
-                        _class='widget-image')
-            return image
+            img = {'file': img_row.image,
+                   'title': img_row.title,
+                   'description': img_row.description}
+            return img
         else:
-            return False
+            return None
 
     def _get_prompt_audio(self):
         """
+        Return a dictionary of information on the audio clip for this step.
+
+        If this step requires no such audio, return None
         """
-        if not self.data['prompt_audio'] in [1, None]:  # TODO: magic number here:
+        if not self.data['prompt_audio'] in [1, None]:  # TODO: magic number
             db = current.db
             aud_row = db.audio[self.data['prompt_audio']]
-            audio = TAG.audio('Sorry, your browser doesn\'t support the audio element',
-                              _controls='true',
-                              _autoplay='true',
-                              _id=aud_row['title'],
-                              _class='prompt_audio')
-            audio.append(TAG.source(_src=aud_row['clip'],
-                                    _type='audio/mp3'))
-            if aud_row['clip_ogg']:
-                audio.append(TAG.source(_src=aud_row['clip_ogg'],
-                             _type='audio/ogg'))
+            audio = {'title': aud_row['title'],
+                     'mp3': aud_row['clip'],
+                     'ogg': aud_row['clip_ogg'] if aud_row['clip_ogg'] else None}
             return audio
         else:
             return False
@@ -964,39 +908,18 @@ class Step(object):
         the string 'redirect' so that the Walk.ask() method that called it can
         set a redirect block.
         """
-        if not raw_prompt:
-            raw_prompt = self.data['prompt']
+        raw_prompt = self.data['prompt'] if not raw_prompt else raw_prompt
+        prompt = {'prompt': self._make_replacements(raw_prompt, **kwargs),
+                  'audio': self._get_prompt_audio(),
+                  'widget_image': self._get_widget_image(),
+                  'instructions': self._get_instructions(),
+                  'slidedecks': self._get_slides(),
+                  'bg_image': self.loc.get_bg()}
+        # TODO: this is a temporary hack for bad data
+        self.npc = self.npc[0] if isinstance(self.npc, tuple) else self.npc
+        prompt['npc_image'] = self.npc.get_image()
 
-        prompt = self._make_replacements(raw_prompt=raw_prompt, **kwargs)
-
-        npc_prompt = DIV(_class='npc prompt')
-
-        audio = self._get_prompt_audio()
-        if audio:
-            npc_prompt.append(audio)
-
-        widget_image = self._get_widget_image()
-        if widget_image:
-            npc_prompt.append(widget_image)
-
-        npc_prompt.append(P(prompt, _class='prompt-text'))
-
-        instructions = self._get_instructions()
-        if instructions:
-            npc_prompt.append(instructions)
-
-        slides_list = self._get_slides()
-        if slides_list:
-            npc_prompt.append(slides_list)
-
-        if isinstance(self.npc, tuple):
-            self.npc = self.npc[0]  # TODO: this is a temporary hack for bad data
-        npc_image = self.npc.get_image()
-        bg_image = self.loc.get_bg()
-
-        return {'npc': npc_prompt,
-                'npc_image': npc_image,
-                'bg_image': bg_image}
+        return prompt
 
     def _make_replacements(self, raw_prompt=None, reps=None, appds=None):
         """
@@ -1097,25 +1020,18 @@ class Step(object):
 
     def _get_instructions(self):
         """
-        Return an html list containing the instructions for the current
-        step. Value is returned as a web2py UL() object.
+        Return a list of relevant step instructions as strings.
+
+        If no instructions available, return None.
+
         """
         db = current.db
-        ii = self.data['instructions']
-        if ii:
-            i_list = UL()
-            for i in ii:
-                i_text = db.step_instructions[i].instruction_text
-                i_list.append(LI(i_text))
-            i_args = {'classnames': 'btn btn-info instructions-popover',
-                      'title': 'Instructions for this step',
-                      'id': 'instructions_btn'}
-            i_pop = POPOVER().widget('Instructions',
-                                     i_list,
-                                     **i_args)
-            return i_pop
+        if self.data['instructions']:
+            instructions = [db.step_instructions[i].instruction_text
+                            for i in self.data['instructions']]
+            return instructions
         else:
-            return False
+            return None
 
 
 class StepContinue(Step):
@@ -1478,18 +1394,18 @@ class StepEvaluator(object):
         responses = self.responses
         # Compare the student's response to the regular expressions
         try:
-            if re.match(responses['response1'], user_response, re.I|re.U):
+            if re.match(responses['response1'], user_response, re.I | re.U):
                 score = 1
                 reply = "Right. Κάλον."
             elif len(responses) > 1 and re.match(responses['response2'],
-                                                 user_response, re.I|re.U):
+                                                 user_response, re.I | re.U):
                 score = 0.5
                 #TODO: Get this score value from the db instead of hard
                 #coding it here.
                 reply = "Οὐ κάκον. You're close."
                 #TODO: Vary the replies
             elif len(responses) > 2 and re.match(responses['response3'],
-                                                 user_response, re.I|re.U):
+                                                 user_response, re.I | re.U):
                 #TODO: Get this score value from the db instead of hard
                 #coding it here.
                 score = 0.3
