@@ -15,10 +15,7 @@ from paideia import StepFactory, StepText, StepMultiple, NpcChooser, Step
 from paideia import StepRedirect, StepViewSlides, StepAwardBadges
 from paideia import StepEvaluator, MultipleEvaluator, StepQuotaReached
 from paideia import Block, BugReporter
-from gluon import A, URL, DIV, LI, UL, SPAN, IMG
-from gluon import current
-from pprint import pprint
-# from gluon.dal import Rows
+from gluon import current, IMG
 
 import datetime
 # from pprint import pprint
@@ -31,8 +28,8 @@ from copy import copy
 # Switches governing which tests to run
 # ===================================================================
 global_runall = 0
-global_run_TestNpc = 0
-global_run_TestLocation = 0
+global_run_TestNpc = 1
+global_run_TestLocation = 1
 global_run_TestNpcChooser = False  # deprecated for Step.get_npc()
 global_run_TestStep = 1
 global_run_TestStepRedirect = 1
@@ -60,50 +57,41 @@ def dt(string):
 
 
 @pytest.fixture
-def bg_imgs():
+def bg_imgs(db):
     """
     Pytest fixture to provide background image info for each test location.
     """
-    imgs = {3: 'images.image.9d1cc1a617c75069.'
-               '706c616365735f6f696b6f73415f706572697374796c652e737667.svg',
-            1: 'images.image.9d1cc1a617c75069.'
-               '706c616365735f6f696b6f73415f706572697374796c652e737667.svg',
-            6: 'images.image.b9c9c11590e5511a.706c616365735f616c6578616e646572732d73686f702e706e67.png',
-            7: 'images.image.a6a5dfde3018f62b.706c616365735f73746f612e706e67.png',
-            8: 'images.image.b9c9c11590e5511a.706c616365735f616c6578616e646572732d73686f702e706e67.png',
-            11: 'images.image.aef941740cc3753d.706c616365735f73796e61676f6775652e6a7067.jpg',
-            13: 'images.image.a53149204f5d92a1.706c616365735f62617468732e706e67.png'}
+    locs = {3: 8,
+            1: 8,
+            2: 8,
+            6: 16,
+            7: 18,
+            8: 16,
+            11: 15,
+            13: 17}
+    imgs = {l: '/paideia/static/images/{}'.format(db.images[i].image)
+            for l, i in locs.iteritems()}
     return imgs
 
 
 # Constant values from
 @pytest.fixture
-def npc_imgs():
+def npc_imgs(db):
     """
     Pytest fixture to provide image info for each test npc.
     """
-    images = {'npc1_img': '/paideia/static/images/images.image.a23c309d310405ba.'
-                          '70656f706c655f616c6578616e6465722e737667.svg',
-              'npc2_img': '/paideia/static/images/images.image.b10c0d75a57bdd23.'
-                          '70656f706c655f6d617269612e706e67.png',
-              'npc3_img': '/paideia/static/images/images_migrate.image.'
-                          '9028799e75acfb82.736f706869612e737667.svg',
-              'npc4_img': '/paideia/static/images/images.image.'
-                          'b10c0d75a57bdd23.70656f706c655f6d617269612e706e67.png',
-              'npc5_img': '/paideia/static/images/images_migrate.image.'
-                          '9dc07aa38f2b944b.64696f646f726f732e737667.svg',
-              'npc6_img': '/paideia/static/images/images_migrate.image.'
-                          'aa20ae70a2664e8f.73696d6f6e2e737667.svg',
-              'npc7_img': '/paideia/static/images/images_migrate.image.'
-                          'a6e093499e771c20.6961736f6e2e737667.svg',
-              'npc8_img': '/paideia/static/images/images_migrate.image.91890b6cbd780c6b.646f6d75735f615f706572697374796c652e706e67.png',
-              'npc9_img': '/paideia/static/images//',
-              'npc10_img': '/paideia/static/images/images_migrate.image.bbce859d57828f3c.7374657068616e6f732e706e67.png',
-              'npc11_img': '/paideia/static/images/images_migrate.image.ae28555aa0ec369f.70686f6562652e706e67.png',
-              'npc14_img': '/paideia/static/images/images_migrate.image.9c9516a0d901b770.73796e61676f6775652e6a7067.jpg',
-              'npc15_img': '/paideia/static/images/images_migrate.image.b8baa2f2e32c2bb0.706c616365735f616c6578616e646572732d73686f702e706e67.png',
-              'npc16_img': '/paideia/static/images/images_migrate.image.b440eedd65d027fa.706c616365735f62617468732e706e67.png',
-              'npc17_img': '/paideia/static/images/images_migrate.image.8d55597fb475dc15.706c616365735f73746f612e706e67.png'}
+    images = {'npc1_img': '/paideia/static/images/{}'.format(db.images[1].image),
+              'npc2_img': '/paideia/static/images/{}'.format(db.images[4].image),
+              'npc8_img': '/paideia/static/images/{}'.format(db.images[5].image),
+              'npc14_img': '/paideia/static/images/{}'.format(db.images[2].image),
+              'npc17_img': '/paideia/static/images/{}'.format(db.images[7].image),
+              'npc21_img': '/paideia/static/images/{}'.format(db.images[7].image),
+              'npc31_img': '/paideia/static/images/{}'.format(db.images[3].image),
+              'npc32_img': '/paideia/static/images/{}'.format(db.images[10].image),
+              'npc40_img': '/paideia/static/images/{}'.format(db.images[6].image),
+              'npc41_img': '/paideia/static/images/{}'.format(db.images[11].image),
+              'npc42_img': '/paideia/static/images/{}'.format(db.images[9].image)
+              }
     return images
 
 
@@ -115,34 +103,34 @@ def npc_data(npc_imgs):
     npcs = {1: {'image': npc_imgs['npc1_img'],
                 'name': 'Ἀλεξανδρος',
                 'location': [6, 8]},
-            2: {'image': npc_imgs['npc4_img'],
+            2: {'image': npc_imgs['npc2_img'],
                 'name': 'Μαρια',
                 'location': [3, 1, 2, 4]},
-            8: {'image': npc_imgs['npc5_img'],
+            8: {'image': npc_imgs['npc8_img'],
                 'name': 'Διοδωρος',
                 'location': [1]},
-            14: {'image': npc_imgs['npc2_img'],
+            14: {'image': npc_imgs['npc14_img'],
                  'name': 'Γεωργιος',
                  'location': [3, 1, 2, 4, 7, 8, 9, 10]},
-            17: {'image': npc_imgs['npc7_img'],
+            17: {'image': npc_imgs['npc17_img'],
                  'name': 'Ἰασων',
                  'location': [3, 1, 2, 4, 7, 8]},
-            21: {'image': npc_imgs['npc7_img'],
+            21: {'image': npc_imgs['npc21_img'],
                  'name': 'Νηρευς',
                  'location': [7, 8]},
-            31: {'image': npc_imgs['npc3_img'],
+            31: {'image': npc_imgs['npc31_img'],
                  'name': 'Σοφια',
                  'location': [3, 1, 2, 4, 11]},
-            32: {'image': npc_imgs['npc10_img'],
+            32: {'image': npc_imgs['npc32_img'],
                  'name': 'Στεφανος',
                  'location': [11]},
-            40: {'image': npc_imgs['npc6_img'],
+            40: {'image': npc_imgs['npc40_img'],
                  'name': 'Σίμων',
                  'location': [3, 1, 2, 4, 7, 8]},
-            41: {'image': npc_imgs['npc11_img'],
+            41: {'image': npc_imgs['npc41_img'],
                  'name': 'Φοιβη',
                  'location': [3, 1, 4, 8]},
-            42: {'image': npc_imgs['npc9_img'],
+            42: {'image': npc_imgs['npc42_img'],
                  'name': 'Ὑπατια',
                  'location': [3, 1, 2, 4, 12, 8]}
             }
@@ -165,15 +153,14 @@ def myblocks(request):
     return block_args[casenum]
 
 
-@pytest.fixture(params=[n for n in [1, 2, 19, 30, 101, 125, 126, 127]])
-def mysteps(request):
+@pytest.fixture()
+def mysteps():
     """
     Test fixture providing step information for unit tests.
     This fixture is parameterized, so that tests can be run with each of the
     steps or with any sub-section (defined by a filtering expression in the
     test). This step fixture is also used in the mycases fixture.
     """
-    the_step = request.param
     responders = {'text': '<form action="#" autocomplete="off" '
                           'enctype="multipart/form-data" method="post">'
                           '<table>'
@@ -236,21 +223,40 @@ def mysteps(request):
     prompts = {'redirect': 'Hi there. Sorry, I don\'t have anything for you to '
                            'do here at the moment. I think someone was looking '
                            'for you at somewhere else in town.',
-               'new_badges': 'Congratulations, [[user]]! You\'ve reached '
-                             'a new level with these badges:'
-                             '[[promoted_list]]\r\nYou can click on your name '
-                             'above to see details of your progress '
-                             'so far.',
+               'new_badges': {3: '<div>Congratulations, Homer! \n\n'
+                                 'You have been promoted to these new badge levels:\r\n'
+                                 '- apprentice alphabet basics\r\n'
+                                 '- apprentice alphabet (diphthongs and capitals)\r\n'
+                                 'You can click on your name above to see details '
+                                 'of your progress so far.</div>',
+                              2: '<div>Congratulations, Homer! \n\n'
+                                 'You have been promoted to these new badge levels:\r\n'
+                                 '- apprentice alphabet basics\r\n'
+                                 'and you&#x27;re ready to start working on some new badges:\r\n'
+                                 '- beginner alphabet (intermediate)\r\n'
+                                 'You can click on your name above to see details '
+                                 'of your progress so far.</div>'},
                'quota': 'Well done, [[user]]. You\'ve finished '
                         'enough paths for today. But if you would '
                         'like to keep going, you\'re welcome to '
                         'continue.',
-               'slides': 'Congratulations, [[user]]! You\'re ready to '
-                         'start working on some new badges: \r\n'
-                         '[[badge_list]]\r\nBefore you continue, take '
-                         'some time to view these slide sets:\r\n'
-                         '[[slides]]\r\nYou\'ll find the slides by '
-                         'clicking on the "slides" menu item at top.'
+               # numbers indicate prompts for corresponding cases
+               'slides': {2: '<div>Take some time now to review these new slide '
+                             'sets. They will help with work on your new badges:\n'
+                             '<ul class="slide_list">'
+                             '<li><a data-w2p_disable_with="default" href="/paideia/'
+                             'listing/slides.html/3">The Alphabet II</a></li>'
+                             '<li><a data-w2p_disable_with="default" href="/paideia/'
+                             'listing/slides.html/8">Greek Words II</a></li></ul>'
+                             '</div>',
+                          3: '<div>Take some time now to review these new slide '
+                             'sets. They will help with work on your new badges:\n'
+                             '<ul class="slide_list">'
+                             '<li><a data-w2p_disable_with="default" href="/paideia/'
+                             'listing/slides.html/3">The Alphabet II</a></li>'
+                             '<li><a data-w2p_disable_with="default" href="/paideia/'
+                             'listing/slides.html/8">Greek Words II</a></li></ul>'
+                             '</div>'}
                }
 
     steps = {1: {'id': 1,
@@ -292,8 +298,10 @@ def mysteps(request):
                  'widget_type': 1,
                  'npc_list': [8, 2, 32, 1],
                  'locations': [3, 1, 13, 7, 8, 11],
-                 'raw_prompt': prompts['prompt1'].replace('SLUG', 'bought'),
-                 'final_prompt': prompts['prompt1'].replace('SLUG', 'bought'),
+                 'raw_prompt': 'How could you write the word "bought" '
+                               'using Greek letters?',
+                 'final_prompt': 'How could you write the word "bought" '
+                                 'using Greek letters?',
                  'redirect_prompt': prompts['redirect'],
                  'instructions': None,
                  'slidedecks': None,
@@ -348,6 +356,7 @@ def mysteps(request):
                   'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
                   'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10],
                   'raw_prompt': prompts['redirect'],
+                  'final_prompt': prompts['redirect'],
                   'redirect_prompt': prompts['redirect'],
                   'instructions': None,
                   'slidedecks': None,
@@ -392,6 +401,7 @@ def mysteps(request):
                    'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10],
                    'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
                    'raw_prompt': prompts['quota'],
+                   'final_prompt': prompts['quota'].replace('[[user]]', 'Homer'),
                    'instructions': None,
                    'slidedecks': None,
                    'tags': [79],
@@ -406,6 +416,7 @@ def mysteps(request):
                    'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10],
                    'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
                    'raw_prompt': prompts['new_badges'],
+                   'final_prompt': prompts['new_badges'],
                    'instructions': None,
                    'slidedecks': None,
                    'tags': [81],
@@ -420,6 +431,7 @@ def mysteps(request):
                    'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
                    'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10],
                    'raw_prompt': prompts['slides'],
+                   'final_prompt': prompts['slides'],
                    'instructions': None,
                    'slidedecks': None,
                    'tags': [],
@@ -428,26 +440,25 @@ def mysteps(request):
                    'widget_image': None
                    }
              }
-    return steps[the_step]
+    return steps
 
 
-@pytest.fixture(params=['case{}'.format(n) for n in range(1, 6)])
-def mycases(request, mysteps, user_login, db):
+def mycases(casenum, user_login, db):
     """
     Text fixture providing various cases for unit tests. For each step,
     several cases are specified.
     """
-    the_case = request.param
     allpaths = db().select(db.paths.ALL)
 
     # same npc and location as previous step
     # replace tag too far ahead (1) with appropriate (61)
     cases = {'case1': {'casenum': 1,
-                       'loc': Location(1, db),
+                       'loc': Location('shop_of_alexander', db),
                        'mynow': dt('2013-01-29'),
                        'name': user_login['first_name'],
                        'uid': user_login['id'],
-                       'prev_loc': Location(7, db),
+                       'prev_loc': Location('ne_stoa', db),
+                       'next_loc': None,
                        'prev_npc': Npc(2, db),
                        'npcs_here': [2, 8, 14, 17, 31, 40, 41, 42],
                        'pathid': 3,
@@ -495,12 +506,13 @@ def mycases(request, mysteps, user_login, db):
                        'demoted': {}},
              'case2':  # same location, last npc 2,
              # promote tag based on ratio and min time
+             # both new tags and promoted
                       {'casenum': 2,
                        'mynow': dt('2013-01-29'),
-                       'loc': Location(8, db),
+                       'loc': Location('agora', db),
                        'name': user_login['first_name'],
                        'uid': user_login['id'],
-                       'prev_loc': Location(8, db),
+                       'prev_loc': Location('agora', db),
                        'prev_npc': Npc(1, db),
                        'npcs_here': [1, 14, 17, 21, 40, 41, 42],
                        'pathid': 89,
@@ -544,16 +556,18 @@ def mycases(request, mysteps, user_login, db):
                        'completed': [],
                        'new_badges': [62],
                        'promoted': {'cat2': [61]},
+                       'next_loc': None,
                        'demoted': {}},
              'case3':  # same location as previous step, last npc stephanos
              # promote tag based on time (without ratio)
              # add several untried tags for current rank
+             # promoted but no new tags
                       {'casenum': 3,
                        'mynow': dt('2013-01-29'),
                        'name': user_login['first_name'],
                        'uid': user_login['id'],
-                       'loc': Location(11, db),  # synagogue
-                       'prev_loc': Location(11, db),
+                       'loc': Location('synagogue', db),  # synagogue
+                       'prev_loc': Location('synagogue', db),
                        'prev_npc': Npc(31, db),  # stephanos
                        'npcs_here': [31, 32],
                        'pathid': 19,
@@ -631,7 +645,8 @@ def mycases(request, mysteps, user_login, db):
                        'untried': [68, 89, 72, 36, 115],
                        'new_badges': None,
                        'promoted': {'cat2': [61, 66]},
-                       'demoted': {}},
+                       'demoted': {},
+                       'next_loc': None},
              'case4':  # different location than previous step
              # secondary_right records override date and ratio to allow promot.
              # secondary_right list sliced accordingly
@@ -639,8 +654,9 @@ def mycases(request, mysteps, user_login, db):
                        'mynow': dt('2013-01-29'),
                        'name': user_login['first_name'],
                        'uid': user_login['id'],
-                       'loc': Location(8, db),
-                       'prev_loc': Location(7, db),
+                       'loc': Location('agora', db),
+                       'prev_loc': Location('ne_stoa', db),
+                       'next_loc': None,
                        'prev_npc': Npc(1, db),
                        'npcs_here': [1, 14, 17, 21, 40, 41, 42],
                        'pathid': 1,
@@ -721,8 +737,9 @@ def mycases(request, mysteps, user_login, db):
                        'mynow': dt('2013-01-29'),
                        'name': user_login['first_name'],
                        'uid': user_login['id'],
-                       'loc': Location(3, db),
-                       'prev_loc': Location(3, db),
+                       'loc': Location('domus_A', db),
+                       'prev_loc': Location('domus_A', db),
+                       'next_loc': None,
                        'prev_npc': Npc(1, db),
                        'npcs_here': [2, 14, 17, 31, 40, 41, 42],
                        'pathid': 1,
@@ -770,8 +787,7 @@ def mycases(request, mysteps, user_login, db):
                        'steps_here': [1, 2, 30, 125, 126, 127],
                        'completed': []}
              }
-    return {'casedata': cases[the_case],
-            'stepdata': mysteps}
+    return cases[casenum]
 
 
 @pytest.fixture
@@ -897,7 +913,7 @@ def myloc(db):
     """
     A pytest fixture providing a paideia.Location object for testing.
     """
-    return Location(6, db)
+    return Location('shop_of_alexander', db)
 
 
 @pytest.fixture
@@ -905,7 +921,7 @@ def myloc_synagogue(db):
     """
     A pytest fixture providing a paideia.Location object for testing.
     """
-    return Location(11, db)
+    return Location('synagogue', db)
 
 
 @pytest.fixture
@@ -936,37 +952,13 @@ def mypath(mycases, db):
         pass
 
 
-@pytest.fixture
-def mystep(mycases, myuser, db):
+def mystep(stepid, mysteps):
     """
     A pytest fixture providing a paideia.Step object for testing.
     """
-    case = mycases['casedata']
-    step = mycases['stepdata']
-    if (not case['loc'].get_id() in step['locations']) or \
-       (not [n for n in case['npcs_here'] if n in step['npc_list']]):
-        return None
-    if step['step_type'] == StepAwardBadges and case['casenum'] != 5:
-        return None
-    if step['step_type'] == StepViewSlides and case['casenum'] != 5:
-        return None
-    if step['step_type'] == StepRedirect and case['casenum'] != 5:
-        return None
-    else:
-        theargs = {'db': db,
-                   'step_id': step['id'],
-                   'loc': case['loc'],
-                   'prev_loc': case['prev_loc'],
-                   'prev_npc': case['prev_npc'],
-                   'username': myuser['user'].name}
-        if step['step_type'] == StepRedirect:
-            theargs['next_step_id'] = 1
-            theargs['next_loc'] = 6
-        thestep = StepFactory().get_instance(**theargs)
-        return {'casenum': case['casenum'],
-                'step': thestep,
-                'stepdata': step,
-                'casedata': case}
+    stepdata = mysteps[stepid]
+    step = StepFactory().get_instance(stepid)
+    return step, stepdata
 
 
 @pytest.fixture
@@ -1219,12 +1211,12 @@ def myblock(myblocks):
 # ===================================================================
 
 
+@pytest.mark.skipif(not global_runall and not global_run_TestNpc,
+                    reason='switched off')
 class TestNpc():
     '''
     Tests covering the Npc class of the paideia module.
     '''
-    pytestmark = pytest.mark.skipif('not global_runall and '
-                                    'not global_run_TestNpc')
 
     def test_npc_get_name(self, mynpc):
         """Test for method Npc.get_name()"""
@@ -1251,13 +1243,12 @@ class TestNpc():
         assert mynpc.get_description() == "Ἀλεξανδρος is a shop owner and good friend of Simon's household. His shop is in the agora."
 
 
+@pytest.mark.skipif(not global_runall and not global_run_TestLocation,
+                    reason='switched off')
 class TestLocation():
     """
     Tests covering the Location class of the paideia module.
     """
-    pytestmark = pytest.mark.skipif('not global_runall and '
-                                    'not global_run_TestLocation')
-
     # TODO: parameterize to cover more locations
 
     def test_location_get_alias(self, myloc):
@@ -1284,579 +1275,153 @@ class TestLocation():
         assert myloc.get_id() == 6
 
 
+@pytest.mark.skipif(not global_runall and not global_run_TestStep,
+                    reason='set to skip')
 class TestStep():
     """
     Unit tests covering the Step class of the paideia module.
     """
-    pytestmark = pytest.mark.skipif(not global_runall and
-                                    not global_run_TestStep)
 
-    @pytest.mark.skipif('True')
-    def test_step_get_id(self, mystep):
-        """Test for method Step.get_id
+    @pytest.mark.parametrize('stepid', [1])
+    def test_step_get_id(self, stepid, mysteps):
+        """Test for method Step.get_id """
+        step, expected = mystep(stepid, mysteps)
+        assert step.get_id() == expected['id']
+        assert isinstance(step, expected['step_type']) is True
 
-        mystep fixture will be None for invalid step/case combinations.
-        """
-        pytestmark = pytest.mark.skipif('not run_getid')
-        if mystep:
-            sid = mystep['stepdata']['id']
-            stype = mystep['stepdata']['step_type']
-            assert mystep['step'].get_id() == sid
-            assert isinstance(mystep['step'], stype) is True
-        else:
-            pass
+    @pytest.mark.parametrize("stepid", [1, 2])
+    def test_step_get_tags(self, stepid, mysteps):
+        """Test for method Step.get_tags """
+        step, expected = mystep(stepid, mysteps)
+        actual = step.get_tags()
+        assert actual == {'primary': expected['tags'],
+                          'secondary': expected['tags_secondary']}
 
-    @pytest.mark.skipif('True')
-    def test_step_get_tags(self, mystep):
-        """Test for method Step.get_tags
-
-        mystep fixture will be None for invalid step/case combinations.
-        """
-        pytestmark = pytest.mark.skipif('not run_gettags')
-        if mystep:
-            primary = mystep['stepdata']['tags']
-            secondary = mystep['stepdata']['tags_secondary']
-            expected = {'primary': primary, 'secondary': secondary}
-            actual = mystep['step'].get_tags()
-            assert actual == expected
-        else:
-            pass
-
-    @pytest.mark.skipif('False', reason="why not")
-    def test_step_get_prompt(self, mystep, db, npc_data, bg_imgs):
+    @pytest.mark.parametrize('caseid,stepid', [
+        #('case1', 1),
+        #('case2', 2),
+        #('case2', 19),  # will redirect (currently no case works for step 19)
+        #('case1', 30),  # redirect step
+        #('case1', 101),
+        #('case2', 125),  # FIXME: no slide decks being found here
+        #('case2', 126),  # promoted, no new tags (for new badges)
+        #('case3', 126),  # promoted, no new tags (for new badges)
+        #('case2', 127),  # new tags and promoted (for view slides)
+    ])
+    def test_step_get_prompt(self, caseid, stepid, db, mysteps,
+                             user_login, npc_data, bg_imgs):
         """Test for method Step.get_prompt"""
-        pytestmark = pytest.mark.skipif('not run_getprompt')
-        if mystep:
-            step = mystep['step']
-            expected = mystep['stepdata']
-            case = mystep['casedata']
-            if case['casenum'] != 1 or step.get_id() != 1:
-                pytest.mark.skip("True", reason="wrong case")
-            if expected['widget_type'] in [1, 4]:
-                stepnpcs = expected['npc_list']
-                locnpcs = [int(n) for n in case['npcs_here'] if n in stepnpcs]
-                username = case['name']
-                if locnpcs:
-                    onpc_image = [npc_data[n]['image'] for n in stepnpcs
-                                  if n in locnpcs]
-                    obg_imgs = [bg_imgs[n] for n in expected['locations']]
-                    step.npc = Npc(locnpcs[0], db)
-                    actual = step.get_prompt(username)
-                    pprint(actual)
-                    assert actual['prompt'] == expected['final_prompt']
-                    assert actual['instructions'] == expected['instructions']
-                    if expected['slidedecks']:
-                        for k, v in actual['slidedecks'].iteritems():
-                            assert v == expected['slidedecks'][k]
-                    if expected['widget_image']:
-                        assert actual['widget_image']['title'] == expected['widget_image']['title']
-                        assert actual['widget_image']['file'] == expected['widget_image']['file']
-                        assert actual['widget_image']['description'] == expected['widget_image']['description']
-                    assert actual['bg_image'] in ['/paideia/static/images/{}'.format(i)
-                                                  for i in obg_imgs]
-                    assert actual['npc_image'].attributes['_src'] in onpc_image
-                else:
-                    assert step.get_prompt(username) == 'redirect'
-            else:
-                pass
-        else:
-            pass
+        case = mycases(caseid, user_login, db)
+        step, expected = mystep(stepid, mysteps)
+        locnpcs = [int(n) for n in case['npcs_here']
+                   if n in expected['npc_list']]
+        if locnpcs:
+            npc = Npc(locnpcs[0], db)
+            actual = step.get_prompt(case['loc'], npc, case['name'],
+                                     case['next_loc'],
+                                     case['new_badges'],
+                                     case['promoted'])
+            print 'actual -------'
+            try:
+                print actual['prompt'].xml()
+            except Exception:
+                print(actual['prompt'])
+            print 'expected -------'
+            print expected['final_prompt']
 
-    def test_step_make_replacements(self, mystep):
+            assert (actual['prompt'] == expected['final_prompt']) or \
+                   (actual['prompt'].xml() == expected['final_prompt']) or \
+                   (actual['prompt'].xml() == expected['final_prompt'][case['casenum']])
+            assert actual['instructions'] == expected['instructions']
+            if expected['slidedecks']:
+                for k, v in actual['slidedecks'].iteritems():
+                    assert v == expected['slidedecks'][k]
+            if expected['widget_image']:
+                assert actual['widget_image']['title'] == expected['widget_image']['title']
+                assert actual['widget_image']['file'] == expected['widget_image']['file']
+                assert actual['widget_image']['description'] == expected['widget_image']['description']
+            assert actual['bg_image'] == bg_imgs[case['loc'].get_id()]
+            assert actual['npc_image'].attributes['_src'] == npc_data[npc.get_id()]['image']
+        else:
+            assert step.get_prompt(case['loc'], npc, case['name'],
+                                   None, None, None) == expected['redirect']
+
+    @pytest.mark.parametrize(('caseid', 'stepid'), [
+        ('case1', 1),
+        ('case2', 2),  # don't use steps 30, 125, 126, 127 (block)
+        ('case2', 101)
+    ])
+    def test_step_make_replacements(self, caseid, db, stepid, mysteps, user_login):
         """Unit test for method Step._make_replacements()"""
-        pytestmark = pytest.mark.skipif('not run_makereplacemts')
-        if mystep and mystep['stepdata']['id'] not in [30, 125, 126, 127]:
-            step = mystep['step']
-            sdata = mystep['stepdata']
-            case = mystep['casedata']
-            oargs = {'raw_prompt': sdata['raw_prompt'],
-                     'username': case['name']}
-            ofinal = sdata['final_prompt']
-            ofinal = ofinal.replace('[[user]]', oargs['username'])
-            if isinstance(step, StepAwardBadges):
-                oargs['new_badges'] = case['new_badges']
-            elif isinstance(step, StepViewSlides):
-                oargs['new_badges'] = case['new_badges']
+        step, sdata = mystep(stepid, mysteps)
+        case = mycases(caseid, user_login, db)
+        oargs = {'raw_prompt': sdata['raw_prompt'],
+                 'username': case['name'],
+                 'next_loc': case['next_loc'],
+                 'new_tags': case['new_badges'],
+                 'promoted': case['promoted']
+                 }
+        ofinal = sdata['final_prompt']
+        ofinal = ofinal.replace('[[user]]', oargs['username'])
+        if isinstance(step, StepAwardBadges):
+            oargs['new_badges'] = case['new_badges']
+        elif isinstance(step, StepViewSlides):
+            oargs['new_badges'] = case['new_badges']
 
-            assert step._make_replacements(**oargs) == ofinal
-        else:
-            pass
+        assert step._make_replacements(**oargs) == ofinal
 
-    def test_step_get_npc(self, mystep):
+    @pytest.mark.parametrize(('caseid', 'stepid'), [
+        ('case1', 1),
+        ('case2', 2)
+    ])
+    def test_step_get_npc(self, caseid, stepid, db, mysteps,
+                          user_login, npc_data):
         """Test for method Step.get_npc"""
-        pytestmark = pytest.mark.skipif('not run_getnpc')
         # TODO: make sure the npc really is randomized
-        if mystep:
-            actual = mystep['step'].get_npc()
-            expected = mystep['stepdata']
+        case = mycases(caseid, user_login, db)
+        step, expected = mystep(stepid, mysteps)
+        actual = step.get_npc(case['loc'])
 
-            assert actual.get_id() in expected['npc_list']
-            # make sure this npc has the right name for its id
-            assert actual.get_name() == npc_data[actual.get_id()]['name']
-            assert actual.get_image().xml() == IMG(_src=npc_data[actual.get_id()]['image']).xml()
-            locs = actual.get_locations()
-            # make sure there is common location shared by actual npc and step
-            assert [l for l in locs
-                    if l in expected['locations']]
-            for l in locs:
-                assert isinstance(l, (int, long))
-                assert l in npc_data[actual.get_id()]['location']
-        else:
-            pass
+        assert actual.get_id() in expected['npc_list']
+        # make sure this npc has the right name for its id
+        assert actual.get_name() == npc_data[actual.get_id()]['name']
+        assert actual.get_image().xml() == IMG(_src=npc_data[actual.get_id()]['image']).xml()
+        locs = actual.get_locations()
+        # make sure there is common location shared by actual npc and step
+        assert [l for l in locs
+                if l in expected['locations']]
+        for l in locs:
+            assert isinstance(l, (int, long))
+            assert l in npc_data[actual.get_id()]['location']
 
-    def test_step_get_instructions(self, mystep):
+    @pytest.mark.parametrize('stepid', [1, 2])
+    def test_step_get_instructions(self, stepid, mysteps):
         """Test for method Step._get_instructions"""
-        pytestmark = pytest.mark.skipif('not run_getinstructions')
-        if mystep:
-            expected = mystep['stepdata']['instructions']
-            actual = mystep['step']._get_instructions()
-            assert actual == expected
-        else:
-            pass
+        step, expected = mystep(stepid, mysteps)
+        actual = step._get_instructions()
+        assert actual == expected['instructions']
 
-
-class TestStepRedirect():
-    '''
-    A subclass of Step. Handles the user interaction when the user needs to be
-    sent to another location.
-    '''
-    pytestmark = pytest.mark.skipif('not global_runall and '
-                                    'not global_run_TestStepRedirect')
-
-    def test_stepredirect_get_id(self, myStepRedirect):
-        """Test for method Step.get_id"""
-        if myStepRedirect:
-            assert myStepRedirect['step'].get_id() == 30
-        else:
-            pass
-
-    def test_stepredirect_get_prompt(self, myStepRedirect):
-        """
-        Test method for the get_prompt method of the StepRedirect class.
-        This test assumes that the selected npc is Stephanos. It also assumes
-        that the step is 30.
-        """
-        # TODO: parameterize this properly
-        if myStepRedirect:
-            username = 'Ian'
-            actual = myStepRedirect['step'].get_prompt(username)
-            step = myStepRedirect['stepdata']
-            newstring = step['redirect_prompt'].replace('[[next_loc]]', '{}')
-            # TODO: figure out how to get test step to supply next loc
-            placenames = ['ἡ στοά', 'τὸ βαλανεῖον', 'ὁ οἰκος Σιμωνος',
-                          'ἡ ἀγορά', 'somewhere else in town']
-            expected_prompts = [newstring.format(p) for p in placenames]
-            expected_instructions = step['instructions']
-            expected_images = [npc_data[i]['image'] for i in step['npc_list']]
-
-            assert actual['prompt'] in expected_prompts
-            assert actual['instructions'] == expected_instructions
-            assert actual['npc_image'].attributes['_src'] in expected_images
-        else:
-            pass
-
-    def test_stepredirect_make_replacements(self, myStepRedirect, db):
-        """docstring for test_stepredirect_make_replacements"""
-        if myStepRedirect:
-            string = 'Nothing to do here [[user]]. Try [[next_loc]].'
-            next_step = 1
-            kwargs = {'raw_prompt': string,
-                      'username': 'Ian',
-                      'db': db,
-                      'next_step_id': next_step}
-            newstring = 'Nothing to do here Ian. Try {}.'
-            placenames = ['ἡ στοά', 'τὸ βαλανεῖον', 'ὁ οἰκος Σιμωνος',
-                          'ἡ ἀγορά', 'ἡ συναγωγή']
-            expecteds = [newstring.format(p) for p in placenames]
-            assert myStepRedirect['step']._make_replacements(**kwargs) in \
-                expecteds
-        else:
-            pass
-
-    def test_stepredirect_get_tags(self, myStepRedirect):
-        """
-        Test for method StepRedirect.get_tags
-
-        The one tag that should be returned for all steps of this class is tag
-        70 ('default').
-        """
-        if myStepRedirect:
-            step = myStepRedirect['step']
-            assert step.get_tags() == {'primary': [70], 'secondary': []}
-        else:
-            pass
-
-    def test_stepredirect_get_responder(self, myStepRedirect):
-        """Test for method Step.get_responder"""
-        # TODO: parameterize properly
-        if myStepRedirect:
-            map_button = A("Map", _href=URL('walk'),
-                           cid='page',
-                           _class='back_to_map')
-            responder = myStepRedirect['step'].get_responder().xml()
-            assert responder == DIV(map_button).xml()
-        else:
-            pass
-
-    def test_stepredirect_get_npc(self, myStepRedirect):
-        """Test for method Step.get_npc"""
-        # TODO: parameterize properly
-        if myStepRedirect:
-            expected = myStepRedirect['stepdata']
-            actual = myStepRedirect['step'].get_npc()
-
-            assert actual.get_id() in expected['npc_list']
-            assert actual.get_name() == npc_data[actual.get_id()]['name']
-            imgsrc = npc_data[actual.get_id()]['image']
-            assert actual.get_image().xml() == IMG(_src=imgsrc).xml()
-            locs = actual.get_locations()
-            assert [l for l in locs if l in expected['locations']]
-            for l in locs:
-                assert isinstance(l, (int, long))
-                assert l in npc_data[actual.get_id()]['location']
-        else:
-            pass
-
-
-class TestStepAwardBadges():
-    '''
-    A subclass of Step. Handles the user interaction when the user is awarded
-    new badges.
-    '''
-    pytestmark = pytest.mark.skipif('not global_runall and '
-                                    'not global_run_TestStepAwardBadges')
-
-    def test_stepawardbadges_get_id(self, myStepAwardBadges):
-        """Test for method StepAwardBadges.get_id"""
-        if myStepAwardBadges:
-            expect_id = myStepAwardBadges['stepdata']['id']
-            assert myStepAwardBadges['step'].get_id() == expect_id
-
-    def test_stepawardbadges_get_prompt(self, myStepAwardBadges, db):
-        """
-        Test method for the get_prompt method of the StepAwardBadges class.
-        """
-        if myStepAwardBadges:
-            expect = myStepAwardBadges['stepdata']
-            case = myStepAwardBadges['casedata']
-            # TODO: remove npc numbers that can't be at this loc
-            npcimgs = [npc_data[n]['image'] for n in expect['npc_list']]
-            kwargs = {'raw_prompt': expect['raw_prompt'],
-                      'username': case['name'],
-                      'promoted': case['promoted'],
-                      'db': db}
-            actual = myStepAwardBadges['step'].get_prompt(**kwargs)
-            # assemble expected prompt string dynamically
-            flat_proms = [i for cat, lst in case['promoted'].iteritems()
-                          for i in lst if lst]
-            prom_records = db(db.badges.tag.belongs(flat_proms)
-                              ).select(db.badges.tag,
-                                       db.badges.badge_name).as_list()
-            expect_prompt = expect['raw_prompt'].replace('[[user]]',
-                                                         case['name'])
-            if prom_records:
-                prom_list = UL(_class='promoted_list')
-                ranks = ['beginner', 'apprentice', 'journeyman', 'master']
-                for rank, lst in case['promoted'].iteritems():
-                    if lst:
-                        rank = rank.replace('cat', '')
-                        i = int(rank) - 1
-                        label = ranks[i]
-                        for l in lst:
-                            bname = [row['badge_name'] for row in prom_records
-                                     if row['tag'] == l]
-                            prom_list.append(LI(SPAN(label, ' ', bname,
-                                                     _class='badge_name')))
-                expect_prompt = expect_prompt.replace('[[promoted_list]]',
-                                                      prom_list.xml())
-            else:
-                # don't let test pass if there are no new badges for prompt
-                raise Exception
-            assert actual['prompt'] == expect_prompt
-            assert actual['instructions'] == expect['instructions']
-            assert actual['npc_image'].attributes['_src'] in npcimgs
-        else:
-            pass
-
-    # TODO: fix this test
-    #def test_stepawardbadges_make_replacements(self, myStepAwardBadges):
-        #"""docstring for test_step_stepawardbadges_make_replacements"""
-        #case = myStepAwardBadges['casenum']
-        #sd = step_data_store[126]['case{}'.format(case)]
-        #out = {k: v for k, v in sd.iteritems()
-                #if k in ['raw_prompt', 'username', 'new_badges', 'promoted']}
-        #actual = myStepAwardBadges['step']._make_replacements(**out)
-        #assert actual == sd['final_prompt']
-
-    def test_stepawardbadges_get_tags(self, myStepAwardBadges):
-        """
-        Test for method StepRedirect.get_tags
-        The one tag that should be returned for all steps of this class is 81
-        """
-        if myStepAwardBadges:
-            step = myStepAwardBadges['stepdata']
-            expected = {'primary': step['tags'],
-                        'secondary': step['tags_secondary']}
-            assert myStepAwardBadges['step'].get_tags() == expected
-        else:
-            pass
-
-    def test_stepawardbadges_get_responder(self, myStepAwardBadges):
-        """Test for method StepAwardBadges.get_responder"""
-        if myStepAwardBadges:
-            # TODO: Change all of the responders to be complete web2py DIV
-            # objects like this.
-            thisloc = myStepAwardBadges['casedata']['loc'].get_id()
-            expected = myStepAwardBadges['stepdata']['responder']
-            expected = expected.replace('[[loc]]', str(thisloc))
-            actual = myStepAwardBadges['step'].get_responder().xml()
-            assert actual == expected
-        else:
-            pass
-
-    def test_stepawardbadges_get_npc(self, myStepAwardBadges):
-        """Test for method StepAwardBadges.get_npc"""
-        if myStepAwardBadges:
-            npc = myStepAwardBadges['step'].get_npc()
-            step = myStepAwardBadges['stepdata']
-            case = myStepAwardBadges['casedata']
-            assert npc.get_id() in step['npc_list']
-            assert npc.get_id() in case['npcs_here']
-            assert isinstance(npc, Npc)
-        else:
-            pass
-
-
-class TestStepViewSlides():
-    '''
-    A subclass of Step. Handles the user interaction when the user is awarded
-    new badges.
-    '''
-    pytestmark = pytest.mark.skipif('not global_runall and '
-                                    'not global_run_TestStepViewSlides')
-
-    def test_stepviewslides_get_id(self, myStepViewSlides):
-        """Test for method Step.get_id"""
-        if myStepViewSlides:
-            step = myStepViewSlides['stepdata']
-            assert myStepViewSlides['step'].get_id() == step['id']
-        else:
-            pass
-
-    def test_stepviewslides_get_prompt(self, myStepViewSlides, db):
-        """
-        Test method for the get_prompt method of the StepRedirect class.
-        This test assumes that the selected npc is Stephanos. It also assumes
-        that the step is 30.
-        """
-        if myStepViewSlides:
-            case = myStepViewSlides['casedata']
-            step = myStepViewSlides['stepdata']
-            # get actual prompt output
-            actual = myStepViewSlides['step'].get_prompt(username=case['name'],
-                                                 new_badges=case['new_badges'])
-            # assemble expected prompt
-            tags = db((db.tags.id == db.badges.tag) &
-                    (db.tags.id.belongs(case['new_badges']))).select().as_list()
-
-            # assemble the badge list
-            badges = [row['badges']['id'] for row in tags]
-            if isinstance(badges[0], list):
-                # TODO: anticipating possibility that badges could match multiple tags
-                badges = [i for lst in badges for i in lst]
-            else:
-                pass
-
-            # build list of badges
-            badgerows = db(db.badges.id.belongs(badges)
-                           ).select(db.badges.id,
-                                    db.badges.badge_name,
-                                    db.badges.description)
-
-            badge_list = UL(_class='badge_list')
-            for b in badgerows:
-                badge_list.append(LI(SPAN(b.badge_name, _class='badge_name'),
-                                    ' for ',
-                                    b.description))
-
-            # assemble deck list
-            deck_ids = [row['tags']['slides'] for row in tags]
-            if isinstance(deck_ids[0], list):
-                # anticipating possibility that decks could match multiple tags
-                deck_ids = (i for lst in deck_ids for i in lst)
-            deck_ids = list(set(deck_ids))
-
-            deck_table = db.plugin_slider_decks
-            deck_query = db(deck_table.id.belongs(deck_ids))
-            decknames = deck_query.select(deck_table.id,
-                                          deck_table.deck_name,
-                                          orderby=deck_table.deck_position)
-            decklist = UL(_class='slide_list')
-            for d in decknames:
-                decklist.append(LI(A(d.deck_name, _href=URL('listing',
-                                                            'slides',
-                                                            args=[d.id]))))
-            p = step['raw_prompt']
-            expect_prompt = p.replace('[[user]]', case['name'])
-            expect_prompt = expect_prompt.replace('[[badge_list]]',
-                                                  badge_list.xml())
-            expect_prompt = expect_prompt.replace('[[slides]]',
-                                                  decklist.xml())
-            # get list of expected npc images
-            npc_images = [npc_data[n]['image'] for n in step['npc_list']
-                          if n in case['npcs_here']]
-
-            assert actual['prompt'] == expect_prompt
-            assert actual['instructions'] == step['instructions']
-            assert actual['npc_image'].attributes['_src'] in npc_images
-        else:
-            pass
-
-    def test_stepviewslides_make_replacements(self, myStepViewSlides, db):
-        """
-        Unit test for StepViewSlides.make_replacements()
-        """
-        if myStepViewSlides:
-            step = myStepViewSlides['step']
-            stepdata = myStepViewSlides['stepdata']
-            case = myStepViewSlides['casedata']
-            kwargs = {'raw_prompt': stepdata['raw_prompt'],
-                      'username': case['name'],
-                      'new_badges': case['new_badges']}
-            prompt = step._make_replacements(**kwargs)
-
-            # assemble badge list
-            badge_rows = db(db.badges.tag.belongs(case['new_badges'])
-                            ).select()
-            formatstring = '<li><span class="badge_name">{0}</span> ' \
-                           'for {1}</li>'
-            badge_names = [formatstring.format(r.badge_name, r.description)
-                           for r in badge_rows]
-            badges_str = '<ul class="badge_list">'
-            badges_str += ''.join(badge_names)
-            badges_str += '</ul>'
-            # assemble slide deck list
-            tag_rows = db(db.tags.id.belongs(case['new_badges'])
-                          ).select(db.tags.slides)
-            deck_ids = [d for r in tag_rows for d in r['slides']]
-            slide_rows = db(db.plugin_slider_decks.id.belongs(deck_ids)
-                            ).select()
-            formatstring2 = '<li><a data-w2p_disable_with="default" ' \
-                            'href="/paideia/listing/slides/{0}">' \
-                            '{1}</a></li>'
-            deck_names = [formatstring2.format(r.id, r.deck_name)
-                          for r in slide_rows]
-            decks_str = '<ul class="slide_list">'
-            decks_str += ''.join(deck_names)
-            decks_str += '</ul>'
-
-            fullprompt = stepdata['raw_prompt'].replace('[[user]]', case['name'])
-            fullprompt = fullprompt.replace('[[slides]]', decks_str)
-            fullprompt = fullprompt.replace('[[badge_list]]', badges_str)
-            assert prompt == fullprompt
-        else:
-            pass
-
-    def test_stepviewslides_get_tags(self, myStepViewSlides):
-        """
-        Test for method StepViewSlides.get_tags
-
-        The one tag that should be returned for all steps of this class is tag
-        80.
-        """
-        if myStepViewSlides:
-            actual = myStepViewSlides['step'].get_tags()
-            expected = myStepViewSlides['stepdata']
-            assert actual == {'primary': expected['tags'],
-                              'secondary': expected['tags_secondary']}
-            assert actual['primary'] == [80]
-        else:
-            pass
-
-    def test_stepviewslides_get_responder(self, myStepViewSlides):
-        """Test for method StepViewSlides.get_responder"""
-        if myStepViewSlides:
-            actual = myStepViewSlides['step'].get_responder().xml()
-            expected = myStepViewSlides['stepdata']['responder']
-            assert actual == expected
-        else:
-            pass
-
-    def test_stepviewslides_get_npc(self, myStepViewSlides):
-        """Test for method StepViewSlides.get_npc"""
-        if myStepViewSlides:
-            actual = myStepViewSlides['step'].get_npc()
-            expected = myStepViewSlides['stepdata']
-            case = myStepViewSlides['casedata']
-            assert isinstance(actual, Npc)
-            assert actual.get_id() in expected['npc_list']
-            assert actual.get_id() in case['npcs_here']
-        else:
-            pass
-
-
-class TestStepText():
-    '''
-    Test class for paideia.StepText
-    '''
-    pytestmark = pytest.mark.skipif('global_runall is False '
-                                    'and global_run_TestStepText is False')
-
-    def test_steptext_get_responder(self, myStepText):
-        if myStepText:
-            resp = '<form action="#" autocomplete="off" '\
-                   'enctype="multipart/form-data" method="post">'\
-                   '<table>'\
-                   '<tr id="no_table_response__row">'\
-                   '<td class="w2p_fl">'\
-                   '<label for="no_table_response" '\
-                   'id="no_table_response__label">Response: </label>'\
-                   '</td>'\
-                   '<td class="w2p_fw">'\
-                   '<input class="string" id="no_table_response" '\
-                   'name="response" type="text" value="" />'\
-                   '</td>'\
-                   '<td class="w2p_fc"></td>'\
-                   '</tr>'\
-                   '<tr id="submit_record__row">'\
-                   '<td class="w2p_fl"></td>'\
-                   '<td class="w2p_fw"><input type="submit" '\
-                   'value="Submit" /></td>'\
-                   '<td class="w2p_fc"></td></tr></table></form>'
-            assert myStepText['step'].get_responder().xml() == resp
-            assert isinstance(myStepText['step'], StepText)
-        else:
-            pass
-
-    def test_steptext_get_readable(self, myStepText):
+    @pytest.mark.parametrize('stepid', [1, 2, 19])  # only StepText type
+    def test_step_get_readable(self, stepid, mysteps):
         """Unit tests for StepText._get_readable() method"""
-        if myStepText:
-            output = myStepText['stepdata']['readable']
-            assert myStepText['step']._get_readable() == output
-        else:
-            pass
+        step, expected = mystep(stepid, mysteps)
+        assert step._get_readable() == expected['readable']
 
-    def test_steptext_get_reply(self, myStepText):
+    @pytest.mark.parametrize('stepid', [1, 2, 19, 101])  # only StepText and StepMultiple types
+    def test_step_get_reply(self, stepid, caseid, mysteps, db):
         """Unit tests for StepText._get_reply() method"""
-        if myStepText:
-            step = myStepText['stepdata']
-            response = myStepText['user_response']
-            expected = {'reply_text': myStepText['reply_text'],
-                        'tips': step['tips'],
-                        'readable_short': step['readable']['readable_short'],
-                        'readable_long': step['readable']['readable_long'],
-                        'score': myStepText['score'],
-                        'times_right': myStepText['times_right'],
-                        'times_wrong': myStepText['times_wrong'],
-                        'user_response': myStepText['user_response']}
-            actual = myStepText['step'].get_reply(user_response=response)
-            assert actual['reply_text'] == expected['reply_text']
-            assert actual['readable_short'] == expected['readable_short']
-            assert actual['readable_long'] == expected['readable_long']
-            assert actual['tips'] == expected['tips']
-            assert actual['times_right'] == expected['times_right']
-            assert actual['times_wrong'] == expected['times_wrong']
-            assert actual['user_response'] == expected['user_response']
+        #case = mycases(caseid, user_login, db)
+        step, expected = mystep(stepid, mysteps)
+        actual = step.get_reply(expected['user_response'])
+
+        assert actual['reply_text'] == expected['reply_text']
+        assert actual['readable_short'] == expected['readable']['readable_short']
+        assert actual['readable_long'] == expected['readable']['readable_long']
+        assert actual['tips'] == expected['tips']
+        assert actual['score'] == expected['score']
+        assert actual['times_right'] == expected['times_right']
+        assert actual['times_wrong'] == expected['times_wrong']
+        assert actual['user_response'] == expected['user_response']
 
 
 class TestStepMultiple():
@@ -1865,16 +1430,6 @@ class TestStepMultiple():
     '''
     pytestmark = pytest.mark.skipif('global_runall is False '
                                     'and global_run_TestStepMultiple is False')
-
-    def test_stepmultiple_get_responder(self, myStepMultiple):
-        """Unit testing for get_responder method of StepMultiple."""
-        if myStepMultiple:
-            # value of _formkey input near end is variable, so matched with .*
-            expected = myStepMultiple['resp_text']
-            actual = myStepMultiple['step'].get_responder().xml()
-            assert re.match(expected, actual)
-        else:
-            pass
 
     def test_stepmultiple_get_reply(self, myStepMultiple):
         """Unit testing for get_reply method of StepMultiple."""

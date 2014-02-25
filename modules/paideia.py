@@ -13,9 +13,9 @@ import datetime
 from dateutil import parser
 import traceback
 from pytz import timezone
-from plugin_widgets import POPOVER, ROLE, MODAL
+from plugin_widgets import POPOVER, MODAL
 import pickle
-#from pprint import pprint
+from pprint import pprint
 #from paideia_utils import send_error
 
 # TODO: move these notes elsewhere
@@ -199,72 +199,50 @@ class Walk(object):
             value: dictionary of kwargs to be passed to the Block
         """
         print 'STARTING WALK.ASK---------------------------------------'
-        db = current.db
         user = self.user
         # allow artificial setting of blocks during interface testing
         if set_blocks:
             for c, v in set_blocks.iteritems():
                 myargs = {n: a for n, a in v.iteritems()}
                 user._set_block(c, kwargs=myargs)
-        user.get_categories(user_id=user.get_id())
+        username = user.get_name()
+        promoted, new_tags = user.get_categories(user_id=user.get_id())
+        if new_tags:
+            # setting order here should make new_tags step come up first
+            user._set_block('new_tags')
+            user._set_block('view_slides')
+        if promoted:
+            user._set_block('new_tags')
 
-        # FIXME: fix redundant db call here by sending localias to Loc() instead of id
-        loc_id = db(db.locations.loc_alias == localias).select().first().id
-        loc = Location(loc_id)
-        user.set_location(loc)  # called only in ask?
+        loc = Location(localias)
+        prev_loc = user.set_location(loc)
+        prev_npc = user.get_prev_npc()
 
-        p, category = user.get_path(path=path, repeat=repeat)
-        print 'walk.ask: got path', p.get_id()
-        user.active_cat = category
-        s, newloc_id = p.get_step_for_prompt(repeat=repeat)
-        print 'walk.ask: got step', s.get_id()
+        p, category = user.get_path(loc, path=path, repeat=repeat)
+        user.active_cat = category  # TODO: why necessary?
+
+        s, newloc_id = p.get_step_for_prompt(loc, prev_loc, repeat=repeat)
         if newloc_id:
             user._set_block('redirect', kwargs={'next_loc': newloc_id})
 
         # TODO: make sure 'new_tags' is returned before 'view_slides'
         block = user.check_for_blocks()
         if block:
-            condition = block.get_condition()
-            # FIXME: necessary because p.step_for_reply is lost in step activation?
-            #if s.get_id() not in p.steps:
-                #p.steps.insert(0, copy(s))
-            if condition in ['new_tags', 'view_slides']:
-                if not block.kwargs['new_tags']:
-                    block.kwargs['new_tags'] = user.new_tags
-                if ('promoted' in block.kwargs.keys()) and \
-                   (block.kwargs['promoted'] is None):
-                    block.kwargs['promoted'] = user.promoted
-            s = block.get_step(**{'prev_loc': user.prev_loc,
-                                  'prev_npc': user.prev_npc,
-                                  'loc': user.loc,
-                                  'npc': user.npc,
-                                  'username': user.name})
-        npc = s.get_npc(prev_npc=user.prev_npc, prev_loc=user.prev_loc)
+            s = block.get_step()
+
+        npc = s.get_npc(loc, prev_npc, prev_loc)
         user.set_npc(npc)
 
-        prompt = s.get_prompt()
-        progress = 'This will make {} paths so far today.' \
-                   ''.format(len(user.completed_paths) + 1)
-        responder = s.get_responder()
-        responder.append(SPAN(progress, _class='progress_text'))
+        prompt = s.get_prompt(loc, npc, username, newloc_id, new_tags, promoted)
+        prompt['completed_count'] = len(user.completed_paths)
+        prompt['category'] = category
+        prompt['pid'] = p.get_id()
+        p.end_prompt(s.get_id())  # send id to tell whether its a block step
 
-        # info for admin and debugging
-        try:
-            editlinks = self._get_editlinks(p.get_id(), s.get_id())
-            responder.append(editlinks)
-        except Exception:
-            pass
-
-        if type(s) not in [StepRedirect, StepQuotaReached, StepAwardBadges,
-                           StepViewSlides]:
-            assert p.end_prompt()  # non-response steps end here
         self._store_user(user)
-        print 'END OF WALK.ASK'
-        print '==============================\n'
-        return {'npc': prompt, 'responder': responder}
+        return prompt
 
-    def reply(self, localias, response_string, path=None,
-              step=None, set_blocks=None):
+    def reply(self, localias, response_string, path=None, step=None):
         """
         Return the information necessary to complete a step interaction.
 
@@ -286,42 +264,24 @@ class Walk(object):
         print '\n================================'
         print '\nSTART OF Walk.reply()'
         user = self._get_user()
-        user_id = user.get_id()
-
-        # allow manual setting of blocks for testing
-        if set_blocks:
-            for c, v in set_blocks.iteritems():
-                myargs = {n: a for n, a in v.iteritems()}
-                user._set_block(c, kwargs=myargs)
-
         p, cat = user.get_path(reply=True)
         s = p.get_step_for_reply()
 
-        # make sure there's a response to evaluate
         if (not response_string) or re.match(response_string, r'\s+'):
             return self.ask()  # TODO: will this actually re-prompt the same step?
 
-        # TODO: should blocks be checked at all in reply()?
-        # FIXME: find a way to recognize changed npc without losing previous
-        # step's npc
-        # separate method to set_prev_npc that in turn calls set_npc.
-        # call the former in ask, but only the latter in reply.
-        #user.set_npc(mynpc[0])  # since npc decision has to follow step choice
+        # evaluate user response
+        # loc and npc were stored on step during prompt phase
+        reply = s.get_reply(response_string)
 
-        reply = s.get_reply(response_string)  # evaluate user response
-
-        # record data for this step in db
         assert self._record_cats(user.tag_progress, user.promoted, user.new_tags)
-        self.record_id = self._record_step(user_id,
-                                           p.get_id(),
-                                           s.get_id(),
+        self.record_id = self._record_step(user.get_id(), p.get_id(), s.get_id(),
                                            reply['score'],
                                            reply['times_right'],
                                            reply['times_wrong'],
                                            user.tag_records,
                                            s.get_tags(),
                                            response_string)
-        assert self.record_id
 
         breporter = BugReporter().get_reporter(self.record_id,
                                                p.get_id(),
@@ -343,32 +303,13 @@ class Walk(object):
             pass
 
         p.complete_step()  # removes path.step_for_reply
-        # Note: path is completed (moved to user.completed_paths) in following
-        # cycle in user.get_path. This simplifies repeating steps/paths
-        # considerably.
+        # Note: path can also be completed (moved to user.completed_paths) in
+        # following cycle in user.get_path.
         self._store_user(user)
 
-        return {'npc': reply, 'responder': responder, 'bmodal': breporter[1]}
+        return reply
 
-    def _get_editlinks(self, pid, sid, cat):
-        """
-        Return an html helper object with links to edit current path and step.
-        """
-        stepedit = A('step {}'.format(sid),
-                     _href=URL('editing', 'listing', args=['steps', sid]),
-                     _class='prompt-s-editlink'
-                     )
-        pathedit = A('path {}'.format(pid),
-                     _href=URL('editing', 'listing', args=['paths', pid]),
-                     _class='prompt-p-editlink'
-                     )
-        catnum = ' choosing from category {}'.format(cat)
-        links = ROLE(SPAN(pathedit, ', ', stepedit, catnum,
-                          _class='prompt-editlinks'))
-        return links
-
-    def _record_cats(self, tag_progress, promoted,
-                     new_tags, db=None):
+    def _record_cats(self, tag_progress, promoted, new_tags, db=None):
         """
         Record changes to the user's working tags and their categorization.
 
@@ -560,11 +501,10 @@ class Location(object):
     Represents a location in the game world.
     """
 
-    def __init__(self, id_num, db=None):
+    def __init__(self, alias, db=None):
         """Initialize a Location object."""
         db = current.db if not db else db
-        self.id_num = id_num
-        self.data = db.locations[id_num]
+        self.data = db(db.locations.loc_alias == alias).select().first()
 
     def get_alias(self):
         """Return the alias of the current Location as a string."""
@@ -756,9 +696,7 @@ class StepFactory(object):
     based on the "widget_type" field supplied in db.steps. But there is not a
     1:1 relationship between widget type and Step subclass.
     """
-    #TODO: does this object need an __init__ method?
-
-    def get_instance(self, db=None, **kwargs):
+    def get_instance(self, step_id, repeating=None, db=None):
         """
         Return the correct subclass of Step based on record's 'widget_type'.
 
@@ -773,10 +711,8 @@ class StepFactory(object):
         8. award badges
         9. redirect
         """
-        args = util_get_args()  # get the args and kwargs submitted above
         db = current.db if not db else db
-        data = db.steps[locals()['step_id']].as_dict()
-        del(args[0]['self'])
+        mystep = db.steps[step_id]
         step_classes = {1: StepText,
                         2: StepMultiple,
                         3: Step,
@@ -786,7 +722,9 @@ class StepFactory(object):
                         7: StepQuotaReached,
                         8: StepAwardBadges,
                         9: StepRedirect}
-        return step_classes[data['widget_type']](**args[0])
+        return step_classes[mystep['widget_type']](step_id,
+                                                   repeating=repeating,
+                                                   stepdata=mystep.as_dict())
 
 
 class Step(object):
@@ -795,27 +733,13 @@ class Step(object):
     interaction) in the game.
     '''
 
-    def __init__(self, step_id=None, loc=None, prev_loc=None, prev_npc=None,
-                 username=None, promoted=None, new_tags=None, **kwargs):
+    def __init__(self, step_id, repeating=False, stepdata=None):
         """Initialize a paideia.Step object"""
-        # basic step data from db
         db = current.db
-        self.data = db.steps[step_id].as_dict()
-
-        # flag
+        self.data = db.steps[step_id].as_dict() if not stepdata else stepdata
         self.repeating = False  # set to true if step already done today
-
-        # set by init args and used for prompt replacements
-        self.username = username
-        self.promoted = promoted
-        self.new_tags = new_tags
-
-        # set internally or later
         self.npc = None  # must wait since all steps in path init at once
-        self.loc = loc
-        self.prev_npc = prev_npc
-        self.prev_loc = prev_loc
-        self.redirect_loc_id = None
+        self.redirect_loc_id = None  # TODO: is this used?
 
     def get_id(self):
         """
@@ -858,11 +782,15 @@ class Step(object):
         db = current.db
         tags = db(db.tags.id.belongs(self.data['tags'])).select()
         if tags:
-            decks = {d.id: d.deck_name
-                     for t in tags
-                     for d in t.slides
-                     if t.slides}
-            return decks
+            try:
+                decks = {d.id: d.deck_name
+                        for t in tags
+                        for d in t.slides
+                        if t.slides}
+                return decks
+            except:
+                print 'no decks found'
+                print [t.slides for t in tags]
         else:
             return None
 
@@ -898,7 +826,8 @@ class Step(object):
         else:
             return False
 
-    def get_prompt(self, username=None, raw_prompt=None, **kwargs):
+    def get_prompt(self, location, npc, username, next_loc, new_tags, promoted,
+                   raw_prompt=None):
         """
         Return the prompt information for the step. In the Step base class
         this is a simple string. Before returning, though, any necessary
@@ -909,26 +838,34 @@ class Step(object):
         set a redirect block.
         """
         raw_prompt = self.data['prompt'] if not raw_prompt else raw_prompt
-        prompt = {'prompt': self._make_replacements(raw_prompt, **kwargs),
+        prompt = {'sid': self.get_id(),
+                  'prompt': self._make_replacements(raw_prompt, username,
+                                                    next_loc, new_tags,
+                                                    promoted),
                   'audio': self._get_prompt_audio(),
-                  'widget_image': self._get_widget_image(),
+                  'widget_img': self._get_widget_image(),
                   'instructions': self._get_instructions(),
                   'slidedecks': self._get_slides(),
-                  'bg_image': self.loc.get_bg()}
+                  'bg_image': location.get_bg(),
+                  'loc': location.get_alias(),
+                  'response_buttons': ['map'],
+                  'response_form': None,
+                  'bugreporter': None}
         # TODO: this is a temporary hack for bad data
-        self.npc = self.npc[0] if isinstance(self.npc, tuple) else self.npc
+        self.npc = npc if not isinstance(npc, tuple) else npc[0]
         prompt['npc_image'] = self.npc.get_image()
 
         return prompt
 
-    def _make_replacements(self, raw_prompt=None, reps=None, appds=None):
+    def _make_replacements(self, raw_prompt, username, next_loc, new_tags,
+                           promoted, reps=None, appds=None):
         """
         Return the provided string with tokens replaced by personalized
         information for the current user.
         """
         if not reps:
             reps = {}
-            reps['[[user]]'] = self.username
+            reps['[[user]]'] = username
 
         new_string = raw_prompt
         for k, v in reps.iteritems():
@@ -946,18 +883,7 @@ class Step(object):
 
         return new_string
 
-    def get_responder(self):
-        """
-        Return form providing navigation options after prompt that does not
-        require any answer.
-        """
-        map_button = A("Back to map", _href=URL('walk'),
-                       cid='page',
-                       _class='btn btn-success icon-map-marker')
-        responder = DIV(map_button, _class='responder')
-        return responder
-
-    def get_npc(self, prev_npc=None, prev_loc=None):
+    def get_npc(self, loc, prev_npc=None, prev_loc=None):
         """
         Return an Npc object appropriate for this step
 
@@ -975,7 +901,7 @@ class Step(object):
         This method is also where all checking is done for compatibility between
         the chosen step, location, and npc.
         """
-        loc_id = self.loc.get_id()
+        loc_id = loc.get_id()
         db = current.db
         npc_list = self.get_npcs()
 
@@ -1038,20 +964,16 @@ class StepContinue(Step):
     """
     An abstract subclass of Step that adds a 'continue' button to the responder.
     """
-    def get_responder(self):
+    def get_prompt(self, loc, npc, username, next_loc, new_tags, promoted):
         """
         Return the html form to allow the user to respond to the prompt for
         this step.
         """
-        responder = super(StepContinue, self).get_responder()
-
-        continue_button = A("Continue", _href=URL('walk', args=['ask'],
-                            vars={'loc': self.loc.get_alias()}),
-                            cid='page',
-                            _class='continue btn btn-success')
-        responder.append(continue_button)
-
-        return responder
+        prompt = super(StepContinue, self).get_prompt(loc, npc, username,
+                                                      next_loc, new_tags,
+                                                      promoted)
+        prompt['response_buttons'] = ['map', 'continue']
+        return prompt
 
 
 class StepRedirect(Step):
@@ -1064,30 +986,35 @@ class StepRedirect(Step):
     specific location. Otherwise, the user receives a generic instruction to
     try "another location in town".
     '''
-    def __init__(self, step_id=None, step_data=None, loc=None, prev_loc=None,
-                 prev_npc=None, username=None, next_step_id=None, next_loc=None,
-                 db=None, **kwargs):
-        """Initialize a StepRedirect object."""
+    def get_prompt(self, loc, npc, username, next_loc, new_tags, promoted):
+        """
+        Return the html form to allow the user to respond to the prompt for
+        this step.
+        """
+        prompt = super(StepRedirect, self).get_prompt(loc, npc, username,
+                                                      next_loc, new_tags,
+                                                      promoted)
+        prompt['response_buttons'] = ['map', 'continue']
+        return prompt
 
-        assert next_loc
-        self.next_loc = next_loc if next_loc else "another location in town"
-        # delegate common init tasks to Step superclass
-        kwargs = locals()
-        del(kwargs['self'])
-        super(StepRedirect, self).__init__(**kwargs)
-
-    def _make_replacements(self, raw_prompt=None):
+    def _make_replacements(self, raw_prompt, username,
+                           next_loc, new_tags, promoted):
         """
         Return the string for the step prompt with context-based information
         substituted for tokens framed by [[]].
         """
         db = current.db
-        next_loc_name = db.locations[self.next_loc]['readable']
-
+        if next_loc:
+            next_loc_name = db.locations[next_loc]['readable']
+        else:
+            next_loc_name = "somewhere else in town"
         reps = {'[[next_loc]]': next_loc_name}
-        new_string = super(StepRedirect, self)._make_replacements(
-            raw_prompt=raw_prompt,
-            reps=reps)
+        new_string = super(StepRedirect, self)._make_replacements(raw_prompt,
+                                                                  username,
+                                                                  next_loc,
+                                                                  new_tags,
+                                                                  promoted,
+                                                                  reps=reps)
         return new_string
 
 
@@ -1095,16 +1022,17 @@ class StepQuotaReached(StepContinue, Step):
     '''
     A Step that tells the user s/he has completed the daily minimum # of steps.
     '''
-    def _make_replacements(self, raw_prompt=None, username=None, quota=None):
+    def _make_replacements(self, raw_prompt, username,
+                           next_loc, new_tags, promoted):
         """
         Return the string for the step prompt with context-based information
         substituted for tokens framed by [[]].
         """
         reps = None
-        new_string = super(StepQuotaReached, self
-                           )._make_replacements(raw_prompt=raw_prompt,
-                                                reps=reps)
-        return new_string
+        newstr = super(StepQuotaReached, self
+                       )._make_replacements(raw_prompt, username, next_loc,
+                                            new_tags, promoted, reps=reps)
+        return newstr
 
 
 class StepAwardBadges(StepContinue, Step):
@@ -1112,62 +1040,58 @@ class StepAwardBadges(StepContinue, Step):
     A Step that informs the user when s/he has earned new badges.
     '''
 
-    def _make_replacements(self, raw_prompt=None, db=None):
+    def _make_replacements(self, raw_prompt, username,
+                           next_loc, new_tags, promoted):
         """
         Return the string for the step prompt with context-based information
         substituted for tokens framed by [[]].
         """
-        db = current.db if not db else db
+        db = current.db
         appds = {}
         reps = {}
 
         prom_rep = ' '
-        if self.promoted:
-            flat_proms = [i for cat, lst in self.promoted.iteritems() for i in lst if lst]
+        if promoted:
+            flat_proms = [i for cat, lst in promoted.iteritems() for i in lst if lst]
             prom_records = db(db.badges.tag.belongs(flat_proms)
                               ).select(db.badges.tag,
                                        db.badges.badge_name).as_list()
             if prom_records:
-                prom_rep = DIV('You have been promoted to these new badge '
-                               'levels:')
-                prom_rep.append(UL(_class='promoted_list'))
+                prom_rep = 'You have been promoted to these new badge levels:\r\n'
                 ranks = ['beginner', 'apprentice', 'journeyman', 'master']
-                for rank, lst in self.promoted.iteritems():
-                    if lst:
-                        rank = rank.replace('cat', '')
-                        i = int(rank) - 1
-                        label = ranks[i]
-                        for l in lst:
-                            bname = [row['badge_name'] for row in prom_records
-                                    if row['tag'] == l][0]
-                            line = LI(SPAN(label, ' ', bname, _class='badge_name'))
-                            prom_rep[1].append(line)
-                    else:
-                        pass
+                prom_clean = {k: v for k, v in promoted.iteritems() if v}
+                for rank, lst in prom_clean.iteritems():
+                    ranknum = int(rank.replace('cat', ''))
+                    label = ranks[ranknum - 1]
+                    for l in lst:
+                        bname = [row['badge_name'] for row in prom_records
+                                if row['tag'] == l][0]
+                        line = '- {} {}\r\n'.format(label, bname)
+                        prom_rep += line
         appds['[[promoted_list]]'] = prom_rep
 
         conj = 'You'
         nt_rep = ''
-        if self.new_tags:
+        if new_tags:
             conj = 'and you'
-            nt_records = db(db.badges.tag.belongs(self.new_tags)
+            nt_records = db(db.badges.tag.belongs(new_tags)
                             ).select(db.badges.tag, db.badges.badge_name).as_list()
             if nt_records:
-                nt_rep = DIV('{}\'re ready to start working on some new '
-                             'badges:'.format(conj))
-                nt_rep.append(UL(_class='new_tags_list'))
-                for p in self.new_tags:
+                nt_rep = '{}\'re ready to start working on some new ' \
+                         'badges:\r\n'.format(conj)
+                for p in [t for t in new_tags if t]:
                     bname = [row['badge_name'] for row in nt_records
                              if row['tag'] == p][0]
-                    line = LI(SPAN('beginner {}'.format(bname),
-                                   _class='badge_name'))
-                    nt_rep[1].append(line)
+                    line = '- beginner {}\r\n'.format(bname)
+                    nt_rep += line
+        nt_rep += 'You can click on your name above to see details ' \
+                  'of your progress so far.'
         appds['[[new_tag_list]]'] = nt_rep
-
-        new_string = super(StepAwardBadges, self
-                           )._make_replacements(raw_prompt=raw_prompt,
-                                                reps=reps, appds=appds)
-        return new_string
+        newstr = super(StepAwardBadges, self
+                       )._make_replacements(raw_prompt, username,
+                                            next_loc, new_tags, promoted,
+                                            reps=reps, appds=appds)
+        return newstr
 
 
 class StepViewSlides(Step):
@@ -1175,7 +1099,8 @@ class StepViewSlides(Step):
     A Step that informs the user when s/he needs to view more grammar slides.
     '''
 
-    def _make_replacements(self, raw_prompt=None):
+    def _make_replacements(self, raw_prompt, username,
+                           next_loc, new_tags, promoted):
         """
         Return the string for the step prompt with context-based information
         substituted for tokens framed by [[]].
@@ -1184,7 +1109,7 @@ class StepViewSlides(Step):
         """
         db = current.db
         tags = db((db.tags.id == db.badges.tag) &
-                  (db.tags.id.belongs(self.new_tags))).select().as_list()
+                (db.tags.id.belongs(new_tags))).select().as_list()
 
         # get the relevant slide sets (id and name)
         decks = [row['tags']['slides'] for row in tags]
@@ -1209,10 +1134,10 @@ class StepViewSlides(Step):
 
         # collect replacements
         appds = {'[[slide_list]]': slides}
-        new_string = super(StepViewSlides, self
-                           )._make_replacements(raw_prompt=raw_prompt,
-                                                appds=appds)
-        return new_string
+        newstr = super(StepViewSlides, self
+                       )._make_replacements(raw_prompt, username, next_loc,
+                                            new_tags, promoted, appds=appds)
+        return newstr
 
 
 class StepText(Step):
@@ -1221,81 +1146,59 @@ class StepText(Step):
     that input. Handles only a single string response.
     """
 
-    def get_responder(self):
+    def get_prompt(self, location, npc, username, next_loc, new_tags, promoted):
+        """x"""
+        prompt = super(StepText, self).get_prompt(location, npc, username,
+                                                  next_loc, new_tags, promoted)
+        prompt['response_form'] = self._get_response_form()
+        prompt['response_buttons'] = []
+        return prompt
+
+    def _get_response_form(self):
         """
         Return the html form to allow the user to respond to the prompt for
         this step.
         """
+        # TODO: needs test
         form = SQLFORM.factory(Field('response', 'string',
                                      requires=IS_NOT_EMPTY()),
-                               _autocomplete='off'
-                               )
-        responder = DIV(form, _class='responder', _id='responder')
-        return responder
+                               _autocomplete='off')
+        return form
 
-    def get_final_responder(self, localias=None, bug_reporter=None):
-        """
-        Return the html for the user-response interface presented with a reply.
-        """
-        resp = DIV(A("Continue",
-                     _href=URL('walk', args=['ask'],
-                               vars={'loc': localias}),
-                     cid='page',
-                     _class='btn btn-success next_q'),
-                   A("Try again",
-                     _href=URL('walk', args=['repeat'],
-                               vars={'loc': localias}),
-                     cid='page',
-                     _class='btn btn-warning retry'),
-                   A("Map",
-                     _href=URL('walk', args=['map'], vars={'loc': None}),
-                     cid='page',
-                     _class='btn btn-info back_to_map'),
-                   bug_reporter,
-                   _class='responder')
-
-        return resp
-
-    def get_reply(self, user_response=None, answers=None, tips=None):
+    def get_reply(self, user_response=None):
         """
         Evaluate a user's response and return the resulting data and reply.
         """
+        loc = self.loc
+        npc = self.npc
         db = current.db
         readable = self._get_readable()
+        tips = self.data['hints']
+        slides = self.slides
+        responses = {k: v for k, v in self.data.iteritems()
+                     if k and (k in ['response1', 'response2', 'response3'])}
+        #except TypeError:
+            #tips = self.data['step'].data['hints']
+            #responses = {k: v for k, v in self.data['step'].data.iteritems()
+                         #if k and (k in rkeys)}
 
-        try:
-            tips = self.data['hints']
-            rkeys = ['response1', 'response2', 'response3']
-            responses = {k: v for k, v in self.data.iteritems()
-                         if k and (k in rkeys)}
-        except TypeError:
-            tips = self.data['step'].data['hints']
-            responses = {k: v for k, v in self.data['step'].data.iteritems()
-                         if k and (k in rkeys)}
         if tips:
-            tips_lst = db(db.step_hints.id.belongs(tips)).select(db.step_hints.hint_text).as_list()
-            tips_txt = UL()
+            tips_lst = db(db.step_hints.id.belongs(tips)
+                          ).select(db.step_hints.hint_text).as_list()
             tips_lst = [v for t in tips_lst for k, v in t.iteritems()]
-            for t in tips_lst:
-                tips_txt.append(LI(t))
-        else:
-            tips_txt = None
 
-        result = StepEvaluator(responses, tips_txt).get_eval(user_response)
-
-        bg_image = self.loc.get_bg()
-        npc_image = self.npc.get_image()
-
-        reply = DIV(P(result['reply'],
-                      'You said ', UL(LI(user_response)),
-                      'Correct answers would include ',
-                      readable['readable_short']),
-                    _class='npc prompt')
-
-        if tips:
             hints_args = {'classnames': 'btn btn-info',
                           'id': 'instructions_btn'}
             reply.append(POPOVER().widget('Hints', tips_txt, **hints_args))
+        else:
+            tips_lst = None
+
+        result = StepEvaluator(responses, tips_lst).get_eval(user_response)
+
+        bg_image = loc.get_bg()
+        npc_image = self.npc.get_image()
+        reply = 'You said\n -{}\n Correct answers would include\n ' \
+                '{}'.format(user_response, readable['readable_short']),
 
         if readable['readable_long']:
             readable_long_args = {'classnames': 'btn btn-info',
@@ -1304,7 +1207,7 @@ class StepText(Step):
                                  **readable_long_args))
 
         return {'bg_image': bg_image,
-                'npc': reply,
+                'reply_text': reply,
                 'npc_image': npc_image,
                 'score': result['score'],
                 'times_right': result['times_right'],
@@ -1351,14 +1254,8 @@ class StepMultiple(StepText):
     and evaluation of that input.
     """
 
-    def get_responder(self):
-        """
-        Return an html radio form for responding to the current step prompt.
-
-        The form is built and returned as a web2py html helper object produced
-        by the SQLFORM.factory() method. This produces a SQLFORM object
-        without setting up any connection to crud methods on form submission.
-        """
+    def _get_response_form(self):
+        """Return an html form for responding to the current prompt."""
         request = current.request
         session = current.session
         vals = self.data['step_options']
@@ -1367,9 +1264,7 @@ class StepMultiple(StepText):
                                      widget=SQLFORM.widgets.radio.widget))
         if form.process().accepted:
             session.response = request.vars.response
-        responder = DIV(form, _class='responder')
-
-        return responder
+        return form
 
 
 class StepEvaluator(object):
@@ -1514,7 +1409,7 @@ class Path(object):
         except:
             return False
 
-    def end_prompt(self):
+    def end_prompt(self, stepid):
         """
         End prompt cycle before sending prompt data to view.
 
@@ -1522,11 +1417,11 @@ class Path(object):
         this prepares for the reply stage (processing of the user response).
         """
         step = self.step_for_prompt
-        if type(step) in [StepText, StepMultiple]:
+        # check if id is same so that block steps don't remove step_for_prompt
+        if stepid == step.get_id() and isinstance(step, (StepText,
+                                                         StepMultiple)):
             self.step_for_reply = copy(self.step_for_prompt)
             self.step_for_prompt = None
-        else:
-            assert self.complete_step()
         return True
 
     def complete_step(self):
@@ -1535,7 +1430,6 @@ class Path(object):
         """
         if self.step_for_reply:
             self.completed_steps.append(copy(self.step_for_reply))
-            # TODO: should we handle (remove) steps that shouldn't be there?
             self.step_for_reply = None
             assert not self.step_for_reply
             assert not self.step_for_prompt
@@ -1558,23 +1452,21 @@ class Path(object):
             assert len(self.steps) > 0
         return True
 
-    def get_step_for_prompt(self, loc=None, step=None, repeat=None):
+    def get_step_for_prompt(self, loc, prev_loc, step=None, repeat=None):
         """
         Find the next unanswered step in the current path and return it.
         If the selected step cannot be performed at this location, return a
         Block object instead.
         """
-        loc = self.loc if not loc else loc  # for testing only
-
         if repeat:
             assert self._reset_steps()
 
         # make sure controller hasn't skipped processing an earlier step's reply
-        if self.step_for_reply:
-            self.step_for_prompt = copy(self.step_for_reply)
-            self.step_for_reply = None
+        #if self.step_for_reply:
+            #self.step_for_prompt = copy(self.step_for_reply)
+            #self.step_for_reply = None
 
-        # get step
+        # get step if there isn't already one from redirect
         if not self.step_for_prompt:
             assert self._prepare_for_prompt()
         mystep = self.step_for_prompt
@@ -1583,15 +1475,10 @@ class Path(object):
         next_loc = None
         goodlocs = mystep.get_locations()
         if not loc.get_id() in goodlocs:
-            #print 'path.get_step_for_prompt: this loc is', loc.get_id()
-            #print 'path.get_step_for_prompt: good locs are', goodlocs
             next_loc = goodlocs[randrange(len(goodlocs))]
-            #print 'path.get_step_for_prompt: next step can\'t be done here'
-            #print 'path.get_step_for_prompt: redirecting to loc', next_loc
-            # TODO: Putting redirect check here requires sane step data
         else:
-            mystep.loc = self.loc  # update location on step
-            mystep.prev_loc = self.prev_loc
+            mystep.loc = loc  # update location on step
+            mystep.prev_loc = prev_loc
 
         return (mystep, next_loc)
 
@@ -1835,13 +1722,10 @@ class User(object):
             self.old_categories = {}
             self.categories = None
             self.tag_records = tag_records
-            self.rank = tag_progress['latest_new'] if tag_progress else None
+            self.rank = tag_progress['latest_new'] if tag_progress else 1
             self.tag_progress = tag_progress
             self.promoted = None
             self.new_tags = None
-            #self.get_categories(rank=self.rank,
-                                #old_categories=self.old_categories,
-                                #tag_records=tag_records)
 
             self.inventory = []
             self.session_start = datetime.datetime.utcnow()
@@ -1852,7 +1736,6 @@ class User(object):
             self.prev_npc = None
             msel = db((db.auth_membership.user_id == self.user_id) &
                       (db.auth_membership.group_id == db.auth_group.id)).select()
-            #pprint([m for m in msel.as_list()])
             # FIXME: Handle registered users without a class assignment
             # put everyone either in a class at registration or in (by default)
             # a generic 'class' with generic presets
@@ -1860,7 +1743,7 @@ class User(object):
                 target = [m.auth_group.paths_per_day for m in msel
                           if m.auth_group.paths_per_day][0]
             except Exception:
-                print traceback.format_exc(5)
+                #print traceback.format_exc(5)
                 target = 20
             self.quota = target
 
@@ -1873,6 +1756,10 @@ class User(object):
     def get_id(self):
         """Return the id (from db.auth_user) of the current user."""
         return self.user_id
+
+    def get_name(self):
+        """Return the first name (from db.auth_user) of the current user."""
+        return self.name
 
     def check_for_blocks(self):
         """
@@ -1894,7 +1781,6 @@ class User(object):
                     blockset.append(b)
             self.blocks = blockset
             myblock = self.blocks.pop(0)
-            #print 'user.check_for_blocks: now blocks are', [b.get_condition() for b in self.blocks]
             return myblock
         else:
             return None
@@ -1903,13 +1789,24 @@ class User(object):
         """ Set a blocking condition on this Path object. """
         myblocks = [b.get_condition() for b in self.blocks]
         kwargs.update({'username': self.name})
-        if not condition in myblocks:
-            #print 'path.set_block: that condition is already set'
-        #else:
-            #print 'path.set_block: new condition, adding block'
-            self.blocks.append(Block(condition=condition,
-                                     kwargs=kwargs,
-                                     data=data))
+
+        def _inner_set_block():
+            if not condition in myblocks:
+                self.blocks.append(Block(condition=condition,
+                                         kwargs=kwargs,
+                                         data=data))
+
+        if condition is 'new_tags':
+            if not self.viewed_slides:
+                self._inner_set_block()
+                self.viewed_slides = True
+        if condition in ['promoted', 'new_tags']:
+            if not self.reported_badges:
+                self._inner_set_block()
+                if not self.reported_badges:
+                    self.reported_badges = True
+                else:
+                    self.viewed_slides = True
         return True
 
     def is_stale(self, now=None, start=None, time_zone=None, db=None):
@@ -1923,19 +1820,14 @@ class User(object):
         injection in unit testing.
         """
         db = current.db if not db else db
-
-        # get current local datetime
         now = datetime.datetime.utcnow() if not now else now
         time_zone = self.time_zone if not time_zone else time_zone
         tz = timezone(time_zone)
         local_now = tz.fromutc(now)
-
         # adjust start for local time
         start = self.session_start if not start else start
         lstart = tz.fromutc(start)
-
         daystart = local_now.replace(hour=0, minute=0, second=0, microsecond=0)
-
         if lstart < daystart:
             return True
         elif lstart > local_now:
@@ -1964,7 +1856,7 @@ class User(object):
         else:
             self.prev_loc = copy(self.loc)
         self.loc = loc
-        return True
+        return self.prev_loc
 
     def get_new_tags(self):
         """Return a list of tag ids newly introduced"""
@@ -1991,13 +1883,13 @@ class User(object):
         """
         return self.tag_progress
 
-    def get_path(self, categories=None, reply=False, db=None, path=None, repeat=None):
+    def get_path(self, loc, categories=None, reply=False,
+                 db=None, path=None, repeat=None):
         """
         Return the currently active Path object.
 
-        None of the arguments is strictly necessary, but loc will usually be
-        provided. The others are only used for dependency injection during
-        testing.
+        Only the 'loc' argument is strictly necessary. The others are used for
+        dependency injection during testing.
 
         Note: redirect block is set here if the chosen path cannot be
         begun in this location
@@ -2010,33 +1902,18 @@ class User(object):
         print "user.get_path: username is", self.name
 
         if path:
-            if not self.prev_loc:  # FIXME: hack to handle error ticket
-                self.prev_loc = copy(self.loc)
-            self.path = Path(path_id=path,
-                             loc=self.loc,
-                             prev_loc=self.prev_loc,
-                             username=self.name)
+            self.path = Path(path_id=path)
         if repeat:
             if self.path:
-                print 'repeating path from self.path'
-                self.path.set_location(self.loc)
-                self.path.prev_loc = self.prev_loc
-                self.path.prev_npc = self.prev_npc
+                pass
             else:
                 path_id = self.completed_paths.pop(-1)
-                self.path = Path(path_id=path_id,
-                                 loc=self.loc,
-                                 prev_loc=self.prev_loc,
-                                 prev_npc=self.prev_npc,
-                                 username=self.name)
+                self.path = Path(path_id=path_id)
         elif self.path and self.path.step_for_reply:
-            # there's a step waiting for a reply
-            self.path.set_location(self.loc)
-            self.path.prev_npc = self.prev_npc
+            pass
         elif self.path and len(self.path.steps):
             # there's still an unfinished step in self.path
-            self.path.set_location(self.loc)
-            self.path.prev_npc = self.prev_npc
+            pass
         else:
             if self.path:
                 self.complete_path()  # catch end-of-path and triggers new choice
@@ -2096,7 +1973,6 @@ class User(object):
         user_id = self.user_id if not user_id else user_id
         tag_records = db(db.tag_records.name == user_id).select().as_list()
         self.tag_records = tag_records
-
         # only re-categorize every 10th evaluated step
         if (self.cats_counter in range(0, 4)) and hasattr(self, 'categories') and self.categories:
             self.cats_counter += 1
@@ -2104,9 +1980,7 @@ class User(object):
             return True
         else:
             print 'user.get_categories: need to recategorize'
-
             utcnow = datetime.datetime.utcnow() if not utcnow else utcnow
-
             # get tag_progress, rank, categories
             try:
                 tag_progress_sel = db(db.tag_progress.name == user_id
@@ -2125,27 +1999,6 @@ class User(object):
             c = Categorizer(rank, categories, tag_records, user_id,
                             utcnow=utcnow)
             cat_result = c.categorize_tags()
-
-            # Set blocks for 'new_tags' (slides) and 'promoted' conditions
-            nt = cat_result['new_tags']
-            pr = cat_result['promoted']
-            if nt:  # These blocks need to be on the User, not path
-                if (not hasattr(self, 'viewed_slides')) or (self.viewed_slides
-                                                            is False):
-                    self._set_block('view_slides', kwargs={'new_tags': nt})
-                    self.viewed_slides = True
-                if (not hasattr(self, 'reported_badges')) or \
-                        (self.reported_badges is False):
-                    self._set_block('new_tags',
-                                    kwargs={'new_tags': nt, 'promoted': pr})
-                    self.reported_badges = True
-            if pr:
-                if (not hasattr(self, 'reported_badges')) or \
-                        (self.reported_badges is False):
-                    self._set_block('new_tags',
-                                    kwargs={'new_tags': nt, 'promoted': pr})
-                    self.viewed_slides = True
-
             self.tag_records = cat_result['tag_records']
             self.rank = cat_result['tag_progress']['latest_new']
             self.tag_progress = cat_result['tag_progress']
@@ -2154,7 +2007,7 @@ class User(object):
             self.new_tags = cat_result['new_tags']
             self.cats_counter = 0  # reset counter
 
-            return True
+            return self.promoted, self.new_tags
 
     def _get_old_categories(self):
         if self.old_categories:
@@ -2594,18 +2447,15 @@ class Block(object):
         'empty response'
     """
 
-    def __init__(self, condition, kwargs=None, data=None):
+    def __init__(self, condition):
         """
         Initialize a new Block object
         """
         self.condition = condition
-        self.data = data
-        self.kwargs = kwargs
 
-    def make_step(self, condition, kwargs=None, data=None):
+    def make_step(self, condition):
         """Create correct Step subclass and store as an instance variable."""
         db = current.db
-        kwargs = self.kwargs if not kwargs else kwargs
         step_classes = {'view_slides': 6,
                         'quota_reached': 7,
                         'new_tags': 8,
@@ -2613,35 +2463,14 @@ class Block(object):
                         'redirect': 9}
         step = db(db.steps.widget_type ==
                   step_classes[condition]).select(orderby='<random>').first()
-        kwargs.update({'step_id': step['id']})
-        mystep = StepFactory().get_instance(**kwargs)
+        mystep = StepFactory().get_instance(step_id=step['id'])
         return mystep
 
     def get_condition(self):
         """Return a string representing the condition causing this block."""
-        if self.condition:
-            return self.condition
-        else:
-            return False
+        return self.condition
 
-    def get_step(self, loc=None, prev_loc=None, npc=None, prev_npc=None,
-                 username=None):
+    def get_step(self):
         """Return the appropriate step for the current blocking condition"""
-        if isinstance(self.data, Step):
-            step = self.data  # in some cases easiest to just pass existing step
-        else:
-            newargs = {'loc': loc,
-                       'prev_loc': prev_loc,
-                       'npc': npc,
-                       'prev_npc': prev_npc,
-                       'username': username}
-            kwargs = self.kwargs.update(newargs)
-            step = self.make_step(self.get_condition(), kwargs=kwargs, data=self.data)
+        step = self.make_step(self.get_condition())
         return step
-
-    def get_data(self):
-        """Return the secondary data, if any, belonging to this Block."""
-        if self.data:
-            return self.data
-        else:
-            return False
