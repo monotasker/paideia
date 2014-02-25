@@ -1,4 +1,4 @@
-{{from plugin_widgets import TOOLTIP, ROLE, POPUP}}
+{{from plugin_widgets import TOOLTIP, ROLE, POPOVER}}
 
 <div id='loading-mask'>
     <img src={{=URL('static', 'images/ajax-loader.gif')}}
@@ -10,25 +10,24 @@ ap.append(form) }}
 {{=ROLE(ap)}}
 
 {{# ======================================================================
-{{# MAP INTERFACE ========================================================
-{{# ======================================================================
+# MAP INTERFACE ========================================================
+# ======================================================================
 
-{{if request.args(0) == 'map' or not request.args:}}
+if request.args(0) == 'map' or not request.args:}}
 	<embed id='town_map' src='{{=map["map_image"]}}' type='image/svg+xml' />
-
 {{# ======================================================================
-{{# STEP INTERFACE========================================================
-{{# ======================================================================
-{{else:}}
+# STEP INTERFACE========================================================
+# ======================================================================
+else:
 
-    {{# ======================================================================
-    {{# PROMPT ===============================================================
-    {{# ======================================================================
+    # ======================================================================
+    # PROMPT ===============================================================
+    # ======================================================================
 
-    {{# npc image on left =================================================
-    {{=DIV(npc['npc_image'], _class='speaker')}}
+    # npc image on left =================================================}}
+    {{=DIV(npc_image, _class='speaker')}}
 
-    {{# prompt div ========================================================
+    {{# prompt div ========================================================}}
     <div class='npc prompt'>
         <p class='prompt-text'>
         {{# audio for prompt===============================================
@@ -43,48 +42,91 @@ ap.append(form) }}
                                         args=['ogg'])}}" type='audio/ogg' />
                 {{pass}}
             </audio>
-        {{pass
+        {{pass}}
 
-        # image for prompt===============================================
+        {{# image for prompt===============================================
         if widget_img:
             img = IMG(_src=URL('static/images/', widget_img['file']),
                         _title=widget_img['title'],
                         _alt=widget_img['description'],
                         _class='widget-image')}}
             {{=img}}
-        {{pass
+        {{pass}}
 
-        # instructions popup for prompt===================================
+        {{# instructions popup for prompt===================================
         if instructions:
             ilist = UL(_class='prompt_instructions')
             for itext in instructions:
-                i_list.append(LI(itext))
+                ilist.append(LI(itext))
             pass
             i_args = {'classnames': 'btn btn-info instructions-popover',
                       'title': 'Instructions for this step',
                       'id': 'instructions_btn'}
             i_pop = POPOVER().widget('Instructions', ilist, **i_args)}}
             {{=i_pop}}
-        {{pass
+        {{pass}}
 
-        # slides popup for prompt========================================
+        {{# slides popup for prompt========================================
         if slidedecks:
             decklist = UL(_class='prompt_slides')
             for did, dname in slidedecks.iteritems():
                 decklist.append(LI(A(dname, _href=URL('listing', 'slides.html',
-                                                      args=[did]))))
-            pass
-            slides_args = {'classnames': 'btn btn-info slides-popover',
+                                     args=[did]))))
+                }}
+            {{pass}}
+            {{slides_args = {'classnames': 'btn btn-info slides-popover',
                            'title': 'Relevant slide decks',
                            'id': 'Slides_btn'}
             s_pop = POPOVER().widget('slides', decklist, **slides_args)}}
             {{=s_pop}}
         {{pass}}
+
+        {{# path counter for prompt========================================}}
+        <span class='path-counter progress_text'>
+            'This will make {{=completed_count + 1}} paths so far today.'
+        </span>
         </p>
     </div>
 
-    {{=responder}}
-    {{=bmodal}}
+    {{# responder div ========================================================}}
+    <div class='responder'>
+        {{if response_form:}}
+            {{=response_form}}
+        {{pass}}
+
+        {{if sid and pid:
+            stepedit = A('step {}'.format(sid),
+                        _href=URL('editing', 'listing', args=['steps', sid]),
+                        _class='prompt-s-editlink'
+                        )
+            pathedit = A('path {}'.format(pid),
+                        _href=URL('editing', 'listing', args=['paths', pid]),
+                        _class='prompt-p-editlink'
+                        )
+            catnum = ' choosing from category {}'.format(category)}}
+            {{=ROLE(SPAN(pathedit, ', ', stepedit, catnum,
+                    _class='prompt-editlinks'))}}
+        {{pass}}
+
+        {{if 'continue' in response_buttons:}}
+            {{=A("Continue", _href=URL('walk', args=['ask'], vars={'loc': loc}),
+            cid='page', _class='continue btn btn-success next_q')}}
+        {{pass}}
+
+        {{if 'retry' in response_buttons:}}
+            {{=A("Try again", _href=URL('walk', args=['repeat'], vars={'loc': loc}),
+                 cid='page', _class='btn btn-warning retry')}}
+        {{pass}}
+
+        {{if 'map' in response_buttons:}}
+            {{=A("Back to map", _href=URL('walk', args=['map'], vars={'loc': None}),
+                 cid='page', _class='btn btn-success icon-map-marker back_to_map')}}
+        {{pass}}
+
+        {{if bugreporter:}}
+            {{=bmodal}}
+        {{pass}}
+    </div>
 {{pass}}
 
 <script>
