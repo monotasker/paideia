@@ -460,7 +460,7 @@ def mycases(casenum, user_login, db):
     # same npc and location as previous step
     # replace tag too far ahead (1) with appropriate (61)
     cases = {'case1': {'casenum': 1,
-                       'loc': Location('shop_of_alexander', db),
+                       'loc': Location('shop_of_alexander', db),  # loc 6
                        'mynow': dt('2013-01-29'),
                        'name': user_login['first_name'],
                        'uid': user_login['id'],
@@ -516,7 +516,7 @@ def mycases(casenum, user_login, db):
              # both new tags and promoted
                       {'casenum': 2,
                        'mynow': dt('2013-01-29'),
-                       'loc': Location('agora', db),
+                       'loc': Location('agora', db),  # loc 8
                        'name': user_login['first_name'],
                        'uid': user_login['id'],
                        'prev_loc': Location('agora', db),
@@ -573,7 +573,7 @@ def mycases(casenum, user_login, db):
                        'mynow': dt('2013-01-29'),
                        'name': user_login['first_name'],
                        'uid': user_login['id'],
-                       'loc': Location('synagogue', db),  # synagogue
+                       'loc': Location('synagogue', db),  # loc 11
                        'prev_loc': Location('synagogue', db),
                        'prev_npc': Npc(31, db),  # stephanos
                        'npcs_here': [31, 32],
@@ -661,8 +661,8 @@ def mycases(casenum, user_login, db):
                        'mynow': dt('2013-01-29'),
                        'name': user_login['first_name'],
                        'uid': user_login['id'],
-                       'loc': Location('agora', db),
-                       'prev_loc': Location('ne_stoa', db),
+                       'loc': Location('agora', db),  # loc 8
+                       'prev_loc': Location('ne_stoa', db),  # loc 7
                        'next_loc': None,
                        'prev_npc': Npc(1, db),
                        'npcs_here': [1, 14, 17, 21, 40, 41, 42],
@@ -744,8 +744,8 @@ def mycases(casenum, user_login, db):
                        'mynow': dt('2013-01-29'),
                        'name': user_login['first_name'],
                        'uid': user_login['id'],
-                       'loc': Location('domus_A', db),
-                       'prev_loc': Location('domus_A', db),
+                       'loc': Location('domus_A', db),  # loc 1
+                       'prev_loc': Location('domus_A', db),  # loc 1
                        'next_loc': None,
                        'prev_npc': Npc(1, db),
                        'npcs_here': [2, 14, 17, 31, 40, 41, 42],
@@ -947,7 +947,10 @@ def mystep(stepid, mysteps):
     """
     A pytest fixture providing a paideia.Step object for testing.
     """
-    stepdata = mysteps[stepid]
+    try:
+        stepdata = mysteps[stepid]
+    except KeyError:
+        stepdata = None  # FIXME: some test steps not in stepdata dict
     step = StepFactory().get_instance(stepid)
     return step, stepdata
 
@@ -1428,198 +1431,129 @@ class TestPath():
             assert path.steps == stepsleft
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('casenum,pathid,stepsleft',
-                             [#('case1', 3, []),
-                              #('case2', 89, []),
-                              ('case3', 19, []),
-                              #('case4', 1, []),  # step 71 not in mysteps
-                              #('case5', 1, []),  # step 71 not in mysteps
-                              #('case5', 63, [67, 68])  # step 66 not in mysteps
-                              ])
-    def test_path_get_step_for_prompt(self, casenum, pathid, stepsleft,
-                                      db, mysteps, user_login):
+    @pytest.mark.parametrize(
+        'casenum,locid,localias,pathid,stepid,stepsleft,locs',
+        [('case3', 11, 'synagogue', 19, 19, [], [3, 1, 13, 8, 11]),
+         ('case4', 8, 'agora', 1, 71, [], [3, 1, 6, 7, 8, 11]),
+         ('case5', 1, 'domus_A', 1, 71, [], [3, 1, 6, 7, 8, 11]),
+         ('case5', 1, 'domus_A', 63, 66, [67, 68], [3, 1])
+         ])
+    def test_path_get_step_for_prompt(self, casenum, locid, localias, pathid,
+                                      stepid, stepsleft, locs, db, mysteps):
         """
         Unit test for Path.get_step_for_prompt() where no redirect prompted.
         """
         # TODO: test edge cases with, e.g., repeat set
         # TODO: test middle of multi-step path
         path, pathsteps = mypath(pathid, db)
-        stepdata = mysteps[pathsteps[0]]
-        case = mycases(casenum, user_login, db)
-        #expected = {'npc_list': [s for s in stepdata['npc_list']
-                                 #if s in case['npcs_here']],
-                    #}
-        actual, nextloc = path.get_step_for_prompt(case['loc'])
+        actual, nextloc = path.get_step_for_prompt(Location(localias))
 
-        assert path.step_for_prompt.get_id() == pathsteps[0]
+        assert path.step_for_prompt.get_id() == stepid
         assert path.step_for_reply == None
-        assert actual.get_id() == pathsteps[0]
+        assert actual.get_id() == stepid
         assert path.get_id() == pathid
-        assert case['loc'].get_id() in stepdata['locations']
-        assert case['loc'].get_id() in actual.get_locations()
+        assert locid in locs
+        assert locid in actual.get_locations()
         assert isinstance(actual, Step)
         try:
             assert [s.get_id() for s in path.steps] == stepsleft
-        except TypeError:  # if path.steps is now entry, can't be iterated
+        except TypeError:  # if path.steps is empty, can't be iterated
             assert path.steps == stepsleft
         assert nextloc is None
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('casenum,pathid,stepsleft',
-                             [('case2', 89, [101])])
-    def test_path_get_step_for_prompt_redirect(self, casenum, pathid, stepsleft,
-                                               user_login, db, mysteps):
+    @pytest.mark.parametrize(
+        'casenum,locid,localias,pathid,stepid,stepsleft,locs',
+        [('case1', 6, 'shop_of_alexander', 3, 2, [], [3, 1, 13, 7, 8, 11]),
+         ('case2', 8, 'agora', 89, 101, [], [7])
+         ])
+    def test_path_get_step_for_prompt_redirect(self, casenum, locid, localias,
+                                               pathid, stepid, stepsleft, locs,
+                                               db, mysteps):
         """
         Unit test for Path.get_step_for_prompt() in a case that prompts redirect.
         """
         # TODO: redirect can be caused by 2 situations: bad loc or wrong npcs
         # here
         path, pathsteps = mypath(pathid, db)
-        stepdata = mysteps[pathsteps[0]]
-        case = mycases(casenum, user_login, db)
-        #expected = {'npc_list': [s for s in stepdata['npc_list']
-                                 #if s in case['npcs_here']],
-                    #}
-        actual, nextloc = path.get_step_for_prompt(case['loc'])
+        actual, nextloc = path.get_step_for_prompt(Location(localias))
 
-        assert actual.step_for_reply is None  # step isn't activated
-        assert actual.step_for_prompt.get_id() == pathsteps[0]  # step isn't activated
-        assert actual.get_id() == pathid
-        assert case['loc'].get_id() not in stepdata['locations']  # NOT
+        assert path.step_for_reply is None  # step isn't activated
+        assert path.step_for_prompt.get_id() == stepid  # step isn't activated
+        assert path.get_id() == pathid
+        assert actual.get_id() == stepid
+        assert locid not in locs  # NOT in locs
+        assert locid not in actual.get_locations()  # NOT in locs
+        assert isinstance(actual, Step)
         try:
-            assert [s.get_id() for s in actual.steps] == stepsleft
-        except TypeError:  # if path.steps is now entry, can't be iterated
-            assert actual.steps == stepsleft
-        assert nextloc in actual.steps[0].get_locations()
+            assert [s.get_id() for s in path.steps] == stepsleft
+        except TypeError:  # if path.steps is empty, can't be iterated
+            assert path.steps == stepsleft
+        assert nextloc in actual.get_locations()
 
-    def test_path_check_for_blocks(self, mypath):
-        """
-        unit test for Path._check_for_blocks()
-
-        Since this method only checks for the presence of blocks on the current
-        path, it will return a blocking step for each test case (even if that
-        case would not normally have a block set.)
-        """
-        # TODO: there's now some block-checking logic in the method. Ideally
-        # that should be isolated in its own method.
-        if mypath:
-            path = mypath['path']
-            stepdata = mypath['stepdata']
-            case = mypath['casedata']
-            sid = stepdata['id']
-            step = [s for s in path.get_steps() if s.get_id() == sid][0]
-
-            # set up starting Path instance vars
-            path.step_for_prompt = sid
-
-            # run test method
-            actual = path._check_for_blocks(step)
-
-            blockers = {2: 101}
-            cn = case['casenum']
-            if cn in blockers.keys() and blockers[cn] == sid:
-                # set up expected results
-                locs = [2, 3]
-                kwargs = {'step_id': 30,
-                        'loc': path.loc,
-                        'prev_loc': path.prev_loc,
-                        'prev_npc': path.prev_npc}
-                expected = [Block('redirect', kwargs=kwargs, data=locs)]
-
-                assert actual == expected[0].get_step()
-                assert len(path.blocks) == 1
-                assert path.step_for_prompt == sid
-                assert path.step_sent_id == 30
-            else:
-                assert actual is None
-        else:
-            pass
-
-    def test_path_redirect(self, mypath, mysteps):
-        """
-        unit test for Path.redirect().
-
-        Since redirect() doesn't check any conditions before appending redirect
-        Block, all cases tested should result in a Block (even if
-        _check_for_blocks() would not normally call redirect() for the case).
-        """
-        if mypath:
-            sid = mypath['steps'][0]
-            if mysteps['id'] == sid:
-                #step = mysteps
-                path = mypath['path']
-                locs = [2, 3]
-
-                kwargs = {'step_id': 30,
-                        'loc': path.loc,
-                        'prev_loc': path.prev_loc,
-                        'prev_npc': path.prev_npc}
-                expected = [Block('redirect', kwargs=kwargs, data=locs)]
-
-                actual = path.redirect(locs)
-                actualblocks = path.blocks
-
-                assert isinstance(path.blocks, list)
-                assert len(actualblocks) == len(expected)
-                for n in range(0, len(expected)):
-                    actualstep = path.blocks[n].get_step()
-                    expectedstep = expected[n].get_step()
-                    assert actualstep.get_id() == expectedstep.get_id()
-                    assert actualstep.get_id() == kwargs['step_id']
-                    assert isinstance(actualstep, StepRedirect)
-                assert actual is None
-            else:
-                pass
-        else:
-            pass
-
-    def test_path_get_step_for_reply(self, mypath, mysteps, db):
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize(
+        'pathid,steps',
+        [(3, [2]),
+         (89, [101]),
+         (19, [19]),
+         (1, [71]),
+         (63, [66, 67, 68])
+         ])
+    def test_path_get_steps(self, pathid, steps, mysteps, db):
         """
         Unit test for method paideia.Path.get_step_for_reply.
         """
-        if mypath:
-            path = mypath['path']
-            case = mypath['casedata']
-            step = mypath['stepdata']
-            sid = mypath['steps'][0]
-            if step['id'] == sid:
-                kwargs = {'step_id': sid,
-                        'loc': case['loc'],
-                        'prev_loc': case['prev_loc'],
-                        'prev_npc': case['prev_npc']}
-                expected = StepFactory().get_instance(db=db, **kwargs)
-                path.step_for_reply = copy(expected)
+        path, pathsteps = mypath(pathid, db)
+        expected = [mystep(sid, mysteps)[0] for sid in steps]
+        actual = path.get_steps()
+        assert steps == pathsteps
+        assert len(actual) == len(expected)
+        for idx, actual_s in enumerate(actual):
+            assert actual_s.get_id() == expected[idx].get_id()
+            assert isinstance(actual_s, type(expected[idx]))
 
-                actual = path.get_step_for_reply()
+    def test_path_end_prompt(self):
+        pass
 
-                assert path.step_for_prompt is None
-                assert path.step_for_reply is None
-                assert actual.get_id() == expected.get_id()
-                assert path.step_sent_id == expected.get_id()
-                assert not isinstance(actual, StepRedirect)
-                assert not isinstance(actual, StepQuotaReached)
-                assert not isinstance(actual, StepViewSlides)
-                assert not isinstance(actual, StepAwardBadges)
-            else:
-                pass
-        else:
-            pass
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize(
+        'pathid,stepid,stepsleft,locs,localias',
+        [(3, 2, [], [3, 1, 13, 7, 8, 11], 'domus_A'),
+         (89, 101, [], [7], 'ne_stoa'),
+         (19, 19, [], [3, 1, 13, 8, 11], 'domus_A'),
+         (1, 71, [], [3, 1, 6, 7, 8, 11], 'domus_A'),
+         (1, 71, [], [3, 1, 6, 7, 8, 11], 'domus_A'),
+         (63, 66, [67, 68], [3, 1], 'domus_A')
+         ])
+    def test_path_get_step_for_reply(self, pathid, stepid, stepsleft, locs,
+                                     localias, mysteps, db):
+        """
+        Unit test for method paideia.Path.get_step_for_reply.
+        """
+        path, pathsteps = mypath(pathid, db)
+        step, expected = mystep(stepid, mysteps)
+        path.get_step_for_prompt(Location(localias))
+        #path.end_prompt()
 
-    def test_path_set_loc(self, mypath, db):
-        """docstring for test_path_set_loc"""
-        if mypath:
-            path = mypath['path']
-            case = mypath['casedata']
-            step = mypath['stepdata']
-            sid = mypath['steps'][0]
-            if case['casenum'] == 1 and step['id'] == sid:
-                newloc = Location(11, db)
-                actual = path
-                actual._set_loc(newloc)
-            else:
-                pass
-        else:
-            pass
+        actual = path.get_step_for_reply()
+
+        assert path.step_for_prompt is None
+        assert path.step_for_reply is step
+        assert path.steps == stepsleft
+        assert actual.get_id() == step.get_id()
+        assert path.step_sent_id == step.get_id()
+        assert isinstance(actual, (StepText, StepMultiple))
+        assert not isinstance(actual, StepRedirect)
+        assert not isinstance(actual, StepQuotaReached)
+        assert not isinstance(actual, StepViewSlides)
+        assert not isinstance(actual, StepAwardBadges)
+
+    def test_path_complete_step(self):
+        pass
+
+    def test_path_reset_steps(self):
+        pass
 
 
 class TestUser(object):
@@ -1636,6 +1570,54 @@ class TestUser(object):
                       (db.auth_user.last_name == 'Simpson')).select()
         assert len(expected) == 1
         assert uid == expected.first().id
+
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize(
+        'redirects,casenum,locid,localias,pathid,stepid,stepsleft,locs',
+        [(0, 'case3', 11, 'synagogue', 19, 19, [], [3, 1, 13, 8, 11]),
+         (0, 'case4', 8, 'agora', 1, 71, [], [3, 1, 6, 7, 8, 11]),
+         (0, 'case5', 1, 'domus_A', 1, 71, [], [3, 1, 6, 7, 8, 11]),
+         (0, 'case5', 1, 'domus_A', 63, 66, [67, 68], [3, 1]),
+         (1, 'case1', 6, 'shop_of_alexander', 3, 2, [], [3, 1, 13, 7, 8, 11]),
+         (1, 'case2', 8, 'agora', 89, 101, [], [7])
+         ])
+    def test_path_check_for_blocks(self, redirects, casenum, locid, localias,
+                                   pathid, stepid, stepsleft, locs, mysteps,
+                                   db):
+        """
+        unit test for Path._check_for_blocks()
+
+        Since this method only checks for the presence of blocks on the current
+        path, it will return a blocking step for each test case (even if that
+        case would not normally have a block set.)
+        """
+        # TODO: there's now some block-checking logic in the method. Ideally
+        # that should be isolated in its own method.
+        path = mypath(pathid, db)
+        stepdata = mysteps['stepid']
+        case = mycases(casenum, user_login, db)
+        step = mystep(stepid, db, mysteps)
+        # set up starting Path instance vars
+        path.step_for_prompt = stepid
+
+        # run test method
+        actual = path._check_for_blocks(step)
+
+        if redirects:
+            # set up expected results
+            locs = [2, 3]
+            kwargs = {'step_id': 30,
+                    'loc': path.loc,
+                    'prev_loc': path.prev_loc,
+                    'prev_npc': path.prev_npc}
+            expected = [Block('redirect', kwargs=kwargs, data=locs)]
+
+            assert actual == expected[0].get_step()
+            assert len(path.blocks) == 1
+            assert path.step_for_prompt == sid
+            assert path.step_sent_id == 30
+        else:
+            assert actual is None
 
     def test_user_is_stale(self, myuser, db):
         """
