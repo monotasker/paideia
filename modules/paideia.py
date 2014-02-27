@@ -13,9 +13,9 @@ import datetime
 from dateutil import parser
 import traceback
 from pytz import timezone
-from plugin_widgets import POPOVER, MODAL
+from plugin_widgets import MODAL
 import pickle
-from pprint import pprint
+#from pprint import pprint
 #from paideia_utils import send_error
 
 # TODO: move these notes elsewhere
@@ -179,24 +179,25 @@ class Walk(object):
     def ask(self, localias=None, path=None, repeat=None,
             step=None, set_blocks=None, recategorize=None):
         """
-        Return the information necessary to initiate a step interaction.
+            Return the information necessary to initiate a step interaction.
 
-        The "path" argument is used only for dependency injection during
-        unit testing.
+            The "path" argument is used only for dependency injection during
+            unit testing.
 
-        In the returned dictionary, 'reply' item has the following dict as its
-        value:
-            'prompt':
-            'instructions':
-            'npc_image':
-            'slides':
-            'bg_image':
-        The value of 'responder' is a web2py html helper object.
+            In the returned dictionary, 'reply' item has the following dict as its
+            value:
+                'prompt':
+                'instructions':
+                'npc_image':
+                'slides':
+                'bg_image':
+            The value of 'responder' is a web2py html helper object.
 
-        The 'set_blocks' argument is used to set blocking conditions manually
-        for testing purposes. It's value is a dictionary consisting of
-            key: name of the blocking condition (str)
-            value: dictionary of kwargs to be passed to the Block
+            The 'set_blocks' argument is used to set blocking conditions manually
+            for testing purposes. It's value is a dictionary consisting of
+                key: name of the blocking condition (str)
+                value: dictionary of kwargs to be passed to the Block
+
         """
         print 'STARTING WALK.ASK---------------------------------------'
         user = self.user
@@ -218,10 +219,14 @@ class Walk(object):
         prev_loc = user.set_location(loc)
         prev_npc = user.get_prev_npc()
 
-        p, category = user.get_path(loc, path=path, repeat=repeat)
+        p, category, redir, pastquota = user.get_path(loc, path=path, repeat=repeat)
         user.active_cat = category  # TODO: why necessary?
+        if redir:
+            user._set_block('redirect', kwargs={'next_loc': redir})
+        if pastquota:
+            user._set_block('quota_reached', kwargs={'quota': user.quota})
 
-        s, newloc_id = p.get_step_for_prompt(loc, prev_loc, repeat=repeat)
+        s, newloc_id = p.get_step_for_prompt(loc, repeat=repeat)
         if newloc_id:
             user._set_block('redirect', kwargs={'next_loc': newloc_id})
 
@@ -839,9 +844,9 @@ class Step(object):
         """
         raw_prompt = self.data['prompt'] if not raw_prompt else raw_prompt
         prompt = {'sid': self.get_id(),
-                  'prompt': self._make_replacements(raw_prompt, username,
-                                                    next_loc, new_tags,
-                                                    promoted),
+                  'prompt_text': self._make_replacements(raw_prompt, username,
+                                                         next_loc, new_tags,
+                                                         promoted),
                   'audio': self._get_prompt_audio(),
                   'widget_img': self._get_widget_image(),
                   'instructions': self._get_instructions(),
@@ -1174,7 +1179,6 @@ class StepText(Step):
         db = current.db
         readable = self._get_readable()
         tips = self.data['hints']
-        slides = self.slides
         responses = {k: v for k, v in self.data.iteritems()
                      if k and (k in ['response1', 'response2', 'response3'])}
         #except TypeError:
@@ -1186,33 +1190,37 @@ class StepText(Step):
             tips_lst = db(db.step_hints.id.belongs(tips)
                           ).select(db.step_hints.hint_text).as_list()
             tips_lst = [v for t in tips_lst for k, v in t.iteritems()]
-
-            hints_args = {'classnames': 'btn btn-info',
-                          'id': 'instructions_btn'}
-            reply.append(POPOVER().widget('Hints', tips_txt, **hints_args))
         else:
             tips_lst = None
 
         result = StepEvaluator(responses, tips_lst).get_eval(user_response)
 
-        bg_image = loc.get_bg()
-        npc_image = self.npc.get_image()
-        reply = 'You said\n -{}\n Correct answers would include\n ' \
-                '{}'.format(user_response, readable['readable_short']),
+        reply_text = '{}\nYou said\n- {}'.format(result['reply'], user_response)
+        if len(readable['readable_short']) > 1:
+            reply_text += '\nCorrect responses would include'
+            for r in readable['readable_short']:
+                reply_text += '\n- {}'.format(r)
+        elif abs(result['score'] - 1) > 0.001:
+            reply_text += '\nThe correct response ' \
+                          'is\n- {}'.format(readable['readable_short'][0])
 
-        if readable['readable_long']:
-            readable_long_args = {'classnames': 'btn btn-info',
-                                  'id': 'readable_btn'}
-            reply.append(POPOVER().widget('More examples', readable['readable_long'],
-                                 **readable_long_args))
-
-        return {'bg_image': bg_image,
-                'reply_text': reply,
-                'npc_image': npc_image,
-                'score': result['score'],
-                'times_right': result['times_right'],
-                'times_wrong': result['times_wrong'],
-                'user_response': result['user_response']}
+        reply = {'sid': self.get_id(),
+                 'bg_image': loc.get_bg(),
+                 'prompt_text': reply_text,
+                 'readable_long': readable['readable_long'],
+                 'npc_image': npc.get_image(),
+                 'audio': None,
+                 'widget_img': None,
+                 'instructions': self._get_instructions(),
+                 'slidedecks': self._get_slides(),
+                 'hints': tips_lst,
+                 'response_buttons': ['map', 'retry', 'continue'],
+                 # below are for internal use in Walk.reply(), not for display
+                 'score': result['score'],
+                 'times_right': result['times_right'],
+                 'times_wrong': result['times_wrong'],
+                 'user_response': result['user_response']}
+        return reply
 
     def _get_readable(self):
         """
@@ -1221,30 +1229,14 @@ class StepText(Step):
         """
         try:
             readable = self.data['readable_response']
-            assert isinstance(readable, str)
         except TypeError:
             readable = self.data['step'].data['readable_response']
-            assert isinstance(readable, str)
 
-        rdbl_short = UL(_class='readable_short')
-        if '|' in readable:
-            # show first two answers for short readable
-            rsplit = readable.split('|')
-            readable_short = rsplit[:3]
-            if len(rsplit) <= 2:
-                readable_long = None
-            else:
-                rl_raw = rsplit[2:]
-                readable_long = UL(_class='readable_long')
-                for r in rl_raw:
-                    readable_long.append(LI(r))
-            for r in readable_short:
-                rdbl_short.append(LI(r))
-        else:
-            rdbl_short.append(LI(readable))
-            readable_long = None
+        rsplit = readable.split('|')
+        readable_short = rsplit[:3]
+        readable_long = rsplit[3:]  # [] will fail "if readable_long:" check
 
-        return {'readable_short': rdbl_short,
+        return {'readable_short': readable_short,
                 'readable_long': readable_long}
 
 
@@ -1357,10 +1349,7 @@ class Path(object):
     So far there is no infrastructure for paths without a set sequence.
     """
 
-    def __init__(self, path_id=None, loc=None, prev_loc=None,
-                 completed_steps=None, last_step_id=None, step_sent_id=None,
-                 step_for_prompt=None, step_for_reply=None, prev_npc=None,
-                 db=None, username=None):
+    def __init__(self, path_id=None, db=None):
         """
         Initialize a paideia.Path object.
 
@@ -1369,24 +1358,14 @@ class Path(object):
             loc_id
         The others are for dependency injection in testing
         """
-        # first set from init args
-        self.loc = loc
-        self.prev_loc = prev_loc
-        self.prev_npc = prev_npc
-        self.username = username
-
-        # set later
-        self.npc = None
-
-        # basic path data
         db = current.db if not db else db
         self.path_dict = db(db.paths.id == path_id).select().first().as_dict()
 
         # controlling step progression through path
         self.steps = self.get_steps()
-        self.completed_steps = completed_steps if completed_steps else []
-        self.step_for_prompt = step_for_prompt
-        self.step_for_reply = step_for_reply
+        self.completed_steps = []
+        self.step_for_prompt = None
+        self.step_for_reply = None
 
     def get_id(self):
         """Return the id of the current Path object."""
@@ -1394,18 +1373,16 @@ class Path(object):
 
     def _prepare_for_prompt(self):
         """ move next step in this path into the 'step_for_prompt' variable"""
-        # to bounce back after cleaning
-        if len(self.steps) == 0:
-            self._reset_steps()
         try:
-            # TODO: why is this if condition necessary?
-            if len(self.steps) > 1:
-                next_step = self.steps.pop(0)
+            stepcount = len(self.steps)
+            if stepcount < 1:  # to bounce back after cleaning
+            # TODO: Does this cause problems?
+                self._reset_steps()
+                return True
             else:
-                next_step = copy(self.steps[0])
-                self.steps = []
-            self.step_for_prompt = next_step
-            return True
+                next_step = self.steps.pop(0)
+                self.step_for_prompt = next_step
+                return True
         except:
             return False
 
@@ -1452,7 +1429,7 @@ class Path(object):
             assert len(self.steps) > 0
         return True
 
-    def get_step_for_prompt(self, loc, prev_loc, step=None, repeat=None):
+    def get_step_for_prompt(self, loc, repeat=None):
         """
         Find the next unanswered step in the current path and return it.
         If the selected step cannot be performed at this location, return a
@@ -1478,7 +1455,6 @@ class Path(object):
             next_loc = goodlocs[randrange(len(goodlocs))]
         else:
             mystep.loc = loc  # update location on step
-            mystep.prev_loc = prev_loc
 
         return (mystep, next_loc)
 
@@ -1501,13 +1477,8 @@ class Path(object):
         """
         Return a list containing all the steps of this path as Step objects.
         """
-        static_args = {'loc': self.loc,
-                       'prev_loc': self.prev_loc,
-                       'prev_npc': self.prev_npc,
-                       'username': self.username}
-        steplist = [StepFactory().get_instance(step_id=i, **static_args)
+        steplist = [StepFactory().get_instance(step_id=i)
                     for i in self.path_dict['steps']]
-
         return steplist
 
     def set_npc(self, npc):
@@ -1883,78 +1854,58 @@ class User(object):
         """
         return self.tag_progress
 
-    def get_path(self, loc, categories=None, reply=False,
-                 db=None, path=None, repeat=None):
+    def get_path(self, loc, db=None, pathid=None, repeat=None):
         """
         Return the currently active Path object.
 
         Only the 'loc' argument is strictly necessary. The others are used for
         dependency injection during testing.
 
-        Note: redirect block is set here if the chosen path cannot be
-        begun in this location
         """
         db = current.db if not db else db
-        categories = self.categories if not categories else categories
         choice = None
         redir = None
         cat = None
-        print "user.get_path: username is", self.name
+        past_quota = None
 
-        if path:
-            self.path = Path(path_id=path)
-        if repeat:
-            if self.path:
-                pass
-            else:
-                path_id = self.completed_paths.pop(-1)
-                self.path = Path(path_id=path_id)
+        if pathid:  # testing specific path
+            self.path = Path(pathid)
+        if repeat and not self.path:  # repeating a step, path finished before
+            pathid = self.completed_paths.pop(-1)
+            self.path = Path(pathid)
+        # TODO: rationalize this series of conditions
         elif self.path and self.path.step_for_reply:
             pass
-        elif self.path and len(self.path.steps):
-            # there's still an unfinished step in self.path
+        elif self.path and repeat:  # repeating a step, path wasn't finished
             pass
-        else:
-            if self.path:
+        elif self.path and len(self.path.steps):  # unfinished step in self.path
+            pass
+        else:  # choosing a new path
+            if self.path:  # TODO: do I want this catch here?
                 self.complete_path()  # catch end-of-path and triggers new choice
             if not self.tag_progress:  # in case User was badly initialized
                 self.get_categories()
             # FIXME: For some reason PathChooser.choose() is returning None for
             # path sometimes
             while not choice:
-                choice, redir, cat = PathChooser(self.tag_progress, self.loc.get_id(),
+                choice, redir, cat = PathChooser(self.tag_progress,
+                                                 self.loc.get_id(),
                                                  self.completed_paths).choose()
-                print 'PathChooser returned ', 'redir', redir, 'cat', cat  # 'choice', choice,
                 if not choice:
                     choice = None
-                    print 'sending error'
-                    #send_error('User', 'get_path', current.request)
-                    print 'sent error'
-                else:
-                    pass
+                    #FIXME: send_error('User', 'get_path', current.request)
+            self.path = path = Path(path_id=choice['id'])
 
-            path = Path(path_id=choice['id'],
-                        loc=self.loc,
-                        prev_loc=self.prev_loc,
-                        prev_npc=self.prev_npc,
-                        username=self.name)
-            if redir:
-                self._set_block('redirect', kwargs={'next_loc': redir})
-            self.path = path
-
-        if (len(self.completed_paths) == self.quota) and \
-                (hasattr(self, 'past_quota')):
-            if (not hasattr(self, 'past_quota')) or (self.past_quota is False):
-                self._set_block('quota_reached', kwargs={'quota': self.quota})
-                self.past_quota = True
-        print 'user.get_path: no of initial path blocks is', len(self.blocks)
+        if len(self.completed_paths) >= self.quota \
+                and self.past_quota is False:
+            self.past_quota = past_quota = True
         if len(self.blocks) > 0:
-            print 'user.get_path: type of blocks is', [b.get_condition() for b in self.blocks]
             # FIXME: This hack is to work around mysterious introduction of
             # redirect block after initial redirect has been triggered
-            self.blocks = [b for b in self.blocks if not b.get_condition() is 'redirect']
-            print 'user.get_path: now blocks is', [b.get_condition() for b in self.blocks]
-        return (self.path, cat)
+            self.blocks = [b for b in self.blocks
+                           if not b.get_condition() is 'redirect']
+
+        return (path, cat, redir, past_quota)
 
     def get_categories(self, user_id=None, rank=None, old_categories=None,
                        tag_records=None, utcnow=None):

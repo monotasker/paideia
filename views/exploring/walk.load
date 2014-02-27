@@ -19,17 +19,26 @@ if request.args(0) == 'map' or not request.args:}}
 # STEP INTERFACE========================================================
 # ======================================================================
 else:
-
     # ======================================================================
-    # PROMPT ===============================================================
+    # PROMPT / REPLY =======================================================
     # ======================================================================
-
     # npc image on left =================================================}}
     {{=DIV(npc_image, _class='speaker')}}
 
-    {{# prompt div ========================================================}}
+    {{# prompt/reply div=================================================}}
     <div class='npc prompt'>
-        <p class='prompt-text'>
+        <p class='prompt-text'>{{=prompt_text}}</p>
+        {{if readable_long]:
+            rdbl = UL(_class='readable_long')
+            for r in readable_long:
+                rdbl.append(LI(r))
+            readable_long_args = {'classnames': 'btn btn-info',
+                                  'id': 'readable_btn'}
+            xamples = POPOVER().widget('More examples',
+                                       rdbl,
+                                       **readable_long_args)}}
+            {{=xamples}}
+        {{pass}}
         {{# audio for prompt===============================================
         if audio:}}
             <audio controls="true" autoplay="true" id="{{=audio['title']}}"
@@ -52,8 +61,17 @@ else:
                         _class='widget-image')}}
             {{=img}}
         {{pass}}
-
-        {{# instructions popup for prompt===================================
+        {{# hints popup for reply===========================================
+        if hints:
+            hint_list = UL()
+            for h in hints:
+                hint_list.append(LI(h))
+            hints_args = {'classnames': 'btn btn-info',
+                          'id': 'instructions_btn'}
+            hinter = POPOVER().widget('Hints', hint_list, **hints_args))}}
+            {{=hinter}}
+        {{pass}}
+        {{# instructions popup for prompt/reply=============================
         if instructions:
             ilist = UL(_class='prompt_instructions')
             for itext in instructions:
@@ -66,7 +84,7 @@ else:
             {{=i_pop}}
         {{pass}}
 
-        {{# slides popup for prompt========================================
+        {{# slides popup for prompt/reply===================================
         if slidedecks:
             decklist = UL(_class='prompt_slides')
             for did, dname in slidedecks.iteritems():
@@ -81,11 +99,10 @@ else:
             {{=s_pop}}
         {{pass}}
 
-        {{# path counter for prompt========================================}}
+        {{# path counter for prompt/reply==================================}}
         <span class='path-counter progress_text'>
             'This will make {{=completed_count + 1}} paths so far today.'
         </span>
-        </p>
     </div>
 
     {{# responder div ========================================================}}
@@ -130,23 +147,21 @@ else:
 {{pass}}
 
 <script>
+    {{if 'bg_image' in globals():}}
+    $('#page').css("background-image", "url({{=bg_image}})");
+    $('#page').css("background-size", "auto 100%");
+    {{pass}}
 
-{{if 'npc' in globals():}}
-$('#page').css("background-image", "url({{=npc['bg_image']}})");
-$('#page').css("background-size", "auto 100%");
-{{pass}}
-
-$('.popover-trigger').each(function() {
-    var $this = $(this);
-    $this.popover({html: true,
-                   animation: true,
-                   content: $this.find('.popover-content').html()
+    $('.popover-trigger').each(function() {
+        var $this = $(this);
+        $this.popover({html: true,
+                    animation: true,
+                    content: $this.find('.popover-content').html()
+        });
     });
-});
 
-$('#responder submit').click(function(event){
-    window.parent.web2py_component("/paideia/exploring/walk.load/reply","page");
-    event.preventDefault();
-});
-
+    $('#responder submit').click(function(event){
+        window.parent.web2py_component("/paideia/exploring/walk.load/reply","page");
+        event.preventDefault();
+    });
 </script>
