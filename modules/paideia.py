@@ -1481,27 +1481,6 @@ class Path(object):
                     for i in self.path_dict['steps']]
         return steplist
 
-    def set_npc(self, npc):
-        """
-        Set the active location after initialization of the Path object.
-        """
-        self.prev_npc = copy(self.npc) if self.npc else copy(npc)
-        self.npc = npc
-        return True
-
-    def set_location(self, loc):
-        """
-        Set the active location after initialization of the Path object.
-        """
-        if isinstance(self.loc, int):
-            self.prev_loc = Location(self.loc)
-        else:
-            self.prev_loc = copy(self.loc)
-        if self.prev_loc is None:
-            self.prev_loc = copy(loc)
-        self.loc = loc
-        return True
-
 
 class PathChooser(object):
     """
