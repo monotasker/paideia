@@ -28,17 +28,11 @@ from copy import copy
 # Switches governing which tests to run
 # ===================================================================
 global_runall = 0
-global_run_TestNpc = 1
-global_run_TestLocation = 1
-global_run_TestNpcChooser = False  # deprecated for Step.get_npc()
-global_run_TestStep = 1
-global_run_TestStepRedirect = 1
-global_run_TestStepAwardBadges = 1
-global_run_TestStepViewSlides = 1
-global_run_TestStepText = 1
-global_run_TestStepMultiple = 1
-global_run_TestStepEvaluator = 1
-global_run_TestMultipleEvaluator = 1
+global_run_TestNpc = 0
+global_run_TestLocation = 0
+global_run_TestStep = 0
+global_run_TestStepEvaluator = 0
+global_run_TestMultipleEvaluator = 0
 global_run_TestPath = 1
 global_run_TestUser = 1
 global_run_TestCategorizer = 1
@@ -156,10 +150,10 @@ def myblocks(request):
 @pytest.fixture()
 def mysteps():
     """
-    Test fixture providing step information for unit tests.
-    This fixture is parameterized, so that tests can be run with each of the
-    steps or with any sub-section (defined by a filtering expression in the
-    test). This step fixture is also used in the mycases fixture.
+        Test fixture providing step information for unit tests.
+        This fixture is parameterized, so that tests can be run with each of the
+        steps or with any sub-section (defined by a filtering expression in the
+        test). This step fixture is also used in the mycases fixture.
     """
     responders = {'text': '<form action="#" autocomplete="off" '
                           'enctype="multipart/form-data" method="post">'
@@ -274,7 +268,7 @@ def mysteps():
                                   'the *sounds* of the English word. Don\'t '
                                   'look for Greek "equivalents" for each '
                                   'English letter.'],
-                 'tips': [],
+                 'tips': None,
                  'slidedecks': {1: 'Introduction',
                                 2: 'The Alphabet',
                                 6: 'Noun Basics',
@@ -285,9 +279,11 @@ def mysteps():
                  'redirect_responder': responders['stub'],
                  'responses': {'response1': '^μιτ$'},
                  'readable': {'readable_short': ['μιτ'],
-                              'readable_long': None},
-                 'reply_text': {'correct': 'Right. Κάλον.',
-                                'incorrect': 'Incorrect. Try again!'},
+                              'readable_long': []},
+                 'reply_text': {'correct': 'Right. Κάλον.\nYou said\n- [[resp]]',
+                                'incorrect': 'Incorrect. Try again!\nYou '
+                                             'said\n- [[resp]]\nThe correct '
+                                             'response is[[rdbl]]'},
                  'user_responses': {'correct': 'μιτ',
                                     'incorrect': 'βλα'},
                  'widget_image': None
@@ -304,16 +300,23 @@ def mysteps():
                                  'using Greek letters?',
                  'redirect_prompt': prompts['redirect'],
                  'instructions': None,
-                 'slidedecks': None,
+                 'slidedecks': {1: 'Introduction',
+                                2: 'The Alphabet',
+                                6: 'Noun Basics',
+                                7: 'Greek Words I'},
                  'tags': [61],
                  'tags_secondary': [],
                  'responder': responders['text'],
                  'redirect_responder': responders['stub'],
                  'responses': {'response1': '^β(α|ο)τ$'},
                  'readable': {'readable_short': ['βατ', 'βοτ'],
-                              'readable_long': None},
-                 'reply_text': {'correct': 'Right. Κάλον.',
-                                'incorrect': 'Incorrect. Try again!'},
+                              'readable_long': []},
+                 'reply_text': {'correct': 'Right. Κάλον.\nYou said\n- '
+                                           '[[resp]]\nCorrect responses '
+                                           'would include[[rdbl]]',
+                                'incorrect': 'Incorrect. Try again!\nYou '
+                                             'said\n- [[resp]]\nCorrect responses '
+                                             'would include[[rdbl]]'},
                  'tips': None,  # why is this None, but elsewhere it's []?
                  'user_responses': {'correct': 'βοτ',
                                     'incorrect': 'βλα'},
@@ -341,9 +344,11 @@ def mysteps():
                  'responder': responders['text'],
                  'redirect_responder': responders['stub'],
                  'readable': {'readable_short': ['πωλ'],
-                              'readable_long': None},
-                 'reply_text': {'correct': 'Right. Κάλον.',
-                                'incorrect': 'Incorrect. Try again!'},
+                              'readable_long': []},
+                 'reply_text': {'correct': 'Right. Κάλον.\nYou said\n- [[resp]]\n',
+                                'incorrect': 'Incorrect. Try again!\nYou '
+                                             'said\n- [[resp]]\nThe correct '
+                                             'response is[[rdbl]]'},
                  'tips': [],
                  'user_responses': {'correct': 'πωλ',
                                     'incorrect': 'βλα'},
@@ -378,7 +383,7 @@ def mysteps():
                                    'cat sat."',
                    'redirect_prompt': prompts['redirect'],
                    'instructions': None,
-                   'slidedecks': None,
+                   'slidedecks': {14: 'Clause Basics'},
                    'tags': [36],
                    'tags_secondary': [],
                    'step_options': ['ναι', 'οὐ'],
@@ -386,12 +391,14 @@ def mysteps():
                    'responder': responders['multi'],
                    'redirect_responder': responders['stub'],
                    'readable': {'readable_short': ['ναι'],
-                                'readable_long': None},
+                                'readable_long': []},
                    'user_responses': {'correct': 'ναι',
                                       'incorrect': 'οὐ'},
-                   'reply_text': {'correct': 'Right. Κάλον.',
-                                  'incorrect': 'Incorrect. Try again!'},
-                   'tips': [],
+                   'reply_text': {'correct': 'Right. Κάλον.\nYou said\n- [[resp]]',
+                                  'incorrect': 'Incorrect. Try again!\nYou '
+                                               'said\n- [[resp]]\nThe correct '
+                                               'response is[[rdbl]]'},
+                   'tips': None,
                    'widget_image': None
                    },
              125: {'id': 125,
@@ -445,8 +452,8 @@ def mysteps():
 
 def mycases(casenum, user_login, db):
     """
-    Text fixture providing various cases for unit tests. For each step,
-    several cases are specified.
+        Text fixture providing various cases for unit tests. For each step,
+        several cases are specified.
     """
     allpaths = db().select(db.paths.ALL)
 
@@ -924,32 +931,16 @@ def myloc_synagogue(db):
     return Location('synagogue', db)
 
 
-@pytest.fixture
-def mypath(mycases, db):
+def mypath(pathid, db):
     """
     A pytest fixture providing a paideia.Path object for testing.
 
     Outputs all valid path/step combinations from mypaths and mysteps (i.e.
     only combinations whose step belongs to the path in question).
     """
-    case = mycases['casedata']
-    step = mycases['stepdata']
-    if step['id'] in case['paths']:
-        the_path = Path(path_id=case['pathid'],
-                        blocks=case['blocks_in'],
-                        loc=case['loc'],
-                        prev_loc=case['prev_loc'],
-                        prev_npc=case['prev_npc'],
-                        db=db)
-        pid = the_path.get_id()
-        path_steps = db.paths[pid].steps
-        return {'path': the_path,
-                'id': pid,
-                'casedata': case,
-                'steps': path_steps,
-                'stepdata': step}
-    else:
-        pass
+    path = Path(pathid, db=db)
+    path_steps = db.paths[pathid].steps
+    return path, path_steps
 
 
 def mystep(stepid, mysteps):
@@ -959,118 +950,6 @@ def mystep(stepid, mysteps):
     stepdata = mysteps[stepid]
     step = StepFactory().get_instance(stepid)
     return step, stepdata
-
-
-@pytest.fixture
-def myStepRedirect(mycases, db):
-    """
-    A pytest fixture providing a paideia.StepRedirect object for testing.
-    - same npc and location as previous step
-    TODO: write another fixture for a new location and for a new npc
-    """
-    case = mycases['casedata']
-    step = mycases['stepdata']
-    if step['id'] == 30:
-        my_args = {'step_id': 30,
-                   'loc': case['loc'],
-                   'prev_loc': case['prev_loc'],
-                   'prev_npc': case['prev_npc'],
-                   'db': db}
-        return {'step': StepRedirect(**my_args),
-                'stepdata': step}
-    else:
-        pass
-
-
-@pytest.fixture
-def myStepAwardBadges(mycases, db):
-    """
-    A pytest fixture providing a paideia.StepAwardBadges object for testing.
-    """
-    case = mycases['casedata']
-    step = mycases['stepdata']
-    if (step['id'] == 126) and case['promoted']:
-        kwargs = {'step_id': 126,
-                  'loc': case['loc'],
-                  'prev_loc': case['prev_loc'],
-                  'prev_npc': case['prev_npc'],
-                  'db': db}
-        return {'step': StepAwardBadges(**kwargs),
-                'stepdata': step,
-                'casedata': case}
-    else:
-        pass
-
-
-@pytest.fixture
-def myStepViewSlides(mycases, db):
-    """
-    A pytest fixture providing a paideia.StepViewSlides object for testing.
-    """
-    case = mycases['casedata']
-    step = mycases['stepdata']
-    if step['id'] == 127 and case['new_badges']:
-        kwargs = {'step_id': 127,
-                  'loc': case['loc'],
-                  'prev_loc': case['prev_loc'],
-                  'prev_npc': case['prev_npc'],
-                  'db': db}
-        return {'step': StepViewSlides(**kwargs),
-                'stepdata': step,
-                'casedata': case}
-    else:
-        pass
-
-
-@pytest.fixture
-def myStepQuotaReached(mycases, db):
-    """
-    A pytest fixture providing a paideia.StepQuota object for testing.
-    """
-    case = mycases['casedata']
-    step = mycases['stepdata']
-    if step['id'] == 125:
-        kwargs = {'step_id': 125,
-                  'loc': case['loc'],
-                  'prev_loc': case['prev_loc'],
-                  'prev_npc': case['prev_npc'],
-                  'db': db}
-        return {'step': StepFactory().get_instance(**kwargs),
-                'stepdata': step,
-                'casedata': case}
-    else:
-        pass
-
-
-@pytest.fixture
-def myStepText(mycases, db):
-    """
-    A pytest fixture providing a paideia.StepText object for testing.
-    """
-    case = mycases['casedata']
-    step = mycases['stepdata']
-    if step['widget_type'] == 1:
-        # following switch alternates correct and incorrect answers
-        # actual answers taken from step data
-        for n in [0, 1]:
-            responses = ['incorrect', 'correct']
-            s = StepFactory()
-            step_instance = s.get_instance(db=db,
-                                           step_id=step['id'],
-                                           loc=case['loc'],
-                                           prev_loc=case['prev_loc'],
-                                           prev_npc=case['prev_npc'])
-            return {'casenum': case['casenum'],
-                    'step': step_instance,
-                    'stepdata': step,
-                    'casedata': case,
-                    'user_response': step['user_responses'][responses[n]],
-                    'reply_text': step['reply_text'][responses[n]],
-                    'score': n,
-                    'times_right': n,
-                    'times_wrong': [1, 0][n]}
-    else:
-        pass
 
 
 @pytest.fixture
@@ -1156,23 +1035,18 @@ def myStepEvaluator(mysteps):
     """
     A pytest fixture providing a paideia.StepEvaluator object for testing.
     """
-    if mysteps['widget_type'] == 1:
-        for n in [0, 1]:
-            responses = ['incorrect', 'correct']
-            user_responses = ['bla', mysteps['responses']['response1']]
-            kwargs = {'responses': mysteps['responses'],
-                      'tips': mysteps['tips']}
-            return {'eval': StepEvaluator(**kwargs),
-                    'tips': mysteps['tips'],
-                    'reply_text': mysteps['reply_text'][responses[n]],
-                    'score': n,
-                    'times_right': n,
-                    'times_wrong': [1, 0][n],
-                    'user_response': user_responses[n]}
-        else:
-            pass
-    else:
-        pass
+    for n in [0, 1]:
+        responses = ['incorrect', 'correct']
+        user_responses = ['bla', mysteps['responses']['response1']]
+        kwargs = {'responses': mysteps['responses'],
+                    'tips': mysteps['tips']}
+        return {'eval': StepEvaluator(**kwargs),
+                'tips': mysteps['tips'],
+                'reply_text': mysteps['reply_text'][responses[n]],
+                'score': n,
+                'times_right': n,
+                'times_wrong': [1, 0][n],
+                'user_response': user_responses[n]}
 
 
 @pytest.fixture()
@@ -1180,23 +1054,18 @@ def myMultipleEvaluator(mysteps):
     """
     A pytest fixture providing a paideia.MultipleEvaluator object for testing.
     """
-    if mysteps['widget_type'] == 4:
-        for n in [0, 1]:
-            responses = ['incorrect', 'correct']
-            user_responses = ['bla', mysteps['responses']['response1']]
-            kwargs = {'responses': mysteps['responses'],
-                      'tips': mysteps['tips']}
-            return {'eval': MultipleEvaluator(**kwargs),
-                    'tips': mysteps['tips'],
-                    'reply_text': mysteps['reply_text'][responses[n]],
-                    'score': n,
-                    'times_right': n,
-                    'times_wrong': [1, 0][n],
-                    'user_response': user_responses[n]}
-        else:
-            pass
-    else:
-        pass
+    for n in [0, 1]:
+        responses = ['incorrect', 'correct']
+        user_responses = ['bla', mysteps['responses']['response1']]
+        kwargs = {'responses': mysteps['responses'],
+                    'tips': mysteps['tips']}
+        return {'eval': MultipleEvaluator(**kwargs),
+                'tips': mysteps['tips'],
+                'reply_text': mysteps['reply_text'][responses[n]],
+                'score': n,
+                'times_right': n,
+                'times_wrong': [1, 0][n],
+                'user_response': user_responses[n]}
 
 
 @pytest.fixture()
@@ -1282,6 +1151,7 @@ class TestStep():
     Unit tests covering the Step class of the paideia module.
     """
 
+    @pytest.mark.skipif(True, reason='just because')
     @pytest.mark.parametrize('stepid', [1])
     def test_step_get_id(self, stepid, mysteps):
         """Test for method Step.get_id """
@@ -1289,6 +1159,7 @@ class TestStep():
         assert step.get_id() == expected['id']
         assert isinstance(step, expected['step_type']) is True
 
+    @pytest.mark.skipif(True, reason='just because')
     @pytest.mark.parametrize("stepid", [1, 2])
     def test_step_get_tags(self, stepid, mysteps):
         """Test for method Step.get_tags """
@@ -1297,6 +1168,7 @@ class TestStep():
         assert actual == {'primary': expected['tags'],
                           'secondary': expected['tags_secondary']}
 
+    @pytest.mark.skipif(True, reason='just because')
     @pytest.mark.parametrize('caseid,stepid', [
         #('case1', 1),
         #('case2', 2),
@@ -1346,6 +1218,7 @@ class TestStep():
             assert step.get_prompt(case['loc'], npc, case['name'],
                                    None, None, None) == expected['redirect']
 
+    @pytest.mark.skipif(True, reason='just because')
     @pytest.mark.parametrize(('caseid', 'stepid'), [
         ('case1', 1),
         ('case2', 2),  # don't use steps 30, 125, 126, 127 (block)
@@ -1370,6 +1243,7 @@ class TestStep():
 
         assert step._make_replacements(**oargs) == ofinal
 
+    @pytest.mark.skipif(True, reason='just because')
     @pytest.mark.parametrize(('caseid', 'stepid'), [
         ('case1', 1),
         ('case2', 2)
@@ -1394,6 +1268,7 @@ class TestStep():
             assert isinstance(l, (int, long))
             assert l in npc_data[actual.get_id()]['location']
 
+    @pytest.mark.skipif(True, reason='just because')
     @pytest.mark.parametrize('stepid', [1, 2])
     def test_step_get_instructions(self, stepid, mysteps):
         """Test for method Step._get_instructions"""
@@ -1401,97 +1276,102 @@ class TestStep():
         actual = step._get_instructions()
         assert actual == expected['instructions']
 
+    @pytest.mark.skipif(True, reason='just because')
     @pytest.mark.parametrize('stepid', [1, 2, 19])  # only StepText type
     def test_step_get_readable(self, stepid, mysteps):
         """Unit tests for StepText._get_readable() method"""
         step, expected = mystep(stepid, mysteps)
         assert step._get_readable() == expected['readable']
 
-    @pytest.mark.parametrize('stepid', [1, 2, 19, 101])  # only StepText and StepMultiple types
-    def test_step_get_reply(self, stepid, caseid, mysteps, db):
+    @pytest.mark.skipif(True, reason='just because')
+    @pytest.mark.parametrize('caseid,stepid',
+                             [('case1', 1),
+                              ('case2', 2),
+                              ('case2', 101)
+                              ])  # only StepText and StepMultiple types
+    def test_step_get_reply(self, stepid, caseid, mysteps, user_login,
+                            db, npc_data):
         """Unit tests for StepText._get_reply() method"""
-        #case = mycases(caseid, user_login, db)
+        case = mycases(caseid, user_login, db)
         step, expected = mystep(stepid, mysteps)
-        actual = step.get_reply(expected['user_response'])
+        step.loc = case['loc']
+        locnpcs = [int(n) for n in case['npcs_here']
+                   if n in expected['npc_list']]
+        step.npc = Npc(locnpcs[0], db)
 
-        assert actual['reply_text'] == expected['reply_text']
-        assert actual['readable_short'] == expected['readable']['readable_short']
-        assert actual['readable_long'] == expected['readable']['readable_long']
-        assert actual['tips'] == expected['tips']
-        assert actual['score'] == expected['score']
-        assert actual['times_right'] == expected['times_right']
-        assert actual['times_wrong'] == expected['times_wrong']
-        assert actual['user_response'] == expected['user_response']
+        for x in [('correct', 1),
+                  ('incorrect', 0)]:
 
+            actual = step.get_reply(expected['user_responses'][x[0]])
 
-class TestStepMultiple():
-    '''
-    Test class for paideia.StepMultiple
-    '''
-    pytestmark = pytest.mark.skipif('global_runall is False '
-                                    'and global_run_TestStepMultiple is False')
+            # assemble reply text (tricky)
+            xtextraw = expected['reply_text'][x[0]]
+            xtext = xtextraw.replace('[[resp]]',
+                                     expected['user_responses'][x[0]])
+            rdbl = ''
+            print len(expected['readable']['readable_short'])
+            if len(expected['readable']['readable_short']) > 1:  #
+                for r in expected['readable']['readable_short']:
+                    rdbl += '\n- {}'.format(r)
+            elif x[1] != 1:
+                rdbl += '\n- {}'.format(expected['readable']['readable_short'][0])
+            xtext = xtext.replace('[[rdbl]]', rdbl)
 
-    def test_stepmultiple_get_reply(self, myStepMultiple):
-        """Unit testing for get_reply method of StepMultiple."""
-        if myStepMultiple:
-            step = myStepMultiple['stepdata']
-            response = myStepMultiple['user_response']
+            assert actual['sid'] == stepid
+            assert actual['bg_image'] == case['loc'].get_bg()
+            assert actual['prompt_text'] == xtext
+            assert actual['readable_long'] == expected['readable']['readable_long']
+            assert actual['npc_image']['_src'] == npc_data[locnpcs[0]]['image']
+            assert actual['audio'] is None
+            assert actual['widget_img'] is None
+            assert actual['instructions'] == expected['instructions']
+            assert actual['slidedecks'] == expected['slidedecks']
+            assert actual['hints'] == expected['tips']
 
-            expected = {'reply_text': myStepMultiple['reply_text'],
-                        'tips': step['tips'],
-                        'readable_short': step['readable']['readable_short'],
-                        'readable_long': step['readable']['readable_long'],
-                        'score': myStepMultiple['score'],
-                        'times_right': myStepMultiple['times_right'],
-                        'times_wrong': myStepMultiple['times_wrong'],
-                        'user_response': myStepMultiple['user_response']}
-            actual = myStepMultiple['step'].get_reply(user_response=response)
-            assert actual['reply_text'] == expected['reply_text']
-            assert actual['readable_short'] == expected['readable_short']
-            assert actual['readable_long'] == expected['readable_long']
-            assert actual['tips'] == expected['tips']
-            assert actual['times_right'] == expected['times_right']
-            assert actual['times_wrong'] == expected['times_wrong']
-            assert actual['user_response'] == expected['user_response']
+            assert actual['user_response'] == expected['user_responses'][x[0]]
+            assert actual['score'] == x[1]
+            assert actual['times_right'] == x[1]
+            assert actual['times_wrong'] == abs(x[1] - 1)
 
 
+@pytest.mark.skipif('not global_runall and not global_run_TestStepEvaluator',
+                    reason='Global skip settings')
 class TestStepEvaluator():
     """Class for evaluating the submitted response string for a Step"""
-    pytestmark = pytest.mark.skipif('not global_runall and '
-                                    'not global_run_TestStepEvaluator')
 
-    def test_stepevaluator_get_eval(self, myStepEvaluator):
+    @pytest.mark.skipif(True, reason='just because')
+    @pytest.mark.parametrize('stepid', [1, 2, 19])
+    def test_stepevaluator_get_eval(self, stepid, mysteps, myStepEvaluator):
         """Unit tests for StepEvaluator.get_eval() method."""
-        if myStepEvaluator:
-            evl = myStepEvaluator
-            response = evl['user_response']
-            expected = {'reply_text': evl['reply_text'],
-                        'tips': evl['tips'],
-                        'score': evl['score'],
-                        'times_wrong': evl['times_wrong'],
-                        'times_right': evl['times_right'],
-                        'user_response': response}
+        step, expected = mystep(stepid, mysteps)
+        evl = myStepEvaluator
+        response = evl['user_response']
+        expected = {'reply_text': evl['reply_text'],
+                    'tips': evl['tips'],
+                    'score': evl['score'],
+                    'times_wrong': evl['times_wrong'],
+                    'times_right': evl['times_right'],
+                    'user_response': response}
 
-            actual = myStepEvaluator['eval'].get_eval(response)
-            assert actual['score'] == expected['score']
-            assert actual['reply'] == expected['reply_text']
-            assert actual['times_wrong'] == expected['times_wrong']
-            assert actual['times_right'] == expected['times_right']
-            assert actual['user_response'] == expected['user_response']
-            assert actual['tips'] == expected['tips']
-        else:
-            pass
+        actual = myStepEvaluator['eval'].get_eval(response)
+        assert actual['score'] == expected['score']
+        assert actual['reply'] == expected['reply_text']
+        assert actual['times_wrong'] == expected['times_wrong']
+        assert actual['times_right'] == expected['times_right']
+        assert actual['user_response'] == expected['user_response']
+        assert actual['tips'] == expected['tips']
 
 
+@pytest.mark.skipif('global_runall is False and global_run_TestMultipleEvaluator '
+                    'is False', reason='Global skip settings')
 class TestMultipleEvaluator():
     """
     Unit testing class for paideia.MultipleEvaluator class.
     """
-    pytestmark = pytest.mark.skipif('global_runall is False '
-                                    'and global_run_TestMultipleEvaluator '
-                                    'is False')
 
-    def test_multipleevaluator_get_eval(self, myMultipleEvaluator):
+    @pytest.mark.skipif(True, reason='just because')
+    @pytest.mark.parametrize('stepid', [101])
+    def test_multipleevaluator_get_eval(self, stepid, mysteps, myMultipleEvaluator):
         """Unit tests for multipleevaluator.get_eval() method."""
         if myMultipleEvaluator:
             evl = myMultipleEvaluator
@@ -1514,101 +1394,103 @@ class TestMultipleEvaluator():
             pass
 
 
+@pytest.mark.skipif('global_runall is False and global_run_TestMultipleEvaluator '
+                    'is False', reason='Global skip settings')
 class TestPath():
     """Unit testing class for the paideia.Path object"""
     pytestmark = pytest.mark.skipif('global_runall is False '
                                     'and global_run_TestPath is False')
 
-    def test_path_get_id(self, mypath):
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('pathid', ['3', '89', '19', '1'])
+    def test_path_get_id(self, pathid, db):
         """unit test for Path.get_id()"""
-        if mypath:
-            expected = mypath['id']
-            actual = mypath['path'].get_id()
-            assert actual == expected
-        else:
-            pass
+        path, pathsteps = mypath(pathid, db)
+        assert path.get_id() == int(pathid)
 
-    def test_path_prepare_for_prompt(self, mypath, mysteps):
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('pathid,firststep,stepsleft',
+                             [(3, 2, []),
+                              (89, 101, []),
+                              (19, 19, []),
+                              (1, 71, []),
+                              (63, 66, [67, 68])])
+    def test_path_prepare_for_prompt(self, pathid, firststep, stepsleft, db):
         """unit test for Path._prepare_for_prompt()"""
-        # TODO: add logic to test progression to subsequent step of multistep
-        # path
-        if mypath:
-            pid = mypath['id']
-            sid = mypath['steps'][0]
-            if mysteps['id'] == sid:
-                #step = mysteps
-                #case = mypath['casedata']
-                expected = {'path_id': pid,
-                            'step_id': sid}
+        path, pathsteps = mypath(pathid, db)
+        actual = path._prepare_for_prompt()
+        assert actual is True
+        assert isinstance(path.step_for_prompt, Step)  # should cover inherited
+        assert path.step_for_prompt.get_id() == firststep
+        try:
+            assert [s.get_id() for s in path.steps] == stepsleft
+        except TypeError:  # if path.steps is now entry, can't be iterated
+            assert path.steps == stepsleft
 
-                path = mypath['path']
-                actual = path._prepare_for_prompt()
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('casenum,pathid,stepsleft',
+                             [#('case1', 3, []),
+                              #('case2', 89, []),
+                              ('case3', 19, []),
+                              #('case4', 1, []),  # step 71 not in mysteps
+                              #('case5', 1, []),  # step 71 not in mysteps
+                              #('case5', 63, [67, 68])  # step 66 not in mysteps
+                              ])
+    def test_path_get_step_for_prompt(self, casenum, pathid, stepsleft,
+                                      db, mysteps, user_login):
+        """
+        Unit test for Path.get_step_for_prompt() where no redirect prompted.
+        """
+        # TODO: test edge cases with, e.g., repeat set
+        # TODO: test middle of multi-step path
+        path, pathsteps = mypath(pathid, db)
+        stepdata = mysteps[pathsteps[0]]
+        case = mycases(casenum, user_login, db)
+        #expected = {'npc_list': [s for s in stepdata['npc_list']
+                                 #if s in case['npcs_here']],
+                    #}
+        actual, nextloc = path.get_step_for_prompt(case['loc'])
 
-                assert actual is True
-                assert path.step_for_prompt.get_id() == expected['step_id']
-                assert path.steps == []
-            else:
-                pass
-        else:
-            pass
+        assert path.step_for_prompt.get_id() == pathsteps[0]
+        assert path.step_for_reply == None
+        assert actual.get_id() == pathsteps[0]
+        assert path.get_id() == pathid
+        assert case['loc'].get_id() in stepdata['locations']
+        assert case['loc'].get_id() in actual.get_locations()
+        assert isinstance(actual, Step)
+        try:
+            assert [s.get_id() for s in path.steps] == stepsleft
+        except TypeError:  # if path.steps is now entry, can't be iterated
+            assert path.steps == stepsleft
+        assert nextloc is None
 
-    def test_path_get_step_for_prompt(self, mypath, mysteps):
-        """unit test for Path.get_step_for_prompt()"""
-        # TODO: add logic to test progression to subsequent step of multistep
-        # path
-        # TODO: add logic to test block generation; returning block
-        if mypath:
-            pid = mypath['id']
-            sid = mypath['steps'][0]
-            if mysteps['id'] == sid:
-                step = mysteps
-                case = mypath['casedata']
-                expected = {'path_id': pid,
-                            'step_id': sid,
-                            'alternate_step_id': sid,
-                            'locations': step['locations'],
-                            'tags': {'primary': step['tags'],
-                                    'secondary': step['tags_secondary']},
-                            'npc_list': [s for s in step['npc_list']
-                                        if s in case['npcs_here']],
-                            'loc': case['loc'].get_id(),
-                            'steps': [],  # only step has been removed
-                            'step_type': step['step_type']
-                            }
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('casenum,pathid,stepsleft',
+                             [('case2', 89, [101])])
+    def test_path_get_step_for_prompt_redirect(self, casenum, pathid, stepsleft,
+                                               user_login, db, mysteps):
+        """
+        Unit test for Path.get_step_for_prompt() in a case that prompts redirect.
+        """
+        # TODO: redirect can be caused by 2 situations: bad loc or wrong npcs
+        # here
+        path, pathsteps = mypath(pathid, db)
+        stepdata = mysteps[pathsteps[0]]
+        case = mycases(casenum, user_login, db)
+        #expected = {'npc_list': [s for s in stepdata['npc_list']
+                                 #if s in case['npcs_here']],
+                    #}
+        actual, nextloc = path.get_step_for_prompt(case['loc'])
 
-                path = mypath['path']
-                actual = mypath['path'].get_step_for_prompt()
-
-                # redirect step id in cases where redirect Block is triggered
-                if (case['casenum'] == 2) and (sid == 101):
-                    expected['tags'] = {'primary': [70],
-                                        'secondary': []}
-                    expected['npc_list'] = [14, 8, 2, 40, 31, 32, 41, 1, 17, 42]
-                    expected['locations'] = [3, 1, 2, 4, 12, 13, 14, 6, 7, 8,
-                                            11, 5, 9, 10]
-                    expected['step_type'] = StepRedirect
-
-                    assert path.step_for_reply is None
-                    assert path.step_for_prompt.get_id() == sid
-                    assert actual.get_id() == 30
-                else:
-                    assert path.step_for_prompt is None
-                    assert path.step_for_reply.get_id() == sid
-                    assert actual.get_id() == sid
-
-                assert path.get_id() == expected['path_id']
-                assert actual.get_tags() == expected['tags']
-                assert actual.get_locations() == expected['locations']
-                assert case['loc'].get_id() in expected['locations']
-                assert actual.get_npc().get_id() in expected['npc_list']
-                assert actual.get_npc().get_id() in case['npcs_here']
-                assert type(actual) == expected['step_type']
-                assert isinstance(actual, expected['step_type'])
-                assert path.steps == expected['steps']
-            else:
-                pass
-        else:
-            pass
+        assert actual.step_for_reply is None  # step isn't activated
+        assert actual.step_for_prompt.get_id() == pathsteps[0]  # step isn't activated
+        assert actual.get_id() == pathid
+        assert case['loc'].get_id() not in stepdata['locations']  # NOT
+        try:
+            assert [s.get_id() for s in actual.steps] == stepsleft
+        except TypeError:  # if path.steps is now entry, can't be iterated
+            assert actual.steps == stepsleft
+        assert nextloc in actual.steps[0].get_locations()
 
     def test_path_check_for_blocks(self, mypath):
         """
