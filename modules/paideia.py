@@ -1395,8 +1395,7 @@ class Path(object):
         """
         step = self.step_for_prompt
         # check if id is same so that block steps don't remove step_for_prompt
-        if stepid == step.get_id() and isinstance(step, (StepText,
-                                                         StepMultiple)):
+        if stepid == step.get_id():  # and isinstance(step, (StepText, StepMultiple)):
             self.step_for_reply = copy(self.step_for_prompt)
             self.step_for_prompt = None
         return True
