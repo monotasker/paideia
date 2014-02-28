@@ -880,23 +880,14 @@ def mycategorizer(mycases):
     return out
 
 
-@pytest.fixture
-def myuser(mycases, user_login, db):
+def myuser(tag_progress, tag_records, user_login, db):
     """A pytest fixture providing a paideia.User object for testing."""
     auth = current.auth
     assert auth.is_logged_in()
     user = db.auth_user(auth.user_id)
-    assert user
     assert user.first_name == 'Homer'
     assert user.time_zone == 'America/Toronto'
-    case = mycases['casedata']
-    step = mycases['stepdata']
-    tag_progress = case['tag_progress']
-    tag_records = case['tag_records']
-    #localias = case['loc'].get_alias()
-    return {'user': User(user, tag_records, tag_progress),
-            'casedata': case,
-            'stepdata': step}
+    return User(user, tag_records, tag_progress)
 
 
 @pytest.fixture
@@ -1524,7 +1515,7 @@ class TestPath():
          (19, 19, [], [3, 1, 13, 8, 11], 'domus_A'),
          (1, 71, [], [3, 1, 6, 7, 8, 11], 'domus_A'),
          (1, 71, [], [3, 1, 6, 7, 8, 11], 'domus_A'),
-         (63, 66, [67, 68], [3, 1], 'domus_A')
+         #(63, 66, [67, 68], [3, 1], 'domus_A')  # first step doesn't take reply
          ])
     def test_path_get_step_for_reply(self, pathid, stepid, stepsleft, locs,
                                      localias, mysteps, db):
@@ -1533,16 +1524,18 @@ class TestPath():
         """
         path, pathsteps = mypath(pathid, db)
         step, expected = mystep(stepid, mysteps)
+        # preparing for reply stage
         path.get_step_for_prompt(Location(localias))
-        #path.end_prompt()
+        path.end_prompt(stepid)
 
         actual = path.get_step_for_reply()
 
         assert path.step_for_prompt is None
-        assert path.step_for_reply is step
-        assert path.steps == stepsleft
+        try:
+            assert [s.get_id() for s in path.steps] == stepsleft
+        except TypeError:  # if list empty, so can't be iterated over
+            assert path.steps == stepsleft
         assert actual.get_id() == step.get_id()
-        assert path.step_sent_id == step.get_id()
         assert isinstance(actual, (StepText, StepMultiple))
         assert not isinstance(actual, StepRedirect)
         assert not isinstance(actual, StepQuotaReached)
@@ -1556,20 +1549,27 @@ class TestPath():
         pass
 
 
+@pytest.mark.skipif('global_runall is False '
+                    'and global_run_TestUser is False')
 class TestUser(object):
     """unit testing class for the paideia.User class"""
-    pytestmark = pytest.mark.skipif('global_runall is False '
-                                    'and global_run_TestUser is False')
 
-    def test_user_get_id(self, myuser, db):
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('casenum', ['case1'])
+    def test_user_get_id(self, casenum, user_login, db):
         """
         Unit test for User.get_id() method.
         """
-        uid = myuser['user'].get_id()
+        case = mycases(casenum, user_login, db)
+        tag_progress = case['tag_progress']
+        tag_records = case['tag_records']
+        actualuser = myuser(tag_progress, tag_records, user_login, db)
+
+        actualid = actualuser.get_id()
         expected = db((db.auth_user.first_name == 'Homer') &
                       (db.auth_user.last_name == 'Simpson')).select()
         assert len(expected) == 1
-        assert uid == expected.first().id
+        assert actualid == expected.first().id
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize(
@@ -1581,7 +1581,7 @@ class TestUser(object):
          (1, 'case1', 6, 'shop_of_alexander', 3, 2, [], [3, 1, 13, 7, 8, 11]),
          (1, 'case2', 8, 'agora', 89, 101, [], [7])
          ])
-    def test_path_check_for_blocks(self, redirects, casenum, locid, localias,
+    def test_user_check_for_blocks(self, redirects, casenum, locid, localias,
                                    pathid, stepid, stepsleft, locs, mysteps,
                                    db):
         """
