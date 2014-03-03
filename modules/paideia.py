@@ -205,15 +205,15 @@ class Walk(object):
         if set_blocks:
             for c, v in set_blocks.iteritems():
                 myargs = {n: a for n, a in v.iteritems()}
-                user._set_block(c, kwargs=myargs)
+                user.set_block(c, kwargs=myargs)
         username = user.get_name()
         promoted, new_tags = user.get_categories(user_id=user.get_id())
         if new_tags:
             # setting order here should make new_tags step come up first
-            user._set_block('new_tags')
-            user._set_block('view_slides')
+            user.set_block('new_tags')
+            user.set_block('view_slides')
         if promoted:
-            user._set_block('new_tags')
+            user.set_block('new_tags')
 
         loc = Location(localias)
         prev_loc = user.set_location(loc)
@@ -222,13 +222,13 @@ class Walk(object):
         p, category, redir, pastquota = user.get_path(loc, path=path, repeat=repeat)
         user.active_cat = category  # TODO: why necessary?
         if redir:
-            user._set_block('redirect', kwargs={'next_loc': redir})
+            user.set_block('redirect', kwargs={'next_loc': redir})
         if pastquota:
-            user._set_block('quota_reached', kwargs={'quota': user.quota})
+            user.set_block('quota_reached', kwargs={'quota': user.quota})
 
         s, newloc_id = p.get_step_for_prompt(loc, repeat=repeat)
         if newloc_id:
-            user._set_block('redirect', kwargs={'next_loc': newloc_id})
+            user.set_block('redirect', kwargs={'next_loc': newloc_id})
 
         # TODO: make sure 'new_tags' is returned before 'view_slides'
         block = user.check_for_blocks()
@@ -1395,8 +1395,7 @@ class Path(object):
         """
         step = self.step_for_prompt
         # check if id is same so that block steps don't remove step_for_prompt
-        if stepid == step.get_id() and isinstance(step, (StepText,
-                                                         StepMultiple)):
+        if stepid == step.get_id():  # and isinstance(step, (StepText, StepMultiple)):
             self.step_for_reply = copy(self.step_for_prompt)
             self.step_for_prompt = None
         return True
@@ -1735,28 +1734,28 @@ class User(object):
         else:
             return None
 
-    def _set_block(self, condition, kwargs=None, data=None):
+    def set_block(self, condition):
         """ Set a blocking condition on this Path object. """
         myblocks = [b.get_condition() for b in self.blocks]
-        kwargs.update({'username': self.name})
 
         def _inner_set_block():
             if not condition in myblocks:
-                self.blocks.append(Block(condition=condition,
-                                         kwargs=kwargs,
-                                         data=data))
+                self.blocks.append(Block(condition))
 
         if condition is 'new_tags':
             if not self.viewed_slides:
-                self._inner_set_block()
+                _inner_set_block()
                 self.viewed_slides = True
         if condition in ['promoted', 'new_tags']:
             if not self.reported_badges:
-                self._inner_set_block()
+                _inner_set_block()
                 if not self.reported_badges:
                     self.reported_badges = True
                 else:
                     self.viewed_slides = True
+        else:
+            _inner_set_block()
+
         return True
 
     def is_stale(self, now=None, start=None, time_zone=None, db=None):
@@ -1808,30 +1807,30 @@ class User(object):
         self.loc = loc
         return self.prev_loc
 
-    def get_new_tags(self):
-        """Return a list of tag ids newly introduced"""
-        return self.new_tags
+    #def get_new_tags(self):
+        #"""Return a list of tag ids newly introduced"""
+        #return self.new_tags
 
-    def get_promoted(self):
-        """Return a dictionary of tag ids newly promoted to categories 2-4."""
-        return self.promoted
+    #def get_promoted(self):
+        #"""Return a dictionary of tag ids newly promoted to categories 2-4."""
+        #return self.promoted
 
-    def get_tag_records(self):
-        """
-        Return a list of dictionaries matching the fields of db.tag_records.
+    #def get_tag_records(self):
+        #"""
+        #Return a list of dictionaries matching the fields of db.tag_records.
 
-        Each dictionary contains the user's performance data for a single
-        grammatical tag.
-        """
-        return self.tag_records
+        #Each dictionary contains the user's performance data for a single
+        #grammatical tag.
+        #"""
+        #return self.tag_records
 
-    def get_tag_progress(self):
-        """
-        Return a dictionary matching the fields of db.tag_progress.
+    #def get_tag_progress(self):
+        #"""
+        #Return a dictionary matching the fields of db.tag_progress.
 
-        This dictionary contains the user's overall progress data.
-        """
-        return self.tag_progress
+        #This dictionary contains the user's overall progress data.
+        #"""
+        #return self.tag_progress
 
     def get_path(self, loc, db=None, pathid=None, repeat=None):
         """
@@ -1906,7 +1905,7 @@ class User(object):
         # only re-categorize every 10th evaluated step
         if (self.cats_counter in range(0, 4)) and hasattr(self, 'categories') and self.categories:
             self.cats_counter += 1
-            print 'user.get_categories: no need for refresh yet - counter is', self.cats_counter
+            #print 'user.get_categories: no need for refresh yet - counter is', self.cats_counter
             return True
         else:
             print 'user.get_categories: need to recategorize'
@@ -1939,11 +1938,11 @@ class User(object):
 
             return self.promoted, self.new_tags
 
-    def _get_old_categories(self):
-        if self.old_categories:
-            return self.old_categories
-        else:
-            return None
+    #def _get_old_categories(self):
+        #if self.old_categories:
+            #return self.old_categories
+        #else:
+            #return None
 
     def complete_path(self):
         """
@@ -2007,7 +2006,8 @@ class Categorizer(object):
         rank = self.rank if not rank else rank
         if not rank:
             rank = 1
-        old_categories = self.old_categories if not old_categories else old_categories
+        old_categories = self.old_categories if not old_categories \
+                         else old_categories
         tag_records = self.tag_records if not tag_records else tag_records
         tag_records = self._sanitize_recs(tag_records)
         db = current.db if not db else db
@@ -2041,12 +2041,7 @@ class Categorizer(object):
             #print '\ncategorize_tags: after core algorithm, cats are', pprint(categories)
             categories = self._add_untried_tags(categories)
             #print '\ncategorize_tags: after adding untried, cats are', pprint(categories)
-            # Remove any duplicates and tags beyond the user's current ranking
-            for k, v in categories.iteritems():
-                if v:
-                    rankv = [t for t in v if db.tags(t)
-                            and (db.tags[t].tag_position <= rank)]
-                    categories[k] = list(set(rankv))
+            categories = self._remove_dups(categories, rank)
             # 'rev' categories are reintroduced
             categories.update((c, []) for c in ['rev1', 'rev2', 'rev3', 'rev4'])
             # changes in categorization since last time
@@ -2072,6 +2067,18 @@ class Categorizer(object):
                     'promoted': promoted,
                     'demoted': demoted,
                     'categories': categories}
+
+    def _remove_dups(self, categories, rank):
+        """
+        Remove any duplicate tags and any tags beyond user's current rank.
+        """
+        db = current.db
+        for k, v in categories.iteritems():
+            if v:
+                rankv = [t for t in v if db.tags(t)
+                        and (db.tags[t].tag_position <= rank)]
+                categories[k] = list(set(rankv))
+        return categories
 
     def _add_secondary_right(self, tag_records):
         """
