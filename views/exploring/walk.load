@@ -28,10 +28,11 @@ else:
     {{# prompt/reply div=================================================}}
     <div class='npc prompt'>
         <p class='prompt-text'>{{=prompt_text}}</p>
-        {{if readable_long]:
+        {{if readable_long:
             rdbl = UL(_class='readable_long')
             for r in readable_long:
                 rdbl.append(LI(r))
+            pass
             readable_long_args = {'classnames': 'btn btn-info',
                                   'id': 'readable_btn'}
             xamples = POPOVER().widget('More examples',
@@ -66,9 +67,10 @@ else:
             hint_list = UL()
             for h in hints:
                 hint_list.append(LI(h))
+            pass
             hints_args = {'classnames': 'btn btn-info',
                           'id': 'instructions_btn'}
-            hinter = POPOVER().widget('Hints', hint_list, **hints_args))}}
+            hinter = POPOVER().widget('Hints', hint_list, **hints_args)}}
             {{=hinter}}
         {{pass}}
         {{# instructions popup for prompt/reply=============================
@@ -90,9 +92,8 @@ else:
             for did, dname in slidedecks.iteritems():
                 decklist.append(LI(A(dname, _href=URL('listing', 'slides.html',
                                      args=[did]))))
-                }}
-            {{pass}}
-            {{slides_args = {'classnames': 'btn btn-info slides-popover',
+            pass
+            slides_args = {'classnames': 'btn btn-info slides-popover',
                            'title': 'Relevant slide decks',
                            'id': 'Slides_btn'}
             s_pop = POPOVER().widget('slides', decklist, **slides_args)}}
@@ -109,9 +110,9 @@ else:
     <div class='responder'>
         {{if response_form:}}
             {{=response_form}}
-        {{pass}}
+        {{pass
 
-        {{if sid and pid:
+        if sid and pid:
             stepedit = A('step {}'.format(sid),
                         _href=URL('editing', 'listing', args=['steps', sid]),
                         _class='prompt-s-editlink'
@@ -123,9 +124,9 @@ else:
             catnum = ' choosing from category {}'.format(category)}}
             {{=ROLE(SPAN(pathedit, ', ', stepedit, catnum,
                     _class='prompt-editlinks'))}}
-        {{pass}}
+        {{pass
 
-        {{if 'continue' in response_buttons:}}
+        if 'continue' in response_buttons:}}
             {{=A("Continue", _href=URL('walk', args=['ask'], vars={'loc': loc}),
             cid='page', _class='continue btn btn-success next_q')}}
         {{pass}}
