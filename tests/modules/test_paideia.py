@@ -33,11 +33,11 @@ global_run_TestLocation = 0
 global_run_TestStep = 0
 global_run_TestStepEvaluator = 0
 global_run_TestMultipleEvaluator = 0
-global_run_TestPath = 1
-global_run_TestUser = 1
+global_run_TestPath = 0
+global_run_TestUser = False
 global_run_TestCategorizer = 1
-global_run_TestWalk = 1
-global_run_TestPathChooser = 1
+global_run_TestWalk = 0
+global_run_TestPathChooser = 0
 
 # ===================================================================
 # Test Fixtures
@@ -1554,7 +1554,7 @@ class TestPath():
 class TestUser(object):
     """unit testing class for the paideia.User class"""
 
-    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.skipif(True, reason='just because')
     @pytest.mark.parametrize('casenum', ['case1'])
     def test_user_get_id(self, casenum, user_login, db):
         """
@@ -1571,19 +1571,50 @@ class TestUser(object):
         assert len(expected) == 1
         assert actualid == expected.first().id
 
-    @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize(
-        'redirects,casenum,locid,localias,pathid,stepid,stepsleft,locs',
-        [(0, 'case3', 11, 'synagogue', 19, 19, [], [3, 1, 13, 8, 11]),
-         (0, 'case4', 8, 'agora', 1, 71, [], [3, 1, 6, 7, 8, 11]),
-         (0, 'case5', 1, 'domus_A', 1, 71, [], [3, 1, 6, 7, 8, 11]),
-         (0, 'case5', 1, 'domus_A', 63, 66, [67, 68], [3, 1]),
-         (1, 'case1', 6, 'shop_of_alexander', 3, 2, [], [3, 1, 13, 7, 8, 11]),
-         (1, 'case2', 8, 'agora', 89, 101, [], [7])
-         ])
-    def test_user_check_for_blocks(self, redirects, casenum, locid, localias,
-                                   pathid, stepid, stepsleft, locs, mysteps,
-                                   db):
+    @pytest.mark.skipif(True, reason='just because')
+    @pytest.mark.parametrize('condition,casenum,viewedslides,reportedbadges',
+                             [('redirect', 'case1', 0, 0),
+                              ('view_slides', 'case1', 0, 0),
+                              ('view_slides', 'case1', 1, 0),
+                              ('new_tags', 'case1', 0, 0),
+                              ('new_tags', 'case1', 0, 1),
+                              ('promoted', 'case1', 0, 0),
+                              ('promoted', 'case1', 0, 1),
+                              ('quota_reached', 'case1', 0, 0)])
+    def test_user_set_block(self, condition, casenum, viewedslides,
+                            reportedbadges, user_login, db):
+        """
+        Unit test for User.set_block() method.
+        """
+        case = mycases(casenum, user_login, db)
+        user = myuser(case['tag_progress'], case['tag_records'],
+                             user_login, db)
+        user.viewed_slides = viewedslides
+        user.reported_badges = reportedbadges
+        user.quota_reached = 0
+        startlen = len(user.blocks)
+        startconditions = [u.get_condition() for u in user.blocks]
+        assert user.set_block(condition)
+        newlen = len(user.blocks)
+        if (viewedslides and condition == 'view_slides') or \
+           (reportedbadges and condition == 'new_tags') or \
+           (reportedbadges and condition == 'promoted'):
+            print 'blocks are', user.blocks
+            assert startlen == newlen
+            assert [u.get_condition() for u in user.blocks] == startconditions
+        else:
+            print 'blocks are', user.blocks
+            assert all([isinstance(b, Block) for b in user.blocks])
+            assert startlen == newlen - 1
+            assert user.blocks[-1].get_condition() == condition
+
+    @pytest.mark.skipif(True, reason='just because')
+    @pytest.mark.parametrize('casenum,theblocks',
+                             [('case3', ['new_tags']),
+                              ('case3', []),
+                              ('case3', ['new_tags', 'redirect']),
+                              ])
+    def test_user_check_for_blocks(self, casenum, theblocks, user_login, db):
         """
         unit test for Path._check_for_blocks()
 
@@ -1593,51 +1624,42 @@ class TestUser(object):
         """
         # TODO: there's now some block-checking logic in the method. Ideally
         # that should be isolated in its own method.
-        path = mypath(pathid, db)
-        stepdata = mysteps['stepid']
         case = mycases(casenum, user_login, db)
-        step = mystep(stepid, db, mysteps)
-        # set up starting Path instance vars
-        path.step_for_prompt = stepid
+        user = myuser(case['tag_progress'], case['tag_records'],
+                             user_login, db)
+        user.blocks = [Block(c) for c in theblocks]
+        startlen = len(theblocks)
 
-        # run test method
-        actual = path._check_for_blocks(step)
-
-        if redirects:
-            # set up expected results
-            locs = [2, 3]
-            kwargs = {'step_id': 30,
-                    'loc': path.loc,
-                    'prev_loc': path.prev_loc,
-                    'prev_npc': path.prev_npc}
-            expected = [Block('redirect', kwargs=kwargs, data=locs)]
-
-            assert actual == expected[0].get_step()
-            assert len(path.blocks) == 1
-            assert path.step_for_prompt == sid
-            assert path.step_sent_id == 30
+        actual_return = user.check_for_blocks()
+        actual_property = user.blocks
+        if theblocks:
+            assert len(actual_property) == startlen - 1
+            assert all(isinstance(b, Block) for b in actual_property)
+            assert isinstance(actual_return, Block)
         else:
-            assert actual is None
+            assert len(actual_property) == 0
+            assert actual_property == []
+            assert actual_return is None
 
-    def test_user_is_stale(self, myuser, db):
+    @pytest.mark.skipif(True, reason='just because')
+    @pytest.mark.parametrize('start,expected',
+                             [(datetime.datetime(2013, 01, 02, 9, 0, 0), False),
+                              (datetime.datetime(2013, 01, 02, 9, 0, 0), False),
+                              (datetime.datetime(2013, 01, 02, 3, 0, 0), True),
+                              (datetime.datetime(2012, 12, 29, 14, 0, 0), True)
+                              ])
+    def test_user_is_stale(self, start, expected, user_login, db):
         """
         Unit test for User.is_stale() method.
         """
         now = datetime.datetime(2013, 01, 02, 14, 0, 0)
         tzn = 'America/Toronto'
-        cases = [{'start': datetime.datetime(2013, 01, 02, 9, 0, 0),
-                  'expected': False},
-                 {'start': datetime.datetime(2013, 01, 02, 9, 0, 0),
-                  'expected': False},
-                 {'start': datetime.datetime(2013, 01, 02, 3, 0, 0),
-                  'expected': True},
-                 {'start': datetime.datetime(2012, 12, 29, 14, 0, 0),
-                  'expected': True}]
-        for c in cases:
-            actual = myuser['user'].is_stale(now=now, start=c['start'],
-                                     time_zone=tzn, db=db)
-            assert actual == c['expected']
+        case = mycases('case1', user_login, db)
+        user = myuser(case['tag_progress'], case['tag_records'], user_login, db)
+        actual = user.is_stale(now=now, start=start, time_zone=tzn, db=db)
+        assert actual == expected
 
+    @pytest.mark.skipif(True, reason='just because')
     def test_user_get_path(self, myuser, db):
         user = myuser['user']
         case = myuser['casedata']
@@ -1662,56 +1684,7 @@ class TestUser(object):
         assert isinstance(actual, Path)
         assert isinstance(actual.steps[0], Step)
 
-    def test_user_get_new_tags(self, myuser):
-        """
-        Unit test for User.get_new_tags().
-        """
-        user = myuser['user']
-        user.new_tags = [1, 2, 3]
-        expected = [1, 2, 3]
-        actual = user.get_new_tags()
-
-        assert actual == expected
-
-    def test_user_get_promoted(self, myuser):
-        """
-        Unit test for User.get_promoted().
-        """
-        user = myuser['user']
-        user.promoted = {'cat2': [1], 'cat3': [2], 'cat4': [3]}
-        expected = {'cat2': [1], 'cat3': [2], 'cat4': [3]}
-        actual = user.get_promoted()
-
-        assert actual == expected
-
-    def test_user_get_tag_progress(self, myuser):
-        """
-        Unit test for User._get_tag_progress() method.
-        """
-        user = myuser['user']
-        case = myuser['casedata']
-        user.cats_counter = 0
-        actual = user.get_tag_progress()
-
-        # FIXME: Why are cats different than tag_progress_out
-        expected = case['categories_start']
-        expected['latest_new'] = case['tag_progress']['latest_new']
-        for k, v in actual.iteritems():
-            if v and not isinstance(v, int):
-                for p in v:
-                    assert p in expected[k]
-
-    def test_user_get_tag_records(self, myuser):
-        """
-        Unit test for User._get_tag_progress() method.
-        """
-        user = myuser['user']
-        actual = user.get_tag_records()
-        expected = myuser['casedata']['tag_records']
-        print 'actual \n', actual
-        print 'expected \n', expected
-        assert actual == expected
-
+    @pytest.mark.skipif(True, reason='just because')
     def test_user_get_categories(self, myuser):
         """
         Unit test for User._get_categories() method.
@@ -1727,6 +1700,7 @@ class TestUser(object):
         for c, l in expected.iteritems():
             assert len(actual['categories'][c]) == len([t for t in l])
 
+    @pytest.mark.skipif(True, reason='just because')
     def test_user_get_old_categories(self, myuser):
         """
         TODO: at the moment this is only testing initial state in which there
@@ -1745,6 +1719,7 @@ class TestUser(object):
             #assert len([i for i in l if i in expected[c]]) == len(expected[c])
             #assert len(l) == len(expected[c])
 
+    @pytest.mark.skipif(True, reason='just because')
     def test_user_complete_path(self, myuser):
         user = myuser['user']
         case = myuser['casedata']
@@ -1765,123 +1740,385 @@ class TestUser(object):
         assert isinstance(user.completed_paths[-1], Path)
 
 
+@pytest.mark.skipif('global_runall is False '
+                    'and global_run_TestCategorizer is False',
+                    reason='global skip settings')
 class TestCategorizer():
     """
     Unit testing class for the paideia.Categorizer class
     """
-    pytestmark = pytest.mark.skipif('global_runall is False '
-                                    'and global_run_TestCategorizer is False')
 
-    def test_categorizer_categorize(self, mycategorizer):
-        """
-        Unit test for the paideia.Categorizer.categorize method.
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('casename,rank,catsin,tagrecsin,tagrecsout',
+                             [('case1', 1, {'cat1': [1], 'cat2': [],
+                                            'cat3': [], 'cat4': [],
+                                            'rev1': [], 'rev2': [],
+                                            'rev3': [], 'rev4': []},
+                               [{'name': 1,
+                                 'tag': 1,
+                                 'tlast_right': dt('2013-01-29'),
+                                 'tlast_wrong': dt('2013-01-29'),
+                                 'times_right': 1,
+                                 'times_wrong': 1,
+                                 'secondary_right': None}],
+                               [{'name': 1,
+                                 'tag': 1,
+                                 'tlast_right': dt('2013-01-29'),
+                                 'tlast_wrong': dt('2013-01-29'),
+                                 'times_right': 1,
+                                 'times_wrong': 1,
+                                 'secondary_right': None}]
+                               )
+                              ])
+    def test_categorizer_add_secondary_right(self, casename, rank, catsin,
+                                             tagrecsin, tagrecsout):
+        """Unit test for the paideia.Categorizer._add_secondary_right method."""
+        now = dt('2013-01-29')
+        # 150 is random user id
+        catzr = Categorizer(rank, catsin, tagrecsin, 150, utcnow=now)
 
-        Test case data provided (and parameterized) by mycases fixture via the
-        mycategorizer fixture.
-        """
-        cat = mycategorizer
-        out = {'cats': cat['categories_out'],
-               't_prog': cat['tag_progress_out'],
-               'nt': cat['new_tags'],
-               'pro': cat['promoted'],
-               'de': cat['demoted']}
-        real = cat['categorizer'].categorize_tags()
-        for c, l in out['t_prog'].iteritems():
-            if isinstance(l, int):
-                real['tag_progress'][c] == l
-            else:
-                for t in l:
-                    assert t in real['tag_progress'][c]
-                    print 'cat:', c
-                    print real['tag_progress'][c]
+        actual = catzr._add_secondary_right(tagrecsin)
+        expected = tagrecsout
 
-        print 'pro', real['promoted']
-        print 'de', real['demoted']
-        print 'cats', real['categories']
+        for idx, a in enumerate(actual):
+            assert a['tag'] == expected[idx]['tag']
+            assert a['tlast_right'] == expected[idx]['tlast_right']
+            assert a['tlast_wrong'] == expected[idx]['tlast_wrong']
+            assert a['times_right'] == expected[idx]['times_right']
+            assert a['tlast_wrong'] == expected[idx]['tlast_wrong']
+            assert a['secondary_right'] == expected[idx]['secondary_right']
 
-        if out['nt']:
-            print 'new_tags', real['new_tags']
-            for t in real['new_tags']:
-                assert t in out['nt']
-                assert t in out['t_prog']['cat1']
-        for c, l in out['pro'].iteritems():
-            for t in l:
-                assert t in real['promoted'][c]
-        for c, l in out['de'].iteritems():
-            for t in l:
-                assert t in real['demoted'][c]
-        for c, l in out['cats'].iteritems():
-            for t in l:
-                assert t in real['categories'][c]
-
-    def test_categorizer_core_algorithm(self, mycategorizer):
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('casename,rank,catsin,catsout,tagrecs',
+                             [('case1', 1,  # ???
+                               {'cat1': [1], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                               {'cat1': [1], 'cat2': [],
+                                'cat3': [], 'cat4': []},
+                               [{'name': 1,
+                                 'tag': 1,
+                                 'tlast_right': dt('2013-01-29'),
+                                 'tlast_wrong': dt('2013-01-29'),
+                                 'times_right': 1,
+                                 'times_wrong': 1,
+                                 'secondary_right': None}]
+                               ),
+                              ('case2', 1,  # promote 61 for ratio and time
+                               {'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                               {'cat1': [], 'cat2': [61],
+                                'cat3': [], 'cat4': []},
+                               [{'name': 1,
+                                 'tag': 61,
+                                 'tlast_right': dt('2013-01-29'),
+                                 'tlast_wrong': dt('2013-01-28'),
+                                 'times_right': 10,
+                                 'times_wrong': 2,
+                                 'secondary_right': []}],
+                               )
+                              ])
+    def test_categorizer_core_algorithm(self, casename, rank, catsin, catsout,
+                                        tagrecs, db):
         """
         Unit test for the paideia.Categorizer._core_algorithm method
 
         Case numbers correspond to the cases (user performance scenarios) set
         out in the myrecords fixture.
         """
-        cat = mycategorizer
-        output = cat['core_out']
-        core = cat['categorizer']._core_algorithm()
-        assert core == output
+        now = dt('2013-01-29')
+        # 150 is random user id
+        catzr = Categorizer(rank, catsin, tagrecs, 150, utcnow=now)
 
-    def test_categorizer_introduce_tags(self, mycategorizer):
+        actual = catzr._core_algorithm()
+        expected = catsout
+        assert actual == expected
+
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('casename,rank,catsin,tagrecs,introduced',
+                             [('case1',  # ???
+                               1,
+                               {'cat1': [1], 'cat2': [],
+                                'cat3': [], 'cat4': []},
+                               [{'name': 1,
+                                 'tag': 1,
+                                 'tlast_right': dt('2013-01-29'),
+                                 'tlast_wrong': dt('2013-01-29'),
+                                 'times_right': 1,
+                                 'times_wrong': 1,
+                                 'secondary_right': None}],
+                               [6, 29, 62, 82, 83]
+                               ),
+                              ('case2',  # promote to rank 2, introduce 62
+                               1,
+                               {'cat1': [], 'cat2': [61],
+                                'cat3': [], 'cat4': []},
+                               [{'name': 1,
+                                 'tag': 61,
+                                 'tlast_right': dt('2013-01-29'),
+                                 'tlast_wrong': dt('2013-01-28'),
+                                 'times_right': 10,
+                                 'times_wrong': 2,
+                                 'secondary_right': []}],
+                               [62]
+                               )
+                              ])
+    def test_categorizer_introduce_tags(self, casename, rank, catsin, tagrecs,
+                                        introduced):
         """Unit test for the paideia.Categorizer._introduce_tags method"""
-        catzer = mycategorizer['categorizer']
-        newlist = catzer._introduce_tags()
-        if newlist:
-            for n in newlist:
-                assert n in mycategorizer['introduced']
-        else:
-            assert newlist is False
-        assert len(newlist) == len(mycategorizer['introduced'])
-        assert catzer.rank == mycategorizer['tag_progress']['latest_new'] + 1
+        now = dt('2013-01-29')
+        catzr = Categorizer(rank, catsin, tagrecs, 150, utcnow=now)
 
-    def test_categorizer_add_untried_tags(self, mycategorizer):
-        """Unit test for the paideia.Categorizer._add_untried_tags method"""
-        mz = mycategorizer
-        catin = mz['core_out']
-        catout = mz['untried_out']
-        for cat, lst in mz['categorizer']._add_untried_tags(catin).iteritems():
-            for tag in lst:
-                assert tag in catout[cat]
-            assert len(lst) == len(catout[cat])
+        actual = catzr._introduce_tags()
+        expected = introduced
 
-    def test_categorizer_find_cat_changes(self, mycategorizer):
-        """Unit test for the paideia.Categorizer._find_cat_changes method."""
-        mz = mycategorizer
-        actual = mz['categorizer']._find_cat_changes(mz['untried_out'],
-                                                     mz['categorizer'
-                                                        ].old_categories)
-        for t in actual['categories']:
-            if actual['categories']:
-                assert t in mz['untried_out']
-        for t in actual['demoted']:
-            if actual['demoted']:
-                assert t in mz['demoted']
-        for t in actual['promoted']:
-            if actual['promoted']:
-                assert t in mz['promoted']
+        assert actual == expected
+        assert len(actual) == len(expected)
+        assert catzr.rank == rank + 1
 
-    def test_categorizer_add_secondary_right(self, mycategorizer):
-        """Unit test for the paideia.Categorizer._add_secondary_right method."""
-        mz = mycategorizer
-        recsin = mz['tag_records']
-        expected = mz['tag_records_out']
-        realout = mz['categorizer']._add_secondary_right(recsin)
-        for r in realout:
-            ri = realout.index(r)
-            assert r['tag'] == expected[ri]['tag']
-            assert r['tlast_right'] == expected[ri]['tlast_right']
-            assert r['tlast_wrong'] == expected[ri]['tlast_wrong']
-            assert r['times_right'] == expected[ri]['times_right']
-            assert r['tlast_wrong'] == expected[ri]['tlast_wrong']
-            print 'REAL'
-            print r['secondary_right']
-            print 'EXPECT'
-            print expected[ri]['secondary_right']
-            assert r['secondary_right'] == expected[ri]['secondary_right']
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('casename,rank,catsin,tagrecs,catsout',
+                             [('case1', 1, {'cat1': [1], 'cat2': [],
+                                            'cat3': [], 'cat4': []},
+                               [{'name': 1,
+                                 'tag': 1,
+                                 'tlast_right': dt('2013-01-29'),
+                                 'tlast_wrong': dt('2013-01-29'),
+                                 'times_right': 1,
+                                 'times_wrong': 1,
+                                 'secondary_right': None}],
+                               {'cat1': [1, 61], 'cat2': [],
+                                'cat3': [], 'cat4': []}
+                               )
+                              ])
+    def test_categorizer_add_untried_tags(self,  casename, rank, catsin,
+                                          tagrecs, catsout):
+        """
+            Unit test for the paideia.Categorizer._add_untried_tags method
+
+            catsin is the output from _core_algorithm()
+            catsout should have untried tags at the user's current rank added
+            to cat1.
+
+        """
+        now = dt('2013-01-29')
+        catzr = Categorizer(rank, catsin, tagrecs, 150, utcnow=now)
+
+        actual = catzr._add_untried_tags(catsin)
+        expected = catsout
+
+        for cat, lst in actual.iteritems():
+            assert lst == expected[cat]
+            assert len(lst) == len(expected[cat])
+
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('casename,rank,catsin,tagrecs,catsout',
+                             [('case1', 1, {'cat1': [1, 61, 61], 'cat2': [],
+                                            'cat3': [], 'cat4': []},
+                               [{'name': 1,
+                                 'tag': 1,
+                                 'tlast_right': dt('2013-01-29'),
+                                 'tlast_wrong': dt('2013-01-29'),
+                                 'times_right': 1,
+                                 'times_wrong': 1,
+                                 'secondary_right': None}],
+                               {'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': []},
+                               )
+                              ])
+    def test_categorizer_remove_dups(self, casename, rank, catsin, tagrecs,
+                                     catsout):
+        """
+            Unit test for the paideia.Categorizer._add_untried_tags method
+
+            catsin is the output from _core_algorithm()
+            catsout should have untried tags at the user's current rank added
+            to cat1.
+
+        """
+        now = dt('2013-01-29')
+        catzr = Categorizer(rank, catsin, tagrecs, 150, utcnow=now)
+
+        actual = catzr._remove_dups(catsin, rank)
+        expected = catsout
+
+        for cat, lst in actual.iteritems():
+            assert lst == expected[cat]
+            assert len(lst) == len(expected[cat])
+
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('casename,rank,oldcats,catsin,tagrecs,'
+                             'demoted,promoted',
+                             [('case1',  # no prom or demot
+                               1,
+                               {'cat1': [1], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                               {'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                               [{'name': 1,
+                                 'tag': 1,
+                                 'tlast_right': dt('2013-01-29'),
+                                 'tlast_wrong': dt('2013-01-29'),
+                                 'times_right': 1,
+                                 'times_wrong': 1,
+                                 'secondary_right': None}],
+                               {},
+                               {}
+                               ),
+                              ('case2',  # promote 61 for ratio and time
+                               1,
+                               {'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                               {'cat1': [62], 'cat2': [61],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                               [{'name': 1,
+                                 'tag': 61,
+                                 'tlast_right': dt('2013-01-29'),
+                                 'tlast_wrong': dt('2013-01-28'),
+                                 'times_right': 10,
+                                 'times_wrong': 2,
+                                 'secondary_right': []}],
+                               {},
+                               {'cat2': [61]}
+                               )
+                              ])
+    def test_categorizer_find_cat_changes(self, casename, rank, oldcats, catsin,
+                                          tagrecs, demoted, promoted):
+        """
+            Unit test for the paideia.Categorizer._find_cat_changes method.
+
+        """
+        now = dt('2013-01-29')
+        catzr = Categorizer(rank, oldcats, tagrecs, 150, utcnow=now)
+
+        actual = catzr._find_cat_changes(catsin, oldcats)
+        expected = {'categories': catsin,
+                    'demoted': demoted,
+                    'promoted': promoted}
+
+        for cat, lst in actual['categories'].iteritems():
+            assert lst == expected['categories'][cat]
+        assert actual['demoted'] == expected['demoted']
+        assert actual['promoted'] == expected['promoted']
+
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('casename,rank,catsin,tagrecsin,rankout,catsout,'
+                             'tpout,tagrecsout,promoted,newtags',
+                             [('case1',
+                               1, {'cat1': [1], 'cat2': [],
+                                   'cat3': [], 'cat4': [],
+                                   'rev1': [], 'rev2': [],
+                                   'rev3': [], 'rev4': []},
+                               [{'name': 1,
+                                 'tag': 1,
+                                 'tlast_right': dt('2013-01-29'),
+                                 'tlast_wrong': dt('2013-01-29'),
+                                 'times_right': 1,
+                                 'times_wrong': 1,
+                                 'secondary_right': None}],
+                               1,
+                               {'cat1': [1], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                               {'latest_new': 1,
+                                'cat1': [1], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                               [{'name': 1,
+                                 'tag': 1,
+                                 'tlast_right': dt('2013-01-29'),
+                                 'tlast_wrong': dt('2013-01-29'),
+                                 'times_right': 1,
+                                 'times_wrong': 1,
+                                 'secondary_right': None}],
+                               {},
+                               []
+                               ),
+                              ('case2',  # promote 61, introduce 62
+                               1,
+                               {'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                               [{'name': 1,
+                                 'tag': 61,
+                                 'tlast_right': dt('2013-01-29'),
+                                 'tlast_wrong': dt('2013-01-28'),
+                                 'times_right': 10,
+                                 'times_wrong': 2,
+                                 'secondary_right': []}],
+                               2,
+                               {'cat1': [62], 'cat2': [61],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                               {'latest_new': 2,
+                                'cat1': [62], 'cat2': [61],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                               [{'name': 1,
+                                 'tag': 61,
+                                 'tlast_right': dt('2013-01-29'),
+                                 'tlast_wrong': dt('2013-01-28'),
+                                 'times_right': 10,
+                                 'times_wrong': 2,
+                                 'secondary_right': []}],
+                               {'cat2': [61]},
+                               [62]
+                               )
+                              ])
+    def test_categorizer_categorize_tags(self, casename, rank, catsin,
+                                         tagrecsin, rankout, catsout, tpout,
+                                         tagrecsout, promoted, newtags, db):
+        """
+        Unit test for the paideia.Categorizer.categorize method.
+
+        Test case data provided (and parameterized) by mycases fixture via the
+        mycategorizer fixture.
+        """
+        now = dt('2013-01-29')
+        # 150 is random user id
+        catzr = Categorizer(rank, catsin, tagrecsin, 150, utcnow=now)
+
+        actual = catzr.categorize_tags(rank, tagrecsin, catsin, db=db)
+        expected = {'cats': catsout,
+                    't_prog': tpout,
+                    'nt': newtags,
+                    'pro': promoted,
+                    't_recs': tagrecsout}
+
+        for key, act in actual['categories'].iteritems():
+            assert act == expected['cats'][key]
+
+        for key, act in actual['tag_progress'].iteritems():
+            assert act == expected['t_prog'][key]
+
+        for idx, rec in enumerate(actual['tag_records']):
+            for key, act in rec.iteritems():
+                assert act == expected['t_recs'][idx][key]
+
+        assert actual['new_tags'] == expected['new_tags']
+        if actual['new_tags']:
+            assert actual['t_prog']['cat1'] == expected['new_tags']
+
+        assert actual['promoted'] == expected['pro']
+        if actual['promoted']:
+            for key, act in actual['promoted'].iteritems():
+                assert actual['promoted'][key]
 
 
 class TestWalk():
