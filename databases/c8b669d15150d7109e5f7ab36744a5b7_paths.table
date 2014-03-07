@@ -2,13 +2,13 @@
 S'npcs'
 p2
 (dp3
-S'sortable'
+S'type'
 p4
-I5
-sS'type'
-p5
 S'list:reference db.npcs'
+p5
+sS'sortable'
 p6
+I5
 sS'sql'
 p7
 S'TEXT'
@@ -57,10 +57,10 @@ ssS'tags'
 p23
 (dp24
 g4
-I6
-sg5
 S'list:reference db.tags'
 p25
+sg6
+I6
 sg7
 g8
 ssS'id'
@@ -84,10 +84,10 @@ ssS'locations'
 p30
 (dp31
 g4
-I4
-sg5
 S'list:reference db.locations'
 p32
+sg6
+I4
 sg7
 g8
 ssS'label'

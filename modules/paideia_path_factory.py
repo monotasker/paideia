@@ -53,6 +53,7 @@ class PathFactory(object):
         output = ''
         flds = [Field('label_template', 'string'),
                 Field('words', 'list:string'),
+                Field('aligned', 'boolean'),
                 Field('avoid', 'list:string'),
                 Field('testing', 'boolean')]
 
@@ -415,10 +416,17 @@ class PathFactory(object):
         Return a list of the template formatted with each of the words.
 
         The substitution format in each string looks like:
-           {{wordsX}} for manual substitution (word forms unchanged)
-           {{wordsY-wordsX}} or {{lemma-wordsX}}
-                for automatic substitution (word parsed to agree with another
-                being substituted elsewhere).
+        {wordsX}        preset word form, simple string substitution
+        {lemma-modform-constraint}  "lemma" parsed to agree with "modform" before
+                                    substitution. The third term "constraint" is
+                                    an optional limitation on the aspects of the
+                                    lemma to be made to agree. The constraint
+                                    should be formatted like "case:nom", in
+                                    which case the case would be constrained
+                                    as nominative, while all other aspects of
+                                    the lemma would be brought into agreement
+                                    with "modform".
+
         """
         prompts = [self.do_substitution(p, combodict) for p in ptemps]
         #print 'got prompts'
