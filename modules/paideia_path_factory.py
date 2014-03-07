@@ -160,11 +160,10 @@ class PathFactory(object):
                                    stepsdata=stepsdata,
                                    testing=vv.testing,
                                    avoid=vv.avoid,
+                                   aligned=vv.aligned
                                    )
-            #print 'got paths: ', len(paths)
             message, output = self.make_output(paths)
 
-            #print 'got output\nmessage is: ', message
         elif form.errors:
             message = BEAUTIFY(form.errors)
             print 'form had errors:', message
@@ -172,7 +171,7 @@ class PathFactory(object):
         return form, message, output
 
     def make_path(self, wordlists, label_template=None, stepsdata=None,
-                  avoid=None, testing=False):
+                  avoid=None, aligned=False, testing=False):
         """
         Create a set of similar paths programmatically from provided variables.
 
@@ -255,13 +254,12 @@ class PathFactory(object):
         else:
             self.mock = True
 
-        combos = self.make_combos(wordlists, avoid)
-        #print 'for {} combos'.format(len(combos))
+        combos = self.make_combos(wordlists, aligned, avoid)
         paths = {}
         for idx, c in enumerate(combos):  # one path for each combo
             #print 'path for combo {}'.format(idx)
             #print '====================================================='
-            label = label_template.format('-'.join([i.split('|')[0] for i in c]))
+            label = label_template.format('-'.join(c))
             mykeys = ['words{}'.format(n + 1) for n in range(len(c))]
             combodict = dict(zip(mykeys, c))  # keys are template placeholders
 
@@ -278,24 +276,28 @@ class PathFactory(object):
                     pdata['new_forms'].append(newforms)
                 if imgs:
                     pdata['images_missing'].append(imgs)
-            print 'keys:', pdata['steps'].keys()
+            #print 'keys:', pdata['steps'].keys()
             pgood = [isinstance(k, (int, long)) for k in pdata['steps'].keys()]
-            print 'good paths:', pgood
-            print 'self.mock:', self.mock
+            #print 'good paths:', pgood
+            #print 'self.mock:', self.mock
             pid = self.path_to_db(pdata['steps'].keys(), label) \
                 if all(pgood) and not self.mock else 'path not written {}'.format(idx)
             paths[pid] = pdata
 
         return paths
 
-    def make_combos(self, wordlists, avoid):
+    def make_combos(self, wordlists, aligned, avoid):
         """
         Return a list of tuples holding all valid combinations of given words.
 
-        Avoid parameter allows exclusion of certain combinations.
+        If 'aligned' is True, the word lists will be combined with a simple
+        zip. Otherwise, they are combined with product(). The 'avoid' parameter
+        expects a list of tuples, each providing a combination to be excluded.
 
         """
-        if len(wordlists) > 1:
+        if len(wordlists) > 1 and aligned is True:
+            combos = zip(*wordlists)
+        elif len(wordlists) > 1:
             combos = list(product(*wordlists))
         else:
             combos = [(l,) for l in wordlists[0] if l]
@@ -326,9 +328,9 @@ class PathFactory(object):
         """
         mytype = sdata['step_type']
 
-        ptemp = islist(sdata['prompt_template'].split('|'))
-        xtemp = islist(sdata['response_template'].split('||'))
-        rtemp = islist(sdata['readable_template'].split('|'))
+        ptemp = islist(sdata['prompt_template'])
+        xtemp = islist(sdata['response_template'])
+        rtemp = islist(sdata['readable_template'])
 
         tags1 = sdata['tags']
         itemp = sdata['image_template']
@@ -471,8 +473,10 @@ class PathFactory(object):
                 myform = combodict[f]
             subpairs.append(('{{{}}}'.format(f), myform))
 
-        #print 'subpairs ==================================='
-        #uprint(subpairs)
+        print 'temp ==================================='
+        print temp
+        print 'subpairs ==================================='
+        uprint(subpairs)
         ready_strings = multiple_replace(temp, subpairs[0])
         return ready_strings, newforms
 
@@ -493,7 +497,7 @@ class PathFactory(object):
         mod = splits[1]
         try:
             aspect = splits[2]
-        except KeyError:
+        except IndexError:
             aspect = None
         # if lemma is pointer to a word list
         lemma = combodict[lemma] if lemma in combodict.keys() else lemma
@@ -517,8 +521,10 @@ class PathFactory(object):
         """
         db = current.db
         newform = None
-        lem = db(db.lemmas.lemma == mylemma).select.first()
+        lem = db(db.lemmas.lemma == mylemma).select().first()
         ref = db(db.word_forms.word_form == mod_form).select().first()
+        print 'ref'
+        print ref.as_dict()
         # use provided constraints where present in field
         # allow for use of short forms
         cdict = {}
@@ -548,6 +554,11 @@ class PathFactory(object):
         if gender in ['masculine', 'neuter']:
             genders.append('masculine or neuter')
         # get the inflected form from the db
+        print 'getting myrow'
+        print 'lemid:', lem.id
+        print 'case:', case
+        print 'genders:', genders
+        print 'number:', number
         myrow = db((db.word_forms.source_lemma == lem.id) &
                    (db.word_forms.grammatical_case == case) &
                    (db.word_forms.gender.belongs(genders)) &
