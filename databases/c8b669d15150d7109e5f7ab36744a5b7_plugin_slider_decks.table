@@ -25,13 +25,13 @@ p11
 ssS'tag'
 p12
 (dp13
-S'type'
+S'sortable'
 p14
-S'list:reference db.tags'
-p15
-sS'sortable'
-p16
 I5
+sS'type'
+p15
+S'list:reference db.tags'
+p16
 sS'sql'
 p17
 S'TEXT'
@@ -39,13 +39,13 @@ p18
 ssS'position'
 p19
 (dp20
-S'sortable'
+S'type'
 p21
-I5
-sS'type'
-p22
 S'integer'
+p22
+sS'sortable'
 p23
+I5
 sS'sql'
 p24
 S'INTEGER'

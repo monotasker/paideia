@@ -16,6 +16,7 @@ TranslateWordPathFactory:class (extends PathFactory)
 : A subclass that includes extra helper logic for simple translation paths.
 
 """
+from pprint import pprint
 import traceback
 from gluon import current, SQLFORM, Field, BEAUTIFY, IS_IN_DB, UL, LI
 from gluon import CAT, H2
@@ -23,7 +24,8 @@ import re
 from random import randrange, shuffle
 from itertools import product, chain
 from paideia_utils import capitalize_first, test_regex, uprint
-from paideia_utils import flatten, multiple_replace, islist  # sanitize_greek,
+from paideia_utils import islist  # sanitize_greek,
+from plugin_utils import flatten
 import datetime
 #from plugin_ajaxselect import AjaxSelect
 
@@ -53,6 +55,7 @@ class PathFactory(object):
         output = ''
         flds = [Field('label_template', 'string'),
                 Field('words', 'list:string'),
+                Field('aligned', 'boolean'),
                 Field('avoid', 'list:string'),
                 Field('testing', 'boolean')]
 
@@ -136,11 +139,9 @@ class PathFactory(object):
                                            multiple=True)),
                    Field('{}_image_template'.format(n), 'string')]
             flds.extend(fbs)
-        #pprint(flds)
         form = SQLFORM.factory(*flds)
 
         if form.process().accepted:
-            print "form was processed"
             vv = request.vars
             stepsdata = []
             for n in ['one', 'two', 'three', 'four', 'five']:
@@ -153,25 +154,22 @@ class PathFactory(object):
                 wordlists = [w.split('|') for w in vv['words']]
             else:
                 wordlists = [vv['words'].split('|')]
-            print 'testing is', vv['testing'], type(vv['testing'])
             paths = self.make_path(wordlists,
                                    label_template=vv.label_template,
                                    stepsdata=stepsdata,
                                    testing=vv.testing,
                                    avoid=vv.avoid,
+                                   aligned=vv.aligned
                                    )
-            #print 'got paths: ', len(paths)
             message, output = self.make_output(paths)
 
-            #print 'got output\nmessage is: ', message
         elif form.errors:
             message = BEAUTIFY(form.errors)
-            print 'form had errors:', message
 
         return form, message, output
 
     def make_path(self, wordlists, label_template=None, stepsdata=None,
-                  avoid=None, testing=False):
+                  avoid=None, aligned=False, testing=False):
         """
         Create a set of similar paths programmatically from provided variables.
 
@@ -248,19 +246,17 @@ class PathFactory(object):
         print datetime.datetime.now()
         print "======================================"
 
-        print 'testing is', testing
         if testing is None:
             self.mock = False
         else:
             self.mock = True
 
-        combos = self.make_combos(wordlists, avoid)
-        #print 'for {} combos'.format(len(combos))
+        combos = self.make_combos(wordlists, aligned, avoid)
         paths = {}
         for idx, c in enumerate(combos):  # one path for each combo
             #print 'path for combo {}'.format(idx)
             #print '====================================================='
-            label = label_template.format('-'.join([i.split('|')[0] for i in c]))
+            label = label_template.format('-'.join(c))
             mykeys = ['words{}'.format(n + 1) for n in range(len(c))]
             combodict = dict(zip(mykeys, c))  # keys are template placeholders
 
@@ -277,24 +273,25 @@ class PathFactory(object):
                     pdata['new_forms'].append(newforms)
                 if imgs:
                     pdata['images_missing'].append(imgs)
-            print 'keys:', pdata['steps'].keys()
             pgood = [isinstance(k, (int, long)) for k in pdata['steps'].keys()]
-            print 'good paths:', pgood
-            print 'self.mock:', self.mock
             pid = self.path_to_db(pdata['steps'].keys(), label) \
                 if all(pgood) and not self.mock else 'path not written {}'.format(idx)
             paths[pid] = pdata
 
         return paths
 
-    def make_combos(self, wordlists, avoid):
+    def make_combos(self, wordlists, aligned, avoid):
         """
         Return a list of tuples holding all valid combinations of given words.
 
-        Avoid parameter allows exclusion of certain combinations.
+        If 'aligned' is True, the word lists will be combined with a simple
+        zip. Otherwise, they are combined with product(). The 'avoid' parameter
+        expects a list of tuples, each providing a combination to be excluded.
 
         """
-        if len(wordlists) > 1:
+        if len(wordlists) > 1 and aligned is True:
+            combos = zip(*wordlists)
+        elif len(wordlists) > 1:
             combos = list(product(*wordlists))
         else:
             combos = [(l,) for l in wordlists[0] if l]
@@ -302,9 +299,6 @@ class PathFactory(object):
         if avoid:
             combos = [x for x in combos
                       if not any([set(y).issubset(set(x)) for y in avoid])]
-        #print "combos ==================================="
-        #uprint(combos)
-        #pprint(combos)
         return combos
 
     def make_step(self, combodict, sdata):
@@ -325,9 +319,9 @@ class PathFactory(object):
         """
         mytype = sdata['step_type']
 
-        ptemp = islist(sdata['prompt_template'].split('|'))
-        xtemp = islist(sdata['response_template'].split('||'))
-        rtemp = islist(sdata['readable_template'].split('|'))
+        ptemp = islist(sdata['prompt_template'])
+        xtemp = islist(sdata['response_template'])
+        rtemp = islist(sdata['readable_template'])
 
         tags1 = sdata['tags']
         itemp = sdata['image_template']
@@ -384,6 +378,9 @@ class PathFactory(object):
                 stepresult = 'duplicate step', dups
             else:
                 stepresult = 'regex failure', xfail
+                print 'regex failure-------------------------'
+                print xfail.keys()[0].decode('utf8')
+                print xfail.values()[0][0]
         except Exception:
             tracebk = traceback.format_exc(12)
             stepresult = ('failure', tracebk)
@@ -415,26 +412,30 @@ class PathFactory(object):
         Return a list of the template formatted with each of the words.
 
         The substitution format in each string looks like:
-           {{wordsX}} for manual substitution (word forms unchanged)
-           {{wordsY-wordsX}} or {{lemma-wordsX}}
-                for automatic substitution (word parsed to agree with another
-                being substituted elsewhere).
+        {wordsX}        preset word form, simple string substitution
+        {lemma-modform-constraint}  "lemma" parsed to agree with "modform" before
+                                    substitution. The third term "constraint" is
+                                    an optional limitation on the aspects of the
+                                    lemma to be made to agree. The constraint
+                                    should be formatted like "case:nom", in
+                                    which case the case would be constrained
+                                    as nominative, while all other aspects of
+                                    the lemma would be brought into agreement
+                                    with "modform".
+
         """
         prompts = [self.do_substitution(p, combodict) for p in ptemps]
-        #print 'got prompts'
-        #uprint(prompts)
         p_new = [p[1] for p in prompts]
         prompts = [capitalize_first(p[0]) for p in prompts]
+
         rxs = [self.do_substitution(x, combodict) for x in xtemps]
-        #print 'got regexes'
-        #uprint(rxs)
         x_new = [x[1] for x in rxs]
         rxs = [x[0] for x in rxs]
+
         rdbls = [self.do_substitution(r, combodict) for r in rtemps]
-        #print 'got readables'
-        #uprint(rdbls)
         r_new = [r[1] for r in rdbls]
         rdbls = [capitalize_first(r[0]) for r in rdbls]
+
         newforms = list(chain(p_new, x_new, r_new))
 
         return prompts, rxs, rdbls, newforms
@@ -447,7 +448,7 @@ class PathFactory(object):
         supplied in the combodict parameter.
         """
         ready_strings = []
-        subpairs = []
+        subpairs = {}
         newforms = []
 
         fields = re.findall(r'(?<={).*?(?=})', temp)
@@ -461,11 +462,11 @@ class PathFactory(object):
                     newforms.append(newform)
             else:
                 myform = combodict[f]
-            subpairs.append(('{{{}}}'.format(f), myform))
+            subpairs[f] = myform
+            #subpairs.append(('{{{}}}'.format(f), myform))
 
-        #print 'subpairs ==================================='
-        #uprint(subpairs)
-        ready_strings = multiple_replace(temp, subpairs[0])
+        ready_strings = temp.format(**subpairs)
+        #ready_strings = multiple_replace(temp, tuple(subpairs))
         return ready_strings, newforms
 
     def get_wordform(self, field, combodict):
@@ -485,7 +486,7 @@ class PathFactory(object):
         mod = splits[1]
         try:
             aspect = splits[2]
-        except KeyError:
+        except IndexError:
             aspect = None
         # if lemma is pointer to a word list
         lemma = combodict[lemma] if lemma in combodict.keys() else lemma
@@ -509,8 +510,9 @@ class PathFactory(object):
         """
         db = current.db
         newform = None
-        lem = db(db.lemmas.lemma == mylemma).select.first()
+        lem = db(db.lemmas.lemma == mylemma).select().first()
         ref = db(db.word_forms.word_form == mod_form).select().first()
+
         # use provided constraints where present in field
         # allow for use of short forms
         cdict = {}
@@ -545,6 +547,8 @@ class PathFactory(object):
                    (db.word_forms.gender.belongs(genders)) &
                    (db.word_forms.number == number)
                    ).select().first()
+        print myrow
+        print myrow.word_form.decode('utf8')
         myform = myrow.word_form
         # TODO: automatically create form if not in db
         #if not row:
@@ -600,16 +604,14 @@ class PathFactory(object):
         Return a 3-member tuple of lists holding the tags for the current step.
         """
         db = current.db
-        tags1 = tags1 if tags1 else []
-        tags2 = tags2 if tags2 else []
-        tags3 = tags3 if tags3 else []
+        tags1 = islist(tags1) if tags1 else []
+        tags2 = islist(tags2) if tags2 else []
+        tags3 = islist(tags3) if tags3 else []
 
         words = [p.split(' ') for p in prompts]
         words.extend([r.split(' ') for r in rdbls])
         allforms = list(chain(*words))
         allforms = list(set(allforms))
-        #print 'allforms================================================'
-        #uprint(allforms)
 
         # Get tags for all lemmas and forms in allforms
         # TODO: Should allforms include all words or only substitutions?
@@ -622,16 +624,13 @@ class PathFactory(object):
         xtags = [f.word_forms.source_lemma.extra_tags for f in formrows]
 
         newtags = list(chain(constags, formtags, firsttags, xtags))
-        #print 'newtags ================================================'
-        #print newtags
         newtags = list(set(flatten(newtags)))
         # assume at first that all form tags are secondary
         tags2.extend(newtags)
 
         newtags1, newtags2, newtags3 = [], [], []
-        alltags = list(chain(tags1, tags2, tags3))
-        #print 'alltags ================================================'
-        #print alltags
+        tagsets = [t for t in [tags1, tags2, tags3] if t]
+        alltags = sorted(list(chain(*tagsets)))
         tagrows = db(db.tags.id.belongs(alltags)).select(db.tags.id,
                                                          db.tags.tag_position)
         steplevel = max([t.tag_position for t in tagrows])
@@ -650,10 +649,8 @@ class PathFactory(object):
         db = current.db
         try:
             sid = db.steps.insert(**kwargs)
-            print 'wrote step', sid
             return sid
         except Exception:
-            print 'writing step'
             print traceback.format_exc(5)
             return False
 
@@ -662,10 +659,8 @@ class PathFactory(object):
         db = current.db
         try:
             pid = db.paths.insert(label=label, steps=steps)
-            print 'wrote path ', pid
             return pid
         except Exception:
-            print 'writing path'
             print traceback.format_exc(5)
             return False
 
@@ -705,6 +700,8 @@ class PathFactory(object):
                 content = pv['steps']
                 mycontent = UL()
                 for key, c in content.iteritems():
+                    print 'item', key
+                    pprint(c)
                     mycontent.append(LI(key))
                     mystep = UL()
                     mystep.append(LI('widget_type:', db.step_types(c['widget_type']).step_type))
@@ -956,8 +953,6 @@ class TranslateWordPathFactory(PathFactory):
         tags = list(set(tags))
         tags2 = list(set(tags))
         tagsA = list(set(tags))
-        #print 'step tags ==========================================='
-        #print list(chain(tags, tags2, tagsA))
         return (tags, tags2, tagsA)
 
     def make_readable(self, lemma, construction):
