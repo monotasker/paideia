@@ -128,7 +128,7 @@ auth.settings.extra_fields['auth_user'] = [
 #adding custom field for class info in groups
 auth.settings.extra_fields['auth_group'] = [
     Field('institution', 'string', default='Tyndale Seminary'),
-    Field('academic_year', 'integer', default=now.year),  # was year (reserved term)
+    Field('academic_year', 'integer', default=now.year),  # was year
     Field('term', 'string'),
     Field('course_section', 'string'),
     Field('course_instructor', 'reference auth_user', default=auth.user_id),
@@ -139,8 +139,8 @@ auth.settings.extra_fields['auth_group'] = [
 ]
 
 auth.define_tables()                           # creates all needed tables
-db.auth_user._format = lambda row: '{}:{}, {}'.format(row.id, row.last_name, row.first_name)
-
+db.auth_user._format = lambda row: '{}:{}, {}'.format(row.id, row.last_name,
+                                                      row.first_name)
 
 #-------------------------------------------------------------
 # Mail config
