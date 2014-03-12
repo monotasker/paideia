@@ -18,7 +18,7 @@ from paideia import Block, BugReporter
 from gluon import current, IMG
 
 import datetime
-# from pprint import pprint
+from pprint import pprint
 import re
 from random import randint
 from copy import copy
@@ -1790,7 +1790,8 @@ class TestCategorizer():
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('casename,rank,catsin,catsout,tagrecs',
-                             [('case1', 1,  # ???
+                             [('case1', 1,
+                               # 61 F: rw duration too short, ratio too large
                                {'cat1': [1], 'cat2': [],
                                 'cat3': [], 'cat4': [],
                                 'rev1': [], 'rev2': [],
@@ -1801,11 +1802,45 @@ class TestCategorizer():
                                  'tag': 1,
                                  'tlast_right': dt('2013-01-29'),
                                  'tlast_wrong': dt('2013-01-29'),
-                                 'times_right': 1,
-                                 'times_wrong': 1,
+                                 'times_right': 20,
+                                 'times_wrong': 20,
                                  'secondary_right': None}]
                                ),
-                              ('case2', 1,  # promote 61 for ratio and time
+                              ('case2', 1,  # 61 F: not enough times_right
+                               {'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                               {'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': []},
+                               [{'name': 1,
+                                 'tag': 61,
+                                 'tlast_right': dt('2013-01-29'),
+                                 'tlast_wrong': dt('2013-01-27'),
+                                 'times_right': 10,
+                                 'times_wrong': 1,
+                                 'secondary_right': []}],
+                               ),
+                              ('case2', 1,
+                               # 61: T (avg>=8, rightdur<=2 days, right>=20)
+                               #        despite right/wrong duration
+                               {'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                               {'cat1': [], 'cat2': [61],
+                                'cat3': [], 'cat4': []},
+                               [{'name': 1,
+                                 'tag': 61,
+                                 'tlast_right': dt('2013-01-28'),
+                                 'tlast_wrong': dt('2013-01-28'),
+                                 'times_right': 20,
+                                 'times_wrong': 1,
+                                 'secondary_right': []}],
+                               ),
+                              ('case2', 1,
+                               # 61: T (duration, started > 1day, right >= 20)
+                               #        despite ratio > 0.2
                                {'cat1': [61], 'cat2': [],
                                 'cat3': [], 'cat4': [],
                                 'rev1': [], 'rev2': [],
@@ -1815,9 +1850,27 @@ class TestCategorizer():
                                [{'name': 1,
                                  'tag': 61,
                                  'tlast_right': dt('2013-01-29'),
-                                 'tlast_wrong': dt('2013-01-28'),
-                                 'times_right': 10,
-                                 'times_wrong': 2,
+                                 'tlast_wrong': dt('2013-01-27'),
+                                 'times_right': 20,
+                                 'times_wrong': 10,
+                                 'secondary_right': []}],
+                               ),
+                              ('case2', 1,
+                               # 61: T (avg > 0.8, right >= 20*)
+                               #        despite ratio > 0.2
+                               #        despite duration
+                               {'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                               {'cat1': [], 'cat2': [61],
+                                'cat3': [], 'cat4': []},
+                               [{'name': 1,
+                                 'tag': 61,
+                                 'tlast_right': dt('2013-01-29'),
+                                 'tlast_wrong': dt('2013-01-27'),
+                                 'times_right': 20,
+                                 'times_wrong': 10,
                                  'secondary_right': []}],
                                )
                               ])
@@ -1863,7 +1916,7 @@ class TestCategorizer():
                                  'times_right': 10,
                                  'times_wrong': 2,
                                  'secondary_right': []}],
-                               [62]
+                               [6, 29, 62, 82, 83]
                                )
                               ])
     def test_categorizer_introduce_tags(self, casename, rank, catsin, tagrecs,
@@ -1969,8 +2022,8 @@ class TestCategorizer():
                                  'times_right': 1,
                                  'times_wrong': 1,
                                  'secondary_right': None}],
-                               {},
-                               {}
+                               None,
+                               None
                                ),
                               ('case2',  # promote 61 for ratio and time
                                1,
@@ -1989,8 +2042,9 @@ class TestCategorizer():
                                  'times_right': 10,
                                  'times_wrong': 2,
                                  'secondary_right': []}],
-                               {},
-                               {'cat2': [61]}
+                               None,
+                               {'cat1': [], 'cat2': [61],
+                                'cat3': [], 'cat4': []}
                                )
                               ])
     def test_categorizer_find_cat_changes(self, casename, rank, oldcats, catsin,
@@ -2013,8 +2067,9 @@ class TestCategorizer():
         assert actual['promoted'] == expected['promoted']
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('casename,rank,catsin,tagrecsin,rankout,catsout,'
-                             'tpout,tagrecsout,promoted,newtags',
+    @pytest.mark.parametrize('casename,rank,catsin,tagrecsin,'
+                             'rankout,catsout,tpout,'
+                             'promoted,newtags',
                              [('case1',
                                1, {'cat1': [1], 'cat2': [],
                                    'cat3': [], 'cat4': [],
@@ -2027,25 +2082,18 @@ class TestCategorizer():
                                  'times_right': 1,
                                  'times_wrong': 1,
                                  'secondary_right': None}],
-                               1,
-                               {'cat1': [1], 'cat2': [],
+                               1,  # case1 out
+                               {'cat1': [6, 29, 62, 82, 83], 'cat2': [],
                                 'cat3': [], 'cat4': [],
                                 'rev1': [], 'rev2': [],
                                 'rev3': [], 'rev4': []},
                                {'latest_new': 1,
-                                'cat1': [1], 'cat2': [],
+                                'cat1': [6, 29, 62, 82, 83], 'cat2': [],
                                 'cat3': [], 'cat4': [],
                                 'rev1': [], 'rev2': [],
                                 'rev3': [], 'rev4': []},
-                               [{'name': 1,
-                                 'tag': 1,
-                                 'tlast_right': dt('2013-01-29'),
-                                 'tlast_wrong': dt('2013-01-29'),
-                                 'times_right': 1,
-                                 'times_wrong': 1,
-                                 'secondary_right': None}],
-                               {},
-                               []
+                               None,
+                               [6, 29, 62, 82, 83]
                                ),
                               ('case2',  # promote 61, introduce 62
                                1,
@@ -2055,35 +2103,29 @@ class TestCategorizer():
                                 'rev3': [], 'rev4': []},
                                [{'name': 1,
                                  'tag': 61,
-                                 'tlast_right': dt('2013-01-29'),
-                                 'tlast_wrong': dt('2013-01-28'),
-                                 'times_right': 10,
-                                 'times_wrong': 2,
+                                 'tlast_right': dt('2013-01-28'),
+                                 'tlast_wrong': dt('2013-01-27'),
+                                 'times_right': 20,
+                                 'times_wrong': 1,
                                  'secondary_right': []}],
                                2,
-                               {'cat1': [62], 'cat2': [61],
+                               {'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
                                 'cat3': [], 'cat4': [],
                                 'rev1': [], 'rev2': [],
                                 'rev3': [], 'rev4': []},
                                {'latest_new': 2,
-                                'cat1': [62], 'cat2': [61],
-                                'cat3': [], 'cat4': [],
-                                'rev1': [], 'rev2': [],
-                                'rev3': [], 'rev4': []},
-                               [{'name': 1,
-                                 'tag': 61,
-                                 'tlast_right': dt('2013-01-29'),
-                                 'tlast_wrong': dt('2013-01-28'),
-                                 'times_right': 10,
-                                 'times_wrong': 2,
-                                 'secondary_right': []}],
-                               {'cat2': [61]},
-                               [62]
+                                'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                                'cat3': None, 'cat4': None,
+                                'rev1': None, 'rev2': None,
+                                'rev3': None, 'rev4': None},
+                               {'cat1': [], 'cat2': [61],
+                                'cat3': [], 'cat4': []},
+                               [6, 29, 62, 82, 83]
                                )
                               ])
     def test_categorizer_categorize_tags(self, casename, rank, catsin,
                                          tagrecsin, rankout, catsout, tpout,
-                                         tagrecsout, promoted, newtags, db):
+                                         promoted, newtags, db):
         """
         Unit test for the paideia.Categorizer.categorize method.
 
@@ -2098,8 +2140,8 @@ class TestCategorizer():
         expected = {'cats': catsout,
                     't_prog': tpout,
                     'nt': newtags,
-                    'pro': promoted,
-                    't_recs': tagrecsout}
+                    'pro': promoted}
+        pprint(actual)
 
         for key, act in actual['categories'].iteritems():
             assert act == expected['cats'][key]
@@ -2107,18 +2149,13 @@ class TestCategorizer():
         for key, act in actual['tag_progress'].iteritems():
             assert act == expected['t_prog'][key]
 
-        for idx, rec in enumerate(actual['tag_records']):
-            for key, act in rec.iteritems():
-                assert act == expected['t_recs'][idx][key]
-
-        assert actual['new_tags'] == expected['new_tags']
+        assert actual['new_tags'] == expected['nt']
         if actual['new_tags']:
-            assert actual['t_prog']['cat1'] == expected['new_tags']
+            assert actual['tag_progress']['cat1'] == expected['nt']
 
-        assert actual['promoted'] == expected['pro']
         if actual['promoted']:
             for key, act in actual['promoted'].iteritems():
-                assert actual['promoted'][key]
+                assert actual['promoted'][key] == expected['pro'][key]
 
 
 class TestWalk():
