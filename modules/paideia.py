@@ -2042,7 +2042,7 @@ class Categorizer(object):
             categories = self._remove_dups(categories, rank)
             print 'after removedups:'
             pprint(categories)
-            #categories.update((c, []) for c in ['rev1', 'rev2', 'rev3', 'rev4'])
+            categories.update((c, []) for c in ['rev1', 'rev2', 'rev3', 'rev4'])
             cat_changes = self._find_cat_changes(categories, old_categories)
             print 'after findchanges:'
             pprint(categories)
@@ -2315,11 +2315,12 @@ class Categorizer(object):
         if oldcats:
             demoted = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
             promoted = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
+            cnms = ['cat1', 'cat2', 'cat3', 'cat4']
             for cat, taglist in cats.iteritems():
-                if cat[:3] == 'cat' and taglist:
+                if cat in cnms and taglist:
                     revcat = cat.replace('cat', 'rev')
                     cats[revcat] = taglist
-                    cnms = ['cat1', 'cat2', 'cat3', 'cat4']
+                    print 'setting ', revcat, 'to', taglist
                     idx = cnms.index(cat)
 
                     # was tag in a lower category before?
