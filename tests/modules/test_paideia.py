@@ -2083,23 +2083,23 @@ class TestCategorizer():
                                  'times_wrong': 1,
                                  'secondary_right': None}],
                                1,  # case1 out
-                               {'cat1': [6, 29, 62, 82, 83], 'cat2': [],
+                               {'cat1': [61], 'cat2': [],
                                 'cat3': [], 'cat4': [],
-                                'rev1': [], 'rev2': [],
+                                'rev1': [61], 'rev2': [],
                                 'rev3': [], 'rev4': []},
                                {'latest_new': 1,
-                                'cat1': [6, 29, 62, 82, 83], 'cat2': [],
+                                'cat1': [61], 'cat2': [],
                                 'cat3': [], 'cat4': [],
-                                'rev1': [], 'rev2': [],
+                                'rev1': [61], 'rev2': [],
                                 'rev3': [], 'rev4': []},
                                None,
-                               [6, 29, 62, 82, 83]
+                               None
                                ),
                               ('case2',  # promote 61, introduce 62
                                1,
                                {'cat1': [61], 'cat2': [],
                                 'cat3': [], 'cat4': [],
-                                'rev1': [], 'rev2': [],
+                                'rev1': [61], 'rev2': [],
                                 'rev3': [], 'rev4': []},
                                [{'name': 1,
                                  'tag': 61,
@@ -2111,13 +2111,13 @@ class TestCategorizer():
                                2,
                                {'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
                                 'cat3': [], 'cat4': [],
-                                'rev1': [], 'rev2': [],
+                                'rev1': [], 'rev2': [61],
                                 'rev3': [], 'rev4': []},
                                {'latest_new': 2,
                                 'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
-                                'cat3': None, 'cat4': None,
-                                'rev1': None, 'rev2': None,
-                                'rev3': None, 'rev4': None},
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [61],
+                                'rev3': [], 'rev4': []},
                                {'cat1': [], 'cat2': [61],
                                 'cat3': [], 'cat4': []},
                                [6, 29, 62, 82, 83]
@@ -2144,6 +2144,7 @@ class TestCategorizer():
         pprint(actual)
 
         for key, act in actual['categories'].iteritems():
+            print key
             assert act == expected['cats'][key]
 
         for key, act in actual['tag_progress'].iteritems():
