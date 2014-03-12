@@ -15,7 +15,7 @@ import traceback
 from pytz import timezone
 from plugin_widgets import MODAL
 import pickle
-#from pprint import pprint
+from pprint import pprint
 #from paideia_utils import send_error
 
 # TODO: move these notes elsewhere
@@ -1982,14 +1982,13 @@ class Categorizer(object):
         """
         Remove any illegitimate tag_records data.
         """
-        db = current.db
-
         null_tags = [r for r in tag_records if r['tag'] is None]
         if null_tags:
+            db = current.db
             db(db.tag_records.tag == None).delete()
-
-        tag_records = db(db.tag_records.name == self.user_id).select().as_list()
-        self.tag_records = tag_records
+            tag_records = db(db.tag_records.name == self.user_id
+                             ).select().as_list()
+            self.tag_records = tag_records
 
         return tag_records
 
@@ -2009,26 +2008,26 @@ class Categorizer(object):
         old_categories = self.old_categories if not old_categories \
                          else old_categories
         tag_records = self.tag_records if not tag_records else tag_records
+        print 'len(tag_records):', len(tag_records)
         tag_records = self._sanitize_recs(tag_records)
         db = current.db if not db else db
         new_tags = None
 
         # if user has not tried any tags yet, start first set
+        print 'len(tag_records):', len(tag_records)
         if len(tag_records) == 0:
-            #print 'categorize_tags: no tag_records found'
             categories = {}
             categories['cat1'] = self._introduce_tags()
             tp = {'cat1': categories['cat1'],
-                  'rev1': None,
-                  'cat2': None,
-                  'rev2': None,
-                  'cat3': None,
-                  'rev3': None,
-                  'cat4': None,
-                  'rev4': None,
+                  'rev1': [],
+                  'cat2': [],
+                  'rev2': [],
+                  'cat3': [],
+                  'rev3': [],
+                  'cat4': [],
+                  'rev4': [],
                   'latest_new': rank}
-            return {'tag_records': None,
-                    'tag_progress': tp,
+            return {'tag_progress': tp,
                     'new_tags': categories['cat1'],
                     'promoted': None,
                     'demoted': None,
@@ -2036,19 +2035,22 @@ class Categorizer(object):
         else:
             # otherwise, categorize tags that have been tried
             tag_records = self._add_secondary_right(tag_records)
-            #print 'categorize_tags: after core algorithm, tag_records are', pprint(self.tag_records)
             categories = self._core_algorithm()
-            #print '\ncategorize_tags: after core algorithm, cats are', pprint(categories)
             categories = self._add_untried_tags(categories)
-            #print '\ncategorize_tags: after adding untried, cats are', pprint(categories)
+            print 'after adduntried:'
+            pprint(categories)
             categories = self._remove_dups(categories, rank)
-            # 'rev' categories are reintroduced
-            categories.update((c, []) for c in ['rev1', 'rev2', 'rev3', 'rev4'])
-            # changes in categorization since last time
+            print 'after removedups:'
+            pprint(categories)
+            #categories.update((c, []) for c in ['rev1', 'rev2', 'rev3', 'rev4'])
             cat_changes = self._find_cat_changes(categories, old_categories)
+            print 'after findchanges:'
+            pprint(categories)
             promoted = cat_changes['promoted']
             demoted = cat_changes['demoted']
             tag_progress = copy(cat_changes['categories'])
+            print 'tagprogress:'
+            pprint(tag_progress)
 
             # If there are no tags left in category 1, introduce next set
             if not tag_progress['cat1']:
@@ -2056,13 +2058,13 @@ class Categorizer(object):
                 categories['cat1'] = newlist
                 tag_progress['cat1'] = newlist
                 new_tags = newlist
+            print 'tagprogress after addnew:'
+            pprint(categories)
 
             # Re-insert 'latest new' to match tag_progress table in db
             tag_progress['latest_new'] = self.rank
-            #print 'categorize_tags: returning tag_progress as', tag_progress
 
-            return {'tag_records': tag_records,
-                    'tag_progress': tag_progress,
+            return {'tag_progress': tag_progress,
                     'new_tags': new_tags,
                     'promoted': promoted,
                     'demoted': demoted,
@@ -2157,6 +2159,40 @@ class Categorizer(object):
 
         return tag_records
 
+    def _get_avg(self, tag, mydays=7):
+        """
+        Return the user's average score on a given tag over the past N days.
+
+        Always returns a float, since scores are floats between 0 and 1.
+        """
+        db = current.db
+        startdt = self.utcnow - datetime.timedelta(days=mydays)
+        log_query = db((db.attempt_log.name == self.user_id) &
+                       (db.attempt_log.dt_attempted >= startdt) &
+                       (db.attempt_log.step == db.steps.id) &
+                       (db.steps.tags.contains(tag))).select()
+        scores = [l.attempt_log.score for l in log_query]
+        try:
+            avg_score = sum(scores) / float(len(scores))
+        except ZeroDivisionError:  # if tag not tried at all since startdt
+            avg_score = 0
+            # FIXME: Will this not bring tags up too early?
+        print 'using avg_score:', avg_score
+        return avg_score
+
+    def _get_ratio(self, record):
+        """
+        Return the user's ratio of right to wrong answers for a given tag.
+
+        Called by _core_algorithm()
+        """
+        try:
+            ratio = record['times_wrong'] / record['times_right']
+        except ZeroDivisionError:
+            ratio = record['times_wrong']
+        print 'using ratio:', ratio
+        return ratio
+
     def _core_algorithm(self, tag_records=None):
         """
         Return dict of the user's active tags categorized by past performance.
@@ -2180,65 +2216,36 @@ class Categorizer(object):
         TODO: Require that a certain number of successes are recent
         TODO: Look at secondary tags as well
         """
-        db = current.db
         categories = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
-        utcnow = self.utcnow
-        if not utcnow:
-            utcnow = datetime.datetime.utcnow()
-        if not tag_records:
-            tag_records = self.tag_records
-        # TODO: Get secondary_right here
-
+        tag_records = tag_records if tag_records else self.tag_records
         for record in tag_records:
-
-            # find average score for steps with this tag over past week
-            week_ago = utcnow - datetime.timedelta(days=7)
-            print 'for tag', record['tag']
-            log_query = db((db.attempt_log.dt_attempted >= week_ago) &
-                           (db.attempt_log.step == db.steps.id) &
-                           (db.steps.tags.contains(record['tag']))).select()
-            scores = [l.attempt_log.score for l in log_query]
-            try:
-                avg_score = sum(scores) / float(len(scores))
-            except ZeroDivisionError:  # if tag not tried in past week
-                avg_score = 0
-                # FIXME: Will this not bring tags up too early?
-
-            # get durations for spaced repetition calculations
-            # arithmetic operations yield datetime.timedelta objects
-            lastright = record['tlast_right']
-            lastwrong = record['tlast_wrong']
-            if isinstance(lastright, str):
-                lastright = parser.parse(lastright)
-            if isinstance(lastwrong, str):
-                lastwrong = parser.parse(lastwrong)
-
-            right_dur = utcnow - lastright
-            right_wrong_dur = lastright - lastwrong
+            lrraw = record['tlast_right']
+            lwraw = record['tlast_wrong']
+            lr = lrraw if not isinstance(lrraw, str) else parser.parse(lrraw)
+            lw = lwraw if not isinstance(lwraw, str) else parser.parse(lwraw)
+            rdur = self.utcnow - lr
+            rwdur = lr - lw
 
             # spaced repetition algorithm for promotion to
-            # ======================================================
-            # category 2
-            if (((right_dur < right_wrong_dur) and
-                 # don't allow promotion from cat1 within 1 day
-                 (right_wrong_dur > datetime.timedelta(days=1)) and
-                 # require at least 20 right answers
-                 (record['times_right'] >= 20))
-                or ((record['times_right'] >= 20) and
-                    # require an average score of at least 8.0
-                    # TODO: does float comparison inaccuracy matter here?
-                    (avg_score >= 8.0) and
-                    # require that tag has right answer within last 2 days
-                    (right_dur <= datetime.timedelta(days=2)))):
-                # ==================================================
-                # for cat3
-                if right_wrong_dur.days >= 14:
-                    # ==============================================
-                    # for cat4
-                    if right_wrong_dur.days > 60:
-                        # ==========================================
-                        # for immediate review
-                        if right_wrong_dur > datetime.timedelta(days=180):
+            # cat2? ======================================================
+            if ((record['times_right'] >= 20) and  # at least 20 right
+                (((rdur < rwdur)  # delta right < delta right/wrong
+                  and (rwdur > datetime.timedelta(days=1))  # not within 1 day
+                  )
+                 or
+                 ((self._get_ratio(record) < 0.2)  # less than 1w to 5r total
+                  and (rdur <= datetime.timedelta(days=30))  # right in past 30 days
+                  )
+                 or
+                 ((self._get_avg(record['tag']) >= 0.8)  # avg score for week >= 0.8
+                  and (rdur <= datetime.timedelta(days=30))  # right in past 30 days
+                 ))):
+                # cat3? ==================================================
+                if rwdur.days >= 14:
+                    # cat4? ==============================================
+                    if rwdur.days > 60:
+                        # long-term review? ===================================
+                        if rwdur > datetime.timedelta(days=180):
                             category = 'cat1'  # Not tried for 6 months
                         else:
                             category = 'cat4'  # Not due, delta > 60 days
@@ -2299,48 +2306,48 @@ class Categorizer(object):
 
         return categories
 
-    def _find_cat_changes(self, cats, old_cats):
+    def _find_cat_changes(self, cats, oldcats):
         """
         Determine whether any of the categorized tags are promoted or demoted.
         """
-        if old_cats:
-            demoted = {}
-            promoted = {}
-            for c, lst in cats.iteritems():
-                if lst:
-                    cindex = cats.keys().index(c)
+        print 'findchanges: cats:'
+        pprint(cats)
+        if oldcats:
+            demoted = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
+            promoted = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
+            for cat, taglist in cats.iteritems():
+                if cat[:3] == 'cat' and taglist:
+                    revcat = cat.replace('cat', 'rev')
+                    cats[revcat] = taglist
+                    cnms = ['cat1', 'cat2', 'cat3', 'cat4']
+                    idx = cnms.index(cat)
+
+                    # was tag in a lower category before?
+                    was_lower = chain.from_iterable([oldcats[c] for c
+                                                     in cnms[:idx]
+                                                     if oldcats[c]])
+                    promoted[cat] = [t for t in cats[cat] if t in was_lower]
 
                     # was tag in a higher category before?
-                    gt = {k: old_cats[k] for k in
-                          ['cat1', 'cat2', 'cat3', 'cat4'][cindex + 1:]}
-                    gt_flat = [v for l in gt.values() if l for v in l]
-                    revc = c.replace('cat', 'rev')
-                    for tag in [l for l in lst if l in gt_flat]:
-                        # move to review category
-                        cats[c].pop(tag)
-                        try:
-                            demoted[revc].append(tag)
-                        except Exception:
-                            print traceback.format_exc(5)
-                            demoted[revc] = [tag]
-                        # then re-insert tag in its old max level
-                        oldc = [k for k, v in gt if tag in v]
-                        if len(cats[oldc]):
-                            cats[oldc].append(tag)
-                        else:
-                            cats[oldc] = [tag]
+                    was_higher = chain.from_iterable([oldcats[c] for c
+                                                      in cnms[idx + 1:]
+                                                      if oldcats[c]])
+                    demoted_tags = [t for t in taglist if t in was_higher]
+                    demoted[cat] = demoted_tags
+                    for tag in demoted_tags:  # then restore old max in cats
+                        oldmax = [k for k, v in oldcats.iteritems()
+                                    if tag in v][0]
+                        cats[cat].pop(tag)
+                        cats[oldmax].append(tag)
 
-                    # was tag in a lower category?
-                    lt = {k: old_cats[k] for k in
-                          ['cat1', 'cat2', 'cat3', 'cat4'][:cindex]}
-                    lt_flat = [v for l in lt.values() if l for v in l]
-                    # add to dictionary of 'promoted' tags
-                    if lt_flat:
-                        promoted[c] = [t for t in cats[c] if t in lt_flat]
+            print 'findchanges: cats:'
+            pprint(cats)
 
             return {'categories': cats,
-                    'demoted': demoted,
-                    'promoted': promoted}
+                    'demoted': demoted if any([d for d in demoted.values()])
+                               else None,
+                    'promoted': promoted if any([p for p in promoted.values()])
+                               else None}
         else:
             return {'categories': cats,
                     'demoted': None,
