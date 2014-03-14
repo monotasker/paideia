@@ -1494,7 +1494,6 @@ class PathChooser(object):
         db = current.db if not db else db
         self.loc_id = loc_id
         self.completed = paths_completed
-        print 'PathChooser.init: completed paths', paths_completed
 
     def _order_cats(self):
         """
@@ -1578,7 +1577,9 @@ class PathChooser(object):
         p_here = [p for p in cpaths.as_list()
                   if db.steps[int(p['steps'][0])].locations
                   and loc_id in db.steps[int(p['steps'][0])].locations]
+        print 'paths here:', p_here
         p_here_new = [p for p in p_here if p in p_new]
+        print 'paths here new:', p_here
         print 'PathChooser.choose_from_cat: found', len(p_here_new), 'new paths here'
 
         path = None
@@ -1615,7 +1616,7 @@ class PathChooser(object):
         - any random path
 
         Returns a 3-member tuple:
-            [0] Path object chosen
+            [0] Path chosen (as a row object as_dict)
             [1] location id where Path must be started (or None if current loc)
             [2] the category number for this new path (int in range 1-4)
         """

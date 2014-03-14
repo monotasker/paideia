@@ -27,17 +27,17 @@ from copy import copy
 # ===================================================================
 # Switches governing which tests to run
 # ===================================================================
-global_runall = 0
-global_run_TestNpc = 0
-global_run_TestLocation = 0
-global_run_TestStep = 0
-global_run_TestStepEvaluator = 0
-global_run_TestMultipleEvaluator = 0
-global_run_TestPath = 0
+global_runall = False
+global_run_TestNpc = False
+global_run_TestLocation = False
+global_run_TestStep = False
+global_run_TestStepEvaluator = False
+global_run_TestMultipleEvaluator = False
+global_run_TestPath = False
 global_run_TestUser = False
-global_run_TestCategorizer = 1
-global_run_TestWalk = 0
-global_run_TestPathChooser = 0
+global_run_TestCategorizer = False
+global_run_TestWalk = False
+global_run_TestPathChooser = 1
 
 # ===================================================================
 # Test Fixtures
@@ -832,18 +832,6 @@ def mywalk(mycases, user_login, db):
                          db=db),
             'casedata': case,
             'userdata': userdata,
-            'stepdata': step}
-
-
-@pytest.fixture
-def mypathchooser(mycases, db):
-    """pytest fixture providing a paideia.PathChooser object for testing"""
-    case = mycases['casedata']
-    step = mycases['stepdata']
-    pc = PathChooser(case['tag_progress_out'],
-                     case['loc'], case['completed'], db=db)
-    return {'pathchooser': pc,
-            'casedata': case,
             'stepdata': step}
 
 
@@ -2159,12 +2147,12 @@ class TestCategorizer():
                 assert actual['promoted'][key] == expected['pro'][key]
 
 
+@pytest.mark.skipif('not global_runall '
+                    'and not global_run_TestWalk')
 class TestWalk():
     """
     A unit testing class for the paideia.Walk class.
     """
-    pytestmark = pytest.mark.skipif('global_runall is False '
-                                    'and global_run_TestWalk is False')
 
     def test_walk_get_user(self, mywalk):
         """Unit test for paideia.Walk._get_user()"""
@@ -2499,27 +2487,71 @@ class TestWalk():
             pass
 
 
+@pytest.mark.skipif('global_runall is False '
+                    'and global_run_TestPathChooser is False')
 class TestPathChooser():
     '''
     Unit testing class for the paideia.PathChooser class.
     '''
-    pytestmark = pytest.mark.skipif('global_runall is False '
-                                    'and global_run_TestPathChooser is False')
-
-    def test_pathchooser_choose(self, mypathchooser):
+    @pytest.mark.parametrize('locid,completed,tpout,redirect',
+                             [(6,  # shop_of_alexander
+                               [2, 3, 5, 8, 63, 95, 96, 97, 99, 102, 256, 40,
+                                9, 410, 411, 412, 413, 414, 415, 416, 417, 418,
+                                419, 420, 421, 422, 423, 444, 445],
+                               #[1],
+                               {'latest_new': 1,
+                                'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [61], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                                False
+                               ),
+                              (11,  # synagogue
+                               [2, 3, 99],  # forcing redirect, these are in loc 11
+                               {'latest_new': 1,
+                                'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [61], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                                True
+                               ),
+                              (8,  # agora
+                               [],
+                               {'latest_new': 2,
+                                'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [61],
+                                'rev3': [], 'rev4': []},
+                                False
+                               ),
+                              ])
+    def test_pathchooser_choose(self, locid, completed, tpout, redirect, db):
         """
         Unit test for the paideia.Pathchooser.choose() method.
         """
-        newpath = mypathchooser['pathchooser'].choose()
-        paths = mypathchooser['casedata']['paths']
-        expected = paths['cat{}'.format(newpath[2])]
+        chooser = PathChooser(tpout, locid, completed)
+        actual, newloc, catnum = chooser.choose()
 
-        print 'PATHCHOOSER PATHS \n', paths
-        print 'CHOSEN PATH', newpath[0]['id']
+        mycat = 'cat{}'.format(catnum)
+        allpaths = db(db.paths.id > 0).select()
+        tagids = tpout[mycat]
+        expected = [p.id for p in allpaths
+                    if any([t for t in tagids if t in p.tags])]
+        #{'cat1': [1, 2, 3, 5, 8, 63, 95, 96, 99, 102, 256],  # removed 64, 70, 97, 104, 277
+
+        print 'CHOSEN PATH', actual
         print 'EXPECTED PATHS', expected
 
-        assert newpath[0]['id'] in expected
-        assert newpath[2] in range(1, 5)
+        assert catnum in range(1, 5)
+        assert actual['id'] in expected
+        firststep = actual['steps'][0]
+        if redirect:
+            assert newloc
+            steplocs = db.steps(firststep).locations
+            assert newloc in steplocs
+            assert locid not in steplocs
+        else:
+            assert newloc is None
 
     def test_pathchooser_order_cats(self, mypathchooser):
         """
