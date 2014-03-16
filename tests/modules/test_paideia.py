@@ -37,7 +37,8 @@ global_run_TestPath = False
 global_run_TestUser = False
 global_run_TestCategorizer = False
 global_run_TestWalk = False
-global_run_TestPathChooser = 1
+global_run_TestPathChooser = False
+global_run_TestBugReporter = False
 
 # ===================================================================
 # Test Fixtures
@@ -2493,7 +2494,7 @@ class TestPathChooser():
     '''
     Unit testing class for the paideia.PathChooser class.
     '''
-    @pytest.mark.skipif(True, reason='just because')
+    @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('locid,completed,tpout,redirect,expected',
                              [(6,  # shop_of_alexander (only 1 untried here)
                                [2, 3, 5, 8, 63, 95, 96, 97, 99, 102, 256, 40,
@@ -2605,40 +2606,132 @@ class TestPathChooser():
         assert result_count[3] in range(90 - 20, 90 + 20)
         assert result_count[4] in range(10 - 20, 10 + 20)
 
-    def test_pathchooser_paths_by_category(self, mypathchooser, db):
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('locid,completed,tpout,expected',
+                             [(6,  # shop_of_alexander (only 1 untried here)
+                               [2, 3, 5, 8, 63, 95, 96, 97, 99, 102, 256, 40,
+                                9, 410, 411, 412, 413, 414, 415, 416, 417, 418,
+                                419, 420, 421, 422, 423, 444, 445],
+                               {'latest_new': 1,
+                                'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [61], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                               [1]  # only one left with tag
+                               ),
+                              (11,  # synagogue [all in loc 11 completed]
+                               [1, 2, 3, 8, 95, 96, 97, 99, 102],
+                               {'latest_new': 1,
+                                'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [61], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                                [5, 63, 256, 409, 410, 411, 412, 413, 414,
+                                 415, 416, 417, 418, 419, 420, 421, 422, 423,
+                                 444, 445]  # tag 61, not loc 11, not completed
+                               ),
+                              (8,  # agora (no redirect, new here)
+                               [17, 98, 15, 208, 12, 16, 34, 11, 23, 4, 9, 18],
+                               {'latest_new': 2,
+                                'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [61],
+                                'rev3': [], 'rev4': []},
+                               [7, 14, 100, 35, 19, 103, 21, 97, 13, 261, 101]
+                               ),
+                              (8,  # agora (all for tags completed, repeat here)
+                               [4, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
+                                19, 21, 22, 23, 34, 35, 45, 97, 98, 100, 101,
+                                103, 120, 129, 139, 141, 149, 152, 161, 167,
+                                176, 184, 190, 208, 222, 225, 228, 231, 236,
+                                247, 255, 257, 261, 277, 333, 334, 366, 424,
+                                425, 426, 427, 428, 429, 430, 431, 433, 434,
+                                435, 436, 437, 439, 440, 441, 444, 445],
+                               {'latest_new': 2,
+                                'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [61],
+                                'rev3': [], 'rev4': []},
+                               [101, 35, 34, 23, 16, 261, 15, 21, 208, 100,
+                                17, 14, 9, 7, 18, 11, 98, 12, 4, 19, 103, 13,
+                                97]  # with tags already completed here (repeat)
+                               ),
+                              ])
+    def test_pathchooser_paths_by_category(self, locid, completed, tpout,
+                                           expected):
         """
         Unit test for the paideia.Pathchooser._paths_by_category() method.
         """
-        tp = mypathchooser['casedata']['tag_progress_out']
-        rank = tp['latest_new']
-        cpaths, category = mypathchooser['pathchooser']._paths_by_category(1, rank)
-        tagids = tp['cat{}'.format(category)]
-        x = db(db.paths).select()
-        x = x.find(lambda row: [t for t in tagids
-                                if t in db.paths[row.id].tags])
-        x = x.find(lambda row: [s for s in row.steps if db.steps(s).status != 2])
-        x.exclude(lambda row: [s for s in row.steps
-                               if db.steps(s).locations is None])
-        x.exclude(lambda row: [t for t in row.tags
-                               if db.tags[t].tag_position > rank])
-        assert len(cpaths) == len(x)
-        for row in cpaths:
-            assert row.id in [r.id for r in x]
+        chooser = PathChooser(tpout, locid, completed)
+        cpaths, category = chooser._paths_by_category(1, tpout['latest_new'])
+        assert all([row['id'] for row in cpaths if row['id'] in expected])
 
-    def test_pathchooser_choose_from_cat(self, mypathchooser, db):
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('locid,completed,tpout,expected',
+                             [(6,  # shop_of_alexander (only 1 untried here)
+                               [2, 3, 5, 8, 63, 95, 96, 97, 99, 102, 256, 40,
+                                9, 410, 411, 412, 413, 414, 415, 416, 417, 418,
+                                419, 420, 421, 422, 423, 444, 445],
+                               {'latest_new': 1,
+                                'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [61], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                               [1]  # only one left with tag
+                               ),
+                              (11,  # synagogue [all in loc 11 completed]
+                               [1, 2, 3, 8, 95, 96, 97, 99, 102],
+                               {'latest_new': 1,
+                                'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [61], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                                [5, 63, 256, 409, 410, 411, 412, 413, 414,
+                                 415, 416, 417, 418, 419, 420, 421, 422, 423,
+                                 444, 445]  # tag 61, not loc 11, not completed
+                               ),
+                              (8,  # agora (no redirect, new here)
+                               [17, 98, 15, 208, 12, 16, 34, 11, 23, 4, 9, 18],
+                               {'latest_new': 2,
+                                'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [61],
+                                'rev3': [], 'rev4': []},
+                               [7, 14, 100, 35, 19, 103, 21, 97, 13, 261, 101]
+                               ),
+                              (8,  # agora (all for tags completed, repeat here)
+                               [4, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
+                                19, 21, 22, 23, 34, 35, 45, 97, 98, 100, 101,
+                                103, 120, 129, 139, 141, 149, 152, 161, 167,
+                                176, 184, 190, 208, 222, 225, 228, 231, 236,
+                                247, 255, 257, 261, 277, 333, 334, 366, 424,
+                                425, 426, 427, 428, 429, 430, 431, 433, 434,
+                                435, 436, 437, 439, 440, 441, 444, 445],
+                               {'latest_new': 2,
+                                'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [61],
+                                'rev3': [], 'rev4': []},
+                               [101, 35, 34, 23, 16, 261, 15, 21, 208, 100,
+                                17, 14, 9, 7, 18, 11, 98, 12, 4, 19, 103, 13,
+                                97]  # with tags already completed here (repeat)
+                               ),
+                              ])
+    def test_pathchooser_choose_from_cat(self, locid, completed, tpout,
+                                         expected, db):
         """
         Unit test for the paideia.Pathchooser._choose_from_cats() method.
         """
+        chooser = PathChooser(tpout, locid, completed)
         catnum = 1
-        paths = mypathchooser['casedata']['paths']
-        pathids = paths['cat{}'.format(catnum)]
-        expected = db(db.paths).select()
-        expected = expected.find(lambda row: row.id in pathids)
-
-        newpath = mypathchooser['pathchooser']._choose_from_cat(expected, catnum)
-        assert newpath[0]['id'] in paths['cat{}'.format(catnum)]
-        assert newpath[1] in [l for l in db.steps(newpath[0]['steps'][0]).locations]
-        assert newpath[2] == 1
+        expected_rows = db(db.paths.id.belongs(expected)).select()
+        path, newloc, cat = chooser._choose_from_cat(expected_rows, catnum)
+        assert path['id'] in expected
+        if newloc:
+            assert newloc in [l for l in db.steps(path['steps'][0]).locations]
+        else:
+            assert newloc is None
+        assert cat == 1
 
 
 class TestBugReporter():
