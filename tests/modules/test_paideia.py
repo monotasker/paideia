@@ -2493,85 +2493,117 @@ class TestPathChooser():
     '''
     Unit testing class for the paideia.PathChooser class.
     '''
-    @pytest.mark.parametrize('locid,completed,tpout,redirect',
-                             [(6,  # shop_of_alexander
+    @pytest.mark.skipif(True, reason='just because')
+    @pytest.mark.parametrize('locid,completed,tpout,redirect,expected',
+                             [(6,  # shop_of_alexander (only 1 untried here)
                                [2, 3, 5, 8, 63, 95, 96, 97, 99, 102, 256, 40,
                                 9, 410, 411, 412, 413, 414, 415, 416, 417, 418,
                                 419, 420, 421, 422, 423, 444, 445],
-                               #[1],
                                {'latest_new': 1,
                                 'cat1': [61], 'cat2': [],
                                 'cat3': [], 'cat4': [],
                                 'rev1': [61], 'rev2': [],
                                 'rev3': [], 'rev4': []},
-                                False
+                               False,
+                               [1]  # only one left with tag
                                ),
-                              (11,  # synagogue
-                               [2, 3, 99],  # forcing redirect, these are in loc 11
+                              (11,  # synagogue [all in loc 11 completed]
+                               [1, 2, 3, 8, 95, 96, 97, 99, 102],
                                {'latest_new': 1,
                                 'cat1': [61], 'cat2': [],
                                 'cat3': [], 'cat4': [],
                                 'rev1': [61], 'rev2': [],
                                 'rev3': [], 'rev4': []},
-                                True
+                                True,
+                                [5, 63, 256, 409, 410, 411, 412, 413, 414,
+                                 415, 416, 417, 418, 419, 420, 421, 422, 423,
+                                 444, 445]  # tag 61, not loc 11, not completed
                                ),
-                              (8,  # agora
-                               [],
+                              (8,  # agora (no redirect, new here)
+                               [17, 98, 15, 208, 12, 16, 34, 11, 23, 4, 9, 18],
                                {'latest_new': 2,
                                 'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
                                 'cat3': [], 'cat4': [],
                                 'rev1': [], 'rev2': [61],
                                 'rev3': [], 'rev4': []},
-                                False
+                                False,
+                               [7, 14, 100, 35, 19, 103, 21, 97, 13, 261, 101]
+                               ),
+                              (8,  # agora (all for tags completed, repeat here)
+                               [4, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
+                                19, 21, 22, 23, 34, 35, 45, 97, 98, 100, 101,
+                                103, 120, 129, 139, 141, 149, 152, 161, 167,
+                                176, 184, 190, 208, 222, 225, 228, 231, 236,
+                                247, 255, 257, 261, 277, 333, 334, 366, 424,
+                                425, 426, 427, 428, 429, 430, 431, 433, 434,
+                                435, 436, 437, 439, 440, 441, 444, 445],
+                               {'latest_new': 2,
+                                'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [61],
+                                'rev3': [], 'rev4': []},
+                                False,
+                               [101, 35, 34, 23, 16, 261, 15, 21, 208, 100,
+                                17, 14, 9, 7, 18, 11, 98, 12, 4, 19, 103, 13,
+                                97]  # with tags already completed here (repeat)
                                ),
                               ])
-    def test_pathchooser_choose(self, locid, completed, tpout, redirect, db):
+    def test_pathchooser_choose(self, locid, completed, tpout, redirect,
+                                expected, db):
         """
         Unit test for the paideia.Pathchooser.choose() method.
         """
         chooser = PathChooser(tpout, locid, completed)
         actual, newloc, catnum = chooser.choose()
 
-        mycat = 'cat{}'.format(catnum)
-        allpaths = db(db.paths.id > 0).select()
-        tagids = tpout[mycat]
-        expected = [p.id for p in allpaths
-                    if any([t for t in tagids if t in p.tags])]
-        #{'cat1': [1, 2, 3, 5, 8, 63, 95, 96, 99, 102, 256],  # removed 64, 70, 97, 104, 277
-
+        #mycat = 'cat{}'.format(catnum)
+        #allpaths = db(db.paths.id > 0).select()
+        #tagids = tpout[mycat]
+        #expected = [p.id for p in allpaths
+                    #if any([t for t in tagids if t in p.tags])]
         print 'CHOSEN PATH', actual
         print 'EXPECTED PATHS', expected
 
         assert catnum in range(1, 5)
-        assert actual['id'] in expected
-        firststep = actual['steps'][0]
         if redirect:
             assert newloc
+            firststep = actual['steps'][0]
             steplocs = db.steps(firststep).locations
             assert newloc in steplocs
             assert locid not in steplocs
         else:
+            assert actual['id'] in expected
             assert newloc is None
 
-    def test_pathchooser_order_cats(self, mypathchooser):
+    @pytest.mark.skipif(False, reason='just because')
+    def test_pathchooser_order_cats(self):
         """
         Unit test for the paideia.Pathchooser._order_cats() method.
         """
-        pc = mypathchooser['pathchooser']._order_cats()
-        ind = pc.index(1)
-        if len(pc) >= (ind + 2):
-            assert pc[ind + 1] == 2
-        if len(pc) >= (ind + 3):
-            assert pc[ind + 2] == 3
-        if len(pc) >= (ind + 4):
-            assert pc[ind + 3] == 4
-        if ind != 0:
-            assert pc[ind - 1] == 4
-        assert len(pc) == 4
-        assert pc[0] in [1, 2, 3, 4]
-        assert pc[1] in [1, 2, 3, 4]
-        assert pc[2] in [1, 2, 3, 4]
-        assert pc[3] in [1, 2, 3, 4]
+        locid = 6  # shop_of_alexander
+        completed = []
+        tpout = {'latest_new': 1,
+                 'cat1': [61], 'cat2': [],
+                 'cat3': [], 'cat4': [],
+                 'rev1': [61], 'rev2': [],
+                 'rev3': [], 'rev4': []}
+        chooser = PathChooser(tpout, locid, completed)
+        expected = [[1, 2, 3, 4],
+                    [2, 3, 4, 1],
+                    [3, 4, 1, 2],
+                    [4, 1, 2, 3]]
+        result_count = {1: 0,
+                        2: 0,
+                        3: 0,
+                        4: 0}
+        for num in range(1000):
+            actual = chooser._order_cats()
+            assert actual in expected
+            result_count[actual[0]] += 1
+        assert result_count[1] in range(740 - 20, 740 + 20)
+        assert result_count[2] in range(160 - 20, 160 + 20)
+        assert result_count[3] in range(90 - 20, 90 + 20)
+        assert result_count[4] in range(10 - 20, 10 + 20)
 
     def test_pathchooser_paths_by_category(self, mypathchooser, db):
         """
