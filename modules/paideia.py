@@ -1505,11 +1505,11 @@ class PathChooser(object):
         # TODO: Look at replacing this method with scipy.stats.rv_discrete()
         switch = randint(1, 100)
 
-        if switch in range(1, 76):
+        if switch in range(1, 75):
             cat = 1
         elif switch in range(75, 91):
             cat = 2
-        elif switch in range(90, 99):
+        elif switch in range(91, 99):
             cat = 3
         else:
             cat = 4
@@ -1573,13 +1573,13 @@ class PathChooser(object):
 
         # cpaths is already filtered by category
         p_new = cpaths.find(lambda row: row.id not in self.completed).as_list()
-        # FIXME: p.steps[0] is yielding a long int
+        print 'new paths:', [p['id'] for p in p_new]
         p_here = [p for p in cpaths.as_list()
                   if db.steps[int(p['steps'][0])].locations
                   and loc_id in db.steps[int(p['steps'][0])].locations]
-        print 'paths here:', p_here
+        print 'paths here:', [p['id'] for p in p_here]
         p_here_new = [p for p in p_here if p in p_new]
-        print 'paths here new:', p_here
+        print 'paths here new:', [p['id'] for p in p_here_new]
         print 'PathChooser.choose_from_cat: found', len(p_here_new), 'new paths here'
 
         path = None
