@@ -18,7 +18,7 @@ from paideia import Block, BugReporter
 from gluon import current, IMG
 
 import datetime
-# from pprint import pprint
+from pprint import pprint
 import re
 from random import randint
 from copy import copy
@@ -27,17 +27,18 @@ from copy import copy
 # ===================================================================
 # Switches governing which tests to run
 # ===================================================================
-global_runall = 0
-global_run_TestNpc = 0
-global_run_TestLocation = 0
-global_run_TestStep = 0
-global_run_TestStepEvaluator = 0
-global_run_TestMultipleEvaluator = 0
-global_run_TestPath = 0
+global_runall = False
+global_run_TestNpc = False
+global_run_TestLocation = False
+global_run_TestStep = False
+global_run_TestStepEvaluator = False
+global_run_TestMultipleEvaluator = False
+global_run_TestPath = False
 global_run_TestUser = False
-global_run_TestCategorizer = 1
-global_run_TestWalk = 0
-global_run_TestPathChooser = 0
+global_run_TestCategorizer = False
+global_run_TestWalk = False
+global_run_TestPathChooser = False
+global_run_TestBugReporter = False
 
 # ===================================================================
 # Test Fixtures
@@ -832,18 +833,6 @@ def mywalk(mycases, user_login, db):
                          db=db),
             'casedata': case,
             'userdata': userdata,
-            'stepdata': step}
-
-
-@pytest.fixture
-def mypathchooser(mycases, db):
-    """pytest fixture providing a paideia.PathChooser object for testing"""
-    case = mycases['casedata']
-    step = mycases['stepdata']
-    pc = PathChooser(case['tag_progress_out'],
-                     case['loc'], case['completed'], db=db)
-    return {'pathchooser': pc,
-            'casedata': case,
             'stepdata': step}
 
 
@@ -1790,7 +1779,8 @@ class TestCategorizer():
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('casename,rank,catsin,catsout,tagrecs',
-                             [('case1', 1,  # ???
+                             [('case1', 1,
+                               # 61 F: rw duration too short, ratio too large
                                {'cat1': [1], 'cat2': [],
                                 'cat3': [], 'cat4': [],
                                 'rev1': [], 'rev2': [],
@@ -1801,11 +1791,45 @@ class TestCategorizer():
                                  'tag': 1,
                                  'tlast_right': dt('2013-01-29'),
                                  'tlast_wrong': dt('2013-01-29'),
-                                 'times_right': 1,
-                                 'times_wrong': 1,
+                                 'times_right': 20,
+                                 'times_wrong': 20,
                                  'secondary_right': None}]
                                ),
-                              ('case2', 1,  # promote 61 for ratio and time
+                              ('case2', 1,  # 61 F: not enough times_right
+                               {'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                               {'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': []},
+                               [{'name': 1,
+                                 'tag': 61,
+                                 'tlast_right': dt('2013-01-29'),
+                                 'tlast_wrong': dt('2013-01-27'),
+                                 'times_right': 10,
+                                 'times_wrong': 1,
+                                 'secondary_right': []}],
+                               ),
+                              ('case2', 1,
+                               # 61: T (avg>=8, rightdur<=2 days, right>=20)
+                               #        despite right/wrong duration
+                               {'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                               {'cat1': [], 'cat2': [61],
+                                'cat3': [], 'cat4': []},
+                               [{'name': 1,
+                                 'tag': 61,
+                                 'tlast_right': dt('2013-01-28'),
+                                 'tlast_wrong': dt('2013-01-28'),
+                                 'times_right': 20,
+                                 'times_wrong': 1,
+                                 'secondary_right': []}],
+                               ),
+                              ('case2', 1,
+                               # 61: T (duration, started > 1day, right >= 20)
+                               #        despite ratio > 0.2
                                {'cat1': [61], 'cat2': [],
                                 'cat3': [], 'cat4': [],
                                 'rev1': [], 'rev2': [],
@@ -1815,9 +1839,27 @@ class TestCategorizer():
                                [{'name': 1,
                                  'tag': 61,
                                  'tlast_right': dt('2013-01-29'),
-                                 'tlast_wrong': dt('2013-01-28'),
-                                 'times_right': 10,
-                                 'times_wrong': 2,
+                                 'tlast_wrong': dt('2013-01-27'),
+                                 'times_right': 20,
+                                 'times_wrong': 10,
+                                 'secondary_right': []}],
+                               ),
+                              ('case2', 1,
+                               # 61: T (avg > 0.8, right >= 20*)
+                               #        despite ratio > 0.2
+                               #        despite duration
+                               {'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                               {'cat1': [], 'cat2': [61],
+                                'cat3': [], 'cat4': []},
+                               [{'name': 1,
+                                 'tag': 61,
+                                 'tlast_right': dt('2013-01-29'),
+                                 'tlast_wrong': dt('2013-01-27'),
+                                 'times_right': 20,
+                                 'times_wrong': 10,
                                  'secondary_right': []}],
                                )
                               ])
@@ -1863,7 +1905,7 @@ class TestCategorizer():
                                  'times_right': 10,
                                  'times_wrong': 2,
                                  'secondary_right': []}],
-                               [62]
+                               [6, 29, 62, 82, 83]
                                )
                               ])
     def test_categorizer_introduce_tags(self, casename, rank, catsin, tagrecs,
@@ -1969,8 +2011,8 @@ class TestCategorizer():
                                  'times_right': 1,
                                  'times_wrong': 1,
                                  'secondary_right': None}],
-                               {},
-                               {}
+                               None,
+                               None
                                ),
                               ('case2',  # promote 61 for ratio and time
                                1,
@@ -1989,8 +2031,9 @@ class TestCategorizer():
                                  'times_right': 10,
                                  'times_wrong': 2,
                                  'secondary_right': []}],
-                               {},
-                               {'cat2': [61]}
+                               None,
+                               {'cat1': [], 'cat2': [61],
+                                'cat3': [], 'cat4': []}
                                )
                               ])
     def test_categorizer_find_cat_changes(self, casename, rank, oldcats, catsin,
@@ -2013,8 +2056,9 @@ class TestCategorizer():
         assert actual['promoted'] == expected['promoted']
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('casename,rank,catsin,tagrecsin,rankout,catsout,'
-                             'tpout,tagrecsout,promoted,newtags',
+    @pytest.mark.parametrize('casename,rank,catsin,tagrecsin,'
+                             'rankout,catsout,tpout,'
+                             'promoted,newtags',
                              [('case1',
                                1, {'cat1': [1], 'cat2': [],
                                    'cat3': [], 'cat4': [],
@@ -2027,63 +2071,50 @@ class TestCategorizer():
                                  'times_right': 1,
                                  'times_wrong': 1,
                                  'secondary_right': None}],
-                               1,
-                               {'cat1': [1], 'cat2': [],
+                               1,  # case1 out
+                               {'cat1': [61], 'cat2': [],
                                 'cat3': [], 'cat4': [],
-                                'rev1': [], 'rev2': [],
+                                'rev1': [61], 'rev2': [],
                                 'rev3': [], 'rev4': []},
                                {'latest_new': 1,
-                                'cat1': [1], 'cat2': [],
+                                'cat1': [61], 'cat2': [],
                                 'cat3': [], 'cat4': [],
-                                'rev1': [], 'rev2': [],
+                                'rev1': [61], 'rev2': [],
                                 'rev3': [], 'rev4': []},
-                               [{'name': 1,
-                                 'tag': 1,
-                                 'tlast_right': dt('2013-01-29'),
-                                 'tlast_wrong': dt('2013-01-29'),
-                                 'times_right': 1,
-                                 'times_wrong': 1,
-                                 'secondary_right': None}],
-                               {},
-                               []
+                               None,
+                               None
                                ),
                               ('case2',  # promote 61, introduce 62
                                1,
                                {'cat1': [61], 'cat2': [],
                                 'cat3': [], 'cat4': [],
-                                'rev1': [], 'rev2': [],
+                                'rev1': [61], 'rev2': [],
                                 'rev3': [], 'rev4': []},
                                [{'name': 1,
                                  'tag': 61,
-                                 'tlast_right': dt('2013-01-29'),
-                                 'tlast_wrong': dt('2013-01-28'),
-                                 'times_right': 10,
-                                 'times_wrong': 2,
+                                 'tlast_right': dt('2013-01-28'),
+                                 'tlast_wrong': dt('2013-01-27'),
+                                 'times_right': 20,
+                                 'times_wrong': 1,
                                  'secondary_right': []}],
                                2,
-                               {'cat1': [62], 'cat2': [61],
+                               {'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
                                 'cat3': [], 'cat4': [],
-                                'rev1': [], 'rev2': [],
+                                'rev1': [], 'rev2': [61],
                                 'rev3': [], 'rev4': []},
                                {'latest_new': 2,
-                                'cat1': [62], 'cat2': [61],
+                                'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
                                 'cat3': [], 'cat4': [],
-                                'rev1': [], 'rev2': [],
+                                'rev1': [], 'rev2': [61],
                                 'rev3': [], 'rev4': []},
-                               [{'name': 1,
-                                 'tag': 61,
-                                 'tlast_right': dt('2013-01-29'),
-                                 'tlast_wrong': dt('2013-01-28'),
-                                 'times_right': 10,
-                                 'times_wrong': 2,
-                                 'secondary_right': []}],
-                               {'cat2': [61]},
-                               [62]
+                               {'cat1': [], 'cat2': [61],
+                                'cat3': [], 'cat4': []},
+                               [6, 29, 62, 82, 83]
                                )
                               ])
     def test_categorizer_categorize_tags(self, casename, rank, catsin,
                                          tagrecsin, rankout, catsout, tpout,
-                                         tagrecsout, promoted, newtags, db):
+                                         promoted, newtags, db):
         """
         Unit test for the paideia.Categorizer.categorize method.
 
@@ -2098,35 +2129,31 @@ class TestCategorizer():
         expected = {'cats': catsout,
                     't_prog': tpout,
                     'nt': newtags,
-                    'pro': promoted,
-                    't_recs': tagrecsout}
+                    'pro': promoted}
+        pprint(actual)
 
         for key, act in actual['categories'].iteritems():
+            print key
             assert act == expected['cats'][key]
 
         for key, act in actual['tag_progress'].iteritems():
             assert act == expected['t_prog'][key]
 
-        for idx, rec in enumerate(actual['tag_records']):
-            for key, act in rec.iteritems():
-                assert act == expected['t_recs'][idx][key]
-
-        assert actual['new_tags'] == expected['new_tags']
+        assert actual['new_tags'] == expected['nt']
         if actual['new_tags']:
-            assert actual['t_prog']['cat1'] == expected['new_tags']
+            assert actual['tag_progress']['cat1'] == expected['nt']
 
-        assert actual['promoted'] == expected['pro']
         if actual['promoted']:
             for key, act in actual['promoted'].iteritems():
-                assert actual['promoted'][key]
+                assert actual['promoted'][key] == expected['pro'][key]
 
 
+@pytest.mark.skipif('not global_runall '
+                    'and not global_run_TestWalk')
 class TestWalk():
     """
     A unit testing class for the paideia.Walk class.
     """
-    pytestmark = pytest.mark.skipif('global_runall is False '
-                                    'and global_run_TestWalk is False')
 
     def test_walk_get_user(self, mywalk):
         """Unit test for paideia.Walk._get_user()"""
@@ -2461,82 +2488,250 @@ class TestWalk():
             pass
 
 
+@pytest.mark.skipif('global_runall is False '
+                    'and global_run_TestPathChooser is False')
 class TestPathChooser():
     '''
     Unit testing class for the paideia.PathChooser class.
     '''
-    pytestmark = pytest.mark.skipif('global_runall is False '
-                                    'and global_run_TestPathChooser is False')
-
-    def test_pathchooser_choose(self, mypathchooser):
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('locid,completed,tpout,redirect,expected',
+                             [(6,  # shop_of_alexander (only 1 untried here)
+                               [2, 3, 5, 8, 63, 95, 96, 97, 99, 102, 256, 40,
+                                9, 410, 411, 412, 413, 414, 415, 416, 417, 418,
+                                419, 420, 421, 422, 423, 444, 445],
+                               {'latest_new': 1,
+                                'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [61], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                               False,
+                               [1]  # only one left with tag
+                               ),
+                              (11,  # synagogue [all in loc 11 completed]
+                               [1, 2, 3, 8, 95, 96, 97, 99, 102],
+                               {'latest_new': 1,
+                                'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [61], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                                True,
+                                [5, 63, 256, 409, 410, 411, 412, 413, 414,
+                                 415, 416, 417, 418, 419, 420, 421, 422, 423,
+                                 444, 445]  # tag 61, not loc 11, not completed
+                               ),
+                              (8,  # agora (no redirect, new here)
+                               [17, 98, 15, 208, 12, 16, 34, 11, 23, 4, 9, 18],
+                               {'latest_new': 2,
+                                'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [61],
+                                'rev3': [], 'rev4': []},
+                                False,
+                               [7, 14, 100, 35, 19, 103, 21, 97, 13, 261, 101]
+                               ),
+                              (8,  # agora (all for tags completed, repeat here)
+                               [4, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
+                                19, 21, 22, 23, 34, 35, 45, 97, 98, 100, 101,
+                                103, 120, 129, 139, 141, 149, 152, 161, 167,
+                                176, 184, 190, 208, 222, 225, 228, 231, 236,
+                                247, 255, 257, 261, 277, 333, 334, 366, 424,
+                                425, 426, 427, 428, 429, 430, 431, 433, 434,
+                                435, 436, 437, 439, 440, 441, 444, 445],
+                               {'latest_new': 2,
+                                'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [61],
+                                'rev3': [], 'rev4': []},
+                                False,
+                               [101, 35, 34, 23, 16, 261, 15, 21, 208, 100,
+                                17, 14, 9, 7, 18, 11, 98, 12, 4, 19, 103, 13,
+                                97]  # with tags already completed here (repeat)
+                               ),
+                              ])
+    def test_pathchooser_choose(self, locid, completed, tpout, redirect,
+                                expected, db):
         """
         Unit test for the paideia.Pathchooser.choose() method.
         """
-        newpath = mypathchooser['pathchooser'].choose()
-        paths = mypathchooser['casedata']['paths']
-        expected = paths['cat{}'.format(newpath[2])]
+        chooser = PathChooser(tpout, locid, completed)
+        actual, newloc, catnum = chooser.choose()
 
-        print 'PATHCHOOSER PATHS \n', paths
-        print 'CHOSEN PATH', newpath[0]['id']
+        #mycat = 'cat{}'.format(catnum)
+        #allpaths = db(db.paths.id > 0).select()
+        #tagids = tpout[mycat]
+        #expected = [p.id for p in allpaths
+                    #if any([t for t in tagids if t in p.tags])]
+        print 'CHOSEN PATH', actual
         print 'EXPECTED PATHS', expected
 
-        assert newpath[0]['id'] in expected
-        assert newpath[2] in range(1, 5)
+        assert catnum in range(1, 5)
+        if redirect:
+            assert newloc
+            firststep = actual['steps'][0]
+            steplocs = db.steps(firststep).locations
+            assert newloc in steplocs
+            assert locid not in steplocs
+        else:
+            assert actual['id'] in expected
+            assert newloc is None
 
-    def test_pathchooser_order_cats(self, mypathchooser):
+    @pytest.mark.skipif(False, reason='just because')
+    def test_pathchooser_order_cats(self):
         """
         Unit test for the paideia.Pathchooser._order_cats() method.
         """
-        pc = mypathchooser['pathchooser']._order_cats()
-        ind = pc.index(1)
-        if len(pc) >= (ind + 2):
-            assert pc[ind + 1] == 2
-        if len(pc) >= (ind + 3):
-            assert pc[ind + 2] == 3
-        if len(pc) >= (ind + 4):
-            assert pc[ind + 3] == 4
-        if ind != 0:
-            assert pc[ind - 1] == 4
-        assert len(pc) == 4
-        assert pc[0] in [1, 2, 3, 4]
-        assert pc[1] in [1, 2, 3, 4]
-        assert pc[2] in [1, 2, 3, 4]
-        assert pc[3] in [1, 2, 3, 4]
+        locid = 6  # shop_of_alexander
+        completed = []
+        tpout = {'latest_new': 1,
+                 'cat1': [61], 'cat2': [],
+                 'cat3': [], 'cat4': [],
+                 'rev1': [61], 'rev2': [],
+                 'rev3': [], 'rev4': []}
+        chooser = PathChooser(tpout, locid, completed)
+        expected = [[1, 2, 3, 4],
+                    [2, 3, 4, 1],
+                    [3, 4, 1, 2],
+                    [4, 1, 2, 3]]
+        result_count = {1: 0,
+                        2: 0,
+                        3: 0,
+                        4: 0}
+        for num in range(1000):
+            actual = chooser._order_cats()
+            assert actual in expected
+            result_count[actual[0]] += 1
+        assert result_count[1] in range(740 - 20, 740 + 20)
+        assert result_count[2] in range(160 - 20, 160 + 20)
+        assert result_count[3] in range(90 - 20, 90 + 20)
+        assert result_count[4] in range(10 - 20, 10 + 20)
 
-    def test_pathchooser_paths_by_category(self, mypathchooser, db):
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('locid,completed,tpout,expected',
+                             [(6,  # shop_of_alexander (only 1 untried here)
+                               [2, 3, 5, 8, 63, 95, 96, 97, 99, 102, 256, 40,
+                                9, 410, 411, 412, 413, 414, 415, 416, 417, 418,
+                                419, 420, 421, 422, 423, 444, 445],
+                               {'latest_new': 1,
+                                'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [61], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                               [1]  # only one left with tag
+                               ),
+                              (11,  # synagogue [all in loc 11 completed]
+                               [1, 2, 3, 8, 95, 96, 97, 99, 102],
+                               {'latest_new': 1,
+                                'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [61], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                                [5, 63, 256, 409, 410, 411, 412, 413, 414,
+                                 415, 416, 417, 418, 419, 420, 421, 422, 423,
+                                 444, 445]  # tag 61, not loc 11, not completed
+                               ),
+                              (8,  # agora (no redirect, new here)
+                               [17, 98, 15, 208, 12, 16, 34, 11, 23, 4, 9, 18],
+                               {'latest_new': 2,
+                                'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [61],
+                                'rev3': [], 'rev4': []},
+                               [7, 14, 100, 35, 19, 103, 21, 97, 13, 261, 101]
+                               ),
+                              (8,  # agora (all for tags completed, repeat here)
+                               [4, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
+                                19, 21, 22, 23, 34, 35, 45, 97, 98, 100, 101,
+                                103, 120, 129, 139, 141, 149, 152, 161, 167,
+                                176, 184, 190, 208, 222, 225, 228, 231, 236,
+                                247, 255, 257, 261, 277, 333, 334, 366, 424,
+                                425, 426, 427, 428, 429, 430, 431, 433, 434,
+                                435, 436, 437, 439, 440, 441, 444, 445],
+                               {'latest_new': 2,
+                                'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [61],
+                                'rev3': [], 'rev4': []},
+                               [101, 35, 34, 23, 16, 261, 15, 21, 208, 100,
+                                17, 14, 9, 7, 18, 11, 98, 12, 4, 19, 103, 13,
+                                97]  # with tags already completed here (repeat)
+                               ),
+                              ])
+    def test_pathchooser_paths_by_category(self, locid, completed, tpout,
+                                           expected):
         """
         Unit test for the paideia.Pathchooser._paths_by_category() method.
         """
-        tp = mypathchooser['casedata']['tag_progress_out']
-        rank = tp['latest_new']
-        cpaths, category = mypathchooser['pathchooser']._paths_by_category(1, rank)
-        tagids = tp['cat{}'.format(category)]
-        x = db(db.paths).select()
-        x = x.find(lambda row: [t for t in tagids
-                                if t in db.paths[row.id].tags])
-        x = x.find(lambda row: [s for s in row.steps if db.steps(s).status != 2])
-        x.exclude(lambda row: [s for s in row.steps
-                               if db.steps(s).locations is None])
-        x.exclude(lambda row: [t for t in row.tags
-                               if db.tags[t].tag_position > rank])
-        assert len(cpaths) == len(x)
-        for row in cpaths:
-            assert row.id in [r.id for r in x]
+        chooser = PathChooser(tpout, locid, completed)
+        cpaths, category = chooser._paths_by_category(1, tpout['latest_new'])
+        assert all([row['id'] for row in cpaths if row['id'] in expected])
 
-    def test_pathchooser_choose_from_cat(self, mypathchooser, db):
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('locid,completed,tpout,expected',
+                             [(6,  # shop_of_alexander (only 1 untried here)
+                               [2, 3, 5, 8, 63, 95, 96, 97, 99, 102, 256, 40,
+                                9, 410, 411, 412, 413, 414, 415, 416, 417, 418,
+                                419, 420, 421, 422, 423, 444, 445],
+                               {'latest_new': 1,
+                                'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [61], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                               [1]  # only one left with tag
+                               ),
+                              (11,  # synagogue [all in loc 11 completed]
+                               [1, 2, 3, 8, 95, 96, 97, 99, 102],
+                               {'latest_new': 1,
+                                'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [61], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                                [5, 63, 256, 409, 410, 411, 412, 413, 414,
+                                 415, 416, 417, 418, 419, 420, 421, 422, 423,
+                                 444, 445]  # tag 61, not loc 11, not completed
+                               ),
+                              (8,  # agora (no redirect, new here)
+                               [17, 98, 15, 208, 12, 16, 34, 11, 23, 4, 9, 18],
+                               {'latest_new': 2,
+                                'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [61],
+                                'rev3': [], 'rev4': []},
+                               [7, 14, 100, 35, 19, 103, 21, 97, 13, 261, 101]
+                               ),
+                              (8,  # agora (all for tags completed, repeat here)
+                               [4, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
+                                19, 21, 22, 23, 34, 35, 45, 97, 98, 100, 101,
+                                103, 120, 129, 139, 141, 149, 152, 161, 167,
+                                176, 184, 190, 208, 222, 225, 228, 231, 236,
+                                247, 255, 257, 261, 277, 333, 334, 366, 424,
+                                425, 426, 427, 428, 429, 430, 431, 433, 434,
+                                435, 436, 437, 439, 440, 441, 444, 445],
+                               {'latest_new': 2,
+                                'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [61],
+                                'rev3': [], 'rev4': []},
+                               [101, 35, 34, 23, 16, 261, 15, 21, 208, 100,
+                                17, 14, 9, 7, 18, 11, 98, 12, 4, 19, 103, 13,
+                                97]  # with tags already completed here (repeat)
+                               ),
+                              ])
+    def test_pathchooser_choose_from_cat(self, locid, completed, tpout,
+                                         expected, db):
         """
         Unit test for the paideia.Pathchooser._choose_from_cats() method.
         """
+        chooser = PathChooser(tpout, locid, completed)
         catnum = 1
-        paths = mypathchooser['casedata']['paths']
-        pathids = paths['cat{}'.format(catnum)]
-        expected = db(db.paths).select()
-        expected = expected.find(lambda row: row.id in pathids)
-
-        newpath = mypathchooser['pathchooser']._choose_from_cat(expected, catnum)
-        assert newpath[0]['id'] in paths['cat{}'.format(catnum)]
-        assert newpath[1] in [l for l in db.steps(newpath[0]['steps'][0]).locations]
-        assert newpath[2] == 1
+        expected_rows = db(db.paths.id.belongs(expected)).select()
+        path, newloc, cat = chooser._choose_from_cat(expected_rows, catnum)
+        assert path['id'] in expected
+        if newloc:
+            assert newloc in [l for l in db.steps(path['steps'][0]).locations]
+        else:
+            assert newloc is None
+        assert cat == 1
 
 
 class TestBugReporter():

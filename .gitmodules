@@ -25,3 +25,6 @@
 [submodule "plugins/plugin_markmin_extras"]
 	path = plugins/plugin_markmin_extras
 	url = git@github.com:monotasker/plugin_markmin_extras.git
+[submodule "plugins/plugin_sqlite_backup"]
+	path = plugins/plugin_sqlite_backup
+	url = git@github.com:monotasker/plugin_sqlite_backup
