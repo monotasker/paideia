@@ -15,7 +15,7 @@ import traceback
 from pytz import timezone
 from plugin_widgets import MODAL
 import pickle
-#from pprint import pprint
+from pprint import pprint
 #from paideia_utils import send_error
 
 # TODO: move these notes elsewhere
@@ -153,8 +153,7 @@ class Walk(object):
         try:
             if response_string:
                 return self.reply(localias=localias,
-                                  response_string=response_string,
-                                  set_blocks=set_blocks)
+                                  response_string=response_string)
             else:
                 return self.ask(localias=localias,
                                 path=path,
@@ -164,7 +163,7 @@ class Walk(object):
                                 step=step)
         except Exception:
             print traceback.format_exc(5)
-            self.clean_user()  # get rid of path data if that's the problem
+            self.clean_user()  # get rid of any problem path data
             return self.ask(localias=localias, path=path, step=step)
 
     def clean_user(self):
@@ -210,17 +209,20 @@ class Walk(object):
         promoted, new_tags = user.get_categories(user_id=user.get_id())
         if new_tags:
             # setting order here should make new_tags step come up first
-            user.set_block('new_tags')
-            user.set_block('view_slides')
+            user.set_block('new_tags', kwargs={'new_tags': new_tags,
+                                               'promoted': promoted})
+            user.set_block('view_slides', kwargs={'new_tags': new_tags})
         if promoted:
-            user.set_block('new_tags')
+            user.set_block('new_tags', kwargs={'new_tags': new_tags,
+                                               'promoted': promoted})
 
         loc = Location(localias)
         prev_loc = user.set_location(loc)
         prev_npc = user.get_prev_npc()
 
-        p, category, redir, pastquota = user.get_path(loc, path=path, repeat=repeat)
-        user.active_cat = category  # TODO: why necessary?
+        p, category, redir, pastquota = user.get_path(loc, pathid=path,
+                                                      repeat=repeat)
+        user.active_cat = category
         if redir:
             user.set_block('redirect', kwargs={'next_loc': redir})
         if pastquota:
@@ -238,7 +240,7 @@ class Walk(object):
         npc = s.get_npc(loc, prev_npc, prev_loc)
         user.set_npc(npc)
 
-        prompt = s.get_prompt(loc, npc, username, newloc_id, new_tags, promoted)
+        prompt = s.get_prompt(loc, npc, username)
         prompt['completed_count'] = len(user.completed_paths)
         prompt['category'] = category
         prompt['pid'] = p.get_id()
@@ -269,8 +271,10 @@ class Walk(object):
         print '\n================================'
         print '\nSTART OF Walk.reply()'
         user = self._get_user()
-        p, cat = user.get_path(reply=True)
+        p, cat = user.get_path()
+        print 'got path'
         s = p.get_step_for_reply()
+        print 'got step'
 
         if (not response_string) or re.match(response_string, r'\s+'):
             return self.ask()  # TODO: will this actually re-prompt the same step?
@@ -278,6 +282,7 @@ class Walk(object):
         # evaluate user response
         # loc and npc were stored on step during prompt phase
         reply = s.get_reply(response_string)
+        print 'got reply'
 
         assert self._record_cats(user.tag_progress, user.promoted, user.new_tags)
         self.record_id = self._record_step(user.get_id(), p.get_id(), s.get_id(),
@@ -287,16 +292,20 @@ class Walk(object):
                                            user.tag_records,
                                            s.get_tags(),
                                            response_string)
-
+        print 'recorded result'
         breporter = BugReporter().get_reporter(self.record_id,
                                                p.get_id(),
-                                               s.get_id(), reply['score'],
+                                               s.get_id(),
+                                               reply['score'],
                                                response_string,
                                                user.loc.get_alias())
+        print 'got bugreporter'
         responder = s.get_final_responder(localias=user.loc.get_alias(),
                                           bug_reporter=breporter[0])
+        print 'got responder'
         progress = 'This will make {} paths ' \
                    'so far today.'.format(len(user.completed_paths) + 1)
+        print 'adding progress'
         responder.append(SPAN(progress, _class='progress_text'))
 
         # info for admin and debugging
@@ -701,7 +710,7 @@ class StepFactory(object):
     based on the "widget_type" field supplied in db.steps. But there is not a
     1:1 relationship between widget type and Step subclass.
     """
-    def get_instance(self, step_id, repeating=None, db=None):
+    def get_instance(self, step_id, repeating=None, kwargs=None, db=None):
         """
         Return the correct subclass of Step based on record's 'widget_type'.
 
@@ -729,6 +738,7 @@ class StepFactory(object):
                         9: StepRedirect}
         return step_classes[mystep['widget_type']](step_id,
                                                    repeating=repeating,
+                                                   kwargs=kwargs,
                                                    stepdata=mystep.as_dict())
 
 
@@ -738,13 +748,14 @@ class Step(object):
     interaction) in the game.
     '''
 
-    def __init__(self, step_id, repeating=False, stepdata=None):
+    def __init__(self, step_id, repeating=False, kwargs=None, stepdata=None):
         """Initialize a paideia.Step object"""
         db = current.db
         self.data = db.steps[step_id].as_dict() if not stepdata else stepdata
         self.repeating = False  # set to true if step already done today
         self.npc = None  # must wait since all steps in path init at once
         self.redirect_loc_id = None  # TODO: is this used?
+        self.kwargs = kwargs
 
     def get_id(self):
         """
@@ -831,8 +842,7 @@ class Step(object):
         else:
             return False
 
-    def get_prompt(self, location, npc, username, next_loc, new_tags, promoted,
-                   raw_prompt=None):
+    def get_prompt(self, location, npc, username, raw_prompt=None):
         """
         Return the prompt information for the step. In the Step base class
         this is a simple string. Before returning, though, any necessary
@@ -841,12 +851,16 @@ class Step(object):
         If the step cannot be performed in this location, this method returns
         the string 'redirect' so that the Walk.ask() method that called it can
         set a redirect block.
+
+        Extra data for block steps is passed via the 'kwargs' instance
+        variable which in turn comes (via StepFactory) from the 'kwargs'
+        argument at Block instantiation (called in turn by user.set_block).
+        Since user.set_block is ONLY called in Walk.ask(), these values are
+        always set in that top-level method.
         """
         raw_prompt = self.data['prompt'] if not raw_prompt else raw_prompt
         prompt = {'sid': self.get_id(),
-                  'prompt_text': self._make_replacements(raw_prompt, username,
-                                                         next_loc, new_tags,
-                                                         promoted),
+                  'prompt_text': self._make_replacements(raw_prompt, username),
                   'audio': self._get_prompt_audio(),
                   'widget_img': self._get_widget_image(),
                   'instructions': self._get_instructions(),
@@ -862,8 +876,7 @@ class Step(object):
 
         return prompt
 
-    def _make_replacements(self, raw_prompt, username, next_loc, new_tags,
-                           promoted, reps=None, appds=None):
+    def _make_replacements(self, raw_prompt, username, reps=None, appds=None):
         """
         Return the provided string with tokens replaced by personalized
         information for the current user.
@@ -969,14 +982,12 @@ class StepContinue(Step):
     """
     An abstract subclass of Step that adds a 'continue' button to the responder.
     """
-    def get_prompt(self, loc, npc, username, next_loc, new_tags, promoted):
+    def get_prompt(self, loc, npc, username):
         """
         Return the html form to allow the user to respond to the prompt for
         this step.
         """
-        prompt = super(StepContinue, self).get_prompt(loc, npc, username,
-                                                      next_loc, new_tags,
-                                                      promoted)
+        prompt = super(StepContinue, self).get_prompt(loc, npc, username)
         prompt['response_buttons'] = ['map', 'continue']
         return prompt
 
@@ -991,24 +1002,23 @@ class StepRedirect(Step):
     specific location. Otherwise, the user receives a generic instruction to
     try "another location in town".
     '''
-    def get_prompt(self, loc, npc, username, next_loc, new_tags, promoted):
+    def get_prompt(self, loc, npc, username):
         """
         Return the html form to allow the user to respond to the prompt for
         this step.
         """
-        prompt = super(StepRedirect, self).get_prompt(loc, npc, username,
-                                                      next_loc, new_tags,
-                                                      promoted)
+        prompt = super(StepRedirect, self).get_prompt(loc, npc, username)
         prompt['response_buttons'] = ['map', 'continue']
         return prompt
 
-    def _make_replacements(self, raw_prompt, username,
-                           next_loc, new_tags, promoted):
+    def _make_replacements(self, raw_prompt, username):
         """
         Return the string for the step prompt with context-based information
         substituted for tokens framed by [[]].
         """
         db = current.db
+        kw = self.kwargs
+        next_loc = kw['next_loc'] if (kw and 'next_loc' in kw) else None
         if next_loc:
             next_loc_name = db.locations[next_loc]['readable']
         else:
@@ -1016,9 +1026,6 @@ class StepRedirect(Step):
         reps = {'[[next_loc]]': next_loc_name}
         new_string = super(StepRedirect, self)._make_replacements(raw_prompt,
                                                                   username,
-                                                                  next_loc,
-                                                                  new_tags,
-                                                                  promoted,
                                                                   reps=reps)
         return new_string
 
@@ -1027,16 +1034,16 @@ class StepQuotaReached(StepContinue, Step):
     '''
     A Step that tells the user s/he has completed the daily minimum # of steps.
     '''
-    def _make_replacements(self, raw_prompt, username,
-                           next_loc, new_tags, promoted):
+    def _make_replacements(self, raw_prompt, username):
         """
         Return the string for the step prompt with context-based information
         substituted for tokens framed by [[]].
         """
+        quota = self.kwargs['quota']  # TODO: actually put value in prompt
         reps = None
-        newstr = super(StepQuotaReached, self
-                       )._make_replacements(raw_prompt, username, next_loc,
-                                            new_tags, promoted, reps=reps)
+        newstr = super(StepQuotaReached, self)._make_replacements(raw_prompt,
+                                                                  username,
+                                                                  reps=reps)
         return newstr
 
 
@@ -1045,8 +1052,7 @@ class StepAwardBadges(StepContinue, Step):
     A Step that informs the user when s/he has earned new badges.
     '''
 
-    def _make_replacements(self, raw_prompt, username,
-                           next_loc, new_tags, promoted):
+    def _make_replacements(self, raw_prompt, username):
         """
         Return the string for the step prompt with context-based information
         substituted for tokens framed by [[]].
@@ -1055,6 +1061,8 @@ class StepAwardBadges(StepContinue, Step):
         appds = {}
         reps = {}
 
+        new_tags = self.kwargs['new_tags']
+        promoted = self.kwargs['promoted']
         prom_rep = ' '
         if promoted:
             flat_proms = [i for cat, lst in promoted.iteritems() for i in lst if lst]
@@ -1094,7 +1102,6 @@ class StepAwardBadges(StepContinue, Step):
         appds['[[new_tag_list]]'] = nt_rep
         newstr = super(StepAwardBadges, self
                        )._make_replacements(raw_prompt, username,
-                                            next_loc, new_tags, promoted,
                                             reps=reps, appds=appds)
         return newstr
 
@@ -1104,8 +1111,7 @@ class StepViewSlides(Step):
     A Step that informs the user when s/he needs to view more grammar slides.
     '''
 
-    def _make_replacements(self, raw_prompt, username,
-                           next_loc, new_tags, promoted):
+    def _make_replacements(self, raw_prompt, username):
         """
         Return the string for the step prompt with context-based information
         substituted for tokens framed by [[]].
@@ -1113,6 +1119,7 @@ class StepViewSlides(Step):
         new_tags value should be a list of tag id's as integers
         """
         db = current.db
+        new_tags = self.kwargs['new_tags']
         tags = db((db.tags.id == db.badges.tag) &
                 (db.tags.id.belongs(new_tags))).select().as_list()
 
@@ -1140,8 +1147,7 @@ class StepViewSlides(Step):
         # collect replacements
         appds = {'[[slide_list]]': slides}
         newstr = super(StepViewSlides, self
-                       )._make_replacements(raw_prompt, username, next_loc,
-                                            new_tags, promoted, appds=appds)
+                       )._make_replacements(raw_prompt, username, appds=appds)
         return newstr
 
 
@@ -1151,10 +1157,9 @@ class StepText(Step):
     that input. Handles only a single string response.
     """
 
-    def get_prompt(self, location, npc, username, next_loc, new_tags, promoted):
+    def get_prompt(self, location, npc, username):
         """x"""
-        prompt = super(StepText, self).get_prompt(location, npc, username,
-                                                  next_loc, new_tags, promoted)
+        prompt = super(StepText, self).get_prompt(location, npc, username)
         prompt['response_form'] = self._get_response_form()
         prompt['response_buttons'] = []
         return prompt
@@ -1494,7 +1499,6 @@ class PathChooser(object):
         db = current.db if not db else db
         self.loc_id = loc_id
         self.completed = paths_completed
-        print 'PathChooser.init: completed paths', paths_completed
 
     def _order_cats(self):
         """
@@ -1506,11 +1510,11 @@ class PathChooser(object):
         # TODO: Look at replacing this method with scipy.stats.rv_discrete()
         switch = randint(1, 100)
 
-        if switch in range(1, 76):
+        if switch in range(1, 75):
             cat = 1
         elif switch in range(75, 91):
             cat = 2
-        elif switch in range(90, 99):
+        elif switch in range(91, 99):
             cat = 3
         else:
             cat = 4
@@ -1574,11 +1578,13 @@ class PathChooser(object):
 
         # cpaths is already filtered by category
         p_new = cpaths.find(lambda row: row.id not in self.completed).as_list()
-        # FIXME: p.steps[0] is yielding a long int
+        print 'new paths:', [p['id'] for p in p_new]
         p_here = [p for p in cpaths.as_list()
                   if db.steps[int(p['steps'][0])].locations
                   and loc_id in db.steps[int(p['steps'][0])].locations]
+        print 'paths here:', [p['id'] for p in p_here]
         p_here_new = [p for p in p_here if p in p_new]
+        print 'paths here new:', [p['id'] for p in p_here_new]
         print 'PathChooser.choose_from_cat: found', len(p_here_new), 'new paths here'
 
         path = None
@@ -1615,7 +1621,7 @@ class PathChooser(object):
         - any random path
 
         Returns a 3-member tuple:
-            [0] Path object chosen
+            [0] Path chosen (as a row object as_dict)
             [1] location id where Path must be started (or None if current loc)
             [2] the category number for this new path (int in range 1-4)
         """
@@ -1710,6 +1716,10 @@ class User(object):
         """Return the first name (from db.auth_user) of the current user."""
         return self.name
 
+    def get_prev_npc(self):
+        """Return the id (from db.npcs) of the previously active npc."""
+        return self.prev_npc
+
     def check_for_blocks(self):
         """
         Check whether new block needed, then activate first block (if any).
@@ -1734,13 +1744,13 @@ class User(object):
         else:
             return None
 
-    def set_block(self, condition):
+    def set_block(self, condition, kwargs=None):
         """ Set a blocking condition on this Path object. """
         myblocks = [b.get_condition() for b in self.blocks]
 
         def _inner_set_block():
             if not condition in myblocks:
-                self.blocks.append(Block(condition))
+                self.blocks.append(Block(condition, kwargs=kwargs))
 
         if condition is 'new_tags':
             if not self.viewed_slides:
@@ -1906,7 +1916,7 @@ class User(object):
         if (self.cats_counter in range(0, 4)) and hasattr(self, 'categories') and self.categories:
             self.cats_counter += 1
             #print 'user.get_categories: no need for refresh yet - counter is', self.cats_counter
-            return True
+            return None, None
         else:
             print 'user.get_categories: need to recategorize'
             utcnow = datetime.datetime.utcnow() if not utcnow else utcnow
@@ -1928,7 +1938,6 @@ class User(object):
             c = Categorizer(rank, categories, tag_records, user_id,
                             utcnow=utcnow)
             cat_result = c.categorize_tags()
-            self.tag_records = cat_result['tag_records']
             self.rank = cat_result['tag_progress']['latest_new']
             self.tag_progress = cat_result['tag_progress']
             self.categories = cat_result['categories']
@@ -1982,14 +1991,13 @@ class Categorizer(object):
         """
         Remove any illegitimate tag_records data.
         """
-        db = current.db
-
         null_tags = [r for r in tag_records if r['tag'] is None]
         if null_tags:
+            db = current.db
             db(db.tag_records.tag == None).delete()
-
-        tag_records = db(db.tag_records.name == self.user_id).select().as_list()
-        self.tag_records = tag_records
+            tag_records = db(db.tag_records.name == self.user_id
+                             ).select().as_list()
+            self.tag_records = tag_records
 
         return tag_records
 
@@ -2009,26 +2017,26 @@ class Categorizer(object):
         old_categories = self.old_categories if not old_categories \
                          else old_categories
         tag_records = self.tag_records if not tag_records else tag_records
+        print 'len(tag_records):', len(tag_records)
         tag_records = self._sanitize_recs(tag_records)
         db = current.db if not db else db
         new_tags = None
 
         # if user has not tried any tags yet, start first set
+        print 'len(tag_records):', len(tag_records)
         if len(tag_records) == 0:
-            #print 'categorize_tags: no tag_records found'
             categories = {}
             categories['cat1'] = self._introduce_tags()
             tp = {'cat1': categories['cat1'],
-                  'rev1': None,
-                  'cat2': None,
-                  'rev2': None,
-                  'cat3': None,
-                  'rev3': None,
-                  'cat4': None,
-                  'rev4': None,
+                  'rev1': [],
+                  'cat2': [],
+                  'rev2': [],
+                  'cat3': [],
+                  'rev3': [],
+                  'cat4': [],
+                  'rev4': [],
                   'latest_new': rank}
-            return {'tag_records': None,
-                    'tag_progress': tp,
+            return {'tag_progress': tp,
                     'new_tags': categories['cat1'],
                     'promoted': None,
                     'demoted': None,
@@ -2036,19 +2044,22 @@ class Categorizer(object):
         else:
             # otherwise, categorize tags that have been tried
             tag_records = self._add_secondary_right(tag_records)
-            #print 'categorize_tags: after core algorithm, tag_records are', pprint(self.tag_records)
             categories = self._core_algorithm()
-            #print '\ncategorize_tags: after core algorithm, cats are', pprint(categories)
             categories = self._add_untried_tags(categories)
-            #print '\ncategorize_tags: after adding untried, cats are', pprint(categories)
+            print 'after adduntried:'
+            pprint(categories)
             categories = self._remove_dups(categories, rank)
-            # 'rev' categories are reintroduced
+            print 'after removedups:'
+            pprint(categories)
             categories.update((c, []) for c in ['rev1', 'rev2', 'rev3', 'rev4'])
-            # changes in categorization since last time
             cat_changes = self._find_cat_changes(categories, old_categories)
+            print 'after findchanges:'
+            pprint(categories)
             promoted = cat_changes['promoted']
             demoted = cat_changes['demoted']
             tag_progress = copy(cat_changes['categories'])
+            print 'tagprogress:'
+            pprint(tag_progress)
 
             # If there are no tags left in category 1, introduce next set
             if not tag_progress['cat1']:
@@ -2056,13 +2067,13 @@ class Categorizer(object):
                 categories['cat1'] = newlist
                 tag_progress['cat1'] = newlist
                 new_tags = newlist
+            print 'tagprogress after addnew:'
+            pprint(categories)
 
             # Re-insert 'latest new' to match tag_progress table in db
             tag_progress['latest_new'] = self.rank
-            #print 'categorize_tags: returning tag_progress as', tag_progress
 
-            return {'tag_records': tag_records,
-                    'tag_progress': tag_progress,
+            return {'tag_progress': tag_progress,
                     'new_tags': new_tags,
                     'promoted': promoted,
                     'demoted': demoted,
@@ -2157,6 +2168,40 @@ class Categorizer(object):
 
         return tag_records
 
+    def _get_avg(self, tag, mydays=7):
+        """
+        Return the user's average score on a given tag over the past N days.
+
+        Always returns a float, since scores are floats between 0 and 1.
+        """
+        db = current.db
+        startdt = self.utcnow - datetime.timedelta(days=mydays)
+        log_query = db((db.attempt_log.name == self.user_id) &
+                       (db.attempt_log.dt_attempted >= startdt) &
+                       (db.attempt_log.step == db.steps.id) &
+                       (db.steps.tags.contains(tag))).select()
+        scores = [l.attempt_log.score for l in log_query]
+        try:
+            avg_score = sum(scores) / float(len(scores))
+        except ZeroDivisionError:  # if tag not tried at all since startdt
+            avg_score = 0
+            # FIXME: Will this not bring tags up too early?
+        print 'using avg_score:', avg_score
+        return avg_score
+
+    def _get_ratio(self, record):
+        """
+        Return the user's ratio of right to wrong answers for a given tag.
+
+        Called by _core_algorithm()
+        """
+        try:
+            ratio = record['times_wrong'] / record['times_right']
+        except ZeroDivisionError:
+            ratio = record['times_wrong']
+        print 'using ratio:', ratio
+        return ratio
+
     def _core_algorithm(self, tag_records=None):
         """
         Return dict of the user's active tags categorized by past performance.
@@ -2180,65 +2225,36 @@ class Categorizer(object):
         TODO: Require that a certain number of successes are recent
         TODO: Look at secondary tags as well
         """
-        db = current.db
         categories = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
-        utcnow = self.utcnow
-        if not utcnow:
-            utcnow = datetime.datetime.utcnow()
-        if not tag_records:
-            tag_records = self.tag_records
-        # TODO: Get secondary_right here
-
+        tag_records = tag_records if tag_records else self.tag_records
         for record in tag_records:
-
-            # find average score for steps with this tag over past week
-            week_ago = utcnow - datetime.timedelta(days=7)
-            print 'for tag', record['tag']
-            log_query = db((db.attempt_log.dt_attempted >= week_ago) &
-                           (db.attempt_log.step == db.steps.id) &
-                           (db.steps.tags.contains(record['tag']))).select()
-            scores = [l.attempt_log.score for l in log_query]
-            try:
-                avg_score = sum(scores) / float(len(scores))
-            except ZeroDivisionError:  # if tag not tried in past week
-                avg_score = 0
-                # FIXME: Will this not bring tags up too early?
-
-            # get durations for spaced repetition calculations
-            # arithmetic operations yield datetime.timedelta objects
-            lastright = record['tlast_right']
-            lastwrong = record['tlast_wrong']
-            if isinstance(lastright, str):
-                lastright = parser.parse(lastright)
-            if isinstance(lastwrong, str):
-                lastwrong = parser.parse(lastwrong)
-
-            right_dur = utcnow - lastright
-            right_wrong_dur = lastright - lastwrong
+            lrraw = record['tlast_right']
+            lwraw = record['tlast_wrong']
+            lr = lrraw if not isinstance(lrraw, str) else parser.parse(lrraw)
+            lw = lwraw if not isinstance(lwraw, str) else parser.parse(lwraw)
+            rdur = self.utcnow - lr
+            rwdur = lr - lw
 
             # spaced repetition algorithm for promotion to
-            # ======================================================
-            # category 2
-            if (((right_dur < right_wrong_dur) and
-                 # don't allow promotion from cat1 within 1 day
-                 (right_wrong_dur > datetime.timedelta(days=1)) and
-                 # require at least 20 right answers
-                 (record['times_right'] >= 20))
-                or ((record['times_right'] >= 20) and
-                    # require an average score of at least 8.0
-                    # TODO: does float comparison inaccuracy matter here?
-                    (avg_score >= 8.0) and
-                    # require that tag has right answer within last 2 days
-                    (right_dur <= datetime.timedelta(days=2)))):
-                # ==================================================
-                # for cat3
-                if right_wrong_dur.days >= 14:
-                    # ==============================================
-                    # for cat4
-                    if right_wrong_dur.days > 60:
-                        # ==========================================
-                        # for immediate review
-                        if right_wrong_dur > datetime.timedelta(days=180):
+            # cat2? ======================================================
+            if ((record['times_right'] >= 20) and  # at least 20 right
+                (((rdur < rwdur)  # delta right < delta right/wrong
+                  and (rwdur > datetime.timedelta(days=1))  # not within 1 day
+                  )
+                 or
+                 ((self._get_ratio(record) < 0.2)  # less than 1w to 5r total
+                  and (rdur <= datetime.timedelta(days=30))  # right in past 30 days
+                  )
+                 or
+                 ((self._get_avg(record['tag']) >= 0.8)  # avg score for week >= 0.8
+                  and (rdur <= datetime.timedelta(days=30))  # right in past 30 days
+                 ))):
+                # cat3? ==================================================
+                if rwdur.days >= 14:
+                    # cat4? ==============================================
+                    if rwdur.days > 60:
+                        # long-term review? ===================================
+                        if rwdur > datetime.timedelta(days=180):
                             category = 'cat1'  # Not tried for 6 months
                         else:
                             category = 'cat4'  # Not due, delta > 60 days
@@ -2299,48 +2315,49 @@ class Categorizer(object):
 
         return categories
 
-    def _find_cat_changes(self, cats, old_cats):
+    def _find_cat_changes(self, cats, oldcats):
         """
         Determine whether any of the categorized tags are promoted or demoted.
         """
-        if old_cats:
-            demoted = {}
-            promoted = {}
-            for c, lst in cats.iteritems():
-                if lst:
-                    cindex = cats.keys().index(c)
+        print 'findchanges: cats:'
+        pprint(cats)
+        if oldcats:
+            demoted = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
+            promoted = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
+            cnms = ['cat1', 'cat2', 'cat3', 'cat4']
+            for cat, taglist in cats.iteritems():
+                if cat in cnms and taglist:
+                    revcat = cat.replace('cat', 'rev')
+                    cats[revcat] = taglist
+                    print 'setting ', revcat, 'to', taglist
+                    idx = cnms.index(cat)
+
+                    # was tag in a lower category before?
+                    was_lower = chain.from_iterable([oldcats[c] for c
+                                                     in cnms[:idx]
+                                                     if oldcats[c]])
+                    promoted[cat] = [t for t in cats[cat] if t in was_lower]
 
                     # was tag in a higher category before?
-                    gt = {k: old_cats[k] for k in
-                          ['cat1', 'cat2', 'cat3', 'cat4'][cindex + 1:]}
-                    gt_flat = [v for l in gt.values() if l for v in l]
-                    revc = c.replace('cat', 'rev')
-                    for tag in [l for l in lst if l in gt_flat]:
-                        # move to review category
-                        cats[c].pop(tag)
-                        try:
-                            demoted[revc].append(tag)
-                        except Exception:
-                            print traceback.format_exc(5)
-                            demoted[revc] = [tag]
-                        # then re-insert tag in its old max level
-                        oldc = [k for k, v in gt if tag in v]
-                        if len(cats[oldc]):
-                            cats[oldc].append(tag)
-                        else:
-                            cats[oldc] = [tag]
+                    was_higher = chain.from_iterable([oldcats[c] for c
+                                                      in cnms[idx + 1:]
+                                                      if oldcats[c]])
+                    demoted_tags = [t for t in taglist if t in was_higher]
+                    demoted[cat] = demoted_tags
+                    for tag in demoted_tags:  # then restore old max in cats
+                        oldmax = [k for k, v in oldcats.iteritems()
+                                    if tag in v][0]
+                        cats[cat].pop(tag)
+                        cats[oldmax].append(tag)
 
-                    # was tag in a lower category?
-                    lt = {k: old_cats[k] for k in
-                          ['cat1', 'cat2', 'cat3', 'cat4'][:cindex]}
-                    lt_flat = [v for l in lt.values() if l for v in l]
-                    # add to dictionary of 'promoted' tags
-                    if lt_flat:
-                        promoted[c] = [t for t in cats[c] if t in lt_flat]
+            print 'findchanges: cats:'
+            pprint(cats)
 
             return {'categories': cats,
-                    'demoted': demoted,
-                    'promoted': promoted}
+                    'demoted': demoted if any([d for d in demoted.values()])
+                               else None,
+                    'promoted': promoted if any([p for p in promoted.values()])
+                               else None}
         else:
             return {'categories': cats,
                     'demoted': None,
@@ -2384,11 +2401,12 @@ class Block(object):
         'empty response'
     """
 
-    def __init__(self, condition):
+    def __init__(self, condition, kwargs=None):
         """
         Initialize a new Block object
         """
         self.condition = condition
+        self.kwargs = kwargs
 
     def make_step(self, condition):
         """Create correct Step subclass and store as an instance variable."""
@@ -2400,7 +2418,8 @@ class Block(object):
                         'redirect': 9}
         step = db(db.steps.widget_type ==
                   step_classes[condition]).select(orderby='<random>').first()
-        mystep = StepFactory().get_instance(step_id=step['id'])
+        mystep = StepFactory().get_instance(step_id=step['id'],
+                                            kwargs=self.kwargs)
         return mystep
 
     def get_condition(self):
