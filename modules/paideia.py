@@ -269,18 +269,20 @@ class Walk(object):
         print '\n================================'
         print '\nSTART OF Walk.reply()'
         user = self._get_user()
-        p, cat = user.get_path(reply=True)
+        p, cat = user.get_path()
         s = p.get_step_for_reply()
 
         if (not response_string) or re.match(response_string, r'\s+'):
             return self.ask()  # TODO: will this actually re-prompt the same step?
 
-        # evaluate user response
-        # loc and npc were stored on step during prompt phase
-        reply = s.get_reply(response_string)
+        reply = s.get_reply(response_string)  # loc and npc stored on step
 
-        assert self._record_cats(user.tag_progress, user.promoted, user.new_tags)
-        self.record_id = self._record_step(user.get_id(), p.get_id(), s.get_id(),
+        assert self._record_cats(user.tag_progress,
+                                 user.promoted,
+                                 user.new_tags)
+        self.record_id = self._record_step(user.get_id(),
+                                           p.get_id(),
+                                           s.get_id(),
                                            reply['score'],
                                            reply['times_right'],
                                            reply['times_wrong'],
@@ -290,7 +292,8 @@ class Walk(object):
 
         breporter = BugReporter().get_reporter(self.record_id,
                                                p.get_id(),
-                                               s.get_id(), reply['score'],
+                                               s.get_id(),
+                                               reply['score'],
                                                response_string,
                                                user.loc.get_alias())
         responder = s.get_final_responder(localias=user.loc.get_alias(),
