@@ -153,8 +153,7 @@ class Walk(object):
         try:
             if response_string:
                 return self.reply(localias=localias,
-                                  response_string=response_string,
-                                  set_blocks=set_blocks)
+                                  response_string=response_string)
             else:
                 return self.ask(localias=localias,
                                 path=path,
@@ -164,7 +163,7 @@ class Walk(object):
                                 step=step)
         except Exception:
             print traceback.format_exc(5)
-            self.clean_user()  # get rid of path data if that's the problem
+            self.clean_user()  # get rid of any problem path data
             return self.ask(localias=localias, path=path, step=step)
 
     def clean_user(self):
@@ -210,17 +209,20 @@ class Walk(object):
         promoted, new_tags = user.get_categories(user_id=user.get_id())
         if new_tags:
             # setting order here should make new_tags step come up first
-            user.set_block('new_tags')
-            user.set_block('view_slides')
+            user.set_block('new_tags', kwargs={'new_tags': new_tags,
+                                               'promoted': promoted})
+            user.set_block('view_slides', kwargs={'new_tags': new_tags})
         if promoted:
-            user.set_block('new_tags')
+            user.set_block('new_tags', kwargs={'new_tags': new_tags,
+                                               'promoted': promoted})
 
         loc = Location(localias)
         prev_loc = user.set_location(loc)
         prev_npc = user.get_prev_npc()
 
-        p, category, redir, pastquota = user.get_path(loc, path=path, repeat=repeat)
-        user.active_cat = category  # TODO: why necessary?
+        p, category, redir, pastquota = user.get_path(loc, pathid=path,
+                                                      repeat=repeat)
+        user.active_cat = category
         if redir:
             user.set_block('redirect', kwargs={'next_loc': redir})
         if pastquota:
@@ -238,7 +240,7 @@ class Walk(object):
         npc = s.get_npc(loc, prev_npc, prev_loc)
         user.set_npc(npc)
 
-        prompt = s.get_prompt(loc, npc, username, newloc_id, new_tags, promoted)
+        prompt = s.get_prompt(loc, npc, username)
         prompt['completed_count'] = len(user.completed_paths)
         prompt['category'] = category
         prompt['pid'] = p.get_id()
@@ -269,13 +271,12 @@ class Walk(object):
         print '\n================================'
         print '\nSTART OF Walk.reply()'
         user = self._get_user()
-        p, cat = user.get_path()
+        loc = user.get_location()
+        p, cat = user.get_path(loc)[:2]
         s = p.get_step_for_reply()
-
         if (not response_string) or re.match(response_string, r'\s+'):
             return self.ask()  # TODO: will this actually re-prompt the same step?
-
-        reply = s.get_reply(response_string)  # loc and npc stored on step
+        prompt = s.get_reply(response_string)  # loc and npc stored on step
 
         assert self._record_cats(user.tag_progress,
                                  user.promoted,
@@ -283,39 +284,27 @@ class Walk(object):
         self.record_id = self._record_step(user.get_id(),
                                            p.get_id(),
                                            s.get_id(),
-                                           reply['score'],
-                                           reply['times_right'],
-                                           reply['times_wrong'],
+                                           prompt['score'],
+                                           prompt['times_right'],
+                                           prompt['times_wrong'],
                                            user.tag_records,
                                            s.get_tags(),
                                            response_string)
+        prompt['bugreporter'] = BugReporter().get_reporter(self.record_id,
+                                                           p.get_id(),
+                                                           s.get_id(),
+                                                           prompt['score'],
+                                                           response_string,
+                                                           user.loc.get_alias())
+        prompt['completed_count'] = len(user.completed_paths)
+        prompt['pid'] = p.get_id()
+        prompt['category'] = cat
+        prompt['loc'] = loc.get_alias()
 
-        breporter = BugReporter().get_reporter(self.record_id,
-                                               p.get_id(),
-                                               s.get_id(),
-                                               reply['score'],
-                                               response_string,
-                                               user.loc.get_alias())
-        responder = s.get_final_responder(localias=user.loc.get_alias(),
-                                          bug_reporter=breporter[0])
-        progress = 'This will make {} paths ' \
-                   'so far today.'.format(len(user.completed_paths) + 1)
-        responder.append(SPAN(progress, _class='progress_text'))
-
-        # info for admin and debugging
-        try:
-            editlinks = self._get_editlinks(p.get_id(), s.get_id(), user.active_cat)
-            responder.append(editlinks)
-        except Exception:
-            print traceback.format_exc(5)
-            pass
-
-        p.complete_step()  # removes path.step_for_reply
-        # Note: path can also be completed (moved to user.completed_paths) in
-        # following cycle in user.get_path.
+        p.complete_step()  # removes path.step_for_reply; cf. (user.get_path)
         self._store_user(user)
 
-        return reply
+        return prompt
 
     def _record_cats(self, tag_progress, promoted, new_tags, db=None):
         """
@@ -704,7 +693,7 @@ class StepFactory(object):
     based on the "widget_type" field supplied in db.steps. But there is not a
     1:1 relationship between widget type and Step subclass.
     """
-    def get_instance(self, step_id, repeating=None, db=None):
+    def get_instance(self, step_id, repeating=None, kwargs=None, db=None):
         """
         Return the correct subclass of Step based on record's 'widget_type'.
 
@@ -732,6 +721,7 @@ class StepFactory(object):
                         9: StepRedirect}
         return step_classes[mystep['widget_type']](step_id,
                                                    repeating=repeating,
+                                                   kwargs=kwargs,
                                                    stepdata=mystep.as_dict())
 
 
@@ -741,13 +731,14 @@ class Step(object):
     interaction) in the game.
     '''
 
-    def __init__(self, step_id, repeating=False, stepdata=None):
+    def __init__(self, step_id, repeating=False, kwargs=None, stepdata=None):
         """Initialize a paideia.Step object"""
         db = current.db
         self.data = db.steps[step_id].as_dict() if not stepdata else stepdata
         self.repeating = False  # set to true if step already done today
         self.npc = None  # must wait since all steps in path init at once
         self.redirect_loc_id = None  # TODO: is this used?
+        self.kwargs = kwargs
 
     def get_id(self):
         """
@@ -834,8 +825,7 @@ class Step(object):
         else:
             return False
 
-    def get_prompt(self, location, npc, username, next_loc, new_tags, promoted,
-                   raw_prompt=None):
+    def get_prompt(self, location, npc, username, raw_prompt=None):
         """
         Return the prompt information for the step. In the Step base class
         this is a simple string. Before returning, though, any necessary
@@ -844,12 +834,16 @@ class Step(object):
         If the step cannot be performed in this location, this method returns
         the string 'redirect' so that the Walk.ask() method that called it can
         set a redirect block.
+
+        Extra data for block steps is passed via the 'kwargs' instance
+        variable which in turn comes (via StepFactory) from the 'kwargs'
+        argument at Block instantiation (called in turn by user.set_block).
+        Since user.set_block is ONLY called in Walk.ask(), these values are
+        always set in that top-level method.
         """
         raw_prompt = self.data['prompt'] if not raw_prompt else raw_prompt
         prompt = {'sid': self.get_id(),
-                  'prompt_text': self._make_replacements(raw_prompt, username,
-                                                         next_loc, new_tags,
-                                                         promoted),
+                  'prompt_text': self._make_replacements(raw_prompt, username),
                   'audio': self._get_prompt_audio(),
                   'widget_img': self._get_widget_image(),
                   'instructions': self._get_instructions(),
@@ -865,8 +859,7 @@ class Step(object):
 
         return prompt
 
-    def _make_replacements(self, raw_prompt, username, next_loc, new_tags,
-                           promoted, reps=None, appds=None):
+    def _make_replacements(self, raw_prompt, username, reps=None, appds=None):
         """
         Return the provided string with tokens replaced by personalized
         information for the current user.
@@ -972,14 +965,12 @@ class StepContinue(Step):
     """
     An abstract subclass of Step that adds a 'continue' button to the responder.
     """
-    def get_prompt(self, loc, npc, username, next_loc, new_tags, promoted):
+    def get_prompt(self, loc, npc, username):
         """
         Return the html form to allow the user to respond to the prompt for
         this step.
         """
-        prompt = super(StepContinue, self).get_prompt(loc, npc, username,
-                                                      next_loc, new_tags,
-                                                      promoted)
+        prompt = super(StepContinue, self).get_prompt(loc, npc, username)
         prompt['response_buttons'] = ['map', 'continue']
         return prompt
 
@@ -994,24 +985,23 @@ class StepRedirect(Step):
     specific location. Otherwise, the user receives a generic instruction to
     try "another location in town".
     '''
-    def get_prompt(self, loc, npc, username, next_loc, new_tags, promoted):
+    def get_prompt(self, loc, npc, username):
         """
         Return the html form to allow the user to respond to the prompt for
         this step.
         """
-        prompt = super(StepRedirect, self).get_prompt(loc, npc, username,
-                                                      next_loc, new_tags,
-                                                      promoted)
+        prompt = super(StepRedirect, self).get_prompt(loc, npc, username)
         prompt['response_buttons'] = ['map', 'continue']
         return prompt
 
-    def _make_replacements(self, raw_prompt, username,
-                           next_loc, new_tags, promoted):
+    def _make_replacements(self, raw_prompt, username):
         """
         Return the string for the step prompt with context-based information
         substituted for tokens framed by [[]].
         """
         db = current.db
+        kw = self.kwargs
+        next_loc = kw['next_loc'] if (kw and 'next_loc' in kw) else None
         if next_loc:
             next_loc_name = db.locations[next_loc]['readable']
         else:
@@ -1019,9 +1009,6 @@ class StepRedirect(Step):
         reps = {'[[next_loc]]': next_loc_name}
         new_string = super(StepRedirect, self)._make_replacements(raw_prompt,
                                                                   username,
-                                                                  next_loc,
-                                                                  new_tags,
-                                                                  promoted,
                                                                   reps=reps)
         return new_string
 
@@ -1030,16 +1017,16 @@ class StepQuotaReached(StepContinue, Step):
     '''
     A Step that tells the user s/he has completed the daily minimum # of steps.
     '''
-    def _make_replacements(self, raw_prompt, username,
-                           next_loc, new_tags, promoted):
+    def _make_replacements(self, raw_prompt, username):
         """
         Return the string for the step prompt with context-based information
         substituted for tokens framed by [[]].
         """
+        quota = self.kwargs['quota']  # TODO: actually put value in prompt
         reps = None
-        newstr = super(StepQuotaReached, self
-                       )._make_replacements(raw_prompt, username, next_loc,
-                                            new_tags, promoted, reps=reps)
+        newstr = super(StepQuotaReached, self)._make_replacements(raw_prompt,
+                                                                  username,
+                                                                  reps=reps)
         return newstr
 
 
@@ -1048,8 +1035,7 @@ class StepAwardBadges(StepContinue, Step):
     A Step that informs the user when s/he has earned new badges.
     '''
 
-    def _make_replacements(self, raw_prompt, username,
-                           next_loc, new_tags, promoted):
+    def _make_replacements(self, raw_prompt, username):
         """
         Return the string for the step prompt with context-based information
         substituted for tokens framed by [[]].
@@ -1058,6 +1044,8 @@ class StepAwardBadges(StepContinue, Step):
         appds = {}
         reps = {}
 
+        new_tags = self.kwargs['new_tags']
+        promoted = self.kwargs['promoted']
         prom_rep = ' '
         if promoted:
             flat_proms = [i for cat, lst in promoted.iteritems() for i in lst if lst]
@@ -1097,7 +1085,6 @@ class StepAwardBadges(StepContinue, Step):
         appds['[[new_tag_list]]'] = nt_rep
         newstr = super(StepAwardBadges, self
                        )._make_replacements(raw_prompt, username,
-                                            next_loc, new_tags, promoted,
                                             reps=reps, appds=appds)
         return newstr
 
@@ -1107,8 +1094,7 @@ class StepViewSlides(Step):
     A Step that informs the user when s/he needs to view more grammar slides.
     '''
 
-    def _make_replacements(self, raw_prompt, username,
-                           next_loc, new_tags, promoted):
+    def _make_replacements(self, raw_prompt, username):
         """
         Return the string for the step prompt with context-based information
         substituted for tokens framed by [[]].
@@ -1116,6 +1102,7 @@ class StepViewSlides(Step):
         new_tags value should be a list of tag id's as integers
         """
         db = current.db
+        new_tags = self.kwargs['new_tags']
         tags = db((db.tags.id == db.badges.tag) &
                 (db.tags.id.belongs(new_tags))).select().as_list()
 
@@ -1143,8 +1130,7 @@ class StepViewSlides(Step):
         # collect replacements
         appds = {'[[slide_list]]': slides}
         newstr = super(StepViewSlides, self
-                       )._make_replacements(raw_prompt, username, next_loc,
-                                            new_tags, promoted, appds=appds)
+                       )._make_replacements(raw_prompt, username, appds=appds)
         return newstr
 
 
@@ -1154,10 +1140,9 @@ class StepText(Step):
     that input. Handles only a single string response.
     """
 
-    def get_prompt(self, location, npc, username, next_loc, new_tags, promoted):
+    def get_prompt(self, location, npc, username):
         """x"""
-        prompt = super(StepText, self).get_prompt(location, npc, username,
-                                                  next_loc, new_tags, promoted)
+        prompt = super(StepText, self).get_prompt(location, npc, username)
         prompt['response_form'] = self._get_response_form()
         prompt['response_buttons'] = []
         return prompt
@@ -1387,6 +1372,7 @@ class Path(object):
                 self.step_for_prompt = next_step
                 return True
         except:
+            print traceback.format_exc(5)
             return False
 
     def end_prompt(self, stepid):
@@ -1714,6 +1700,10 @@ class User(object):
         """Return the first name (from db.auth_user) of the current user."""
         return self.name
 
+    def get_prev_npc(self):
+        """Return the id (from db.npcs) of the previously active npc."""
+        return self.prev_npc
+
     def check_for_blocks(self):
         """
         Check whether new block needed, then activate first block (if any).
@@ -1738,13 +1728,13 @@ class User(object):
         else:
             return None
 
-    def set_block(self, condition):
+    def set_block(self, condition, kwargs=None):
         """ Set a blocking condition on this Path object. """
         myblocks = [b.get_condition() for b in self.blocks]
 
         def _inner_set_block():
             if not condition in myblocks:
-                self.blocks.append(Block(condition))
+                self.blocks.append(Block(condition, kwargs=kwargs))
 
         if condition is 'new_tags':
             if not self.viewed_slides:
@@ -1811,6 +1801,12 @@ class User(object):
         self.loc = loc
         return self.prev_loc
 
+    def get_location(self):
+        """
+        Return a Location object for the user's current location.
+        """
+        return self.loc
+
     #def get_new_tags(self):
         #"""Return a list of tag ids newly introduced"""
         #return self.new_tags
@@ -1876,7 +1872,7 @@ class User(object):
                 if not choice:
                     choice = None
                     #FIXME: send_error('User', 'get_path', current.request)
-            self.path = path = Path(path_id=choice['id'])
+            self.path = Path(path_id=choice['id'])
 
         if len(self.completed_paths) >= self.quota \
                 and self.past_quota is False:
@@ -1886,7 +1882,7 @@ class User(object):
             # redirect block after initial redirect has been triggered
             self.blocks = [b for b in self.blocks
                            if not b.get_condition() is 'redirect']
-
+        path = self.path
         return (path, cat, redir, past_quota)
 
     def get_categories(self, user_id=None, rank=None, old_categories=None,
@@ -1910,7 +1906,7 @@ class User(object):
         if (self.cats_counter in range(0, 4)) and hasattr(self, 'categories') and self.categories:
             self.cats_counter += 1
             #print 'user.get_categories: no need for refresh yet - counter is', self.cats_counter
-            return True
+            return None, None
         else:
             print 'user.get_categories: need to recategorize'
             utcnow = datetime.datetime.utcnow() if not utcnow else utcnow
@@ -1932,7 +1928,6 @@ class User(object):
             c = Categorizer(rank, categories, tag_records, user_id,
                             utcnow=utcnow)
             cat_result = c.categorize_tags()
-            self.tag_records = cat_result['tag_records']
             self.rank = cat_result['tag_progress']['latest_new']
             self.tag_progress = cat_result['tag_progress']
             self.categories = cat_result['categories']
@@ -2396,11 +2391,12 @@ class Block(object):
         'empty response'
     """
 
-    def __init__(self, condition):
+    def __init__(self, condition, kwargs=None):
         """
         Initialize a new Block object
         """
         self.condition = condition
+        self.kwargs = kwargs
 
     def make_step(self, condition):
         """Create correct Step subclass and store as an instance variable."""
@@ -2412,7 +2408,8 @@ class Block(object):
                         'redirect': 9}
         step = db(db.steps.widget_type ==
                   step_classes[condition]).select(orderby='<random>').first()
-        mystep = StepFactory().get_instance(step_id=step['id'])
+        mystep = StepFactory().get_instance(step_id=step['id'],
+                                            kwargs=self.kwargs)
         return mystep
 
     def get_condition(self):
