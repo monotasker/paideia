@@ -28,7 +28,7 @@ else:
     {{# prompt/reply div=================================================}}
     <div class='npc prompt'>
         <p class='prompt-text'>{{=prompt_text}}</p>
-        {{if readable_long:
+        {{if 'readable_long' in globals():
             rdbl = UL(_class='readable_long')
             for r in readable_long:
                 rdbl.append(LI(r))
@@ -63,7 +63,7 @@ else:
             {{=img}}
         {{pass}}
         {{# hints popup for reply===========================================
-        if hints:
+        if 'hints' in globals() and hints:
             hint_list = UL()
             for h in hints:
                 hint_list.append(LI(h))
@@ -74,7 +74,7 @@ else:
             {{=hinter}}
         {{pass}}
         {{# instructions popup for prompt/reply=============================
-        if instructions:
+        if 'instructions' in globals() and instructions:
             ilist = UL(_class='prompt_instructions')
             for itext in instructions:
                 ilist.append(LI(itext))
@@ -87,7 +87,7 @@ else:
         {{pass}}
 
         {{# slides popup for prompt/reply===================================
-        if slidedecks:
+        if 'slidedecks' in globals() and slidedecks:
             decklist = UL(_class='prompt_slides')
             for did, dname in slidedecks.iteritems():
                 decklist.append(LI(A(dname, _href=URL('listing', 'slides.html',
@@ -98,7 +98,7 @@ else:
                            'id': 'Slides_btn'}
             s_pop = POPOVER().widget('slides', decklist, **slides_args)}}
             {{=s_pop}}
-        {{pass}}
+        {{pass }}
 
         {{# path counter for prompt/reply==================================}}
         <span class='path-counter progress_text'>
@@ -108,7 +108,7 @@ else:
 
     {{# responder div ========================================================}}
     <div class='responder'>
-        {{if response_form:}}
+        {{if 'response_form' in locals() and response_form:}}
             {{=response_form}}
         {{pass
 
@@ -141,7 +141,7 @@ else:
                  cid='page', _class='btn btn-success icon-map-marker back_to_map')}}
         {{pass}}
 
-        {{if bugreporter:}}
+        {{if bugreporter in globals() and bugreporter:}}
             {{=bmodal}}
         {{pass}}
     </div>
@@ -149,8 +149,8 @@ else:
 
 <script>
     {{if 'bg_image' in globals():}}
-    $('#page').css("background-image", "url({{=bg_image}})");
-    $('#page').css("background-size", "auto 100%");
+        $('#page').css("background-image", "url({{=bg_image}})");
+        $('#page').css("background-size", "auto 100%");
     {{pass}}
 
     $('.popover-trigger').each(function() {
