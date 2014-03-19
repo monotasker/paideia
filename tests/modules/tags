@@ -1,0 +1,117 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+TestBugReporter	test_paideia.py	/^class TestBugReporter():$/;"	c
+TestCategorizer	test_paideia.py	/^class TestCategorizer():$/;"	c
+TestLocation	test_paideia.py	/^class TestLocation():$/;"	c
+TestMultipleEvaluator	test_paideia.py	/^class TestMultipleEvaluator():$/;"	c
+TestNpc	test_paideia.py	/^class TestNpc():$/;"	c
+TestPath	test_paideia.py	/^class TestPath():$/;"	c
+TestPathChooser	test_paideia.py	/^class TestPathChooser():$/;"	c
+TestStats	test_paideia_stats.py	/^class TestStats():$/;"	c
+TestStep	test_paideia.py	/^class TestStep():$/;"	c
+TestStepEvaluator	test_paideia.py	/^class TestStepEvaluator():$/;"	c
+TestUser	test_paideia.py	/^class TestUser(object):$/;"	c
+TestWalk	test_paideia.py	/^class TestWalk():$/;"	c
+bg_imgs	test_paideia.py	/^def bg_imgs(db):$/;"	f
+dt	test_paideia.py	/^def dt(string):$/;"	f
+global_run_TestBugReporter	test_paideia.py	/^global_run_TestBugReporter = False$/;"	v
+global_run_TestCategorizer	test_paideia.py	/^global_run_TestCategorizer = False$/;"	v
+global_run_TestLocation	test_paideia.py	/^global_run_TestLocation = False$/;"	v
+global_run_TestMultipleEvaluator	test_paideia.py	/^global_run_TestMultipleEvaluator = False$/;"	v
+global_run_TestNpc	test_paideia.py	/^global_run_TestNpc = False$/;"	v
+global_run_TestPath	test_paideia.py	/^global_run_TestPath = False$/;"	v
+global_run_TestPathChooser	test_paideia.py	/^global_run_TestPathChooser = False$/;"	v
+global_run_TestStep	test_paideia.py	/^global_run_TestStep = False$/;"	v
+global_run_TestStepEvaluator	test_paideia.py	/^global_run_TestStepEvaluator = False$/;"	v
+global_run_TestUser	test_paideia.py	/^global_run_TestUser = False$/;"	v
+global_run_TestWalk	test_paideia.py	/^global_run_TestWalk = False$/;"	v
+global_runall	test_paideia.py	/^global_runall = False$/;"	v
+myMultipleEvaluator	test_paideia.py	/^def myMultipleEvaluator(mysteps):$/;"	f
+myStats	test_paideia_stats.py	/^def myStats(user_login, web2py):  # request$/;"	f
+myStepEvaluator	test_paideia.py	/^def myStepEvaluator(mysteps):$/;"	f
+myStepMultiple	test_paideia.py	/^def myStepMultiple(mycases, request, db):$/;"	f
+myblock	test_paideia.py	/^def myblock(myblocks):$/;"	f
+myblocks	test_paideia.py	/^def myblocks(request):$/;"	f
+mycases	test_paideia.py	/^def mycases(casenum, user_login, db):$/;"	f
+mycategorizer	test_paideia.py	/^def mycategorizer(mycases):$/;"	f
+myloc	test_paideia.py	/^def myloc(db):$/;"	f
+myloc_synagogue	test_paideia.py	/^def myloc_synagogue(db):$/;"	f
+mynpc	test_paideia.py	/^def mynpc(db):$/;"	f
+mynpc_stephanos	test_paideia.py	/^def mynpc_stephanos(db):$/;"	f
+mynpcchooser	test_paideia.py	/^def mynpcchooser(mycases, db):$/;"	f
+mypath	test_paideia.py	/^def mypath(pathid, db):$/;"	f
+mystep	test_paideia.py	/^def mystep(stepid, mysteps):$/;"	f
+mysteps	test_paideia.py	/^def mysteps():$/;"	f
+myuser	test_paideia.py	/^def myuser(tag_progress, tag_records, user_login, db):$/;"	f
+mywalk	test_paideia.py	/^def mywalk(mycases, user_login, db):$/;"	f
+npc_data	test_paideia.py	/^def npc_data(npc_imgs):$/;"	f
+npc_imgs	test_paideia.py	/^def npc_imgs(db):$/;"	f
+pytestmark	test_paideia.py	/^    pytestmark = pytest.mark.skipif('global_runall is False '$/;"	v	class:TestPath
+test_active_tags	test_paideia_stats.py	/^    def test_active_tags(self, user_login, myStats, web2py):$/;"	m	class:TestStats
+test_add_log_data	test_paideia_stats.py	/^    def test_add_log_data(self, myStats, web2py, user_login):$/;"	m	class:TestStats
+test_add_progress_data	test_paideia_stats.py	/^    def test_add_progress_data(self, myStats, web2py, user_login):$/;"	m	class:TestStats
+test_add_promotion_data	test_paideia_stats.py	/^    def test_add_promotion_data(self, myStats, web2py, user_login):$/;"	m	class:TestStats
+test_add_tag_data	test_paideia_stats.py	/^    def test_add_tag_data(self, myStats, web2py, user_login):$/;"	m	class:TestStats
+test_bugreporter_get_reporter	test_paideia.py	/^    def test_bugreporter_get_reporter(self):$/;"	m	class:TestBugReporter
+test_categorizer_add_secondary_right	test_paideia.py	/^    def test_categorizer_add_secondary_right(self, casename, rank, catsin,$/;"	m	class:TestCategorizer
+test_categorizer_add_untried_tags	test_paideia.py	/^    def test_categorizer_add_untried_tags(self,  casename, rank, catsin,$/;"	m	class:TestCategorizer
+test_categorizer_categorize_tags	test_paideia.py	/^    def test_categorizer_categorize_tags(self, casename, rank, catsin,$/;"	m	class:TestCategorizer
+test_categorizer_core_algorithm	test_paideia.py	/^    def test_categorizer_core_algorithm(self, casename, rank, catsin, catsout,$/;"	m	class:TestCategorizer
+test_categorizer_find_cat_changes	test_paideia.py	/^    def test_categorizer_find_cat_changes(self, casename, rank, oldcats, catsin,$/;"	m	class:TestCategorizer
+test_categorizer_introduce_tags	test_paideia.py	/^    def test_categorizer_introduce_tags(self, casename, rank, catsin, tagrecs,$/;"	m	class:TestCategorizer
+test_categorizer_remove_dups	test_paideia.py	/^    def test_categorizer_remove_dups(self, casename, rank, catsin, tagrecs,$/;"	m	class:TestCategorizer
+test_local	test_paideia_stats.py	/^    def test_local(self, myStats):$/;"	m	class:TestStats
+test_location_get_alias	test_paideia.py	/^    def test_location_get_alias(self, myloc):$/;"	m	class:TestLocation
+test_location_get_bg	test_paideia.py	/^    def test_location_get_bg(self, myloc):$/;"	m	class:TestLocation
+test_location_get_id	test_paideia.py	/^    def test_location_get_id(self, myloc):$/;"	m	class:TestLocation
+test_location_get_name	test_paideia.py	/^    def test_location_get_name(self, myloc):$/;"	m	class:TestLocation
+test_location_get_readable	test_paideia.py	/^    def test_location_get_readable(self, myloc):$/;"	m	class:TestLocation
+test_make_logs_into_weekstats	test_paideia_stats.py	/^    def test_make_logs_into_weekstats(self, myStats, web2py):$/;"	m	class:TestStats
+test_monthcal	test_paideia_stats.py	/^    def test_monthcal(self, myStats):$/;"	m	class:TestStats
+test_multipleevaluator_get_eval	test_paideia.py	/^    def test_multipleevaluator_get_eval(self, stepid, mysteps, myMultipleEvaluator):$/;"	m	class:TestMultipleEvaluator
+test_npc_get_description	test_paideia.py	/^    def test_npc_get_description(self, mynpc):$/;"	m	class:TestNpc
+test_npc_get_id	test_paideia.py	/^    def test_npc_get_id(self, mynpc):$/;"	m	class:TestNpc
+test_npc_get_image	test_paideia.py	/^    def test_npc_get_image(self, mynpc):$/;"	m	class:TestNpc
+test_npc_get_locations	test_paideia.py	/^    def test_npc_get_locations(self, mynpc):$/;"	m	class:TestNpc
+test_npc_get_name	test_paideia.py	/^    def test_npc_get_name(self, mynpc):$/;"	m	class:TestNpc
+test_path_complete_step	test_paideia.py	/^    def test_path_complete_step(self):$/;"	m	class:TestPath
+test_path_end_prompt	test_paideia.py	/^    def test_path_end_prompt(self):$/;"	m	class:TestPath
+test_path_get_id	test_paideia.py	/^    def test_path_get_id(self, pathid, db):$/;"	m	class:TestPath
+test_path_get_step_for_prompt	test_paideia.py	/^    def test_path_get_step_for_prompt(self, casenum, locid, localias, pathid,$/;"	m	class:TestPath
+test_path_get_step_for_prompt_redirect	test_paideia.py	/^    def test_path_get_step_for_prompt_redirect(self, casenum, locid, localias,$/;"	m	class:TestPath
+test_path_get_step_for_reply	test_paideia.py	/^    def test_path_get_step_for_reply(self, pathid, stepid, stepsleft, locs,$/;"	m	class:TestPath
+test_path_get_steps	test_paideia.py	/^    def test_path_get_steps(self, pathid, steps, mysteps, db):$/;"	m	class:TestPath
+test_path_prepare_for_prompt	test_paideia.py	/^    def test_path_prepare_for_prompt(self, pathid, firststep, stepsleft, db):$/;"	m	class:TestPath
+test_path_reset_steps	test_paideia.py	/^    def test_path_reset_steps(self):$/;"	m	class:TestPath
+test_pathchooser_choose	test_paideia.py	/^    def test_pathchooser_choose(self, locid, completed, tpout, redirect,$/;"	m	class:TestPathChooser
+test_pathchooser_choose_from_cat	test_paideia.py	/^    def test_pathchooser_choose_from_cat(self, locid, completed, tpout,$/;"	m	class:TestPathChooser
+test_pathchooser_order_cats	test_paideia.py	/^    def test_pathchooser_order_cats(self):$/;"	m	class:TestPathChooser
+test_pathchooser_paths_by_category	test_paideia.py	/^    def test_pathchooser_paths_by_category(self, locid, completed, tpout,$/;"	m	class:TestPathChooser
+test_step_get_id	test_paideia.py	/^    def test_step_get_id(self, stepid, mysteps):$/;"	m	class:TestStep
+test_step_get_instructions	test_paideia.py	/^    def test_step_get_instructions(self, stepid, mysteps):$/;"	m	class:TestStep
+test_step_get_npc	test_paideia.py	/^    def test_step_get_npc(self, caseid, stepid, db, mysteps,$/;"	m	class:TestStep
+test_step_get_prompt	test_paideia.py	/^    def test_step_get_prompt(self, caseid, stepid, db, mysteps,$/;"	m	class:TestStep
+test_step_get_readable	test_paideia.py	/^    def test_step_get_readable(self, stepid, mysteps):$/;"	m	class:TestStep
+test_step_get_reply	test_paideia.py	/^    def test_step_get_reply(self, stepid, caseid, mysteps, user_login,$/;"	m	class:TestStep
+test_step_get_tags	test_paideia.py	/^    def test_step_get_tags(self, stepid, mysteps):$/;"	m	class:TestStep
+test_step_make_replacements	test_paideia.py	/^    def test_step_make_replacements(self, caseid, db, stepid, mysteps, user_login):$/;"	m	class:TestStep
+test_stepevaluator_get_eval	test_paideia.py	/^    def test_stepevaluator_get_eval(self, stepid, mysteps, myStepEvaluator):$/;"	m	class:TestStepEvaluator
+test_user_check_for_blocks	test_paideia.py	/^    def test_user_check_for_blocks(self, casenum, theblocks, user_login, db):$/;"	m	class:TestUser
+test_user_complete_path	test_paideia.py	/^    def test_user_complete_path(self, myuser):$/;"	m	class:TestUser
+test_user_get_categories	test_paideia.py	/^    def test_user_get_categories(self, myuser):$/;"	m	class:TestUser
+test_user_get_id	test_paideia.py	/^    def test_user_get_id(self, casenum, user_login, db):$/;"	m	class:TestUser
+test_user_get_old_categories	test_paideia.py	/^    def test_user_get_old_categories(self, myuser):$/;"	m	class:TestUser
+test_user_get_path	test_paideia.py	/^    def test_user_get_path(self, myuser, db):$/;"	m	class:TestUser
+test_user_is_stale	test_paideia.py	/^    def test_user_is_stale(self, start, expected, user_login, db):$/;"	m	class:TestUser
+test_user_set_block	test_paideia.py	/^    def test_user_set_block(self, condition, casenum, viewedslides,$/;"	m	class:TestUser
+test_walk_ask	test_paideia.py	/^    def test_walk_ask(self, mywalk):$/;"	m	class:TestWalk
+test_walk_get_user	test_paideia.py	/^    def test_walk_get_user(self, mywalk):$/;"	m	class:TestWalk
+test_walk_map	test_paideia.py	/^    def test_walk_map(self, mywalk):$/;"	m	class:TestWalk
+test_walk_record_cats	test_paideia.py	/^    def test_walk_record_cats(self, mywalk, db):$/;"	m	class:TestWalk
+test_walk_record_step	test_paideia.py	/^    def test_walk_record_step(self, mywalk, db):$/;"	m	class:TestWalk
+test_walk_reply	test_paideia.py	/^    def test_walk_reply(self, mywalk):$/;"	m	class:TestWalk
+test_walk_store_user	test_paideia.py	/^    def test_walk_store_user(self, mywalk):$/;"	m	class:TestWalk
