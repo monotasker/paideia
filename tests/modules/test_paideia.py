@@ -34,7 +34,7 @@ global_run_TestStep = False
 global_run_TestStepEvaluator = False
 global_run_TestMultipleEvaluator = False
 global_run_TestPath = False
-global_run_TestUser = False
+global_run_TestUser = True
 global_run_TestCategorizer = False
 global_run_TestWalk = False
 global_run_TestPathChooser = False
@@ -1543,67 +1543,90 @@ class TestPath():
 class TestUser(object):
     """unit testing class for the paideia.User class"""
 
-    @pytest.mark.skipif(True, reason='just because')
-    @pytest.mark.parametrize('casenum', ['case1'])
-    def test_user_get_id(self, casenum, user_login, db):
+    @pytest.mark.skipif(False, reason='just because')
+    def test_user_get_id(self):
         """
         Unit test for User.get_id() method.
         """
-        case = mycases(casenum, user_login, db)
-        tag_progress = case['tag_progress']
-        tag_records = case['tag_records']
-        actualuser = myuser(tag_progress, tag_records, user_login, db)
+        userdata = {'first_name': 'Homer',
+                    'id': 1,
+                    'time_zone': 'America/Toronto'}
+        tagprog = {'latest_new': 2,
+                 'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                 'cat3': [], 'cat4': [],
+                 'rev1': [], 'rev2': [61],
+                 'rev3': [], 'rev4': []}
+        tagrecs = [{'name': 1,
+                    'tag': 1,
+                    'tlast_right': dt('2013-01-29'),
+                    'tlast_wrong': dt('2013-01-29'),
+                    'times_right': 1,
+                    'times_wrong': 1,
+                    'secondary_right': None}]
+        actual = User(userdata, tagrecs, tagprog)
+        actual.get_id() == 1
 
-        actualid = actualuser.get_id()
-        expected = db((db.auth_user.first_name == 'Homer') &
-                      (db.auth_user.last_name == 'Simpson')).select()
-        assert len(expected) == 1
-        assert actualid == expected.first().id
-
-    @pytest.mark.skipif(True, reason='just because')
-    @pytest.mark.parametrize('condition,casenum,viewedslides,reportedbadges',
-                             [('redirect', 'case1', 0, 0),
-                              ('view_slides', 'case1', 0, 0),
-                              ('view_slides', 'case1', 1, 0),
-                              ('new_tags', 'case1', 0, 0),
-                              ('new_tags', 'case1', 0, 1),
-                              ('promoted', 'case1', 0, 0),
-                              ('promoted', 'case1', 0, 1),
-                              ('quota_reached', 'case1', 0, 0)])
-    def test_user_set_block(self, condition, casenum, viewedslides,
-                            reportedbadges, user_login, db):
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('condition,viewedslides,reportedbadges,expected',
+                             [('redirect', False, False,
+                               ['redirect']),
+                              ('view_slides', False, False,
+                               ['view_slides']),
+                              ('view_slides', True, False,
+                               []),
+                              ('new_tags', False, False,
+                               ['new_tags']),
+                              ('new_tags', False, True,
+                               []),
+                              ('quota_reached', False, False,
+                               ['quota_reached']),
+                              ('quota_reached', True, True,
+                               ['quota_reached'])
+                              ])
+    def test_user_set_block(self, condition, viewedslides, reportedbadges,
+                            expected):
         """
         Unit test for User.set_block() method.
         """
-        case = mycases(casenum, user_login, db)
-        user = myuser(case['tag_progress'], case['tag_records'],
-                             user_login, db)
+        userdata = {'first_name': 'Homer',
+                    'id': 1,
+                    'time_zone': 'America/Toronto'}
+        tagprog = {'latest_new': 2,
+                 'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                 'cat3': [], 'cat4': [],
+                 'rev1': [], 'rev2': [61],
+                 'rev3': [], 'rev4': []}
+        tagrecs = [{'name': 1,
+                    'tag': 1,
+                    'tlast_right': dt('2013-01-29'),
+                    'tlast_wrong': dt('2013-01-29'),
+                    'times_right': 1,
+                    'times_wrong': 1,
+                    'secondary_right': None}]
+        user = User(userdata, tagrecs, tagprog)
+
+        # set up initial state
+        user.blocks = []
         user.viewed_slides = viewedslides
         user.reported_badges = reportedbadges
-        user.quota_reached = 0
-        startlen = len(user.blocks)
-        startconditions = [u.get_condition() for u in user.blocks]
-        assert user.set_block(condition)
-        newlen = len(user.blocks)
-        if (viewedslides and condition == 'view_slides') or \
-           (reportedbadges and condition == 'new_tags') or \
-           (reportedbadges and condition == 'promoted'):
-            print 'blocks are', user.blocks
-            assert startlen == newlen
-            assert [u.get_condition() for u in user.blocks] == startconditions
-        else:
-            print 'blocks are', user.blocks
-            assert all([isinstance(b, Block) for b in user.blocks])
-            assert startlen == newlen - 1
-            assert user.blocks[-1].get_condition() == condition
+        user.quota_reached = False  # TODO
 
-    @pytest.mark.skipif(True, reason='just because')
-    @pytest.mark.parametrize('casenum,theblocks',
-                             [('case3', ['new_tags']),
-                              ('case3', []),
-                              ('case3', ['new_tags', 'redirect']),
+        print 'starting blocks:', [u.get_condition() for u in user.blocks]
+        assert user.set_block(condition)
+        endconditions = [u.get_condition() for u in user.blocks]
+        print 'endconditions:', endconditions
+
+        assert endconditions == expected
+        assert len(user.blocks) == len(expected)
+        assert all([isinstance(b, Block) for b in user.blocks])
+
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('theblocks',
+                             [(['new_tags']),
+                              ([]),
+                              (['new_tags', 'redirect'])
                               ])
-    def test_user_check_for_blocks(self, casenum, theblocks, user_login, db):
+    def test_user_check_for_blocks(self, theblocks):
         """
         unit test for Path._check_for_blocks()
 
@@ -1611,67 +1634,158 @@ class TestUser(object):
         path, it will return a blocking step for each test case (even if that
         case would not normally have a block set.)
         """
-        # TODO: there's now some block-checking logic in the method. Ideally
-        # that should be isolated in its own method.
-        case = mycases(casenum, user_login, db)
-        user = myuser(case['tag_progress'], case['tag_records'],
-                             user_login, db)
-        user.blocks = [Block(c) for c in theblocks]
+        userdata = {'first_name': 'Homer',
+                    'id': 1,
+                    'time_zone': 'America/Toronto'}
+        tagprog = {'latest_new': 2,
+                 'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                 'cat3': [], 'cat4': [],
+                 'rev1': [], 'rev2': [61],
+                 'rev3': [], 'rev4': []}
+        tagrecs = [{'name': 1,
+                    'tag': 1,
+                    'tlast_right': dt('2013-01-29'),
+                    'tlast_wrong': dt('2013-01-29'),
+                    'times_right': 1,
+                    'times_wrong': 1,
+                    'secondary_right': None}]
+        myblocks = [Block(b) for b in theblocks]
+        user = User(userdata, tagrecs, tagprog, myblocks)
         startlen = len(theblocks)
 
         actual_return = user.check_for_blocks()
-        actual_property = user.blocks
+        actual_prop = user.blocks
+
         if theblocks:
-            assert len(actual_property) == startlen - 1
-            assert all(isinstance(b, Block) for b in actual_property)
+            assert len(actual_prop) == startlen - 1
+            assert all([isinstance(b, Block) for b in actual_prop])
             assert isinstance(actual_return, Block)
+            assert actual_return.get_condition() == theblocks[0]
+            if len(theblocks) > 1:
+                assert actual_prop[0].get_condition() == theblocks[1]
+            else:
+                assert actual_prop == []
         else:
-            assert len(actual_property) == 0
-            assert actual_property == []
+            assert len(actual_prop) == 0
+            assert actual_prop == []
             assert actual_return is None
 
-    @pytest.mark.skipif(True, reason='just because')
+    @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('start,expected',
                              [(datetime.datetime(2013, 01, 02, 9, 0, 0), False),
                               (datetime.datetime(2013, 01, 02, 9, 0, 0), False),
                               (datetime.datetime(2013, 01, 02, 3, 0, 0), True),
                               (datetime.datetime(2012, 12, 29, 14, 0, 0), True)
                               ])
-    def test_user_is_stale(self, start, expected, user_login, db):
+    def test_user_is_stale(self, start, expected, db):
         """
         Unit test for User.is_stale() method.
         """
         now = datetime.datetime(2013, 01, 02, 14, 0, 0)
-        tzn = 'America/Toronto'
-        case = mycases('case1', user_login, db)
-        user = myuser(case['tag_progress'], case['tag_records'], user_login, db)
-        actual = user.is_stale(now=now, start=start, time_zone=tzn, db=db)
+        userdata = {'first_name': 'Homer',
+                    'id': 1,
+                    'time_zone': 'America/Toronto'}
+        tagprog = {'latest_new': 2,
+                 'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                 'cat3': [], 'cat4': [],
+                 'rev1': [], 'rev2': [61],
+                 'rev3': [], 'rev4': []}
+        tagrecs = [{'name': 1,
+                    'tag': 1,
+                    'tlast_right': dt('2013-01-29'),
+                    'tlast_wrong': dt('2013-01-29'),
+                    'times_right': 1,
+                    'times_wrong': 1,
+                    'secondary_right': None}]
+        user = User(userdata, tagrecs, tagprog)
+
+        actual = user.is_stale(now=now, start=start, db=db)
         assert actual == expected
 
-    @pytest.mark.skipif(True, reason='just because')
-    def test_user_get_path(self, myuser, db):
-        user = myuser['user']
-        case = myuser['casedata']
-        if user.cats_counter < 5:
-            tags_due = [t for cat in case['categories_start'].values() for t in cat]
-        elif user.cats_counter >= 5:
-            tags_due = [t for cat in case['categories_out'].values() for t in cat]
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('locid,completed,tpout,trecs,redirect,expected',
+                             [(6,  # shop_of_alexander (only 1 untried here)
+                               [2, 3, 5, 8, 63, 95, 96, 97, 99, 102, 256, 40,
+                                9, 410, 411, 412, 413, 414, 415, 416, 417, 418,
+                                419, 420, 421, 422, 423, 444, 445],
+                               {'latest_new': 1,
+                                'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [61], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                               [{'name': 1,
+                                 'tag': 1,
+                                 'tlast_right': dt('2013-01-29'),
+                                 'tlast_wrong': dt('2013-01-29'),
+                                 'times_right': 1,
+                                 'times_wrong': 1,
+                                 'secondary_right': None}],
+                               False,
+                               [1]  # only one left with tag
+                               ),
+                              (11,  # synagogue [all in loc 11 completed]
+                               [1, 2, 3, 8, 95, 96, 97, 99, 102],
+                               {'latest_new': 1,
+                                'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [61], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                               [{'name': 1,
+                                 'tag': 61,
+                                 'tlast_right': dt('2013-01-29'),
+                                 'tlast_wrong': dt('2013-01-27'),
+                                 'times_right': 20,
+                                 'times_wrong': 10,
+                                 'secondary_right': []}],
+                                True,
+                                [99, 97, 102, 2, 1, 3, 95, 8, 96]
+                               ),
+                              #(8,  # agora (no redirect, new here)
+                               #[17, 98, 15, 208, 12, 16, 34, 11, 23, 4, 9, 18],
+                               #{'latest_new': 2,
+                                #'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                                #'cat3': [], 'cat4': [],
+                                #'rev1': [], 'rev2': [61],
+                                #'rev3': [], 'rev4': []},
+                                #False,
+                               #[7, 14, 100, 35, 19, 103, 21, 97, 13, 261, 101]
+                               #),
+                              #(8,  # agora (all for tags completed, repeat here)
+                               #[4, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
+                                #19, 21, 22, 23, 34, 35, 45, 97, 98, 100, 101,
+                                #103, 120, 129, 139, 141, 149, 152, 161, 167,
+                                #176, 184, 190, 208, 222, 225, 228, 231, 236,
+                                #247, 255, 257, 261, 277, 333, 334, 366, 424,
+                                #425, 426, 427, 428, 429, 430, 431, 433, 434,
+                                #435, 436, 437, 439, 440, 441, 444, 445],
+                               #{'latest_new': 2,
+                                #'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                                #'cat3': [], 'cat4': [],
+                                #'rev1': [], 'rev2': [61],
+                                #'rev3': [], 'rev4': []},
+                                #False,
+                               #[101, 35, 34, 23, 16, 261, 15, 21, 208, 100,
+                                #17, 14, 9, 7, 18, 11, 98, 12, 4, 19, 103, 13,
+                                #97]  # with tags already completed here (repeat)
+                               #),
+                              ])
+    def test_user_get_path(self, locid, completed, tpout, trecs,
+                           redirect, expected, db):
+        """
+        Unit testing method for User.get_path().
+        """
+        userdata = {'first_name': 'Homer',
+                    'id': 1,
+                    'time_zone': 'America/Toronto'}
+        user = User(userdata, trecs, tpout)
 
-        path_rows = db(db.paths.id > 0
-                       ).select().find(lambda row:
-                                       [t for t in row.tags if t in tags_due]
-                                       and
-                                       db.steps(row.steps[0]).status != 2
-                                       and
-                                       db.steps(row.steps[0]).locations
-                                       and
-                                       [l for l in db.steps(row.steps[0]).locations
-                                        if l == case['loc'].get_id()])
-        expected_paths = [p.id for p in path_rows]
-        actual = user.get_path(case['loc'])
-        assert actual.get_id() in expected_paths
+        actual, acat, aredir, apastq = user.get_path(Location(db.locations(locid).loc_alias))
+        assert actual.get_id() in expected
         assert isinstance(actual, Path)
         assert isinstance(actual.steps[0], Step)
+        assert acat in range(1, 5)
+        assert aredir is None
+        assert apastq is None
 
     @pytest.mark.skipif(True, reason='just because')
     def test_user_get_categories(self, myuser):
