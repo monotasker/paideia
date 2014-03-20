@@ -811,15 +811,17 @@ class Step(object):
 
         If this step requires no such audio, return None
         """
-        if not self.data['prompt_audio'] in [1, None]:  # TODO: magic number
+        if not self.data['prompt_audio'] in [0, 1, None]:  # TODO: magic number
+            print 'prompt_audio is:', self.data['prompt_audio']
             db = current.db
-            aud_row = db.audio[self.data['prompt_audio']]
+            aud_row = db.audio(self.data['prompt_audio'])
+            print 'aud_row is:', aud_row
             audio = {'title': aud_row['title'],
                      'mp3': aud_row['clip'],
                      'ogg': aud_row['clip_ogg'] if aud_row['clip_ogg'] else None}
             return audio
         else:
-            return False
+            return None
 
     def get_prompt(self, location, npc, username, raw_prompt=None):
         """
@@ -1262,7 +1264,9 @@ class StepEvaluator(object):
             request = current.request
             user_response = request.vars['response']
         user_response = user_response.strip()
-        responses = self.responses
+        responses = {k: r for k, r in self.responses.iteritems()
+                     if r and r != 'null'}
+        print responses
         # Compare the student's response to the regular expressions
         try:
             if re.match(responses['response1'], user_response, re.I | re.U):
@@ -1295,6 +1299,7 @@ class StepEvaluator(object):
 
         # Handle errors if the student's response cannot be evaluated
         except re.error:
+            # FIXME: is there still a view for this?
             redirect(URL('index', args=['error', 'regex']))
             reply = 'Oops! I seem to have encountered an error in this step.'
 
@@ -2227,7 +2232,7 @@ class Categorizer(object):
                  or
                  ((self._get_avg(record['tag']) >= 0.8)  # avg score for week >= 0.8
                   and (rdur <= datetime.timedelta(days=30))  # right in past 30 days
-                 ))):
+                  ))):
                 # cat3? ==================================================
                 if rwdur.days >= 14:
                     # cat4? ==============================================
