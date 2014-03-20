@@ -369,8 +369,28 @@ class Walk(object):
         else:  # auth.user_id != uid because shadowing another user
             return False
 
+    def _update_tag_secondary(self, tag, oldrec, user_id):
+        """
+        Update the 'secondary_right' field of a tag record.
+        """
+        now = datetime.datetime.utcnow()
+        db = current.db
+        sec_right = [now]  # default
+        if len(oldrec) and oldrec[0]:
+            sec_right = oldrec[0]['secondary_right']
+            try:
+                sec_right.append(now)
+            except AttributeError:  # because secondary_right is None
+                sec_right = [now]  # default
+
+        condition = {'tag': tag, 'name': user_id}
+        tagrec = db.tag_records.update_or_insert(condition,
+                                                 tag=tag,
+                                                 secondary_right=sec_right)
+        return tagrec
+
     def _update_tag_record(self, tag, oldrec, user_id, tright, twrong,
-                           got_right, primary=True):
+                           got_right):
         """
         """
         now = datetime.datetime.utcnow()
@@ -381,40 +401,27 @@ class Walk(object):
             otright = oldrec[0]['times_right']
             otwrong = oldrec[0]['times_wrong']
 
-            if primary:
-                for fld in [(tright, otright), (twrong, otwrong)]:
-                    try:  # FIXME: 1000 hack for bad data
-                        fld[0] = (fld[0] + fld[1]) if fld[1] <= 1000 else 1000
-                    except TypeError:  # if otright or otwrong are None
-                        pass
-                if got_right:
-                    tlright = now
-                else:
-                    tlwrong = now
-            elif got_right:
-                sec_right = [now]  # default
-                if len(oldrec) and oldrec[0]:
-                    sec_right = oldrec[0]['secondary_right']
-                    try:
-                        sec_right.append(now)
-                    except AttributeError:  # because secondary_right is None
-                        sec_right = [now]  # default
-        else:  # if no record, set both to now as initial baseline
-            if primary:
-                tlwrong = now
+            for fld in [(tright, otright), (twrong, otwrong)]:
+                try:  # FIXME: 1000 hack for bad data
+                    fld[0] = (fld[0] + fld[1]) if fld[1] <= 1000 else 1000
+                except TypeError:  # if otright or otwrong are None
+                    pass
+            if got_right:
                 tlright = now
-            elif got_right:
-                sec_right = [now]
+            else:
+                tlwrong = now
+        else:  # if no record, set both to now as initial baseline
+            tlwrong = now
+            tlright = now
 
         condition = {'tag': tag, 'name': user_id}
-        db.tag_records.update_or_insert(condition,
-                                        tag=tag,
-                                        times_right=tright,
-                                        times_wrong=twrong,
-                                        tlast_right=tlright,
-                                        tlast_wrong=tlwrong,
-                                        secondary_right=sec_right)
-        return True
+        tagrec = db.tag_records.update_or_insert(condition,
+                                                 tag=tag,
+                                                 times_right=tright,
+                                                 times_wrong=twrong,
+                                                 tlast_right=tlright,
+                                                 tlast_wrong=tlwrong)
+        return tagrec
 
     def _record_step(self, user_id, step_id, path_id, score, raw_tright,
                      raw_twrong, old_trecs, taglist, response_string):
@@ -447,13 +454,12 @@ class Walk(object):
             oldrec = [r for r in old_trecs
                       if r['tag'] == t] if old_trecs else None
             self._update_tag_record(t, oldrec, user_id, raw_tright, raw_twrong,
-                                    got_right, primary=True)
+                                    got_right)
         if got_right and ('secondary' in taglist.keys()):
             for t in taglist['secondary']:
                 oldrec = [r for r in old_trecs
                         if r['tag'] == t] if old_trecs else None
-                self._update_tag_record(t, oldrec, user_id, raw_tright,
-                                        raw_twrong, got_right, primary=False)
+                self._update_tag_secondary(t, oldrec, user_id)
 
         log_args = {'name': user_id,
                     'step': step_id,
