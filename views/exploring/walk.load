@@ -47,7 +47,7 @@ else:
                 "Sorry, your browser doesn\'t support the audio element"
                 <source src="{{=URL('default', 'download',
                                     args=[audio['mp3']])}}" type='audio/mp3' />
-                {{if audio_ogg:}}
+                {{if 'audio_ogg' in globals() and audio_ogg:}}
                     <source src="{{=URL('default', 'download',
                                         args=['ogg'])}}" type='audio/ogg' />
                 {{pass}}
