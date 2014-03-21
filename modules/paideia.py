@@ -174,7 +174,7 @@ class Walk(object):
         user.path = None
         self._store_user(user)
 
-    def ask(self, localias=None, path=None, repeat=None,
+    def ask(self, localias, path=None, repeat=None,
             step=None, set_blocks=None, recategorize=None):
         """
         Return the information necessary to initiate a step interaction.
