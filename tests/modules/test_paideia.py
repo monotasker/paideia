@@ -14,7 +14,7 @@ from paideia import Npc, Location, User, PathChooser, Path, Categorizer, Walk
 from paideia import StepFactory, StepText, StepMultiple, NpcChooser, Step
 from paideia import StepRedirect, StepViewSlides, StepAwardBadges
 from paideia import StepEvaluator, MultipleEvaluator, StepQuotaReached
-from paideia import Block, BugReporter
+from paideia import Block, BugReporter, Map
 from gluon import current, IMG
 
 import datetime
@@ -36,6 +36,7 @@ global_run_TestMultipleEvaluator = False
 global_run_TestPath = False
 global_run_TestUser = True
 global_run_TestCategorizer = False
+global_run_TestMap = False
 global_run_TestWalk = False
 global_run_TestPathChooser = False
 global_run_TestBugReporter = False
@@ -2533,6 +2534,67 @@ class TestCategorizer():
 
 
 @pytest.mark.skipif('not global_runall '
+                    'and not global_run_TestMap')
+class TestMap():
+    """
+    A unit testing class for the paideia.Map class.
+    """
+    def test_map_show(self):
+        """Unit test for paideia.Walk._get_user()"""
+        expected = {'map_image': '/paideia/static/images/town_map.svg',
+                    'locations': [{'loc_alias': 'None',
+                                'bg_image': 8,
+                                'id': 3},
+                                {'loc_alias': 'domus_A',
+                                'bg_image': 8,
+                                'id': 1},
+                                {'loc_alias': '',
+                                'bg_image': 8,
+                                'id': 2},
+                                {'loc_alias': None,
+                                'bg_image': None,
+                                'id': 4},
+                                {'loc_alias': None,
+                                'bg_image': None,
+                                'id': 12},
+                                {'loc_alias': 'bath',
+                                'bg_image': 17,
+                                'id': 13},
+                                {'loc_alias': 'gymnasion',
+                                'bg_image': 113,
+                                'id': 14},
+                                {'loc_alias': 'shop_of_alexander',
+                                'bg_image': 16,
+                                'id': 6},
+                                {'loc_alias': 'ne_stoa',
+                                'bg_image': 18,
+                                'id': 7},
+                                {'loc_alias': 'agora',
+                                'bg_image': 16,
+                                'id': 8},
+                                {'loc_alias': 'synagogue',
+                                'bg_image': 15,
+                                'id': 11},
+                                {'loc_alias': None,
+                                'bg_image': None,
+                                'id': 5},
+                                {'loc_alias': None,
+                                'bg_image': None,
+                                'id': 9},
+                                {'loc_alias': None,
+                                'bg_image': None,
+                                'id': 10}
+                                ]}
+        actual = Map().show()
+        for m in expected['locations']:
+            i = expected['locations'].index(m)
+            assert actual['locations'][i]['loc_alias'] == m['loc_alias']
+            assert actual['locations'][i]['bg_image'] == m['bg_image']
+            assert actual['locations'][i]['id'] == m['id']
+        assert actual['map_image'] == expected['map_image']
+
+
+@pytest.mark.skipif('not global_runall '
                     'and not global_run_TestWalk')
 class TestWalk():
     """
@@ -2569,119 +2631,270 @@ class TestWalk():
         assert isinstance(actual, User)
         assert actual.get_id() == userdata['id']
 
-    def test_walk_map(self, mywalk):
-        """Unit test for paideia.Walk._get_user()"""
-        thiswalk = mywalk['walk']
-        case = mywalk['casedata']
-        if case['casenum'] == 1:
-            expected = {'map_image': '/paideia/static/images/town_map.svg',
-                        'locations': [{'loc_alias': 'None',
-                                    'bg_image': 8,
-                                    'id': 3},
-                                    {'loc_alias': 'domus_A',
-                                    'bg_image': 8,
-                                    'id': 1},
-                                    {'loc_alias': '',
-                                    'bg_image': 8,
-                                    'id': 2},
-                                    {'loc_alias': None,
-                                    'bg_image': None,
-                                    'id': 4},
-                                    {'loc_alias': None,
-                                    'bg_image': None,
-                                    'id': 12},
-                                    {'loc_alias': 'bath',
-                                    'bg_image': 17,
-                                    'id': 13},
-                                    {'loc_alias': 'gymnasion',
-                                    'bg_image': 15,
-                                    'id': 14},
-                                    {'loc_alias': 'shop_of_alexander',
-                                    'bg_image': 16,
-                                    'id': 6},
-                                    {'loc_alias': 'ne_stoa',
-                                    'bg_image': 18,
-                                    'id': 7},
-                                    {'loc_alias': 'agora',
-                                    'bg_image': 16,
-                                    'id': 8},
-                                    {'loc_alias': 'synagogue',
-                                    'bg_image': 15,
-                                    'id': 11},
-                                    {'loc_alias': None,
-                                    'bg_image': None,
-                                    'id': 5},
-                                    {'loc_alias': None,
-                                    'bg_image': None,
-                                    'id': 9},
-                                    {'loc_alias': None,
-                                    'bg_image': None,
-                                    'id': 10}
-                                    ]}
-            actual = thiswalk.map()
-            for m in expected['locations']:
-                i = expected['locations'].index(m)
-                assert actual['locations'][i]['loc_alias'] == m['loc_alias']
-                assert actual['locations'][i]['bg_image'] == m['bg_image']
-                assert actual['locations'][i]['id'] == m['id']
-            assert actual['map_image'] == expected['map_image']
+    @pytest.mark.parametrize('pathid,stepid,alias,npcshere,trecs,tpout,redir,'
+                             'promptext,instrs,slidedecks,widgimg,rbuttons,'
+                             'rform,replystep',
+        [(19,  # path # case3 ======================================================
+          19,  # step
+          'synagogue',  # alias
+          [1],  # npcs here FIXME
+          [{'name': 1,  # trecs
+            'tag': 61,
+            'tlast_right': dt('2013-01-27'),
+            'tlast_wrong': dt('2013-01-21'),
+            'times_right': 10,
+            'times_wrong': 10,
+            'secondary_right': None},
+           {'name': 1,
+            'tag': 62,
+            'tlast_right': dt('2013-01-10'),
+            'tlast_wrong': dt('2013-01-1'),
+            'times_right': 10,
+            'times_wrong': 0,
+            'secondary_right': None},
+           {'name': 1,
+            'tag': 63,
+            'tlast_right': dt('2013-01-27'),
+            'tlast_wrong': dt('2013-01-21'),
+            'times_right': 9,
+            'times_wrong': 0,
+            'secondary_right': None},
+           {'name': 1,
+            'tag': 66,
+            'tlast_right': dt('2013-01-27'),
+            'tlast_wrong': dt('2013-01-21'),
+            'times_right': 10,
+            'times_wrong': 0,
+            'secondary_right': None}
+           ],
+          {'latest_new': 4,  # tpout
+           'cat1': [62, 63, 68, 115, 72, 89, 36],
+           'cat2': [61, 66],
+           'cat3': [], 'cat4': [],
+           'rev1': [], 'rev2': [],
+           'rev3': [], 'rev4': []},
+          False,  # redir
+          'How could you spell the word "pole" with Greek letters?',  # prompt text
+          ['Focus on finding Greek letters that make the *sounds* of the '
+           'English word. Don\'t look for Greek "equivalents" for each '
+           'English letter.'],  # instructions
+          {3L: 'The Alphabet II', 8L: 'Greek Words II'},  # slide decks
+          None,  # widget image
+          [],  # response buttons
+          '<form action="#" autocomplete="off" enctype="multipart/form-data" '
+          'method="post"><table><tr id="no_table_response__row">'
+          '<td class="w2p_fl"><label for="no_table_response" id="no_table_'
+          'response__label">Response: </label></td><td class="w2p_fw">'
+          '<input class="string" id="no_table_response" name="response" '
+          'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
+          'id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw">'
+          '<input type="submit" value="Submit" /></td><td class="w2p_fc"></td>'
+          '</tr></table></form>',
+          True  # replystep
+          ),
+         (19,  # path # case2 ======================================================
+          19,  # step
+          'agora',  # alias
+          [1],  # npcs here
+          [{'name': 1,
+            'tag': 61,
+            'tlast_right': dt('2013-01-29'),
+            'tlast_wrong': dt('2013-01-28'),
+            'times_right': 10,
+            'times_wrong': 2,
+            'secondary_right': []}],
+          {'latest_new': 2,  # tpout
+           'cat1': [62], 'cat2': [61],
+           'cat3': [], 'cat4': [],
+           'rev1': [], 'rev2': [],
+           'rev3': [], 'rev4': []},
+          False,  # redir?
+          'How could you spell the word "pole" with Greek letters?',  # prompt text
+          ['Focus on finding Greek letters that make the *sounds* of the '
+           'English word. Don\'t look for Greek "equivalents" for each '
+           'English letter.'],  # instructions
+          {3L: 'The Alphabet II', 8L: 'Greek Words II'},  # slide decks
+          None,  # widget image
+          [],  # response buttons
+          '<form action="#" autocomplete="off" enctype="multipart/form-data" '
+          'method="post"><table><tr id="no_table_response__row">'
+          '<td class="w2p_fl"><label for="no_table_response" id="no_table_'
+          'response__label">Response: </label></td><td class="w2p_fw">'
+          '<input class="string" id="no_table_response" name="response" '
+          'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
+          'id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw">'
+          '<input type="submit" value="Submit" /></td><td class="w2p_fc"></td>'
+          '</tr></table></form>',
+          True  # replystep
+          ),
+         (89,  # path # case2======================================================
+          101,  # step
+          'agora',  # alias
+          [2, 8, 14, 17, 31, 40, 41, 42],  # npcs here
+          [{'name': 1,
+            'tag': 61,
+            'tlast_right': dt('2013-01-29'),
+            'tlast_wrong': dt('2013-01-28'),
+            'times_right': 10,
+            'times_wrong': 2,
+            'secondary_right': []}],
+          {'latest_new': 2,  # tpout
+           'cat1': [62], 'cat2': [61],
+           'cat3': [], 'cat4': [],
+           'rev1': [], 'rev2': [],
+           'rev3': [], 'rev4': []},
+          True,  # redirect?
+          'Hi there. Sorry, I don\'t have anything for you to '  # prompt text
+          'do here at the moment. I think someone was looking '
+          'for you at somewhere else in town.',
+          None,  # instructions
+          None,  # slide decks
+          None,  # widget image
+          ['map', 'continue'],  # response buttons
+          None,  # response form
+          False  # replystep
+          ),
+         (2,  # path # case1======================================================
+          1,  # step
+          'shop_of_alexander',
+          [2, 8, 17],  # npcs here (for step)
+          [{'name': 1,  # trecs
+            'tag': 1,
+            'tlast_right': dt('2013-01-29'),
+            'tlast_wrong': dt('2013-01-29'),
+            'times_right': 1,
+            'times_wrong': 1,
+            'secondary_right': None}],
+          {'latest_new': 1,  # tpout
+           'cat1': [61], 'cat2': [],
+           'cat3': [], 'cat4': [],
+           'rev1': [], 'rev2': [],
+           'rev3': [], 'rev4': []},
+          False,  # redirect?
+          'How could you write the word "meet" using Greek letters?',
+          ['Focus on finding Greek letters that make the *sounds* of the '
+           'English word. Don\'t look for Greek "equivalents" for each '
+           'English letter.'],  # instructions
+          {1: 'Introduction', 2: 'The Alphabet', 6: 'Noun Basics', 7: 'Greek Words I'},
+          None,  # widget image
+          [],  # response buttons
+          '<form action="#" autocomplete="off" enctype="multipart/form-data" '
+          'method="post"><table><tr id="no_table_response__row">'
+          '<td class="w2p_fl"><label for="no_table_response" id="no_table_'
+          'response__label">Response: </label></td><td class="w2p_fw">'
+          '<input class="string" id="no_table_response" name="response" '
+          'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
+          'id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw">'
+          '<input type="submit" value="Submit" /></td><td class="w2p_fc"></td>'
+          '</tr></table></form>',
+          True  # replystep
+          ),
+         (3,  # path # case1======================================================
+          2,  # step
+          'shop_of_alexander',
+          [2, 8, 17],  # npcs here FIXME
+          [{'name': 1,  # trecs
+            'tag': 1,
+            'tlast_right': dt('2013-01-29'),
+            'tlast_wrong': dt('2013-01-29'),
+            'times_right': 1,
+            'times_wrong': 1,
+            'secondary_right': None}],
+          {'latest_new': 1,  # tpout
+           'cat1': [61], 'cat2': [],
+           'cat3': [], 'cat4': [],
+           'rev1': [], 'rev2': [],
+           'rev3': [], 'rev4': []},
+          False,  # redirect?
+          'How could you write the word "bought" using Greek letters?',  # text
+          None,  # instructions
+          {1: 'Introduction', 2: 'The Alphabet', 6: 'Noun Basics', 7: 'Greek Words I'},
+          None,  # widget image
+          [],  # response buttons
+          '<form action="#" autocomplete="off" enctype="multipart/form-data" '
+          'method="post"><table><tr id="no_table_response__row">'
+          '<td class="w2p_fl"><label for="no_table_response" id="no_table_'
+          'response__label">Response: </label></td><td class="w2p_fw">'
+          '<input class="string" id="no_table_response" name="response" '
+          'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
+          'id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw">'
+          '<input type="submit" value="Submit" /></td><td class="w2p_fc"></td>'
+          '</tr></table></form>',
+          True  # replystep
+          ),
+         (89,  # path # case1======================================================
+          101,  # step
+          'shop_of_alexander',
+          [2, 8, 14, 17, 31, 40, 41, 42],  # npcs here
+          [{'name': 1,  # trecs
+            'tag': 1,
+            'tlast_right': dt('2013-01-29'),
+            'tlast_wrong': dt('2013-01-29'),
+            'times_right': 1,
+            'times_wrong': 1,
+            'secondary_right': None}],
+          {'latest_new': 1,  # tpout
+           'cat1': [61], 'cat2': [],
+           'cat3': [], 'cat4': [],
+           'rev1': [], 'rev2': [],
+           'rev3': [], 'rev4': []},
+          True,  # redirect?
+          'Hi there. Sorry, I don\'t have anything for you to '  # prompt text
+          'do here at the moment. I think someone was looking '
+          'for you at somewhere else in town.',
+          None,  # instructions
+          None,  # slide decks
+          None,  # widget image
+          ['map', 'continue'],  # response buttons
+          None,  # response form
+          False  # replystep
+          )
+         ])
+    def test_walk_ask(self, pathid, stepid, alias, npcshere, trecs, tpout, redir,
+                      promptext, instrs, slidedecks, widgimg, rbuttons,
+                      rform, replystep, npc_data, bg_imgs, db, user_login):
+        thiswalk = Walk(userdata=user_login,
+                        tag_records=trecs,
+                        tag_progress=tpout,
+                        db=db)
+        loc = Location(alias)
+        #path = Path(path_id=pathid, db=db)
+        try:  # throws an error if user doesn't have a db.tag_progress row
+            db.tag_progress(db.tag_progress.name == user_login['id']).id
+        except AttributeError:
+            db.tag_progress.insert(name=user_login['id'])
+        actual = thiswalk.ask(alias, path=pathid)
+
+        assert actual['sid'] == stepid
+        assert actual['pid'] == pathid
+        assert actual['completed_count'] == 1
+        assert actual['category'] == None
+        if not isinstance(actual['prompt_text'], str):
+            assert actual['prompt_text'].xml() == promptext
         else:
-            pass
-
-    def test_walk_ask(self, mywalk):
-        thiswalk = mywalk['walk']
-        case = mywalk['casedata']
-        c = case['casenum']
-        step = mywalk['stepdata']
-        s = step['id']
-
-        combinations = {1: [1, 2, 101],  # paths 2, 3, 89 (multi, redir(step 30))
-                        2: [101, 19],  # paths 89 (multiple), 19
-                        3: [19]}  # path 19
-        if c in combinations.keys() and s in combinations[c]:
-            redirects = {1: [101],
-                         2: [101]}  # TODO: why does case 2 redirect step 101?
-            if c in redirects and s in redirects[c]:
-                print 'redirecting'
-                expected = {'prompt': step['redirect_prompt'],
-                            'instructions': None,
-                            'responder': step['redirect_responder'],
-                            'reply_step': False}
-            else:
-                expected = {'prompt': step['final_prompt'],
-                            'instructions': step['instructions'],
-                            'responder': step['responder'],
-                            'reply_step': False}
-                if step['step_type'] in (StepText, StepMultiple):
-                    # expect a reply step prepared for these step types
-                    expected['reply_step'] = True
-
-            path = step['paths'][0]
-            print 'in test_walk_ask———————————————————————————–'
-            print 'asking path', path
-            actual = thiswalk.ask(path)
-            # TODO: add the following new assertions to test for
-            # path.get_step_for_prompt
-            # check that right number of steps left in path.steps
-            # TODO: parameterize this when we add multi-step path tests
-            assert thiswalk.user.path.steps == []
-            # check that a step is prepared for reply when necessary
-            if expected['reply_step'] is True:
-                assert thiswalk.user.path.step_for_reply
-                print 'step_for_reply is', thiswalk.user.path.step_for_reply.get_id()
-            else:
-                assert not thiswalk.user.path.step_for_reply
-                print 'no step prepared for reply'
-            # check that correct path is active on user
-            assert path == thiswalk.user.path.get_id()
-            assert actual['prompt']['prompt'] == expected['prompt']
-            assert actual['prompt']['instructions'] == expected['instructions']
-            # TODO: check for image -- just hard to predict
-            #assert actual['prompt']['npc_image'] == expected['image']
-            assert actual['responder'].xml() == expected['responder']
-        else:
-            print 'skipping combination'
-            pass
+            assert actual['prompt_text'] == promptext
+        assert actual['instructions'] == instrs
+        if actual['slidedecks']:
+            assert all([d for d in actual['slidedecks'].values()
+                        if d in slidedecks.values()])
+        elif slidedecks:
+            pprint(actual['slidedecks'])
+            assert actual['slidedecks']
+        assert actual['widget_img'] == widgimg  # FIXME: add case with image
+        assert actual['bg_image'] == bg_imgs[loc.get_id()]
+        #assert actual['npc_image']['_src'] == npc_data[npc.get_id()]['image']
+        if actual['response_form']:
+            assert re.match(rform, actual['response_form'].xml())
+        elif rform:
+            pprint(actual['response_form'])
+            assert actual['response_form']
+        assert actual['bugreporter'] == None
+        assert actual['response_buttons'] == rbuttons
+        assert actual['audio'] == None  # FIXME: add case with audio (path 380, step 445)
+        assert actual['loc'] == alias
+        assert thiswalk.user.path.steps == []  # because only step activated
+        assert thiswalk.user.path.step_for_reply == replystep
+        assert pathid == thiswalk.user.path.get_id()
 
     def test_walk_reply(self, mywalk):
         """Unit test for paideia.Walk.reply() method."""
