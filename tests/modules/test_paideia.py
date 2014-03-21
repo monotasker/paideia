@@ -27,7 +27,7 @@ from copy import copy
 # ===================================================================
 # Switches governing which tests to run
 # ===================================================================
-global_runall = False
+global_runall = True
 global_run_TestNpc = False
 global_run_TestLocation = False
 global_run_TestStep = False
@@ -923,16 +923,12 @@ def mypath(pathid, db):
     return path, path_steps
 
 
-def mystep(stepid, mysteps):
+def mystep(stepid):
     """
     A pytest fixture providing a paideia.Step object for testing.
     """
-    try:
-        stepdata = mysteps[stepid]
-    except KeyError:
-        stepdata = None  # FIXME: some test steps not in stepdata dict
     step = StepFactory().get_instance(stepid)
-    return step, stepdata
+    return step
 
 
 @pytest.fixture
@@ -1013,19 +1009,18 @@ def myStepMultiple(mycases, request, db):
         pass
 
 
-@pytest.fixture
-def myStepEvaluator(mysteps):
+def myStepEvaluator(stepid, mysteps):
     """
     A pytest fixture providing a paideia.StepEvaluator object for testing.
     """
     for n in [0, 1]:
         responses = ['incorrect', 'correct']
-        user_responses = ['bla', mysteps['responses']['response1']]
-        kwargs = {'responses': mysteps['responses'],
-                    'tips': mysteps['tips']}
+        user_responses = ['bla', mysteps[stepid]['responses']['response1']]
+        kwargs = {'responses': mysteps[stepid]['responses'],
+                    'tips': mysteps[stepid]['tips']}
         return {'eval': StepEvaluator(**kwargs),
-                'tips': mysteps['tips'],
-                'reply_text': mysteps['reply_text'][responses[n]],
+                'tips': mysteps[stepid]['tips'],
+                'reply_text': mysteps[stepid]['reply_text'][responses[n]],
                 'score': n,
                 'times_right': n,
                 'times_wrong': [1, 0][n],
@@ -1134,72 +1129,222 @@ class TestStep():
     Unit tests covering the Step class of the paideia module.
     """
 
-    @pytest.mark.skipif(True, reason='just because')
-    @pytest.mark.parametrize('stepid', [1])
-    def test_step_get_id(self, stepid, mysteps):
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('stepid,stype', [(1, StepText)])
+    def test_step_get_id(self, stepid, stype):
         """Test for method Step.get_id """
-        step, expected = mystep(stepid, mysteps)
-        assert step.get_id() == expected['id']
-        assert isinstance(step, expected['step_type']) is True
+        step = StepFactory().get_instance(stepid)
+        assert step.get_id() == stepid
+        assert isinstance(step, stype) is True
 
-    @pytest.mark.skipif(True, reason='just because')
+    @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize("stepid", [1, 2])
     def test_step_get_tags(self, stepid, mysteps):
         """Test for method Step.get_tags """
-        step, expected = mystep(stepid, mysteps)
+        step = StepFactory().get_instance(stepid)
+        expected = mysteps[stepid]
         actual = step.get_tags()
         assert actual == {'primary': expected['tags'],
                           'secondary': expected['tags_secondary']}
 
-    @pytest.mark.skipif(True, reason='just because')
-    @pytest.mark.parametrize('caseid,stepid', [
-        #('case1', 1),
-        #('case2', 2),
-        #('case2', 19),  # will redirect (currently no case works for step 19)
-        #('case1', 30),  # redirect step
-        #('case1', 101),
-        #('case2', 125),  # FIXME: no slide decks being found here
-        #('case2', 126),  # promoted, no new tags (for new badges)
-        #('case3', 126),  # promoted, no new tags (for new badges)
-        #('case2', 127),  # new tags and promoted (for view slides)
-    ])
-    def test_step_get_prompt(self, caseid, stepid, db, mysteps,
-                             user_login, npc_data, bg_imgs):
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('caseid,stepid,alias,npcshere,promptext,instrs,'
+                             'slidedecks,widgimg,rbuttons,rform,kwargs',
+        [('case1', 1,  # StepText ------------------------------
+          'shop_of_alexander',
+          [2, 8, 17],  # npcs here (for step)
+          'How could you write the word "meet" using Greek letters?',
+          ['Focus on finding Greek letters that make the *sounds* of the '
+           'English word. Don\'t look for Greek "equivalents" for each '
+           'English letter.'],  # instructions
+          {1: 'Introduction', 2: 'The Alphabet', 6: 'Noun Basics', 7: 'Greek Words I'},
+          None,  # widget image
+          [],  # response buttons
+          '<form action="#" autocomplete="off" enctype="multipart/form-data" '
+          'method="post"><table><tr id="no_table_response__row">'
+          '<td class="w2p_fl"><label for="no_table_response" id="no_table_'
+          'response__label">Response: </label></td><td class="w2p_fw">'
+          '<input class="string" id="no_table_response" name="response" '
+          'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
+          'id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw">'
+          '<input type="submit" value="Submit" /></td><td class="w2p_fc"></td>'
+          '</tr></table></form>',
+          None,  # kwargs
+          ),
+         ('case2', 2,  # StepText ------------------------------
+          'agora',
+          [1],  # npcs here (for step)
+          'How could you write the word "bought" using Greek letters?',  # text
+          None,  # instructions
+          {1: 'Introduction', 2: 'The Alphabet', 6: 'Noun Basics', 7: 'Greek Words I'},
+          None,  # widget image
+          [],  # response buttons
+          '<form action="#" autocomplete="off" enctype="multipart/form-data" '
+          'method="post"><table><tr id="no_table_response__row">'
+          '<td class="w2p_fl"><label for="no_table_response" id="no_table_'
+          'response__label">Response: </label></td><td class="w2p_fw">'
+          '<input class="string" id="no_table_response" name="response" '
+          'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
+          'id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw">'
+          '<input type="submit" value="Submit" /></td><td class="w2p_fc"></td>'
+          '</tr></table></form>',
+          None,  # kwargs
+          ),
+         ('case2', 19,  # StepText ------------------------------
+          'agora',
+          [1],  # npcs here
+          'How could you spell the word "pole" with Greek letters?',  # prompt text
+          ['Focus on finding Greek letters that make the *sounds* of the '
+           'English word. Don\'t look for Greek "equivalents" for each '
+           'English letter.'],
+          {3L: 'The Alphabet II', 8L: 'Greek Words II'},  # slide decks
+          None,  # widget image
+          [],  # response buttons
+          '<form action="#" autocomplete="off" enctype="multipart/form-data" '
+          'method="post"><table><tr id="no_table_response__row">'
+          '<td class="w2p_fl"><label for="no_table_response" id="no_table_'
+          'response__label">Response: </label></td><td class="w2p_fw">'
+          '<input class="string" id="no_table_response" name="response" '
+          'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
+          'id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw">'
+          '<input type="submit" value="Submit" /></td><td class="w2p_fc"></td>'
+          '</tr></table></form>',
+          None,  # kwargs
+          ),  # will redirect (currently no case works for step 19)
+         ('case1', 30,  # StepRedirect ------------------------------
+          'shop_of_alexander',
+          [2, 8, 14, 17, 31, 40, 41, 42],  # npcs here
+          'Hi there. Sorry, I don\'t have anything for you to '  # prompt text
+          'do here at the moment. I think someone was looking '
+          'for you at somewhere else in town.',
+          None,  # instructions
+          None,  # slide decks
+          None,  # widget image
+          ['map', 'continue'],  # response buttons
+          None,  # response form
+          None,  # kwargs
+          ),  # redirect step
+         ('case1', 101,  # StepMultiple ------------------------------
+          'shop_of_alexander',
+          [14],  # npcs here
+          'Is this an English clause?\r\n\r\n"The cat sat."',
+          None,  # instructions
+          {14: 'Clause Basics'},
+          None,  # widget image
+          [],  # response buttons
+          r'<form action="#" enctype="multipart/form-data" method="post"><table>'
+          '<tr id="no_table_response__row"><td class="w2p_fl"><label '
+          'for="no_table_response" id="no_table_response__label">Response: '
+          '</label></td><td class="w2p_fw"><table class="generic-widget" '
+          'id="no_table_response" name="response"><tr><td><input '
+          'id="response\xce\xbd\xce\xb1\xce\xb9" name="response" type="radio" '
+          'value="\xce\xbd\xce\xb1\xce\xb9" /><label for="response\xce\xbd\xce'
+          '\xb1\xce\xb9">\xce\xbd\xce\xb1\xce\xb9</label></td></tr><tr><td>'
+          '<input id="response\xce\xbf\xe1\xbd\x90" name="response" '
+          'type="radio" value="\xce\xbf\xe1\xbd\x90" /><label for="response'
+          '\xce\xbf\xe1\xbd\x90">\xce\xbf\xe1\xbd\x90</label></td></tr></table>'
+          '</td><td class="w2p_fc"></td></tr><tr id="submit_record__row"><td '
+          'class="w2p_fl"></td><td class="w2p_fw"><input type="submit" '
+          'value="Submit" /></td><td class="w2p_fc"></td></tr></table>'
+          '<div style="display:none;"><input name="_formkey" type="hidden" '
+          'value=".*" /><input name="_formname" type="hidden" '
+          'value="no_table/create" /></div></form>',
+          None,  # kwargs
+          ),
+         ('case2', 125,  # StepQuotaReached ------------------------------
+          'agora',
+          [1, 14, 17, 40, 41, 42],  # npcs here
+          'Well done, Homer. You\'ve finished enough paths for today. But '
+          'if you would like to keep going, you\'re welcome to continue.',
+          None,  # instructions
+          None,  # slide decks  # FIXME: no slide decks being found here
+          None,  # widget image
+          ['map', 'continue'],  # response buttons
+          None,  # response form
+          {'quota': 20},  # kwargs
+          ),
+         ('case2', 126,  # StepAwardBadges ------------------------------
+          'agora',
+          [1, 14, 17, 40, 41, 42],  # npcs here
+          '<div>Congratulations, Homer! \n\n'  # prompt text
+          'You have been promoted to these new badge levels:\r\n'
+          '- apprentice alphabet basics\r\n'
+          'and you&#x27;re ready to start working on some new badges:\r\n'
+          '- beginner alphabet (intermediate)\r\n'
+          'You can click on your name above to see details '
+          'of your progress so far.</div>',
+          None,  # instructions
+          None,  # slide decks
+          None,  # widget image
+          ['map', 'continue'],  # response buttons
+          None,  # response form
+          {'new_tags': [62], 'promoted': {'cat2': [61]}},  # kwargs
+          ),  # promoted, no new tags (for new badges)
+         ('case3', 126,  # StepAwardBadges ------------------------------
+          'synagogue',
+          [31, 32],  # npcs here
+          '<div>Congratulations, Homer! \n\n'  # prompt text
+          'You have been promoted to these new badge levels:\r\n'
+          '- apprentice alphabet basics\r\n'
+          'You can click on your name above to see details '
+          'of your progress so far.</div>',
+          None,   # instructions
+          None,   # slide decks
+          None,   # widget image
+          ['map', 'continue'],  # response buttons
+          None,  # response form
+          {'promoted': {'cat2': [61]}},  # kwargs
+          ),  # promoted, no new tags (for new badges)
+         ('case2', 127,  # StepViewSlides ------------------------------
+          'agora',
+          [1, 14, 17, 21, 40, 41, 42],  # npcs here
+          '<div>Take some time now to review these new slide '
+          'sets. They will help with work on your new badges:\n'
+          '<ul class="slide_list">'
+          '<li><a data-w2p_disable_with="default" href="/paideia/'
+          'listing/slides.html/3">The Alphabet II</a></li>'
+          '<li><a data-w2p_disable_with="default" href="/paideia/'
+          'listing/slides.html/8">Greek Words II</a></li></ul></div>',
+          None,  # instructions
+          None,  # slide decks
+          None,  # widget image
+          ['map'],  # response buttons
+          None,  # response form
+          {'new_tags': [62]},  # kwargs
+          ),  # new tags and promoted (for view slides)
+         ])
+    def test_step_get_prompt(self, caseid, stepid, alias, npcshere, promptext,
+                             instrs, slidedecks, widgimg, rbuttons, rform,
+                             kwargs, npc_data, bg_imgs, db):
         """Test for method Step.get_prompt"""
-        case = mycases(caseid, user_login, db)
-        step, expected = mystep(stepid, mysteps)
-        locnpcs = [int(n) for n in case['npcs_here']
-                   if n in expected['npc_list']]
-        if locnpcs:
-            npc = Npc(locnpcs[0], db)
-            actual = step.get_prompt(case['loc'], npc, case['name'],
-                                     case['next_loc'],
-                                     case['new_badges'],
-                                     case['promoted'])
-            print 'actual -------'
-            try:
-                print actual['prompt'].xml()
-            except Exception:
-                print(actual['prompt'])
-            print 'expected -------'
-            print expected['final_prompt']
+        step = StepFactory().get_instance(stepid, kwargs=kwargs)
+        npc = Npc(npcshere[0], db)  # FIXME: randint(0, len(npcshere))
+        loc = Location(alias, db)
+        actual = step.get_prompt(loc, npc, 'Homer')
 
-            assert (actual['prompt'] == expected['final_prompt']) or \
-                   (actual['prompt'].xml() == expected['final_prompt']) or \
-                   (actual['prompt'].xml() == expected['final_prompt'][case['casenum']])
-            assert actual['instructions'] == expected['instructions']
-            if expected['slidedecks']:
-                for k, v in actual['slidedecks'].iteritems():
-                    assert v == expected['slidedecks'][k]
-            if expected['widget_image']:
-                assert actual['widget_image']['title'] == expected['widget_image']['title']
-                assert actual['widget_image']['file'] == expected['widget_image']['file']
-                assert actual['widget_image']['description'] == expected['widget_image']['description']
-            assert actual['bg_image'] == bg_imgs[case['loc'].get_id()]
-            assert actual['npc_image'].attributes['_src'] == npc_data[npc.get_id()]['image']
+        if not isinstance(actual['prompt_text'], str):
+            assert actual['prompt_text'].xml() == promptext
         else:
-            assert step.get_prompt(case['loc'], npc, case['name'],
-                                   None, None, None) == expected['redirect']
+            assert actual['prompt_text'] == promptext
+        assert actual['instructions'] == instrs
+        if actual['slidedecks']:
+            assert all([d for d in actual['slidedecks'].values()
+                        if d in slidedecks.values()])
+        elif slidedecks:
+            pprint(actual['slidedecks'])
+            assert actual['slidedecks']
+        assert actual['widget_img'] == widgimg  # FIXME: add case with image
+        assert actual['bg_image'] == bg_imgs[loc.get_id()]
+        assert actual['npc_image']['_src'] == npc_data[npc.get_id()]['image']
+        if actual['response_form']:
+            assert re.match(rform, actual['response_form'].xml())
+        elif rform:
+            pprint(actual['response_form'])
+            assert actual['response_form']
+        assert actual['bugreporter'] == None
+        assert actual['response_buttons'] == rbuttons
+        assert actual['audio'] == None  # FIXME: add case with audio (path 380, step 445)
+        assert actual['loc'] == alias
 
     @pytest.mark.skipif(True, reason='just because')
     @pytest.mark.parametrize(('caseid', 'stepid'), [
@@ -1322,27 +1467,73 @@ class TestStep():
 class TestStepEvaluator():
     """Class for evaluating the submitted response string for a Step"""
 
-    @pytest.mark.skipif(True, reason='just because')
-    @pytest.mark.parametrize('stepid', [1, 2, 19])
-    def test_stepevaluator_get_eval(self, stepid, mysteps, myStepEvaluator):
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('stepid,regex,uresp,rtext,score,tright,twrong,tips',
+        [(1,
+          {'response1': '^μιτ$'},
+          'μιτ',
+          'Right. Κάλον.',
+          1,  # score
+          1,  # times right
+          0,  # times wrong
+          None  # tips
+          ),
+         (1,
+          {'response1': '^μιτ$'},
+          'βλα',
+          'Incorrect. Try again!',
+          0,  # score
+          0,  # times right
+          1,  # times wrong
+          None  # tips
+          ),
+         (2,
+          {'response1': '^β(α|ο)τ$'},
+          'βοτ',
+          'Right. Κάλον.',
+          1,  # score
+          1,  # times right
+          0,  # times wrong
+          None  # tips
+          ),
+         (2,
+          {'response1': '^β(α|ο)τ$'},
+          'βλα',
+          'Incorrect. Try again!',
+          0,  # score
+          0,  # times right
+          1,  # times wrong
+          None  # tips
+          ),
+         (19,
+          {'response1': '^πωλ$'},  # regexes
+          'πωλ',
+          'Right. Κάλον.',
+          1,  # score
+          1,  # times right
+          0,  # times wrong
+          None  # tips
+          ),
+         (19,
+          {'response1': '^πωλ$'},  # regexes
+          'βλα',
+          'Incorrect. Try again!',
+          0,  # score
+          0,  # times right
+          1,  # times wrong
+          None  # tips
+          )
+         ])
+    def test_stepevaluator_get_eval(self, stepid, regex, uresp, rtext, score,
+                                    tright, twrong, tips):
         """Unit tests for StepEvaluator.get_eval() method."""
-        step, expected = mystep(stepid, mysteps)
-        evl = myStepEvaluator
-        response = evl['user_response']
-        expected = {'reply_text': evl['reply_text'],
-                    'tips': evl['tips'],
-                    'score': evl['score'],
-                    'times_wrong': evl['times_wrong'],
-                    'times_right': evl['times_right'],
-                    'user_response': response}
-
-        actual = myStepEvaluator['eval'].get_eval(response)
-        assert actual['score'] == expected['score']
-        assert actual['reply'] == expected['reply_text']
-        assert actual['times_wrong'] == expected['times_wrong']
-        assert actual['times_right'] == expected['times_right']
-        assert actual['user_response'] == expected['user_response']
-        assert actual['tips'] == expected['tips']
+        actual = StepEvaluator(responses=regex, tips=tips).get_eval(uresp)
+        assert actual['score'] == score
+        assert actual['reply'] == rtext
+        assert actual['times_wrong'] == twrong
+        assert actual['times_right'] == tright
+        assert actual['user_response'] == uresp
+        assert actual['tips'] == tips
 
 
 @pytest.mark.skipif('global_runall is False and global_run_TestMultipleEvaluator '
@@ -1352,29 +1543,37 @@ class TestMultipleEvaluator():
     Unit testing class for paideia.MultipleEvaluator class.
     """
 
-    @pytest.mark.skipif(True, reason='just because')
-    @pytest.mark.parametrize('stepid', [101])
-    def test_multipleevaluator_get_eval(self, stepid, mysteps, myMultipleEvaluator):
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('stepid,regex,uresp,rtext,score,tright,twrong,tips',
+        [(101,
+          {'response1': 'ναι'},
+          'ναι',
+          'Right. Κάλον.',
+          1,  # score
+          1,  # times right
+          0,  # times wrong
+          None  # tips
+          ),
+         (101,
+          {'response1': 'ναι'},
+          'οὐ',
+          'Incorrect. Try again!',
+          0,  # score
+          0,  # times right
+          1,  # times wrong
+          None  # tips
+          )
+         ])
+    def test_multipleevaluator_get_eval(self, stepid, regex, uresp,
+                                        rtext, score, tright, twrong, tips):
         """Unit tests for multipleevaluator.get_eval() method."""
-        if myMultipleEvaluator:
-            evl = myMultipleEvaluator
-            response = evl['user_response']
-            expected = {'reply_text': evl['reply_text'],
-                        'tips': evl['tips'],
-                        'score': evl['score'],
-                        'times_wrong': evl['times_wrong'],
-                        'times_right': evl['times_right'],
-                        'user_response': response}
-
-            actual = myMultipleEvaluator['eval'].get_eval(response)
-            assert actual['score'] == expected['score']
-            assert actual['reply'] == expected['reply_text']
-            assert actual['times_wrong'] == expected['times_wrong']
-            assert actual['times_right'] == expected['times_right']
-            assert actual['user_response'] == expected['user_response']
-            assert actual['tips'] == expected['tips']
-        else:
-            pass
+        actual = StepEvaluator(responses=regex, tips=tips).get_eval(uresp)
+        assert actual['score'] == score
+        assert actual['reply'] == rtext
+        assert actual['times_wrong'] == twrong
+        assert actual['times_right'] == tright
+        assert actual['user_response'] == uresp
+        assert actual['tips'] == tips
 
 
 @pytest.mark.skipif('global_runall is False and global_run_TestMultipleEvaluator '
@@ -1485,7 +1684,7 @@ class TestPath():
         Unit test for method paideia.Path.get_step_for_reply.
         """
         path, pathsteps = mypath(pathid, db)
-        expected = [mystep(sid, mysteps)[0] for sid in steps]
+        expected = [mystep(sid) for sid in steps]
         actual = path.get_steps()
         assert steps == pathsteps
         assert len(actual) == len(expected)
@@ -1507,12 +1706,12 @@ class TestPath():
          #(63, 66, [67, 68], [3, 1], 'domus_A')  # first step doesn't take reply
          ])
     def test_path_get_step_for_reply(self, pathid, stepid, stepsleft, locs,
-                                     localias, mysteps, db):
+                                     localias, db):
         """
         Unit test for method paideia.Path.get_step_for_reply.
         """
         path, pathsteps = mypath(pathid, db)
-        step, expected = mystep(stepid, mysteps)
+        step = mystep(stepid)
         # preparing for reply stage
         path.get_step_for_prompt(Location(localias))
         path.end_prompt(stepid)
@@ -1778,7 +1977,6 @@ class TestUser(object):
                     'id': 1,
                     'time_zone': 'America/Toronto'}
         user = User(userdata, trecs, tpout)
-
         actual, acat, aredir, apastq = user.get_path(Location(db.locations(locid).loc_alias))
         assert actual.get_id() in expected
         assert isinstance(actual, Path)
@@ -1787,60 +1985,131 @@ class TestUser(object):
         assert aredir is None
         assert apastq is None
 
-    @pytest.mark.skipif(True, reason='just because')
-    def test_user_get_categories(self, myuser):
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('tpin,rankout,tpout,trecs,counter,promoted,newtags',
+        [({'latest_new': 1,  # tpin =========================================
+           'cat1': [1], 'cat2': [],
+           'cat3': [], 'cat4': [],
+           'rev1': [], 'rev2': [],
+           'rev3': [], 'rev4': []},
+          1,  # rank out
+          {'latest_new': 1,  # tpout
+           'cat1': [6, 29, 62, 82, 83], 'cat2': [],  # FIXME: this is wrong
+           'cat3': [], 'cat4': [],
+           'rev1': [], 'rev2': [],
+           'rev3': [], 'rev4': []},
+          [{'name': 1,  # trecs
+            'tag': 1,
+            'tlast_right': dt('2013-01-29'),
+            'tlast_wrong': dt('2013-01-29'),
+            'times_right': 1,
+            'times_wrong': 1,
+            'secondary_right': None}],
+          4,
+          None,
+          [6, 29, 62, 82, 83]
+          ),
+         ({'latest_new': 1,  # tpin =========================================
+           'cat1': [1], 'cat2': [],
+           'cat3': [], 'cat4': [],
+           'rev1': [], 'rev2': [],
+           'rev3': [], 'rev4': []},
+          1,  # rank out
+          {'latest_new': 1,  # tpout
+           'cat1': [1], 'cat2': [],
+           'cat3': [], 'cat4': [],
+           'rev1': [], 'rev2': [],
+           'rev3': [], 'rev4': []},
+          [{'name': 1,  # trecs
+            'tag': 1,
+            'tlast_right': dt('2013-01-29'),
+            'tlast_wrong': dt('2013-01-29'),
+            'times_right': 1,
+            'times_wrong': 1,
+            'secondary_right': None}],
+          3,
+          None,
+          None
+          )
+         ])
+    def test_user_get_categories(self, tpin, rankout, tpout, trecs, counter,
+                                 promoted, newtags, user_login, db):
         """
         Unit test for User._get_categories() method.
         """
-        user = myuser['user']
-        case = myuser['casedata']
-        if user.cats_counter < 5:
-            expected = case['categories_start']
-        elif user.cats_counter >= 5:
-            expected = case['categories_out']
-        actual = user._get_categories()
-        # this avoids problem of lists being in different orders
-        for c, l in expected.iteritems():
-            assert len(actual['categories'][c]) == len([t for t in l])
+        user = User(user_login, trecs, tpin)
+        user.cats_counter = counter
+        try:
+            db.tag_progress(db.tag_progress.name == user_login['id']).id
+        except AttributeError:
+            db.tag_progress.insert(name=user_login['id'])
+        # set these to allow for retrieval if counter < 5
+        user.tag_progress = tpin
+        user.categories = {c: l for c, l in tpin.iteritems() if c[:3] == 'cat'}
+        apromoted, anew_tags = user.get_categories()
 
-    @pytest.mark.skipif(True, reason='just because')
-    def test_user_get_old_categories(self, myuser):
-        """
-        TODO: at the moment this is only testing initial state in which there
-        are no old categories yet.
-        """
-        #case = myuser['casedata']
-        user = myuser['user']
-        expected = None
-        #expected = case['tag_progress']
-        #del expected['latest_new']
+        print 'user.tag_progress'
+        print user.cats_counter
+        print 'user.tag_progress'
+        pprint(user.tag_progress)
+        print 'user.categories'
+        pprint(user.categories)
 
-        actual = user._get_old_categories()
+        for c, l in tpout.iteritems():
+            assert user.tag_progress[c] == l
+            if c in ['cat1', 'cat2', 'cat3', 'cat4']:
+                assert user.categories[c] == l
+        assert apromoted == promoted
+        assert anew_tags == newtags
 
-        assert actual == expected
-        #for c, l in actual.iteritems():
-            #assert len([i for i in l if i in expected[c]]) == len(expected[c])
-            #assert len(l) == len(expected[c])
+    #@pytest.mark.skipif(False, reason='just because')
+    #def test_user_get_old_categories(self, myuser):
+        #"""
+        #TODO: at the moment this is only testing initial state in which there
+        #are no old categories yet.
+        #"""
+        ##case = myuser['casedata']
+        #user = myuser['user']
+        #expected = None
+        ##expected = case['tag_progress']
+        ##del expected['latest_new']
 
-    @pytest.mark.skipif(True, reason='just because')
-    def test_user_complete_path(self, myuser):
-        user = myuser['user']
-        case = myuser['casedata']
-        pathid = case['paths']['cat1'][0]
-        path = Path(path_id=pathid, loc=case['loc'])
-        path.completed_steps.append(path.steps.pop(0))
+        #actual = user._get_old_categories()
 
-        user.path = copy(path)
-        assert user._complete_path() is True
+        #assert actual == expected
+        ##for c, l in actual.iteritems():
+            ##assert len([i for i in l if i in expected[c]]) == len(expected[c])
+            ##assert len(l) == len(expected[c])
+
+    @pytest.mark.parametrize('pathid,psteps,alias',
+        [(2, [1], 'agora')
+         ])
+    @pytest.mark.skipif(False, reason='just because')
+    def test_user_complete_path(self, pathid, psteps, alias):
+        tpout = {'latest_new': 2,
+                 'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                 'cat3': [], 'cat4': [],
+                 'rev1': [], 'rev2': [61],
+                 'rev3': [], 'rev4': []}
+        trecs = [{'name': 1,
+                  'tag': 1,
+                  'tlast_right': dt('2013-01-29'),
+                  'tlast_wrong': dt('2013-01-29'),
+                  'times_right': 1,
+                  'times_wrong': 1,
+                  'secondary_right': None}]
+        userdata = {'first_name': 'Homer', 'id': 1, 'time_zone': 'America/Toronto'}
+        user = User(userdata, trecs, tpout)
+        # simulate being at end of active path
+        user.path = Path(path_id=pathid)
+        user.path.completed_steps.append(user.path.steps.pop(0))
+
+        assert user.complete_path()
+
         assert user.path is None
-        if case['casenum'] == 3:
-            print user.last_npc
-            assert not user.last_npc
-        else:
-            assert user.last_npc.get_id() in case['npcs_here']
-        assert user.last_loc.get_id() == case['loc'].get_id()
-        assert user.completed_paths[-1].get_id() == path.get_id()
-        assert isinstance(user.completed_paths[-1], Path)
+        assert user.completed_paths[-1] == pathid  # FIXME: store obj instead of just id?
+        #assert isinstance(user.completed_paths[-1], Path)
+        #assert user.completed_paths[-1].steps == []
 
 
 @pytest.mark.skipif('global_runall is False '
@@ -2174,10 +2443,11 @@ class TestCategorizer():
                              'rankout,catsout,tpout,'
                              'promoted,newtags',
                              [('case1',
-                               1, {'cat1': [1], 'cat2': [],
-                                   'cat3': [], 'cat4': [],
-                                   'rev1': [], 'rev2': [],
-                                   'rev3': [], 'rev4': []},
+                               1,
+                               {'cat1': [1], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [],
+                                'rev3': [], 'rev4': []},
                                [{'name': 1,
                                  'tag': 1,
                                  'tlast_right': dt('2013-01-29'),
@@ -2269,25 +2539,35 @@ class TestWalk():
     A unit testing class for the paideia.Walk class.
     """
 
-    def test_walk_get_user(self, mywalk):
+    @pytest.mark.parametrize('alias,trecs,tpout',
+        [('domus_A',
+          [{'name': 1,
+            'tag': 1,
+            'tlast_right': dt('2013-01-29'),
+            'tlast_wrong': dt('2013-01-29'),
+            'times_right': 1,
+            'times_wrong': 1,
+            'secondary_right': None}],
+          {'latest_new': 1,
+           'cat1': [61], 'cat2': [],
+           'cat3': [], 'cat4': [],
+           'rev1': [], 'rev2': [],
+           'rev3': [], 'rev4': []},
+          )
+         ])
+    def test_walk_get_user(self, alias, trecs, tpout, db):
         """Unit test for paideia.Walk._get_user()"""
-        thiswalk = mywalk['walk']
-        case = mywalk['casedata']
-        if case['casenum'] == 1:
-            localias = case['localias']
-            userdata = {'first_name': 'Homer',
-                        'last_name': 'Simpson',
-                        'id': current.auth.user.id}
-            tag_records = case['tag_records']
-            tag_progress = case['tag_progress']
+        userdata = {'first_name': 'Homer', 'id': 1, 'time_zone': 'America/Toronto'}
+        thiswalk = Walk(userdata=userdata,
+                        tag_records=trecs,
+                        tag_progress=tpout,
+                        db=db)
+        actual = thiswalk._get_user(userdata=userdata,
+                                    tag_records=trecs,
+                                    tag_progress=tpout)
 
-            actual = thiswalk._get_user(userdata=userdata, localias=localias,
-                                        tag_records=tag_records,
-                                        tag_progress=tag_progress)
-            assert isinstance(actual, User)
-            assert actual.get_id() == userdata['id']
-        else:
-            pass
+        assert isinstance(actual, User)
+        assert actual.get_id() == userdata['id']
 
     def test_walk_map(self, mywalk):
         """Unit test for paideia.Walk._get_user()"""
