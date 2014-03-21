@@ -94,8 +94,7 @@ class Walk(object):
         auth = current.auth
         db = current.db
         uid = auth.user_id
-        userdata = db.auth_user[uid] if not userdata else userdata
-        userdata = userdata.as_dict()
+        userdata = db.auth_user[uid].as_dict() if not userdata else userdata
         if not tag_records:
             tag_records = db(db.tag_records.name == uid).select().as_list()
         if not tag_progress:
@@ -1020,7 +1019,8 @@ class StepQuotaReached(StepContinue, Step):
         Return the string for the step prompt with context-based information
         substituted for tokens framed by [[]].
         """
-        quota = self.kwargs['quota']  # TODO: actually put value in prompt
+        #if self.kwargs:
+            #quota = self.kwargs['quota']  # TODO: actually put value in prompt
         reps = None
         newstr = super(StepQuotaReached, self)._make_replacements(raw_prompt,
                                                                   username,
@@ -1041,9 +1041,12 @@ class StepAwardBadges(StepContinue, Step):
         db = current.db
         appds = {}
         reps = {}
+        kw = self.kwargs
 
-        new_tags = self.kwargs['new_tags']
-        promoted = self.kwargs['promoted']
+        new_tags = kw['new_tags'] if ('new_tags' in kw.keys()
+                                      and kw['new_tags']) else None
+        promoted = kw['promoted'] if ('promoted' in kw.keys()
+                                      and kw['promoted']) else None
         prom_rep = ' '
         if promoted:
             flat_proms = [i for cat, lst in promoted.iteritems() for i in lst if lst]
@@ -1894,14 +1897,17 @@ class User(object):
 
         The method is intended to be called with no arguments
         """
-        #print 'user.get_categories: starting'
         db = current.db
         user_id = self.user_id if not user_id else user_id
-        tag_records = db(db.tag_records.name == user_id).select().as_list()
+        if not tag_records:
+            tag_records = db(db.tag_records.name == user_id).select().as_list()
         self.tag_records = tag_records
-        # only re-categorize every 10th evaluated step
-        if (self.cats_counter in range(0, 4)) and hasattr(self, 'categories') and self.categories:
+
+        if (self.cats_counter in range(0, 4)) \
+                and hasattr(self, 'categories') \
+                and self.categories:
             self.cats_counter += 1
+            print 'not recategorizing'
             return None, None
         else:
             print 'user.get_categories: need to recategorize'
@@ -2009,7 +2015,11 @@ class Categorizer(object):
         # if user has not tried any tags yet, start first set
         print 'len(tag_records):', len(tag_records)
         if len(tag_records) == 0:
-            categories = {}
+            categories = {'cat1': [],
+                          'cat2': [],
+                          'cat3': [],
+                          'cat4': []
+                          }
             categories['cat1'] = self._introduce_tags()
             tp = {'cat1': categories['cat1'],
                   'rev1': [],
