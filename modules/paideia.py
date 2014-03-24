@@ -2096,10 +2096,12 @@ class Categorizer(object):
         try:
             for rec in tag_records:
                 right2 = rec['secondary_right']
+                print '\nfor tag:', rec['tag']
 
                 # FIXME: sanitizing data where tuples stored instead of
                 # datetimes strings also have to be parsed into datetime objects
                 if right2:
+                    print 'right2 is:', right2
                     for t in right2:
                         if isinstance(t, list):
                             vals = right2.pop(right2.index(t))
@@ -2123,23 +2125,33 @@ class Categorizer(object):
                         db.tag_records[rec['id']].update(secondary_right=right2)
                     rlen = len(right2)
                     remainder2 = rlen % 3
+                    print 'right2 is now:', len(right2)
 
-                if right2 and (isinstance(right2, list)) and (rlen >= 3) \
-                        and (remainder2 > 0):
+                if right2 and (isinstance(right2, list)) and (rlen >= 3): # \
+                        #and (remainder2 > 0):
                     rindex = tag_records.index(rec)
+                    print 'times right:', rec['times_right']
+                    print 'number of 2nd right:', rlen
                     # increment times_right by 1 per 3 secondary_right
                     triplets2 = rlen / 3
+                    print 'adding increment:', triplets2
                     if not rec['times_right']:
                         rec['times_right'] = 0
                     rec['times_right'] += triplets2
+                    print 'new times right:', rec['times_right']
 
                     # move tlast_right forward based on mean of oldest 3 secondary_right
                     now = self.utcnow
-                    if remainder2 or rlen > 3:
+                    print 'right2 is still:', len(right2)
+                    if remainder2:
+                        print 'remainder2 is:', remainder2
                         early3 = right2[: -(remainder2)]
+                        print 'early3 sliced:', early3
                     else:
                         early3 = right2[:]
+                        print 'early3 copied:', early3
                     early3d = [now - s for s in early3]
+                    print 'early3d:', early3d
                     avg_delta = sum(early3d, datetime.timedelta(0)) / len(early3d)
                     avg_date = now - avg_delta
                     # sanitize tlast_right in case db value is string
