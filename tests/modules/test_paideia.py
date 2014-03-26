@@ -14,7 +14,7 @@ from paideia import Npc, Location, User, PathChooser, Path, Categorizer, Walk
 from paideia import StepFactory, StepText, StepMultiple, NpcChooser, Step
 from paideia import StepRedirect, StepViewSlides, StepAwardBadges
 from paideia import StepEvaluator, MultipleEvaluator, StepQuotaReached
-from paideia import Block, BugReporter
+from paideia import Block, BugReporter, Map
 from gluon import current, IMG
 
 import datetime
@@ -22,20 +22,22 @@ from pprint import pprint
 import re
 from random import randint
 from copy import copy
+from dateutil import parser
 
 
 # ===================================================================
 # Switches governing which tests to run
 # ===================================================================
-global_runall = False
+global_runall = True
 global_run_TestNpc = False
 global_run_TestLocation = False
 global_run_TestStep = False
 global_run_TestStepEvaluator = False
 global_run_TestMultipleEvaluator = False
 global_run_TestPath = False
-global_run_TestUser = False
+global_run_TestUser = True
 global_run_TestCategorizer = False
+global_run_TestMap = False
 global_run_TestWalk = False
 global_run_TestPathChooser = False
 global_run_TestBugReporter = False
@@ -49,6 +51,1989 @@ def dt(string):
     """Return datetime object parsed from the string argument supplied"""
     format = "%Y-%m-%d"
     return datetime.datetime.strptime(string, format)
+
+
+@pytest.fixture
+def mytagpros():
+    """A fixture providing mock tag_progress records"""
+    tp = {'Simon Pan 2014-03-21': {'latest_new': 10,
+                                   'name': 109,
+                                   'id': 303,
+                                   'cat1': [129, 2, 131, 4, 133, 6, 135, 9,
+                                           10, 130, 16, 17, 132, 30, 5, 36, 134,
+                                           43, 46, 48, 55, 61, 62, 63, 66, 67,
+                                           69, 71, 72, 73, 74, 76, 77, 82, 83,
+                                           84, 85, 86, 87, 88, 90, 91, 93, 94,
+                                           95, 96, 102, 103, 104, 115, 117, 118,
+                                           121, 124],  # removed 128 to test demotion
+                                   'cat2': [14],  # was [], moved to test promotion
+                                   'cat3': [],  # was [14]
+                                   'cat4': [68, 38, 75, 47, 49, 18, 116, 119,
+                                           120, 89, 122, 92, 29, 128],  # added 128
+                                   'rev1': [],
+                                   'rev3': [],
+                                   'rev2': [],
+                                   'rev4': []},
+          }
+    return tp
+
+
+@pytest.fixture
+def mycatsout_core_algorithm():
+    """A fixture providing mock tag_progress records"""
+    tp = {'Simon Pan 2014-03-21': {'cat1': [1, 2, 5, 6, 9, 10, 16, 17, 24, 30,
+                                            32, 35, 36, 40, 43, 46, 48, 61, 62,
+                                            63, 66, 67, 69, 71, 72, 73, 74, 76,
+                                            77, 82, 83, 84, 85, 86, 87, 88, 90,
+                                            91, 93, 94, 95, 115, 117, 118, 121,
+                                            124, 128, 129, 133],
+                                            # 131, 4, 135, 130, 132, 134, 55,
+                                            # 96, 102, 103, 104 are untried
+                                   'cat2': [],
+                                   'cat3': [14],
+                                   'cat4': [18, 29, 38, 47, 49, 68, 75, 89, 92,
+                                            116, 119, 120, 122],
+                                   'rev1': [],
+                                   'rev3': [],
+                                   'rev2': [],
+                                   'rev4': []},
+          }
+    return tp
+
+
+@pytest.fixture
+def mycatsout_add_untried():
+    """A fixture providing mock tag_progress records"""
+    tp = {'Simon Pan 2014-03-21': {'cat1': [1, 2, 5, 6, 9, 10, 16, 17, 24, 30,
+                                            32, 35, 36, 40, 43, 46, 48, 61, 62,
+                                            63, 66, 67, 69, 71, 72, 73, 74, 76,
+                                            77, 82, 83, 84, 85, 86, 87, 88, 90,
+                                            91, 93, 94, 95, 115, 117, 118, 121,
+                                            124, 128, 129, 133, 4, 55, 96, 102,
+                                            103, 104, 130, 131, 132, 134, 135],
+                                   'cat2': [],
+                                   'cat3': [14],
+                                   'cat4': [18, 29, 38, 47, 49, 68, 75, 89, 92,
+                                            116, 119, 120, 122],
+                                   'rev1': [],
+                                   'rev3': [],
+                                   'rev2': [],
+                                   'rev4': []},
+          }
+    return tp
+
+
+@pytest.fixture
+def mycatsout_find_changes():
+    """A fixture providing mock tag_progress records"""
+    tp = {'Simon Pan 2014-03-21': {'cat1': [1, 2, 5, 6, 9, 10, 16, 17, 24, 30,
+                                            32, 35, 36, 40, 43, 46, 48, 61, 62,
+                                            63, 66, 67, 69, 71, 72, 73, 74, 76,
+                                            77, 82, 83, 84, 85, 86, 87, 88, 90,
+                                            91, 93, 94, 95, 115, 117, 118, 121,
+                                            124, 129, 133, 4, 55, 96, 102,
+                                            103, 104, 130, 131, 132, 134, 135],
+                                   'cat2': [],
+                                   'cat3': [14],
+                                   'cat4': [18, 29, 38, 47, 49, 68, 75, 89, 92,
+                                            116, 119, 120, 122, 128],
+                                   'rev1': [1, 2, 5, 6, 9, 10, 16, 17, 24, 30,
+                                            32, 35, 36, 40, 43, 46, 48, 61, 62,
+                                            63, 66, 67, 69, 71, 72, 73, 74, 76,
+                                            77, 82, 83, 84, 85, 86, 87, 88, 90,
+                                            91, 93, 94, 95, 115, 117, 118, 121,
+                                            124, 128, 129, 133, 4, 55, 96, 102,
+                                            103, 104, 130, 131, 132, 134, 135],
+                                   'rev2': [],
+                                   'rev3': [14],
+                                   'rev4': [18, 29, 38, 47, 49, 68, 75, 89, 92,
+                                            116, 119, 120, 122]},
+          }
+    return tp
+
+
+@pytest.fixture
+def mydemoted():
+    """A fixture providing mock tag_progress records"""
+    tp = {'Simon Pan 2014-03-21': None,
+          }
+    #tp = {'Simon Pan 2014-03-21': {'cat1': [],
+                                   #'cat2': [],
+                                   #'cat3': [],
+                                   #'cat4': [],
+                                   #'rev1': [],
+                                   #'rev3': [],
+                                   #'rev2': [],
+                                   #'rev4': []},
+          #}
+    return tp
+
+
+@pytest.fixture
+def mypromoted():
+    """A fixture providing mock tag_progress records"""
+    tp = {'Simon Pan 2014-03-21': {'cat1': [],
+                                   'cat2': [],
+                                   'cat3': [14],
+                                   'cat4': [],
+                                   'rev1': [],
+                                   'rev3': [],
+                                   'rev2': [],
+                                   'rev4': []},
+          }
+    return tp
+
+
+@pytest.fixture
+def mypromotions():
+    """docstring for mypromotions"""
+    prom = {'Simon Pan 2014-03-21':
+            [{'name': 109L,
+              'tag': 4L,
+              'cat1': datetime.datetime(2013, 10, 3, 21, 16, 29),
+              'cat2': None,
+              'cat4': None,
+              'cat3': None,
+              'id': 606L},
+             {'name': 109L,
+              'tag': 46L,
+              'cat1': datetime.datetime(2013, 10, 3, 21, 16, 29),
+              'cat2': None,
+              'cat4': None,
+              'cat3': None,
+              'id': 607L},
+             {'name': 109L,
+              'tag': 47L,
+              'cat1': datetime.datetime(2013, 10, 3, 21, 16, 29),
+              'cat2': None,
+              'cat4': None,
+              'cat3': None,
+              'id': 608L},
+             {'name': 109L,
+              'tag': 69L,
+              'cat1': datetime.datetime(2013, 10, 3, 21, 16, 29),
+              'cat2': None,
+              'cat4': None,
+              'cat3': None,
+              'id': 609L},
+             {'name': 109L,
+              'tag': 95L,
+              'cat1': datetime.datetime(2013, 10, 3, 21, 16, 29),
+              'cat2': None,
+              'cat4': None,
+              'cat3': None,
+              'id': 610L},
+             {'name': 109L,
+              'tag': 117L,
+              'cat1': datetime.datetime(2013, 10, 3, 21, 16, 29),
+              'cat2': None,
+              'cat4': None,
+              'cat3': None,
+              'id': 611L},
+             {'name': 109L,
+              'tag': 118L,
+              'cat1': datetime.datetime(2013, 10, 3, 21, 16, 29),
+              'cat2': None,
+              'cat4': None,
+              'cat3': None,
+              'id': 612L},
+             {'name': 109L,
+              'tag': 119L,
+              'cat1': datetime.datetime(2013, 10, 3, 21, 16, 29),
+              'cat2': None,
+              'cat4': None,
+              'cat3': None,
+              'id': 613L},
+             {'name': 109L,
+              'cat1': datetime.datetime(2013, 10, 3, 21, 16, 29),
+              'cat2': None,
+              'tag': 120L,
+              'cat4': None,
+              'cat3': None,
+              'id': 614L},
+             {'name': 109L,
+              'tag': 2L,
+              'cat1': datetime.datetime(2013, 10, 5, 3, 6, 25),
+              'cat2': None,
+              'cat4': None,
+              'cat3': None,
+              'id': 703L},
+             {'name': 109L,
+              'tag': 10L,
+              'cat1': datetime.datetime(2013, 10, 5, 3, 6, 25),
+              'cat2': None,
+              'cat4': None,
+              'cat3': None,
+              'id': 704L},
+             {'name': 109L,
+              'tag': 18L,
+              'cat1': datetime.datetime(2013, 10, 5, 3, 6, 25),
+              'cat2': None,
+              'cat4': None,
+              'cat3': None,
+              'id': 705L},
+             {'name': 109L,
+              'cat1': datetime.datetime(2013, 10, 5, 3, 6, 25),
+              'cat2': None,
+              'tag': 30L,
+              'cat4': None,
+              'cat3': None,
+              'id': 706L},
+             {'name': 109L,
+              'tag': 38L,
+              'cat1': datetime.datetime(2013, 10, 5, 3, 6, 25),
+              'cat2': None,
+              'cat4': None,
+              'cat3': None,
+              'id': 707L},
+             {'name': 109L,
+              'tag': 49L,
+              'cat1': datetime.datetime(2013, 10, 5, 3, 6, 25),
+              'cat2': None,
+              'cat4': None,
+              'cat3': None,
+              'id': 708L},
+             {'name': 109L,
+              'tag': 55L,
+              'cat1': datetime.datetime(2013, 10, 5, 3, 6, 25),
+              'cat2': None,
+              'cat4': None,
+              'cat3': None,
+              'id': 709L},
+             {'name': 109L,
+              'tag': 86L,
+              'cat1': datetime.datetime(2013, 10, 5, 3, 6, 25),
+              'cat2': None,
+              'cat4': None,
+              'cat3': None,
+              'id': 710L},
+             {'name': 109L,
+              'tag': 87L,
+              'cat1': datetime.datetime(2013, 10, 5, 3, 6, 25),
+              'cat2': None,
+              'cat4': None,
+              'cat3': None,
+              'id': 711L},
+             {'name': 109L,
+              'tag': 121L,
+              'cat1': datetime.datetime(2013, 10, 5, 3, 6, 25),
+              'cat2': None,
+              'cat4': None,
+              'cat3': None,
+              'id': 712L},
+             {'name': 109L,
+              'tag': 122L,
+              'cat1': datetime.datetime(2013, 10, 5, 3, 6, 25),
+              'cat2': None,
+              'cat4': None,
+              'cat3': None,
+              'id': 713L},
+             {'name': 109L,
+              'tag': 128L,
+              'cat1': datetime.datetime(2013, 10, 5, 3, 6, 25),
+              'cat2': None,
+              'cat4': None,
+              'cat3': None,
+              'id': 714L}
+             ]
+            }
+    return prom
+
+
+@pytest.fixture
+def mytagrecs():
+    """A fixture providing mock tag_records data."""
+    tr = {'Simon Pan 2014-03-21':
+          [{'id': 383380L,
+            'tag': 1L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-02-26 19:12:41.851235',
+                                '2014-02-26 21:11:21.449747',
+                                '2014-02-27 22:28:50.991776',
+                                '2014-02-28 17:16:35.793071',
+                                '2014-03-03 00:53:41.376872',
+                                '2014-03-03 00:54:27.906045',
+                                '2014-03-05 04:15:45.253453',
+                                '2014-03-05 22:19:12.982545',
+                                '2014-03-06 22:58:36.468321',
+                                '2014-03-06 23:04:06.151430',
+                                '2014-03-06 23:04:35.494832',
+                                '2014-03-07 19:13:40.727329',
+                                '2014-03-10 18:56:02.777857',
+                                '2014-03-10 18:58:12.704988',
+                                '2014-03-10 18:58:17.102850',
+                                '2014-03-11 18:15:09.996416',
+                                '2014-03-12 20:53:03.514677',
+                                '2014-03-13 19:50:36.891023',
+                                '2014-03-13 19:51:27.333192',
+                                '2014-03-14 20:31:20.800429',
+                                '2014-03-17 22:13:59.395609',
+                                '2014-03-20 00:45:07.189652',
+                                '2014-03-20 01:13:10.767671',
+                                '2014-03-20 01:20:07.238262',
+                                '2014-03-20 01:21:42.738633'],
+            'step': None,
+            'times_right': 0.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
+            'tlast_wrong': datetime.datetime(2013, 10, 1, 15, 32, 1)
+            },
+           {'id': 383615L, 'in_path': None,
+            'tag': 4L,
+            'name': 109L,
+            'secondary_right': ['2014-03-17 22:21:48.396981',
+                                '2014-03-17 22:26:16.421367',
+                                '2014-03-17 22:26:34.296588',
+                                '2014-03-17 22:27:30.389687',
+                                '2014-03-17 22:28:09.597927',
+                                '2014-03-17 22:28:55.131425',
+                                '2014-03-20 00:46:03.191941',
+                                '2014-03-20 01:19:00.049401'],
+            'step': None,
+            'tag': 2L,
+            'times_right': 0.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
+            'tlast_wrong': datetime.datetime(2013, 10, 5, 3, 6, 26)},
+           {'id': 383419L,
+            'tag': 5L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': None,
+            'step': None,
+            'times_right': 0.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 20, 7),
+            'tlast_wrong': datetime.datetime(2013, 10, 1, 23, 45, 25)},
+           {'id': 383219L,
+            'tag': 6L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-03-05 04:23:40.815243',
+                                '2014-03-05 04:24:02.586695',
+                                '2014-03-05 04:24:12.043533',
+                                '2014-03-05 22:27:29.538283',
+                                '2014-03-20 01:20:07.234653'],
+            'step': None,
+            'times_right': None,
+            'times_wrong': None,
+            'tlast_right': datetime.datetime(2013, 9, 27, 14, 8, 27),
+            'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 8, 27)},
+           {'id': 383119L,
+            'tag': 9L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-03-20 01:13:10.771437',
+                                '2014-03-20 01:18:26.331487',
+                                '2014-03-20 01:20:07.245236',
+                                '2014-03-20 01:27:31.974083'],
+            'step': None,
+            'times_right': 1.0,
+            'times_wrong': 0.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 27, 31),
+            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36)},
+           {'id': 383613L,
+            'tag': 10L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2013-10-07 22:48:58.563124'],
+            'step': None,
+            'times_right': 0.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
+            'tlast_wrong': datetime.datetime(2013, 10, 5, 3, 6, 26)},
+           {'id': 383969L,
+            'tag': 14L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': None,
+            'step': None,
+            'times_right': 93.0,
+            'times_wrong': 18.0,
+            'tlast_right': datetime.datetime(2014, 3, 17, 22, 29, 3),
+            'tlast_wrong': datetime.datetime(2014, 1, 21, 18, 21, 40)},
+           {'id': 383116L,
+            'tag': 16L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-02-18 19:17:02.407886',
+                                '2014-02-18 19:17:25.063330',
+                                '2014-02-19 20:36:42.985334',
+                                '2014-02-19 20:37:08.797027',
+                                '2014-02-20 22:59:13.563362',
+                                '2014-02-22 03:10:16.568678',
+                                '2014-02-22 03:10:31.175847',
+                                '2014-02-28 17:39:34.566118',
+                                '2014-02-28 17:39:49.479375'],
+            'step': None,
+            'times_right': 1.0,
+            'times_wrong': 0.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 27, 31),
+            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36)},
+           {'id': 384068L,
+            'tag': 17L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': None,
+            'step': None,
+            'times_right': 0.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 13, 10),
+            'tlast_wrong': datetime.datetime(2014, 3, 20, 1, 13, 10)},
+           {'id': 383858L,
+            'tag': 18L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': None,
+            'step': None,
+            'times_right': 95.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 1, 24, 23, 32, 23),
+            'tlast_wrong': datetime.datetime(2013, 10, 23, 18, 0, 5)},
+           {'id': 383978L,
+            'tag': 24L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': None,
+            'step': None,
+            'times_right': 1.0,
+            'times_wrong': 0.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 19),
+            'tlast_wrong': datetime.datetime(2014, 2, 11, 2, 50, 54)},
+           {'id': 383546L,
+            'tag': 29L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2013-10-03 21:37:10.915378',
+                                '2013-10-03 21:38:26.430271',
+                                '2013-10-03 21:38:38.754177',
+                                '2013-10-04 19:48:45.218412',
+                                '2013-10-05 20:14:31.792403',
+                                '2013-10-05 20:16:17.321064',
+                                '2013-10-05 20:17:02.739388',
+                                '2013-10-07 22:45:26.615676',
+                                '2013-10-08 18:14:36.129966',
+                                '2013-10-20 02:14:36.180224',
+                                '2013-10-25 02:05:14.367961',
+                                '2013-10-25 02:06:05.067229',
+                                '2013-11-16 02:22:43.965206',
+                                '2013-11-16 02:23:26.988475',
+                                '2014-01-24 23:29:39.321832',
+                                '2014-02-10 02:13:43.091516',
+                                '2014-02-11 02:53:27.756725',
+                                '2014-02-12 21:11:26.680416',
+                                '2014-02-12 21:33:08.570055',
+                                '2014-02-20 23:05:57.762133'],
+            'step': None,
+            'times_right': 28.0,
+            'times_wrong': 10.0,
+            'tlast_right': datetime.datetime(2014, 2, 11, 2, 53, 27),
+            'tlast_wrong': datetime.datetime(2013, 10, 3, 21, 37, 10)},
+           {'id': 383614L,
+            'tag': 30L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2013-11-04 14:09:58.699103',
+                                '2013-11-04 14:10:11.676329',
+                                '2013-11-06 16:05:00.762640',
+                                '2013-11-06 16:05:10.277542',
+                                '2013-11-09 04:11:45.713347',
+                                '2013-11-09 04:12:03.602066',
+                                '2013-11-13 15:34:19.536313',
+                                '2013-11-15 01:59:36.619583',
+                                '2013-11-16 23:30:52.468572',
+                                '2013-11-17 22:32:36.289015',
+                                '2013-11-17 22:32:45.869638',
+                                '2013-11-17 22:54:28.311941',
+                                '2013-12-03 21:52:55.796443',
+                                '2013-12-03 21:53:06.210374',
+                                '2013-12-03 21:53:13.328905',
+                                '2014-01-23 19:27:48.728760',
+                                '2014-01-28 02:43:01.370294',
+                                '2014-01-31 03:07:18.935169',
+                                '2014-01-31 03:16:13.717293',
+                                '2014-01-31 03:16:25.387423',
+                                '2014-02-04 15:02:12.448057',
+                                '2014-02-04 15:02:23.598612',
+                                '2014-02-07 18:34:16.086847'],
+            'step': None,
+            'times_right': 0.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
+            'tlast_wrong': datetime.datetime(2013, 10, 5, 3, 6, 26)},
+           {'id': 383478L,
+            'tag': 32L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2013-11-17 22:23:35.574534',
+                                '2013-12-03 21:52:42.483799',
+                                '2014-01-31 22:25:20.777146'],
+            'step': None,
+            'times_right': None,
+            'times_wrong': None,
+            'tlast_right': datetime.datetime(2013, 10, 2, 20, 38, 45),
+            'tlast_wrong': datetime.datetime(2013, 10, 2, 20, 38, 45)},
+           {'id': 384067L,
+            'tag': 35L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-03-13 20:02:54.213157',
+                                '2014-03-13 20:03:06.719722'],
+            'step': None,
+            'times_right': None,
+            'times_wrong': None,
+            'tlast_right': datetime.datetime(2014, 3, 13, 20, 2, 52),
+            'tlast_wrong': datetime.datetime(2014, 3, 13, 20, 2, 52)},
+           {'id': 383232L,
+            'tag': 36L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-02-26 19:12:41.851235',
+                                '2014-02-26 21:11:21.449747',
+                                '2014-02-27 22:28:50.991776',
+                                '2014-02-28 17:16:35.793071',
+                                '2014-03-03 00:53:41.376872',
+                                '2014-03-03 00:54:27.906045',
+                                '2014-03-05 04:15:45.253453',
+                                '2014-03-05 22:19:12.982545',
+                                '2014-03-06 22:58:36.468321',
+                                '2014-03-06 23:04:06.151430',
+                                '2014-03-06 23:04:35.494832',
+                                '2014-03-07 19:13:40.727329',
+                                '2014-03-10 18:56:02.777857',
+                                '2014-03-10 18:58:12.704988',
+                                '2014-03-10 18:58:17.102850',
+                                '2014-03-11 18:15:09.996416',
+                                '2014-03-12 20:53:03.514677',
+                                '2014-03-13 19:50:36.891023',
+                                '2014-03-13 19:51:27.333192',
+                                '2014-03-13 20:02:54.213157',
+                                '2014-03-13 20:03:06.719722',
+                                '2014-03-14 20:31:20.800429',
+                                '2014-03-17 22:13:59.395609',
+                                '2014-03-20 00:45:07.175987',
+                                '2014-03-20 01:13:10.776062'],
+            'step': None,
+            'times_right': 0.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
+            'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 39, 59)},
+           {'id': 383916L,
+            'tag': 38L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': None,
+            'step': None,
+            'times_right': 1000.0,
+            'times_wrong': 1000.0,
+            'tlast_right': datetime.datetime(2014, 3, 13, 20, 16, 32),
+            'tlast_wrong': datetime.datetime(2013, 11, 20, 0, 24, 20)},
+           {'id': 383979L,
+            'tag': 40L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': None,
+            'step': None,
+            'times_right': 1.0,
+            'times_wrong': 0.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 19),
+            'tlast_wrong': datetime.datetime(2014, 2, 11, 2, 50, 54)},
+           {'id': 383980L,
+            'tag': 43L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': None,
+            'step': None,
+            'times_right': 1.0,
+            'times_wrong': 0.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 19),
+            'tlast_wrong': datetime.datetime(2014, 2, 11, 2, 50, 54)},
+           {'id': 383420L,
+            'tag': 46L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2013-10-03 21:38:26.430271',
+                                '2013-10-03 21:38:38.754177',
+                                '2013-10-04 19:48:45.218412',
+                                '2013-10-08 18:14:36.129966',
+                                '2013-10-09 19:45:40.089605',
+                                '2013-10-09 19:46:49.950370',
+                                '2013-10-09 19:47:14.835834',
+                                '2013-10-25 02:05:14.367961',
+                                '2013-10-25 02:06:05.067229',
+                                '2013-11-16 02:22:43.965206',
+                                '2013-11-16 02:23:26.988475',
+                                '2014-02-12 21:18:52.149758',
+                                '2014-02-15 03:04:08.599316',
+                                '2014-02-17 01:01:49.514350',
+                                '2014-02-18 01:32:22.890120'],
+            'step': None,
+            'times_right': 0.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 20, 7),
+            'tlast_wrong': datetime.datetime(2013, 10, 1, 23, 45, 25)},
+           {'id': 383421L,
+            'tag': 47L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': None,
+            'step': None,
+            'times_right': 1000.0,
+            'times_wrong': 1000.0,
+            'tlast_right': datetime.datetime(2014, 2, 18, 1, 32, 22),
+            'tlast_wrong': datetime.datetime(2013, 10, 1, 23, 45, 25)},
+           {'id': 383222L,
+            'tag': 48L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-01-13 15:17:38.961998',
+                                '2014-01-13 23:00:05.839312',
+                                '2014-01-20 14:23:30.474737',
+                                '2014-01-20 14:35:17.591339',
+                                '2014-01-23 19:27:48.728760',
+                                '2014-01-28 02:43:01.370294',
+                                '2014-01-31 03:07:18.935169',
+                                '2014-01-31 03:16:13.717293',
+                                '2014-01-31 03:16:25.387423',
+                                '2014-02-04 15:02:12.448057',
+                                '2014-02-04 15:02:23.598612',
+                                '2014-02-07 18:34:16.086847',
+                                '2014-03-10 18:58:12.704988',
+                                '2014-03-10 18:58:17.102850',
+                                '2014-03-20 01:13:10.779684'],
+            'step': None,
+            'times_right': 1.0,
+            'times_wrong': 0.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 11, 17),
+            'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 18, 2)},
+           {'id': 383890L,
+            'tag': 49L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': None,
+            'step': None,
+            'times_right': 1000.0,
+            'times_wrong': 1000.0,
+            'tlast_right': datetime.datetime(2014, 3, 7, 19, 22, 42),
+            'tlast_wrong': datetime.datetime(2013, 11, 2, 2, 13, 11)},
+           {'id': 383111L,
+            'tag': 61L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-03-17 22:26:16.421367',
+                                '2014-03-17 22:26:34.296588',
+                                '2014-03-17 22:26:47.680713',
+                                '2014-03-17 22:27:11.619260',
+                                '2014-03-17 22:27:30.389687',
+                                '2014-03-17 22:28:09.597927',
+                                '2014-03-17 22:28:26.372733',
+                                '2014-03-17 22:28:33.835836',
+                                '2014-03-17 22:28:55.131425',
+                                '2014-03-17 22:29:25.135365',
+                                '2014-03-17 22:29:32.526147',
+                                '2014-03-20 00:41:36.526278',
+                                '2014-03-20 00:45:07.161951',
+                                '2014-03-20 00:46:03.185017',
+                                '2014-03-20 00:46:37.668822',
+                                '2014-03-20 01:13:10.783458',
+                                '2014-03-20 01:15:25.999184',
+                                '2014-03-20 01:19:00.042374',
+                                '2014-03-20 01:20:07.209399',
+                                '2014-03-20 01:26:21.063121',
+                                '2014-03-20 01:26:42.183147'],
+            'step': None,
+            'times_right': 0.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 26),
+            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 48, 55)},
+           {'id': 383217L,
+            'tag': 62L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-03-17 22:25:44.135166',
+                                '2014-03-17 22:26:16.421367',
+                                '2014-03-17 22:26:34.296588',
+                                '2014-03-17 22:26:47.680713',
+                                '2014-03-17 22:27:30.389687',
+                                '2014-03-17 22:28:09.597927',
+                                '2014-03-17 22:28:26.372733',
+                                '2014-03-17 22:28:55.131425',
+                                '2014-03-17 22:29:32.526147',
+                                '2014-03-20 00:41:36.531712',
+                                '2014-03-20 00:45:07.166820',
+                                '2014-03-20 00:46:03.188713',
+                                '2014-03-20 00:46:37.676085',
+                                '2014-03-20 01:13:10.787178',
+                                '2014-03-20 01:15:26.006571',
+                                '2014-03-20 01:19:00.046118',
+                                '2014-03-20 01:20:07.216789',
+                                '2014-03-20 01:26:21.066885'],
+            'step': None,
+            'times_right': 1.0,
+            'times_wrong': 0.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 26, 42),
+            'tlast_wrong': datetime.datetime(2013, 9, 27, 13, 58, 40)},
+           {'id': 383109L,
+            'tag': 63L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-03-17 22:26:16.421367',
+                                '2014-03-17 22:26:34.296588',
+                                '2014-03-17 22:27:30.389687',
+                                '2014-03-17 22:28:09.597927',
+                                '2014-03-17 22:28:33.835836',
+                                '2014-03-17 22:28:55.131425',
+                                '2014-03-17 22:29:25.135365',
+                                '2014-03-20 00:41:36.521707',
+                                '2014-03-20 00:45:07.170990',
+                                '2014-03-20 00:46:03.181437',
+                                '2014-03-20 00:46:37.665167',
+                                '2014-03-20 01:13:10.790596',
+                                '2014-03-20 01:15:25.995401',
+                                '2014-03-20 01:19:00.038560',
+                                '2014-03-20 01:20:07.205652'],
+            'step': None,
+            'times_right': 1.0,
+            'times_wrong': 0.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 26, 21),
+            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 45, 36)},
+           {'id': 383234L,
+            'tag': 66L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-03-17 22:28:33.835836',
+                                '2014-03-17 22:29:25.135365',
+                                '2014-03-17 22:29:32.526147',
+                                '2014-03-20 00:45:07.181056',
+                                '2014-03-20 00:46:37.672462',
+                                '2014-03-20 01:13:10.794228',
+                                '2014-03-20 01:15:26.002995',
+                                '2014-03-20 01:20:07.213051'],
+            'step': None,
+            'times_right': 0.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 26),
+            'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 43, 27)},
+           {'id': 383117L,
+            'tag': 67L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-03-20 01:20:07.241677',
+                                '2014-03-20 01:21:42.742329',
+                                '2014-03-20 01:22:46.003765',
+                                '2014-03-20 01:27:31.971359'],
+            'step': None,
+            'times_right': 1.0,
+            'times_wrong': 0.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 27, 31),
+            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36)},
+           {'id': 383108L,
+            'tag': 68L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-03-12 20:52:04.164228',
+                                '2014-03-13 19:51:41.766472',
+                                '2014-03-14 20:31:38.950469',
+                                '2014-03-20 00:41:36.541744'],
+            'step': None,
+            'times_right': 77.0,
+            'times_wrong': 30.0,
+            'tlast_right': datetime.datetime(2014, 3, 5, 22, 39, 53),
+            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 45, 15)},
+           {'id': 383543L,
+            'tag': 69L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-03-17 22:25:44.135166',
+                                '2014-03-17 22:26:47.680713',
+                                '2014-03-17 22:28:26.372733',
+                                '2014-03-17 22:29:32.526147',
+                                '2014-03-20 01:13:10.801349'],
+            'step': None,
+            'times_right': 0.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 20, 7),
+            'tlast_wrong': datetime.datetime(2013, 10, 3, 21, 19, 34)},
+           {'id': 384040L,
+            'tag': 71L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': None,
+            'step': None,
+            'times_right': 1.0,
+            'times_wrong': 0.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 16, 1),
+            'tlast_wrong': datetime.datetime(2014, 2, 12, 4, 3, 50)},
+           {'id': 383112L,
+            'tag': 72L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-02-22 02:21:46.197632',
+                                '2014-02-22 02:43:30.852941',
+                                '2014-02-27 22:43:40.639117',
+                                '2014-03-05 22:25:54.594000',
+                                '2014-03-05 22:26:05.479588',
+                                '2014-03-07 19:29:25.549794',
+                                '2014-03-07 19:29:37.973997',
+                                '2014-03-10 18:58:12.704988',
+                                '2014-03-10 18:58:17.102850',
+                                '2014-03-20 01:11:17.566601',
+                                '2014-03-20 01:13:10.804879'],
+            'step': None,
+            'times_right': 1.0,
+            'times_wrong': 0.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 28, 36),
+            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 53, 45)},
+           {'id': 383114L,
+            'tag': 73L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-02-19 20:36:42.985334',
+                                '2014-02-19 20:37:08.797027',
+                                '2014-02-20 22:59:13.563362',
+                                '2014-02-22 03:10:16.568678',
+                                '2014-02-22 03:10:31.175847'],
+            'step': None,
+            'times_right': 1.0,
+            'times_wrong': 0.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 27, 31),
+            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36)},
+           {'id': 383414L,
+            'tag': 74L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-03-20 01:20:07.223668',
+                                '2014-03-20 01:22:45.994129'],
+            'step': None,
+            'times_right': 0.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 17, 32),
+            'tlast_wrong': datetime.datetime(2013, 10, 1, 21, 10, 31)},
+           {'id': 383411L,
+            'tag': 75L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2013-12-03 21:54:52.981560',
+                                '2014-01-20 14:29:24.439739',
+                                '2014-02-25 01:05:57.858092',
+                                '2014-02-25 01:07:59.061393',
+                                '2014-02-25 01:09:09.356279',
+                                '2014-02-25 01:10:20.265528',
+                                '2014-02-25 01:11:45.086382',
+                                '2014-03-20 01:20:07.227347'],
+            'step': None,
+            'times_right': 1000.0,
+            'times_wrong': 1000.0,
+            'tlast_right': datetime.datetime(2014, 3, 13, 20, 3, 6),
+            'tlast_wrong': datetime.datetime(2013, 10, 1, 21, 8, 41)},
+           {'id': 383347L,
+            'tag': 76L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-03-20 01:13:10.808508'],
+            'step': None,
+            'times_right': 0.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 22, 45),
+            'tlast_wrong': datetime.datetime(2013, 9, 30, 13, 52, 55)},
+           {'id': 383115L,
+            'tag': 77L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-02-25 01:11:45.086382',
+                                '2014-02-25 01:13:14.462175',
+                                '2014-02-25 01:13:42.069870',
+                                '2014-02-25 01:41:04.161803',
+                                '2014-02-25 01:43:42.693616',
+                                '2014-02-26 19:11:09.105744',
+                                '2014-02-26 19:11:25.514290',
+                                '2014-03-05 04:23:40.815243',
+                                '2014-03-05 04:24:02.586695',
+                                '2014-03-05 04:24:12.043533',
+                                '2014-03-06 23:04:06.151430',
+                                '2014-03-06 23:04:35.494832',
+                                '2014-03-20 01:13:10.812152',
+                                '2014-03-20 01:20:07.231051',
+                                '2014-03-20 01:21:42.745721',
+                                '2014-03-20 01:22:45.999836'],
+            'step': None,
+            'times_right': 1.0,
+            'times_wrong': 0.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 27, 31),
+            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36)},
+           {'id': 383220L,
+            'tag': 82L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-03-17 22:25:44.135166',
+                                '2014-03-17 22:26:47.680713',
+                                '2014-03-17 22:28:26.372733',
+                                '2014-03-17 22:29:32.526147',
+                                '2014-03-20 00:41:36.536662',
+                                '2014-03-20 01:13:10.815555'],
+            'step': None,
+            'times_right': 0.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 26),
+            'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 8, 27)},
+           {'id': 383221L,
+            'tag': 83L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-02-22 02:41:48.717205',
+                                '2014-02-22 02:48:06.942953',
+                                '2014-02-22 02:48:31.979752',
+                                '2014-02-22 02:49:45.161565',
+                                '2014-02-22 03:10:16.568678',
+                                '2014-02-22 03:10:31.175847',
+                                '2014-02-25 01:17:35.500535',
+                                '2014-02-25 21:50:44.559794',
+                                '2014-02-25 21:51:13.463541',
+                                '2014-02-27 22:43:40.639117',
+                                '2014-02-28 17:54:08.870595',
+                                '2014-02-28 17:56:42.590879',
+                                '2014-02-28 17:58:57.035455',
+                                '2014-03-05 04:23:40.815243',
+                                '2014-03-05 04:24:02.586695',
+                                '2014-03-05 04:24:12.043533',
+                                '2014-03-20 01:13:10.818786',
+                                '2014-03-20 01:15:26.009951'],
+            'step': None,
+            'times_right': None,
+            'times_wrong': None,
+            'tlast_right': datetime.datetime(2013, 9, 27, 14, 8, 27),
+            'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 8, 27)},
+           {'id': 384069L,
+            'tag': 84L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': None,
+            'step': None,
+            'times_right': 0.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 13, 10),
+            'tlast_wrong': datetime.datetime(2014, 3, 20, 1, 13, 10)},
+           {'id': 384070L,
+            'tag': 85L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': None,
+            'step': None,
+            'times_right': 0.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 13, 10),
+            'tlast_wrong': datetime.datetime(2014, 3, 20, 1, 13, 10)},
+           {'id': 383612L,
+            'tag': 86L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-03-17 22:26:47.680713',
+                                '2014-03-17 22:28:26.372733',
+                                '2014-03-17 22:28:33.835836',
+                                '2014-03-17 22:29:25.135365',
+                                '2014-03-17 22:29:32.526147',
+                                '2014-03-20 01:13:10.821758'],
+            'step': None,
+            'times_right': 0.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
+            'tlast_wrong': datetime.datetime(2013, 10, 5, 3, 6, 26)},
+           {'id': 383637L,
+            'tag': 87L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2013-11-04 14:09:58.699103',
+                                '2013-11-04 14:10:11.676329',
+                                '2013-11-06 16:05:00.762640',
+                                '2013-11-06 16:05:10.277542',
+                                '2013-11-09 04:11:45.713347',
+                                '2013-11-09 04:12:03.602066',
+                                '2013-11-13 15:34:19.536313',
+                                '2013-11-15 01:59:36.619583',
+                                '2013-11-16 23:30:52.468572',
+                                '2013-11-17 22:32:36.289015',
+                                '2013-11-17 22:32:45.869638',
+                                '2013-11-17 22:54:28.311941',
+                                '2013-12-03 21:52:55.796443',
+                                '2013-12-03 21:53:06.210374',
+                                '2013-12-03 21:53:13.328905',
+                                '2014-01-23 19:27:48.728760',
+                                '2014-01-28 02:43:01.370294',
+                                '2014-01-31 03:07:18.935169',
+                                '2014-01-31 03:16:13.717293',
+                                '2014-01-31 03:16:25.387423',
+                                '2014-02-04 15:02:12.448057',
+                                '2014-02-04 15:02:23.598612',
+                                '2014-02-07 18:34:16.086847'],
+            'step': None,
+            'times_right': 0.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 26),
+            'tlast_wrong': datetime.datetime(2013, 10, 5, 20, 12, 17)},
+           {'id': 383118L,
+            'tag': 88L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-02-22 02:21:24.974752',
+                                '2014-02-22 02:21:46.197632',
+                                '2014-02-22 02:43:30.852941',
+                                '2014-02-25 01:41:04.161803',
+                                '2014-02-25 01:43:42.693616',
+                                '2014-03-06 23:04:06.151430',
+                                '2014-03-06 23:04:35.494832',
+                                '2014-03-13 19:52:16.747902',
+                                '2014-03-20 01:13:10.824876',
+                                '2014-03-20 01:15:26.013721'],
+            'step': None,
+            'times_right': 1.0,
+            'times_wrong': 0.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 27, 31),
+            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36)},
+           {'id': 383233L,
+            'tag': 89L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': None,
+            'step': None,
+            'times_right': 1000.0,
+            'times_wrong': 1000.0,
+            'tlast_right': datetime.datetime(2014, 2, 13, 22, 36, 47),
+            'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 41, 6)},
+           {'id': 383113L,
+            'tag': 90L,
+            'times_right': 1.0,
+            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36),
+            'times_wrong': 0.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 27, 31),
+            'step': None,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-02-14 22:33:12.662352',
+                                '2014-02-22 02:14:57.149550',
+                                '2014-03-20 01:20:07.220079']},
+           {'name': 109L,
+            'tag': 91L,
+            'times_right': 1.0,
+            'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 5, 35),
+            'times_wrong': 0.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 18, 26),
+            'step': None,
+            'in_path': None,
+            'id': 383218L,
+            'secondary_right': ['2014-02-20 22:59:13.563362',
+                                '2014-02-20 23:00:34.203297',
+                                '2014-02-20 23:00:49.080672',
+                                '2014-02-22 03:10:16.568678',
+                                '2014-02-22 03:10:31.175847',
+                                '2014-02-25 01:05:57.858092',
+                                '2014-02-25 01:07:59.061393',
+                                '2014-02-25 01:09:09.356279',
+                                '2014-02-25 01:10:20.265528',
+                                '2014-02-25 01:11:45.086382',
+                                '2014-02-28 17:39:34.566118',
+                                '2014-02-28 17:39:49.479375',
+                                '2014-03-13 19:52:16.747902']},
+           {'name': 109L,
+            'tag': 92L,
+            'times_right': 1000.0,
+            'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 50, 13),
+            'times_wrong': 1000.0,
+            'tlast_right': datetime.datetime(2014, 3, 5, 4, 24, 12),
+            'step': None,
+            'in_path': None,
+            'id': 383237L,
+            'secondary_right': ['2014-02-14 22:33:12.662352',
+                                '2014-02-22 02:14:57.149550',
+                                '2014-03-10 19:14:52.759060',
+                                '2014-03-10 19:14:58.914173']},
+           {'name': 109L,
+            'tag': 93L,
+            'times_right': 0.0,
+            'tlast_wrong': datetime.datetime(2013, 9, 30, 13, 39, 50),
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 24, 41),
+            'step': None,
+            'in_path': None,
+            'id': 383346L,
+            'secondary_right': ['2014-02-24 00:54:44.343751',
+                                '2014-02-24 00:56:13.859405',
+                                '2014-02-25 01:13:14.462175',
+                                '2014-02-25 01:13:42.069870',
+                                '2014-03-06 23:04:06.151430',
+                                '2014-03-06 23:04:35.494832']},
+           {'name': 109L,
+            'tag': 94L,
+            'times_right': 0.0,
+            'tlast_wrong': datetime.datetime(2014, 2, 11, 2, 41, 56),
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 0, 41, 36),
+            'step': None,
+            'in_path': None,
+            'id': 383976L,
+            'secondary_right': None},
+           {'name': 109L,
+            'tag': 95L,
+            'times_right': 0.0,
+            'tlast_wrong': datetime.datetime(2013, 10, 3, 21, 34, 49),
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 20, 7),
+            'step': None,
+            'in_path': None,
+            'id': 383545L,
+            'secondary_right': ['2013-10-03 21:38:26.430271',
+                                '2013-10-03 21:38:38.754177',
+                                '2013-10-04 02:49:27.280458',
+                                '2013-10-04 19:50:29.608630',
+                                '2013-10-07 03:11:12.707955',
+                                '2013-10-08 18:14:36.129966',
+                                '2013-10-18 17:39:46.227522',
+                                '2013-11-16 02:22:43.965206',
+                                '2013-11-16 02:23:26.988475',
+                                '2013-11-21 22:29:04.960673',
+                                '2013-11-30 02:58:13.544984',
+                                '2013-12-03 21:54:52.981560',
+                                '2014-01-20 14:29:24.439739']},
+           {'name': 109L,
+            'tag': 115L,
+            'times_right': 1.0,
+            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36),
+            'times_wrong': 0.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 27, 31),
+            'step': None,
+            'in_path': None,
+            'id': 383120L,
+            'secondary_right': ['2014-02-18 19:43:17.771731',
+                                '2014-02-25 01:05:57.858092',
+                                '2014-02-25 01:07:59.061393',
+                                '2014-02-25 01:09:09.356279',
+                                '2014-02-25 01:10:20.265528',
+                                '2014-02-25 01:11:45.086382',
+                                '2014-02-25 01:41:04.161803',
+                                '2014-02-25 01:43:42.693616',
+                                '2014-02-27 22:43:40.639117',
+                                '2014-03-03 01:04:00.557721',
+                                '2014-03-03 01:04:17.237054',
+                                '2014-03-05 22:25:54.594000',
+                                '2014-03-05 22:26:05.479588',
+                                '2014-03-07 19:29:25.549794',
+                                '2014-03-07 19:29:37.973997',
+                                '2014-03-07 19:31:03.859650',
+                                '2014-03-10 18:58:12.704988',
+                                '2014-03-10 18:58:17.102850',
+                                '2014-03-20 01:20:07.248791']},
+           {'name': 109L,
+            'tag': 116L,
+            'times_right': 1000.0,
+            'tlast_wrong': datetime.datetime(2013, 10, 1, 21, 8, 41),
+            'times_wrong': 1000.0,
+            'tlast_right': datetime.datetime(2014, 3, 10, 18, 58, 17),
+            'step': None,
+            'in_path': None,
+            'id': 383412L,
+            'secondary_right': ['2014-02-10 02:31:21.978049',
+                                '2014-02-12 03:55:11.346488',
+                                '2014-02-12 03:55:49.469451']},
+           {'name': 109L,
+            'tag': 117L,
+            'times_right': 0.0,
+            'tlast_wrong': datetime.datetime(2013, 10, 1, 21, 8, 41),
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
+            'step': None,
+            'in_path': None,
+            'id': 383413L,
+            'secondary_right': ['2014-03-06 22:58:36.468321',
+                                '2014-03-07 19:13:40.727329',
+                                '2014-03-10 18:56:02.777857',
+                                '2014-03-11 18:15:09.996416',
+                                '2014-03-12 20:53:03.514677',
+                                '2014-03-13 19:50:36.891023',
+                                '2014-03-13 19:51:27.333192',
+                                '2014-03-14 20:31:20.800429',
+                                '2014-03-17 22:13:59.395609',
+                                '2014-03-20 00:45:07.186095']},
+           {'name': 109L,
+            'tag': 118L,
+            'times_right': 0.0,
+            'tlast_wrong': datetime.datetime(2013, 10, 3, 21, 19, 34),
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 20, 7),
+            'step': None,
+            'in_path': None,
+            'id': 383544L,
+            'secondary_right': ['2013-10-09 19:46:49.950370',
+                                '2013-10-09 19:47:14.835834',
+                                '2014-02-12 21:18:52.149758',
+                                '2014-02-15 03:04:08.599316',
+                                '2014-02-17 01:01:49.514350',
+                                '2014-02-18 01:32:22.890120']},
+           {'name': 109L,
+            'tag': 119L,
+            'times_right': 1000.0,
+            'tlast_wrong': datetime.datetime(2013, 10, 3, 21, 13),
+            'times_wrong': 1000.0,
+            'tlast_right': datetime.datetime(2014, 2, 25, 21, 51, 13),
+            'step': None,
+            'in_path': None,
+            'id': 383541L,
+            'secondary_right': ['2013-11-02 02:15:58.052970',
+                                '2013-11-04 13:05:27.666637',
+                                '2013-11-05 22:23:39.144027',
+                                '2013-11-05 22:33:03.605229',
+                                '2013-11-05 22:33:17.950054',
+                                '2013-11-05 22:43:15.156061',
+                                '2013-11-06 16:10:38.666253',
+                                '2013-11-06 16:11:09.370731',
+                                '2013-11-06 16:20:00.893924',
+                                '2013-11-06 16:34:10.466328',
+                                '2013-11-07 21:46:08.216755',
+                                '2013-11-16 02:34:23.638274',
+                                '2013-12-29 21:16:45.806782',
+                                '2013-12-29 21:16:56.144887',
+                                '2013-12-29 21:17:03.192653',
+                                '2013-12-29 21:17:11.141901',
+                                '2014-01-24 23:32:17.118887',
+                                '2014-01-24 23:32:23.263044',
+                                '2014-02-13 20:45:46.761445',
+                                '2014-02-17 01:45:13.412419',
+                                '2014-02-19 20:47:20.599505',
+                                '2014-03-20 01:15:26.017334']},
+           {'name': 109L,
+            'tag': 120L,
+            'times_right': 1000.0,
+            'tlast_wrong': datetime.datetime(2013, 10, 1, 21, 11, 43),
+            'times_wrong': 1000.0,
+            'tlast_right': datetime.datetime(2014, 3, 7, 19, 29, 37),
+            'step': None,
+            'in_path': None,
+            'id': 383415L,
+            'secondary_right': ['2013-10-04 19:50:29.608630',
+                                '2013-10-07 03:11:12.707955',
+                                '2013-10-18 17:39:46.227522',
+                                '2013-11-21 22:29:04.960673',
+                                '2013-11-30 02:58:13.544984',
+                                '2013-12-03 21:54:52.981560',
+                                '2014-01-20 14:29:24.439739']},
+           {'name': 109L,
+            'tag': 121L,
+            'times_right': 0.0,
+            'tlast_wrong': datetime.datetime(2013, 10, 5, 3, 6, 26),
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
+            'step': None,
+            'in_path': None,
+            'id': 383616L,
+            'secondary_right': None},
+           {'name': 109L,
+            'tag': 122L,
+            'times_right': 1000.0,
+            'tlast_wrong': datetime.datetime(2013, 10, 5, 20, 7, 46),
+            'times_wrong': 1000.0,
+            'tlast_right': datetime.datetime(2014, 3, 17, 22, 29, 3),
+            'step': None,
+            'in_path': None,
+            'id': 383636L,
+            'secondary_right': ['2013-11-04 13:40:30.224814',
+                                '2013-11-06 16:16:51.210929',
+                                '2014-02-03 15:11:04.685410']},
+           {'name': 109L,
+            'times_right': 0.0,
+            'tlast_wrong': datetime.datetime(2014, 2, 11, 2, 47, 9),
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 13, 10),
+            'step': None,
+            'tag': 124L,
+            'in_path': None,
+            'id': 383977L,
+            'secondary_right': None},
+           {'name': 109L,
+            'times_right': 0.0,
+            'tlast_wrong': datetime.datetime(2013, 10, 5, 20, 17, 29),
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
+            'step': None,
+            'tag': 128L,
+            'in_path': None,
+            'id': 383639L,
+            'secondary_right': None},
+           {'name': 109L,
+            'times_right': 0.0,
+            'tlast_wrong': datetime.datetime(2013, 10, 22, 21, 33),
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
+            'step': None,
+            'tag': 129L,
+            'in_path': None,
+            'id': 383852L,
+            'secondary_right': ['2014-03-20 01:13:10.828327']},
+            {'name': 109L,
+            'times_right': 0.0,
+            'tlast_wrong': datetime.datetime(2014, 3, 20, 1, 13, 10),
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 13, 10),
+            'step': None,
+            'tag': 133L,
+            'in_path': None,
+            'id': 384071L,
+            'secondary_right': None}
+           ]
+          }
+
+    return tr
+
+
+@pytest.fixture
+def mytagrecs_with_secondary():
+    """A fixture providing mock tag_records data."""
+    tr = {'Simon Pan 2014-03-21':
+          [{'id': 383380L,
+            'tag': 1L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-03-20 01:21:42.738633'],
+            'step': None,
+            'times_right': 8.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
+            'tlast_wrong': datetime.datetime(2013, 10, 1, 15, 32, 1)
+            },
+           {'id': 383615L, 'in_path': None,
+            'tag': 4L,
+            'name': 109L,
+            'secondary_right': ['2014-03-20 00:46:03.191941',
+                                '2014-03-20 01:19:00.049401'],
+            'step': None,
+            'tag': 2L,
+            'times_right': 2.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
+            'tlast_wrong': datetime.datetime(2013, 10, 5, 3, 6, 26)},
+           {'id': 383419L,
+            'tag': 5L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': None,
+            'step': None,
+            'times_right': 0.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 20, 7),
+            'tlast_wrong': datetime.datetime(2013, 10, 1, 23, 45, 25)},
+           {'id': 383219L,
+            'tag': 6L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-03-05 22:27:29.538283',
+                                '2014-03-20 01:20:07.234653'],
+            'step': None,
+            'times_right': 1.0,
+            'times_wrong': None,
+            'tlast_right': datetime.datetime(2014, 3, 5, 4, 23, 58, 481824),
+            'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 8, 27)},
+           {'id': 383119L,
+            'tag': 9L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-03-20 01:27:31.974083'],
+            'step': None,
+            'times_right': 2.0,
+            'times_wrong': 0.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 27, 31),
+            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36)},
+           {'id': 383613L,
+            'tag': 10L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2013-10-07 22:48:58.563124'],
+            'step': None,
+            'times_right': 0.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
+            'tlast_wrong': datetime.datetime(2013, 10, 5, 3, 6, 26)},
+           {'id': 383969L,
+            'tag': 14L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': None,
+            'step': None,
+            'times_right': 93.0,
+            'times_wrong': 18.0,
+            'tlast_right': datetime.datetime(2014, 3, 17, 22, 29, 3),
+            'tlast_wrong': datetime.datetime(2014, 1, 21, 18, 21, 40)},
+           {'id': 383116L,
+            'tag': 16L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': [],
+            'step': None,
+            'times_right': 4.0,
+            'times_wrong': 0.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 27, 31),
+            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36)},
+           {'id': 384068L,
+            'tag': 17L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': None,
+            'step': None,
+            'times_right': 0.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 13, 10),
+            'tlast_wrong': datetime.datetime(2014, 3, 20, 1, 13, 10)},
+           {'id': 383858L,
+            'tag': 18L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': None,
+            'step': None,
+            'times_right': 95.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 1, 24, 23, 32, 23),
+            'tlast_wrong': datetime.datetime(2013, 10, 23, 18, 0, 5)},
+           {'id': 383978L,
+            'tag': 24L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': None,
+            'step': None,
+            'times_right': 1.0,
+            'times_wrong': 0.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 19),
+            'tlast_wrong': datetime.datetime(2014, 2, 11, 2, 50, 54)},
+           {'id': 383546L,
+            'tag': 29L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-02-12 21:33:08.570055',
+                                '2014-02-20 23:05:57.762133'],
+            'step': None,
+            'times_right': 34.0,
+            'times_wrong': 10.0,
+            'tlast_right': datetime.datetime(2014, 2, 11, 2, 53, 27),
+            'tlast_wrong': datetime.datetime(2013, 10, 3, 21, 37, 10)},
+           {'id': 383614L,
+            'tag': 30L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-02-04 15:02:23.598612',
+                                '2014-02-07 18:34:16.086847'],
+            'step': None,
+            'times_right': 7.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
+            'tlast_wrong': datetime.datetime(2013, 10, 5, 3, 6, 26)},
+           {'id': 383478L,
+            'tag': 32L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': [],
+            'step': None,
+            'times_right': 1.0,
+            'times_wrong': None,
+            'tlast_right': datetime.datetime(2013, 12, 18, 6, 13, 52, 945160),
+            'tlast_wrong': datetime.datetime(2013, 10, 2, 20, 38, 45)},
+           {'id': 384067L,
+            'tag': 35L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-03-13 20:02:54.213157',
+                                '2014-03-13 20:03:06.719722'],
+            'step': None,
+            'times_right': None,
+            'times_wrong': None,
+            'tlast_right': datetime.datetime(2014, 3, 13, 20, 2, 52),
+            'tlast_wrong': datetime.datetime(2014, 3, 13, 20, 2, 52)},
+           {'id': 383232L,
+            'tag': 36L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-03-20 01:13:10.776062'],
+            'step': None,
+            'times_right': 8.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
+            'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 39, 59)},
+           {'id': 383916L,
+            'tag': 38L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': None,
+            'step': None,
+            'times_right': 1000.0,
+            'times_wrong': 1000.0,
+            'tlast_right': datetime.datetime(2014, 3, 13, 20, 16, 32),
+            'tlast_wrong': datetime.datetime(2013, 11, 20, 0, 24, 20)},
+           {'id': 383979L,
+            'tag': 40L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': None,
+            'step': None,
+            'times_right': 1.0,
+            'times_wrong': 0.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 19),
+            'tlast_wrong': datetime.datetime(2014, 2, 11, 2, 50, 54)},
+           {'id': 383980L,
+            'tag': 43L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': None,
+            'step': None,
+            'times_right': 1.0,
+            'times_wrong': 0.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 19),
+            'tlast_wrong': datetime.datetime(2014, 2, 11, 2, 50, 54)},
+           {'id': 383420L,
+            'tag': 46L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': [],
+            'step': None,
+            'times_right': 5.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 20, 7),
+            'tlast_wrong': datetime.datetime(2013, 10, 1, 23, 45, 25)},
+           {'id': 383421L,
+            'tag': 47L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': None,
+            'step': None,
+            'times_right': 1000.0,
+            'times_wrong': 1000.0,
+            'tlast_right': datetime.datetime(2014, 2, 18, 1, 32, 22),
+            'tlast_wrong': datetime.datetime(2013, 10, 1, 23, 45, 25)},
+           {'id': 383222L,
+            'tag': 48L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': [],
+            'step': None,
+            'times_right': 6.0,
+            'times_wrong': 0.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 11, 17),
+            'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 18, 2)},
+           {'id': 383890L,
+            'tag': 49L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': None,
+            'step': None,
+            'times_right': 1000.0,
+            'times_wrong': 1000.0,
+            'tlast_right': datetime.datetime(2014, 3, 7, 19, 22, 42),
+            'tlast_wrong': datetime.datetime(2013, 11, 2, 2, 13, 11)},
+           {'id': 383111L,
+            'tag': 61L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': [],
+            'step': None,
+            'times_right': 7.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 26),
+            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 48, 55)},
+           {'id': 383217L,
+            'tag': 62L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': [],
+            'step': None,
+            'times_right': 7.0,
+            'times_wrong': 0.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 26, 42),
+            'tlast_wrong': datetime.datetime(2013, 9, 27, 13, 58, 40)},
+           {'id': 383109L,
+            'tag': 63L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': [],
+            'step': None,
+            'times_right': 6.0,
+            'times_wrong': 0.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 26, 21),
+            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 45, 36)},
+           {'id': 383234L,
+            'tag': 66L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-03-20 01:15:26.002995',
+                                '2014-03-20 01:20:07.213051'],
+            'step': None,
+            'times_right': 2.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 26),
+            'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 43, 27)},
+           {'id': 383117L,
+            'tag': 67L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-03-20 01:27:31.971359'],
+            'step': None,
+            'times_right': 2.0,
+            'times_wrong': 0.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 27, 31),
+            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36)},
+           {'id': 383108L,
+            'tag': 68L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-03-20 00:41:36.541744'],
+            'step': None,
+            'times_right': 78.0,
+            'times_wrong': 30.0,
+            'tlast_right': datetime.datetime(2014, 3, 13, 20, 25, 8, 293723),
+            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 45, 15)},
+           {'id': 383543L,
+            'tag': 69L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-03-17 22:29:32.526147',
+                                '2014-03-20 01:13:10.801349'],
+            'step': None,
+            'times_right': 1.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 20, 7),
+            'tlast_wrong': datetime.datetime(2013, 10, 3, 21, 19, 34)},
+           {'id': 384040L,
+            'tag': 71L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': None,
+            'step': None,
+            'times_right': 1.0,
+            'times_wrong': 0.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 16, 1),
+            'tlast_wrong': datetime.datetime(2014, 2, 12, 4, 3, 50)},
+           {'id': 383112L,
+            'tag': 72L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-03-20 01:11:17.566601',
+                                '2014-03-20 01:13:10.804879'],
+            'step': None,
+            'times_right': 4.0,
+            'times_wrong': 0.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 28, 36),
+            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 53, 45)},
+           {'id': 383114L,
+            'tag': 73L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-02-22 03:10:16.568678',
+                                '2014-02-22 03:10:31.175847'],
+            'step': None,
+            'times_right': 2.0,
+            'times_wrong': 0.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 27, 31),
+            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36)},
+           {'id': 383414L,
+            'tag': 74L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-03-20 01:20:07.223668',
+                                '2014-03-20 01:22:45.994129'],
+            'step': None,
+            'times_right': 0.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 17, 32),
+            'tlast_wrong': datetime.datetime(2013, 10, 1, 21, 10, 31)},
+           {'id': 383411L,
+            'tag': 75L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-02-25 01:11:45.086382',
+                                '2014-03-20 01:20:07.227347'],
+            'step': None,
+            'times_right': 1002.0,
+            'times_wrong': 1000.0,
+            'tlast_right': datetime.datetime(2014, 3, 13, 20, 3, 6),
+            'tlast_wrong': datetime.datetime(2013, 10, 1, 21, 8, 41)},
+           {'id': 383347L,
+            'tag': 76L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-03-20 01:13:10.808508'],
+            'step': None,
+            'times_right': 0.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 22, 45),
+            'tlast_wrong': datetime.datetime(2013, 9, 30, 13, 52, 55)},
+           {'id': 383115L,
+            'tag': 77L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-03-20 01:22:45.999836'],
+            'step': None,
+            'times_right': 6.0,
+            'times_wrong': 0.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 27, 31),
+            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36)},
+           {'id': 383220L,
+            'tag': 82L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': [],
+            'step': None,
+            'times_right': 2.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 26),
+            'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 8, 27)},
+           {'id': 383221L,
+            'tag': 83L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': [],
+            'step': None,
+            'times_right': 6.0,
+            'times_wrong': None,
+            'tlast_right': datetime.datetime(2014, 2, 28, 20, 35, 41, 971118),
+            'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 8, 27)},
+           {'id': 384069L,
+            'tag': 84L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': None,
+            'step': None,
+            'times_right': 0.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 13, 10),
+            'tlast_wrong': datetime.datetime(2014, 3, 20, 1, 13, 10)},
+           {'id': 384070L,
+            'tag': 85L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': None,
+            'step': None,
+            'times_right': 0.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 13, 10),
+            'tlast_wrong': datetime.datetime(2014, 3, 20, 1, 13, 10)},
+           {'id': 383612L,
+            'tag': 86L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': [],
+            'step': None,
+            'times_right': 2.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
+            'tlast_wrong': datetime.datetime(2013, 10, 5, 3, 6, 26)},
+           {'id': 383637L,
+            'tag': 87L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-02-04 15:02:23.598612',
+                                '2014-02-07 18:34:16.086847'],
+            'step': None,
+            'times_right': 7.0,
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 26),
+            'tlast_wrong': datetime.datetime(2013, 10, 5, 20, 12, 17)},
+           {'id': 383118L,
+            'tag': 88L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': ['2014-03-20 01:15:26.013721'],
+            'step': None,
+            'times_right': 4.0,
+            'times_wrong': 0.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 27, 31),
+            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36)},
+           {'id': 383233L,
+            'tag': 89L,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': None,
+            'step': None,
+            'times_right': 1000.0,
+            'times_wrong': 1000.0,
+            'tlast_right': datetime.datetime(2014, 2, 13, 22, 36, 47),
+            'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 41, 6)},
+           {'id': 383113L,
+            'tag': 90L,
+            'times_right': 2.0,
+            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36),
+            'times_wrong': 0.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 27, 31),
+            'step': None,
+            'in_path': None,
+            'name': 109L,
+            'secondary_right': []},
+           {'name': 109L,
+            'tag': 91L,
+            'times_right': 5.0,
+            'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 5, 35),
+            'times_wrong': 0.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 18, 26),
+            'step': None,
+            'in_path': None,
+            'id': 383218L,
+            'secondary_right': ['2014-03-13 19:52:16.747902']},
+           {'name': 109L,
+            'tag': 92L,
+            'times_right': 1001.0,
+            'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 50, 13),
+            'times_wrong': 1000.0,
+            'tlast_right': datetime.datetime(2014, 3, 5, 4, 24, 12),
+            'step': None,
+            'in_path': None,
+            'id': 383237L,
+            'secondary_right': ['2014-03-10 19:14:58.914173']},
+           {'name': 109L,
+            'tag': 93L,
+            'times_right': 2.0,
+            'tlast_wrong': datetime.datetime(2013, 9, 30, 13, 39, 50),
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 24, 41),
+            'step': None,
+            'in_path': None,
+            'id': 383346L,
+            'secondary_right': []},
+           {'name': 109L,
+            'tag': 94L,
+            'times_right': 0.0,
+            'tlast_wrong': datetime.datetime(2014, 2, 11, 2, 41, 56),
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 0, 41, 36),
+            'step': None,
+            'in_path': None,
+            'id': 383976L,
+            'secondary_right': None},
+           {'name': 109L,
+            'tag': 95L,
+            'times_right': 4.0,
+            'tlast_wrong': datetime.datetime(2013, 10, 3, 21, 34, 49),
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 20, 7),
+            'step': None,
+            'in_path': None,
+            'id': 383545L,
+            'secondary_right': ['2014-01-20 14:29:24.439739']},
+           {'name': 109L,
+            'tag': 115L,
+            'times_right': 7.0,
+            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36),
+            'times_wrong': 0.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 27, 31),
+            'step': None,
+            'in_path': None,
+            'id': 383120L,
+            'secondary_right': ['2014-03-20 01:20:07.248791']},
+           {'name': 109L,
+            'tag': 116L,
+            'times_right': 1001.0,
+            'tlast_wrong': datetime.datetime(2013, 10, 1, 21, 8, 41),
+            'times_wrong': 1000.0,
+            'tlast_right': datetime.datetime(2014, 3, 10, 18, 58, 17),
+            'step': None,
+            'in_path': None,
+            'id': 383412L,
+            'secondary_right': []},
+           {'name': 109L,
+            'tag': 117L,
+            'times_right': 3.0,
+            'tlast_wrong': datetime.datetime(2013, 10, 1, 21, 8, 41),
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
+            'step': None,
+            'in_path': None,
+            'id': 383413L,
+            'secondary_right': ['2014-03-20 00:45:07.186095']},
+           {'name': 109L,
+            'tag': 118L,
+            'times_right': 2.0,
+            'tlast_wrong': datetime.datetime(2013, 10, 3, 21, 19, 34),
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 20, 7),
+            'step': None,
+            'in_path': None,
+            'id': 383544L,
+            'secondary_right': []},
+           {'name': 109L,
+            'tag': 119L,
+            'times_right': 1007.0,
+            'tlast_wrong': datetime.datetime(2013, 10, 3, 21, 13),
+            'times_wrong': 1000.0,
+            'tlast_right': datetime.datetime(2014, 2, 25, 21, 51, 13),
+            'step': None,
+            'in_path': None,
+            'id': 383541L,
+            'secondary_right': ['2014-03-20 01:15:26.017334']},
+           {'name': 109L,
+            'tag': 120L,
+            'times_right': 1002.0,
+            'tlast_wrong': datetime.datetime(2013, 10, 1, 21, 11, 43),
+            'times_wrong': 1000.0,
+            'tlast_right': datetime.datetime(2014, 3, 7, 19, 29, 37),
+            'step': None,
+            'in_path': None,
+            'id': 383415L,
+            'secondary_right': ['2014-01-20 14:29:24.439739']},
+           {'name': 109L,
+            'tag': 121L,
+            'times_right': 0.0,
+            'tlast_wrong': datetime.datetime(2013, 10, 5, 3, 6, 26),
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
+            'step': None,
+            'in_path': None,
+            'id': 383616L,
+            'secondary_right': None},
+           {'name': 109L,
+            'tag': 122L,
+            'times_right': 1001.0,
+            'tlast_wrong': datetime.datetime(2013, 10, 5, 20, 7, 46),
+            'times_wrong': 1000.0,
+            'tlast_right': datetime.datetime(2014, 3, 17, 22, 29, 3),
+            'step': None,
+            'in_path': None,
+            'id': 383636L,
+            'secondary_right': []},
+           {'name': 109L,
+            'times_right': 0.0,
+            'tlast_wrong': datetime.datetime(2014, 2, 11, 2, 47, 9),
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 13, 10),
+            'step': None,
+            'tag': 124L,
+            'in_path': None,
+            'id': 383977L,
+            'secondary_right': None},
+           {'name': 109L,
+            'times_right': 0.0,
+            'tlast_wrong': datetime.datetime(2013, 10, 5, 20, 17, 29),
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
+            'step': None,
+            'tag': 128L,
+            'in_path': None,
+            'id': 383639L,
+            'secondary_right': None},
+           {'name': 109L,
+            'times_right': 0.0,
+            'tlast_wrong': datetime.datetime(2013, 10, 22, 21, 33),
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
+            'step': None,
+            'tag': 129L,
+            'in_path': None,
+            'id': 383852L,
+            'secondary_right': ['2014-03-20 01:13:10.828327']},
+           {'name': 109L,
+            'times_right': 0.0,
+            'tlast_wrong': datetime.datetime(2014, 3, 20, 1, 13, 10),
+            'times_wrong': 1.0,
+            'tlast_right': datetime.datetime(2014, 3, 20, 1, 13, 10),
+            'step': None,
+            'tag': 133L,
+            'in_path': None,
+            'id': 384071L,
+            'secondary_right': None}
+           ]
+          }
+
+    return tr
 
 
 @pytest.fixture
@@ -923,16 +2908,12 @@ def mypath(pathid, db):
     return path, path_steps
 
 
-def mystep(stepid, mysteps):
+def mystep(stepid):
     """
     A pytest fixture providing a paideia.Step object for testing.
     """
-    try:
-        stepdata = mysteps[stepid]
-    except KeyError:
-        stepdata = None  # FIXME: some test steps not in stepdata dict
     step = StepFactory().get_instance(stepid)
-    return step, stepdata
+    return step
 
 
 @pytest.fixture
@@ -1013,19 +2994,18 @@ def myStepMultiple(mycases, request, db):
         pass
 
 
-@pytest.fixture
-def myStepEvaluator(mysteps):
+def myStepEvaluator(stepid, mysteps):
     """
     A pytest fixture providing a paideia.StepEvaluator object for testing.
     """
     for n in [0, 1]:
         responses = ['incorrect', 'correct']
-        user_responses = ['bla', mysteps['responses']['response1']]
-        kwargs = {'responses': mysteps['responses'],
-                    'tips': mysteps['tips']}
+        user_responses = ['bla', mysteps[stepid]['responses']['response1']]
+        kwargs = {'responses': mysteps[stepid]['responses'],
+                    'tips': mysteps[stepid]['tips']}
         return {'eval': StepEvaluator(**kwargs),
-                'tips': mysteps['tips'],
-                'reply_text': mysteps['reply_text'][responses[n]],
+                'tips': mysteps[stepid]['tips'],
+                'reply_text': mysteps[stepid]['reply_text'][responses[n]],
                 'score': n,
                 'times_right': n,
                 'times_wrong': [1, 0][n],
@@ -1134,72 +3114,222 @@ class TestStep():
     Unit tests covering the Step class of the paideia module.
     """
 
-    @pytest.mark.skipif(True, reason='just because')
-    @pytest.mark.parametrize('stepid', [1])
-    def test_step_get_id(self, stepid, mysteps):
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('stepid,stype', [(1, StepText)])
+    def test_step_get_id(self, stepid, stype):
         """Test for method Step.get_id """
-        step, expected = mystep(stepid, mysteps)
-        assert step.get_id() == expected['id']
-        assert isinstance(step, expected['step_type']) is True
+        step = StepFactory().get_instance(stepid)
+        assert step.get_id() == stepid
+        assert isinstance(step, stype) is True
 
-    @pytest.mark.skipif(True, reason='just because')
+    @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize("stepid", [1, 2])
     def test_step_get_tags(self, stepid, mysteps):
         """Test for method Step.get_tags """
-        step, expected = mystep(stepid, mysteps)
+        step = StepFactory().get_instance(stepid)
+        expected = mysteps[stepid]
         actual = step.get_tags()
         assert actual == {'primary': expected['tags'],
                           'secondary': expected['tags_secondary']}
 
-    @pytest.mark.skipif(True, reason='just because')
-    @pytest.mark.parametrize('caseid,stepid', [
-        #('case1', 1),
-        #('case2', 2),
-        #('case2', 19),  # will redirect (currently no case works for step 19)
-        #('case1', 30),  # redirect step
-        #('case1', 101),
-        #('case2', 125),  # FIXME: no slide decks being found here
-        #('case2', 126),  # promoted, no new tags (for new badges)
-        #('case3', 126),  # promoted, no new tags (for new badges)
-        #('case2', 127),  # new tags and promoted (for view slides)
-    ])
-    def test_step_get_prompt(self, caseid, stepid, db, mysteps,
-                             user_login, npc_data, bg_imgs):
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('caseid,stepid,alias,npcshere,promptext,instrs,'
+                             'slidedecks,widgimg,rbuttons,rform,kwargs',
+        [('case1', 1,  # StepText ------------------------------
+          'shop_of_alexander',
+          [2, 8, 17],  # npcs here (for step)
+          'How could you write the word "meet" using Greek letters?',
+          ['Focus on finding Greek letters that make the *sounds* of the '
+           'English word. Don\'t look for Greek "equivalents" for each '
+           'English letter.'],  # instructions
+          {1: 'Introduction', 2: 'The Alphabet', 6: 'Noun Basics', 7: 'Greek Words I'},
+          None,  # widget image
+          [],  # response buttons
+          '<form action="#" autocomplete="off" enctype="multipart/form-data" '
+          'method="post"><table><tr id="no_table_response__row">'
+          '<td class="w2p_fl"><label for="no_table_response" id="no_table_'
+          'response__label">Response: </label></td><td class="w2p_fw">'
+          '<input class="string" id="no_table_response" name="response" '
+          'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
+          'id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw">'
+          '<input type="submit" value="Submit" /></td><td class="w2p_fc"></td>'
+          '</tr></table></form>',
+          None,  # kwargs
+          ),
+         ('case2', 2,  # StepText ------------------------------
+          'agora',
+          [1],  # npcs here (for step)
+          'How could you write the word "bought" using Greek letters?',  # text
+          None,  # instructions
+          {1: 'Introduction', 2: 'The Alphabet', 6: 'Noun Basics', 7: 'Greek Words I'},
+          None,  # widget image
+          [],  # response buttons
+          '<form action="#" autocomplete="off" enctype="multipart/form-data" '
+          'method="post"><table><tr id="no_table_response__row">'
+          '<td class="w2p_fl"><label for="no_table_response" id="no_table_'
+          'response__label">Response: </label></td><td class="w2p_fw">'
+          '<input class="string" id="no_table_response" name="response" '
+          'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
+          'id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw">'
+          '<input type="submit" value="Submit" /></td><td class="w2p_fc"></td>'
+          '</tr></table></form>',
+          None,  # kwargs
+          ),
+         ('case2', 19,  # StepText ------------------------------
+          'agora',
+          [1],  # npcs here
+          'How could you spell the word "pole" with Greek letters?',  # prompt text
+          ['Focus on finding Greek letters that make the *sounds* of the '
+           'English word. Don\'t look for Greek "equivalents" for each '
+           'English letter.'],
+          {3L: 'The Alphabet II', 8L: 'Greek Words II'},  # slide decks
+          None,  # widget image
+          [],  # response buttons
+          '<form action="#" autocomplete="off" enctype="multipart/form-data" '
+          'method="post"><table><tr id="no_table_response__row">'
+          '<td class="w2p_fl"><label for="no_table_response" id="no_table_'
+          'response__label">Response: </label></td><td class="w2p_fw">'
+          '<input class="string" id="no_table_response" name="response" '
+          'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
+          'id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw">'
+          '<input type="submit" value="Submit" /></td><td class="w2p_fc"></td>'
+          '</tr></table></form>',
+          None,  # kwargs
+          ),  # will redirect (currently no case works for step 19)
+         ('case1', 30,  # StepRedirect ------------------------------
+          'shop_of_alexander',
+          [2, 8, 14, 17, 31, 40, 41, 42],  # npcs here
+          'Hi there. Sorry, I don\'t have anything for you to '  # prompt text
+          'do here at the moment. I think someone was looking '
+          'for you at somewhere else in town.',
+          None,  # instructions
+          None,  # slide decks
+          None,  # widget image
+          ['map', 'continue'],  # response buttons
+          None,  # response form
+          None,  # kwargs
+          ),  # redirect step
+         ('case1', 101,  # StepMultiple ------------------------------
+          'shop_of_alexander',
+          [14],  # npcs here
+          'Is this an English clause?\r\n\r\n"The cat sat."',
+          None,  # instructions
+          {14: 'Clause Basics'},
+          None,  # widget image
+          [],  # response buttons
+          r'<form action="#" enctype="multipart/form-data" method="post"><table>'
+          '<tr id="no_table_response__row"><td class="w2p_fl"><label '
+          'for="no_table_response" id="no_table_response__label">Response: '
+          '</label></td><td class="w2p_fw"><table class="generic-widget" '
+          'id="no_table_response" name="response"><tr><td><input '
+          'id="response\xce\xbd\xce\xb1\xce\xb9" name="response" type="radio" '
+          'value="\xce\xbd\xce\xb1\xce\xb9" /><label for="response\xce\xbd\xce'
+          '\xb1\xce\xb9">\xce\xbd\xce\xb1\xce\xb9</label></td></tr><tr><td>'
+          '<input id="response\xce\xbf\xe1\xbd\x90" name="response" '
+          'type="radio" value="\xce\xbf\xe1\xbd\x90" /><label for="response'
+          '\xce\xbf\xe1\xbd\x90">\xce\xbf\xe1\xbd\x90</label></td></tr></table>'
+          '</td><td class="w2p_fc"></td></tr><tr id="submit_record__row"><td '
+          'class="w2p_fl"></td><td class="w2p_fw"><input type="submit" '
+          'value="Submit" /></td><td class="w2p_fc"></td></tr></table>'
+          '<div style="display:none;"><input name="_formkey" type="hidden" '
+          'value=".*" /><input name="_formname" type="hidden" '
+          'value="no_table/create" /></div></form>',
+          None,  # kwargs
+          ),
+         ('case2', 125,  # StepQuotaReached ------------------------------
+          'agora',
+          [1, 14, 17, 40, 41, 42],  # npcs here
+          'Well done, Homer. You\'ve finished enough paths for today. But '
+          'if you would like to keep going, you\'re welcome to continue.',
+          None,  # instructions
+          None,  # slide decks  # FIXME: no slide decks being found here
+          None,  # widget image
+          ['map', 'continue'],  # response buttons
+          None,  # response form
+          {'quota': 20},  # kwargs
+          ),
+         ('case2', 126,  # StepAwardBadges ------------------------------
+          'agora',
+          [1, 14, 17, 40, 41, 42],  # npcs here
+          '<div>Congratulations, Homer! \n\n'  # prompt text
+          'You have been promoted to these new badge levels:\r\n'
+          '- apprentice alphabet basics\r\n'
+          'and you&#x27;re ready to start working on some new badges:\r\n'
+          '- beginner alphabet (intermediate)\r\n'
+          'You can click on your name above to see details '
+          'of your progress so far.</div>',
+          None,  # instructions
+          None,  # slide decks
+          None,  # widget image
+          ['map', 'continue'],  # response buttons
+          None,  # response form
+          {'new_tags': [62], 'promoted': {'cat2': [61]}},  # kwargs
+          ),  # promoted, no new tags (for new badges)
+         ('case3', 126,  # StepAwardBadges ------------------------------
+          'synagogue',
+          [31, 32],  # npcs here
+          '<div>Congratulations, Homer! \n\n'  # prompt text
+          'You have been promoted to these new badge levels:\r\n'
+          '- apprentice alphabet basics\r\n'
+          'You can click on your name above to see details '
+          'of your progress so far.</div>',
+          None,   # instructions
+          None,   # slide decks
+          None,   # widget image
+          ['map', 'continue'],  # response buttons
+          None,  # response form
+          {'promoted': {'cat2': [61]}},  # kwargs
+          ),  # promoted, no new tags (for new badges)
+         ('case2', 127,  # StepViewSlides ------------------------------
+          'agora',
+          [1, 14, 17, 21, 40, 41, 42],  # npcs here
+          '<div>Take some time now to review these new slide '
+          'sets. They will help with work on your new badges:\n'
+          '<ul class="slide_list">'
+          '<li><a data-w2p_disable_with="default" href="/paideia/'
+          'listing/slides.html/3">The Alphabet II</a></li>'
+          '<li><a data-w2p_disable_with="default" href="/paideia/'
+          'listing/slides.html/8">Greek Words II</a></li></ul></div>',
+          None,  # instructions
+          None,  # slide decks
+          None,  # widget image
+          ['map'],  # response buttons
+          None,  # response form
+          {'new_tags': [62]},  # kwargs
+          ),  # new tags and promoted (for view slides)
+         ])
+    def test_step_get_prompt(self, caseid, stepid, alias, npcshere, promptext,
+                             instrs, slidedecks, widgimg, rbuttons, rform,
+                             kwargs, npc_data, bg_imgs, db):
         """Test for method Step.get_prompt"""
-        case = mycases(caseid, user_login, db)
-        step, expected = mystep(stepid, mysteps)
-        locnpcs = [int(n) for n in case['npcs_here']
-                   if n in expected['npc_list']]
-        if locnpcs:
-            npc = Npc(locnpcs[0], db)
-            actual = step.get_prompt(case['loc'], npc, case['name'],
-                                     case['next_loc'],
-                                     case['new_badges'],
-                                     case['promoted'])
-            print 'actual -------'
-            try:
-                print actual['prompt'].xml()
-            except Exception:
-                print(actual['prompt'])
-            print 'expected -------'
-            print expected['final_prompt']
+        step = StepFactory().get_instance(stepid, kwargs=kwargs)
+        npc = Npc(npcshere[0], db)  # FIXME: randint(0, len(npcshere))
+        loc = Location(alias, db)
+        actual = step.get_prompt(loc, npc, 'Homer')
 
-            assert (actual['prompt'] == expected['final_prompt']) or \
-                   (actual['prompt'].xml() == expected['final_prompt']) or \
-                   (actual['prompt'].xml() == expected['final_prompt'][case['casenum']])
-            assert actual['instructions'] == expected['instructions']
-            if expected['slidedecks']:
-                for k, v in actual['slidedecks'].iteritems():
-                    assert v == expected['slidedecks'][k]
-            if expected['widget_image']:
-                assert actual['widget_image']['title'] == expected['widget_image']['title']
-                assert actual['widget_image']['file'] == expected['widget_image']['file']
-                assert actual['widget_image']['description'] == expected['widget_image']['description']
-            assert actual['bg_image'] == bg_imgs[case['loc'].get_id()]
-            assert actual['npc_image'].attributes['_src'] == npc_data[npc.get_id()]['image']
+        if not isinstance(actual['prompt_text'], str):
+            assert actual['prompt_text'].xml() == promptext
         else:
-            assert step.get_prompt(case['loc'], npc, case['name'],
-                                   None, None, None) == expected['redirect']
+            assert actual['prompt_text'] == promptext
+        assert actual['instructions'] == instrs
+        if actual['slidedecks']:
+            assert all([d for d in actual['slidedecks'].values()
+                        if d in slidedecks.values()])
+        elif slidedecks:
+            pprint(actual['slidedecks'])
+            assert actual['slidedecks']
+        assert actual['widget_img'] == widgimg  # FIXME: add case with image
+        assert actual['bg_image'] == bg_imgs[loc.get_id()]
+        assert actual['npc_image']['_src'] == npc_data[npc.get_id()]['image']
+        if actual['response_form']:
+            assert re.match(rform, actual['response_form'].xml())
+        elif rform:
+            pprint(actual['response_form'])
+            assert actual['response_form']
+        assert actual['bugreporter'] == None
+        assert actual['response_buttons'] == rbuttons
+        assert actual['audio'] == None  # FIXME: add case with audio (path 380, step 445)
+        assert actual['loc'] == alias
 
     @pytest.mark.skipif(True, reason='just because')
     @pytest.mark.parametrize(('caseid', 'stepid'), [
@@ -1322,27 +3452,73 @@ class TestStep():
 class TestStepEvaluator():
     """Class for evaluating the submitted response string for a Step"""
 
-    @pytest.mark.skipif(True, reason='just because')
-    @pytest.mark.parametrize('stepid', [1, 2, 19])
-    def test_stepevaluator_get_eval(self, stepid, mysteps, myStepEvaluator):
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('stepid,regex,uresp,rtext,score,tright,twrong,tips',
+        [(1,
+          {'response1': '^μιτ$'},
+          'μιτ',
+          'Right. Κάλον.',
+          1,  # score
+          1,  # times right
+          0,  # times wrong
+          None  # tips
+          ),
+         (1,
+          {'response1': '^μιτ$'},
+          'βλα',
+          'Incorrect. Try again!',
+          0,  # score
+          0,  # times right
+          1,  # times wrong
+          None  # tips
+          ),
+         (2,
+          {'response1': '^β(α|ο)τ$'},
+          'βοτ',
+          'Right. Κάλον.',
+          1,  # score
+          1,  # times right
+          0,  # times wrong
+          None  # tips
+          ),
+         (2,
+          {'response1': '^β(α|ο)τ$'},
+          'βλα',
+          'Incorrect. Try again!',
+          0,  # score
+          0,  # times right
+          1,  # times wrong
+          None  # tips
+          ),
+         (19,
+          {'response1': '^πωλ$'},  # regexes
+          'πωλ',
+          'Right. Κάλον.',
+          1,  # score
+          1,  # times right
+          0,  # times wrong
+          None  # tips
+          ),
+         (19,
+          {'response1': '^πωλ$'},  # regexes
+          'βλα',
+          'Incorrect. Try again!',
+          0,  # score
+          0,  # times right
+          1,  # times wrong
+          None  # tips
+          )
+         ])
+    def test_stepevaluator_get_eval(self, stepid, regex, uresp, rtext, score,
+                                    tright, twrong, tips):
         """Unit tests for StepEvaluator.get_eval() method."""
-        step, expected = mystep(stepid, mysteps)
-        evl = myStepEvaluator
-        response = evl['user_response']
-        expected = {'reply_text': evl['reply_text'],
-                    'tips': evl['tips'],
-                    'score': evl['score'],
-                    'times_wrong': evl['times_wrong'],
-                    'times_right': evl['times_right'],
-                    'user_response': response}
-
-        actual = myStepEvaluator['eval'].get_eval(response)
-        assert actual['score'] == expected['score']
-        assert actual['reply'] == expected['reply_text']
-        assert actual['times_wrong'] == expected['times_wrong']
-        assert actual['times_right'] == expected['times_right']
-        assert actual['user_response'] == expected['user_response']
-        assert actual['tips'] == expected['tips']
+        actual = StepEvaluator(responses=regex, tips=tips).get_eval(uresp)
+        assert actual['score'] == score
+        assert actual['reply'] == rtext
+        assert actual['times_wrong'] == twrong
+        assert actual['times_right'] == tright
+        assert actual['user_response'] == uresp
+        assert actual['tips'] == tips
 
 
 @pytest.mark.skipif('global_runall is False and global_run_TestMultipleEvaluator '
@@ -1352,29 +3528,37 @@ class TestMultipleEvaluator():
     Unit testing class for paideia.MultipleEvaluator class.
     """
 
-    @pytest.mark.skipif(True, reason='just because')
-    @pytest.mark.parametrize('stepid', [101])
-    def test_multipleevaluator_get_eval(self, stepid, mysteps, myMultipleEvaluator):
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('stepid,regex,uresp,rtext,score,tright,twrong,tips',
+        [(101,
+          {'response1': 'ναι'},
+          'ναι',
+          'Right. Κάλον.',
+          1,  # score
+          1,  # times right
+          0,  # times wrong
+          None  # tips
+          ),
+         (101,
+          {'response1': 'ναι'},
+          'οὐ',
+          'Incorrect. Try again!',
+          0,  # score
+          0,  # times right
+          1,  # times wrong
+          None  # tips
+          )
+         ])
+    def test_multipleevaluator_get_eval(self, stepid, regex, uresp,
+                                        rtext, score, tright, twrong, tips):
         """Unit tests for multipleevaluator.get_eval() method."""
-        if myMultipleEvaluator:
-            evl = myMultipleEvaluator
-            response = evl['user_response']
-            expected = {'reply_text': evl['reply_text'],
-                        'tips': evl['tips'],
-                        'score': evl['score'],
-                        'times_wrong': evl['times_wrong'],
-                        'times_right': evl['times_right'],
-                        'user_response': response}
-
-            actual = myMultipleEvaluator['eval'].get_eval(response)
-            assert actual['score'] == expected['score']
-            assert actual['reply'] == expected['reply_text']
-            assert actual['times_wrong'] == expected['times_wrong']
-            assert actual['times_right'] == expected['times_right']
-            assert actual['user_response'] == expected['user_response']
-            assert actual['tips'] == expected['tips']
-        else:
-            pass
+        actual = StepEvaluator(responses=regex, tips=tips).get_eval(uresp)
+        assert actual['score'] == score
+        assert actual['reply'] == rtext
+        assert actual['times_wrong'] == twrong
+        assert actual['times_right'] == tright
+        assert actual['user_response'] == uresp
+        assert actual['tips'] == tips
 
 
 @pytest.mark.skipif('global_runall is False and global_run_TestMultipleEvaluator '
@@ -1485,7 +3669,7 @@ class TestPath():
         Unit test for method paideia.Path.get_step_for_reply.
         """
         path, pathsteps = mypath(pathid, db)
-        expected = [mystep(sid, mysteps)[0] for sid in steps]
+        expected = [mystep(sid) for sid in steps]
         actual = path.get_steps()
         assert steps == pathsteps
         assert len(actual) == len(expected)
@@ -1507,12 +3691,12 @@ class TestPath():
          #(63, 66, [67, 68], [3, 1], 'domus_A')  # first step doesn't take reply
          ])
     def test_path_get_step_for_reply(self, pathid, stepid, stepsleft, locs,
-                                     localias, mysteps, db):
+                                     localias, db):
         """
         Unit test for method paideia.Path.get_step_for_reply.
         """
         path, pathsteps = mypath(pathid, db)
-        step, expected = mystep(stepid, mysteps)
+        step = mystep(stepid)
         # preparing for reply stage
         path.get_step_for_prompt(Location(localias))
         path.end_prompt(stepid)
@@ -1543,67 +3727,90 @@ class TestPath():
 class TestUser(object):
     """unit testing class for the paideia.User class"""
 
-    @pytest.mark.skipif(True, reason='just because')
-    @pytest.mark.parametrize('casenum', ['case1'])
-    def test_user_get_id(self, casenum, user_login, db):
+    @pytest.mark.skipif(False, reason='just because')
+    def test_user_get_id(self):
         """
         Unit test for User.get_id() method.
         """
-        case = mycases(casenum, user_login, db)
-        tag_progress = case['tag_progress']
-        tag_records = case['tag_records']
-        actualuser = myuser(tag_progress, tag_records, user_login, db)
+        userdata = {'first_name': 'Homer',
+                    'id': 1,
+                    'time_zone': 'America/Toronto'}
+        tagprog = {'latest_new': 2,
+                 'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                 'cat3': [], 'cat4': [],
+                 'rev1': [], 'rev2': [61],
+                 'rev3': [], 'rev4': []}
+        tagrecs = [{'name': 1,
+                    'tag': 1,
+                    'tlast_right': dt('2013-01-29'),
+                    'tlast_wrong': dt('2013-01-29'),
+                    'times_right': 1,
+                    'times_wrong': 1,
+                    'secondary_right': None}]
+        actual = User(userdata, tagrecs, tagprog)
+        actual.get_id() == 1
 
-        actualid = actualuser.get_id()
-        expected = db((db.auth_user.first_name == 'Homer') &
-                      (db.auth_user.last_name == 'Simpson')).select()
-        assert len(expected) == 1
-        assert actualid == expected.first().id
-
-    @pytest.mark.skipif(True, reason='just because')
-    @pytest.mark.parametrize('condition,casenum,viewedslides,reportedbadges',
-                             [('redirect', 'case1', 0, 0),
-                              ('view_slides', 'case1', 0, 0),
-                              ('view_slides', 'case1', 1, 0),
-                              ('new_tags', 'case1', 0, 0),
-                              ('new_tags', 'case1', 0, 1),
-                              ('promoted', 'case1', 0, 0),
-                              ('promoted', 'case1', 0, 1),
-                              ('quota_reached', 'case1', 0, 0)])
-    def test_user_set_block(self, condition, casenum, viewedslides,
-                            reportedbadges, user_login, db):
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('condition,viewedslides,reportedbadges,expected',
+                             [('redirect', False, False,
+                               ['redirect']),
+                              ('view_slides', False, False,
+                               ['view_slides']),
+                              ('view_slides', True, False,
+                               []),
+                              ('new_tags', False, False,
+                               ['new_tags']),
+                              ('new_tags', False, True,
+                               []),
+                              ('quota_reached', False, False,
+                               ['quota_reached']),
+                              ('quota_reached', True, True,
+                               ['quota_reached'])
+                              ])
+    def test_user_set_block(self, condition, viewedslides, reportedbadges,
+                            expected):
         """
         Unit test for User.set_block() method.
         """
-        case = mycases(casenum, user_login, db)
-        user = myuser(case['tag_progress'], case['tag_records'],
-                             user_login, db)
+        userdata = {'first_name': 'Homer',
+                    'id': 1,
+                    'time_zone': 'America/Toronto'}
+        tagprog = {'latest_new': 2,
+                 'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                 'cat3': [], 'cat4': [],
+                 'rev1': [], 'rev2': [61],
+                 'rev3': [], 'rev4': []}
+        tagrecs = [{'name': 1,
+                    'tag': 1,
+                    'tlast_right': dt('2013-01-29'),
+                    'tlast_wrong': dt('2013-01-29'),
+                    'times_right': 1,
+                    'times_wrong': 1,
+                    'secondary_right': None}]
+        user = User(userdata, tagrecs, tagprog)
+
+        # set up initial state
+        user.blocks = []
         user.viewed_slides = viewedslides
         user.reported_badges = reportedbadges
-        user.quota_reached = 0
-        startlen = len(user.blocks)
-        startconditions = [u.get_condition() for u in user.blocks]
-        assert user.set_block(condition)
-        newlen = len(user.blocks)
-        if (viewedslides and condition == 'view_slides') or \
-           (reportedbadges and condition == 'new_tags') or \
-           (reportedbadges and condition == 'promoted'):
-            print 'blocks are', user.blocks
-            assert startlen == newlen
-            assert [u.get_condition() for u in user.blocks] == startconditions
-        else:
-            print 'blocks are', user.blocks
-            assert all([isinstance(b, Block) for b in user.blocks])
-            assert startlen == newlen - 1
-            assert user.blocks[-1].get_condition() == condition
+        user.quota_reached = False  # TODO
 
-    @pytest.mark.skipif(True, reason='just because')
-    @pytest.mark.parametrize('casenum,theblocks',
-                             [('case3', ['new_tags']),
-                              ('case3', []),
-                              ('case3', ['new_tags', 'redirect']),
+        print 'starting blocks:', [u.get_condition() for u in user.blocks]
+        assert user.set_block(condition)
+        endconditions = [u.get_condition() for u in user.blocks]
+        print 'endconditions:', endconditions
+
+        assert endconditions == expected
+        assert len(user.blocks) == len(expected)
+        assert all([isinstance(b, Block) for b in user.blocks])
+
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('theblocks',
+                             [(['new_tags']),
+                              ([]),
+                              (['new_tags', 'redirect'])
                               ])
-    def test_user_check_for_blocks(self, casenum, theblocks, user_login, db):
+    def test_user_check_for_blocks(self, theblocks):
         """
         unit test for Path._check_for_blocks()
 
@@ -1611,122 +3818,283 @@ class TestUser(object):
         path, it will return a blocking step for each test case (even if that
         case would not normally have a block set.)
         """
-        # TODO: there's now some block-checking logic in the method. Ideally
-        # that should be isolated in its own method.
-        case = mycases(casenum, user_login, db)
-        user = myuser(case['tag_progress'], case['tag_records'],
-                             user_login, db)
-        user.blocks = [Block(c) for c in theblocks]
+        userdata = {'first_name': 'Homer',
+                    'id': 1,
+                    'time_zone': 'America/Toronto'}
+        tagprog = {'latest_new': 2,
+                 'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                 'cat3': [], 'cat4': [],
+                 'rev1': [], 'rev2': [61],
+                 'rev3': [], 'rev4': []}
+        tagrecs = [{'name': 1,
+                    'tag': 1,
+                    'tlast_right': dt('2013-01-29'),
+                    'tlast_wrong': dt('2013-01-29'),
+                    'times_right': 1,
+                    'times_wrong': 1,
+                    'secondary_right': None}]
+        myblocks = [Block(b) for b in theblocks]
+        user = User(userdata, tagrecs, tagprog, myblocks)
         startlen = len(theblocks)
 
         actual_return = user.check_for_blocks()
-        actual_property = user.blocks
+        actual_prop = user.blocks
+
         if theblocks:
-            assert len(actual_property) == startlen - 1
-            assert all(isinstance(b, Block) for b in actual_property)
+            assert len(actual_prop) == startlen - 1
+            assert all([isinstance(b, Block) for b in actual_prop])
             assert isinstance(actual_return, Block)
+            assert actual_return.get_condition() == theblocks[0]
+            if len(theblocks) > 1:
+                assert actual_prop[0].get_condition() == theblocks[1]
+            else:
+                assert actual_prop == []
         else:
-            assert len(actual_property) == 0
-            assert actual_property == []
+            assert len(actual_prop) == 0
+            assert actual_prop == []
             assert actual_return is None
 
-    @pytest.mark.skipif(True, reason='just because')
+    @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('start,expected',
                              [(datetime.datetime(2013, 01, 02, 9, 0, 0), False),
                               (datetime.datetime(2013, 01, 02, 9, 0, 0), False),
                               (datetime.datetime(2013, 01, 02, 3, 0, 0), True),
                               (datetime.datetime(2012, 12, 29, 14, 0, 0), True)
                               ])
-    def test_user_is_stale(self, start, expected, user_login, db):
+    def test_user_is_stale(self, start, expected, db):
         """
         Unit test for User.is_stale() method.
         """
         now = datetime.datetime(2013, 01, 02, 14, 0, 0)
-        tzn = 'America/Toronto'
-        case = mycases('case1', user_login, db)
-        user = myuser(case['tag_progress'], case['tag_records'], user_login, db)
-        actual = user.is_stale(now=now, start=start, time_zone=tzn, db=db)
+        userdata = {'first_name': 'Homer',
+                    'id': 1,
+                    'time_zone': 'America/Toronto'}
+        tagprog = {'latest_new': 2,
+                 'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                 'cat3': [], 'cat4': [],
+                 'rev1': [], 'rev2': [61],
+                 'rev3': [], 'rev4': []}
+        tagrecs = [{'name': 1,
+                    'tag': 1,
+                    'tlast_right': dt('2013-01-29'),
+                    'tlast_wrong': dt('2013-01-29'),
+                    'times_right': 1,
+                    'times_wrong': 1,
+                    'secondary_right': None}]
+        user = User(userdata, tagrecs, tagprog)
+
+        actual = user.is_stale(now=now, start=start, db=db)
         assert actual == expected
 
     @pytest.mark.skipif(True, reason='just because')
-    def test_user_get_path(self, myuser, db):
-        user = myuser['user']
-        case = myuser['casedata']
-        if user.cats_counter < 5:
-            tags_due = [t for cat in case['categories_start'].values() for t in cat]
-        elif user.cats_counter >= 5:
-            tags_due = [t for cat in case['categories_out'].values() for t in cat]
-
-        path_rows = db(db.paths.id > 0
-                       ).select().find(lambda row:
-                                       [t for t in row.tags if t in tags_due]
-                                       and
-                                       db.steps(row.steps[0]).status != 2
-                                       and
-                                       db.steps(row.steps[0]).locations
-                                       and
-                                       [l for l in db.steps(row.steps[0]).locations
-                                        if l == case['loc'].get_id()])
-        expected_paths = [p.id for p in path_rows]
-        actual = user.get_path(case['loc'])
-        assert actual.get_id() in expected_paths
+    @pytest.mark.parametrize('locid,completed,tpout,trecs,redirect,expected',
+                             [(6,  # shop_of_alexander (only 1 untried here)
+                               [2, 3, 5, 8, 63, 95, 96, 97, 99, 102, 256, 40,
+                                9, 410, 411, 412, 413, 414, 415, 416, 417, 418,
+                                419, 420, 421, 422, 423, 444, 445],
+                               {'latest_new': 1,
+                                'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [61], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                               [{'name': 1,
+                                 'tag': 1,
+                                 'tlast_right': dt('2013-01-29'),
+                                 'tlast_wrong': dt('2013-01-29'),
+                                 'times_right': 1,
+                                 'times_wrong': 1,
+                                 'secondary_right': None}],
+                               False,
+                               [1]  # only one left with tag
+                               ),
+                              (11,  # synagogue [all in loc 11 completed]
+                               [1, 2, 3, 8, 95, 96, 97, 99, 102],
+                               {'latest_new': 1,
+                                'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [61], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                               [{'name': 1,
+                                 'tag': 61,
+                                 'tlast_right': dt('2013-01-29'),
+                                 'tlast_wrong': dt('2013-01-27'),
+                                 'times_right': 20,
+                                 'times_wrong': 10,
+                                 'secondary_right': []}],
+                                True,
+                                [99, 97, 102, 2, 1, 3, 95, 8, 96]
+                               ),
+                              #(8,  # agora (no redirect, new here)
+                               #[17, 98, 15, 208, 12, 16, 34, 11, 23, 4, 9, 18],
+                               #{'latest_new': 2,
+                                #'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                                #'cat3': [], 'cat4': [],
+                                #'rev1': [], 'rev2': [61],
+                                #'rev3': [], 'rev4': []},
+                                #False,
+                               #[7, 14, 100, 35, 19, 103, 21, 97, 13, 261, 101]
+                               #),
+                              #(8,  # agora (all for tags completed, repeat here)
+                               #[4, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
+                                #19, 21, 22, 23, 34, 35, 45, 97, 98, 100, 101,
+                                #103, 120, 129, 139, 141, 149, 152, 161, 167,
+                                #176, 184, 190, 208, 222, 225, 228, 231, 236,
+                                #247, 255, 257, 261, 277, 333, 334, 366, 424,
+                                #425, 426, 427, 428, 429, 430, 431, 433, 434,
+                                #435, 436, 437, 439, 440, 441, 444, 445],
+                               #{'latest_new': 2,
+                                #'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                                #'cat3': [], 'cat4': [],
+                                #'rev1': [], 'rev2': [61],
+                                #'rev3': [], 'rev4': []},
+                                #False,
+                               #[101, 35, 34, 23, 16, 261, 15, 21, 208, 100,
+                                #17, 14, 9, 7, 18, 11, 98, 12, 4, 19, 103, 13,
+                                #97]  # with tags already completed here (repeat)
+                               #),
+                              ])
+    def test_user_get_path(self, locid, completed, tpout, trecs,
+                           redirect, expected, db):
+        """
+        Unit testing method for User.get_path().
+        """
+        userdata = {'first_name': 'Homer',
+                    'id': 1,
+                    'time_zone': 'America/Toronto'}
+        user = User(userdata, trecs, tpout)
+        actual, acat, aredir, apastq = user.get_path(Location(db.locations(locid).loc_alias))
+        assert actual.get_id() in expected
         assert isinstance(actual, Path)
         assert isinstance(actual.steps[0], Step)
+        assert acat in range(1, 5)
+        assert aredir is None
+        assert apastq is None
 
-    @pytest.mark.skipif(True, reason='just because')
-    def test_user_get_categories(self, myuser):
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('tpin,rankout,tpout,trecs,counter,promoted,newtags',
+        [({'latest_new': 1,  # tpin =========================================
+           'cat1': [1], 'cat2': [],
+           'cat3': [], 'cat4': [],
+           'rev1': [], 'rev2': [],
+           'rev3': [], 'rev4': []},
+          1,  # rank out
+          {'latest_new': 1,  # tpout
+           'cat1': [6, 29, 62, 82, 83], 'cat2': [],  # FIXME: this is wrong
+           'cat3': [], 'cat4': [],
+           'rev1': [], 'rev2': [],
+           'rev3': [], 'rev4': []},
+          [{'name': 1,  # trecs
+            'tag': 1,
+            'tlast_right': dt('2013-01-29'),
+            'tlast_wrong': dt('2013-01-29'),
+            'times_right': 1,
+            'times_wrong': 1,
+            'secondary_right': None}],
+          4,
+          None,
+          [6, 29, 62, 82, 83]
+          ),
+         ({'latest_new': 1,  # tpin =========================================
+           'cat1': [1], 'cat2': [],
+           'cat3': [], 'cat4': [],
+           'rev1': [], 'rev2': [],
+           'rev3': [], 'rev4': []},
+          1,  # rank out
+          {'latest_new': 1,  # tpout
+           'cat1': [1], 'cat2': [],
+           'cat3': [], 'cat4': [],
+           'rev1': [], 'rev2': [],
+           'rev3': [], 'rev4': []},
+          [{'name': 1,  # trecs
+            'tag': 1,
+            'tlast_right': dt('2013-01-29'),
+            'tlast_wrong': dt('2013-01-29'),
+            'times_right': 1,
+            'times_wrong': 1,
+            'secondary_right': None}],
+          3,
+          None,
+          None
+          )
+         ])
+    def test_user_get_categories(self, tpin, rankout, tpout, trecs, counter,
+                                 promoted, newtags, user_login, db):
         """
         Unit test for User._get_categories() method.
         """
-        user = myuser['user']
-        case = myuser['casedata']
-        if user.cats_counter < 5:
-            expected = case['categories_start']
-        elif user.cats_counter >= 5:
-            expected = case['categories_out']
-        actual = user._get_categories()
-        # this avoids problem of lists being in different orders
-        for c, l in expected.iteritems():
-            assert len(actual['categories'][c]) == len([t for t in l])
+        user = User(user_login, trecs, tpin)
+        user.cats_counter = counter
+        try:
+            db.tag_progress(db.tag_progress.name == user_login['id']).id
+        except AttributeError:
+            db.tag_progress.insert(name=user_login['id'])
+        # set these to allow for retrieval if counter < 5
+        user.tag_progress = tpin
+        user.categories = {c: l for c, l in tpin.iteritems() if c[:3] == 'cat'}
+        apromoted, anew_tags = user.get_categories()
 
-    @pytest.mark.skipif(True, reason='just because')
-    def test_user_get_old_categories(self, myuser):
-        """
-        TODO: at the moment this is only testing initial state in which there
-        are no old categories yet.
-        """
-        #case = myuser['casedata']
-        user = myuser['user']
-        expected = None
-        #expected = case['tag_progress']
-        #del expected['latest_new']
+        print 'user.tag_progress'
+        print user.cats_counter
+        print 'user.tag_progress'
+        pprint(user.tag_progress)
+        print 'user.categories'
+        pprint(user.categories)
 
-        actual = user._get_old_categories()
+        for c, l in tpout.iteritems():
+            assert user.tag_progress[c] == l
+            if c in ['cat1', 'cat2', 'cat3', 'cat4']:
+                assert user.categories[c] == l
+        assert apromoted == promoted
+        assert anew_tags == newtags
 
-        assert actual == expected
-        #for c, l in actual.iteritems():
-            #assert len([i for i in l if i in expected[c]]) == len(expected[c])
-            #assert len(l) == len(expected[c])
+    #@pytest.mark.skipif(False, reason='just because')
+    #def test_user_get_old_categories(self, myuser):
+        #"""
+        #TODO: at the moment this is only testing initial state in which there
+        #are no old categories yet.
+        #"""
+        ##case = myuser['casedata']
+        #user = myuser['user']
+        #expected = None
+        ##expected = case['tag_progress']
+        ##del expected['latest_new']
 
-    @pytest.mark.skipif(True, reason='just because')
-    def test_user_complete_path(self, myuser):
-        user = myuser['user']
-        case = myuser['casedata']
-        pathid = case['paths']['cat1'][0]
-        path = Path(path_id=pathid, loc=case['loc'])
-        path.completed_steps.append(path.steps.pop(0))
+        #actual = user._get_old_categories()
 
-        user.path = copy(path)
-        assert user._complete_path() is True
+        #assert actual == expected
+        ##for c, l in actual.iteritems():
+            ##assert len([i for i in l if i in expected[c]]) == len(expected[c])
+            ##assert len(l) == len(expected[c])
+
+    @pytest.mark.parametrize('pathid,psteps,alias',
+        [(2, [1], 'agora')
+         ])
+    @pytest.mark.skipif(False, reason='just because')
+    def test_user_complete_path(self, pathid, psteps, alias):
+        tpout = {'latest_new': 2,
+                 'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                 'cat3': [], 'cat4': [],
+                 'rev1': [], 'rev2': [61],
+                 'rev3': [], 'rev4': []}
+        trecs = [{'name': 1,
+                  'tag': 1,
+                  'tlast_right': dt('2013-01-29'),
+                  'tlast_wrong': dt('2013-01-29'),
+                  'times_right': 1,
+                  'times_wrong': 1,
+                  'secondary_right': None}]
+        userdata = {'first_name': 'Homer', 'id': 1, 'time_zone': 'America/Toronto'}
+        user = User(userdata, trecs, tpout)
+        # simulate being at end of active path
+        user.path = Path(path_id=pathid)
+        user.path.completed_steps.append(user.path.steps.pop(0))
+
+        assert user.complete_path()
+
         assert user.path is None
-        if case['casenum'] == 3:
-            print user.last_npc
-            assert not user.last_npc
-        else:
-            assert user.last_npc.get_id() in case['npcs_here']
-        assert user.last_loc.get_id() == case['loc'].get_id()
-        assert user.completed_paths[-1].get_id() == path.get_id()
-        assert isinstance(user.completed_paths[-1], Path)
+        assert user.completed_paths[-1] == pathid  # FIXME: store obj instead of just id?
+        #assert isinstance(user.completed_paths[-1], Path)
+        #assert user.completed_paths[-1].steps == []
 
 
 @pytest.mark.skipif('global_runall is False '
@@ -1757,10 +4125,15 @@ class TestCategorizer():
                                  'times_right': 1,
                                  'times_wrong': 1,
                                  'secondary_right': None}]
-                               )
+                               ),
+                              ('case9', 10,
+                               mytagpros()['Simon Pan 2014-03-21'],
+                               mytagrecs()['Simon Pan 2014-03-21'],
+                               mytagrecs_with_secondary()['Simon Pan 2014-03-21'])
                               ])
     def test_categorizer_add_secondary_right(self, casename, rank, catsin,
-                                             tagrecsin, tagrecsout):
+                                             tagrecsin, tagrecsout, mytagpros,
+                                             mytagrecs):
         """Unit test for the paideia.Categorizer._add_secondary_right method."""
         now = dt('2013-01-29')
         # 150 is random user id
@@ -1770,12 +4143,20 @@ class TestCategorizer():
         expected = tagrecsout
 
         for idx, a in enumerate(actual):
-            assert a['tag'] == expected[idx]['tag']
-            assert a['tlast_right'] == expected[idx]['tlast_right']
-            assert a['tlast_wrong'] == expected[idx]['tlast_wrong']
-            assert a['times_right'] == expected[idx]['times_right']
-            assert a['tlast_wrong'] == expected[idx]['tlast_wrong']
-            assert a['secondary_right'] == expected[idx]['secondary_right']
+            e = expected[idx]
+            esr = [parser.parse(d) for d in e['secondary_right']] \
+                   if e['secondary_right'] else None
+            print 'trying tag', a['tag']
+            assert a['tag'] == e['tag']
+            assert a['tlast_right'] == e['tlast_right']
+            assert a['tlast_wrong'] == e['tlast_wrong']
+            assert a['times_right'] == e['times_right']
+            assert a['tlast_wrong'] == e['tlast_wrong']
+            try:
+                assert a['secondary_right'] == esr
+            except:
+                assert not esr
+                assert a['secondary_right'] == []
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('casename,rank,catsin,catsout,tagrecs',
@@ -1861,7 +4242,13 @@ class TestCategorizer():
                                  'times_right': 20,
                                  'times_wrong': 10,
                                  'secondary_right': []}],
-                               )
+                               ),
+                               ('case9',
+                                10,
+                                mytagpros()['Simon Pan 2014-03-21'],
+                                mycatsout_core_algorithm()['Simon Pan 2014-03-21'],
+                                mytagrecs()['Simon Pan 2014-03-21']
+                                ),
                               ])
     def test_categorizer_core_algorithm(self, casename, rank, catsin, catsout,
                                         tagrecs, db):
@@ -1872,12 +4259,23 @@ class TestCategorizer():
         out in the myrecords fixture.
         """
         now = dt('2013-01-29')
+        if casename == 'case9':
+            now = dt('2014-03-21')
         # 150 is random user id
         catzr = Categorizer(rank, catsin, tagrecs, 150, utcnow=now)
 
         actual = catzr._core_algorithm()
         expected = catsout
-        assert actual == expected
+        for cat, tags in actual.iteritems():
+            print '\n', cat
+            print tags
+            print 'expected:'
+            print expected[cat]
+            print 'diffleft:'
+            print [t for t in tags if t not in expected[cat]]
+            print 'diffright:'
+            print [t for t in expected[cat] if t not in tags]
+            assert tags == expected[cat]
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('casename,rank,catsin,tagrecs,introduced',
@@ -1923,8 +4321,10 @@ class TestCategorizer():
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('casename,rank,catsin,tagrecs,catsout',
-                             [('case1', 1, {'cat1': [1], 'cat2': [],
-                                            'cat3': [], 'cat4': []},
+                             [('case1',
+                               1,
+                               {'cat1': [1], 'cat2': [],
+                                'cat3': [], 'cat4': []},
                                [{'name': 1,
                                  'tag': 1,
                                  'tlast_right': dt('2013-01-29'),
@@ -1934,7 +4334,13 @@ class TestCategorizer():
                                  'secondary_right': None}],
                                {'cat1': [1, 61], 'cat2': [],
                                 'cat3': [], 'cat4': []}
-                               )
+                               ),
+                              ('case9',
+                               10,  # rank
+                               mycatsout_core_algorithm()['Simon Pan 2014-03-21'],  # catsin
+                               mytagrecs_with_secondary()['Simon Pan 2014-03-21'],  # tagrecs
+                               mycatsout_add_untried()['Simon Pan 2014-03-21'],  # catsin
+                               ),
                               ])
     def test_categorizer_add_untried_tags(self,  casename, rank, catsin,
                                           tagrecs, catsout):
@@ -1947,12 +4353,22 @@ class TestCategorizer():
 
         """
         now = dt('2013-01-29')
+        if casename == 'case9':
+            now = dt('2014-03-21')
+        catsin = {k: v for k, v in catsin.iteritems() if k[:3] == 'cat'}
         catzr = Categorizer(rank, catsin, tagrecs, 150, utcnow=now)
 
         actual = catzr._add_untried_tags(catsin)
         expected = catsout
 
         for cat, lst in actual.iteritems():
+            print cat
+            print 'actual:', lst
+            print 'expected:', expected[cat]
+            print 'diffleft:'
+            print [t for t in lst if t not in expected[cat]]
+            print 'diffright:'
+            print [t for t in expected[cat] if t not in lst]
             assert lst == expected[cat]
             assert len(lst) == len(expected[cat])
 
@@ -1992,17 +4408,21 @@ class TestCategorizer():
             assert len(lst) == len(expected[cat])
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('casename,rank,oldcats,catsin,tagrecs,'
+    @pytest.mark.parametrize('casename,rank,oldcats,catsin,catsout,tagrecs,'
                              'demoted,promoted',
                              [('case1',  # no prom or demot
                                1,
-                               {'cat1': [1], 'cat2': [],
+                               {'cat1': [1], 'cat2': [],  # oldcats
                                 'cat3': [], 'cat4': [],
                                 'rev1': [], 'rev2': [],
                                 'rev3': [], 'rev4': []},
-                               {'cat1': [61], 'cat2': [],
+                               {'cat1': [61], 'cat2': [],  # catsin
                                 'cat3': [], 'cat4': [],
                                 'rev1': [], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                               {'cat1': [61], 'cat2': [],  # catsout
+                                'cat3': [], 'cat4': [],
+                                'rev1': [61], 'rev2': [],
                                 'rev3': [], 'rev4': []},
                                [{'name': 1,
                                  'tag': 1,
@@ -2016,13 +4436,17 @@ class TestCategorizer():
                                ),
                               ('case2',  # promote 61 for ratio and time
                                1,
-                               {'cat1': [61], 'cat2': [],
+                               {'cat1': [61], 'cat2': [],  # oldcats
                                 'cat3': [], 'cat4': [],
                                 'rev1': [], 'rev2': [],
                                 'rev3': [], 'rev4': []},
-                               {'cat1': [62], 'cat2': [61],
+                               {'cat1': [62], 'cat2': [61],  # catsin
                                 'cat3': [], 'cat4': [],
                                 'rev1': [], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                               {'cat1': [62], 'cat2': [61],  # catsout
+                                'cat3': [], 'cat4': [],
+                                'rev1': [62], 'rev2': [61],
                                 'rev3': [], 'rev4': []},
                                [{'name': 1,
                                  'tag': 61,
@@ -2034,36 +4458,86 @@ class TestCategorizer():
                                None,
                                {'cat1': [], 'cat2': [61],
                                 'cat3': [], 'cat4': []}
+                               ),
+                              ('case9',
+                               10,
+                               mytagpros()['Simon Pan 2014-03-21'],
+                               mycatsout_add_untried()['Simon Pan 2014-03-21'],
+                               mycatsout_find_changes()['Simon Pan 2014-03-21'],
+                               mytagrecs()['Simon Pan 2014-03-21'],
+                               mydemoted()['Simon Pan 2014-03-21'],
+                               mypromoted()['Simon Pan 2014-03-21']
                                )
                               ])
     def test_categorizer_find_cat_changes(self, casename, rank, oldcats, catsin,
-                                          tagrecs, demoted, promoted):
+                                          catsout, tagrecs, demoted, promoted):
         """
-            Unit test for the paideia.Categorizer._find_cat_changes method.
-
+        Unit test for the paideia.Categorizer._find_cat_changes method.
         """
         now = dt('2013-01-29')
+        if casename == 'case9':
+            now = dt('2014-03-21')  # date when profile snapshot taken
         catzr = Categorizer(rank, oldcats, tagrecs, 150, utcnow=now)
 
         actual = catzr._find_cat_changes(catsin, oldcats)
-        expected = {'categories': catsin,
+        expected = {'categories': catsout,
                     'demoted': demoted,
                     'promoted': promoted}
 
+        # FIXME: also tag progress?
+        print 'categories ================================'
         for cat, lst in actual['categories'].iteritems():
+            print cat
+            print 'actual:', lst
+            print 'expected:', expected['categories'][cat]
+            print 'diffleft:'
+            print [t for t in lst if t not in expected['categories'][cat]]
+            print 'diffright:'
+            print [t for t in expected['categories'][cat] if t not in lst]
             assert lst == expected['categories'][cat]
-        assert actual['demoted'] == expected['demoted']
-        assert actual['promoted'] == expected['promoted']
+
+        print 'demoted ================================'
+        if actual['demoted']:
+            for cat, lst in actual['demoted'].iteritems():
+                print cat
+                print 'actual:'
+                print lst
+                print 'expected:'
+                print expected['demoted'][cat]
+                print 'diffleft:'
+                print [t for t in lst if t not in expected['demoted'][cat]]
+                print 'diffright:'
+                print [t for t in expected['demoted'][cat] if t not in lst]
+                assert lst == expected['demoted'][cat]
+        else:
+            assert actual['demoted'] is None
+
+        print 'promoted ================================'
+        if actual['promoted']:
+            for cat, lst in actual['promoted'].iteritems():
+                print cat
+                print 'actual:'
+                print lst
+                print 'expected:'
+                print expected['promoted'][cat]
+                print 'diffleft:'
+                print [t for t in lst if t not in expected['promoted'][cat]]
+                print 'diffright:'
+                print [t for t in expected['promoted'][cat] if t not in lst]
+                assert lst == expected['promoted'][cat]
+        else:
+            assert actual['promoted'] is None
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('casename,rank,catsin,tagrecsin,'
                              'rankout,catsout,tpout,'
                              'promoted,newtags',
                              [('case1',
-                               1, {'cat1': [1], 'cat2': [],
-                                   'cat3': [], 'cat4': [],
-                                   'rev1': [], 'rev2': [],
-                                   'rev3': [], 'rev4': []},
+                               1,
+                               {'cat1': [1], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [],
+                                'rev3': [], 'rev4': []},
                                [{'name': 1,
                                  'tag': 1,
                                  'tlast_right': dt('2013-01-29'),
@@ -2149,145 +4623,367 @@ class TestCategorizer():
 
 
 @pytest.mark.skipif('not global_runall '
+                    'and not global_run_TestMap')
+class TestMap():
+    """
+    A unit testing class for the paideia.Map class.
+    """
+    def test_map_show(self):
+        """Unit test for paideia.Walk._get_user()"""
+        expected = {'map_image': '/paideia/static/images/town_map.svg',
+                    'locations': [{'loc_alias': 'None',
+                                'bg_image': 8,
+                                'id': 3},
+                                {'loc_alias': 'domus_A',
+                                'bg_image': 8,
+                                'id': 1},
+                                {'loc_alias': '',
+                                'bg_image': 8,
+                                'id': 2},
+                                {'loc_alias': None,
+                                'bg_image': None,
+                                'id': 4},
+                                {'loc_alias': None,
+                                'bg_image': None,
+                                'id': 12},
+                                {'loc_alias': 'bath',
+                                'bg_image': 17,
+                                'id': 13},
+                                {'loc_alias': 'gymnasion',
+                                'bg_image': 113,
+                                'id': 14},
+                                {'loc_alias': 'shop_of_alexander',
+                                'bg_image': 16,
+                                'id': 6},
+                                {'loc_alias': 'ne_stoa',
+                                'bg_image': 18,
+                                'id': 7},
+                                {'loc_alias': 'agora',
+                                'bg_image': 16,
+                                'id': 8},
+                                {'loc_alias': 'synagogue',
+                                'bg_image': 15,
+                                'id': 11},
+                                {'loc_alias': None,
+                                'bg_image': None,
+                                'id': 5},
+                                {'loc_alias': None,
+                                'bg_image': None,
+                                'id': 9},
+                                {'loc_alias': None,
+                                'bg_image': None,
+                                'id': 10}
+                                ]}
+        actual = Map().show()
+        for m in expected['locations']:
+            i = expected['locations'].index(m)
+            assert actual['locations'][i]['loc_alias'] == m['loc_alias']
+            assert actual['locations'][i]['bg_image'] == m['bg_image']
+            assert actual['locations'][i]['id'] == m['id']
+        assert actual['map_image'] == expected['map_image']
+
+
+@pytest.mark.skipif('not global_runall '
                     'and not global_run_TestWalk')
 class TestWalk():
     """
     A unit testing class for the paideia.Walk class.
     """
 
-    def test_walk_get_user(self, mywalk):
+    @pytest.mark.parametrize('alias,trecs,tpout',
+        [('domus_A',
+          [{'name': 1,
+            'tag': 1,
+            'tlast_right': dt('2013-01-29'),
+            'tlast_wrong': dt('2013-01-29'),
+            'times_right': 1,
+            'times_wrong': 1,
+            'secondary_right': None}],
+          {'latest_new': 1,
+           'cat1': [61], 'cat2': [],
+           'cat3': [], 'cat4': [],
+           'rev1': [], 'rev2': [],
+           'rev3': [], 'rev4': []},
+          )
+         ])
+    def test_walk_get_user(self, alias, trecs, tpout, db):
         """Unit test for paideia.Walk._get_user()"""
-        thiswalk = mywalk['walk']
-        case = mywalk['casedata']
-        if case['casenum'] == 1:
-            localias = case['localias']
-            userdata = {'first_name': 'Homer',
-                        'last_name': 'Simpson',
-                        'id': current.auth.user.id}
-            tag_records = case['tag_records']
-            tag_progress = case['tag_progress']
+        userdata = {'first_name': 'Homer', 'id': 1, 'time_zone': 'America/Toronto'}
+        thiswalk = Walk(userdata=userdata,
+                        tag_records=trecs,
+                        tag_progress=tpout,
+                        db=db)
+        actual = thiswalk._get_user(userdata=userdata,
+                                    tag_records=trecs,
+                                    tag_progress=tpout)
 
-            actual = thiswalk._get_user(userdata=userdata, localias=localias,
-                                        tag_records=tag_records,
-                                        tag_progress=tag_progress)
-            assert isinstance(actual, User)
-            assert actual.get_id() == userdata['id']
+        assert isinstance(actual, User)
+        assert actual.get_id() == userdata['id']
+
+    @pytest.mark.parametrize('pathid,stepid,alias,npcshere,trecs,tpout,redir,'
+                             'promptext,instrs,slidedecks,widgimg,rbuttons,'
+                             'rform,replystep',
+        [(19,  # path # case3 ======================================================
+          19,  # step
+          'synagogue',  # alias
+          [1],  # npcs here FIXME
+          [{'name': 1,  # trecs
+            'tag': 61,
+            'tlast_right': dt('2013-01-27'),
+            'tlast_wrong': dt('2013-01-21'),
+            'times_right': 10,
+            'times_wrong': 10,
+            'secondary_right': None},
+           {'name': 1,
+            'tag': 62,
+            'tlast_right': dt('2013-01-10'),
+            'tlast_wrong': dt('2013-01-1'),
+            'times_right': 10,
+            'times_wrong': 0,
+            'secondary_right': None},
+           {'name': 1,
+            'tag': 63,
+            'tlast_right': dt('2013-01-27'),
+            'tlast_wrong': dt('2013-01-21'),
+            'times_right': 9,
+            'times_wrong': 0,
+            'secondary_right': None},
+           {'name': 1,
+            'tag': 66,
+            'tlast_right': dt('2013-01-27'),
+            'tlast_wrong': dt('2013-01-21'),
+            'times_right': 10,
+            'times_wrong': 0,
+            'secondary_right': None}
+           ],
+          {'latest_new': 4,  # tpout
+           'cat1': [62, 63, 68, 115, 72, 89, 36],
+           'cat2': [61, 66],
+           'cat3': [], 'cat4': [],
+           'rev1': [], 'rev2': [],
+           'rev3': [], 'rev4': []},
+          False,  # redir
+          'How could you spell the word "pole" with Greek letters?',  # prompt text
+          ['Focus on finding Greek letters that make the *sounds* of the '
+           'English word. Don\'t look for Greek "equivalents" for each '
+           'English letter.'],  # instructions
+          {3L: 'The Alphabet II', 8L: 'Greek Words II'},  # slide decks
+          None,  # widget image
+          [],  # response buttons
+          '<form action="#" autocomplete="off" enctype="multipart/form-data" '
+          'method="post"><table><tr id="no_table_response__row">'
+          '<td class="w2p_fl"><label for="no_table_response" id="no_table_'
+          'response__label">Response: </label></td><td class="w2p_fw">'
+          '<input class="string" id="no_table_response" name="response" '
+          'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
+          'id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw">'
+          '<input type="submit" value="Submit" /></td><td class="w2p_fc"></td>'
+          '</tr></table></form>',
+          True  # replystep
+          ),
+         (19,  # path # case2 ======================================================
+          19,  # step
+          'agora',  # alias
+          [1],  # npcs here
+          [{'name': 1,
+            'tag': 61,
+            'tlast_right': dt('2013-01-29'),
+            'tlast_wrong': dt('2013-01-28'),
+            'times_right': 10,
+            'times_wrong': 2,
+            'secondary_right': []}],
+          {'latest_new': 2,  # tpout
+           'cat1': [62], 'cat2': [61],
+           'cat3': [], 'cat4': [],
+           'rev1': [], 'rev2': [],
+           'rev3': [], 'rev4': []},
+          False,  # redir?
+          'How could you spell the word "pole" with Greek letters?',  # prompt text
+          ['Focus on finding Greek letters that make the *sounds* of the '
+           'English word. Don\'t look for Greek "equivalents" for each '
+           'English letter.'],  # instructions
+          {3L: 'The Alphabet II', 8L: 'Greek Words II'},  # slide decks
+          None,  # widget image
+          [],  # response buttons
+          '<form action="#" autocomplete="off" enctype="multipart/form-data" '
+          'method="post"><table><tr id="no_table_response__row">'
+          '<td class="w2p_fl"><label for="no_table_response" id="no_table_'
+          'response__label">Response: </label></td><td class="w2p_fw">'
+          '<input class="string" id="no_table_response" name="response" '
+          'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
+          'id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw">'
+          '<input type="submit" value="Submit" /></td><td class="w2p_fc"></td>'
+          '</tr></table></form>',
+          True  # replystep
+          ),
+         (89,  # path # case2======================================================
+          101,  # step
+          'agora',  # alias
+          [2, 8, 14, 17, 31, 40, 41, 42],  # npcs here
+          [{'name': 1,
+            'tag': 61,
+            'tlast_right': dt('2013-01-29'),
+            'tlast_wrong': dt('2013-01-28'),
+            'times_right': 10,
+            'times_wrong': 2,
+            'secondary_right': []}],
+          {'latest_new': 2,  # tpout
+           'cat1': [62], 'cat2': [61],
+           'cat3': [], 'cat4': [],
+           'rev1': [], 'rev2': [],
+           'rev3': [], 'rev4': []},
+          True,  # redirect?
+          'Hi there. Sorry, I don\'t have anything for you to '  # prompt text
+          'do here at the moment. I think someone was looking '
+          'for you at somewhere else in town.',
+          None,  # instructions
+          None,  # slide decks
+          None,  # widget image
+          ['map', 'continue'],  # response buttons
+          None,  # response form
+          False  # replystep
+          ),
+         (2,  # path # case1======================================================
+          1,  # step
+          'shop_of_alexander',
+          [2, 8, 17],  # npcs here (for step)
+          [{'name': 1,  # trecs
+            'tag': 1,
+            'tlast_right': dt('2013-01-29'),
+            'tlast_wrong': dt('2013-01-29'),
+            'times_right': 1,
+            'times_wrong': 1,
+            'secondary_right': None}],
+          {'latest_new': 1,  # tpout
+           'cat1': [61], 'cat2': [],
+           'cat3': [], 'cat4': [],
+           'rev1': [], 'rev2': [],
+           'rev3': [], 'rev4': []},
+          False,  # redirect?
+          'How could you write the word "meet" using Greek letters?',
+          ['Focus on finding Greek letters that make the *sounds* of the '
+           'English word. Don\'t look for Greek "equivalents" for each '
+           'English letter.'],  # instructions
+          {1: 'Introduction', 2: 'The Alphabet', 6: 'Noun Basics', 7: 'Greek Words I'},
+          None,  # widget image
+          [],  # response buttons
+          '<form action="#" autocomplete="off" enctype="multipart/form-data" '
+          'method="post"><table><tr id="no_table_response__row">'
+          '<td class="w2p_fl"><label for="no_table_response" id="no_table_'
+          'response__label">Response: </label></td><td class="w2p_fw">'
+          '<input class="string" id="no_table_response" name="response" '
+          'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
+          'id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw">'
+          '<input type="submit" value="Submit" /></td><td class="w2p_fc"></td>'
+          '</tr></table></form>',
+          True  # replystep
+          ),
+         (3,  # path # case1======================================================
+          2,  # step
+          'shop_of_alexander',
+          [2, 8, 17],  # npcs here FIXME
+          [{'name': 1,  # trecs
+            'tag': 1,
+            'tlast_right': dt('2013-01-29'),
+            'tlast_wrong': dt('2013-01-29'),
+            'times_right': 1,
+            'times_wrong': 1,
+            'secondary_right': None}],
+          {'latest_new': 1,  # tpout
+           'cat1': [61], 'cat2': [],
+           'cat3': [], 'cat4': [],
+           'rev1': [], 'rev2': [],
+           'rev3': [], 'rev4': []},
+          False,  # redirect?
+          'How could you write the word "bought" using Greek letters?',  # text
+          None,  # instructions
+          {1: 'Introduction', 2: 'The Alphabet', 6: 'Noun Basics', 7: 'Greek Words I'},
+          None,  # widget image
+          [],  # response buttons
+          '<form action="#" autocomplete="off" enctype="multipart/form-data" '
+          'method="post"><table><tr id="no_table_response__row">'
+          '<td class="w2p_fl"><label for="no_table_response" id="no_table_'
+          'response__label">Response: </label></td><td class="w2p_fw">'
+          '<input class="string" id="no_table_response" name="response" '
+          'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
+          'id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw">'
+          '<input type="submit" value="Submit" /></td><td class="w2p_fc"></td>'
+          '</tr></table></form>',
+          True  # replystep
+          ),
+         (89,  # path # case1======================================================
+          101,  # step
+          'shop_of_alexander',
+          [2, 8, 14, 17, 31, 40, 41, 42],  # npcs here
+          [{'name': 1,  # trecs
+            'tag': 1,
+            'tlast_right': dt('2013-01-29'),
+            'tlast_wrong': dt('2013-01-29'),
+            'times_right': 1,
+            'times_wrong': 1,
+            'secondary_right': None}],
+          {'latest_new': 1,  # tpout
+           'cat1': [61], 'cat2': [],
+           'cat3': [], 'cat4': [],
+           'rev1': [], 'rev2': [],
+           'rev3': [], 'rev4': []},
+          True,  # redirect?
+          'Hi there. Sorry, I don\'t have anything for you to '  # prompt text
+          'do here at the moment. I think someone was looking '
+          'for you at somewhere else in town.',
+          None,  # instructions
+          None,  # slide decks
+          None,  # widget image
+          ['map', 'continue'],  # response buttons
+          None,  # response form
+          False  # replystep
+          )
+         ])
+    def test_walk_ask(self, pathid, stepid, alias, npcshere, trecs, tpout, redir,
+                      promptext, instrs, slidedecks, widgimg, rbuttons,
+                      rform, replystep, npc_data, bg_imgs, db, user_login):
+        thiswalk = Walk(userdata=user_login,
+                        tag_records=trecs,
+                        tag_progress=tpout,
+                        db=db)
+        loc = Location(alias)
+        #path = Path(path_id=pathid, db=db)
+        try:  # throws an error if user doesn't have a db.tag_progress row
+            db.tag_progress(db.tag_progress.name == user_login['id']).id
+        except AttributeError:
+            db.tag_progress.insert(name=user_login['id'])
+        actual = thiswalk.ask(alias, path=pathid)
+
+        assert actual['sid'] == stepid
+        assert actual['pid'] == pathid
+        assert actual['completed_count'] == 1
+        assert actual['category'] == None
+        if not isinstance(actual['prompt_text'], str):
+            assert actual['prompt_text'].xml() == promptext
         else:
-            pass
-
-    def test_walk_map(self, mywalk):
-        """Unit test for paideia.Walk._get_user()"""
-        thiswalk = mywalk['walk']
-        case = mywalk['casedata']
-        if case['casenum'] == 1:
-            expected = {'map_image': '/paideia/static/images/town_map.svg',
-                        'locations': [{'loc_alias': 'None',
-                                    'bg_image': 8,
-                                    'id': 3},
-                                    {'loc_alias': 'domus_A',
-                                    'bg_image': 8,
-                                    'id': 1},
-                                    {'loc_alias': '',
-                                    'bg_image': 8,
-                                    'id': 2},
-                                    {'loc_alias': None,
-                                    'bg_image': None,
-                                    'id': 4},
-                                    {'loc_alias': None,
-                                    'bg_image': None,
-                                    'id': 12},
-                                    {'loc_alias': 'bath',
-                                    'bg_image': 17,
-                                    'id': 13},
-                                    {'loc_alias': 'gymnasion',
-                                    'bg_image': 15,
-                                    'id': 14},
-                                    {'loc_alias': 'shop_of_alexander',
-                                    'bg_image': 16,
-                                    'id': 6},
-                                    {'loc_alias': 'ne_stoa',
-                                    'bg_image': 18,
-                                    'id': 7},
-                                    {'loc_alias': 'agora',
-                                    'bg_image': 16,
-                                    'id': 8},
-                                    {'loc_alias': 'synagogue',
-                                    'bg_image': 15,
-                                    'id': 11},
-                                    {'loc_alias': None,
-                                    'bg_image': None,
-                                    'id': 5},
-                                    {'loc_alias': None,
-                                    'bg_image': None,
-                                    'id': 9},
-                                    {'loc_alias': None,
-                                    'bg_image': None,
-                                    'id': 10}
-                                    ]}
-            actual = thiswalk.map()
-            for m in expected['locations']:
-                i = expected['locations'].index(m)
-                assert actual['locations'][i]['loc_alias'] == m['loc_alias']
-                assert actual['locations'][i]['bg_image'] == m['bg_image']
-                assert actual['locations'][i]['id'] == m['id']
-            assert actual['map_image'] == expected['map_image']
-        else:
-            pass
-
-    def test_walk_ask(self, mywalk):
-        thiswalk = mywalk['walk']
-        case = mywalk['casedata']
-        c = case['casenum']
-        step = mywalk['stepdata']
-        s = step['id']
-
-        combinations = {1: [1, 2, 101],  # paths 2, 3, 89 (multi, redir(step 30))
-                        2: [101, 19],  # paths 89 (multiple), 19
-                        3: [19]}  # path 19
-        if c in combinations.keys() and s in combinations[c]:
-            redirects = {1: [101],
-                         2: [101]}  # TODO: why does case 2 redirect step 101?
-            if c in redirects and s in redirects[c]:
-                print 'redirecting'
-                expected = {'prompt': step['redirect_prompt'],
-                            'instructions': None,
-                            'responder': step['redirect_responder'],
-                            'reply_step': False}
-            else:
-                expected = {'prompt': step['final_prompt'],
-                            'instructions': step['instructions'],
-                            'responder': step['responder'],
-                            'reply_step': False}
-                if step['step_type'] in (StepText, StepMultiple):
-                    # expect a reply step prepared for these step types
-                    expected['reply_step'] = True
-
-            path = step['paths'][0]
-            print 'in test_walk_ask———————————————————————————–'
-            print 'asking path', path
-            actual = thiswalk.ask(path)
-            # TODO: add the following new assertions to test for
-            # path.get_step_for_prompt
-            # check that right number of steps left in path.steps
-            # TODO: parameterize this when we add multi-step path tests
-            assert thiswalk.user.path.steps == []
-            # check that a step is prepared for reply when necessary
-            if expected['reply_step'] is True:
-                assert thiswalk.user.path.step_for_reply
-                print 'step_for_reply is', thiswalk.user.path.step_for_reply.get_id()
-            else:
-                assert not thiswalk.user.path.step_for_reply
-                print 'no step prepared for reply'
-            # check that correct path is active on user
-            assert path == thiswalk.user.path.get_id()
-            assert actual['prompt']['prompt'] == expected['prompt']
-            assert actual['prompt']['instructions'] == expected['instructions']
-            # TODO: check for image -- just hard to predict
-            #assert actual['prompt']['npc_image'] == expected['image']
-            assert actual['responder'].xml() == expected['responder']
-        else:
-            print 'skipping combination'
-            pass
+            assert actual['prompt_text'] == promptext
+        assert actual['instructions'] == instrs
+        if actual['slidedecks']:
+            assert all([d for d in actual['slidedecks'].values()
+                        if d in slidedecks.values()])
+        elif slidedecks:
+            pprint(actual['slidedecks'])
+            assert actual['slidedecks']
+        assert actual['widget_img'] == widgimg  # FIXME: add case with image
+        assert actual['bg_image'] == bg_imgs[loc.get_id()]
+        #assert actual['npc_image']['_src'] == npc_data[npc.get_id()]['image']
+        if actual['response_form']:
+            assert re.match(rform, actual['response_form'].xml())
+        elif rform:
+            pprint(actual['response_form'])
+            assert actual['response_form']
+        assert actual['bugreporter'] == None
+        assert actual['response_buttons'] == rbuttons
+        assert actual['audio'] == None  # FIXME: add case with audio (path 380, step 445)
+        assert actual['loc'] == alias
+        assert thiswalk.user.path.steps == []  # because only step activated
+        assert thiswalk.user.path.step_for_reply == replystep
+        assert pathid == thiswalk.user.path.get_id()
 
     def test_walk_reply(self, mywalk):
         """Unit test for paideia.Walk.reply() method."""
