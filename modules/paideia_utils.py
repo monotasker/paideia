@@ -112,6 +112,7 @@ def islist(dat):
 
     DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
     """
+    print 'getting as list'
     return plugin_utils.islist(dat)
 
 

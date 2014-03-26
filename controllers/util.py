@@ -47,6 +47,9 @@ def make_path():
     form, message, output = factories[path_type]().make_create_form()
     print "Returning initial form"
 
+    print 'returning result:'
+    print 'message'
+
     return {'form': form, 'message': message, 'output': output}
 
 

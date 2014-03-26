@@ -142,6 +142,7 @@ class PathFactory(object):
         form = SQLFORM.factory(*flds)
 
         if form.process().accepted:
+            print 'processing form'
             vv = request.vars
             stepsdata = []
             for n in ['one', 'two', 'three', 'four', 'five']:
@@ -154,6 +155,7 @@ class PathFactory(object):
                 wordlists = [w.split('|') for w in vv['words']]
             else:
                 wordlists = [vv['words'].split('|')]
+            print 'sending to make_path'
             paths = self.make_path(wordlists,
                                    label_template=vv.label_template,
                                    stepsdata=stepsdata,
@@ -162,6 +164,7 @@ class PathFactory(object):
                                    aligned=vv.aligned
                                    )
             message, output = self.make_output(paths)
+            print 'received output'
 
         elif form.errors:
             message = BEAUTIFY(form.errors)
@@ -252,6 +255,7 @@ class PathFactory(object):
             self.mock = True
 
         combos = self.make_combos(wordlists, aligned, avoid)
+        print 'got combos'
         paths = {}
         for idx, c in enumerate(combos):  # one path for each combo
             #print 'path for combo {}'.format(idx)
@@ -259,25 +263,32 @@ class PathFactory(object):
             label = label_template.format('-'.join(c))
             mykeys = ['words{}'.format(n + 1) for n in range(len(c))]
             combodict = dict(zip(mykeys, c))  # keys are template placeholders
+            print 'combo', idx
 
             pdata = {'steps': {}, 'new_forms': [], 'images_missing': []}
+            print 'got pdata'
             for i, s in enumerate(stepsdata):  # each step in path
+                print 'starting step', i
                 # sanitize form response =============================="
                 numstrings = ['one_', 'two_', 'three_', 'four_', 'five_']
                 sdata = {k.replace(numstrings[i], ''): v for k, v in s.iteritems()}
+                print 'got sdata'
                 # create steps ========================================"
                 stepdata, newforms, imgs = self.make_step(combodict, sdata)
+                print 'made step'
                 # collect result ======================================"
                 pdata['steps'][stepdata[0]] = stepdata[1]
                 if newforms:
                     pdata['new_forms'].append(newforms)
                 if imgs:
                     pdata['images_missing'].append(imgs)
+            print 'got stepsdata'
             pgood = [isinstance(k, (int, long)) for k in pdata['steps'].keys()]
             pid = self.path_to_db(pdata['steps'].keys(), label) \
                 if all(pgood) and not self.mock else 'path not written {}'.format(idx)
             paths[pid] = pdata
-
+            print 'got paths for combo', c
+        print 'returning paths'
         return paths
 
     def make_combos(self, wordlists, aligned, avoid):
@@ -317,30 +328,40 @@ class PathFactory(object):
         [1] newfs           : A list of inflected word forms newly added to
                               db.word_forms in the course of step creation.
         """
+        print 'starting make_step'
         mytype = sdata['step_type']
 
+        print 'getting template'
         ptemp = islist(sdata['prompt_template'])
         xtemp = islist(sdata['response_template'])
         rtemp = islist(sdata['readable_template'])
+        print 'got strings'
 
         tags1 = sdata['tags']
         itemp = sdata['image_template']
         tags2 = sdata['tags_secondary']
         tags3 = sdata['tags_ahead'] if 'tags_ahead' in sdata.keys() else None
+        print 'got tags 1, 2, 3'
         npcs = sdata['npcs']
         locs = sdata['locations']
         points = sdata['points'] if 'points' in sdata.keys() and sdata['points'] \
             else 1.0, 0.0, 0.0
+        print 'got points'
         instrs = sdata['instructions']
+        print 'got instructions'
+        # FIXME: choking on the line below
         hints = sdata['hints']
-
+        print 'assembled tags/hints'
         img = self.make_image(combodict, itemp) if itemp else None
         imgid = img[0] if img else None
+        print 'got image'
         #ititle = img[1] if img else None
         images_missing = img[2] if img else None
 
         pros, rxs, rdbls, newfs = self.format_strings(combodict, ptemp, xtemp, rtemp)
+        print 'formatted strings'
         tags = self.get_step_tags(tags1, tags2, tags3, pros, rdbls)
+        print 'got tags'
         kwargs = {'prompt': pros[randrange(len(pros))],  # sanitize_greek(pros[randrange(len(pros))]),
                   'widget_type': mytype,
                   #'widget_audio': None,
@@ -359,6 +380,7 @@ class PathFactory(object):
                   'locations': locs,
                   'instructions': instrs,
                   'hints': hints}  # [randrange(len(npcs))] if mult
+        print 'assembled kwargs'
 
         try:
             matchdicts = [test_regex(x, rdbls) for x in rxs]
