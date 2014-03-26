@@ -1972,6 +1972,7 @@ class Categorizer(object):
     def __init__(self, rank, categories, tag_records, user_id,
                  secondary_right=None, utcnow=None, db=None):
         """Initialize a paideia.Categorizer object"""
+        self.db = current.db if not db else db
         self.user_id = user_id
         self.rank = rank
         self.tag_records = tag_records
@@ -2321,51 +2322,74 @@ class Categorizer(object):
 
         return categories
 
-    def _find_cat_changes(self, cats, oldcats):
+    def _find_cat_changes(self, cats, oldcats, bbrows=None, uid=None):
         """
         Determine whether any of the categorized tags are promoted or demoted.
         """
+        db = self.db
+        uid = self.user_id if not uid else uid
         if oldcats:
             demoted = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
             promoted = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
-            cnms = ['cat4', 'cat3', 'cat2', 'cat1']
             oldcats = {k: v for k, v in oldcats.iteritems()
                        if k[:3] == 'cat'}  # facilitates demotion tasks
+            cnms = ['cat1', 'cat2', 'cat3', 'cat4']
+
+            # Following fixes oldcats (max levels) based on badges_begun rows
+            bbrows = bbrows if bbrows else db(db.badges_begun.name == uid
+                                              ).select().as_list()
+            bmax = {}
+            for b in bbrows:
+                mymax = len([k for k, v in b.iteritems() if k in cnms and v])
+                bmax[b['tag']] = mymax
+            print 'max ranks'
+            pprint(bmax)
+            for c, l in oldcats.iteritems():
+                try:
+                    for tag in l:
+                        if c in cnms and \
+                                l in bmax.keys() and \
+                                c[-1] != bmax[tag]:
+                            oldcats[c].pop(l.index(tag))
+                            oldcats['cat'.format(bmax[tag])].append(tag)
+                except TypeError:  # because no list for that cat in oldcats
+                    continue
+
             #for cat, taglist in cats.iteritems():
-            for cat in cnms:
-                taglist = cats[cat]
-                if cat in cnms and taglist:
-                    revcat = cat.replace('cat', 'rev')
-                    cats[revcat] = taglist[:]  # copy necessary since demotion only changes one
-                    # FIXME: cat4 removal in cat1 loop erased by cat4 loop
+            for cat, taglist in cats.iteritems():
+                revcat = cat.replace('cat', 'rev')
+                cats[revcat] = taglist[:]  # copy necessary since demotion only changes one
+                if taglist and cat in cnms:
                     idx = cnms.index(cat)
 
                     # was tag in a lower category before?
                     was_lower = chain.from_iterable([oldcats[c] for c
-                                                     in cnms[:idx]
-                                                     if oldcats[c]])
+                                                          in cnms[:idx]
+                                                          if oldcats[c]])
                     promoted[cat] = [t for t in cats[cat] if t in was_lower]
 
                     # was tag in a higher category before?
                     was_higher = list(chain.from_iterable([oldcats[c] for c
                                                            in cnms[idx + 1:]
                                                            if oldcats[c]]))
-                    demoted_tags = [t for t in taglist if t in was_higher]  # TODO: redundant?
-                    demoted[cat] = demoted_tags
-                    for tag in demoted_tags:  # then restore old max in cats
-                        oldmax = [k for k, v in oldcats.iteritems()
-                                  if v and tag in v][0]
-                        tagindex = cats[cat].index(tag)
-                        print 'tagindex', tagindex
-                        print 'demoted', demoted_tags
-                        cats[cat].pop(tagindex)
-                        print 'list now', cats[cat]
-                        cats[oldmax].append(tag)
-                        print 'oldlist now', cats[oldmax]
+                    demoted[cat] = [t for t in taglist if t in was_higher]
 
+            if any([k for k, v in demoted.iteritems() if v]):
+                for tag in list(chain.from_iterable(demoted.values())):  # then restore old max in cats
+                    current = [k for k, v in demoted.iteritems()
+                                if v and tag in v and k in cnms][0]
+                    oldmax = [k for k, v in oldcats.iteritems()
+                                if v and tag in v][0]
+                    tagindex = cats[current].index(tag)
+                    print 'current', current
+                    print 'oldmax', oldmax
+                    print 'tagindex', tagindex
+                    print 'demoted', demoted[current]
+                    cats[current].pop(tagindex)
+                    print 'list now', cats[current]
+                    cats[oldmax].append(tag)
+                    print 'oldlist now', cats[oldmax]
             pprint(cats)
-            print 'ok then!'
-
             return {'categories': cats,
                     'demoted': demoted if any([d for d in demoted.values()])
                                else None,

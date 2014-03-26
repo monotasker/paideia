@@ -156,17 +156,11 @@ def mycatsout_find_changes():
 @pytest.fixture
 def mydemoted():
     """A fixture providing mock tag_progress records"""
-    tp = {'Simon Pan 2014-03-21': None,
+    tp = {'Simon Pan 2014-03-21': {'cat1': [128],
+                                   'cat2': [],
+                                   'cat3': [],
+                                   'cat4': []},
           }
-    #tp = {'Simon Pan 2014-03-21': {'cat1': [],
-                                   #'cat2': [],
-                                   #'cat3': [],
-                                   #'cat4': [],
-                                   #'rev1': [],
-                                   #'rev3': [],
-                                   #'rev2': [],
-                                   #'rev4': []},
-          #}
     return tp
 
 
@@ -4425,7 +4419,7 @@ class TestCategorizer():
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('casename,rank,oldcats,catsin,catsout,tagrecs,'
-                             'demoted,promoted',
+                             'demoted,promoted,bbrows',
                              [('case1',  # no prom or demot
                                1,
                                {'cat1': [1], 'cat2': [],  # oldcats
@@ -4447,6 +4441,7 @@ class TestCategorizer():
                                  'times_right': 1,
                                  'times_wrong': 1,
                                  'secondary_right': None}],
+                               None,
                                None,
                                None
                                ),
@@ -4473,29 +4468,32 @@ class TestCategorizer():
                                  'secondary_right': []}],
                                None,
                                {'cat1': [], 'cat2': [61],
-                                'cat3': [], 'cat4': []}
+                                'cat3': [], 'cat4': []},
+                               None
                                ),
                               ('case9',
-                               10,
-                               mytagpros()['Simon Pan 2014-03-21'],
-                               mycatsout_add_untried()['Simon Pan 2014-03-21'],
-                               mycatsout_find_changes()['Simon Pan 2014-03-21'],
-                               mytagrecs()['Simon Pan 2014-03-21'],
-                               mydemoted()['Simon Pan 2014-03-21'],
-                               mypromoted()['Simon Pan 2014-03-21']
+                               10,  # rank
+                               mytagpros()['Simon Pan 2014-03-21'],  # oldcats
+                               mycatsout_add_untried()['Simon Pan 2014-03-21'],  # catsin
+                               mycatsout_find_changes()['Simon Pan 2014-03-21'],  # catsout
+                               mytagrecs()['Simon Pan 2014-03-21'],  # tagrecs
+                               mydemoted()['Simon Pan 2014-03-21'],  # demoted
+                               mypromoted()['Simon Pan 2014-03-21'],  # promoted
+                               mypromotions()['Simon Pan 2014-03-21']  # bbrows
                                )
                               ])
     def test_categorizer_find_cat_changes(self, casename, rank, oldcats, catsin,
-                                          catsout, tagrecs, demoted, promoted):
+                                          catsout, tagrecs, demoted, promoted,
+                                          bbrows):
         """
         Unit test for the paideia.Categorizer._find_cat_changes method.
         """
         now = dt('2013-01-29')
         if casename == 'case9':
             now = dt('2014-03-21')  # date when profile snapshot taken
-        catzr = Categorizer(rank, oldcats, tagrecs, 150, utcnow=now)
+        catzr = Categorizer(rank, oldcats, tagrecs, 109, utcnow=now)
 
-        actual = catzr._find_cat_changes(catsin, oldcats)
+        actual = catzr._find_cat_changes(catsin, oldcats, bbrows)
         expected = {'categories': catsout,
                     'demoted': demoted,
                     'promoted': promoted}
