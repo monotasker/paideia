@@ -59,17 +59,123 @@ def mytagpros():
     tp = {'Simon Pan 2014-03-21': {'latest_new': 10,
                                    'name': 109,
                                    'id': 303,
-                                   'cat1': [128, 129, 2, 131, 4, 133, 6, 135, 9,
+                                   'cat1': [129, 2, 131, 4, 133, 6, 135, 9,
                                            10, 130, 16, 17, 132, 30, 5, 36, 134,
                                            43, 46, 48, 55, 61, 62, 63, 66, 67,
                                            69, 71, 72, 73, 74, 76, 77, 82, 83,
                                            84, 85, 86, 87, 88, 90, 91, 93, 94,
                                            95, 96, 102, 103, 104, 115, 117, 118,
-                                           121, 124],
+                                           121, 124],  # removed 128 to test demotion
+                                   'cat2': [14],  # was [], moved to test promotion
+                                   'cat3': [],  # was [14]
+                                   'cat4': [68, 38, 75, 47, 49, 18, 116, 119,
+                                           120, 89, 122, 92, 29, 128],  # added 128
+                                   'rev1': [],
+                                   'rev3': [],
+                                   'rev2': [],
+                                   'rev4': []},
+          }
+    return tp
+
+
+@pytest.fixture
+def mycatsout_core_algorithm():
+    """A fixture providing mock tag_progress records"""
+    tp = {'Simon Pan 2014-03-21': {'cat1': [1, 2, 5, 6, 9, 10, 16, 17, 24, 30,
+                                            32, 35, 36, 40, 43, 46, 48, 61, 62,
+                                            63, 66, 67, 69, 71, 72, 73, 74, 76,
+                                            77, 82, 83, 84, 85, 86, 87, 88, 90,
+                                            91, 93, 94, 95, 115, 117, 118, 121,
+                                            124, 128, 129, 133],
+                                            # 131, 4, 135, 130, 132, 134, 55,
+                                            # 96, 102, 103, 104 are untried
                                    'cat2': [],
                                    'cat3': [14],
-                                   'cat4': [68, 38, 75, 47, 49, 18, 116, 119,
-                                           120, 89, 122, 92, 29],
+                                   'cat4': [18, 29, 38, 47, 49, 68, 75, 89, 92,
+                                            116, 119, 120, 122],
+                                   'rev1': [],
+                                   'rev3': [],
+                                   'rev2': [],
+                                   'rev4': []},
+          }
+    return tp
+
+
+@pytest.fixture
+def mycatsout_add_untried():
+    """A fixture providing mock tag_progress records"""
+    tp = {'Simon Pan 2014-03-21': {'cat1': [1, 2, 5, 6, 9, 10, 16, 17, 24, 30,
+                                            32, 35, 36, 40, 43, 46, 48, 61, 62,
+                                            63, 66, 67, 69, 71, 72, 73, 74, 76,
+                                            77, 82, 83, 84, 85, 86, 87, 88, 90,
+                                            91, 93, 94, 95, 115, 117, 118, 121,
+                                            124, 128, 129, 133, 4, 55, 96, 102,
+                                            103, 104, 130, 131, 132, 134, 135],
+                                   'cat2': [],
+                                   'cat3': [14],
+                                   'cat4': [18, 29, 38, 47, 49, 68, 75, 89, 92,
+                                            116, 119, 120, 122],
+                                   'rev1': [],
+                                   'rev3': [],
+                                   'rev2': [],
+                                   'rev4': []},
+          }
+    return tp
+
+
+@pytest.fixture
+def mycatsout_find_changes():
+    """A fixture providing mock tag_progress records"""
+    tp = {'Simon Pan 2014-03-21': {'cat1': [1, 2, 5, 6, 9, 10, 16, 17, 24, 30,
+                                            32, 35, 36, 40, 43, 46, 48, 61, 62,
+                                            63, 66, 67, 69, 71, 72, 73, 74, 76,
+                                            77, 82, 83, 84, 85, 86, 87, 88, 90,
+                                            91, 93, 94, 95, 115, 117, 118, 121,
+                                            124, 129, 133, 4, 55, 96, 102,
+                                            103, 104, 130, 131, 132, 134, 135],
+                                   'cat2': [],
+                                   'cat3': [14],
+                                   'cat4': [18, 29, 38, 47, 49, 68, 75, 89, 92,
+                                            116, 119, 120, 122, 128],
+                                   'rev1': [1, 2, 5, 6, 9, 10, 16, 17, 24, 30,
+                                            32, 35, 36, 40, 43, 46, 48, 61, 62,
+                                            63, 66, 67, 69, 71, 72, 73, 74, 76,
+                                            77, 82, 83, 84, 85, 86, 87, 88, 90,
+                                            91, 93, 94, 95, 115, 117, 118, 121,
+                                            124, 128, 129, 133, 4, 55, 96, 102,
+                                            103, 104, 130, 131, 132, 134, 135],
+                                   'rev2': [],
+                                   'rev3': [14],
+                                   'rev4': [18, 29, 38, 47, 49, 68, 75, 89, 92,
+                                            116, 119, 120, 122]},
+          }
+    return tp
+
+
+@pytest.fixture
+def mydemoted():
+    """A fixture providing mock tag_progress records"""
+    tp = {'Simon Pan 2014-03-21': None,
+          }
+    #tp = {'Simon Pan 2014-03-21': {'cat1': [],
+                                   #'cat2': [],
+                                   #'cat3': [],
+                                   #'cat4': [],
+                                   #'rev1': [],
+                                   #'rev3': [],
+                                   #'rev2': [],
+                                   #'rev4': []},
+          #}
+    return tp
+
+
+@pytest.fixture
+def mypromoted():
+    """A fixture providing mock tag_progress records"""
+    tp = {'Simon Pan 2014-03-21': {'cat1': [],
+                                   'cat2': [],
+                                   'cat3': [14],
+                                   'cat4': [],
                                    'rev1': [],
                                    'rev3': [],
                                    'rev2': [],
@@ -4136,7 +4242,13 @@ class TestCategorizer():
                                  'times_right': 20,
                                  'times_wrong': 10,
                                  'secondary_right': []}],
-                               )
+                               ),
+                               ('case9',
+                                10,
+                                mytagpros()['Simon Pan 2014-03-21'],
+                                mycatsout_core_algorithm()['Simon Pan 2014-03-21'],
+                                mytagrecs()['Simon Pan 2014-03-21']
+                                ),
                               ])
     def test_categorizer_core_algorithm(self, casename, rank, catsin, catsout,
                                         tagrecs, db):
@@ -4147,12 +4259,23 @@ class TestCategorizer():
         out in the myrecords fixture.
         """
         now = dt('2013-01-29')
+        if casename == 'case9':
+            now = dt('2014-03-21')
         # 150 is random user id
         catzr = Categorizer(rank, catsin, tagrecs, 150, utcnow=now)
 
         actual = catzr._core_algorithm()
         expected = catsout
-        assert actual == expected
+        for cat, tags in actual.iteritems():
+            print '\n', cat
+            print tags
+            print 'expected:'
+            print expected[cat]
+            print 'diffleft:'
+            print [t for t in tags if t not in expected[cat]]
+            print 'diffright:'
+            print [t for t in expected[cat] if t not in tags]
+            assert tags == expected[cat]
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('casename,rank,catsin,tagrecs,introduced',
@@ -4198,8 +4321,10 @@ class TestCategorizer():
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('casename,rank,catsin,tagrecs,catsout',
-                             [('case1', 1, {'cat1': [1], 'cat2': [],
-                                            'cat3': [], 'cat4': []},
+                             [('case1',
+                               1,
+                               {'cat1': [1], 'cat2': [],
+                                'cat3': [], 'cat4': []},
                                [{'name': 1,
                                  'tag': 1,
                                  'tlast_right': dt('2013-01-29'),
@@ -4209,7 +4334,13 @@ class TestCategorizer():
                                  'secondary_right': None}],
                                {'cat1': [1, 61], 'cat2': [],
                                 'cat3': [], 'cat4': []}
-                               )
+                               ),
+                              ('case9',
+                               10,  # rank
+                               mycatsout_core_algorithm()['Simon Pan 2014-03-21'],  # catsin
+                               mytagrecs_with_secondary()['Simon Pan 2014-03-21'],  # tagrecs
+                               mycatsout_add_untried()['Simon Pan 2014-03-21'],  # catsin
+                               ),
                               ])
     def test_categorizer_add_untried_tags(self,  casename, rank, catsin,
                                           tagrecs, catsout):
@@ -4222,12 +4353,22 @@ class TestCategorizer():
 
         """
         now = dt('2013-01-29')
+        if casename == 'case9':
+            now = dt('2014-03-21')
+        catsin = {k: v for k, v in catsin.iteritems() if k[:3] == 'cat'}
         catzr = Categorizer(rank, catsin, tagrecs, 150, utcnow=now)
 
         actual = catzr._add_untried_tags(catsin)
         expected = catsout
 
         for cat, lst in actual.iteritems():
+            print cat
+            print 'actual:', lst
+            print 'expected:', expected[cat]
+            print 'diffleft:'
+            print [t for t in lst if t not in expected[cat]]
+            print 'diffright:'
+            print [t for t in expected[cat] if t not in lst]
             assert lst == expected[cat]
             assert len(lst) == len(expected[cat])
 
@@ -4267,17 +4408,21 @@ class TestCategorizer():
             assert len(lst) == len(expected[cat])
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('casename,rank,oldcats,catsin,tagrecs,'
+    @pytest.mark.parametrize('casename,rank,oldcats,catsin,catsout,tagrecs,'
                              'demoted,promoted',
                              [('case1',  # no prom or demot
                                1,
-                               {'cat1': [1], 'cat2': [],
+                               {'cat1': [1], 'cat2': [],  # oldcats
                                 'cat3': [], 'cat4': [],
                                 'rev1': [], 'rev2': [],
                                 'rev3': [], 'rev4': []},
-                               {'cat1': [61], 'cat2': [],
+                               {'cat1': [61], 'cat2': [],  # catsin
                                 'cat3': [], 'cat4': [],
                                 'rev1': [], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                               {'cat1': [61], 'cat2': [],  # catsout
+                                'cat3': [], 'cat4': [],
+                                'rev1': [61], 'rev2': [],
                                 'rev3': [], 'rev4': []},
                                [{'name': 1,
                                  'tag': 1,
@@ -4291,13 +4436,17 @@ class TestCategorizer():
                                ),
                               ('case2',  # promote 61 for ratio and time
                                1,
-                               {'cat1': [61], 'cat2': [],
+                               {'cat1': [61], 'cat2': [],  # oldcats
                                 'cat3': [], 'cat4': [],
                                 'rev1': [], 'rev2': [],
                                 'rev3': [], 'rev4': []},
-                               {'cat1': [62], 'cat2': [61],
+                               {'cat1': [62], 'cat2': [61],  # catsin
                                 'cat3': [], 'cat4': [],
                                 'rev1': [], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                               {'cat1': [62], 'cat2': [61],  # catsout
+                                'cat3': [], 'cat4': [],
+                                'rev1': [62], 'rev2': [61],
                                 'rev3': [], 'rev4': []},
                                [{'name': 1,
                                  'tag': 61,
@@ -4309,26 +4458,75 @@ class TestCategorizer():
                                None,
                                {'cat1': [], 'cat2': [61],
                                 'cat3': [], 'cat4': []}
+                               ),
+                              ('case9',
+                               10,
+                               mytagpros()['Simon Pan 2014-03-21'],
+                               mycatsout_add_untried()['Simon Pan 2014-03-21'],
+                               mycatsout_find_changes()['Simon Pan 2014-03-21'],
+                               mytagrecs()['Simon Pan 2014-03-21'],
+                               mydemoted()['Simon Pan 2014-03-21'],
+                               mypromoted()['Simon Pan 2014-03-21']
                                )
                               ])
     def test_categorizer_find_cat_changes(self, casename, rank, oldcats, catsin,
-                                          tagrecs, demoted, promoted):
+                                          catsout, tagrecs, demoted, promoted):
         """
-            Unit test for the paideia.Categorizer._find_cat_changes method.
-
+        Unit test for the paideia.Categorizer._find_cat_changes method.
         """
         now = dt('2013-01-29')
+        if casename == 'case9':
+            now = dt('2014-03-21')  # date when profile snapshot taken
         catzr = Categorizer(rank, oldcats, tagrecs, 150, utcnow=now)
 
         actual = catzr._find_cat_changes(catsin, oldcats)
-        expected = {'categories': catsin,
+        expected = {'categories': catsout,
                     'demoted': demoted,
                     'promoted': promoted}
 
+        # FIXME: also tag progress?
+        print 'categories ================================'
         for cat, lst in actual['categories'].iteritems():
+            print cat
+            print 'actual:', lst
+            print 'expected:', expected['categories'][cat]
+            print 'diffleft:'
+            print [t for t in lst if t not in expected['categories'][cat]]
+            print 'diffright:'
+            print [t for t in expected['categories'][cat] if t not in lst]
             assert lst == expected['categories'][cat]
-        assert actual['demoted'] == expected['demoted']
-        assert actual['promoted'] == expected['promoted']
+
+        print 'demoted ================================'
+        if actual['demoted']:
+            for cat, lst in actual['demoted'].iteritems():
+                print cat
+                print 'actual:'
+                print lst
+                print 'expected:'
+                print expected['demoted'][cat]
+                print 'diffleft:'
+                print [t for t in lst if t not in expected['demoted'][cat]]
+                print 'diffright:'
+                print [t for t in expected['demoted'][cat] if t not in lst]
+                assert lst == expected['demoted'][cat]
+        else:
+            assert actual['demoted'] is None
+
+        print 'promoted ================================'
+        if actual['promoted']:
+            for cat, lst in actual['promoted'].iteritems():
+                print cat
+                print 'actual:'
+                print lst
+                print 'expected:'
+                print expected['promoted'][cat]
+                print 'diffleft:'
+                print [t for t in lst if t not in expected['promoted'][cat]]
+                print 'diffright:'
+                print [t for t in expected['promoted'][cat] if t not in lst]
+                assert lst == expected['promoted'][cat]
+        else:
+            assert actual['promoted'] is None
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('casename,rank,catsin,tagrecsin,'

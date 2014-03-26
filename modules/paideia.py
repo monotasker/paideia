@@ -1929,6 +1929,7 @@ class User(object):
                             utcnow=utcnow)
             cat_result = c.categorize_tags()
             self.rank = cat_result['tag_progress']['latest_new']
+            self.tag_records = cat_result['tag_records']  # FIXME: do changes get recorded?
             self.tag_progress = cat_result['tag_progress']
             self.categories = cat_result['categories']
             self.promoted = cat_result['promoted']
@@ -2031,6 +2032,7 @@ class Categorizer(object):
                   'rev4': [],
                   'latest_new': rank}
             return {'tag_progress': tp,
+                    'tag_records': tag_records,
                     'new_tags': categories['cat1'],
                     'promoted': None,
                     'demoted': None,
@@ -2038,22 +2040,15 @@ class Categorizer(object):
         else:
             # otherwise, categorize tags that have been tried
             tag_records = self._add_secondary_right(tag_records)
+            self.tag_records = tag_records
             categories = self._core_algorithm()
             categories = self._add_untried_tags(categories)
-            print 'after adduntried:'
-            pprint(categories)
             categories = self._remove_dups(categories, rank)
-            print 'after removedups:'
-            pprint(categories)
             categories.update((c, []) for c in ['rev1', 'rev2', 'rev3', 'rev4'])
             cat_changes = self._find_cat_changes(categories, old_categories)
-            print 'after findchanges:'
-            pprint(categories)
             promoted = cat_changes['promoted']
             demoted = cat_changes['demoted']
             tag_progress = copy(cat_changes['categories'])
-            print 'tagprogress:'
-            pprint(tag_progress)
 
             # If there are no tags left in category 1, introduce next set
             if not tag_progress['cat1']:
@@ -2061,13 +2056,12 @@ class Categorizer(object):
                 categories['cat1'] = newlist
                 tag_progress['cat1'] = newlist
                 new_tags = newlist
-            print 'tagprogress after addnew:'
-            pprint(categories)
 
             # Re-insert 'latest new' to match tag_progress table in db
             tag_progress['latest_new'] = self.rank
 
             return {'tag_progress': tag_progress,
+                    'tag_records': self.tag_records,
                     'new_tags': new_tags,
                     'promoted': promoted,
                     'demoted': demoted,
@@ -2127,8 +2121,7 @@ class Categorizer(object):
                     remainder2 = rlen % 3
                     print 'right2 is now:', len(right2)
 
-                if right2 and (isinstance(right2, list)) and (rlen >= 3): # \
-                        #and (remainder2 > 0):
+                if right2 and (isinstance(right2, list)) and (rlen >= 3):
                     rindex = tag_records.index(rec)
                     print 'times right:', rec['times_right']
                     print 'number of 2nd right:', rlen
@@ -2243,6 +2236,7 @@ class Categorizer(object):
 
             # spaced repetition algorithm for promotion to
             # cat2? ======================================================
+            print '\n',
             if ((record['times_right'] >= 20) and  # at least 20 right
                 (((rdur < rwdur)  # delta right < delta right/wrong
                   and (rwdur > datetime.timedelta(days=1))  # not within 1 day
@@ -2255,12 +2249,16 @@ class Categorizer(object):
                  ((self._get_avg(record['tag']) >= 0.8)  # avg score for week >= 0.8
                   and (rdur <= datetime.timedelta(days=30))  # right in past 30 days
                   ))):
+                print record['tag'], 'in cat2 or higher'
                 # cat3? ==================================================
                 if rwdur.days >= 14:
+                    print record['tag'], 'in cat3 or higher'
                     # cat4? ==============================================
                     if rwdur.days > 60:
+                        print record['tag'], 'in cat4'
                         # long-term review? ===================================
                         if rwdur > datetime.timedelta(days=180):
+                            print record['tag'], 'due for long-term review'
                             category = 'cat1'  # Not tried for 6 months
                         else:
                             category = 'cat4'  # Not due, delta > 60 days
@@ -2269,6 +2267,7 @@ class Categorizer(object):
                 else:
                     category = 'cat2'  # Not due but delta is 2 weeks or less
             else:
+                print record['tag'], 'in cat1 or higher'
                 category = 'cat1'  # Spaced repetition requires review
 
             categories[category].append(record['tag'])
@@ -2325,17 +2324,19 @@ class Categorizer(object):
         """
         Determine whether any of the categorized tags are promoted or demoted.
         """
-        print 'findchanges: cats:'
-        pprint(cats)
         if oldcats:
             demoted = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
             promoted = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
-            cnms = ['cat1', 'cat2', 'cat3', 'cat4']
-            for cat, taglist in cats.iteritems():
+            cnms = ['cat4', 'cat3', 'cat2', 'cat1']
+            oldcats = {k: v for k, v in oldcats.iteritems()
+                       if k[:3] == 'cat'}  # facilitates demotion tasks
+            #for cat, taglist in cats.iteritems():
+            for cat in cnms:
+                taglist = cats[cat]
                 if cat in cnms and taglist:
                     revcat = cat.replace('cat', 'rev')
-                    cats[revcat] = taglist
-                    print 'setting ', revcat, 'to', taglist
+                    cats[revcat] = taglist[:]  # copy necessary since demotion only changes one
+                    # FIXME: cat4 removal in cat1 loop erased by cat4 loop
                     idx = cnms.index(cat)
 
                     # was tag in a lower category before?
@@ -2345,19 +2346,24 @@ class Categorizer(object):
                     promoted[cat] = [t for t in cats[cat] if t in was_lower]
 
                     # was tag in a higher category before?
-                    was_higher = chain.from_iterable([oldcats[c] for c
-                                                      in cnms[idx + 1:]
-                                                      if oldcats[c]])
-                    demoted_tags = [t for t in taglist if t in was_higher]
+                    was_higher = list(chain.from_iterable([oldcats[c] for c
+                                                           in cnms[idx + 1:]
+                                                           if oldcats[c]]))
+                    demoted_tags = [t for t in taglist if t in was_higher]  # TODO: redundant?
                     demoted[cat] = demoted_tags
                     for tag in demoted_tags:  # then restore old max in cats
                         oldmax = [k for k, v in oldcats.iteritems()
-                                    if tag in v][0]
-                        cats[cat].pop(tag)
+                                  if v and tag in v][0]
+                        tagindex = cats[cat].index(tag)
+                        print 'tagindex', tagindex
+                        print 'demoted', demoted_tags
+                        cats[cat].pop(tagindex)
+                        print 'list now', cats[cat]
                         cats[oldmax].append(tag)
+                        print 'oldlist now', cats[oldmax]
 
-            print 'findchanges: cats:'
             pprint(cats)
+            print 'ok then!'
 
             return {'categories': cats,
                     'demoted': demoted if any([d for d in demoted.values()])
