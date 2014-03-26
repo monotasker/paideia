@@ -1,3 +1,4 @@
+#! /usr/bin/python
 # -*- coding: utf-8 -*-
 from gluon import current, redirect
 from gluon import IMG, URL, SQLFORM, SPAN, DIV, UL, LI, A, Field, P, HTML

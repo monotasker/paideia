@@ -23,6 +23,7 @@ import re
 from random import randint
 from copy import copy
 from dateutil import parser
+from difflib import Differ
 
 
 # ===================================================================
@@ -3220,7 +3221,7 @@ class TestStep():
           r'<form action="#" enctype="multipart/form-data" method="post"><table>'
           '<tr id="no_table_response__row"><td class="w2p_fl"><label '
           'for="no_table_response" id="no_table_response__label">Response: '
-          '</label></td><td class="w2p_fw"><table class="generic-widget" '
+          '</label></td><td class="w2p_fw"><table class="generic-widget web2py_radiowidget" '
           'id="no_table_response" name="response"><tr><td><input '
           'id="response\xce\xbd\xce\xb1\xce\xb9" name="response" type="radio" '
           'value="\xce\xbd\xce\xb1\xce\xb9" /><label for="response\xce\xbd\xce'
@@ -3286,10 +3287,11 @@ class TestStep():
           '<div>Take some time now to review these new slide '
           'sets. They will help with work on your new badges:\n'
           '<ul class="slide_list">'
-          '<li><a data-w2p_disable_with="default" href="/paideia/'
+          '<li><a href="/paideia/'
           'listing/slides.html/3">The Alphabet II</a></li>'
-          '<li><a data-w2p_disable_with="default" href="/paideia/'
+          '<li><a href="/paideia/'
           'listing/slides.html/8">Greek Words II</a></li></ul></div>',
+          # removed data-w2p_disable_with="default" from <a>
           None,  # instructions
           None,  # slide decks
           None,  # widget image
@@ -3308,6 +3310,13 @@ class TestStep():
         actual = step.get_prompt(loc, npc, 'Homer')
 
         if not isinstance(actual['prompt_text'], str):
+            print 'ACTUAL'
+            print actual['prompt_text']
+            print 'EXPECTED'
+            print promptext
+            print 'DIFF'
+            act = actual['prompt_text'].xml().splitlines(1)
+            pprint(list(Differ().compare(act, promptext.splitlines(1))))
             assert actual['prompt_text'].xml() == promptext
         else:
             assert actual['prompt_text'] == promptext
@@ -3322,6 +3331,13 @@ class TestStep():
         assert actual['bg_image'] == bg_imgs[loc.get_id()]
         assert actual['npc_image']['_src'] == npc_data[npc.get_id()]['image']
         if actual['response_form']:
+            print 'ACTUAL'
+            print actual['response_form']
+            print 'EXPECTED'
+            print rform
+            print 'DIFF'
+            act = actual['response_form'].xml().splitlines(1)
+            pprint(list(Differ().compare(act, rform.splitlines(1))))
             assert re.match(rform, actual['response_form'].xml())
         elif rform:
             pprint(actual['response_form'])
