@@ -142,7 +142,7 @@ else:
         {{pass}}
 
         {{if bugreporter in globals() and bugreporter:}}
-            {{=bmodal}}
+            {{=bugreporter}}
         {{pass}}
     </div>
 {{pass}}
