@@ -394,33 +394,45 @@ class Walk(object):
         """
         """
         now = datetime.datetime.utcnow()
+        tlright = now
+        tlwrong = now
         db = current.db
-        if oldrec:
-            tlwrong = oldrec[0]['tlast_wrong']
-            tlright = oldrec[0]['tlast_right']
-            otright = oldrec[0]['times_right']
-            otwrong = oldrec[0]['times_wrong']
+        newdata = {'tag': tag,
+                   'times_right': tright,
+                   'times_wrong': twrong,
+                   'tlast_right': tlright,
+                   'tlast_wrong': tlwrong}
+        try:
+            olddata = {'tlwrong': oldrec[0]['tlast_wrong'],
+                       'tlright': oldrec[0]['tlast_right'],
+                       'tright': oldrec[0]['times_right'],
+                       'twrong': oldrec[0]['times_wrong']}
+            if got_right:  # seems backward because default is now (above)
+                newdata['tlast_wrong'] == olddata['tlast_wrong']
+            else:
+                newdata['tlast_right'] == olddata['tlast_right']
 
-            for fld in [(tright, otright), (twrong, otwrong)]:
-                try:  # FIXME: 1000 hack for bad data
-                    fld[0] = (fld[0] + fld[1]) if fld[1] <= 1000 else 1000
+            for fld in ['tright', 'twrong']:
+                try:
+                    newdata[fld] += olddata[fld]
                 except TypeError:  # if otright or otwrong are None
                     pass
-            if got_right:
-                tlright = now
-            else:
-                tlwrong = now
-        else:  # if no record, set both to now as initial baseline
-            tlwrong = now
-            tlright = now
+
+            #  FIXME: temporary fix for bad tright/twrong data
+            logs = db((db.attempt_log.name == user_id) &
+                      (db.attempt_log.tag == tag)).select().as_list()
+            rightlogs = len([l for l in logs if l['score'] - 1 <= 0.001])
+            wronglogs = len([l for l in logs if l['score'] - 1 > 0.001])
+            if rightlogs != newdata['times_right']:
+                newdata['times_right'] = rightlogs
+            if wronglogs != newdata['times_wrong']:
+                newdata['times_wrong'] = wronglogs
+            # FIXME: temporary fix ends here
+        except KeyError:  # because no oldrec
+            pass
 
         condition = {'tag': tag, 'name': user_id}
-        tagrec = db.tag_records.update_or_insert(condition,
-                                                 tag=tag,
-                                                 times_right=tright,
-                                                 times_wrong=twrong,
-                                                 tlast_right=tlright,
-                                                 tlast_wrong=tlwrong)
+        tagrec = db.tag_records.update_or_insert(condition, **newdata)
         return tagrec
 
     def _record_step(self, user_id, step_id, path_id, score, raw_tright,
@@ -454,12 +466,12 @@ class Walk(object):
             oldrec = [r for r in old_trecs
                       if r['tag'] == t] if old_trecs else None
             self._update_tag_record(t, oldrec, user_id, raw_tright, raw_twrong,
-                                    got_right)
+                                    got_right, score)
         if got_right and ('secondary' in taglist.keys()):
             for t in taglist['secondary']:
                 oldrec = [r for r in old_trecs
                         if r['tag'] == t] if old_trecs else None
-                self._update_tag_secondary(t, oldrec, user_id)
+                self._update_tag_secondary(t, oldrec, user_id, score)
 
         log_args = {'name': user_id,
                     'step': step_id,
@@ -1926,6 +1938,7 @@ class User(object):
                 categories = None
             self.old_categories = copy(categories)
 
+            print 'user.get_cat: calling Categorizer'
             c = Categorizer(rank, categories, tag_records, user_id,
                             utcnow=utcnow)
             cat_result = c.categorize_tags()
