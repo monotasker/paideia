@@ -6,18 +6,19 @@ from gluon import I
 from gluon import IS_NOT_EMPTY, IS_IN_SET
 
 from inspect import getargvalues, stack
+import traceback
 from copy import copy
 from itertools import chain
 from random import randint, randrange
 import re
 import datetime
 from dateutil import parser
-import traceback
 from pytz import timezone
-from plugin_widgets import MODAL
 import pickle
-from pprint import pprint
+from plugin_utils import flatten
+from plugin_widgets import MODAL
 #from paideia_utils import send_error
+from pprint import pprint
 
 # TODO: move these notes elsewhere
 """
@@ -390,49 +391,69 @@ class Walk(object):
         return tagrec
 
     def _update_tag_record(self, tag, oldrec, user_id, tright, twrong,
-                           got_right):
+                           got_right, now=None):
         """
         """
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.utcnow() if not now else now
         tlright = now
         tlwrong = now
         db = current.db
-        newdata = {'tag': tag,
+        newdata = {'name': user_id,
+                   'tag': tag,
                    'times_right': tright,
                    'times_wrong': twrong,
                    'tlast_right': tlright,
                    'tlast_wrong': tlwrong}
         try:
-            olddata = {'tlwrong': oldrec[0]['tlast_wrong'],
-                       'tlright': oldrec[0]['tlast_right'],
-                       'tright': oldrec[0]['times_right'],
-                       'twrong': oldrec[0]['times_wrong']}
+            olddata = {'tlwrong': oldrec['tlast_wrong'],
+                       'tlright': oldrec['tlast_right'],
+                       'tright': oldrec['times_right'],
+                       'twrong': oldrec['times_wrong']}
             if got_right:  # seems backward because default is now (above)
-                newdata['tlast_wrong'] == olddata['tlast_wrong']
+                newdata['tlast_wrong'] = olddata['tlwrong']
             else:
-                newdata['tlast_right'] == olddata['tlast_right']
+                newdata['tlast_right'] = olddata['tlright']
 
-            for fld in ['tright', 'twrong']:
+            for fld in ['right', 'wrong']:
                 try:
-                    newdata[fld] += olddata[fld]
+                    newdata['times_{}'.format(fld)] += olddata['t{}'.format(fld)]
                 except TypeError:  # if otright or otwrong are None
                     pass
 
             #  FIXME: temporary fix for bad tright/twrong data
+            tagsteps = [s['id'] for s
+                        in db(db.steps.tags.contains(tag)).select().as_list()]
             logs = db((db.attempt_log.name == user_id) &
-                      (db.attempt_log.tag == tag)).select().as_list()
-            rightlogs = len([l for l in logs if l['score'] - 1 <= 0.001])
-            wronglogs = len([l for l in logs if l['score'] - 1 > 0.001])
+                      (db.attempt_log.step.belongs(tagsteps))).select().as_list()
+            print 'found logs:', len(logs)
+            rightlogs = [l for l in logs if abs(l['score'] - 1) <= 0.001]
+            maxright = max([l['dt_attempted'] for l in rightlogs])
+            print 'rightlogs', len(rightlogs)
+            wronglogs = [l for l in logs if abs(l['score'] - 1) > 0.001]
+            maxwrong = max([l['dt_attempted'] for l in wronglogs])
             if rightlogs != newdata['times_right']:
-                newdata['times_right'] = rightlogs
+                newdata['times_right'] = len(rightlogs) + tright
             if wronglogs != newdata['times_wrong']:
-                newdata['times_wrong'] = wronglogs
-            # FIXME: temporary fix ends here
+                newdata['times_wrong'] = len(wronglogs) + twrong
+            newdata['tlast_right'] == maxright
+            newdata['tlast_wrong'] == maxwrong
+            # FIXME: fix datetimes as well
+            # temporary fix ends here
         except KeyError:  # because no oldrec
+            print traceback.format_exc(5)
             pass
 
-        condition = {'tag': tag, 'name': user_id}
-        tagrec = db.tag_records.update_or_insert(condition, **newdata)
+        print 'tag', tag
+        print 'user', user_id
+        print 'newdata'
+        pprint(newdata)
+        db.tag_records.update_or_insert((db.tag_records.tag == tag) &
+                                        (db.tag_records.name == user_id),
+                                        **newdata)
+        tagrec = db.tag_records((db.tag_records.tag == tag) &
+                                (db.tag_records.name == user_id)).id
+        print 'tagrec',
+        print tagrec
         return tagrec
 
     def _record_step(self, user_id, step_id, path_id, score, raw_tright,
@@ -1990,7 +2011,7 @@ class Categorizer(object):
         self.rank = rank
         self.tag_records = tag_records
         self.old_categories = categories
-        self.utcnow = utcnow
+        self.utcnow = utcnow if utcnow else datetime.datetime.utcnow()
         self.secondary_right = secondary_right
 
     def _sanitize_recs(self, tag_records):
@@ -2031,20 +2052,13 @@ class Categorizer(object):
         # if user has not tried any tags yet, start first set
         print 'len(tag_records):', len(tag_records)
         if len(tag_records) == 0:
-            categories = {'cat1': [],
-                          'cat2': [],
-                          'cat3': [],
-                          'cat4': []
-                          }
-            categories['cat1'] = self._introduce_tags()
-            tp = {'cat1': categories['cat1'],
-                  'rev1': [],
-                  'cat2': [],
-                  'rev2': [],
-                  'cat3': [],
-                  'rev3': [],
-                  'cat4': [],
-                  'rev4': [],
+            print 'setting up empty cats'
+            categories = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
+            categories['cat1'] = self._introduce_tags(rank=0)
+            tp = {'cat1': categories['cat1'], 'rev1': categories['cat1'],
+                  'cat2': [], 'rev2': [],
+                  'cat3': [], 'rev3': [],
+                  'cat4': [], 'rev4': [],
                   'latest_new': rank}
             return {'tag_progress': tp,
                     'tag_records': tag_records,
@@ -2054,23 +2068,32 @@ class Categorizer(object):
                     'categories': categories}
         else:
             # otherwise, categorize tags that have been tried
-            tag_records = self._add_secondary_right(tag_records)
+            for idx, t in enumerate([t for t in tag_records
+                                     if tag_records and t['secondary_right']]):
+                tag_records[idx] = self._add_secondary_right(t)
             self.tag_records = tag_records
             categories = self._core_algorithm()
             categories = self._add_untried_tags(categories)
             categories = self._remove_dups(categories, rank)
             categories.update((c, []) for c in ['rev1', 'rev2', 'rev3', 'rev4'])
+            print 'cats before find_cat_changes'
+            print categories
             cat_changes = self._find_cat_changes(categories, old_categories)
+            print 'cats after find_cat_changes'
+            print cat_changes['categories']
             promoted = cat_changes['promoted']
             demoted = cat_changes['demoted']
+            new_tags = cat_changes['new_tags']
             tag_progress = copy(cat_changes['categories'])
 
             # If there are no tags left in category 1, introduce next set
             if not tag_progress['cat1']:
                 newlist = self._introduce_tags()
-                categories['cat1'] = newlist
-                tag_progress['cat1'] = newlist
-                new_tags = newlist
+                print 'newlist is=================================='
+                print newlist
+                categories['cat1'] = categories['rev1'] = newlist
+                tag_progress['cat1'] = tag_progress['rev1'] = newlist
+                new_tags = newlist if not new_tags else new_tags.extend(newlist)
 
             # Re-insert 'latest new' to match tag_progress table in db
             tag_progress['latest_new'] = self.rank
@@ -2094,7 +2117,7 @@ class Categorizer(object):
                 categories[k] = list(set(rankv))
         return categories
 
-    def _add_secondary_right(self, tag_records):
+    def _add_secondary_right(self, rec):
         """
         Finds tag records with secondary attempts and adjusts records.
 
@@ -2102,85 +2125,47 @@ class Categorizer(object):
         tlast_right based on the average of those three attempt dates.
         """
         db = current.db
-        try:
-            for rec in tag_records:
-                right2 = rec['secondary_right']
-                print '\nfor tag:', rec['tag']
+        rec = rec[0] if isinstance(rec, list) else rec
+        print 'add secondary: rec is'
+        pprint(rec)
+        right2 = flatten(rec['secondary_right'])  # FIXME: sanitizing data
+        for t in right2:
+            try:
+                right2[right2.index(t)] = parser.parse(t)
+            except TypeError:
+                pass
+        if right2 != rec['secondary_right']:  # FIXME: can remove when data clean
+            right2.sort()
+            db.tag_records[rec['id']].update(secondary_right=right2)
 
-                # FIXME: sanitizing data where tuples stored instead of
-                # datetimes strings also have to be parsed into datetime objects
-                if right2:
-                    print 'right2 is:', right2
-                    for t in right2:
-                        if isinstance(t, list):
-                            vals = right2.pop(right2.index(t))
-                            right2.extend(vals)
-                        else:
-                            pass
-                    for t in right2:
-                        if isinstance(t, tuple):
-                            try:
-                                right2[right2.index(t)] = parser.parse(t[1])
-                            except TypeError:
-                                right2.append(parser.parse(t[1]))
-                        else:
-                            pass
-                    for t in right2:
-                        if not isinstance(t, datetime.datetime):
-                            right2[right2.index(t)] = parser.parse(t)
+        rlen = len(right2)
+        rem2 = rlen % 3
 
-                    if right2 != rec['secondary_right']:
-                        right2.sort()
-                        db.tag_records[rec['id']].update(secondary_right=right2)
-                    rlen = len(right2)
-                    remainder2 = rlen % 3
-                    print 'right2 is now:', len(right2)
+        if rlen >= 3:
+            # increment times_right by 1 per 3 secondary_right
+            triplets2 = rlen / 3
+            if not rec['times_right']:
+                rec['times_right'] = 0
+            rec['times_right'] += triplets2
 
-                if right2 and (isinstance(right2, list)) and (rlen >= 3):
-                    rindex = tag_records.index(rec)
-                    print 'times right:', rec['times_right']
-                    print 'number of 2nd right:', rlen
-                    # increment times_right by 1 per 3 secondary_right
-                    triplets2 = rlen / 3
-                    print 'adding increment:', triplets2
-                    if not rec['times_right']:
-                        rec['times_right'] = 0
-                    rec['times_right'] += triplets2
-                    print 'new times right:', rec['times_right']
+            # move tlast_right forward based on mean of oldest 3 secondary_right
+            early3 = right2[: -(rem2)] if rem2 else right2[:]
+            early3d = [self.utcnow - s for s in early3]
+            avg_delta = sum(early3d, datetime.timedelta(0)) / len(early3d)
+            avg_date = self.utcnow - avg_delta
 
-                    # move tlast_right forward based on mean of oldest 3 secondary_right
-                    now = self.utcnow
-                    print 'right2 is still:', len(right2)
-                    if remainder2:
-                        print 'remainder2 is:', remainder2
-                        early3 = right2[: -(remainder2)]
-                        print 'early3 sliced:', early3
-                    else:
-                        early3 = right2[:]
-                        print 'early3 copied:', early3
-                    early3d = [now - s for s in early3]
-                    print 'early3d:', early3d
-                    avg_delta = sum(early3d, datetime.timedelta(0)) / len(early3d)
-                    avg_date = now - avg_delta
-                    # sanitize tlast_right in case db value is string
-                    tlr = rec['tlast_right'] \
-                        if isinstance(rec['tlast_right'], datetime.datetime) \
-                        else parser.parse(rec['tlast_right'])
-                    if avg_date > tlr:  #
-                        rec['tlast_right'] = avg_date
+            # sanitize tlast_right in case db value is string
+            if not isinstance(rec['tlast_right'], datetime.datetime):
+                rec['tlast_right'] = parser.parse(rec['tlast_right'])
 
-                    # remove counted entries from secondary_right, leave remainder
-                    if remainder2:
-                        rec['secondary_right'] = right2[-(remainder2):]
-                    else:
-                        rec['secondary_right'] = []
-                    tag_records[rindex] = rec
-                else:
-                    continue
-        except Exception:
-            print traceback.format_exc(5)
+            # move tlast_right forward to reflect recent secondary success
+            if avg_date > rec['tlast_right']:
+                rec['tlast_right'] = avg_date
 
-        return tag_records
+            rec['secondary_right'] = right2[-(rem2):] if rem2 else []
+        else:
+            pass
+        return rec
 
     def _get_avg(self, tag, mydays=7):
         """
@@ -2297,16 +2282,21 @@ class Categorizer(object):
         categorize_tags
         """
         db = current.db if not db else db
-        rank = self.rank if not rank else rank
+        print 'introduce tages: rank is', rank
+        rank = self.rank if rank is None else rank
 
+        print 'introduce tages: rank is', rank
         if rank in (None, 0):
-            rank == 1
+            rank = 1
         else:
             rank += 1
         self.rank = rank
+        print 'introduce tages: rank is', rank
 
         newtags = [t['id'] for t in
                    db(db.tags.tag_position == rank).select().as_list()]
+        print 'in introduce tags: newtags is'
+        print newtags
 
         return newtags
 
@@ -2329,57 +2319,71 @@ class Categorizer(object):
             categories['cat1'].extend(left_out)
         else:
             pass
-            #print 'add_untried_tags: no untried tags to add'
 
         #print 'add_untried_tags: level 1 cats are now', categories['cat1']
 
         return categories
 
+    def _fix_oldcats(self, oldcats, uid, bbrows=None):
+        """
+        Return categories with max levels fixed based on badges_begun rows.
+        """
+        db = self.db
+        cnms = ['cat1', 'cat2', 'cat3', 'cat4']
+        bbrows = bbrows if bbrows else db(db.badges_begun.name == uid
+                                          ).select().as_list()
+        bmax = {}
+        for b in bbrows:
+            mymax = len([k for k, v in b.iteritems() if k in cnms and v])
+            bmax[b['tag']] = mymax
+        print 'max ranks'
+        pprint(bmax)
+        for c, l in oldcats.iteritems():
+            try:
+                for tag in l:
+                    if c in cnms and \
+                            l in bmax.keys() and \
+                            c[-1] != bmax[tag]:
+                        oldcats[c].pop(l.index(tag))
+                        oldcats['cat'.format(bmax[tag])].append(tag)
+            except TypeError:  # because no list for that cat in oldcats
+                pass
+        return oldcats
+
     def _find_cat_changes(self, cats, oldcats, bbrows=None, uid=None):
         """
         Determine whether any of the categorized tags are promoted or demoted.
         """
-        db = self.db
         uid = self.user_id if not uid else uid
         if oldcats:
             demoted = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
             promoted = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
             oldcats = {k: v for k, v in oldcats.iteritems()
                        if k[:3] == 'cat'}  # facilitates demotion tasks
+            new_tags = []
             cnms = ['cat1', 'cat2', 'cat3', 'cat4']
+            # TODO: cleaning up bad data; deprecate after finished
+            oldcats = self._fix_oldcats(oldcats, uid, bbrows=bbrows)
+            print 'find cat changes: after fix oldcats, oldcats are'
+            pprint(oldcats)
 
-            # Following fixes oldcats (max levels) based on badges_begun rows
-            bbrows = bbrows if bbrows else db(db.badges_begun.name == uid
-                                              ).select().as_list()
-            bmax = {}
-            for b in bbrows:
-                mymax = len([k for k, v in b.iteritems() if k in cnms and v])
-                bmax[b['tag']] = mymax
-            print 'max ranks'
-            pprint(bmax)
-            for c, l in oldcats.iteritems():
-                try:
-                    for tag in l:
-                        if c in cnms and \
-                                l in bmax.keys() and \
-                                c[-1] != bmax[tag]:
-                            oldcats[c].pop(l.index(tag))
-                            oldcats['cat'.format(bmax[tag])].append(tag)
-                except TypeError:  # because no list for that cat in oldcats
-                    continue
-
-            #for cat, taglist in cats.iteritems():
             for cat, taglist in cats.iteritems():
+                print 'for cat:', cat
                 revcat = cat.replace('cat', 'rev')
-                cats[revcat] = taglist[:]  # copy necessary since demotion only changes one
+                cats[revcat] = taglist[:]  # copy bc demotion only changes one
                 if taglist and cat in cnms:
-                    idx = cnms.index(cat)
+                    # Is tag completely new to this user?
+                    all_old_tags = list(chain.from_iterable(oldcats.values()))
+                    new_tags.extend([t for t in taglist if t not in all_old_tags])
 
                     # was tag in a lower category before?
-                    was_lower = chain.from_iterable([oldcats[c] for c
+                    idx = cnms.index(cat)
+                    was_lower = list(chain.from_iterable([oldcats[c] for c
                                                           in cnms[:idx]
-                                                          if oldcats[c]])
+                                                          if oldcats[c]]))
+                    print 'was_lower', was_lower
                     promoted[cat] = [t for t in cats[cat] if t in was_lower]
+                    print 'promoted', promoted
 
                     # was tag in a higher category before?
                     was_higher = list(chain.from_iterable([oldcats[c] for c
@@ -2407,11 +2411,15 @@ class Categorizer(object):
                     'demoted': demoted if any([d for d in demoted.values()])
                                else None,
                     'promoted': promoted if any([p for p in promoted.values()])
-                               else None}
+                               else None,
+                    'new_tags': new_tags}
         else:
+            cats['rev1'] = cats['cat1'][:]
+            new_tags = cats['cat1'][:]
             return {'categories': cats,
                     'demoted': None,
-                    'promoted': None}
+                    'promoted': None,
+                    'new_tags': new_tags}
 
     def _clean_tag_records(record_list=None, db=None):
         """

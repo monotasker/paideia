@@ -48,6 +48,32 @@ global_run_TestBugReporter = False
 # ===================================================================
 
 
+def log_generator(uid, tag, count, numright, lastright, lastwrong, earliest,
+                  db):
+    """Generate attempt_log mock entries in the database for a test user."""
+    datalist = []
+    tagsteps = db(db.steps.tags.contains(tag)).select(db.steps.id).as_list()
+    stepids = [t['id'] for t in tagsteps]
+    steppaths = db(db.paths.steps.contains(stepids)
+                   ).select(db.paths.id, db.paths.steps).as_list()
+    pathids = {s: p['id'] for s in stepids for p in steppaths if s in p['steps']}
+    for n in range(count):
+        mystep = stepids[randint(0, len(stepids) - 1)]
+        score = 1.0 if n < numright else 0.0
+        latest = lastright if (abs(score - 1) <= 0.001) else lastwrong
+        mydt = earliest + datetime.timedelta(
+                seconds=randint(0, int((latest - earliest).total_seconds())))
+        rowdict = {'name': uid,
+                   'step': mystep,
+                   'in_path': pathids[mystep],
+                   'score': score,
+                   'dt_attempted': mydt,
+                   'user_response': 'norwiegian blue'}
+        datalist.append(rowdict)
+    loglist = db.attempt_log.bulk_insert(datalist)
+    return loglist
+
+
 def dt(string):
     """Return datetime object parsed from the string argument supplied"""
     format = "%Y-%m-%d"
@@ -3991,7 +4017,7 @@ class TestUser(object):
           {'latest_new': 1,  # tpout
            'cat1': [61], 'cat2': [],  # FIXME: this is wrong
            'cat3': [], 'cat4': [],
-           'rev1': [], 'rev2': [],
+           'rev1': [61], 'rev2': [],
            'rev3': [], 'rev4': []},
           [{'name': 1,  # trecs
             'tag': 1,
@@ -3999,10 +4025,10 @@ class TestUser(object):
             'tlast_wrong': dt('2013-01-29'),
             'times_right': 1,
             'times_wrong': 1,
-            'secondary_right': None}],
-          4,
-          None,
-          [61]
+            'secondary_right': []}],
+          4,  # counter
+          None,  # promoted
+          [61]  # new tags
           ),
          ({'latest_new': 1,  # tpin =========================================
            'cat1': [1], 'cat2': [],
@@ -4021,10 +4047,10 @@ class TestUser(object):
             'tlast_wrong': dt('2013-01-29'),
             'times_right': 1,
             'times_wrong': 1,
-            'secondary_right': None}],
-          3,
-          None,
-          None
+            'secondary_right': []}],
+          3,  # counter
+          None,  # promoted
+          None  # new tags
           )
          ])
     def test_user_get_categories(self, tpin, rankout, tpout, trecs, counter,
@@ -4034,17 +4060,25 @@ class TestUser(object):
         """
         user = User(user_login, trecs, tpin)
         user.cats_counter = counter
+        # set up tag records for user
         try:
             db.tag_progress(db.tag_progress.name == user_login['id']).id
         except AttributeError:
             db.tag_progress.insert(name=user_login['id'])
+
+        # set up tag records for user
+        db(db.tag_records.name == user_login['id']).delete()
+        for tr in trecs:
+            tr['name'] = user_login['id']
+            db.tag_records.insert(**tr)
+        print 'tagrecs in test'
+        pprint(db(db.tag_records.name == user_login['id']).select().as_list())
+
         # set these to allow for retrieval if counter < 5
         user.tag_progress = tpin
         user.categories = {c: l for c, l in tpin.iteritems() if c[:3] == 'cat'}
         apromoted, anew_tags = user.get_categories()
 
-        print 'user.cats_counter'
-        print user.cats_counter
         print 'user.tag_progress'
         pprint(user.tag_progress)
         print 'user.categories'
@@ -4059,7 +4093,14 @@ class TestUser(object):
         assert user.rank == tpout['latest_new']
         assert apromoted == user.promoted == promoted
         assert anew_tags == user.new_tags == newtags
-        assert user.tag_records == trecs
+        print 'user.tag_records =========================================='
+        pprint(user.tag_records)
+        for idx, tr in enumerate(user.tag_records):
+            for field, content in tr.iteritems():
+                print field
+                print content
+                if field not in ['id', 'step', 'in_path']:
+                    assert content == trecs[idx][field]
 
     #@pytest.mark.skipif(False, reason='just because')
     #def test_user_get_old_categories(self, myuser):
@@ -4141,9 +4182,9 @@ class TestCategorizer():
                                  'secondary_right': None}]
                                ),
                               ('case9', 10,
-                               mytagpros()['Simon Pan 2014-03-21'],
-                               mytagrecs()['Simon Pan 2014-03-21'],
-                               mytagrecs_with_secondary()['Simon Pan 2014-03-21'])
+                               mytagpros()['Simon Pan 2014-03-21'],  # catsin
+                               mytagrecs()['Simon Pan 2014-03-21'],  # tagrecsin
+                               mytagrecs_with_secondary()['Simon Pan 2014-03-21'])  # tagrecsout
                               ])
     def test_categorizer_add_secondary_right(self, casename, rank, catsin,
                                              tagrecsin, tagrecsout, mytagpros,
@@ -4153,8 +4194,17 @@ class TestCategorizer():
         # 150 is random user id
         catzr = Categorizer(rank, catsin, tagrecsin, 150, utcnow=now)
 
-        actual = catzr._add_secondary_right(tagrecsin)
+        for idx, t in enumerate(tagrecsin):
+            if t['secondary_right']:
+                tagrecsin[idx] = catzr._add_secondary_right(t)
+            else:
+                pass
+        actual = tagrecsin  # now that it has been run through the method
+        print 'tagrecsin are', [t['tag'] for t in actual]
+        pprint([t for t in actual if t['tag'] == 5])
         expected = tagrecsout
+        print 'expected are', [t['tag'] for t in expected]
+        pprint([t for t in actual if t['tag'] == 5])
 
         for idx, a in enumerate(actual):
             e = expected[idx]
@@ -4423,9 +4473,9 @@ class TestCategorizer():
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('casename,rank,oldcats,catsin,catsout,tagrecs,'
-                             'demoted,promoted,bbrows',
+                             'demoted,promoted,bbrows,newtags',
                              [('case1',  # no prom or demot
-                               1,
+                               1,  # rank
                                {'cat1': [1], 'cat2': [],  # oldcats
                                 'cat3': [], 'cat4': [],
                                 'rev1': [], 'rev2': [],
@@ -4445,9 +4495,10 @@ class TestCategorizer():
                                  'times_right': 1,
                                  'times_wrong': 1,
                                  'secondary_right': None}],
-                               None,
-                               None,
-                               None
+                               None,  # demoted
+                               None,  # promoted
+                               None,  # bbrows
+                               [61]  # new tags
                                ),
                               ('case2',  # promote 61 for ratio and time
                                1,
@@ -4470,10 +4521,11 @@ class TestCategorizer():
                                  'times_right': 10,
                                  'times_wrong': 2,
                                  'secondary_right': []}],
-                               None,
-                               {'cat1': [], 'cat2': [61],
+                               None,  # demoted
+                               {'cat1': [], 'cat2': [61],  # promoted
                                 'cat3': [], 'cat4': []},
-                               None
+                               None,  # bbrows
+                               [62],  # new tags
                                ),
                               ('case9',
                                10,  # rank
@@ -4483,12 +4535,13 @@ class TestCategorizer():
                                mytagrecs()['Simon Pan 2014-03-21'],  # tagrecs
                                mydemoted()['Simon Pan 2014-03-21'],  # demoted
                                mypromoted()['Simon Pan 2014-03-21'],  # promoted
-                               mypromotions()['Simon Pan 2014-03-21']  # bbrows
+                               mypromotions()['Simon Pan 2014-03-21'],  # bbrows
+                               [1, 24, 32, 35, 40]  # new tags
                                )
                               ])
     def test_categorizer_find_cat_changes(self, casename, rank, oldcats, catsin,
                                           catsout, tagrecs, demoted, promoted,
-                                          bbrows):
+                                          bbrows, newtags):
         """
         Unit test for the paideia.Categorizer._find_cat_changes method.
         """
@@ -4546,62 +4599,66 @@ class TestCategorizer():
         else:
             assert actual['promoted'] is None
 
+        print 'new tags ====================================='
+        print newtags
+        assert actual['new_tags'] == newtags
+
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('casename,rank,catsin,tagrecsin,'
                              'rankout,catsout,tpout,'
                              'promoted,newtags',
-                             [('case1',
-                               1,
-                               {'cat1': [1], 'cat2': [],
+                             [('case1',  # casename
+                               1,  # rank
+                               {'cat1': [1], 'cat2': [],  # catsin
                                 'cat3': [], 'cat4': [],
                                 'rev1': [], 'rev2': [],
                                 'rev3': [], 'rev4': []},
-                               [{'name': 1,
+                               [{'name': 1,  # tagrecs in
                                  'tag': 1,
                                  'tlast_right': dt('2013-01-29'),
                                  'tlast_wrong': dt('2013-01-29'),
                                  'times_right': 1,
                                  'times_wrong': 1,
                                  'secondary_right': None}],
-                               1,  # case1 out
-                               {'cat1': [61], 'cat2': [],
+                               1,  # rank out
+                               {'cat1': [61], 'cat2': [],  # catsout
                                 'cat3': [], 'cat4': [],
                                 'rev1': [61], 'rev2': [],
                                 'rev3': [], 'rev4': []},
-                               {'latest_new': 1,
+                               {'latest_new': 1,  # tag progress out
                                 'cat1': [61], 'cat2': [],
                                 'cat3': [], 'cat4': [],
                                 'rev1': [61], 'rev2': [],
                                 'rev3': [], 'rev4': []},
                                None,
-                               None
+                               [61]
                                ),
                               ('case2',  # promote 61, introduce 62
-                               1,
-                               {'cat1': [61], 'cat2': [],
+                               1,  # rank in
+                               {'cat1': [61], 'cat2': [],  # cats in
                                 'cat3': [], 'cat4': [],
                                 'rev1': [61], 'rev2': [],
                                 'rev3': [], 'rev4': []},
-                               [{'name': 1,
+                               [{'name': 1,  # tagrecs in
                                  'tag': 61,
                                  'tlast_right': dt('2013-01-28'),
                                  'tlast_wrong': dt('2013-01-27'),
                                  'times_right': 20,
                                  'times_wrong': 1,
                                  'secondary_right': []}],
-                               2,
-                               {'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                               2,  # rank out
+                               {'cat1': [6, 29, 62, 82, 83], 'cat2': [61],  # cats out
                                 'cat3': [], 'cat4': [],
-                                'rev1': [], 'rev2': [61],
+                                'rev1': [6, 29, 62, 82, 83], 'rev2': [61],
                                 'rev3': [], 'rev4': []},
-                               {'latest_new': 2,
+                               {'latest_new': 2,  # tag progress out
                                 'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
                                 'cat3': [], 'cat4': [],
-                                'rev1': [], 'rev2': [61],
+                                'rev1': [6, 29, 62, 82, 83], 'rev2': [61],
                                 'rev3': [], 'rev4': []},
-                               {'cat1': [], 'cat2': [61],
+                               {'cat1': [], 'cat2': [61],  # promoted
                                 'cat3': [], 'cat4': []},
-                               [6, 29, 62, 82, 83]
+                               [6, 29, 62, 82, 83]  # new tags
                                )
                               ])
     def test_categorizer_categorize_tags(self, casename, rank, catsin,
@@ -4622,22 +4679,23 @@ class TestCategorizer():
                     't_prog': tpout,
                     'nt': newtags,
                     'pro': promoted}
+        print 'test categorizer categorize_tags: actual is'
         pprint(actual)
 
         for key, act in actual['categories'].iteritems():
             print key
-            assert act == expected['cats'][key]
+            assert act == catsout[key]
 
         for key, act in actual['tag_progress'].iteritems():
-            assert act == expected['t_prog'][key]
+            assert act == tpout[key]
 
         assert actual['new_tags'] == expected['nt']
         if actual['new_tags']:
-            assert actual['tag_progress']['cat1'] == expected['nt']
+            assert actual['tag_progress']['cat1'] == newtags
 
         if actual['promoted']:
             for key, act in actual['promoted'].iteritems():
-                assert actual['promoted'][key] == expected['pro'][key]
+                assert actual['promoted'][key] == promoted[key]
 
 
 @pytest.mark.skipif('not global_runall '
@@ -5133,38 +5191,45 @@ class TestWalk():
             pass
         # TODO: make sure data is removed from db after test
 
-    @pytest.mark.parametrize('tag,oldrecs,firstname,user_id,tright,twrong,'
+    @pytest.mark.parametrize('tag,oldrecs,firstname,tright,twrong,'
                              'got_right,tpout',
                              [(1,  # tag
                                mytagrecs()['Simon Pan 2014-03-21'],  # tag recs
                                'Simon',  # firstname
-                               109,  # user id
                                1,  # times right
                                0,  # times wrong
                                True,  # got right
                                mytagpros()['Simon Pan 2014-03-21'],  # tpout
                                )
                               ])
-    def test_walk_update_tag_record(self, tag, oldrecs, firstname, user_id,
-                                    tright, twrong, got_right, tpout, db):
+    def test_walk_update_tag_record(self, tag, oldrecs, firstname, tright,
+                                    twrong, got_right, tpout, user_login, db):
         """
+        Simulates inaccurate tag_records data for times_right and times_wrong.
+        Should be corrected automatically by method, drawing on raw logs.
         """
         now = datetime.datetime(2014, 3, 24, 0, 0, 0)
         oldrec = [o for o in oldrecs if o['tag'] == tag][0]
-        logs = db((db.attempt_log.name == user_id) &
-                  (db.attempt_log.tag == tag)).select().as_list()
-        rightlogs = len([l for l in logs if l['score'] - 1 <= 0.001])
-        wronglogs = len([l for l in logs if l['score'] - 1 > 0.001])
 
-        userdata = {'first_name': firstname, 'id': user_id,
-                    'time_zone': 'America/Toronto'}
-        walk = Walk(userdata=userdata,
+        log_generator(user_login['id'],
+                      tag,
+                      20,  # total log count
+                      11,  # number right,
+                      now,  # last right
+                      now - datetime.timedelta(days=3),  # last wrong
+                      datetime.datetime(2013, 9, 1, 0, 0, 0),  # earliest attempt
+                      db)
+        rightlogs = 11
+        wronglogs = 9
+
+        walk = Walk(userdata=user_login,
                     tag_records=oldrecs,
                     tag_progress=tpout,
                     db=db)
-        arec = walk._update_tag_record(self, tag, oldrec, user_id, tright,
-                                       twrong, got_right)
+        arec = walk._update_tag_record(tag, oldrec, user_login['id'], tright,
+                                       twrong, got_right, now=now)
         arec_row = db.tag_records(arec)
+
         assert arec_row
         assert arec_row['times_right'] == rightlogs + tright
         assert arec_row['times_wrong'] == wronglogs + twrong
@@ -5175,57 +5240,70 @@ class TestWalk():
             assert arec_row['tlast_wrong'] == now
             assert arec_row['tlast_right'] == oldrec['tlast_right']
 
-        # teardown in db
-        deleted = db(db.tag_records.id == arec).delete()
-        assert deleted == arec
+        # teardown after injecting test data for user into db
+        db(db.tag_records.id == arec).delete()
+        assert db(db.tag_records.id == arec).count() == 0
+        db(db.attempt_log.name == user_login['id']).delete()
+        assert db(db.attempt_log.name == user_login['id']).count() == 0
 
-    def test_walk_record_step(self, mywalk, db):
+    @pytest.mark.parametrize('path_id,step_id,steptags,oldrecs,got_right,score,'
+                             'tright,twrong,rstring,newlog,tpout,trecsout',
+                             [(3,  # path
+                               1,  # step
+                               [61],  # step tags
+                               mytagrecs()['Simon Pan 2014-03-21'],  # tag recs
+                               True,  # got right
+                               1.0,  # score
+                               1,  # raw tright
+                               0,  # raw twrong
+                               'blabla',  # response string
+                               {},  # newlog
+                               mytagpros()['Simon Pan 2014-03-21'],  # tpout
+                               mytagrecs()['Simon Pan 2014-03-21'],  # tag recs out
+                               )
+                              ])
+    def test_walk_record_step(self, path_id, step_id, steptags, oldrecs,
+                              got_right, score, tright, twrong, rstring,
+                              newlog, tpout, trecsout, user_login, db):
         """
         Unit test for Paideia.Walk._record_step()
-
-        At present this only runs for case 1, assuming path 3 and step 1.
         """
-        thiswalk = mywalk['walk']
-        case = mywalk['casedata']
-        if case['casenum'] == 1:
-            user_id = thiswalk._get_user().get_id()
-            step_id = 1
-            path_id = 3
-            score = 1.0
-            loglength = len(db(db.attempt_log.name == user_id).select())
-            step_tags = [61]  # FIXME: hard coded until I properly parameterize
-            response_string = 'blabla'
+        walk = Walk(userdata=user_login,
+                    tag_records=oldrecs,
+                    tag_progress=tpout,
+                    db=db)
+        user_id = user_login['id']
+        raw_tright = tright
+        raw_twrong = twrong
+        starting_loglength = len(db(db.attempt_log.name == user_id).select())
+        actual_log_id = walk._record_step(user_id, step_id, path_id, score,
+                                          raw_tright, raw_twrong, oldrecs,
+                                          steptags, rstring)
 
-            expected_tag_records = [t for t in case['tag_records'] if t in step_tags]
+        # test writing to attempt_log
+        logs_out = db(db.attempt_log.name == user_id).select()
+        assert len(logs_out) == starting_loglength + 1
+        assert actual_log_id == logs_out.last().id
+        for field, val in db.attempt_log(actual_log_id).as_dict().iteritems():
+            print field, '=========='
+            pprint(val)
+            assert val == newlog[field]
 
-            # call the method and collect return value
-            actual_log_id = thiswalk._record_step(user_id, path_id, step_id,
-                                                  score,
-                                                  expected_tag_records,
-                                                  response_string)
+        # test writing to tag_records
+        expected_tag_records = [trecsout[t] for t in steptags]
+        actual_tag_records = db((db.tag_records.name == user_id) &
+                                (db.tag_records.tag.belongs(steptags))
+                                ).select()
+        assert len(actual_tag_records) == len(expected_tag_records)
+        for tagrec in expected_tag_records:
+            for key, val in tagrec.iteritems():
+                print key, '=========='
+                pprint(val)
+                assert val == actual_tag_records[key]
 
-            # test writing to attempt_log
-            logs_out = db(db.attempt_log.name == user_id).select()
-            last_log = logs_out.last()
-            last_log_id = last_log.id
-
-            assert len(logs_out) == loglength + 1
-            assert actual_log_id == last_log_id
-
-            # test writing to tag_records
-            actual_tag_records = db(db.tag_records.name == user_id).select()
-            assert len(actual_tag_records) == len(expected_tag_records)
-            for l in expected_tag_records:
-                for_this_tag = actual_tag_records.find(lambda row:
-                                                       row.tag == l['tag'])
-                assert len(for_this_tag) == 1
-
-                for k in l.keys():
-                    assert for_this_tag[k] == l[k]
-        else:
-            print 'skipping combination'
-            pass
-        # TODO make sure data is removed from db after test
+        # make sure data is removed from db after test
+        assert db(db.attempt_log.id == actual_log_id).delete()
+        assert db(db.tag_records.name == user_id).delete()
 
     def test_walk_store_user(self, mywalk):
         """Unit test for Walk._store_user"""
