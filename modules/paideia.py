@@ -18,7 +18,7 @@ import pickle
 from plugin_utils import flatten
 from plugin_widgets import MODAL
 #from paideia_utils import send_error
-from pprint import pprint
+#from pprint import pprint
 
 # TODO: move these notes elsewhere
 """
@@ -105,7 +105,7 @@ class Walk(object):
                 db.tag_progress.insert(latest_new=1)
                 tag_progress = db(db.tag_progress.name == uid).select().first()
             tag_progress = tag_progress.as_dict()
-        print 'walk.get_user: creating new user'
+        #print 'walk.get_user: creating new user'
         return User(userdata, tag_records, tag_progress)
 
     def _get_user(self, userdata=None, tag_records=None,
@@ -118,10 +118,10 @@ class Walk(object):
         db = current.db
         try:  # look for user object already on this Walk
             assert self.user and not new_user
-            print 'walk.get_user: retrieved user in memory'
+            #print 'walk.get_user: retrieved user in memory'
         except AttributeError:  # because no user yet on this Walk
             try:
-                print 'walk.get_user: looking for session user in db'
+                #print 'walk.get_user: looking for session user in db'
                 sd = db(db.session_data.name ==
                         auth.user_id).select().first()
                 if sd:
@@ -134,10 +134,8 @@ class Walk(object):
                 print traceback.format_exc(5)
                 self.user = self._new_user(userdata, tag_records, tag_progress)
             except (AssertionError, AttributeError):  # user stale or block
-                print 'creating new user'
+                #print 'creating new user'
                 self.user = self._new_user(userdata, tag_records, tag_progress)
-
-        print 'target is', self.user.quota
         if isinstance(self.user.quota, list):
             self.user.quota = self.user.quota[0]
         return self.user
@@ -208,15 +206,7 @@ class Walk(object):
                 myargs = {n: a for n, a in v.iteritems()}
                 user.set_block(c, kwargs=myargs)
         username = user.get_name()
-        promoted, new_tags = user.get_categories(user_id=user.get_id())
-        if new_tags:
-            # setting order here should make new_tags step come up first
-            user.set_block('new_tags', kwargs={'new_tags': new_tags,
-                                               'promoted': promoted})
-            user.set_block('view_slides', kwargs={'new_tags': new_tags})
-        if promoted:
-            user.set_block('new_tags', kwargs={'new_tags': new_tags,
-                                               'promoted': promoted})
+        self._set_blocks()
 
         loc = Location(localias)
         prev_loc = user.set_location(loc)
@@ -243,13 +233,29 @@ class Walk(object):
         user.set_npc(npc)
 
         prompt = s.get_prompt(loc, npc, username)
-        prompt['completed_count'] = len(user.completed_paths)
-        prompt['category'] = category
-        prompt['pid'] = p.get_id()
-        p.end_prompt(s.get_id())  # send id to tell whether its a block step
+        extra_fields = {'completed_count': len(user.completed_paths),
+                        'category': category,
+                        'pid': p.get_id()}
+        prompt.update(extra_fields)
 
+        p.end_prompt(s.get_id())  # send id to tell whether its a block step
         self._store_user(user)
         return prompt
+
+    def _set_blocks(self, user=None):
+        """
+        """
+        user = self.user if not user else user
+        promoted, new_tags = user.get_categories(user_id=user.get_id())
+        if new_tags:
+            # setting order here should make new_tags step come up first
+            user.set_block('new_tags', kwargs={'new_tags': new_tags,
+                                               'promoted': promoted})
+            user.set_block('view_slides', kwargs={'new_tags': new_tags})
+        if promoted:
+            user.set_block('new_tags', kwargs={'new_tags': new_tags,
+                                               'promoted': promoted})
+        return True
 
     def reply(self, localias, response_string, path=None, step=None):
         """
@@ -370,11 +376,11 @@ class Walk(object):
         else:  # auth.user_id != uid because shadowing another user
             return False
 
-    def _update_tag_secondary(self, tag, oldrec, user_id):
+    def _update_tag_secondary(self, tag, oldrec, user_id, now=None):
         """
         Update the 'secondary_right' field of a tag record.
         """
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.utcnow() if not now else now
         db = current.db
         sec_right = [now]  # default
         if len(oldrec) and oldrec[0]:
@@ -390,11 +396,46 @@ class Walk(object):
                                                  secondary_right=sec_right)
         return tagrec
 
+    def _add_from_logs(self, tag, user_id, newdata, tright, twrong, got_right):
+        """
+        Temporary fix for lost tag records counts.
+        """
+        db = current.db
+        tagsteps = [s['id'] for s
+                    in db(db.steps.tags.contains(tag)).select().as_list()]
+        logs = db((db.attempt_log.name == user_id) &
+                  (db.attempt_log.step.belongs(tagsteps))
+                  ).select().as_list()
+        if logs:
+            wronglogs = [l for l in logs if abs(l['score'] - 1) > 0.001]
+            #pprint([t['dt_attempted'] for t in sorted(wronglogs, key=lambda l: l['dt_attempted'])])
+            if len(wronglogs) != newdata['times_wrong']:
+                newdata['times_wrong'] = len(wronglogs) + twrong
+            if got_right:
+                try:
+                    wrongmax = max([l['dt_attempted'] for l in wronglogs])
+                    newdata['tlast_wrong'] = wrongmax
+                except ValueError:  # can't max() an empty list
+                    pass
+
+            rightlogs = [l for l in logs if abs(l['score'] - 1) <= 0.001]
+            #pprint([t['dt_attempted'] for t in sorted(rightlogs, key=lambda l: l['dt_attempted'])])
+            if len(rightlogs) != newdata['times_right']:
+                newdata['times_right'] = len(rightlogs) + tright
+            if not got_right:
+                try:
+                    rightmax = max([l['dt_attempted'] for l in rightlogs])
+                    newdata['tlast_right'] = rightmax
+                except ValueError:  # can't max() an empty list
+                    pass
+        return newdata
+
     def _update_tag_record(self, tag, oldrec, user_id, tright, twrong,
-                           got_right, now=None):
+                           got_right, score, now=None):
         """
         """
         now = datetime.datetime.utcnow() if not now else now
+        oldrec = oldrec if not isinstance(oldrec, list) else oldrec[0]  # hack
         tlright = now
         tlwrong = now
         db = current.db
@@ -405,59 +446,35 @@ class Walk(object):
                    'tlast_right': tlright,
                    'tlast_wrong': tlwrong}
         try:
-            olddata = {'tlwrong': oldrec['tlast_wrong'],
-                       'tlright': oldrec['tlast_right'],
-                       'tright': oldrec['times_right'],
-                       'twrong': oldrec['times_wrong']}
-            if got_right:  # seems backward because default is now (above)
-                newdata['tlast_wrong'] = olddata['tlwrong']
+            if got_right:
+                newdata['tlast_wrong'] = oldrec['tlast_wrong']
             else:
-                newdata['tlast_right'] = olddata['tlright']
-
-            for fld in ['right', 'wrong']:
-                try:
-                    newdata['times_{}'.format(fld)] += olddata['t{}'.format(fld)]
-                except TypeError:  # if otright or otwrong are None
-                    pass
+                newdata['tlast_right'] = oldrec['tlast_right']
+            if not oldrec['times_right']:
+                oldrec['times_right'] = 0
+            if not oldrec['times_wrong']:
+                oldrec['times_wrong'] = 0
+            newdata['times_right'] += oldrec['times_right']
+            newdata['times_wrong'] += oldrec['times_wrong']
 
             #  FIXME: temporary fix for bad tright/twrong data
-            tagsteps = [s['id'] for s
-                        in db(db.steps.tags.contains(tag)).select().as_list()]
-            logs = db((db.attempt_log.name == user_id) &
-                      (db.attempt_log.step.belongs(tagsteps))).select().as_list()
-            print 'found logs:', len(logs)
-            rightlogs = [l for l in logs if abs(l['score'] - 1) <= 0.001]
-            maxright = max([l['dt_attempted'] for l in rightlogs])
-            print 'rightlogs', len(rightlogs)
-            wronglogs = [l for l in logs if abs(l['score'] - 1) > 0.001]
-            maxwrong = max([l['dt_attempted'] for l in wronglogs])
-            if rightlogs != newdata['times_right']:
-                newdata['times_right'] = len(rightlogs) + tright
-            if wronglogs != newdata['times_wrong']:
-                newdata['times_wrong'] = len(wronglogs) + twrong
-            newdata['tlast_right'] == maxright
-            newdata['tlast_wrong'] == maxwrong
-            # FIXME: fix datetimes as well
-            # temporary fix ends here
+            newdata = self._add_from_logs(tag, user_id, newdata, tright,
+                                          twrong, got_right)
         except KeyError:  # because no oldrec
-            print traceback.format_exc(5)
             pass
 
-        print 'tag', tag
-        print 'user', user_id
-        print 'newdata'
-        pprint(newdata)
         db.tag_records.update_or_insert((db.tag_records.tag == tag) &
                                         (db.tag_records.name == user_id),
                                         **newdata)
-        tagrec = db.tag_records((db.tag_records.tag == tag) &
-                                (db.tag_records.name == user_id)).id
-        print 'tagrec',
-        print tagrec
-        return tagrec
+        tagrec = db((db.tag_records.tag == tag) &
+                    (db.tag_records.name == user_id)
+                    ).select()
+        tagrec = tagrec.first()
+        return tagrec.id
 
     def _record_step(self, user_id, step_id, path_id, score, raw_tright,
-                     raw_twrong, old_trecs, taglist, response_string):
+                     raw_twrong, old_trecs, taglist, response_string,
+                     now=None):
         """
         Record this step attempt and its impact on user's performance record.
 
@@ -478,6 +495,7 @@ class Walk(object):
         TODO: be sure not to log redirect and utility steps. (filter them out
         before calling _record_step())
         """
+        now = datetime.datetime.utcnow() if not now else now
         db = current.db
         # TODO: Store and roll back db changes if impersonating
         # TODO: should the threshold here be less than 1 for 'right'?
@@ -487,12 +505,12 @@ class Walk(object):
             oldrec = [r for r in old_trecs
                       if r['tag'] == t] if old_trecs else None
             self._update_tag_record(t, oldrec, user_id, raw_tright, raw_twrong,
-                                    got_right, score)
+                                    got_right, score, now=now)
         if got_right and ('secondary' in taglist.keys()):
             for t in taglist['secondary']:
                 oldrec = [r for r in old_trecs
                         if r['tag'] == t] if old_trecs else None
-                self._update_tag_secondary(t, oldrec, user_id, score)
+                self._update_tag_secondary(t, oldrec, user_id, score, now=now)
 
         log_args = {'name': user_id,
                     'step': step_id,
@@ -845,10 +863,10 @@ class Step(object):
         If this step requires no such audio, return None
         """
         if not self.data['prompt_audio'] in [0, 1, None]:  # TODO: magic number
-            print 'prompt_audio is:', self.data['prompt_audio']
+            # print 'prompt_audio is:', self.data['prompt_audio']
             db = current.db
             aud_row = db.audio(self.data['prompt_audio'])
-            print 'aud_row is:', aud_row
+            # print 'aud_row is:', aud_row
             audio = {'title': aud_row['title'],
                      'mp3': aud_row['clip'],
                      'ogg': aud_row['clip_ogg'] if aud_row['clip_ogg'] else None}
@@ -946,11 +964,11 @@ class Step(object):
             if prev_npc and (prev_loc.get_id() == loc_id) \
                     and (prev_npc.get_id() in npc_list):
                 # previous npc was in this loc and is valid for this step
-                #print 'Step.get_npc: continuing with prev_npc', prev_npc
+                # print 'Step.get_npc: continuing with prev_npc', prev_npc
                 self.npc = copy(prev_npc)
             else:
                 npc_here_list = [n for n in npc_list if loc_id in db.npcs[n]['map_location']]
-                #print 'Step.get_npc:', len(npc_list), 'npcs available for step'
+                # print 'Step.get_npc:', len(npc_list), 'npcs available for step'
 
                 try:
                     pick = npc_here_list[randrange(len(npc_here_list))]
@@ -1303,7 +1321,6 @@ class StepEvaluator(object):
         user_response = user_response.strip()
         responses = {k: r for k, r in self.responses.iteritems()
                      if r and r != 'null'}
-        print responses
         # Compare the student's response to the regular expressions
         try:
             if re.match(responses['response1'], user_response, re.I | re.U):
@@ -1473,7 +1490,6 @@ class Path(object):
         if not self.step_for_prompt:
             assert self._prepare_for_prompt()
         mystep = self.step_for_prompt
-        print 'path.get_step_for_prompt: initial step choice', mystep.get_id()
 
         next_loc = None
         goodlocs = mystep.get_locations()
@@ -1600,22 +1616,19 @@ class PathChooser(object):
 
         # cpaths is already filtered by category
         p_new = cpaths.find(lambda row: row.id not in self.completed).as_list()
-        print 'new paths:', [p['id'] for p in p_new]
         p_here = [p for p in cpaths.as_list()
                   if db.steps[int(p['steps'][0])].locations
                   and loc_id in db.steps[int(p['steps'][0])].locations]
-        print 'paths here:', [p['id'] for p in p_here]
         p_here_new = [p for p in p_here if p in p_new]
-        print 'paths here new:', [p['id'] for p in p_here_new]
-        print 'PathChooser.choose_from_cat: found', len(p_here_new), 'new paths here'
+        #print 'PathChooser.choose_from_cat: found', len(p_here_new), 'new paths here'
 
         path = None
         new_loc = None
         if p_here_new:
-            print 'PathChooser._choose_from_cat: choosing untried path for this loc'
+            #print 'PathChooser._choose_from_cat: choosing untried path for this loc'
             path = p_here_new[randrange(0, len(p_here_new))]
         elif p_new:
-            print 'PathChooser._choose_from_cat: choosing untried path for different loc'
+            #print 'PathChooser._choose_from_cat: choosing untried path for different loc'
             # While loop safeguards against looking for location for a step
             # that has no locations assigned.
             while path is None:
@@ -1626,7 +1639,7 @@ class PathChooser(object):
                 except TypeError:
                     path = None
         elif p_here:
-            print 'PathChooser._choose_from_cat: choosing repeat path for this loc'
+            #print 'PathChooser._choose_from_cat: choosing repeat path for this loc'
             path = p_here[randrange(0, len(p_here))]
 
         return (path, new_loc, category)
@@ -1653,15 +1666,15 @@ class PathChooser(object):
 
         # cycle through categories, starting with the one from _get_category()
         for cat in cat_list:
-            print 'PathChooser.choose: trying cat', cat
+            #print 'PathChooser.choose: trying cat', cat
             catpaths = self._paths_by_category(cat, self.rank)
             if len(catpaths[0]):
-                print 'PathChooser.choose: found', len(catpaths[0]), 'paths in cat'
+                #print 'PathChooser.choose: found', len(catpaths[0]), 'paths in cat'
                 #for c in catpaths[0]:
                     #print'catpath -', pprint(c)
                 return self._choose_from_cat(catpaths[0], catpaths[1])
             else:
-                print 'PathChooser.choose: found NO paths in cat', cat
+                #print 'PathChooser.choose: found NO paths in cat', cat
                 continue
 
         return False
@@ -1841,30 +1854,22 @@ class User(object):
         """
         return self.loc
 
-    #def get_new_tags(self):
-        #"""Return a list of tag ids newly introduced"""
-        #return self.new_tags
-
-    #def get_promoted(self):
-        #"""Return a dictionary of tag ids newly promoted to categories 2-4."""
-        #return self.promoted
-
-    #def get_tag_records(self):
-        #"""
-        #Return a list of dictionaries matching the fields of db.tag_records.
-
-        #Each dictionary contains the user's performance data for a single
-        #grammatical tag.
-        #"""
-        #return self.tag_records
-
-    #def get_tag_progress(self):
-        #"""
-        #Return a dictionary matching the fields of db.tag_progress.
-
-        #This dictionary contains the user's overall progress data.
-        #"""
-        #return self.tag_progress
+    def _make_path_choice(self, loc):
+        """
+        Instantiate PathChooser and return the result of its choose() method.
+        """
+        choice = None
+        if self.path:  # TODO: do I want this catch here?
+            self.complete_path()  # catch end-of-path and triggers new choice
+        if not self.tag_progress:  # in case User was badly initialized
+            self.get_categories()
+        while not choice:
+            choice, redir, cat = PathChooser(self.tag_progress,
+                                                loc.get_id(),
+                                                self.completed_paths).choose()
+            #FIXME: if no choice, send_error('User', 'get_path', current.request)
+        path = Path(path_id=choice['id'])
+        return path, redir, cat
 
     def get_path(self, loc, db=None, pathid=None, repeat=None):
         """
@@ -1875,10 +1880,8 @@ class User(object):
 
         """
         db = current.db if not db else db
-        choice = None
         redir = None
         cat = None
-        past_quota = None
 
         if pathid:  # testing specific path
             self.path = Path(pathid)
@@ -1893,31 +1896,16 @@ class User(object):
         elif self.path and len(self.path.steps):  # unfinished step in self.path
             pass
         else:  # choosing a new path
-            if self.path:  # TODO: do I want this catch here?
-                self.complete_path()  # catch end-of-path and triggers new choice
-            if not self.tag_progress:  # in case User was badly initialized
-                self.get_categories()
-            # FIXME: For some reason PathChooser.choose() is returning None for
-            # path sometimes
-            while not choice:
-                choice, redir, cat = PathChooser(self.tag_progress,
-                                                 loc.get_id(),
-                                                 self.completed_paths).choose()
-                if not choice:
-                    choice = None
-                    #FIXME: send_error('User', 'get_path', current.request)
-            self.path = Path(path_id=choice['id'])
+            self.path, cat, redir = self._make_path_choice(loc)
 
-        if len(self.completed_paths) >= self.quota \
-                and self.past_quota is False:
-            self.past_quota = past_quota = True
+        if len(self.completed_paths) >= self.quota and self.past_quota is False:
+            self.past_quota = True
         if len(self.blocks) > 0:
             # FIXME: This hack is to work around mysterious introduction of
             # redirect block after initial redirect has been triggered
             self.blocks = [b for b in self.blocks
                            if not b.get_condition() is 'redirect']
-        path = self.path
-        return (path, cat, redir, past_quota)
+        return (self.path, cat, redir, self.past_quota)
 
     def get_categories(self, user_id=None, rank=None, old_categories=None,
                        tag_records=None, utcnow=None):
@@ -1941,10 +1929,8 @@ class User(object):
                 and hasattr(self, 'categories') \
                 and self.categories:
             self.cats_counter += 1
-            print 'not recategorizing'
             return None, None
         else:
-            print 'user.get_categories: need to recategorize'
             utcnow = datetime.datetime.utcnow() if not utcnow else utcnow
             try:
                 tag_progress_sel = db(db.tag_progress.name == user_id
@@ -1959,7 +1945,6 @@ class User(object):
                 categories = None
             self.old_categories = copy(categories)
 
-            print 'user.get_cat: calling Categorizer'
             c = Categorizer(rank, categories, tag_records, user_id,
                             utcnow=utcnow)
             cat_result = c.categorize_tags()
@@ -2044,15 +2029,12 @@ class Categorizer(object):
         old_categories = self.old_categories if not old_categories \
                          else old_categories
         tag_records = self.tag_records if not tag_records else tag_records
-        print 'len(tag_records):', len(tag_records)
         tag_records = self._sanitize_recs(tag_records)
         db = current.db if not db else db
         new_tags = None
 
         # if user has not tried any tags yet, start first set
-        print 'len(tag_records):', len(tag_records)
         if len(tag_records) == 0:
-            print 'setting up empty cats'
             categories = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
             categories['cat1'] = self._introduce_tags(rank=0)
             tp = {'cat1': categories['cat1'], 'rev1': categories['cat1'],
@@ -2076,11 +2058,7 @@ class Categorizer(object):
             categories = self._add_untried_tags(categories)
             categories = self._remove_dups(categories, rank)
             categories.update((c, []) for c in ['rev1', 'rev2', 'rev3', 'rev4'])
-            print 'cats before find_cat_changes'
-            print categories
             cat_changes = self._find_cat_changes(categories, old_categories)
-            print 'cats after find_cat_changes'
-            print cat_changes['categories']
             promoted = cat_changes['promoted']
             demoted = cat_changes['demoted']
             new_tags = cat_changes['new_tags']
@@ -2089,8 +2067,6 @@ class Categorizer(object):
             # If there are no tags left in category 1, introduce next set
             if not tag_progress['cat1']:
                 newlist = self._introduce_tags()
-                print 'newlist is=================================='
-                print newlist
                 categories['cat1'] = categories['rev1'] = newlist
                 tag_progress['cat1'] = tag_progress['rev1'] = newlist
                 new_tags = newlist if not new_tags else new_tags.extend(newlist)
@@ -2126,8 +2102,6 @@ class Categorizer(object):
         """
         db = current.db
         rec = rec[0] if isinstance(rec, list) else rec
-        print 'add secondary: rec is'
-        pprint(rec)
         right2 = flatten(rec['secondary_right'])  # FIXME: sanitizing data
         for t in right2:
             try:
@@ -2185,7 +2159,6 @@ class Categorizer(object):
         except ZeroDivisionError:  # if tag not tried at all since startdt
             avg_score = 0
             # FIXME: Will this not bring tags up too early?
-        print 'using avg_score:', avg_score
         return avg_score
 
     def _get_ratio(self, record):
@@ -2198,7 +2171,6 @@ class Categorizer(object):
             ratio = record['times_wrong'] / record['times_right']
         except ZeroDivisionError:
             ratio = record['times_wrong']
-        print 'using ratio:', ratio
         return ratio
 
     def _core_algorithm(self, tag_records=None):
@@ -2236,7 +2208,7 @@ class Categorizer(object):
 
             # spaced repetition algorithm for promotion to
             # cat2? ======================================================
-            print '\n',
+            #print '\n',
             if ((record['times_right'] >= 20) and  # at least 20 right
                 (((rdur < rwdur)  # delta right < delta right/wrong
                   and (rwdur > datetime.timedelta(days=1))  # not within 1 day
@@ -2249,16 +2221,16 @@ class Categorizer(object):
                  ((self._get_avg(record['tag']) >= 0.8)  # avg score for week >= 0.8
                   and (rdur <= datetime.timedelta(days=30))  # right in past 30 days
                   ))):
-                print record['tag'], 'in cat2 or higher'
+                #print record['tag'], 'in cat2 or higher'
                 # cat3? ==================================================
                 if rwdur.days >= 14:
-                    print record['tag'], 'in cat3 or higher'
+                    #print record['tag'], 'in cat3 or higher'
                     # cat4? ==============================================
                     if rwdur.days > 60:
-                        print record['tag'], 'in cat4'
+                        #print record['tag'], 'in cat4'
                         # long-term review? ===================================
                         if rwdur > datetime.timedelta(days=180):
-                            print record['tag'], 'due for long-term review'
+                            #print record['tag'], 'due for long-term review'
                             category = 'cat1'  # Not tried for 6 months
                         else:
                             category = 'cat4'  # Not due, delta > 60 days
@@ -2267,7 +2239,7 @@ class Categorizer(object):
                 else:
                     category = 'cat2'  # Not due but delta is 2 weeks or less
             else:
-                print record['tag'], 'in cat1 or higher'
+                #print record['tag'], 'in cat1 or higher'
                 category = 'cat1'  # Spaced repetition requires review
 
             categories[category].append(record['tag'])
@@ -2282,31 +2254,22 @@ class Categorizer(object):
         categorize_tags
         """
         db = current.db if not db else db
-        print 'introduce tages: rank is', rank
         rank = self.rank if rank is None else rank
 
-        print 'introduce tages: rank is', rank
         if rank in (None, 0):
             rank = 1
         else:
             rank += 1
         self.rank = rank
-        print 'introduce tages: rank is', rank
 
         newtags = [t['id'] for t in
                    db(db.tags.tag_position == rank).select().as_list()]
-        print 'in introduce tags: newtags is'
-        print newtags
-
         return newtags
 
     def _add_untried_tags(self, categories, rank=None, db=None):
         """Return the categorized list with any untried tags added to cat1"""
         db = current.db if not db else db
         rank = self.rank if not rank else rank
-        #print 'add_untried_tags: rank is', rank
-
-        #print 'add_untried_tags: level 1 cats are', categories['cat1']
 
         left_out = []
         for r in range(1, rank + 1):
@@ -2315,13 +2278,9 @@ class Categorizer(object):
             alltags = list(chain(*categories.values()))
             left_out.extend([t for t in newtags if t not in alltags])
         if left_out:
-            #print 'add_untried_tags: adding some untried tags'
             categories['cat1'].extend(left_out)
         else:
             pass
-
-        #print 'add_untried_tags: level 1 cats are now', categories['cat1']
-
         return categories
 
     def _fix_oldcats(self, oldcats, uid, bbrows=None):
@@ -2336,8 +2295,6 @@ class Categorizer(object):
         for b in bbrows:
             mymax = len([k for k, v in b.iteritems() if k in cnms and v])
             bmax[b['tag']] = mymax
-        print 'max ranks'
-        pprint(bmax)
         for c, l in oldcats.iteritems():
             try:
                 for tag in l:
@@ -2364,11 +2321,8 @@ class Categorizer(object):
             cnms = ['cat1', 'cat2', 'cat3', 'cat4']
             # TODO: cleaning up bad data; deprecate after finished
             oldcats = self._fix_oldcats(oldcats, uid, bbrows=bbrows)
-            print 'find cat changes: after fix oldcats, oldcats are'
-            pprint(oldcats)
 
             for cat, taglist in cats.iteritems():
-                print 'for cat:', cat
                 revcat = cat.replace('cat', 'rev')
                 cats[revcat] = taglist[:]  # copy bc demotion only changes one
                 if taglist and cat in cnms:
@@ -2381,9 +2335,7 @@ class Categorizer(object):
                     was_lower = list(chain.from_iterable([oldcats[c] for c
                                                           in cnms[:idx]
                                                           if oldcats[c]]))
-                    print 'was_lower', was_lower
                     promoted[cat] = [t for t in cats[cat] if t in was_lower]
-                    print 'promoted', promoted
 
                     # was tag in a higher category before?
                     was_higher = list(chain.from_iterable([oldcats[c] for c
@@ -2398,15 +2350,8 @@ class Categorizer(object):
                     oldmax = [k for k, v in oldcats.iteritems()
                                 if v and tag in v][0]
                     tagindex = cats[current].index(tag)
-                    print 'current', current
-                    print 'oldmax', oldmax
-                    print 'tagindex', tagindex
-                    print 'demoted', demoted[current]
                     cats[current].pop(tagindex)
-                    print 'list now', cats[current]
                     cats[oldmax].append(tag)
-                    print 'oldlist now', cats[oldmax]
-            pprint(cats)
             return {'categories': cats,
                     'demoted': demoted if any([d for d in demoted.values()])
                                else None,
