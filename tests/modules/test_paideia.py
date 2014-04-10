@@ -5620,7 +5620,8 @@ class TestPathChooser():
                                 176, 184, 190, 208, 222, 225, 228, 231, 236,
                                 247, 255, 257, 261, 277, 333, 334, 366, 424,
                                 425, 426, 427, 428, 429, 430, 431, 433, 434,
-                                435, 436, 437, 439, 440, 441, 444, 445],
+                                435, 436, 437, 439, 440, 441, 444, 445,
+                                1, 2, 3, 5, 8, 95, 96, 99, 102, 256],  # last row is cat2 [61]
                                {'latest_new': 2,
                                 'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
                                 'cat3': [], 'cat4': [],
@@ -5628,7 +5629,8 @@ class TestPathChooser():
                                 'rev3': [], 'rev4': []},
                                [101, 35, 34, 23, 16, 261, 15, 21, 208, 100,
                                 17, 14, 9, 7, 18, 11, 98, 12, 4, 19, 103, 13,
-                                97],  # with tags already completed here (repeat)
+                                97,
+                                1, 2, 3, 5, 8, 95, 96, 99, 102, 256],  # with tags already completed here (repeat)
                                'repeat_here'
                                ),
                               ])
@@ -5652,15 +5654,15 @@ class TestPathChooser():
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('locid,completed,tpout,redirect,expected,mode',
                              [(6,  # shop_of_alexander (only 1 untried here)
-                               [2, 3, 5, 8, 9, 63, 95, 96, 97, 99, 102, 256,
+                               [2, 3, 5, 8, 9, 63, 95, 96, 97, 99, 102, 256,  # completed
                                 409, 410, 411, 412, 413, 414, 415, 416, 417, 418,
                                 419, 420, 421, 422, 423],
-                               {'latest_new': 1,
+                               {'latest_new': 1,  # topout
                                 'cat1': [61], 'cat2': [],
                                 'cat3': [], 'cat4': [],
                                 'rev1': [61], 'rev2': [],
                                 'rev3': [], 'rev4': []},
-                               False,
+                               False,  # redirect
                                [1],  # only one left with tag
                                'here_new'  # mode
                                ),
@@ -5695,7 +5697,8 @@ class TestPathChooser():
                                 176, 184, 190, 208, 222, 225, 228, 231, 236,
                                 247, 255, 257, 261, 277, 333, 334, 366, 424,
                                 425, 426, 427, 428, 429, 430, 431, 433, 434,
-                                435, 436, 437, 439, 440, 441, 444, 445],
+                                435, 436, 437, 439, 440, 441, 444, 445,
+                                1, 2, 3, 5, 8, 95, 96, 99, 102, 256],  # last row is cat2 [61]
                                {'latest_new': 2,
                                 'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
                                 'cat3': [], 'cat4': [],
@@ -5704,7 +5707,8 @@ class TestPathChooser():
                                 False,
                                [101, 35, 34, 23, 16, 261, 15, 21, 208, 100,
                                 17, 14, 9, 7, 18, 11, 98, 12, 4, 19, 103, 13,
-                                97],  # with tags already completed here (repeat)
+                                97,  # with tags already completed here (repeat)
+                                1, 2, 3, 5, 8, 95, 96, 99, 102, 256],  # last row is cat2 [61]
                                'repeat_here'
                                ),
                               ])
