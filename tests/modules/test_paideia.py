@@ -30,18 +30,18 @@ from difflib import Differ
 # Switches governing which tests to run
 # ===================================================================
 global_runall = True
-global_run_TestNpc = False
-global_run_TestLocation = False
-global_run_TestStep = False
-global_run_TestStepEvaluator = False
-global_run_TestMultipleEvaluator = False
-global_run_TestPath = False
+global_run_TestNpc = True
+global_run_TestLocation = True
+global_run_TestStep = True
+global_run_TestStepEvaluator = True
+global_run_TestMultipleEvaluator = True
+global_run_TestPath = True
 global_run_TestUser = True
-global_run_TestCategorizer = False
-global_run_TestMap = False
-global_run_TestWalk = False
-global_run_TestPathChooser = False
-global_run_TestBugReporter = False
+global_run_TestCategorizer = True
+global_run_TestMap = True
+global_run_TestWalk = True
+global_run_TestPathChooser = True
+global_run_TestBugReporter = True
 
 # ===================================================================
 # Test Fixtures
@@ -3368,55 +3368,74 @@ class TestStep():
         assert actual['audio'] == None  # FIXME: add case with audio (path 380, step 445)
         assert actual['loc'] == alias
 
-    @pytest.mark.skipif(True, reason='just because')
-    @pytest.mark.parametrize(('caseid', 'stepid'), [
-        ('case1', 1),
-        ('case2', 2),  # don't use steps 30, 125, 126, 127 (block)
-        ('case2', 101)
-    ])
-    def test_step_make_replacements(self, caseid, db, stepid, mysteps, user_login):
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('stepid,newbadges,promoted,nextloc,quota,'
+                             'promptin,promptout',
+        [(1,  # step
+          None,  # newbadges  FIXME: doesn't test block step replacements
+          None,  # promoted
+          None,  # nextloc
+          20,  # quota
+          'How could you write the word "meet" using Greek letters?',  # promptin
+          'How could you write the word "meet" using Greek letters?',  # promptout
+          ),
+         (2,  # step
+          [62],  # newbadges
+          {'cat1': [], 'cat2': [61], 'cat3': [], 'cat4': []},  # promoted
+          None,  # nextloc
+          20,  # quota
+          'How could you write the word "bought" using Greek letters?',  # promptin
+          'How could you write the word "bought" using Greek letters?',  # promptout
+          ),
+         (101,  # step
+          [62],  # newbadges
+          {'cat1': [], 'cat2': [61], 'cat3': [], 'cat4': []},  # promoted
+          None,  # nextloc
+          20,  # quota
+          'Is this an English clause?\r\n\r\n"The cat sat."',  # promptin
+          'Is this an English clause?\r\n\r\n"The cat sat."',  # promptout
+          )
+         ])  # don't use steps 30, 125, 126, 127 (block)
+    def test_step_make_replacements(self, stepid, newbadges, promoted, nextloc,
+                                    quota, promptin, promptout):
         """Unit test for method Step._make_replacements()"""
-        step, sdata = mystep(stepid, mysteps)
-        case = mycases(caseid, user_login, db)
-        oargs = {'raw_prompt': sdata['raw_prompt'],
-                 'username': case['name'],
-                 'next_loc': case['next_loc'],
-                 'new_tags': case['new_badges'],
-                 'promoted': case['promoted']
-                 }
-        ofinal = sdata['final_prompt']
-        ofinal = ofinal.replace('[[user]]', oargs['username'])
-        if isinstance(step, StepAwardBadges):
-            oargs['new_badges'] = case['new_badges']
-        elif isinstance(step, StepViewSlides):
-            oargs['new_badges'] = case['new_badges']
+        step = mystep(stepid)
+        outargs = {'raw_prompt': promptin,
+                   'username': 'Homer',
+                   'reps': {'next_loc': str(nextloc),
+                            'new_tags': str(newbadges),
+                            'promoted': str(promoted),
+                            'quota': str(quota)}
+                   }
+        actual = step._make_replacements(**outargs)
+        assert actual == promptout
 
-        assert step._make_replacements(**oargs) == ofinal
-
-    @pytest.mark.skipif(True, reason='just because')
-    @pytest.mark.parametrize(('caseid', 'stepid'), [
-        ('case1', 1),
-        ('case2', 2)
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('stepid,thisloc,available_npcs', [
+        (1,
+         'shop_of_alexander',  # loc 6
+         [2, 8, 17],  # available npcs (here and this step)
+         ),
+        (2,
+         'agora',  # loc 8
+         [1],  # available npcs (here and this step)
+         ),
     ])
-    def test_step_get_npc(self, caseid, stepid, db, mysteps,
-                          user_login, npc_data):
+    def test_step_get_npc(self, stepid, thisloc, available_npcs, db):
         """Test for method Step.get_npc"""
         # TODO: make sure the npc really is randomized
-        case = mycases(caseid, user_login, db)
-        step, expected = mystep(stepid, mysteps)
-        actual = step.get_npc(case['loc'])
+        step = mystep(stepid)
+        thisloc = Location(thisloc, db)
+        actual = step.get_npc(thisloc)
+        npcindb = db.npcs(actual.get_id())
 
-        assert actual.get_id() in expected['npc_list']
-        # make sure this npc has the right name for its id
-        assert actual.get_name() == npc_data[actual.get_id()]['name']
-        assert actual.get_image().xml() == IMG(_src=npc_data[actual.get_id()]['image']).xml()
-        locs = actual.get_locations()
-        # make sure there is common location shared by actual npc and step
-        assert [l for l in locs
-                if l in expected['locations']]
-        for l in locs:
-            assert isinstance(l, (int, long))
-            assert l in npc_data[actual.get_id()]['location']
+        assert actual.get_id() in db.steps(stepid).npcs
+        assert actual.get_name() == npcindb.name
+        imageid = npcindb.npc_image
+        imagesrc = '/paideia/static/images/{}'.format(db.images(imageid).image)
+        assert actual.get_image().xml() == IMG(_src=imagesrc).xml()
+        for l in actual.get_locations():
+            assert l in npcindb.map_location
 
     @pytest.mark.skipif(True, reason='just because')
     @pytest.mark.parametrize('stepid', [1, 2])
@@ -3433,55 +3452,140 @@ class TestStep():
         step, expected = mystep(stepid, mysteps)
         assert step._get_readable() == expected['readable']
 
-    @pytest.mark.skipif(True, reason='just because')
-    @pytest.mark.parametrize('caseid,stepid',
-                             [('case1', 1),
-                              ('case2', 2),
-                              ('case2', 101)
-                              ])  # only StepText and StepMultiple types
-    def test_step_get_reply(self, stepid, caseid, mysteps, user_login,
-                            db, npc_data):
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('stepid,score,localias,npcshere,resptext,'
+                             'rdblshort,rdbllong,replytext,instrs,slides,tips',
+         [(1,  # step1, correct
+           1.0,  # score
+           'shop_of_alexander',  # loc 8
+           [2, 8, 17],  # npcs here (for step)
+           'μιτ',
+           ['μιτ'],
+           [],
+           'Right. Κάλον.\nYou said\n- [[resp]]',
+           ['Focus on finding Greek letters that make '  # instrs
+            'the *sounds* of the English word. Don\'t '
+            'look for Greek "equivalents" for each '
+            'English letter.'],
+           {1: 'Introduction',  # slides
+            2: 'The Alphabet',
+            6: 'Noun Basics',
+            7: 'Greek Words I'},
+           None,  # tips
+           ),
+          (1,  # step1, incorrect
+           0,  # score
+           'shop_of_alexander',  # loc 8
+           [2, 8, 17],  # npcs here (for step)
+           'βλα',
+           ['μιτ'],
+           [],
+           'Incorrect. Try again!\nYou '
+           'said\n- [[resp]]\nThe correct '
+           'response is[[rdbl]]',
+           ['Focus on finding Greek letters that make '  # instrs
+            'the *sounds* of the English word. Don\'t '
+            'look for Greek "equivalents" for each '
+            'English letter.'],
+           {1: 'Introduction',  # slides
+            2: 'The Alphabet',
+            6: 'Noun Basics',
+            7: 'Greek Words I'},
+           None,  # tips
+           ),
+          (2,  # step2, correct
+           1.0,  # score
+           'agora',
+           [1],  # npcs here (for step)
+           'βοτ',
+           ['βατ', 'βοτ'],
+           [],
+           'Right. Κάλον.\nYou said\n- '
+           '[[resp]]\nCorrect responses '
+           'would include[[rdbl]]',
+           None,  # instrs
+           {1: 'Introduction',  # slides
+            2: 'The Alphabet',
+            6: 'Noun Basics',
+            7: 'Greek Words I'},
+           None,  # tips
+           ),
+          (2,  # step2, incorrect
+           0,  # score
+           'agora',
+           [1],  # npcs here (for step)
+           'βλα',
+           ['βατ', 'βοτ'],
+           [],
+           'Incorrect. Try again!\nYou '
+           'said\n- [[resp]]\nCorrect responses '
+           'would include[[rdbl]]',
+           None,  # instrs
+           {1: 'Introduction',  # slides
+            2: 'The Alphabet',
+            6: 'Noun Basics',
+            7: 'Greek Words I'},
+           None,  # tips
+           ),
+          (101,  # step 101, correct
+           1.0,  # score
+           'shop_of_alexander',
+           [14],  # npcs here
+           'ναι',
+           ['ναι'],
+           [],
+           'Right. Κάλον.\nYou said\n- [[resp]]',
+           None,  # instrs
+           {14: 'Clause Basics'},  # slides
+           None,  # tips
+           ),
+          (101,  # step 101, incorrect
+           0,  # score
+           'shop_of_alexander',
+           [14],  # npcs here
+           'οὐ',
+           ['ναι'],
+           [],
+           'Incorrect. Try again!\nYou '
+           'said\n- [[resp]]\nThe correct '
+           'response is[[rdbl]]',
+           None,  # instrs
+           {14: 'Clause Basics'},  # slides
+           None,  # tips
+           ),
+          ])  # only StepText and StepMultiple types
+    def test_step_get_reply(self, stepid, score, localias, npcshere, resptext,
+                            rdblshort, rdbllong, replytext, instrs, slides,
+                            tips, db, npc_data):
         """Unit tests for StepText._get_reply() method"""
-        case = mycases(caseid, user_login, db)
-        step, expected = mystep(stepid, mysteps)
-        step.loc = case['loc']
-        locnpcs = [int(n) for n in case['npcs_here']
-                   if n in expected['npc_list']]
-        step.npc = Npc(locnpcs[0], db)
+        step = mystep(stepid)
+        loc = Location(localias, db)
+        step.loc = loc
+        npc = Npc(npcshere[0], db)
+        step.npc = npc
 
-        for x in [('correct', 1),
-                  ('incorrect', 0)]:
+        actual = step.get_reply(resptext)
 
-            actual = step.get_reply(expected['user_responses'][x[0]])
+        replytext = replytext.replace('[[resp]]', resptext)
+        rdblsub = ''
+        for r in rdblshort:
+            rdblsub += '\n- {}'.format(r)
+        replytext = replytext.replace('[[rdbl]]', rdblsub)
 
-            # assemble reply text (tricky)
-            xtextraw = expected['reply_text'][x[0]]
-            xtext = xtextraw.replace('[[resp]]',
-                                     expected['user_responses'][x[0]])
-            rdbl = ''
-            print len(expected['readable']['readable_short'])
-            if len(expected['readable']['readable_short']) > 1:  #
-                for r in expected['readable']['readable_short']:
-                    rdbl += '\n- {}'.format(r)
-            elif x[1] != 1:
-                rdbl += '\n- {}'.format(expected['readable']['readable_short'][0])
-            xtext = xtext.replace('[[rdbl]]', rdbl)
-
-            assert actual['sid'] == stepid
-            assert actual['bg_image'] == case['loc'].get_bg()
-            assert actual['prompt_text'] == xtext
-            assert actual['readable_long'] == expected['readable']['readable_long']
-            assert actual['npc_image']['_src'] == npc_data[locnpcs[0]]['image']
-            assert actual['audio'] is None
-            assert actual['widget_img'] is None
-            assert actual['instructions'] == expected['instructions']
-            assert actual['slidedecks'] == expected['slidedecks']
-            assert actual['hints'] == expected['tips']
-
-            assert actual['user_response'] == expected['user_responses'][x[0]]
-            assert actual['score'] == x[1]
-            assert actual['times_right'] == x[1]
-            assert actual['times_wrong'] == abs(x[1] - 1)
+        assert actual['sid'] == stepid
+        assert actual['bg_image'] == loc.get_bg()
+        assert actual['prompt_text'] == replytext
+        assert actual['readable_long'] == rdbllong
+        assert actual['npc_image']['_src'] == npc_data[npc.get_id()]['image']
+        assert actual['audio'] is None
+        assert actual['widget_img'] is None
+        assert actual['instructions'] == instrs
+        assert actual['slidedecks'] == slides
+        assert actual['hints'] == tips
+        assert actual['user_response'] == resptext
+        assert actual['score'] == score
+        assert actual['times_right'] == int(score)
+        assert actual['times_wrong'] == abs(int(score) - 1)
 
 
 @pytest.mark.skipif('not global_runall and not global_run_TestStepEvaluator',
@@ -3924,90 +4028,100 @@ class TestUser(object):
         assert actual == expected
 
     @pytest.mark.skipif(True, reason='just because')
-    @pytest.mark.parametrize('locid,completed,tpout,trecs,redirect,expected',
-                             [(6,  # shop_of_alexander (only 1 untried here)
-                               [2, 3, 5, 8, 63, 95, 96, 97, 99, 102, 256, 40,
-                                9, 410, 411, 412, 413, 414, 415, 416, 417, 418,
-                                419, 420, 421, 422, 423, 444, 445],
-                               {'latest_new': 1,
-                                'cat1': [61], 'cat2': [],
-                                'cat3': [], 'cat4': [],
-                                'rev1': [61], 'rev2': [],
-                                'rev3': [], 'rev4': []},
-                               [{'name': 1,
-                                 'tag': 1,
-                                 'tlast_right': dt('2013-01-29'),
-                                 'tlast_wrong': dt('2013-01-29'),
-                                 'times_right': 1,
-                                 'times_wrong': 1,
-                                 'secondary_right': None}],
-                               False,
-                               [1]  # only one left with tag
-                               ),
-                              (11,  # synagogue [all in loc 11 completed]
-                               [1, 2, 3, 8, 95, 96, 97, 99, 102],
-                               {'latest_new': 1,
-                                'cat1': [61], 'cat2': [],
-                                'cat3': [], 'cat4': [],
-                                'rev1': [61], 'rev2': [],
-                                'rev3': [], 'rev4': []},
-                               [{'name': 1,
-                                 'tag': 61,
-                                 'tlast_right': dt('2013-01-29'),
-                                 'tlast_wrong': dt('2013-01-27'),
-                                 'times_right': 20,
-                                 'times_wrong': 10,
-                                 'secondary_right': []}],
-                                True,
-                                [99, 97, 102, 2, 1, 3, 95, 8, 96]
-                               ),
-                              #(8,  # agora (no redirect, new here)
-                               #[17, 98, 15, 208, 12, 16, 34, 11, 23, 4, 9, 18],
-                               #{'latest_new': 2,
-                                #'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
-                                #'cat3': [], 'cat4': [],
-                                #'rev1': [], 'rev2': [61],
-                                #'rev3': [], 'rev4': []},
-                                #False,
-                               #[7, 14, 100, 35, 19, 103, 21, 97, 13, 261, 101]
-                               #),
-                              #(8,  # agora (all for tags completed, repeat here)
-                               #[4, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
-                                #19, 21, 22, 23, 34, 35, 45, 97, 98, 100, 101,
-                                #103, 120, 129, 139, 141, 149, 152, 161, 167,
-                                #176, 184, 190, 208, 222, 225, 228, 231, 236,
-                                #247, 255, 257, 261, 277, 333, 334, 366, 424,
-                                #425, 426, 427, 428, 429, 430, 431, 433, 434,
-                                #435, 436, 437, 439, 440, 441, 444, 445],
-                               #{'latest_new': 2,
-                                #'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
-                                #'cat3': [], 'cat4': [],
-                                #'rev1': [], 'rev2': [61],
-                                #'rev3': [], 'rev4': []},
-                                #False,
-                               #[101, 35, 34, 23, 16, 261, 15, 21, 208, 100,
-                                #17, 14, 9, 7, 18, 11, 98, 12, 4, 19, 103, 13,
-                                #97]  # with tags already completed here (repeat)
-                               #),
-                              ])
-    def test_user_get_path(self, locid, completed, tpout, trecs,
-                           redirect, expected, db):
+    @pytest.mark.parametrize('localias,completed,tpout,trecs,redirect,expected',
+        [('shop_of_alexander',  # loc 6, (only 1 untried here)
+          [2, 3, 5, 8, 63, 95, 96, 97, 99, 102, 256, 40,
+          9, 410, 411, 412, 413, 414, 415, 416, 417, 418,
+          419, 420, 421, 422, 423, 444, 445],  # completed
+          {'latest_new': 1,  # tpout
+          'cat1': [61], 'cat2': [],
+          'cat3': [], 'cat4': [],
+          'rev1': [61], 'rev2': [],
+          'rev3': [], 'rev4': []},
+          [{'name': 1,  # trecs
+              'tag': 1,
+              'tlast_right': dt('2013-01-29'),
+              'tlast_wrong': dt('2013-01-29'),
+              'times_right': 1,
+              'times_wrong': 1,
+              'secondary_right': None}],
+          None,  # redirect
+          [1]  # expected
+          ),
+         ('synagogue',  # loc 11 [all in loc 11 completed]
+          [1, 2, 3, 8, 95, 96, 97, 99, 102],  # completed
+          {'latest_new': 1,  # tpout
+          'cat1': [61], 'cat2': [],
+          'cat3': [], 'cat4': [],
+          'rev1': [61], 'rev2': [],
+          'rev3': [], 'rev4': []},
+          [{'name': 1,  # trecs
+              'tag': 61,
+              'tlast_right': dt('2013-01-29'),
+              'tlast_wrong': dt('2013-01-27'),
+              'times_right': 20,
+              'times_wrong': 10,
+              'secondary_right': []}],
+          True,  # redirect
+          [5, 63, 256, 409, 410, 411, 412, 413, 414, 415, 416, 417, 418, 419,
+           420, 421, 422, 423, 444, 445]  # expected (not in this loc)
+          ),
+         #(8,  # agora (no redirect, new here)
+          #[17, 98, 15, 208, 12, 16, 34, 11, 23, 4, 9, 18],
+          #{'latest_new': 2,  #
+          #'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+          #'cat3': [], 'cat4': [],
+          #'rev1': [], 'rev2': [61],
+          #'rev3': [], 'rev4': []},
+          #None,  # redirect
+          #[7, 14, 100, 35, 19, 103, 21, 97, 13, 261, 101]  # expected
+          #),
+        #(8,  # agora (all for tags completed, repeat here)
+        #[4, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
+        #19, 21, 22, 23, 34, 35, 45, 97, 98, 100, 101,
+        #103, 120, 129, 139, 141, 149, 152, 161, 167,
+        #176, 184, 190, 208, 222, 225, 228, 231, 236,
+        #247, 255, 257, 261, 277, 333, 334, 366, 424,
+        #425, 426, 427, 428, 429, 430, 431, 433, 434,
+        #435, 436, 437, 439, 440, 441, 444, 445],
+        #{'latest_new': 2,
+        #'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+        #'cat3': [], 'cat4': [],
+        #'rev1': [], 'rev2': [61],
+        #'rev3': [], 'rev4': []},
+        #False,
+        #[101, 35, 34, 23, 16, 261, 15, 21, 208, 100,
+        #17, 14, 9, 7, 18, 11, 98, 12, 4, 19, 103, 13,
+        #97]  # with tags already completed here (repeat)
+        #),
+         ])
+    def test_user_get_path(self, localias, completed, tpout, trecs,
+                           redirect, expected, user_login, db):
         """
         Unit testing method for User.get_path().
         """
-        userdata = {'first_name': 'Homer',
-                    'id': 1,
-                    'time_zone': 'America/Toronto'}
-        user = User(userdata, trecs, tpout)
-        actual, acat, aredir, apastq = user.get_path(Location(db.locations(locid).loc_alias))
+        user = User(user_login, trecs, tpout)
+        user.completed_paths = completed
+        if len(completed) > 20:
+            user.past_quota = True
+        else:
+            user.past_quota = None
+        loc = Location(localias)
+        actual, acat, aredir, apastq = user.get_path(loc)
         assert actual.get_id() in expected
         assert isinstance(actual, Path)
         assert isinstance(actual.steps[0], Step)
         assert acat in range(1, 5)
-        assert aredir is None
-        assert apastq is None
+        if redirect:
+            assert isinstance(aredir, (int, long))
+        else:
+            assert aredir is None
+        if len(completed) == 20:
+            assert apastq is True
+        else:
+            assert apastq is None
 
-    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.skipif(True, reason='just because')
     @pytest.mark.parametrize('tpin,rankout,tpout,trecs,counter,promoted,newtags',
         [({'latest_new': 1,  # tpin =========================================
            'cat1': [1], 'cat2': [],
@@ -4783,19 +4897,18 @@ class TestWalk():
            'rev3': [], 'rev4': []},
           )
          ])
-    def test_walk_get_user(self, alias, trecs, tpout, db):
+    def test_walk_get_user(self, alias, trecs, tpout, user_login, db):
         """Unit test for paideia.Walk._get_user()"""
-        userdata = {'first_name': 'Homer', 'id': 1, 'time_zone': 'America/Toronto'}
-        thiswalk = Walk(userdata=userdata,
+        thiswalk = Walk(userdata=user_login,
                         tag_records=trecs,
                         tag_progress=tpout,
                         db=db)
-        actual = thiswalk._get_user(userdata=userdata,
+        thiswalk.user = None
+        actual = thiswalk._get_user(userdata=user_login,
                                     tag_records=trecs,
                                     tag_progress=tpout)
-
         assert isinstance(actual, User)
-        assert actual.get_id() == userdata['id']
+        assert actual.get_id() == user_login['id']
 
     @pytest.mark.skipif(True, reason='just because')
     @pytest.mark.parametrize('pathid,stepid,alias,npcshere,trecs,tpout,redir,'
@@ -4838,7 +4951,7 @@ class TestWalk():
            'cat1': [62, 63, 68, 115, 72, 89, 36],
            'cat2': [61, 66],
            'cat3': [], 'cat4': [],
-           'rev1': [], 'rev2': [],
+           'rev1': [62, 63, 68, 115, 72, 89, 36], 'rev2': [61, 66],
            'rev3': [], 'rev4': []},
           False,  # redir
           'How could you spell the word "pole" with Greek letters?',  # prompt text
@@ -4863,17 +4976,24 @@ class TestWalk():
           19,  # step
           'agora',  # alias
           [1],  # npcs here
-          [{'name': 1,
+          [{'name': 141,
             'tag': 61,
             'tlast_right': dt('2013-01-29'),
             'tlast_wrong': dt('2013-01-28'),
-            'times_right': 10,
+            'times_right': 20,
             'times_wrong': 2,
+            'secondary_right': []},
+           {'name': 141,
+            'tag': 62,
+            'tlast_right': dt('2013-03-20'),
+            'tlast_wrong': dt('2013-03-20'),
+            'times_right': 1,
+            'times_wrong': 1,
             'secondary_right': []}],
           {'latest_new': 2,  # tpout
            'cat1': [62], 'cat2': [61],
            'cat3': [], 'cat4': [],
-           'rev1': [], 'rev2': [],
+           'rev1': [62], 'rev2': [61],
            'rev3': [], 'rev4': []},
           False,  # redir?
           'How could you spell the word "pole" with Greek letters?',  # prompt text
@@ -5020,17 +5140,32 @@ class TestWalk():
     def test_walk_ask(self, pathid, stepid, alias, npcshere, trecs, tpout, redir,
                       promptext, instrs, slidedecks, widgimg, rbuttons,
                       rform, replystep, npc_data, bg_imgs, db, user_login):
+
+        tpout['name'] = user_login['id']
+        db(db.tag_progress.name == user_login['id']).delete()
+        db.tag_progress.insert(**tpout)
         thiswalk = Walk(userdata=user_login,
                         tag_records=trecs,
                         tag_progress=tpout,
                         db=db)
+        thiswalk.user.path = Path(path_id=pathid, db=db)
+        print 'cats'
+        pprint(thiswalk.user.categories)
+        print 'tpro'
+        pprint(thiswalk.user.tag_progress)
+
         loc = Location(alias)
-        #path = Path(path_id=pathid, db=db)
-        try:  # throws an error if user doesn't have a db.tag_progress row
-            db.tag_progress(db.tag_progress.name == user_login['id']).id
-        except AttributeError:
-            db.tag_progress.insert(name=user_login['id'])
-        actual = thiswalk.ask(alias, path=pathid)
+
+        actual = thiswalk.ask(alias)
+
+        print 'cats'
+        pprint(thiswalk.user.categories)
+        print 'tpro'
+        pprint(thiswalk.user.tag_progress)
+        print 'blocks'
+        pprint(thiswalk.user.blocks)
+        print 'new tags'
+        pprint(thiswalk.user.new_tags)
 
         assert actual['sid'] == stepid
         assert actual['pid'] == pathid
@@ -5327,6 +5462,7 @@ class TestWalk():
         assert db(db.attempt_log.id == actual_log_id).delete()
         assert db(db.tag_records.name == user_login['id']).delete()
 
+    @pytest.mark.skipif(True, reason='just because')
     def test_walk_store_user(self, mywalk):
         """Unit test for Walk._store_user"""
         session = current.session
@@ -5350,87 +5486,6 @@ class TestPathChooser():
     '''
     Unit testing class for the paideia.PathChooser class.
     '''
-    @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('locid,completed,tpout,redirect,expected',
-                             [(6,  # shop_of_alexander (only 1 untried here)
-                               [2, 3, 5, 8, 63, 95, 96, 97, 99, 102, 256, 40,
-                                9, 410, 411, 412, 413, 414, 415, 416, 417, 418,
-                                419, 420, 421, 422, 423, 444, 445],
-                               {'latest_new': 1,
-                                'cat1': [61], 'cat2': [],
-                                'cat3': [], 'cat4': [],
-                                'rev1': [61], 'rev2': [],
-                                'rev3': [], 'rev4': []},
-                               False,
-                               [1]  # only one left with tag
-                               ),
-                              (11,  # synagogue [all in loc 11 completed]
-                               [1, 2, 3, 8, 95, 96, 97, 99, 102],
-                               {'latest_new': 1,
-                                'cat1': [61], 'cat2': [],
-                                'cat3': [], 'cat4': [],
-                                'rev1': [61], 'rev2': [],
-                                'rev3': [], 'rev4': []},
-                                True,
-                                [5, 63, 256, 409, 410, 411, 412, 413, 414,
-                                 415, 416, 417, 418, 419, 420, 421, 422, 423,
-                                 444, 445]  # tag 61, not loc 11, not completed
-                               ),
-                              (8,  # agora (no redirect, new here)
-                               [17, 98, 15, 208, 12, 16, 34, 11, 23, 4, 9, 18],
-                               {'latest_new': 2,
-                                'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
-                                'cat3': [], 'cat4': [],
-                                'rev1': [], 'rev2': [61],
-                                'rev3': [], 'rev4': []},
-                                False,
-                               [7, 14, 100, 35, 19, 103, 21, 97, 13, 261, 101]
-                               ),
-                              (8,  # agora (all for tags completed, repeat here)
-                               [4, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
-                                19, 21, 22, 23, 34, 35, 45, 97, 98, 100, 101,
-                                103, 120, 129, 139, 141, 149, 152, 161, 167,
-                                176, 184, 190, 208, 222, 225, 228, 231, 236,
-                                247, 255, 257, 261, 277, 333, 334, 366, 424,
-                                425, 426, 427, 428, 429, 430, 431, 433, 434,
-                                435, 436, 437, 439, 440, 441, 444, 445],
-                               {'latest_new': 2,
-                                'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
-                                'cat3': [], 'cat4': [],
-                                'rev1': [], 'rev2': [61],
-                                'rev3': [], 'rev4': []},
-                                False,
-                               [101, 35, 34, 23, 16, 261, 15, 21, 208, 100,
-                                17, 14, 9, 7, 18, 11, 98, 12, 4, 19, 103, 13,
-                                97]  # with tags already completed here (repeat)
-                               ),
-                              ])
-    def test_pathchooser_choose(self, locid, completed, tpout, redirect,
-                                expected, db):
-        """
-        Unit test for the paideia.Pathchooser.choose() method.
-        """
-        chooser = PathChooser(tpout, locid, completed)
-        actual, newloc, catnum = chooser.choose()
-
-        #mycat = 'cat{}'.format(catnum)
-        #allpaths = db(db.paths.id > 0).select()
-        #tagids = tpout[mycat]
-        #expected = [p.id for p in allpaths
-                    #if any([t for t in tagids if t in p.tags])]
-        print 'CHOSEN PATH', actual
-        print 'EXPECTED PATHS', expected
-
-        assert catnum in range(1, 5)
-        if redirect:
-            assert newloc
-            firststep = actual['steps'][0]
-            steplocs = db.steps(firststep).locations
-            assert newloc in steplocs
-            assert locid not in steplocs
-        else:
-            assert actual['id'] in expected
-            assert newloc is None
 
     @pytest.mark.skipif(False, reason='just because')
     def test_pathchooser_order_cats(self):
@@ -5467,33 +5522,33 @@ class TestPathChooser():
                              [(6,  # shop_of_alexander (only 1 untried here)
                                [2, 3, 5, 8, 63, 95, 96, 97, 99, 102, 256, 40,
                                 9, 410, 411, 412, 413, 414, 415, 416, 417, 418,
-                                419, 420, 421, 422, 423, 444, 445],
-                               {'latest_new': 1,
+                                419, 420, 421, 422, 423, 444, 445],  # completed
+                               {'latest_new': 1,  # tpout
                                 'cat1': [61], 'cat2': [],
                                 'cat3': [], 'cat4': [],
                                 'rev1': [61], 'rev2': [],
                                 'rev3': [], 'rev4': []},
-                               [1]  # only one left with tag
+                               [1]  # expected: only one left with tag
                                ),
                               (11,  # synagogue [all in loc 11 completed]
-                               [1, 2, 3, 8, 95, 96, 97, 99, 102],
-                               {'latest_new': 1,
+                               [1, 2, 3, 8, 95, 96, 97, 99, 102],  # completed
+                               {'latest_new': 1,  # tpout
                                 'cat1': [61], 'cat2': [],
                                 'cat3': [], 'cat4': [],
                                 'rev1': [61], 'rev2': [],
                                 'rev3': [], 'rev4': []},
-                                [5, 63, 256, 409, 410, 411, 412, 413, 414,
-                                 415, 416, 417, 418, 419, 420, 421, 422, 423,
-                                 444, 445]  # tag 61, not loc 11, not completed
+                               [5, 63, 256, 409, 410, 411, 412, 413, 414,
+                                415, 416, 417, 418, 419, 420, 421, 422, 423,
+                                444, 445]  # expected: tag 61, not loc 11, not completed
                                ),
                               (8,  # agora (no redirect, new here)
-                               [17, 98, 15, 208, 12, 16, 34, 11, 23, 4, 9, 18],
-                               {'latest_new': 2,
+                               [17, 98, 15, 208, 12, 16, 34, 11, 23, 4, 9, 18],  # completed
+                               {'latest_new': 2,  # tpout
                                 'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
                                 'cat3': [], 'cat4': [],
-                                'rev1': [], 'rev2': [61],
+                                'rev1': [6, 29, 62, 82, 83], 'rev2': [61],
                                 'rev3': [], 'rev4': []},
-                               [7, 14, 100, 35, 19, 103, 21, 97, 13, 261, 101]
+                               [7, 13, 14, 19, 21, 35, 97, 100, 101, 103, 261]  # expected
                                ),
                               (8,  # agora (all for tags completed, repeat here)
                                [4, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
@@ -5503,14 +5558,14 @@ class TestPathChooser():
                                 247, 255, 257, 261, 277, 333, 334, 366, 424,
                                 425, 426, 427, 428, 429, 430, 431, 433, 434,
                                 435, 436, 437, 439, 440, 441, 444, 445],
-                               {'latest_new': 2,
+                               {'latest_new': 2,  # tpout
                                 'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
                                 'cat3': [], 'cat4': [],
-                                'rev1': [], 'rev2': [61],
+                                'rev1': [6, 29, 62, 82, 83], 'rev2': [61],
                                 'rev3': [], 'rev4': []},
                                [101, 35, 34, 23, 16, 261, 15, 21, 208, 100,
                                 17, 14, 9, 7, 18, 11, 98, 12, 4, 19, 103, 13,
-                                97]  # with tags already completed here (repeat)
+                                97]  # expected: already completed here (repeat)
                                ),
                               ])
     def test_pathchooser_paths_by_category(self, locid, completed, tpout,
@@ -5523,7 +5578,7 @@ class TestPathChooser():
         assert all([row['id'] for row in cpaths if row['id'] in expected])
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('locid,completed,tpout,expected',
+    @pytest.mark.parametrize('locid,completed,tpout,expected,mode',
                              [(6,  # shop_of_alexander (only 1 untried here)
                                [2, 3, 5, 8, 63, 95, 96, 97, 99, 102, 256, 40,
                                 9, 410, 411, 412, 413, 414, 415, 416, 417, 418,
@@ -5533,7 +5588,8 @@ class TestPathChooser():
                                 'cat3': [], 'cat4': [],
                                 'rev1': [61], 'rev2': [],
                                 'rev3': [], 'rev4': []},
-                               [1]  # only one left with tag
+                               [1],  # only one left with tag
+                               'here_new'  # mode
                                ),
                               (11,  # synagogue [all in loc 11 completed]
                                [1, 2, 3, 8, 95, 96, 97, 99, 102],
@@ -5542,9 +5598,10 @@ class TestPathChooser():
                                 'cat3': [], 'cat4': [],
                                 'rev1': [61], 'rev2': [],
                                 'rev3': [], 'rev4': []},
-                                [5, 63, 256, 409, 410, 411, 412, 413, 414,
-                                 415, 416, 417, 418, 419, 420, 421, 422, 423,
-                                 444, 445]  # tag 61, not loc 11, not completed
+                               [5, 63, 256, 409, 410, 411, 412, 413, 414,
+                                415, 416, 417, 418, 419, 420, 421, 422, 423,
+                                444, 445],  # tag 61, not loc 11, not completed
+                               'new_elsewhere'
                                ),
                               (8,  # agora (no redirect, new here)
                                [17, 98, 15, 208, 12, 16, 34, 11, 23, 4, 9, 18],
@@ -5553,7 +5610,8 @@ class TestPathChooser():
                                 'cat3': [], 'cat4': [],
                                 'rev1': [], 'rev2': [61],
                                 'rev3': [], 'rev4': []},
-                               [7, 14, 100, 35, 19, 103, 21, 97, 13, 261, 101]
+                               [7, 14, 100, 35, 19, 103, 21, 97, 13, 261, 101],
+                               'here_new'  # mode
                                ),
                               (8,  # agora (all for tags completed, repeat here)
                                [4, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
@@ -5570,24 +5628,114 @@ class TestPathChooser():
                                 'rev3': [], 'rev4': []},
                                [101, 35, 34, 23, 16, 261, 15, 21, 208, 100,
                                 17, 14, 9, 7, 18, 11, 98, 12, 4, 19, 103, 13,
-                                97]  # with tags already completed here (repeat)
+                                97],  # with tags already completed here (repeat)
+                               'repeat_here'
                                ),
                               ])
     def test_pathchooser_choose_from_cat(self, locid, completed, tpout,
-                                         expected, db):
+                                         expected, mode, db):
         """
         Unit test for the paideia.Pathchooser._choose_from_cats() method.
         """
         chooser = PathChooser(tpout, locid, completed)
         catnum = 1
         expected_rows = db(db.paths.id.belongs(expected)).select()
-        path, newloc, cat = chooser._choose_from_cat(expected_rows, catnum)
+        path, newloc, cat, actualmode = chooser._choose_from_cat(expected_rows, catnum)
         assert path['id'] in expected
         if newloc:
             assert newloc in [l for l in db.steps(path['steps'][0]).locations]
         else:
             assert newloc is None
         assert cat == 1
+        assert actualmode == mode
+
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('locid,completed,tpout,redirect,expected,mode',
+                             [(6,  # shop_of_alexander (only 1 untried here)
+                               [2, 3, 5, 8, 9, 63, 95, 96, 97, 99, 102, 256,
+                                409, 410, 411, 412, 413, 414, 415, 416, 417, 418,
+                                419, 420, 421, 422, 423],
+                               {'latest_new': 1,
+                                'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [61], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                               False,
+                               [1],  # only one left with tag
+                               'here_new'  # mode
+                               ),
+                              (11,  # synagogue [all in loc 11 completed]
+                               [1, 2, 3, 8, 95, 96, 97, 99, 102],
+                               {'latest_new': 1,
+                                'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [61], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                                True,
+                                [5, 63, 256, 409, 410, 411, 412, 413, 414,
+                                 415, 416, 417, 418, 419, 420, 421, 422, 423,
+                                 444, 445],  # tag 61, not loc 11, not completed
+                                'new_elsewhere'
+                               ),
+                              (8,  # agora (no redirect, new here)
+                               [17, 98, 15, 208, 12, 16, 34, 11, 23, 4, 9, 18],
+                               {'latest_new': 2,
+                                'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [6, 29, 62, 82, 83], 'rev2': [61],
+                                'rev3': [], 'rev4': []},
+                                False,
+                               [7, 14, 100, 35, 19, 103, 21, 97, 13, 261, 101],
+                               'here_new'  # mode
+                               ),
+                              (8,  # agora (all for tags completed, repeat here)
+                               [4, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
+                                19, 21, 22, 23, 34, 35, 45, 97, 98, 100, 101,
+                                103, 120, 129, 139, 141, 149, 152, 161, 167,
+                                176, 184, 190, 208, 222, 225, 228, 231, 236,
+                                247, 255, 257, 261, 277, 333, 334, 366, 424,
+                                425, 426, 427, 428, 429, 430, 431, 433, 434,
+                                435, 436, 437, 439, 440, 441, 444, 445],
+                               {'latest_new': 2,
+                                'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [6, 29, 62, 82, 83], 'rev2': [61],
+                                'rev3': [], 'rev4': []},
+                                False,
+                               [101, 35, 34, 23, 16, 261, 15, 21, 208, 100,
+                                17, 14, 9, 7, 18, 11, 98, 12, 4, 19, 103, 13,
+                                97],  # with tags already completed here (repeat)
+                               'repeat_here'
+                               ),
+                              ])
+    def test_pathchooser_choose(self, locid, completed, tpout, redirect,
+                                expected, mode, db):
+        """
+        Unit test for the paideia.Pathchooser.choose() method.
+        """
+        chooser = PathChooser(tpout, locid, completed)
+        actual, newloc, catnum, actualmode = chooser.choose()
+
+        #mycat = 'cat{}'.format(catnum)
+        #allpaths = db(db.paths.id > 0).select()
+        #tagids = tpout[mycat]
+        #expected = [p.id for p in allpaths
+                    #if any([t for t in tagids if t in p.tags])]
+        print 'CHOSEN PATH', actual['id']
+        print 'EXPECTED PATHS', expected
+
+        assert catnum in range(1, 5)
+        if redirect:
+            assert newloc
+            firststep = actual['steps'][0]
+            steplocs = db.steps(firststep).locations
+            assert newloc in steplocs
+            assert locid not in steplocs
+            assert actualmode == 'new_elsewhere'
+        else:
+            assert actual['id'] in expected
+            assert newloc is None
+        assert actualmode == mode
 
 
 class TestBugReporter():

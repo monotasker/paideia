@@ -18,7 +18,7 @@ import pickle
 from plugin_utils import flatten
 from plugin_widgets import MODAL
 #from paideia_utils import send_error
-#from pprint import pprint
+from pprint import pprint
 
 # TODO: move these notes elsewhere
 """
@@ -117,9 +117,9 @@ class Walk(object):
         auth = current.auth
         db = current.db
         try:  # look for user object already on this Walk
-            assert self.user and not new_user
+            assert (self.user) and new_user is None
             #print 'walk.get_user: retrieved user in memory'
-        except AttributeError:  # because no user yet on this Walk
+        except (AttributeError, AssertionError):  # because no user yet on this Walk
             try:
                 #print 'walk.get_user: looking for session user in db'
                 sd = db(db.session_data.name ==
@@ -1569,32 +1569,34 @@ class PathChooser(object):
         as values.
         """
         db = current.db
+        # TODO: set up computed field
+        #if not db(db.paths).select().first().path_tags:
+            #for row in db(db.paths.id > 0).select():
+                #db(db.paths.id == row.id).update(steps=row.steps)
+                #print db(db.paths.id == row.id).select().first().path_tags
         # TODO: include paths with tag as secondary, maybe in second list
         # TODO: cache the select below and just re-order randomly
-        ps = db().select(db.paths.ALL, orderby='<random>')
-        # filter by category, then
-        # filter out paths with a step that's not set to "active"
-        # avoid steps with right tag but no location
-        taglist = self.categories['cat{}'.format(cat)]
-        # TODO: make find below more efficient
+        taglist = self.categories['rev{}'.format(cat)]
 
-        ps = ps.find(lambda row:
-                     [t for t in row.tags
-                      if taglist and (t in taglist)])
-        ps = ps.find(lambda row:
-                     [s for s in row.steps
-                      if db.steps(s).status != 2])
-        ps.exclude(lambda row:
-                   [s for s in row.steps
-                    if db.steps(s).locations is None])
-        # TODO: why does this kill the select?
-        #ps.exclude(lambda row:
-                   #[t for t in row.tags
-                    #if db.tags[t].tag_position > self.rank])
-        #print 'paths_by_category: Found', len(ps), 'paths in category', cat
-        #print 'paths_by_category: using tags', taglist
+        allpaths = db(db.paths).select()
+        pathset = allpaths.find(lambda row: all([t for s in row.steps for t in db.steps[s].tags
+                                                 if t in taglist and
+                                                 db.tags[t].tag_position <= rank]))
+        print len(pathset)
+        pathset = pathset.find(lambda row: len(row.steps) > 0 and
+                                           all([s for s in row.steps
+                                                if (db.steps[s].status != 2)]))
+        print len(pathset)
+        pathset = pathset.find(lambda row: all([db.steps[s].locations for s
+                                                in row.steps]))
+        print len(pathset)
+        pathset = pathset.as_list()
+        print 'paths_by_category: Found', len(pathset), 'paths in category', cat
+        for p in pathset:
+            print p['steps'][0]
+        print [db.steps[int(p['steps'][0])].locations for p in pathset]
 
-        return (ps, cat)
+        return (pathset, cat)
 
     def _choose_from_cat(self, cpaths, category):
         """
@@ -1613,36 +1615,52 @@ class PathChooser(object):
         """
         loc_id = self.loc_id
         db = current.db
+        #print 'completed'
+        #print self.completed
+        #print 'completed with tags'
+        #pprint({n: [t for s in db.paths[n].steps for t in s.tags] for n in self.completed})
+        print 'cpaths'
+        print [p['id'] for p in cpaths]
 
-        # cpaths is already filtered by category
-        p_new = cpaths.find(lambda row: row.id not in self.completed).as_list()
-        p_here = [p for p in cpaths.as_list()
-                  if db.steps[int(p['steps'][0])].locations
-                  and loc_id in db.steps[int(p['steps'][0])].locations]
+        p_new = [p for p in cpaths if p['id'] not in self.completed]
+        print 'p_new'
+        print [p['id'] for p in p_new]
+        print 'paths w/o steps'
+        print [db.steps[int(p['steps'][0])].locations for p in cpaths]
+        p_here = [p for p in cpaths
+                  if loc_id in db.steps[int(p['steps'][0])].locations]
+        print 'p_here'
+        print [p['id'] for p in p_here]
         p_here_new = [p for p in p_here if p in p_new]
-        #print 'PathChooser.choose_from_cat: found', len(p_here_new), 'new paths here'
+        print 'PathChooser.choose_from_cat: found', len(p_here_new), 'new paths here'
+        print [p['id'] for p in p_here_new]
 
         path = None
         new_loc = None
+        mode = None
         if p_here_new:
-            #print 'PathChooser._choose_from_cat: choosing untried path for this loc'
+            print 'PathChooser._choose_from_cat: choosing untried path for this loc'
             path = p_here_new[randrange(0, len(p_here_new))]
+            mode = 'here_new'
         elif p_new:
-            #print 'PathChooser._choose_from_cat: choosing untried path for different loc'
+            print 'PathChooser._choose_from_cat: choosing untried path for different loc'
             # While loop safeguards against looking for location for a step
             # that has no locations assigned.
             while path is None:
                 try:
-                    path = p_new[randrange(0, len(p_new))]
+                    idx = randrange(0, len(p_new))
+                    path = p_new[idx]
                     new_locs = db.steps(path['steps'][0]).locations
                     new_loc = new_locs[randrange(0, len(new_locs))]
                 except TypeError:
                     path = None
+            mode = 'new_elsewhere'
         elif p_here:
-            #print 'PathChooser._choose_from_cat: choosing repeat path for this loc'
+            print 'PathChooser._choose_from_cat: choosing repeat path for this loc'
             path = p_here[randrange(0, len(p_here))]
+            mode = 'repeat_here'
 
-        return (path, new_loc, category)
+        return (path, new_loc, category, mode)
 
     def choose(self, db=None):
         """
@@ -1662,21 +1680,30 @@ class PathChooser(object):
         """
         db = current.db if not db else db
 
-        cat_list = self._order_cats()
+        cat_list = [c for c in self._order_cats()
+                    if self.categories['rev{}'.format(c)]]
+        print 'filtered cat_list:', cat_list
+        print 'categories:'
+        pprint(self.categories)
 
         # cycle through categories, starting with the one from _get_category()
         for cat in cat_list:
-            #print 'PathChooser.choose: trying cat', cat
-            catpaths = self._paths_by_category(cat, self.rank)
-            if len(catpaths[0]):
-                #print 'PathChooser.choose: found', len(catpaths[0]), 'paths in cat'
+            print 'PathChooser.choose: trying cat', cat
+            catpaths, category = self._paths_by_category(cat, self.rank)
+            print 'cat is now', category
+            if len(catpaths):
+                print 'PathChooser.choose: found', len(catpaths), 'paths in cat'
                 #for c in catpaths[0]:
                     #print'catpath -', pprint(c)
-                return self._choose_from_cat(catpaths[0], catpaths[1])
+                path, newloc, category, mode = self._choose_from_cat(catpaths,
+                                                                     category)
+                print 'newloc is', newloc
+                print 'category is', category
+                print 'mode is', mode
+                return path, newloc, category, mode
             else:
-                #print 'PathChooser.choose: found NO paths in cat', cat
+                print 'PathChooser.choose: found NO paths in cat', cat
                 continue
-
         return False
 
 
@@ -1864,9 +1891,9 @@ class User(object):
         if not self.tag_progress:  # in case User was badly initialized
             self.get_categories()
         while not choice:
-            choice, redir, cat = PathChooser(self.tag_progress,
-                                                loc.get_id(),
-                                                self.completed_paths).choose()
+            choice, redir, cat, mode = PathChooser(self.tag_progress,
+                                                   loc.get_id(),
+                                                   self.completed_paths).choose()
             #FIXME: if no choice, send_error('User', 'get_path', current.request)
         path = Path(path_id=choice['id'])
         return path, redir, cat
@@ -1882,6 +1909,7 @@ class User(object):
         db = current.db if not db else db
         redir = None
         cat = None
+        pastq = None
 
         if pathid:  # testing specific path
             self.path = Path(pathid)
@@ -1896,16 +1924,16 @@ class User(object):
         elif self.path and len(self.path.steps):  # unfinished step in self.path
             pass
         else:  # choosing a new path
-            self.path, cat, redir = self._make_path_choice(loc)
+            self.path, redir, cat = self._make_path_choice(loc)
 
         if len(self.completed_paths) >= self.quota and self.past_quota is False:
-            self.past_quota = True
+            pastq = True
         if len(self.blocks) > 0:
             # FIXME: This hack is to work around mysterious introduction of
             # redirect block after initial redirect has been triggered
             self.blocks = [b for b in self.blocks
                            if not b.get_condition() is 'redirect']
-        return (self.path, cat, redir, self.past_quota)
+        return (self.path, cat, redir, pastq)
 
     def get_categories(self, user_id=None, rank=None, old_categories=None,
                        tag_records=None, utcnow=None):
