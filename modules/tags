@@ -101,10 +101,11 @@ __init__	paideia_stats.py	/^    def __init__(self, user_id=None, auth=None, cach
 __init__	plugin_ajaxselect.py	/^    def __init__(self, field, value, indx=0,$/;"	m	class:AjaxSelect
 __init__	plugin_widgets.py	/^    def __init__(self):$/;"	m	class:POPOVER
 __init__	plugin_widgets.py	/^    def __init__(self, field, value):$/;"	m	class:JQMODAL
+_add_from_logs	paideia.py	/^    def _add_from_logs(self, tag, user_id, newdata, tright, twrong, got_right):$/;"	m	class:Walk
 _add_log_data	paideia_stats.py	/^    def _add_log_data(self, tag_recs):$/;"	m	class:Stats
 _add_progress_data	paideia_stats.py	/^    def _add_progress_data(self, tag_recs):$/;"	m	class:Stats
 _add_promotion_data	paideia_stats.py	/^    def _add_promotion_data(self, tag_recs):$/;"	m	class:Stats
-_add_secondary_right	paideia.py	/^    def _add_secondary_right(self, tag_records):$/;"	m	class:Categorizer
+_add_secondary_right	paideia.py	/^    def _add_secondary_right(self, rec):$/;"	m	class:Categorizer
 _add_tag_data	paideia_stats.py	/^    def _add_tag_data(self, tag_recs):$/;"	m	class:Stats
 _add_untried_tags	paideia.py	/^    def _add_untried_tags(self, categories, rank=None, db=None):$/;"	m	class:Categorizer
 _categorize_tags	paideia_exploring.py	/^    def _categorize_tags(self, user=None, auth=None, db=None, progress=None):$/;"	m	class:Walk
@@ -120,6 +121,7 @@ _db_to_session	paideia_exploring.py	/^    def _db_to_session(self, data):$/;"	m	
 _deactivate_path	paideia_exploring.py	/^    def _deactivate_path(self, path):$/;"	m	class:Walk
 _find_cat_changes	paideia.py	/^    def _find_cat_changes(self, cats, oldcats, bbrows=None, uid=None):$/;"	m	class:Categorizer
 _find_cats	paideia_exploring.py	/^    def _find_cats(self, categories, record_list):$/;"	m	class:Walk
+_fix_oldcats	paideia.py	/^    def _fix_oldcats(self, oldcats, uid, bbrows=None):$/;"	m	class:Categorizer
 _get_avg	paideia.py	/^    def _get_avg(self, tag, mydays=7):$/;"	m	class:Categorizer
 _get_badge_display	paideia_exploring.py	/^    def _get_badge_display(self, step_id):$/;"	m	class:Step
 _get_badge_display	paideia_exploring.py	/^    def _get_badge_display(self, step_id):$/;"	m	class:StepStub
@@ -163,6 +165,7 @@ _introduce	paideia_exploring.py	/^    def _introduce(self):$/;"	m	class:Walk
 _introduce_tags	paideia.py	/^    def _introduce_tags(self, rank=None, db=None):$/;"	m	class:Categorizer
 _local	paideia_stats.py	/^    def _local(self, dt, tz=None):$/;"	m	class:Stats
 _make_logs_into_weekstats	paideia_stats.py	/^    def _make_logs_into_weekstats(self, logs):$/;"	m	class:Stats
+_make_path_choice	paideia.py	/^    def _make_path_choice(self, loc):$/;"	m	class:User
 _make_replacements	paideia.py	/^    def _make_replacements(self, raw_prompt, username):$/;"	m	class:StepAwardBadges
 _make_replacements	paideia.py	/^    def _make_replacements(self, raw_prompt, username):$/;"	m	class:StepQuotaReached
 _make_replacements	paideia.py	/^    def _make_replacements(self, raw_prompt, username):$/;"	m	class:StepRedirect
@@ -187,6 +190,7 @@ _save_session_data	paideia_exploring.py	/^    def _save_session_data(self):$/;"	
 _save_session_data	paideia_exploring.py	/^    def _save_session_data(self):$/;"	m	class:Step
 _save_session_data	paideia_exploring.py	/^    def _save_session_data(self, new=False):$/;"	m	class:Walk
 _session_to_db	paideia_exploring.py	/^    def _session_to_db(self, data):$/;"	m	class:Utils
+_set_blocks	paideia.py	/^    def _set_blocks(self, user=None):$/;"	m	class:Walk
 _start_new_session	paideia_exploring.py	/^    def _start_new_session(self):$/;"	m	class:Walk
 _step_in_path	paideia_exploring.py	/^    def _step_in_path(self, path, step=None):$/;"	m	class:Walk
 _store_user	paideia.py	/^    def _store_user(self, user):$/;"	m	class:Walk
@@ -194,7 +198,7 @@ _unfinished	paideia_exploring.py	/^    def _unfinished(self):$/;"	m	class:Walk
 _unfinished_today	paideia_exploring.py	/^    def _unfinished_today(self):$/;"	m	class:Walk
 _update_path_log	paideia_exploring.py	/^    def _update_path_log(self, path_id, step_id, update_switch):$/;"	m	class:Walk
 _update_tag_record	paideia.py	/^    def _update_tag_record(self, tag, oldrec, user_id, tright, twrong,$/;"	m	class:Walk
-_update_tag_secondary	paideia.py	/^    def _update_tag_secondary(self, tag, oldrec, user_id):$/;"	m	class:Walk
+_update_tag_secondary	paideia.py	/^    def _update_tag_secondary(self, tag, oldrec, user_id, now=None):$/;"	m	class:Walk
 abbrevs	paideia_path_factory.py	/^abbrevs = {'acc': 'accusative',$/;"	v
 activate_step	paideia_exploring.py	/^    def activate_step(self, path, step_id):$/;"	m	class:Walk
 active_tags	paideia_stats.py	/^    def active_tags(self, now=None):$/;"	m	class:Stats

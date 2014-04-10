@@ -9,7 +9,7 @@ movement from one db system to another.
 """
 
 from plugin_ajaxselect import AjaxSelect
-from itertools import chain
+#from itertools import chain
 import datetime
 import os
 #import re
@@ -397,7 +397,20 @@ db.define_table('paths',
     Field('label'),
     Field('steps', 'list:reference steps'),
     Field('path_style', db.path_styles),
+    Field('path_tags',
+          compute=lambda row: row.steps),
+          #compute=lambda row: [tag for step in row.paths.steps
+                               #for tag in db.steps[step].tags]),
+    Field('path_active', 'boolean',
+          compute=lambda row: all([s for s in row.paths.steps
+                                   if (db.steps[s].status != 2)
+                                   and db.steps[s].locations])
+          ),
     format='%(label)s')
+
+db.paths.tags_for_steps = Field.Virtual('tags_for_steps',
+                              lambda row: [tag for step in row.paths.steps
+                                           for tag in db.steps[step].tags])
 db.paths.steps.requires = IS_IN_DB(db, 'steps.id',
                                    db.steps._format, multiple=True)
 db.paths.steps.widget = lambda field, value: AjaxSelect(field, value,
@@ -410,26 +423,26 @@ db.paths.steps.widget = lambda field, value: AjaxSelect(field, value,
                                                         ).widget()
 
 
-class PathsVirtualFields(object):
-    def tags(self):
-        steprows = db(db.steps.id.belongs(self.paths.steps)).select()
-        nlists = [s.tags for s in steprows]
-        return list(chain.from_iterable(nlists))
+#class PathsVirtualFields(object):
+    #def tags(self):
+        #steprows = db(db.steps.id.belongs(self.paths.steps)).select()
+        #nlists = [s.tags for s in steprows]
+        #return list(chain.from_iterable(nlists))
 
-    def tags_secondary(self):
-        steprows = db(db.steps.id.belongs(self.paths.steps)).select()
-        nlists = [s.tags_secondary for s in steprows]
-        return list(chain.from_iterable(nlists))
+    #def tags_secondary(self):
+        #steprows = db(db.steps.id.belongs(self.paths.steps)).select()
+        #nlists = [s.tags_secondary for s in steprows]
+        #return list(chain.from_iterable(nlists))
 
-    def tags_ahead(self):
-        try:
-            steprows = db(db.steps.id.belongs(self.paths.steps)).select()
-            nlists = [s.tags_ahead for s in steprows]
-            return list(chain.from_iterable(nlists))
-        except TypeError:
-            return None
+    #def tags_ahead(self):
+        #try:
+            #steprows = db(db.steps.id.belongs(self.paths.steps)).select()
+            #nlists = [s.tags_ahead for s in steprows]
+            #return list(chain.from_iterable(nlists))
+        #except TypeError:
+            #return None
 
-db.paths.virtualfields.append(PathsVirtualFields())
+#db.paths.virtualfields.append(PathsVirtualFields())
 
 db.define_table('attempt_log',
                 Field('name', db.auth_user, default=auth.user_id),
