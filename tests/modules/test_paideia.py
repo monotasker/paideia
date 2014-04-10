@@ -5756,12 +5756,38 @@ class TestBugReporter():
                 'step_id': 108,
                 'score': 0.5,
                 'response_string': 'hi',
-                'loc_alias': 'agora'}
-        expected = '<a class="bug_reporter_link" data-w2p_disable_with="default" ' \
-                   'href="/paideia/creating/bug.load?' \
-                   'answer=hi&amp;loc=agora&amp;log_id=22&amp;path=4&amp;' \
-                   'score=0.5&amp;step=108" id="bug_reporter">click here</a>'
+                'loc_id': 8}
+
+        xpct = ['<a class="bug_reporter" data-target="#bug_reporter_modal" '
+                'data-toggle="modal" id="bug_reporter_modal_trigger">Something '
+                'wrong?</a>'
+                '<div aria-hidden="true" aria-labelledby="myModalLabel" '
+                'class="modal hide fade " id="bug_reporter_modal" '
+                'role="dialog" tabindex="-1">'
+                '<div class="modal-header">'
+                '<h3>Did you run into a problem?</h3>'
+                '</div>'
+                '<div class="modal-body ">'
+                '<p>Think your answer should have been correct? '
+                '<a class="bug_reporter_link btn btn-danger" '
+                'data-w2p_disable_with="default" data-w2p_method="GET" '
+                'data-w2p_target="bug_reporter" href="/paideia/creating/bug.'
+                'load?answer=hi&amp;loc_id=8&amp;log_id=22&amp;path_id=4&amp;'
+                'score=0.5&amp;step_id=108">click here<i class="icon-bug"></i></a> '
+                'to submit a bug report. You can find the instructor&#x27;s '
+                'response in the &quot;bug reports&quot; tab of your user '
+                'profile.</p>'
+                '</div>'
+                '<div class="modal-footer">'
+                '<button aria-hidden="true" class="pull-right" '
+                'data-dismiss="modal" type="button">Close</button>'
+                '</div>'
+                '</div>']
+        #expected = '<a class="bug_reporter_link" data-w2p_disable_with="default" ' \
+                   #'href="/paideia/creating/bug.load?' \
+                   #'answer=hi&amp;loc=agora&amp;log_id=22&amp;path=4&amp;' \
+                   #'score=0.5&amp;step=108" id="bug_reporter">click here</a>'
 
         actual = BugReporter().get_reporter(**data)
 
-        assert actual.xml() == expected
+        assert actual.xml() == xpct[0]
