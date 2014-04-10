@@ -1577,24 +1577,21 @@ class PathChooser(object):
         # TODO: include paths with tag as secondary, maybe in second list
         # TODO: cache the select below and just re-order randomly
         taglist = self.categories['rev{}'.format(cat)]
+        print 'taglist:', taglist
 
-        allpaths = db(db.paths).select()
-        pathset = allpaths.find(lambda row: all([t for s in row.steps for t in db.steps[s].tags
-                                                 if t in taglist and
-                                                 db.tags[t].tag_position <= rank]))
-        print len(pathset)
+        allpaths = db(db.paths.id > 0).select()
+        pathset = allpaths.find(lambda row: any([t for t in row.tags_for_steps
+                                                 if t in taglist]))
+        #pathset.exclude(lambda row: any([t for s in row.steps
+                                         #for t in db.steps[s].tags
+                                         #if db.tags[t].tag_position > rank]))
         pathset = pathset.find(lambda row: len(row.steps) > 0 and
                                            all([s for s in row.steps
                                                 if (db.steps[s].status != 2)]))
-        print len(pathset)
         pathset = pathset.find(lambda row: all([db.steps[s].locations for s
                                                 in row.steps]))
-        print len(pathset)
         pathset = pathset.as_list()
         print 'paths_by_category: Found', len(pathset), 'paths in category', cat
-        for p in pathset:
-            print p['steps'][0]
-        print [db.steps[int(p['steps'][0])].locations for p in pathset]
 
         return (pathset, cat)
 
@@ -1615,30 +1612,21 @@ class PathChooser(object):
         """
         loc_id = self.loc_id
         db = current.db
-        #print 'completed'
-        #print self.completed
-        #print 'completed with tags'
-        #pprint({n: [t for s in db.paths[n].steps for t in s.tags] for n in self.completed})
-        print 'cpaths'
-        print [p['id'] for p in cpaths]
 
         p_new = [p for p in cpaths if p['id'] not in self.completed]
-        print 'p_new'
-        print [p['id'] for p in p_new]
-        print 'paths w/o steps'
-        print [db.steps[int(p['steps'][0])].locations for p in cpaths]
+        #print 'p_new', [p['id'] for p in p_new]
         p_here = [p for p in cpaths
                   if loc_id in db.steps[int(p['steps'][0])].locations]
-        print 'p_here'
-        print [p['id'] for p in p_here]
+        #print 'p_here', [p['id'] for p in p_here]
         p_here_new = [p for p in p_here if p in p_new]
         print 'PathChooser.choose_from_cat: found', len(p_here_new), 'new paths here'
-        print [p['id'] for p in p_here_new]
 
         path = None
         new_loc = None
         mode = None
         if p_here_new:
+            for p in p_here_new:
+                print p['id'], ':', [t for s in p['steps'] for t in s['tags']]
             print 'PathChooser._choose_from_cat: choosing untried path for this loc'
             path = p_here_new[randrange(0, len(p_here_new))]
             mode = 'here_new'
