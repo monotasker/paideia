@@ -24,6 +24,7 @@ from random import randint
 from copy import copy
 from dateutil import parser
 from difflib import Differ
+from itertools import chain
 
 
 # ===================================================================
@@ -51,7 +52,6 @@ global_run_TestBugReporter = True
 def log_generator(uid, tag, count, numright, lastright, lastwrong, earliest,
                   db):
     """Generate attempt_log mock entries in the database for a test user."""
-    db(db.attempt_log.name == uid).delete()  # start fresh
     datalist = []
     tagsteps = db(db.steps.tags.contains(tag)).select(db.steps.id).as_list()
     stepids = [t['id'] for t in tagsteps]
@@ -59,14 +59,19 @@ def log_generator(uid, tag, count, numright, lastright, lastwrong, earliest,
                    ).select(db.paths.id, db.paths.steps).as_list()
     pathids = {s: p['id'] for s in stepids for p in steppaths if s in p['steps']}
     for n in range(count):
-        mystep = stepids[randint(0, len(stepids) - 1)]
+        mystep = pathids.keys()[randint(0, len(pathids.keys()) - 1)]
         score = 1.0 if n < numright else 0.0
         latest = lastright if (abs(score - 1) <= 0.001) else lastwrong
-        mydt = earliest + datetime.timedelta(
+        if n == (numright - 1):
+            mydt = lastright
+        elif n == (count - 1):
+            mydt = lastwrong
+        else:
+            mydt = earliest + datetime.timedelta(
                 seconds=randint(0, int((latest - earliest).total_seconds())))
         rowdict = {'name': uid,
                    'step': mystep,
-                   'in_path': pathids[mystep],
+                   'in_path': pathids[int(mystep)],
                    'score': score,
                    'dt_attempted': mydt,
                    'user_response': 'norwiegian blue'}
@@ -3437,20 +3442,42 @@ class TestStep():
         for l in actual.get_locations():
             assert l in npcindb.map_location
 
-    @pytest.mark.skipif(True, reason='just because')
-    @pytest.mark.parametrize('stepid', [1, 2])
-    def test_step_get_instructions(self, stepid, mysteps):
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('stepid,instructions',
+          [(1,
+            ['Focus on finding Greek letters that make the *sounds* of the '
+             'English word. Don\'t look for Greek "equivalents" for each '
+             'English letter.']
+            ),
+           (2,
+            None
+            )
+           ])
+    def test_step_get_instructions(self, stepid, instructions):
         """Test for method Step._get_instructions"""
-        step, expected = mystep(stepid, mysteps)
+        step = mystep(stepid)
         actual = step._get_instructions()
-        assert actual == expected['instructions']
+        assert actual == instructions
 
-    @pytest.mark.skipif(True, reason='just because')
-    @pytest.mark.parametrize('stepid', [1, 2, 19])  # only StepText type
-    def test_step_get_readable(self, stepid, mysteps):
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('stepid, readable',
+            [(1,
+             {'readable_short': ['μιτ'],
+              'readable_long': []},
+              ),
+             (2,
+              {'readable_short': ['βατ', 'βοτ'],
+               'readable_long': []},
+              ),
+             (19,
+              {'readable_short': ['πωλ'],
+              'readable_long': []},
+              )
+             ])  # only StepText type
+    def test_step_get_readable(self, stepid, readable):
         """Unit tests for StepText._get_readable() method"""
-        step, expected = mystep(stepid, mysteps)
-        assert step._get_readable() == expected['readable']
+        step = mystep(stepid)
+        assert step._get_readable() == readable
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('stepid,score,localias,npcshere,resptext,'
@@ -4027,7 +4054,7 @@ class TestUser(object):
         actual = user.is_stale(now=now, start=start, db=db)
         assert actual == expected
 
-    @pytest.mark.skipif(True, reason='just because')
+    @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('localias,completed,tpout,trecs,redirect,expected',
         [('shop_of_alexander',  # loc 6, (only 1 untried here)
           [2, 3, 5, 8, 63, 95, 96, 97, 99, 102, 256, 40,
@@ -4121,7 +4148,7 @@ class TestUser(object):
         else:
             assert apastq is None
 
-    @pytest.mark.skipif(True, reason='just because')
+    @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('tpin,rankout,tpout,trecs,counter,promoted,newtags',
         [({'latest_new': 1,  # tpin =========================================
            'cat1': [1], 'cat2': [],
@@ -4910,7 +4937,7 @@ class TestWalk():
         assert isinstance(actual, User)
         assert actual.get_id() == user_login['id']
 
-    @pytest.mark.skipif(True, reason='just because')
+    @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('pathid,stepid,alias,npcshere,trecs,tpout,redir,'
                              'promptext,instrs,slidedecks,widgimg,rbuttons,'
                              'rform,replystep',
@@ -4918,31 +4945,27 @@ class TestWalk():
           19,  # step
           'synagogue',  # alias
           [1],  # npcs here FIXME
-          [{'name': 1,  # trecs
-            'tag': 61,
+          [{'tag': 61,  # trecs
             'tlast_right': dt('2013-01-27'),
             'tlast_wrong': dt('2013-01-21'),
             'times_right': 10,
             'times_wrong': 10,
             'secondary_right': None},
-           {'name': 1,
-            'tag': 62,
+           {'tag': 62,
             'tlast_right': dt('2013-01-10'),
-            'tlast_wrong': dt('2013-01-1'),
+            'tlast_wrong': dt('2013-01-10'),
             'times_right': 10,
             'times_wrong': 0,
             'secondary_right': None},
-           {'name': 1,
-            'tag': 63,
+           {'tag': 63,
             'tlast_right': dt('2013-01-27'),
-            'tlast_wrong': dt('2013-01-21'),
+            'tlast_wrong': dt('2013-01-27'),
             'times_right': 9,
             'times_wrong': 0,
             'secondary_right': None},
-           {'name': 1,
-            'tag': 66,
+           {'tag': 66,
             'tlast_right': dt('2013-01-27'),
-            'tlast_wrong': dt('2013-01-21'),
+            'tlast_wrong': dt('2013-01-27'),
             'times_right': 10,
             'times_wrong': 0,
             'secondary_right': None}
@@ -5142,8 +5165,20 @@ class TestWalk():
                       rform, replystep, npc_data, bg_imgs, db, user_login):
 
         tpout['name'] = user_login['id']
+        db(db.attempt_log.name == user_login['id']).delete()
+        atags = chain.from_iterable([v for k, v in tpout.iteritems()
+                                     if k in ['cat1', 'cat2', 'cat3', 'cat4']])
+        for t in atags:
+            thisrec = [r for r in trecs if r['tag'] == t]
+            s = thisrec[0] if thisrec else trecs[0]  # if no trec for tag, use first rec for data
+            s['tag'] = t
+            mycount = s['times_wrong'] + s['times_right']
+            log_generator(user_login['id'], s['tag'], mycount, s['times_right'],
+                        s['tlast_right'], s['tlast_wrong'], dt('2013-01-01'), db)
         db(db.tag_progress.name == user_login['id']).delete()
         db.tag_progress.insert(**tpout)
+        db(db.tag_records.name == user_login['id']).delete()
+        db.tag_records.bulk_insert(trecs)
         thiswalk = Walk(userdata=user_login,
                         tag_records=trecs,
                         tag_progress=tpout,
@@ -5163,7 +5198,7 @@ class TestWalk():
         print 'tpro'
         pprint(thiswalk.user.tag_progress)
         print 'blocks'
-        pprint(thiswalk.user.blocks)
+        pprint([b.condition for b in thiswalk.user.blocks])
         print 'new tags'
         pprint(thiswalk.user.new_tags)
 
@@ -5198,7 +5233,7 @@ class TestWalk():
         assert thiswalk.user.path.step_for_reply == replystep
         assert pathid == thiswalk.user.path.get_id()
 
-    @pytest.mark.skipif(True, reason='just because')
+    @pytest.mark.skipif(False, reason='just because')
     def test_walk_reply(self, mywalk):
         """Unit test for paideia.Walk.reply() method."""
         thiswalk = mywalk['walk']
@@ -5269,7 +5304,7 @@ class TestWalk():
         else:
             pass
 
-    @pytest.mark.skipif(True, reason='just because')
+    @pytest.mark.skipif(False, reason='just because')
     def test_walk_record_cats(self, mywalk, db):
         """
         Unit tests for Walk._record_cats() method.
@@ -5462,7 +5497,7 @@ class TestWalk():
         assert db(db.attempt_log.id == actual_log_id).delete()
         assert db(db.tag_records.name == user_login['id']).delete()
 
-    @pytest.mark.skipif(True, reason='just because')
+    @pytest.mark.skipif(False, reason='just because')
     def test_walk_store_user(self, mywalk):
         """Unit test for Walk._store_user"""
         session = current.session
