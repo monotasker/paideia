@@ -1533,6 +1533,8 @@ class PathChooser(object):
         """Initialize a PathChooser object to select the user's next path."""
         self.categories = {k: v for k, v in tag_progress.iteritems()
                            if not k in ['name', 'latest_new']}
+        print 'pathchooser: init categories'
+        pprint(self.categories)
         self.rank = tag_progress['latest_new']
         db = current.db if not db else db
         self.loc_id = loc_id
@@ -2071,10 +2073,18 @@ class Categorizer(object):
                 tag_records[idx] = self._add_secondary_right(t)
             self.tag_records = tag_records
             categories = self._core_algorithm()
+            print 'core algorithm:'
+            pprint(categories)
             categories = self._add_untried_tags(categories)
+            print 'add untried'
+            pprint(categories)
             categories = self._remove_dups(categories, rank)
+            print 'remove dups'
+            pprint(categories)
             categories.update((c, []) for c in ['rev1', 'rev2', 'rev3', 'rev4'])
             cat_changes = self._find_cat_changes(categories, old_categories)
+            print 'find cat changes'
+            pprint(categories)
             promoted = cat_changes['promoted']
             demoted = cat_changes['demoted']
             new_tags = cat_changes['new_tags']
@@ -2082,6 +2092,7 @@ class Categorizer(object):
 
             # If there are no tags left in category 1, introduce next set
             if not tag_progress['cat1']:
+                print 'adding new tags'
                 newlist = self._introduce_tags()
                 categories['cat1'] = categories['rev1'] = newlist
                 tag_progress['cat1'] = tag_progress['rev1'] = newlist
