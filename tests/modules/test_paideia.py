@@ -5378,6 +5378,8 @@ class TestWalk():
         thiswalk.user.step_for_reply = mystep(stepid)
         thiswalk.user.categories = {k: v for k, v in tpout.iteritems()
                                     if k[:3] in ['cat', 'rev']}
+        assert thiswalk.user.path.get_id() == pathid
+        assert thiswalk.user.path.step_for_reply.get_id() == stepid
         # setup done
 
         # test for both a correct and an incorrect response
@@ -5430,7 +5432,7 @@ class TestWalk():
                         'score={}&amp;'\
                         'step={}" '\
                         'id="bug_reporter">click here</a>'.format(*bug_info)
-        assert actual['bug_reporter'].xml() == bug_reporter
+        assert a['bug_reporter'].xml() == bug_reporter
         assert not thiswalk.user.path.step_for_reply
         assert not thiswalk.user.path.step_for_prompt
         assert thiswalk.user.path.completed_steps[-1].get_id() == stepid
