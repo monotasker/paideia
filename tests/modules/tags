@@ -19,18 +19,18 @@ TestUser	test_paideia.py	/^class TestUser(object):$/;"	c
 TestWalk	test_paideia.py	/^class TestWalk():$/;"	c
 bg_imgs	test_paideia.py	/^def bg_imgs(db):$/;"	f
 dt	test_paideia.py	/^def dt(string):$/;"	f
-global_run_TestBugReporter	test_paideia.py	/^global_run_TestBugReporter = False$/;"	v
-global_run_TestCategorizer	test_paideia.py	/^global_run_TestCategorizer = False$/;"	v
-global_run_TestLocation	test_paideia.py	/^global_run_TestLocation = False$/;"	v
-global_run_TestMap	test_paideia.py	/^global_run_TestMap = False$/;"	v
-global_run_TestMultipleEvaluator	test_paideia.py	/^global_run_TestMultipleEvaluator = False$/;"	v
-global_run_TestNpc	test_paideia.py	/^global_run_TestNpc = False$/;"	v
-global_run_TestPath	test_paideia.py	/^global_run_TestPath = False$/;"	v
-global_run_TestPathChooser	test_paideia.py	/^global_run_TestPathChooser = False$/;"	v
-global_run_TestStep	test_paideia.py	/^global_run_TestStep = False$/;"	v
-global_run_TestStepEvaluator	test_paideia.py	/^global_run_TestStepEvaluator = False$/;"	v
+global_run_TestBugReporter	test_paideia.py	/^global_run_TestBugReporter = True$/;"	v
+global_run_TestCategorizer	test_paideia.py	/^global_run_TestCategorizer = True$/;"	v
+global_run_TestLocation	test_paideia.py	/^global_run_TestLocation = True$/;"	v
+global_run_TestMap	test_paideia.py	/^global_run_TestMap = True$/;"	v
+global_run_TestMultipleEvaluator	test_paideia.py	/^global_run_TestMultipleEvaluator = True$/;"	v
+global_run_TestNpc	test_paideia.py	/^global_run_TestNpc = True$/;"	v
+global_run_TestPath	test_paideia.py	/^global_run_TestPath = True$/;"	v
+global_run_TestPathChooser	test_paideia.py	/^global_run_TestPathChooser = True$/;"	v
+global_run_TestStep	test_paideia.py	/^global_run_TestStep = True$/;"	v
+global_run_TestStepEvaluator	test_paideia.py	/^global_run_TestStepEvaluator = True$/;"	v
 global_run_TestUser	test_paideia.py	/^global_run_TestUser = True$/;"	v
-global_run_TestWalk	test_paideia.py	/^global_run_TestWalk = False$/;"	v
+global_run_TestWalk	test_paideia.py	/^global_run_TestWalk = True$/;"	v
 global_runall	test_paideia.py	/^global_runall = True$/;"	v
 log_generator	test_paideia.py	/^def log_generator(uid, tag, count, numright, lastright, lastwrong, earliest,$/;"	f
 myMultipleEvaluator	test_paideia.py	/^def myMultipleEvaluator(mysteps):$/;"	f
@@ -105,25 +105,26 @@ test_pathchooser_choose_from_cat	test_paideia.py	/^    def test_pathchooser_choo
 test_pathchooser_order_cats	test_paideia.py	/^    def test_pathchooser_order_cats(self):$/;"	m	class:TestPathChooser
 test_pathchooser_paths_by_category	test_paideia.py	/^    def test_pathchooser_paths_by_category(self, locid, completed, tpout,$/;"	m	class:TestPathChooser
 test_step_get_id	test_paideia.py	/^    def test_step_get_id(self, stepid, stype):$/;"	m	class:TestStep
-test_step_get_instructions	test_paideia.py	/^    def test_step_get_instructions(self, stepid, mysteps):$/;"	m	class:TestStep
-test_step_get_npc	test_paideia.py	/^    def test_step_get_npc(self, caseid, stepid, db, mysteps,$/;"	m	class:TestStep
+test_step_get_instructions	test_paideia.py	/^    def test_step_get_instructions(self, stepid, instructions):$/;"	m	class:TestStep
+test_step_get_npc	test_paideia.py	/^    def test_step_get_npc(self, stepid, thisloc, available_npcs, db):$/;"	m	class:TestStep
 test_step_get_prompt	test_paideia.py	/^    def test_step_get_prompt(self, caseid, stepid, alias, npcshere, promptext,$/;"	m	class:TestStep
-test_step_get_readable	test_paideia.py	/^    def test_step_get_readable(self, stepid, mysteps):$/;"	m	class:TestStep
-test_step_get_reply	test_paideia.py	/^    def test_step_get_reply(self, stepid, caseid, mysteps, user_login,$/;"	m	class:TestStep
+test_step_get_readable	test_paideia.py	/^    def test_step_get_readable(self, stepid, readable):$/;"	m	class:TestStep
+test_step_get_reply	test_paideia.py	/^    def test_step_get_reply(self, stepid, score, localias, npcshere, resptext,$/;"	m	class:TestStep
 test_step_get_tags	test_paideia.py	/^    def test_step_get_tags(self, stepid, mysteps):$/;"	m	class:TestStep
-test_step_make_replacements	test_paideia.py	/^    def test_step_make_replacements(self, caseid, db, stepid, mysteps, user_login):$/;"	m	class:TestStep
+test_step_make_replacements	test_paideia.py	/^    def test_step_make_replacements(self, stepid, newbadges, promoted, nextloc,$/;"	m	class:TestStep
 test_stepevaluator_get_eval	test_paideia.py	/^    def test_stepevaluator_get_eval(self, stepid, regex, uresp, rtext, score,$/;"	m	class:TestStepEvaluator
 test_user_check_for_blocks	test_paideia.py	/^    def test_user_check_for_blocks(self, theblocks):$/;"	m	class:TestUser
 test_user_complete_path	test_paideia.py	/^    def test_user_complete_path(self, pathid, psteps, alias):$/;"	m	class:TestUser
 test_user_get_categories	test_paideia.py	/^    def test_user_get_categories(self, tpin, rankout, tpout, trecs, counter,$/;"	m	class:TestUser
 test_user_get_id	test_paideia.py	/^    def test_user_get_id(self):$/;"	m	class:TestUser
-test_user_get_path	test_paideia.py	/^    def test_user_get_path(self, locid, completed, tpout, trecs,$/;"	m	class:TestUser
+test_user_get_path	test_paideia.py	/^    def test_user_get_path(self, localias, completed, tpout, trecs,$/;"	m	class:TestUser
 test_user_is_stale	test_paideia.py	/^    def test_user_is_stale(self, start, expected, db):$/;"	m	class:TestUser
 test_user_set_block	test_paideia.py	/^    def test_user_set_block(self, condition, viewedslides, reportedbadges,$/;"	m	class:TestUser
 test_walk_ask	test_paideia.py	/^    def test_walk_ask(self, pathid, stepid, alias, npcshere, trecs, tpout, redir,$/;"	m	class:TestWalk
-test_walk_get_user	test_paideia.py	/^    def test_walk_get_user(self, alias, trecs, tpout, db):$/;"	m	class:TestWalk
+test_walk_get_user	test_paideia.py	/^    def test_walk_get_user(self, alias, trecs, tpout, user_login, db):$/;"	m	class:TestWalk
 test_walk_record_cats	test_paideia.py	/^    def test_walk_record_cats(self, mywalk, db):$/;"	m	class:TestWalk
-test_walk_record_step	test_paideia.py	/^    def test_walk_record_step(self, mywalk, db):$/;"	m	class:TestWalk
-test_walk_reply	test_paideia.py	/^    def test_walk_reply(self, mywalk):$/;"	m	class:TestWalk
+test_walk_record_step	test_paideia.py	/^    def test_walk_record_step(self, path_id, step_id, steptags, oldrecs,$/;"	m	class:TestWalk
+test_walk_reply	test_paideia.py	/^    def test_walk_reply(self, pathid, stepid, alias, npcshere, trecs, tpout,$/;"	m	class:TestWalk
 test_walk_store_user	test_paideia.py	/^    def test_walk_store_user(self, mywalk):$/;"	m	class:TestWalk
 test_walk_update_tag_record	test_paideia.py	/^    def test_walk_update_tag_record(self, tag, oldrecs, firstname, tright,$/;"	m	class:TestWalk
+test_walk_update_tag_secondary	test_paideia.py	/^    def test_walk_update_tag_secondary(self):$/;"	m	class:TestPathChooser

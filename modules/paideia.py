@@ -435,7 +435,7 @@ class Walk(object):
         """
         """
         now = datetime.datetime.utcnow() if not now else now
-        oldrec = oldrec if not isinstance(oldrec, list) else oldrec[0]  # hack
+        oldrec = oldrec if not isinstance(oldrec, list) else oldrec[0]  # FIXME
         tlright = now
         tlwrong = now
         db = current.db
@@ -460,7 +460,7 @@ class Walk(object):
             #  FIXME: temporary fix for bad tright/twrong data
             newdata = self._add_from_logs(tag, user_id, newdata, tright,
                                           twrong, got_right)
-        except KeyError:  # because no oldrec
+        except TypeError:  # because no oldrec
             pass
 
         db.tag_records.update_or_insert((db.tag_records.tag == tag) &

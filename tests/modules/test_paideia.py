@@ -4938,6 +4938,244 @@ class TestWalk():
         assert actual.get_id() == user_login['id']
 
     @pytest.mark.skipif(False, reason='just because')
+    def test_walk_record_cats(self, mywalk, db):
+        """
+        Unit tests for Walk._record_cats() method.
+        """
+        thiswalk = mywalk['walk']
+        case = mywalk['casedata']
+        if case['casenum'] == 1:
+            tag_progress = case['tag_progress_out']
+            user_id = thiswalk._get_user().get_id()
+            print 'USER ID'
+            print user_id
+            promoted = case['promoted']
+            new_tags = case['new_badges']
+            promoted['cat1'] = new_tags
+            promoted = {k: v for k, v in promoted.iteritems() if v}
+            expected_progress = copy(tag_progress)
+            expected_progress['name'] = user_id
+            if promoted:
+                print promoted.values()
+                expected_begun = {t: cat for cat, lst in promoted.iteritems()
+                                for t in lst if lst}
+            else:
+                expected_begun = None
+            # TODO: make sure there's a test that covers some promoted or new
+            # tags
+
+            # call the method and test its return value
+            thiswalk._record_cats(tag_progress, promoted,
+                                  new_tags, db)
+
+            # test record insertion for db.tag_progress
+            actual_select_tp = db(db.tag_progress.name == user_id).select()
+            assert len(actual_select_tp) == 1
+
+            actual_record_tp = actual_select_tp.first().as_dict()
+            for k, v in actual_record_tp.iteritems():
+                if k != 'id':
+                    assert v == expected_progress[k]
+
+            # test record insertion for db.badges_begun
+            actual_select_bb = db(db.badges_begun.name == user_id).select()
+            # one badges_begun row for each of user's tag_records rows
+            user_tag_records = db(db.tag_records.name == user_id).select()
+            assert len(actual_select_bb) == len(user_tag_records)
+            # check that new values were entered
+            now = datetime.datetime.utcnow()
+            if expected_begun:
+                print expected_begun
+                for t, v in {tag: cat for tag, cat in expected_begun.iteritems()}:
+                    actual_select_bb.find(lambda row: row.tag == t)
+                    assert len(actual_select_bb) == 1
+                    assert actual_select_bb.first()[v] == now
+        else:
+            print 'skipping combination'
+            pass
+        # TODO: make sure data is removed from db after test
+
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('tag,oldrecs,firstname,tright,twrong,'
+                             'got_right,score,tpout',
+                             [(1,  # tag
+                               mytagrecs()['Simon Pan 2014-03-21'],  # tag recs
+                               'Simon',  # firstname
+                               1,  # times right
+                               0,  # times wrong
+                               True,  # got right
+                               1.0,  # score
+                               mytagpros()['Simon Pan 2014-03-21'],  # tpout
+                               )
+                              ])
+    def test_walk_update_tag_record(self, tag, oldrecs, firstname, tright,
+                                    twrong, got_right, score, tpout,
+                                    user_login, db):
+        """
+        Simulates inaccurate tag_records data for times_right and times_wrong.
+        Should be corrected automatically by method, drawing on raw logs.
+        """
+        now = datetime.datetime(2014, 3, 24, 0, 0, 0)
+        oldrec = [o for o in oldrecs if o['tag'] == tag][0]
+        last_right = now
+        earliest = datetime.datetime(2013, 9, 1, 0, 0, 0)
+        last_wrong = now - datetime.timedelta(days=3)
+        log_generator(user_login['id'],
+                      tag,
+                      20,  # total log count
+                      11,  # number right,
+                      last_right,
+                      last_wrong,
+                      earliest,  # earliest attempt
+                      db)
+        rightlogs = 11
+        wronglogs = 9
+
+        walk = Walk(userdata=user_login,
+                    tag_records=oldrecs,
+                    tag_progress=tpout,
+                    db=db)
+        arec = walk._update_tag_record(tag, oldrec, user_login['id'], tright,
+                                       twrong, got_right, score, now=now)
+        arec_row = db.tag_records(arec)
+
+        assert arec_row
+        assert arec_row['times_right'] == rightlogs + tright
+        assert arec_row['times_wrong'] == wronglogs + twrong
+        if tright == 1:
+            assert arec_row['tlast_wrong'] >= earliest
+            assert arec_row['tlast_wrong'] <= last_wrong
+            assert arec_row['tlast_right'] == now
+        else:
+            assert arec_row['tlast_wrong'] == now
+            assert arec_row['tlast_right'] >= earliest
+            assert arec_row['tlast_right'] <= last_right
+
+        # teardown after injecting test data for user into db
+        db(db.tag_records.id == arec).delete()
+        assert db(db.tag_records.id == arec).count() == 0
+        db(db.attempt_log.name == user_login['id']).delete()
+        assert db(db.attempt_log.name == user_login['id']).count() == 0
+
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('tag,oldrecs,firstname,tpout',
+                             [(1,  # tag
+                               mytagrecs()['Simon Pan 2014-03-21'],  # tag recs
+                               'Simon',  # firstname
+                               mytagpros()['Simon Pan 2014-03-21'],  # tpout
+                               )
+                              ])
+    def test_walk_update_tag_secondary(self, tag, oldrecs, firstname, tpout,
+                                       user_login, db):
+        """Unit test for the Walk._update_tag_secondary method."""
+        now = datetime.datetime(2014, 3, 24, 0, 0, 0)
+        oldrec = [o for o in oldrecs if o['tag'] == tag][0]
+        len2right = len(oldrec['secondary_right'])
+        walk = Walk(userdata=user_login,
+                    tag_records=oldrecs,
+                    tag_progress=tpout,
+                    db=db)
+
+        actual = walk._update_tag_secondary(tag, oldrec, user_login['id'],
+                                            now=now)
+        actualrow = db.tag_records[actual['id']]
+        assert actualrow
+        assert actual['secondary_right'] == len2right + 1
+        assert actual['secondary_right'][-1] == now
+
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('path_id,step_id,steptags,oldrecs,got_right,score,'
+                             'tright,twrong,rstring,newlog,tpout,trecsout',
+                             [(3,  # path
+                               1,  # step
+                               {'primary': [61], 'secondary': []},  # step tags
+                               mytagrecs()['Simon Pan 2014-03-21'],  # tag recs
+                               True,  # got right
+                               1.0,  # score
+                               1,  # raw tright
+                               0,  # raw twrong
+                               'blabla',  # response string
+                               {'score': 1.0,  # newlog
+                                'in_path': 3,
+                                'step': 1,
+                                'user_response': 'blabla',
+                                'dt_attempted': datetime.datetime(2014, 3, 24,
+                                                                  0, 0, 0)},
+                               mytagpros()['Simon Pan 2014-03-21'],  # tpout
+                               mytagrecs()['Simon Pan 2014-03-21'],  # tag recs out
+                               )
+                              ])
+    def test_walk_record_step(self, path_id, step_id, steptags, oldrecs,
+                              got_right, score, tright, twrong, rstring,
+                              newlog, tpout, trecsout, user_login, db):
+        """
+        Unit test for Paideia.Walk._record_step()
+        """
+        now = datetime.datetime(2014, 3, 24, 0, 0, 0)
+        walk = Walk(userdata=user_login,
+                    tag_records=oldrecs,
+                    tag_progress=tpout,
+                    db=db)
+        raw_tright = tright
+        raw_twrong = twrong
+        starting_loglength = len(db(db.attempt_log.name == user_login['id']).select())
+        actual_log_id = walk._record_step(user_login['id'], step_id, path_id, score,
+                                          raw_tright, raw_twrong, oldrecs,
+                                          steptags, rstring, now=now)
+
+        # test writing to attempt_log
+        logs_out = db(db.attempt_log.name == user_login['id']).select()
+        assert len(logs_out) == starting_loglength + 1
+        assert actual_log_id == logs_out.last().id
+        newlog['name'] = user_login['id']
+        newlog['id'] = actual_log_id
+        for field, val in db.attempt_log(actual_log_id).as_dict().iteritems():
+            if field == 'dt_attempted':  # FIXME
+                pass
+            else:
+                #print field, '=========='
+                #pprint(val)
+                assert val == newlog[field]
+
+        # test writing to tag_records
+        expected_trecs = [t for t in trecsout if t['tag'] in steptags['primary']]
+        actual_trecs = db((db.tag_records.name == user_login['id']) &
+                          (db.tag_records.tag.belongs(steptags['primary']))
+                          ).select()
+        assert len(actual_trecs) == len(steptags['primary'])
+        assert len(actual_trecs) == len(expected_trecs)
+        for tagrec in expected_trecs:
+            tagrec['name'] = user_login['id']
+            for key, val in tagrec.iteritems():
+                if key in ['tlast_right', 'tlast_wrong']:  # FIXME
+                    pass
+                else:
+                    print key, '=========='
+                    pprint(val)
+                    assert val == tagrec[key]
+
+        # make sure data is removed from db after test
+        assert db(db.attempt_log.id == actual_log_id).delete()
+        assert db(db.tag_records.name == user_login['id']).delete()
+
+    @pytest.mark.skipif(False, reason='just because')
+    def test_walk_store_user(self, mywalk):
+        """Unit test for Walk._store_user"""
+        session = current.session
+        thiswalk = mywalk['walk']
+        session.user = None  # empty session variable as a baseline
+        user = thiswalk._get_user()
+        user_id = user.get_id()
+
+        actual = thiswalk._store_user(user)
+        assert actual is True
+        assert isinstance(session.user, User)
+        assert session.user.get_id() == user_id
+
+        # remove session user again
+        session.user = None
+
+    @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('pathid,stepid,alias,npcshere,trecs,tpout,redir,'
                              'promptext,instrs,slidedecks,widgimg,rbuttons,'
                              'rform,replystep',
@@ -5375,7 +5613,7 @@ class TestWalk():
                         tag_progress=tpout,
                         db=db)
         thiswalk.user.path = Path(path_id=pathid, db=db)
-        thiswalk.user.step_for_reply = mystep(stepid)
+        thiswalk.user.path.step_for_reply = mystep(stepid)
         thiswalk.user.categories = {k: v for k, v in tpout.iteritems()
                                     if k[:3] in ['cat', 'rev']}
         assert thiswalk.user.path.get_id() == pathid
@@ -5436,216 +5674,6 @@ class TestWalk():
         assert not thiswalk.user.path.step_for_reply
         assert not thiswalk.user.path.step_for_prompt
         assert thiswalk.user.path.completed_steps[-1].get_id() == stepid
-
-    @pytest.mark.skipif(False, reason='just because')
-    def test_walk_record_cats(self, mywalk, db):
-        """
-        Unit tests for Walk._record_cats() method.
-        """
-        thiswalk = mywalk['walk']
-        case = mywalk['casedata']
-        if case['casenum'] == 1:
-            tag_progress = case['tag_progress_out']
-            user_id = thiswalk._get_user().get_id()
-            print 'USER ID'
-            print user_id
-            promoted = case['promoted']
-            new_tags = case['new_badges']
-            promoted['cat1'] = new_tags
-            promoted = {k: v for k, v in promoted.iteritems() if v}
-            expected_progress = copy(tag_progress)
-            expected_progress['name'] = user_id
-            if promoted:
-                print promoted.values()
-                expected_begun = {t: cat for cat, lst in promoted.iteritems()
-                                for t in lst if lst}
-            else:
-                expected_begun = None
-            # TODO: make sure there's a test that covers some promoted or new
-            # tags
-
-            # call the method and test its return value
-            thiswalk._record_cats(tag_progress, promoted,
-                                  new_tags, db)
-
-            # test record insertion for db.tag_progress
-            actual_select_tp = db(db.tag_progress.name == user_id).select()
-            assert len(actual_select_tp) == 1
-
-            actual_record_tp = actual_select_tp.first().as_dict()
-            for k, v in actual_record_tp.iteritems():
-                if k != 'id':
-                    assert v == expected_progress[k]
-
-            # test record insertion for db.badges_begun
-            actual_select_bb = db(db.badges_begun.name == user_id).select()
-            # one badges_begun row for each of user's tag_records rows
-            user_tag_records = db(db.tag_records.name == user_id).select()
-            assert len(actual_select_bb) == len(user_tag_records)
-            # check that new values were entered
-            now = datetime.datetime.utcnow()
-            if expected_begun:
-                print expected_begun
-                for t, v in {tag: cat for tag, cat in expected_begun.iteritems()}:
-                    actual_select_bb.find(lambda row: row.tag == t)
-                    assert len(actual_select_bb) == 1
-                    assert actual_select_bb.first()[v] == now
-        else:
-            print 'skipping combination'
-            pass
-        # TODO: make sure data is removed from db after test
-
-    @pytest.mark.parametrize('tag,oldrecs,firstname,tright,twrong,'
-                             'got_right,score,tpout',
-                             [(1,  # tag
-                               mytagrecs()['Simon Pan 2014-03-21'],  # tag recs
-                               'Simon',  # firstname
-                               1,  # times right
-                               0,  # times wrong
-                               True,  # got right
-                               1.0,  # score
-                               mytagpros()['Simon Pan 2014-03-21'],  # tpout
-                               )
-                              ])
-    def test_walk_update_tag_record(self, tag, oldrecs, firstname, tright,
-                                    twrong, got_right, score, tpout,
-                                    user_login, db):
-        """
-        Simulates inaccurate tag_records data for times_right and times_wrong.
-        Should be corrected automatically by method, drawing on raw logs.
-        """
-        now = datetime.datetime(2014, 3, 24, 0, 0, 0)
-        oldrec = [o for o in oldrecs if o['tag'] == tag][0]
-        last_right = now
-        earliest = datetime.datetime(2013, 9, 1, 0, 0, 0)
-        last_wrong = now - datetime.timedelta(days=3)
-        log_generator(user_login['id'],
-                      tag,
-                      20,  # total log count
-                      11,  # number right,
-                      last_right,
-                      last_wrong,
-                      earliest,  # earliest attempt
-                      db)
-        rightlogs = 11
-        wronglogs = 9
-
-        walk = Walk(userdata=user_login,
-                    tag_records=oldrecs,
-                    tag_progress=tpout,
-                    db=db)
-        arec = walk._update_tag_record(tag, oldrec, user_login['id'], tright,
-                                       twrong, got_right, score, now=now)
-        arec_row = db.tag_records(arec)
-
-        assert arec_row
-        assert arec_row['times_right'] == rightlogs + tright
-        assert arec_row['times_wrong'] == wronglogs + twrong
-        if tright == 1:
-            assert arec_row['tlast_wrong'] >= earliest
-            assert arec_row['tlast_wrong'] <= last_wrong
-            assert arec_row['tlast_right'] == now
-        else:
-            assert arec_row['tlast_wrong'] == now
-            assert arec_row['tlast_right'] >= earliest
-            assert arec_row['tlast_right'] <= last_right
-
-        # teardown after injecting test data for user into db
-        db(db.tag_records.id == arec).delete()
-        assert db(db.tag_records.id == arec).count() == 0
-        db(db.attempt_log.name == user_login['id']).delete()
-        assert db(db.attempt_log.name == user_login['id']).count() == 0
-
-    @pytest.mark.parametrize('path_id,step_id,steptags,oldrecs,got_right,score,'
-                             'tright,twrong,rstring,newlog,tpout,trecsout',
-                             [(3,  # path
-                               1,  # step
-                               {'primary': [61], 'secondary': []},  # step tags
-                               mytagrecs()['Simon Pan 2014-03-21'],  # tag recs
-                               True,  # got right
-                               1.0,  # score
-                               1,  # raw tright
-                               0,  # raw twrong
-                               'blabla',  # response string
-                               {'score': 1.0,  # newlog
-                                'in_path': 3,
-                                'step': 1,
-                                'user_response': 'blabla',
-                                'dt_attempted': datetime.datetime(2014, 3, 24,
-                                                                  0, 0, 0)},
-                               mytagpros()['Simon Pan 2014-03-21'],  # tpout
-                               mytagrecs()['Simon Pan 2014-03-21'],  # tag recs out
-                               )
-                              ])
-    def test_walk_record_step(self, path_id, step_id, steptags, oldrecs,
-                              got_right, score, tright, twrong, rstring,
-                              newlog, tpout, trecsout, user_login, db):
-        """
-        Unit test for Paideia.Walk._record_step()
-        """
-        now = datetime.datetime(2014, 3, 24, 0, 0, 0)
-        walk = Walk(userdata=user_login,
-                    tag_records=oldrecs,
-                    tag_progress=tpout,
-                    db=db)
-        raw_tright = tright
-        raw_twrong = twrong
-        starting_loglength = len(db(db.attempt_log.name == user_login['id']).select())
-        actual_log_id = walk._record_step(user_login['id'], step_id, path_id, score,
-                                          raw_tright, raw_twrong, oldrecs,
-                                          steptags, rstring, now=now)
-
-        # test writing to attempt_log
-        logs_out = db(db.attempt_log.name == user_login['id']).select()
-        assert len(logs_out) == starting_loglength + 1
-        assert actual_log_id == logs_out.last().id
-        newlog['name'] = user_login['id']
-        newlog['id'] = actual_log_id
-        for field, val in db.attempt_log(actual_log_id).as_dict().iteritems():
-            if field == 'dt_attempted':  # FIXME
-                pass
-            else:
-                #print field, '=========='
-                #pprint(val)
-                assert val == newlog[field]
-
-        # test writing to tag_records
-        expected_trecs = [t for t in trecsout if t['tag'] in steptags['primary']]
-        actual_trecs = db((db.tag_records.name == user_login['id']) &
-                          (db.tag_records.tag.belongs(steptags['primary']))
-                          ).select()
-        assert len(actual_trecs) == len(steptags['primary'])
-        assert len(actual_trecs) == len(expected_trecs)
-        for tagrec in expected_trecs:
-            tagrec['name'] = user_login['id']
-            for key, val in tagrec.iteritems():
-                if key in ['tlast_right', 'tlast_wrong']:  # FIXME
-                    pass
-                else:
-                    print key, '=========='
-                    pprint(val)
-                    assert val == tagrec[key]
-
-        # make sure data is removed from db after test
-        assert db(db.attempt_log.id == actual_log_id).delete()
-        assert db(db.tag_records.name == user_login['id']).delete()
-
-    @pytest.mark.skipif(False, reason='just because')
-    def test_walk_store_user(self, mywalk):
-        """Unit test for Walk._store_user"""
-        session = current.session
-        thiswalk = mywalk['walk']
-        session.user = None  # empty session variable as a baseline
-        user = thiswalk._get_user()
-        user_id = user.get_id()
-
-        actual = thiswalk._store_user(user)
-        assert actual is True
-        assert isinstance(session.user, User)
-        assert session.user.get_id() == user_id
-
-        # remove session user again
-        session.user = None
 
 
 @pytest.mark.skipif('global_runall is False '
