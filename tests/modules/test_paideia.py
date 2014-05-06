@@ -20,8 +20,8 @@ from gluon import current, IMG
 import datetime
 from pprint import pprint
 import re
-from random import randint
 from copy import copy
+from random import randint
 from dateutil import parser
 from difflib import Differ
 from itertools import chain
@@ -91,7 +91,6 @@ def mytagpros():
     """A fixture providing mock tag_progress records"""
     tp = {'Simon Pan 2014-03-21': {'latest_new': 10,
                                    'name': 109,
-                                   'id': 303,
                                    'cat1': [129, 2, 131, 4, 133, 6, 135, 9,
                                            10, 130, 16, 17, 132, 30, 5, 36, 134,
                                            43, 46, 48, 55, 61, 62, 63, 66, 67,
@@ -198,7 +197,7 @@ def mydemoted():
 
 @pytest.fixture
 def mypromoted():
-    """A fixture providing mock tag_progress records"""
+    """A fixture providing mock 'promoted' values"""
     tp = {'Simon Pan 2014-03-21': {'cat1': [],
                                    'cat2': [],
                                    'cat3': [14],
@@ -213,155 +212,140 @@ def mypromoted():
 
 @pytest.fixture
 def mypromotions():
-    """docstring for mypromotions"""
+    """Test fixture providing badges_begun rescoreds"""
     prom = {'Simon Pan 2014-03-21':
             [{'name': 109L,
+              'tag': 14L,
+              'cat1': datetime.datetime(2013, 10, 3, 21, 16, 29),
+              'cat2': datetime.datetime(2014, 1, 3, 21, 0, 0),
+              'cat3': None,
+              'cat4': None},
+             {'name': 109L,
               'tag': 4L,
               'cat1': datetime.datetime(2013, 10, 3, 21, 16, 29),
               'cat2': None,
               'cat4': None,
-              'cat3': None,
-              'id': 606L},
+              'cat3': None},
              {'name': 109L,
               'tag': 46L,
               'cat1': datetime.datetime(2013, 10, 3, 21, 16, 29),
               'cat2': None,
               'cat4': None,
-              'cat3': None,
-              'id': 607L},
+              'cat3': None},
              {'name': 109L,
               'tag': 47L,
               'cat1': datetime.datetime(2013, 10, 3, 21, 16, 29),
               'cat2': None,
               'cat4': None,
-              'cat3': None,
-              'id': 608L},
+              'cat3': None},
              {'name': 109L,
               'tag': 69L,
               'cat1': datetime.datetime(2013, 10, 3, 21, 16, 29),
               'cat2': None,
               'cat4': None,
-              'cat3': None,
-              'id': 609L},
+              'cat3': None},
              {'name': 109L,
               'tag': 95L,
               'cat1': datetime.datetime(2013, 10, 3, 21, 16, 29),
               'cat2': None,
               'cat4': None,
-              'cat3': None,
-              'id': 610L},
+              'cat3': None},
              {'name': 109L,
               'tag': 117L,
               'cat1': datetime.datetime(2013, 10, 3, 21, 16, 29),
               'cat2': None,
               'cat4': None,
-              'cat3': None,
-              'id': 611L},
+              'cat3': None},
              {'name': 109L,
               'tag': 118L,
               'cat1': datetime.datetime(2013, 10, 3, 21, 16, 29),
               'cat2': None,
               'cat4': None,
-              'cat3': None,
-              'id': 612L},
+              'cat3': None},
              {'name': 109L,
               'tag': 119L,
               'cat1': datetime.datetime(2013, 10, 3, 21, 16, 29),
               'cat2': None,
               'cat4': None,
-              'cat3': None,
-              'id': 613L},
+              'cat3': None},
              {'name': 109L,
               'cat1': datetime.datetime(2013, 10, 3, 21, 16, 29),
               'cat2': None,
               'tag': 120L,
               'cat4': None,
-              'cat3': None,
-              'id': 614L},
+              'cat3': None},
              {'name': 109L,
               'tag': 2L,
               'cat1': datetime.datetime(2013, 10, 5, 3, 6, 25),
               'cat2': None,
               'cat4': None,
-              'cat3': None,
-              'id': 703L},
+              'cat3': None},
              {'name': 109L,
               'tag': 10L,
               'cat1': datetime.datetime(2013, 10, 5, 3, 6, 25),
               'cat2': None,
               'cat4': None,
-              'cat3': None,
-              'id': 704L},
+              'cat3': None},
              {'name': 109L,
               'tag': 18L,
               'cat1': datetime.datetime(2013, 10, 5, 3, 6, 25),
               'cat2': None,
               'cat4': None,
-              'cat3': None,
-              'id': 705L},
+              'cat3': None},
              {'name': 109L,
               'cat1': datetime.datetime(2013, 10, 5, 3, 6, 25),
               'cat2': None,
               'tag': 30L,
               'cat4': None,
-              'cat3': None,
-              'id': 706L},
+              'cat3': None},
              {'name': 109L,
               'tag': 38L,
               'cat1': datetime.datetime(2013, 10, 5, 3, 6, 25),
               'cat2': None,
               'cat4': None,
-              'cat3': None,
-              'id': 707L},
+              'cat3': None},
              {'name': 109L,
               'tag': 49L,
               'cat1': datetime.datetime(2013, 10, 5, 3, 6, 25),
               'cat2': None,
               'cat4': None,
-              'cat3': None,
-              'id': 708L},
+              'cat3': None},
              {'name': 109L,
               'tag': 55L,
               'cat1': datetime.datetime(2013, 10, 5, 3, 6, 25),
               'cat2': None,
               'cat4': None,
-              'cat3': None,
-              'id': 709L},
+              'cat3': None},
              {'name': 109L,
               'tag': 86L,
               'cat1': datetime.datetime(2013, 10, 5, 3, 6, 25),
               'cat2': None,
               'cat4': None,
-              'cat3': None,
-              'id': 710L},
+              'cat3': None},
              {'name': 109L,
               'tag': 87L,
               'cat1': datetime.datetime(2013, 10, 5, 3, 6, 25),
               'cat2': None,
               'cat4': None,
-              'cat3': None,
-              'id': 711L},
+              'cat3': None},
              {'name': 109L,
               'tag': 121L,
               'cat1': datetime.datetime(2013, 10, 5, 3, 6, 25),
               'cat2': None,
               'cat4': None,
-              'cat3': None,
-              'id': 712L},
+              'cat3': None},
              {'name': 109L,
               'tag': 122L,
               'cat1': datetime.datetime(2013, 10, 5, 3, 6, 25),
               'cat2': None,
               'cat4': None,
-              'cat3': None,
-              'id': 713L},
+              'cat3': None},
              {'name': 109L,
               'tag': 128L,
               'cat1': datetime.datetime(2013, 10, 5, 3, 6, 25),
               'cat2': None,
               'cat4': None,
-              'cat3': None,
-              'id': 714L}
+              'cat3': None}
              ]
             }
     return prom
@@ -4938,62 +4922,67 @@ class TestWalk():
         assert actual.get_id() == user_login['id']
 
     @pytest.mark.skipif(False, reason='just because')
-    def test_walk_record_cats(self, mywalk, db):
+    @pytest.mark.parametrize('tpin,trecs,prom,newtags,bbin',
+                             [(mytagpros()['Simon Pan 2014-03-21'],  # tpin
+                               mytagrecs()['Simon Pan 2014-03-21'],  # trecs
+                               mypromoted()['Simon Pan 2014-03-21'],  # prom
+                               [],
+                               mypromotions()['Simon Pan 2014-03-21']  # bb
+                               )
+                              ])
+    def test_walk_record_cats(self, tpin, trecs, prom, bbin, newtags,
+                              user_login, db):
         """
         Unit tests for Walk._record_cats() method.
         """
-        thiswalk = mywalk['walk']
-        case = mywalk['casedata']
-        if case['casenum'] == 1:
-            tag_progress = case['tag_progress_out']
-            user_id = thiswalk._get_user().get_id()
-            print 'USER ID'
-            print user_id
-            promoted = case['promoted']
-            new_tags = case['new_badges']
-            promoted['cat1'] = new_tags
-            promoted = {k: v for k, v in promoted.iteritems() if v}
-            expected_progress = copy(tag_progress)
-            expected_progress['name'] = user_id
-            if promoted:
-                print promoted.values()
-                expected_begun = {t: cat for cat, lst in promoted.iteritems()
-                                for t in lst if lst}
-            else:
-                expected_begun = None
-            # TODO: make sure there's a test that covers some promoted or new
-            # tags
+        # setup ===============================================================
+        prom_and_new = copy(prom)
+        if newtags:
+            prom_and_new['cat1'].extend(newtags)
+        now = datetime.datetime.utcnow()
+        thiswalk = Walk(userdata=user_login,
+                        tag_records=trecs,
+                        tag_progress=tpin,
+                        db=db)
+        db(db.badges_begun.name == user_login['id']).delete()  # clean first
+        for r in bbin:
+            r['name'] = user_login['id']
+            db.badges_begun.insert(**r)
+        db(db.tag_progress.name == user_login['id']).delete()  # clean first
+        tpin['name'] = user_login['id']
+        db.tag_progress.insert(**tpin)
+        tpout = copy(tpin)
+        for cat, lst in prom.iteritems():
+            for t in lst:
+                oldcat = cat[:3] + str(int(cat[3:]) - 1)
+                tpout[oldcat] = [i for i in tpout[cat] if i != t]
+                tpout[cat].append(t)
+        tpout['cat1'].extend(newtags)
 
-            # call the method and test its return value
-            thiswalk._record_cats(tag_progress, promoted,
-                                  new_tags, db)
+        # testing method call==================================================
+        thiswalk._record_cats(tpout, prom, newtags, db)
 
-            # test record insertion for db.tag_progress
-            actual_select_tp = db(db.tag_progress.name == user_id).select()
-            assert len(actual_select_tp) == 1
+        # tag_progress insertion ----------------------------------------------
+        sel_tp = db(db.tag_progress.name == user_login['id']).select()
+        assert len(sel_tp) == 1  # no extra db rows were created
+        actual_tp = sel_tp.first().as_dict()
+        for k, v in actual_tp.iteritems():
+            tpout['name'] = user_login['id']
+            if k != 'id':
+                assert v == tpout[k]
 
-            actual_record_tp = actual_select_tp.first().as_dict()
-            for k, v in actual_record_tp.iteritems():
-                if k != 'id':
-                    assert v == expected_progress[k]
+        # badges_begun insertion ----------------------------------------------
+        sel_bb = db(db.badges_begun.name == user_login['id']).select()
 
-            # test record insertion for db.badges_begun
-            actual_select_bb = db(db.badges_begun.name == user_id).select()
-            # one badges_begun row for each of user's tag_records rows
-            user_tag_records = db(db.tag_records.name == user_id).select()
-            assert len(actual_select_bb) == len(user_tag_records)
-            # check that new values were entered
-            now = datetime.datetime.utcnow()
-            if expected_begun:
-                print expected_begun
-                for t, v in {tag: cat for tag, cat in expected_begun.iteritems()}:
-                    actual_select_bb.find(lambda row: row.tag == t)
-                    assert len(actual_select_bb) == 1
-                    assert actual_select_bb.first()[v] == now
-        else:
-            print 'skipping combination'
-            pass
-        # TODO: make sure data is removed from db after test
+        if prom_and_new:
+            expected_bb = {tag: cat for cat, lst in prom_and_new.iteritems()
+                           for tag in lst if lst}
+            if expected_bb:
+                for t, v in expected_bb.iteritems():
+                    print 'bb for tag', t
+                    thisbb = sel_bb.find(lambda row: row.tag == t)
+                    assert len(thisbb) == 1
+                    assert now - thisbb.first()[v] < datetime.timedelta(hours=1)
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('tag,oldrecs,firstname,tright,twrong,'
