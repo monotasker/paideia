@@ -383,13 +383,12 @@ class Walk(object):
         now = datetime.datetime.utcnow() if not now else now
         db = current.db
         sec_right = [now]  # default
-        if len(oldrec) and oldrec[0]:
-            sec_right = oldrec[0]['secondary_right']
+        if oldrec:
+            sec_right = oldrec['secondary_right']
             try:
                 sec_right.append(now)
             except AttributeError:  # because secondary_right is None
                 sec_right = [now]  # default
-
         condition = {'tag': tag, 'name': user_id}
         tagrec = db.tag_records.update_or_insert(condition,
                                                  tag=tag,
