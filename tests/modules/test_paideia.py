@@ -82,8 +82,12 @@ def log_generator(uid, tag, count, numright, lastright, lastwrong, earliest,
 
 def dt(string):
     """Return datetime object parsed from the string argument supplied"""
-    format = "%Y-%m-%d"
-    return datetime.datetime.strptime(string, format)
+    try:
+        format = "%Y-%m-%d"
+        return datetime.datetime.strptime(string, format)
+    except ValueError:
+        format = "%Y-%m-%d %H:%M:%S"
+        return datetime.datetime.strptime(string, format)
 
 
 @pytest.fixture
@@ -5059,6 +5063,7 @@ class TestWalk():
         """Unit test for the Walk._update_tag_secondary method."""
         now = datetime.datetime(2014, 3, 24, 0, 0, 0)
         oldrec = [o for o in oldrecs if o['tag'] == tag][0]
+        pprint(oldrec)
         len2right = len(oldrec['secondary_right'])
         walk = Walk(userdata=user_login,
                     tag_records=oldrecs,
@@ -5069,8 +5074,8 @@ class TestWalk():
                                             now=now)
         actualrow = db.tag_records[actual['id']]
         assert actualrow
-        assert actual['secondary_right'] == len2right + 1
-        assert actual['secondary_right'][-1] == now
+        assert len(actual['secondary_right']) == len2right + 1
+        assert dt(actual['secondary_right'][-1]) == now
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('path_id,step_id,steptags,oldrecs,got_right,score,'
