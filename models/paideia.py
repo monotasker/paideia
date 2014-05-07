@@ -399,8 +399,8 @@ db.define_table('paths',
     Field('path_style', db.path_styles),
     Field('path_tags',
           compute=lambda row: row.steps),
-          #compute=lambda row: [tag for step in row.paths.steps
-                               #for tag in db.steps[step].tags]),
+        # compute=lambda row: [tag for step in row.paths.steps
+        # for tag in db.steps[step].tags]),
     Field('path_active', 'boolean',
           compute=lambda row: all([s for s in row.paths.steps
                                    if (db.steps[s].status != 2)
@@ -500,7 +500,7 @@ db.define_table('bugs',
 db.executesql('CREATE INDEX IF NOT EXISTS idx_bugs_1 ON bugs (user_name, bug_status);')
 
 db.define_table('session_data',
-    Field('name', db.auth_user, default=auth.user_id),
+    Field('name', db.auth_user),  # default=auth.user_id
     Field('updated', 'datetime', default=dtnow),
     Field('session_start', 'datetime', default=dtnow),
     Field('other_data', 'text'),

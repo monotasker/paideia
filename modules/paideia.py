@@ -519,24 +519,29 @@ class Walk(object):
         log_record_id = db.attempt_log.insert(**log_args)
         return log_record_id
 
-    def _store_user(self, user):
+    def _store_user(self, user, db=None):
         """
         Store the current User object (from self.user) in session.user
 
-        Returns a boolean value indicating whether the storing was
-        successful or not.
+        If successful, returns an integer representing the successfully
+        added/updated db row. If unsuccessful, returns False.
         """
-        auth = current.auth
-        db = current.db
+        db = current.db if not db else db
 
         # TODO: Store and roll back db changes if impersonating
         #if auth.is_impersonating():  # shadowing another user
             #return False  # don't record in db
         #else:
-        user = pickle.dumps(self.user)
-        db.session_data.update_or_insert(db.session_data.name == auth.user_id,
-                                        other_data=user)
-        return True
+        try:
+            myuser = pickle.dumps(user)
+            print 'in module, storing user:', user.get_id()
+            rownum = db.session_data.update_or_insert(db.session_data.name == user.get_id(),
+                                                      name=user.get_id(),
+                                                      other_data=myuser)
+            return rownum
+        except Exception:
+            print traceback.format_exc(5)
+            return False
 
 
 class Location(object):

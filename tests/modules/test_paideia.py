@@ -25,6 +25,7 @@ from random import randint
 from dateutil import parser
 from difflib import Differ
 from itertools import chain
+import pickle
 
 
 # ===================================================================
@@ -5153,21 +5154,33 @@ class TestWalk():
         assert db(db.tag_records.name == user_login['id']).delete()
 
     @pytest.mark.skipif(False, reason='just because')
-    def test_walk_store_user(self, mywalk):
+    @pytest.mark.parametrize('tpin,tagrecs',
+                             [(mytagpros()['Simon Pan 2014-03-21'],  # tpin
+                               mytagrecs()['Simon Pan 2014-03-21'],  # tagrecs
+                               )
+                              ])
+    def test_walk_store_user(self, tagrecs, tpin, user_login, db, web2py):
         """Unit test for Walk._store_user"""
-        session = current.session
-        thiswalk = mywalk['walk']
-        session.user = None  # empty session variable as a baseline
-        user = thiswalk._get_user()
-        user_id = user.get_id()
+        # setup ===============================================================
+        walk = Walk(userdata=user_login,
+                    tag_records=tagrecs,
+                    tag_progress=tpin,
+                    db=db)
+        user = walk._get_user()  # initialized new user in Walk.__init__()
+        assert isinstance(user, User)
+        assert user.get_id() == user_login['id']
+        print 'user id:', user.get_id()
 
-        actual = thiswalk._store_user(user)
-        assert actual is True
-        assert isinstance(session.user, User)
-        assert session.user.get_id() == user_id
+        # store the user instance in db =======================================
+        rowid = walk._store_user(user)  # returns True if successful
+        assert rowid
+        storedrow = db(db.session_data.id == rowid).select().first()
+        assert storedrow
 
-        # remove session user again
-        session.user = None
+        # check data stored in db =============================================
+        sd = db(db.session_data.name == user_login['id']).select().first()
+        dbuser = pickle.loads(sd['other_data'])
+        assert dbuser.get_id() == user_login['id']
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('pathid,stepid,alias,npcshere,trecs,tpout,redir,'
