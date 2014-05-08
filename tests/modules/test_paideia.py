@@ -25,6 +25,7 @@ from random import randint
 from dateutil import parser
 from difflib import Differ
 from itertools import chain
+from urllib import quote_plus
 import pickle
 
 
@@ -5518,7 +5519,7 @@ class TestWalk():
            'rev3': [], 'rev4': []},
           'Right. Κάλον.\nYou said\n- πωλ\n',  # ------------------------------ correct reply
           'Incorrect. Try again!\nYou said\n- βλα\nThe correct '  # ----------- wrong reply
-            'response is πωλ',
+            'response is\n- πωλ',
           ['Focus on finding Greek letters that make the *sounds* of the '  # -- instructions
            'English word. Don\'t look for Greek "equivalents" for each '
            'English letter.'],
@@ -5526,7 +5527,7 @@ class TestWalk():
           [],  # -------------------------------------------------------------- response buttons
           ['πωλ'],  # --------------------------------------------------------- readable short
           [],  # -------------------------------------------------------------- readable long
-          [],  # -------------------------------------------------------------- tips
+          None,  # -------------------------------------------------------------- tips
           'πωλ',  # response correct ------------------------------------------
           'βλα',  # response wrong --------------------------------------------
           ),
@@ -5662,22 +5663,44 @@ class TestWalk():
         assert a['response_buttons'] == ['map', 'retry', 'continue']
 
         lastlog = db(db.attempt_log.id > 0).select().last()
-        bug_info = (response_string.encode('utf-8'),
+        rs = response_string.decode('utf8').encode('utf8')
+        print 'rs is', type(rs)
+        bug_info = (quote_plus(rs),
                     alias,
                     lastlog.id,
                     pathid,
                     score,
                     stepid)
-        bug_reporter = '<a class="bug_reporter_link" '\
-                        'href="/paideia/creating/bug.load?'\
-                        'answer={}&amp;'\
-                        'loc={}&amp;'\
-                        'log_id={}&amp;'\
-                        'path={}&amp;'\
-                        'score={}&amp;'\
-                        'step={}" '\
-                        'id="bug_reporter">click here</a>'.format(*bug_info)
-        assert a['bug_reporter'].xml() == bug_reporter
+        bug_reporter = ['<a class="bug_reporter" '
+                        'data-target="#bug_reporter_modal" '
+                        'data-toggle="modal" id="bug_reporter_modal_trigger">'
+                        'Something wrong?</a>'
+                        '<div aria-hidden="true" aria-labelledby="myModalLabel" '
+                        'class="modal hide fade " id="bug_reporter_modal" '
+                        'role="dialog" tabindex="-1">'
+                        '<div class="modal-header">'
+                        '<h3>Did you run into a problem?</h3>'
+                        '</div>'
+                        '<div class="modal-body ">'
+                        '<p>Think your answer should have been correct? '
+                        '<a class="bug_reporter_link btn btn-danger" '
+                        'data-w2p_disable_with="default" '
+                        'data-w2p_method="GET" data-w2p_target="bug_reporter" '
+                        'href="/paideia/creating/bug.load?'
+                        'answer={}&amp;'
+                        'loc_id={}&amp;'
+                        'log_id={}&amp;'
+                        'path_id={}&amp;'
+                        'score={}&amp;'
+                        'step_id={}">click here<i class="icon-bug"></i></a> '
+                        'to submit a bug report. You can find the '
+                        'instructor&#x27;s response in the &quot;bug '
+                        'reports&quot; tab of your user profile.</p></div>'
+                        '<div class="modal-footer">'
+                        '<button aria-hidden="true" class="pull-right" '
+                        'data-dismiss="modal" type="button">Close</button>'
+                        '</div></div>'.format(*bug_info)]
+        assert a['bugreporter'].xml() == bug_reporter[0]
         assert not thiswalk.user.path.step_for_reply
         assert not thiswalk.user.path.step_for_prompt
         assert thiswalk.user.path.completed_steps[-1].get_id() == stepid

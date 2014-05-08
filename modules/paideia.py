@@ -364,8 +364,9 @@ class Walk(object):
                 assert self._record_promotions(promoted, uid)
 
             try:
-                db.tag_progress.update_or_insert(db.tag_progress.name == uid,
-                                                **tag_progress)
+                tag_progress['name'] = uid
+                condition = {'name': uid}
+                db.tag_progress.update_or_insert(condition, **tag_progress)
                 mycount = db(db.tag_progress.name == uid).count()
                 assert mycount == 1  # ensure there's never a duplicate
                 # TODO: eliminate check by making name field unique
@@ -380,15 +381,15 @@ class Walk(object):
         """
         Update the 'secondary_right' field of a tag record.
         """
-        now = datetime.datetime.utcnow() if not now else now
+        mynow = datetime.datetime.utcnow() if not now else now
         db = current.db
-        sec_right = [now]  # default
+        sec_right = [mynow]  # default
         if oldrec:
             sec_right = oldrec['secondary_right']
             try:
-                sec_right.append(now)
+                sec_right.append(mynow)
             except AttributeError:  # because secondary_right is None
-                sec_right = [now]  # default
+                sec_right = [mynow]  # default
         condition = {'tag': tag, 'name': user_id}
         tagrec = db.tag_records.update_or_insert(condition,
                                                  tag=tag,
@@ -494,7 +495,7 @@ class Walk(object):
         TODO: be sure not to log redirect and utility steps. (filter them out
         before calling _record_step())
         """
-        now = datetime.datetime.utcnow() if not now else now
+        mynow = datetime.datetime.utcnow() if not now else now
         db = current.db
         # TODO: Store and roll back db changes if impersonating
         # TODO: should the threshold here be less than 1 for 'right'?
@@ -504,12 +505,13 @@ class Walk(object):
             oldrec = [r for r in old_trecs
                       if r['tag'] == t] if old_trecs else None
             self._update_tag_record(t, oldrec, user_id, raw_tright, raw_twrong,
-                                    got_right, score, now=now)
+                                    got_right, score, now=mynow)
         if got_right and ('secondary' in taglist.keys()):
             for t in taglist['secondary']:
                 oldrec = [r for r in old_trecs
-                        if r['tag'] == t] if old_trecs else None
-                self._update_tag_secondary(t, oldrec, user_id, score, now=now)
+                          if r['tag'] == t] if old_trecs else None
+                print mynow
+                self._update_tag_secondary(t, oldrec, user_id, now=mynow)
 
         log_args = {'name': user_id,
                     'step': step_id,
@@ -698,6 +700,7 @@ class BugReporter(object):
     """
     def __init__(self):
         """Initialize a BugReporter object"""
+        print 'initializing bugreporter'
         pass
 
     def get_reporter(self, record_id, path_id, step_id,
@@ -709,8 +712,13 @@ class BugReporter(object):
         web2py view template. This is meant to be embedded in the reply UI
         which presents the user with an evaluation of the step input.
         """
+        print 'getting reporter'
+        print type(response_string)
         response_string = response_string.decode('utf-8')
-        vardict = {'answer': response_string.encode('utf-8'),
+        print type(response_string)
+        response_string = response_string.encode('utf-8')
+        print type(response_string)
+        vardict = {'answer': response_string,
                    'loc_id': loc_id,
                    'log_id': record_id,
                    'path_id': path_id,
@@ -1963,7 +1971,7 @@ class User(object):
                 # TODO: below is 'magic' hack based on specific db field names
                 categories = {k: v for k, v in self.tag_progress.iteritems()
                               if k[:4] in ['cat', 'rev']}
-            except AttributeError:
+            except (AttributeError, AssertionError):
                 categories = None
             self.old_categories = copy(categories)
 
