@@ -5973,17 +5973,21 @@ class TestBugReporter():
     Unit testing class for the paideia.BugReporter class.
     '''
 
-    def test_bugreporter_get_reporter(self):
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('record_id,path_id,step_id,score,response_string,'
+                             'loc_id',
+                             [(22,  # record_id
+                               4,  # 'path_id':
+                               108,  # 'step_id':
+                               0.5,  # 'score':
+                               'hi',  # 'response_string':
+                               8)  # 'loc_id':
+                               ])
+    def test_bugreporter_get_reporter(self, record_id, path_id, step_id, score,
+                                      response_string, loc_id):
         """
         Unit test for BugReporter.get_reporter() method.
         """
-        data = {'record_id': 22,
-                'path_id': 4,
-                'step_id': 108,
-                'score': 0.5,
-                'response_string': 'hi',
-                'loc_id': 8}
-
         xpct = ['<a class="bug_reporter" data-target="#bug_reporter_modal" '
                 'data-toggle="modal" id="bug_reporter_modal_trigger">Something '
                 'wrong?</a>'
@@ -5998,8 +6002,13 @@ class TestBugReporter():
                 '<a class="bug_reporter_link btn btn-danger" '
                 'data-w2p_disable_with="default" data-w2p_method="GET" '
                 'data-w2p_target="bug_reporter" href="/paideia/creating/bug.'
-                'load?answer=hi&amp;loc_id=8&amp;log_id=22&amp;path_id=4&amp;'
-                'score=0.5&amp;step_id=108">click here<i class="icon-bug"></i></a> '
+                'load?'
+                'answer={}'
+                '&amp;loc_id={}'
+                '&amp;log_id={}'
+                '&amp;path_id={}'
+                '&amp;score={}'
+                '&amp;step_id={}">click here<i class="icon-bug"></i></a> '
                 'to submit a bug report. You can find the instructor&#x27;s '
                 'response in the &quot;bug reports&quot; tab of your user '
                 'profile.</p>'
@@ -6008,12 +6017,10 @@ class TestBugReporter():
                 '<button aria-hidden="true" class="pull-right" '
                 'data-dismiss="modal" type="button">Close</button>'
                 '</div>'
-                '</div>']
-        #expected = '<a class="bug_reporter_link" data-w2p_disable_with="default" ' \
-                   #'href="/paideia/creating/bug.load?' \
-                   #'answer=hi&amp;loc=agora&amp;log_id=22&amp;path=4&amp;' \
-                   #'score=0.5&amp;step=108" id="bug_reporter">click here</a>'
+                '</div>'.format(response_string, loc_id, record_id, path_id,
+                                score, step_id)]
 
-        actual = BugReporter().get_reporter(**data)
+        actual = BugReporter().get_reporter(record_id, path_id, step_id,
+                                            score, response_string, loc_id)
 
         assert actual.xml() == xpct[0]
