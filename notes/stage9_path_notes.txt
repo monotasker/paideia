@@ -1,12 +1,22 @@
-present active imperative
+## present active imperative
 
-- I want Sofia to 
+tell {words1} {words2} {words3}
+- words1: Ἰασονα|Σοφιαν|Φοιβην|Γεωργιον
+- words2: ἀγοραζειν|λαμβανειν|φερειν
+- words3: γαλα|ἐλαιον|ἀρτους|οἰνον
+- step1:
+    Ὠ παις! Κελευε της ἀγορας {words3} {words2} {words1}.
+    Ὠ παις! Κελευε {words1} {words2} {words3} της ἀγορας.
+    Ὠ παις! Κελευε {words1} {words3} της ἀγορας {words2}.
 
-accusative 1
+- step2:
+    
+
+## accusative 1
 
 
 
-accusative 3
+## accusative 3
 
 - buy milk from the seller
     - buy oil from the oil seller

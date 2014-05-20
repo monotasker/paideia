@@ -27,7 +27,7 @@ from paideia_utils import capitalize_first, test_regex, uprint
 from paideia_utils import islist  # sanitize_greek,
 from plugin_utils import flatten
 import datetime
-#from plugin_ajaxselect import AjaxSelect
+# from plugin_ajaxselect import AjaxSelect
 
 
 class PathFactory(object):
@@ -66,73 +66,73 @@ class PathFactory(object):
                    Field('{}_tags'.format(n), 'list:reference tags',
                          requires=IS_IN_DB(db, 'tags.id', '%(tag)s',
                                            multiple=True),
-                         #widget=lambda field, value: AjaxSelect(field, value,
-                         #indx=1,
-                         #multi='basic',
-                         #lister='simple',
-                         #orderby='tag'
-                         #).widget()
+                         # widget=lambda field, value: AjaxSelect(field, value,
+                         # indx=1,
+                         # multi='basic',
+                         # lister='simple',
+                         # orderby='tag'
+                         # ).widget()
                          ),
                    Field('{}_tags_secondary'.format(n), 'list:reference tags',
                          requires=IS_IN_DB(db, 'tags.id',
                                            '%(tag)s',
                                            multiple=True),
-                         #widget=lambda field, value: AjaxSelect(field, value,
-                         #indx=2,
-                         #multi='basic',
-                         #lister='simple',
-                         #orderby='tag'
-                         #).widget()
+                         # widget=lambda field, value: AjaxSelect(field, value,
+                         # indx=2,
+                         # multi='basic',
+                         # lister='simple',
+                         # orderby='tag'
+                         # ).widget()
                          ),
                    Field('{}_tags_ahead'.format(n), 'list:reference tags',
                          requires=IS_IN_DB(db, 'tags.id', '%(tag)s',
                                            multiple=True),
-                         #widget=lambda field, value: AjaxSelect(field, value,
-                         #indx=3,
-                         #multi='basic',
-                         #lister='simple',
-                         #orderby='tag'
-                         #).widget()
+                         # widget=lambda field, value: AjaxSelect(field, value,
+                         # indx=3,
+                         # multi='basic',
+                         # lister='simple',
+                         # orderby='tag'
+                         # ).widget()
                          ),
                    Field('{}_npcs'.format(n), 'list:reference npcs',
                          requires=IS_IN_DB(db, 'npcs.id', '%(name)s',
                                            multiple=True),
-                         #widget=lambda field, value: AjaxSelect(field, value,
-                         #indx=1,
-                         #multi='basic',
-                         #lister='simple',
-                         #orderby='name'
-                         #).widget()
+                         # widget=lambda field, value: AjaxSelect(field, value,
+                         # indx=1,
+                         # multi='basic',
+                         # lister='simple',
+                         # orderby='name'
+                         # ).widget()
                          ),
                    Field('{}_locations'.format(n), 'list:reference locations',
                          requires=IS_IN_DB(db, 'locations.id', '%(map_location)s',
                                            multiple=True),
-                         #widget=lambda field, value: AjaxSelect(field, value,
-                         #indx=1,
-                         #multi='basic',
-                         #lister='simple',
-                         #orderby='map_location'
-                         #).widget()
+                         # widget=lambda field, value: AjaxSelect(field, value,
+                         # indx=1,
+                         # multi='basic',
+                         # lister='simple',
+                         # orderby='map_location'
+                         # ).widget()
                          ),
                    Field('{}_instructions'.format(n), 'list:reference step_instructions',
                          requires=IS_IN_DB(db, 'step_instructions.id', '%(instruction_label)s',
                                            multiple=True),
-                         #widget=lambda field, value: AjaxSelect(field, value,
-                         #indx=1,
-                         #multi='basic',
-                         #lister='simple',
-                         #orderby='instruction_label'
-                         #).widget()
+                         # widget=lambda field, value: AjaxSelect(field, value,
+                         # indx=1,
+                         # multi='basic',
+                         # lister='simple',
+                         # orderby='instruction_label'
+                         # ).widget()
                          ),
                    Field('{}_hints'.format(n), 'list:reference step_hints',
                          requires=IS_IN_DB(db, 'step_hints.id', '%(hint_label)s',
                                            multiple=True),
-                         #widget=lambda field, value: AjaxSelect(field, value,
-                         #indx=1,
-                         #multi='basic',
-                         #lister='simple',
-                         #orderby='hint_label'
-                         #).widget()
+                         # widget=lambda field, value: AjaxSelect(field, value,
+                         # indx=1,
+                         # multi='basic',
+                         # lister='simple',
+                         # orderby='hint_label'
+                         # ).widget()
                          ),
                    Field('{}_step_type'.format(n), 'list:reference step_types',
                          requires=IS_IN_DB(db, 'step_types.id', '%(step_type)s',
@@ -245,49 +245,35 @@ class PathFactory(object):
                                 images manually.
 
         """
-        print "starting module======================================"
-        print datetime.datetime.now()
-        print "======================================"
-
         if testing is None:
             self.mock = False
         else:
             self.mock = True
 
         combos = self.make_combos(wordlists, aligned, avoid)
-        print 'got combos'
         paths = {}
         for idx, c in enumerate(combos):  # one path for each combo
-            #print 'path for combo {}'.format(idx)
-            #print '====================================================='
             label = label_template.format('-'.join(c))
             mykeys = ['words{}'.format(n + 1) for n in range(len(c))]
             combodict = dict(zip(mykeys, c))  # keys are template placeholders
-            print 'combo', idx
 
             pdata = {'steps': {}, 'new_forms': [], 'images_missing': []}
-            print 'got pdata'
             for i, s in enumerate(stepsdata):  # each step in path
-                print 'starting step', i
                 # sanitize form response =============================="
                 numstrings = ['one_', 'two_', 'three_', 'four_', 'five_']
                 sdata = {k.replace(numstrings[i], ''): v for k, v in s.iteritems()}
-                print 'got sdata'
                 # create steps ========================================"
                 stepdata, newforms, imgs = self.make_step(combodict, sdata)
-                print 'made step'
                 # collect result ======================================"
                 pdata['steps'][stepdata[0]] = stepdata[1]
                 if newforms:
                     pdata['new_forms'].append(newforms)
                 if imgs:
                     pdata['images_missing'].append(imgs)
-            print 'got stepsdata'
             pgood = [isinstance(k, (int, long)) for k in pdata['steps'].keys()]
             pid = self.path_to_db(pdata['steps'].keys(), label) \
                 if all(pgood) and not self.mock else 'path not written {}'.format(idx)
             paths[pid] = pdata
-            print 'got paths for combo', c
         print 'returning paths'
         return paths
 
@@ -328,43 +314,33 @@ class PathFactory(object):
         [1] newfs           : A list of inflected word forms newly added to
                               db.word_forms in the course of step creation.
         """
-        print 'starting make_step'
         mytype = sdata['step_type']
 
-        print 'getting template'
         ptemp = islist(sdata['prompt_template'])
         xtemp = islist(sdata['response_template'])
         rtemp = islist(sdata['readable_template'])
-        print 'got strings'
 
         tags1 = sdata['tags']
         itemp = sdata['image_template']
         tags2 = sdata['tags_secondary']
         tags3 = sdata['tags_ahead'] if 'tags_ahead' in sdata.keys() else None
-        print 'got tags 1, 2, 3'
         npcs = sdata['npcs']
         locs = sdata['locations']
         points = sdata['points'] if 'points' in sdata.keys() and sdata['points'] \
             else 1.0, 0.0, 0.0
-        print 'got points'
         instrs = sdata['instructions']
-        print 'got instructions'
         # FIXME: choking on the line below
         hints = sdata['hints']
-        print 'assembled tags/hints'
         img = self.make_image(combodict, itemp) if itemp else None
         imgid = img[0] if img else None
-        print 'got image'
-        #ititle = img[1] if img else None
+        # ititle = img[1] if img else None
         images_missing = img[2] if img else None
 
         pros, rxs, rdbls, newfs = self.format_strings(combodict, ptemp, xtemp, rtemp)
-        print 'formatted strings'
         tags = self.get_step_tags(tags1, tags2, tags3, pros, rdbls)
-        print 'got tags'
         kwargs = {'prompt': pros[randrange(len(pros))],  # sanitize_greek(pros[randrange(len(pros))]),
                   'widget_type': mytype,
-                  #'widget_audio': None,
+                  # 'widget_audio': None,
                   'widget_image': imgid,
                   'response1': islist(rxs)[0],
                   'readable_response': '|'.join([r for r in islist(rdbls)]),  # sanitize_greek(rdbls)]),
@@ -380,7 +356,6 @@ class PathFactory(object):
                   'locations': locs,
                   'instructions': instrs,
                   'hints': hints}  # [randrange(len(npcs))] if mult
-        print 'assembled kwargs'
 
         try:
             matchdicts = [test_regex(x, rdbls) for x in rxs]
@@ -390,7 +365,6 @@ class PathFactory(object):
                 if not mtch:
                     problems = [k for k, v in matchdicts[idx].iteritems() if not v]
                     xfail[regex] = problems
-                    #print 'regex {} failed with string: {}'.format(idx, problems)
             dups = self.check_for_duplicates(kwargs, rdbls, pros)
             if mtch and not self.mock and not dups[0]:
                 stepresult = self.step_to_db(kwargs), kwargs
@@ -418,16 +392,16 @@ class PathFactory(object):
 
         """
         db = current.db
-        images_missing = []
+        image_missing = False
         mytitle = itemp.format(**combodict)
         img_row = db(db.images.title == mytitle).select().first()
         if not img_row:
             myid = db.images.insert(title=mytitle)
-            images_missing.append((myid, mytitle))
+            image_missing = True
         else:
             myid = img_row.id
 
-        return myid, mytitle, images_missing
+        return myid, mytitle, image_missing
 
     def format_strings(self, combodict, ptemps, xtemps, rtemps):
         u"""
@@ -447,15 +421,15 @@ class PathFactory(object):
 
         """
         prompts = [self.do_substitution(p, combodict) for p in ptemps]
-        p_new = [p[1] for p in prompts]
+        p_new = chain.from_iterable([p[1] for p in prompts])
         prompts = [capitalize_first(p[0]) for p in prompts]
 
         rxs = [self.do_substitution(x, combodict) for x in xtemps]
-        x_new = [x[1] for x in rxs]
+        x_new = chain.from_iterable([x[1] for x in rxs])
         rxs = [x[0] for x in rxs]
 
         rdbls = [self.do_substitution(r, combodict) for r in rtemps]
-        r_new = [r[1] for r in rdbls]
+        r_new = chain.from_iterable([r[1] for r in rdbls])
         rdbls = [capitalize_first(r[0]) for r in rdbls]
 
         newforms = list(chain(p_new, x_new, r_new))
@@ -485,10 +459,10 @@ class PathFactory(object):
             else:
                 myform = combodict[f]
             subpairs[f] = myform
-            #subpairs.append(('{{{}}}'.format(f), myform))
+            # subpairs.append(('{{{}}}'.format(f), myform))
 
         ready_strings = temp.format(**subpairs)
-        #ready_strings = multiple_replace(temp, tuple(subpairs))
+        # ready_strings = multiple_replace(temp, tuple(subpairs))
         return ready_strings, newforms
 
     def get_wordform(self, field, combodict):
@@ -517,7 +491,8 @@ class PathFactory(object):
             myrow = db.word_forms(db.word_forms.word_form == lemma)
             lemma = myrow.source_lemma.lemma
         # inflect lemma to agree with its governing word
-        modform = combodict[mod]
+        modform = combodict[mod] if mod != 'none' else None
+
         myform, newform = self.make_form_agree(modform, lemma, aspect)
 
         return myform, newform
@@ -533,70 +508,105 @@ class PathFactory(object):
         db = current.db
         newform = None
         lem = db(db.lemmas.lemma == mylemma).select().first()
+        lemform = db(db.word_forms.word_form == mylemma).select().first()
         ref = db(db.word_forms.word_form == mod_form).select().first()
 
         # use provided constraints where present in field
         # allow for use of short forms
         cdict = {}
-        if constraint:
+        if constraint and constraint != 'none':
             cparsebits = constraint.split('_')
-            cparsing = [b.split(':') for b in cparsebits]
+            cparsing = [b.split('@') for b in cparsebits]
             cdict = {cp[0]: cp[1] for cp in cparsing}
+            key_eqs = {'num': 'number',
+                       'n': 'number',
+                       'gen': 'gender',
+                       'gend': 'gender',
+                       'g': 'gender',
+                       'c': 'case'}
+            for k, v in cdict.iteritems():
+                if k in key_eqs.keys():
+                    cdict[key_eqs[k]] = v
+                    del cdict[k]
         equivs = {'masc': 'masculine',
+                  'm': 'masculine',
                   'fem': 'feminine',
+                  'f': 'feminine',
                   'neut': 'neuter',
-                  'nome': 'nominative',
+                  'n': 'neuter',
+                  'nom': 'nominative',
+                  'nomin': 'nominative',
                   'gen': 'genitive',
+                  'g': 'genitive',
                   'dat': 'dative',
+                  'd': 'dative',
                   'acc': 'accusative',
+                  'a': 'accusative',
+                  's': 'singular',
+                  'si': 'singular',
                   'sing': 'singular',
+                  'p': 'plural',
+                  'pl': 'plural',
                   'plu': 'plural',
                   'plur': 'plural'}
-        case = cdict['case'] if 'case' in cdict.keys() else ref.grammatical_case
-        gender = cdict['gender'] if 'gender' in cdict.keys() else ref.gender
-        number = cdict['number'] if 'number' in cdict.keys() else ref.number
-        for n in [case, gender, number]:
-            n = equivs[n] if n in equivs.keys() else n
+        # get case
+        if 'case' in cdict.keys():
+            case = equivs[cdict['case']] if cdict['case'] in equivs.keys() \
+                else cdict['case']
+        else:
+            case = ref.grammatical_case
+        # get gender
+        if 'gender' in cdict.keys():
+            gender = cdict['gender'] if cdict['gender'] in equivs.keys() \
+                else cdict['gender']
+        elif lem.part_of_speech == 'noun':
+            gender = lemform.gender
+        else:
+            gender = ref.gender
         # allow for ambiguously gendered forms
         genders = [gender, 'undetermined']
         if gender in ['masculine', 'feminine']:
             genders.append('masculine or feminine')
         if gender in ['masculine', 'neuter']:
             genders.append('masculine or neuter')
+        # get number
+        if 'number' in cdict.keys():
+            number = equivs[cdict['number']] if cdict['number'] in equivs.keys()\
+                else cdict['number']
+        else:
+            number = ref.number
         # get the inflected form from the db
         myrow = db((db.word_forms.source_lemma == lem.id) &
                    (db.word_forms.grammatical_case == case) &
                    (db.word_forms.gender.belongs(genders)) &
                    (db.word_forms.number == number)
                    ).select().first()
-        print myrow
-        print myrow.word_form.decode('utf8')
         myform = myrow.word_form
         # TODO: automatically create form if not in db
-        #if not row:
-            ## Add the modified word form to db.word_forms
-            #ref_const_id = db(db.constructions.construction_label == ref_const
-                                #).select().first().id
-            #db.word_forms.insert(**new)
-            #newforms.append(new)
-                #'grammatical_case': case,
-                #'gender': gender,
-                #'number': number,
-                #'construction': ref_const_id}
-        #case = abbrevs[parsebits[1]]
-        #gender = abbrevs[parsebits[2]]
-        #number = abbrevs[parsebits[3]]
-        #ref_lemma = parsebits[-1]
-        #pos = parsebits[0]
-        #ref_const = '{}_{}_{}_{}'.format(pos, parsebits[1],
-                                            #parsebits[2],
-                                            #parsebits[3])
-        #ref_lemma_id = db(db.lemmas.lemma == ref_lemma).select().first().id
-        #except (AttributeError, IndexError):
-            #print traceback.format_exc(5)
-            #uprint(('no pre-made form in db for', mylemma, mod_form))
-            #myform = None  # FIXME: try to create and save new declined form
-            #newform = 'I\'m new'
+        # if not row:
+            # Add the modified word form to db.word_forms
+            # ref_const_id = db(db.constructions.construction_label == ref_const
+                                # ).select().first().id
+            # db.word_forms.insert(**new)
+            # newforms.append(new)
+                # 'grammatical_case': case,
+                # 'gender': gender,
+                # 'number': number,
+                # 'construction': ref_const_id}
+        # case = abbrevs[parsebits[1]]
+        # gender = abbrevs[parsebits[2]]
+        # number = abbrevs[parsebits[3]]
+        # ref_lemma = parsebits[-1]
+        # pos = parsebits[0]
+        # ref_const = '{}_{}_{}_{}'.format(pos, parsebits[1],
+                                            # parsebits[2],
+                                            # parsebits[3])
+        # ref_lemma_id = db(db.lemmas.lemma == ref_lemma).select().first().id
+        # except (AttributeError, IndexError):
+            # print traceback.format_exc(5)
+            # uprint(('no pre-made form in db for', mylemma, mod_form))
+            # myform = None  #  FIXME: try to create and save new declined form
+            # newform = 'I\'m new'
         return myform, newform
 
     def check_for_duplicates(self, step, readables, prompt):
@@ -655,7 +665,7 @@ class PathFactory(object):
         alltags = sorted(list(chain(*tagsets)))
         tagrows = db(db.tags.id.belongs(alltags)).select(db.tags.id,
                                                          db.tags.tag_position)
-        steplevel = max([t.tag_position for t in tagrows])
+        steplevel = max([t.tag_position for t in tagrows if t.tag_position < 999])
         for t in tagrows:
             if t.tag_position == steplevel:
                 newtags1.append(t.id)
@@ -831,13 +841,13 @@ class TranslateWordPathFactory(PathFactory):
                                      ),
                                Field('irregular_forms', type='list:string'),
                                Field('testing', type='boolean'))
-                               #widget=lambda f, v: AjaxSelect(f, v,
-                                                            #indx=1,
-                                                            #refresher=True,
-                                                            #multi='basic',
-                                                            #lister='simple',
-                                                            #orderby='lemmas'
-                                                            #).widget()
+                                                            # widget=lambda f, v: AjaxSelect(f, v,
+                                                            # indx=1,
+                                                            # refresher=True,
+                                                            # multi='basic',
+                                                            # lister='simple',
+                                                            # orderby='lemmas'
+                                                            # ).widget()
         if form.process(dbio=False, keepvalues=True).accepted:
             self.lemmaset = request.vars.lemmas
             irregs = request.vars.irregular_forms
