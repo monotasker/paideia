@@ -25,13 +25,13 @@ p11
 ssS'tags'
 p12
 (dp13
-S'sortable'
+S'type'
 p14
-I6
-sS'type'
-p15
 S'list:reference db.tags'
+p15
+sS'sortable'
 p16
+I6
 sS'sql'
 p17
 S'TEXT'
@@ -40,10 +40,10 @@ ssS'locations'
 p19
 (dp20
 g14
-I4
-sg15
 S'list:reference db.locations'
 p21
+sg16
+I4
 sg17
 g18
 ssS'label'
@@ -66,10 +66,10 @@ ssS'npcs'
 p25
 (dp26
 g14
-I5
-sg15
 S'list:reference db.npcs'
 p27
+sg16
+I5
 sg17
 g18
 ssS'steps'
@@ -106,26 +106,9 @@ I00
 sg10
 S'reference path_styles'
 p35
-ssS'path_active'
+ssS'id'
 p36
 (dp37
-g4
-I512
-sg5
-I00
-sg6
-I6
-sg7
-S'CHAR(1)'
-p38
-sg9
-I00
-sg10
-S'boolean'
-p39
-ssS'id'
-p40
-(dp41
 g4
 I512
 sg5
@@ -134,10 +117,27 @@ sg6
 I1
 sg7
 S'INTEGER PRIMARY KEY AUTOINCREMENT'
-p42
+p38
 sg9
 I00
 sg10
 S'id'
+p39
+ssS'path_active'
+p40
+(dp41
+g4
+I512
+sg5
+I00
+sg6
+I6
+sg7
+S'CHAR(1)'
+p42
+sg9
+I00
+sg10
+S'boolean'
 p43
 ss.
