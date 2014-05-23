@@ -17,7 +17,7 @@ from pytz import timezone
 import pickle
 from plugin_utils import flatten
 from plugin_widgets import MODAL
-# from pprint import pprint
+from pprint import pprint
 
 # TODO: move these notes elsewhere
 """
@@ -195,6 +195,8 @@ class Walk(object):
 
         print 'STARTING WALK.ASK---------------------------------------'
         user = self.user
+        print 'Tag progress is------------------'
+        pprint(user.tag_progress)
         # allow artificial setting of blocks during interface testing
         if set_blocks:
             for c, v in set_blocks.iteritems():
@@ -228,6 +230,8 @@ class Walk(object):
         user.set_npc(npc)
 
         prompt = s.get_prompt(loc, npc, username)
+        print 'before sending to view------------------------'
+        print user.completed_paths
         extra_fields = {'completed_count': len(user.completed_paths),
                         'category': category,
                         'pid': p.get_id()}
@@ -1698,7 +1702,6 @@ class User(object):
             self.cats_counter = 0  # timing re-categorization in get_categories()
 
             self.old_categories = {}
-            self.categories = None
             self.tag_records = tag_records
             self.rank = tag_progress['latest_new'] if tag_progress else 1
             self.tag_progress = tag_progress
@@ -1931,7 +1934,7 @@ class User(object):
                 rank = self.tag_progress['latest_new']
                 # TODO: below is 'magic' hack based on specific db field names
                 categories = {k: v for k, v in self.tag_progress.iteritems()
-                              if k[:4] in ['cat', 'rev']}
+                              if k[:3] in ['cat', 'rev']}
             except (AttributeError, AssertionError):
                 categories = None
             self.old_categories = copy(categories)
@@ -1973,14 +1976,16 @@ class Categorizer(object):
     (integers) of the tags that are currently in the given category.
     """
 
-    def __init__(self, rank, categories, tag_records, user_id,
+    def __init__(self, rank, tag_progress, tag_records, user_id,
                  secondary_right=None, utcnow=None, db=None):
         """Initialize a paideia.Categorizer object"""
         self.db = current.db if not db else db
         self.user_id = user_id
         self.rank = rank
         self.tag_records = tag_records
-        self.old_categories = categories
+        self.old_categories = tag_progress
+        print 'Categorizer __init__: categories ------------------'
+        pprint(tag_progress)
         self.utcnow = utcnow if utcnow else datetime.datetime.utcnow()
         self.secondary_right = secondary_right
 
@@ -2040,10 +2045,18 @@ class Categorizer(object):
                 tag_records[idx] = self._add_secondary_right(t)
             self.tag_records = tag_records
             categories = self._core_algorithm()
+            print 'after core algorithm---------------------'
+            pprint(categories)
             categories = self._add_untried_tags(categories)
+            print 'after add untried-------------------------'
+            pprint(categories)
             categories = self._remove_dups(categories, rank)
+            print 'after remove dups------------------------'
+            pprint(categories)
             categories.update((c, []) for c in ['rev1', 'rev2', 'rev3', 'rev4'])
             cat_changes = self._find_cat_changes(categories, old_categories)
+            print 'after find cat changes------------------------'
+            pprint(cat_changes)
             promoted = cat_changes['promoted']
             demoted = cat_changes['demoted']
             new_tags = cat_changes['new_tags']
@@ -2058,6 +2071,12 @@ class Categorizer(object):
 
             # Re-insert 'latest new' to match tag_progress table in db
             tag_progress['latest_new'] = self.rank
+
+            print 'final tag_progress------------------------'
+            pprint(cat_changes)
+
+            print 'final categories------------------------'
+            pprint(cat_changes)
 
             return {'tag_progress': tag_progress,
                     'tag_records': self.tag_records,

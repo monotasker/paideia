@@ -102,7 +102,7 @@ else:
 
         {{# path counter for prompt/reply==================================}}
         <span class='path-counter progress_text'>
-            'This will make {{=completed_count + 1}} paths so far today.'
+            'This will make {{=completed_count}} paths so far today.'
         </span>
     </div>
 
