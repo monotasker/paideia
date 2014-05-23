@@ -16,7 +16,7 @@ TranslateWordPathFactory:class (extends PathFactory)
 : A subclass that includes extra helper logic for simple translation paths.
 
 """
-from pprint import pprint
+# from pprint import pprint
 import traceback
 from gluon import current, SQLFORM, Field, BEAUTIFY, IS_IN_DB, UL, LI
 from gluon import CAT, H2
@@ -25,8 +25,8 @@ from random import randrange, shuffle
 from itertools import product, chain
 from paideia_utils import capitalize_first, test_regex, uprint
 from paideia_utils import islist  # sanitize_greek,
-from plugin_utils import flatten
-import datetime
+from plugin_utils import flatten, makeutf8
+# import datetime
 # from plugin_ajaxselect import AjaxSelect
 
 
@@ -142,7 +142,6 @@ class PathFactory(object):
         form = SQLFORM.factory(*flds)
 
         if form.process().accepted:
-            print 'processing form'
             vv = request.vars
             stepsdata = []
             for n in ['one', 'two', 'three', 'four', 'five']:
@@ -155,7 +154,6 @@ class PathFactory(object):
                 wordlists = [w.split('|') for w in vv['words']]
             else:
                 wordlists = [vv['words'].split('|')]
-            print 'sending to make_path'
             paths = self.make_path(wordlists,
                                    label_template=vv.label_template,
                                    stepsdata=stepsdata,
@@ -164,7 +162,6 @@ class PathFactory(object):
                                    aligned=vv.aligned
                                    )
             message, output = self.make_output(paths)
-            print 'received output'
 
         elif form.errors:
             message = BEAUTIFY(form.errors)
@@ -274,7 +271,6 @@ class PathFactory(object):
             pid = self.path_to_db(pdata['steps'].keys(), label) \
                 if all(pgood) and not self.mock else 'path not written {}'.format(idx)
             paths[pid] = pdata
-        print 'returning paths'
         return paths
 
     def make_combos(self, wordlists, aligned, avoid):
@@ -374,12 +370,12 @@ class PathFactory(object):
                 stepresult = 'duplicate step', dups
             else:
                 stepresult = 'regex failure', xfail
-                print 'regex failure-------------------------'
-                print xfail.keys()[0].decode('utf8')
-                print xfail.values()[0][0]
+                # print 'regex failure-------------------------'
+                # print xfail.keys()[0]
+                # print xfail.values()[0][0]
         except Exception:
-            tracebk = traceback.format_exc(12)
-            stepresult = ('failure', tracebk)
+            # tracebk = traceback.format_exc(12)
+            stepresult = ('failure')
 
         return stepresult, newfs, images_missing
 
@@ -459,10 +455,7 @@ class PathFactory(object):
             else:
                 myform = combodict[f]
             subpairs[f] = myform
-            # subpairs.append(('{{{}}}'.format(f), myform))
-
         ready_strings = temp.format(**subpairs)
-        # ready_strings = multiple_replace(temp, tuple(subpairs))
         return ready_strings, newforms
 
     def get_wordform(self, field, combodict):
@@ -497,6 +490,412 @@ class PathFactory(object):
 
         return myform, newform
 
+    def _guess_part_of_speech(self, word_form):
+        """docstring for _guess_part_of_speech"""
+
+        word_form = makeutf8(word_form)
+        if (word_form[-1] == u'ω') or (word_form[-2:] == u'μι'):
+            ps = 'verb'
+        elif (word_form[-2:] in [u'ος', u'υς', u'ης', u'ον']) or \
+             (word_form[-1] in [u'η', u'α']):
+            ps = 'noun'
+        elif word_form[-2:] == u'ως':
+            ps = 'adverb'
+        else:
+            ps = None
+
+        return ps
+
+    def _guess_parsing(self, word_form, lemma):
+        """
+        """
+        word_form = makeutf8(word_form)
+        lemma = makeutf8(lemma)
+        case = None
+        gender = None
+        declension = None
+        number = None
+        cases = ['nominative', 'genitive', 'dative', 'accusative', 'vocative',
+                 'nominative', 'genitive', 'dative', 'accusative', 'vocative']
+        endings = {u'ος': {'sfx': [u'ος', u'ου', u'ῳ', u'ον', u'ε',
+                                   u'οι', u'ων', u'οις', u'ους', u'--'],
+                           'declension': '2',
+                           'gender': 'masculine'},
+                   u'ον': {'sfx': [u'ον', u'ου', u'ῳ', u'ον', u'ε',
+                                   u'α', u'ων', u'οις', u'α', u'--'],
+                           'declension': '2',
+                           'gender': 'neuter'},
+                   u'(η|α)': {'sfx': [u'(η|α)', u'[ηα]ς', u'(ῃ|ᾳ)', u'[ηα]ν', u'ε',
+                                  u'αι', u'ων', u'αις', u'ας', u'--'],
+                          'declension': '1',
+                          'gender': 'feminine'},
+                   u'ρ': {'sfx': [u'ρ', u'ρος', u'ρι', u'ρα', u'--',
+                                  u'ρες', u'ρων', u'ρι.ι', u'ρας', u'--'],
+                          'declension': '3',
+                          'gender': None},
+                   u'ις': {'sfx': [u'[^ε]ις', u'(εως|ος)', u'ι', u'(ιν|α)',
+                                   u'--', u'ε[ι]?ς', u'ων', u'[ιε].ι',
+                                   u'(εις|ας)', u'ε[ι]?ς'],
+                          'declension': '3',
+                          'gender': None},
+                   u'υς': {'sfx': [u'υς', u'υως', u'υι', u'υν', u'υ',
+                                   u'υες', u'υων', u'--', u'υας', u'υες'],
+                          'declension': '3',
+                          'gender': None},
+                   }
+        for k, v in endings.iteritems():
+            if re.match(u'.*{}$'.format(k), lemma):
+                print 'matched', k, 'to lemma'
+                ends = [i for i in v['sfx']
+                        if re.match(u'.*{}$'.format(i), word_form)]
+                if ends:
+                    for e in ends:
+                        print 'matched', e
+                    if len(ends) == 1:
+                        idx = v['sfx'].index(ends[0])
+                        case = cases[idx]
+                        number = 'singular' if idx < 5 else 'plural'
+                    else:
+                        idxs = [v['sfx'].index(e) for e in ends]
+                        if all(i > 4 for i in idxs):
+                            number = 'plural'
+                        elif all(i <= 4 for i in idxs):
+                            number = 'singular'
+                        else:
+                            number = None
+                declension = v['declension']
+                gender = v['gender']
+
+                break
+
+        return {'grammatical_case': case,
+                'gender': gender,
+                'number': number,
+                'declension': '{}decl'.format(declension)}
+
+    def _add_new_wordform(self, word_form, lemma, mod_form, constraint):
+        """
+        Attempt to insert a new word form into the db based on supplied info.
+
+        If the insertion is successful, return the word form and the id of the
+        newly inserted row from db.word_forms. Otherwise return False.
+
+        """
+        db = current.db
+        cd = self._parse_constraint(constraint)
+        cd['source_lemma'] = lemma
+        if 'part_of_speech' not in cd.keys():
+            cd['part_of_speech'] = self._guess_part_of_speech(word_form)
+            ps = cd['part_of_speech']
+
+        # identify expected info for this part of speech
+        reqs = {'noun': ['source_lemma', 'grammatical_case', 'gender',
+                         'number'],
+                'adjective': ['source_lemma', 'grammatical_case', 'gender',
+                              'number'],
+                'pronoun': ['source_lemma', 'grammatical_case', 'gender',
+                            'number'],
+                'verb': ['source_lemma', 'tense', 'voice', 'mood',
+                         'person', 'number'],
+                'adverb': [],
+                'particle': [],
+                'conjunction': [],
+                'idiom': []}
+        if ps == 'verb' and cd['mood'] == 'participle':
+            reqs['verb'].pop(-2)
+            num = reqs['verb'].pop(-1)
+            reqs['verb'].extend(['grammatical_case', 'gender'])
+            reqs['verb'].append(num)
+        if ps == 'verb' and cd['mood'] == 'infinitive':
+            reqs['verb'] = reqs['verb'][:-2]
+
+        # try to get missing info from any modform (supposed to agree)
+        if mod_form:
+            modrow = db(db.word_forms.word_form == mod_form).select().first()
+            if modrow:
+                need = [i for i in reqs[ps]
+                        if i not in cd.keys()]
+                if need:
+                    for n in need:
+                        cd[n] = modrow[n]
+
+        # try to get missing info from form itself and lemma
+        need = [i for i in reqs[ps]
+                if i not in cd.keys()]
+        if need:
+            guesses = self._guess_parsing(word_form, lemma)
+            for n in need:
+                if n in guesses.keys() and guesses[n]:
+                    cd[n] = guesses[n]
+
+        # remove any extraneous info
+        for k in cd.keys():
+            if k not in reqs[ps]:
+                del cd[k]
+        print cd
+        # build and add construction label
+        cstbits = [cd[k] for k in reqs[ps][1:]]  # don't include lemma in construction label
+        shorts = {'adjective': 'adj',
+                  'pronoun': 'pron',
+                  'article': 'art',
+                  'conjunction': 'conj',
+                  'aorist1': 'aor1',
+                  'aorist2': 'aor2',
+                  'perfect1': 'perf1',
+                  'perfect2': 'perf2',
+                  'present': 'pres',
+                  'future': 'fut',
+                  'imperfect': 'imperf',
+                  'first': '1',
+                  'second': '2',
+                  'third': '3',
+                  'singular': 'sing',
+                  'plural': 'plur',
+                  'active': 'act',
+                  'passive': 'pass',
+                  'middle': 'mid',
+                  'indicative': 'ind',
+                  'subjunctive': 'subj',
+                  'optative': 'opt',
+                  'participle': 'ptc',
+                  'infinitive': 'inf',
+                  'imperative': 'imper',
+                  'nominative': 'nom',
+                  'genitive': 'gen',
+                  'dative': 'dat',
+                  'accusative': 'acc',
+                  'vocative': 'voc',
+                  'masculine': 'masc',
+                  'feminine': 'fem'
+                  }
+        tagging = {'verb basics': (['verb']),
+                   'noun basics': (['noun']),
+                   'adjectives': (['adj']),
+                   'nominative1': (['noun', 'nom', '1decl'],
+                                   ['adj', 'nom', '1decl'],
+                                   ['pron', 'nom', '1decl']),
+                   'nominative2': (['noun', 'nom', '2decl'],
+                                   ['adj', 'nom', '2decl'],
+                                   ['pron', 'nom', '2decl']),
+                   'nominative3': (['noun', 'nom', '3decl'],
+                                   ['adj', 'nom', '3decl'],
+                                   ['pron', 'nom', '3decl']),
+                   'dative1': (['noun', 'dat', '1decl'],
+                               ['adj', 'dat', '1decl'],
+                               ['pron', 'dat', '1decl']),
+                   'dative2': (['noun', 'dat', '2decl'],
+                               ['adj', 'dat', '2decl'],
+                               ['pron', 'dat', '2decl']),
+                   'dative3': (['noun', 'dat', '3decl'],
+                               ['adj', 'dat', '3decl'],
+                               ['pron', 'dat', '3decl']),
+                   'genitive1': (['noun', 'gen', '1decl'],
+                                 ['adj', 'gen', '1decl'],
+                                 ['pron', 'gen', '1decl']),
+                   'genitive2': (['noun', 'gen', '2decl'],
+                                 ['adj', 'gen', '2decl'],
+                                 ['pron', 'gen', '2decl']),
+                   'genitive3': (['noun', 'gen', '3decl'],
+                                 ['adj', 'gen', '3decl'],
+                                 ['pron', 'gen', '3decl']),
+                   'accusative1': (['noun', 'acc', '1decl'],
+                                   ['adj', 'acc', '1decl'],
+                                   ['pron', 'acc', '1decl']),
+                   'accusative2': (['noun', 'acc', '2decl'],
+                                   ['adj', 'acc', '2decl'],
+                                   ['pron', 'acc', '2decl']),
+                   'accusative3': (['noun', 'acc', '3decl'],
+                                   ['adj', 'acc', '3decl'],
+                                   ['pron', 'acc', '3decl']),
+                   'vocative1': (['noun', 'voc', '1decl'],
+                                 ['adj', 'voc', '1decl'],
+                                 ['pron', 'voc', '1decl']),
+                   'vocative2': (['noun', 'voc', '2decl'],
+                                 ['adj', 'voc', '2decl'],
+                                 ['pron', 'voc', '2decl']),
+                   'vocative3': (['noun', 'voc', '3decl'],
+                                 ['adj', 'voc', '3decl'],
+                                 ['pron', 'voc', '3decl']),
+                   'nominative plural nouns and pronouns': (['noun', 'nom', 'plur'],
+                                                            ['adj', 'nom', 'plur'],
+                                                            ['pron', 'nom', 'plur']),
+                   'genitive plural nouns and pronouns': (['noun', 'gen', 'plur'],
+                                                            ['adj', 'gen', 'plur'],
+                                                            ['pron', 'gen', 'plur']),
+                   'dative plural nouns and pronouns': (['noun', 'gen', 'plur'],
+                                                        ['adj', 'gen', 'plur'],
+                                                        ['pron', 'gen', 'plur']),
+                   'accusative plural nouns and pronouns': (['noun', 'acc', 'plur'],
+                                                            ['adj', 'acc', 'plur'],
+                                                            ['pron', 'acc', 'plur']),
+                   'vocative plural nouns and pronouns': (['noun', 'voc', 'plur'],
+                                                          ['adj', 'voc', 'plur'],
+                                                          ['pron', 'voc', 'plur']),
+                   'present active infinitive': (['verb', 'pres', 'act', 'inf']),
+                   'present active imperative': (['verb', 'pres', 'act', 'imper']),
+                   'present active indicative': (['verb', 'pres', 'act', 'ind']),
+                   'present middle-passive indicative': (['verb', 'pres', 'mid', 'ind'],
+                                                         ['verb', 'pres', 'pass', 'ind']),
+                   'aorist active indicative': (['verb', '1aor', 'act', 'ind'],
+                                                ['verb', '2aor', 'act', 'ind']),
+                   'aorist middle indicative': (['verb', '1aor', 'mid', 'ind'],
+                                                ['verb', '2aor', 'mid', 'ind']),
+                   }
+        shortbits = [shorts[i] for i in cstbits]
+        cst_label = '{}_{}'.format(ps, '_'.join(shortbits))
+        cst_rows = db(db.constructions.construction_label == cst_label).select()
+        if cst_rows:
+            cst_id = cst_rows.first().id
+        else:
+            rdbl = '{}, {}'.format(ps, ' '.join(cstbits))
+            rdbl = rdbl.replace(' first', ', first person ')
+            rdbl = rdbl.replace(' second', ', second person ')
+            rdbl = rdbl.replace(' third', ', third person ')
+            rdbl = rdbl.replace(' 1decl', ', 1st declension ')
+            rdbl = rdbl.replace(' 2decl', ', 2nd declension ')
+            rdbl = rdbl.replace(' 3decl', ', 3rd declension ')
+            mytags = [k for k, v in tagging.iteritems() for lst in v
+                      if all(l in shortbits for l in lst)]
+            mytags = [t.id for t in db(db.tags.tag.belongs(mytags)).select()]
+            cst_id = db.constructions.insert(**{'construction_label': cst_label,
+                                                'readable_label': rdbl,
+                                                'tags': mytags})
+        cd['construction'] = cst_id
+        cd['tags'] = [] if 'tags' not in cd else cd['tags']
+        cd['tags'].extend(db.constructions(cst_id).tags)
+        cd['tags'].extend(db(db.lemmas.lemma == lemma).select().first().extra_tags)
+        cd['tags'].append(db(db.lemmas.lemma == lemma).select().first().first_tag)
+        cd['word_form'] = word_form
+
+        rowid = db.word_forms.insert(**cd)
+
+        return lemma, rowid, cst_id
+
+    def _add_new_lemma(self, lemma, mod_form, constraint):
+        """
+        Attempt to insert a new lemma into the db based on supplied info.
+
+        If the insertion is successful, return True. If the info is not
+        sufficient, return False.
+        """
+        db = current.db
+        cd = self._parse_constraint(constraint)
+        reqs = ['lemma', 'glosses', 'part_of_speech', 'first_tag', 'extra_tags']
+        lemdata = {k: i for k, i in cd.iteritems() if k in reqs}
+        lemma = makeutf8(lemma)
+
+        # get lemma field
+        lemdata['lemma'] = lemma
+        # get part_of_speech field
+        if 'part_of_speech' not in lemdata.keys():
+            lemdata['part_of_speech'] = self._guess_part_of_speech(lemma)
+        # get tags
+        tags = []
+        if lemdata['part_of_speech'] == 'verb':
+            tags.append('verb basics')
+            if lemma[-2:] == 'μι':
+                tags.append('μι verbs')
+        elif lemdata['part_of_speech'] == 'noun':
+            tags.append('noun basics')
+            if lemma[-2:] in ['ος', 'ης', 'ον']:
+                tags.append('nominative2')
+            elif lemma[-2:] in ['υς', 'ις', 'ων', 'ηρ']:
+                tags.append('nominative3')
+            elif lemma[-1] in ['η', 'α']:
+                tags.append('nominative1')
+        elif lemdata['part_of_speech'] in ['adjective', 'pronoun', 'adverb',
+                                           'particle', 'conjunction']:
+            tags.append('{}s'.lemdata['part_of_speech'])
+        # populate 'tags_extra' field with ids
+        tagids = [t.id for t in db(db.tags.tag.belongs(tags)).select()]
+        lemdata['extra_tags'] = tagids
+
+        # get 'glosses' field
+        if 'glosses' in lemdata.keys():
+            lemdata['glosses'] = lemdata['glosses'].split('|')
+
+        lemid = db.lemmas.insert(**lemdata)
+
+        return lemma, lemid
+
+    def _parse_constraint(self, constraint):
+        """
+        Return a dictionary of grammatical features based on a constraint string.
+
+        """
+        try:
+            cparsebits = constraint.split('_')
+            cd = {b.split('@')[0]: b.split('@')[1] for b in cparsebits}
+            key_eqs = {'num': 'number',
+                       'n': 'number',
+                       'gen': 'gender',
+                       'gend': 'gender',
+                       'g': 'gender',
+                       'c': 'grammatical_case',
+                       'case': 'grammatical_case',
+                       't': 'tense',
+                       'v': 'voice',
+                       'm': 'mood',
+                       'pers': 'person',
+                       'ps': 'part_of_speech',
+                       'pos': 'part_of_speech',
+                       'gls': 'glosses',
+                       'gloss': 'glosses',
+                       'gl': 'glosses'}
+            for k, v in cd.iteritems():  # handle key short forms
+                if k in key_eqs.keys():
+                    cd[key_eqs[k]] = v
+                    del cd[k]
+            print cd
+            eq = {'masculine': ['masc', 'm'],
+                  'feminine': ['fem', 'f'],
+                  'neuter': ['neut', 'n'],
+                  'nominative': ['nom', 'nomin'],
+                  'genitive': ['gen', 'g'],
+                  'dative': ['dat', 'd'],
+                  'accusative': ['acc', 'a'],
+                  'singular': ['s', 'si', 'sing'],
+                  'plural': ['p', 'pl', 'plu', 'plur'],
+                  'present': ['pr', 'pres'],
+                  'future': ['fut', 'ftr'],
+                  'aorist1': ['aor1', 'a1', '1a', '1aor'],
+                  'aorist2': ['aor2', 'a2', '2a', '2aor'],
+                  'perfect1': ['pf1', 'prf1', 'perf1', '1pf', '1prf', '1perf'],
+                  'perfect2': ['pf2', 'prf2', 'perf2', '2pf', '2prf', '2perf'],
+                  'imperfect': ['imp', 'impf', 'imperf'],
+                  'active': ['act'],
+                  'middle': ['mid'],
+                  'passive': ['pass'],
+                  'middle/passive': ['mp', 'midpass', 'mid/pass', 'm/p'],
+                  'indicative': ['ind', 'indic'],
+                  'imperative': ['imper', 'impv'],
+                  'infinitive': ['inf', 'infin'],
+                  'subjunctive': ['sj', 'sjv', 'sub', 'subj', 'sbj'],
+                  'optative': ['o', 'opt', 'optat', 'optv', 'opttv'],
+                  'participle': ['pt', 'ptc', 'part'],
+                  'noun': ['nn'],
+                  'pronoun': ['pn', 'prn', 'pron', 'pnn'],
+                  'adjective': ['ad', 'aj', 'adj', 'adject', 'adjv'],
+                  'verb': ['v', 'vb'],
+                  'adverb': ['av', 'adv', 'avb', 'advb'],
+                  'particle': ['partic', 'ptcl', 'pcl'],
+                  'interjection': ['ij', 'ijn', 'intj', 'inter', 'interj',
+                                   'interjn', 'ijtn'],
+                  'idiom': ['id', 'idm'],
+                  'first': ['1', '1p', '1pers'],
+                  'second': ['2', '2p', '2pers'],
+                  'third': ['3', '3p', '3pers']
+                  }
+            for k, v in cd.iteritems():  # handle value short forms
+                if v in list(chain.from_iterable(eq.values())):
+                    expandedv = [kk for kk, vv in eq.iteritems() if v in vv][0]
+                    cd[k] = expandedv
+            print cd
+            return cd
+        except Exception:
+            print traceback.format_exc(5)
+            return False
+
     def make_form_agree(self, mod_form, mylemma, constraint=None):
         """
         Return a form of the lemma "mylemma" agreeing with the supplied mod_form.
@@ -504,109 +903,61 @@ class PathFactory(object):
         This method is used only for nominals (nouns, pronouns, adjectives),
         excluding substantive participals. Verbs (including participles) are
         handled elsewhere.
+
         """
         db = current.db
         newform = None
         lem = db(db.lemmas.lemma == mylemma).select().first()
+        if not lem:
+            lem, rowid, formid = self._add_new_lemma(mylemma, mod_form,
+                                                     constraint)
+            lem = db.lemmas(rowid)
+            if not lem:
+                return (None, None, 'Could not create new lemma')
         lemform = db(db.word_forms.word_form == mylemma).select().first()
+        if not lemform:
+            myform, rowid = self._add_new_wordform(mylemma, mylemma,
+                                                   mod_form, constraint)
+            lemform = db.word_forms(rowid)
+            newform = myform
+            if not myform:
+                return (None, None, 'Could not create new lemma')
         ref = db(db.word_forms.word_form == mod_form).select().first()
+        if not ref:
+            myform, rowid = self._add_new_wordform(mod_form, None, None, None)
+            newform = myform
+            if not lemform:
+                return (None, None, 'Could not create new lemma')
 
         # use provided constraints where present in field
-        # allow for use of short forms
-        cdict = {}
+        cd = {}
         if constraint and constraint != 'none':
-            cparsebits = constraint.split('_')
-            cparsing = [b.split('@') for b in cparsebits]
-            cdict = {cp[0]: cp[1] for cp in cparsing}
-            key_eqs = {'num': 'number',
-                       'n': 'number',
-                       'gen': 'gender',
-                       'gend': 'gender',
-                       'g': 'gender',
-                       'c': 'case'}
-            for k, v in cdict.iteritems():
-                if k in key_eqs.keys():
-                    cdict[key_eqs[k]] = v
-                    del cdict[k]
-        equivs = {'masc': 'masculine',
-                  'm': 'masculine',
-                  'fem': 'feminine',
-                  'f': 'feminine',
-                  'neut': 'neuter',
-                  'n': 'neuter',
-                  'nom': 'nominative',
-                  'nomin': 'nominative',
-                  'gen': 'genitive',
-                  'g': 'genitive',
-                  'dat': 'dative',
-                  'd': 'dative',
-                  'acc': 'accusative',
-                  'a': 'accusative',
-                  's': 'singular',
-                  'si': 'singular',
-                  'sing': 'singular',
-                  'p': 'plural',
-                  'pl': 'plural',
-                  'plu': 'plural',
-                  'plur': 'plural'}
-        # get case
-        if 'case' in cdict.keys():
-            case = equivs[cdict['case']] if cdict['case'] in equivs.keys() \
-                else cdict['case']
-        else:
-            case = ref.grammatical_case
-        # get gender
-        if 'gender' in cdict.keys():
-            gender = cdict['gender'] if cdict['gender'] in equivs.keys() \
-                else cdict['gender']
-        elif lem.part_of_speech == 'noun':
+            cd = self._parse_constraint(constraint)
+        case = ref.grammatical_case if 'case' not in cd.keys() else cd['case']
+        number = ref.number if 'number' not in cd.keys() else cd['number']
+        if () or (lem.part_of_speech == 'noun'):
             gender = lemform.gender
         else:
             gender = ref.gender
-        # allow for ambiguously gendered forms
-        genders = [gender, 'undetermined']
-        if gender in ['masculine', 'feminine']:
-            genders.append('masculine or feminine')
-        if gender in ['masculine', 'neuter']:
-            genders.append('masculine or neuter')
-        # get number
-        if 'number' in cdict.keys():
-            number = equivs[cdict['number']] if cdict['number'] in equivs.keys()\
-                else cdict['number']
-        else:
-            number = ref.number
+        # allow for ambiguously gendered forms in search for word form below
+        if 'gender' in cd.keys():
+            genders = [gender, 'undetermined']
+            if gender in ['masculine', 'feminine']:
+                genders.append('masculine or feminine')
+            if gender in ['masculine', 'neuter']:
+                genders.append('masculine or neuter')
         # get the inflected form from the db
         myrow = db((db.word_forms.source_lemma == lem.id) &
                    (db.word_forms.grammatical_case == case) &
                    (db.word_forms.gender.belongs(genders)) &
                    (db.word_forms.number == number)
                    ).select().first()
-        myform = myrow.word_form
-        # TODO: automatically create form if not in db
-        # if not row:
-            # Add the modified word form to db.word_forms
-            # ref_const_id = db(db.constructions.construction_label == ref_const
-                                # ).select().first().id
-            # db.word_forms.insert(**new)
-            # newforms.append(new)
-                # 'grammatical_case': case,
-                # 'gender': gender,
-                # 'number': number,
-                # 'construction': ref_const_id}
-        # case = abbrevs[parsebits[1]]
-        # gender = abbrevs[parsebits[2]]
-        # number = abbrevs[parsebits[3]]
-        # ref_lemma = parsebits[-1]
-        # pos = parsebits[0]
-        # ref_const = '{}_{}_{}_{}'.format(pos, parsebits[1],
-                                            # parsebits[2],
-                                            # parsebits[3])
-        # ref_lemma_id = db(db.lemmas.lemma == ref_lemma).select().first().id
-        # except (AttributeError, IndexError):
+        try:
+            myform = myrow.word_form
+        except Exception:
             # print traceback.format_exc(5)
-            # uprint(('no pre-made form in db for', mylemma, mod_form))
-            # myform = None  #  FIXME: try to create and save new declined form
-            # newform = 'I\'m new'
+            myform = None  # FIXME: try to create and save new declined form
+
         return myform, newform
 
     def check_for_duplicates(self, step, readables, prompt):
@@ -683,7 +1034,7 @@ class PathFactory(object):
             sid = db.steps.insert(**kwargs)
             return sid
         except Exception:
-            print traceback.format_exc(5)
+            # print traceback.format_exc(5)
             return False
 
     def path_to_db(self, steps, label):
@@ -693,7 +1044,7 @@ class PathFactory(object):
             pid = db.paths.insert(label=label, steps=steps)
             return pid
         except Exception:
-            print traceback.format_exc(5)
+            # print traceback.format_exc(5)
             return False
 
     def make_output(self, paths):
@@ -732,8 +1083,8 @@ class PathFactory(object):
                 content = pv['steps']
                 mycontent = UL()
                 for key, c in content.iteritems():
-                    print 'item', key
-                    pprint(c)
+                    # print 'item', key
+                    # pprint(c)
                     mycontent.append(LI(key))
                     mystep = UL()
                     mystep.append(LI('widget_type:', db.step_types(c['widget_type']).step_type))
@@ -761,7 +1112,7 @@ class PathFactory(object):
                     mycontent.append(LI(mystep))
                     npcs = [uprint(t['name']) for t in
                             db(db.npcs.id.belongs(islist(c['npcs']))).select()]
-                    print c['npcs']
+                    # print c['npcs']
                     mystep.append(LI('npcs:', npcs))
                     locations = [t['map_location'] for t in
                                  db(db.locations.id.belongs(c['locations'])
@@ -841,13 +1192,13 @@ class TranslateWordPathFactory(PathFactory):
                                      ),
                                Field('irregular_forms', type='list:string'),
                                Field('testing', type='boolean'))
-                                                            # widget=lambda f, v: AjaxSelect(f, v,
-                                                            # indx=1,
-                                                            # refresher=True,
-                                                            # multi='basic',
-                                                            # lister='simple',
-                                                            # orderby='lemmas'
-                                                            # ).widget()
+        # widget=lambda f, v: AjaxSelect(f, v,
+        # indx=1,
+        # refresher=True,
+        # multi='basic',
+        # lister='simple',
+        # orderby='lemmas'
+        # ).widget()
         if form.process(dbio=False, keepvalues=True).accepted:
             self.lemmaset = request.vars.lemmas
             irregs = request.vars.irregular_forms
@@ -889,8 +1240,8 @@ class TranslateWordPathFactory(PathFactory):
                             'npcs': [8],
                             'locations': [7]
                             }
-                            # response3  # todo: build from groups in regex
-                            # pth['outcome2'] = 0.4
+                    # response3  # todo: build from groups in regex
+                    # pth['outcome2'] = 0.4
                     mtch = test_regex()
                     dups = self.check_for_duplicates(step)
                     if mtch and not testing and not dups:
@@ -901,8 +1252,8 @@ class TranslateWordPathFactory(PathFactory):
                     else:
                         result[compname] = 'failure', 'readable didn\'t match'
                 except Exception:
-                    tbk = traceback.format_exc(5)
-                    result[compname] = ('failure', tbk)
+                    # tbk = traceback.format_exc(5)
+                    result[compname] = ('failure')
         return result
 
     def get_constructions(self, lemma):
