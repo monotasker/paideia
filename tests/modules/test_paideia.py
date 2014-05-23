@@ -3728,9 +3728,11 @@ class TestPath():
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('pathid', ['3', '89', '19', '1'])
-    def test_path_get_id(self, pathid, db):
+    def test_path_get_id(self, pathid, db, user_login):
         """unit test for Path.get_id()"""
         path, pathsteps = mypath(pathid, db)
+        print path
+        print pathsteps
         assert path.get_id() == int(pathid)
 
     @pytest.mark.skipif(False, reason='just because')

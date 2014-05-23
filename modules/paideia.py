@@ -1890,6 +1890,7 @@ class User(object):
 
         if len(self.completed_paths) >= self.quota and self.past_quota is False:
             pastq = True
+            self.past_quota = True
         if len(self.blocks) > 0:
             # FIXME: This hack is to work around mysterious introduction of
             # redirect block after initial redirect has been triggered
