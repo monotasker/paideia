@@ -5736,14 +5736,14 @@ class TestPathChooser():
                         2: 0,
                         3: 0,
                         4: 0}
-        for num in range(1000):
+        for num in range(10000):
             actual = chooser._order_cats()
             assert actual in expected
             result_count[actual[0]] += 1
-        assert result_count[1] in range(740 - 20, 740 + 20)
-        assert result_count[2] in range(160 - 20, 160 + 20)
-        assert result_count[3] in range(90 - 20, 90 + 20)
-        assert result_count[4] in range(10 - 20, 10 + 20)
+        assert result_count[1] in range(7400 - 200, 7400 + 200)
+        assert result_count[2] in range(1600 - 200, 1600 + 200)
+        assert result_count[3] in range(900 - 200, 900 + 200)
+        assert result_count[4] in range(100 - 200, 100 + 200)
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('locid,completed,tpout,expected',
@@ -5880,45 +5880,40 @@ class TestPathChooser():
         assert actualmode == mode
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('locid,completed,tpout,redirect,expected,mode',
+    @pytest.mark.parametrize('locid,completed,tpout,redirect,mode',
                              [(6,  # shop_of_alexander (only 1 untried here)
                                [2, 3, 5, 8, 9, 63, 95, 96, 97, 99, 102, 256,  # completed
                                 409, 410, 411, 412, 413, 414, 415, 416, 417, 418,
                                 419, 420, 421, 422, 423],
-                               {'latest_new': 1,  # topout
+                               {'latest_new': 1,  # tpout
                                 'cat1': [61], 'cat2': [],
                                 'cat3': [], 'cat4': [],
                                 'rev1': [61], 'rev2': [],
                                 'rev3': [], 'rev4': []},
-                               False,  # redirect
-                               [1],  # only one left with tag
+                               {1: False},  # redirect
                                'here_new'  # mode
                                ),
-                              (11,  # synagogue [all in loc 11 completed]
-                               [1, 2, 3, 8, 95, 96, 97, 99, 102],
-                               {'latest_new': 1,
+                              (11,  # synagogue [all in loc 11 completed] -------
+                               [1, 2, 3, 8, 95, 96, 97, 99, 102],  # completed
+                               {'latest_new': 1,  # tpout
                                 'cat1': [61], 'cat2': [],
                                 'cat3': [], 'cat4': [],
                                 'rev1': [61], 'rev2': [],
                                 'rev3': [], 'rev4': []},
-                                True,
-                                [5, 63, 256, 409, 410, 411, 412, 413, 414,
-                                 415, 416, 417, 418, 419, 420, 421, 422, 423,
-                                 444, 445],  # tag 61, not loc 11, not completed
-                                'new_elsewhere'
+                                {1: True},  # redirect
+                                'new_elsewhere'  # mode
                                ),
-                              (8,  # agora (no redirect, new here)
-                               [17, 98, 15, 208, 12, 16, 34, 11, 23, 4, 9, 18],
-                               {'latest_new': 2,
+                              (8,  # agora (no redirect, new here) --------------
+                               [17, 98, 15, 208, 12, 16, 34, 11, 23, 4, 9, 18],  # completed
+                               {'latest_new': 2,  # tpout
                                 'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
                                 'cat3': [], 'cat4': [],
                                 'rev1': [6, 29, 62, 82, 83], 'rev2': [61],
                                 'rev3': [], 'rev4': []},
-                                False,
-                               [7, 14, 100, 35, 19, 103, 21, 97, 13, 261, 101],
-                               'here_new'  # mode
+                                {1: False, 2: False},  # redirect
+                                'here_new'  # mode
                                ),
-                              (8,  # agora (all for tags completed, repeat here)
+                              (8,  # agora (all for tags completed, repeat here) --
                                [4, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
                                 19, 21, 22, 23, 34, 35, 45, 97, 98, 100, 101,
                                 103, 120, 129, 139, 141, 149, 152, 161, 167,
@@ -5927,37 +5922,35 @@ class TestPathChooser():
                                 425, 426, 427, 428, 429, 430, 431, 433, 434,
                                 435, 436, 437, 439, 440, 441, 444, 445,
                                 1, 2, 3, 5, 8, 95, 96, 99, 102, 256],  # last row is cat2 [61]
-                               {'latest_new': 2,
-                                'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
-                                'cat3': [], 'cat4': [],
-                                'rev1': [6, 29, 62, 82, 83], 'rev2': [61],
-                                'rev3': [], 'rev4': []},
-                                False,
-                               [101, 35, 34, 23, 16, 261, 15, 21, 208, 100,
-                                17, 14, 9, 7, 18, 11, 98, 12, 4, 19, 103, 13,
-                                97,  # with tags already completed here (repeat)
-                                1, 2, 3, 5, 8, 95, 96, 99, 102, 256],  # last row is cat2 [61]
-                               'repeat_here'
+                                {'latest_new': 2,
+                                 'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                                 'cat3': [], 'cat4': [],
+                                 'rev1': [6, 29, 62, 82, 83], 'rev2': [61],
+                                 'rev3': [], 'rev4': []},
+                                {1: False, 2: True},
+                                'repeat_here'
                                ),
                               ])
     def test_pathchooser_choose(self, locid, completed, tpout, redirect,
-                                expected, mode, db):
+                                mode, db):
         """
         Unit test for the paideia.Pathchooser.choose() method.
         """
         chooser = PathChooser(tpout, locid, completed)
         actual, newloc, catnum, actualmode = chooser.choose()
 
-        #mycat = 'cat{}'.format(catnum)
-        #allpaths = db(db.paths.id > 0).select()
-        #tagids = tpout[mycat]
-        #expected = [p.id for p in allpaths
-                    #if any([t for t in tagids if t in p.tags])]
+        # get expected paths from supplied tags
+        mycat = 'cat{}'.format(catnum)
+        taggedsteps = db(db.steps.tags.contains(tpout[mycat])).select()
+        stepids = [s.id for s in taggedsteps]
+        taggedpaths = db(db.paths.steps.contains(stepids)).select()
+        expected = [p.id for p in taggedpaths]
         print 'CHOSEN PATH', actual['id']
+        print 'using category', catnum
         print 'EXPECTED PATHS', expected
 
         assert catnum in range(1, 5)
-        if redirect:
+        if redirect[catnum]:  # since different cats will yield different redirect results
             assert newloc
             firststep = actual['steps'][0]
             steplocs = db.steps(firststep).locations
@@ -5966,6 +5959,13 @@ class TestPathChooser():
             assert actualmode == 'new_elsewhere'
         else:
             assert actual['id'] in expected
+            print 'currently in loc', locid
+            pathsteps = [p.steps[0] for p in taggedpaths]
+            steplocs = [db.steps(s).locations for s in pathsteps]
+            steplocs_chain = list(chain.from_iterable([s for s in steplocs if s]))
+            locset = set(steplocs_chain)
+            print 'steps available in locs', locset
+            assert locid in locset
             assert newloc is None
         assert actualmode == mode
 
