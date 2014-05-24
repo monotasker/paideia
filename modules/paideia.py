@@ -2175,6 +2175,11 @@ class Categorizer(object):
             ratio = record['times_wrong'] / record['times_right']
         except ZeroDivisionError:
             ratio = record['times_wrong']
+        except TypeError:  #
+            if not record['times_right']:
+                ratio = 1
+            else:
+                ratio = 0
         return ratio
 
     def _core_algorithm(self, tag_records=None):
@@ -2203,12 +2208,21 @@ class Categorizer(object):
         categories = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
         tag_records = tag_records if tag_records else self.tag_records
         for record in tag_records:
+            print 'tag', record['tag'], '================================='
             lrraw = record['tlast_right']
             lwraw = record['tlast_wrong']
             lr = lrraw if not isinstance(lrraw, str) else parser.parse(lrraw)
             lw = lwraw if not isinstance(lwraw, str) else parser.parse(lwraw)
             rdur = self.utcnow - lr
             rwdur = lr - lw
+            print 'cat2 if:'
+            print record['times_right'], '>= 20'
+            print 'and'
+            print rdur, '<', rwdur, '> 1 day -------------------------'
+            print 'or', self._get_ratio(record), '< 0.2 -------------'
+            print 'and', rdur, '<= 30 days'
+            print 'or', self._get_avg(record['tag']), '>= 0.8 -------'
+            print 'and', rdur, '<= 30 days'
 
             # spaced repetition algorithm for promotion to
             # cat2? ======================================================
@@ -2224,12 +2238,13 @@ class Categorizer(object):
                  ((self._get_avg(record['tag']) >= 0.8)  # avg score for week >= 0.8
                   and (rdur <= datetime.timedelta(days=30))  # right in past 30 days
                   ))):
+                print '************** got to cat2'
                 # cat3? ==================================================
                 if rwdur.days >= 14:
                     # cat4? ==============================================
                     if rwdur.days > 60:
                         # long-term review? ===================================
-                        if rwdur > datetime.timedelta(days=180):
+                        if rdur > datetime.timedelta(days=180):
                             category = 'cat1'  # Not tried for 6 months
                         else:
                             category = 'cat4'  # Not due, delta > 60 days
@@ -2239,7 +2254,7 @@ class Categorizer(object):
                     category = 'cat2'  # Not due but delta is 2 weeks or less
             else:
                 category = 'cat1'  # Spaced repetition requires review
-
+            print '************** category is ', category
             categories[category].append(record['tag'])
 
         return categories
