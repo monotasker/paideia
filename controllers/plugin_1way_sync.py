@@ -1,0 +1,1 @@
+../plugins/plugin_1way_sync/controllers/plugin_1way_sync.py

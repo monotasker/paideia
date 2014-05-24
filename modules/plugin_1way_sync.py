@@ -1,0 +1,1 @@
+../plugins/plugin_1way_sync/modules/plugin_1way_sync.py
