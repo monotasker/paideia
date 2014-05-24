@@ -9,10 +9,10 @@ movement from one db system to another.
 """
 
 from plugin_ajaxselect import AjaxSelect
-#from itertools import chain
+# from itertools import chain
 import datetime
 import os
-#import re
+# import re
 
 if 0:
     from gluon import URL, current, Field, IS_IN_DB, IS_NOT_IN_DB, SQLFORM
@@ -22,14 +22,14 @@ if 0:
     auth = current.auth
     db = current.db
 
-#js file necessary for AjaxSelect widget
-#TODO: move these to an AjaxSelect model file
+# js file necessary for AjaxSelect widget
+# TODO: move these to an AjaxSelect model file
 response.files.insert(5, URL('static',
                       'plugin_ajaxselect/plugin_ajaxselect.js'))
 response.files.insert(6, URL('static',
                              'plugin_framework/js/jquery-ui-1.10.3.custom/js/'
                              'jquery-ui-1.10.3.custom.min.js'))
-#response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.css'))
+# response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.css'))
 
 dtnow = datetime.datetime.utcnow()
 
@@ -206,7 +206,6 @@ db.word_forms.tags.widget = lambda field, value: AjaxSelect(field, value,
                                                             orderby='tag'
                                                             ).widget()
 
-
 db.define_table('badges',
                 Field('badge_name', 'string', unique=True),
                 Field('tag', db.tags),
@@ -287,7 +286,6 @@ db.steps.prompt_audio.requires = IS_EMPTY_OR(IS_IN_DB(db, 'audio.id',
 db.steps.widget_image.requires = IS_EMPTY_OR(IS_IN_DB(db, 'images.id',
                                                       db.images._format))
 db.steps.step_options.widget = SQLFORM.widgets.list.widget
-#db.steps.response1.requires = IS_VALID_REGEX()
 db.steps.npcs.requires = IS_IN_DB(db, 'npcs.id', db.npcs._format, multiple=True)
 db.steps.npcs.widget = lambda field, value: AjaxSelect(field, value,
                                                        indx=1,
@@ -399,13 +397,12 @@ db.define_table('paths',
     Field('path_style', db.path_styles),
     Field('path_tags',
           compute=lambda row: row.steps),
-        # compute=lambda row: [tag for step in row.paths.steps
-        # for tag in db.steps[step].tags]),
+    # compute=lambda row: [tag for step in row.paths.steps
+    # for tag in db.steps[step].tags]),
     Field('path_active', 'boolean',
           compute=lambda row: all([s for s in row.paths.steps
                                    if (db.steps[s].status != 2)
-                                   and db.steps[s].locations])
-          ),
+                                   and db.steps[s].locations])),
     format='%(label)s')
 
 db.paths.tags_for_steps = Field.Virtual('tags_for_steps',
@@ -422,7 +419,7 @@ db.paths.steps.widget = lambda field, value: AjaxSelect(field, value,
                                                         orderby='~id'
                                                         ).widget()
 
-
+"""
 #class PathsVirtualFields(object):
     #def tags(self):
         #steprows = db(db.steps.id.belongs(self.paths.steps)).select()
@@ -443,6 +440,7 @@ db.paths.steps.widget = lambda field, value: AjaxSelect(field, value,
             #return None
 
 #db.paths.virtualfields.append(PathsVirtualFields())
+"""
 
 db.define_table('attempt_log',
                 Field('name', db.auth_user, default=auth.user_id),
