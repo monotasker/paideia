@@ -444,17 +444,25 @@ class Stats(object):
 
             # add level data
             pprint(self.badge_levels)
-            tr[idx]['curlev'] = [l for l, tgs in self.badge_levels.iteritems()
-                                 if t['id'] in [tg[1] for tg in tgs]]
-            tr[idx]['revlev'] = [l for l, tgs in self.review_levels.iteritems()
-                                 if t['id'] in [tg[1] for tg in tgs]]
+            print [l[1] for v in self.badge_levels.values() for l in v]
+            try:
+                tr[idx]['curlev'] = [l for l, tgs in self.badge_levels.iteritems()
+                                    if t['tag'] in [tg[1] for tg in tgs]][0]
+                tr[idx]['revlev'] = [l for l, tgs in self.review_levels.iteritems()
+                                    if t['tag'] in [tg[1] for tg in tgs]][0]
+            except IndexError:
+                tr[idx]['curlev'] = 0
+                tr[idx]['revlev'] = 0
 
             # add rw_ratio
             try:
-                tr[idx]['rw_ratio'] = t['tright'] / t['twrong']
+                tr[idx]['rw_ratio'] = round((t['tright'] / t['twrong']), 1)
             except (ZeroDivisionError, TypeError):
-                tr[idx]['rw_ratio'] = t['tright']
+                tr[idx]['rw_ratio'] = round(t['tright'], 1)
 
+            # round tright and twrong to closest int for readability
+            tr[idx]['tright'] = int(tr['idx']['tright'])
+            tr[idx]['twrong'] = int(tr['idx']['twrong'])
 
         try:
             tr = self._add_tag_data(tr)
