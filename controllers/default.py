@@ -1,16 +1,15 @@
+#! /usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
-if 0:
-    from gluon import URL
 from paideia_stats import Stats
 from paideia_bugs import Bug
-#import traceback
-#from paideia_utils import send_error
-from pprint import pprint
-#from gluon.tools import prettydate
+# import traceback
+# from paideia_utils import send_error
+# from pprint import pprint
+# from gluon.tools import prettydate
 
 if 0:
-    from gluon import current, cache
+    from gluon import current, cache, URL
     from gluon.tools import Auth
     from gluon.dal import DAL
     db = DAL()
@@ -79,60 +78,26 @@ def info():
 
     Returns a dict with the following keys:
 
-    'the_name':         User's name from auth.user as lastname, firstname (str)
-    'tz':               User's time zone from auth.user (extended in db.py)
-    'email':            User's email (str)
-    'cal':              html calendar with user path stats (from stats.monthcal)
-    'blist': blist,     list of User's bug reports
-    'max_set': `        max_set, Badge set reached by user (int)
-    'active':           list of user's active tags with performance and badge data
-        Each item is a dict with these keys:
-        'name'              user's id from auth.user (int)
-        'tag_records'
-            'tag'           id of tag for this row (int)
-            'times_right'       cumulative number of times right (double)
-            'times_wrong'       cumulative number of times wrong (double)
-            'tlast_wrong'       date of last wrong answer (datetime.datetime)
-            'tlast_right'       date of last right answer (datetime.datetime)
-            'pretty_lwrong'**   readable form (str)
-            'pretty_lright'**   readable form (str)
-            'in_path'           path of last question for the tag
-            'step'              step of last question for the tag
-            'secondary_right'   list of dates (datetime.datetime) when step with
-                                this tag as secondary was answered correctly
-        'badges'
-            'badge_name'    ***
-            'description'   ***
-        'badges_begun'
-            'dt_cat1'**         machine-friendly form (datetime.datetime object)
-            'prettydate_cat1'** readable form (str)
-            'dt_cat2'**         machine-friendly form (datetime.datetime object)
-            'prettydate_cat2'** readable form (str)
-            'dt_cat3'**         machine-friendly form (datetime.datetime object)
-            'prettydate_cat3'** readable form (str)
-            'dt_cat4'**         machine-friendly form (datetime.datetime object)
-            'prettydate_cat4'** readable form (str)
-        'tag_set'**         ***
-        'current_level'**   number of max level achieved so far (str)
-        'logs'              list of dictionaries, each with the following keys:
-            'step'
-            'prompt'
-            'count'
-            'right'
-            'wrong'
-            'dt_attempted'
-            'dt_local'
-    'log':              stats.step_log['loglist']
-        'step'
-        'prompt'
-        'count'
-        'right'
-        'wrong'
-        'last_wrong'
-        'right_since'
-    'duration':         Default duration for recent paths info (from
-                        stats.step_log['duration'])
+    'the_name':             User's name from auth.user as lastname, firstname (str)
+    'tz':                   User's time zone from auth.user (extended in db.py)
+    'email':                User's email (str)
+    'cal':                  html calendar with user path stats (from stats.monthcal)
+    'blist':                list of User's bug reports
+    'max_set':              Badge set reached by user (int)
+    'goal':
+    'badge_levels':         Dictionary with badle levels (int) as keys and
+                            a list of badge names (or tag: int) as each value.
+    'badge_table_data':
+    'badges_active_over_time':
+    'badges_tested_over_time':
+    'sets_tested_over_time':
+    'steps_most_wrong':
+
     """
+    # Include files for Datatables jquery plugin and bootstrap css styling
+    response.files.append("https://cdn.datatables.net/1.10.0/js/jquery.dataTables.js")
+    response.files.append("https://cdn.datatables.net/plug-ins/28e7751dbec/"
+                          "integration/bootstrap/3/dataTables.bootstrap.css")
     # Allow passing explicit user but default to current user
     if 'id' in request.vars:
         user = db.auth_user[request.vars['id']]
@@ -147,26 +112,19 @@ def info():
     email = user.email
     max_set = stats.get_max()
     goal = stats.get_goal()
+    badge_levels = stats.get_badge_levels()
     badge_table_data = stats.active_tags()
-    print 'badge_table_data'
-    pprint(badge_table_data[0])
-    badge_levels = stats.get_badge_levels(badge_table_data)
-    badges_active_over_time = stats.badges_active_over_time(badge_table_data)
+    # badges_active_over_time = stats.badges_active_over_time(badge_table_data)
 
     # tab2
     mycal = stats.monthcal()
-    badges_tested_over_time = stats.badges_tested_over_time(badge_table_data)
-    sets_tested_over_time = stats.sets_tested_over_time(badge_table_data)
-    steps_most_wrong = stats.steps_most_wrong(badge_table_data)
+    # badges_tested_over_time = stats.badges_tested_over_time(badge_table_data)
+    # sets_tested_over_time = stats.sets_tested_over_time(badge_table_data)
+    # steps_most_wrong = stats.steps_most_wrong(badge_table_data)
 
     # tab3
     b = Bug()
     blist = b.bugresponses(user.id)
-
-    #catlabels = ['started at beginner level',
-                #'promoted to apprentice level',
-                #'promoted to journeyman level',
-                #'promoted to master level']
 
     return {'the_name': name,
             'tz': tz,
@@ -177,10 +135,10 @@ def info():
             'goal': goal,
             'badge_levels': badge_levels,
             'badge_table_data': badge_table_data,
-            'badges_active_over_time': badges_active_over_time,
-            'badges_tested_over_time': badges_tested_over_time,
-            'sets_tested_over_time': sets_tested_over_time,
-            'steps_most_wrong': steps_most_wrong
+            # 'badges_active_over_time': badges_active_over_time,
+            # 'badges_tested_over_time': badges_tested_over_time,
+            # 'sets_tested_over_time': sets_tested_over_time,
+            # 'steps_most_wrong': steps_most_wrong
             }
 
 
@@ -189,12 +147,12 @@ def oops():
     code = request.vars.code
     ticket = request.vars.ticket
 
-    #requested_uri = request.vars.requested_uri
+    # requested_uri = request.vars.requested_uri
     request_url = request.vars.request_url
 
     # Return the original HTTP error code
     response.status = code
-    #if code == 500:
+    # if code == 500:
     title = 'Paideia - Internal error reported'
     msg = '<html><body>Hello Ian,<br>I seem to have run into an error!' \
           'request url:<br /><br />{url}' \
@@ -229,33 +187,35 @@ def download():
     """
     return response.download(request, db)
 
+"""
+def call():
+    '''
+    exposes services. for example:
+    http://..../[app]/default/call/jsonrpc
+    decorate with @services.jsonrpc the functions to expose
+    supports xml, json, xmlrpc, jsonrpc, amfrpc, rss, csv
+    '''
+    return service()
 
-#def call():
-    #"""
-    #exposes services. for example:
-    #http://..../[app]/default/call/jsonrpc
-    #decorate with @services.jsonrpc the functions to expose
-    #supports xml, json, xmlrpc, jsonrpc, amfrpc, rss, csv
-    #"""
-    #return service()
 
+@auth.requires_signature()
+def data():
+    '''
+    http://..../[app]/default/data/tables
+    http://..../[app]/default/data/create/[table]
+    http://..../[app]/default/data/read/[table]/[id]
+    http://..../[app]/default/data/update/[table]/[id]
+    http://..../[app]/default/data/delete/[table]/[id[
+    http://..../[app]/default/data/select/[table]
+    http://..../[app]/default/data/search/[table]
+    but URLs bust be signed, i.e. linked with
+      A('table',_href=URL('data/tables',user_signature=True))
+    or with the signed load operator
+      LOAD('default','data.load',args='tables',ajax=True,user_signature=True)
+    '''
+    return dict(form=crud())
+"""
 
-#@auth.requires_signature()
-#def data():
-    #"""
-    #http://..../[app]/default/data/tables
-    #http://..../[app]/default/data/create/[table]
-    #http://..../[app]/default/data/read/[table]/[id]
-    #http://..../[app]/default/data/update/[table]/[id]
-    #http://..../[app]/default/data/delete/[table]/[id[
-    #http://..../[app]/default/data/select/[table]
-    #http://..../[app]/default/data/search/[table]
-    #but URLs bust be signed, i.e. linked with
-      #A('table',_href=URL('data/tables',user_signature=True))
-    #or with the signed load operator
-      #LOAD('default','data.load',args='tables',ajax=True,user_signature=True)
-    #"""
-    #return dict(form=crud())
 
 # TODO: does the mail function below make sense?
 @auth.requires_membership(role='administrators')
@@ -270,37 +230,3 @@ def send_mail_to_user():
         response.flash('There was a problem sending the mail.')
 
     return
-
-# TODO: deprecated utility script
-#@auth.requires_membership(role='administrators')
-#def bulk_cat_qs():
-    #records = db(db.question_records.id > 0).select()
-    #counter = 0
-    #for record in records:
-        ##figure out how the student is doing with this question
-        #last_right = record.last_right
-        #last_wrong = record.last_wrong
-        #now_date = datetime.date.today()
-        #right_dur = now_date-last_right
-        #wrong_dur = now_date-last_wrong
-        #rightWrong_dur = last_right - last_wrong
-        ##categorize this question based on student's performance
-        #if right_dur < wrong_dur:
-            #if (right_dur < rightWrong_dur) and (right_dur < datetime.timedelta(days=170)):
-                #if right_dur > datetime.timedelta(days=14):
-                    #cat = 4
-                #else:
-                    #cat = 3
-            #else:
-                #cat = 2
-        #else:
-            #cat = 1
-        ## update database with categorization
-        #db(db.question_records.id == record.id).update(category = cat)
-        ## count each record updated
-        #counter += 1
-        #session.debug = record.id
-
-    #message = "Success. I categorized ", counter, " records."
-
-    #return dict(message = message)
