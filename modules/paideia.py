@@ -2042,6 +2042,8 @@ class Categorizer(object):
             # otherwise, categorize tags that have been tried
             for idx, t in enumerate([t for t in tag_records
                                      if tag_records and t['secondary_right']]):
+                print 'tag', t['tag']
+                pprint(t)
                 tag_records[idx] = self._add_secondary_right(t)
             self.tag_records = tag_records
             categories = self._core_algorithm()
@@ -2099,7 +2101,7 @@ class Categorizer(object):
 
     def _add_secondary_right(self, rec):
         """
-        Finds tag records with secondary attempts and adjusts records.
+        Return the given tag record adjusted based on secondary_right data.
 
         For every 3 secondary_right entries, add 1 to times_right and change
         tlast_right based on the average of those three attempt dates.
@@ -2132,8 +2134,9 @@ class Categorizer(object):
             avg_delta = sum(early3d, datetime.timedelta(0)) / len(early3d)
             avg_date = self.utcnow - avg_delta
 
+            print 'type is', type(rec['tlast_right'])
             # sanitize tlast_right in case db value is string
-            if not isinstance(rec['tlast_right'], datetime.datetime):
+            if not isinstance(rec['tlast_right'], (datetime.datetime, tuple)):
                 rec['tlast_right'] = parser.parse(rec['tlast_right'])
 
             # move tlast_right forward to reflect recent secondary success

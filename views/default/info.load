@@ -20,24 +20,24 @@
 tab1_content = CAT(DIV(H4('Set progress'),
                        P('So far, I have reached set {}.'.format(max_set)),
                        P('My goal for {} is to reach the {} set of badges by '
-                         '{}'.format(goal[0], goal[1], goal[2])), 
+                         '{}'.format(goal[0], goal[1], goal[2])),
                        _id='info-tab1-set-progress'),
                    DIV(H4('Badge levels earned'),
                        TABLE(TR(TD('level 4'), TD('master'),
                                 TD(len(badge_levels[4])),
-                                TD(UL([LI(b, _class='badge badge-success') for b in badge_levels[4]]))
+                                TD(UL([LI(b[0], _class='badge badge-success') for b in badge_levels[4]]))
                                 ),
                              TR(TD('level 3'), TD('journeyman'),
                                 TD(len(badge_levels[3])),
-                                TD(UL([LI(b) for b in badge_levels[3]]))
+                                TD(UL([LI(b[0]) for b in badge_levels[3]]))
                                 ),
-                             TR(TD('level 2'), TD('apprentice'), 
+                             TR(TD('level 2'), TD('apprentice'),
                                 TD(len(badge_levels[2])),
-                                TD(UL([LI(b) for b in badge_levels[2]]))
+                                TD(UL([LI(b[0], _class='badge badge-warning') for b in badge_levels[2]]))
                                 ),
-                             TR(TD('level 1'), TD('beginner'), 
+                             TR(TD('level 1'), TD('beginner'),
                                 TD(len(badge_levels[1])),
-                                TD(UL([LI(b, _class='badge badge-info') for b in badge_levels[1]]))
+                                TD(UL([LI(b[0], _class='badge badge-info') for b in badge_levels[1]]))
                                 ),
                              _class='table table-bordered'
                              ),
@@ -49,14 +49,15 @@ tab1_content = CAT(DIV(H4('Set progress'),
                                       TH('Last Right'),
                                       TH('Times Wrong'),
                                       TH('Last Wrong'),
-                                      TH('Average Score'),
-                                      TH('Delta Right'),
-                                      TH('Delta Right-Wrong')
+                                      TH('Right per 1 wrong'),
+                                      TH('Days since last right'),
+                                      TH('Days since last wrong'),
+                                      TH('Days between last right and last wrong')
                                       ),
                                     _class='header'
                                     ),
                               _class='table table-hover table-condensed',
-                              _id='dc-table-badges'
+                              _id='table-badges'
                               ),
                         _class='dc_container',
                         _style='font: 12px sans-serif;'
@@ -64,16 +65,18 @@ tab1_content = CAT(DIV(H4('Set progress'),
                     )
 }}
 {{for trow in badge_table_data:
-tab1_content[2][0].append(TR(TD(trow['badge_name']),
+print trow['curlev']
+tab1_content[2][0].append(TR(TD(trow['bname']),
                              TD(trow['set']),
-                             TD(trow['current_level']),
-                             TD(trow['times_right']),
-                             TD(trow['tlast_right'][1]),
-                             TD(trow['times_wrong']),
-                             TD(trow['tlast_wrong'][1]),
-                             TD(trow['avg_score']),
-                             TD(trow['delta_right'].days),
-                             TD(trow['delta_right_wrong'].days),
+                             TD(trow['curlev']),
+                             TD(trow['tright']),
+                             TD(trow['tlr'][1]),
+                             TD(trow['twrong']),
+                             TD(trow['tlw'][1]),
+                             TD(trow['rw_ratio']),
+                             TD(trow['delta_r'].days),
+                             TD(trow['delta_w'].days),
+                             TD(trow['delta_rw'].days),
                           ))
 
 # TAB 2 - BADGES =============================================================
@@ -175,8 +178,13 @@ for bug in blist:
                     ))))
     tab4_content.append(row)
 pass
-
-# ASSEMBLE AND PRINT =========================================================
-=TABS([('Me', 'web2py_user_form', tab1_content, 'active'), ('Calendar', 'tab_calendar', tab3_content), ('Bug Reports', 'tab_bug_reports', tab4_content)])
 }}
 
+<!--# ASSEMBLE AND PRINT ==================================================-->
+{{=TABS([('My Badges', 'web2py_user_form', tab1_content, 'active'), ('Calendar', 'tab_calendar', tab3_content), ('Bug Reports', 'tab_bug_reports', tab4_content)])
+}}
+
+<!--# LOCAL SCRIPTS ======================================================-->
+<script type="text/javascript" charset="utf-8">
+$('#table-badges').DataTable();
+</script>
