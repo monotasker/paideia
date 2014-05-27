@@ -1,12 +1,5 @@
 {{from plugin_widgets import TOOLTIP, TABS, ROLE}}
 
-            <!--'goal': goal,-->
-            <!--'badge_table_data': badge_table_data,-->
-            <!--'badges_active_over_time': badges_active_over_time,-->
-            <!--'badges_tested_over_time': badges_tested_over_time,-->
-            <!--'sets_tested_over_time': sets_tested_over_time,-->
-            <!--'steps_most_wrong': steps_most_wrong-->
-
 <!--Above Tabs ================================================================-->
 {{=UL(LI(SPAN('Name', _class='profile-label'), the_name,
                          _class='profile-name'),
@@ -60,24 +53,27 @@ tab1_content = CAT(DIV(H4('Set progress'),
                               _class='table table-hover table-condensed',
                               _id='table-badges'
                               ),
-                        _class='dc_container',
+                        _class='dc_container badgetable-container',
                         _style='font: 12px sans-serif;'
                         )
                     )
 }}
 {{for trow in badge_table_data:
-tab1_content[2][0].append(TR(TD(trow['bname']),
-                             TD(trow['set']),
-                             TD(trow['curlev']),
-                             TD(trow['tright']),
-                             TD(trow['tlr'][1]),
-                             TD(trow['twrong']),
-                             TD(trow['tlw'][1]),
-                             TD(trow['rw_ratio']),
-                             TD(trow['delta_r'].days),
-                             TD(trow['delta_w'].days),
-                             TD(trow['delta_rw'].days),
-                          ))
+badgerow = TR(TD(trow['bname']),
+              TD(trow['set']),
+              TD(trow['curlev']),
+              TD(trow['tright']),
+              TD(trow['tlr'][1]),
+              TD(trow['twrong']),
+              TD(trow['tlw'][1]),
+              TD(trow['rw_ratio']),
+              TD(trow['delta_r'].days),
+              TD(trow['delta_w'].days),
+              TD(trow['delta_rw'].days),
+              )
+badgerow[4]['_data-order'] = trow['tlr'][0]  # sort column by raw date
+badgerow[6]['_data-order'] = trow['tlw'][0]  # sort column by raw date
+tab1_content[2][0].append(badgerow)
 
 # TAB 2 - BADGES =============================================================
 
@@ -186,5 +182,17 @@ pass
 
 <!--# LOCAL SCRIPTS ======================================================-->
 <script type="text/javascript" charset="utf-8">
-$('#table-badges').DataTable();
+var badgetable = $('#table-badges').DataTable({
+                    paging: false,
+                    scrollY: '400px',
+                    scrollX: true,
+                    renderer: 'bootstrap',
+                    order: [ 2, 'asc'],
+                    colVis: {
+                        exclude: [ 0 ]
+                    }
+                 });
+new $.fn.dataTable.FixedColumns( badgetable );
+var colvis = new $.fn.dataTable.ColVis( badgetable );
+$( colvis.button() ).insertBefore('div.badgetable-container');
 </script>
