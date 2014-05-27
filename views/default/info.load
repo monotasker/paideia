@@ -6,6 +6,7 @@
             <!--'badges_tested_over_time': badges_tested_over_time,-->
             <!--'sets_tested_over_time': sets_tested_over_time,-->
             <!--'steps_most_wrong': steps_most_wrong-->
+
 <!--Above Tabs ================================================================-->
 {{=UL(LI(SPAN('Name', _class='profile-label'), the_name,
                          _class='profile-name'),
@@ -65,7 +66,6 @@ tab1_content = CAT(DIV(H4('Set progress'),
                     )
 }}
 {{for trow in badge_table_data:
-print trow['curlev']
 tab1_content[2][0].append(TR(TD(trow['bname']),
                              TD(trow['set']),
                              TD(trow['curlev']),
