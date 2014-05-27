@@ -60,10 +60,24 @@ def user():
     code for these actions is in gluon/tools.py in Auth() class
     """
     # make sure d3.js dc.js and crossfire.js are loaded
-    response.files.append(URL('static', 'plugin_d3/d3/d3.js'))
-    response.files.append(URL('static', 'plugin_d3/dc/dc.js'))
-    response.files.append(URL('static', 'plugin_d3/crossfilter/crossfilter.js'))
-    response.files.append(URL('static', 'plugin_d3/dc/dc.css'))
+    # response.files.append(URL('static', 'plugin_d3/d3/d3.js'))
+    # response.files.append(URL('static', 'plugin_d3/dc/dc.js'))
+    # response.files.append(URL('static', 'plugin_d3/crossfilter/crossfilter.js'))
+    # response.files.append(URL('static', 'plugin_d3/dc/dc.css'))
+
+    # Include files for Datatables jquery plugin and bootstrap css styling
+    response.files.append("https://cdn.datatables.net/1.10.0/js/"
+                          "jquery.dataTables.min.js")  # main datatables js
+    response.files.append("https://cdn.datatables.net/colvis/1.1.0/js/"
+                          "dataTables.colVis.min.js")  # colVis plugin
+    response.files.append("https://cdn.datatables.net/colvis/1.1.0/css/"
+                          "dataTables.colVis.css")  # colVis plugin css
+    response.files.append("https://cdn.datatables.net/fixedcolumns/3.0.1/js/"
+                          "dataTables.fixedColumns.min.js")  # fixedColumns plugin
+    response.files.append("https://cdn.datatables.net/fixedcolumns/3.0.1/css/"
+                          "dataTables.fixedColumns.css")  # fixedColumns plugin css
+    response.files.append("https://cdn.datatables.net/plug-ins/28e7751dbec/"
+                          "integration/bootstrap/3/dataTables.bootstrap.css")  # bootstrap css
     return dict(form=auth())
 
 
@@ -94,10 +108,6 @@ def info():
     'steps_most_wrong':
 
     """
-    # Include files for Datatables jquery plugin and bootstrap css styling
-    response.files.append("https://cdn.datatables.net/1.10.0/js/jquery.dataTables.js")
-    response.files.append("https://cdn.datatables.net/plug-ins/28e7751dbec/"
-                          "integration/bootstrap/3/dataTables.bootstrap.css")
     # Allow passing explicit user but default to current user
     if 'id' in request.vars:
         user = db.auth_user[request.vars['id']]
