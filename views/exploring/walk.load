@@ -27,7 +27,7 @@ else:
 
     {{# prompt/reply div=================================================}}
     <div class='npc prompt'>
-        <p class='prompt-text'>{{=prompt_text}}</p>
+        <p class='prompt-text'>{{=MARKMIN(prompt_text)}}</p>
         {{if 'readable_long' in globals():
             rdbl = UL(_class='readable_long')
             for r in readable_long:
@@ -62,68 +62,55 @@ else:
                         _class='widget-image')}}
             {{=img}}
         {{pass}}
-        {{# hints popup for reply===========================================
-        if 'hints' in globals() and hints:
+        <div>
+        <!--# hints popup for reply------------------------------------------->
+        {{if 'hints' in globals() and hints:
             hint_list = UL()
             for h in hints:
                 hint_list.append(LI(h))
             pass
-            hints_args = {'classnames': 'btn btn-info',
-                          'id': 'instructions_btn'}
+            hints_args = {'classnames': '', 'id': 'instructions_btn'}
             hinter = POPOVER().widget('Hints', hint_list, **hints_args)}}
             {{=hinter}}
         {{pass}}
-        {{# instructions popup for prompt/reply=============================
-        if 'instructions' in globals() and instructions:
+        <!--# instructions popup for prompt/reply----------------------------->
+        {{if 'instructions' in globals() and instructions:
             ilist = UL(_class='prompt_instructions')
             for itext in instructions:
                 ilist.append(LI(itext))
             pass
-            i_args = {'classnames': 'btn btn-info instructions-popover',
+            i_args = {'classnames': 'instructions-popover',
                       'title': 'Instructions for this step',
                       'id': 'instructions_btn'}
             i_pop = POPOVER().widget('Instructions', ilist, **i_args)}}
             {{=i_pop}}
         {{pass}}
 
-        {{# slides popup for prompt/reply===================================
-        if 'slidedecks' in globals() and slidedecks:
+        <!--# slides popup for prompt/reply----------------------------------->
+        {{if 'slidedecks' in globals() and slidedecks:
             decklist = UL(_class='prompt_slides')
             for did, dname in slidedecks.iteritems():
                 decklist.append(LI(A(dname, _href=URL('listing', 'slides.html',
                                      args=[did]))))
             pass
-            slides_args = {'classnames': 'btn btn-info slides-popover',
+            slides_args = {'classnames': 'slides-popover',
                            'title': 'Relevant slide decks',
-                           'id': 'Slides_btn'}
+                           'id': 'slides_btn'}
             s_pop = POPOVER().widget('slides', decklist, **slides_args)}}
             {{=s_pop}}
         {{pass }}
+        </div> 
 
-        {{# path counter for prompt/reply==================================}}
-        <span class='path-counter progress_text'>
+        <!--# path counter for prompt/reply----------------------------------->
+        <small class='path-counter progress_text small muted'>
             'This will make {{=completed_count}} paths so far today.'
-        </span>
+        </small>
     </div>
 
-    {{# responder div ========================================================}}
+    <!--# responder div ------------------------------------------------------>
     <div class='responder'>
         {{if 'response_form' in locals() and response_form:}}
             {{=response_form}}
-        {{pass
-
-        if sid and pid:
-            stepedit = A('step {}'.format(sid),
-                        _href=URL('editing', 'listing', args=['steps', sid]),
-                        _class='prompt-s-editlink'
-                        )
-            pathedit = A('path {}'.format(pid),
-                        _href=URL('editing', 'listing', args=['paths', pid]),
-                        _class='prompt-p-editlink'
-                        )
-            catnum = ' choosing from category {}'.format(category)}}
-            {{=ROLE(SPAN(pathedit, ', ', stepedit, catnum,
-                    _class='prompt-editlinks'))}}
         {{pass
 
         if 'continue' in response_buttons:}}
@@ -138,10 +125,24 @@ else:
 
         {{if 'map' in response_buttons:}}
             {{=A("Back to map", _href=URL('walk', args=['map'], vars={'loc': None}),
-                 cid='page', _class='btn btn-success icon-map-marker back_to_map')}}
-        {{pass}}
+                 cid='page', _class='btn btn-success back_to_map')}}
+        {{pass
 
-        {{if bugreporter in globals() and bugreporter:}}
+        if sid and pid:
+            stepedit = A('step {}'.format(sid),
+                        _href=URL('editing', 'listing', args=['steps', sid]),
+                        _class='prompt-s-editlink'
+                        )
+            pathedit = A('path {}'.format(pid),
+                        _href=URL('editing', 'listing', args=['paths', pid]),
+                        _class='prompt-p-editlink'
+                        )
+            catnum = ' choosing from category {}'.format(category)}}
+            {{=ROLE(DIV(pathedit, ', ', stepedit, catnum,
+                    _class='prompt-editlinks small'))}}
+        {{pass
+
+        if bugreporter in globals() and bugreporter:}}
             {{=bugreporter}}
         {{pass}}
     </div>
