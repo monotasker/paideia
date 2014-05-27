@@ -105,7 +105,9 @@ class Stats(object):
                            ).select().as_list()  # cacheable=True
         # TODO: find and notify re. duplicate tag_records rows
         self.badge_levels, self.review_levels = self._find_badge_levels()
-        self.tags = [tup[1] for v in self.badge_levels.values() for tup in v]
+        self.tags = list(set([tup[1] for v
+                              in self.badge_levels.values() for tup in v]))
+
 
         # date of each tag promotion
         self.badges_begun = db(db.badges_begun.name == self.user_id).select()
@@ -432,7 +434,7 @@ class Stats(object):
                 except TypeError:  # record is timezone-aware, shouldn't be yet
                     t['tl' + i] = t['tl' + i].replace(tzinfo=None)
                     tr[idx]['delta_' + i] = now - t['tl' + i]
-            tr[idx]['delta_rw'] = tr[idx]['tlr'] - tr[idx]['tlr'] \
+            tr[idx]['delta_rw'] = tr[idx]['tlr'] - tr[idx]['tlw'] \
                 if tr[idx]['tlr'] > tr[idx]['tlw'] \
                 else datetime.timedelta(days=0)
 
@@ -443,8 +445,6 @@ class Stats(object):
                 tr[idx][i] = (t[i], t[i].strftime(strf))
 
             # add level data
-            pprint(self.badge_levels)
-            print [l[1] for v in self.badge_levels.values() for l in v]
             try:
                 tr[idx]['curlev'] = [l for l, tgs in self.badge_levels.iteritems()
                                     if t['tag'] in [tg[1] for tg in tgs]][0]
@@ -461,8 +461,11 @@ class Stats(object):
                 tr[idx]['rw_ratio'] = round(t['tright'], 1)
 
             # round tright and twrong to closest int for readability
-            tr[idx]['tright'] = int(tr['idx']['tright'])
-            tr[idx]['twrong'] = int(tr['idx']['twrong'])
+            for i in ['right', 'wrong']:
+                try:
+                    tr[idx]['t' + i] = remove_trailing_0s(t['t' + i], fmt='num')
+                except TypeError:  # because value is None
+                    tr[idx]['t' + i] = 0
 
         try:
             tr = self._add_tag_data(tr)
@@ -471,7 +474,7 @@ class Stats(object):
             self.tagrecs_expanded = tr
             return tr  # make_json(tr.as_list())
         except Exception:
-            print traceback.format_exc(5)
+            traceback.print_exc(5)
             return None
 
     def get_max(self):
@@ -519,7 +522,9 @@ class Stats(object):
         rank = self.tag_progress['latest_new']
         categories = {k: v for k, v in self.tag_progress.iteritems()
                       if k != 'latest_new'}
-        c = Categorizer(rank, categories, self.tag_recs,
+        # TODO: for some reason Categorizer changes self.tag_recs persistently
+        # when it (rather than copy) is passed as argument
+        c = Categorizer(rank, categories, copy(self.tag_recs),
                         self.user_id, utcnow=self.utcnow)
         bls = c.categorize_tags()['tag_progress']
         bl_ids = {k: v for k, v in bls.iteritems() if k[:3] == 'cat'}
@@ -898,3 +903,21 @@ def get_offset(user):
             else 'America/Toronto'
         offset = now - timezone(tz_name).localize(today)  # when to use "ambiguous"?
     return offset
+
+
+def remove_trailing_0s(num, fmt='str'):
+    """
+    Return num (a float) with trailing zeros stripped.
+
+    If there are no significant decimal places, removes the decimal point. By
+    default the return value is a string. This can be changed to an int or
+    float (as necessary for return value) by passing the value 'num' for the
+    keyword argument 'fmt'.
+    """
+    out = ('%f' % num).rstrip('0').rstrip('.')
+    if fmt == 'num':
+        if len(out.split('.')) > 1:
+            out = float(out)
+        else:
+            out = int(out)
+    return out
