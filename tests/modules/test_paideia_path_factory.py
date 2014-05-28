@@ -423,23 +423,19 @@ class TestPathFactory():
         f = PathFactory()
         actual, rowid, cst_id = f._add_new_wordform(wordform, lemma, mod_form,
                                                     constraint)
+        # clean up db: value picked up by db fixture via introspection
+        newrows = {'word_forms': 'rowid',
+                   'constructions': 'cst_id'}
         assert actual == out['word_form']
         assert isinstance(rowid, (long, int))
         newrow = db.word_forms(rowid)
         myconstructions = db(db.constructions.construction_label ==
                              out['construction']).select()
-        print 'found', len(myconstructions), 'constructions'
         out['construction'] = myconstructions.first().id
         out['source_lemma'] = db.lemmas(db.lemmas.lemma == out['source_lemma']).id
         for k, v in out.iteritems():
             print 'testing', k
             assert newrow[k] == v
-
-        # clean up db
-        db(db.word_forms.id == rowid).delete()
-        assert not db.word_forms(rowid)
-        db(db.constructions.id == cst_id).delete()
-        assert not db.constructions(cst_id)
 
     @pytest.mark.skipif(True, reason='just because')
     @pytest.mark.parametrize('mod_form,lemma,constraints,out',

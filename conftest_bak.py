@@ -66,8 +66,7 @@ def appname():
 
 @pytest.fixture(scope='module', autouse=True)
 def fixture_create_testfile_for_application(request, appname):
-    '''
-    Creates a temp file to tell application she's running under a
+    '''Creates a temp file to tell application she's running under a
     test environment.
 
     Usually you will want to create your database in memory to speed up
@@ -82,11 +81,14 @@ def fixture_create_testfile_for_application(request, appname):
     # note: if you use Ubuntu, you can allocate your test database on ramdisk
     # simply using the /dev/shm directory.
     temp_dir = '/dev/shm/' + appname
+    #temp_dir = '/tmp'
 
+    # TODO: why import os and shutil below here and not at top?
     if not os.path.isdir(temp_dir):
         os.mkdir(temp_dir)
 
-    # IMPORTANT: temp_filename must be the same as set in app/models/db.py
+    # IMPORTANT: the temp_filename variable must have the same value as set in
+    # your app/models/db.py file.
     temp_filename = '%s/tests_%s.tmp' % (temp_dir, appname)
 
     with open(temp_filename, 'w+') as tempfile:
@@ -94,6 +96,7 @@ def fixture_create_testfile_for_application(request, appname):
 
     def _remove_temp_file_after_tests():
         shutil.rmtree(temp_dir)
+        #os.remove(temp_filename)
     request.addfinalizer(_remove_temp_file_after_tests)
 
 
@@ -108,11 +111,10 @@ def fixture_cleanup_db(web2py):
     '''
 
     # TODO: figure out db rollback to standard state (not truncate to None)
-    # web2py.db.rollback()
-    # for tab in web2py.db.tables:
-    #     web2py.db[tab].truncate()
-    # web2py.db.commit()
-    print 'ran fixture cleanup !!!!!!!!!!!!!!!!!!!!!!!!!'
+    #web2py.db.rollback()
+    #for tab in web2py.db.tables:
+        #web2py.db[tab].truncate()
+    #web2py.db.commit()
     pass
 
 
@@ -130,14 +132,23 @@ def user_login(request, web2py, client, db):
     """
     Provide a new, registered, and logged-in user account for testing.
     """
-    # register test user
+    # navigate to index
+    #client.get('/default/index')
+    #assert client.status == 200
+
+    #register test user
+    #client.get('/default/user/register')
     auth = web2py.current.auth
     reg_data = {'first_name': 'Homer',
                 'last_name': 'Simpson',
                 'email': 'scottianw@gmail.com',
                 'password': 'testing',
                 'time_zone': 'America/Toronto'}
-    # create new test user if necessary and delete if there's more than one
+    #client.post('/default/user/register', data=reg_data)
+    #assert client.status == 200
+
+    # create new user if necessary and delete if there's more than one test
+    # user
     user_query = db((db.auth_user.first_name == reg_data['first_name']) &
                     (db.auth_user.last_name == reg_data['last_name']) &
                     (db.auth_user.email == reg_data['email']) &
@@ -162,6 +173,10 @@ def user_login(request, web2py, client, db):
     # log test user in
     auth.login_user(user_record)
     assert auth.is_logged_in()
+    #log_data = {'email': 'scottianw@gmail.com',
+                #'password': 'test'}
+    #client.post('/default/user/login', data=log_data)
+    #assert client.status == 200
 
     def fin():
         """
@@ -177,8 +192,8 @@ def user_login(request, web2py, client, db):
 
 @pytest.fixture(scope='module')
 def web2py(appname, fixture_create_testfile_for_application):
-    '''
-    Create a Web2py environment similar to that achieved by Web2py shell.
+    '''Create a Web2py environment similar to that achieved by
+    Web2py shell.
 
     It allows you to use global Web2py objects like db, request, response,
     session, etc.
@@ -199,35 +214,32 @@ def web2py(appname, fixture_create_testfile_for_application):
     del web2py_env['__file__']  # avoid py.test import error
     globals().update(web2py_env)
 
+    # FIXME hack for fixing migrations
+    #count = 0
+    #for row in db(db.path_log.id > 0).select():
+        #if row.path:
+            #row.update_record(in_path=row.path)
+            #db.commit()
+            #count += 1
+            #print count
+    #for row in db(db.attempt_log.id > 0).select():
+        #if row.path:
+            #row.update_record(in_path=row.path)
+            #db.commit()
+            #count += 1
+            #print count
+    #for row in db(db.tag_records.id > 0).select():
+        #if row.path:
+            #row.update_record(in_path=row.path)
+            #db.commit()
+            #count += 1
+            #print count
+    #print 'updated', count, 'records'
+
     return Storage(web2py_env)
 
 
-@pytest.fixture(scope='function')
-def db(web2py, request):
-    """
-    Provides a access to the production database from within test functions.
-
-    While the web2py object (providing global framework objects standard in a
-    web2py session) has a module-level scope, this db fixture has a function-
-    level scope. This means that any code below is run for each test function,
-    allowing for function-level db setup and teardown.
-
-    The fin teardown function expects a 'newrows' dictionary to be created in
-    the requesting test function. This dictionary should have db table names as
-    its keys and a list of newly-inserted row id numbers as the values.
-    """
-    mydb = web2py.db
-    newrows = getattr(request.function, newrows, None)
-
-    def fin():
-        """
-        Delete any newly inserted rows in the test database.
-        """
-        if newrows:
-            for tbl, rowids in newrows.iteritems():
-                mydb(mydb[tbl].id.belongs(rowids)).delete()
-                for i in rowids:
-                    assert not mydb[mydb[tbl]](i)
-
-    request.addfinalizer(fin)
-    return mydb
+@pytest.fixture(scope='module')
+def db(web2py):
+    """docstring for db"""
+    return web2py.db
