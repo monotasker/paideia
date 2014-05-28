@@ -391,14 +391,17 @@ class TestPathFactory():
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('wordform,mod_form,lemma,constraint,out',
-            [('ἀρτος', None, None, 'case@nom_g@m_num@s',
+            [('ἀρτος',
+              None,
+              'ἀρτος',
+              'case@nom_g@m_num@s',
               {'word_form': 'ἀρτος',
                'source_lemma': 'ἀρτος',
                'grammatical_case': 'nominative',
                'gender': 'masculine',
                'number': 'singular',
                'construction': 'noun_nom_masc_sing_2decl',
-               'tags': []}
+               'tags': [1, 82, 117]}
               ),
              ('ἀρτῳ', None, 'ἀρτος', None,
               {'word_form': 'ἀρτῳ',
@@ -407,7 +410,7 @@ class TestPathFactory():
                'gender': 'masculine',
                'number': 'singular',
                'construction': 'noun_dat_masc_sing_2decl',
-               'tags': []}
+               'tags': [1L, 82L, 117L]}
               ),
              # ('ἀληθεια', 'noun'),
              # ('ἰχθυς', 'noun'),
@@ -421,18 +424,22 @@ class TestPathFactory():
         actual, rowid, cst_id = f._add_new_wordform(wordform, lemma, mod_form,
                                                     constraint)
         assert actual == out['word_form']
-        assert isinstance(rowid, int)
+        assert isinstance(rowid, (long, int))
         newrow = db.word_forms(rowid)
-        out['construction'] = db(db.constructions.construction_label ==
-                                 out['construction']).select().first().id
+        myconstructions = db(db.constructions.construction_label ==
+                             out['construction']).select()
+        print 'found', len(myconstructions), 'constructions'
+        out['construction'] = myconstructions.first().id
+        out['source_lemma'] = db.lemmas(db.lemmas.lemma == out['source_lemma']).id
         for k, v in out.iteritems():
+            print 'testing', k
             assert newrow[k] == v
 
         # clean up db
         db(db.word_forms.id == rowid).delete()
         assert not db.word_forms(rowid)
         db(db.constructions.id == cst_id).delete()
-        assert not db.word_forms(cst_id)
+        assert not db.constructions(cst_id)
 
     @pytest.mark.skipif(True, reason='just because')
     @pytest.mark.parametrize('mod_form,lemma,constraints,out',

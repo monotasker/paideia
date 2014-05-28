@@ -207,7 +207,6 @@ _unfinished_today	paideia_exploring.py	/^    def _unfinished_today(self):$/;"	m	
 _update_path_log	paideia_exploring.py	/^    def _update_path_log(self, path_id, step_id, update_switch):$/;"	m	class:Walk
 _update_tag_record	paideia.py	/^    def _update_tag_record(self, tag, oldrec, user_id, tright, twrong,$/;"	m	class:Walk
 _update_tag_secondary	paideia.py	/^    def _update_tag_secondary(self, tag, oldrec, user_id, now=None):$/;"	m	class:Walk
-abbrevs	paideia_path_factory.py	/^abbrevs = {'acc': 'accusative',$/;"	v
 activate_step	paideia_exploring.py	/^    def activate_step(self, path, step_id):$/;"	m	class:Walk
 active_tags	paideia_stats.py	/^    def active_tags(self, now=None):$/;"	m	class:Stats
 after	greek_parser.py	/^    def after(self, struct1, struct2, proximity=0,$/;"	m	class:Parser
@@ -237,6 +236,7 @@ clr	paideia_utils.py	/^def clr(string, mycol='white'):$/;"	f
 clr	plugin_utils.py	/^def clr(string, mycol='white'):$/;"	f
 complete_path	paideia.py	/^    def complete_path(self):$/;"	m	class:User
 complete_step	paideia.py	/^    def complete_step(self):$/;"	m	class:Path
+const_abbrevs	paideia_path_factory.py	/^    const_abbrevs = {'adjective': 'adj',$/;"	v	class:PathFactory
 copy_db	plugin_sqlite_backup.py	/^def copy_db(mydir=None):$/;"	f
 copy_to_backup	plugin_sqlite_backup.py	/^def copy_to_backup():$/;"	f
 create_widget	plugin_ajaxselect.py	/^    def create_widget(self):$/;"	m	class:AjaxSelect
@@ -375,6 +375,7 @@ next_step	paideia_exploring.py	/^    def next_step(self):$/;"	m	class:Walk
 normalize_accents	paideia_utils.py	/^def normalize_accents(strings):$/;"	f
 parse_csv	plugin_1way_sync.py	/^    def parse_csv(self, csvfile):$/;"	m	class:OnewaySyncer
 parseform	greek_parser.py	/^    def parseform(self, token):$/;"	m	class:Parser
+parsing_abbrevs	paideia_path_factory.py	/^    parsing_abbrevs = {'acc': 'accusative',$/;"	v	class:PathFactory
 path_to_db	paideia_path_factory.py	/^    def path_to_db(self, steps, label):$/;"	m	class:PathFactory
 plugin_listandedit	plugin_listandedit.py	/^def plugin_listandedit():$/;"	f
 print_rows_as_dicts	plugin_utils.py	/^def print_rows_as_dicts():$/;"	f
@@ -382,6 +383,7 @@ printutf	paideia_utils.py	/^def printutf(string):$/;"	f
 printutf	plugin_utils.py	/^def printutf(string):$/;"	f
 process	paideia_exploring.py	/^    def process(self, user_response):$/;"	m	class:Step
 process	paideia_exploring.py	/^    def process(self, user_response):$/;"	m	class:StepMultipleChoice
+remove_trailing_0s	paideia_stats.py	/^def remove_trailing_0s(num, fmt='str'):$/;"	f
 replace_in_field	plugin_utils.py	/^def replace_in_field():$/;"	f
 reply	paideia.py	/^    def reply(self, localias, response_string, path=None, step=None):$/;"	m	class:Walk
 reqs	greek_parser.py	/^    reqs = ['Subject', 'Complement']$/;"	v	class:VerblessClause
@@ -409,6 +411,7 @@ store_stats	paideia_stats.py	/^    def store_stats(self, statsdict, lastdt):$/;"
 sync	plugin_1way_sync.py	/^    def sync(self):$/;"	m	class:OnewaySyncer
 tag_token	greek_parser.py	/^        def tag_token(matchstring, leaf):$/;"	f	function:Parser.match_string
 tag_types	plugin_markmin_extras.py	/^tag_types = {'image': ['blog_images', 'image_title', 'img_file'],$/;"	v
+tagging_conditions	paideia_path_factory.py	/^    tagging_conditions = {'verb basics': (['verb']),$/;"	v	class:PathFactory
 td	plugin_markmin_extras.py	/^td = {tag_type: {'table': db[data[0]],$/;"	v
 test_order	greek_parser.py	/^    def test_order(self, tokens):$/;"	m	class:NounPhrase
 test_order	greek_parser.py	/^    def test_order(self, tokens):$/;"	m	class:Parser
@@ -440,4 +443,5 @@ widget	plugin_ajaxselect.py	/^    def widget(cls, field, value, restricted=None,
 widget	plugin_ajaxselect.py	/^    def widget(self):$/;"	m	class:AjaxSelect
 widget	plugin_widgets.py	/^    def widget(self, linktext, content, classnames=None,$/;"	m	class:POPOVER
 widget_contents	plugin_ajaxselect.py	/^    def widget_contents(self):$/;"	m	class:AjaxSelect
+wordform_reqs	paideia_path_factory.py	/^    wordform_reqs = {'noun': ['source_lemma', 'grammatical_case', 'gender',$/;"	v	class:PathFactory
 wordforms	greek_parser.py	/^wordforms = {'ἀνηρ': {'gender': 'masc',$/;"	v

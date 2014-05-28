@@ -36,8 +36,175 @@ class PathFactory(object):
 
     """
 
+    parsing_abbrevs = {'acc': 'accusative',
+                       'dat': 'dative',
+                       'nom': 'nominative',
+                       'gen': 'genitive',
+                       'masc': 'masculine',
+                       'fem': 'feminine',
+                       'neut': 'neuter',
+                       'any': 'undetermined',
+                       'masc-fem': 'masculine or feminine',
+                       'sing': 'singular',
+                       'plur': 'plural',
+                       'pron': 'pronoun',
+                       'noun': 'noun',
+                       'adj': 'adjective',
+                       'verb': 'verb',
+                       'adv': 'adverb',
+                       'conj': 'conjunction',
+                       'ptc': 'participle',
+                       'ind': 'indicative',
+                       'imper': 'imperative',
+                       'inf': 'infinitive',
+                       'part': 'particle',
+                       '1': 'first',
+                       '2': 'second',
+                       '3': 'third',
+                       's': 'singular',
+                       'p': 'plural',
+                       'act': 'active',
+                       'mid': 'middle',
+                       'pass': 'passive',
+                       'mid-pass': 'middle or passive'}
+
+    const_abbrevs = {'adjective': 'adj',
+                     'pronoun': 'pron',
+                     'article': 'art',
+                     'conjunction': 'conj',
+                     'aorist1': 'aor1',
+                     'aorist2': 'aor2',
+                     'perfect1': 'perf1',
+                     'perfect2': 'perf2',
+                     'present': 'pres',
+                     'future': 'fut',
+                     'imperfect': 'imperf',
+                     'first': '1decl',
+                     '1decl': '1decl',
+                     'second': '2decl',
+                     '2decl': '2decl',
+                     'third': '3decl',
+                     '3decl': '3decl',
+                     'singular': 'sing',
+                     'plural': 'plur',
+                     'active': 'act',
+                     'passive': 'pass',
+                     'middle': 'mid',
+                     'indicative': 'ind',
+                     'subjunctive': 'subj',
+                     'optative': 'opt',
+                     'participle': 'ptc',
+                     'infinitive': 'inf',
+                     'imperative': 'imper',
+                     'nominative': 'nom',
+                     'genitive': 'gen',
+                     'dative': 'dat',
+                     'accusative': 'acc',
+                     'vocative': 'voc',
+                     'masculine': 'masc',
+                     'feminine': 'fem'
+                     }
+
+    tagging_conditions = {'verb basics': (['verb']),
+                          'noun basics': (['noun']),
+                          'adjectives': (['adj']),
+                          'nominative1': (['noun', 'nom', '1decl'],
+                                          ['adj', 'nom', '1decl'],
+                                          ['pron', 'nom', '1decl']),
+                          'nominative2': (['noun', 'nom', '2decl'],
+                                          ['adj', 'nom', '2decl'],
+                                          ['pron', 'nom', '2decl']),
+                          'nominative3': (['noun', 'nom', '3decl'],
+                                          ['adj', 'nom', '3decl'],
+                                          ['pron', 'nom', '3decl']),
+                          'dative1': (['noun', 'dat', '1decl'],
+                                      ['adj', 'dat', '1decl'],
+                                      ['pron', 'dat', '1decl']),
+                          'dative2': (['noun', 'dat', '2decl'],
+                                      ['adj', 'dat', '2decl'],
+                                      ['pron', 'dat', '2decl']),
+                          'dative3': (['noun', 'dat', '3decl'],
+                                      ['adj', 'dat', '3decl'],
+                                      ['pron', 'dat', '3decl']),
+                          'genitive1': (['noun', 'gen', '1decl'],
+                                        ['adj', 'gen', '1decl'],
+                                        ['pron', 'gen', '1decl']),
+                          'genitive2': (['noun', 'gen', '2decl'],
+                                        ['adj', 'gen', '2decl'],
+                                        ['pron', 'gen', '2decl']),
+                          'genitive3': (['noun', 'gen', '3decl'],
+                                        ['adj', 'gen', '3decl'],
+                                        ['pron', 'gen', '3decl']),
+                          'accusative1': (['noun', 'acc', '1decl'],
+                                          ['adj', 'acc', '1decl'],
+                                          ['pron', 'acc', '1decl']),
+                          'accusative2': (['noun', 'acc', '2decl'],
+                                          ['adj', 'acc', '2decl'],
+                                          ['pron', 'acc', '2decl']),
+                          'accusative3': (['noun', 'acc', '3decl'],
+                                          ['adj', 'acc', '3decl'],
+                                          ['pron', 'acc', '3decl']),
+                          'vocative1': (['noun', 'voc', '1decl'],
+                                        ['adj', 'voc', '1decl'],
+                                        ['pron', 'voc', '1decl']),
+                          'vocative2': (['noun', 'voc', '2decl'],
+                                        ['adj', 'voc', '2decl'],
+                                        ['pron', 'voc', '2decl']),
+                          'vocative3': (['noun', 'voc', '3decl'],
+                                        ['adj', 'voc', '3decl'],
+                                        ['pron', 'voc', '3decl']),
+                          'nominative plural nouns '
+                          'and pronouns': (['noun', 'nom', 'plur'],
+                                           ['adj', 'nom', 'plur'],
+                                           ['pron', 'nom', 'plur']),
+                          'genitive plural nouns '
+                          'and pronouns': (['noun', 'gen', 'plur'],
+                                           ['adj', 'gen', 'plur'],
+                                           ['pron', 'gen', 'plur']),
+                          'dative plural nouns '
+                          'and pronouns': (['noun', 'gen', 'plur'],
+                                           ['adj', 'gen', 'plur'],
+                                           ['pron', 'gen', 'plur']),
+                          'accusative plural nouns'
+                          'and pronouns': (['noun', 'acc', 'plur'],
+                                           ['adj', 'acc', 'plur'],
+                                           ['pron', 'acc', 'plur']),
+                          'vocative plural nouns '
+                          'and pronouns': (['noun', 'voc', 'plur'],
+                                           ['adj', 'voc', 'plur'],
+                                           ['pron', 'voc', 'plur']),
+                          'present active infinitive': (['verb', 'pres',
+                                                         'act', 'inf']),
+                          'present active imperative': (['verb', 'pres',
+                                                         'act', 'imper']),
+                          'present active indicative': (['verb', 'pres',
+                                                         'act', 'ind']),
+                          'present middle-passive '
+                          'indicative': (['verb', 'pres', 'mid', 'ind'],
+                                         ['verb', 'pres', 'pass', 'ind']),
+                          'aorist active '
+                          'indicative': (['verb', '1aor', 'act', 'ind'],
+                                         ['verb', '2aor', 'act', 'ind']),
+                          'aorist middle '
+                          'indicative': (['verb', '1aor', 'mid', 'ind'],
+                                         ['verb', '2aor', 'mid', 'ind']),
+                          }
+
+    wordform_reqs = {'noun': ['source_lemma', 'grammatical_case', 'gender',
+                              'number', 'declension'],
+                     'adjective': ['source_lemma', 'grammatical_case',
+                                   'gender', 'number', 'declension'],
+                     'pronoun': ['source_lemma', 'grammatical_case', 'gender',
+                                 'number', 'declension'],
+                     'verb': ['source_lemma', 'tense', 'voice', 'mood',
+                              'person', 'number', 'declension'],
+                     'adverb': [],
+                     'particle': [],
+                     'conjunction': [],
+                     'idiom': []}
+
     def __init__(self):
-        """Initialize an object. """
+        """Initialize a paideia.PathFactory object."""
         self.promptstrings = []
         self.mock = True  # switch to activate testing mode with db clean-up
 
@@ -583,44 +750,32 @@ class PathFactory(object):
         """
         db = current.db
         cd = self._parse_constraint(constraint)
-        cd['source_lemma'] = lemma
+        cd['source_lemma'] = db.lemmas(db.lemmas.lemma == lemma).id
         if 'part_of_speech' not in cd.keys():
             cd['part_of_speech'] = self._guess_part_of_speech(word_form)
             ps = cd['part_of_speech']
 
         # identify expected info for this part of speech
-        reqs = {'noun': ['source_lemma', 'grammatical_case', 'gender',
-                         'number'],
-                'adjective': ['source_lemma', 'grammatical_case', 'gender',
-                              'number'],
-                'pronoun': ['source_lemma', 'grammatical_case', 'gender',
-                            'number'],
-                'verb': ['source_lemma', 'tense', 'voice', 'mood',
-                         'person', 'number'],
-                'adverb': [],
-                'particle': [],
-                'conjunction': [],
-                'idiom': []}
         if ps == 'verb' and cd['mood'] == 'participle':
-            reqs['verb'].pop(-2)
-            num = reqs['verb'].pop(-1)
-            reqs['verb'].extend(['grammatical_case', 'gender'])
-            reqs['verb'].append(num)
+            self.self.wordform_reqs['verb'].pop(-2)
+            num = self.self.wordform_reqs['verb'].pop(-1)
+            self.wordform_reqs['verb'].extend(['grammatical_case', 'gender'])
+            self.wordform_reqs['verb'].append(num)
         if ps == 'verb' and cd['mood'] == 'infinitive':
-            reqs['verb'] = reqs['verb'][:-2]
+            self.wordform_reqs['verb'] = self.wordform_reqs['verb'][:-2]
 
         # try to get missing info from any modform (supposed to agree)
         if mod_form:
             modrow = db(db.word_forms.word_form == mod_form).select().first()
             if modrow:
-                need = [i for i in reqs[ps]
+                need = [i for i in self.wordform_reqs[ps]
                         if i not in cd.keys()]
                 if need:
                     for n in need:
                         cd[n] = modrow[n]
 
         # try to get missing info from form itself and lemma
-        need = [i for i in reqs[ps]
+        need = [i for i in self.wordform_reqs[ps]
                 if i not in cd.keys()]
         if need:
             guesses = self._guess_parsing(word_form, lemma)
@@ -630,123 +785,19 @@ class PathFactory(object):
 
         # remove any extraneous info
         for k in cd.keys():
-            if k not in reqs[ps]:
+            if k not in self.wordform_reqs[ps]:
                 del cd[k]
-        print cd
+
         # build and add construction label
-        cstbits = [cd[k] for k in reqs[ps][1:]]  # don't include lemma in construction label
-        shorts = {'adjective': 'adj',
-                  'pronoun': 'pron',
-                  'article': 'art',
-                  'conjunction': 'conj',
-                  'aorist1': 'aor1',
-                  'aorist2': 'aor2',
-                  'perfect1': 'perf1',
-                  'perfect2': 'perf2',
-                  'present': 'pres',
-                  'future': 'fut',
-                  'imperfect': 'imperf',
-                  'first': '1',
-                  'second': '2',
-                  'third': '3',
-                  'singular': 'sing',
-                  'plural': 'plur',
-                  'active': 'act',
-                  'passive': 'pass',
-                  'middle': 'mid',
-                  'indicative': 'ind',
-                  'subjunctive': 'subj',
-                  'optative': 'opt',
-                  'participle': 'ptc',
-                  'infinitive': 'inf',
-                  'imperative': 'imper',
-                  'nominative': 'nom',
-                  'genitive': 'gen',
-                  'dative': 'dat',
-                  'accusative': 'acc',
-                  'vocative': 'voc',
-                  'masculine': 'masc',
-                  'feminine': 'fem'
-                  }
-        tagging = {'verb basics': (['verb']),
-                   'noun basics': (['noun']),
-                   'adjectives': (['adj']),
-                   'nominative1': (['noun', 'nom', '1decl'],
-                                   ['adj', 'nom', '1decl'],
-                                   ['pron', 'nom', '1decl']),
-                   'nominative2': (['noun', 'nom', '2decl'],
-                                   ['adj', 'nom', '2decl'],
-                                   ['pron', 'nom', '2decl']),
-                   'nominative3': (['noun', 'nom', '3decl'],
-                                   ['adj', 'nom', '3decl'],
-                                   ['pron', 'nom', '3decl']),
-                   'dative1': (['noun', 'dat', '1decl'],
-                               ['adj', 'dat', '1decl'],
-                               ['pron', 'dat', '1decl']),
-                   'dative2': (['noun', 'dat', '2decl'],
-                               ['adj', 'dat', '2decl'],
-                               ['pron', 'dat', '2decl']),
-                   'dative3': (['noun', 'dat', '3decl'],
-                               ['adj', 'dat', '3decl'],
-                               ['pron', 'dat', '3decl']),
-                   'genitive1': (['noun', 'gen', '1decl'],
-                                 ['adj', 'gen', '1decl'],
-                                 ['pron', 'gen', '1decl']),
-                   'genitive2': (['noun', 'gen', '2decl'],
-                                 ['adj', 'gen', '2decl'],
-                                 ['pron', 'gen', '2decl']),
-                   'genitive3': (['noun', 'gen', '3decl'],
-                                 ['adj', 'gen', '3decl'],
-                                 ['pron', 'gen', '3decl']),
-                   'accusative1': (['noun', 'acc', '1decl'],
-                                   ['adj', 'acc', '1decl'],
-                                   ['pron', 'acc', '1decl']),
-                   'accusative2': (['noun', 'acc', '2decl'],
-                                   ['adj', 'acc', '2decl'],
-                                   ['pron', 'acc', '2decl']),
-                   'accusative3': (['noun', 'acc', '3decl'],
-                                   ['adj', 'acc', '3decl'],
-                                   ['pron', 'acc', '3decl']),
-                   'vocative1': (['noun', 'voc', '1decl'],
-                                 ['adj', 'voc', '1decl'],
-                                 ['pron', 'voc', '1decl']),
-                   'vocative2': (['noun', 'voc', '2decl'],
-                                 ['adj', 'voc', '2decl'],
-                                 ['pron', 'voc', '2decl']),
-                   'vocative3': (['noun', 'voc', '3decl'],
-                                 ['adj', 'voc', '3decl'],
-                                 ['pron', 'voc', '3decl']),
-                   'nominative plural nouns and pronouns': (['noun', 'nom', 'plur'],
-                                                            ['adj', 'nom', 'plur'],
-                                                            ['pron', 'nom', 'plur']),
-                   'genitive plural nouns and pronouns': (['noun', 'gen', 'plur'],
-                                                            ['adj', 'gen', 'plur'],
-                                                            ['pron', 'gen', 'plur']),
-                   'dative plural nouns and pronouns': (['noun', 'gen', 'plur'],
-                                                        ['adj', 'gen', 'plur'],
-                                                        ['pron', 'gen', 'plur']),
-                   'accusative plural nouns and pronouns': (['noun', 'acc', 'plur'],
-                                                            ['adj', 'acc', 'plur'],
-                                                            ['pron', 'acc', 'plur']),
-                   'vocative plural nouns and pronouns': (['noun', 'voc', 'plur'],
-                                                          ['adj', 'voc', 'plur'],
-                                                          ['pron', 'voc', 'plur']),
-                   'present active infinitive': (['verb', 'pres', 'act', 'inf']),
-                   'present active imperative': (['verb', 'pres', 'act', 'imper']),
-                   'present active indicative': (['verb', 'pres', 'act', 'ind']),
-                   'present middle-passive indicative': (['verb', 'pres', 'mid', 'ind'],
-                                                         ['verb', 'pres', 'pass', 'ind']),
-                   'aorist active indicative': (['verb', '1aor', 'act', 'ind'],
-                                                ['verb', '2aor', 'act', 'ind']),
-                   'aorist middle indicative': (['verb', '1aor', 'mid', 'ind'],
-                                                ['verb', '2aor', 'mid', 'ind']),
-                   }
-        shortbits = [shorts[i] for i in cstbits]
+        cstbits = [cd[k] for k in self.wordform_reqs[ps][1:]]  # don't include lemma in construction label
+        shortbits = [self.const_abbrevs[i] for i in cstbits]
         cst_label = '{}_{}'.format(ps, '_'.join(shortbits))
-        cst_rows = db(db.constructions.construction_label == cst_label).select()
-        if cst_rows:
-            cst_id = cst_rows.first().id
-        else:
+        cst_row = db.constructions(db.constructions.construction_label ==
+                                   cst_label)
+        if cst_row:
+            cst_id = cst_row.id
+            print 'found const', cst_id
+        else:  # create new construction entry if necessary
             rdbl = '{}, {}'.format(ps, ' '.join(cstbits))
             rdbl = rdbl.replace(' first', ', first person ')
             rdbl = rdbl.replace(' second', ', second person ')
@@ -754,19 +805,28 @@ class PathFactory(object):
             rdbl = rdbl.replace(' 1decl', ', 1st declension ')
             rdbl = rdbl.replace(' 2decl', ', 2nd declension ')
             rdbl = rdbl.replace(' 3decl', ', 3rd declension ')
-            mytags = [k for k, v in tagging.iteritems() for lst in v
-                      if all(l in shortbits for l in lst)]
+            mytags = [k for k, v in self.tagging_conditions.iteritems()
+                      for lst in v if all(l in shortbits for l in lst)]
             mytags = [t.id for t in db(db.tags.tag.belongs(mytags)).select()]
+            print 'inserting new construction:', cst_label
             cst_id = db.constructions.insert(**{'construction_label': cst_label,
                                                 'readable_label': rdbl,
                                                 'tags': mytags})
+        if 'declension' in cd.keys():
+            del cd['declension']  # only used for building construction
         cd['construction'] = cst_id
+
+        # collect and add tags
         cd['tags'] = [] if 'tags' not in cd else cd['tags']
         cd['tags'].extend(db.constructions(cst_id).tags)
-        cd['tags'].extend(db(db.lemmas.lemma == lemma).select().first().extra_tags)
-        cd['tags'].append(db(db.lemmas.lemma == lemma).select().first().first_tag)
+        mylem = db.lemmas(db.lemmas.lemma == lemma)
+        cd['tags'].extend(mylem.extra_tags)
+        cd['tags'].append(mylem.first_tag)
+        cd['tags'] = list(set(cd['tags']))
+
         cd['word_form'] = word_form
 
+        # write new form to db
         rowid = db.word_forms.insert(**cd)
 
         return lemma, rowid, cst_id
@@ -780,8 +840,9 @@ class PathFactory(object):
         """
         db = current.db
         cd = self._parse_constraint(constraint)
-        reqs = ['lemma', 'glosses', 'part_of_speech', 'first_tag', 'extra_tags']
-        lemdata = {k: i for k, i in cd.iteritems() if k in reqs}
+        lemma_reqs = ['lemma', 'glosses', 'part_of_speech', 'first_tag',
+                      'extra_tags']
+        lemdata = {k: i for k, i in cd.iteritems() if k in lemma_reqs}
         lemma = makeutf8(lemma)
 
         # get lemma field
@@ -1431,34 +1492,3 @@ class TranslateWordPathFactory(PathFactory):
     το -φορος
 """
 
-abbrevs = {'acc': 'accusative',
-           'dat': 'dative',
-           'nom': 'nominative',
-           'gen': 'genitive',
-           'masc': 'masculine',
-           'fem': 'feminine',
-           'neut': 'neuter',
-           'any': 'undetermined',
-           'masc-fem': 'masculine or feminine',
-           'sing': 'singular',
-           'plur': 'plural',
-           'pron': 'pronoun',
-           'noun': 'noun',
-           'adj': 'adjective',
-           'verb': 'verb',
-           'adv': 'adverb',
-           'conj': 'conjunction',
-           'ptc': 'participle',
-           'ind': 'indicative',
-           'imper': 'imperative',
-           'inf': 'infinitive',
-           'part': 'particle',
-           '1': 'first',
-           '2': 'second',
-           '3': 'third',
-           's': 'singular',
-           'p': 'plural',
-           'act': 'active',
-           'mid': 'middle',
-           'pass': 'passive',
-           'mid-pass': 'middle or passive'}
