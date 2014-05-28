@@ -1,15 +1,16 @@
 import calendar
 import datetime
-from collections import Counter
-import dateutil.parser
+# from collections import Counter
+from dateutil.parser import parse
 import traceback
 from copy import copy
 from pytz import timezone, utc
 from gluon import current, DIV, SPAN, A, URL, UL, LI, B
 from gluon import TAG
 from paideia_utils import make_json, load_json
-#from pprint import pprint
-import itertools
+from paideia import Categorizer
+from pprint import pprint
+from itertools import chain, groupby
 
 
 class Stats(object):
@@ -79,41 +80,40 @@ class Stats(object):
         """
         db = current.db
         auth = current.auth
+        self.utcnow = datetime.datetime.utcnow()
         self.alerts = {}
 
-        # user info
+        # user info --------------------------------------------------
         user_id = auth.user_id if user_id is None else user_id
         self.user_id = user_id
         self.user = db.auth_user(user_id)
+        self.name = '{}, {}'.format(self.user.last_name, self.user.first_name)
+
+        # class/group info --------------------------------------------------
         msel = db((db.auth_membership.user_id == self.user_id) &
                   (db.auth_membership.group_id == db.auth_group.id)).select()
         try:
             self.targetcount = [m.auth_group.paths_per_day for m in msel
                                 if m.auth_group.paths_per_day][0]
-        except Exception:
-            print traceback.format_exc(5)
+        except IndexError:  # no group target for user
             self.targetcount = 20
-        self.name = '{}, {}'.format(self.user.last_name, self.user.first_name)
 
-        # overall progress through tag sets and levels
+        # progress through tag sets and levels ---------------------
         self.tag_progress = db(db.tag_progress.name == self.user_id
                                ).select().first().as_dict()
-
-        # performance on each tag
         self.tag_recs = db(db.tag_records.name == self.user_id
-                           ).select(cacheable=True)
-        tags = [rec.tag for rec in self.tag_recs]
-        dups = [tag for tag, count in Counter(tags).items() if count > 1]
-        if dups:
-            self.alerts['duplicate tag_records rows'] = dups
-            # TODO: mail notice of this
+                           ).select().as_list()  # cacheable=True
+        # TODO: find and notify re. duplicate tag_records rows
+        self.badge_levels, self.review_levels = self._find_badge_levels()
+        self.tags = list(set([tup[1] for v
+                              in self.badge_levels.values() for tup in v]))
+
 
         # date of each tag promotion
         self.badges_begun = db(db.badges_begun.name == self.user_id).select()
         if len(self.badges_begun) > 1:
             self.alerts['duplicate badges_begun records'] = [bb.id for bb
                                                         in self.badges_begun]
-        self.utcnow = datetime.datetime.utcnow()
 
     def get_name(self):
         """
@@ -173,77 +173,8 @@ class Stats(object):
                 # or add new row
                 data.append(weekdata)
 
-        #usrows = db(db.user_stats.name == user_id)
-        #if not usrows.isempty():
-            #lastweek = usrows.select().last()
-            #startafter = lastweek.updated
-            #openweek = lastweek if not lastweek.done else None
-        #else:
-            #lastweek = None
-            #openweek = None
-            #startafter = None
-
-        #if startafter:
-            #mylogs = db((db.attempt_log.name == user_id) &
-                        #(db.attempt_log.dt_attempted > startafter)).select()
-        #else:
-            #mylogs = db(db.attempt_log.name == user_id).select()
-            #try:
-                #startafter = mylogs.first().dt_attempted  # FIXME error if empty
-            #except AttributeError:
-                #startafter = self.utcnow
-
-        #startyear = startafter.year
-        #endyear = self.utcnow.year
-        #years = range(startyear, endyear)
-
-        #for year in years:
-            #weeks = get_weeks(year)
-            #if lastweek and lastweek.year == year:
-                #lastweeknum = lastweek.week
-                #weeks = weeks[lastweeknum:]
-
-            #for idx, week in enumerate(weeks):
-                #weeknum = lastweeknum + idx + 1
-                #month = week[0].month,
-                #data = {'name': self.user_id,
-                        #'year': year,
-                        #'month': month,
-                        #'week': weeknum,
-                        #'updated': self.utcnow,
-                        #}
-                #weeklogs = mylogs.find(lambda l: self._local(l.dt_attempted).date() in week)
-                #for idx, day in enumerate(week):
-                    #data['day{}'.format(idx + 1)] = day
-                    #daylogs = mylogs.find(lambda l:
-                                          #self._local(l.dt_attempted).date() ==
-                                          #datetime.date(year, month, day))
-                    #data['count{}'.format(idx + 1)] = [d.id for d in daylogs]
-                #data['logs_right'] = [l.id for l in weeklogs if abs(1 - l.score) < 0.0001]
-                #data['logs_wrong'] = [l.id for l in weeklogs if abs(1 - l.score) >= 0.0001]
-                #data['partly_right'] = [l.id for l in weeklogs if l.score > 0.01 and l.score < 0.99]
-                #taglogs = {}
-                #taglogs2 = {}
-                #taglogs3 = {}
-                #for l in weeklogs:
-                    #tags = l.step.tags
-                    #tags2 = l.step.tags_secondary
-                    #tags3 = l.step.tags_ahead
-                    #for t in tags:
-                        #taglogs[t].setdefault([]).append(l.id)
-                    #for t in tags2:
-                        #taglogs2[t].setdefault([]).append(l.id)
-                    #for t in tags3:
-                        #taglogs3[t].setdefault([]).append(l.id)
-                #data['logs_by_tag'] = taglogs
-                #data['logs_by_tag2'] = taglogs2
-                #data['logs_by_tag3'] = taglogs3
-                #data['done'] = 1 if weeklogs.last() != mylogs.last() else 0
-
-            #if openweek and openweek.year == year:
-                ## finish open week
-                #pass
-
+    """
+    DEPRECATED
     def step_log(self, logs=None, user_id=None, duration=None):
         '''
         Get record of a user's steps attempted in the last seven days.
@@ -251,8 +182,8 @@ class Stats(object):
         TODO: move this aggregate data to a db table "user_stats" on calculation.
         '''
         db = current.db
-        #now = self.utcnow
-        #user_id = self.user_id
+        # now = self.utcnow
+        # user_id = self.user_id
         duration = self.duration
         logs = self.logs
 
@@ -271,10 +202,9 @@ class Stats(object):
                 last_wrong = max([s['dt_attempted'] for s in stepwrong if
                                  s['dt_attempted']])
                 if isinstance(last_wrong, str):
-                    last_wrong = dateutil.parser.parse(last_wrong)
+                    last_wrong = parse(last_wrong)
                 last_wrong = datetime.datetime.date(last_wrong)
             except ValueError:
-                #print traceback.format_exc(5)
                 last_wrong = 'never'
 
             try:
@@ -290,7 +220,7 @@ class Stats(object):
             # check for tags without badges
             # TODO: move this check to maintenance cron job
             for t in steprow['tags']:
-                if not t in tag_badges.keys():
+                if t not in tag_badges.keys():
                     print 'There seems to be no badge for tag {}'.format(t)
                     print 'Removing tag'
                     newtags = steprow['tags']
@@ -315,39 +245,7 @@ class Stats(object):
             logset.append(step_dict)
 
         return {'loglist': logset, 'duration': duration}
-
-    def _add_progress_data(self, tag_recs):
-        """
-        Return list of tag records with additional fields for progress data.
-        """
-        missing_cat = []
-        missing_rev = []
-        tag_progress = self.tag_progress
-        for t in tag_recs:
-            tid = t['tag']
-            try:
-                for k, v in tag_progress.iteritems():
-                    if k in ['cat1', 'cat2', 'cat3', 'cat4']:
-                        if v and tid in [int(i) for i in v]:
-                            t['current_level'] = int(k[3:])
-                            break
-                    else:
-                        t['current_level'] = 1
-            except IndexError:
-                t['current_level'] = 1
-                missing_cat.append(tid)
-            try:
-                for k, v in tag_progress.iteritems():
-                    if k in ['rev1', 'rev2', 'rev3', 'rev4']:
-                        if v and tid in [int(i) for i in v]:
-                            t['review_level'] = int(k[3:])
-                            break
-                    else:
-                        t['review_level'] = 1
-            except IndexError:
-                t['review_level'] = 1
-                missing_rev.append(tid)
-        return tag_recs
+    """
 
     def _add_tag_data(self, tag_recs):
         """
@@ -372,11 +270,11 @@ class Stats(object):
             except (RuntimeError, AttributeError):
                 t['slides'] = None
             try:
-                t['badge_name'] = brow.badge_name
-                t['badge_description'] = brow.description
+                t['bname'] = brow.badge_name
+                t['bdescr'] = brow.description
             except (RuntimeError, AttributeError):
-                t['badge_name'] = 'missing badge for tag {}'.format(t['tag'])
-                t['badge_description'] = None
+                t['bname'] = 'missing badge for tag {}'.format(t['tag'])
+                t['bdescr'] = None
         return tag_recs
 
     def _add_promotion_data(self, tag_recs):
@@ -415,7 +313,7 @@ class Stats(object):
         logs_wrong:     list of log ids for incorret attempts with this tag.
         """
         db = current.db
-        #usrows = db(db.user_stats.name == self.user_id).select()
+        # usrows = db(db.user_stats.name == self.user_id).select()
         usrows = self._get_logs_for_range()
         for t in tag_recs:
             tag = t['tag']
@@ -429,7 +327,7 @@ class Stats(object):
                         weeklogs = {}
                         for day, count in yrdata[0].iteritems():
                             try:
-                                weeklogs[dateutil.parser.parse(day)] = [c for c in count if c in bytag]
+                                weeklogs[parse(day)] = [c for c in count if c in bytag]
                             except (AttributeError, TypeError):
                                 weeklogs[day] = [c for c in count if c in bytag]
                         t['logs_by_week'][year][weeknum] = weeklogs
@@ -454,34 +352,39 @@ class Stats(object):
         Returns a list of dictionaries, one per active tag for this user. Each
         dictionary includes the following keys:
         - from db.tag_records
-            [tag]
-            [times_right]           double, total number of times right
-            [times_wrong]           double, total number of times wrong
-            [tlast_wrong]           datetime
-            [tlast_right]           datetime
-            [secondary_right]       list of datetime objects for successes
-                                        where the step had the tag as secondary.
-        - from db.tags
-            [set]                   the "position" in set progression, int
-        - calculated
-            [rw_ratio]              ratio of times_right to times_wrong as
-                                        a double.
-            [delta_wrong]           length of time since last wrong answer
-            [delta_right]           length of time since last right answer
-            [delta_right_wrong]     length of time between last right answer
+            [tag]               int, tag row id
+            [times_right]       double, total number of times right
+            [times_wrong]       double, total number of times wrong
+            [tlw]               datetime
+            [tlr]               datetime
+
+        ------calculated here -------------------------------------------------
+            [rw_ratio]          ratio of times_right to times_wrong as a double.
+            [delta_w]           length of time since last wrong answer
+            [delta_r]           length of time since last right answer
+            [delta_rw]          length of time between last right answer
                                         and previous wrong answer (0 if last
                                         answer was wrong).
+
+        ------from self.badge_levels and self.review_levels -------------------
+            [curlev]                highest level attained for tag
+            [revlev]                current level used for path selection
+
+        ------from _add_tag_data() --------------------------------------------
+        - from db.tags
+            [set]               the "position" in set progression, int
         - from db.badges
-            [badge_name]
-            [badge_description]
-        - from db.tag_progress
-            [current_level]         highest level attained for tag
-            [review_level]          current level used for path selection
+            [bname]
+            [bdesc]
+
+        ------from _add_progress_data()----------------------------------------
         - from db.badges_begun
             [cat1_reached]          a tuple of (datetime, prettydate string)
             [cat2_reached]          a tuple of (datetime, prettydate string)
             [cat3_reached]          a tuple of (datetime, prettydate string)
             [cat4_reached]          a tuple of (datetime, prettydate string)
+
+        ------from ????--------------------------------------------------------
         - from db.user_stats
             [datecounts]            a dictionary of dates with the number of
                                         right and wrong attempts on each day.
@@ -493,47 +396,85 @@ class Stats(object):
                                         tags_ahead
 
         '''
-        tr = self.tag_recs.as_list()
+        tr = [r for r in self.tag_recs if r['tag'] in self.tags]
+        # shorten keys for readability
+        shortforms = {'tlast_right': 'tlr',
+                      'tlast_wrong': 'tlw',
+                      'times_right': 'tright',
+                      'times_wrong': 'twrong'}
+        for k, alt in shortforms.iteritems():
+            for idx, row in enumerate(tr):
+                if k in row.keys():
+                    tr[idx][alt] = row[k]
+                    del tr[idx][k]
         now = self.utcnow if not now else now
         for idx, t in enumerate(tr):
+            # remove unnecessary keys
             tr[idx] = {k: v for k, v in t.iteritems()
-                    if k not in ['id', 'name', 'in_path', 'step']}
+                    if k not in ['id', 'name', 'in_path', 'step',
+                                 'secondary_right']}
+
+            # get right/wrong ratio
             try:
-                tr[idx]['rw_ratio'] = t['times_right'] / t['times_wrong']
+                tr[idx]['rw_ratio'] = t['tright'] / t['twrong']
             except (ZeroDivisionError, TypeError):
-                tr[idx]['rw_ratio'] = t['times_right']
+                tr[idx]['rw_ratio'] = t['tright']
+
+            # parse last_right and last_wrong into readable form
             try:
-                t['tlast_wrong'] = tr[idx]['tlast_wrong'] = dateutil.parser.parse(t['tlast_wrong'])
-                t['tlast_right'] = tr[idx]['tlast_right'] = dateutil.parser.parse(t['tlast_right'])
+                t['tlw'] = tr[idx]['tlw'] = parse(t['tlw'])
+                t['tlw'] = tr[idx]['tlw'] = parse(t['tlr'])
             except AttributeError:
                 pass
-            tr[idx]['delta_wrong'] = now - t['tlast_wrong']
-            tr[idx]['delta_right'] = now - t['tlast_right']
-            tr[idx]['delta_right_wrong'] = tr[idx]['tlast_right'] - tr[idx]['tlast_wrong'] \
-                if tr[idx]['tlast_right'] > tr[idx]['tlast_wrong'] \
+
+            # get time deltas
+            for i in ['r', 'w']:
+                try:
+                    tr[idx]['delta_' + i] = now - t['tl' + i]
+                except TypeError:  # record is timezone-aware, shouldn't be yet
+                    t['tl' + i] = t['tl' + i].replace(tzinfo=None)
+                    tr[idx]['delta_' + i] = now - t['tl' + i]
+            tr[idx]['delta_rw'] = tr[idx]['tlr'] - tr[idx]['tlw'] \
+                if tr[idx]['tlr'] > tr[idx]['tlw'] \
                 else datetime.timedelta(days=0)
-            # localize datetimes before displaying on user profile
-            t['tlast_right'] = self._local(t['tlast_right'])
-            strfr = '%b %e' if t['tlast_right'].year == now.year \
-                    else '%b %e, %Y'
-            tr[idx]['tlast_right'] = (t['tlast_right'],
-                                      t['tlast_right'].strftime(strfr))
-            t['tlast_wrong'] = self._local(t['tlast_wrong'])
-            strfw = '%b %e' if t['tlast_right'].year == now.year \
-                    else '%b %e, %Y'
-            tr[idx]['tlast_wrong'] = (t['tlast_wrong'],
-                                      t['tlast_wrong'].strftime(strfw))
+
+            # localize datetimes and add readable string for display
+            for i in ['tlr', 'tlw']:
+                t[i] = self._local(t[i])
+                strf = '%b %e' if t[i].year == now.year else '%b %e, %Y'
+                tr[idx][i] = (t[i], t[i].strftime(strf))
+
+            # add level data
+            try:
+                tr[idx]['curlev'] = [l for l, tgs in self.badge_levels.iteritems()
+                                    if t['tag'] in [tg[1] for tg in tgs]][0]
+                tr[idx]['revlev'] = [l for l, tgs in self.review_levels.iteritems()
+                                    if t['tag'] in [tg[1] for tg in tgs]][0]
+            except IndexError:
+                tr[idx]['curlev'] = 0
+                tr[idx]['revlev'] = 0
+
+            # add rw_ratio
+            try:
+                tr[idx]['rw_ratio'] = round((t['tright'] / t['twrong']), 1)
+            except (ZeroDivisionError, TypeError):
+                tr[idx]['rw_ratio'] = round(t['tright'], 1)
+
+            # round tright and twrong to closest int for readability
+            for i in ['right', 'wrong']:
+                try:
+                    tr[idx]['t' + i] = remove_trailing_0s(t['t' + i], fmt='num')
+                except TypeError:  # because value is None
+                    tr[idx]['t' + i] = 0
+
         try:
-            tr = self._add_progress_data(tr)
             tr = self._add_tag_data(tr)
             tr = self._add_promotion_data(tr)
-            tr = self._add_log_data(tr)
-            self.tag_recs = tr
-            print 'active_tags returns ======================================'
-            #pprint(tr[0])
+            # tr = self._add_log_data(tr)
+            self.tagrecs_expanded = tr
             return tr  # make_json(tr.as_list())
         except Exception:
-            print traceback.format_exc(5)
+            traceback.print_exc(5)
             return None
 
     def get_max(self):
@@ -559,61 +500,58 @@ class Stats(object):
 
         """
         tz = self.user.tz_obj if not tz else tz
-        #try:
-            # is_dst can be false because utc has no dst shifts
         dt = utc.localize(dt)
         try:
             newdt = tz.normalize(dt.astimezone(tz))
-            #offset = tz.utcoffset(dt)  # handles dst adjustments
         except (TypeError, AttributeError):
-            dt = dateutil.parser.parse(dt)
+            dt = parse(dt)
             newdt = tz.normalize(dt.astimezone(tz))
-            #newdt = tz.normalize(dt.astimezone(tz, is_dst=False))
-            #offset = tz.utcoffset(dt)
-            #newdt = dt + offset
         return newdt
 
-    #def log_list(self, cutoff):
-        #"""
-        #Return a list of logs and a dict of attempt counts per day.
-
-        #The keys of the dict are datetime objects, while the values are
-        #integers representing the number of attempt_log entries on that date
-        #by the user represented by self.user_id.
-
-        #These datetimes and totals are corrected from UTC to the user's
-        #local time zone.
-
-        #"""
-        #db = current.db
-        #logs = db((db.attempt_log.name == self.user_id) &
-                  #(db.attempt_log.dt_attempted >= self.cutoff)).select()
-        #loglist = {}
-
-        #for log in logs:
-            #newdt = self._local(log.dt_attempted)
-            #newdate = datetime.date(newdt.year, newdt.month, newdt.day)
-            #log.dt_local = newdate
-            #if newdate in loglist:
-                #loglist[newdate] += 1
-            #else:
-                #loglist[newdate] = 1
-            #if not log.dt_local:
-                #log.dt_local = 'n/a'
-
-        #return logs, loglist
-
-    def get_badge_levels(self, statsdicts):
+    def get_badge_levels(self):
         """
+        Return the current self.badge_levels value.
         """
-        badge_levels = {1: [], 2: [], 3: [], 4: []}
-        for data in statsdicts:
-            tag = int(data['tag'])
-            lvl = int(data['current_level']) if 'current_level' in data.keys() else 0
-            name = data['badge_name'] if 'badge_name' in data.keys() \
-                else 'tag id: {}'.format(tag)
-            badge_levels[lvl].append(name)
-        return badge_levels
+        return self.badge_levels
+
+    def _find_badge_levels(self):
+        """
+        Return a dictionary listing the user's badges in levels 1-4.
+        """
+        db = current.db
+        rank = self.tag_progress['latest_new']
+        categories = {k: v for k, v in self.tag_progress.iteritems()
+                      if k != 'latest_new'}
+        # TODO: for some reason Categorizer changes self.tag_recs persistently
+        # when it (rather than copy) is passed as argument
+        c = Categorizer(rank, categories, copy(self.tag_recs),
+                        self.user_id, utcnow=self.utcnow)
+        bls = c.categorize_tags()['tag_progress']
+        bl_ids = {k: v for k, v in bls.iteritems() if k[:3] == 'cat'}
+        badge_levels = {}
+        for k, v in bl_ids.iteritems():
+            level = int(k[3:])
+            badgelist = []
+            for tag in v:
+                mybadge = db.badges(db.badges.tag == tag)
+                badge_name = mybadge.badge_name if mybadge \
+                    else 'tag id: {}'.format(tag)
+                badgelist.append((badge_name, tag))
+            badge_levels[level] = badgelist
+
+        rl_ids = {k: v for k, v in bls.iteritems() if k[:3] == 'rev'}
+        review_levels = {}
+        for k, v in rl_ids.iteritems():
+            level = int(k[3:])
+            badgelist = []
+            for tag in v:
+                mybadge = db.badges(db.badges.tag == tag)
+                badge_name = mybadge.badge_name if mybadge \
+                    else 'tag id: {}'.format(tag)
+                badgelist.append((badge_name, tag))
+            review_levels[level] = badgelist
+
+        return badge_levels, review_levels
 
     def get_goal(self):
         """
@@ -622,43 +560,6 @@ class Stats(object):
         set_target = None
         sets_left = None
         return term, set_target, sets_left
-
-    def badges_active_over_time(self, statsdicts):
-        """
-        """
-        pass
-
-    def badge_table_data(self):
-        """
-        """
-        pass
-
-    def badges_tested_over_time(self, statsdicts):
-        """
-        """
-        pass
-
-    def sets_tested_over_time(self, statsdicts):
-        """
-        """
-        pass
-
-    def steps_most_wrong(self, statsdicts, dur=None):
-        """
-        Return a list of the steps the user has gotten wrong most frequently.
-
-        By default the frequency is calculated over the past 7 days.
-        If a different value is supplied for "dur" then that will be the
-        interval used for calculation. The "dur" argument should be a
-        datetime.timedelta object.
-
-        """
-        pass
-
-    def steps_most_repeated(self, statsdicts, dur=None):
-        """
-        """
-        pass
 
     def _make_logs_into_weekstats(self, logs):
         """
@@ -677,10 +578,10 @@ class Stats(object):
             # but keep dt_attempted as utc
             log['isocal'] = self._local(log['dt_attempted']).isocalendar()
 
-        years_iter = itertools.groupby(logs, key=lambda log: log['isocal'][0])
+        years_iter = groupby(logs, key=lambda log: log['isocal'][0])
         weekstats = {}
         for yr, yearlogs in years_iter:
-            weeks_iter = itertools.groupby(yearlogs,
+            weeks_iter = groupby(yearlogs,
                                            key=lambda log: log['isocal'][1])
             weeksdict = {}
             for weeknum, weeklogs in weeks_iter:
@@ -695,7 +596,7 @@ class Stats(object):
                     tags = db.steps(log['step']).tags
                     for t in tags:
                         logs_by_tag.setdefault(t, []).append(log['id'])
-                days_iter = itertools.groupby(weeklogs,
+                days_iter = groupby(weeklogs,
                                               key=lambda d: self._local(d['dt_attempted']).date())
                 for day, daylogs in days_iter:
                     daylogs = [d['id'] for d in daylogs]
@@ -768,7 +669,7 @@ class Stats(object):
                      (db.attempt_log.dt_attempted > updated)).select()
         if newlogs:
             newus = self._make_logs_into_weekstats(logs=newlogs)
-            #newstored = self.store_stats(newus)
+            # newstored = self.store_stats(newus)
             if usrows:
                 usdict = usrows
                 usdict.extend(newus)
@@ -832,7 +733,7 @@ class Stats(object):
         mycal = TAG(newmcal)
         try:
             try:
-                daycounts = {dateutil.parser.parse(k): len(v)
+                daycounts = {parse(k): len(v)
                              for week in rangelogs[year].values()
                              for k, v in week[0].iteritems()}
             except (TypeError, AttributeError):
@@ -867,7 +768,7 @@ class Stats(object):
         wrap.append(SPAN('Questions answered each day in',
                          _class='monthcal_intro_line'))
         wrap.append(mycal)
-        #TODO: Add weekly summary counts to the end of each table
+        # TODO: Add weekly summary counts to the end of each table
 
         return wrap
 
@@ -960,13 +861,13 @@ def week_bounds(weekday=None):
             lastmonth = calendar.monthcalendar(today.year, today.month - 1)
             tw_prev = lastmonth[-1]
             lastweek = lastmonth[-2]
-            thisweek = [d for d in itertools.chain(thisweek, tw_prev) if d != 0]
+            thisweek = [d for d in chain(thisweek, tw_prev) if d != 0]
 
     lw_prev = None
     if 0 in lastweek:
         lastmonth = calendar.monthcalendar(today.year, today.month - 1)
         lw_prev = lastmonth[-1]
-        lastweek = [d for d in itertools.chain(lastweek, lw_prev) if d != 0]
+        lastweek = [d for d in chain(lastweek, lw_prev) if d != 0]
 
     return lastweek, lw_firstday, thisweek
 
@@ -984,7 +885,7 @@ def get_weeks(year=None):
     weeks = []
     for m in months:
         for w in m:
-            if not w in weeks:
+            if w not in weeks:
                 weeks.append(w)
     return weeks
 
@@ -1002,3 +903,21 @@ def get_offset(user):
             else 'America/Toronto'
         offset = now - timezone(tz_name).localize(today)  # when to use "ambiguous"?
     return offset
+
+
+def remove_trailing_0s(num, fmt='str'):
+    """
+    Return num (a float) with trailing zeros stripped.
+
+    If there are no significant decimal places, removes the decimal point. By
+    default the return value is a string. This can be changed to an int or
+    float (as necessary for return value) by passing the value 'num' for the
+    keyword argument 'fmt'.
+    """
+    out = ('%f' % num).rstrip('0').rstrip('.')
+    if fmt == 'num':
+        if len(out.split('.')) > 1:
+            out = float(out)
+        else:
+            out = int(out)
+    return out

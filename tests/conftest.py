@@ -66,7 +66,8 @@ def appname():
 
 @pytest.fixture(scope='module', autouse=True)
 def fixture_create_testfile_for_application(request, appname):
-    '''Creates a temp file to tell application she's running under a
+    '''
+    Creates a temp file to tell application she's running under a
     test environment.
 
     Usually you will want to create your database in memory to speed up
@@ -201,9 +202,32 @@ def web2py(appname, fixture_create_testfile_for_application):
     return Storage(web2py_env)
 
 
-@pytest.fixture(scope='module')
-def db(web2py):
+@pytest.fixture(scope='function')
+def db(web2py, request):
     """
     Provides a access to the production database from within test functions.
+
+    While the web2py object (providing global framework objects standard in a
+    web2py session) has a module-level scope, this db fixture has a function-
+    level scope. This means that any code below is run for each test function,
+    allowing for function-level db setup and teardown.
+
+    The fin teardown function expects a 'newrows' dictionary to be created in
+    the requesting test function. This dictionary should have db table names as
+    its keys and a list of newly-inserted row id numbers as the values.
     """
-    return web2py.db
+    mydb = web2py.db
+    newrows = getattr(request.function, newrows, None)
+
+    def fin():
+        """
+        Delete any newly inserted rows in the test database.
+        """
+        if newrows:
+            for tbl, rowids in newrows.iteritems():
+                mydb(mydb[tbl].id.belongs(rowids)).delete()
+                for i in rowids:
+                    assert not mydb[mydb[tbl]](i)
+
+    request.addfinalizer(fin)
+    return mydb

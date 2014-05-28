@@ -1984,8 +1984,8 @@ class Categorizer(object):
         self.rank = rank
         self.tag_records = tag_records
         self.old_categories = tag_progress
-        print 'Categorizer __init__: categories ------------------'
-        pprint(tag_progress)
+        #print 'Categorizer __init__: categories ------------------'
+        #pprint(tag_progress)
         self.utcnow = utcnow if utcnow else datetime.datetime.utcnow()
         self.secondary_right = secondary_right
 
@@ -2042,21 +2042,23 @@ class Categorizer(object):
             # otherwise, categorize tags that have been tried
             for idx, t in enumerate([t for t in tag_records
                                      if tag_records and t['secondary_right']]):
+                #print 'tag', t['tag']
+                #pprint(t)
                 tag_records[idx] = self._add_secondary_right(t)
             self.tag_records = tag_records
             categories = self._core_algorithm()
-            print 'after core algorithm---------------------'
-            pprint(categories)
+            #print 'after core algorithm---------------------'
+            #pprint(categories)
             categories = self._add_untried_tags(categories)
-            print 'after add untried-------------------------'
-            pprint(categories)
+            #print 'after add untried-------------------------'
+            #pprint(categories)
             categories = self._remove_dups(categories, rank)
-            print 'after remove dups------------------------'
-            pprint(categories)
+            #print 'after remove dups------------------------'
+            #pprint(categories)
             categories.update((c, []) for c in ['rev1', 'rev2', 'rev3', 'rev4'])
             cat_changes = self._find_cat_changes(categories, old_categories)
-            print 'after find cat changes------------------------'
-            pprint(cat_changes)
+            #print 'after find cat changes------------------------'
+            #pprint(cat_changes)
             promoted = cat_changes['promoted']
             demoted = cat_changes['demoted']
             new_tags = cat_changes['new_tags']
@@ -2072,11 +2074,11 @@ class Categorizer(object):
             # Re-insert 'latest new' to match tag_progress table in db
             tag_progress['latest_new'] = self.rank
 
-            print 'final tag_progress------------------------'
-            pprint(cat_changes)
+            #print 'final tag_progress------------------------'
+            #pprint(cat_changes)
 
-            print 'final categories------------------------'
-            pprint(cat_changes)
+            #print 'final categories------------------------'
+            #pprint(cat_changes)
 
             return {'tag_progress': tag_progress,
                     'tag_records': self.tag_records,
@@ -2099,7 +2101,7 @@ class Categorizer(object):
 
     def _add_secondary_right(self, rec):
         """
-        Finds tag records with secondary attempts and adjusts records.
+        Return the given tag record adjusted based on secondary_right data.
 
         For every 3 secondary_right entries, add 1 to times_right and change
         tlast_right based on the average of those three attempt dates.
@@ -2132,8 +2134,9 @@ class Categorizer(object):
             avg_delta = sum(early3d, datetime.timedelta(0)) / len(early3d)
             avg_date = self.utcnow - avg_delta
 
+            #print 'type is', type(rec['tlast_right'])
             # sanitize tlast_right in case db value is string
-            if not isinstance(rec['tlast_right'], datetime.datetime):
+            if not isinstance(rec['tlast_right'], (datetime.datetime, tuple)):
                 rec['tlast_right'] = parser.parse(rec['tlast_right'])
 
             # move tlast_right forward to reflect recent secondary success
@@ -2208,21 +2211,21 @@ class Categorizer(object):
         categories = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
         tag_records = tag_records if tag_records else self.tag_records
         for record in tag_records:
-            print 'tag', record['tag'], '================================='
+            #print 'tag', record['tag'], '================================='
             lrraw = record['tlast_right']
             lwraw = record['tlast_wrong']
             lr = lrraw if not isinstance(lrraw, str) else parser.parse(lrraw)
             lw = lwraw if not isinstance(lwraw, str) else parser.parse(lwraw)
             rdur = self.utcnow - lr
             rwdur = lr - lw
-            print 'cat2 if:'
-            print record['times_right'], '>= 20'
-            print 'and'
-            print rdur, '<', rwdur, '> 1 day -------------------------'
-            print 'or', self._get_ratio(record), '< 0.2 -------------'
-            print 'and', rdur, '<= 30 days'
-            print 'or', self._get_avg(record['tag']), '>= 0.8 -------'
-            print 'and', rdur, '<= 30 days'
+            #print 'cat2 if:'
+            #print record['times_right'], '>= 20'
+            #print 'and'
+            #print rdur, '<', rwdur, '> 1 day -------------------------'
+            #print 'or', self._get_ratio(record), '< 0.2 -------------'
+            #print 'and', rdur, '<= 30 days'
+            #print 'or', self._get_avg(record['tag']), '>= 0.8 -------'
+            #print 'and', rdur, '<= 30 days'
 
             # spaced repetition algorithm for promotion to
             # cat2? ======================================================
@@ -2238,7 +2241,7 @@ class Categorizer(object):
                  ((self._get_avg(record['tag']) >= 0.8)  # avg score for week >= 0.8
                   and (rdur <= datetime.timedelta(days=30))  # right in past 30 days
                   ))):
-                print '************** got to cat2'
+                #print '************** got to cat2'
                 # cat3? ==================================================
                 if rwdur.days >= 14:
                     # cat4? ==============================================
@@ -2254,7 +2257,7 @@ class Categorizer(object):
                     category = 'cat2'  # Not due but delta is 2 weeks or less
             else:
                 category = 'cat1'  # Spaced repetition requires review
-            print '************** category is ', category
+            #print '************** category is ', category
             categories[category].append(record['tag'])
 
         return categories
