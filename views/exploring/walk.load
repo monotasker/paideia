@@ -1,31 +1,34 @@
 {{from plugin_widgets import TOOLTIP, ROLE, POPOVER}}
 
+<!--# LOADING MASK ========================================================-->
 <div id='loading-mask'>
     <img src={{=URL('static', 'images/ajax-loader.gif')}}
         style="margin:40%;" alt='loading' />
 </div>
 
+<!--# ADMIN PANEL ========================================================-->
 {{ap = DIV(H3('Admin Panel'), _class='admin-panel')
 ap.append(form) }}
 {{=ROLE(ap)}}
 
-{{# ======================================================================
-# MAP INTERFACE ========================================================
-# ======================================================================
+<!--# ======================================================================-->
+<!--# MAP INTERFACE ========================================================-->
+<!--# ======================================================================-->
 
-if request.args(0) == 'map' or not request.args:}}
+{{if request.args(0) == 'map' or not request.args:}}
 	<embed id='town_map' src='{{=map["map_image"]}}' type='image/svg+xml' />
-{{# ======================================================================
-# STEP INTERFACE========================================================
-# ======================================================================
-else:
-    # ======================================================================
-    # PROMPT / REPLY =======================================================
-    # ======================================================================
-    # npc image on left =================================================}}
+<!--# ======================================================================-->
+<!--# STEP INTERFACE =======================================================-->
+<!--# ======================================================================-->
+{{else:}}
+    <!--# ==================================================================-->
+    <!--# PROMPT / REPLY ===================================================-->
+    <!--# ==================================================================-->
+
+    <!--# npc image on left ================================================-->
     {{=DIV(npc_image, _class='speaker')}}
 
-    {{# prompt/reply div=================================================}}
+    <!--# prompt/reply div---------------------------------------------------->
     <div class='npc prompt'>
         <p class='prompt-text'>{{=MARKMIN(prompt_text)}}</p>
         {{if 'readable_long' in globals():
@@ -33,15 +36,13 @@ else:
             for r in readable_long:
                 rdbl.append(LI(r))
             pass
-            readable_long_args = {'classnames': 'btn btn-info',
-                                  'id': 'readable_btn'}
-            xamples = POPOVER().widget('More examples',
-                                       rdbl,
+            readable_long_args = {'classnames': 'text-info', 'id': 'readable_btn'}
+            xamples = POPOVER().widget('More examples', rdbl,
                                        **readable_long_args)}}
             {{=xamples}}
         {{pass}}
-        {{# audio for prompt===============================================
-        if audio:}}
+        <!--# audio for prompt ----------------------------------------------->
+        {{if audio:}}
             <audio controls="true" autoplay="true" id="{{=audio['title']}}"
                 class="prompt_audio">
                 "Sorry, your browser doesn\'t support the audio element"
@@ -54,8 +55,8 @@ else:
             </audio>
         {{pass}}
 
-        {{# image for prompt===============================================
-        if widget_img:
+        <!--# image for prompt ----------------------------------------------->
+        {{if widget_img:
             img = IMG(_src=URL('static/images/', widget_img['file']),
                         _title=widget_img['title'],
                         _alt=widget_img['description'],
@@ -69,7 +70,7 @@ else:
             for h in hints:
                 hint_list.append(LI(h))
             pass
-            hints_args = {'classnames': '', 'id': 'instructions_btn'}
+            hints_args = {'classnames': 'text-warning', 'id': 'instructions_btn'}
             hinter = POPOVER().widget('Hints', hint_list, **hints_args)}}
             {{=hinter}}
         {{pass}}
@@ -79,7 +80,7 @@ else:
             for itext in instructions:
                 ilist.append(LI(itext))
             pass
-            i_args = {'classnames': 'instructions-popover',
+            i_args = {'classnames': 'instructions-popover text-info',
                       'title': 'Instructions for this step',
                       'id': 'instructions_btn'}
             i_pop = POPOVER().widget('Instructions', ilist, **i_args)}}
@@ -93,13 +94,13 @@ else:
                 decklist.append(LI(A(dname, _href=URL('listing', 'slides.html',
                                      args=[did]))))
             pass
-            slides_args = {'classnames': 'slides-popover',
+            slides_args = {'classnames': 'slides-popover text-warning',
                            'title': 'Relevant slide decks',
                            'id': 'slides_btn'}
             s_pop = POPOVER().widget('slides', decklist, **slides_args)}}
             {{=s_pop}}
         {{pass }}
-        </div> 
+        </div>
 
         <!--# path counter for prompt/reply----------------------------------->
         <small class='path-counter progress_text small muted'>
@@ -126,10 +127,9 @@ else:
         {{if 'map' in response_buttons:}}
             {{=A("Back to map", _href=URL('walk', args=['map'], vars={'loc': None}),
                  cid='page', _class='btn btn-success back_to_map')}}
-        {{pass
-
-        if sid and pid:
-            stepedit = A('step {}'.format(sid),
+        {{pass}}
+        {{if sid and pid:}}
+            {{stepedit = A('step {}'.format(sid),
                         _href=URL('editing', 'listing', args=['steps', sid]),
                         _class='prompt-s-editlink'
                         )
@@ -138,8 +138,10 @@ else:
                         _class='prompt-p-editlink'
                         )
             catnum = ' choosing from category {}'.format(category)}}
+            <small>
             {{=ROLE(DIV(pathedit, ', ', stepedit, catnum,
-                    _class='prompt-editlinks small'))}}
+                    _class='prompt-editlinks'))}}
+            </small>
         {{pass
 
         if bugreporter in globals() and bugreporter:}}
