@@ -712,12 +712,9 @@ class PathFactory(object):
                    }
         for k, v in endings.iteritems():
             if re.match(u'.*{}$'.format(k), lemma):
-                print 'matched', k, 'to lemma'
                 ends = [i for i in v['sfx']
                         if re.match(u'.*{}$'.format(i), word_form)]
                 if ends:
-                    for e in ends:
-                        print 'matched', e
                     if len(ends) == 1:
                         idx = v['sfx'].index(ends[0])
                         case = cases[idx]
@@ -749,11 +746,19 @@ class PathFactory(object):
 
         """
         db = current.db
+
+        # get initial dict from constraint if there is one
         cd = self._parse_constraint(constraint)
-        cd['source_lemma'] = db.lemmas(db.lemmas.lemma == lemma).id
-        if 'part_of_speech' not in cd.keys():
-            cd['part_of_speech'] = self._guess_part_of_speech(word_form)
-            ps = cd['part_of_speech']
+        if not cd:  # in case there was no constraint to parse
+            cd = {}
+
+        # get lemma and part of speech
+        lemmarow = db.lemmas(db.lemmas.lemma == lemma)
+        cd['source_lemma'] = lemmarow.id
+        ps = lemmarow.part_of_speech
+        if not ps:
+            ps = self._guess_part_of_speech(word_form)
+            #lemmarow.update(part_of_speech=ps)
 
         # identify expected info for this part of speech
         if ps == 'verb' and cd['mood'] == 'participle':
@@ -825,13 +830,15 @@ class PathFactory(object):
         cd['tags'] = list(set(cd['tags']))
 
         cd['word_form'] = word_form
+        print cd['word_form']
 
         # write new form to db
         rowid = db.word_forms.insert(**cd)
+        print 'inserted row', rowid
 
-        return lemma, rowid, cst_id
+        return word_form, rowid, cst_id
 
-    def _add_new_lemma(self, lemma, mod_form, constraint):
+    def _add_new_lemma(self, lemma, constraint):
         """
         Attempt to insert a new lemma into the db based on supplied info.
 
@@ -907,7 +914,6 @@ class PathFactory(object):
                 if k in key_eqs.keys():
                     cd[key_eqs[k]] = v
                     del cd[k]
-            print cd
             eq = {'masculine': ['masc', 'm'],
                   'feminine': ['fem', 'f'],
                   'neuter': ['neut', 'n'],
@@ -951,10 +957,8 @@ class PathFactory(object):
                 if v in list(chain.from_iterable(eq.values())):
                     expandedv = [kk for kk, vv in eq.iteritems() if v in vv][0]
                     cd[k] = expandedv
-            print cd
             return cd
-        except Exception:
-            print traceback.format_exc(5)
+        except AttributeError:  # constraint is NoneType
             return False
 
     def make_form_agree(self, mod_form, mylemma, constraint=None):
@@ -1095,7 +1099,7 @@ class PathFactory(object):
             sid = db.steps.insert(**kwargs)
             return sid
         except Exception:
-            # print traceback.format_exc(5)
+            traceback.print_exc(5)
             return False
 
     def path_to_db(self, steps, label):
@@ -1105,7 +1109,7 @@ class PathFactory(object):
             pid = db.paths.insert(label=label, steps=steps)
             return pid
         except Exception:
-            # print traceback.format_exc(5)
+            traceback.print_exc(5)
             return False
 
     def make_output(self, paths):

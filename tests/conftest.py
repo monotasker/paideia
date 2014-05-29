@@ -29,6 +29,7 @@ py.test -x [-l] [-q|-v] -s applications/my_app_name/tests
 import os
 import pytest
 import sys
+from pprint import pprint
 
 sys.path.insert(0, '')
 
@@ -217,13 +218,16 @@ def db(web2py, request):
     its keys and a list of newly-inserted row id numbers as the values.
     """
     mydb = web2py.db
-    newrows = getattr(request.function, newrows, None)
+    newrows = getattr(request.node.instance, 'newrows', None)
 
     def fin():
         """
         Delete any newly inserted rows in the test database.
         """
+        print 'checking for inserted rows to remove**********'
+        pprint(newrows)
         if newrows:
+            print 'removing'
             for tbl, rowids in newrows.iteritems():
                 mydb(mydb[tbl].id.belongs(rowids)).delete()
                 for i in rowids:

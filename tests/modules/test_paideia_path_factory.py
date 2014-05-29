@@ -11,7 +11,7 @@
 
 import pytest
 import re
-# from pprint import pprint
+from pprint import pprint
 from paideia_path_factory import PathFactory
 
 
@@ -410,7 +410,7 @@ class TestPathFactory():
                'gender': 'masculine',
                'number': 'singular',
                'construction': 'noun_dat_masc_sing_2decl',
-               'tags': [1L, 82L, 117L]}
+               'tags': [1L, 84L, 117L]}
               ),
              # ('ἀληθεια', 'noun'),
              # ('ἰχθυς', 'noun'),
@@ -424,8 +424,9 @@ class TestPathFactory():
         actual, rowid, cst_id = f._add_new_wordform(wordform, lemma, mod_form,
                                                     constraint)
         # clean up db: value picked up by db fixture via introspection
-        newrows = {'word_forms': 'rowid',
-                   'constructions': 'cst_id'}
+        newrows = {'word_forms': rowid,
+                   'constructions': cst_id}
+        print newrows
         assert actual == out['word_form']
         assert isinstance(rowid, (long, int))
         newrow = db.word_forms(rowid)
@@ -433,6 +434,35 @@ class TestPathFactory():
                              out['construction']).select()
         out['construction'] = myconstructions.first().id
         out['source_lemma'] = db.lemmas(db.lemmas.lemma == out['source_lemma']).id
+        for k, v in out.iteritems():
+            print 'testing', k
+            assert newrow[k] == v
+
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('lemma,constraint,out',
+            [('ἀρτος',
+              'pos@nn_case@nom_g@m_num@s',
+              {'lemma': 'ἀρτος',
+               'part_of_speech': 'noun',
+               'glosses': ['bread', 'food'],
+               'first_tag': ['vocabulary - food'],
+               'extra_tags': ['noun basics', 'nominative2']}
+              ),
+             # ('ἀληθεια', 'noun'),
+             # ('ἰχθυς', 'noun'),
+             # ('ταχεως', 'adverb')
+             ])
+    def test_add_new_lemma(self, lemma, constraint, out, db):
+        """
+        """
+        f = PathFactory()
+        actual, rowid = f._add_new_lemma(lemma, constraint)
+        self.newrows = {'word_forms': rowid}
+        newrow = db.lemmas(rowid)
+        print 'new lemma row -----------------------------------'
+        pprint(newrow)
+        out['first_tag'] = [db.tags(db.tags.tag == t).id for t in out['first_tag']]
+        out['extra_tags'] = [db.tags(db.tags.tag == t).id for t in out['extra_tags']]
         for k, v in out.iteritems():
             print 'testing', k
             assert newrow[k] == v
@@ -492,7 +522,7 @@ class TestPathFactory():
         assert wordform == out[0]
         assert newform == out[1]
 
-    @pytest.mark.skipif(True, reason='just because')
+    @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('combodict,temp,out',
         [({'words1': 'ἀρτος',  # combodict
            'words2': 'ἀγορα'},
