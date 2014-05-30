@@ -108,49 +108,49 @@ class PathFactory(object):
     tagging_conditions = {'verb basics': (['verb']),
                           'noun basics': (['noun']),
                           'adjectives': (['adj']),
-                          'nominative1': (['noun', 'nom', '1decl'],
+                          'nominative 1': (['noun', 'nom', '1decl'],
                                           ['adj', 'nom', '1decl'],
                                           ['pron', 'nom', '1decl']),
-                          'nominative2': (['noun', 'nom', '2decl'],
+                          'nominative 2': (['noun', 'nom', '2decl'],
                                           ['adj', 'nom', '2decl'],
                                           ['pron', 'nom', '2decl']),
-                          'nominative3': (['noun', 'nom', '3decl'],
+                          'nominative 3': (['noun', 'nom', '3decl'],
                                           ['adj', 'nom', '3decl'],
                                           ['pron', 'nom', '3decl']),
-                          'dative1': (['noun', 'dat', '1decl'],
+                          'dative 1': (['noun', 'dat', '1decl'],
                                       ['adj', 'dat', '1decl'],
                                       ['pron', 'dat', '1decl']),
-                          'dative2': (['noun', 'dat', '2decl'],
+                          'dative 2': (['noun', 'dat', '2decl'],
                                       ['adj', 'dat', '2decl'],
                                       ['pron', 'dat', '2decl']),
-                          'dative3': (['noun', 'dat', '3decl'],
+                          'dative 3': (['noun', 'dat', '3decl'],
                                       ['adj', 'dat', '3decl'],
                                       ['pron', 'dat', '3decl']),
-                          'genitive1': (['noun', 'gen', '1decl'],
+                          'genitive 1': (['noun', 'gen', '1decl'],
                                         ['adj', 'gen', '1decl'],
                                         ['pron', 'gen', '1decl']),
-                          'genitive2': (['noun', 'gen', '2decl'],
+                          'genitive 2': (['noun', 'gen', '2decl'],
                                         ['adj', 'gen', '2decl'],
                                         ['pron', 'gen', '2decl']),
-                          'genitive3': (['noun', 'gen', '3decl'],
+                          'genitive 3': (['noun', 'gen', '3decl'],
                                         ['adj', 'gen', '3decl'],
                                         ['pron', 'gen', '3decl']),
-                          'accusative1': (['noun', 'acc', '1decl'],
+                          'accusative 1': (['noun', 'acc', '1decl'],
                                           ['adj', 'acc', '1decl'],
                                           ['pron', 'acc', '1decl']),
-                          'accusative2': (['noun', 'acc', '2decl'],
+                          'accusative 2': (['noun', 'acc', '2decl'],
                                           ['adj', 'acc', '2decl'],
                                           ['pron', 'acc', '2decl']),
-                          'accusative3': (['noun', 'acc', '3decl'],
+                          'accusative 3': (['noun', 'acc', '3decl'],
                                           ['adj', 'acc', '3decl'],
                                           ['pron', 'acc', '3decl']),
-                          'vocative1': (['noun', 'voc', '1decl'],
+                          'vocative 1': (['noun', 'voc', '1decl'],
                                         ['adj', 'voc', '1decl'],
                                         ['pron', 'voc', '1decl']),
-                          'vocative2': (['noun', 'voc', '2decl'],
+                          'vocative 2': (['noun', 'voc', '2decl'],
                                         ['adj', 'voc', '2decl'],
                                         ['pron', 'voc', '2decl']),
-                          'vocative3': (['noun', 'voc', '3decl'],
+                          'vocative 3': (['noun', 'voc', '3decl'],
                                         ['adj', 'voc', '3decl'],
                                         ['pron', 'voc', '3decl']),
                           'nominative plural nouns '
@@ -758,7 +758,7 @@ class PathFactory(object):
         ps = lemmarow.part_of_speech
         if not ps:
             ps = self._guess_part_of_speech(word_form)
-            #lemmarow.update(part_of_speech=ps)
+            # lemmarow.update(part_of_speech=ps)
 
         # identify expected info for this part of speech
         if ps == 'verb' and cd['mood'] == 'participle':
@@ -801,7 +801,8 @@ class PathFactory(object):
                                    cst_label)
         if cst_row:
             cst_id = cst_row.id
-            print 'found const', cst_id
+            new_cst_id = None
+            csterr = None
         else:  # create new construction entry if necessary
             rdbl = '{}, {}'.format(ps, ' '.join(cstbits))
             rdbl = rdbl.replace(' first', ', first person ')
@@ -813,10 +814,17 @@ class PathFactory(object):
             mytags = [k for k, v in self.tagging_conditions.iteritems()
                       for lst in v if all(l in shortbits for l in lst)]
             mytags = [t.id for t in db(db.tags.tag.belongs(mytags)).select()]
-            print 'inserting new construction:', cst_label
-            cst_id = db.constructions.insert(**{'construction_label': cst_label,
-                                                'readable_label': rdbl,
-                                                'tags': mytags})
+            try:
+                cst_id = db.constructions.insert(**{'construction_label': cst_label,
+                                                    'readable_label': rdbl,
+                                                    'tags': mytags})
+                new_cst_id = cst_id
+                csterr = None
+            except Exception:
+                traceback.print_exc()
+                csterr = 'Could not write new construction {} ' \
+                         'to db.'.format(cst_label)
+
         if 'declension' in cd.keys():
             del cd['declension']  # only used for building construction
         cd['construction'] = cst_id
@@ -833,10 +841,14 @@ class PathFactory(object):
         print cd['word_form']
 
         # write new form to db
-        rowid = db.word_forms.insert(**cd)
-        print 'inserted row', rowid
+        try:
+            rowid = db.word_forms.insert(**cd)
+            err = None
+        except Exception:
+            traceback.print_exc()
+            err = 'Could not write word_form {} to db.'.format(word_form)
 
-        return word_form, rowid, cst_id
+        return word_form, rowid, err, new_cst_id, csterr
 
     def _add_new_lemma(self, lemma, constraint):
         """
@@ -848,43 +860,73 @@ class PathFactory(object):
         db = current.db
         cd = self._parse_constraint(constraint)
         lemma_reqs = ['lemma', 'glosses', 'part_of_speech', 'first_tag',
-                      'extra_tags']
+                      'extra_tags', 'first_tag']
         lemdata = {k: i for k, i in cd.iteritems() if k in lemma_reqs}
         lemma = makeutf8(lemma)
+        print 'lemma slice'
+        print lemma[-2:]
 
         # get lemma field
         lemdata['lemma'] = lemma
         # get part_of_speech field
         if 'part_of_speech' not in lemdata.keys():
             lemdata['part_of_speech'] = self._guess_part_of_speech(lemma)
-        # get tags
+
+        # add tags based on part of speech and ending
         tags = []
         if lemdata['part_of_speech'] == 'verb':
             tags.append('verb basics')
-            if lemma[-2:] == 'μι':
+            if lemma[-2:] == u'μι':
                 tags.append('μι verbs')
         elif lemdata['part_of_speech'] == 'noun':
             tags.append('noun basics')
-            if lemma[-2:] in ['ος', 'ης', 'ον']:
-                tags.append('nominative2')
-            elif lemma[-2:] in ['υς', 'ις', 'ων', 'ηρ']:
-                tags.append('nominative3')
-            elif lemma[-1] in ['η', 'α']:
-                tags.append('nominative1')
+            if lemma[-2:] in [u'ος', u'ης', u'ον']:
+                print 'matched nom2 ending'
+                tags.append('nominative 2')
+            elif lemma[-2:] in [u'υς', u'ις', u'ων', u'ηρ']:
+                tags.append('nominative 3')
+            elif lemma[-1] in [u'η', u'α']:
+                tags.append('nominative 1')
         elif lemdata['part_of_speech'] in ['adjective', 'pronoun', 'adverb',
                                            'particle', 'conjunction']:
             tags.append('{}s'.lemdata['part_of_speech'])
+
+        # handle any space placeholders in tag names
+        lemdata['first_tag'] = lemdata['first_tag'].replace('#', ' ')
+        tags = [t.replace('#', ' ') for t in tags]
+        lemdata['first_tag'] = db.tags(db.tags.tag == lemdata['first_tag']).id
+
         # populate 'tags_extra' field with ids
         tagids = [t.id for t in db(db.tags.tag.belongs(tags)).select()]
+        print 'tagids'
+        print tagids
         lemdata['extra_tags'] = tagids
 
         # get 'glosses' field
         if 'glosses' in lemdata.keys():
             lemdata['glosses'] = lemdata['glosses'].split('|')
+            lemdata['glosses'] = [g.replace('#', ' ') for g in lemdata['glosses']]
 
-        lemid = db.lemmas.insert(**lemdata)
+        try:
+            lemid = db.lemmas.insert(**lemdata)
+            err = None
+        except Exception:
+            traceback.print_exc()
+            err = 'Could not write new lemma {} to db.'.format(lemma)
+            lemid = None
 
-        return lemma, lemid
+        # Add a word_forms entry for this dictionary form of the lemma
+        try:
+            myform = db.word_forms(db.word_forms.word_form == lemma).id
+            formid = None
+            formerr = None
+            cstid = None
+            csterr = None
+        except Exception:
+            traceback.print_exc()
+            form, formid, formerr, cstid, csterr = self._add_new_wordform(lemma, lemma, None, constraint)
+
+        return lemma, lemid, err, formid, formerr, cstid, csterr
 
     def _parse_constraint(self, constraint):
         """
@@ -909,7 +951,9 @@ class PathFactory(object):
                        'pos': 'part_of_speech',
                        'gls': 'glosses',
                        'gloss': 'glosses',
-                       'gl': 'glosses'}
+                       'gl': 'glosses',
+                       'ft': 'first_tag',
+                       'first': 'first_tag'}
             for k, v in cd.iteritems():  # handle key short forms
                 if k in key_eqs.keys():
                     cd[key_eqs[k]] = v
@@ -1495,4 +1539,3 @@ class TranslateWordPathFactory(PathFactory):
         τίνος το δωρον?
     το -φορος
 """
-
