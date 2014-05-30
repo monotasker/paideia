@@ -35,6 +35,45 @@ class PathFactory(object):
     An abstract parent class to create paths (with steps) procedurally.
 
     """
+    cst_eqs = {'masculine': ['masc', 'm'],
+               'feminine': ['fem', 'f'],
+               'neuter': ['neut', 'n'],
+               'nominative': ['nom', 'nomin'],
+               'genitive': ['gen', 'g'],
+               'dative': ['dat', 'd'],
+               'accusative': ['acc', 'a'],
+               'singular': ['s', 'si', 'sing'],
+               'plural': ['p', 'pl', 'plu', 'plur'],
+               'present': ['pr', 'pres'],
+               'future': ['fut', 'ftr'],
+               'aorist1': ['aor1', 'a1', '1a', '1aor'],
+               'aorist2': ['aor2', 'a2', '2a', '2aor'],
+               'perfect1': ['pf1', 'prf1', 'perf1', '1pf', '1prf', '1perf'],
+               'perfect2': ['pf2', 'prf2', 'perf2', '2pf', '2prf', '2perf'],
+               'imperfect': ['imp', 'impf', 'imperf'],
+               'active': ['act'],
+               'middle': ['mid'],
+               'passive': ['pass'],
+               'middle/passive': ['mp', 'midpass', 'mid/pass', 'm/p'],
+               'indicative': ['ind', 'indic'],
+               'imperative': ['imper', 'impv'],
+               'infinitive': ['inf', 'infin'],
+               'subjunctive': ['sj', 'sjv', 'sub', 'subj', 'sbj'],
+               'optative': ['o', 'opt', 'optat', 'optv', 'opttv'],
+               'participle': ['pt', 'ptc', 'part'],
+               'noun': ['nn'],
+               'pronoun': ['pn', 'prn', 'pron', 'pnn'],
+               'adjective': ['ad', 'aj', 'adj', 'adject', 'adjv'],
+               'verb': ['v', 'vb'],
+               'adverb': ['av', 'adv', 'avb', 'advb'],
+               'particle': ['partic', 'ptcl', 'pcl'],
+               'interjection': ['ij', 'ijn', 'intj', 'inter', 'interj',
+                               'interjn', 'ijtn'],
+               'idiom': ['id', 'idm'],
+               'first': ['1', '1p', '1pers'],
+               'second': ['2', '2p', '2pers'],
+               'third': ['3', '3p', '3pers']
+               }
 
     parsing_abbrevs = {'acc': 'accusative',
                        'dat': 'dative',
@@ -402,7 +441,9 @@ class PathFactory(object):
                                 for each step is either a dict of the values
                                 passed for step creation, a list of duplicate
                                 step ids, or a string indicating failure.
-        new_forms (list)        : each member is a string, a word form newly
+        new_forms (dict)        : keys are the names of db tables, values are
+                                each either a rowid (long) or an error
+                                message (str).
                                 added to db.word_forms during step creation.
         images_missing (list)   : A list of ids for newly created image records.
                                 These will need to be populated with the actual
@@ -421,7 +462,7 @@ class PathFactory(object):
             mykeys = ['words{}'.format(n + 1) for n in range(len(c))]
             combodict = dict(zip(mykeys, c))  # keys are template placeholders
 
-            pdata = {'steps': {}, 'new_forms': [], 'images_missing': []}
+            pdata = {'steps': {}, 'new_forms': {}, 'images_missing': []}
             for i, s in enumerate(stepsdata):  # each step in path
                 # sanitize form response =============================="
                 numstrings = ['one_', 'two_', 'three_', 'four_', 'five_']
@@ -431,7 +472,8 @@ class PathFactory(object):
                 # collect result ======================================"
                 pdata['steps'][stepdata[0]] = stepdata[1]
                 if newforms:
-                    pdata['new_forms'].append(newforms)
+                    for k, f in newforms.iteritems():
+                        pdata['new_forms'].setdefault(k, []).append(f)
                 if imgs:
                     pdata['images_missing'].append(imgs)
             pgood = [isinstance(k, (int, long)) for k in pdata['steps'].keys()]
@@ -492,7 +534,6 @@ class PathFactory(object):
         points = sdata['points'] if 'points' in sdata.keys() and sdata['points'] \
             else 1.0, 0.0, 0.0
         instrs = sdata['instructions']
-        # FIXME: choking on the line below
         hints = sdata['hints']
         img = self.make_image(combodict, itemp) if itemp else None
         imgid = img[0] if img else None
@@ -529,12 +570,16 @@ class PathFactory(object):
                     problems = [k for k, v in matchdicts[idx].iteritems() if not v]
                     xfail[regex] = problems
             dups = self.check_for_duplicates(kwargs, rdbls, pros)
-            if mtch and not self.mock and not dups[0]:
+            newferrs = {k: v for k, v in newfs.iteritems()
+                        if not isinstance(v, (int, long))}
+            if mtch and not dups[0] and not self.mock:
                 stepresult = self.step_to_db(kwargs), kwargs
             elif mtch and not dups[0] and self.mock:
                 stepresult = 'testing', kwargs
             elif mtch and dups[0]:
                 stepresult = 'duplicate step', dups
+            elif newferrs:
+                stepresult = 'failed creating db rows', newferrs
             else:
                 stepresult = 'regex failure', xfail
                 # print 'regex failure-------------------------'
@@ -595,7 +640,11 @@ class PathFactory(object):
         r_new = chain.from_iterable([r[1] for r in rdbls])
         rdbls = [capitalize_first(r[0]) for r in rdbls]
 
-        newforms = list(chain(p_new, x_new, r_new))
+        newforms = p_new
+        for k, v in x_new.items():
+            newforms.setdefault(k, []).append(v)
+        for k, v in r_new.items():
+            newforms.setdefault(k, []).append(v)
 
         return prompts, rxs, rdbls, newforms
 
@@ -608,7 +657,7 @@ class PathFactory(object):
         """
         ready_strings = []
         subpairs = {}
-        newforms = []
+        newforms = {}
 
         fields = re.findall(r'(?<={).*?(?=})', temp)
         if not fields:
@@ -616,9 +665,10 @@ class PathFactory(object):
         inflected_fields = [f for f in fields if len(f.split('-')) > 1]
         for f in fields:
             if f in inflected_fields:
-                myform, newform = self.get_wordform(f, combodict)
+                myform, newforms = self.get_wordform(f, combodict)
                 if newform:  # note any additions to db.word_forms
-                    newforms.append(newform)
+                    for k, v in newforms.iteritems():
+                        newforms.setdefault(k, []).append(v)
             else:
                 myform = combodict[f]
             subpairs[f] = myform
@@ -958,85 +1008,46 @@ class PathFactory(object):
                 if k in key_eqs.keys():
                     cd[key_eqs[k]] = v
                     del cd[k]
-            eq = {'masculine': ['masc', 'm'],
-                  'feminine': ['fem', 'f'],
-                  'neuter': ['neut', 'n'],
-                  'nominative': ['nom', 'nomin'],
-                  'genitive': ['gen', 'g'],
-                  'dative': ['dat', 'd'],
-                  'accusative': ['acc', 'a'],
-                  'singular': ['s', 'si', 'sing'],
-                  'plural': ['p', 'pl', 'plu', 'plur'],
-                  'present': ['pr', 'pres'],
-                  'future': ['fut', 'ftr'],
-                  'aorist1': ['aor1', 'a1', '1a', '1aor'],
-                  'aorist2': ['aor2', 'a2', '2a', '2aor'],
-                  'perfect1': ['pf1', 'prf1', 'perf1', '1pf', '1prf', '1perf'],
-                  'perfect2': ['pf2', 'prf2', 'perf2', '2pf', '2prf', '2perf'],
-                  'imperfect': ['imp', 'impf', 'imperf'],
-                  'active': ['act'],
-                  'middle': ['mid'],
-                  'passive': ['pass'],
-                  'middle/passive': ['mp', 'midpass', 'mid/pass', 'm/p'],
-                  'indicative': ['ind', 'indic'],
-                  'imperative': ['imper', 'impv'],
-                  'infinitive': ['inf', 'infin'],
-                  'subjunctive': ['sj', 'sjv', 'sub', 'subj', 'sbj'],
-                  'optative': ['o', 'opt', 'optat', 'optv', 'opttv'],
-                  'participle': ['pt', 'ptc', 'part'],
-                  'noun': ['nn'],
-                  'pronoun': ['pn', 'prn', 'pron', 'pnn'],
-                  'adjective': ['ad', 'aj', 'adj', 'adject', 'adjv'],
-                  'verb': ['v', 'vb'],
-                  'adverb': ['av', 'adv', 'avb', 'advb'],
-                  'particle': ['partic', 'ptcl', 'pcl'],
-                  'interjection': ['ij', 'ijn', 'intj', 'inter', 'interj',
-                                   'interjn', 'ijtn'],
-                  'idiom': ['id', 'idm'],
-                  'first': ['1', '1p', '1pers'],
-                  'second': ['2', '2p', '2pers'],
-                  'third': ['3', '3p', '3pers']
-                  }
             for k, v in cd.iteritems():  # handle value short forms
-                if v in list(chain.from_iterable(eq.values())):
-                    expandedv = [kk for kk, vv in eq.iteritems() if v in vv][0]
+                if v in list(chain.from_iterable(cst_eqs.values())):
+                    expandedv = [kk for kk, vv in cst_eqs.iteritems() if v in vv][0]
                     cd[k] = expandedv
             return cd
         except AttributeError:  # constraint is NoneType
             return False
 
-    def make_form_agree(self, mod_form, mylemma, constraint=None):
+    def make_form_agree(self, mod_form, mylemma,
+                        constraint=None, modconstraint=None):
         """
         Return a form of the lemma "mylemma" agreeing with the supplied mod_form.
 
-        This method is used only for nominals (nouns, pronouns, adjectives),
-        excluding substantive participals. Verbs (including participles) are
-        handled elsewhere.
-
         """
         db = current.db
-        newform = None
-        lem = db(db.lemmas.lemma == mylemma).select().first()
+        newforms = {}
+        errors = {}
+
+        # get initial data for lemma and modform
+        lem = db.lemmas(db.lemmas.lemma == mylemma)
+        lemform = db.word_forms(db.word_forms.word_form == mylemma)
         if not lem:
-            lem, rowid, formid = self._add_new_lemma(mylemma, mod_form,
-                                                     constraint)
-            lem = db.lemmas(rowid)
-            if not lem:
-                return (None, None, 'Could not create new lemma')
-        lemform = db(db.word_forms.word_form == mylemma).select().first()
-        if not lemform:
-            myform, rowid = self._add_new_wordform(mylemma, mylemma,
-                                                   mod_form, constraint)
-            lemform = db.word_forms(rowid)
-            newform = myform
-            if not myform:
-                return (None, None, 'Could not create new lemma')
-        ref = db(db.word_forms.word_form == mod_form).select().first()
-        if not ref:
-            myform, rowid = self._add_new_wordform(mod_form, None, None, None)
-            newform = myform
-            if not lemform:
-                return (None, None, 'Could not create new lemma')
+            lemreturn = self._add_new_lemma(mylemma, constraint)
+
+            # lemma, lemid, err, formid, formerr, cstid, csterr
+            lem = db.lemmas(lemreturn[1])
+            if lemreturn[3] and not lemform:
+                lemform = db.word_forms(lemreturn[3])
+
+            # record db changes and errors from attempted changes
+            newforms['lemmas'] = lemreturn[1]
+            errors['lemmas'] = lemreturn[2]
+            newforms['word_forms'] = lemreturn[3]
+            errors['word_forms'] = lemreturn[4]
+            newforms['constructions'] = lemreturn[5]
+            errors['constructions'] = lemreturn[6]
+
+        ref = db.word_forms(db.word_forms.word_form == mod_form)
+        if not mod_form and not ref:
+            refreturn = self._add_new_wordform(mod_form, None, None, None)
 
         # use provided constraints where present in field
         cd = {}

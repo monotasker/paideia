@@ -500,7 +500,7 @@ class TestPathFactory():
             print 'testing', k
             assert newrow[k] == v
 
-    @pytest.mark.skipif(True, reason='just because')
+    @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('mod_form,lemma,constraints,out',
         [('ἀρτου',  # mod_form
           'ἀγορα',  # lemma
@@ -516,6 +516,16 @@ class TestPathFactory():
           'ἀγορα',  # lemma
           'case@gen_num@pl',  # constraints
           ('ἀγορων', None)  # out
+          ),
+         ('γυναικες',  # modform
+          'βαινω',  # lemma
+          None,  # constraints
+          ('βαινουσι', None)  # out
+          ),
+         (None,  # modform
+          'βαινω',  # lemma
+          'pers@1_num@pl_ts@pres_v@act_m@ind',  # constraints
+          ('βαινουσι', None)  # out
           ),
          ])
     def test_make_form_agree(self, mod_form, lemma, constraints, out):
