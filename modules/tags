@@ -105,7 +105,7 @@ __init__	plugin_widgets.py	/^    def __init__(self):$/;"	m	class:POPOVER
 __init__	plugin_widgets.py	/^    def __init__(self, field, value):$/;"	m	class:JQMODAL
 _add_from_logs	paideia.py	/^    def _add_from_logs(self, tag, user_id, newdata, tright, twrong, got_right):$/;"	m	class:Walk
 _add_log_data	paideia_stats.py	/^    def _add_log_data(self, tag_recs):$/;"	m	class:Stats
-_add_new_lemma	paideia_path_factory.py	/^    def _add_new_lemma(self, lemma, mod_form, constraint):$/;"	m	class:PathFactory
+_add_new_lemma	paideia_path_factory.py	/^    def _add_new_lemma(self, lemma, constraint):$/;"	m	class:PathFactory
 _add_new_wordform	paideia_path_factory.py	/^    def _add_new_wordform(self, word_form, lemma, mod_form, constraint):$/;"	m	class:PathFactory
 _add_promotion_data	paideia_stats.py	/^    def _add_promotion_data(self, tag_recs):$/;"	m	class:Stats
 _add_secondary_right	paideia.py	/^    def _add_secondary_right(self, rec):$/;"	m	class:Categorizer

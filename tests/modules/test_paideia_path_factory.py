@@ -390,11 +390,17 @@ class TestPathFactory():
         assert actual == out
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('wordform,mod_form,lemma,constraint,out',
+    @pytest.mark.parametrize('wordform,mod_form,lemma,constraint,out,forminfo',
             [('ἀρτος',
               None,
               'ἀρτος',
               'case@nom_g@m_num@s',
+              ('ἀρτος',  # word_form
+               0,  # rowid
+               None,  # err
+               None,  # cst_id
+               None  # csterr
+               ),
               {'word_form': 'ἀρτος',
                'source_lemma': 'ἀρτος',
                'grammatical_case': 'nominative',
@@ -403,7 +409,16 @@ class TestPathFactory():
                'construction': 'noun_nom_masc_sing_2decl',
                'tags': [1, 82, 117]}
               ),
-             ('ἀρτῳ', None, 'ἀρτος', None,
+             ('ἀρτῳ',
+              None,
+              'ἀρτος',
+              None,
+              ('ἀρτῳ',  # word_form
+               0,  # rowid
+               None,  # err
+               None,  # cst_id
+               None  # csterr
+               ),
               {'word_form': 'ἀρτῳ',
                'source_lemma': 'ἀρτος',
                'grammatical_case': 'dative',
@@ -417,53 +432,71 @@ class TestPathFactory():
              # ('ταχεως', 'adverb')
              ])
     def test_add_new_wordform(self, wordform, mod_form, lemma, constraint,
-                              out, db):
+                              out, forminfo, db):
         """
         """
         f = PathFactory()
-        actual, rowid, cst_id = f._add_new_wordform(wordform, lemma, mod_form,
-                                                    constraint)
+        actual = f._add_new_wordform(wordform, lemma, mod_form, constraint)
         # clean up db: value picked up by db fixture via introspection
-        newrows = {'word_forms': rowid,
-                   'constructions': cst_id}
-        print newrows
-        assert actual == out['word_form']
-        assert isinstance(rowid, (long, int))
-        newrow = db.word_forms(rowid)
+        newrows = {'word_forms': actual[1],  # rowid
+                   'constructions': actual[3]}  # cst_id
+
+        # test method return values
+        for idx, a in enumerate(actual):
+            if idx not in [1, 3]:  # don't try to predict new db row ids
+                assert a == out[idx]
+            else:
+                assert isinstance(actual[1], (long, int))
+
+        # test db row content
+        newrow = db.word_forms(actual[1])
         myconstructions = db(db.constructions.construction_label ==
-                             out['construction']).select()
-        out['construction'] = myconstructions.first().id
-        out['source_lemma'] = db.lemmas(db.lemmas.lemma == out['source_lemma']).id
-        for k, v in out.iteritems():
+                             forminfo['construction']).select()
+        forminfo['construction'] = myconstructions.first().id
+        forminfo['source_lemma'] = db.lemmas(db.lemmas.lemma ==
+                                             forminfo['source_lemma']).id
+        for k, v in forminfo.iteritems():
             print 'testing', k
             assert newrow[k] == v
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('lemma,constraint,out',
+    @pytest.mark.parametrize('lemma,constraint,out,leminfo',
             [('ἀρτος',
-              'pos@nn_case@nom_g@m_num@s',
+              'pos@nn_case@nom_g@m_num@s_gl@bread|food_ft@vocabulary#-#food',
+              ('ἀρτος'.decode('utf8'),  # lemma
+               0,  # lemid
+               None,  # err
+               0,  # formid
+               None,  # formerr
+               None,  # cstid,
+               None,  # csterr
+               ),
               {'lemma': 'ἀρτος',
                'part_of_speech': 'noun',
                'glosses': ['bread', 'food'],
-               'first_tag': ['vocabulary - food'],
-               'extra_tags': ['noun basics', 'nominative2']}
+               'first_tag': 'vocabulary - food',
+               'extra_tags': ['nominative 2', 'noun basics']}
               ),
              # ('ἀληθεια', 'noun'),
              # ('ἰχθυς', 'noun'),
              # ('ταχεως', 'adverb')
              ])
-    def test_add_new_lemma(self, lemma, constraint, out, db):
+    def test_add_new_lemma(self, lemma, constraint, out, leminfo, db):
         """
         """
         f = PathFactory()
-        actual, rowid = f._add_new_lemma(lemma, constraint)
-        self.newrows = {'word_forms': rowid}
-        newrow = db.lemmas(rowid)
-        print 'new lemma row -----------------------------------'
-        pprint(newrow)
-        out['first_tag'] = [db.tags(db.tags.tag == t).id for t in out['first_tag']]
-        out['extra_tags'] = [db.tags(db.tags.tag == t).id for t in out['extra_tags']]
-        for k, v in out.iteritems():
+        actual = f._add_new_lemma(lemma, constraint)
+        for idx, a in enumerate(actual):
+            if idx not in [1, 3, 5]:  # don't try to predict new db row ids
+                assert a == out[idx]
+            else:
+                assert isinstance(actual[1], (long, int))
+        self.newrows = {'word_forms': actual[1]}  # for db teardown
+        newrow = db.lemmas(actual[1])
+        leminfo['first_tag'] = db.tags(db.tags.tag == leminfo['first_tag']).id
+        leminfo['extra_tags'] = [db.tags(db.tags.tag == t).id
+                                 for t in leminfo['extra_tags']]
+        for k, v in leminfo.iteritems():
             print 'testing', k
             assert newrow[k] == v
 
