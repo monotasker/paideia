@@ -538,7 +538,7 @@ class TestPathFactory():
         assert wordform == out[0]
         assert newform == out[1]
 
-    @pytest.mark.skipif(True, reason='just because')
+    @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('fieldstring,combodict,out',
         [('words2-words1',  # fieldstring
           {'words1': 'ἀρτου',  # combodict
