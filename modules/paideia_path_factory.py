@@ -236,7 +236,12 @@ class PathFactory(object):
                      'pronoun': ['source_lemma', 'grammatical_case', 'gender',
                                  'number', 'declension'],
                      'verb': ['source_lemma', 'tense', 'voice', 'mood',
-                              'person', 'number', 'declension'],
+                              'person', 'number'],
+                     'verb-participle': ['source_lemma', 'tense', 'voice',
+                                         'mood', 'case', 'gender', 'number',
+                                         'declension'],
+                     'verb-infinitive': ['source_lemma', 'tense', 'voice',
+                                         'mood'],
                      'adverb': [],
                      'particle': [],
                      'conjunction': [],
@@ -666,7 +671,7 @@ class PathFactory(object):
         for f in fields:
             if f in inflected_fields:
                 myform, newforms = self.get_wordform(f, combodict)
-                if newform:  # note any additions to db.word_forms
+                if newforms:  # note any additions to db.word_forms
                     for k, v in newforms.iteritems():
                         newforms.setdefault(k, []).append(v)
             else:
@@ -1009,12 +1014,22 @@ class PathFactory(object):
                     cd[key_eqs[k]] = v
                     del cd[k]
             for k, v in cd.iteritems():  # handle value short forms
-                if v in list(chain.from_iterable(cst_eqs.values())):
-                    expandedv = [kk for kk, vv in cst_eqs.iteritems() if v in vv][0]
+                if v in list(chain.from_iterable(self.cst_eqs.values())):
+                    expandedv = [kk for kk, vv in self.cst_eqs.iteritems()
+                                 if v in vv][0]
                     cd[k] = expandedv
             return cd
         except AttributeError:  # constraint is NoneType
             return False
+
+    def _wordform_from_parsing(self, parsing):
+        """
+        Return the inflected form of the supplied lemma for the given parsing.
+
+        Returns a string if successful and None if unsuccessful.
+        """
+
+
 
     def make_form_agree(self, mod_form, mylemma,
                         constraint=None, modconstraint=None):
@@ -1024,61 +1039,95 @@ class PathFactory(object):
         """
         db = current.db
         newforms = {}
-        errors = {}
 
-        # get initial data for lemma and modform
+        def _add_to_newforms(returnval, tablelist):
+            for table in tablelist:
+                idx = table[1]
+                val = returnval[idx] if returnval[idx] else returnval[idx + 1]
+                newforms.setdefault(table[0], []).append(val)
+
+        # get db rows for lemma and lemma wordform ============================
         lem = db.lemmas(db.lemmas.lemma == mylemma)
         lemform = db.word_forms(db.word_forms.word_form == mylemma)
-        if not lem:
+        if not lem:  # add new lemma in db
             lemreturn = self._add_new_lemma(mylemma, constraint)
-
-            # lemma, lemid, err, formid, formerr, cstid, csterr
+            # returns: lemma, lemid, err, formid, formerr, cstid, csterr
             lem = db.lemmas(lemreturn[1])
             if lemreturn[3] and not lemform:
                 lemform = db.word_forms(lemreturn[3])
-
-            # record db changes and errors from attempted changes
-            newforms['lemmas'] = lemreturn[1]
-            errors['lemmas'] = lemreturn[2]
-            newforms['word_forms'] = lemreturn[3]
-            errors['word_forms'] = lemreturn[4]
-            newforms['constructions'] = lemreturn[5]
-            errors['constructions'] = lemreturn[6]
-
+            _add_to_newforms(lemreturn, [('lemmas', 1), ('word_forms', 3),
+                                         ('constructions', 5)])
+        # get db row for modifying wordform ===================================
         ref = db.word_forms(db.word_forms.word_form == mod_form)
-        if not mod_form and not ref:
-            refreturn = self._add_new_wordform(mod_form, None, None, None)
+        if mod_form and not ref:  # add new word_form to db for modform
+            refreturn = self._add_new_wordform(mod_form, None,
+                                               None, modconstraint)
+            # returns: word_form, rowid, err, new_cst_id, csterr
+            ref = db.word_forms(refreturn[1])
+            _add_to_newforms(refreturn, [('word_forms', 1), ('constructions', 3)])
+        # get parsing of constraint string ====================================
+        cst = self._parse_constraint(constraint)
 
-        # use provided constraints where present in field
-        cd = {}
-        if constraint and constraint != 'none':
-            cd = self._parse_constraint(constraint)
-        case = ref.grammatical_case if 'case' not in cd.keys() else cd['case']
-        number = ref.number if 'number' not in cd.keys() else cd['number']
-        if () or (lem.part_of_speech == 'noun'):
-            gender = lemform.gender
+        # figure out parsing of required wordform =============================
+        parsing = {}
+        # part of speech
+        pos = cst['part_of_speech'] if cst and 'part_of_speech' in cst.keys() \
+            else lem.part_of_speech
+        # verbal mood
+        if pos == 'verb':
+            parsing['mood'] = = cst['mood'] if 'mood' in cst else ref.mood
+
+        # what other parsing fields are we looking for?
+        if lem.part_of_speech == 'verb' \
+                and parsing['mood'] in ['infinitive', 'participle']:
+            reqs = self.wordform_reqs['verb-{}'.format(cd['mood'])]
         else:
-            gender = ref.gender
+            reqs = self.wordform_reqs[pos]
+
+        # get other required parsing components for this part of speech
+        for r in reqs:
+            parsing[r] = cst[r] if r in cst.keys() else ref[r]
+            if not parsing[r]:
+                parsing[r] = lem[r]
+
         # allow for ambiguously gendered forms in search for word form below
-        if 'gender' in cd.keys():
+        if 'gender' in parsing.keys():
             genders = [gender, 'undetermined']
-            if gender in ['masculine', 'feminine']:
+            if parsing['gender'] in ['masculine', 'feminine']:
                 genders.append('masculine or feminine')
-            if gender in ['masculine', 'neuter']:
+            if parsing['gender'] in ['masculine', 'neuter']:
                 genders.append('masculine or neuter')
+            parsing['gender'] = genders
+
         # get the inflected form from the db
+        for g in genders:
         myrow = db((db.word_forms.source_lemma == lem.id) &
                    (db.word_forms.grammatical_case == case) &
+                   (db.word_forms.tense == tense) &
+                   (db.word_forms.voice == voice) &
+                   (db.word_forms.mood == mood) &
+                   (db.word_forms.person == person) &
                    (db.word_forms.gender.belongs(genders)) &
                    (db.word_forms.number == number)
                    ).select().first()
         try:
             myform = myrow.word_form
-        except Exception:
-            # print traceback.format_exc(5)
-            myform = None  # FIXME: try to create and save new declined form
+        except Exception:  # if there isn't one try to make it
+            traceback.print_exc(5)
+            try:
+            myform = self._wordform_from_parsing(parsing)
+            cst_pairs = ['{}@{}'.format(k, v) for k, v in parsing.iteritems]
+            cst_string = '_'.join(cst_pairs)
+            newfreturn = self._add_new_wordform(myform, None, None, cst_string)
+            # returns: word_form, rowid, err, new_cst_id, csterr
+            ref = db.word_forms(refreturn[1])
+            _add_to_newforms(newfreturn,
+                             [('word_forms', 1), ('constructions', 3)])
+            except Exception:  # if making new form fails
+                traceback.print_exc(5)
+                myform = None
 
-        return myform, newform
+        return myform, newforms
 
     def check_for_duplicates(self, step, readables, prompt):
         """
