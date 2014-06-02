@@ -173,6 +173,8 @@ db.define_table('word_forms',
                 Field('number', 'string', default='none'),
                 Field('grammatical_case', default='none'),
                 Field('gender', 'string', default='none'),
+                Field('declension', 'string', default='none'),
+                Field('thematic_pattern', 'string', default='none'),
                 Field('construction', db.constructions),
                 Field('tags', 'list:reference tags'),
                 format='%(word_form)s')
