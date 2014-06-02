@@ -242,10 +242,12 @@ class PathFactory(object):
                                          'declension'],
                      'verb-infinitive': ['source_lemma', 'tense', 'voice',
                                          'mood'],
-                     'adverb': [],
-                     'particle': [],
-                     'conjunction': [],
-                     'idiom': []}
+                     'adverb': ['source_lemma'],
+                     'particle': ['source_lemma'],
+                     'conjunction': ['source_lemma', 'case', 'gender',
+                                     'number'],
+                     'article': ['source_lemma'],
+                     'idiom': ['source_lemma']}
 
     def __init__(self):
         """Initialize a paideia.PathFactory object."""
@@ -792,6 +794,18 @@ class PathFactory(object):
                 'number': number,
                 'declension': '{}decl'.format(declension)}
 
+    def _make_construction_label(self, part_of_speech, parsedict):
+        """
+        """
+        db = current.db
+        # don't include lemma in construction label
+        cstbits = [parsedict[k] for k in self.wordform_reqs[part_of_speech][1:]]
+        shortbits = [self.const_abbrevs[i] for i in cstbits]
+        construction_label = '{}_{}'.format(part_of_speech, '_'.join(shortbits))
+        construction_row = db.constructions(db.constructions.construction_label
+                                            == construction_label)
+        return construction_label, construction_row, cstbits, shortbits
+
     def _add_new_wordform(self, word_form, lemma, mod_form, constraint):
         """
         Attempt to insert a new word form into the db based on supplied info.
@@ -849,17 +863,14 @@ class PathFactory(object):
                 del cd[k]
 
         # build and add construction label
-        cstbits = [cd[k] for k in self.wordform_reqs[ps][1:]]  # don't include lemma in construction label
-        shortbits = [self.const_abbrevs[i] for i in cstbits]
-        cst_label = '{}_{}'.format(ps, '_'.join(shortbits))
-        cst_row = db.constructions(db.constructions.construction_label ==
-                                   cst_label)
-        if cst_row:
-            cst_id = cst_row.id
+        const_label, const_row, constbits, shortbits = self._make_construction_label(ps, cd)
+
+        if const_row:
+            cst_id = const_row.id
             new_cst_id = None
             csterr = None
         else:  # create new construction entry if necessary
-            rdbl = '{}, {}'.format(ps, ' '.join(cstbits))
+            rdbl = '{}, {}'.format(ps, ' '.join(constbits))
             rdbl = rdbl.replace(' first', ', first person ')
             rdbl = rdbl.replace(' second', ', second person ')
             rdbl = rdbl.replace(' third', ', third person ')
@@ -1028,8 +1039,33 @@ class PathFactory(object):
 
         Returns a string if successful and None if unsuccessful.
         """
+        def _make_constraint_string(parsedict):
+            """
+            Return a constraint string matching the provided parsing dict.
+            """
+            cst_pairs = ['{}@{}'.format(k, v) for k, v in parsedict.iteritems()]
+            constraint = '_'.join(cst_pairs)
+            return constraint
 
+        # a lambda function is stored as a string in a db field
+        formfunc = db.constructions[parsedict['construction']]['form_function']
+        myform = formfunc(parsedict['source_lemma'])
 
+        # add to db.word_forms here
+        newfreturn = self._add_new_wordform(myform, None,
+                                            None, cst_string)
+        return newfreturn
+
+    def _expand_gender(self, gender):
+        """
+        Return a list of possible gender categories for an item of this gender.
+        """
+        genders = [gender, 'undetermined']
+        if parsing['gender'] in ['masculine', 'feminine']:
+            genders.append('masculine or feminine')
+        if parsing['gender'] in ['masculine', 'neuter']:
+            genders.append('masculine or neuter')
+        return genders
 
     def make_form_agree(self, mod_form, mylemma,
                         constraint=None, modconstraint=None):
@@ -1068,66 +1104,65 @@ class PathFactory(object):
         # get parsing of constraint string ====================================
         cst = self._parse_constraint(constraint)
 
-        # figure out parsing of required wordform =============================
+        # consolidate parsing of required wordform =============================
         parsing = {}
         # part of speech
         pos = cst['part_of_speech'] if cst and 'part_of_speech' in cst.keys() \
             else lem.part_of_speech
         # verbal mood
         if pos == 'verb':
-            parsing['mood'] = = cst['mood'] if 'mood' in cst else ref.mood
-
+            parsing['mood'] = cst['mood'] if cst and 'mood' in cst.keys() \
+            else ref.mood
         # what other parsing fields are we looking for?
         if lem.part_of_speech == 'verb' \
                 and parsing['mood'] in ['infinitive', 'participle']:
-            reqs = self.wordform_reqs['verb-{}'.format(cd['mood'])]
+            reqs = self.wordform_reqs['verb-{}'.format(cst['mood'])]
         else:
             reqs = self.wordform_reqs[pos]
-
+        # add construction id
+        parsing['construction'] = self._make_construction_label(pos,
+                                                                parsing)[1].id
         # get other required parsing components for this part of speech
         for r in reqs:
-            parsing[r] = cst[r] if r in cst.keys() else ref[r]
-            if not parsing[r]:
-                parsing[r] = lem[r]
-
-        # allow for ambiguously gendered forms in search for word form below
-        if 'gender' in parsing.keys():
-            genders = [gender, 'undetermined']
-            if parsing['gender'] in ['masculine', 'feminine']:
-                genders.append('masculine or feminine')
-            if parsing['gender'] in ['masculine', 'neuter']:
-                genders.append('masculine or neuter')
-            parsing['gender'] = genders
+            try:
+                parsing[r] = cst[r] if cst and r in cst.keys() else ref[r]
+                assert parsing[r]
+            except (AttributeError, AssertionError):
+                parsing[r] = lem[r] if r in lem.keys() and lem[r] else None
 
         # get the inflected form from the db
-        for g in genders:
         myrow = db((db.word_forms.source_lemma == lem.id) &
-                   (db.word_forms.grammatical_case == case) &
-                   (db.word_forms.tense == tense) &
-                   (db.word_forms.voice == voice) &
-                   (db.word_forms.mood == mood) &
-                   (db.word_forms.person == person) &
-                   (db.word_forms.gender.belongs(genders)) &
-                   (db.word_forms.number == number)
+                   (db.word_forms.grammatical_case == parsing['grammatical_case']) &
+                   (db.word_forms.tense == parsing['tense']) &
+                   (db.word_forms.voice == parsing['voice']) &
+                   (db.word_forms.mood == parsing['mood']) &
+                   (db.word_forms.person == parsing['person']) &
+                   (db.word_forms.gender.belongs(
+                       self._expand_gender(parsing['gender']))) &
+                   (db.word_forms.number == parsing['number']) &
+                   (db.word_forms.declension == parsing['declension']) &
+                   (db.word_forms.construction == parsing['construction'])
                    ).select().first()
+
         try:
             myform = myrow.word_form
-        except Exception:  # if there isn't one try to make it
-            traceback.print_exc(5)
+        except TypeError:  # if there isn't one try to make it
             try:
-            myform = self._wordform_from_parsing(parsing)
-            cst_pairs = ['{}@{}'.format(k, v) for k, v in parsing.iteritems]
-            cst_string = '_'.join(cst_pairs)
-            newfreturn = self._add_new_wordform(myform, None, None, cst_string)
-            # returns: word_form, rowid, err, new_cst_id, csterr
-            ref = db.word_forms(refreturn[1])
-            _add_to_newforms(newfreturn,
-                             [('word_forms', 1), ('constructions', 3)])
+                newfreturn = self._wordform_from_parsing(parsing)
+                # returns: word_form, rowid, err, new_cst_id, csterr
+                _add_to_newforms(newfreturn,
+                                 [('word_forms', 1), ('constructions', 3)])
+                myform = newfreturn[0]
             except Exception:  # if making new form fails
                 traceback.print_exc(5)
                 myform = None
+                errstring = 'Could not create new word form for {}, ' \
+                            'modform {}, constraint {}'.format(lemma, mod_form,
+                                                               constraint)
+                newforms.setdefault('word_forms', []).append(errstring)
 
         return myform, newforms
+
 
     def check_for_duplicates(self, step, readables, prompt):
         """
