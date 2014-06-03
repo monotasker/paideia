@@ -30,7 +30,275 @@ from plugin_utils import flatten, makeutf8
 # from plugin_ajaxselect import AjaxSelect
 
 
-class PathFactory(object):
+class Inflector(object):
+    """
+    """
+    def __init__(self):
+        """docstring for __"""
+        self.wf = WordFactory()
+
+    def _wordform_from_parsing(self, parsedict):
+        """
+        Return the inflected form of the supplied lemma for the given parsing.
+
+        Returns a string if successful and None if unsuccessful.
+        """
+        db = current.db
+
+        def _make_constraint_string(parsedict):
+            """
+            Return a constraint string matching the provided parsing dict.
+            """
+            cst_pairs = ['{}@{}'.format(k, v) for k, v in parsedict.iteritems()]
+            constraint = '_'.join(cst_pairs)
+            return constraint
+
+        # a lambda function is stored as a string in a db field
+        formfunc = db.constructions[parsedict['construction']]['form_function']
+        myform = formfunc(parsedict['source_lemma'])
+
+        # add to db.word_forms here
+        constraint = _make_constraint_string(parsedict)
+        newfreturn = self.wf.add_new_wordform(myform, None, None, constraint)
+        return newfreturn
+
+    def make_form_agree(self, mod_form, mylemma,
+                        constraint=None, modconstraint=None):
+        """
+        Return a form of the lemma "mylemma" agreeing with the supplied mod_form.
+
+        """
+        db = current.db
+        newforms = {}
+
+        def _add_to_newforms(returnval, tablelist):
+            for table in tablelist:
+                idx = table[1]
+                val = returnval[idx] if returnval[idx] else returnval[idx + 1]
+                newforms.setdefault(table[0], []).append(val)
+
+        def _gender_cats(gender):
+            """
+            Return a list of gender categories for an item of this gender.
+            """
+            genders = [gender, 'undetermined']
+            if parsing['gender'] in ['masculine', 'feminine']:
+                genders.append('masculine or feminine')
+            if parsing['gender'] in ['masculine', 'neuter']:
+                genders.append('masculine or neuter')
+            return genders
+
+        # get db rows for lemma and lemma wordform ============================
+        lem = db.lemmas(db.lemmas.lemma == mylemma)
+        lemform = db.word_forms(db.word_forms.word_form == mylemma)
+        if not lem:  # add new lemma in db
+            lemreturn = self.wf.add_new_lemma(mylemma, constraint)
+            # returns: lemma, lemid, err, formid, formerr, cstid, csterr
+            lem = db.lemmas(lemreturn[1])
+            if lemreturn[3] and not lemform:
+                lemform = db.word_forms(lemreturn[3])
+            _add_to_newforms(lemreturn, [('lemmas', 1), ('word_forms', 3),
+                                         ('constructions', 5)])
+        # get db row for modifying wordform ===================================
+        ref = db.word_forms(db.word_forms.word_form == mod_form)
+        if mod_form and not ref:  # add new word_form to db for modform
+            refreturn = self.wf.add_new_wordform(mod_form, None,
+                                               None, modconstraint)
+            # returns: word_form, rowid, err, new_cst_id, csterr
+            ref = db.word_forms(refreturn[1])
+            _add_to_newforms(refreturn, [('word_forms', 1), ('constructions', 3)])
+        # get parsing of constraint string ====================================
+        cst = self.wf.parse_constraint(constraint)
+        # infer what we can from lemma
+        guesses = {'declension': MorphParser().infer_declension(mylemma)}
+
+        # consolidate parsing of required wordform =============================
+        parsing = {}
+        # part of speech
+        pos = cst['part_of_speech'] if cst and 'part_of_speech' in cst.keys() \
+            else lem.part_of_speech
+        # get declension
+        if pos in ['noun', 'adjective', 'pronoun'] and not lemform['declension']:
+            lemform.update_record(declension=guesses['declension'])
+        # verbal mood
+        if pos == 'verb':
+            parsing['mood'] = cst['mood'] if cst and 'mood' in cst.keys() \
+                else ref.mood
+        # what other parsing fields are we looking for?
+        if lem.part_of_speech == 'verb' \
+                and parsing['mood'] in ['infinitive', 'participle']:
+            reqs = self.wf.wordform_reqs['verb-{}'.format(cst['mood'])]
+        else:
+            reqs = self.wf.wordform_reqs[pos]
+        # get other required parsing components for this part of speech
+        for r in reqs:
+            try:
+                parsing[r] = cst[r] if cst and r in cst.keys() else ref[r]
+                assert parsing[r]
+            except (AttributeError, AssertionError):
+                try:
+                    parsing[r] = lem[r] if r in lem.keys() and lem[r] else None
+                    assert parsing[r]
+                except AssertionError:
+                    parsing[r] = guesses[r]
+            print r, parsing[r]
+        # add construction id
+        cl = self.wf.make_construction_label(pos, parsing)
+        parsing['construction'] = cl[1].id if cl[1] else None
+
+        # FIXME: add tags field
+
+        extra_fields = [f for f in db.word_forms.fields if f not in reqs]
+        for f in extra_fields:
+            parsing[f] = None
+
+        # get the inflected form from the db
+        myrow = db((db.word_forms.source_lemma == lem.id) &
+                   (db.word_forms.grammatical_case == parsing['grammatical_case']) &
+                   (db.word_forms.tense == parsing['tense']) &
+                   (db.word_forms.voice == parsing['voice']) &
+                   (db.word_forms.mood == parsing['mood']) &
+                   (db.word_forms.person == parsing['person']) &
+                   (db.word_forms.gender.belongs(_gender_cats(parsing['gender']))) &
+                   (db.word_forms.number == parsing['number']) &
+                   (db.word_forms.declension == parsing['declension']) &
+                   (db.word_forms.tags == parsing['tags']) &
+                   (db.word_forms.thematic_pattern == parsing['thematic_pattern']) &
+                   (db.word_forms.construction == parsing['construction'])
+                   ).select().first()
+
+        try:
+            myform = myrow.word_form
+        except AttributeError:  # if there isn't one try to make it
+            try:
+                newfreturn = self._wordform_from_parsing(parsing)
+                # returns: word_form, rowid, err, new_cst_id, csterr
+                _add_to_newforms(newfreturn,
+                                 [('word_forms', 1), ('constructions', 3)])
+                myform = newfreturn[0]
+            except Exception:  # if making new form fails
+                traceback.print_exc(5)
+                myform = None
+                errstring = 'Could not create new word form for {}, ' \
+                            'modform {}, constraint {}'.format(mylemma,
+                                                               mod_form,
+                                                               constraint)
+                newforms.setdefault('word_forms', []).append(errstring)
+
+        return myform, newforms
+
+
+class MorphParser(object):
+    """
+    """
+    nom_endings = {u'ος': {'sfx': [u'ος', u'ου', u'ῳ', u'ον', u'ε',
+                                   u'οι', u'ων', u'οις', u'ους', u'--'],
+                           'declension': '2',
+                           'gender': 'masculine'},
+                   u'ον': {'sfx': [u'ον', u'ου', u'ῳ', u'ον', u'ε',
+                                   u'α', u'ων', u'οις', u'α', u'--'],
+                           'declension': '2',
+                           'gender': 'neuter'},
+                   u'(η|α)': {'sfx': [u'(η|α)', u'[ηα]ς', u'(ῃ|ᾳ)', u'[ηα]ν', u'ε',
+                                  u'αι', u'ων', u'αις', u'ας', u'--'],
+                          'declension': '1',
+                          'gender': 'feminine'},
+                   u'ρ': {'sfx': [u'ρ', u'ρος', u'ρι', u'ρα', u'--',
+                                  u'ρες', u'ρων', u'ρι.ι', u'ρας', u'--'],
+                          'declension': '3',
+                          'gender': None},
+                   u'ις': {'sfx': [u'[^ε]ις', u'(εως|ος)', u'ι', u'(ιν|α)',
+                                   u'--', u'ε[ι]?ς', u'ων', u'[ιε].ι',
+                                   u'(εις|ας)', u'ε[ι]?ς'],
+                          'declension': '3',
+                          'gender': None},
+                   u'υς': {'sfx': [u'υς', u'υως', u'υι', u'υν', u'υ',
+                                   u'υες', u'υων', u'--', u'υας', u'υες'],
+                          'declension': '3',
+                          'gender': None},
+                   }
+
+    def __init__(self):
+        """Initialize a new MorphParser object."""
+        pass
+
+    def infer_part_of_speech(self, word_form):
+        """
+        Return a string giving the likely part of speech of the supplied form.
+        """
+
+        word_form = makeutf8(word_form)
+        if (word_form[-1] == u'ω') or (word_form[-2:] == u'μι'):
+            ps = 'verb'
+        elif (word_form[-2:] in [u'ος', u'υς', u'ης', u'ον']) or \
+             (word_form[-1] in [u'η', u'α']):
+            ps = 'noun'
+        elif word_form[-2:] == u'ως':
+            ps = 'adverb'
+        else:
+            ps = None
+
+        return ps
+
+    def infer_declension(self, wordform):
+        """
+        Return a string giving the declension of the supplied nom. sing. noun.
+        """
+        wordform = makeutf8(wordform)
+        end = [e for e in self.nom_endings.keys()
+               if re.match(u'.*{}$'.format(e), wordform)]
+        if end:
+            declension = self.nom_endings[end[0]]['declension']
+        else:
+            declension = '3'
+        return declension
+
+    def infer_case(self, wordform, lemma):
+        """docstring for _infer_case"""
+        cases = ['nominative', 'genitive', 'dative', 'accusative', 'vocative',
+                 'nominative', 'genitive', 'dative', 'accusative', 'vocative']
+        pass
+
+    def infer_parsing(self, word_form, lemma):
+        """
+        """
+        word_form = makeutf8(word_form)
+        lemma = makeutf8(lemma)
+        case = None
+        gender = None
+        declension = None
+        number = None
+        cases = ['nominative', 'genitive', 'dative', 'accusative', 'vocative',
+                 'nominative', 'genitive', 'dative', 'accusative', 'vocative']
+        for k, v in self.nom_endings.iteritems():
+            if re.match(u'.*{}$'.format(k), lemma):
+                ends = [i for i in v['sfx']
+                        if re.match(u'.*{}$'.format(i), word_form)]
+                if ends:
+                    if len(ends) == 1:
+                        idx = v['sfx'].index(ends[0])
+                        case = cases[idx]
+                        number = 'singular' if idx < 5 else 'plural'
+                    else:
+                        idxs = [v['sfx'].index(e) for e in ends]
+                        if all(i > 4 for i in idxs):
+                            number = 'plural'
+                        elif all(i <= 4 for i in idxs):
+                            number = 'singular'
+                        else:
+                            number = None
+                declension = v['declension']
+                gender = v['gender']
+
+                break
+
+        return {'grammatical_case': case,
+                'gender': gender,
+                'number': number,
+                'declension': '{}decl'.format(declension)}
+
+
+class WordFactory(object):
     """
     An abstract parent class to create paths (with steps) procedurally.
 
@@ -118,10 +386,13 @@ class PathFactory(object):
                      'present': 'pres',
                      'future': 'fut',
                      'imperfect': 'imperf',
+                     '1': '1decl',
                      'first': '1decl',
                      '1decl': '1decl',
+                     '2': '2decl',
                      'second': '2decl',
                      '2decl': '2decl',
+                     '3': '3decl',
                      'third': '3decl',
                      '3decl': '3decl',
                      'singular': 'sing',
@@ -250,9 +521,514 @@ class PathFactory(object):
                      'idiom': ['source_lemma']}
 
     def __init__(self):
+        """Initialize a new WordFactory object."""
+        self.parser = MorphParser()
+
+    def make_construction_label(self, part_of_speech, parsedict):
+        """
+        """
+        db = current.db
+        # don't include lemma in construction label
+        cstbits = [parsedict[k] for k in self.wordform_reqs[part_of_speech][1:]]
+        shortbits = [self.const_abbrevs[i] for i in cstbits if i]
+        construction_label = '{}_{}'.format(part_of_speech, '_'.join(shortbits))
+        construction_row = db.constructions(db.constructions.construction_label
+                                            == construction_label)
+        return construction_label, construction_row, cstbits, shortbits
+
+    def _add_new_construction(self, pos, const_label, constbits, shortbits):
+        """
+        Insert new db.constructions record and return id info
+        """
+        db = current.db
+        rdbl = '{}, {}'.format(pos, ' '.join(constbits))
+        rdbl = rdbl.replace(' first', ', first person ')
+        rdbl = rdbl.replace(' second', ', second person ')
+        rdbl = rdbl.replace(' third', ', third person ')
+        rdbl = rdbl.replace(' 1decl', ', 1st declension ')
+        rdbl = rdbl.replace(' 2decl', ', 2nd declension ')
+        rdbl = rdbl.replace(' 3decl', ', 3rd declension ')
+        mytags = [k for k, v in self.tagging_conditions.iteritems()
+                    for lst in v if all(l in shortbits for l in lst)]
+        mytags = [t.id for t in db(db.tags.tag.belongs(mytags)).select()]
+        try:
+            cst_id = db.constructions.insert(**{'construction_label': const_label,
+                                                'readable_label': rdbl,
+                                                'tags': mytags})
+            csterr = None
+        except Exception:
+            cst_id = None
+            traceback.print_exc()
+            csterr = 'Could not write new construction {} ' \
+                        'to db.'.format(const_label)
+
+        return cst_id, csterr
+
+    def add_new_wordform(self, word_form, lemma, mod_form, constraint):
+        """
+        Attempt to insert a new word form into the db based on supplied info.
+
+        If the insertion is successful, return the word form and the id of the
+        newly inserted row from db.word_forms. Otherwise return False.
+
+        """
+        db = current.db
+
+        parsing = self.parse_constraint(constraint) if constraint else {}
+
+        # get lemma and part of speech
+        lemmarow = db.lemmas(db.lemmas.lemma == lemma)
+        parsing['source_lemma'] = lemmarow.id
+        pos = lemmarow.part_of_speech
+        if not pos:
+            pos = self.parser.infer_part_of_speech(word_form)
+            lemmarow.update_record(part_of_speech=pos)
+
+        # try to get missing info from modform or word form itself
+        reqs = self.wordform_reqs[pos]
+        if pos == 'verb' and parsing['mood'] in ['infinitive', 'participle']:
+            reqs = self.wordform_reqs['verb-{}'.format(parsing['mood'])]
+        modrow = db.word_forms(db.word_forms.word_form == mod_form)
+        guesses = self.parser.infer_parsing(word_form, lemma)
+        for r in [i for i in reqs if i not in parsing.keys() or not parsing[i]]:
+            try:
+                parsing[r] = modrow[r]
+                assert parsing[r]
+            except (AssertionError, KeyError, TypeError):
+                try:
+                    parsing[r] = guesses[r]
+                except (KeyError, TypeError):
+                    parsing[r] = None
+
+        # add construction
+        clreturn = self.make_construction_label(pos, parsing)
+        const_label, const_row, constbits, shortbits = clreturn
+        if const_row:
+            cst_id = const_row.id
+            new_cst_id = None
+            csterr = None
+        else:  # create new construction entry if necessary
+            new_cst_id, csterr = self._add_new_construction(const_label, pos,
+                                                            constbits, shortbits)
+            cst_id = new_cst_id
+        parsing['construction'] = cst_id
+
+        # collect and add tags
+        parsing.setdefault('tags', []).extend(db.constructions(cst_id).tags)
+        parsing.setdefault('tags', []).extend(lemmarow.extra_tags)
+        parsing.setdefault('tags', []).append(lemmarow.first_tag)
+        parsing['tags'] = list(set(parsing['tags']))
+
+        parsing['word_form'] = word_form
+
+        try:
+            rowid = db.word_forms.insert(**parsing)
+            err = None
+        except Exception:
+            traceback.print_exc()
+            err = 'Could not write word_form {} to db.'.format(word_form)
+
+        return word_form, rowid, err, new_cst_id, csterr
+
+    def add_new_lemma(self, lemma, constraint):
+        """
+        Attempt to insert a new lemma into the db based on supplied info.
+
+        If the insertion is successful, return True. If the info is not
+        sufficient, return False.
+        """
+        db = current.db
+        cd = self.parse_constraint(constraint)
+        lemma_reqs = ['lemma', 'glosses', 'part_of_speech', 'first_tag',
+                      'extra_tags', 'first_tag']
+        lemdata = {k: i for k, i in cd.iteritems() if k in lemma_reqs}
+        lemma = makeutf8(lemma)
+        print 'lemma slice'
+        print lemma[-2:]
+
+        # get lemma field
+        lemdata['lemma'] = lemma
+        # get part_of_speech field
+        if 'part_of_speech' not in lemdata.keys():
+            lemdata['part_of_speech'] = self.parser.infer_part_of_speech(lemma)
+
+        # add tags based on part of speech and ending
+        tags = []
+        if lemdata['part_of_speech'] == 'verb':
+            tags.append('verb basics')
+            if lemma[-2:] == u'μι':
+                tags.append('μι verbs')
+        elif lemdata['part_of_speech'] == 'noun':
+            tags.append('noun basics')
+            if lemma[-2:] in [u'ος', u'ης', u'ον']:
+                print 'matched nom2 ending'
+                tags.append('nominative 2')
+            elif lemma[-2:] in [u'υς', u'ις', u'ων', u'ηρ']:
+                tags.append('nominative 3')
+            elif lemma[-1] in [u'η', u'α']:
+                tags.append('nominative 1')
+        elif lemdata['part_of_speech'] in ['adjective', 'pronoun', 'adverb',
+                                           'particle', 'conjunction']:
+            tags.append('{}s'.lemdata['part_of_speech'])
+
+        # handle any space placeholders in tag names
+        lemdata['first_tag'] = lemdata['first_tag'].replace('#', ' ')
+        tags = [t.replace('#', ' ') for t in tags]
+        lemdata['first_tag'] = db.tags(db.tags.tag == lemdata['first_tag']).id
+
+        # populate 'tags_extra' field with ids
+        tagids = [t.id for t in db(db.tags.tag.belongs(tags)).select()]
+        print 'tagids'
+        print tagids
+        lemdata['extra_tags'] = tagids
+
+        # get 'glosses' field
+        if 'glosses' in lemdata.keys():
+            lemdata['glosses'] = lemdata['glosses'].split('|')
+            lemdata['glosses'] = [g.replace('#', ' ') for g in lemdata['glosses']]
+
+        try:
+            lemid = db.lemmas.insert(**lemdata)
+            err = None
+        except Exception:
+            traceback.print_exc()
+            err = 'Could not write new lemma {} to db.'.format(lemma)
+            lemid = None
+
+        # Add a word_forms entry for this dictionary form of the lemma
+        try:
+            myform = db.word_forms(db.word_forms.word_form == lemma).id
+            formid = None
+            formerr = None
+            cstid = None
+            csterr = None
+        except Exception:
+            traceback.print_exc()
+            form, formid, formerr, cstid, csterr = self.add_new_wordform(lemma, lemma, None, constraint)
+
+        return lemma, lemid, err, formid, formerr, cstid, csterr
+
+    def parse_constraint(self, constraint):
+        """
+        Return a dictionary of grammatical features based on a constraint string.
+
+        """
+        try:
+            cparsebits = constraint.split('_')
+            cd = {b.split('@')[0]: b.split('@')[1] for b in cparsebits}
+            key_eqs = {'num': 'number',
+                       'n': 'number',
+                       'gen': 'gender',
+                       'gend': 'gender',
+                       'g': 'gender',
+                       'c': 'grammatical_case',
+                       'case': 'grammatical_case',
+                       't': 'tense',
+                       'v': 'voice',
+                       'm': 'mood',
+                       'pers': 'person',
+                       'ps': 'part_of_speech',
+                       'pos': 'part_of_speech',
+                       'gls': 'glosses',
+                       'gloss': 'glosses',
+                       'gl': 'glosses',
+                       'ft': 'first_tag',
+                       'first': 'first_tag'}
+            for k, v in cd.iteritems():  # handle key short forms
+                if k in key_eqs.keys():
+                    cd[key_eqs[k]] = v
+                    del cd[k]
+            for k, v in cd.iteritems():  # handle value short forms
+                if v in list(chain.from_iterable(self.cst_eqs.values())):
+                    expandedv = [kk for kk, vv in self.cst_eqs.iteritems()
+                                 if v in vv][0]
+                    cd[k] = expandedv
+            return cd
+        except AttributeError:  # constraint is NoneType
+            return False
+
+    def get_wordform(self, field, combodict):
+        """
+        Get the properly inflected word form for the supplied field.
+
+        The expected field format is {lemma-modform-constraint}. For example,
+        {αὐτος-words1-case:nom}. This will inflect the lemma αὐτος to agree with
+        the current words1 except that the case will be constrained as
+        nominative. If no constraint is given the lemma will be inflected to
+        agree with the modform in all relevant aspects.
+
+        """
+        db = current.db
+        splits = field.split('-')
+        lemma = splits[0]
+        mod = splits[1]
+        try:
+            constraints = splits[2]
+        except IndexError:
+            constraints = None
+        # if lemma is pointer to a word list
+        lemma = combodict[lemma] if lemma in combodict.keys() else lemma
+        # allow for passing inflected form instead of lemma
+        if not db.lemmas(db.lemmas.lemma == lemma):
+            myrow = db.word_forms(db.word_forms.word_form == lemma)
+            lemma = myrow.source_lemma.lemma
+        # inflect lemma to agree with its governing word
+        modform = combodict[mod] if mod != 'none' else None
+
+        myform, newform = Inflector().make_form_agree(modform, lemma,
+                                                      constraints)
+
+        return myform, newform
+
+
+class StepFactory(object):
+    """
+    An abstract parent class to create paths (with steps) procedurally.
+
+    """
+    def __init__(self):
+        """docstring for __"""
+        pass
+
+    def _step_to_db(self, kwargs):
+        """ """
+        db = current.db
+        try:
+            sid = db.steps.insert(**kwargs)
+            return sid
+        except Exception:
+            traceback.print_exc(5)
+            return False
+
+    def make_step(self, combodict, sdata, mock):
+        """
+        Create one step with given data.
+
+        Returns a 2-member tuple
+        [0] stepresult      : A 2-member tuple consisting of a string[0]
+                              indicating the result of the step-creation
+                              attempt and a second member [1] which gives
+                              the content of that attempt. This content can be
+                              - a step id (if success)
+                              - a dict of step field values (if testing)
+                              - a list of duplicate steps (duplicates)
+                              - an error traceback (if failure)
+        [1] newfs           : A list of inflected word forms newly added to
+                              db.word_forms in the course of step creation.
+        """
+        mytype = sdata['step_type']
+
+        ptemp = islist(sdata['prompt_template'])
+        xtemp = islist(sdata['response_template'])
+        rtemp = islist(sdata['readable_template'])
+
+        tags1 = sdata['tags']
+        itemp = sdata['image_template']
+        tags2 = sdata['tags_secondary']
+        tags3 = sdata['tags_ahead'] if 'tags_ahead' in sdata.keys() else None
+        npcs = sdata['npcs']
+        locs = sdata['locations']
+        points = sdata['points'] if 'points' in sdata.keys() and sdata['points'] \
+            else 1.0, 0.0, 0.0
+        instrs = sdata['instructions']
+        hints = sdata['hints']
+        img = self._make_image(combodict, itemp) if itemp else None
+        imgid = img[0] if img else None
+        # ititle = img[1] if img else None
+        images_missing = img[2] if img else None
+
+        pros, rxs, rdbls, newfs = self._format_strings(combodict, ptemp, xtemp, rtemp)
+        tags = self._get_step_tags(tags1, tags2, tags3, pros, rdbls)
+        kwargs = {'prompt': pros[randrange(len(pros))],  # sanitize_greek(pros[randrange(len(pros))]),
+                  'widget_type': mytype,
+                  # 'widget_audio': None,
+                  'widget_image': imgid,
+                  'response1': islist(rxs)[0],
+                  'readable_response': '|'.join([r for r in islist(rdbls)]),  # sanitize_greek(rdbls)]),
+                  'outcome1': points[0],
+                  'response2': rxs[1] if len(rxs) > 1 else None,
+                  'outcome2': points[1],
+                  'response3': rxs[2] if len(rxs) > 2 else None,
+                  'outcome3': points[2],
+                  'tags': tags[0],
+                  'tags_secondary': tags[1],
+                  'tags_ahead': tags[2],
+                  'npcs': npcs,  # [randrange(len(npcs))] if multiple
+                  'locations': locs,
+                  'instructions': instrs,
+                  'hints': hints}  # [randrange(len(npcs))] if mult
+
+        try:
+            matchdicts = [test_regex(x, rdbls) for x in rxs]
+            xfail = {}
+            for idx, regex in enumerate(rxs):
+                mtch = all(matchdicts[idx].values())
+                if not mtch:
+                    problems = [k for k, v in matchdicts[idx].iteritems() if not v]
+                    xfail[regex] = problems
+            dups = check_for_duplicates(kwargs, rdbls, pros)
+            newferrs = {k: v for k, v in newfs.iteritems()
+                        if not isinstance(v, (int, long))}
+            if mtch and not dups[0] and not mock:
+                stepresult = self._step_to_db(kwargs), kwargs
+            elif mtch and not dups[0] and mock:
+                stepresult = 'testing', kwargs
+            elif mtch and dups[0]:
+                stepresult = 'duplicate step', dups
+            elif newferrs:
+                stepresult = 'failed creating db rows', newferrs
+            else:
+                stepresult = 'regex failure', xfail
+                # print 'regex failure-------------------------'
+                # print xfail.keys()[0]
+                # print xfail.values()[0][0]
+        except Exception:
+            # tracebk = traceback.format_exc(12)
+            stepresult = ('failure')
+
+        return stepresult, newfs, images_missing
+
+    def _make_image(self, combodict, itemp):
+        """
+        Check for an image for the given combo and create if necessary.
+
+        If a new image record is created, this method also adds its id and
+        title directly to the instance variable images_missing.
+
+        """
+        db = current.db
+        image_missing = False
+        mytitle = itemp.format(**combodict)
+        img_row = db(db.images.title == mytitle).select().first()
+        if not img_row:
+            myid = db.images.insert(title=mytitle)
+            image_missing = True
+        else:
+            myid = img_row.id
+
+        return myid, mytitle, image_missing
+
+    def _format_strings(self, combodict, ptemps, xtemps, rtemps):
+        u"""
+        Return a list of the template formatted with each of the words.
+
+        The substitution format in each string looks like:
+        {wordsX}        preset word form, simple string substitution
+        {lemma-modform-constraint}  "lemma" parsed to agree with "modform" before
+                                    substitution. The third term "constraint" is
+                                    an optional limitation on the aspects of the
+                                    lemma to be made to agree. The constraint
+                                    should be formatted like "case:nom", in
+                                    which case the case would be constrained
+                                    as nominative, while all other aspects of
+                                    the lemma would be brought into agreement
+                                    with "modform".
+
+        """
+        prompts = [self._do_substitution(p, combodict) for p in ptemps]
+        p_new = chain.from_iterable([p[1] for p in prompts])
+        prompts = [capitalize_first(p[0]) for p in prompts]
+
+        rxs = [self._do_substitution(x, combodict) for x in xtemps]
+        x_new = chain.from_iterable([x[1] for x in rxs])
+        rxs = [x[0] for x in rxs]
+
+        rdbls = [self._do_substitution(r, combodict) for r in rtemps]
+        r_new = chain.from_iterable([r[1] for r in rdbls])
+        rdbls = [capitalize_first(r[0]) for r in rdbls]
+
+        newforms = p_new
+        for k, v in x_new.items():
+            newforms.setdefault(k, []).append(v)
+        for k, v in r_new.items():
+            newforms.setdefault(k, []).append(v)
+
+        return prompts, rxs, rdbls, newforms
+
+    def _do_substitution(self, temp, combodict):
+        """
+        Make the necessary replacements for the suplied template string.
+
+        Returns a list of strings, one for each valid combination of words
+        supplied in the combodict parameter.
+        """
+        ready_strings = []
+        subpairs = {}
+        newforms = {}
+
+        fields = re.findall(r'(?<={).*?(?=})', temp)
+        if not fields:
+            return temp, None
+        inflected_fields = [f for f in fields if len(f.split('-')) > 1]
+        for f in fields:
+            if f in inflected_fields:
+                myform, newforms = WordFactory().get_wordform(f, combodict)
+                if newforms:  # note any additions to db.word_forms
+                    for k, v in newforms.iteritems():
+                        newforms.setdefault(k, []).append(v)
+            else:
+                myform = combodict[f]
+            subpairs[f] = myform
+        ready_strings = temp.format(**subpairs)
+        return ready_strings, newforms
+
+    def get_step_tags(self, tags1, tags2, tags3, prompts, rdbls):
+        """
+        Return a 3-member tuple of lists holding the tags for the current step.
+        """
+        db = current.db
+        tags1 = islist(tags1) if tags1 else []
+        tags2 = islist(tags2) if tags2 else []
+        tags3 = islist(tags3) if tags3 else []
+
+        words = [p.split(' ') for p in prompts]
+        words.extend([r.split(' ') for r in rdbls])
+        allforms = list(chain(*words))
+        allforms = list(set(allforms))
+
+        # Get tags for all lemmas and forms in allforms
+        # TODO: Should allforms include all words or only substitutions?
+        formrows = db((db.word_forms.word_form.belongs(allforms)) &
+                      (db.word_forms.construction == db.constructions.id)
+                      ).select()
+        constags = [f.constructions.tags for f in formrows]
+        formtags = [f.word_forms.tags for f in formrows]
+        firsttags = [f.word_forms.source_lemma.first_tag for f in formrows]
+        xtags = [f.word_forms.source_lemma.extra_tags for f in formrows]
+
+        newtags = list(chain(constags, formtags, firsttags, xtags))
+        newtags = list(set(flatten(newtags)))
+        # assume at first that all form tags are secondary
+        tags2.extend(newtags)
+
+        newtags1, newtags2, newtags3 = [], [], []
+        tagsets = [t for t in [tags1, tags2, tags3] if t]
+        alltags = sorted(list(chain(*tagsets)))
+        tagrows = db(db.tags.id.belongs(alltags)).select(db.tags.id,
+                                                         db.tags.tag_position)
+        steplevel = max([t.tag_position for t in tagrows if t.tag_position < 999])
+        for t in tagrows:
+            if t.tag_position == steplevel:
+                newtags1.append(t.id)
+            elif t.tag_position < steplevel:
+                newtags2.append(t.id)
+            else:
+                newtags3.append(t.id)
+
+        return (newtags1, newtags2, newtags3)
+
+
+
+class PathFactory(object):
+    """
+    An abstract parent class to create paths (with steps) procedurally.
+
+    """
+    def __init__(self):
         """Initialize a paideia.PathFactory object."""
         self.promptstrings = []
         self.mock = True  # switch to activate testing mode with db clean-up
+        self.parser = MorphParser()
 
     def make_create_form(self):
         """
@@ -475,7 +1251,8 @@ class PathFactory(object):
                 numstrings = ['one_', 'two_', 'three_', 'four_', 'five_']
                 sdata = {k.replace(numstrings[i], ''): v for k, v in s.iteritems()}
                 # create steps ========================================"
-                stepdata, newforms, imgs = self.make_step(combodict, sdata)
+                stepdata, newforms, imgs = self.make_step(combodict, sdata,
+                                                          self.mock)
                 # collect result ======================================"
                 pdata['steps'][stepdata[0]] = stepdata[1]
                 if newforms:
@@ -509,737 +1286,6 @@ class PathFactory(object):
             combos = [x for x in combos
                       if not any([set(y).issubset(set(x)) for y in avoid])]
         return combos
-
-    def make_step(self, combodict, sdata):
-        """
-        Create one step with given data.
-
-        Returns a 2-member tuple
-        [0] stepresult      : A 2-member tuple consisting of a string[0]
-                              indicating the result of the step-creation
-                              attempt and a second member [1] which gives
-                              the content of that attempt. This content can be
-                              - a step id (if success)
-                              - a dict of step field values (if testing)
-                              - a list of duplicate steps (duplicates)
-                              - an error traceback (if failure)
-        [1] newfs           : A list of inflected word forms newly added to
-                              db.word_forms in the course of step creation.
-        """
-        mytype = sdata['step_type']
-
-        ptemp = islist(sdata['prompt_template'])
-        xtemp = islist(sdata['response_template'])
-        rtemp = islist(sdata['readable_template'])
-
-        tags1 = sdata['tags']
-        itemp = sdata['image_template']
-        tags2 = sdata['tags_secondary']
-        tags3 = sdata['tags_ahead'] if 'tags_ahead' in sdata.keys() else None
-        npcs = sdata['npcs']
-        locs = sdata['locations']
-        points = sdata['points'] if 'points' in sdata.keys() and sdata['points'] \
-            else 1.0, 0.0, 0.0
-        instrs = sdata['instructions']
-        hints = sdata['hints']
-        img = self.make_image(combodict, itemp) if itemp else None
-        imgid = img[0] if img else None
-        # ititle = img[1] if img else None
-        images_missing = img[2] if img else None
-
-        pros, rxs, rdbls, newfs = self.format_strings(combodict, ptemp, xtemp, rtemp)
-        tags = self.get_step_tags(tags1, tags2, tags3, pros, rdbls)
-        kwargs = {'prompt': pros[randrange(len(pros))],  # sanitize_greek(pros[randrange(len(pros))]),
-                  'widget_type': mytype,
-                  # 'widget_audio': None,
-                  'widget_image': imgid,
-                  'response1': islist(rxs)[0],
-                  'readable_response': '|'.join([r for r in islist(rdbls)]),  # sanitize_greek(rdbls)]),
-                  'outcome1': points[0],
-                  'response2': rxs[1] if len(rxs) > 1 else None,
-                  'outcome2': points[1],
-                  'response3': rxs[2] if len(rxs) > 2 else None,
-                  'outcome3': points[2],
-                  'tags': tags[0],
-                  'tags_secondary': tags[1],
-                  'tags_ahead': tags[2],
-                  'npcs': npcs,  # [randrange(len(npcs))] if multiple
-                  'locations': locs,
-                  'instructions': instrs,
-                  'hints': hints}  # [randrange(len(npcs))] if mult
-
-        try:
-            matchdicts = [test_regex(x, rdbls) for x in rxs]
-            xfail = {}
-            for idx, regex in enumerate(rxs):
-                mtch = all(matchdicts[idx].values())
-                if not mtch:
-                    problems = [k for k, v in matchdicts[idx].iteritems() if not v]
-                    xfail[regex] = problems
-            dups = self.check_for_duplicates(kwargs, rdbls, pros)
-            newferrs = {k: v for k, v in newfs.iteritems()
-                        if not isinstance(v, (int, long))}
-            if mtch and not dups[0] and not self.mock:
-                stepresult = self.step_to_db(kwargs), kwargs
-            elif mtch and not dups[0] and self.mock:
-                stepresult = 'testing', kwargs
-            elif mtch and dups[0]:
-                stepresult = 'duplicate step', dups
-            elif newferrs:
-                stepresult = 'failed creating db rows', newferrs
-            else:
-                stepresult = 'regex failure', xfail
-                # print 'regex failure-------------------------'
-                # print xfail.keys()[0]
-                # print xfail.values()[0][0]
-        except Exception:
-            # tracebk = traceback.format_exc(12)
-            stepresult = ('failure')
-
-        return stepresult, newfs, images_missing
-
-    def make_image(self, combodict, itemp):
-        """
-        Check for an image for the given combo and create if necessary.
-
-        If a new image record is created, this method also adds its id and
-        title directly to the instance variable images_missing.
-
-        """
-        db = current.db
-        image_missing = False
-        mytitle = itemp.format(**combodict)
-        img_row = db(db.images.title == mytitle).select().first()
-        if not img_row:
-            myid = db.images.insert(title=mytitle)
-            image_missing = True
-        else:
-            myid = img_row.id
-
-        return myid, mytitle, image_missing
-
-    def format_strings(self, combodict, ptemps, xtemps, rtemps):
-        u"""
-        Return a list of the template formatted with each of the words.
-
-        The substitution format in each string looks like:
-        {wordsX}        preset word form, simple string substitution
-        {lemma-modform-constraint}  "lemma" parsed to agree with "modform" before
-                                    substitution. The third term "constraint" is
-                                    an optional limitation on the aspects of the
-                                    lemma to be made to agree. The constraint
-                                    should be formatted like "case:nom", in
-                                    which case the case would be constrained
-                                    as nominative, while all other aspects of
-                                    the lemma would be brought into agreement
-                                    with "modform".
-
-        """
-        prompts = [self.do_substitution(p, combodict) for p in ptemps]
-        p_new = chain.from_iterable([p[1] for p in prompts])
-        prompts = [capitalize_first(p[0]) for p in prompts]
-
-        rxs = [self.do_substitution(x, combodict) for x in xtemps]
-        x_new = chain.from_iterable([x[1] for x in rxs])
-        rxs = [x[0] for x in rxs]
-
-        rdbls = [self.do_substitution(r, combodict) for r in rtemps]
-        r_new = chain.from_iterable([r[1] for r in rdbls])
-        rdbls = [capitalize_first(r[0]) for r in rdbls]
-
-        newforms = p_new
-        for k, v in x_new.items():
-            newforms.setdefault(k, []).append(v)
-        for k, v in r_new.items():
-            newforms.setdefault(k, []).append(v)
-
-        return prompts, rxs, rdbls, newforms
-
-    def do_substitution(self, temp, combodict):
-        """
-        Make the necessary replacements for the suplied template string.
-
-        Returns a list of strings, one for each valid combination of words
-        supplied in the combodict parameter.
-        """
-        ready_strings = []
-        subpairs = {}
-        newforms = {}
-
-        fields = re.findall(r'(?<={).*?(?=})', temp)
-        if not fields:
-            return temp, None
-        inflected_fields = [f for f in fields if len(f.split('-')) > 1]
-        for f in fields:
-            if f in inflected_fields:
-                myform, newforms = self.get_wordform(f, combodict)
-                if newforms:  # note any additions to db.word_forms
-                    for k, v in newforms.iteritems():
-                        newforms.setdefault(k, []).append(v)
-            else:
-                myform = combodict[f]
-            subpairs[f] = myform
-        ready_strings = temp.format(**subpairs)
-        return ready_strings, newforms
-
-    def get_wordform(self, field, combodict):
-        """
-        Get the properly inflected word form for the supplied field.
-
-        The expected field format is {lemma-modform-constraint}. For example,
-        {αὐτος-words1-case:nom}. This will inflect the lemma αὐτος to agree with
-        the current words1 except that the case will be constrained as
-        nominative. If no constraint is given the lemma will be inflected to
-        agree with the modform in all relevant aspects.
-
-        """
-        db = current.db
-        splits = field.split('-')
-        lemma = splits[0]
-        mod = splits[1]
-        try:
-            aspect = splits[2]
-        except IndexError:
-            aspect = None
-        # if lemma is pointer to a word list
-        lemma = combodict[lemma] if lemma in combodict.keys() else lemma
-        # allow for passing inflected form instead of lemma
-        if not db.lemmas(db.lemmas.lemma == lemma):
-            myrow = db.word_forms(db.word_forms.word_form == lemma)
-            lemma = myrow.source_lemma.lemma
-        # inflect lemma to agree with its governing word
-        modform = combodict[mod] if mod != 'none' else None
-
-        myform, newform = self.make_form_agree(modform, lemma, aspect)
-
-        return myform, newform
-
-    def _guess_part_of_speech(self, word_form):
-        """docstring for _guess_part_of_speech"""
-
-        word_form = makeutf8(word_form)
-        if (word_form[-1] == u'ω') or (word_form[-2:] == u'μι'):
-            ps = 'verb'
-        elif (word_form[-2:] in [u'ος', u'υς', u'ης', u'ον']) or \
-             (word_form[-1] in [u'η', u'α']):
-            ps = 'noun'
-        elif word_form[-2:] == u'ως':
-            ps = 'adverb'
-        else:
-            ps = None
-
-        return ps
-
-    def _guess_parsing(self, word_form, lemma):
-        """
-        """
-        word_form = makeutf8(word_form)
-        lemma = makeutf8(lemma)
-        case = None
-        gender = None
-        declension = None
-        number = None
-        cases = ['nominative', 'genitive', 'dative', 'accusative', 'vocative',
-                 'nominative', 'genitive', 'dative', 'accusative', 'vocative']
-        endings = {u'ος': {'sfx': [u'ος', u'ου', u'ῳ', u'ον', u'ε',
-                                   u'οι', u'ων', u'οις', u'ους', u'--'],
-                           'declension': '2',
-                           'gender': 'masculine'},
-                   u'ον': {'sfx': [u'ον', u'ου', u'ῳ', u'ον', u'ε',
-                                   u'α', u'ων', u'οις', u'α', u'--'],
-                           'declension': '2',
-                           'gender': 'neuter'},
-                   u'(η|α)': {'sfx': [u'(η|α)', u'[ηα]ς', u'(ῃ|ᾳ)', u'[ηα]ν', u'ε',
-                                  u'αι', u'ων', u'αις', u'ας', u'--'],
-                          'declension': '1',
-                          'gender': 'feminine'},
-                   u'ρ': {'sfx': [u'ρ', u'ρος', u'ρι', u'ρα', u'--',
-                                  u'ρες', u'ρων', u'ρι.ι', u'ρας', u'--'],
-                          'declension': '3',
-                          'gender': None},
-                   u'ις': {'sfx': [u'[^ε]ις', u'(εως|ος)', u'ι', u'(ιν|α)',
-                                   u'--', u'ε[ι]?ς', u'ων', u'[ιε].ι',
-                                   u'(εις|ας)', u'ε[ι]?ς'],
-                          'declension': '3',
-                          'gender': None},
-                   u'υς': {'sfx': [u'υς', u'υως', u'υι', u'υν', u'υ',
-                                   u'υες', u'υων', u'--', u'υας', u'υες'],
-                          'declension': '3',
-                          'gender': None},
-                   }
-        for k, v in endings.iteritems():
-            if re.match(u'.*{}$'.format(k), lemma):
-                ends = [i for i in v['sfx']
-                        if re.match(u'.*{}$'.format(i), word_form)]
-                if ends:
-                    if len(ends) == 1:
-                        idx = v['sfx'].index(ends[0])
-                        case = cases[idx]
-                        number = 'singular' if idx < 5 else 'plural'
-                    else:
-                        idxs = [v['sfx'].index(e) for e in ends]
-                        if all(i > 4 for i in idxs):
-                            number = 'plural'
-                        elif all(i <= 4 for i in idxs):
-                            number = 'singular'
-                        else:
-                            number = None
-                declension = v['declension']
-                gender = v['gender']
-
-                break
-
-        return {'grammatical_case': case,
-                'gender': gender,
-                'number': number,
-                'declension': '{}decl'.format(declension)}
-
-    def _make_construction_label(self, part_of_speech, parsedict):
-        """
-        """
-        db = current.db
-        # don't include lemma in construction label
-        cstbits = [parsedict[k] for k in self.wordform_reqs[part_of_speech][1:]]
-        shortbits = [self.const_abbrevs[i] for i in cstbits]
-        construction_label = '{}_{}'.format(part_of_speech, '_'.join(shortbits))
-        construction_row = db.constructions(db.constructions.construction_label
-                                            == construction_label)
-        return construction_label, construction_row, cstbits, shortbits
-
-    def _add_new_wordform(self, word_form, lemma, mod_form, constraint):
-        """
-        Attempt to insert a new word form into the db based on supplied info.
-
-        If the insertion is successful, return the word form and the id of the
-        newly inserted row from db.word_forms. Otherwise return False.
-
-        """
-        db = current.db
-
-        # get initial dict from constraint if there is one
-        cd = self._parse_constraint(constraint)
-        if not cd:  # in case there was no constraint to parse
-            cd = {}
-
-        # get lemma and part of speech
-        lemmarow = db.lemmas(db.lemmas.lemma == lemma)
-        cd['source_lemma'] = lemmarow.id
-        ps = lemmarow.part_of_speech
-        if not ps:
-            ps = self._guess_part_of_speech(word_form)
-            # lemmarow.update(part_of_speech=ps)
-
-        # identify expected info for this part of speech
-        if ps == 'verb' and cd['mood'] == 'participle':
-            self.self.wordform_reqs['verb'].pop(-2)
-            num = self.self.wordform_reqs['verb'].pop(-1)
-            self.wordform_reqs['verb'].extend(['grammatical_case', 'gender'])
-            self.wordform_reqs['verb'].append(num)
-        if ps == 'verb' and cd['mood'] == 'infinitive':
-            self.wordform_reqs['verb'] = self.wordform_reqs['verb'][:-2]
-
-        # try to get missing info from any modform (supposed to agree)
-        if mod_form:
-            modrow = db(db.word_forms.word_form == mod_form).select().first()
-            if modrow:
-                need = [i for i in self.wordform_reqs[ps]
-                        if i not in cd.keys()]
-                if need:
-                    for n in need:
-                        cd[n] = modrow[n]
-
-        # try to get missing info from form itself and lemma
-        need = [i for i in self.wordform_reqs[ps]
-                if i not in cd.keys()]
-        if need:
-            guesses = self._guess_parsing(word_form, lemma)
-            for n in need:
-                if n in guesses.keys() and guesses[n]:
-                    cd[n] = guesses[n]
-
-        # remove any extraneous info
-        for k in cd.keys():
-            if k not in self.wordform_reqs[ps]:
-                del cd[k]
-
-        # build and add construction label
-        const_label, const_row, constbits, shortbits = self._make_construction_label(ps, cd)
-
-        if const_row:
-            cst_id = const_row.id
-            new_cst_id = None
-            csterr = None
-        else:  # create new construction entry if necessary
-            rdbl = '{}, {}'.format(ps, ' '.join(constbits))
-            rdbl = rdbl.replace(' first', ', first person ')
-            rdbl = rdbl.replace(' second', ', second person ')
-            rdbl = rdbl.replace(' third', ', third person ')
-            rdbl = rdbl.replace(' 1decl', ', 1st declension ')
-            rdbl = rdbl.replace(' 2decl', ', 2nd declension ')
-            rdbl = rdbl.replace(' 3decl', ', 3rd declension ')
-            mytags = [k for k, v in self.tagging_conditions.iteritems()
-                      for lst in v if all(l in shortbits for l in lst)]
-            mytags = [t.id for t in db(db.tags.tag.belongs(mytags)).select()]
-            try:
-                cst_id = db.constructions.insert(**{'construction_label': cst_label,
-                                                    'readable_label': rdbl,
-                                                    'tags': mytags})
-                new_cst_id = cst_id
-                csterr = None
-            except Exception:
-                traceback.print_exc()
-                csterr = 'Could not write new construction {} ' \
-                         'to db.'.format(cst_label)
-
-        if 'declension' in cd.keys():
-            del cd['declension']  # only used for building construction
-        cd['construction'] = cst_id
-
-        # collect and add tags
-        cd['tags'] = [] if 'tags' not in cd else cd['tags']
-        cd['tags'].extend(db.constructions(cst_id).tags)
-        mylem = db.lemmas(db.lemmas.lemma == lemma)
-        cd['tags'].extend(mylem.extra_tags)
-        cd['tags'].append(mylem.first_tag)
-        cd['tags'] = list(set(cd['tags']))
-
-        cd['word_form'] = word_form
-        print cd['word_form']
-
-        # write new form to db
-        try:
-            rowid = db.word_forms.insert(**cd)
-            err = None
-        except Exception:
-            traceback.print_exc()
-            err = 'Could not write word_form {} to db.'.format(word_form)
-
-        return word_form, rowid, err, new_cst_id, csterr
-
-    def _add_new_lemma(self, lemma, constraint):
-        """
-        Attempt to insert a new lemma into the db based on supplied info.
-
-        If the insertion is successful, return True. If the info is not
-        sufficient, return False.
-        """
-        db = current.db
-        cd = self._parse_constraint(constraint)
-        lemma_reqs = ['lemma', 'glosses', 'part_of_speech', 'first_tag',
-                      'extra_tags', 'first_tag']
-        lemdata = {k: i for k, i in cd.iteritems() if k in lemma_reqs}
-        lemma = makeutf8(lemma)
-        print 'lemma slice'
-        print lemma[-2:]
-
-        # get lemma field
-        lemdata['lemma'] = lemma
-        # get part_of_speech field
-        if 'part_of_speech' not in lemdata.keys():
-            lemdata['part_of_speech'] = self._guess_part_of_speech(lemma)
-
-        # add tags based on part of speech and ending
-        tags = []
-        if lemdata['part_of_speech'] == 'verb':
-            tags.append('verb basics')
-            if lemma[-2:] == u'μι':
-                tags.append('μι verbs')
-        elif lemdata['part_of_speech'] == 'noun':
-            tags.append('noun basics')
-            if lemma[-2:] in [u'ος', u'ης', u'ον']:
-                print 'matched nom2 ending'
-                tags.append('nominative 2')
-            elif lemma[-2:] in [u'υς', u'ις', u'ων', u'ηρ']:
-                tags.append('nominative 3')
-            elif lemma[-1] in [u'η', u'α']:
-                tags.append('nominative 1')
-        elif lemdata['part_of_speech'] in ['adjective', 'pronoun', 'adverb',
-                                           'particle', 'conjunction']:
-            tags.append('{}s'.lemdata['part_of_speech'])
-
-        # handle any space placeholders in tag names
-        lemdata['first_tag'] = lemdata['first_tag'].replace('#', ' ')
-        tags = [t.replace('#', ' ') for t in tags]
-        lemdata['first_tag'] = db.tags(db.tags.tag == lemdata['first_tag']).id
-
-        # populate 'tags_extra' field with ids
-        tagids = [t.id for t in db(db.tags.tag.belongs(tags)).select()]
-        print 'tagids'
-        print tagids
-        lemdata['extra_tags'] = tagids
-
-        # get 'glosses' field
-        if 'glosses' in lemdata.keys():
-            lemdata['glosses'] = lemdata['glosses'].split('|')
-            lemdata['glosses'] = [g.replace('#', ' ') for g in lemdata['glosses']]
-
-        try:
-            lemid = db.lemmas.insert(**lemdata)
-            err = None
-        except Exception:
-            traceback.print_exc()
-            err = 'Could not write new lemma {} to db.'.format(lemma)
-            lemid = None
-
-        # Add a word_forms entry for this dictionary form of the lemma
-        try:
-            myform = db.word_forms(db.word_forms.word_form == lemma).id
-            formid = None
-            formerr = None
-            cstid = None
-            csterr = None
-        except Exception:
-            traceback.print_exc()
-            form, formid, formerr, cstid, csterr = self._add_new_wordform(lemma, lemma, None, constraint)
-
-        return lemma, lemid, err, formid, formerr, cstid, csterr
-
-    def _parse_constraint(self, constraint):
-        """
-        Return a dictionary of grammatical features based on a constraint string.
-
-        """
-        try:
-            cparsebits = constraint.split('_')
-            cd = {b.split('@')[0]: b.split('@')[1] for b in cparsebits}
-            key_eqs = {'num': 'number',
-                       'n': 'number',
-                       'gen': 'gender',
-                       'gend': 'gender',
-                       'g': 'gender',
-                       'c': 'grammatical_case',
-                       'case': 'grammatical_case',
-                       't': 'tense',
-                       'v': 'voice',
-                       'm': 'mood',
-                       'pers': 'person',
-                       'ps': 'part_of_speech',
-                       'pos': 'part_of_speech',
-                       'gls': 'glosses',
-                       'gloss': 'glosses',
-                       'gl': 'glosses',
-                       'ft': 'first_tag',
-                       'first': 'first_tag'}
-            for k, v in cd.iteritems():  # handle key short forms
-                if k in key_eqs.keys():
-                    cd[key_eqs[k]] = v
-                    del cd[k]
-            for k, v in cd.iteritems():  # handle value short forms
-                if v in list(chain.from_iterable(self.cst_eqs.values())):
-                    expandedv = [kk for kk, vv in self.cst_eqs.iteritems()
-                                 if v in vv][0]
-                    cd[k] = expandedv
-            return cd
-        except AttributeError:  # constraint is NoneType
-            return False
-
-    def _wordform_from_parsing(self, parsing):
-        """
-        Return the inflected form of the supplied lemma for the given parsing.
-
-        Returns a string if successful and None if unsuccessful.
-        """
-        def _make_constraint_string(parsedict):
-            """
-            Return a constraint string matching the provided parsing dict.
-            """
-            cst_pairs = ['{}@{}'.format(k, v) for k, v in parsedict.iteritems()]
-            constraint = '_'.join(cst_pairs)
-            return constraint
-
-        # a lambda function is stored as a string in a db field
-        formfunc = db.constructions[parsedict['construction']]['form_function']
-        myform = formfunc(parsedict['source_lemma'])
-
-        # add to db.word_forms here
-        newfreturn = self._add_new_wordform(myform, None,
-                                            None, cst_string)
-        return newfreturn
-
-    def _expand_gender(self, gender):
-        """
-        Return a list of possible gender categories for an item of this gender.
-        """
-        genders = [gender, 'undetermined']
-        if parsing['gender'] in ['masculine', 'feminine']:
-            genders.append('masculine or feminine')
-        if parsing['gender'] in ['masculine', 'neuter']:
-            genders.append('masculine or neuter')
-        return genders
-
-    def make_form_agree(self, mod_form, mylemma,
-                        constraint=None, modconstraint=None):
-        """
-        Return a form of the lemma "mylemma" agreeing with the supplied mod_form.
-
-        """
-        db = current.db
-        newforms = {}
-
-        def _add_to_newforms(returnval, tablelist):
-            for table in tablelist:
-                idx = table[1]
-                val = returnval[idx] if returnval[idx] else returnval[idx + 1]
-                newforms.setdefault(table[0], []).append(val)
-
-        # get db rows for lemma and lemma wordform ============================
-        lem = db.lemmas(db.lemmas.lemma == mylemma)
-        lemform = db.word_forms(db.word_forms.word_form == mylemma)
-        if not lem:  # add new lemma in db
-            lemreturn = self._add_new_lemma(mylemma, constraint)
-            # returns: lemma, lemid, err, formid, formerr, cstid, csterr
-            lem = db.lemmas(lemreturn[1])
-            if lemreturn[3] and not lemform:
-                lemform = db.word_forms(lemreturn[3])
-            _add_to_newforms(lemreturn, [('lemmas', 1), ('word_forms', 3),
-                                         ('constructions', 5)])
-        # get db row for modifying wordform ===================================
-        ref = db.word_forms(db.word_forms.word_form == mod_form)
-        if mod_form and not ref:  # add new word_form to db for modform
-            refreturn = self._add_new_wordform(mod_form, None,
-                                               None, modconstraint)
-            # returns: word_form, rowid, err, new_cst_id, csterr
-            ref = db.word_forms(refreturn[1])
-            _add_to_newforms(refreturn, [('word_forms', 1), ('constructions', 3)])
-        # get parsing of constraint string ====================================
-        cst = self._parse_constraint(constraint)
-
-        # consolidate parsing of required wordform =============================
-        parsing = {}
-        # part of speech
-        pos = cst['part_of_speech'] if cst and 'part_of_speech' in cst.keys() \
-            else lem.part_of_speech
-        # verbal mood
-        if pos == 'verb':
-            parsing['mood'] = cst['mood'] if cst and 'mood' in cst.keys() \
-            else ref.mood
-        # what other parsing fields are we looking for?
-        if lem.part_of_speech == 'verb' \
-                and parsing['mood'] in ['infinitive', 'participle']:
-            reqs = self.wordform_reqs['verb-{}'.format(cst['mood'])]
-        else:
-            reqs = self.wordform_reqs[pos]
-        # add construction id
-        parsing['construction'] = self._make_construction_label(pos,
-                                                                parsing)[1].id
-        # get other required parsing components for this part of speech
-        for r in reqs:
-            try:
-                parsing[r] = cst[r] if cst and r in cst.keys() else ref[r]
-                assert parsing[r]
-            except (AttributeError, AssertionError):
-                parsing[r] = lem[r] if r in lem.keys() and lem[r] else None
-
-        # get the inflected form from the db
-        myrow = db((db.word_forms.source_lemma == lem.id) &
-                   (db.word_forms.grammatical_case == parsing['grammatical_case']) &
-                   (db.word_forms.tense == parsing['tense']) &
-                   (db.word_forms.voice == parsing['voice']) &
-                   (db.word_forms.mood == parsing['mood']) &
-                   (db.word_forms.person == parsing['person']) &
-                   (db.word_forms.gender.belongs(
-                       self._expand_gender(parsing['gender']))) &
-                   (db.word_forms.number == parsing['number']) &
-                   (db.word_forms.declension == parsing['declension']) &
-                   (db.word_forms.construction == parsing['construction'])
-                   ).select().first()
-
-        try:
-            myform = myrow.word_form
-        except TypeError:  # if there isn't one try to make it
-            try:
-                newfreturn = self._wordform_from_parsing(parsing)
-                # returns: word_form, rowid, err, new_cst_id, csterr
-                _add_to_newforms(newfreturn,
-                                 [('word_forms', 1), ('constructions', 3)])
-                myform = newfreturn[0]
-            except Exception:  # if making new form fails
-                traceback.print_exc(5)
-                myform = None
-                errstring = 'Could not create new word form for {}, ' \
-                            'modform {}, constraint {}'.format(lemma, mod_form,
-                                                               constraint)
-                newforms.setdefault('word_forms', []).append(errstring)
-
-        return myform, newforms
-
-
-    def check_for_duplicates(self, step, readables, prompt):
-        """
-        Returns a 2-member tuple identifying whether there is a duplicate in db.
-
-        tuple[0] is a boolean (True mean duplicate is present in db)
-        tuple[1] is an integer (the row id of any duplicate step found)
-        So negative return value is (False, 0).
-
-        """
-        db = current.db
-        db_steps = db(db.steps.id > 0).select(db.steps.id,
-                                              db.steps.prompt,
-                                              db.steps.readable_response)
-        for dbs in db_steps:
-            db_readables = dbs.readable_response.split('|')
-            if dbs.prompt == prompt and [r for d in db_readables
-                                         for r in readables if r == d]:
-                return True, dbs.id
-            else:
-                pass
-        return False, 0
-
-    def get_step_tags(self, tags1, tags2, tags3, prompts, rdbls):
-        """
-        Return a 3-member tuple of lists holding the tags for the current step.
-        """
-        db = current.db
-        tags1 = islist(tags1) if tags1 else []
-        tags2 = islist(tags2) if tags2 else []
-        tags3 = islist(tags3) if tags3 else []
-
-        words = [p.split(' ') for p in prompts]
-        words.extend([r.split(' ') for r in rdbls])
-        allforms = list(chain(*words))
-        allforms = list(set(allforms))
-
-        # Get tags for all lemmas and forms in allforms
-        # TODO: Should allforms include all words or only substitutions?
-        formrows = db((db.word_forms.word_form.belongs(allforms)) &
-                      (db.word_forms.construction == db.constructions.id)
-                      ).select()
-        constags = [f.constructions.tags for f in formrows]
-        formtags = [f.word_forms.tags for f in formrows]
-        firsttags = [f.word_forms.source_lemma.first_tag for f in formrows]
-        xtags = [f.word_forms.source_lemma.extra_tags for f in formrows]
-
-        newtags = list(chain(constags, formtags, firsttags, xtags))
-        newtags = list(set(flatten(newtags)))
-        # assume at first that all form tags are secondary
-        tags2.extend(newtags)
-
-        newtags1, newtags2, newtags3 = [], [], []
-        tagsets = [t for t in [tags1, tags2, tags3] if t]
-        alltags = sorted(list(chain(*tagsets)))
-        tagrows = db(db.tags.id.belongs(alltags)).select(db.tags.id,
-                                                         db.tags.tag_position)
-        steplevel = max([t.tag_position for t in tagrows if t.tag_position < 999])
-        for t in tagrows:
-            if t.tag_position == steplevel:
-                newtags1.append(t.id)
-            elif t.tag_position < steplevel:
-                newtags2.append(t.id)
-            else:
-                newtags3.append(t.id)
-
-        return (newtags1, newtags2, newtags3)
-
-    def step_to_db(self, kwargs):
-        """ """
-        db = current.db
-        try:
-            sid = db.steps.insert(**kwargs)
-            return sid
-        except Exception:
-            traceback.print_exc(5)
-            return False
 
     def path_to_db(self, steps, label):
         """ """
@@ -1447,7 +1493,7 @@ class TranslateWordPathFactory(PathFactory):
                     # response3  # todo: build from groups in regex
                     # pth['outcome2'] = 0.4
                     mtch = test_regex()
-                    dups = self.check_for_duplicates(step)
+                    dups = check_for_duplicates(step)
                     if mtch and not testing and not dups:
                         pid, sid = self.write_to_db(step)
                         result[compname] = (pid, sid)
@@ -1583,6 +1629,29 @@ class TranslateWordPathFactory(PathFactory):
         gloss_string = '|'.join(myglosses)
         regex = raw.format(gloss_string)
         return regex
+
+
+def check_for_duplicates(self, step, readables, prompt):
+    """
+    Returns a 2-member tuple identifying whether there is a duplicate in db.
+
+    tuple[0] is a boolean (True mean duplicate is present in db)
+    tuple[1] is an integer (the row id of any duplicate step found)
+    So negative return value is (False, 0).
+
+    """
+    db = current.db
+    db_steps = db(db.steps.id > 0).select(db.steps.id,
+                                            db.steps.prompt,
+                                            db.steps.readable_response)
+    for dbs in db_steps:
+        db_readables = dbs.readable_response.split('|')
+        if dbs.prompt == prompt and [r for d in db_readables
+                                        for r in readables if r == d]:
+            return True, dbs.id
+        else:
+            pass
+    return False, 0
 
 
 """
