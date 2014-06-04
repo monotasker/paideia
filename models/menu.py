@@ -60,6 +60,8 @@ if auth.has_membership('administrators', auth.user_id) or auth.is_impersonating(
                False, URL('editing', 'listing.html', args=['steps'])),
               (SPAN(T(' Lemmas'), _class='icon-plus-sign-alt'),
                False, URL('editing', 'listing.html', args=['lemmas'])),
+              (SPAN(T(' Constructions'), _class='icon-plus-sign-alt'),
+               False, URL('editing', 'listing.html', args=['constructions'])),
               (SPAN(T(' Word forms'), _class='icon-plus-sign-alt'),
                False, URL('editing', 'listing.html', args=['word_forms'])),
               (SPAN(T(' Tags'), _class='icon-tag'),
