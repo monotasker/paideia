@@ -54,6 +54,7 @@ class Inflector(object):
             return constraint
 
         # a lambda function is stored as a string in a db field
+        print 'constr is', parsedict['construction']
         formfunc = db.constructions[parsedict['construction']]['form_function']
         myform = formfunc(parsedict['source_lemma'])
 
@@ -88,71 +89,130 @@ class Inflector(object):
                 genders.append('masculine or neuter')
             return genders
 
-        # get db rows for lemma and lemma wordform ============================
-        lem = db.lemmas(db.lemmas.lemma == mylemma)
-        lemform = db.word_forms(db.word_forms.word_form == mylemma)
-        if not lem:  # add new lemma in db
-            lemreturn = self.wf.add_new_lemma(mylemma, constraint)
-            # returns: lemma, lemid, err, formid, formerr, cstid, csterr
-            lem = db.lemmas(lemreturn[1])
-            if lemreturn[3] and not lemform:
-                lemform = db.word_forms(lemreturn[3])
-            _add_to_newforms(lemreturn, [('lemmas', 1), ('word_forms', 3),
-                                         ('constructions', 5)])
-        # get db row for modifying wordform ===================================
-        ref = db.word_forms(db.word_forms.word_form == mod_form)
-        if mod_form and not ref:  # add new word_form to db for modform
-            refreturn = self.wf.add_new_wordform(mod_form, None,
-                                               None, modconstraint)
-            # returns: word_form, rowid, err, new_cst_id, csterr
-            ref = db.word_forms(refreturn[1])
-            _add_to_newforms(refreturn, [('word_forms', 1), ('constructions', 3)])
-        # get parsing of constraint string ====================================
+        def _get_lemma(mylemma, constraint):
+            """
+            """
+            lem = db.lemmas(db.lemmas.lemma == mylemma)
+            lemform = db.word_forms(db.word_forms.word_form == mylemma)
+            if not lem:  # add new lemma in db
+                lemreturn = self.wf.add_new_lemma(mylemma, constraint)
+                # returns: lemma, lemid, err, formid, formerr, cstid, csterr
+                lem = db.lemmas(lemreturn[1])
+                if lemreturn[3] and not lemform:
+                    lemform = db.word_forms(lemreturn[3])
+                _add_to_newforms(lemreturn, [('lemmas', 1), ('word_forms', 3),
+                                            ('constructions', 5)])
+            return lem, lemform
+
+        def _get_ref(mod_form, constraint):
+            """
+            """
+            ref = db.word_forms(db.word_forms.word_form == mod_form)
+            if mod_form and not ref:  # add new word_form to db for modform
+                refreturn = self.wf.add_new_wordform(mod_form, None,
+                                                None, modconstraint)
+                # returns: word_form, rowid, err, new_cst_id, csterr
+                ref = db.word_forms(refreturn[1])
+                _add_to_newforms(refreturn, [('word_forms', 1), ('constructions', 3)])
+            return ref
+
+        def _get_part_of_speech(cst, lem):
+            """
+            """
+            pos = cst['part_of_speech'] if cst and 'part_of_speech' in cst.keys() \
+                else lem.part_of_speech
+            return pos
+
+        def _get_declension(pos, lemform):
+            """
+            """
+            if not lemform['declension']:
+                declension = MorphParser().infer_declension(mylemma)
+            else:
+                declension = lemform['declension']
+            return declension
+
+        def _get_mood(cst, ref):
+            """
+            """
+            mood = cst['mood'] if cst and 'mood' in cst.keys() else ref.mood
+
+        def _get_tense(cst, ref):
+            """
+            """
+            tense = cst['tense'] if cst and 'tense' in cst.keys() else ref.tense
+
+        def _get_voice(cst, ref):
+            """
+            """
+            voice = cst['voice'] if cst and 'voice' in cst.keys() else ref.voice
+
+        def _get_number(cst, ref):
+            """
+            """
+            number = cst['number'] if cst and 'number' in cst.keys() else ref.number
+
+        def _get_case(cst, ref):
+            """
+            """
+            case = cst['case'] if cst and 'case' in cst.keys() else ref.case
+
+        def _get_gender(cst, ref):
+            """
+            """
+            gender = cst['gender'] if cst and 'gender' in cst.keys() else ref.gender
+
+        def _fill_missing_fields(parsing):
+            """"""
+            # find fields missing from parsing keys
+            pos = parsing['part_of_speech']
+            if pos == 'verb' and parsing['mood'] in ['infinitive', 'participle']:
+                reqs = self.wf.wordform_reqs['verb-{}'.format(parsing['mood'])]
+            else:
+                reqs = self.wf.wordform_reqs[pos]
+            # now fill missing fields with None
+            extra_fields = [f for f in db.word_forms.fields if f not in reqs]
+            for f in extra_fields:
+                parsing[f] = None
+            return parsing
+
+        def _get_construction_label(parsing):
+            """"""
+            pos = parsing['part_of_speech']
+            cl = WordFactory().make_construction_label(pos, parsing)
+            print 'cl is', cl
+            construction = cl[1].id if cl[1] else None
+            return construction
+
+        # gather the 3 sources influencing the target form's inflection
+        lem, lemform = _get_lemma(mylemma, constraint)
+        ref = _get_ref(mod_form, modconstraint)
         cst = self.wf.parse_constraint(constraint)
-        # infer what we can from lemma
-        guesses = {'declension': MorphParser().infer_declension(mylemma)}
 
-        # consolidate parsing of required wordform =============================
+        # collect full parsing from those sources, giving priority to cst
         parsing = {}
-        # part of speech
-        pos = cst['part_of_speech'] if cst and 'part_of_speech' in cst.keys() \
-            else lem.part_of_speech
-        # get declension
-        if pos in ['noun', 'adjective', 'pronoun'] and not lemform['declension']:
-            lemform.update_record(declension=guesses['declension'])
-        # verbal mood
-        if pos == 'verb':
-            parsing['mood'] = cst['mood'] if cst and 'mood' in cst.keys() \
-                else ref.mood
-        # what other parsing fields are we looking for?
-        if lem.part_of_speech == 'verb' \
-                and parsing['mood'] in ['infinitive', 'participle']:
-            reqs = self.wf.wordform_reqs['verb-{}'.format(cst['mood'])]
-        else:
-            reqs = self.wf.wordform_reqs[pos]
-        # get other required parsing components for this part of speech
-        for r in reqs:
-            try:
-                parsing[r] = cst[r] if cst and r in cst.keys() else ref[r]
-                assert parsing[r]
-            except (AttributeError, AssertionError):
-                try:
-                    parsing[r] = lem[r] if r in lem.keys() and lem[r] else None
-                    assert parsing[r]
-                except AssertionError:
-                    parsing[r] = guesses[r]
-            print r, parsing[r]
-        # add construction id
-        cl = self.wf.make_construction_label(pos, parsing)
-        parsing['construction'] = cl[1].id if cl[1] else None
-
+        parsing['part_of_speech'] = _get_part_of_speech(cst, lem)
+        if parsing['part_of_speech'] == 'verb':
+            parsing['mood'] = _get_mood(cst, ref)
+            parsing['tense'] = _get_tense(cst, ref)
+            parsing['voice'] = _get_voice(cst, ref)
+            if parsing['mood'] == 'participle':
+                parsing['gender'] = _get_gender(cst, ref)
+                parsing['case'] = _get_case(cst, ref)
+            if parsing['mood'] != 'infinitive':
+                parsing['number'] = _get_number(cst, ref)
+        elif parsing['part_of_speech'] in ['noun', 'pronoun',
+                                           'adjective', 'article']:
+            parsing['declension'] = _get_declension(parsing['part_of_speech'],
+                                                    lemform)
+            parsing['case'] = _get_case(cst, ref)
+            parsing['gender'] = _get_gender(cst, ref)
+            parsing['number'] = _get_number(cst, ref)
+        parsing['construction'] = _get_construction_label(parsing)
         # FIXME: add tags field
 
-        extra_fields = [f for f in db.word_forms.fields if f not in reqs]
-        for f in extra_fields:
-            parsing[f] = None
-
-        # get the inflected form from the db
+        # get the inflected form's row from the db
+        parsing = _fill_missing_fields(parsing)
         myrow = db((db.word_forms.source_lemma == lem.id) &
                    (db.word_forms.grammatical_case == parsing['grammatical_case']) &
                    (db.word_forms.tense == parsing['tense']) &
@@ -180,9 +240,8 @@ class Inflector(object):
                 traceback.print_exc(5)
                 myform = None
                 errstring = 'Could not create new word form for {}, ' \
-                            'modform {}, constraint {}'.format(mylemma,
-                                                               mod_form,
-                                                               constraint)
+                            'modform {}, constraint {}' \
+                            ''.format(mylemma, mod_form, constraint)
                 newforms.setdefault('word_forms', []).append(errstring)
 
         return myform, newforms
