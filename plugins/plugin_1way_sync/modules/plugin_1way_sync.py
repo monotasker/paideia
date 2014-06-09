@@ -31,6 +31,7 @@ class OnewaySyncer(object):
     def get_form(self):
         """
         """
+        db = current.db
         form = FORM(INPUT(_type='file', _name='data'), INPUT(_type='submit'))
         output = None
         if form.process().accepted:
