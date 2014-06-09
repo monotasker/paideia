@@ -112,6 +112,10 @@ if auth.has_membership('administrators', auth.user_id) or auth.is_impersonating(
                False, URL('plugin_utils', 'util', args=['print_rows_as_dicts'])),
               (SPAN(T(' Impersonate'), _class='icon-cog'),
                False, URL('default', 'user', args=['impersonate'])),
+              (SPAN(T(' 1-way Sync'), _class='icon-cog'),
+               False, URL('plugin_1way_sync', 'oneway_csv_sync')),
+              (SPAN(T(' DB Backup'), _class='icon-cog'),
+               False, URL('plugin_sqlite_backup', 'backup_db')),
               ]),
 
             (SPAN(T(' Web IDE'), _class='icon-code'),
