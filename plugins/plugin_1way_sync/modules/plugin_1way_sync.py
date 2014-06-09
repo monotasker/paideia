@@ -8,6 +8,7 @@ Part of the plugin plugin_1way_sync for the web2py framework.
 import csv
 from gluon import FORM, INPUT
 from plugin_sqlite_backup import copy_db
+from pprint import pprint
 
 
 class OnewaySyncer(object):
@@ -23,7 +24,7 @@ class OnewaySyncer(object):
 
     """
 
-    def __init__(self, filename):
+    def __init__(self):
         """docstring for __init__"""
         pass
 
@@ -31,6 +32,7 @@ class OnewaySyncer(object):
         """
         """
         form = FORM(INPUT(_type='file', _name='data'), INPUT(_type='submit'))
+        output = None
         if form.process().accepted:
             csvfile = db.parse_csv(form.vars.data.file)
 
@@ -44,45 +46,10 @@ class OnewaySyncer(object):
                 #for item in items:
                     #db((db[table].uuid==item.uuid)&
                        #(db[table].id!=item.id)).delete()
+            pprint(csvfile)
+            output = pprint(csvfile)
 
-            return {'form': form, 'output': output}
-
-    def parse_csv(self, csvfile):
-        """
-        Parse csvfile and return a 2-level nested dictionary of the data.
-
-        The top-level keys of the dict are table names. The second-level keys
-        are field names within the table. The second-level values are the
-        field contents.
-
-        """
-        db = current.db
-        #csvdata = csv.reader(csvfile)
-        dd = {}
-
-        for line in csvfile:
-            line = line.strip()
-            if not line:  # ignore empty lines
-                continue
-            elif line == 'END':  # file is finished
-                return
-            elif not line.startswith('TABLE ') or \  # bad file format
-                    not line[6:] in db.tables:
-                raise SyntaxError('invalid file format')
-            else:  # line parsing starts
-                tablename = line[6:]
-                if tablename is not None and tablename in db.tables:
-                    dd[tablename] = self._parse_csv_table(tablename, csvfile)
-                elif tablename is None or ignore_missing_tables:
-                    # skip all non-empty lines
-                    for line in ifile:
-                        if not line.strip():
-                            break
-                else:
-                    raise RuntimeError("Unable to import table that does not "
-                                       "exist.\nTry db.import_from_csv_file(..."
-                                       ", map_tablenames={'table':'othertable'}"
-                                       ",ignore_missing_tables=True)")
+        return {'form': form, 'output': output}
 
     def _parse_csv_table(self, tablename, csvfile):
         """
@@ -153,6 +120,45 @@ class OnewaySyncer(object):
                         new_id = self.insert(**dict(items))
                 if id_map and cid is not None:
                     id_map_self[long(line[cid])] = new_id
+
+    def parse_csv(self, csvfile):
+        """
+        Parse csvfile and return a 2-level nested dictionary of the data.
+
+        The top-level keys of the dict are table names. The second-level keys
+        are field names within the table. The second-level values are the
+        field contents.
+
+        """
+        db = current.db
+        #csvdata = csv.reader(csvfile)
+        dd = {}
+
+        for line in csvfile:
+            line = line.strip()
+            if not line:  # ignore empty lines
+                continue
+            elif line == 'END':  # file is finished
+                return
+            elif not line.startswith('TABLE ') or \
+                    not line[6:] in db.tables:
+                raise SyntaxError('invalid file format')
+            else:  # line parsing starts
+                tablename = line[6:]
+                if tablename is not None and tablename in db.tables:
+                    dd[tablename] = self._parse_csv_table(tablename, csvfile)
+                elif tablename is None or ignore_missing_tables:
+                    # skip all non-empty lines
+                    for line in ifile:
+                        if not line.strip():
+                            break
+                else:
+                    raise RuntimeError("Unable to import table that does not "
+                                       "exist.\nTry db.import_from_csv_file(..."
+                                       ", map_tablenames={'table':'othertable'}"
+                                       ",ignore_missing_tables=True)")
+            return dd
+
 
     def sync(self):
         """
