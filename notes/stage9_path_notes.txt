@@ -1,19 +1,53 @@
+Stage 9 path notes
+====================
+
 ## present active imperative
 
-tell {words1} {words2} {words3}
-- words1: Ἰασονα|Σοφιαν|Φοιβην|Γεωργιον
-- words2: ἀγοραζειν|λαμβανειν|φερειν
-- words3: γαλα|ἐλαιον|ἀρτους|οἰνον
-- step1:
-    Ὠ παις! Κελευε της ἀγορας {words3} {words2} {words1}.
-    Ὠ παις! Κελευε {words1} {words2} {words3} της ἀγορας.
-    Ὠ παις! Κελευε {words1} {words3} της ἀγορας {words2}.
 
-- step2:
-    
+### tell {words1} {words2} {words3}
+
+- words1: Ἰασων|Σοφια|Φοιβη|Γεωργιος
+- words2: ἀγοραζω|λαμβανω|φερω
+- words3: γαλα|ἐλαιον|ἀρτος|οἰνος
+
+#### step1:
+    Ὠ παις! Κελευε της ἀγορας {words3--case@acc} {words2--mood@inf} 
+{words1--case@acc}.
+    Ὠ παις! Κελευε {words1--case@acc} {words2--mood@inf} {τίς-words3} 
+{words3--case@acc} της ἀγορας.
+    Ὠ παις! Κελευε {words1--case@acc} {words3--case@acc} της ἀγορας 
+{words2--mood@inf}.
+
+        - npc: Maria
+        - loc: oikos A
+        - tags:
+            - accusative subj. of infinitive
+            - town places
+            - acc personal pronouns
+            - dative of location
+
+#### step2:
+    Ὠ {words1--case@voc_n@2}, {words2--mood@imper_n@1_p@2} τῃ ἀγορᾳ 
+{words3--case@acc}.
+    Ὠ {words1--case@voc_n@2}! Μαρια θελει τῃ ἀγορᾳ σε {words2--mood@inf} 
+{words3--case@acc}.
+    Χαιρε ὠ {words1--mood@voc_n@2}! {words2--mood@imper_n@2} τῃ ἀγορᾳ {words3}.
+
+        - npc: ???
+        - loc: oikos A
+        - tags:
+            - accusative subj. of infinitive
+            - town places
+            - acc personal pronouns
+            - dative of location
+
 
 ## accusative 1
 
+how much money can I spend to buy {sheep, lambs, birds, doves, bread} for 
+sacrifice?
+
+no more than ??? coins
 
 
 ## accusative 3
