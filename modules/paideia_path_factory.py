@@ -16,17 +16,18 @@ TranslateWordPathFactory:class (extends PathFactory)
 : A subclass that includes extra helper logic for simple translation paths.
 
 """
-# from pprint import pprint
-import traceback
+from ast import literal_eval
+# import datetime
 from gluon import current, SQLFORM, Field, BEAUTIFY, IS_IN_DB, UL, LI
 from gluon import CAT, H2
-import re
-from random import randrange, shuffle
 from itertools import product, chain
 from paideia_utils import capitalize_first, test_regex, uprint
 from paideia_utils import islist  # sanitize_greek,
 from plugin_utils import flatten, makeutf8
-# import datetime
+from pprint import pprint
+from random import randrange, shuffle
+import re
+import traceback
 # from plugin_ajaxselect import AjaxSelect
 
 
@@ -37,7 +38,7 @@ class Inflector(object):
         """docstring for __"""
         self.wf = WordFactory()
 
-    def _wordform_from_parsing(self, parsedict):
+    def _wordform_from_parsing(self, parsedict, lemma):
         """
         Return the inflected form of the supplied lemma for the given parsing.
 
@@ -53,24 +54,35 @@ class Inflector(object):
             constraint = '_'.join(cst_pairs)
             return constraint
 
+        print 'parsedict case is', parsedict['grammatical_case']
         # a lambda function is stored as a string in a db field
-        print 'constr is', parsedict['construction']
-        formfunc = db.constructions[parsedict['construction']]['form_function']
-        myform = formfunc(parsedict['source_lemma'])
+        funcstring = db.constructions[parsedict['construction']]['form_function']
+        print 'funcstring is', funcstring
+        try:
+            print 'starting eval'
+            #formfunc = eval(funcstring)
+            formfunc  = lambda w: w[:-1] + makeutf8('ης')
+            print 'formfunc', formfunc
+            myform = formfunc(makeutf8(lemma))
+            print 'done'
+        except SyntaxError:  # if an empty string
+            myform = lemma
+        print 'myform is', myform
 
         # add to db.word_forms here
         constraint = _make_constraint_string(parsedict)
-        newfreturn = self.wf.add_new_wordform(myform, None, None, constraint)
+        newfreturn = self.wf.add_new_wordform(myform, lemma, None, constraint)
         return newfreturn
 
-    def make_form_agree(self, mod_form, mylemma,
+    def make_form_agree(self, modform, mylemma,
                         constraint=None, modconstraint=None):
         """
-        Return a form of the lemma "mylemma" agreeing with the supplied mod_form.
+        Return a form of the lemma "mylemma" agreeing with the supplied modform.
 
         """
         db = current.db
         newforms = {}
+        print 'modform is', modform
 
         def _add_to_newforms(returnval, tablelist):
             for table in tablelist:
@@ -104,12 +116,12 @@ class Inflector(object):
                                             ('constructions', 5)])
             return lem, lemform
 
-        def _get_ref(mod_form, constraint):
+        def _get_ref(modform, constraint):
             """
             """
-            ref = db.word_forms(db.word_forms.word_form == mod_form)
-            if mod_form and not ref:  # add new word_form to db for modform
-                refreturn = self.wf.add_new_wordform(mod_form, None,
+            ref = db.word_forms(db.word_forms.word_form == modform)
+            if modform and not ref:  # add new word_form to db for modform
+                refreturn = self.wf.add_new_wordform(modform, None,
                                                 None, modconstraint)
                 # returns: word_form, rowid, err, new_cst_id, csterr
                 ref = db.word_forms(refreturn[1])
@@ -132,35 +144,14 @@ class Inflector(object):
                 declension = lemform['declension']
             return declension
 
-        def _get_mood(cst, ref):
-            """
-            """
-            mood = cst['mood'] if cst and 'mood' in cst.keys() else ref.mood
-
-        def _get_tense(cst, ref):
-            """
-            """
-            tense = cst['tense'] if cst and 'tense' in cst.keys() else ref.tense
-
-        def _get_voice(cst, ref):
-            """
-            """
-            voice = cst['voice'] if cst and 'voice' in cst.keys() else ref.voice
-
-        def _get_number(cst, ref):
-            """
-            """
-            number = cst['number'] if cst and 'number' in cst.keys() else ref.number
-
-        def _get_case(cst, ref):
-            """
-            """
-            case = cst['case'] if cst and 'case' in cst.keys() else ref.case
-
-        def _get_gender(cst, ref):
-            """
-            """
-            gender = cst['gender'] if cst and 'gender' in cst.keys() else ref.gender
+        def _get_property(cst, ref, prop):
+            if cst and prop in cst.keys():
+                prop = cst[prop]
+            elif ref and prop in ref.keys():
+                prop = ref[prop]
+            else:
+                prop = None
+            return prop
 
         def _fill_missing_fields(parsing):
             """"""
@@ -171,7 +162,9 @@ class Inflector(object):
             else:
                 reqs = self.wf.wordform_reqs[pos]
             # now fill missing fields with None
-            extra_fields = [f for f in db.word_forms.fields if f not in reqs]
+            extra_fields = [f for f in db.word_forms.fields
+                            if f not in reqs
+                            and f not in parsing.keys()]
             for f in extra_fields:
                 parsing[f] = None
             return parsing
@@ -180,39 +173,41 @@ class Inflector(object):
             """"""
             pos = parsing['part_of_speech']
             cl = WordFactory().make_construction_label(pos, parsing)
-            print 'cl is', cl
             construction = cl[1].id if cl[1] else None
             return construction
 
         # gather the 3 sources influencing the target form's inflection
         lem, lemform = _get_lemma(mylemma, constraint)
-        ref = _get_ref(mod_form, modconstraint)
+        ref = _get_ref(modform, modconstraint)
+        print 'ref is', ref
         cst = self.wf.parse_constraint(constraint)
 
         # collect full parsing from those sources, giving priority to cst
         parsing = {}
+        mykeys = []
         parsing['part_of_speech'] = _get_part_of_speech(cst, lem)
         if parsing['part_of_speech'] == 'verb':
-            parsing['mood'] = _get_mood(cst, ref)
-            parsing['tense'] = _get_tense(cst, ref)
-            parsing['voice'] = _get_voice(cst, ref)
+            mykeys.extend(['mood', 'tense', 'voice'])
             if parsing['mood'] == 'participle':
-                parsing['gender'] = _get_gender(cst, ref)
-                parsing['case'] = _get_case(cst, ref)
+                mykeys.extend(['gender', 'grammatical_case'])
             if parsing['mood'] != 'infinitive':
-                parsing['number'] = _get_number(cst, ref)
+                mykeys.append('number')
         elif parsing['part_of_speech'] in ['noun', 'pronoun',
                                            'adjective', 'article']:
             parsing['declension'] = _get_declension(parsing['part_of_speech'],
                                                     lemform)
-            parsing['case'] = _get_case(cst, ref)
-            parsing['gender'] = _get_gender(cst, ref)
-            parsing['number'] = _get_number(cst, ref)
-        parsing['construction'] = _get_construction_label(parsing)
+            mykeys.extend(['grammatical_case', 'gender', 'number'])
         # FIXME: add tags field
+        for k in mykeys:
+            parsing[k] = _get_property(cst, ref, k)
+        parsing['construction'] = _get_construction_label(parsing)  # must be last
+        parsing['source_lemma'] = lem.lemma
+
+        print 'case is', parsing['grammatical_case']
 
         # get the inflected form's row from the db
         parsing = _fill_missing_fields(parsing)
+
         myrow = db((db.word_forms.source_lemma == lem.id) &
                    (db.word_forms.grammatical_case == parsing['grammatical_case']) &
                    (db.word_forms.tense == parsing['tense']) &
@@ -231,7 +226,7 @@ class Inflector(object):
             myform = myrow.word_form
         except AttributeError:  # if there isn't one try to make it
             try:
-                newfreturn = self._wordform_from_parsing(parsing)
+                newfreturn = self._wordform_from_parsing(parsing, lem.lemma)
                 # returns: word_form, rowid, err, new_cst_id, csterr
                 _add_to_newforms(newfreturn,
                                  [('word_forms', 1), ('constructions', 3)])
@@ -241,7 +236,7 @@ class Inflector(object):
                 myform = None
                 errstring = 'Could not create new word form for {}, ' \
                             'modform {}, constraint {}' \
-                            ''.format(mylemma, mod_form, constraint)
+                            ''.format(mylemma, modform, constraint)
                 newforms.setdefault('word_forms', []).append(errstring)
 
         return myform, newforms
@@ -623,7 +618,7 @@ class WordFactory(object):
 
         return cst_id, csterr
 
-    def add_new_wordform(self, word_form, lemma, mod_form, constraint):
+    def add_new_wordform(self, word_form, lemma, modform, constraint):
         """
         Attempt to insert a new word form into the db based on supplied info.
 
@@ -633,7 +628,9 @@ class WordFactory(object):
         """
         db = current.db
 
-        parsing = self.parse_constraint(constraint) if constraint else {}
+        parsing = self.parse_constraint(constraint)
+        if not parsing:
+            parsing = {}
 
         # get lemma and part of speech
         lemmarow = db.lemmas(db.lemmas.lemma == lemma)
@@ -647,7 +644,7 @@ class WordFactory(object):
         reqs = self.wordform_reqs[pos]
         if pos == 'verb' and parsing['mood'] in ['infinitive', 'participle']:
             reqs = self.wordform_reqs['verb-{}'.format(parsing['mood'])]
-        modrow = db.word_forms(db.word_forms.word_form == mod_form)
+        modrow = db.word_forms(db.word_forms.word_form == modform)
         guesses = self.parser.infer_parsing(word_form, lemma)
         for r in [i for i in reqs if i not in parsing.keys() or not parsing[i]]:
             try:
@@ -702,8 +699,6 @@ class WordFactory(object):
                       'extra_tags', 'first_tag']
         lemdata = {k: i for k, i in cd.iteritems() if k in lemma_reqs}
         lemma = makeutf8(lemma)
-        print 'lemma slice'
-        print lemma[-2:]
 
         # get lemma field
         lemdata['lemma'] = lemma
@@ -720,7 +715,6 @@ class WordFactory(object):
         elif lemdata['part_of_speech'] == 'noun':
             tags.append('noun basics')
             if lemma[-2:] in [u'ος', u'ης', u'ον']:
-                print 'matched nom2 ending'
                 tags.append('nominative 2')
             elif lemma[-2:] in [u'υς', u'ις', u'ων', u'ηρ']:
                 tags.append('nominative 3')
@@ -737,8 +731,6 @@ class WordFactory(object):
 
         # populate 'tags_extra' field with ids
         tagids = [t.id for t in db(db.tags.tag.belongs(tags)).select()]
-        print 'tagids'
-        print tagids
         lemdata['extra_tags'] = tagids
 
         # get 'glosses' field
@@ -772,8 +764,24 @@ class WordFactory(object):
         Return a dictionary of grammatical features based on a constraint string.
 
         """
+        # FIXME: This hack is necessary because underscores are used as
+        # delimiters and in field names. Find a different delimiter.
         try:
-            cparsebits = constraint.split('_')
+            expts = [('thematic', 'pattern'),
+                     ('part', 'of', 'speech'),
+                     ('word', 'form'),
+                     ('source', 'lemma'),
+                     ('grammatical', 'case')]
+            cparsebits = [b for b in constraint.split('_') if b not in
+                          list(chain.from_iterable([l[:-1] for l in expts]))]
+            for e in expts:
+                m = [c for c in cparsebits if re.match('{}.*'.format(e[-1]), c)
+                     and not re.search('None', c)]
+                if m:
+                    idx = cparsebits.index(m[0])
+                    pre = '_'.join(e)
+                    post = m.split('@')[1]
+                    cparsebits[idx] = '{}@{}'.format(pre, post)
             cd = {b.split('@')[0]: b.split('@')[1] for b in cparsebits}
             key_eqs = {'num': 'number',
                        'n': 'number',
@@ -938,9 +946,6 @@ class StepFactory(object):
                 stepresult = 'failed creating db rows', newferrs
             else:
                 stepresult = 'regex failure', xfail
-                # print 'regex failure-------------------------'
-                # print xfail.keys()[0]
-                # print xfail.values()[0][0]
         except Exception:
             # tracebk = traceback.format_exc(12)
             stepresult = ('failure')
@@ -1392,8 +1397,6 @@ class PathFactory(object):
                 content = pv['steps']
                 mycontent = UL()
                 for key, c in content.iteritems():
-                    # print 'item', key
-                    # pprint(c)
                     mycontent.append(LI(key))
                     mystep = UL()
                     mystep.append(LI('widget_type:', db.step_types(c['widget_type']).step_type))
@@ -1421,7 +1424,6 @@ class PathFactory(object):
                     mycontent.append(LI(mystep))
                     npcs = [uprint(t['name']) for t in
                             db(db.npcs.id.belongs(islist(c['npcs']))).select()]
-                    # print c['npcs']
                     mystep.append(LI('npcs:', npcs))
                     locations = [t['map_location'] for t in
                                  db(db.locations.id.belongs(c['locations'])

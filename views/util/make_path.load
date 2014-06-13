@@ -40,12 +40,12 @@
                                           '{lemma-modform-constraint} where "lemma" '
                                           'can be a substitution word (like "words2")'
                                           'or a Greek lemma. Constraints are '
-                                          'formatted like "case:nom".')
+                                          'formatted like "case@nom" and separated by an underscore: "case@nom_g@f".')
                                        ),
                                    TR(TD(LABEL('response_template')),
                                       TD(form.custom.widget['{}_response_template'.format(nums[n])]),
-                                      TD('Here substitution fields are marked by '
-                                          'double brackets {words1}')
+                                      TD('Here substitution fields are still marked by '
+                                          'single brackets {words1}')
                                       ),
                                    TR(TD(LABEL('readable_template')),
                                       TD(form.custom.widget['{}_readable_template'.format(nums[n])]),
