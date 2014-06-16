@@ -15,6 +15,7 @@ from paideia_utils import test_step_regex, gather_vocab
 #from plugin_utils import capitalize
 import paideia_path_factory
 import traceback
+import StringIO
 #from pprint import pprint
 
 
@@ -117,3 +118,36 @@ def migrate_back():
         db.images[i.id] = i.as_dict()
 
     return dict(records_updated=c)
+
+
+@auth.requires_membership('administrators')
+def export_db():
+    s = StringIO.StringIO()
+    db.export_to_csv_file(s)
+    response.headers['Content-Type'] = 'text/csv'
+    return s.getvalue()
+
+
+@auth.requires_membership('administrators')
+def update_uuids():
+    """
+    Make sure that every record in the database has a uuid.
+    """
+    retval = {}
+    for t in db.tables:
+        fields = {}
+        for f in t.fields:
+            recs = db(db[t][f].id > 0).select()
+            changed = 0
+            dated = 0
+            for r in recs:
+                if not r.uuid:
+                    r.update_record(uuid=lambda:str(uuid.uuid4()))
+                    changed += 1
+                if not r.modified_on:
+                    r.update_record(modified_on=request.now)
+                    dated += 1
+            fields[f] = ('changed {}'.format(changed),
+                         'dated {}'.format(dated))
+        retval[t] = fields
+    return {'changes': retval}

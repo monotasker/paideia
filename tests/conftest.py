@@ -203,7 +203,7 @@ def web2py(appname, fixture_create_testfile_for_application):
     return Storage(web2py_env)
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope='module')
 def db(web2py, request):
     """
     Provides a access to the production database from within test functions.

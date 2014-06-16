@@ -2343,7 +2343,9 @@ class Categorizer(object):
                 cats[revcat] = taglist[:]  # copy bc demotion only changes one
                 if taglist and cat in cnms:
                     # Is tag completely new to this user?
-                    all_old_tags = list(chain.from_iterable(oldcats.values()))
+                    oldvals = [v for v in oldcats.values() if v]
+                    print 'oldcats.values()', oldvals
+                    all_old_tags = list(chain.from_iterable(oldvals))
                     new_tags.extend([t for t in taglist if t not in all_old_tags])
 
                     # was tag in a lower category before?

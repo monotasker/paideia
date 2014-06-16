@@ -54,7 +54,6 @@ class Inflector(object):
             constraint = '_'.join(cst_pairs)
             return constraint
 
-        print 'parsedict case is', parsedict['grammatical_case']
         # a lambda function is stored as a string in a db field
         funcstring = db.constructions[parsedict['construction']]['form_function']
         print 'funcstring is', funcstring
@@ -144,11 +143,13 @@ class Inflector(object):
                 declension = lemform['declension']
             return declension
 
-        def _get_property(cst, ref, prop):
+        def _get_property(cst, lemma, ref, prop):
             if cst and prop in cst.keys():
                 prop = cst[prop]
-            elif ref and prop in ref.keys():
+            elif ref and prop in ref.keys() and prop != 'gender':
                 prop = ref[prop]
+            elif prop == 'gender':
+                prop = lemma[prop]
             else:
                 prop = None
             return prop
@@ -179,7 +180,6 @@ class Inflector(object):
         # gather the 3 sources influencing the target form's inflection
         lem, lemform = _get_lemma(mylemma, constraint)
         ref = _get_ref(modform, modconstraint)
-        print 'ref is', ref
         cst = self.wf.parse_constraint(constraint)
 
         # collect full parsing from those sources, giving priority to cst
@@ -199,8 +199,9 @@ class Inflector(object):
             mykeys.extend(['grammatical_case', 'gender', 'number'])
         # FIXME: add tags field
         for k in mykeys:
-            parsing[k] = _get_property(cst, ref, k)
+            parsing[k] = _get_property(cst, ref, lem, k)
         parsing['construction'] = _get_construction_label(parsing)  # must be last
+        print 'after get label', parsing['construction']
         parsing['source_lemma'] = lem.lemma
 
         print 'case is', parsing['grammatical_case']
@@ -311,6 +312,16 @@ class MorphParser(object):
         """docstring for _infer_case"""
         cases = ['nominative', 'genitive', 'dative', 'accusative', 'vocative',
                  'nominative', 'genitive', 'dative', 'accusative', 'vocative']
+        pass
+
+    def infer_gender(self, wordform, lemma):
+        """
+        """
+        pass
+
+    def infer_pattern(self, wordform, lemma):
+        """
+        """
         pass
 
     def infer_parsing(self, word_form, lemma):
@@ -427,9 +438,27 @@ class WordFactory(object):
                        'act': 'active',
                        'mid': 'middle',
                        'pass': 'passive',
-                       'mid-pass': 'middle or passive'}
+                       'mid-pass': 'middle or passive',
+                       'atheme': 'alpha thematic',
+                       'athm': 'alpha thematic',
+                       'aconst': 'alpha construct',
+                       'acst': 'alpha construct',
+                       'econst1': 'epsilon construct 1',
+                       'ecst1': 'epsilon construct 1',
+                       'econst2': 'epsilon construct 2',
+                       'ecst2': 'epsilon construct 2',
+                       'oconst': 'omicron construct',
+                       'ocst': 'omicron construct'
+                       }
 
-    const_abbrevs = {'adjective': 'adj',
+    const_abbrevs = {'3 decl epsilon': '3e',
+                     '3 decl upsilon': '3u',
+                     'alpha thematic': 'atheme',
+                     'alpha construct': 'aconst',
+                     'epsilon construct 1': 'econst1',
+                     'epsilon construct 2': 'econst2',
+                     'omicron construct': 'oconst',
+                     'adjective': 'adj',
                      'pronoun': 'pron',
                      'article': 'art',
                      'conjunction': 'conj',
@@ -585,9 +614,13 @@ class WordFactory(object):
         # don't include lemma in construction label
         cstbits = [parsedict[k] for k in self.wordform_reqs[part_of_speech][1:]]
         shortbits = [self.const_abbrevs[i] for i in cstbits if i]
+        print 'shortbits --------------------------------------'
+        pprint(shortbits)
         construction_label = '{}_{}'.format(part_of_speech, '_'.join(shortbits))
+        print 'label', construction_label
         construction_row = db.constructions(db.constructions.construction_label
                                             == construction_label)
+        print 'row', construction_row.id
         return construction_label, construction_row, cstbits, shortbits
 
     def _add_new_construction(self, pos, const_label, constbits, shortbits):

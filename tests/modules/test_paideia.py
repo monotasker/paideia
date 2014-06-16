@@ -3742,7 +3742,8 @@ class TestPath():
                               (19, 19, []),
                               (1, 71, []),
                               (63, 66, [67, 68])])
-    def test_path_prepare_for_prompt(self, pathid, firststep, stepsleft, db):
+    def test_path_prepare_for_prompt(self, pathid, firststep, stepsleft,
+                                     db, user_login):
         """unit test for Path._prepare_for_prompt()"""
         path, pathsteps = mypath(pathid, db)
         actual = path._prepare_for_prompt()
@@ -3763,7 +3764,8 @@ class TestPath():
          ('case5', 1, 'domus_A', 63, 66, [67, 68], [3, 1])
          ])
     def test_path_get_step_for_prompt(self, casenum, locid, localias, pathid,
-                                      stepid, stepsleft, locs, db, mysteps):
+                                      stepid, stepsleft, locs, db, user_login,
+                                      mysteps):
         """
         Unit test for Path.get_step_for_prompt() where no redirect prompted.
         """
@@ -3793,7 +3795,7 @@ class TestPath():
          ])
     def test_path_get_step_for_prompt_redirect(self, casenum, locid, localias,
                                                pathid, stepid, stepsleft, locs,
-                                               db, mysteps):
+                                               db, user_login, mysteps):
         """
         Unit test for Path.get_step_for_prompt() in a case that prompts redirect.
         """
@@ -3824,7 +3826,7 @@ class TestPath():
          (1, [71]),
          (63, [66, 67, 68])
          ])
-    def test_path_get_steps(self, pathid, steps, mysteps, db):
+    def test_path_get_steps(self, pathid, steps, mysteps, db, user_login):
         """
         Unit test for method paideia.Path.get_step_for_reply.
         """
@@ -3851,7 +3853,7 @@ class TestPath():
          #(63, 66, [67, 68], [3, 1], 'domus_A')  # first step doesn't take reply
          ])
     def test_path_get_step_for_reply(self, pathid, stepid, stepsleft, locs,
-                                     localias, db):
+                                     localias, user_login, db):
         """
         Unit test for method paideia.Path.get_step_for_reply.
         """

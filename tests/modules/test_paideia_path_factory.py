@@ -336,7 +336,7 @@ class TestInflector():
     @pytest.mark.parametrize('mod_form,lemma,constraints,out',
         [('ἀρτου',  # mod_form
           'ἀγορα',  # lemma
-          'g@f',  # constraints
+          'g@f_pattern@atheme',  # constraints
           ('ἀγορας', None)  # out
           ),
          ('ἀρτοι',  # mod_form
