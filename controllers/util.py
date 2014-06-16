@@ -16,6 +16,7 @@ from paideia_utils import test_step_regex, gather_vocab
 import paideia_path_factory
 import traceback
 import StringIO
+import uuid
 #from pprint import pprint
 
 
@@ -135,19 +136,23 @@ def update_uuids():
     """
     retval = {}
     for t in db.tables:
-        fields = {}
-        for f in t.fields:
-            recs = db(db[t][f].id > 0).select()
-            changed = 0
-            dated = 0
+        print 'start table', t
+        recs = db(db[t].id > 0).select()
+        print 'found', len(recs), 'records'
+        changed = 0
+        dated = 0
+        try:
             for r in recs:
-                if not r.uuid:
-                    r.update_record(uuid=lambda:str(uuid.uuid4()))
+                if r.uuid is None:
+                    r.update_record(uuid=str(uuid.uuid4()))
                     changed += 1
-                if not r.modified_on:
+                if r.modified_on is None:
                     r.update_record(modified_on=request.now)
                     dated += 1
-            fields[f] = ('changed {}'.format(changed),
-                         'dated {}'.format(dated))
-        retval[t] = fields
+            print 'changed', changed
+        except:
+            traceback.print_exec(5)
+        retval[t] = ('changed {}'.format(changed),
+                     'dated {}'.format(dated))
+
     return {'changes': retval}
