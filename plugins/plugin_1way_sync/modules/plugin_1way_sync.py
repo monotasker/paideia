@@ -6,7 +6,7 @@ Part of the plugin plugin_1way_sync for the web2py framework.
 """
 
 import csv
-from gluon import FORM, INPUT
+from gluon import FORM, INPUT, current
 from plugin_sqlite_backup import copy_db
 from pprint import pprint
 
