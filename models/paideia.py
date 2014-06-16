@@ -12,6 +12,7 @@ from plugin_ajaxselect import AjaxSelect
 # from itertools import chain
 import datetime
 import os
+import uuid
 # import re
 
 if 0:
@@ -453,11 +454,11 @@ db.define_table('paths',
                 # compute=lambda row: [tag for step in row.paths.steps
                 # for tag in db.steps[step].tags]),
                 Field('path_active', 'boolean',
+                      compute=lambda row: all([s for s in row.paths.steps
+                                               if (db.steps[s].status != 2)
+                                               and db.steps[s].locations])),
                 Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
-                compute=lambda row: all([s for s in row.paths.steps
-                                        if (db.steps[s].status != 2)
-                                        and db.steps[s].locations])),
                 format='%(label)s')
 
 db.paths.tags_for_steps = Field.Virtual('tags_for_steps',
@@ -503,7 +504,7 @@ db.define_table('attempt_log',
                 Field('in_path', db.paths),  # was path (reserved term)
                 Field('score', 'double'),
                 Field('dt_attempted', 'datetime', default=dtnow),
-                Field('user_response', 'string')
+                Field('user_response', 'string'),
                 Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 )
@@ -525,7 +526,7 @@ db.define_table('tag_records',
                 Field('tlast_right', 'datetime', default=dtnow),
                 Field('in_path', db.paths),  # was path (reserved term)
                 Field('step', db.steps),
-                Field('secondary_right', 'list:string')
+                Field('secondary_right', 'list:string'),
                 Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 )

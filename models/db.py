@@ -55,7 +55,8 @@ if _i_am_running_under_test():
 else:
     # TODO: check these sqlite settings
     # check_reserved makes sure no column names conflict with back-end db's
-    db = DAL('sqlite://storage.sqlite', pool_size=1, check_reserved=['sqlite', 'mysql'])
+    db = DAL('sqlite://storage.sqlite', pool_size=1, lazy_tables=True,
+             check_reserved=['sqlite', 'mysql'])
 
 
 #-------------------------------------------------------------
@@ -122,7 +123,9 @@ auth.settings.extra_fields['auth_user'] = [
                               if (hasattr(row.auth_user, 'time_zone') and
                                   row.auth_user.time_zone)
                               else 'America/Toronto'
-                  )
+                  ),
+    Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+    Field('modified_on', 'datetime', default=request.now)
 ]
 
 #adding custom field for class info in groups
@@ -135,7 +138,28 @@ auth.settings.extra_fields['auth_group'] = [
     Field('start_date', 'datetime'),
     Field('end_date', 'datetime'),
     Field('paths_per_day', 'integer', default=40),
-    Field('days_per_week', 'integer', default=5)
+    Field('days_per_week', 'integer', default=5),
+    Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+    Field('modified_on', 'datetime', default=request.now)
+]
+
+auth.settings.extra_fields['auth_membership'] = [
+    Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+    Field('modified_on', 'datetime', default=request.now)
+]
+
+auth.settings.extra_fields['auth_permission'] = [
+    Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+    Field('modified_on', 'datetime', default=request.now)
+]
+
+auth.settings.extra_fields['auth_event'] = [
+    Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+    Field('modified_on', 'datetime', default=request.now)
+]
+
+auth.settings.extra_fields['auth_cas'] = [
+    Field('modified_on', 'datetime', default=request.now)
 ]
 
 auth.define_tables()                           # creates all needed tables

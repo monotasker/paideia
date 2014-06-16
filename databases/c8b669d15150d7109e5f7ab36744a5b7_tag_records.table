@@ -150,23 +150,39 @@ I00
 sg17
 S'reference tags'
 p47
-ssS'path'
+ssS'modified_on'
 p48
 (dp49
-S'sortable'
+g11
+I512
+sg12
+I00
+sg13
+I12
+sg14
+S'TIMESTAMP'
 p50
+sg16
+I00
+sg17
+g33
+ssS'path'
+p51
+(dp52
+S'sortable'
+p53
 I8
 sS'type'
-p51
-S'reference paths'
-p52
-sS'sql'
-p53
-S'INTEGER REFERENCES paths(id) ON DELETE CASCADE'
 p54
-ssS'in_path'
+S'reference paths'
 p55
-(dp56
+sS'sql'
+p56
+S'INTEGER REFERENCES paths(id) ON DELETE CASCADE'
+p57
+ssS'in_path'
+p58
+(dp59
 g11
 I512
 sg12
@@ -175,15 +191,15 @@ sg13
 I8
 sg14
 S'INTEGER REFERENCES paths (id) ON DELETE CASCADE'
-p57
+p60
 sg16
 I00
 sg17
 S'reference paths'
-p58
+p61
 ssS'id'
-p59
-(dp60
+p62
+(dp63
 g11
 I512
 sg12
@@ -192,15 +208,15 @@ sg13
 I1
 sg14
 S'INTEGER PRIMARY KEY AUTOINCREMENT'
-p61
+p64
 sg16
 I00
 sg17
 S'id'
-p62
+p65
 ssS'secondary_right'
-p63
-(dp64
+p66
+(dp67
 g11
 I512
 sg12
@@ -209,10 +225,27 @@ sg13
 I10
 sg14
 S'TEXT'
-p65
+p68
 sg16
 I00
 sg17
 S'list:string'
-p66
+p69
+ssS'uuid'
+p70
+(dp71
+g11
+I64
+sg12
+I00
+sg13
+I11
+sg14
+S'CHAR(64)'
+p72
+sg16
+I00
+sg17
+S'string'
+p73
 ss.
