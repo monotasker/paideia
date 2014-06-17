@@ -400,13 +400,13 @@ p87
 ssS'options'
 p88
 (dp89
-S'sortable'
+S'type'
 p90
-I6
-sS'type'
-p91
 S'list:string'
+p91
+sS'sortable'
 p92
+I6
 sS'sql'
 p93
 S'TEXT'

@@ -58,13 +58,13 @@ p18
 ssS'text'
 p19
 (dp20
-S'sortable'
+S'type'
 p21
-I3
-sS'type'
-p22
 S'text'
+p22
+sS'sortable'
 p23
+I3
 sS'sql'
 p24
 S'TEXT'
@@ -107,10 +107,10 @@ ssS'label'
 p34
 (dp35
 g21
-I2
-sg22
 S'string'
 p36
+sg23
+I2
 sg24
 S'CHAR(512) UNIQUE'
 p37
