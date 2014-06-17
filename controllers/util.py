@@ -156,3 +156,31 @@ def update_uuids():
                      'dated {}'.format(dated))
 
     return {'changes': retval}
+
+
+@auth.requires_membership('administrators')
+def set_timestamps():
+    """
+    Make sure that every record in the database has a uuid.
+    """
+    retval = {}
+    mytime = datetime.datetime(2014, 1, 1)
+    for t in db.tables:
+        if t in []:
+        #if t in ['lemmas', 'constructions', 'word_forms', 'badges', 'steps',
+                 #'paths', 'plugin_slider_slides', 'plugin_slider_decks']
+        print 'start table'
+        recs = db(db[t].id > 0).select()
+        print 'found', len(recs), 'records'
+        dated = 0
+        try:
+            for r in recs:
+                r.update_record(modified_on=mytime)
+                dated += 1
+            print 're-dated', dated
+        except:
+            traceback.print_exec(5)
+        retval[t] = ('changed {}'.format(changed),
+                     'dated {}'.format(dated))
+
+    return {'changes': retval}
