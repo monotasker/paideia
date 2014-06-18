@@ -184,11 +184,13 @@ class Inflector(object):
         mykeys = []
         parsing['part_of_speech'] = _get_part_of_speech(cst, lem)
         if parsing['part_of_speech'] == 'verb':
-            mykeys.extend(['mood', 'tense', 'voice'])
+            mykeys.extend(['mood', 'tense', 'voice', 'person', 'number'])
             if 'mood' in parsing.keys() and parsing['mood'] == 'participle':
                 mykeys.extend(['gender', 'grammatical_case'])
+                mykeys.pop(mykeys.index('person'))
             if 'mood' in parsing.keys() and parsing['mood'] != 'infinitive':
-                mykeys.append('number')
+                mykeys.pop(mykeys.index('number'))
+                mykeys.pop(mykeys.index('person'))
         elif parsing['part_of_speech'] in ['noun', 'pronoun',
                                            'adjective', 'article']:
             parsing['declension'] = _get_declension(parsing['part_of_speech'],
@@ -607,8 +609,12 @@ class WordFactory(object):
         """
         db = current.db
         # don't include lemma in construction label
+        print 'in make cst_label ----------------------------------'
+        print part_of_speech
+        pprint(parsedict)
         cstbits = [parsedict[k] for k in self.wordform_reqs[part_of_speech][1:]]
-        shortbits = [self.const_abbrevs[i] for i in cstbits if i]
+        shortbits = [self.const_abbrevs[i] for i in cstbits
+                     if i not in ['none', None]]
         construction_label = '{}_{}'.format(part_of_speech, '_'.join(shortbits))
         construction_row = db.constructions(db.constructions.construction_label
                                             == construction_label)
