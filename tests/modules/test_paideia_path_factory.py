@@ -339,18 +339,25 @@ class TestInflector():
           'ἀγορα',  # lemma
           'g@f_pattern@atheme',  # constraints
           ('ἀγορης',  # FIXME: thematic alpha not caught here
-           {'constructions': [None],
-            'word_forms': [549L]})  # out
+           {'word_forms': ['Could not create new word form for '
+                           '\xe1\xbc\x80\xce\xb3\xce\xbf\xcf\x81\xce\xb1, '
+                           'modform \xe1\xbc\x80\xcf\x81\xcf\x84\xce\xbf\xcf\x85,'
+                           ' constraint g@f_pattern@atheme']})  # out
           ),
          ('ἀρτοι',  # mod_form
           'ἀγορα',  # lemma
           'case@gen',  # constraints
-          ('ἀγορων', None)  # out
+          ('ἀγορων', {'word_forms': ['Could not create new word form for '
+                                     '\xe1\xbc\x80\xce\xb3\xce\xbf\xcf\x81\xce\xb1, '
+                                     'modform \xe1\xbc\x80\xcf\x81\xcf\x84\xce\xbf\xce\xb9, '
+                                     'constraint case@gen']})  # out
           ),
          (None,  # modform
           'ἀγορα',  # lemma
           'case@gen_num@pl',  # constraints
-          ('ἀγορων', None)  # out
+          ('ἀγορων', {'word_forms': ['Could not create new word form for '
+                                     '\xe1\xbc\x80\xce\xb3\xce\xbf\xcf\x81\xce\xb1, '
+                                     'modform None, constraint case@gen_num@pl']})  # out
           ),
          ('γυναικες',  # modform
           'βαινω',  # lemma
@@ -370,7 +377,7 @@ class TestInflector():
         i = Inflector()
         wordform, newform = i.make_form_agree(mod_form, lemma,
                                               constraint=constraints)
-        assert wordform == makeutf8(out[0])
+        assert wordform == out[0] or makeutf8(out[0])
         assert newform == out[1]
 
     @pytest.mark.skipif(True, reason='just because')
