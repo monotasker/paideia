@@ -252,7 +252,7 @@ I00
 sg10
 S'id'
 p59
-ssS'instructions'
+ssS'hints'
 p60
 (dp61
 g4
@@ -260,13 +260,13 @@ I512
 sg5
 I00
 sg6
-I15
+I14
 sg7
 g25
 sg9
 I00
 sg10
-S'list:reference step_instructions'
+S'list:reference step_hints'
 p62
 ssS'npcs'
 p63
@@ -381,7 +381,7 @@ I00
 sg10
 S'list:string'
 p84
-ssS'hints'
+ssS'instructions'
 p85
 (dp86
 g4
@@ -389,24 +389,24 @@ I512
 sg5
 I00
 sg6
-I14
+I15
 sg7
 g25
 sg9
 I00
 sg10
-S'list:reference step_hints'
+S'list:reference step_instructions'
 p87
 ssS'options'
 p88
 (dp89
-S'type'
+S'sortable'
 p90
-S'list:string'
-p91
-sS'sortable'
-p92
 I6
+sS'type'
+p91
+S'list:string'
+p92
 sS'sql'
 p93
 S'TEXT'

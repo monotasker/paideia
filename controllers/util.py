@@ -151,7 +151,7 @@ def update_uuids():
                     dated += 1
             print 'changed', changed
         except:
-            traceback.print_exec(5)
+            traceback.print_exc(5)
         retval[t] = ('changed {}'.format(changed),
                      'dated {}'.format(dated))
 
@@ -166,7 +166,6 @@ def set_timestamps():
     retval = {}
     mytime = datetime.datetime(2014, 1, 1)
     for t in db.tables:
-        if t in []:
         #if t in ['lemmas', 'constructions', 'word_forms', 'badges', 'steps',
                  #'paths', 'plugin_slider_slides', 'plugin_slider_decks']
         print 'start table'

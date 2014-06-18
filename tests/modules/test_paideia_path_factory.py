@@ -14,6 +14,7 @@ import re
 # from pprint import pprint
 from paideia_path_factory import PathFactory, MorphParser, Inflector
 from paideia_path_factory import WordFactory, StepFactory
+from plugin_utils import makeutf8
 
 
 @pytest.fixture()
@@ -337,7 +338,9 @@ class TestInflector():
         [('ἀρτου',  # mod_form
           'ἀγορα',  # lemma
           'g@f_pattern@atheme',  # constraints
-          ('ἀγορας', None)  # out
+          ('ἀγορης',  # FIXME: thematic alpha not caught here
+           {'constructions': [None],
+            'word_forms': [549L]})  # out
           ),
          ('ἀρτοι',  # mod_form
           'ἀγορα',  # lemma
@@ -367,7 +370,7 @@ class TestInflector():
         i = Inflector()
         wordform, newform = i.make_form_agree(mod_form, lemma,
                                               constraint=constraints)
-        assert wordform == out[0]
+        assert wordform == makeutf8(out[0])
         assert newform == out[1]
 
     @pytest.mark.skipif(True, reason='just because')

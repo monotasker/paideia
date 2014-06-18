@@ -143,16 +143,21 @@ class Inflector(object):
                 declension = lemform['declension']
             return declension
 
-        def _get_property(cst, lemma, ref, prop):
+        def _get_property(cst, lemform, ref, prop):
             if cst and prop in cst.keys():
-                prop = cst[prop]
-            elif ref and prop in ref.keys() and prop != 'gender':
-                prop = ref[prop]
+                print 'from cst'
+                propval = cst[prop]
+            elif ref and (prop in ref.keys()) and (prop != 'gender'):
+                print 'from ref'
+                propval = ref[prop]
             elif prop == 'gender':
-                prop = lemma[prop]
+                print 'from lemform'
+                print 'lemform gender is', lemform['gender'], lemform['id'], lemform['word_form']
+                propval = lemform[prop]
             else:
-                prop = None
-            return prop
+                propval = None
+            print 'returning', propval, 'for', prop
+            return propval
 
         def _fill_missing_fields(parsing):
             """"""
@@ -199,7 +204,7 @@ class Inflector(object):
             mykeys.extend(['grammatical_case', 'gender', 'number'])
         # FIXME: add tags field
         for k in mykeys:
-            parsing[k] = _get_property(cst, ref, lem, k)
+            parsing[k] = _get_property(cst, lemform, ref, k)
         parsing['construction'] = _get_construction_label(parsing)  # must be last
         print 'after get label', parsing['construction']
         parsing['source_lemma'] = lem.lemma
