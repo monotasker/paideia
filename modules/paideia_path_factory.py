@@ -56,17 +56,12 @@ class Inflector(object):
 
         # a lambda function is stored as a string in a db field
         funcstring = db.constructions[parsedict['construction']]['form_function']
-        print 'funcstring is', funcstring
         try:
-            print 'starting eval'
             #formfunc = eval(funcstring)
             formfunc  = lambda w: w[:-1] + makeutf8('ης')
-            print 'formfunc', formfunc
             myform = formfunc(makeutf8(lemma))
-            print 'done'
         except SyntaxError:  # if an empty string
             myform = lemma
-        print 'myform is', myform
 
         # add to db.word_forms here
         constraint = _make_constraint_string(parsedict)
@@ -81,7 +76,6 @@ class Inflector(object):
         """
         db = current.db
         newforms = {}
-        print 'modform is', modform
 
         def _add_to_newforms(returnval, tablelist):
             for table in tablelist:
@@ -145,18 +139,13 @@ class Inflector(object):
 
         def _get_property(cst, lemform, ref, prop):
             if cst and prop in cst.keys():
-                print 'from cst'
                 propval = cst[prop]
             elif ref and (prop in ref.keys()) and (prop != 'gender'):
-                print 'from ref'
                 propval = ref[prop]
             elif prop == 'gender':
-                print 'from lemform'
-                print 'lemform gender is', lemform['gender'], lemform['id'], lemform['word_form']
                 propval = lemform[prop]
             else:
                 propval = None
-            print 'returning', propval, 'for', prop
             return propval
 
         def _fill_missing_fields(parsing):
@@ -186,6 +175,9 @@ class Inflector(object):
         lem, lemform = _get_lemma(mylemma, constraint)
         ref = _get_ref(modform, modconstraint)
         cst = self.wf.parse_constraint(constraint)
+        print 'constraints-----------------------------------------'
+        print constraint
+        pprint(cst)
 
         # collect full parsing from those sources, giving priority to cst
         parsing = {}
@@ -193,9 +185,9 @@ class Inflector(object):
         parsing['part_of_speech'] = _get_part_of_speech(cst, lem)
         if parsing['part_of_speech'] == 'verb':
             mykeys.extend(['mood', 'tense', 'voice'])
-            if parsing['mood'] == 'participle':
+            if 'mood' in parsing.keys() and parsing['mood'] == 'participle':
                 mykeys.extend(['gender', 'grammatical_case'])
-            if parsing['mood'] != 'infinitive':
+            if 'mood' in parsing.keys() and parsing['mood'] != 'infinitive':
                 mykeys.append('number')
         elif parsing['part_of_speech'] in ['noun', 'pronoun',
                                            'adjective', 'article']:
@@ -206,10 +198,8 @@ class Inflector(object):
         for k in mykeys:
             parsing[k] = _get_property(cst, lemform, ref, k)
         parsing['construction'] = _get_construction_label(parsing)  # must be last
-        print 'after get label', parsing['construction']
         parsing['source_lemma'] = lem.lemma
 
-        print 'case is', parsing['grammatical_case']
 
         # get the inflected form's row from the db
         parsing = _fill_missing_fields(parsing)
@@ -619,13 +609,9 @@ class WordFactory(object):
         # don't include lemma in construction label
         cstbits = [parsedict[k] for k in self.wordform_reqs[part_of_speech][1:]]
         shortbits = [self.const_abbrevs[i] for i in cstbits if i]
-        print 'shortbits --------------------------------------'
-        pprint(shortbits)
         construction_label = '{}_{}'.format(part_of_speech, '_'.join(shortbits))
-        print 'label', construction_label
         construction_row = db.constructions(db.constructions.construction_label
                                             == construction_label)
-        print 'row', construction_row.id
         return construction_label, construction_row, cstbits, shortbits
 
     def _add_new_construction(self, pos, const_label, constbits, shortbits):
@@ -802,25 +788,31 @@ class WordFactory(object):
         Return a dictionary of grammatical features based on a constraint string.
 
         """
-        # FIXME: This hack is necessary because underscores are used as
-        # delimiters and in field names. Find a different delimiter.
         try:
+            cparsebits = [b for b in constraint.split('_')]
+            pprint(cparsebits)
+            cdict = {b.split('@')[0]: b.split('@')[1] for b in cparsebits
+                     if len(b.split('@')) > 1}
+
+            # FIXME: This hack is necessary because underscores are used as
+            # delimiters and in field names. Find a different delimiter.
             expts = [('thematic', 'pattern'),
                      ('part', 'of', 'speech'),
                      ('word', 'form'),
                      ('source', 'lemma'),
                      ('grammatical', 'case')]
-            cparsebits = [b for b in constraint.split('_') if b not in
-                          list(chain.from_iterable([l[:-1] for l in expts]))]
             for e in expts:
-                m = [c for c in cparsebits if re.match('{}.*'.format(e[-1]), c)
-                     and not re.search('None', c)]
-                if m:
-                    idx = cparsebits.index(m[0])
-                    pre = '_'.join(e)
-                    post = m.split('@')[1]
-                    cparsebits[idx] = '{}@{}'.format(pre, post)
-            cd = {b.split('@')[0]: b.split('@')[1] for b in cparsebits}
+                for ex in e[:-1]:
+                    if ex in cdict.keys():
+                        del(cdict[ex])
+                full_label = '_'.join(e)
+                try:
+                    cdict[full_label] = cdict[e[-1]]
+                    del(cdict[e[-1]])
+                except KeyError:
+                    pass
+            pprint(cdict)
+
             key_eqs = {'num': 'number',
                        'n': 'number',
                        'gen': 'gender',
@@ -839,17 +831,18 @@ class WordFactory(object):
                        'gl': 'glosses',
                        'ft': 'first_tag',
                        'first': 'first_tag'}
-            for k, v in cd.iteritems():  # handle key short forms
+            for k, v in cdict.iteritems():  # handle key short forms
                 if k in key_eqs.keys():
-                    cd[key_eqs[k]] = v
-                    del cd[k]
-            for k, v in cd.iteritems():  # handle value short forms
+                    cdict[key_eqs[k]] = v
+                    del cdict[k]
+            for k, v in cdict.iteritems():  # handle value short forms
                 if v in list(chain.from_iterable(self.cst_eqs.values())):
                     expandedv = [kk for kk, vv in self.cst_eqs.iteritems()
                                  if v in vv][0]
-                    cd[k] = expandedv
-            return cd
+                    cdict[k] = expandedv
+            return cdict
         except AttributeError:  # constraint is NoneType
+            traceback.print_exc(5)
             return False
 
     def get_wordform(self, field, combodict):
