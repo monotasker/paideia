@@ -362,12 +362,18 @@ class TestInflector():
          ('γυναικες',  # modform
           'βαινω',  # lemma
           None,  # constraints
-          ('βαινουσι', None)  # out
+          ('βαινουσι', {'word_forms': ['Could not create new word form for '
+                                       '\xce\xb2\xce\xb1\xce\xb9\xce\xbd\xcf\x89, '
+                                       'modform \xce\xb3\xcf\x85\xce\xbd\xce\xb1\xce\xb9\xce\xba\xce\xb5\xcf\x82, '
+                                       'constraint None']})  # out
           ),
          (None,  # modform
           'βαινω',  # lemma
           'pers@1_num@pl_ts@pres_v@act_m@ind',  # constraints
-          ('βαινουσι', None)  # out
+          ('βαινουσι', {'word_forms': ['Could not create new word form for '
+                                       '\xce\xb2\xce\xb1\xce\xb9\xce\xbd\xcf\x89, '
+                                       'modform None, '
+                                       'constraint pers@1_num@pl_ts@pres_v@act_m@ind']})  # out
           ),
          ])
     def test_make_form_agree(self, mod_form, lemma, constraints, out):
