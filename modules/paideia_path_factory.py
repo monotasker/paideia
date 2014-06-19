@@ -30,6 +30,44 @@ import re
 import traceback
 # from plugin_ajaxselect import AjaxSelect
 
+class ResultCollector(object):
+    def __init__(self, func):
+        """
+        Decorator class that collects db insertion attempts on session.results.
+
+        This decorator expects the final return value of the wrapped function
+        to hold information on the update attempts. This information should be
+        a list (even if only one member) of 4-member tuples of the form
+        (dbtablename, insertval, newrowid, errormessage).
+        """
+        session = current.session
+        self.func = func
+        self.results = session.results
+
+    def __call__(self, *args, **kwargs):
+        """docstring for __call__"""
+        session = current.session
+        retvals = self.func(*args, **kwargs)
+        myval = retvals[-1]
+        if not m or all(m for m in myval if m in self.results):
+            return False
+        else:
+            for m in myval:
+                session.results[m[0]].extend((m[1], m[2]))
+            return True
+
+    def __repr__(self):
+        """
+        Return the wrapped function's docstring.
+        """
+        return self.func.__doc__
+
+    def __get__(self, obj, objtype):
+        """
+        Support instance methods
+        """
+        return functools.partial(self.__call__, obj)
+
 
 class Inflector(object):
     """
@@ -38,6 +76,7 @@ class Inflector(object):
         """docstring for __"""
         self.wf = WordFactory()
 
+    @ResultCollector
     def _wordform_from_parsing(self, parsedict, lemma):
         """
         Return the inflected form of the supplied lemma for the given parsing.
@@ -58,6 +97,7 @@ class Inflector(object):
         funcstring = db.constructions[parsedict['construction']]['form_function']
         try:
             #formfunc = eval(funcstring)
+            # FIXME: need to get this from db string
             formfunc  = lambda w: w[:-1] + makeutf8('ης')
             myform = formfunc(makeutf8(lemma))
         except SyntaxError:  # if an empty string
@@ -66,7 +106,7 @@ class Inflector(object):
         # add to db.word_forms here
         constraint = _make_constraint_string(parsedict)
         newfreturn = self.wf.add_new_wordform(myform, lemma, None, constraint)
-        return newfreturn
+        return newfreturn[0][1]
 
     def make_form_agree(self, modform, mylemma,
                         constraint=None, modconstraint=None):
@@ -224,20 +264,17 @@ class Inflector(object):
             myform = myrow.word_form
         except AttributeError:  # if there isn't one try to make it
             try:
-                newfreturn = self._wordform_from_parsing(parsing, lem.lemma)
-                # returns: word_form, rowid, err, new_cst_id, csterr
-                _add_to_newforms(newfreturn,
-                                 [('word_forms', 1), ('constructions', 3)])
-                myform = newfreturn[0]
+                myform = self._wordform_from_parsing(parsing, lem.lemma)
+                result = None
             except Exception:  # if making new form fails
                 traceback.print_exc(5)
                 myform = None
                 errstring = 'Could not create new word form for {}, ' \
                             'modform {}, constraint {}' \
                             ''.format(mylemma, modform, constraint)
-                newforms.setdefault('word_forms', []).append(errstring)
+                result = [('word_forms', None, None, errstring)]
 
-        return myform, newforms
+        return myform, result
 
 
 class MorphParser(object):
@@ -620,6 +657,7 @@ class WordFactory(object):
                                             == construction_label)
         return construction_label, construction_row, cstbits, shortbits
 
+    @ResultCollector
     def _add_new_construction(self, pos, const_label, constbits, shortbits):
         """
         Insert new db.constructions record and return id info
@@ -646,8 +684,9 @@ class WordFactory(object):
             csterr = 'Could not write new construction {} ' \
                         'to db.'.format(const_label)
 
-        return cst_id, csterr
+        return [('constructions', const_label, cst_id, csterr)]
 
+    @ResultCollector
     def add_new_wordform(self, word_form, lemma, modform, constraint):
         """
         Attempt to insert a new word form into the db based on supplied info.
@@ -700,21 +739,30 @@ class WordFactory(object):
         parsing['construction'] = cst_id
 
         # collect and add tags
+        parsing['tags'] = []
+        parsing.setdefault('tags', []).append(lemmarow.first_tag)
         parsing.setdefault('tags', []).extend(db.constructions(cst_id).tags)
         parsing.setdefault('tags', []).extend(lemmarow.extra_tags)
-        parsing.setdefault('tags', []).append(lemmarow.first_tag)
         parsing['tags'] = list(set(parsing['tags']))
 
         parsing['word_form'] = word_form
+        print 'word form:', word_form
 
         try:
+            pprint(parsing)
+            if 'on' in parsing.keys():
+                del(parsing['on'])  # FIXME: where does this come from?
+                del(parsing['part_of_speech'])  # FIXME: where does this come from?
+                del(parsing['id'])  # FIXME: where does this come from?
+                del(parsing['uuid'])  # FIXME: where does this come from?
             rowid = db.word_forms.insert(**parsing)
             err = None
         except Exception:
             traceback.print_exc()
-            err = 'Could not write word_form {} to db.'.format(word_form)
+            msg = makeutf8('Could not write word_form {} to db.')
+            err = msg.format(word_form)
 
-        return word_form, rowid, err, new_cst_id, csterr
+        return [('word_forms', word_form, rowid, err)]
 
     def add_new_lemma(self, lemma, constraint):
         """
