@@ -15,7 +15,6 @@ import re
 from paideia_path_factory import PathFactory, MorphParser, Inflector
 from paideia_path_factory import WordFactory, StepFactory
 from plugin_utils import makeutf8
-current = web2py.current
 
 
 @pytest.fixture()
@@ -339,48 +338,57 @@ class TestInflector():
         [('ἀρτου',  # mod_form
           'ἀγορα',  # lemma
           'g@f_pattern@atheme',  # constraints
-          ('ἀγορης',  # FIXME: thematic alpha not caught here
-           {'constructions': [None],
-            'word_forms': [549L]})  # out
+          ('ἀγορας',  # FIXME: thematic alpha not caught here
+           [('word_forms', 'ἀγορας', 549L, None)])  # out
           ),
          ('ἀρτοι',  # mod_form
           'ἀγορα',  # lemma
           'case@gen',  # constraints
-          ('ἀγορων', {'constructions': [None],
-                      'word_forms': [550]})  # out
+          ('ἀγορων',
+           [('word_forms', 'ἀγορων', 550L, None)])  # out
           ),
          (None,  # modform
           'ἀγορα',  # lemma
           'case@gen_num@pl',  # constraints
-          ('ἀγορων', {'constructions': [None],
-                      'word_forms': [551]})  # out
+          ('ἀγορων',
+           [('word_forms', 'ἀγορων', 551L, None)])  # out
           ),
          ('γυναικες',  # modform
           'βαινω',  # lemma
           None,  # constraints
-          ('βαινουσι', {'word_forms': ['Could not create new word form for '
-                                       '\xce\xb2\xce\xb1\xce\xb9\xce\xbd\xcf\x89, '
-                                       'modform \xce\xb3\xcf\x85\xce\xbd\xce\xb1\xce\xb9\xce\xba\xce\xb5\xcf\x82, '
-                                       'constraint None']})  # out
+          ('βαινουσι',
+           [('word_forms', None, None, ['Could not create new word form for '
+                                        '\xce\xb2\xce\xb1\xce\xb9\xce\xbd\xcf\x89, '
+                                        'modform \xce\xb3\xcf\x85\xce\xbd\xce\xb1\xce\xb9\xce\xba\xce\xb5\xcf\x82, '
+                                        'constraint None'])])  # out
           ),
          (None,  # modform
           'βαινω',  # lemma
           'pers@1_num@pl_ts@pres_v@act_m@ind',  # constraints
-          ('βαινουσι', {'word_forms': ['Could not create new word form for '
+          ('βαινουσι',
+           [('word_forms', None, None, ['Could not create new word form for '
                                        '\xce\xb2\xce\xb1\xce\xb9\xce\xbd\xcf\x89, '
                                        'modform None, '
-                                       'constraint pers@1_num@pl_ts@pres_v@act_m@ind']})  # out
+                                       'constraint pers@1_num@pl_ts@pres_v@act_m@ind'])])  # out
           ),
          ])
-    def test_make_form_agree(self, mod_form, lemma, constraints, out):
+    def test_make_form_agree(self, mod_form, lemma, constraints, out, web2py):
         """
         Test method for the PathFactory.format_strings() method.
         """
+        session = web2py.current.session
+        session.results = []
         i = Inflector()
-        wordform, newform = i.make_form_agree(mod_form, lemma,
-                                              constraint=constraints)
-        assert wordform == out[0] or makeutf8(out[0])
-        assert newform == out[1]
+        newform = i.make_form_agree(mod_form, lemma, constraint=constraints,
+                                    session=session)
+        print 'newform', newform
+        assert newform == out[0] or newform == makeutf8(out[0])
+        for idx, r in enumerate(session.results):
+            for idx2, i in enumerate(r):
+                print r, i
+                print idx, idx2
+                myi = out[1][idx][idx2]
+                assert i == myi or i == makeutf8(myi)
         # TODO: are forms being re-created when in db? why can some not be
         # created?
 

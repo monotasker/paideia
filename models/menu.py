@@ -41,7 +41,9 @@ response.menu = [(SPAN(T(' Home'), _class='icon-home'),
                  (SPAN(T(' Map'), _class='icon-map-marker'),
                   False, URL('exploring', 'index'), []),
                  (SPAN(T(' Slides'), _class='icon-picture'),
-                  False, URL('listing', 'slides'), [])
+                  False, URL('listing', 'slides'), []),
+                 (SPAN(T(' Vocabulary'), _class='icon-picture'),
+                  False, URL('reporting', 'vocabulary.html'), [])
                  ]
 m = response.menu
 
