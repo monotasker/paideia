@@ -17,18 +17,20 @@ TranslateWordPathFactory:class (extends PathFactory)
 
 """
 from ast import literal_eval
+from copy import copy
 # import datetime
+import functools
 from gluon import current, SQLFORM, Field, BEAUTIFY, IS_IN_DB, UL, LI
 from gluon import CAT, H2
 from itertools import product, chain
 from paideia_utils import capitalize_first, test_regex, uprint
 from paideia_utils import islist  # sanitize_greek,
+# from plugin_ajaxselect import AjaxSelect
 from plugin_utils import flatten, makeutf8
 from pprint import pprint
 from random import randrange, shuffle
 import re
 import traceback
-# from plugin_ajaxselect import AjaxSelect
 
 class ResultCollector(object):
     def __init__(self, func):
@@ -40,21 +42,19 @@ class ResultCollector(object):
         a list (even if only one member) of 4-member tuples of the form
         (dbtablename, insertval, newrowid, errormessage).
         """
-        session = current.session
         self.func = func
-        self.results = session.results
 
     def __call__(self, *args, **kwargs):
         """docstring for __call__"""
-        session = current.session
+        session = locals()['session'] if 'session' in locals().keys() else current.session
+        if 'results' not in session.keys():
+            session.results = []
         retvals = self.func(*args, **kwargs)
-        myval = retvals[-1]
-        if not m or all(m for m in myval if m in self.results):
-            return False
-        else:
+        myval = retvals
+        if myval:
             for m in myval:
-                session.results[m[0]].extend((m[1], m[2]))
-            return True
+                session.results.append(m)
+        return retvals
 
     def __repr__(self):
         """
@@ -76,7 +76,6 @@ class Inflector(object):
         """docstring for __"""
         self.wf = WordFactory()
 
-    @ResultCollector
     def _wordform_from_parsing(self, parsedict, lemma):
         """
         Return the inflected form of the supplied lemma for the given parsing.
@@ -94,11 +93,11 @@ class Inflector(object):
             return constraint
 
         # a lambda function is stored as a string in a db field
-        funcstring = db.constructions[parsedict['construction']]['form_function']
+        myconst = db.constructions[parsedict['construction']]
+        funcstring = myconst['form_function']
         try:
-            #formfunc = eval(funcstring)
-            # FIXME: need to get this from db string
-            formfunc  = lambda w: w[:-1] + makeutf8('ης')
+            formfunc = eval(funcstring)
+            #formfunc  = lambda w: w + makeutf8('ς')
             myform = formfunc(makeutf8(lemma))
         except SyntaxError:  # if an empty string
             myform = lemma
@@ -106,13 +105,14 @@ class Inflector(object):
         # add to db.word_forms here
         constraint = _make_constraint_string(parsedict)
         newfreturn = self.wf.add_new_wordform(myform, lemma, None, constraint)
+
         return newfreturn[0][1]
 
     def make_form_agree(self, modform, mylemma,
-                        constraint=None, modconstraint=None):
+                        constraint=None, modconstraint=None, session=None):
         """
         Return a form of the lemma "mylemma" agreeing with the supplied modform.
-
+        # FIXME: session kwarg only used by decorator
         """
         db = current.db
         newforms = {}
@@ -215,9 +215,6 @@ class Inflector(object):
         lem, lemform = _get_lemma(mylemma, constraint)
         ref = _get_ref(modform, modconstraint)
         cst = self.wf.parse_constraint(constraint)
-        print 'constraints-----------------------------------------'
-        print constraint
-        pprint(cst)
 
         # collect full parsing from those sources, giving priority to cst
         parsing = {}
@@ -238,14 +235,13 @@ class Inflector(object):
             mykeys.extend(['grammatical_case', 'gender', 'number'])
         # FIXME: add tags field
         for k in mykeys:
+            print 'getting', k
             parsing[k] = _get_property(cst, lemform, ref, k)
         parsing['construction'] = _get_construction_label(parsing)  # must be last
         parsing['source_lemma'] = lem.lemma
 
-
         # get the inflected form's row from the db
         parsing = _fill_missing_fields(parsing)
-
         myrow = db((db.word_forms.source_lemma == lem.id) &
                    (db.word_forms.grammatical_case == parsing['grammatical_case']) &
                    (db.word_forms.tense == parsing['tense']) &
@@ -259,7 +255,6 @@ class Inflector(object):
                    (db.word_forms.thematic_pattern == parsing['thematic_pattern']) &
                    (db.word_forms.construction == parsing['construction'])
                    ).select().first()
-
         try:
             myform = myrow.word_form
         except AttributeError:  # if there isn't one try to make it
@@ -269,12 +264,8 @@ class Inflector(object):
             except Exception:  # if making new form fails
                 traceback.print_exc(5)
                 myform = None
-                errstring = 'Could not create new word form for {}, ' \
-                            'modform {}, constraint {}' \
-                            ''.format(mylemma, modform, constraint)
-                result = [('word_forms', None, None, errstring)]
 
-        return myform, result
+        return myform
 
 
 class MorphParser(object):
@@ -646,9 +637,6 @@ class WordFactory(object):
         """
         db = current.db
         # don't include lemma in construction label
-        print 'in make cst_label ----------------------------------'
-        print part_of_speech
-        pprint(parsedict)
         cstbits = [parsedict[k] for k in self.wordform_reqs[part_of_speech][1:]]
         shortbits = [self.const_abbrevs[i] for i in cstbits
                      if i not in ['none', None]]
@@ -746,10 +734,8 @@ class WordFactory(object):
         parsing['tags'] = list(set(parsing['tags']))
 
         parsing['word_form'] = word_form
-        print 'word form:', word_form
 
         try:
-            pprint(parsing)
             if 'on' in parsing.keys():
                 del(parsing['on'])  # FIXME: where does this come from?
                 del(parsing['part_of_speech'])  # FIXME: where does this come from?
@@ -844,7 +830,6 @@ class WordFactory(object):
         """
         try:
             cparsebits = [b for b in constraint.split('_')]
-            pprint(cparsebits)
             cdict = {b.split('@')[0]: b.split('@')[1] for b in cparsebits
                      if len(b.split('@')) > 1}
 
@@ -865,7 +850,6 @@ class WordFactory(object):
                     del(cdict[e[-1]])
                 except KeyError:
                     pass
-            pprint(cdict)
 
             key_eqs = {'num': 'number',
                        'n': 'number',

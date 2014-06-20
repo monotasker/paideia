@@ -82,13 +82,13 @@ p29
 ssS'tag'
 p30
 (dp31
-S'type'
+S'sortable'
 p32
-S'list:reference db.tags'
-p33
-sS'sortable'
-p34
 I5
+sS'type'
+p33
+S'list:reference db.tags'
+p34
 sS'sql'
 p35
 S'TEXT'
@@ -113,13 +113,13 @@ p40
 ssS'position'
 p41
 (dp42
-S'sortable'
+S'type'
 p43
-I5
-sS'type'
-p44
 S'integer'
+p44
+sS'sortable'
 p45
+I5
 sS'sql'
 p46
 S'INTEGER'

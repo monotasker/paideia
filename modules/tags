@@ -43,6 +43,7 @@ Path	paideia.py	/^class Path(object):$/;"	c
 PathChooser	paideia.py	/^class PathChooser(object):$/;"	c
 PathFactory	paideia_path_factory.py	/^class PathFactory(object):$/;"	c
 ROLE	plugin_widgets.py	/^def ROLE(content, role=None):$/;"	f
+ResultCollector	paideia_path_factory.py	/^class ResultCollector(object):$/;"	c
 STEP_CLASSES	paideia_exploring.py	/^STEP_CLASSES = {$/;"	v
 Stats	paideia_stats.py	/^class Stats(object):$/;"	c
 Step	paideia.py	/^class Step(object):$/;"	c
@@ -77,6 +78,8 @@ VerblessClause	greek_parser.py	/^class VerblessClause(Parser):$/;"	c
 Walk	paideia.py	/^class Walk(object):$/;"	c
 Walk	paideia_exploring.py	/^class Walk(object):$/;"	c
 WordFactory	paideia_path_factory.py	/^class WordFactory(object):$/;"	c
+__call__	paideia_path_factory.py	/^    def __call__(self, *args, **kwargs):$/;"	m	class:ResultCollector	file:
+__get__	paideia_path_factory.py	/^    def __get__(self, obj, objtype):$/;"	m	class:ResultCollector	file:
 __init__	greek_parser.py	/^    def __init__(self, *args):$/;"	m	class:NounPhrase
 __init__	greek_parser.py	/^    def __init__(self, *args):$/;"	m	class:Parser
 __init__	paideia.py	/^    def __init__(self):$/;"	m	class:BugReporter
@@ -106,11 +109,13 @@ __init__	paideia_path_factory.py	/^    def __init__(self):$/;"	m	class:PathFacto
 __init__	paideia_path_factory.py	/^    def __init__(self):$/;"	m	class:StepFactory
 __init__	paideia_path_factory.py	/^    def __init__(self):$/;"	m	class:TranslateWordPathFactory
 __init__	paideia_path_factory.py	/^    def __init__(self):$/;"	m	class:WordFactory
+__init__	paideia_path_factory.py	/^    def __init__(self, func):$/;"	m	class:ResultCollector
 __init__	paideia_stats.py	/^    def __init__(self, user_id=None, auth=None, cache=None, duration=None):$/;"	m	class:Stats
 __init__	plugin_1way_sync.py	/^    def __init__(self):$/;"	m	class:OnewaySyncer
 __init__	plugin_ajaxselect.py	/^    def __init__(self, field, value, indx=0,$/;"	m	class:AjaxSelect
 __init__	plugin_widgets.py	/^    def __init__(self):$/;"	m	class:POPOVER
 __init__	plugin_widgets.py	/^    def __init__(self, field, value):$/;"	m	class:JQMODAL
+__repr__	paideia_path_factory.py	/^    def __repr__(self):$/;"	m	class:ResultCollector	file:
 _add_from_logs	paideia.py	/^    def _add_from_logs(self, tag, user_id, newdata, tright, twrong, got_right):$/;"	m	class:Walk
 _add_log_data	paideia_stats.py	/^    def _add_log_data(self, tag_recs):$/;"	m	class:Stats
 _add_new_construction	paideia_path_factory.py	/^    def _add_new_construction(self, pos, const_label, constbits, shortbits):$/;"	m	class:WordFactory
@@ -159,7 +164,7 @@ _get_part_of_speech	paideia_path_factory.py	/^        def _get_part_of_speech(cs
 _get_paths	paideia_exploring.py	/^    def _get_paths(self):$/;"	m	class:Walk
 _get_prompt	paideia_exploring.py	/^    def _get_prompt(self):$/;"	m	class:Step
 _get_prompt_audio	paideia.py	/^    def _get_prompt_audio(self):$/;"	m	class:Step
-_get_property	paideia_path_factory.py	/^        def _get_property(cst, ref, prop):$/;"	f	function:Inflector.make_form_agree
+_get_property	paideia_path_factory.py	/^        def _get_property(cst, lemform, ref, prop):$/;"	f	function:Inflector.make_form_agree
 _get_ratio	paideia.py	/^    def _get_ratio(self, record):$/;"	m	class:Categorizer
 _get_readable	paideia.py	/^    def _get_readable(self):$/;"	m	class:StepText
 _get_ref	paideia_path_factory.py	/^        def _get_ref(modform, constraint):$/;"	f	function:Inflector.make_form_agree
@@ -257,7 +262,7 @@ clr	paideia_utils.py	/^def clr(string, mycol='white'):$/;"	f
 clr	plugin_utils.py	/^def clr(string, mycol='white'):$/;"	f
 complete_path	paideia.py	/^    def complete_path(self):$/;"	m	class:User
 complete_step	paideia.py	/^    def complete_step(self):$/;"	m	class:Path
-const_abbrevs	paideia_path_factory.py	/^    const_abbrevs = {'adjective': 'adj',$/;"	v	class:WordFactory
+const_abbrevs	paideia_path_factory.py	/^    const_abbrevs = {'3 decl epsilon': '3e',$/;"	v	class:WordFactory
 copy_db	plugin_sqlite_backup.py	/^def copy_db(mydir=None):$/;"	f
 copy_to_backup	plugin_sqlite_backup.py	/^def copy_to_backup():$/;"	f
 create_widget	plugin_ajaxselect.py	/^    def create_widget(self):$/;"	m	class:AjaxSelect
@@ -343,8 +348,10 @@ imgrows2	plugin_markmin_extras.py	/^imgrows2 = db(db.woh_images.id > 0).select()
 import_from_csv	plugin_utils.py	/^def import_from_csv():$/;"	f
 infer_case	paideia_path_factory.py	/^    def infer_case(self, wordform, lemma):$/;"	m	class:MorphParser
 infer_declension	paideia_path_factory.py	/^    def infer_declension(self, wordform):$/;"	m	class:MorphParser
+infer_gender	paideia_path_factory.py	/^    def infer_gender(self, wordform, lemma):$/;"	m	class:MorphParser
 infer_parsing	paideia_path_factory.py	/^    def infer_parsing(self, word_form, lemma):$/;"	m	class:MorphParser
 infer_part_of_speech	paideia_path_factory.py	/^    def infer_part_of_speech(self, word_form):$/;"	m	class:MorphParser
+infer_pattern	paideia_path_factory.py	/^    def infer_pattern(self, wordform, lemma):$/;"	m	class:MorphParser
 info	paideia_exploring.py	/^    def info(self):$/;"	m	class:Location
 is_stale	paideia.py	/^    def is_stale(self, now=None, start=None, time_zone=None, db=None):$/;"	m	class:User
 islist	paideia_utils.py	/^def islist(dat):$/;"	f
