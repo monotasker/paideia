@@ -178,12 +178,19 @@ class Inflector(object):
             return declension
 
         def _get_property(cst, lemform, ref, prop):
+            defaults = {'tense': 'present',
+                        'voice': 'active',
+                        'person': '3',
+                        'mood': 'indicative'}
             if cst and prop in cst.keys():
                 propval = cst[prop]
-            elif ref and (prop in ref.keys()) and (prop != 'gender'):
+            elif ref and (prop in ref.keys()) and \
+                    ref[prop] not in ['none', None] and (prop != 'gender'):
                 propval = ref[prop]
             elif prop == 'gender':
                 propval = lemform[prop]
+            elif prop in defaults.keys():
+                propval = defaults[prop]
             else:
                 propval = None
             return propval
@@ -242,6 +249,7 @@ class Inflector(object):
 
         # get the inflected form's row from the db
         parsing = _fill_missing_fields(parsing)
+        pprint(parsing)
         myrow = db((db.word_forms.source_lemma == lem.id) &
                    (db.word_forms.grammatical_case == parsing['grammatical_case']) &
                    (db.word_forms.tense == parsing['tense']) &
@@ -641,6 +649,10 @@ class WordFactory(object):
         shortbits = [self.const_abbrevs[i] for i in cstbits
                      if i not in ['none', None]]
         construction_label = '{}_{}'.format(part_of_speech, '_'.join(shortbits))
+        # FIXME: below is hack to fix confusion over ordinal numbers
+        if re.search('verb', construction_label):
+            construction_label = construction_label.replace('decl', '')
+        pprint(construction_label)
         construction_row = db.constructions(db.constructions.construction_label
                                             == construction_label)
         return construction_label, construction_row, cstbits, shortbits
@@ -911,10 +923,10 @@ class WordFactory(object):
         # inflect lemma to agree with its governing word
         modform = combodict[mod] if mod != 'none' else None
 
-        myform, newform = Inflector().make_form_agree(modform, lemma,
+        myform = Inflector().make_form_agree(modform, lemma,
                                                       constraints)
 
-        return myform, newform
+        return myform
 
 
 class StepFactory(object):
@@ -940,17 +952,23 @@ class StepFactory(object):
         """
         Create one step with given data.
 
-        Returns a 2-member tuple
-        [0] stepresult      : A 2-member tuple consisting of a string[0]
-                              indicating the result of the step-creation
-                              attempt and a second member [1] which gives
-                              the content of that attempt. This content can be
+        Returns a 2-member tuple.
+        The first member is itself a 2-member tuple
+        consisting of:
+
+        [0] stepresult      : a string indicating the result of the step-creation
+                              attempt
+
+        [1] content         : the content of that attempt. This content can be
                               - a step id (if success)
                               - a dict of step field values (if testing)
                               - a list of duplicate steps (duplicates)
                               - an error traceback (if failure)
-        [1] newfs           : A list of inflected word forms newly added to
-                              db.word_forms in the course of step creation.
+
+        The second member of the top-level tuple is a boolean indicating
+        whether the step image was newly created (and so an image file will
+        need to be added to the new db row).
+
         """
         mytype = sdata['step_type']
 
@@ -973,8 +991,8 @@ class StepFactory(object):
         # ititle = img[1] if img else None
         images_missing = img[2] if img else None
 
-        pros, rxs, rdbls, newfs = self._format_strings(combodict, ptemp, xtemp, rtemp)
-        tags = self._get_step_tags(tags1, tags2, tags3, pros, rdbls)
+        pros, rxs, rdbls = self._format_strings(combodict, ptemp, xtemp, rtemp)
+        tags = self.get_step_tags(tags1, tags2, tags3, pros, rdbls)
         kwargs = {'prompt': pros[randrange(len(pros))],  # sanitize_greek(pros[randrange(len(pros))]),
                   'widget_type': mytype,
                   # 'widget_audio': None,
@@ -1003,23 +1021,22 @@ class StepFactory(object):
                     problems = [k for k, v in matchdicts[idx].iteritems() if not v]
                     xfail[regex] = problems
             dups = check_for_duplicates(kwargs, rdbls, pros)
-            newferrs = {k: v for k, v in newfs.iteritems()
-                        if not isinstance(v, (int, long))}
             if mtch and not dups[0] and not mock:
                 stepresult = self._step_to_db(kwargs), kwargs
             elif mtch and not dups[0] and mock:
                 stepresult = 'testing', kwargs
             elif mtch and dups[0]:
                 stepresult = 'duplicate step', dups
-            elif newferrs:
-                stepresult = 'failed creating db rows', newferrs
             else:
                 stepresult = 'regex failure', xfail
         except Exception:
-            # tracebk = traceback.format_exc(12)
+            traceback.print_exc(12)
             stepresult = ('failure')
 
-        return stepresult, newfs, images_missing
+        pprint(stepresult)
+        pprint(images_missing)
+
+        return stepresult, images_missing
 
     def _make_image(self, combodict, itemp):
         """
@@ -1059,24 +1076,15 @@ class StepFactory(object):
 
         """
         prompts = [self._do_substitution(p, combodict) for p in ptemps]
-        p_new = chain.from_iterable([p[1] for p in prompts])
-        prompts = [capitalize_first(p[0]) for p in prompts]
-
-        rxs = [self._do_substitution(x, combodict) for x in xtemps]
-        x_new = chain.from_iterable([x[1] for x in rxs])
-        rxs = [x[0] for x in rxs]
-
-        rdbls = [self._do_substitution(r, combodict) for r in rtemps]
-        r_new = chain.from_iterable([r[1] for r in rdbls])
-        rdbls = [capitalize_first(r[0]) for r in rdbls]
-
-        newforms = p_new
-        for k, v in x_new.items():
-            newforms.setdefault(k, []).append(v)
-        for k, v in r_new.items():
-            newforms.setdefault(k, []).append(v)
-
-        return prompts, rxs, rdbls, newforms
+        if xtemps:
+            rxs = [self._do_substitution(x, combodict) for x in xtemps]
+        else:
+            rxs = None
+        if rtemps:
+            rdbls = [self._do_substitution(r, combodict) for r in rtemps]
+        else:
+            rdbls = None
+        return prompts, rxs, rdbls
 
     def _do_substitution(self, temp, combodict):
         """
@@ -1087,7 +1095,6 @@ class StepFactory(object):
         """
         ready_strings = []
         subpairs = {}
-        newforms = {}
 
         fields = re.findall(r'(?<={).*?(?=})', temp)
         if not fields:
@@ -1095,15 +1102,12 @@ class StepFactory(object):
         inflected_fields = [f for f in fields if len(f.split('-')) > 1]
         for f in fields:
             if f in inflected_fields:
-                myform, newforms = WordFactory().get_wordform(f, combodict)
-                if newforms:  # note any additions to db.word_forms
-                    for k, v in newforms.iteritems():
-                        newforms.setdefault(k, []).append(v)
+                myform = WordFactory().get_wordform(f, combodict)
             else:
                 myform = combodict[f]
             subpairs[f] = myform
         ready_strings = temp.format(**subpairs)
-        return ready_strings, newforms
+        return ready_strings
 
     def get_step_tags(self, tags1, tags2, tags3, prompts, rdbls):
         """
@@ -1761,7 +1765,7 @@ class TranslateWordPathFactory(PathFactory):
         return regex
 
 
-def check_for_duplicates(self, step, readables, prompt):
+def check_for_duplicates(step, readables, prompt):
     """
     Returns a 2-member tuple identifying whether there is a duplicate in db.
 

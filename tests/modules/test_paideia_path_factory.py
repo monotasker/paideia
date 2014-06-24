@@ -355,21 +355,15 @@ class TestInflector():
           ),
          ('γυναικες',  # modform
           'βαινω',  # lemma
-          None,  # constraints
+          'pers@3',  # constraints
           ('βαινουσι',
-           [('word_forms', None, None, ['Could not create new word form for '
-                                        '\xce\xb2\xce\xb1\xce\xb9\xce\xbd\xcf\x89, '
-                                        'modform \xce\xb3\xcf\x85\xce\xbd\xce\xb1\xce\xb9\xce\xba\xce\xb5\xcf\x82, '
-                                        'constraint None'])])  # out
+           [('word_forms', 'βαινουσι', 552L, None)])  # out
           ),
          (None,  # modform
           'βαινω',  # lemma
           'pers@1_num@pl_ts@pres_v@act_m@ind',  # constraints
-          ('βαινουσι',
-           [('word_forms', None, None, ['Could not create new word form for '
-                                       '\xce\xb2\xce\xb1\xce\xb9\xce\xbd\xcf\x89, '
-                                       'modform None, '
-                                       'constraint pers@1_num@pl_ts@pres_v@act_m@ind'])])  # out
+          ('βαινομεν',
+           [('word_forms', 'βαινομεν', 553L, None)])  # out
           ),
          ])
     def test_make_form_agree(self, mod_form, lemma, constraints, out, web2py):
@@ -430,79 +424,59 @@ class TestWordFactory():
         Test method for the WordFactory.get_wordform() method.
         """
         f = WordFactory()
-        wordform, newform = f.get_wordform(fieldstring, combodict)
+        wordform = f.get_wordform(fieldstring, combodict)
         assert wordform == out[0] or makeutf8(out[0])
-        assert newform == out[1]
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('wordform,mod_form,lemma,constraint,out,forminfo',
+    @pytest.mark.parametrize('wordform,mod_form,lemma,constraint,out',
             [('ἀρτος',
               None,
               'ἀρτος',
               'case@nom_g@m_num@s',
-              ('ἀρτος',  # word_form
+              ('word_forms',
+               'ἀρτος',  # word_form
                0,  # rowid
                None,  # err
-               None,  # cst_id
-               None  # csterr
                ),
-              {'word_form': 'ἀρτος',
-               'source_lemma': 'ἀρτος',
-               'grammatical_case': 'nominative',
-               'gender': 'masculine',
-               'number': 'singular',
-               'construction': 'noun_nom_masc_sing_2decl',
-               'tags': [1, 82, 117]}
               ),
              ('ἀρτῳ',
               None,
               'ἀρτος',
               None,
-              ('ἀρτῳ',  # word_form
+              ('word_forms',
+               'ἀρτῳ',  # word_form
                0,  # rowid
                None,  # err
-               None,  # cst_id
-               None  # csterr
                ),
-              {'word_form': 'ἀρτῳ',
-               'source_lemma': 'ἀρτος',
-               'grammatical_case': 'dative',
-               'gender': 'masculine',
-               'number': 'singular',
-               'construction': 'noun_dat_masc_sing_2decl',
-               'tags': [1L, 84L, 117L]}
               ),
              # ('ἀληθεια', 'noun'),
              # ('ἰχθυς', 'noun'),
              # ('ταχεως', 'adverb')
              ])
     def test_add_new_wordform(self, wordform, mod_form, lemma, constraint,
-                              out, forminfo, db):
+                              out, db):
         """
         """
         f = WordFactory()
         actual = f.add_new_wordform(wordform, lemma, mod_form, constraint)
-        # clean up db: value picked up by db fixture via introspection
-        newrows = {'word_forms': actual[1],  # rowid
-                   'constructions': actual[3]}  # cst_id
 
         # test method return values
-        for idx, a in enumerate(actual):
-            if idx not in [1, 3]:  # don't try to predict new db row ids
+        for idx, a in enumerate(actual[0]):
+            if idx != 2:  # don't try to predict new db row ids
                 assert a == out[idx]
             else:
-                assert isinstance(actual[1], (long, int))
-
+                assert isinstance(actual[0][2], (long, int))
+        # TODO: re-introduce tests for db io
         # test db row content
-        newrow = db.word_forms(actual[1])
-        myconstructions = db(db.constructions.construction_label ==
-                             forminfo['construction']).select()
-        forminfo['construction'] = myconstructions.first().id
-        forminfo['source_lemma'] = db.lemmas(db.lemmas.lemma ==
-                                             forminfo['source_lemma']).id
-        for k, v in forminfo.iteritems():
-            print 'testing', k
-            assert newrow[k] == v
+        #newrow = db.word_forms(actual[1])
+        #myconstructions = db(db.constructions.construction_label ==
+                             #forminfo['construction']).select()
+        #forminfo['construction'] = myconstructions.first().id
+        #forminfo['source_lemma'] = db.lemmas(db.lemmas.lemma ==
+                                             #forminfo['source_lemma']).id
+        #for k, v in forminfo.iteritems():
+            #print 'testing', k
+            #assert newrow[k] == v
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('lemma,constraint,out,leminfo',
@@ -586,7 +560,7 @@ class TestStepFactory():
     """
     Class to create steps for the Paideia web-app. (Unit tests)
     """
-    @pytest.mark.skipif(True, reason='just because')
+    @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('combodict,out',
         [({'words1': 'ἀρτος',  # combodict
            'words2': 'ἀγορα'},
@@ -605,7 +579,7 @@ class TestStepFactory():
         """
         image_template = mystepinfo[0]['image_template']
         f = StepFactory()
-        rowid, title, newrow = f.make_image(combodict, image_template)
+        rowid, title, newrow = f._make_image(combodict, image_template)
         # clean up db
         if newrow:
             db(db.images.id == rowid).delete()
@@ -618,26 +592,20 @@ class TestStepFactory():
         [({'words1': 'ἀρτος',  # combodict
            'words2': 'ἀγορα'},
           'Can you get some {words1} from the {words2}.',  # temp
-          ('Can you get some ἀρτος from the ἀγορα.',  # out
-           {})
+          'Can you get some ἀρτος from the ἀγορα.',  # out
           ),
          ({'words1': 'ἀρτος',  # combodict
            'words2': 'ἀγορα'},
           'Yes,\s(?P<a>I\s)?(?(a)|we\s)can\sget\ssome\s{words1}\sfrom\sthe'  # temp
           '\s{words2}.',
-          ('Yes,\\s(?P<a>I\\s)?(?(a)|we\\s)can\\sget\\ssome\\s'  # out
-           '\xe1\xbc\x80\xcf\x81\xcf\x84\xce\xbf\xcf\x82\\sfrom\\sthe\\s'
-           '\xe1\xbc\x80\xce\xb3\xce\xbf\xcf\x81\xce\xb1.',
-           {})
+          'Yes,\\s(?P<a>I\\s)?(?(a)|we\\s)can\\sget\\ssome\\s'  # out
+          '\xe1\xbc\x80\xcf\x81\xcf\x84\xce\xbf\xcf\x82\\sfrom\\sthe\\s'
+          '\xe1\xbc\x80\xce\xb3\xce\xbf\xcf\x81\xce\xb1.',
           ),
          ({'words1': 'ἀρτος',  # combodict
            'words2': 'ἀγορα'},
           'Yes, I can get some {words1} from the {words2-words1-case@gen}.',  # temp
-          ('Yes, I can get some ἀρτος from the ἀγορας.',  # out
-           {'word_forms': ['Could not create new word form for '
-                           '\xe1\xbc\x80\xce\xb3\xce\xbf\xcf\x81\xce\xb1, '
-                           'modform \xe1\xbc\x80\xcf\x81\xcf\x84\xce\xbf\xcf\x82, '
-                           'constraint case@gen']})
+          'Yes, I can get some ἀρτος from the ἀγορας.',  # out
           ),
          ])
     def test_do_substitution(self, combodict, temp, out):
@@ -645,11 +613,10 @@ class TestStepFactory():
         Test method for the PathFactory.format_strings() method.
         """
         f = StepFactory()
-        newstring, newforms = f._do_substitution(temp, combodict)
-        assert newstring == out[0] or makeutf8(out[0])
-        assert newforms == out[1]
+        newstring = f._do_substitution(temp, combodict)
+        assert newstring == out or makeutf8(out)
 
-    @pytest.mark.skipif(True, reason='just because')
+    @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('combodict,ptemps,xtemps,rtemps,stringsout',
         [({'words1': 'ἀρτος',  # combodict
            'words2': 'ἀγορα'},
@@ -672,18 +639,17 @@ class TestStepFactory():
         Test method for the PathFactory.format_strings() method.
         """
         f = StepFactory()
-        prompts, rxs, rdbls, newforms = f.format_strings(combodict, ptemps,
-                                                         xtemps, rtemps)
-        assert prompts == stringsout['prompts']
+        prompts, rxs, rdbls = f._format_strings(combodict, ptemps,
+                                                xtemps, rtemps)
+        assert prompts == [p.encode('utf8') for p in stringsout['prompts']]
         assert rxs == stringsout['rxs']
-        assert rdbls == stringsout['rdbls']
-        assert newforms == stringsout['newforms']
+        assert rdbls == [r.encode('utf8') for r in stringsout['rdbls']]
 
-    @pytest.mark.skipif(True, reason='just because')
-    @pytest.mark.parametrize('combodict,result,stepout',
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('combodict,result,content,newimg',
         [({'words1': 'ἀρτος',  # combodict
            'words2': 'ἀγορα'},
-          'testing',  # result
+          612L,  # result
           {'hints': [],  # stepout
            'instructions': [],
            'locations': [1],
@@ -702,34 +668,36 @@ class TestStepFactory():
            'tags': [2L],
            'tags_ahead': [1L],
            'tags_secondary': [4L, 36L, 48L, 82L, 117L],
-           'widget_image': 116L,
-           'widget_type': 4}),
+           'widget_image': 124L,
+           'widget_type': 4},
+          True),
          # ({'words1': 'καρπος',  # combodict
          # 'words2': 'πωλιον'},
          # 'testing',  # result
          # {}),  # stepout
          ])
-    def test_make_step(self, combodict, result, stepout, mystepinfo):
+    def test_make_step(self, combodict, result, content, newimg, mystepinfo):
         """
         Create one step with given data.
 
         Returns a 2-member tuple
-        [0] stepresult      : A 2-member tuple consisting of a string[0]
-                              indicating the result of the step-creation
-                              attempt and a second member [1] which gives
-                              the content of that attempt. This content can be
-                              - a step id (if success)
-                              - a dict of step field values (if testing)
-                              - a list of duplicate steps (duplicates)
-                              - an error traceback (if failure)
-        [1] newfs           : A list of inflected word forms newly added to
-                              db.word_forms in the course of step creation.
+        [0]
+        a tuple consisting of a string[0] indicating the
+        result of the step-creation attempt and a second member [1]
+        which gives the content of that attempt. This content can be
+            - a step id (if success)
+            - a dict of step field values (if testing)
+            - a list of duplicate steps (duplicates)
+            - an error traceback (if failure)
+        [1]
+        also returns images_missing list
         """
         f = StepFactory()
-        actual = f.make_step(combodict, mystepinfo[0])
+        actual = f.make_step(combodict, mystepinfo[0], False)  # third arg is 'mock'
         assert actual[0][0] == result
-        assert actual[0][1] == stepout
-        assert actual[1] == []
+        for k, v in actual[0][1].iteritems():
+            assert v == content[k] or makeutf8(v) == content[k]
+        assert actual[1] == newimg
 
 
 class TestPathFactory():
@@ -793,8 +761,72 @@ class TestPathFactory():
         assert actual == out
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('', [])
-    def make_path(self):
+    @pytest.mark.parametrize('wordlists,label_template,stepdata,avoid,testing,'
+                             'pathid,steps,new_forms,images_missing',
+        [([(u'ἀνθρωπος', u'Ἰασων'),  # wordlists
+           (u'ἀνηρ', u'Σιμων'),
+           (u'γυνη', u'Μαρια')
+           ],
+         'mypath {words1} {words2}',  # label_template
+         [{'id': 4,
+           'widget_type': 1,         # stepdata
+           'prompt_template': [u'Τίς {words1} ἐν τῃ στοᾳ?',
+                               u'Ἐν τῃ στοᾳ τίς {words1}?'],
+           'response_template': '',
+           'readable_template': '',
+           'npcs': [2],
+           'locs': [1],
+           'image_template': '',
+           'tags': [],
+           'tags_secondary': [],
+           'tags_ahead': []},
+          {'id': 5,
+           'widget_type': 1,         # stepdata
+           'prompt_template': [u'Βλεπεις {words2} ἐν τῃ στοᾳ.',
+                               u'Ἐν τῃ στοᾳ βλεπεις {words2}.'],
+           'response_template': '',
+           'readable_template': '',
+           'npcs': [8],
+           'locs': [7],
+           'image_template': '',
+           'tags': [],
+           'tags_secondary': [],
+           'tags_ahead': []},
+          {'id': 6,
+           'widget_type': 1,         # stepdata
+           'prompt_template': [u'Τίς οὐν {words1} ἐν τῃ στοᾳ?',
+                               u'Ἐν τῃ στοᾳ οὐν τίς {words1}?'],
+           'response_template': u'(?P<a>Βλεπω\s){words2}(?(a):\sβλεπω).',
+           'readable_template': [u'Βλεπω {words2}'.
+                                 u'{words2} βλεπω.'],
+           'npcs': [2],
+           'locs': [1],
+           'image_template': '',
+           'tags': [],
+           'tags_secondary': [],
+           'tags_ahead': []}],
+          '',  # avoid
+          '',  # testing
+          1L,  # 'path_id' (int)
+          {},  # 'steps' (dict)
+          {},  # 'new_forms' (dict)
+          []  #'images_missing' (list)
+          )
+        ])
+    def make_path(self, wordlists, label_template, stepsdata, avoid, testing,
+                  pathid, steps, new_forms, images_missing):
         """
         """
-        pass
+        actual = PathFactory.make_path(wordlists,
+                                       label_template=label_template,
+                                       stepsdata=stepsdata,
+                                       avoid=avoid,
+                                       aligned=aligned,
+                                       testing=testing)
+        assert actual[0] == pathid
+        for k, step in actual[1].iteritems():
+            for s, v in step.iteritems():
+                assert v == steps[k][s] or makeutf8(steps[k][s])
+        assert actual[2] == new_forms
+        assert actual[3] == images_missing
+
