@@ -693,7 +693,7 @@ class TestStepFactory():
         also returns images_missing list
         """
         f = StepFactory()
-        actual = f.make_step(combodict, mystepinfo[0], False)  # third arg is 'mock'
+        actual = f.make_step(combodict, mystepinfo[0], False, 0)  # third arg is 'mock'
         assert actual[0][0] == result
         for k, v in actual[0][1].iteritems():
             assert v == content[k] or makeutf8(v) == content[k]
@@ -762,7 +762,7 @@ class TestPathFactory():
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('wordlists,label_template,stepsdata,avoid,testing,'
-                             'aligned,pathid,steps,new_forms,images_missing',
+                             'aligned,steps',
         [([(u'ἀνθρωπος', u'Ἰασων'),  # wordlists
            (u'ἀνηρ', u'Σιμων'),
            (u'γυνη', u'Μαρια')
@@ -811,15 +811,76 @@ class TestPathFactory():
           '',  # avoid
           '',  # testing
           False,  # aligned
-          1,  # 'path_id' (int)
-          {},  # 'steps' (dict)
-          {},  # 'new_forms' (dict)
-          []  #'images_missing' (list)
-          )
-        ])
+          {'path not written 0': {'images_missing': [],
+                                  'new_forms': {},
+                                  'steps': {'testing0': {'hints': None,
+                                                         'instructions': None,
+                                                         'locations': [1],
+                                                         'npcs': [2],
+                                                         'outcome1': 1.0,
+                                                         'outcome2': 0.0,
+                                                         'outcome3': 0.0,
+                                                         'prompt': u'\u03a4\u03af\u03c2 \u1f00\u03bd\u03b8\u03c1\u03c9\u03c0\u03bf\u03c2 \u1f10\u03bd \u03c4\u1fc3 \u03c3\u03c4\u03bf\u1fb3?',
+                                                         'readable_response': '',
+                                                         'response1': '',
+                                                         'response2': None,
+                                                         'response3': None,
+                                                         'tags': [17L],
+                                                         'tags_ahead': [1L],
+                                                         'tags_secondary': [61L,
+                                                                             62L,
+                                                                             63L,
+                                                                             82L,
+                                                                             89L,
+                                                                             115L],
+                                                         'widget_image': None,
+                                                         'widget_type': 3},
+                                            'testing1': {'hints': None,
+                                                         'instructions': None,
+                                                         'locations': [7],
+                                                         'npcs': [8],
+                                                         'outcome1': 1.0,
+                                                         'outcome2': 0.0,
+                                                         'outcome3': 0.0,
+                                                         'prompt': u'\u1f18\u03bd \u03c4\u1fc3 \u03c3\u03c4\u03bf\u1fb3 \u03b2\u03bb\u03b5\u03c0\u03b5\u03b9\u03c2 \u1f00\u03bd\u03b7\u03c1.',
+                                                         'readable_response': '',
+                                                         'response1': '',
+                                                         'response2': None,
+                                                         'response3': None,
+                                                         'tags': [17L],
+                                                         'tags_ahead': [1L],
+                                                         'tags_secondary': [89L],
+                                                         'widget_image': None,
+                                                         'widget_type': 3},
+                                            'testing2': {'hints': None,
+                                                         'instructions': None,
+                                                         'locations': [1],
+                                                         'npcs': [2],
+                                                         'outcome1': 1.0,
+                                                         'outcome2': 0.0,
+                                                         'outcome3': 0.0,
+                                                         'prompt': u'\u1f18\u03bd \u03c4\u1fc3 \u03c3\u03c4\u03bf\u1fb3 \u03bf\u1f50\u03bd \u03c4\u03af\u03c2 \u1f00\u03bd\u03b8\u03c1\u03c9\u03c0\u03bf\u03c2?',
+                                                         'readable_response': u'\u0392\u03bb\u03b5\u03c0\u03c9 \u1f00\u03bd\u03b7\u03c1.|\u1f00\u03bd\u03b7\u03c1 \u03b2\u03bb\u03b5\u03c0\u03c9.',
+                                                         'response1': u'(?P<a>(\u03b2|\u0392)\u03bb\u03b5\u03c0\u03c9\\s)?\u1f00\u03bd\u03b7\u03c1(?(a)|\\s\u03b2\u03bb\u03b5\u03c0\u03c9)\\.',
+                                                         'response2': None,
+                                                         'response3': None,
+                                                         'tags': [17L],
+                                                         'tags_ahead': [1L],
+                                                         'tags_secondary': [61L,
+                                                                             62L,
+                                                                             63L,
+                                                                             82L,
+                                                                             89L,
+                                                                             115L],
+                                                         'widget_image': None,
+                                                         'widget_type': 1}
+                                                         }
+                                            }
+                                    }
+    )
+    ])
     def test_make_path(self, wordlists, label_template, stepsdata, avoid,
-                       testing, aligned, pathid, steps, new_forms,
-                       images_missing):
+                       testing, aligned, steps):
         """
         """
         actual = PathFactory().make_path(wordlists,
@@ -828,12 +889,10 @@ class TestPathFactory():
                                        avoid=avoid,
                                        aligned=aligned,
                                        testing=testing)
-        print 'actual ========================================='
-        pprint(actual)
-        assert actual[0] == pathid
-        for k, step in actual[1].iteritems():
-            for s, v in step.iteritems():
-                assert v == steps[k][s] or makeutf8(steps[k][s])
-        assert actual[2] == new_forms
-        assert actual[3] == images_missing
 
+        for k, val in steps['path not written 0'].iteritems():
+            if not isinstance(val, dict):
+                assert val == steps['path not written 0'][k]
+            else:
+                for step, sval in val.iteritems():
+                    assert sval == steps['path not written 0'][k][step]
