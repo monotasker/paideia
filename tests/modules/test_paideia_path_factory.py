@@ -11,7 +11,7 @@
 
 import pytest
 import re
-# from pprint import pprint
+from pprint import pprint
 from paideia_path_factory import PathFactory, MorphParser, Inflector
 from paideia_path_factory import WordFactory, StepFactory
 from plugin_utils import makeutf8
@@ -761,68 +761,75 @@ class TestPathFactory():
         assert actual == out
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('wordlists,label_template,stepdata,avoid,testing,'
-                             'pathid,steps,new_forms,images_missing',
+    @pytest.mark.parametrize('wordlists,label_template,stepsdata,avoid,testing,'
+                             'aligned,pathid,steps,new_forms,images_missing',
         [([(u'ἀνθρωπος', u'Ἰασων'),  # wordlists
            (u'ἀνηρ', u'Σιμων'),
            (u'γυνη', u'Μαρια')
            ],
-         'mypath {words1} {words2}',  # label_template
+         'mypath {}',  # label_template
          [{'id': 4,
-           'widget_type': 1,         # stepdata
+           'step_type': 3,         # stepdata
            'prompt_template': [u'Τίς {words1} ἐν τῃ στοᾳ?',
-                               u'Ἐν τῃ στοᾳ τίς {words1}?'],
+                               u'Ἐν τῃ στοᾳ τίς {words1}?'
+                               ],
            'response_template': '',
            'readable_template': '',
            'npcs': [2],
-           'locs': [1],
+           'locations': [1],
            'image_template': '',
            'tags': [],
            'tags_secondary': [],
            'tags_ahead': []},
           {'id': 5,
-           'widget_type': 1,         # stepdata
+           'step_type': 3,         # stepdata
            'prompt_template': [u'Βλεπεις {words2} ἐν τῃ στοᾳ.',
                                u'Ἐν τῃ στοᾳ βλεπεις {words2}.'],
            'response_template': '',
            'readable_template': '',
            'npcs': [8],
-           'locs': [7],
+           'locations': [7],
            'image_template': '',
            'tags': [],
            'tags_secondary': [],
            'tags_ahead': []},
           {'id': 6,
-           'widget_type': 1,         # stepdata
+           'step_type': 1,         # stepdata
            'prompt_template': [u'Τίς οὐν {words1} ἐν τῃ στοᾳ?',
-                               u'Ἐν τῃ στοᾳ οὐν τίς {words1}?'],
-           'response_template': u'(?P<a>Βλεπω\s){words2}(?(a):\sβλεπω).',
-           'readable_template': [u'Βλεπω {words2}'.
-                                 u'{words2} βλεπω.'],
+                               u'Ἐν τῃ στοᾳ οὐν τίς {words1}?'
+                               ],
+           'response_template': u'(?P<a>(β|Β)λεπω\s)?{words2}(?(a)|\sβλεπω)\.',
+           'readable_template': [u'Βλεπω {words2}.',
+                                 u'{words2} βλεπω.'
+                                 ],
            'npcs': [2],
-           'locs': [1],
+           'locations': [1],
            'image_template': '',
            'tags': [],
            'tags_secondary': [],
            'tags_ahead': []}],
           '',  # avoid
           '',  # testing
-          1L,  # 'path_id' (int)
+          False,  # aligned
+          1,  # 'path_id' (int)
           {},  # 'steps' (dict)
           {},  # 'new_forms' (dict)
           []  #'images_missing' (list)
           )
         ])
-    def make_path(self, wordlists, label_template, stepsdata, avoid, testing,
-                  pathid, steps, new_forms, images_missing):
+    def test_make_path(self, wordlists, label_template, stepsdata, avoid,
+                       testing, aligned, pathid, steps, new_forms,
+                       images_missing):
         """
         """
-        actual = PathFactory.make_path(wordlists,
+        actual = PathFactory().make_path(wordlists,
                                        label_template=label_template,
                                        stepsdata=stepsdata,
                                        avoid=avoid,
                                        aligned=aligned,
                                        testing=testing)
+        print 'actual ========================================='
+        pprint(actual)
         assert actual[0] == pathid
         for k, step in actual[1].iteritems():
             for s, v in step.iteritems():
