@@ -136,13 +136,13 @@ db.lemmas.part_of_speech.requires = IS_IN_SET(('verb', 'adverb', 'noun',
                                                'conjunction', 'preposition',
                                                'particle', 'adjective',
                                                'interjection'))
-db.lemmas.thematic_pattern.requires = IS_IN_SET(('alpha thematic',
-                                                 'alpha construct',
-                                                 'epsilon construct1',
-                                                 'epsilon construct2',
-                                                 'omicron construct',
-                                                 '3rd decl upsilon',
-                                                 '3rd decl epsilon'))
+db.lemmas.thematic_pattern.requires = IS_EMPTY_OR(IS_IN_SET(('alpha thematic',
+                                                             'alpha construct',
+                                                             'epsilon construct1',
+                                                             'epsilon construct2',
+                                                             'omicron construct',
+                                                             '3rd decl upsilon',
+                                                             '3rd decl epsilon')))
 db.lemmas.extra_tags.requires = IS_IN_DB(db, 'tags.id',
                                          db.tags._format,
                                          multiple=True)
