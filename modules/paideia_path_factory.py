@@ -1185,6 +1185,13 @@ class PathFactory(object):
                 Field('avoid', 'list:string'),
                 Field('testing', 'boolean')]
 
+        myajax = lambda field, value: AjaxSelect(field, value,
+                                                 indx=1,
+                                                 multi='basic',
+                                                 lister='simple',
+                                                 orderby='tag'
+                                                 ).widget()
+
         for n in ['one', 'two', 'three', 'four', 'five']:
             fbs = [Field('{}_prompt_template'.format(n), 'list:string'),
                    Field('{}_response_template'.format(n), 'list:string'),
@@ -1192,74 +1199,38 @@ class PathFactory(object):
                    Field('{}_tags'.format(n), 'list:reference tags',
                          requires=IS_IN_DB(db, 'tags.id', '%(tag)s',
                                            multiple=True),
-                         # widget=lambda field, value: AjaxSelect(field, value,
-                         # indx=1,
-                         # multi='basic',
-                         # lister='simple',
-                         # orderby='tag'
-                         # ).widget()
+                         # widget=myajax()
                          ),
                    Field('{}_tags_secondary'.format(n), 'list:reference tags',
                          requires=IS_IN_DB(db, 'tags.id',
                                            '%(tag)s',
                                            multiple=True),
-                         # widget=lambda field, value: AjaxSelect(field, value,
-                         # indx=2,
-                         # multi='basic',
-                         # lister='simple',
-                         # orderby='tag'
-                         # ).widget()
+                         # widget=myajax()
                          ),
                    Field('{}_tags_ahead'.format(n), 'list:reference tags',
                          requires=IS_IN_DB(db, 'tags.id', '%(tag)s',
                                            multiple=True),
-                         # widget=lambda field, value: AjaxSelect(field, value,
-                         # indx=3,
-                         # multi='basic',
-                         # lister='simple',
-                         # orderby='tag'
-                         # ).widget()
+                         # widget=myajax()
                          ),
                    Field('{}_npcs'.format(n), 'list:reference npcs',
                          requires=IS_IN_DB(db, 'npcs.id', '%(name)s',
                                            multiple=True),
-                         # widget=lambda field, value: AjaxSelect(field, value,
-                         # indx=1,
-                         # multi='basic',
-                         # lister='simple',
-                         # orderby='name'
-                         # ).widget()
+                         # widget=myajax()
                          ),
                    Field('{}_locations'.format(n), 'list:reference locations',
                          requires=IS_IN_DB(db, 'locations.id', '%(map_location)s',
                                            multiple=True),
-                         # widget=lambda field, value: AjaxSelect(field, value,
-                         # indx=1,
-                         # multi='basic',
-                         # lister='simple',
-                         # orderby='map_location'
-                         # ).widget()
+                         # widget=myajax()
                          ),
                    Field('{}_instructions'.format(n), 'list:reference step_instructions',
                          requires=IS_IN_DB(db, 'step_instructions.id', '%(instruction_label)s',
                                            multiple=True),
-                         # widget=lambda field, value: AjaxSelect(field, value,
-                         # indx=1,
-                         # multi='basic',
-                         # lister='simple',
-                         # orderby='instruction_label'
-                         # ).widget()
+                         # widget=myajax()
                          ),
                    Field('{}_hints'.format(n), 'list:reference step_hints',
                          requires=IS_IN_DB(db, 'step_hints.id', '%(hint_label)s',
                                            multiple=True),
-                         # widget=lambda field, value: AjaxSelect(field, value,
-                         # indx=1,
-                         # multi='basic',
-                         # lister='simple',
-                         # orderby='hint_label'
-                         # ).widget()
-                         ),
+                         # widget=myajax()                         ),
                    Field('{}_step_type'.format(n), 'list:reference step_types',
                          requires=IS_IN_DB(db, 'step_types.id', '%(step_type)s',
                                            multiple=True)),
@@ -1267,7 +1238,7 @@ class PathFactory(object):
             flds.extend(fbs)
         form = SQLFORM.factory(*flds)
 
-        if form.process().accepted:
+        if form.process(keepvalues=True).accepted:
             vv = request.vars
             stepsdata = []
             for n in ['one', 'two', 'three', 'four', 'five']:
@@ -1552,11 +1523,23 @@ class TranslateWordPathFactory(PathFactory):
         """
         self.path_label_template = 'Meaning? {}'
         self.irregular_forms = {}
-        self.promptstrings = ['Τί σημαινει ὁ λογος οὑτος? {}',
-                              'Ὁ λογος οὑτος τί σημαινει? {}',
-                              'Σημαινει ὁ λογος οὑτος τί? {}',
-                              'Οὑτος ὁ λογος τί σημαινει? {}',
-                              'Σημαινει τί ὁ λογος οὑτος? {}']
+        self.prompt_template = ['Τί σημαινει ὁ λογος οὑτος? {}',
+                                'Ὁ λογος οὑτος τί σημαινει? {}',
+                                'Σημαινει ὁ λογος οὑτος τί? {}',
+                                'Οὑτος ὁ λογος τί σημαινει? {}',
+                                'Σημαινει τί ὁ λογος οὑτος? {}']
+
+    def get_templates(lemid, cst):
+        cstrow = db.constructions(cst)
+        lemrow = db.lemmas(lemid)
+        lemma = lemrow.lemma
+        glosses = lemrow.glosses
+        gstring = '|'.join(glosses)
+        response_template = [cstrow.trans_regex_eng.replace('{}', gstring)]
+        readable_template = [c.replace('{}', g) for g in glosses
+                             for c in cstrow.trans_templates]
+        prompt_template = [t.replace('{}', lemma) for t in self.prompt_template]
+        return prompt_template, response_template, readable_template
 
     def make_create_form(self):
         """
@@ -1570,75 +1553,40 @@ class TranslateWordPathFactory(PathFactory):
         db = current.db
         message = ''
         output = ''
-        form = SQLFORM.factory(Field('lemmas',
-                                     type='list:reference lemmas',
-                                     requires=IS_IN_DB(db, 'lemmas.id', '%(lemma)s', multiple=True),
+        form = SQLFORM.factory(Field('lemma', db.lemmas,
+                                     requires=IS_IN_DB(db, 'lemmas.id',
+                                                       '%(lemma)s'),
                                      ),
                                Field('irregular_forms', type='list:string'),
                                Field('testing', type='boolean'))
-        # widget=lambda f, v: AjaxSelect(f, v,
-        # indx=1,
-        # refresher=True,
-        # multi='basic',
-        # lister='simple',
-        # orderby='lemmas'
-        # ).widget()
-        if form.process(dbio=False, keepvalues=True).accepted:
-            self.lemmaset = request.vars.lemmas
+        if form.process(keepvalues=True).accepted:
+            lemid = request.vars.lemma
+            assert isinstance(lemid, (int, long))
             irregs = request.vars.irregular_forms
             self.irregular_forms = {f.split('|')[0]: f.split('|')[1]
-                                    for f in irregs}
-            paths, result = self.make_path()
+                                    for f in irregs}  # TODO: activate these
+            stepdata = {'step_type': 1,
+                        'npcs': self.pick_npcs,
+                        'locations': self.pick_locations,
+                        'instructions': None,
+                        'hints': None]
+            for c in get_constructions(lemid):
+                assert isinstance(c, (int, long))
+                temps = self.get_templates(lemid, c)
+                stepdata['prompt_template'] = temps[0]
+                stepdata['response_template'] = temps[1]
+                stepdata['readable_template'] = temps[2]
+                paths, result = self.make_path([[lemma]],
+                                               label_template=self.label_template,
+                                               stepdata=[stepdata])
             message, output = self.make_output(paths, result)
         elif form.errors:
             message = BEAUTIFY(form.errors)
 
         return form, message, output
 
-    def make_path(self, widget_type, lemmas, irregular, testing):
-        '''
-        '''
-        db = current.db
-        result = {}
-        for lemma in lemmas:
-            lemma['constructions'] = self.get_constructions(lemma)
-            for idx, cst in enumerate(lemma['constructions']):  # each path
-                compname = '{} {}'.format(lemma['lemma'], cst[0])
-                crow = db(db.constructions.construction_label == cst
-                          ).select().first()
-                reg_str = crow['trans_regex_eng']
-                glosses = self.make_glosses(lemma['lemma'], cst)
-                rdbl = self.make_readable(glosses[:], crow['trans_templates'])
-                tagset = self.get_step_tags(lemma, crow)
-                word_form = self.get_word_form(lemma['lemma'], crow),
-                try:
-                    step = {'prompt': self.get_prompt(word_form, crow),
-                            'response1': self.make_regex(glosses[:], reg_str),
-                            'outcome1': 1.0,
-                            'readable_response': rdbl,
-                            'response2': self.make_glosslist(glosses),
-                            'outcome2': 0.5,
-                            'tags': tagset[0],
-                            'tags_secondary': tagset[1],
-                            'tags_ahead': tagset[2],
-                            'npcs': [8],
-                            'locations': [7]
-                            }
-                    # response3  # todo: build from groups in regex
-                    # pth['outcome2'] = 0.4
-                    mtch = test_regex()
-                    dups = check_for_duplicates(step)
-                    if mtch and not testing and not dups:
-                        pid, sid = self.write_to_db(step)
-                        result[compname] = (pid, sid)
-                    elif mtch and testing:
-                        result[compname] = ('testing', step)
-                    else:
-                        result[compname] = 'failure', 'readable didn\'t match'
-                except Exception:
-                    # tbk = traceback.format_exc(5)
-                    result[compname] = ('failure')
-        return result
+    def make_combos(self, lemma):
+        return [(lemma,)]
 
     def get_constructions(self, lemma):
         """
