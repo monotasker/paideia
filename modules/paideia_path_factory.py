@@ -956,7 +956,7 @@ class StepFactory(object):
             traceback.print_exc(5)
             return False
 
-    def make_step(self, combodict, sdata, mock):
+    def make_step(self, combodict, sdata, mock, stepindex):
         """
         Create one step with given data.
 
@@ -1005,11 +1005,12 @@ class StepFactory(object):
         print 'rxs:', xtemp
         print 'rdbls:', rtemp
         pros, rxs, rdbls = self._format_strings(combodict, ptemp, xtemp, rtemp)
-        rdbls = [r for r in islist(rdbls) if isinstance(r, str)]
+        rdbls = [r for r in islist(rdbls) if isinstance(r, (str, unicode))]
         if len(rdbls) >= 1:
             rdbls = '|'.join(rdbls)
         else:
             rdbls = ['']
+        print 'now rdbls is', rdbls
         tags = self.get_step_tags(tags1, tags2, tags3, pros, rdbls)
         kwargs = {'prompt': pros[randrange(len(pros))],  # sanitize_greek(pros[randrange(len(pros))]),
                   'widget_type': mytype,
@@ -1046,11 +1047,11 @@ class StepFactory(object):
             if mtch and not dups[0] and not mock:
                 stepresult = self._step_to_db(kwargs), kwargs
             elif mtch and not dups[0] and mock:
-                stepresult = 'testing', kwargs
+                stepresult = 'testing{}'.format(stepindex), kwargs
             elif mtch and dups[0]:
-                stepresult = 'duplicate step', dups
+                stepresult = 'duplicate step {}'.format(stepindex), dups
             else:
-                stepresult = 'regex failure', xfail
+                stepresult = 'regex failure {}'.format(stepindex), xfail
         except Exception:
             traceback.print_exc(12)
             stepresult = ('failure')
@@ -1113,6 +1114,9 @@ class StepFactory(object):
             rdbls = []
             for r in rtemps:
                 if re.search(r'{', r):
+                    print 'doing substitution on rdbls*********'
+                    print r
+                    print combodict
                     rdbls.append(self._do_substitution(r, combodict))
                 else:
                     rdbls.append(r)
@@ -1131,9 +1135,10 @@ class StepFactory(object):
         ready_strings = []
         subpairs = {}
 
+        'in do_substitution temp is', temp
         fields = re.findall(r'(?<={).*?(?=})', temp)
         if not fields:
-            return temp, None
+            return temp
         inflected_fields = [f for f in fields if len(f.split('-')) > 1]
         for f in fields:
             if f in inflected_fields:
@@ -1392,7 +1397,8 @@ class PathFactory(object):
                 # create steps ========================================"
                 stepdata, imgs = StepFactory().make_step(combodict,
                                                          sdata,
-                                                         self.mock)
+                                                         self.mock,
+                                                         i)
                 # collect result ======================================"
                 pdata['steps'][stepdata[0]] = stepdata[1]
                 newforms = session.newforms if 'newforms' in session.keys() \
