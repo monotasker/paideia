@@ -171,6 +171,7 @@ class Inflector(object):
         def _get_declension(pos, lemform):
             """
             """
+            assert lemform
             if not lemform['declension']:
                 declension = MorphParser().infer_declension(mylemma)
             else:
@@ -220,6 +221,9 @@ class Inflector(object):
 
         # gather the 3 sources influencing the target form's inflection
         lem, lemform = _get_lemma(mylemma, constraint)
+        print mylemma
+        assert lem
+        assert lemform
         ref = _get_ref(modform, modconstraint)
         cst = self.wf.parse_constraint(constraint)
 
@@ -909,22 +913,26 @@ class WordFactory(object):
         db = current.db
         splits = field.split('-')
         lemma = splits[0]
-        mod = splits[1]
+        try:
+            mod = splits[1]
+        except IndexError:
+            mod = None
         try:
             constraints = splits[2]
         except IndexError:
             constraints = None
+
         # if lemma is pointer to a word list
         lemma = combodict[lemma] if lemma in combodict.keys() else lemma
+
         # allow for passing inflected form instead of lemma
         if not db.lemmas(db.lemmas.lemma == lemma):
             myrow = db.word_forms(db.word_forms.word_form == lemma)
             lemma = myrow.source_lemma.lemma
         # inflect lemma to agree with its governing word
-        modform = combodict[mod] if mod != 'none' else None
+        modform = combodict[mod] if mod and mod not in ['', 'none'] else None
 
-        myform = Inflector().make_form_agree(modform, lemma,
-                                                      constraints)
+        myform = Inflector().make_form_agree(modform, lemma, constraints)
 
         return myform
 
@@ -976,29 +984,39 @@ class StepFactory(object):
         xtemp = islist(sdata['response_template'])
         rtemp = islist(sdata['readable_template'])
 
-        tags1 = sdata['tags']
+        tags1 = sdata['tags'] if 'tags' in sdata.keys() else None
         itemp = sdata['image_template']
-        tags2 = sdata['tags_secondary']
+        tags2 = sdata['tags_secondary'] if 'tags_secondary' in sdata.keys() \
+            else None
         tags3 = sdata['tags_ahead'] if 'tags_ahead' in sdata.keys() else None
         npcs = sdata['npcs']
         locs = sdata['locations']
         points = sdata['points'] if 'points' in sdata.keys() and sdata['points'] \
             else 1.0, 0.0, 0.0
-        instrs = sdata['instructions']
-        hints = sdata['hints']
+        instrs = sdata['instructions'] if 'instructions' in sdata.keys() \
+            else None
+        hints = sdata['hints'] if 'hints' in sdata.keys() else None
         img = self._make_image(combodict, itemp) if itemp else None
         imgid = img[0] if img else None
         # ititle = img[1] if img else None
         images_missing = img[2] if img else None
 
+        print 'templates'
+        print 'rxs:', xtemp
+        print 'rdbls:', rtemp
         pros, rxs, rdbls = self._format_strings(combodict, ptemp, xtemp, rtemp)
+        rdbls = [r for r in islist(rdbls) if isinstance(r, str)]
+        if len(rdbls) >= 1:
+            rdbls = '|'.join(rdbls)
+        else:
+            rdbls = ['']
         tags = self.get_step_tags(tags1, tags2, tags3, pros, rdbls)
         kwargs = {'prompt': pros[randrange(len(pros))],  # sanitize_greek(pros[randrange(len(pros))]),
                   'widget_type': mytype,
                   # 'widget_audio': None,
                   'widget_image': imgid,
                   'response1': islist(rxs)[0],
-                  'readable_response': '|'.join([r for r in islist(rdbls)]),  # sanitize_greek(rdbls)]),
+                  'readable_response': rdbls,  # sanitize_greek(rdbls)]),
                   'outcome1': points[0],
                   'response2': rxs[1] if len(rxs) > 1 else None,
                   'outcome2': points[1],
@@ -1016,9 +1034,13 @@ class StepFactory(object):
             matchdicts = [test_regex(x, rdbls) for x in rxs]
             xfail = {}
             for idx, regex in enumerate(rxs):
-                mtch = all(matchdicts[idx].values())
+                if mytype not in [3]:
+                    mtch = all(matchdicts[idx].values())
+                else:
+                    mtch = True  # not expecting response to test
                 if not mtch:
-                    problems = [k for k, v in matchdicts[idx].iteritems() if not v]
+                    problems = [k for k, v in matchdicts[idx].iteritems()
+                                if not v]
                     xfail[regex] = problems
             dups = check_for_duplicates(kwargs, rdbls, pros)
             if mtch and not dups[0] and not mock:
@@ -1033,7 +1055,9 @@ class StepFactory(object):
             traceback.print_exc(12)
             stepresult = ('failure')
 
+        print 'stepresult ---------------------------------------------'
         pprint(stepresult)
+        print 'images missing ---------------------------------------------'
         pprint(images_missing)
 
         return stepresult, images_missing
@@ -1076,12 +1100,23 @@ class StepFactory(object):
 
         """
         prompts = [self._do_substitution(p, combodict) for p in ptemps]
-        if xtemps:
-            rxs = [self._do_substitution(x, combodict) for x in xtemps]
+        if xtemps not in ['', None]:
+            rxs = []
+            for x in xtemps:
+                if re.search(r'{', x):
+                    rxs.append(self._do_substitution(x, combodict))
+                else:
+                    rxs.append(x)
         else:
             rxs = None
-        if rtemps:
-            rdbls = [self._do_substitution(r, combodict) for r in rtemps]
+        if rtemps not in ['', None]:
+            rdbls = []
+            for r in rtemps:
+                if re.search(r'{', r):
+                    rdbls.append(self._do_substitution(r, combodict))
+                else:
+                    rdbls.append(r)
+            print 'rdbls returned are:', rdbls
         else:
             rdbls = None
         return prompts, rxs, rdbls
@@ -1119,7 +1154,11 @@ class StepFactory(object):
         tags3 = islist(tags3) if tags3 else []
 
         words = [p.split(' ') for p in prompts]
-        words.extend([r.split(' ') for r in rdbls])
+        try:
+            words.extend([r[0].split(' ') for r in rdbls
+                          if r[0] not in ['', None]])
+        except IndexError:
+            pass
         allforms = list(chain(*words))
         allforms = list(set(allforms))
 
@@ -1185,12 +1224,11 @@ class PathFactory(object):
                 Field('avoid', 'list:string'),
                 Field('testing', 'boolean')]
 
-        myajax = lambda field, value: AjaxSelect(field, value,
-                                                 indx=1,
-                                                 multi='basic',
-                                                 lister='simple',
-                                                 orderby='tag'
-                                                 ).widget()
+        #myajax = lambda field, value: AjaxSelect(field, value, indx=1,
+                                                 #multi='basic',
+                                                 #lister='simple',
+                                                 #orderby='tag'
+                                                 #).widget()
 
         for n in ['one', 'two', 'three', 'four', 'five']:
             fbs = [Field('{}_prompt_template'.format(n), 'list:string'),
@@ -1198,41 +1236,32 @@ class PathFactory(object):
                    Field('{}_readable_template'.format(n), 'list:string'),
                    Field('{}_tags'.format(n), 'list:reference tags',
                          requires=IS_IN_DB(db, 'tags.id', '%(tag)s',
-                                           multiple=True),
-                         # widget=myajax()
-                         ),
+                                           multiple=True)),
                    Field('{}_tags_secondary'.format(n), 'list:reference tags',
-                         requires=IS_IN_DB(db, 'tags.id',
-                                           '%(tag)s',
-                                           multiple=True),
-                         # widget=myajax()
-                         ),
+                         requires=IS_IN_DB(db, 'tags.id', '%(tag)s',
+                                           multiple=True)),
                    Field('{}_tags_ahead'.format(n), 'list:reference tags',
                          requires=IS_IN_DB(db, 'tags.id', '%(tag)s',
-                                           multiple=True),
-                         # widget=myajax()
-                         ),
+                                           multiple=True)),
                    Field('{}_npcs'.format(n), 'list:reference npcs',
                          requires=IS_IN_DB(db, 'npcs.id', '%(name)s',
-                                           multiple=True),
-                         # widget=myajax()
-                         ),
+                                           multiple=True)),
                    Field('{}_locations'.format(n), 'list:reference locations',
-                         requires=IS_IN_DB(db, 'locations.id', '%(map_location)s',
-                                           multiple=True),
-                         # widget=myajax()
-                         ),
-                   Field('{}_instructions'.format(n), 'list:reference step_instructions',
-                         requires=IS_IN_DB(db, 'step_instructions.id', '%(instruction_label)s',
-                                           multiple=True),
-                         # widget=myajax()
-                         ),
+                         requires=IS_IN_DB(db, 'locations.id',
+                                           '%(map_location)s',
+                                           multiple=True)),
+                   Field('{}_instructions'.format(n),
+                         'list:reference step_instructions',
+                         requires=IS_IN_DB(db, 'step_instructions.id',
+                                           '%(instruction_label)s',
+                                           multiple=True)),
                    Field('{}_hints'.format(n), 'list:reference step_hints',
-                         requires=IS_IN_DB(db, 'step_hints.id', '%(hint_label)s',
-                                           multiple=True),
-                         # widget=myajax()                         ),
+                         requires=IS_IN_DB(db, 'step_hints.id',
+                                           '%(hint_label)s',
+                                           multiple=True)),
                    Field('{}_step_type'.format(n), 'list:reference step_types',
-                         requires=IS_IN_DB(db, 'step_types.id', '%(step_type)s',
+                         requires=IS_IN_DB(db, 'step_types.id',
+                                           '%(step_type)s',
                                            multiple=True)),
                    Field('{}_image_template'.format(n), 'string')]
             flds.extend(fbs)
@@ -1341,6 +1370,7 @@ class PathFactory(object):
                                 images manually.
 
         """
+        session = current.session
         if testing is None:
             self.mock = False
         else:
@@ -1349,20 +1379,24 @@ class PathFactory(object):
         combos = self.make_combos(wordlists, aligned, avoid)
         paths = {}
         for idx, c in enumerate(combos):  # one path for each combo
-            label = label_template.format('-'.join(c))
+            label = label_template.format(makeutf8('-').join(makeutf8(c)))
             mykeys = ['words{}'.format(n + 1) for n in range(len(c))]
             combodict = dict(zip(mykeys, c))  # keys are template placeholders
 
             pdata = {'steps': {}, 'new_forms': {}, 'images_missing': []}
             for i, s in enumerate(stepsdata):  # each step in path
+                print 'getting step', i, '=========================='
                 # sanitize form response =============================="
                 numstrings = ['one_', 'two_', 'three_', 'four_', 'five_']
                 sdata = {k.replace(numstrings[i], ''): v for k, v in s.iteritems()}
                 # create steps ========================================"
-                stepdata, newforms, imgs = self.make_step(combodict, sdata,
-                                                          self.mock)
+                stepdata, imgs = StepFactory().make_step(combodict,
+                                                         sdata,
+                                                         self.mock)
                 # collect result ======================================"
                 pdata['steps'][stepdata[0]] = stepdata[1]
+                newforms = session.newforms if 'newforms' in session.keys() \
+                    else None
                 if newforms:
                     for k, f in newforms.iteritems():
                         pdata['new_forms'].setdefault(k, []).append(f)
@@ -1569,11 +1603,11 @@ class TranslateWordPathFactory(PathFactory):
                         'npcs': self.pick_npcs,
                         'locations': self.pick_locations,
                         'instructions': None,
-                        'hints': None]
+                        'hints': None}
             for c in get_constructions(lemid):
                 assert isinstance(c, (int, long))
-                temps = self.get_templates(lemid, c)
-                stepdata['prompt_template'] = temps[0]
+                temps = self.get_templates(lemid, c)  # do substitutions already
+                stepdata['prompt_template'] = temps[0]  # do substitutions already
                 stepdata['response_template'] = temps[1]
                 stepdata['readable_template'] = temps[2]
                 paths, result = self.make_path([[lemma]],
