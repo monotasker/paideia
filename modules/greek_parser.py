@@ -5,6 +5,7 @@ import re
 from collections import OrderedDict
 #from pprint import pprint
 from paideia_utils import clr
+import argparse
 import traceback
 
 wordforms = {'ἀνηρ': {'gender': 'masc',
@@ -37,7 +38,8 @@ def tokenize(str):
     clauses = re.split(r'[\.\?;:,]', str)
     tokenized = []
     for c in clauses:
-       token_dict = OrderedDict((t.decode('utf-8').lower().encode('utf-8'), None) for t in c.split(' '))
+       token_dict = OrderedDict((t.decode('utf-8').lower().encode('utf-8'), None)
+                                for t in c.split(' '))
        tokenized.append(token_dict)
     return tokenized
 
@@ -60,16 +62,13 @@ class Parser(object):
         : A list of Parser sub-class objects representing the grammatical
         constructions expected as constituents of this parent construction.
         """
-        self.restring = args[0]
-        if self.restring:
-            self.restring = args[0].strip()
+        self.restring = args[0].strip() if args[0] else None
         self.structures = list(args[1:])
-        self.top = False
         try:
-            if self.structures[-1] == 'top':
+            self.top = True if self.structures[-1] == 'top' else False
+            if self.top:
                 self.structures = self.structures[:-1]
-                self.top = True
-        except IndexError:  # because no sub-structures
+        except IndexError:  # because no substructures
             pass
 
         self.classname = type(self).__name__
@@ -80,43 +79,25 @@ class Parser(object):
 
         clause should be Clause() object
         """
-        # TODO: to see eliminated parsing leaves, move them to a second list
-        # instead of simply removing
-        print clr('validating {}'.format(self.classname), self.myc)
-        #print 'valid/failed:', clr([len(validleaves), '/', len(failedleaves)],
-                                   #self.myc)
-
-        # validate constituent structures first, recursively
+        # validate constituent structures recursively
         if self.structures:
             for s in self.structures:
-                #print self.structures
                 validleaves, failedleaves = s.validate(validleaves, failedleaves)
                 if len(validleaves) < 1:
-                    print clr('sub-structures didn\'t match', self.myc)
                     return validleaves, failedleaves
-        else:  # if structure is at bottom level
-            print clr('{} is bottom level, no '
-                      'sub-structures'.format(self.classname), self.myc)
 
-        # test sub-structure order for any viable parsing leaves returned
+        # test sub-structure order for any viable leaves
         for idx, leaf in enumerate(validleaves):
             leaf, match = self.test_order(leaf)
             if not match:
                 failedleaves.append(validleaves.pop(idx))
             if len(validleaves) < 1:
-                print clr(['order didn\'t match in', self.classname], self.myc)
                 return validleaves, failedleaves
-        #print 'valid/failed:', clr([len(validleaves), '/', len(failedleaves)],
-                                   #self.myc)
 
-        # find matching string in remaining viable leaves
+        # find matching string for remaining viable leaves
         if self.restring:
             validleaves, failedleaves = self.match_string(validleaves, failedleaves)
-            #print 'valid/failed:', clr([len(validleaves), '/',
-                                        #len(failedleaves)], self.myc)
             if len(validleaves) < 1:
-                print clr(['didn\'t find matching string for', self.classname],
-                          self.myc)
                 return validleaves, failedleaves
 
         # find any untagged words if this structure is top level
@@ -133,12 +114,6 @@ class Parser(object):
             if not validleaves:
                 return validleaves, failedleaves
 
-        #print clr('finished with {} valid leaves in parsing '
-                  #'tree'.format(len(validleaves)), self.myc)
-        if len(validleaves):
-            print clr('{} is valid'.format(self.classname), self.myc)
-            print 'valid/failed:', clr([len(validleaves), '/', len(failedleaves)],
-                                        self.myc)
         return validleaves, failedleaves
 
     def match_string(self, validleaves, failedleaves,
@@ -154,14 +129,11 @@ class Parser(object):
         classname = self.classname if not classname else classname
 
         test = re.compile(restring, re.U|re.I)
-        #print clr('looking for {}'.format(restring), self.myc)
         mymatch = test.findall(' '.join(validleaves[0]))
-        #print clr('found {} matching strings in tokens'.format(len(mymatch)), self.myc)
 
         # TODO: split into leaves if (b) match already tagged
         def tag_token(matchstring, leaf):
             for word in matchstring.split(' '):  # allows for multi-word match strings
-                print 'match:', clr(word, self.myc),
                 try:
                     leaf[word].append(classname)
                 except AttributeError:
@@ -288,23 +260,23 @@ class Parser(object):
         categories =  ['gender', 'number', 'case']
         conflicts = [c for c in categories if parsed[0][c] != parsed[1][c]]
         agreement = False if conflicts else True
-        print agreement
-        return agreement
 
     def parseform(self, token):
         """
         Return a dictionary holding the grammatical information for the token.
         """
-        return wordforms[token]
+        db = current.db
+        formrow = db.word_forms(db.word_forms.word_form == token).as_dict()
+        lemmarow = db.lemmas(formrow.source_lemma)
+        formrow['part_of_speech'] = lemmarow['part_of_speech']
+        return formrow, lemmarow.id
 
-    def getform(self, **kwargs):
+    def getform(self, lemid, **kwargs):
         """
         Return a list of possible declined forms for the supplied parsing.
         """
-        myform = list(set([w for w, p in wordforms.iteritems()
-                           if not [k for k, v in kwargs.iteritems()
-                                   if p[k] != v]
-                           ]))
+        from paideia_path_factory import Inflector
+        myform = Inflector().get_db_form(kwargs, lemid)
         return myform
 
 
@@ -341,13 +313,13 @@ class NounPhrase(Parser):
         """
         Add the appropriate def article to the substructures of a noun phrase.
         """
-        gram = self.parseform(nominal)
+        gram, lemid = self.parseform(nominal)
         kwargs = {'gender': gram['gender'],
                   'case': gram['case'],
                   'number': gram['number'],
                   'part_of_speech': 'def_art'
                   }
-        myart = self.getform(**kwargs)[0]  # What about multiple matches?
+        myart = self.getform(lemid, **kwargs)[0]  # TODO: What about multiple matches?
         validleaves, failedleaves = self.match_string([leaf], [],
                                                       restring=myart,
                                                       classname='Art')
@@ -360,15 +332,11 @@ class NounPhrase(Parser):
         match = False
 
         if self.definite:  # look for article(s) in valid configuration
-            #print clr('{} is definite'.format(self.classname), self.myc)
             nominals = [t for t, v in tokens.iteritems() if v and 'Noun' in v]
-            #print clr('nominals: {}'.format(nominals), self.myc)
             for n in nominals:
-                print clr('getting article for {}'.format(n), self.myc),
                 tokens = self.find_article(n, tokens)
             structs = self.get_struct_order(tokens)
             for k, v in structs.iteritems(): print clr([k, v, ';'], self.myc),
-            print '\n',
 
             # TODO: check presence of non-agreeing art between agreeing art and
             # noun (or agreeing art without agreeing adj); also gen art
@@ -413,7 +381,6 @@ class Noun(Parser):
     """
     Defniteness ambiguous.
     """
-    myc = 'blue'
     pass
 
 
@@ -426,48 +393,29 @@ class Art(Parser):
 class Adjective(Parser):
     pass
 
-def main():
+def main(string, pattern):
     """Take the  strings in 'strings' variable and validate them."""
-    print clr('\n\nSTARTING VALIDATION', 'white')
-    strings = {'Τον ἀρτον ὁ ἀνηρ πωλει.': 'pass',
-               'Ὁ ἀνηρ πωλει τον ἀρτον.': 'pass',
-               'Πωλει τον ἀρτον ὁ ἀνηρ.': 'pass',
-               'τον πωλει ὁ ἀρτον ἀνηρ.': 'fail',  # should fail
-               'ὁ ἀρτον πωλει τον ἀνηρ.': 'fail',  # should fail
-               'ὁ τον ἀρτον πωλει ἀνηρ.': 'fail', # should fail
-               'ὁ πωλει τον ἀρτον ἀνηρ.': 'fail'  # should fail
-               }
-    passed = []
-    failed = []
-    for idx, s in enumerate(strings.keys()):
-        print clr('{} ----------------------------------------'
-                  '----'.format(idx), 'white')
-        tokenset = [token for token in tokenize(s)
-                    if token.keys()[0] not in ['', ' ', None]]
-        #print len(tokens), 'clauses to validate'
-        for tokens in tokenset:
-            c = Clause(None,
-                       Subject(None, Noun(r'ἀνηρ'), 'def'),
-                       Verb(r'πωλει|ἀγοραζει'),
-                       DirObject(None, Noun(r'ἀρτον'), 'def'),
-                       'top')
-            # put tokens in list to prepare for parsing tree forking
-            validleaves, failedleaves = c.validate([tokens])
-            if validleaves:
-                passed.append((s, idx))
-            else:
-                failed.append((s, idx))
-            myc = 'green' if validleaves else 'red'
-            resp = 'Success!' if validleaves else 'Failed'
-            print clr([resp, '(', s ,')', '\n'], myc)
-    print '{} of {} passed'.format(len(passed), len(passed) + len(failed))
-    for p in passed:
-        pclr = 'green' if strings[p[0]] == 'pass' else 'orange'
-        print clr([p[1], ':', p[0]], pclr)
-    for f in failed:
-        fclr = 'red' if strings[f[0]] == 'fail' else 'purple'
-        print clr([f[1], ':', f[0]], fclr)
+    result = None
+    tokenset = [token for token in tokenize(string)
+                if token.keys()[0] not in ['', ' ', None]]
+    for tokens in tokenset:
+        p = eval(pattern) if not isinstance(pattern, Clause) else pattern
+        # put tokens in list to prepare for parsing tree forking
+        validleaves, failedleaves = p.validate([tokens])
+        if validleaves:
+            result = 'pass'
+        else:
+            result = 'fail'
+        myc = 'green' if validleaves else 'red'
+        resp = 'Success!' if validleaves else 'Failed'
+        print clr([resp, '(', string ,')', '\n'], myc)
     print '============================================================='
 
+    return result
+
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('string', help='the string to be evaluated')
+    parser.add_argument('pattern', help='the pattern against which to evaluate the string')
+    args = parser.parse_args()
+    main(args.string, args.pattern)
