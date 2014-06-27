@@ -123,17 +123,6 @@ class Inflector(object):
                 val = returnval[idx] if returnval[idx] else returnval[idx + 1]
                 newforms.setdefault(table[0], []).append(val)
 
-        def _gender_cats(gender):
-            """
-            Return a list of gender categories for an item of this gender.
-            """
-            genders = [gender, 'undetermined']
-            if parsing['gender'] in ['masculine', 'feminine']:
-                genders.append('masculine or feminine')
-            if parsing['gender'] in ['masculine', 'neuter']:
-                genders.append('masculine or neuter')
-            return genders
-
         def _get_lemma(mylemma, constraint):
             """
             """
@@ -196,22 +185,6 @@ class Inflector(object):
                 propval = None
             return propval
 
-        def _fill_missing_fields(parsing):
-            """"""
-            # find fields missing from parsing keys
-            pos = parsing['part_of_speech']
-            if pos == 'verb' and parsing['mood'] in ['infinitive', 'participle']:
-                reqs = self.wf.wordform_reqs['verb-{}'.format(parsing['mood'])]
-            else:
-                reqs = self.wf.wordform_reqs[pos]
-            # now fill missing fields with None
-            extra_fields = [f for f in db.word_forms.fields
-                            if f not in reqs
-                            and f not in parsing.keys()]
-            for f in extra_fields:
-                parsing[f] = None
-            return parsing
-
         def _get_construction_label(parsing):
             """"""
             pos = parsing['part_of_speech']
@@ -252,9 +225,55 @@ class Inflector(object):
         parsing['source_lemma'] = lem.lemma
 
         # get the inflected form's row from the db
-        parsing = _fill_missing_fields(parsing)
-        pprint(parsing)
-        myrow = db((db.word_forms.source_lemma == lem.id) &
+        myrow, parsing = self.get_db_form(parsing, lem.id)
+        try:
+            myform = myrow.word_form
+        except AttributeError:  # if there isn't one try to make it
+            try:
+                myform = self._wordform_from_parsing(parsing, lem.lemma)
+                result = None
+            except Exception:  # if making new form fails
+                traceback.print_exc(5)
+                myform = None
+
+        return myform
+
+    def _fill_missing_fields(self, parsing):
+        """"""
+        db = current.db
+        # find fields missing from parsing keys
+        pos = parsing['part_of_speech']
+        if pos == 'verb' and parsing['mood'] in ['infinitive', 'participle']:
+            reqs = self.wf.wordform_reqs['verb-{}'.format(parsing['mood'])]
+        else:
+            reqs = self.wf.wordform_reqs[pos]
+        # now fill missing fields with None
+        extra_fields = [f for f in db.word_forms.fields
+                        if f not in reqs
+                        and f not in parsing.keys()]
+        for f in extra_fields:
+            parsing[f] = None
+        return parsing
+
+    def get_db_form(self, parsing, lemid):
+        """
+        Retrieve the db row that matches the supplied parsing and lemma id.
+        """
+        db = current.db
+
+        def _gender_cats(gender):
+            """
+            Return a list of gender categories for an item of this gender.
+            """
+            genders = [gender, 'undetermined']
+            if parsing['gender'] in ['masculine', 'feminine']:
+                genders.append('masculine or feminine')
+            if parsing['gender'] in ['masculine', 'neuter']:
+                genders.append('masculine or neuter')
+            return genders
+
+        parsing = self._fill_missing_fields(parsing)
+        myrow = db((db.word_forms.source_lemma == lemid) &
                    (db.word_forms.grammatical_case == parsing['grammatical_case']) &
                    (db.word_forms.tense == parsing['tense']) &
                    (db.word_forms.voice == parsing['voice']) &
@@ -267,17 +286,7 @@ class Inflector(object):
                    (db.word_forms.thematic_pattern == parsing['thematic_pattern']) &
                    (db.word_forms.construction == parsing['construction'])
                    ).select().first()
-        try:
-            myform = myrow.word_form
-        except AttributeError:  # if there isn't one try to make it
-            try:
-                myform = self._wordform_from_parsing(parsing, lem.lemma)
-                result = None
-            except Exception:  # if making new form fails
-                traceback.print_exc(5)
-                myform = None
-
-        return myform
+        return myrow, parsing
 
 
 class MorphParser(object):
