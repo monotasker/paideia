@@ -357,7 +357,7 @@ db.steps.tags_secondary.widget = lambda field, value: AjaxSelect(field, value,
                                                                  refresher=True,
                                                                  multi='basic',
                                                                  lister='simple',
-                                                                 orderby='tag_position'
+                                                                 orderby='tag'
                                                                  ).widget()
 db.steps.tags_ahead.requires = IS_IN_DB(db, 'tags.id', db.tags._format, multiple=True)
 db.steps.tags_ahead.widget = lambda field, value: AjaxSelect(field, value,
@@ -365,7 +365,7 @@ db.steps.tags_ahead.widget = lambda field, value: AjaxSelect(field, value,
                                                              refresher=True,
                                                              multi='basic',
                                                              lister='simple',
-                                                             orderby='tag_position'
+                                                             orderby='tag'
                                                              ).widget()
 db.steps.locations.requires = IS_IN_DB(db, 'locations.id',
                                        db.locations._format,
