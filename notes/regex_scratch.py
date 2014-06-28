@@ -32,18 +32,21 @@ from termcolor import colored
          #'Πωλῃ καρπους Ἀλεξανδρος.',
          #]
 
-lines = ['I am giving', 'I usually give', 'I often provide',
-         'I donate over and over']
+lines = ['Τουτο ἱστησιν ἱερῳ.',
+         'Ἱστησιν ἱερῳ το θυσιαστηριον τουτο.',
+         'Ἱερῳ τουτο ἱστησιν.',
+         'Τουτο το θυσιαστηριον ἱστησιν ἱερῳ.',
+         ]
 
 regex = r"""
 ^
-I\s
-(am\s((beginning|starting|about|lifting)\sto\s)?)?
-(?P<a>repeatedly\s|over\sand\sover\s)?
-(?P<b>usually\s|always\s|often\s)?
-(donat|giv|provid)(?P<c>e)?(?(c)|ing)?
-(?(a)|\s(repeatedly|over\sand\sover))?
-(?(b)|\s(usually|always|often))?
+(?P<b>Ἱερῳ\s)?
+(?P<a>(Το\sθυσιαστηριον\s)?(Τ|τ)ουτο\s(το\sθυσιαστηριον\s)?)?
+(?(b)|(?P<c>ἱερῳ\s))?
+(Ἱ|ἱ)στησιν
+(?(b)|(?(c)|(?P<d>\sἱερῳ)))?
+(?(a)|(\sτο\sθυσιαστηριον)?\s(Τ|τ)ουτο(\sτο\sθυσιαστηριον)?)?
+(?(b)|(?(c)|(?(d)|\sἱερῳ)))
 \.?
 $
 """

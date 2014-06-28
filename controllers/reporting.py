@@ -9,6 +9,7 @@ if 0:
 
 from paideia_stats import Stats
 from pprint import pprint
+from plugin_utils import islist
 #from paideia_bugs import Bug
 
 
@@ -27,9 +28,11 @@ def vocabulary():
         mywords = []
         for l in lemmas:
             if l.tags.tag_position == s:
-                mytags = list(l.lemmas.first_tag)
+                print 'lemma', l.lemmas.lemma, 'in position', s
+                mytags = islist(l.lemmas.first_tag)
+                print 'mytags is', mytags
                 if l.lemmas.extra_tags:
-                    mytags.append(l.lemmas.extra_tags)
+                    mytags.extend(l.lemmas.extra_tags)
                 if mytags:
                     tagnames = [db.tags[t].tag for t in mytags]
                 else:
@@ -50,6 +53,7 @@ def vocabulary():
                                 'stepcount': stepcount,
                                 'pathcount': pathcount,
                                 'tags': tagnames})
+        print 'found ', len(mywords), 'words'
         return mywords
 
     lemmas = db(db.lemmas.first_tag == db.tags.id).select()
@@ -62,11 +66,14 @@ def vocabulary():
     wordlist_future = {}
     myprog = db.tag_progress(db.tag_progress.name == auth.user_id)
     mylevel = myprog.latest_new if myprog else 1
+    print 'mylevel', mylevel
     for s in sets:
         if s >= mylevel:
             wordlist_future[s] = add_to_list(lemmas, s)
+            print 'got wordlist', s
         else:
             wordlist_active[s] = add_to_list(lemmas, s)
+            print 'got wordlist', s
     return {'active': wordlist_active,
             'future': wordlist_future,
             'mylevel': mylevel}
