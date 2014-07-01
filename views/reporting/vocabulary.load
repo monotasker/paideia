@@ -3,16 +3,15 @@
 <h2>Your Greek Vocabulary</h2>
 
 So far you have reached badge set {{=mylevel}} and been introduced to
-{{=len(lemmas)}} words from the total
-Paideia vocabulary of
-{{=len(lemmas)}}
-({{=db(db.lemmas.id > 0).count()}}) Greek words.
+{{=len(mylemmas)}} words from the total Paideia vocabulary of {{=len(lemmas)}}
+Greek words.
 
 If any of the words look unfamiliar, look again at the slides for the related badge
 set.
 
-<sul class="vocab-setlist">
-<table class="vocab-table">
+<div class="vocab-list">
+<table id="vocab-table" class="vocab-table table table-hover table-condensed">
+  <thead>
   <tr>
     <th>Vocabulary word</th>
     <th>Typical gloss</th>
@@ -22,19 +21,34 @@ set.
     <th>Associated tags</th>
     <th>Times in the NT</th>
   </tr>
+  </thead>
   {{for word in lemmas:}}
-  <tr>
-    <td>{{=word['lemmas']['lemma']}}</td>
-    <td>{{=', '.join(word['lemmas']['glosses'])}}</td>
-    <td>{{=word['lemmas']['pathcount']}}</td>
-    <td>{{=word['lemmas']['stepcount']}}</td>
-    <td>{{=word['tags']['tag_position']}}</td>
-    <td>{{=word['tags']['tag']}}</td>
-    <td></td>
-  </tr>
+    {{lemclass = 'reached' if word['tags']['tag_position'] <= mylevel else ''}}
+    <tr class="{{=mylevel}}">
+        <td>{{=word['lemmas']['lemma']}}</td>
+        <td>{{=', '.join(word['lemmas']['glosses'])}}</td>
+        <td>{{=word['lemmas']['pathcount']}}</td>
+        <td>{{=word['lemmas']['stepcount']}}</td>
+        <td>{{=word['tags']['tag_position']}}</td>
+        <td>{{=word['tags']['tag']}}</td>
+        <td></td>
+    </tr>
   {{pass}}
 </table>
-</ul>
+</div>
 
-Click here to see the vocabulary for future badge sets.
+<!--# local scripts --------------------------------------------------------->
 
+<script type="text/javascript" charset="utf-8">
+    var vocabtable = $('#vocab-table').DataTable({paging: false,
+                                                  scrollY: "400px",
+                                                  scrollX: true,
+                                                  renderer: "bootstrap",
+                                                  order: [ 4, "asc"],
+                                                  //colVis: {//exclude: []
+                                                  //         }
+                                                  });
+    new $.fn.dataTable.FixedColumns( vocabtable );
+//    var colvis = new $.fn.dataTable.ColVis( vocabtable );
+//    $( colvis.button() ).insertBefore("div.vocab-list");
+</script>
