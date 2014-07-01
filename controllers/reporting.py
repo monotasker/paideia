@@ -24,58 +24,21 @@ def vocabulary():
     """
     auth = current.auth
 
-    def add_to_list(lemmas, s):
-        mywords = []
-        for l in lemmas:
-            if l.tags.tag_position == s:
-                print 'lemma', l.lemmas.lemma, 'in position', s
-                mytags = islist(l.lemmas.first_tag)
-                print 'mytags is', mytags
-                if l.lemmas.extra_tags:
-                    mytags.extend(l.lemmas.extra_tags)
-                if mytags:
-                    tagnames = [db.tags[t].tag for t in mytags]
-                else:
-                    tagnames = None
-                pprint({k: v for k, v in l.as_dict().iteritems()})
-                lid = l.lemmas.id
-                mysteps = db(db.steps.lemmas.contains(lid)).select()
-                if mysteps:
-                    stepids = [s.id for s in mysteps]
-                    mypaths = db(db.paths.steps.contains(stepids)).select()
-                else:
-                    stepids = None
-                    mypaths = None
-                stepcount = len(mysteps) if mysteps else 0
-                pathcount = len(mypaths) if mypaths else 0
-
-                mywords.append({'lemma': l.lemmas.lemma,
-                                'stepcount': stepcount,
-                                'pathcount': pathcount,
-                                'tags': tagnames})
-        print 'found ', len(mywords), 'words'
-        return mywords
-
-    lemmas = db(db.lemmas.first_tag == db.tags.id).select()
-    print 'lemmas:', len(lemmas)
-    sets = list(set([s.tags.tag_position for s in lemmas
-                     if isinstance(s.tags.tag_position, (int, long))
-                     and s.tags.tag_position < 900]))
-    print 'sets:', sets
-    wordlist_active = {}
-    wordlist_future = {}
+    lemmas = db(db.lemmas.first_tag == db.tags.id).select(orderby=db.tags.tag_position)
+    sets = list(set([s.tags.tag_position for s in lemmas]))
     myprog = db.tag_progress(db.tag_progress.name == auth.user_id)
     mylevel = myprog.latest_new if myprog else 1
-    print 'mylevel', mylevel
-    for s in sets:
-        if s >= mylevel:
-            wordlist_future[s] = add_to_list(lemmas, s)
-            print 'got wordlist', s
-        else:
-            wordlist_active[s] = add_to_list(lemmas, s)
-            print 'got wordlist', s
-    return {'active': wordlist_active,
-            'future': wordlist_future,
+
+    for l in lemmas:
+        lid = l.lemmas.id
+        mysteps = db(db.steps.lemmas.contains(lid)).select()
+        if mysteps:
+            stepids = [s.id for s in mysteps]
+            mypaths = db(db.paths.steps.contains(stepids)).select()
+        l['lemmas']['stepcount'] = len(mysteps) if mysteps else 0
+        l['lemmas']['pathcount'] = len(mypaths) if 'mypaths' in locals() and mypaths else 0
+
+    return {'lemmas': lemmas,
             'mylevel': mylevel}
 
 
