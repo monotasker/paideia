@@ -2,61 +2,39 @@
 
 <h2>Your Greek Vocabulary</h2>
 
-So far you have reached badge set {{=mylevel}} and been introduced to these
-{{=len([i for s in active.values() for i in s if s])}}
-Greek words.
+So far you have reached badge set {{=mylevel}} and been introduced to
+{{=len(lemmas)}} words from the total
+Paideia vocabulary of
+{{=len(lemmas)}}
+({{=db(db.lemmas.id > 0).count()}}) Greek words.
 
 If any of the words look unfamiliar, look again at the slides for the related badge
 set.
 
 <sul class="vocab-setlist">
-{{for setnum, myset in active.iteritems():}}
-<h3>Badge Set {{=setnum}} </h3>
-<h4>{{=len(myset)}} words</h4>
-<table class="set-{{=setnum}}-table">
+<table class="vocab-table">
   <tr>
     <th>Vocabulary word</th>
-    <th>Steps that use it</th>
+    <th>Typical gloss</th>
     <th>Paths that use it</th>
+    <th>Steps that use it</th>
+    <th>Badge set</th>
     <th>Associated tags</th>
     <th>Times in the NT</th>
   </tr>
-  {{for word in myset:}}
+  {{for word in lemmas:}}
   <tr>
-    <td>{{=word['lemma']}}</td>
-    <td>{{=word['stepcount']}}</td>
-    <td>{{=word['pathcount']}}</td>
-    <td>{{=word['tags']}}</td>
+    <td>{{=word['lemmas']['lemma']}}</td>
+    <td>{{=', '.join(word['lemmas']['glosses'])}}</td>
+    <td>{{=word['lemmas']['pathcount']}}</td>
+    <td>{{=word['lemmas']['stepcount']}}</td>
+    <td>{{=word['tags']['tag_position']}}</td>
+    <td>{{=word['tags']['tag']}}</td>
     <td></td>
   </tr>
   {{pass}}
 </table>
-{{pass}}
 </ul>
 
 Click here to see the vocabulary for future badge sets.
 
-In future badge sets you will be introduced to these other Greek words:
-{{for setnum, myset in future.iteritems():}}
-<h3>Badge Set {{=setnum}}</h3>
-<h4>{{=len(myset)}} words</h4>
-<table class="set-{{=setnum}}-table">
-  <tr>
-    <th>Vocabulary word</th>
-    <th>Steps that use it</th>
-    <th>Paths that use it</th>
-    <th>Associated tags</th>
-    <th>Times in the NT</th>
-  </tr>
-  {{for word in myset:}}
-  <tr>
-    <td>{{=word['lemma']}}</td>
-    <td>{{=word['stepcount']}}</td>
-    <td>{{=word['pathcount']}}</td>
-    <td>{{=word['tags']}}</td>
-    <td></td>
-  </tr>
-  {{pass}}
-</table>
-{{pass}}
-</ul>
