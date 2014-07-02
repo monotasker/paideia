@@ -303,7 +303,6 @@ class Walk(object):
                                                            prompt['score'],
                                                            response_string,
                                                            user.loc.get_alias())
-        print 'bug reporter:', prompt['bugreporter']
         prompt['completed_count'] = len(user.completed_paths)
         prompt['pid'] = p.get_id()
         prompt['category'] = cat
