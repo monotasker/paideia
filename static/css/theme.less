@@ -16,12 +16,53 @@ div.navbar                  {background-color: #fff;
 }
 
 div#masthead                {background-image: url('../images/town_map.png');
-                             height: 360px;
+                             min-height: 360px;
                              margin-top: 0;
-    div.hero-text           {background-color: #fff;
-                             opacity: 0.8;
-                             width: 40%;
-                             padding: 1em;
+                             padding-bottom: 0;
+    div.jumbotron           {background: #fff;
+                             background-color: rgba(255,255,255,0.9);
+                             /*width: 40%;*/
+                             /*padding: 1em;*/
+                             margin: 1em 0 0 0;
+                             border-radius: 0;
     }
 }
 
+div.modal-set               {
+    .info-pane-illustration {width:120px;
+    }
+}
+
+/* Side notes for calling out things
+-------------------------------------------------- */
+ 
+/* Base styles (regardless of theme) */
+.bs-callout                 {margin: 20px 0;
+                             padding: 15px 30px 15px 15px;
+                             border-left: 5px solid #eee;
+    h4                      {margin-top: 0;
+    }
+    p:last-child            {margin-bottom: 0;
+    }
+    code,
+    .highlight              {background-color: #fff;
+    }
+}
+
+/* Themes for different contexts */
+.bs-callout-danger {
+background-color: #fcf2f2;
+border-color: #dFb5b4;
+}
+.bs-callout-warning {
+background-color: #fefbed;
+border-color: #f1e7bc;
+}
+.bs-callout-info {
+background-color: #f0f7fd;
+border-color: #d0e3f0;
+}
+.bs-callout-success {
+background-color: #dff0d8;
+border-color: #d6e9c6;
+}
