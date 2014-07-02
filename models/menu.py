@@ -13,9 +13,20 @@ layout settings
 
 # Meta =====================================================================
 
+# assemble page title
+parts = [c.capitalize() for c in [response.title,
+                                  request.controller,
+                                  request.function]
+         if c and c not in ['default', 'index']]
+mytitle = ' | '.join(parts)
+if request.args:
+    mytitle = ' | '.join([', '.join(request.args), mytitle])
+
 response.title = request.application
-response.mobiletitle = request.application
+response.pagetitle = mytitle
+response.mobiletitle = mytitle
 response.subtitle = T('Learning New Testament Greek in Context')
+response.homeurl = URL('default', 'index')
 
 #http://dev.w3.org/html5/markup/meta.name.html
 response.meta.author = 'Ian W. Scott'

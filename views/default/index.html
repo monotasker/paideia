@@ -1,12 +1,11 @@
 {{from plugin_widgets import MODAL}}
 {{extend 'layout.html'}}
 
-<article id='intro'>
-<section class='hero-unit'>
-<div class='hero-text-wrapper'>
+{{block masthead}}
+<div class='hero-text'>
 <h1>Welcome!</h1>
     <p>Paideia is a fun and interactive place to learn New Testament Greek. To get started, register for an account and then click the green button below to start exploring.</p>
-    <div id='alpha-warning'>This is an early "alpha" version for use in my courses at Tyndale Seminary. The site is still rough, but feel free to register and follow the link below to try it out. Bug reports are appreciated. 
+    <div id='alpha-warning'>This is an early "alpha" version for use in my courses at Tyndale Seminary. The site is still rough, but feel free to register and follow the link below to try it out. Bug reports are appreciated.
     </div>
     <p>
     {{=A("start exploring",
@@ -14,21 +13,25 @@
         _class='btn btn-success pull-left')}}
     </p>
 </div>
-</section>
-<section class='modal-set'>
-{{for n in [1, 2, 0, 3]:}}
-<div class='info-pane span6'>
-{{=IMG(_src=URL('static', 'images/info_{}.svg'.format(modals[n]['title'].replace(' ', '_')[:-1])),
-       _class='info-pane-illustration')}}
-{{=CAT(MODAL(modals[n]['title'], modals[n]['title'], MARKMIN(modals[n]['content']),
-           modal_classes='index-modals', 
-           trigger_type='link',
-           id=(modals[n]['title'].replace(' ', '_')).replace('?', '')),
-       P(MARKMIN(' '.join(modals[n]['content'].split(' ')[:80]) + ' ...' ), _class='info-teaser') 
-     )}}
+{{end masthead}}
+
+
+<article id='intro'>
+<div class='modal-set'>
+    {{for n in [1, 2, 0, 3]:}}
+    <div class='info-pane span6'>
+    {{=IMG(_src=URL('static',
+                    'images/info_{}.svg'.format(modals[n]['title'].replace(' ', '_')[:-1])),
+           _class='info-pane-illustration')}}
+    {{=CAT(MODAL(modals[n]['title'], modals[n]['title'], MARKMIN(modals[n]['content']),
+            modal_classes='index-modals',
+            trigger_type='link',
+            id=(modals[n]['title'].replace(' ', '_')).replace('?', '')),
+        P(MARKMIN(' '.join(modals[n]['content'].split(' ')[:80]) + ' ...' ), _class='info-teaser')
+        )}}
+    </div>
+    {{pass}}
 </div>
-{{pass}}
-</section>
 </article>
 
 
