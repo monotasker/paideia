@@ -144,7 +144,7 @@ ap.append(form) }}
             </small>
         {{pass
 
-        if bugreporter in globals() and bugreporter:}}
+        if 'bugreporter' in globals() and bugreporter:}}
             {{=bugreporter}}
         {{pass}}
     </div>
