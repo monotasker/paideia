@@ -1,5 +1,9 @@
 {{from plugin_widgets import TOOLTIP, TABS, ROLE}}
 
+<div class="row">
+    <div class="container">
+        <div class="col-xs-12">
+
 <!--Above Tabs ================================================================-->
 {{=UL(LI(SPAN('Name', _class='profile-label'), the_name,
                          _class='profile-name'),
@@ -196,3 +200,7 @@ new $.fn.dataTable.FixedColumns( badgetable );
 var colvis = new $.fn.dataTable.ColVis( badgetable );
 $( colvis.button() ).insertBefore('div.badgetable-container');
 </script>
+
+</div>
+</div>
+</div>

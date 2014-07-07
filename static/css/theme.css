@@ -1,3 +1,17 @@
+/*-- typography --------------------------------------------------*/
+/*-- colors --------------------------------------------------*/
+body {
+  margin-top: 0;
+  padding-top: 50px !important;
+  font-family: "Fira Sans", "Helvetica Neue", Helvetica, Ubuntu, Arial, sans-serif;
+}
+body h1,
+body h2,
+body h3,
+body h4 {
+  font-family: "Fira Sans", "Helvetica Neue", Helvetica, Ubuntu, Arial, sans-serif;
+}
+/*-- navbar --------------------------------------------------*/
 nav,
 div.navbar {
   background-color: #fff;
@@ -10,19 +24,38 @@ div.navbar h1 {
   text-transform: uppercase;
   margin-top: 0;
   margin-bottom: 0;
-  line-height: 2em;
+  margin-right: 1em;
+  /*line-height:2em;*/
+
   float: left;
+  padding: 13px 0;
+  letter-spacing: 2px;
+}
+nav h1 a,
+div.navbar h1 a {
+  color: #a84f4c;
+  text-decoration: none;
+  transition: 100ms all linear;
+}
+nav h1 a:hover,
+div.navbar h1 a:hover {
+  text-decoration: none;
+  color: #853e3c;
+  transition: 100ms all linear;
 }
 nav small,
 div.navbar small {
   line-height: 2em;
   display: none;
 }
+/*-- masthead --------------------------------------------------*/
 div#masthead {
   background-image: url('../images/town_map.png');
   min-height: 360px;
   margin-top: 0;
+  margin-bottom: 0;
   padding-bottom: 0;
+  border: 0px solid transparent;
 }
 div#masthead div.jumbotron {
   background: #fff;
@@ -33,13 +66,134 @@ div#masthead div.jumbotron {
 
   margin: 1em 0 0 0;
   border-radius: 0;
+  text-align: center;
 }
-div.modal-set .info-pane-illustration {
+/*-- main --------------------------------------------------*/
+main {
+  background-color: #5387b2;
+}
+/*-- footer --------------------------------------------------*/
+footer#footer {
+  background-color: #a84f4c;
+  color: #fff;
+  margin-top: 0;
+}
+footer#footer div.row {
+  border-top: 0px solid transparent;
+}
+footer#footer div.row a {
+  color: #f1e7bc;
+}
+/*-- index --------------------------------------------------*/
+body.default.index div.modal-set {
+  color: #efefef;
+  text-align: center;
+}
+body.default.index div.modal-set h4 a {
+  color: #f1e7bc;
+}
+body.default.index div.modal-set h4 a:hover {
+  text-decoration: dotted;
+}
+body.default.index div.modal-set .info-illustration-wrapper {
+  text-align: center;
+  width: 100%;
+}
+body.default.index div.modal-set .info-illustration-wrapper .info-pane-illustration {
   width: 120px;
+  background-color: #efefef;
+  border-radius: 50%;
+  padding: 12px;
+  margin: 0px auto;
+  position: relative;
 }
-/* Side notes for calling out things
--------------------------------------------------- */
-/* Base styles (regardless of theme) */
+body.default.index div.modal-set p {
+  hyphens: auto;
+  -moz-hyphens: auto;
+  -webkit-hyphens: auto;
+  -ms-hyphens: auto;
+}
+/*-- exploring --------------------------------------------------*/
+body.exploring div#masthead {
+  display: none;
+}
+body.exploring main {
+  z-index: 1;
+}
+body.exploring main #page {
+  background-size: auto 100%;
+}
+body.exploring main #page div#loading-mask {
+  display: none;
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.6);
+  width: 100%;
+  height: 100%;
+}
+body.exploring main #page .admin-panel {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  top: 0;
+  left: -310px;
+  background-color: #000000;
+  color: #ffffff;
+  z-index: 100;
+  padding-left: 1.428;
+}
+body.exploring main #page .admin-panel:hover {
+  left: 0;
+}
+body.exploring main #page .admin-panel h3 {
+  color: #ffffff;
+}
+body.exploring main #page .admin-panel input[type=text] {
+  width: 60%;
+}
+body.exploring main #page .speaker {
+  position: absolute;
+}
+body.exploring main #page .prompt,
+body.exploring main #page .responder {
+  background-color: #fff;
+  position: relative;
+  float: left;
+  width: 40%;
+  margin: 1em;
+  margin-left: 50%;
+  padding: 1em;
+  font-family: "SBL Greek";
+  font-size: 21px;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
+}
+body.exploring main #page .prompt img,
+body.exploring main #page .responder img {
+  max-height: 260px;
+}
+body.exploring main #page .prompt #slides_btn,
+body.exploring main #page .responder #slides_btn,
+body.exploring main #page .prompt #instructions_btn,
+body.exploring main #page .responder #instructions_btn,
+body.exploring main #page .prompt #readable_btn,
+body.exploring main #page .responder #readable_btn {
+  position: relative;
+  float: left;
+  display: inline-block;
+  margin-right: 1em;
+}
+/*-- reporting --------------------------------------------------*/
+body.reporting #masthead {
+  display: none;
+}
+/*-- reporting --------------------------------------------------*/
+body.listing #masthead {
+  display: none;
+}
+/*-- user --------------------------------------------------*/
+body.user #masthead {
+  display: none;
+}
+/* Side notes for calling out things ----------------------------------- */
 .bs-callout {
   margin: 20px 0;
   padding: 15px 30px 15px 15px;
@@ -55,20 +209,19 @@ div.modal-set .info-pane-illustration {
 .bs-callout .highlight {
   background-color: #fff;
 }
-/* Themes for different contexts */
-.bs-callout-danger {
-  background-color: #fcf2f2;
-  border-color: #dFb5b4;
+.bs-callout.bs-callout-success {
+  background-color: #dff0d8;
+  border-color: #d6e9c6;
 }
-.bs-callout-warning {
+.bs-callout.bs-callout-danger {
+  background-color: #fcf2f2;
+  border-color: #a84f4c;
+}
+.bs-callout.bs-callout-warning {
   background-color: #fefbed;
   border-color: #f1e7bc;
 }
-.bs-callout-info {
+.bs-callout.bs-callout-info {
   background-color: #f0f7fd;
   border-color: #d0e3f0;
-}
-.bs-callout-success {
-  background-color: #dff0d8;
-  border-color: #d6e9c6;
 }

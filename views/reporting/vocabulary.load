@@ -1,5 +1,9 @@
 {{from itertools import chain}}
 
+<div class="row">
+    <div class="container">
+        <div class="col-xs-12">
+
 <h2>Your Greek Vocabulary</h2>
 
 So far you have reached badge set {{=mylevel}} and been introduced to
@@ -52,3 +56,7 @@ set.
 //    var colvis = new $.fn.dataTable.ColVis( vocabtable );
 //    $( colvis.button() ).insertBefore("div.vocab-list");
 </script>
+
+</div>
+</div>
+</div>

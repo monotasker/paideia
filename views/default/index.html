@@ -4,35 +4,102 @@
 {{block masthead}}
 <div class='jumbotron clearfix'>
 <h1>Welcome!</h1>
-    <p>Paideia is a fun and interactive place to learn New Testament Greek. To get started, register for an account and then click the green button below to start exploring.</p>
-    <div class='bs-callout bs-callout-warning'>This is an early "alpha" version for use in my courses at Tyndale Seminary. The site is still rough, but feel free to register and follow the link below to try it out. Bug reports are appreciated.
-    </div>
-    <p>
+    <p>Paideia is a fun and interactive place to learn New Testament Greek. To get started, register for a free account and then click the green button below to start exploring.</p>
+
     {{=A("start exploring",
         _href=URL('exploring', 'index'),
-        _class='btn btn-success btn-large')}}
-    </p>
+        _class='btn btn-success btn-lg')}}
+
 </div>
 {{end masthead}}
 
-
-<div class='modal-set container'>
-    {{for n in [1, 2, 0, 3]:}}
-    <div class='info-pane col-sm-3'>
-    {{=IMG(_src=URL('static',
-                    'images/info_{}.svg'.format(modals[n]['title'].replace(' ', '_')[:-1])),
-           _class='info-pane-illustration')}}
-    {{=CAT(MODAL(modals[n]['title'], modals[n]['title'], MARKMIN(modals[n]['content']),
-            modal_classes='index-modals',
-            trigger_type='link',
-            id=(modals[n]['title'].replace(' ', '_')).replace('?', '')),
-        P(MARKMIN(' '.join(modals[n]['content'].split(' ')[:80]) + ' ...' ), _class='info-teaser')
-        )}}
+<div class='row'>
+    <div class='container'>
+        <div class='col-xs-12'>
+            <div class='bs-callout bs-callout-warning'>This is an early "alpha" version for
+                use in my courses at Tyndale Seminary. The site is still rough, but feel
+                free to register and follow the link below to try it out. Bug reports are
+                appreciated.
+            </div>
+        </div>
     </div>
-    {{pass}}
+</div>
+            
+
+<!--# modal 0-->
+<div class='modal-set container'>
+    <div class='info-pane col-sm-3'>
+    {{=DIV(IMG(_src=URL('static',
+                    'images/info_{}.svg'.format(modals[0]['title'].replace(' ',
+                    '_')[:-1])),
+               _class='info-pane-illustration'),
+            _class='info-illustration-wrapper')}}
+    {{modal0 = MODAL(modals[0]['title'], modals[0]['title'],
+                     MARKMIN(modals[0]['content']),
+                     modal_classes='index-modals',
+                     #trigger_type='link',
+                     id=(modals[0]['title'].replace(' ', '_')).replace('?', '')
+                     )}}
+     {{=H4(modal0[0])}}
+     <!--{{#=P(MARKMIN(' '.join(modals[0]['content'].split(' ')[:80]) + '...' ), _class='info-teaser')}}-->
+    </div>
+
+<!--# modal 1-->
+    <div class='info-pane col-sm-3'>
+    {{=DIV(IMG(_src=URL('static',
+                        'images/info_{}.svg'.format(modals[1]['title'].replace(' ',
+                        '_')[:-1])),
+               _class='info-pane-illustration'),
+            _class='info-illustration-wrapper')}}
+    {{modal1 = MODAL(modals[1]['title'], modals[1]['title'],
+                     MARKMIN(modals[1]['content']),
+                     modal_classes='index-modals',
+                     trigger_type='link',
+                     id=(modals[1]['title'].replace(' ', '_')).replace('?', '')
+                     )}}
+     {{=H4(modal1[0])}}
+     <!--{{#=P(MARKMIN(' '.join(modals[1]['content'].split(' ')[:80]) + '...' ), _class='info-teaser')}}-->
+    </div>
+
+<!--# modal 2-->
+    <div class='info-pane col-sm-3'>
+    {{=DIV(IMG(_src=URL('static',
+                        'images/info_{}.svg'.format(modals[2]['title'].replace(' ',
+                        '_')[:-1])),
+               _class='info-pane-illustration'),
+           _class='info-illustration-wrapper')}}
+    {{modal2 = MODAL(modals[2]['title'], modals[2]['title'],
+                     MARKMIN(modals[2]['content']),
+                     modal_classes='index-modals',
+                     trigger_type='link',
+                     id=(modals[2]['title'].replace(' ', '_')).replace('?', '')
+                     )}}
+     {{=H4(modal2[0])}}
+     <!--{{#=P(MARKMIN(' '.join(modals[2]['content'].split(' ')[:80]) + '...' ), _class='info-teaser')}}-->
+    </div>
+
+<!--# modal 3-->
+    <div class='info-pane col-sm-3'>
+    {{=DIV(IMG(_src=URL('static',
+                        'images/info_{}.svg'.format(modals[3]['title'].replace(' ',
+                        '_')[:-1])),
+               _class='info-pane-illustration'),
+           _class='info-illustration-wrapper')}}
+    {{modal3 = MODAL(modals[3]['title'], modals[3]['title'],
+                     MARKMIN(modals[3]['content']),
+                     modal_classes='index-modals',
+                     trigger_type='link',
+                     id=(modals[3]['title'].replace(' ', '_')).replace('?', '')
+                     )}}
+     {{=H4(modal3[0])}}
+     <!--{{#=P(MARKMIN(' '.join(modals[3]['content'].split(' ')[:80]) + '...' ), _class='info-teaser')}}-->
+    </div>
 </div>
 
-<article id='intro'>
-</article>
-
-
+<!--# modal content panes at top-level of body-->
+{{block body_end}}
+    {{=modal0[1]}}
+    {{=modal1[1]}}
+    {{=modal2[1]}}
+    {{=modal3[1]}}
+{{end body_end}}

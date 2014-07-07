@@ -1,6 +1,8 @@
 {{extend 'layout.html'}}
 
-<section>
+<div class="row">
+<div class="container">
+<div class="col-xs-12">
 <h2>Number of paths in DB for each tag</h2>
 Steps without a path <span class="badge badge-warning">{{=len(not_in_path)}}</span>
 Deactivated steps <span class="badge badge-info">{{=len(deactivated)}}</span>
@@ -8,7 +10,7 @@ Deactivated steps <span class="badge badge-info">{{=len(deactivated)}}</span>
       _href=URL('reporting', 'tag_conflicts.load'),
       _class="btn btn-danger",
       cid="conflicts")}}
-<div id="conflicts"></div> 
+<div id="conflicts"></div>
 
 <div class="panel-group" id="positions">
 
@@ -19,9 +21,9 @@ Deactivated steps <span class="badge badge-info">{{=len(deactivated)}}</span>
             <a class="accordion-toggle" data-toggle="collapse"
                 data-parent="#positions"
                 href="#position{{=p}}">Stage {{=p}}
-            </a>    
+            </a>
         </h4>
-    </div> 
+    </div>
     <div id="position{{=p}}" class="panel-collapse collapse">
         <div class='panel-body'>
         <div class="panel-group" id="stage-{{=p}}-group">
@@ -34,7 +36,7 @@ Deactivated steps <span class="badge badge-info">{{=len(deactivated)}}</span>
                             data-parent="#stage-{{=p}}-group"
                             href="#tag{{=t['id']}}">
                             {{=t['name']}}
-                            (paths: 
+                            (paths:
                             {{len1 = len(t['pathsdict']['tags'])}}
                             {{badge_colour = 'badge-danger' if len1 <= 25 else 'badge-success'}}
                             <span class="count1 badge {{=badge_colour}}">{{=len1}}</span>
@@ -47,26 +49,26 @@ Deactivated steps <span class="badge badge-info">{{=len(deactivated)}}</span>
                             <span class="count2 badge badge-info">{{=len(t['stepsdict']['tags_secondary'])}}</span>
                             <span class="count3 badge badge-info">{{=len(t['stepsdict']['tags_ahead'])}}</span>
                             )
-                        </a>    
+                        </a>
                     </h5>
                 </div>
                 <div id="tag{{=t['id']}}" class="panel-collapse collapse">
                     <div class='panel-body well'>
 
                         {{for b in t['badge']:}}
-                        Badges: 
+                        Badges:
                             <span class='tagbadge'>
-                                {{=A(b['badge_name'], 
+                                {{=A(b['badge_name'],
                                      _href=URL('editing', 'listing.html', args=['badges', b['id']]))
-                                 }}, 
+                                 }},
                             </span>
                         {{pass}}
 
                         {{if t['tag_slides']:}}
-                          Slide decks: 
+                          Slide decks:
                         {{for deck in t['tag_slides']:}}
                             <span class='slides'>
-                                {{=A(deck['deck_name'], _href=URL('editing', 'listing.html', args=['plugin_slider_decks', deck['id']]))}}, 
+                                {{=A(deck['deck_name'], _href=URL('editing', 'listing.html', args=['plugin_slider_decks', deck['id']]))}},
                             </span>
                         {{pass}}
                         {{pass}}
@@ -80,14 +82,14 @@ Deactivated steps <span class="badge badge-info">{{=len(deactivated)}}</span>
                                             data-toggle="collapse"
                                             data-parent="#tag{{=t['id']}}-group-paths"
                                             href="#tag{{=t['id']}}-{{=l}}">{{=l}}
-                                        </a>    
+                                        </a>
                                     </span>
                                 </div>
                                 <div id="tag{{=t['id']}}-{{=l}}" class="panel-collapse collapse {{if l=='tags': response.write(' in'); pass;}}">
                                     <div class='panel-body'>
                                     <ul>
                                     {{for path in t['pathsdict'][l]:}}
-                                        {{=LI(A(path['id'], " - ", path['label'], _href=URL('editing', 'listing.html', args=['paths', path['id']])))}} 
+                                        {{=LI(A(path['id'], " - ", path['label'], _href=URL('editing', 'listing.html', args=['paths', path['id']])))}}
                                     {{pass}}
                                     </ul>
                                     </div>
@@ -105,7 +107,7 @@ Deactivated steps <span class="badge badge-info">{{=len(deactivated)}}</span>
                                             data-toggle="collapse"
                                             data-parent="#tag{{=t['id']}}-group-steps"
                                             href="#tag{{=t['id']}}-{{=l}}">{{=l}}
-                                        </a>    
+                                        </a>
                                     </span>
                                 </div>
                                 <div id="tag{{=t['id']}}-{{=l}}" class="panel-collapse collapse">
@@ -113,7 +115,7 @@ Deactivated steps <span class="badge badge-info">{{=len(deactivated)}}</span>
                                     <div class='panel-body'>
                                     <ul>
                                     {{for step in t['stepsdict'][l]:}}
-                                        {{=LI(A(path['id'], " - ", step['prompt'], _href=URL('editing', 'listing.html', args=['steps', step['id']])))}} 
+                                        {{=LI(A(path['id'], " - ", step['prompt'], _href=URL('editing', 'listing.html', args=['steps', step['id']])))}}
                                     {{pass}}
                                     </ul>
                                     </div>
@@ -136,4 +138,6 @@ Deactivated steps <span class="badge badge-info">{{=len(deactivated)}}</span>
 
 </div> <!--position panel-group ends-->
 
-</section>
+</div> <!--col ends-->
+</div>
+</div> <!--row ends-->
