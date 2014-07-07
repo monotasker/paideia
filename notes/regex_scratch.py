@@ -5,6 +5,10 @@ import re
 from termcolor import colored
 # who should sit πρωτος?
 
+#- Is this word passive or middle (what's its voice)?
+#- the parthians came, but the romans are coming
+#- are being saved: so when does salvation complete?
+
 # please fetch ἀλλος καρπος
 # please fetch ἑτερος καρπος
 # proverb, a poor man is seldom strong

@@ -102,10 +102,6 @@ ap.append(form) }}
         {{pass }}
         </div>
 
-        <!--# path counter for prompt/reply----------------------------------->
-        <small class='path-counter progress_text small muted'>
-            'This will make {{=completed_count}} paths so far today.'
-        </small>
     </div>
 
     <!--# responder div ------------------------------------------------------>
@@ -147,21 +143,44 @@ ap.append(form) }}
         if 'bugreporter' in globals() and bugreporter:}}
             {{=bugreporter}}
         {{pass}}
+
+        <!--# path counter for prompt/reply----------------------------------->
+        <small class='path-counter progress_text small muted'>
+            'This will make {{=completed_count}} paths so far today.'
+        </small>
     </div>
 {{pass}}
 
+<!--# page javascript ======================================================-->
 <script>
+
+    var headroom = $('.navbar').outerHeight();
+    //var footroom = '20px';
+    var divheight = window.innerHeight - headroom; // + footroom);
+    $('#page').css('height', divheight);
+    $('#page').css('background-size', "auto 100%");
+
     {{if 'bg_image' in globals():}}
-        $('#page').css("background-image", "url({{=bg_image}})");
-        $('#page').css("background-size", "auto 100%");
+    $('#page').css("background-image", "url({{=bg_image}})");
+    $('#page').css("background-size", "100% auto");
+    {{pass}}
+
+    $(window).resize(function() {
+        var headroom = $('.navbar').outerHeight();
+        //var footroom = '20px';
+        var divheight = window.innerHeight - headroom;  //+ footroom);
+        $('#page').css('height', divheight);
+    });
+
+    {{if 'bugreporter' in globals():}}
+    $('#bug_reporter_modal').appendTo('body');
     {{pass}}
 
     $('.popover-trigger').each(function() {
         var $this = $(this);
         $this.popover({html: true,
-                    animation: true,
-                    content: $this.find('.popover-content').html()
-        });
+                       animation: true,
+                       content: $this.find('.popover-content').html()});
     });
 
     $('#responder submit').click(function(event){
