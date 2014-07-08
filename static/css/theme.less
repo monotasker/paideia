@@ -1,6 +1,7 @@
 /*-- typography --------------------------------------------------*/
 @fontSizeRegular: 14px;
 @fontSizeLarge: 21px;
+@fontSizeSmall: 12px;
 @lineHeightRegular: 1.428;
 @parPadding: 10px;
 @sansFonts: "Fira Sans", "Helvetica Neue", Helvetica, Ubuntu, Arial, sans-serif;
@@ -125,6 +126,9 @@ body.exploring                  {
                                          width: 100%;
                                          height: 100%;
             }
+            #town_map                   {height:500px;
+                                         margin:0 auto;
+            }
             .admin-panel                {position:absolute;
                                          width:300px;
                                          height:300px;
@@ -139,27 +143,49 @@ body.exploring                  {
                 input[type=text]        {width: 60%;}
             }
             .speaker                    {position: absolute;
+                img                     {}
             }
             .prompt,
             .responder                  {background-color: #fff;
-                                        position: relative;
-                                        float: left;
-                                        width: 40%;
-                                        margin: 1em;
-                                        margin-left: 50%;
-                                        padding: 1em;
-                                        font-family: "SBL Greek";
-                                        font-size: @fontSizeLarge;
-                                        box-shadow: 0 0 6px rgba(0,0,0,0.5);
+                                         position: relative;
+                                         float: left;
+                                         width: 50%;
+                                         margin: 1em 1em 0 0;
+                                         margin-left: 40%;
+                                         padding: 1em;
+                                         font-family: "SBL Greek";
+                                         font-size: @fontSizeLarge;
+                                         box-shadow: 0 0 6px rgba(0,0,0,0.5);
 
                 img                     {max-height: 260px;
                 }
                 #slides_btn,
                 #instructions_btn,
-                #readable_btn          {position: relative;
-                                        float: left;
-                                        display: inline-block;
-                                        margin-right: 1em;
+                #readable_btn           {position: relative;
+                                         float: left;
+                                         display: inline-block;
+                                         margin-right: 1em;
+                                         text-transform: capitalize;
+                                         font-size: @fontSizeSmall;
+                                         font-family: @sansFonts;
+                                         /*cursor: pointer;*/
+                }
+                a.btn                   {font-family: @sansFonts;
+                }
+                .path-counter,
+                .prompt-editlinks       {font-size: @fontSizeSmall;
+                                         font-family: @sansFonts;
+                }
+                table                   {width: 100%;
+                                         margin: 0;
+                    input[type=text]    {width: 100%;
+                    }
+                    input[type=submit]  {font-family: @sansFonts;
+                    }
+                    td.w2p_fw           {padding-left: 0;
+                    }
+                    td.w2p_fl           {display: none;
+                    }
                 }
             }
         }

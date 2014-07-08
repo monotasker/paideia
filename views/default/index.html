@@ -24,16 +24,17 @@
         </div>
     </div>
 </div>
-            
+
 
 <!--# modal 0-->
 <div class='modal-set container'>
     <div class='info-pane col-sm-3'>
-    {{=DIV(IMG(_src=URL('static',
+        <div class='info-illustration-wrapper'>
+    {{=IMG(_src=URL('static',
                     'images/info_{}.svg'.format(modals[0]['title'].replace(' ',
                     '_')[:-1])),
                _class='info-pane-illustration'),
-            _class='info-illustration-wrapper')}}
+            }}
     {{modal0 = MODAL(modals[0]['title'], modals[0]['title'],
                      MARKMIN(modals[0]['content']),
                      modal_classes='index-modals',
@@ -41,16 +42,18 @@
                      id=(modals[0]['title'].replace(' ', '_')).replace('?', '')
                      )}}
      {{=H4(modal0[0])}}
+     </div>
      <!--{{#=P(MARKMIN(' '.join(modals[0]['content'].split(' ')[:80]) + '...' ), _class='info-teaser')}}-->
     </div>
 
 <!--# modal 1-->
     <div class='info-pane col-sm-3'>
-    {{=DIV(IMG(_src=URL('static',
+        <div class='info-illustration-wrapper'>
+    {{=IMG(_src=URL('static',
                         'images/info_{}.svg'.format(modals[1]['title'].replace(' ',
                         '_')[:-1])),
                _class='info-pane-illustration'),
-            _class='info-illustration-wrapper')}}
+            }}
     {{modal1 = MODAL(modals[1]['title'], modals[1]['title'],
                      MARKMIN(modals[1]['content']),
                      modal_classes='index-modals',
@@ -58,16 +61,18 @@
                      id=(modals[1]['title'].replace(' ', '_')).replace('?', '')
                      )}}
      {{=H4(modal1[0])}}
+        </div>
      <!--{{#=P(MARKMIN(' '.join(modals[1]['content'].split(' ')[:80]) + '...' ), _class='info-teaser')}}-->
     </div>
 
 <!--# modal 2-->
     <div class='info-pane col-sm-3'>
-    {{=DIV(IMG(_src=URL('static',
+        <div class='info-illustration-wrapper'>
+    {{=IMG(_src=URL('static',
                         'images/info_{}.svg'.format(modals[2]['title'].replace(' ',
                         '_')[:-1])),
                _class='info-pane-illustration'),
-           _class='info-illustration-wrapper')}}
+           }}
     {{modal2 = MODAL(modals[2]['title'], modals[2]['title'],
                      MARKMIN(modals[2]['content']),
                      modal_classes='index-modals',
@@ -75,16 +80,18 @@
                      id=(modals[2]['title'].replace(' ', '_')).replace('?', '')
                      )}}
      {{=H4(modal2[0])}}
+        </div>
      <!--{{#=P(MARKMIN(' '.join(modals[2]['content'].split(' ')[:80]) + '...' ), _class='info-teaser')}}-->
     </div>
 
 <!--# modal 3-->
     <div class='info-pane col-sm-3'>
-    {{=DIV(IMG(_src=URL('static',
+        <div class='info-illustration-wrapper'>
+    {{=IMG(_src=URL('static',
                         'images/info_{}.svg'.format(modals[3]['title'].replace(' ',
                         '_')[:-1])),
                _class='info-pane-illustration'),
-           _class='info-illustration-wrapper')}}
+           }}
     {{modal3 = MODAL(modals[3]['title'], modals[3]['title'],
                      MARKMIN(modals[3]['content']),
                      modal_classes='index-modals',
@@ -92,8 +99,8 @@
                      id=(modals[3]['title'].replace(' ', '_')).replace('?', '')
                      )}}
      {{=H4(modal3[0])}}
-     <!--{{#=P(MARKMIN(' '.join(modals[3]['content'].split(' ')[:80]) + '...' ), _class='info-teaser')}}-->
     </div>
+     <!--{{#=P(MARKMIN(' '.join(modals[3]['content'].split(' ')[:80]) + '...' ), _class='info-teaser')}}-->
 </div>
 
 <!--# modal content panes at top-level of body-->
