@@ -130,6 +130,10 @@ body.exploring main #page div#loading-mask {
   width: 100%;
   height: 100%;
 }
+body.exploring main #page #town_map {
+  height: 500px;
+  margin: 0 auto;
+}
 body.exploring main #page .admin-panel {
   position: absolute;
   width: 300px;
@@ -158,9 +162,9 @@ body.exploring main #page .responder {
   background-color: #fff;
   position: relative;
   float: left;
-  width: 40%;
-  margin: 1em;
-  margin-left: 50%;
+  width: 50%;
+  margin: 1em 1em 0 0;
+  margin-left: 40%;
   padding: 1em;
   font-family: "SBL Greek";
   font-size: 21px;
@@ -180,6 +184,43 @@ body.exploring main #page .responder #readable_btn {
   float: left;
   display: inline-block;
   margin-right: 1em;
+  text-transform: capitalize;
+  font-size: 12px;
+  font-family: "Fira Sans", "Helvetica Neue", Helvetica, Ubuntu, Arial, sans-serif;
+  /*cursor: pointer;*/
+
+}
+body.exploring main #page .prompt a.btn,
+body.exploring main #page .responder a.btn {
+  font-family: "Fira Sans", "Helvetica Neue", Helvetica, Ubuntu, Arial, sans-serif;
+}
+body.exploring main #page .prompt .path-counter,
+body.exploring main #page .responder .path-counter,
+body.exploring main #page .prompt .prompt-editlinks,
+body.exploring main #page .responder .prompt-editlinks {
+  font-size: 12px;
+  font-family: "Fira Sans", "Helvetica Neue", Helvetica, Ubuntu, Arial, sans-serif;
+}
+body.exploring main #page .prompt table,
+body.exploring main #page .responder table {
+  width: 100%;
+  margin: 0;
+}
+body.exploring main #page .prompt table input[type=text],
+body.exploring main #page .responder table input[type=text] {
+  width: 100%;
+}
+body.exploring main #page .prompt table input[type=submit],
+body.exploring main #page .responder table input[type=submit] {
+  font-family: "Fira Sans", "Helvetica Neue", Helvetica, Ubuntu, Arial, sans-serif;
+}
+body.exploring main #page .prompt table td.w2p_fw,
+body.exploring main #page .responder table td.w2p_fw {
+  padding-left: 0;
+}
+body.exploring main #page .prompt table td.w2p_fl,
+body.exploring main #page .responder table td.w2p_fl {
+  display: none;
 }
 /*-- reporting --------------------------------------------------*/
 body.reporting #masthead {

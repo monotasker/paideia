@@ -73,6 +73,7 @@ ap.append(form) }}
             hints_args = {'classnames': 'text-warning', 'id': 'instructions_btn'}
             hinter = POPOVER().widget('Hints', hint_list, **hints_args)}}
             {{=hinter}}
+
         {{pass}}
         <!--# instructions popup for prompt/reply----------------------------->
         {{if 'instructions' in globals() and instructions:
@@ -101,7 +102,6 @@ ap.append(form) }}
             {{=s_pop}}
         {{pass }}
         </div>
-
     </div>
 
     <!--# responder div ------------------------------------------------------>
@@ -158,18 +158,18 @@ ap.append(form) }}
     //var footroom = '20px';
     var divheight = window.innerHeight - headroom; // + footroom);
     $('#page').css('height', divheight);
-    $('#page').css('background-size', "auto 100%");
+    $('.speaker img').css('height', divheight);
 
     {{if 'bg_image' in globals():}}
     $('#page').css("background-image", "url({{=bg_image}})");
-    $('#page').css("background-size", "100% auto");
+    $('#page').css("background-size", "auto 100%");
     {{pass}}
 
     $(window).resize(function() {
         var headroom = $('.navbar').outerHeight();
         //var footroom = '20px';
         var divheight = window.innerHeight - headroom;  //+ footroom);
-        $('#page').css('height', divheight);
+        $('#page, .speaker img, #town_map').css('height', divheight);
     });
 
     {{if 'bugreporter' in globals():}}
