@@ -1,5 +1,7 @@
 /*-- typography --------------------------------------------------*/
 /*-- colors --------------------------------------------------*/
+/*@blue:                  lighten(@blueDark, 20%); */
+/*@blueDark:              #0064cd;*/
 body {
   margin-top: 0;
   padding-top: 50px !important;
@@ -33,14 +35,14 @@ div.navbar h1 {
 }
 nav h1 a,
 div.navbar h1 a {
-  color: #a84f4c;
+  color: #bd362f;
   text-decoration: none;
   transition: 100ms all linear;
 }
 nav h1 a:hover,
 div.navbar h1 a:hover {
   text-decoration: none;
-  color: #853e3c;
+  color: #942a25;
   transition: 100ms all linear;
 }
 nav small,
@@ -70,11 +72,11 @@ div#masthead div.jumbotron {
 }
 /*-- main --------------------------------------------------*/
 main {
-  background-color: #5387b2;
+  background-color: #ffffff;
 }
 /*-- footer --------------------------------------------------*/
 footer#footer {
-  background-color: #a84f4c;
+  background-color: #bd362f;
   color: #fff;
   margin-top: 0;
 }
@@ -82,24 +84,26 @@ footer#footer div.row {
   border-top: 0px solid transparent;
 }
 footer#footer div.row a {
-  color: #f1e7bc;
+  color: #f89406;
 }
 /*-- index --------------------------------------------------*/
-body.default.index div.modal-set {
+body.default.index div.modal-set.container {
   color: #efefef;
   text-align: center;
+  margin-top: 1.428;
+  margin-bottom: 1.428;
 }
-body.default.index div.modal-set h4 a {
-  color: #f1e7bc;
+body.default.index div.modal-set.container h4 a {
+  color: #f89406;
 }
-body.default.index div.modal-set h4 a:hover {
+body.default.index div.modal-set.container h4 a:hover {
   text-decoration: dotted;
 }
-body.default.index div.modal-set .info-illustration-wrapper {
+body.default.index div.modal-set.container .info-illustration-wrapper {
   text-align: center;
   width: 100%;
 }
-body.default.index div.modal-set .info-illustration-wrapper .info-pane-illustration {
+body.default.index div.modal-set.container .info-illustration-wrapper .info-pane-illustration {
   width: 120px;
   background-color: #efefef;
   border-radius: 50%;
@@ -107,7 +111,7 @@ body.default.index div.modal-set .info-illustration-wrapper .info-pane-illustrat
   margin: 0px auto;
   position: relative;
 }
-body.default.index div.modal-set p {
+body.default.index div.modal-set.container p {
   hyphens: auto;
   -moz-hyphens: auto;
   -webkit-hyphens: auto;
@@ -167,7 +171,7 @@ body.exploring main #page .responder {
   margin-left: 40%;
   padding: 1em;
   font-family: "SBL Greek";
-  font-size: 21px;
+  font-size: 20px;
   box-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
 }
 body.exploring main #page .prompt img,
@@ -230,6 +234,265 @@ body.reporting #masthead {
 body.listing #masthead {
   display: none;
 }
+/*-- user profile -----------------------------------------------*/
+body.profile #page,
+body.user #page {
+  /*tab content */
+
+  /* common styles for reporting tables */
+
+  /* user info */
+
+  /*summary stats (badges) tab*/
+
+  /*calendar for monthly user statistics */
+
+}
+body.profile #page .tab-pane,
+body.user #page .tab-pane {
+  padding: 1.428;
+}
+body.profile #page .tab-pane h4,
+body.user #page .tab-pane h4 {
+  color: #006699;
+  font-size: 20px;
+}
+body.profile #page table,
+body.user #page table {
+  text-align: left;
+}
+body.profile #page ul.nav-tabs,
+body.user #page ul.nav-tabs {
+  background-color: #f2eed5;
+  border-bottom: 1px solid #d8d3b3;
+  font-size: 20px;
+  font-family: "Fira Sans", "Helvetica Neue", Helvetica, Ubuntu, Arial, sans-serif;
+}
+body.profile #page ul.nav-tabs li a,
+body.user #page ul.nav-tabs li a {
+  border: 1px solid transparent;
+}
+body.profile #page ul.nav-tabs li a:hover,
+body.user #page ul.nav-tabs li a:hover {
+  background-color: #d8d3b3;
+}
+body.profile #page ul.nav-tabs li.active,
+body.user #page ul.nav-tabs li.active {
+  border: 1px solid transparent;
+  background-color: transparent;
+}
+body.profile #page ul.nav-tabs li.active a,
+body.user #page ul.nav-tabs li.active a {
+  background-color: #fcfbf7;
+  border-top: 1px solid #d8d3b3;
+  border-left: 1px solid #d8d3b3;
+  border-right: 1px solid #d8d3b3;
+  border-bottom: 1px solid transparent;
+}
+body.profile #page ul.nav-tabs li.active a:hover,
+body.user #page ul.nav-tabs li.active a:hover {
+  background-color: #fcfbf7;
+}
+body.profile #page ul.profile-user-info,
+body.user #page ul.profile-user-info {
+  list-style-type: none;
+  background-color: #f2eed5;
+  display: block;
+  padding: 0.714;
+  margin: 0;
+}
+body.profile #page ul.profile-user-info li,
+body.user #page ul.profile-user-info li {
+  display: inline-block;
+  margin-right: 1.428;
+  font-size: 12px;
+  color: #f89406;
+}
+body.profile #page ul.profile-user-info li .profile-label,
+body.user #page ul.profile-user-info li .profile-label {
+  display: none;
+}
+body.profile #page ul.profile-user-info li:first-child,
+body.user #page ul.profile-user-info li:first-child {
+  font-size: 20px;
+  color: #333333;
+}
+body.profile #page ul.profile-user-info li:nth-child(2),
+body.user #page ul.profile-user-info li:nth-child(2) {
+  color: #96bc44;
+}
+body.profile #page p.overview table.dc-table-label,
+body.user #page p.overview table.dc-table-label {
+  color: #f89406;
+  font-size: 20px;
+  font-weight: bold;
+}
+body.profile #page p.overview li,
+body.user #page p.overview li {
+  color: #006699;
+  padding-left: 2.856;
+}
+body.profile #page p.overview .total_len,
+body.user #page p.overview .total_len,
+body.profile #page p.overview .max_set,
+body.user #page p.overview .max_set {
+  background: #f2eed5;
+  border: 3px solid #d8d3b3;
+  display: inline-block;
+  height: 2.142;
+  width: 2.142;
+  border-radius: 1.071;
+  color: #96bc44;
+  line-height: 2.142;
+  text-align: center;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.3);
+}
+body.profile #page .most_recent,
+body.user #page .most_recent {
+  color: #006699;
+}
+body.profile #page table.summary_stats,
+body.user #page table.summary_stats {
+  border-collapse: separate;
+  border-spacing: 2px;
+  border-radius: 0.357;
+  padding: 0.357 0;
+  background: #ffffff;
+}
+body.profile #page table.summary_stats td,
+body.user #page table.summary_stats td {
+  vertical-align: middle;
+  background: #f2eed5;
+  padding: 0.714 1.428;
+}
+body.profile #page table.summary_stats td ul,
+body.user #page table.summary_stats td ul {
+  max-height: 8.568;
+  overflow: auto;
+}
+body.profile #page table.summary_stats td.total_cat1,
+body.user #page table.summary_stats td.total_cat1,
+body.profile #page table.summary_stats td.total_cat2,
+body.user #page table.summary_stats td.total_cat2,
+body.profile #page table.summary_stats td.total_cat3,
+body.user #page table.summary_stats td.total_cat3,
+body.profile #page table.summary_stats td.total_cat4,
+body.user #page table.summary_stats td.total_cat4 {
+  width: 40px;
+  color: #fff;
+  height: 40px;
+  text-align: center;
+  font-size: 20px;
+  padding: 0;
+  text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.3);
+}
+body.profile #page table.summary_stats td.total_cat4,
+body.user #page table.summary_stats td.total_cat4 {
+  background-color: #f89406;
+}
+body.profile #page table.summary_stats td.total_cat3,
+body.user #page table.summary_stats td.total_cat3 {
+  background-color: #96bc44;
+}
+body.profile #page table.summary_stats td.total_cat2,
+body.user #page table.summary_stats td.total_cat2 {
+  background-color: #006699;
+}
+body.profile #page table.summary_stats td.total_cat1,
+body.user #page table.summary_stats td.total_cat1 {
+  background-color: #f89406;
+}
+body.profile #page .paideia_monthcal,
+body.user #page .paideia_monthcal {
+  position: relative;
+  width: 430px;
+  margin: 0 auto;
+  text-align: center;
+}
+body.profile #page .paideia_monthcal .monthcal_intro_line,
+body.user #page .paideia_monthcal .monthcal_intro_line {
+  color: #809240;
+  margin-bottom: 7px;
+}
+body.profile #page .paideia_monthcal table.month,
+body.user #page .paideia_monthcal table.month {
+  border: 1px solid #d8d3b3;
+}
+body.profile #page .paideia_monthcal table.month tr:first-child,
+body.user #page .paideia_monthcal table.month tr:first-child {
+  font-size: 22px;
+}
+body.profile #page .paideia_monthcal table.month tr:first-child th,
+body.user #page .paideia_monthcal table.month tr:first-child th {
+  text-align: center;
+  padding: 0.714;
+}
+body.profile #page .paideia_monthcal table.month tr:first-child th .monthcal_nav_link.previous,
+body.user #page .paideia_monthcal table.month tr:first-child th .monthcal_nav_link.previous,
+body.profile #page .paideia_monthcal table.month tr:first-child th .monthcal_nav_link.next,
+body.user #page .paideia_monthcal table.month tr:first-child th .monthcal_nav_link.next {
+  font-size: 20px;
+}
+body.profile #page .paideia_monthcal table.month tr:first-child th .monthcal_nav_link.next,
+body.user #page .paideia_monthcal table.month tr:first-child th .monthcal_nav_link.next {
+  float: right;
+}
+body.profile #page .paideia_monthcal table.month tr:first-child th .monthcal_nav_link.previous,
+body.user #page .paideia_monthcal table.month tr:first-child th .monthcal_nav_link.previous {
+  float: left;
+}
+body.profile #page .paideia_monthcal table.month tr:first-child th #month-label,
+body.user #page .paideia_monthcal table.month tr:first-child th #month-label {
+  font-size: 20px;
+}
+body.profile #page .paideia_monthcal table.month th,
+body.user #page .paideia_monthcal table.month th {
+  font-family: "Fira Sans", "Helvetica Neue", Helvetica, Ubuntu, Arial, sans-serif;
+  font-weight: normal;
+  font-size: 14px;
+  background-color: #f2eed5;
+  border: 1px solid #f2eed5;
+  color: #049cdb;
+}
+body.profile #page .paideia_monthcal table.month td,
+body.user #page .paideia_monthcal table.month td {
+  width: 3.57;
+  height: 3.57;
+  color: #666;
+  font-size: 14px;
+  border: 1px solid #f2eed5;
+  position: relative;
+}
+body.profile #page .paideia_monthcal table.month td span.cal_num,
+body.user #page .paideia_monthcal table.month td span.cal_num {
+  position: relative;
+  padding: 4px, 2px;
+  color: #aaa;
+  font-family: "Fira Sans", "Helvetica Neue", Helvetica, Ubuntu, Arial, sans-serif;
+}
+body.profile #page .paideia_monthcal table.month td span.daycount,
+body.user #page .paideia_monthcal table.month td span.daycount {
+  position: relative;
+  font-size: 20px;
+  /*font-weight:bold;*/
+
+  top: 1.428;
+  float: right;
+  padding-right: 2px;
+  color: #f89406;
+}
+body.profile #page .paideia_monthcal table.month td span.daycount.full,
+body.user #page .paideia_monthcal table.month td span.daycount.full {
+  color: #96bc44;
+}
+body.profile #page .paideia_monthcal table.month td span.success,
+body.user #page .paideia_monthcal table.month td span.success {
+  position: absolute;
+  left: 72px;
+  top: 24px;
+  font-size: 22px;
+  color: #96bc44;
+}
 /*-- user --------------------------------------------------*/
 body.user #masthead {
   display: none;
@@ -252,11 +515,11 @@ body.user #masthead {
 }
 .bs-callout.bs-callout-success {
   background-color: #dff0d8;
-  border-color: #d6e9c6;
+  border-color: #96bc44;
 }
 .bs-callout.bs-callout-danger {
   background-color: #fcf2f2;
-  border-color: #a84f4c;
+  border-color: #bd362f;
 }
 .bs-callout.bs-callout-warning {
   background-color: #fefbed;

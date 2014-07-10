@@ -27,10 +27,9 @@ if 0:
 # TODO: move these to an AjaxSelect model file
 response.files.insert(5, URL('static',
                       'plugin_ajaxselect/plugin_ajaxselect.js'))
-response.files.insert(6, URL('static',
-                             'plugin_framework/js/jquery-ui-1.10.3.custom/js/'
-                             'jquery-ui-1.10.3.custom.min.js'))
-# response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.css'))
+#response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.css'))
+response.files.append(URL('static', 'css/plugin_listandedit.css'))
+response.files.append(URL('static', 'css/plugin_slider.css'))
 
 dtnow = datetime.datetime.utcnow()
 
