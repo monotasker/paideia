@@ -102,7 +102,7 @@ def info():
     'badge_levels':         Dictionary with badle levels (int) as keys and
                             a list of badge names (or tag: int) as each value.
     'badge_table_data':
-    'badges_active_over_time':
+    'badge_level_over_time':
     'badges_tested_over_time':
     'sets_tested_over_time':
     'steps_most_wrong':
@@ -124,7 +124,6 @@ def info():
     goal = stats.get_goal()
     badge_levels = stats.get_badge_levels()
     badge_table_data = stats.active_tags()
-    # badges_active_over_time = stats.badges_active_over_time(badge_table_data)
 
     # tab2
     mycal = stats.monthcal()
@@ -136,6 +135,13 @@ def info():
     b = Bug()
     blist = b.bugresponses(user.id)
 
+    # tab5
+    badge_level_over_time = db(db.badges_begun.name == user.id).select(
+        db.tags.tag_position,
+        db.badges_begun.cat1.min().with_alias('attained_on'),
+        left=db.tags.on(db.tags.id == db.badges_begun.tag),
+        groupby=db.tags.tag_position)
+
     return {'the_name': name,
             'tz': tz,
             'email': email,
@@ -145,10 +151,7 @@ def info():
             'goal': goal,
             'badge_levels': badge_levels,
             'badge_table_data': badge_table_data,
-            # 'badges_active_over_time': badges_active_over_time,
-            # 'badges_tested_over_time': badges_tested_over_time,
-            # 'sets_tested_over_time': sets_tested_over_time,
-            # 'steps_most_wrong': steps_most_wrong
+            'badge_level_over_time': badge_level_over_time,
             }
 
 
