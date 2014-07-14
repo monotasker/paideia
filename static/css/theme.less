@@ -3,7 +3,7 @@
 @fontSizeLarge: 20px;
 @fontSizeLargest: 22px;
 @fontSizeSmall: 12px;
-@lineHeightRegular: 1.428; // 20px
+@lineHeightRegular: 20px; // 20px
 @parPadding: 10px;
 @sansFonts: "Fira Sans", "Helvetica Neue", Helvetica, Ubuntu, Arial, sans-serif;
 /*-- colors --------------------------------------------------*/
@@ -15,15 +15,15 @@
 @grayLighter:           #eee;
 @white:                 #fff;
 
-// basic palette (modded)
+// basic palette
 // -------------------------
 @neutralLight:          #f2eed5;
 @neutralLighter:        #fcfbf7; 
 @putty:                 #d8d3b3;
 @green:                 #96BC44; 
-@greenDark:             #809240;
+/*@greenDark:             #809240;*/
 @red:                   #9d261d; 
-@blueDark:              #006699; 
+@blueDark:              #1c7f99; // #006699; 
 /*@blue:                  lighten(@blueDark, 20%); */
 
 // Accent colors 
@@ -32,9 +32,9 @@
 @blue:                  #049cdb;
 /*@blueDark:              #0064cd;*/
 @yellow:                #ffc40d;
-@orange:                #f89406;
-@pink:                  #c3325f;
-@purple:                #7a43b6;
+/*@orange:                #f89406;*/
+/*@pink:                  #c3325f;*/
+/*@purple:                #7a43b6;*/
 
 // semantic colors (modded)
 // -------------------------
@@ -52,7 +52,7 @@
 
 // Applied Pallette (modded)
 // -------------------------
-@palletteBG: @neutralLighter;
+@palletteBG: @white;
 @pallette1: @neutralLight;
 @pallette2: @putty;
 @pallette3: @green;
@@ -62,7 +62,8 @@
 @accent3: @orange;
 
 @textColor: #333;
-@navbarLinkColor: @blue;
+@linkColor: @pallette2;
+@navbarLinkColor: @pallette2;
 
 body                        {margin-top: 0;
                              padding-top: 50px !important;
@@ -100,6 +101,8 @@ div.navbar                  {background-color: #fff;
     small                   {line-height:2em;
                              display: none;
     }
+    a                       {color: @pallette2;
+    }
 }
 
 /*-- masthead --------------------------------------------------*/
@@ -109,8 +112,8 @@ div#masthead                {background-image: url('../images/town_map.png');
                              margin-bottom: 0;
                              padding-bottom: 0;
                              border: 0px solid transparent;
-    div.jumbotron           {background: #fff;
-                             background-color: rgba(255,255,255,0.9);
+    div.jumbotron           {background: transparent;
+                             background-color: rgba(255,255,255,0);
                              /*width: 40%;*/
                              /*padding: 1em;*/
                              margin: 1em 0 0 0;
@@ -135,30 +138,47 @@ footer#footer               {background-color: @danger;
 
 /*-- index --------------------------------------------------*/
 body.default.index                      {
-        div.modal-set.container                   {color: #efefef;
+    div.index-openmessage               {text-align: center;
+        p.index-openmessage             {font-size: @fontSizeLarge;
+                                         padding-top: @lineHeightRegular;
                                          text-align: center;
-                                         margin-top: @lineHeightRegular;
-                                         margin-bottom: @lineHeightRegular;
-            h4 a                        {color: @warning;
-                &:hover                 {text-decoration: dotted;
-                }
-            }
-            .info-illustration-wrapper  {text-align: center;
-                                         width:100%;
-                .info-pane-illustration {width:120px;
-                                         background-color: #efefef;
-                                         border-radius: 50%;
-                                         padding:12px;
-                                         margin: 0px auto;
-                                         position: relative;
-                }
-            }
-            p                       {hyphens: auto;
-                                    -moz-hyphens: auto;
-                                    -webkit-hyphens: auto;
-                                    -ms-hyphens: auto;
+        }
+    }
+    div.container.paragraphs            {overflow: hidden;
+        div.index-contentbox            {background-color: #fff;
+            p                           {margin-top: 10px;
             }
         }
+
+        div.index-titlebox              {background-color: #efefef;
+                                         margin-bottom: -99999px;
+                                         padding-bottom: 99999px;
+        }
+    }
+    div.modal-set.container                   {color: #efefef;
+                                     text-align: center;
+                                     margin-top: 20px;
+                                     margin-bottom: 20px;
+        h4 a                        {color: @warning;
+            &:hover                 {text-decoration: dotted;
+            }
+        }
+        .info-illustration-wrapper  {text-align: center;
+                                     width:100%;
+            .info-pane-illustration {width:120px;
+                                     background-color: #efefef;
+                                     border-radius: 50%;
+                                     padding:12px;
+                                     margin: 0px auto;
+                                     position: relative;
+            }
+        }
+        p                       {hyphens: auto;
+                                -moz-hyphens: auto;
+                                -webkit-hyphens: auto;
+                                -ms-hyphens: auto;
+        }
+    }
 }
 
 /*-- exploring --------------------------------------------------*/
