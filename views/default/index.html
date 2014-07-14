@@ -4,57 +4,35 @@
 {{block masthead}}
 <div class='jumbotron clearfix'>
 <h1>Welcome!</h1>
-    <p>Paideia is a fun and interactive place to learn New Testament Greek. To get started, register for a free account and then click the green button below to start exploring.</p>
 
-    {{=A("start exploring",
-        _href=URL('exploring', 'index'),
-        _class='btn btn-success btn-lg')}}
+<div class='bs-callout bs-callout-warning'>This is an early "alpha" version for
+    use in my courses at Tyndale Seminary. The site is still rough, but feel
+    free to register and follow the link below to try it out. Bug reports are
+    appreciated.
+</div>
 
 </div>
 {{end masthead}}
 
 <div class='row'>
-    <div class='container'>
+    <div class='container index-openmessage'>
         <div class='col-xs-12'>
-            <div class='bs-callout bs-callout-warning'>This is an early "alpha" version for
-                use in my courses at Tyndale Seminary. The site is still rough, but feel
-                free to register and follow the link below to try it out. Bug reports are
-                appreciated.
-            </div>
+            <p class='index-openmessage'>Paideia is a fun and interactive
+            place to learn New Testament Greek.<br />
+            To get started, register for a free account and then click the
+            green button below to start exploring.
+            </p>
+
+            {{=A("start exploring",
+                _href=URL('exploring', 'index'),
+                _class='btn btn-success btn-lg')}}
         </div>
     </div>
 </div>
-
-<div class='row'>
-    <div class='container'>
-        <div class='col-xs-12'>
-            <h3>Explore a first-century town</h3>
-
-            Paideia revolves around a fictional hellenized town in eastern Anatolia, on the fringe of the Roman Empire where it runs up against Parthian territory. You will take the role of a foreign slave, recently bought by a middle-class Jewish couple to serve in their house. From the start you are free to move around the town, visiting various locations by clicking them on the town map (there's always a link back to the map in the top menu.
-
-            <h3>Talk with the people you meet</h3>
-
-            In each location you may meet one of several townspeople who will ask you questions and give you jobs to do. Each interaction is called a "path" and you can track how many "paths" you have completed each day. Some paths will only involve one "step" (one interaction), while others will require you to go from one location to another and perform a few "steps" before you are done. Along the way, though, you will be introduced to more and more of the Greek language, using it to interact with the town's colourful population.
-
-            <h3>Learn naturally</h3>
-
-            Paideia is meant to give you something a little like an immersion experience, so that you learn the language naturally, by using it. You will not be asked to do much memorizing of vocabulary lists or verb charts. At the same time, some structured understanding of the language can be a real help. So, whenever you start work on a new badge (learning a new facet of the language) you will be told that it is time to go and view a few sets of slides. These slides will sketch out the grammar, new vocabulary, and new word-forms that you are about to start using in your exchanges in the town. The point of these is not to spend a lot of time memorizing the details. Rather, the slides are a primer for the learning that will take place as you dive back into town life your conversations with the townspeople. If you ever start to feel lost, you can always click the "slides" link in the top menu and go back to view any of the slide sets again.
-
-            <h3>Learn at your own pace</h3>
-
-            We all know that some of us pick up languages more quickly than others. Many people think they can't learn a language, just because they've never been able to learn at their own pace. In a traditional course, students are forced to match the instructor's pace. That means that some people feel from day one like they're being left behind, while other people get bored. Paideia is different. Each student is free to learn at his or her own pace. You don't have to keep up with anyone else, and you can take the time to really "get" one idea before you have to move on to the next.
-
-            <h3>Mistakes are great</h3>
-
-            The biggest thing to realize about Paideia is that in this town there is no penalty for making mistakes. This is not a giant online test. So after every interaction you will be given examples of some proper responses you could have given. You can, if you like, immediately repeat the "step" and give one of the correct responses, or try out a different response. In fact, you will often learn the most by making mistakes and then looking at the correct responses to see where you went wrong. You are free to learn at your own pace. Once you are able to use your new knowledge without making mistakes, the townspeople will know you are ready to start learning something new.
-        </div>
-    </div>
-</div>
-
 
 <!--# modal 0-->
 <div class='modal-set container'>
-    <div class='info-pane col-sm-3'>
+    <div class='info-pane col-sm-4'>
         <div class='info-illustration-wrapper'>
     {{=IMG(_src=URL('static',
                     'images/info_{}.svg'.format(modals[0]['title'].replace(' ',
@@ -73,7 +51,7 @@
     </div>
 
 <!--# modal 1-->
-    <div class='info-pane col-sm-3'>
+    <div class='info-pane col-sm-4'>
         <div class='info-illustration-wrapper'>
     {{=IMG(_src=URL('static',
                         'images/info_{}.svg'.format(modals[1]['title'].replace(' ',
@@ -92,7 +70,7 @@
     </div>
 
 <!--# modal 2-->
-    <div class='info-pane col-sm-3'>
+    <div class='info-pane col-sm-4'>
         <div class='info-illustration-wrapper'>
     {{=IMG(_src=URL('static',
                         'images/info_{}.svg'.format(modals[2]['title'].replace(' ',
@@ -109,30 +87,101 @@
         </div>
      <!--{{#=P(MARKMIN(' '.join(modals[2]['content'].split(' ')[:80]) + '...' ), _class='info-teaser')}}-->
     </div>
-
-<!--# modal 3-->
-    <div class='info-pane col-sm-3'>
-        <div class='info-illustration-wrapper'>
-    {{=IMG(_src=URL('static',
-                        'images/info_{}.svg'.format(modals[3]['title'].replace(' ',
-                        '_')[:-1])),
-               _class='info-pane-illustration'),
-           }}
-    {{modal3 = MODAL(modals[3]['title'], modals[3]['title'],
-                     MARKMIN(modals[3]['content']),
-                     modal_classes='index-modals',
-                     trigger_type='link',
-                     id=(modals[3]['title'].replace(' ', '_')).replace('?', '')
-                     )}}
-     {{=H4(modal3[0])}}
-    </div>
-     <!--{{#=P(MARKMIN(' '.join(modals[3]['content'].split(' ')[:80]) + '...' ), _class='info-teaser')}}-->
 </div>
+
+<div class='row'>
+    <div class='container paragraphs'>
+        <div class='col-xs-4 index-titlebox'>
+            <h3>Explore a first-century town</h3>
+        </div>
+        <div class='col-xs-8 index-contentbox'>
+            <p>Paideia revolves around a fictional hellenized town in eastern Anatolia, on the fringe of the Roman Empire where it runs up against Parthian territory. You will take the role of a foreign slave, recently bought by a middle-class Jewish couple to serve in their house. From the start you are free to move around the town, visiting various locations by clicking them on the town map (there's always a link back to the map in the top menu).
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class='row'>
+    <div class='container paragraphs'>
+        <div class='col-xs-8 index-contentbox'>
+            <p>In each location you may meet one of several townspeople who will
+            ask you questions and give you jobs to do. Each interaction is
+            called a "path" and you can track how many "paths" you have
+            completed each day. Some paths will only involve one "step" (one
+            interaction), while others will require you to go from one location
+            to another and perform a few "steps" before you are done. Along the
+            way, though, you will be introduced to more and more of the Greek
+            language, using it to interact with the town's colourful population.
+            </p>
+        </div>
+        <div class='col-xs-4 index-titlebox'>
+            <h3>Talk with the people you meet</h3>
+        </div>
+    </div>
+</div>
+
+<div class='row'>
+    <div class='container paragraphs'>
+        <div class='col-xs-4 index-titlebox'>
+            <h3>Learn naturally</h3>
+        </div>
+        <div class='col-xs-8 index-contentbox'>
+            <p>Paideia is meant to give you something a little like an
+            immersion experience, so that you learn the language naturally, by
+            using it. You will not be asked to do much memorizing of vocabulary
+            lists or verb charts. At the same time, some structured
+            understanding of the language can be a real help. So, whenever you
+            start work on a new badge (learning a new facet of the language)
+            you will be told that it is time to go and view a few sets of
+            slides. These slides will sketch out the grammar, new vocabulary,
+            and new word-forms that you are about to start using in your
+            exchanges in the town. The point of these is not to spend a lot of
+            time memorizing the details. Rather, the slides are a primer for
+            the learning that will take place as you dive back into town life
+            your conversations with the townspeople. If you ever start to feel
+            lost, you can always click the "slides" link in the top menu and
+            go back to view any of the slide sets again.
+        </div>
+    </div>
+</div>
+
+<div class='row'>
+    <div class='container paragraphs'>
+        <div class='col-xs-8 index-contentbox'>
+            <p>We all know that some of us pick up languages more quickly than
+            others. Many people think they can't learn a language, just because
+            they've never been able to learn at their own pace. In a
+            traditional course, students are forced to match the instructor's
+            pace. That means that some people feel from day one like they're
+            being left behind, while other people get bored. Paideia is
+            different. Each student is free to learn at his or her own pace.
+            You don't have to keep up with anyone else, and you can take the
+            time to really "get" one idea before you have to move on to the
+            next.
+            </p>
+        </div>
+        <div class='col-xs-4 index-titlebox'>
+            <h3>Learn at your own pace</h3>
+        </div>
+    </div>
+</div>
+
+<div class='row'>
+    <div class='container paragraphs'>
+        <div class='col-xs-4 index-titlebox'>
+            <h3>Mistakes are great</h3>
+        </div>
+        <div class='col-xs-8 index-contentbox'>
+            <p>The biggest thing to realize about Paideia is that in this town there is no penalty for making mistakes. This is not a giant online test. So after every interaction you will be given examples of some proper responses you could have given. You can, if you like, immediately repeat the "step" and give one of the correct responses, or try out a different response. In fact, you will often learn the most by making mistakes and then looking at the correct responses to see where you went wrong. You are free to learn at your own pace. Once you are able to use your new knowledge without making mistakes, the townspeople will know you are ready to start learning something new.
+            </p>
+        </div>
+    </div>
+</div>
+
 
 <!--# modal content panes at top-level of body-->
 {{block body_end}}
     {{=modal0[1]}}
     {{=modal1[1]}}
     {{=modal2[1]}}
-    {{=modal3[1]}}
 {{end body_end}}
