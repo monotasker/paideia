@@ -59,25 +59,24 @@ def user():
 
     code for these actions is in gluon/tools.py in Auth() class
     """
-    # make sure d3.js dc.js and crossfire.js are loaded
-    # response.files.append(URL('static', 'plugin_d3/d3/d3.js'))
-    # response.files.append(URL('static', 'plugin_d3/dc/dc.js'))
-    # response.files.append(URL('static', 'plugin_d3/crossfilter/crossfilter.js'))
-    # response.files.append(URL('static', 'plugin_d3/dc/dc.css'))
+    # Scripts for charts
+    response.files.append('//cdnjs.cloudflare.com/ajax/libs/d3/3.4.10/d3.min.js')
+    response.files.append(URL('static', 'js/user_stats.js'))
 
     # Include files for Datatables jquery plugin and bootstrap css styling
-    response.files.append("https://cdn.datatables.net/1.10.0/js/"
-                          "jquery.dataTables.min.js")  # main datatables js
-    response.files.append("https://cdn.datatables.net/colvis/1.1.0/js/"
-                          "dataTables.colVis.min.js")  # colVis plugin
-    response.files.append("https://cdn.datatables.net/colvis/1.1.0/css/"
-                          "dataTables.colVis.css")  # colVis plugin css
+    response.files.append('//cdnjs.cloudflare.com/ajax/libs/datatables/1.10.0/'
+                          'js/jquery.dataTables.min.js')
+    response.files.append('//cdnjs.cloudflare.com/ajax/libs/datatables-colvis/1.1.0/'
+                          'js/datatables.colvis.min.js')
+    response.files.append('//cdnjs.cloudflare.com/ajax/libs/datatables-colvis/1.1.0/'
+                          'css/datatables.colvis.min.css')
     response.files.append("https://cdn.datatables.net/fixedcolumns/3.0.1/js/"
                           "dataTables.fixedColumns.min.js")  # fixedColumns plugin
     response.files.append("https://cdn.datatables.net/fixedcolumns/3.0.1/css/"
                           "dataTables.fixedColumns.css")  # fixedColumns plugin css
     response.files.append("https://cdn.datatables.net/plug-ins/28e7751dbec/"
                           "integration/bootstrap/3/dataTables.bootstrap.css")  # bootstrap css
+
     return dict(form=auth())
 
 
@@ -102,10 +101,10 @@ def info():
     'badge_levels':         Dictionary with badle levels (int) as keys and
                             a list of badge names (or tag: int) as each value.
     'badge_table_data':
-    'badge_level_over_time':
-    'badges_tested_over_time':
-    'sets_tested_over_time':
-    'steps_most_wrong':
+    'badge_set_milestones': List of 'upgrades' of the highest badge set and
+                            their dates
+    'answer_counts':        List of counts of right and wrong answers for each
+                            active day
 
     """
     # Allow passing explicit user but default to current user
@@ -136,11 +135,8 @@ def info():
     blist = b.bugresponses(user.id)
 
     # tab5
-    badge_level_over_time = db(db.badges_begun.name == user.id).select(
-        db.tags.tag_position,
-        db.badges_begun.cat1.min().with_alias('attained_on'),
-        left=db.tags.on(db.tags.id == db.badges_begun.tag),
-        groupby=db.tags.tag_position)
+    badge_set_milestones = stats.get_badge_set_milestones()
+    answer_counts = stats.get_answer_counts()
 
     return {'the_name': name,
             'tz': tz,
@@ -151,7 +147,8 @@ def info():
             'goal': goal,
             'badge_levels': badge_levels,
             'badge_table_data': badge_table_data,
-            'badge_level_over_time': badge_level_over_time,
+            'badge_set_milestones': badge_set_milestones,
+            'answer_counts': answer_counts
             }
 
 

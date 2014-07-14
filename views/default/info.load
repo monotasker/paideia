@@ -1,8 +1,11 @@
-{{from plugin_widgets import TOOLTIP, TABS, ROLE}}
+{{
+from plugin_widgets import TOOLTIP, TABS, ROLE
+import json
+}}
 
-<!--Above Tabs ================================================================-->
-{{=UL(LI(SPAN('Name', _class='profile-label'), the_name,
-                         _class='profile-name'),
+            <!--Above Tabs ================================================================-->
+        {{=UL(LI(SPAN('Name', _class='profile-label'), the_name,
+                                 _class='profile-name'),
                       LI(SPAN('Email', _class='profile-label'), email,
                          _class='profile-email'),
                       LI(SPAN('Time Zone', _class='profile-label'), tz,
@@ -176,13 +179,19 @@ for bug in blist:
 pass
 
 # TAB 5 - STATS ==============================================================
-tab5_content = TABLE(TR(TH('badge set'),
-                        TH('date')))
-for level in badge_level_over_time:
-    row = TR(TD(level.tags.tag_position),
-             TD(level.attained_on))
-    tab5_content.append(row)
+answers_table = TABLE(TR(TH('date'),
+                         TH('right'),
+                         TH('wrong')))
+
+for datum in answer_counts[:5]:
+    row = TR(TD(datum['date']), TD(datum['right']), TD(datum['wrong']))
+    answers_table.append(row)
 pass
+
+tab5_content = CAT(DIV(_class='chart', _id='stats-milestones'),
+                   DIV(_class='chart', _id='stats-answers'),
+                   P(json.dumps(badge_set_milestones)),
+                   answers_table)
 
 }}
 
@@ -195,17 +204,48 @@ pass
 
 <!--# LOCAL SCRIPTS ======================================================-->
 <script type="text/javascript" charset="utf-8">
-var badgetable = $('#table-badges').DataTable({
-                    paging: false,
-                    scrollY: '400px',
-                    scrollX: true,
-                    renderer: 'bootstrap',
-                    order: [ 2, 'asc'],
-                    colVis: {
-                        exclude: [ 0 ]
-                    }
-                 });
-new $.fn.dataTable.FixedColumns( badgetable );
-var colvis = new $.fn.dataTable.ColVis( badgetable );
-$( colvis.button() ).insertBefore('div.badgetable-container');
+(function() {
+    var badgetable = $('#table-badges').DataTable({
+                        paging: false,
+                        scrollY: '400px',
+                        scrollX: true,
+                        renderer: 'bootstrap',
+                        order: [2, 'asc'],
+                        colVis: {
+                            exclude: [ 0 ]
+                        }
+                     });
+    new $.fn.dataTable.FixedColumns( badgetable );
+    var colvis = new $.fn.dataTable.ColVis( badgetable );
+    $( colvis.button() ).insertBefore('div.badgetable-container');
+
+    user_stats.badge_set_milestones = JSON.parse('{{=XML(json.dumps(badge_set_milestones))}}');
+    user_stats.answer_counts = JSON.parse('{{=XML(json.dumps(answer_counts))}}');
+    user_stats.render_all();
+})();
 </script>
+
+<style>
+/***********************/
+/* USER STATS & CHARTS */
+/***********************/
+.chart .axis line,
+.chart .axis path {
+    fill: none;
+    stroke-width: 1;
+}
+/***********************/
+/* USER STATS & CHARTS */
+/***********************/
+.chart line,
+.chart path {
+    shape-rendering: crispEdges;
+}
+
+.chart .axis line,
+.chart .axis path,
+.chart .tick line {
+    fill: none;
+    stroke: black;
+}
+</style>
