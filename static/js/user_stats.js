@@ -119,9 +119,8 @@
         var y_axis = d3.svg.axis()
                        .scale(y)
                        .orient('left')
-                       .ticks(y.domain()[1])
-                       .tickFormat(d3.format('d'))
-                       .outerTickSize(0);
+                       .ticks(y.domain()[1] + 1)
+                       .tickFormat(d3.format('d'));
 
         // Generator for the data line
         var line = d3.svg.line()
@@ -175,8 +174,7 @@
         var y_axis = d3.svg.axis()
                        .scale(y)
                        .orient('left')
-                       .tickFormat(d3.format('d'))
-                       .outerTickSize(0);
+                       .tickFormat(d3.format('d'));
 
         // Plot the stacked bars
         var group = chart.inner.selectAll('.g')
