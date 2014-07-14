@@ -843,7 +843,9 @@ class Stats(object):
                   'badge_set': row.tags.tag_position
                 } for row in result]
 
-        # Make sure that the badge set number is increasing
+        # Make sure that the badge set number is nondecreasing.
+        # Order in the SQL query above along with this ensure that there's
+        # only one event per date
         milestones = []
         prev = None
         for d in data:
