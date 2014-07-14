@@ -6,15 +6,15 @@
 
     // Custom date formatting -- takes current year into account
     var format_date = (function() {
-        var month     = d3.time.format('%b'),
-            day       = function(d) { return '' + (+d3.time.format('%d')(d)); },
-            year      = function(d) { return "'" + ('' + d.getFullYear()).substring(2); }
+        var day       = d3.time.format('%d'),
+            month     = d3.time.format('%b'),
+            year      = function(d) { return d3.format('02d')(d.getFullYear() % 100); },
             this_year = new Date().getFullYear();
 
         return function(d) {
-            var output = month(d) + ' ' + day(d);
+            var output = month(d) + ' ' + (+day(d));
             if(d.getFullYear() !== this_year)
-                output += ' ' + year(d);
+                output += " '" + year(d);
 
             return output;
         };
@@ -40,18 +40,13 @@
     // @TODO: Factor out a Chart class
     var render_milestones = function(opts) {
         // @TODO: Defaults `opts`
+        // Conventional margins
         width  = opts.width - opts.margin.left - opts.margin.right
                     - opts.inner_margin.left - opts.inner_margin.right;
         height = opts.height - opts.margin.top - opts.margin.bottom
                     - opts.inner_margin.top - opts.inner_margin.bottom;
-        var svg = d3.select(opts.container)
-                    .append('svg')
-                        .attr('class', 'chart')
-                        .attr('width', opts.width)
-                        .attr('height', opts.height)
-                    .append('g')
-                        .attr('transform', 'translate(' + opts.margin.left + ','
-                                + opts.margin.top + ')');
+
+        // Set up axes
         var x = d3.time.scale()
                   .domain(d3.extent(badge_set_milestones, function(d) { return d.date; }))
                   .range([0, width]);
@@ -70,11 +65,23 @@
                        .tickFormat(d3.format('d'))
                        .outerTickSize(0);
 
+        // Construct SVG container
+        var svg = d3.select(opts.container)
+                    .append('svg')
+                        .attr('class', 'chart')
+                        .attr('width', opts.width)
+                        .attr('height', opts.height)
+                    .append('g')
+                        .attr('transform', 'translate(' + opts.margin.left + ','
+                                + opts.margin.top + ')');
+
+        // Generator for the data line
         var line = d3.svg.line()
                      .x(function(d) { return x(d.date); })
                      .y(function(d) { return y(d.badge_set); })
                      .interpolate('step-after');
 
+        // Plot the data
         var inner = svg.append('g')
                         .attr('class', 'inner')
                         .attr('transform', 'translate(' + opts.inner_margin.left + ','
@@ -85,6 +92,7 @@
            .attr('d', line)
            .style('fill', 'none');
 
+        // Plot axes
         svg.append('g')
            .attr('class', 'x axis')
            .attr('transform', 'translate(' + opts.inner_margin.left + ',' +
