@@ -179,21 +179,11 @@ for bug in blist:
 pass
 
 # TAB 5 - STATS ==============================================================
-answers_table = TABLE(TR(TH('date'),
-                         TH('right'),
-                         TH('wrong')))
-
-for datum in answer_counts[:10]:
-    row = TR(TD(datum['date']), TD(datum['right']), TD(datum['wrong']))
-    answers_table.append(row)
-pass
-
 tab5_content = DIV(
                CAT(H4('Highest badge set reached to date'),
                    DIV(_id='stats-milestones'),
                    H4('Correct and incorrect answers'),
-                   DIV(_id='stats-answers'),
-                   answers_table),
+                   DIV(_id='stats-answers'),),
                 _class='stats-container')
 
 }}
@@ -253,7 +243,16 @@ tab5_content = DIV(
     font-size: .9em;
 }
 
-#stats-milestones .inner path {
+#stats-milestones .inner path,
+#stats-answers .inner path {
     stroke: #0064cd;
+}
+
+#stats-answers .inner .right {
+    fill: #0064cd;
+}
+
+#stats-answers .inner .wrong {
+    fill: #cd001d;
 }
 </style>
