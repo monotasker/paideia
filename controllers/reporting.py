@@ -187,7 +187,24 @@ def attempts():
 
 @auth.requires_membership(role='administrators')
 def user():
-    # response.files.append(URL('static', 'plugin_d3/d3/d3.js'))
+    # Scripts for charts
+    response.files.append('//cdnjs.cloudflare.com/ajax/libs/d3/3.4.10/d3.min.js')
+    response.files.append(URL('static', 'js/user_stats.js'))
+
+    # Include files for Datatables jquery plugin and bootstrap css styling
+    response.files.append('//cdnjs.cloudflare.com/ajax/libs/datatables/1.10.0/'
+                          'js/jquery.dataTables.min.js')
+    response.files.append('//cdnjs.cloudflare.com/ajax/libs/datatables-colvis/1.1.0/'
+                          'js/datatables.colvis.min.js')
+    response.files.append('//cdnjs.cloudflare.com/ajax/libs/datatables-colvis/1.1.0/'
+                          'css/datatables.colvis.min.css')
+    response.files.append("https://cdn.datatables.net/fixedcolumns/3.0.1/js/"
+                          "dataTables.fixedColumns.min.js")  # fixedColumns plugin
+    response.files.append("https://cdn.datatables.net/fixedcolumns/3.0.1/css/"
+                          "dataTables.fixedColumns.css")  # fixedColumns plugin css
+    response.files.append("https://cdn.datatables.net/plug-ins/28e7751dbec/"
+                          "integration/bootstrap/3/dataTables.bootstrap.css")  # bootstrap css
+
     user = request.args[0]
     return {'id': user}
 

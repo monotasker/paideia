@@ -826,6 +826,48 @@ class Stats(object):
 
         return dropdown
 
+    def get_badge_set_milestones(self):
+        db = current.db
+
+        # Retrieve dates of when all badge set 'upgrades' happened
+        result = db(db.badges_begun.name == self.user_id).select(
+            db.tags.tag_position,
+            'date(min(badges_begun.cat1))',
+            left=db.tags.on(db.tags.id == db.badges_begun.tag),
+            groupby=db.tags.tag_position)
+
+        # Transform to a more lightweight form
+        milestones = [{'date':      row._extra.values()[0],
+                       'badge_set': row.tags.tag_position
+                      } for row in result]
+
+        return milestones
+
+    def get_answer_counts(self):
+        db = current.db
+
+        # Retrieve scores reached on given days
+        result = groupby(
+            db(db.attempt_log.name == self.user_id).select(
+                db.attempt_log.score.with_alias('score'),
+                'date(dt_attempted)',
+                orderby='2, 1'),
+            lambda r: r._extra['date(dt_attempted)'])
+
+        # Transform to a lightweight form
+        counts = []
+        for (date, scores) in result:
+            scores = list(scores)
+            total  = len(scores)
+            right  = len(filter(lambda r: r.score >= 1.0, scores))
+
+            counts.append({'date':  date,
+                           'right': right,
+                           'wrong': total - right
+                          })
+
+        return counts
+
 
 def week_bounds(weekday=None):
     '''
