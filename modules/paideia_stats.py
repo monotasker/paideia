@@ -828,18 +828,35 @@ class Stats(object):
 
     def get_badge_set_milestones(self):
         db = current.db
+        today = datetime.date.today().strftime('%Y-%m-%d')
 
         # Retrieve dates of when all badge set 'upgrades' happened
         result = db(db.badges_begun.name == self.user_id).select(
             db.tags.tag_position,
-            'date(min(badges_begun.cat1))',
+            'DATE(MIN(badges_begun.cat1))',
             left=db.tags.on(db.tags.id == db.badges_begun.tag),
-            groupby=db.tags.tag_position)
+            groupby=db.tags.tag_position,
+            orderby='2, 1 DESC')
 
         # Transform to a more lightweight form
-        milestones = [{'date':      row._extra.values()[0],
-                       'badge_set': row.tags.tag_position
-                      } for row in result]
+        data = [{ 'date':      row._extra.values()[0],
+                  'badge_set': row.tags.tag_position
+                } for row in result]
+
+        # Make sure that the badge set number is increasing
+        milestones = []
+        prev = None
+        for d in data:
+            if prev != None and d['badge_set'] <= prev['badge_set']:
+                continue
+
+            milestones.append(d)
+            prev = d
+
+        # Pad the data until today
+        if milestones[-1]['date'] != today:
+            milestones.append({ 'date': today,
+                                'badge_set': milestones[-1]['badge_set'] })
 
         return milestones
 
@@ -850,9 +867,9 @@ class Stats(object):
         result = groupby(
             db(db.attempt_log.name == self.user_id).select(
                 db.attempt_log.score.with_alias('score'),
-                'date(dt_attempted)',
+                'DATE(dt_attempted)',
                 orderby='2, 1'),
-            lambda r: r._extra['date(dt_attempted)'])
+            lambda r: r._extra['DATE(dt_attempted)'])
 
         # Transform to a lightweight form
         counts = []
@@ -861,9 +878,9 @@ class Stats(object):
             total  = len(scores)
             right  = len(filter(lambda r: r.score >= 1.0, scores))
 
-            counts.append({'date':  date,
-                           'right': right,
-                           'wrong': total - right
+            counts.append({ 'date':  date,
+                            'right': right,
+                            'wrong': total - right
                           })
 
         return counts

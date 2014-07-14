@@ -183,15 +183,18 @@ answers_table = TABLE(TR(TH('date'),
                          TH('right'),
                          TH('wrong')))
 
-for datum in answer_counts[:5]:
+for datum in answer_counts[:10]:
     row = TR(TD(datum['date']), TD(datum['right']), TD(datum['wrong']))
     answers_table.append(row)
 pass
 
-tab5_content = CAT(DIV(_class='chart', _id='stats-milestones'),
-                   DIV(_class='chart', _id='stats-answers'),
-                   P(json.dumps(badge_set_milestones)),
-                   answers_table)
+tab5_content = DIV(
+               CAT(H4('Highest badge set reached to date'),
+                   DIV(_id='stats-milestones'),
+                   H4('Correct and incorrect answers'),
+                   DIV(_id='stats-answers'),
+                   answers_table),
+                _class='stats-container')
 
 }}
 
@@ -229,17 +232,9 @@ tab5_content = CAT(DIV(_class='chart', _id='stats-milestones'),
 /***********************/
 /* USER STATS & CHARTS */
 /***********************/
-.chart .axis line,
-.chart .axis path {
-    fill: none;
-    stroke-width: 1;
-}
-/***********************/
-/* USER STATS & CHARTS */
-/***********************/
-.chart line,
-.chart path {
-    shape-rendering: crispEdges;
+.stats-container {
+    width: 700px;
+    margin: 0 auto;
 }
 
 .chart .axis line,
@@ -247,5 +242,18 @@ tab5_content = CAT(DIV(_class='chart', _id='stats-milestones'),
 .chart .tick line {
     fill: none;
     stroke: black;
+}
+
+.chart .axis line,
+.chart .axis path {
+    shape-rendering: crispEdges;
+}
+
+.chart .axis text {
+    font-size: .9em;
+}
+
+#stats-milestones .inner path {
+    stroke: #0064cd;
 }
 </style>
