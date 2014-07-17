@@ -1,4 +1,7 @@
-{{from plugin_widgets import TOOLTIP, TABS, ROLE}}
+{{
+from plugin_widgets import TOOLTIP, TABS, ROLE
+import json
+}}
 
 <div class="row">
     <div class="container">
@@ -6,11 +9,11 @@
 
 <!--Above Tabs ================================================================-->
 {{=UL(LI(SPAN('Name', _class='profile-label'), the_name,
-                         _class='profile-name'),
-                      LI(SPAN('Email', _class='profile-label'), email,
-                         _class='profile-email'),
-                      LI(SPAN('Time Zone', _class='profile-label'), tz,
-                         _class='profile-name'),
+                        _class='profile-name'),
+      LI(SPAN('Email', _class='profile-label'), email,
+          _class='profile-email'),
+      LI(SPAN('Time Zone', _class='profile-label'), tz,
+          _class='profile-name'),
       _class='profile-user-info')
 }}
 {{
@@ -178,29 +181,86 @@ for bug in blist:
                     ))))
     tab4_content.append(row)
 pass
+
+# TAB 5 - STATS ==============================================================
+tab5_content = DIV(
+               CAT(H4('Highest badge set reached to date'),
+                   DIV(_id='stats-milestones'),
+                   H4('Correct and incorrect answers'),
+                   DIV(_id='stats-answers'),),
+                _class='stats-container')
+
 }}
 
 <!--# ASSEMBLE AND PRINT ==================================================-->
-{{=TABS([('My Badges', 'web2py_user_form', tab1_content, 'active'), ('Calendar', 'tab_calendar', tab3_content), ('Bug Reports', 'tab_bug_reports', tab4_content)])
+{{=TABS([('My Badges', 'web2py_user_form', tab1_content, 'active'),
+         ('Calendar', 'tab_calendar', tab3_content),
+         ('Bug Reports', 'tab_bug_reports', tab4_content),
+         ('Stats', 'tab_stats', tab5_content)])
 }}
 
 <!--# LOCAL SCRIPTS ======================================================-->
 <script type="text/javascript" charset="utf-8">
-var badgetable = $('#table-badges').DataTable({
-                    paging: false,
-                    scrollY: '400px',
-                    scrollX: true,
-                    renderer: 'bootstrap',
-                    order: [ 2, 'asc'],
-                    colVis: {
-                        exclude: [ 0 ]
-                    }
-                 });
-new $.fn.dataTable.FixedColumns( badgetable );
-var colvis = new $.fn.dataTable.ColVis( badgetable );
-$( colvis.button() ).insertBefore('div.badgetable-container');
+(function() {
+    var badgetable = $('#table-badges').DataTable({
+                        paging: false,
+                        scrollY: '400px',
+                        scrollX: true,
+                        renderer: 'bootstrap',
+                        order: [2, 'asc'],
+                        colVis: {
+                            exclude: [ 0 ]
+                        }
+                     });
+    new $.fn.dataTable.FixedColumns( badgetable );
+    var colvis = new $.fn.dataTable.ColVis( badgetable );
+    $( colvis.button() ).insertBefore('div.badgetable-container');
+
+    user_stats.badge_set_milestones = JSON.parse('{{=XML(json.dumps(badge_set_milestones))}}');
+    user_stats.answer_counts = JSON.parse('{{=XML(json.dumps(answer_counts))}}');
+    user_stats.render_all();
+})();
 </script>
 
 </div>
 </div>
 </div>
+=======
+<style>
+/***********************/
+/* USER STATS & CHARTS */
+/***********************/
+.stats-container {
+    width: 700px;
+    margin: 0 auto;
+}
+
+.chart .axis line,
+.chart .axis path,
+.chart .tick line {
+    fill: none;
+    stroke: black;
+}
+
+.chart .axis line,
+.chart .axis path {
+    shape-rendering: crispEdges;
+}
+
+.chart .axis text {
+    font-size: .9em;
+}
+
+#stats-milestones .inner path,
+#stats-answers .inner path {
+    stroke: #0064cd;
+}
+
+#stats-answers .inner .right {
+    fill: #0064cd;
+}
+
+#stats-answers .inner .wrong {
+    fill: #cd001d;
+}
+</style>
