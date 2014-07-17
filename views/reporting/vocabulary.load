@@ -33,7 +33,7 @@ set.
         <td>{{=', '.join(word['lemmas']['glosses'])}}</td>
         <td>{{=word['lemmas']['pathcount']}}</td>
         <td>{{=word['lemmas']['stepcount']}}</td>
-        <td>{{=word['tags']['tag_position']}}</td>
+        <td>set {{=word['tags']['tag_position']}}</td>
         <td>{{=word['tags']['tag']}}</td>
         <td></td>
     </tr>
@@ -49,6 +49,15 @@ set.
                                                   scrollX: true,
                                                   renderer: "bootstrap",
                                                   order: [ 4, "asc"],
+                                                  "columns": [
+                                                      null,
+                                                      null,
+                                                      { "searchable": false }, // pathcount
+                                                      { "searchable": false }, // stepcount
+                                                      null,
+                                                      null,
+                                                      null
+                                                  ]
                                                   //colVis: {//exclude: []
                                                   //         }
                                                   });
