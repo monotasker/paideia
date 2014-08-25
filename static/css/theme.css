@@ -1,3 +1,10 @@
+@font-face {
+  font-family: 'SBLGreekRegular';
+  src: url('/paideia/static/fonts/sbl_grk-webfont.eot');
+  src: local('☺'), url('/paideia/static/fonts/sbl_grk-webfont.woff') format('woff'), url('/paideia/static/fonts/sbl_grk-webfont.ttf') format('truetype'), url('/paideia/static/fonts/sbl_grk-webfont.svg#webfontRelj09Wi') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
 /*-- typography --------------------------------------------------*/
 /*-- colors --------------------------------------------------*/
 /*@blue:                  lighten(@blueDark, 20%); */
@@ -14,6 +21,10 @@ body h2,
 body h3,
 body h4 {
   font-family: "Fira Sans", "Helvetica Neue", Helvetica, Ubuntu, Arial, sans-serif;
+}
+body ul {
+  list-style-type: None;
+  list-style-position: outside;
 }
 /*-- navbar --------------------------------------------------*/
 nav,
@@ -79,6 +90,7 @@ div#masthead div.jumbotron {
 /*-- main --------------------------------------------------*/
 main {
   background-color: #ffffff;
+  min-height: 320px;
 }
 /*-- footer --------------------------------------------------*/
 footer#footer {
@@ -260,6 +272,10 @@ body.reporting #masthead {
 }
 /*-- reporting --------------------------------------------------*/
 body.listing #masthead {
+  display: none;
+}
+/*-- user --------------------------------------------------*/
+body.user #masthead {
   display: none;
 }
 /*-- user profile -----------------------------------------------*/
@@ -521,10 +537,8 @@ body.user #page .paideia_monthcal table.month td span.success {
   font-size: 22px;
   color: #96bc44;
 }
-/*-- user --------------------------------------------------*/
-body.user #masthead {
-  display: none;
-}
+/*-- slides -----------------------------------------------*/
+/*body.*/
 /* Side notes for calling out things ----------------------------------- */
 .bs-callout {
   margin: 20px 0;

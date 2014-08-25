@@ -1,3 +1,14 @@
+@font-face {
+    font-family: 'SBLGreekRegular';
+    src: url('/paideia/static/fonts/sbl_grk-webfont.eot');
+    src: local('☺'),
+    url('/paideia/static/fonts/sbl_grk-webfont.woff') format('woff'),
+    url('/paideia/static/fonts/sbl_grk-webfont.ttf') format('truetype'),
+    url('/paideia/static/fonts/sbl_grk-webfont.svg#webfontRelj09Wi') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
 /*-- typography --------------------------------------------------*/
 @fontSizeRegular: 14px;
 @fontSizeLarge: 20px;
@@ -73,6 +84,9 @@ body                        {margin-top: 0;
     h3,
     h4                      {font-family: @sansFonts;
     }
+    ul                      {list-style-type: None;
+                             list-style-position: outside;
+    }
 }
 
 /*-- navbar --------------------------------------------------*/
@@ -124,6 +138,7 @@ div#masthead                {background-image: url('../images/town_map.png');
 
 /*-- main --------------------------------------------------*/
 main                        {background-color: @white;
+                             min-height: 320px;
 }
 
 /*-- footer --------------------------------------------------*/
@@ -272,8 +287,12 @@ body.listing                        {
 }
 
 
+/*-- user --------------------------------------------------*/
+body.user                           {
+    #masthead                       {display: none;
+    }
+}
 /*-- user profile -----------------------------------------------*/
-
 body.profile #page,
 body.user #page          {
     /*tab content */
@@ -434,12 +453,9 @@ body.user #page          {
     }
 }
 
+/*-- slides -----------------------------------------------*/
 
-/*-- user --------------------------------------------------*/
-body.user                           {
-    #masthead                       {display: none;
-    }
-}
+/*body.*/
 
 /* Side notes for calling out things ----------------------------------- */
 .bs-callout                 {margin: 20px 0;
