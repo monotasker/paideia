@@ -433,6 +433,8 @@ class Walk(object):
         """
         """
         now = datetime.datetime.utcnow() if not now else now
+        print 'oldrec ---------------------------'
+        print oldrec, type(oldrec)
         oldrec = oldrec if not isinstance(oldrec, list) else oldrec[0]  # FIXME
         tlright = now
         tlwrong = now
@@ -502,12 +504,16 @@ class Walk(object):
         for t in taglist['primary']:
             oldrec = [r for r in old_trecs
                       if r['tag'] == t] if old_trecs else None
+            if not oldrec:  # because list empty
+                oldrec = None
             self._update_tag_record(t, oldrec, user_id, raw_tright, raw_twrong,
                                     got_right, score, now=mynow)
         if got_right and ('secondary' in taglist.keys()):
             for t in taglist['secondary']:
                 oldrec = [r for r in old_trecs
                           if r['tag'] == t] if old_trecs else None
+                if not oldrec:  # because list empty
+                    oldrec = None
                 self._update_tag_secondary(t, oldrec, user_id, now=mynow)
 
         log_args = {'name': user_id,
