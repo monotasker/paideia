@@ -3302,11 +3302,9 @@ class TestStep():
           [1, 14, 17, 21, 40, 41, 42],  # npcs here
           '<div>Take some time now to review these new slide '
           'sets. They will help with work on your new badges:\n'
-          '<ul class="slide_list">'
-          '<li><a href="/paideia/'
-          'listing/slides.html/3">The Alphabet II</a></li>'
-          '<li><a href="/paideia/'
-          'listing/slides.html/8">Greek Words II</a></li></ul></div>',
+          '- [The Alphabet II /paideia/listing/slides.html/3]\n'
+          '- [Greek Words II /paideia/listing/slides.html/8]'
+          '</div>',
           # removed data-w2p_disable_with="default" from <a>
           None,  # instructions
           None,  # slide decks
@@ -4235,7 +4233,7 @@ class TestUser(object):
             for field, content in tr.iteritems():
                 print field
                 print content
-                if field not in ['id', 'step', 'in_path']:
+                if field not in ['id', 'step', 'in_path', 'modified_on', 'uuid']:
                     assert content == trecs[idx][field]
 
     #@pytest.mark.skipif(False, reason='just because')
