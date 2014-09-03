@@ -1168,12 +1168,11 @@ class StepViewSlides(Step):
                                 orderby=dtable.deck_position)
 
         # build slide deck list
-        slides = UL(_class='slide_list')
+        slides = []
         for row in sliderows:
-            slides.append(LI(A(row.deck_name,
-                               _href=URL('listing', 'slides.html',
-                                         args=[row['id']])
-                               )))
+            deckurl = URL('listing', 'slides.html', args=[row['id']])
+            slides.append('- [{} {}]'.format(row['deck_name'], deckurl))
+        slides = '\n'.join(slides)
 
         # collect replacements
         appds = {'[[slide_list]]': slides}
