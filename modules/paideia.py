@@ -1613,19 +1613,24 @@ class PathChooser(object):
         """
         loc_id = self.loc_id
         db = current.db
+        print 'completed----------------------'
+        print self.completed
 
         p_new = [p for p in cpaths if p['id'] not in self.completed]
+        print 'p_new-------------------'
+        print [p['id'] for p in p_new]
         p_here = [p for p in cpaths
                   if loc_id in db.steps[int(p['steps'][0])].locations]
+        print 'p_here-------------------'
+        print [p['id'] for p in p_here]
         p_here_new = [p for p in p_here if p in p_new]
-
+        print 'p_here_new-------------------'
+        print [p['id'] for p in p_here_new]
         path = None
         new_loc = None
         mode = None
         if p_here_new:
-            # FIXME: does this loop make sense???
-            for p in p_here_new:
-                path = p_here_new[randrange(0, len(p_here_new))]
+            path = p_here_new[randrange(0, len(p_here_new))]
             mode = 'here_new'
         elif p_new:
             # While loop safeguards against looking for location for a step
@@ -1642,7 +1647,8 @@ class PathChooser(object):
         elif p_here:
             path = p_here[randrange(0, len(p_here))]
             mode = 'repeat_here'
-
+        print 'mode-------------------------'
+        print mode
         return (path, new_loc, category, mode)
 
     def choose(self, db=None):
@@ -1669,6 +1675,10 @@ class PathChooser(object):
         # cycle through categories, starting with the one from _get_category()
         for cat in cat_list:
             catpaths, category = self._paths_by_category(cat, self.rank)
+            print 'catpaths -------------'
+            print [c['id'] for c in catpaths]
+            print 'category -------------'
+            print category
             if len(catpaths):
                 path, newloc, category, mode = self._choose_from_cat(catpaths,
                                                                      category)
