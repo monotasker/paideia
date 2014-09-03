@@ -148,7 +148,7 @@ def mycatsout_add_untried():
                                             77, 82, 83, 84, 85, 86, 87, 88, 90,
                                             91, 93, 94, 95, 115, 117, 118, 121,
                                             124, 128, 129, 133, 4, 55, 96, 102,
-                                            103, 104, 130, 131, 132, 134, 135],
+                                            130, 131, 132, 135],
                                    'cat2': [],
                                    'cat3': [14],
                                    'cat4': [18, 29, 38, 47, 49, 68, 75, 89, 92,
@@ -170,7 +170,7 @@ def mycatsout_find_changes():
                                             77, 82, 83, 84, 85, 86, 87, 88, 90,
                                             91, 93, 94, 95, 115, 117, 118, 121,
                                             124, 129, 133, 4, 55, 96, 102,
-                                            103, 104, 130, 131, 132, 134, 135],
+                                            130, 131, 132, 135],
                                    'cat2': [],
                                    'cat3': [14],
                                    'cat4': [18, 29, 38, 47, 49, 68, 75, 89, 92,
@@ -181,7 +181,7 @@ def mycatsout_find_changes():
                                             77, 82, 83, 84, 85, 86, 87, 88, 90,
                                             91, 93, 94, 95, 115, 117, 118, 121,
                                             124, 128, 129, 133, 4, 55, 96, 102,
-                                            103, 104, 130, 131, 132, 134, 135],
+                                            130, 131, 132, 135],
                                    'rev2': [],
                                    'rev3': [14],
                                    'rev4': [18, 29, 38, 47, 49, 68, 75, 89, 92,
@@ -4537,7 +4537,7 @@ class TestCategorizer():
                                10,  # rank
                                mycatsout_core_algorithm()['Simon Pan 2014-03-21'],  # catsin
                                mytagrecs_with_secondary()['Simon Pan 2014-03-21'],  # tagrecs
-                               mycatsout_add_untried()['Simon Pan 2014-03-21'],  # catsin
+                               mycatsout_add_untried()['Simon Pan 2014-03-21'],  # catout
                                ),
                               ])
     def test_categorizer_add_untried_tags(self,  casename, rank, catsin,
@@ -4976,7 +4976,7 @@ class TestWalk():
         actual_tp = sel_tp.first().as_dict()
         for k, v in actual_tp.iteritems():
             tpout['name'] = user_login['id']
-            if k != 'id':
+            if k not in ['id', 'modified_on', 'uuid']:
                 assert v == tpout[k]
 
         # badges_begun insertion ----------------------------------------------
@@ -5133,7 +5133,8 @@ class TestWalk():
             else:
                 #print field, '=========='
                 #pprint(val)
-                assert val == newlog[field]
+                if field not in ['modified_on', 'uuid']:
+                    assert val == newlog[field]
 
         # test writing to tag_records
         expected_trecs = [t for t in trecsout if t['tag'] in steptags['primary']]
@@ -5674,14 +5675,21 @@ class TestWalk():
                     score,
                     stepid)
         bug_reporter = ['<a class="bug_reporter" '
+                        'data-keyboard="data-keyboard" '
                         'data-target="#bug_reporter_modal" '
-                        'data-toggle="modal" id="bug_reporter_modal_trigger">'
+                        'data-toggle="modal" '
+                        'href="#bug_reporter_modal" '
+                        'id="bug_reporter_modal_trigger">'
                         'Something wrong?</a>'
-                        '<div aria-hidden="true" aria-labelledby="myModalLabel" '
-                        'class="modal hide fade " id="bug_reporter_modal" '
+                        '<div aria-hidden="true" aria-labelledby="bug_reporter_modal_trigger" '
+                        'class="modal fade " '
+                        'data-keyboard="true" '
+                        'id="bug_reporter_modal" '
                         'role="dialog" tabindex="-1">'
+                        '<div class="modal-dialog modal-lg">'
+                        '<div class="modal-content">'
                         '<div class="modal-header">'
-                        '<h3>Did you run into a problem?</h3>'
+                        '<h3 class="modal-title" id="myModalLabel">Did you run into a problem?</h3>'
                         '</div>'
                         '<div class="modal-body ">'
                         '<p>Think your answer should have been correct? '
@@ -5701,7 +5709,7 @@ class TestWalk():
                         '<div class="modal-footer">'
                         '<button aria-hidden="true" class="pull-right" '
                         'data-dismiss="modal" type="button">Close</button>'
-                        '</div></div>'.format(*bug_info)]
+                        '</div></div></div></div>'.format(*bug_info)]
         assert a['bugreporter'].xml() == bug_reporter[0]
         assert not thiswalk.user.path.step_for_reply
         assert not thiswalk.user.path.step_for_prompt
@@ -5921,6 +5929,10 @@ class TestPathChooser():
                                 247, 255, 257, 261, 277, 333, 334, 366, 424,
                                 425, 426, 427, 428, 429, 430, 431, 433, 434,
                                 435, 436, 437, 439, 440, 441, 444, 445,
+                                607L, 608L, 609L, 610L, 611L, 612L, 613L, 614L, 615L, 616L, 617L,
+                                618L, 619L, 620L, 621L, 622L, 623L, 624L, 625L, 626L, 627L, 628L,
+                                629L, 630L, 631L, 632L, 633L, 634L, 635L, 636L, 637L, 638L,
+                                639L, 640L, 641L, 642L, 643L, 644L, 645L, 646L, 647L, 648L,
                                 1, 2, 3, 5, 8, 95, 96, 99, 102, 256],  # last row is cat2 [61]
                                 {'latest_new': 2,
                                  'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
@@ -5937,20 +5949,24 @@ class TestPathChooser():
         Unit test for the paideia.Pathchooser.choose() method.
         """
         chooser = PathChooser(tpout, locid, completed)
+        print 'starting choose'
         actual, newloc, catnum, actualmode = chooser.choose()
+        print 'ended choose'
 
         # get expected paths from supplied tags
         mycat = 'cat{}'.format(catnum)
+        print 'taggedsteps'
         taggedsteps = db(db.steps.tags.contains(tpout[mycat])).select()
         stepids = [s.id for s in taggedsteps]
-        taggedpaths = db(db.paths.steps.contains(stepids)).select()
+        print 'taggedpaths'
+        taggedpaths = db(db.paths.steps.belongs(stepids)).select()
         expected = [p.id for p in taggedpaths]
         print 'CHOSEN PATH', actual['id']
         print 'using category', catnum
         print 'EXPECTED PATHS', expected
 
         assert catnum in range(1, 5)
-        if redirect[catnum]:  # since different cats will yield different redirect results
+        if catnum in redirect.keys() and redirect[catnum]:  # since different cats will yield different redirect results
             assert newloc
             firststep = actual['steps'][0]
             steplocs = db.steps(firststep).locations
@@ -5963,7 +5979,7 @@ class TestPathChooser():
             pathsteps = [p.steps[0] for p in taggedpaths]
             steplocs = [db.steps(s).locations for s in pathsteps]
             steplocs_chain = list(chain.from_iterable([s for s in steplocs if s]))
-            locset = set(steplocs_chain)
+            locset = list(set(steplocs_chain))
             print 'steps available in locs', locset
             assert locid in locset
             assert newloc is None
@@ -5990,14 +6006,21 @@ class TestBugReporter():
         """
         Unit test for BugReporter.get_reporter() method.
         """
-        xpct = ['<a class="bug_reporter" data-target="#bug_reporter_modal" '
-                'data-toggle="modal" id="bug_reporter_modal_trigger">Something '
-                'wrong?</a>'
-                '<div aria-hidden="true" aria-labelledby="myModalLabel" '
-                'class="modal hide fade " id="bug_reporter_modal" '
+        xpct = ['<a class="bug_reporter" data-keyboard="data-keyboard" '
+                'data-target="#bug_reporter_modal" '
+                'data-toggle="modal" '
+                'href="#bug_reporter_modal" '
+                'id="bug_reporter_modal_trigger">Something wrong?</a>'
+                '<div aria-hidden="true" '
+                'aria-labelledby="bug_reporter_modal_trigger" '
+                'class="modal fade " data-keyboard="true" '
+                'id="bug_reporter_modal" '
                 'role="dialog" tabindex="-1">'
+                '<div class="modal-dialog modal-lg">'
+                '<div class="modal-content">'
                 '<div class="modal-header">'
-                '<h3>Did you run into a problem?</h3>'
+                '<h3 class="modal-title" id="myModalLabel">'
+                'Did you run into a problem?</h3>'
                 '</div>'
                 '<div class="modal-body ">'
                 '<p>Think your answer should have been correct? '
@@ -6018,6 +6041,8 @@ class TestBugReporter():
                 '<div class="modal-footer">'
                 '<button aria-hidden="true" class="pull-right" '
                 'data-dismiss="modal" type="button">Close</button>'
+                '</div>'
+                '</div>'
                 '</div>'
                 '</div>'.format(response_string, loc_id, record_id, path_id,
                                 score, step_id)]
