@@ -25,13 +25,13 @@ p11
 ssS'prev_lastright'
 p12
 (dp13
-S'type'
+S'sortable'
 p14
-S'datetime'
-p15
-sS'sortable'
-p16
 I10
+sS'type'
+p15
+S'datetime'
+p16
 sS'sql'
 p17
 S'TIMESTAMP'
@@ -91,9 +91,9 @@ ssS'prev_lastwrong'
 p31
 (dp32
 g14
-g15
-sg16
 I11
+sg15
+g16
 sg17
 S'TIMESTAMP'
 p33
@@ -116,13 +116,13 @@ g22
 ssS'path'
 p37
 (dp38
-S'type'
+S'sortable'
 p39
-S'reference paths'
-p40
-sS'sortable'
-p41
 I3
+sS'type'
+p40
+S'reference paths'
+p41
 sS'sql'
 p42
 S'INTEGER REFERENCES paths(id) ON DELETE CASCADE'
@@ -232,10 +232,10 @@ ssS'location'
 p67
 (dp68
 g39
+I5
+sg40
 S'reference locations'
 p69
-sg41
-I5
 sg42
 S'INTEGER REFERENCES locations(id) ON DELETE CASCADE'
 p70

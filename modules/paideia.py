@@ -365,6 +365,7 @@ class Walk(object):
             try:
                 tag_progress['name'] = uid
                 condition = {'name': uid}
+                pprint(tag_progress)
                 db.tag_progress.update_or_insert(condition, **tag_progress)
                 mycount = db(db.tag_progress.name == uid).count()
                 assert mycount == 1  # ensure there's never a duplicate
