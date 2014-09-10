@@ -2227,37 +2227,42 @@ class Categorizer(object):
         categories = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
         tag_records = tag_records if tag_records else self.tag_records
         for record in tag_records:
-            #print 'tag', record['tag'], '================================='
+            print 'tag', record['tag'], '================================='
             lrraw = record['tlast_right']
             lwraw = record['tlast_wrong']
             lr = lrraw if not isinstance(lrraw, str) else parser.parse(lrraw)
             lw = lwraw if not isinstance(lwraw, str) else parser.parse(lwraw)
             rdur = self.utcnow - lr
             rwdur = lr - lw
-            #print 'cat2 if:'
-            #print record['times_right'], '>= 20'
-            #print 'and'
-            #print rdur, '<', rwdur, '> 1 day -------------------------'
-            #print 'or', self._get_ratio(record), '< 0.2 -------------'
-            #print 'and', rdur, '<= 30 days'
-            #print 'or', self._get_avg(record['tag']), '>= 0.8 -------'
-            #print 'and', rdur, '<= 30 days'
+            print 'cat2 if:'
+            print record['times_right'], '>= 20 (', record['times_right'] >= 20, ')'
+            print 'and'
+            print '-------------------------------------------------------'
+            print rdur.days, '<', rwdur.days, '> 1 (', rdur.days < rwdur.days > 1, ')'
+            print 'or-----------------------------------------------------'
+            print self._get_ratio(record), '< 0.2 (', self._get_ratio(record) < 0.2, ')'
+            print 'and'
+            print rdur.days, '<= 30 days (', rdur.days <= 30, ')'
+            print 'or-----------------------------------------------------'
+            print self._get_avg(record['tag']), '>= 0.8 (', self._get_avg(record['tag']) >= 0.8, ')'
+            print 'and'
+            print rdur.days, '<= 30 days (', rdur.days <= 30, ')'
 
             # spaced repetition algorithm for promotion to
             # cat2? ======================================================
             if ((record['times_right'] >= 20) and  # at least 20 right
                 (((rdur < rwdur)  # delta right < delta right/wrong
-                  and (rwdur > datetime.timedelta(days=1))  # not within 1 day
+                  and (rwdur.days > 1)  # not within 1 day
                   )
                  or
                  ((self._get_ratio(record) < 0.2)  # less than 1w to 5r total
-                  and (rdur <= datetime.timedelta(days=30))  # right in past 30 days
+                  and (rdur.days <= 30)  # right in past 30 days
                   )
                  or
                  ((self._get_avg(record['tag']) >= 0.8)  # avg score for week >= 0.8
-                  and (rdur <= datetime.timedelta(days=30))  # right in past 30 days
+                  and (rdur.days <= 30)  # right in past 30 days
                   ))):
-                #print '************** got to cat2'
+                print '************** got to cat2'
                 # cat3? ==================================================
                 if rwdur.days >= 14:
                     # cat4? ==============================================
@@ -2273,7 +2278,7 @@ class Categorizer(object):
                     category = 'cat2'  # Not due but delta is 2 weeks or less
             else:
                 category = 'cat1'  # Spaced repetition requires review
-            #print '************** category is ', category
+            print '************** category is ', category
             categories[category].append(record['tag'])
 
         return categories
