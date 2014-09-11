@@ -23,6 +23,15 @@ if request.is_local:  # disable in production enviroment
     track_changes(True)
 
 #-------------------------------------------------------------
+# get private data from secure file
+#-------------------------------------------------------------
+keydata = {}
+with open('applications/paideia/private/app.keys', 'r') as keyfile:
+    for line in keyfile:
+        k, v = line.split()
+        keydata[k] = v
+
+#-------------------------------------------------------------
 # Recognize when running in test environment
 #-------------------------------------------------------------
 # This section adapted from https://github.com/viniciusban/web2py.test
@@ -50,14 +59,21 @@ def _i_am_running_under_test():
 #-------------------------------------------------------------
 # define database storage
 #-------------------------------------------------------------
+postgre = {}
+postgre['username'] = keydata['postgre_username']
+postgre['password'].server = keydata['postgre_password']
+postgre['host'].server = keydata['postgre_host']
+postgre['db_name'].server = keydata['postgre_dbname']
+
 if _i_am_running_under_test():
     db = DAL('sqlite://storage.sqlite', pool_size=1)  # check_reserved=['all']
     #db = DAL('sqlite://test_storage.sqlite', folder=temp_dir)
 else:
-    # TODO: check these sqlite settings
     # check_reserved makes sure no column names conflict with back-end db's
-    db = DAL('sqlite://storage.sqlite', pool_size=1, lazy_tables=True,
-             check_reserved=['sqlite', 'mysql'])
+    connect_string = 'postgres://%s:%s@%s/%s' % (postgre['username'], postgre['password'],
+                                               postgre['host'], postgre['db_name'])
+    db = DAL('postgres://ianwscott:77bbbaed@localhost/paideia', pool_size=1,
+             check_reserved=['sqlite', 'postgres'])
 
 
 #-------------------------------------------------------------
@@ -80,15 +96,6 @@ crud = Crud(db)                 # for CRUD helpers using auth
 service = Service()             # for json, xml, jsonrpc, xmlrpc, amfrpc
 plugins = PluginManager()       # for configuring plugins
 current.db = db                 # to access db from modules
-
-#-------------------------------------------------------------
-# get private data from secure file
-#-------------------------------------------------------------
-keydata = {}
-with open('applications/paideia/private/app.keys', 'r') as keyfile:
-    for line in keyfile:
-        k, v = line.split()
-        keydata[k] = v
 
 #-------------------------------------------------------------
 #configure authorization
