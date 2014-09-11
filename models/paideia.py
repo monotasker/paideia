@@ -101,8 +101,8 @@ db.define_table('tags',
                 Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format=lambda row: row['tag'])
-db.executesql('CREATE INDEX IF NOT EXISTS idx_tags1 ON tags (tag, tag_position);')
-db.executesql('CREATE INDEX IF NOT EXISTS idx_tags2 ON tags (tag_position);')
+#db.executesql('CREATE INDEX IF NOT EXISTS idx_tags1 ON tags (tag, tag_position);')
+#db.executesql('CREATE INDEX IF NOT EXISTS idx_tags2 ON tags (tag_position);')
 
 db.tags.tag.requires = IS_NOT_IN_DB(db, 'tags.tag')
 
@@ -248,7 +248,7 @@ db.define_table('badges',
                 format='%(badge_name)s')
 db.badges.badge_name.requires = IS_NOT_IN_DB(db, 'badges.badge_name')
 db.badges.tag.requires = IS_EMPTY_OR(IS_IN_DB(db, 'tags.id', db.tags._format))
-db.executesql('CREATE INDEX IF NOT EXISTS idx_badges1 ON badges (tag);')
+#db.executesql('CREATE INDEX IF NOT EXISTS idx_badges1 ON badges (tag);')
 
 db.define_table('locations',
                 Field('map_location'),  # was location (reserved term)
@@ -418,8 +418,8 @@ db.define_table('badges_begun',
                 Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(name)s, %(tag)s')
-db.executesql('CREATE INDEX IF NOT EXISTS idx_bdgs_begun1 ON badges_begun (name)')
-db.executesql('CREATE INDEX IF NOT EXISTS idx_bdgs_begun2 ON badges_begun (tag)')
+#db.executesql('CREATE INDEX IF NOT EXISTS idx_bdgs_begun1 ON badges_begun (name)')
+#db.executesql('CREATE INDEX IF NOT EXISTS idx_bdgs_begun2 ON badges_begun (tag)')
 
 db.define_table('tag_progress',
                 Field('name', db.auth_user, default=auth.user_id),
@@ -511,10 +511,10 @@ db.attempt_log.name.requires = IS_IN_DB(db, 'auth_user.id',
                                 db.auth_user._format)
 db.attempt_log.step.requires = IS_IN_DB(db, 'steps.id', db.steps._format)
 db.attempt_log.in_path.requires = IS_IN_DB(db, 'paths.id', db.paths._format)
-db.executesql('CREATE INDEX IF NOT EXISTS idx_alog_1 ON attempt_log (name);')
-db.executesql('CREATE INDEX IF NOT EXISTS idx_alog_2 ON attempt_log (name, dt_attempted);')
-db.executesql('CREATE INDEX IF NOT EXISTS idx_alog_3 ON attempt_log (dt_attempted);')
-db.executesql('CREATE INDEX IF NOT EXISTS idx_alog_3 ON attempt_log (in_path);')
+#db.executesql('CREATE INDEX IF NOT EXISTS idx_alog_1 ON attempt_log (name);')
+#db.executesql('CREATE INDEX IF NOT EXISTS idx_alog_2 ON attempt_log (name, dt_attempted);')
+#db.executesql('CREATE INDEX IF NOT EXISTS idx_alog_3 ON attempt_log (dt_attempted);')
+#db.executesql('CREATE INDEX IF NOT EXISTS idx_alog_3 ON attempt_log (in_path);')
 
 db.define_table('tag_records',
                 Field('name', db.auth_user, default=auth.user_id),
@@ -534,8 +534,8 @@ db.tag_records.name.requires = IS_IN_DB(db, 'auth_user.id',
 db.tag_records.tag.requires = IS_IN_DB(db, 'tags.id', db.tags._format)
 db.tag_records.step.requires = IS_IN_DB(db, 'steps.id', db.steps._format)
 db.tag_records.in_path.requires = IS_IN_DB(db, 'paths.id', db.paths._format)
-db.executesql('CREATE INDEX IF NOT EXISTS idx_trecs_1 ON tag_records (name, tag);')
-db.executesql('CREATE INDEX IF NOT EXISTS idx_trecs_2 ON tag_records (tag, name);')
+#db.executesql('CREATE INDEX IF NOT EXISTS idx_trecs_1 ON tag_records (name, tag);')
+#db.executesql('CREATE INDEX IF NOT EXISTS idx_trecs_2 ON tag_records (tag, name);')
 
 db.define_table('bug_status',
                 Field('status_label'),
@@ -558,7 +558,7 @@ db.define_table('bugs',
                 Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(step)s')
-db.executesql('CREATE INDEX IF NOT EXISTS idx_bugs_1 ON bugs (user_name, bug_status);')
+#db.executesql('CREATE INDEX IF NOT EXISTS idx_bugs_1 ON bugs (user_name, bug_status);')
 
 db.define_table('session_data',
                 Field('name', db.auth_user),  # default=auth.user_id
@@ -596,12 +596,12 @@ db.define_table('user_stats',
                 Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(name)s, %(year)s, %(month)s, %(week)s')
-db.executesql('CREATE INDEX IF NOT EXISTS idx_userstats_1 '
-              'ON user_stats (week, year, name);')
-db.executesql('CREATE INDEX IF NOT EXISTS idx_userstats_1 '
-              'ON user_stats (name, week, year);')
-db.executesql('CREATE INDEX IF NOT EXISTS idx_userstats_1 '
-              'ON user_stats (year, week, name);')
+#db.executesql('CREATE INDEX IF NOT EXISTS idx_userstats_1 '
+              #'ON user_stats (week, year, name);')
+#db.executesql('CREATE INDEX IF NOT EXISTS idx_userstats_1 '
+              #'ON user_stats (name, week, year);')
+#db.executesql('CREATE INDEX IF NOT EXISTS idx_userstats_1 '
+              #'ON user_stats (year, week, name);')
 
 db.define_table('topics',
                 Field('topic', 'string'),
