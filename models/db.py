@@ -61,20 +61,18 @@ def _i_am_running_under_test():
 #-------------------------------------------------------------
 postgre = {}
 postgre['username'] = keydata['postgre_username']
-postgre['password'].server = keydata['postgre_password']
-postgre['host'].server = keydata['postgre_host']
-postgre['db_name'].server = keydata['postgre_dbname']
+postgre['password'] = keydata['postgre_password']
+postgre['host'] = keydata['postgre_host']
+postgre['db_name'] = keydata['postgre_dbname']
 
 if _i_am_running_under_test():
-    db = DAL('sqlite://storage.sqlite', pool_size=1)  # check_reserved=['all']
+    db = DAL('sqlite://storage.sqlite', pool_size=1)
     #db = DAL('sqlite://test_storage.sqlite', folder=temp_dir)
 else:
     # check_reserved makes sure no column names conflict with back-end db's
     connect_string = 'postgres://%s:%s@%s/%s' % (postgre['username'], postgre['password'],
                                                postgre['host'], postgre['db_name'])
-    db = DAL('postgres://ianwscott:77bbbaed@localhost/paideia', pool_size=1,
-             check_reserved=['sqlite', 'postgres'])
-
+    db = DAL(connect_string, pool_size=1, check_reserved=['sqlite', 'postgres'])
 
 #-------------------------------------------------------------
 # Set up logging
