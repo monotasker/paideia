@@ -929,12 +929,15 @@ class Step(object):
             new_string = new_string.replace(k, v)
         # FIXME: this is a bit of a hack to handle embedded html better
         if appds:
-            new_string = DIV(new_string)
+            #new_string = DIV(new_string)
+            #for k, v in appds.iteritems():
+                #if not v:
+                    #v = ''
+                #new_string[0] = new_string[0].replace(k, '')
+                #new_string.append(v)
             for k, v in appds.iteritems():
-                if not v:
-                    v = ''
-                new_string[0] = new_string[0].replace(k, '')
-                new_string.append(v)
+                if v:
+                    new_string += v
 
         return new_string
 
