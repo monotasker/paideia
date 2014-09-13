@@ -124,6 +124,7 @@ class Walk(object):
                     self.user = pickle.loads(sd['other_data'])
                 else:
                     self.user = None
+                assert self.user
                 assert self.user.is_stale() is False
                 assert not new_user
             except (KeyError, TypeError):  # Problem with session data
@@ -195,8 +196,8 @@ class Walk(object):
 
         print 'STARTING WALK.ASK---------------------------------------'
         user = self.user
-        print 'Tag progress is------------------'
-        pprint(user.tag_progress)
+        #print 'Tag progress is------------------'
+        #pprint(user.tag_progress)
         # allow artificial setting of blocks during interface testing
         if set_blocks:
             for c, v in set_blocks.iteritems():
