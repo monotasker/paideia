@@ -99,8 +99,11 @@ class Stats(object):
             self.targetcount = 20
 
         # progress through tag sets and levels ---------------------
-        self.tag_progress = db(db.tag_progress.name == self.user_id
-                               ).select().first().as_dict()
+        try:
+            self.tag_progress = db(db.tag_progress.name == self.user_id
+                                   ).select().first().as_dict()
+        except AttributeError:
+            self.tag_progress = {}
         self.tag_recs = db(db.tag_records.name == self.user_id
                            ).select().as_list()  # cacheable=True
         # TODO: find and notify re. duplicate tag_records rows
@@ -484,8 +487,11 @@ class Stats(object):
         The 'badge set' is actually the series of ints in db.tags.tag_position.
 
         """
-        max_set = self.tag_progress['latest_new'] \
-            if self.tag_progress['latest_new'] else 1
+        try:
+            max_set = self.tag_progress['latest_new'] \
+                if self.tag_progress['latest_new'] else 1
+        except KeyError:
+            max_set = 1
         return max_set
 
     def _local(self, dt, tz=None):
@@ -519,7 +525,10 @@ class Stats(object):
         Return a dictionary listing the user's badges in levels 1-4.
         """
         db = current.db
-        rank = self.tag_progress['latest_new']
+        try:
+            rank = self.tag_progress['latest_new']
+        except KeyError:
+            rank = 1
         categories = {k: v for k, v in self.tag_progress.iteritems()
                       if k != 'latest_new'}
         # TODO: for some reason Categorizer changes self.tag_recs persistently
@@ -856,9 +865,12 @@ class Stats(object):
             prev = d
 
         # Pad the data until today
-        if milestones[-1]['date'] != today:
-            milestones.append({ 'date': today,
-                                'badge_set': milestones[-1]['badge_set'] })
+        try:
+            if milestones[-1]['date'] != today:
+                milestones.append({ 'date': today,
+                                    'badge_set': milestones[-1]['badge_set'] })
+        except IndexError:
+            pass
 
         return milestones
 

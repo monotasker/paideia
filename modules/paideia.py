@@ -1743,7 +1743,7 @@ class User(object):
             try:
                 target = [m.auth_group.paths_per_day for m in msel
                           if m.auth_group.paths_per_day][0]
-            except Exception:
+            except IndexError:
                 print traceback.format_exc(5)
                 target = 20
             self.quota = target

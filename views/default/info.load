@@ -82,11 +82,11 @@ badgerow[4]['_data-order'] = trow['tlr'][0]  # sort column by raw date
 badgerow[6]['_data-order'] = trow['tlw'][0]  # sort column by raw date
 tab1_content[2][0].append(badgerow)
 
+pass
+
 # TAB 2 - BADGES =============================================================
 
 tab2_content = CAT(P('Sorry, something went wrong retrieving your badges.'))
-
-pass
 
 tab2_content.append(CAT(H3('What do these levels mean?'),
     P('It is important to realize that the four badge levels above are '
