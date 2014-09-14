@@ -848,7 +848,10 @@ class Stats(object):
             orderby='2, 1 DESC')
 
         # Transform to a more lightweight form
-        data = [{ 'date':      row._extra.values()[0],
+        # Force str because of how PostgreSQL returns date column
+        # PostgreSQL returns datetime object, sqlite returns string
+        # So we have to force type to sting, this won't break backwards compatibility with sqlite
+        data = [{ 'date':      str(row._extra.values()[0]),
                   'badge_set': row.tags.tag_position
                 } for row in result]
 
@@ -892,7 +895,10 @@ class Stats(object):
             total  = len(scores)
             right  = len(filter(lambda r: r.score >= 1.0, scores))
 
-            counts.append({ 'date':  date,
+            # Force str because of how PostgreSQL returns date column
+            # PostgreSQL returns datetime object, sqlite returns string
+            # So we have to force type to sting, this won't break backwards compatibility with sqlite
+            counts.append({ 'date':  str(date),
                             'right': right,
                             'wrong': total - right
                           })
