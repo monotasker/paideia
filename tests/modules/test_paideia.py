@@ -3268,13 +3268,13 @@ class TestStep():
          ('case2', 126,  # StepAwardBadges ------------------------------
           'agora',
           [1, 14, 17, 40, 41, 42],  # npcs here
-          '<div>Congratulations, Homer! \n\n'  # prompt text
+          'Congratulations, Homer! \n\n'  # prompt text
           'You have been promoted to these new badge levels:\r\n'
           '- apprentice alphabet basics\r\n'
-          'and you&#x27;re ready to start working on some new badges:\r\n'
+          'and you\'re ready to start working on some new badges:\r\n'
           '- beginner alphabet (intermediate)\r\n'
           'You can click on your name above to see details '
-          'of your progress so far.</div>',
+          'of your progress so far.',
           None,  # instructions
           None,  # slide decks
           None,  # widget image
