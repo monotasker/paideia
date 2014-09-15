@@ -1755,7 +1755,7 @@ class User(object):
             try:
                 target = [m.auth_group.paths_per_day for m in msel
                           if m.auth_group.paths_per_day][0]
-            except Exception:
+            except IndexError:
                 print traceback.format_exc(5)
                 target = 20
             self.quota = target
@@ -1887,10 +1887,9 @@ class User(object):
             self.complete_path()  # catch end-of-path and triggers new choice
         if not self.tag_progress:  # in case User was badly initialized
             self.get_categories()
-        while not choice:
-            choice, redir, cat, mode = PathChooser(self.tag_progress,
-                                                   loc.get_id(),
-                                                   self.completed_paths).choose()
+        choice, redir, cat, mode = PathChooser(self.tag_progress,
+												loc.get_id(),
+												self.completed_paths).choose()
             # FIXME: if no choice, send_error('User', 'get_path', current.request)
         path = Path(path_id=choice['id'])
         return path, redir, cat
@@ -2404,9 +2403,11 @@ class Categorizer(object):
                                 if v and tag in v and k in cnms][0]
                     oldmax = [k for k, v in oldcats.iteritems()
                                 if v and tag in v][0]
-                    tagindex = cats[current].index(tag)
-                    cats[current].pop(tagindex)
-                    cats[oldmax].append(tag)
+                    try:
+                        cats[current].remove(tag)
+                        cats[oldmax].append(tag)
+                    except ValueError:
+                        pass
             return {'categories': cats,
                     'demoted': demoted if any([d for d in demoted.values()])
                                else None,
