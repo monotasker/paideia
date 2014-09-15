@@ -919,15 +919,12 @@ class Step(object):
         Return the provided string with tokens replaced by personalized
         information for the current user.
         """
+        print 'raw_prompt ======================================'
+        print raw_prompt
         if not reps:
             reps = {}
             reps['[[user]]'] = username
-
         new_string = raw_prompt
-        for k, v in reps.iteritems():
-            if not v:
-                v = ''
-            new_string = new_string.replace(k, v)
         # FIXME: this is a bit of a hack to handle embedded html better
         if appds:
             #new_string = DIV(new_string)
@@ -938,8 +935,17 @@ class Step(object):
                 #new_string.append(v)
             for k, v in appds.iteritems():
                 if v:
-                    new_string += v
+                    new_string = new_string.replace(k, v)
+                else:
+                    new_string = new_string.replace(k, '')
+                    #new_string += v
+        for k, v in reps.iteritems():
+            if not v:
+                v = ''
+            new_string = new_string.replace(k, v)
 
+        print 'new string ====================================='
+        print new_string
         return new_string
 
     def get_npc(self, loc, prev_npc=None, prev_loc=None):
@@ -1105,6 +1111,26 @@ class StepAwardBadges(StepContinue, Step):
                                       and kw['new_tags']) else None
         promoted = kw['promoted'] if ('promoted' in kw.keys()
                                       and kw['promoted']) else None
+        print 'new tags:', new_tags, 'promoted', promoted
+
+        conj = 'You'
+        nt_rep = ''
+        if new_tags:
+            conj = 'and you'
+            nt_records = db(db.badges.tag.belongs(new_tags)
+                            ).select(db.badges.tag, db.badges.badge_name).as_list()
+            if nt_records:
+                nt_rep = '{}\'re ready to start working on some new ' \
+                         'badges:\r\n'.format(conj)
+                for p in [t for t in new_tags if t]:
+                    bname = [row['badge_name'] for row in nt_records
+                             if row['tag'] == p][0]
+                    line = '- beginner {}\r\n'.format(bname)
+                    nt_rep += line
+        nt_rep += 'You can click on your name above to see details ' \
+                  'of your progress so far.'
+        appds['[[new_tag_list]]'] = nt_rep
+
         prom_rep = ' '
         if promoted:
             flat_proms = [i for cat, lst in promoted.iteritems() for i in lst if lst]
@@ -1125,23 +1151,9 @@ class StepAwardBadges(StepContinue, Step):
                         prom_rep += line
         appds['[[promoted_list]]'] = prom_rep
 
-        conj = 'You'
-        nt_rep = ''
-        if new_tags:
-            conj = 'and you'
-            nt_records = db(db.badges.tag.belongs(new_tags)
-                            ).select(db.badges.tag, db.badges.badge_name).as_list()
-            if nt_records:
-                nt_rep = '{}\'re ready to start working on some new ' \
-                         'badges:\r\n'.format(conj)
-                for p in [t for t in new_tags if t]:
-                    bname = [row['badge_name'] for row in nt_records
-                             if row['tag'] == p][0]
-                    line = '- beginner {}\r\n'.format(bname)
-                    nt_rep += line
-        nt_rep += 'You can click on your name above to see details ' \
-                  'of your progress so far.'
-        appds['[[new_tag_list]]'] = nt_rep
+
+        print 'reps are ==================================================='
+        pprint(reps)
         newstr = super(StepAwardBadges, self
                        )._make_replacements(raw_prompt, username,
                                             reps=reps, appds=appds)
