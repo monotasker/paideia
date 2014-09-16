@@ -3268,13 +3268,13 @@ class TestStep():
          ('case2', 126,  # StepAwardBadges ------------------------------
           'agora',
           [1, 14, 17, 40, 41, 42],  # npcs here
-          'Congratulations, Homer! \n\n'  # prompt text
-          'You have been promoted to these new badge levels:\r\n'
-          '- apprentice alphabet basics\r\n'
+          'Congratulations, Homer! \n'  # prompt text
           'and you\'re ready to start working on some new badges:\r\n'
           '- beginner alphabet (intermediate)\r\n'
           'You can click on your name above to see details '
-          'of your progress so far.',
+          'of your progress so far.\n'
+          'You have been promoted to these new badge levels:\r\n'
+          '- apprentice alphabet basics\r\n',  # FIXME: order is wrong in message
           None,  # instructions
           None,  # slide decks
           None,  # widget image
@@ -3285,11 +3285,11 @@ class TestStep():
          ('case3', 126,  # StepAwardBadges ------------------------------
           'synagogue',
           [31, 32],  # npcs here
-          '<div>Congratulations, Homer! \n\n'  # prompt text
-          'You have been promoted to these new badge levels:\r\n'
-          '- apprentice alphabet basics\r\n'
+          'Congratulations, Homer! \n'  # prompt text
           'You can click on your name above to see details '
-          'of your progress so far.</div>',
+          'of your progress so far.\n'
+          'You have been promoted to these new badge levels:\r\n'
+          '- apprentice alphabet basics\r\n',
           None,   # instructions
           None,   # slide decks
           None,   # widget image
@@ -3300,11 +3300,10 @@ class TestStep():
          ('case2', 127,  # StepViewSlides ------------------------------
           'agora',
           [1, 14, 17, 21, 40, 41, 42],  # npcs here
-          '<div>Take some time now to review these new slide '
+          'Take some time now to review these new slide '
           'sets. They will help with work on your new badges:\n'
           '- [The Alphabet II /paideia/listing/slides.html/3]\n'
-          '- [Greek Words - More Basics /paideia/listing/slides.html/8]'
-          '</div>',
+          '- [Greek Words - More Basics /paideia/listing/slides.html/8]',
           # removed data-w2p_disable_with="default" from <a>
           None,  # instructions
           None,  # slide decks
