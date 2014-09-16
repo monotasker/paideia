@@ -458,10 +458,19 @@ class Stats(object):
                 tr[idx]['revlev'] = 0
 
             # add rw_ratio
+            print 'in stats ============================================='
+            print 'tag', tr[idx]['tag']
+            print 'tr', t['tright']
+            print 'tw', t['twrong']
+            print '======================================================'
             try:
-                tr[idx]['rw_ratio'] = round((t['tright'] / t['twrong']), 1)
+                if not t['tright']:  # TODO: tests to sanitize bad data (None)
+                    t['tright'] = 0
+                if not t['twrong']:
+                    t['twrong'] = 0
+                tr[idx]['rw_ratio'] = round((float(t['tright']) / float(t['twrong'])), 1)
             except (ZeroDivisionError, TypeError):
-                tr[idx]['rw_ratio'] = round(t['tright'], 1)
+                tr[idx]['rw_ratio'] = round(float(t['tright']), 1)
 
             # round tright and twrong to closest int for readability
             for i in ['right', 'wrong']:
