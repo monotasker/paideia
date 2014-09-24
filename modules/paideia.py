@@ -502,12 +502,17 @@ class Walk(object):
         # TODO: Store and roll back db changes if impersonating
         # TODO: should the threshold here be less than 1 for 'right'?
         got_right = True if ((score - 1) < 0.01) else False  # float inaccuracy
+        print 'got right?', got_right
 
         for t in taglist['primary']:
+            print 'primary tag ', t
+            print 'raw_tright', raw_tright
             oldrec = [r for r in old_trecs
                       if r['tag'] == t] if old_trecs else None
             if not oldrec:  # because list empty
                 oldrec = None
+            else:
+                print 'old tright', oldrec[0]['times_right']
             self._update_tag_record(t, oldrec, user_id, raw_tright, raw_twrong,
                                     got_right, score, now=mynow)
         if got_right and ('secondary' in taglist.keys()):
@@ -1601,6 +1606,7 @@ class PathChooser(object):
         allpaths = db(db.paths.id > 0).select()
         pathset = allpaths.find(lambda row: any([t for t in row.tags_for_steps
                                                  if t in taglist]))
+        print 'pathset a:', [r['id'] for r in pathset]
         # pathset.exclude(lambda row: any([t for s in row.steps
         # for t in db.steps[s].tags
         # if db.tags[t].tag_position > rank]))
@@ -1610,6 +1616,7 @@ class PathChooser(object):
         pathset = pathset.find(lambda row: all([db.steps[s].locations for s
                                                 in row.steps]))
         pathset = pathset.as_list()
+        print 'pathset:', pathset
 
         return (pathset, cat)
 

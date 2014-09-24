@@ -458,11 +458,6 @@ class Stats(object):
                 tr[idx]['revlev'] = 0
 
             # add rw_ratio
-            print 'in stats ============================================='
-            print 'tag', tr[idx]['tag']
-            print 'tr', t['tright']
-            print 'tw', t['twrong']
-            print '======================================================'
             try:
                 if not t['tright']:  # TODO: tests to sanitize bad data (None)
                     t['tright'] = 0
