@@ -1,5 +1,5 @@
 #! /usr/bin/python
-# -*- coding: utf-8 -*-
+# -*- coding: utf-8-*-
 from gluon import current, redirect
 from gluon import IMG, URL, SQLFORM, SPAN, DIV, UL, LI, A, Field, P, HTML
 from gluon import I
@@ -26,6 +26,14 @@ watched when upgrading web2py:
 - web2py/routes.py
 """
 
+"""
+Changes by Joseph Boakye ... Sep 21, 2014
+added self as first argument to this function
+    def _clean_tag_records(self,record_list=None, db=None):
+update_tag_record was completely redone
+new standalone function simple_object_print  to print simple objects
+"""
+
 
 def util_get_args():
     """
@@ -42,6 +50,32 @@ def util_get_args():
     posargs = args.pop(posname, [])
     args.update(args.pop(kwname, []))
     return args, posargs
+
+def simple_obj_print(the_dict, title='No Title', indentation=0):
+    """
+    Prints a simple thing
+    Joseph Boakye jboakye@bwachi.com
+    """
+    indentation_string = ' '*indentation
+    while True:
+        #dictionaries
+        if type(the_dict) == type({}):
+            print indentation_string  + str(title) + '(dict):'
+            for key in the_dict:
+                simple_obj_print(the_dict[key],key,indentation+1)
+            break
+        #lists
+        if hasattr(the_dict, '__iter__'):
+            print indentation_string  + str(title) + '(list):'
+            count = 0
+            for value in the_dict:
+                simple_obj_print(value, count,indentation+1)
+                count +=1
+            break
+        #simple item
+        print indentation_string  + '{' + str(title) + ': '  +  str(the_dict) +  '}'
+        break
+
 
 
 class Map(object):
@@ -145,11 +179,23 @@ class Walk(object):
         responding to one in-process.
         """
         print '\nIN START'
+        #debug
+        #simple_obj_print(localias,"localias")
+        #simple_obj_print(response_string,"response_string")
+        #simple_obj_print(path,"path")
+        #simple_obj_print(repeat,"repeat")
+        #simple_obj_print(set_blocks,"set_blocks")
+        #simple_obj_print(recategorize,"recategorize")
+
         try:
             if response_string:
+                #debug
+                #simple_obj_print("response string is good","message")
                 return self.reply(localias=localias,
                                   response_string=response_string)
             else:
+                #debug
+                #simple_obj_print("ask 1","message")
                 return self.ask(localias=localias,
                                 path=path,
                                 repeat=repeat,
@@ -159,7 +205,11 @@ class Walk(object):
         except Exception:
             print traceback.format_exc(5)
             self.clean_user()  # get rid of any problem path data
-            return self.ask(localias=localias, path=path, step=step)
+            #debug
+            #simple_obj_print("ask 2","message")
+            excp_ask =  self.ask(localias=localias, path=path, step=step)
+            #simple_obj_print("ask 2 finished","message")
+            return excp_ask
 
     def clean_user(self):
         """
@@ -232,14 +282,21 @@ class Walk(object):
 
         prompt = s.get_prompt(loc, npc, username)
         print 'before sending to view------------------------'
-        print user.completed_paths
+
+        #debug
+        #simple_obj_print(user.completed_paths,'user.completed_paths')
         extra_fields = {'completed_count': len(user.completed_paths),
                         'category': category,
                         'pid': p.get_id()}
+        #debug
+        #simple_obj_print(extra_fields,'extra_fields')
+
         prompt.update(extra_fields)
 
         p.end_prompt(s.get_id())  # send id to tell whether its a block step
         self._store_user(user)
+        #debug
+        #simple_obj_print('returning from ask','msg')
         return prompt
 
     def _set_blocks(self, user=None):
@@ -282,7 +339,10 @@ class Walk(object):
         loc = user.get_location()
         p, cat = user.get_path(loc)[:2]
         s = p.get_step_for_reply()
+        print '\n 00000001'
         if (not response_string) or re.match(response_string, r'\s+'):
+            #debug
+            #simple_obj_print("ask 3","message")
             return self.ask()  # TODO: will this actually re-prompt the same step?
         prompt = s.get_reply(response_string)  # loc and npc stored on step
 
@@ -435,9 +495,18 @@ class Walk(object):
         """
         """
         now = datetime.datetime.utcnow() if not now else now
-        print 'oldrec ---------------------------'
-        print oldrec, type(oldrec)
+        print 'oldrec c---------------------------'
+        #print oldrec, type(oldrec)
+        print 'before crash? 1 ---------------------------'
         oldrec = oldrec if not isinstance(oldrec, list) else oldrec[0]  # FIXME
+        #debug ... JOB
+        print 'oldrec new ---------------------------'
+        #print oldrec, type(oldrec)
+        print 'gotright: ' + str(got_right)
+        print 'tright: ' +  str(tright)
+        print 'twrong: ' +  str(twrong)
+        print 'score: ' + str(score)
+
         tlright = now
         tlwrong = now
         db = current.db
@@ -448,20 +517,21 @@ class Walk(object):
                    'tlast_right': tlright,
                    'tlast_wrong': tlwrong}
         try:
-            if got_right:
+            if oldrec:
+                if oldrec['times_wrong']:
+                    newdata['times_wrong'] += oldrec['times_wrong']
+                if oldrec['times_right']:
+                    newdata['times_right'] += oldrec['times_right']
                 newdata['tlast_wrong'] = oldrec['tlast_wrong']
-            else:
                 newdata['tlast_right'] = oldrec['tlast_right']
-            if not oldrec['times_right']:
-                oldrec['times_right'] = 0
-            if not oldrec['times_wrong']:
-                oldrec['times_wrong'] = 0
-            newdata['times_right'] += oldrec['times_right']
-            newdata['times_wrong'] += oldrec['times_wrong']
-
+            if got_right:
+                newdata['tlast_right'] = now
+            else:
+                newdata['tlast_wrong'] = now
             #  FIXME: temporary fix for bad tright/twrong data
-            newdata = self._add_from_logs(tag, user_id, newdata, tright,
-                                          twrong, got_right)
+            # commented out by joseph boakye .. 21 sept 2014 ... fixed wrong right
+            #newdata = self._add_from_logs(tag, user_id, newdata, tright,
+            #                              twrong, got_right)
         except TypeError:  # because no oldrec
             pass
 
@@ -501,8 +571,10 @@ class Walk(object):
         db = current.db
         # TODO: Store and roll back db changes if impersonating
         # TODO: should the threshold here be less than 1 for 'right'?
-        got_right = True if ((score - 1) < 0.01) else False  # float inaccuracy
-        print 'got right?', got_right
+        # made change JOB ... got_right seems to be sending the opposite of what it should be -sept 21 2014
+        #fix: if it is make it slightly higher and change the comparison sign
+        score_helper = score + 0.1
+        got_right = True if ((score_helper - 1.0) > 0.00000001) else False  # float inaccuracy
 
         for t in taglist['primary']:
             print 'primary tag ', t
@@ -639,6 +711,7 @@ class Npc(object):
 
     def get_locations(self):
         """
+        Npc.get_locations
         Return a list of ids (ints) for locations where this step can activate.
         """
         db = current.db
@@ -826,7 +899,10 @@ class Step(object):
         return {'primary': primary, 'secondary': secondary}
 
     def get_locations(self):
-        """Return a list of the location id's for this step."""
+        """
+        Step.get_locations
+        Return a list of the location id's for this step.
+        """
         db = current.db
         return [l for l in self.data['locations']
                 if db.locations[l].loc_active is True]
@@ -1446,9 +1522,17 @@ class Path(object):
             if stepcount < 1:  # to bounce back after cleaning User
                 # TODO: Does this cause problems?
                 self._reset_steps()
+
+                #added by JOB ... sept 22, 2014, step_for_prompt needs to be set after reset
+                if self.steps:
+                    next_step = self.steps.pop(0)
+                    self.step_for_prompt = next_step
+                #simple_obj_print("_prepare_for_prompt:stepcount < 1","message")
+                #simple_obj_print(self.step_for_prompt, "step_for_promt in _prepare_for_prompt:stepcount < 1")
                 return True
             else:
-                print 'in _prepare_for_prompt: ', len(self.steps), 'steps remain'
+                #simple_obj_print(len(self.steps),"in _prepare_for_prompt: ', len(self.steps), 'steps remain'")
+                #print 'in _prepare_for_prompt: ', len(self.steps), 'steps remain'
                 next_step = self.steps.pop(0)
                 self.step_for_prompt = next_step
                 return True
@@ -1494,8 +1578,11 @@ class Path(object):
             self.steps = copy(self.completed_steps)
             self.completed_steps = []
         if len(self.steps) == 0:
-            self.steps = self.get_steps(self.username)
+            #changed by JOB ... sept 22, 2014 ... get_steps takes no args
+            #self.steps = self.get_steps(self.username)
+            self.steps = self.get_steps()
             assert len(self.steps) > 0
+        #simple_obj_print(self.steps,"in _reset_steps, this is self.steps")
         return True
 
     def get_step_for_prompt(self, loc, repeat=None):
@@ -1516,6 +1603,8 @@ class Path(object):
         if not self.step_for_prompt:
             assert self._prepare_for_prompt()
         mystep = self.step_for_prompt
+        #debug
+        #simple_obj_print(mystep, "mystep")
 
         next_loc = None
         goodlocs = mystep.get_locations()
@@ -2429,7 +2518,8 @@ class Categorizer(object):
                     'promoted': None,
                     'new_tags': new_tags}
 
-    def _clean_tag_records(record_list=None, db=None):
+    #added self as first argument ... JOB ... sept 21 2013
+    def _clean_tag_records(self,record_list=None, db=None):
         """
         Find and remove any duplicate entries in record_list.
 
@@ -2496,3 +2586,4 @@ class Block(object):
         """Return the appropriate step for the current blocking condition"""
         step = self.make_step(self.get_condition())
         return step
+
