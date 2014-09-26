@@ -57,6 +57,9 @@ def simple_obj_print(the_dict, title='No Title', indentation=0):
     Joseph Boakye jboakye@bwachi.com
     """
     indentation_string = ' '*indentation
+    if (None == the_dict):
+        print indentation_string  + '{' + str(title) + ': '  + '-None-' +  '}'
+        return
     while True:
         #dictionaries
         if type(the_dict) == type({}):
@@ -67,7 +70,7 @@ def simple_obj_print(the_dict, title='No Title', indentation=0):
         #lists
         if hasattr(the_dict, '__iter__'):
             print indentation_string  + str(title) + '(list):'
-            count = 0
+            count = 0         
             for value in the_dict:
                 simple_obj_print(value, count,indentation+1)
                 count +=1
@@ -282,7 +285,7 @@ class Walk(object):
 
         prompt = s.get_prompt(loc, npc, username)
         print 'before sending to view------------------------'
-
+        
         #debug
         #simple_obj_print(user.completed_paths,'user.completed_paths')
         extra_fields = {'completed_count': len(user.completed_paths),
@@ -495,21 +498,36 @@ class Walk(object):
         """
         """
         now = datetime.datetime.utcnow() if not now else now
-        print 'oldrec c---------------------------'
-        #print oldrec, type(oldrec)
-        print 'before crash? 1 ---------------------------'
+        simple_obj_print(oldrec,"oldrec d---------------------------")
         oldrec = oldrec if not isinstance(oldrec, list) else oldrec[0]  # FIXME
         #debug ... JOB
         print 'oldrec new ---------------------------'
-        #print oldrec, type(oldrec)
-        print 'gotright: ' + str(got_right)
-        print 'tright: ' +  str(tright)
-        print 'twrong: ' +  str(twrong)
-        print 'score: ' + str(score)
+        simple_obj_print(oldrec,"oldrec new---------------------------")
+        print type(oldrec)
+        simple_obj_print(got_right,"gotright")
+        simple_obj_print(tright,"tright")
+        simple_obj_print(twrong,"twrong")
+        simple_obj_print(score,"score")
+        simple_obj_print(tag,"tag")
+        simple_obj_print(user_id,"user_id")
 
         tlright = now
         tlwrong = now
         db = current.db
+
+        #we are going to grab the old rec from the dbase until we find out
+        #why it is not present here sometimes
+        use_this_oldrec = oldrec
+        use_this_oldrec = None
+        try:
+            if not use_this_oldrec:
+                use_this_oldrec = db((db.tag_records.tag == tag) &
+                            (db.tag_records.name == user_id)
+                            ).select().first().as_dict()
+        except Exception:
+            pass
+        simple_obj_print(use_this_oldrec,"use this oldrec beta")
+        
         newdata = {'name': user_id,
                    'tag': tag,
                    'times_right': tright,
@@ -517,13 +535,17 @@ class Walk(object):
                    'tlast_right': tlright,
                    'tlast_wrong': tlwrong}
         try:
-            if oldrec:
+            if use_this_oldrec:
+                #copy everything first, invalidating what we did for newdata above
+                for key in use_this_oldrec:
+                    newdata[key] = use_this_oldrec[key]
+                #now fix newdata
+                newdata['times_wrong'] = twrong
+                newdata['times_right'] = tright
                 if oldrec['times_wrong']:
-                    newdata['times_wrong'] += oldrec['times_wrong']
+                    newdata['times_wrong'] +=  use_this_oldrec['times_wrong']
                 if oldrec['times_right']:
-                    newdata['times_right'] += oldrec['times_right']
-                newdata['tlast_wrong'] = oldrec['tlast_wrong']
-                newdata['tlast_right'] = oldrec['tlast_right']
+                    newdata['times_right'] +=  use_this_oldrec['times_right']
             if got_right:
                 newdata['tlast_right'] = now
             else:
@@ -542,6 +564,20 @@ class Walk(object):
                     (db.tag_records.name == user_id)
                     ).select()
         tagrec = tagrec.first()
+        
+        #debug
+        #check for reset
+        newrec = db((db.tag_records.tag == tag) &
+                    (db.tag_records.name == user_id)
+                    ).select().first().as_dict()
+        simple_obj_print(newrec,"newrec gamma")
+        if ( (newrec['times_wrong']+0.001) - use_this_oldrec['times_wrong'] < 0.0000001
+            or (newrec['times_right']+0.001) - use_this_oldrec['times_right'] < 0.0000001
+            or newrec['tlast_right'] < use_this_oldrec['tlast_right'] 
+            or newrec['tlast_wrong'] < use_this_oldrec['tlast_wrong']):
+            print '---------------we got reset-------------'
+        #end debug check for reset           
+        
         return tagrec.id
 
     def _record_step(self, user_id, step_id, path_id, score, raw_tright,
@@ -577,14 +613,10 @@ class Walk(object):
         got_right = True if ((score_helper - 1.0) > 0.00000001) else False  # float inaccuracy
 
         for t in taglist['primary']:
-            print 'primary tag ', t
-            print 'raw_tright', raw_tright
             oldrec = [r for r in old_trecs
                       if r['tag'] == t] if old_trecs else None
             if not oldrec:  # because list empty
                 oldrec = None
-            else:
-                print 'old tright', oldrec[0]['times_right']
             self._update_tag_record(t, oldrec, user_id, raw_tright, raw_twrong,
                                     got_right, score, now=mynow)
         if got_right and ('secondary' in taglist.keys()):
@@ -1522,7 +1554,7 @@ class Path(object):
             if stepcount < 1:  # to bounce back after cleaning User
                 # TODO: Does this cause problems?
                 self._reset_steps()
-
+               
                 #added by JOB ... sept 22, 2014, step_for_prompt needs to be set after reset
                 if self.steps:
                     next_step = self.steps.pop(0)
@@ -1578,7 +1610,7 @@ class Path(object):
             self.steps = copy(self.completed_steps)
             self.completed_steps = []
         if len(self.steps) == 0:
-            #changed by JOB ... sept 22, 2014 ... get_steps takes no args
+            #changed by JOB ... sept 22, 2014 ... get_steps takes no args 
             #self.steps = self.get_steps(self.username)
             self.steps = self.get_steps()
             assert len(self.steps) > 0
@@ -1695,7 +1727,6 @@ class PathChooser(object):
         allpaths = db(db.paths.id > 0).select()
         pathset = allpaths.find(lambda row: any([t for t in row.tags_for_steps
                                                  if t in taglist]))
-        print 'pathset a:', [r['id'] for r in pathset]
         # pathset.exclude(lambda row: any([t for s in row.steps
         # for t in db.steps[s].tags
         # if db.tags[t].tag_position > rank]))
@@ -1705,7 +1736,6 @@ class PathChooser(object):
         pathset = pathset.find(lambda row: all([db.steps[s].locations for s
                                                 in row.steps]))
         pathset = pathset.as_list()
-        print 'pathset:', pathset
 
         return (pathset, cat)
 
