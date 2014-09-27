@@ -459,6 +459,10 @@ class Walk(object):
         tagrec = db.tag_records.update_or_insert(condition,
                                                  tag=tag,
                                                  secondary_right=sec_right)
+        db.commit()
+        #debug
+        print 'in update_tag_secondary'
+        print db._lastsql
         return tagrec
 
     def _add_from_logs(self, tag, user_id, newdata, tright, twrong, got_right):
@@ -494,9 +498,21 @@ class Walk(object):
         return newdata
 
     def _update_tag_record(self, tag, oldrec, user_id, tright, twrong,
-                           got_right, score, now=None):
+                           got_right, score, step_id=None, now=None):
         """
+        JOB (jboakye@bwachi.com) Sept 09, 2014
+        Adding step_id as arg before now. Adds the last step id, may be a validation
+        issue without a valid step_id
         """
+       
+        SQL_TEMPLATE_UPDATE_TAG_RECORDS = "\
+        UPDATE tag_records \
+        SET    %s = coalesce(%s,0) + %f \
+              ,%s = '%s' \
+        ,step = %d \
+        WHERE  name = %d \
+        AND    tag =  %d; "
+        
         now = datetime.datetime.utcnow() if not now else now
         simple_obj_print(oldrec,"oldrec d---------------------------")
         oldrec = oldrec if not isinstance(oldrec, list) else oldrec[0]  # FIXME
@@ -510,6 +526,7 @@ class Walk(object):
         simple_obj_print(score,"score")
         simple_obj_print(tag,"tag")
         simple_obj_print(user_id,"user_id")
+        simple_obj_print(step_id,"step_id")
 
         tlright = now
         tlwrong = now
@@ -517,10 +534,12 @@ class Walk(object):
 
         #we are going to grab the old rec from the dbase until we find out
         #why it is not present here sometimes
-        use_this_oldrec = oldrec
+        #always grab a new one anyway
         use_this_oldrec = None
         try:
             if not use_this_oldrec:
+                #debug
+                print 'houston, we have a null oldrec'
                 use_this_oldrec = db((db.tag_records.tag == tag) &
                             (db.tag_records.name == user_id)
                             ).select().first().as_dict()
@@ -533,33 +552,27 @@ class Walk(object):
                    'times_right': tright,
                    'times_wrong': twrong,
                    'tlast_right': tlright,
-                   'tlast_wrong': tlwrong}
-        try:
-            if use_this_oldrec:
-                #copy everything first, invalidating what we did for newdata above
-                for key in use_this_oldrec:
-                    newdata[key] = use_this_oldrec[key]
-                #now fix newdata
-                newdata['times_wrong'] = twrong
-                newdata['times_right'] = tright
-                if oldrec['times_wrong']:
-                    newdata['times_wrong'] +=  use_this_oldrec['times_wrong']
-                if oldrec['times_right']:
-                    newdata['times_right'] +=  use_this_oldrec['times_right']
+                   'tlast_wrong': tlwrong,
+                    'step': step_id}
+        if use_this_oldrec:
+            sql_string = None
             if got_right:
-                newdata['tlast_right'] = now
+                sql_string = SQL_TEMPLATE_UPDATE_TAG_RECORDS % ('times_right','times_right',
+                                     tright, 'tlast_right', now, step_id,user_id,tag)
             else:
-                newdata['tlast_wrong'] = now
-            #  FIXME: temporary fix for bad tright/twrong data
-            # commented out by joseph boakye .. 21 sept 2014 ... fixed wrong right
-            #newdata = self._add_from_logs(tag, user_id, newdata, tright,
-            #                              twrong, got_right)
-        except TypeError:  # because no oldrec
-            pass
-
-        db.tag_records.update_or_insert((db.tag_records.tag == tag) &
-                                        (db.tag_records.name == user_id),
-                                        **newdata)
+                sql_string = SQL_TEMPLATE_UPDATE_TAG_RECORDS % ('times_wrong','times_wrong',
+                                     twrong, 'tlast_wrong', now, step_id,user_id,tag)
+            #debug
+            #print 'sql string is:' + sql_string
+            rslt = db.executesql(sql_string)
+        else: #new one            
+            db.tag_records.insert(**newdata)
+        #debug
+        db.commit()
+        print 'accra'
+        print db._lastsql
+        simple_obj_print(db._timings,"db timings")
+        print 'end accra'
         tagrec = db((db.tag_records.tag == tag) &
                     (db.tag_records.name == user_id)
                     ).select()
@@ -570,13 +583,18 @@ class Walk(object):
         newrec = db((db.tag_records.tag == tag) &
                     (db.tag_records.name == user_id)
                     ).select().first().as_dict()
-        simple_obj_print(newrec,"newrec gamma")
+        simple_obj_print(newrec,"newrec kappa")
         if ( (newrec['times_wrong']+0.001) - use_this_oldrec['times_wrong'] < 0.0000001
             or (newrec['times_right']+0.001) - use_this_oldrec['times_right'] < 0.0000001
             or newrec['tlast_right'] < use_this_oldrec['tlast_right'] 
             or newrec['tlast_wrong'] < use_this_oldrec['tlast_wrong']):
             print '---------------we got reset-------------'
         #end debug check for reset           
+        print 'berlin ... we need to update the cached tag_progress of the user ... not being done ATM'
+        #simple_obj_print(self.user.tag_records,"user tag records")
+        print 'end accra'
+
+
         
         return tagrec.id
 
@@ -618,7 +636,7 @@ class Walk(object):
             if not oldrec:  # because list empty
                 oldrec = None
             self._update_tag_record(t, oldrec, user_id, raw_tright, raw_twrong,
-                                    got_right, score, now=mynow)
+                                    got_right, score, step_id, now=mynow)
         if got_right and ('secondary' in taglist.keys()):
             for t in taglist['secondary']:
                 oldrec = [r for r in old_trecs
@@ -2200,8 +2218,12 @@ class Categorizer(object):
             for idx, t in enumerate([t for t in tag_records
                                      if tag_records and t['secondary_right']]):
                 #print 'tag', t['tag']
-                #pprint(t)
+                #pprint(t)\
+                #debug
+                simple_obj_print(t, "--neepawa-- before add secondary right")
                 tag_records[idx] = self._add_secondary_right(t)
+                #debug
+                simple_obj_print(tag_records[idx], "--neepawa-- after add secondary right")
             self.tag_records = tag_records
             categories = self._core_algorithm()
             #print 'after core algorithm---------------------'
@@ -2274,6 +2296,9 @@ class Categorizer(object):
         if right2 != rec['secondary_right']:  # FIXME: can remove when data clean
             right2.sort()
             db.tag_records[rec['id']].update(secondary_right=right2)
+            #debug
+            print "brandon ... watch out"
+            print db._lastsql
 
         rlen = len(right2)
         rem2 = rlen % 3
