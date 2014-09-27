@@ -584,11 +584,12 @@ class Walk(object):
                     (db.tag_records.name == user_id)
                     ).select().first().as_dict()
         simple_obj_print(newrec,"newrec kappa")
-        if ( (newrec['times_wrong']+0.001) - use_this_oldrec['times_wrong'] < 0.0000001
-            or (newrec['times_right']+0.001) - use_this_oldrec['times_right'] < 0.0000001
-            or newrec['tlast_right'] < use_this_oldrec['tlast_right'] 
-            or newrec['tlast_wrong'] < use_this_oldrec['tlast_wrong']):
-            print '---------------we got reset-------------'
+        if use_this_oldrec:
+            if ( (newrec['times_wrong']+0.001) - use_this_oldrec['times_wrong'] < 0.0000001
+                or (newrec['times_right']+0.001) - use_this_oldrec['times_right'] < 0.0000001
+                or newrec['tlast_right'] < use_this_oldrec['tlast_right'] 
+                or newrec['tlast_wrong'] < use_this_oldrec['tlast_wrong']):
+                print '---------------we got reset-------------'
         #end debug check for reset           
         print 'berlin ... we need to update the cached tag_progress of the user ... not being done ATM'
         #simple_obj_print(self.user.tag_records,"user tag records")
