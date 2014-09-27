@@ -431,6 +431,7 @@ class Walk(object):
                 condition = {'name': uid}
                 pprint(tag_progress)
                 db.tag_progress.update_or_insert(condition, **tag_progress)
+                db.commit()
                 mycount = db(db.tag_progress.name == uid).count()
                 assert mycount == 1  # ensure there's never a duplicate
                 # TODO: eliminate check by making name field unique
@@ -672,6 +673,7 @@ class Walk(object):
             rownum = db.session_data.update_or_insert(db.session_data.name == user.get_id(),
                                                       name=user.get_id(),
                                                       other_data=myuser)
+            db.commit()
             return rownum
         except Exception:
             print traceback.format_exc(5)
