@@ -139,6 +139,7 @@ class Walk(object):
             tag_progress = db(db.tag_progress.name == uid).select().first()
             if not tag_progress:
                 db.tag_progress.insert(latest_new=1)
+                db.commit()
                 tag_progress = db(db.tag_progress.name == uid).select().first()
             tag_progress = tag_progress.as_dict()
         return User(userdata, tag_records, tag_progress)
@@ -385,6 +386,7 @@ class Walk(object):
         lists of tag id's as the values.
 
         Called by Walk._record_cats()
+        JOB: added db.commit() after db.badges_begun.update_or_insert
         """
         db = current.db
         now = datetime.datetime.utcnow()
@@ -398,6 +400,7 @@ class Walk(object):
                         db.badges_begun.update_or_insert(
                                 (db.badges_begun.name == user_id) &
                                 (db.badges_begun.tag == tag), **data)
+                        db.commit()
             return True
         except Exception:
             print traceback.format_exc(5)
@@ -568,8 +571,8 @@ class Walk(object):
             rslt = db.executesql(sql_string)
         else: #new one            
             db.tag_records.insert(**newdata)
-        #debug
         db.commit()
+        #debug
         print 'accra'
         print db._lastsql
         simple_obj_print(db._timings,"db timings")
@@ -653,6 +656,7 @@ class Walk(object):
                     'score': score,
                     'user_response': response_string}  # time automatic in db
         log_record_id = db.attempt_log.insert(**log_args)
+        db.commit()
         return log_record_id
 
     def _store_user(self, user, db=None):
@@ -2190,15 +2194,20 @@ class Categorizer(object):
         and the values are lists of integers (representing the tags to be
         placed in each category). The categorization is based on user
         performance (drawn from tag_records) and timing (spaced repetition).
+        JOB 2014/09/28 :
+            we get a fresh copy of tag_records every time. don't even bother to bring
+            tag_records to this function because it will be ignored
         """
         rank = self.rank if not rank else rank
         if not rank:
             rank = 1
         old_categories = self.old_categories if not old_categories \
                          else old_categories
-        tag_records = self.tag_records if not tag_records else tag_records
-        tag_records = self._sanitize_recs(tag_records)
+        #tag_records = self.tag_records if not tag_records else tag_records
         db = current.db if not db else db
+        tag_records = db(db.tag_records.name == self.user_id).select().as_list()
+        if tag_records:
+            tag_records = self._sanitize_recs(tag_records)
         new_tags = None
 
         # if user has not tried any tags yet, start first set
@@ -2299,6 +2308,7 @@ class Categorizer(object):
         if right2 != rec['secondary_right']:  # FIXME: can remove when data clean
             right2.sort()
             db.tag_records[rec['id']].update(secondary_right=right2)
+            db.commit()
             #debug
             print "brandon ... watch out"
             print db._lastsql
