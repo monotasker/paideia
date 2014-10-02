@@ -8,6 +8,7 @@ from gluon import IS_NOT_EMPTY, IS_IN_SET
 from inspect import getargvalues, stack
 import traceback
 from copy import copy
+from copy import deepcopy
 from itertools import chain
 from random import randint, randrange
 import re
@@ -76,8 +77,13 @@ def simple_obj_print(the_dict, title='No Title', indentation=0):
                 count +=1
             break
         #simple item
-        print indentation_string  + '{' + str(title) + ': '  +  str(the_dict) +  '}'
-        break
+        if type(the_dict) is datetime.datetime:
+            print indentation_string  + '{' + str(title) + ': ' +  \
+                 the_dict.strftime('%Y %m %d %H %M %S %f') +  '}'
+            break
+        else:
+            print indentation_string  + '{' + str(title) + ': '  +  str(the_dict) +  '}'
+            break
 
 
 
@@ -581,24 +587,6 @@ class Walk(object):
                     (db.tag_records.name == user_id)
                     ).select()
         tagrec = tagrec.first()
-        
-        #debug
-        #check for reset
-        newrec = db((db.tag_records.tag == tag) &
-                    (db.tag_records.name == user_id)
-                    ).select().first().as_dict()
-        #simple_obj_print(newrec,"newrec kappa")
-        if use_this_oldrec:
-            if ( (newrec['times_wrong']+0.001) - use_this_oldrec['times_wrong'] < 0.0000001
-                or (newrec['times_right']+0.001) - use_this_oldrec['times_right'] < 0.0000001
-                or newrec['tlast_right'] < use_this_oldrec['tlast_right'] 
-                or newrec['tlast_wrong'] < use_this_oldrec['tlast_wrong']):
-                pass
-                #print'---------------we got reset-------------'
-        #end debug check for reset           
-        #print'berlin ... we need to update the cached tag_progress of the user ... not being done ATM'
-        ##simple_obj_print(self.user.tag_records,"user tag records")
-        #print'end accra'
         return tagrec.id
 
     def _record_step(self, user_id, step_id, path_id, score, raw_tright,
@@ -2239,20 +2227,11 @@ class Categorizer(object):
         else:
             # otherwise, categorize tags that have been tried
             # TODO:uncomment and do _add_secondary_right properly
-            """
+            
             for idx, t in enumerate([t for t in tag_records
                                      if tag_records and t['secondary_right']]):
-                #print'tag', t['tag']
-                ##pprint(t)\
-                #debug
-                #simple_obj_print(t, "--neepawa-- before add secondary right")
-                tag_records[idx] = self._add_secondary_right(t)
-                #debug
-                #simple_obj_print(tag_records[idx], "--neepawa-- after add secondary right")
-            self.tag_records = tag_records
-            """
-            #simple_obj_print(tag_records,"Saskatoon, before calling core algorithm")
-
+                self._add_secondary_right(t)
+                simple_obj_print(t, "***--halifax--*** t after add secondary right")
             categories = self._core_algorithm()
 
             #debug
@@ -2324,19 +2303,14 @@ class Categorizer(object):
         db = current.db
         rec = rec[0] if isinstance(rec, list) else rec
         right2 = flatten(rec['secondary_right'])  # FIXME: sanitizing data
-        for t in right2:
-            try:
-                right2[right2.index(t)] = parser.parse(t)
-            except TypeError:
-                pass
+        simple_obj_print(rec, "neepawa- origional rec in _add_secondary_right")
+        simple_obj_print(right2, "neepawa- right2 in _add_secondary_right")
+        simple_obj_print( rec['secondary_right'], "minnedosa - rec sec right in _add_secondary_right,right2")
+        
         if right2 != rec['secondary_right']:  # FIXME: can remove when data clean
             right2.sort()
-            db.tag_records[rec['id']].update(secondary_right=right2)
-            db.commit()
-            #debug
-            #print"brandon ... watch out"
-            #printdb._lastsql
-
+        simple_obj_print(right2, "halifax - right2 sorted in _add_secondary_right,right2")
+        
         rlen = len(right2)
         rem2 = rlen % 3
 
@@ -2347,11 +2321,19 @@ class Categorizer(object):
                 rec['times_right'] = 0
             rec['times_right'] += triplets2
 
+            simple_obj_print(rlen, "halifax - rlen in _add_secondary_right")
+            simple_obj_print(triplets2, "halifax - triplets2 in _add_secondary_right")
+            simple_obj_print(rem2, "halifax - rem2 in _add_secondary_right")
+
             # move tlast_right forward based on mean of oldest 3 secondary_right
             early3 = right2[: -(rem2)] if rem2 else right2[:]
-            early3d = [self.utcnow - s for s in early3]
+            simple_obj_print(early3, "halifax - early3 in _add_secondary_right")
+            early3d = [self.utcnow - datetime.datetime.strptime(s,'%Y-%m-%d %H:%M:%S.%f') for s in early3]
+            simple_obj_print(early3d, "halifax - early3d in _add_secondary_right")
             avg_delta = sum(early3d, datetime.timedelta(0)) / len(early3d)
+            simple_obj_print(avg_delta, "halifax - avg_delta in _add_secondary_right")
             avg_date = self.utcnow - avg_delta
+            simple_obj_print(avg_date, "halifax - avg_date in _add_secondary_right")
 
             #print'type is', type(rec['tlast_right'])
             # sanitize tlast_right in case db value is string
@@ -2360,13 +2342,30 @@ class Categorizer(object):
 
             # move tlast_right forward to reflect recent secondary success
             if avg_date > rec['tlast_right']:
+                print "halifax, avg_date > rec['tlast_right'] "
                 rec['tlast_right'] = avg_date
 
             rec['secondary_right'] = right2[-(rem2):] if rem2 else []
+            simple_obj_print(rec, "halifax new rec in _add_secondary_right")
+            
+            #test where we change the last_right of the rec
+            test_rec = deepcopy(rec)
+            test_rec['tlast_right'] = test_rec['tlast_right'] - datetime.timedelta(days=300)
+            simple_obj_print(test_rec,"halifax test rec after subtracting 300 days")
+            if avg_date > test_rec['tlast_right']:
+                print "halifax, avg_date > test_rec['tlast_right'] "
+                test_rec['tlast_right'] = avg_date
+                simple_obj_print(test_rec,"halifax test rec after replacing with avg_date")
+            #write new record to dbase
+            condition = {'tag': rec['tag'], 'name': rec['name']}
+            db.tag_records.update_or_insert(condition,
+                                            times_right = rec['times_right'],
+                                            tlast_right = rec['tlast_right'],
+                                            secondary_right=rec['secondary_right'])
         else:
             pass
         return rec
-
+        
     def _get_avg(self, tag, mydays=7):
         """
         Return the user's average score on a given tag over the past N days.
