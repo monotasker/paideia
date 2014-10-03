@@ -72,19 +72,22 @@ def simple_obj_print(the_dict, title='No Title', indentation=0):
         if hasattr(the_dict, '__iter__'):
             print indentation_string  + str(title) + '(list):'
             count = 0         
-            for value in the_dict:
-                simple_obj_print(value, count,indentation+1)
-                count +=1
+            try:
+                for value in the_dict:
+                    simple_obj_print(value, count,indentation+1)
+                    count +=1
+            except TypeError, te:
+                simple_obj_print("list is not iterable",count,indentation+1)
             break
         #simple item
-        if type(the_dict) is datetime.datetime:
-            print indentation_string  + '{' + str(title) + ': ' +  \
-                 the_dict.strftime('%Y %m %d %H %M %S %f') +  '}'
-            break
-        else:
+        while True:
+            if type(the_dict) is datetime.datetime:
+                print indentation_string  + '{' + str(title) + ': ' +  \
+                     the_dict.strftime('%Y %m %d %H %M %S %f') +  '}'
+                break
             print indentation_string  + '{' + str(title) + ': '  +  str(the_dict) +  '}'
             break
-
+        break
 
 
 class Map(object):
@@ -2231,7 +2234,7 @@ class Categorizer(object):
             for idx, t in enumerate([t for t in tag_records
                                      if tag_records and t['secondary_right']]):
                 self._add_secondary_right(t)
-                simple_obj_print(t, "***--halifax--*** t after add secondary right")
+                #simple_obj_print(t, "***--halifax--*** t after add secondary right")
             categories = self._core_algorithm()
 
             #debug
@@ -2297,43 +2300,62 @@ class Categorizer(object):
         """
         Return the given tag record adjusted based on secondary_right data.
 
-        For every 3 secondary_right entries, add 1 to times_right and change
+        For every CONST_SEC_RIGHT_MOD secondary_right entries, add 1 to times_right and change
         tlast_right based on the average of those three attempt dates.
         """
+        CONST_SEC_RIGHT_MOD = 20
         db = current.db
         rec = rec[0] if isinstance(rec, list) else rec
+
+        
+        """ uncomment this to generate enough secondarys to test ... do this only in test server
+        #Joseph Boakye <jboakye@bwachi.com>
+        #testing ***** DONT FORGET TO REMOVE THIS!!! ****
+        #we are going to create at least 20 secondary right as we dont have a lot in
+        #the system, so we can test this
+        rlen = len(rec['secondary_right'])
+        if (rlen):
+            for i in range(1,23):
+                (rec['secondary_right']).append(rec['secondary_right'][0])
+        #--------- end generating secondary rights for testing - dont forget to remove --------------        
+        """
+        
+        
         right2 = flatten(rec['secondary_right'])  # FIXME: sanitizing data
-        simple_obj_print(rec, "neepawa- origional rec in _add_secondary_right")
-        simple_obj_print(right2, "neepawa- right2 in _add_secondary_right")
-        simple_obj_print( rec['secondary_right'], "minnedosa - rec sec right in _add_secondary_right,right2")
+        #simple_obj_print(rec, "neepawa- origional rec in _add_secondary_right")
+        #simple_obj_print(right2, "neepawa- right2 in _add_secondary_right")
+        #simple_obj_print( rec['secondary_right'], "minnedosa - rec sec right in _add_secondary_right,right2")
         
         if right2 != rec['secondary_right']:  # FIXME: can remove when data clean
             right2.sort()
-        simple_obj_print(right2, "halifax - right2 sorted in _add_secondary_right,right2")
-        
-        rlen = len(right2)
-        rem2 = rlen % 3
+        #simple_obj_print(right2, "halifax - right2 sorted in _add_secondary_right,right2")
 
-        if rlen >= 3:
-            # increment times_right by 1 per 3 secondary_right
-            triplets2 = rlen / 3
+        rlen = len(right2)
+        rem2 = rlen % CONST_SEC_RIGHT_MOD
+      
+
+
+        if rlen >= CONST_SEC_RIGHT_MOD:
+            # increment times_right by 1 per CONST_SEC_RIGHT_MOD secondary_right
+            # this var is called triplets because CONST_SEC_RIGHT_MOD used to be 3
+            triplets2 = rlen / CONST_SEC_RIGHT_MOD
             if not rec['times_right']:
                 rec['times_right'] = 0
             rec['times_right'] += triplets2
 
-            simple_obj_print(rlen, "halifax - rlen in _add_secondary_right")
-            simple_obj_print(triplets2, "halifax - triplets2 in _add_secondary_right")
-            simple_obj_print(rem2, "halifax - rem2 in _add_secondary_right")
+            #simple_obj_print(rlen, "halifax - rlen in _add_secondary_right")
+            #simple_obj_print(triplets2, "halifax - triplets2 in _add_secondary_right")
+            #simple_obj_print(rem2, "halifax - rem2 in _add_secondary_right")
 
             # move tlast_right forward based on mean of oldest 3 secondary_right
             early3 = right2[: -(rem2)] if rem2 else right2[:]
-            simple_obj_print(early3, "halifax - early3 in _add_secondary_right")
+            #simple_obj_print(early3, "halifax - early3 in _add_secondary_right")
             early3d = [self.utcnow - datetime.datetime.strptime(s,'%Y-%m-%d %H:%M:%S.%f') for s in early3]
-            simple_obj_print(early3d, "halifax - early3d in _add_secondary_right")
+            #simple_obj_print(early3d, "halifax - early3d in _add_secondary_right")
             avg_delta = sum(early3d, datetime.timedelta(0)) / len(early3d)
-            simple_obj_print(avg_delta, "halifax - avg_delta in _add_secondary_right")
+            #simple_obj_print(avg_delta, "halifax - avg_delta in _add_secondary_right")
             avg_date = self.utcnow - avg_delta
-            simple_obj_print(avg_date, "halifax - avg_date in _add_secondary_right")
+            #simple_obj_print(avg_date, "halifax - avg_date in _add_secondary_right")
 
             #print'type is', type(rec['tlast_right'])
             # sanitize tlast_right in case db value is string
@@ -2346,16 +2368,16 @@ class Categorizer(object):
                 rec['tlast_right'] = avg_date
 
             rec['secondary_right'] = right2[-(rem2):] if rem2 else []
-            simple_obj_print(rec, "halifax new rec in _add_secondary_right")
+            #simple_obj_print(rec, "halifax new rec in _add_secondary_right")
             
             #test where we change the last_right of the rec
             test_rec = deepcopy(rec)
             test_rec['tlast_right'] = test_rec['tlast_right'] - datetime.timedelta(days=300)
-            simple_obj_print(test_rec,"halifax test rec after subtracting 300 days")
+            #simple_obj_print(test_rec,"halifax test rec after subtracting 300 days")
             if avg_date > test_rec['tlast_right']:
                 print "halifax, avg_date > test_rec['tlast_right'] "
                 test_rec['tlast_right'] = avg_date
-                simple_obj_print(test_rec,"halifax test rec after replacing with avg_date")
+                #simple_obj_print(test_rec,"halifax test rec after replacing with avg_date")
             #write new record to dbase
             condition = {'tag': rec['tag'], 'name': rec['name']}
             db.tag_records.update_or_insert(condition,
