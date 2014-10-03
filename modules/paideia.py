@@ -2362,6 +2362,7 @@ class Categorizer(object):
                                             times_right = rec['times_right'],
                                             tlast_right = rec['tlast_right'],
                                             secondary_right=rec['secondary_right'])
+            db.commit()
         else:
             pass
         return rec
