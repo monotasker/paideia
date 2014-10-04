@@ -347,7 +347,7 @@ class Walk(object):
             'user_response':
         """
         #print'\n================================'
-        #print'\nSTART OF Walk.reply()'
+        print'\nSTART OF Walk.reply()'
         user = self._get_user()
         loc = user.get_location()
         p, cat = user.get_path(loc)[:2]
@@ -371,6 +371,9 @@ class Walk(object):
                                            user.tag_records,
                                            s.get_tags(),
                                            response_string)
+        simple_obj_print(response_string, "halifax ----response string in reply ----")
+        simple_obj_print(prompt, "halifax ----prompt in reply ----")
+        simple_obj_print(s.get_id(), "halifax ----step id in reply ----")
         prompt['bugreporter'] = BugReporter().get_reporter(self.record_id,
                                                            p.get_id(),
                                                            s.get_id(),
@@ -838,14 +841,19 @@ class BugReporter(object):
         web2py view template. This is meant to be embedded in the reply UI
         which presents the user with an evaluation of the step input.
         """
+        
+        #debug
+        print 'halifax ---- get_reporter called with step_id: ', step_id
+        print 'halifax ---- get_reporter called with response_string: ', response_string
         response_string = response_string.decode('utf-8')
         response_string = response_string.encode('utf-8')
+        #changing bug_id field to bug_step_id ... JOB ... oct 03, 2014
         vardict = {'answer': response_string,
                    'loc_id': loc_id,
                    'log_id': record_id,
                    'path_id': path_id,
                    'score': score,
-                   'step_id': step_id}
+                   'bug_step_id': step_id}
         c = P('Think your answer should have been correct? ',
               A('click here',
                 I(_class='icon-bug'),

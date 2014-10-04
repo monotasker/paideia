@@ -25,11 +25,13 @@ def tag():
 def bug():
     """
     Create a new bug report for a step.
+    The step_id is now being passed in as bug_step_id instead of step_id as it was
+    Apparently conflicting with some other step id:  JOB <jboakye@bwachi.com> 20141003
     """
     print 'controller.bug:'
     rvars = request.vars
     print 'vars are', rvars
-    b = Bug(step_id=rvars.step_id, path_id=rvars.path_id, loc_id=rvars.loc_id)
+    b = Bug(step_id=rvars.bug_step_id, path_id=rvars.path_id, loc_id=rvars.loc_id)
     print 'created bug object successfully'
     print 'bug is', b
     logged = b.log_new(rvars.answer, rvars.log_id, rvars.score)
