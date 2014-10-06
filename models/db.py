@@ -59,20 +59,27 @@ def _i_am_running_under_test():
 #-------------------------------------------------------------
 # define database storage
 #-------------------------------------------------------------
+"""
+test will now be using postgres instead of sqllite 
+a new test database called paideia_test will be used for tests
+JOB ... jboakye@bwachi.com ... oct 5, 2014
+"""
+
 postgre = {}
 postgre['username'] = keydata['postgre_username']
 postgre['password'] = keydata['postgre_password']
 postgre['host'] = keydata['postgre_host']
 postgre['db_name'] = keydata['postgre_dbname']
 
+
+#set the postgres dbase to the test dbase instead of using sqllite
 if _i_am_running_under_test():
-    db = DAL('sqlite://storage.sqlite', pool_size=1)
-    #db = DAL('sqlite://test_storage.sqlite', folder=temp_dir)
-else:
-    # check_reserved makes sure no column names conflict with back-end db's
-    connect_string = 'postgres://%s:%s@%s/%s' % (postgre['username'], postgre['password'],
-                                               postgre['host'], postgre['db_name'])
-    db = DAL(connect_string, pool_size=1, check_reserved=['sqlite', 'postgres'], fake_migrate=True)
+    postgre['db_name'] = keydata['postgre_testdbname']
+print '--- using dbase: ',postgre['db_name'], ' ---'
+# check_reserved makes sure no column names conflict with back-end db's
+connect_string = 'postgres://%s:%s@%s/%s' % (postgre['username'], postgre['password'],
+                                           postgre['host'], postgre['db_name'])
+db = DAL(connect_string, pool_size=1, check_reserved=['sqlite', 'postgres'], fake_migrate=True)
 
 #-------------------------------------------------------------
 # Set up logging

@@ -19,6 +19,48 @@ from itertools import chain
 #import datetime
 #import json
 import plugin_utils
+import datetime
+
+def simple_obj_print(the_dict, title='No Title', indentation=0):
+    """
+    Prints a simple thing
+    Joseph Boakye jboakye@bwachi.com
+    """
+    indentation_string = ' '*indentation
+    if (None == the_dict):
+        print indentation_string  + '{' + str(title) + ': '  + '-None-' +  '}'
+        return
+    while True:
+        #dictionaries
+        if type(the_dict) == type({}):
+            print indentation_string  + str(title) + '(dict):'
+            for key in the_dict:
+                simple_obj_print(the_dict[key],key,indentation+1)
+            break
+        #lists
+        if hasattr(the_dict, '__iter__'):
+            print indentation_string  + str(title) + '(list):'
+            count = 0         
+            try:
+                for value in the_dict:
+                    simple_obj_print(value, count,indentation+1)
+                    count +=1
+            except TypeError, te:
+                simple_obj_print("list is not iterable",count,indentation+1)
+            break
+        #simple item
+        while True:
+            if type(the_dict) is datetime.datetime:
+                print indentation_string  + '{' + str(title) + ': ' +  \
+                     the_dict.strftime('%Y %m %d %H %M %S %f') +  '}'
+                break
+            print indentation_string  + '{' + str(title) + ': '  +  str(the_dict) +  '}'
+            break
+        break
+
+
+
+
 
 
 def uprint(myobj):
