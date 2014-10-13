@@ -134,6 +134,9 @@ if auth.has_membership('administrators', auth.user_id) or auth.is_impersonating(
                False, URL('reporting', 'paths_by_tag')),
               (SPAN(T(' Attempt log'), _class='icon-list-alt'),
                False, URL('reporting', 'attempts')),
+              (SPAN(T(' All Exceptions'), _class='icon-frown'),
+               False, URL('editing', 'listing.html',
+                          args=['exceptions'])),
               ]),
 
             (SPAN(T(' Utils'), _class='icon-cog'), False, None,

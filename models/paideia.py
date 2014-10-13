@@ -13,6 +13,7 @@ from plugin_ajaxselect import AjaxSelect
 import datetime
 import os
 import uuid
+from applications.paideia.modules.paideia_utils import simple_obj_print
 # import re
 
 if 0:
@@ -318,12 +319,12 @@ db.define_table('steps',
                 Field('outcome3', default=None),
                 Field('hints', 'list:reference step_hints'),
                 Field('instructions', 'list:reference step_instructions'),
-                Field('tags', 'list:reference tags'),
+                Field('tags', 'list:integer'),
                 Field('tags_secondary', 'list:reference tags'),
                 Field('tags_ahead', 'list:reference tags'),
                 Field('lemmas', 'list:reference lemmas'),
                 Field('npcs', 'list:reference npcs'),
-                Field('locations', 'list:reference locations'),
+                Field('locations', 'list:integer'),
                 Field('status', db.step_status, default=1),
                 Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
@@ -396,6 +397,8 @@ db.steps.instructions.widget = lambda field, value: \
                                                        lister='simple',
                                                        orderby='instruction_label'
                                                        ).widget()
+
+
 db.steps.lemmas.requires = IS_EMPTY_OR(IS_IN_DB(db, 'lemmas.id',
                                                       db.lemmas._format,
                                                       multiple=True))
@@ -446,7 +449,9 @@ db.define_table('path_styles',
 
 db.define_table('paths',
                 Field('label'),
-                Field('steps', 'list:reference steps'),
+                #JOB ... turning steps into a list of  integers as it seems to have issues
+                #Field('steps', 'list:reference steps'),
+                Field('steps', 'list:integer'),
                 Field('path_style', db.path_styles),
                 Field('path_tags',
                     compute=lambda row: row.steps),
@@ -460,9 +465,11 @@ db.define_table('paths',
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(label)s')
 
-db.paths.tags_for_steps = Field.Virtual('tags_for_steps',
-                              lambda row: [tag for step in row.paths.steps
-                                           for tag in db.steps[step].tags])
+#JOB ... cleaned this up ...we are removing tags_for_steps entirel
+# Oct 12, 2014
+#db.paths.tags_for_steps = Field.Virtual('tags_for_steps',
+#                              lambda row: [tag for step in row.paths.steps
+#                                           for tag in db.steps[step].tags])
 db.paths.steps.requires = IS_IN_DB(db, 'steps.id',
                                    db.steps._format, multiple=True)
 db.paths.steps.widget = lambda field, value: AjaxSelect(field, value,
@@ -619,3 +626,133 @@ db.define_table('content_pages',
                 Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(title)s')
+"""
+HELPER TABLES  
+paths2steps ... follows C_UD of paths to create 1-1 relationshitp
+steps2tags ... follows C_UD of steps to create 1-1 relationshitp
+Joseph Boakye <jboakye@bwachi.com> Oct 10 2014
+zzz
+"""
+db.define_table('step2tags', 
+                Field('step_id', 'reference steps'),
+                Field('tag_id', 'reference tags'),
+                Field('modified_on', 'datetime', default=request.now))
+
+
+db.define_table('path2steps',
+                Field('path_id', 'reference paths'),
+                Field('step_id', 'reference steps'),
+                Field('modified_on', 'datetime', default=request.now))
+
+
+def insert_trigger_for_steps(f,given_step_id):
+    #given_step_id is of <class 'gluon.dal.Reference'>
+    #simple_obj_print(type(given_step_id), "troy: type of given_step_id")
+    step_id = int(given_step_id)
+    #simple_obj_print(step_id, "troy: step_id")
+    #simple_obj_print(type(f), "troy: f for step")
+    local_f = f
+    if (dict != type(local_f)):
+        local_f = local_f.as_dict()
+    #simple_obj_print(local_f, "troy: local_f for step")
+    #simple_obj_print(type(f), "troy: type of f in insert_trigger_for_steps")
+    #simple_obj_print(f, "troy: f for step")
+    if 'tags' in local_f:
+        tag_ids = local_f['tags']
+        for tag_id in tag_ids:
+            #simple_obj_print(tag_id, "troy: tag id")
+            if db(db.tags.id ==tag_id).count() > 0:
+                db.step2tags.insert(tag_id=tag_id,step_id=step_id)
+            else:
+                simple_obj_print(tag_id, "orphan tag:")
+        db.commit()
+def update_trigger_for_steps(s,f):
+    #simple_obj_print(s, 'bavaria s is: ')
+    for r in s.select():
+        db(db.step2tags.step_id==r.id).delete()
+        x = db(db.steps.id==r.id).select(db.steps.tags).first()
+        if x:
+            tag_ids = (x.as_dict())['tags']
+            #simple_obj_print(type(tag_ids), "bavaria: type of given_step_id")
+            #simple_obj_print(tag_ids,"bavaria, tag_ids in update_trigger_for_steps")
+            insert_trigger_for_steps({'tags' :tag_ids},r.id)
+
+
+def insert_trigger_for_paths(f,given_path_id):
+    path_id = int(given_path_id)
+    #simple_obj_print(path_id, "fordham: path_id")
+    local_f = f
+    if (dict != type(local_f)):
+        local_f = local_f.as_dict()
+    #simple_obj_print(local_f, "fordham: f")
+    if 'steps' in local_f:
+        step_ids = local_f['steps']
+        for step_id in step_ids:
+            #simple_obj_print(step_id, "fordham: step id")
+            if db(db.steps.id ==step_id).count() > 0:
+                db.path2steps.insert(step_id=step_id,path_id=path_id)
+            else:
+                simple_obj_print(step_id, "orphan step:")
+        db.commit()
+def update_trigger_for_paths(s,f):
+    #simple_obj_print(s, 'new rochelle s is: ')
+    for r in s.select():
+        db(db.path2steps.path_id==r.id).delete()
+        x = db(db.paths.id==r.id).select(db.paths.steps).first()
+        if x:
+            step_ids = (x.as_dict())['steps']
+            #simple_obj_print(step_ids,"new rochelle, step_ids in update_trigger_for_paths")
+            insert_trigger_for_paths({'steps' :step_ids},r.id)
+
+#no need for delete ... will be taken care of by foreign key
+db.steps._after_insert.append(lambda f,given_id: insert_trigger_for_steps(f,given_id))
+db.steps._after_update.append(lambda s,f: update_trigger_for_steps(s,f))
+db.paths._after_insert.append(lambda f,given_id: insert_trigger_for_paths(f,given_id))
+db.paths._after_update.append(lambda s,f: update_trigger_for_paths(s,f))
+
+"""
+These functions create step2tags and path2steps data for 
+legacy paths and steps.
+They only need to be ran once after which they SHOULD be commented out
+Joseph Boakye <jboakye@bwachi.com>
+Oct 11, 2014
+
+
+---------------------  run once for legacy system -----------------
+"""
+"""
+def create_step2tags_from_steps():
+    db.step2tags.truncate()
+    for row in db(db.steps.id > 0).select():
+        insert_trigger_for_steps({'tags': row.tags},row.id)
+    return True
+create_step2tags_from_steps()
+
+def create_path2steps_from_paths():
+    db.path2steps.truncate()
+    for row in db(db.paths.id > 0).select():
+        insert_trigger_for_paths({'steps': row.steps},row.id)
+    return True
+create_path2steps_from_paths()
+"""
+
+"""
+-----------------  end run once for legacy system -------------
+"""
+
+#exceptions .... when the bug table is not enough
+db.define_table('exceptions',
+                Field('step', 'text'),
+                Field('in_path', 'text'),
+                Field('map_location', 'text'),
+                Field('user_response', 'text'),
+                Field('score', 'double'),
+                Field('log_id', 'text'),
+                Field('user_name', db.auth_user, default=auth.user_id),
+                Field('date_submitted', 'datetime', default=dtnow),
+                Field('bug_status', db.bug_status, default=5),
+                Field('admin_comment', 'text'),
+                Field('hidden', 'boolean'),
+                Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+                Field('modified_on', 'datetime', default=request.now)
+                )
