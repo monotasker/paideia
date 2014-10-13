@@ -31,6 +31,8 @@ from pprint import pprint
 from random import randrange, shuffle
 import re
 import traceback
+#added ... JOB ... Oct 10, 2014
+from paideia_utils import simple_obj_print
 
 class ResultCollector(object):
     def __init__(self, func):
@@ -690,6 +692,7 @@ class WordFactory(object):
             cst_id = db.constructions.insert(**{'construction_label': const_label,
                                                 'readable_label': rdbl,
                                                 'tags': mytags})
+            db.commit()
             csterr = None
         except Exception:
             cst_id = None
@@ -721,7 +724,7 @@ class WordFactory(object):
         if not pos:
             pos = self.parser.infer_part_of_speech(word_form)
             lemmarow.update_record(part_of_speech=pos)
-
+            db.commit()
         # try to get missing info from modform or word form itself
         reqs = self.wordform_reqs[pos]
         if pos == 'verb' and parsing['mood'] in ['infinitive', 'participle']:
@@ -767,6 +770,7 @@ class WordFactory(object):
                 del(parsing['id'])  # FIXME: where does this come from?
                 del(parsing['uuid'])  # FIXME: where does this come from?
             rowid = db.word_forms.insert(**parsing)
+            db.commit()
             err = None
         except Exception:
             traceback.print_exc()
@@ -829,6 +833,7 @@ class WordFactory(object):
 
         try:
             lemid = db.lemmas.insert(**lemdata)
+            db.commit()
             err = None
         except Exception:
             traceback.print_exc()
@@ -959,7 +964,12 @@ class StepFactory(object):
         """ """
         db = current.db
         try:
+            #debug
+            simple_obj_print(kwargs, "kwargs in step_to_db")
+            print '--berlin-- called to do insertion'
             sid = db.steps.insert(**kwargs)
+            #added JOB ... oct 11, 2014
+            db.commit()
             return sid
         except Exception:
             traceback.print_exc(5)
@@ -1086,6 +1096,7 @@ class StepFactory(object):
         img_row = db(db.images.title == mytitle).select().first()
         if not img_row:
             myid = db.images.insert(title=mytitle)
+            db.commit()
             image_missing = True
         else:
             myid = img_row.id
@@ -1448,7 +1459,10 @@ class PathFactory(object):
         """ """
         db = current.db
         try:
+            #debug
+            print 'inserting into path'
             pid = db.paths.insert(label=label, steps=steps)
+            db.commit()
             return pid
         except Exception:
             traceback.print_exc(5)

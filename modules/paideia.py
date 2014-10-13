@@ -157,22 +157,22 @@ class Walk(object):
         """
         #print'\nIN START'
         #debug
-        ##simple_obj_print(localias,"localias")
-        ##simple_obj_print(response_string,"response_string")
-        ##simple_obj_print(path,"path")
-        ##simple_obj_print(repeat,"repeat")
-        ##simple_obj_print(set_blocks,"set_blocks")
-        ##simple_obj_print(recategorize,"recategorize")
+        ###simple_obj_print(localias,"localias")
+        ###simple_obj_print(response_string,"response_string")
+        ###simple_obj_print(path,"path")
+        ###simple_obj_print(repeat,"repeat")
+        ###simple_obj_print(set_blocks,"set_blocks")
+        ###simple_obj_print(recategorize,"recategorize")
 
         try:
             if response_string:
                 #debug
-                ##simple_obj_print("response string is good","message")
+                ###simple_obj_print("response string is good","message")
                 return self.reply(localias=localias,
                                   response_string=response_string)
             else:
                 #debug
-                ##simple_obj_print("ask 1","message")
+                ###simple_obj_print("ask 1","message")
                 return self.ask(localias=localias,
                                 path=path,
                                 repeat=repeat,
@@ -183,9 +183,9 @@ class Walk(object):
             print traceback.format_exc(5)
             self.clean_user()  # get rid of any problem path data
             #debug
-            ##simple_obj_print("ask 2","message")
+            ###simple_obj_print("ask 2","message")
             excp_ask =  self.ask(localias=localias, path=path, step=step)
-            ##simple_obj_print("ask 2 finished","message")
+            ###simple_obj_print("ask 2 finished","message")
             return excp_ask
 
     def clean_user(self):
@@ -245,7 +245,35 @@ class Walk(object):
         if pastquota:
             user.set_block('quota_reached', kwargs={'quota': user.quota})
 
-        s, newloc_id = p.get_step_for_prompt(loc, repeat=repeat)
+        s, newloc_id,error_string = p.get_step_for_prompt(loc, repeat=repeat)
+        
+        #propagating errors and alerting user instead of crashing
+        if(error_string):
+            Exception_Bug({'log_id':0,
+                                                   'path_id':p.get_id(),
+                                                   'step_id':s.get_id(),
+                                                   'score':0,
+                                                   'answer':error_string,
+                                                   'loc':user.loc.get_alias()})
+            prompt = {'sid': s.get_id(),
+                      'prompt_text': "Unexpected Error. A Bug Report with tag Philadelphia has been submitted",
+                      'audio': None,
+                      'widget_img': None,
+                      'instructions': None,
+                      'slidedecks': None,
+                      'bg_image': None,
+                      'loc': None,
+                      'response_buttons': ['map'],
+                      'response_form': None,
+                      'npc_image': None,
+                      'bugreporter': None,
+                      'completed_count': 0,
+                      'category': 0,
+                      'pid': p.get_id()
+                      }
+            return prompt
+
+        
         if newloc_id:
             user.set_block('redirect', kwargs={'next_loc': newloc_id})
 
@@ -261,19 +289,19 @@ class Walk(object):
         #print'before sending to view------------------------'
         
         #debug
-        ##simple_obj_print(user.completed_paths,'user.completed_paths')
+        ###simple_obj_print(user.completed_paths,'user.completed_paths')
         extra_fields = {'completed_count': len(user.completed_paths),
                         'category': category,
                         'pid': p.get_id()}
         #debug
-        ##simple_obj_print(extra_fields,'extra_fields')
+        ###simple_obj_print(extra_fields,'extra_fields')
 
         prompt.update(extra_fields)
 
         p.end_prompt(s.get_id())  # send id to tell whether its a block step
         self._store_user(user)
         #debug
-        ##simple_obj_print('returning from ask','msg')
+        ###simple_obj_print('returning from ask','msg')
         return prompt
 
     def _set_blocks(self, user=None):
@@ -319,7 +347,7 @@ class Walk(object):
         #print'\n 00000001'
         if (not response_string) or re.match(response_string, r'\s+'):
             #debug
-            ##simple_obj_print("ask 3","message")
+            ###simple_obj_print("ask 3","message")
             return self.ask()  # TODO: will this actually re-prompt the same step?
         prompt = s.get_reply(response_string)  # loc and npc stored on step
 
@@ -335,9 +363,9 @@ class Walk(object):
                                            user.tag_records,
                                            s.get_tags(),
                                            response_string)
-        simple_obj_print(response_string, "halifax ----response string in reply ----")
-        simple_obj_print(prompt, "halifax ----prompt in reply ----")
-        simple_obj_print(s.get_id(), "halifax ----step id in reply ----")
+        #simple_obj_print(response_string, "halifax ----response string in reply ----")
+        #simple_obj_print(prompt, "halifax ----prompt in reply ----")
+        #simple_obj_print(s.get_id(), "halifax ----step id in reply ----")
         prompt['bugreporter'] = BugReporter().get_reporter(self.record_id,
                                                            p.get_id(),
                                                            s.get_id(),
@@ -494,19 +522,19 @@ class Walk(object):
         AND    tag =  %d; "
         
         now = datetime.datetime.utcnow() if not now else now
-        #simple_obj_print(oldrec,"oldrec d---------------------------")
+        ##simple_obj_print(oldrec,"oldrec d---------------------------")
         oldrec = oldrec if not isinstance(oldrec, list) else oldrec[0]  # FIXME
         #debug ... JOB
         #print'oldrec new ---------------------------'
-        #simple_obj_print(oldrec,"oldrec new---------------------------")
+        ##simple_obj_print(oldrec,"oldrec new---------------------------")
         #printtype(oldrec)
-        #simple_obj_print(got_right,"gotright")
-        #simple_obj_print(tright,"tright")
-        #simple_obj_print(twrong,"twrong")
-        #simple_obj_print(score,"score")
-        #simple_obj_print(tag,"tag")
-        #simple_obj_print(user_id,"user_id")
-        #simple_obj_print(step_id,"step_id")
+        ##simple_obj_print(got_right,"gotright")
+        ##simple_obj_print(tright,"tright")
+        ##simple_obj_print(twrong,"twrong")
+        ##simple_obj_print(score,"score")
+        ##simple_obj_print(tag,"tag")
+        ##simple_obj_print(user_id,"user_id")
+        ##simple_obj_print(step_id,"step_id")
 
         tlright = now
         tlwrong = now
@@ -525,7 +553,7 @@ class Walk(object):
                             ).select().first().as_dict()
         except Exception:
             pass
-        #simple_obj_print(use_this_oldrec,"use this oldrec beta")
+        ##simple_obj_print(use_this_oldrec,"use this oldrec beta")
         
         newdata = {'name': user_id,
                    'tag': tag,
@@ -551,7 +579,7 @@ class Walk(object):
         #debug
         #print'accra'
         #printdb._lastsql
-        #simple_obj_print(db._timings,"db timings")
+        ##simple_obj_print(db._timings,"db timings")
         #print'end accra'
         tagrec = db((db.tag_records.tag == tag) &
                     (db.tag_records.name == user_id)
@@ -807,8 +835,8 @@ class BugReporter(object):
         """
         
         #debug
-        print 'halifax ---- get_reporter called with step_id: ', step_id
-        print 'halifax ---- get_reporter called with response_string: ', response_string
+        #print 'halifax ---- get_reporter called with step_id: ', step_id
+        #print 'halifax ---- get_reporter called with response_string: ', response_string
         response_string = response_string.decode('utf-8')
         response_string = response_string.encode('utf-8')
         #changing bug_id field to bug_step_id ... JOB ... oct 03, 2014
@@ -1085,6 +1113,8 @@ class Step(object):
                 try:
                     pick = npc_here_list[randrange(len(npc_here_list))]
                 except ValueError:  # "empty range for randrange()" if no npcs here
+                    #debug
+                    simple_obj_print("randrange error permitted", '-boston-')
                     print traceback.format_exc(5)
                     mail = current.mail
                     msg = HTML(P('In selecting an npc there were none found for'
@@ -1098,9 +1128,11 @@ class Step(object):
                     mail.send(mail.settings.sender,
                               'No valid npc was available',
                               msg.xml())
-
-                    pick = npc_list[randrange(len(npc_list))]
-
+                    try:
+                        pick = npc_list[randrange(len(npc_list))]
+                    except ValueError:
+                        simple_obj_print("randrange error NOT permitted", '-new york-')
+                        print traceback.format_exc(5)
                 assert pick
                 self.npc = Npc(pick)
         return self.npc
@@ -1533,7 +1565,7 @@ class Path(object):
         """Return the id of the current Path object."""
         return self.path_dict['id']
 
-    def _prepare_for_prompt(self):
+    def   _prepare_for_prompt(self):
         """ move next step in this path into the 'step_for_prompt' variable"""
         try:
             stepcount = len(self.steps)
@@ -1545,11 +1577,11 @@ class Path(object):
                 if self.steps:
                     next_step = self.steps.pop(0)
                     self.step_for_prompt = next_step
-                ##simple_obj_print("_prepare_for_prompt:stepcount < 1","message")
-                ##simple_obj_print(self.step_for_prompt, "step_for_promt in _prepare_for_prompt:stepcount < 1")
+                ###simple_obj_print("_prepare_for_prompt:stepcount < 1","message")
+                ###simple_obj_print(self.step_for_prompt, "step_for_promt in _prepare_for_prompt:stepcount < 1")
                 return True
             else:
-                ##simple_obj_print(len(self.steps),"in _prepare_for_prompt: ', len(self.steps), 'steps remain'")
+                ###simple_obj_print(len(self.steps),"in _prepare_for_prompt: ', len(self.steps), 'steps remain'")
                 #print'in _prepare_for_prompt: ', len(self.steps), 'steps remain'
                 next_step = self.steps.pop(0)
                 self.step_for_prompt = next_step
@@ -1586,7 +1618,7 @@ class Path(object):
             assert not self.step_for_reply
         return True
 
-    def _reset_steps(self):
+    def  _reset_steps(self):
         """
         Return all completed steps to the self.steps list.
 
@@ -1600,7 +1632,7 @@ class Path(object):
             #self.steps = self.get_steps(self.username)
             self.steps = self.get_steps()
             assert len(self.steps) > 0
-        ##simple_obj_print(self.steps,"in _reset_steps, this is self.steps")
+        ###simple_obj_print(self.steps,"in _reset_steps, this is self.steps")
         return True
 
     def get_step_for_prompt(self, loc, repeat=None):
@@ -1622,16 +1654,25 @@ class Path(object):
             assert self._prepare_for_prompt()
         mystep = self.step_for_prompt
         #debug
-        ##simple_obj_print(mystep, "mystep")
+        ###simple_obj_print(mystep, "mystep")
 
         next_loc = None
+        error_string = None
+        this_step_id = None
         goodlocs = mystep.get_locations()
+        #simple_obj_print(goodlocs, "philadelphia - goodlocs")
         if not loc.get_id() in goodlocs:
-            next_loc = goodlocs[randrange(len(goodlocs))]
+            try:
+                this_step_id = mystep.get_id()
+                next_loc = goodlocs[randrange(len(goodlocs))]
+            except ValueError:
+                error_string = 'Step: ' + (str(this_step_id) if this_step_id else  "can't get step id") + " possible empty location - tag:philadelphia"
+                simple_obj_print(error_string + "randrange error NOT permitted", '-philadelpha-')
+                print traceback.format_exc(5)
         else:
             mystep.loc = loc  # update location on step
 
-        return (mystep, next_loc)
+        return (mystep, next_loc, error_string)
 
     def get_step_for_reply(self):
         """
@@ -1666,10 +1707,14 @@ class PathChooser(object):
         """Initialize a PathChooser object to select the user's next path."""
         self.categories = {k: v for k, v in tag_progress.iteritems()
                            if k not in ['name', 'latest_new']}
+        #debug
+        #simple_obj_print(self.categories, "boise-- self.categories in PathChooser::__init__")
         self.rank = tag_progress['latest_new']
         db = current.db if not db else db
         self.loc_id = loc_id
         self.completed = paths_completed
+        #debug
+        #simple_obj_print(self, "boise-- all of self  in PathChooser::__init__")
 
     def _order_cats(self):
         """
@@ -1692,6 +1737,8 @@ class PathChooser(object):
 
         cat_list = range(1, 5)[(cat - 1):4] + range(1, 5)[0:(cat - 1)]
 
+        #debug
+        #simple_obj_print(cat_list, "boise-- cat_list in PathChooser::_order_cats")
         return cat_list
 
     def _paths_by_category(self, cat, rank):
@@ -1701,29 +1748,63 @@ class PathChooser(object):
         Returns a dictionary with categories as keys and corresponding lists
         as values.
         """
-        db = current.db
-        # TODO: set up computed field
-        # if not db(db.paths).select().first().path_tags:
-        # for row in db(db.paths.id > 0).select():
-        # db(db.paths.id == row.id).update(steps=row.steps)
-        # TODO: include paths with tag as secondary, maybe in second list
-        # TODO: cache the select below and just re-order randomly
-        taglist = self.categories['rev{}'.format(cat)]
+        pathset = None
+        while True:
+            db = current.db
+            # TODO: set up computed field
+            # if not db(db.paths).select().first().path_tags:
+            # for row in db(db.paths.id > 0).select():
+            # db(db.paths.id == row.id).update(steps=row.steps)
+            # TODO: include paths with tag as secondary, maybe in second list
+            # TODO: cache the select below and just re-order randomly
+     
+            #create a cleaner qeury to get the path ... JOB ..oct 08,2014
+            #conditions: tags_for_steps in tag_progress[rev_cat](tags) 
+            
+            taglist = self.categories['rev{}'.format(cat)]
+            #simple_obj_print(taglist, "boise-- taglist in PathChooser::_paths_by_category")
+    
+            #get all steps in this taglist
+            stepslist_unhashable = db(db.step2tags.tag_id.belongs(taglist)).select(db.step2tags.step_id).as_list() 
+            #simple_obj_print(stepslist_unhashable, "boise-- stepslist_unhashable in PathChooser::_paths_by_category")            
+            if ( not stepslist_unhashable): break
+            stepslist = [v['step_id'] for v in stepslist_unhashable]
+            #simple_obj_print(stepslist, "boise-- stepslist in PathChooser::_paths_by_category")            
+            
+            #status of steps != 2
+            stepslist_unhashable = db( (db.steps.id.belongs(stepslist)) & (db.steps.status != 2) ).select(db.steps.id).as_list() 
+            #simple_obj_print(stepslist, "boise-- stepslist_unhashable cleared of status != 2 in PathChooser::_paths_by_category")            
+            stepslist = [v['id'] for v in stepslist_unhashable]
+            #simple_obj_print(stepslist, "boise-- stepslist cleared of status != 2 in PathChooser::_paths_by_category")            
+            if ( not stepslist): break
+            #pathset = pathset.find(lambda row: len(row.steps) > 0 and
+            #                       all([s for s in row.steps
+            #                            if (db.steps[s].status != 2)]))            
 
-        allpaths = db(db.paths.id > 0).select()
-        pathset = allpaths.find(lambda row: any([t for t in row.tags_for_steps
-                                                 if t in taglist]))
-        # pathset.exclude(lambda row: any([t for s in row.steps
-        # for t in db.steps[s].tags
-        # if db.tags[t].tag_position > rank]))
-        pathset = pathset.find(lambda row: len(row.steps) > 0 and
-                                           all([s for s in row.steps
-                                                if (db.steps[s].status != 2)]))
-        pathset = pathset.find(lambda row: all([db.steps[s].locations for s
-                                                in row.steps]))
-        pathset = pathset.as_list()
-
+            #all paths in steplist from taglist
+            pathset_ids_unhashable = db(db.path2steps.step_id.belongs(stepslist)).select(db.path2steps.path_id).as_list() 
+            #simple_obj_print(pathset_ids_unhashable, "boise--  pathset_ids_unhasable fresh in PathChooser::_paths_by_category")            
+            pathset_ids = [v['path_id'] for v in pathset_ids_unhashable]
+            #simple_obj_print(pathset_ids, "boise--  pathset_ids fresh in PathChooser::_paths_by_category")            
+            if ( not pathset_ids): break
+            
+            # pathset.exclude(lambda row: any([t for s in row.steps
+            # for t in db.steps[s].tags
+            # if db.tags[t].tag_position > rank]))
+            pathset = db(db.paths.id.belongs(pathset_ids)).select() 
+            #simple_obj_print(pathset.as_list(), "boise-- pathset after we get entire thing in PathChooser::_paths_by_category")
+            pathset = pathset.find(lambda row: all([ (db.steps[s] and db.steps[s].locations and db.steps[s].locations[0]) for s
+                                                    in row.steps]))
+            #simple_obj_print(pathset, "boise-- pathset after screening for locations in PathChooser::_paths_by_category")
+    
+            pathset = pathset.as_list()
+    
+            #debug
+            ##simple_obj_print(pathset, "boise-- pathset in PathChooser::_paths_by_category")
+            #simple_obj_print(cat,     "boise-- cat in PathChooser::_paths_by_category")
+            break;
         return (pathset, cat)
+    
 
     def _choose_from_cat(self, cpaths, category):
         """
@@ -1739,45 +1820,67 @@ class PathChooser(object):
         Note: This method is *not* intended to handle categories with no
         available paths for this user. If such a category is supplied the
         method will raise an error.
+        
+        JOB: Oct 12, 2014 : _paths_by_category is supposed to have filtered out
+        all paths that have steps with no locations, so we can skip that step
+        here and make sure that it is working in _paths_by_category if we have
+        a problem here
+        
         """
-        loc_id = self.loc_id
-        db = current.db
-        #print'completed----------------------'
-        #printself.completed
 
-        p_new = [p for p in cpaths if p['id'] not in self.completed]
-        #print'p_new-------------------'
-        #print[p['id'] for p in p_new]
-        p_here = [p for p in cpaths
-                  if loc_id in db.steps[int(p['steps'][0])].locations]
-        #print'p_here-------------------'
-        #print[p['id'] for p in p_here]
-        p_here_new = [p for p in p_here if p in p_new]
-        #print'p_here_new-------------------'
-        #print[p['id'] for p in p_here_new]
         path = None
         new_loc = None
         mode = None
-        if p_here_new:
-            path = p_here_new[randrange(0, len(p_here_new))]
-            mode = 'here_new'
-        elif p_new:
-            # While loop safeguards against looking for location for a step
-            # that has no locations assigned.
-            while path is None:
+
+        while True:       
+            loc_id = self.loc_id
+            #simple_obj_print(loc_id, "vernon -current loc_id in Pathchooser::_choose_from_cat")
+            db = current.db
+            #simple_obj_print(self.completed, "vernon- self.completed in Pathchooser::_choose_from_cat")
+            p_new = [p for p in cpaths if p['id'] not in self.completed]
+            #simple_obj_print(p_new, "vernon- pnew in Pathchooser::_choose_from_cat")
+            p_here = [p for p in cpaths
+                      if loc_id in db.steps[int(p['steps'][0])].locations]
+            #simple_obj_print(p_here, "vernon- p_here in Pathchooser::_choose_from_cat")
+            p_here_new = [p for p in p_here if p in p_new]
+            #simple_obj_print(p_here_new, "vernon- p_here_new in Pathchooser::_choose_from_cat")
+            if p_here_new:
+                path = p_here_new[randrange(0, len(p_here_new))]
+                mode = 'here_new'
+            elif p_new:
+                # While loop safeguards against looking for location for a step
+                # that has no locations assigned.
+                #JOB ... infinite loop danger here?? oct 12, 2014
+                #    ... adding a safeguard against infinite looping ... wasnt happening
+                #    ...because at this point all paths should only have steps with locations anyways 
+                                
+                loopmax = len(p_new)*5 
+                loopcount = 0
+                while path is None:
+                    try:
+                        loopcount += 1
+                        if (loopcount > loopmax): break
+                        idx = randrange(0, len(p_new))
+                        path = p_new[idx]
+                        new_locs = db.steps(path['steps'][0]).locations
+                        new_loc = new_locs[randrange(0, len(new_locs))]
+                        mode = 'new_elsewhere'
+                    except TypeError:
+                        path = None
+                        simple_obj_print("vernon- TypeError should NOT happen ... filtering for blank locations in _path_by_category is not working ", '-altoona-')
+                    except ValueError:
+                        simple_obj_print("vernon-randrange error NOT permitted", '-altoona-')
+                        print traceback.format_exc(5) 
+            elif p_here:
                 try:
-                    idx = randrange(0, len(p_new))
-                    path = p_new[idx]
-                    new_locs = db.steps(path['steps'][0]).locations
-                    new_loc = new_locs[randrange(0, len(new_locs))]
-                except TypeError:
-                    path = None
-            mode = 'new_elsewhere'
-        elif p_here:
-            path = p_here[randrange(0, len(p_here))]
-            mode = 'repeat_here'
-        #print'mode-------------------------'
-        #printmode
+                    path = p_here[randrange(0, len(p_here))]
+                    mode = 'repeat_here'
+                except ValueError:
+                    simple_obj_print("randrange error NOT permitted", '-altoona-')
+                    print traceback.format_exc(5)                 
+            break #from main while True
+        #debug
+        #simple_obj_print( (path, int(new_loc) if new_loc else None, category, mode), "boise-- (path, new_loc, category, mode) in PathChooser::_choose_from_cat")
         return (path, new_loc, category, mode)
 
     def choose(self, db=None):
@@ -1800,14 +1903,15 @@ class PathChooser(object):
 
         cat_list = [c for c in self._order_cats()
                     if self.categories['rev{}'.format(c)]]
+        #simple_obj_print(cat_list, "boise-- catlist in PathChooser::choose")
 
         # cycle through categories, starting with the one from _get_category()
         for cat in cat_list:
             catpaths, category = self._paths_by_category(cat, self.rank)
-            #print'catpaths -------------'
-            #print[c['id'] for c in catpaths]
-            #print'category -------------'
-            #printcategory
+            #print 'catpaths -------------'
+            #print [c['id'] for c in catpaths]
+            #print 'category -------------'
+            #print category
             if len(catpaths):
                 path, newloc, category, mode = self._choose_from_cat(catpaths,
                                                                      category)
@@ -2063,7 +2167,7 @@ class User(object):
         self.tag_records = tag_records
 
         #debug
-        #simple_obj_print(self.cats_counter, "self.cats_counter")
+        ##simple_obj_print(self.cats_counter, "self.cats_counter")
         #dont forget to remove the ff line
         #self.cats_counter = 5
         
@@ -2092,7 +2196,7 @@ class User(object):
             cat_result = c.categorize_tags()
             
             #debug
-            #simple_obj_print(cat_result, "halifax cat_result")
+            ##simple_obj_print(cat_result, "halifax cat_result")
             
             self.rank = cat_result['tag_progress']['latest_new']
             self.tag_records = cat_result['tag_records']  # FIXME: do changes get recorded?
@@ -2177,7 +2281,7 @@ class Categorizer(object):
         db = current.db if not db else db
         tagorder = db.tag_records.tag
         tag_records = db(db.tag_records.name == self.user_id).select(orderby=tagorder).as_list()
-        #simple_obj_print(tag_records,"Minnedosa, this is what we got")
+        ##simple_obj_print(tag_records,"Minnedosa, this is what we got")
 
         #if tag_records:
         #    tag_records = self._sanitize_recs(tag_records)
@@ -2206,26 +2310,26 @@ class Categorizer(object):
             for idx, t in enumerate([t for t in tag_records
                                      if tag_records and t['secondary_right']]):
                 self._add_secondary_right(t)
-                #simple_obj_print(t, "***--halifax--*** t after add secondary right")
+                ##simple_obj_print(t, "***--halifax--*** t after add secondary right")
             categories = self._core_algorithm()
 
             #debug
-            #simple_obj_print(categories, "categories after core algorithm---------------------")
+            ##simple_obj_print(categories, "categories after core algorithm---------------------")
             
             categories = self._add_untried_tags(categories)
             #debug
-            #simple_obj_print(categories, "categories after add untried-------------------------")
+            ##simple_obj_print(categories, "categories after add untried-------------------------")
 
             categories = self._remove_dups(categories, rank)
 
             #debug
-            #simple_obj_print(categories, "categories after remove dups-------------------------")
+            ##simple_obj_print(categories, "categories after remove dups-------------------------")
 
             categories.update((c, []) for c in ['rev1', 'rev2', 'rev3', 'rev4'])
             cat_changes = self._find_cat_changes(categories, old_categories)
 
             #debug
-            #simple_obj_print(categories, "categories after cat changes -------------------------")
+            ##simple_obj_print(categories, "categories after cat changes -------------------------")
             ##pprint(cat_changes)
 
             promoted = cat_changes['promoted']
@@ -2294,13 +2398,13 @@ class Categorizer(object):
         
         
         right2 = flatten(rec['secondary_right'])  # FIXME: sanitizing data
-        #simple_obj_print(rec, "neepawa- origional rec in _add_secondary_right")
-        #simple_obj_print(right2, "neepawa- right2 in _add_secondary_right")
-        #simple_obj_print( rec['secondary_right'], "minnedosa - rec sec right in _add_secondary_right,right2")
+        ##simple_obj_print(rec, "neepawa- origional rec in _add_secondary_right")
+        ##simple_obj_print(right2, "neepawa- right2 in _add_secondary_right")
+        ##simple_obj_print( rec['secondary_right'], "minnedosa - rec sec right in _add_secondary_right,right2")
         
         if right2 != rec['secondary_right']:  # FIXME: can remove when data clean
             right2.sort()
-        #simple_obj_print(right2, "halifax - right2 sorted in _add_secondary_right,right2")
+        ##simple_obj_print(right2, "halifax - right2 sorted in _add_secondary_right,right2")
 
         rlen = len(right2)
         rem2 = rlen % CONST_SEC_RIGHT_MOD
@@ -2315,19 +2419,19 @@ class Categorizer(object):
                 rec['times_right'] = 0
             rec['times_right'] += triplets2
 
-            #simple_obj_print(rlen, "halifax - rlen in _add_secondary_right")
-            #simple_obj_print(triplets2, "halifax - triplets2 in _add_secondary_right")
-            #simple_obj_print(rem2, "halifax - rem2 in _add_secondary_right")
+            ##simple_obj_print(rlen, "halifax - rlen in _add_secondary_right")
+            ##simple_obj_print(triplets2, "halifax - triplets2 in _add_secondary_right")
+            ##simple_obj_print(rem2, "halifax - rem2 in _add_secondary_right")
 
             # move tlast_right forward based on mean of oldest 3 secondary_right
             early3 = right2[: -(rem2)] if rem2 else right2[:]
-            #simple_obj_print(early3, "halifax - early3 in _add_secondary_right")
+            ##simple_obj_print(early3, "halifax - early3 in _add_secondary_right")
             early3d = [self.utcnow - datetime.datetime.strptime(s,'%Y-%m-%d %H:%M:%S.%f') for s in early3]
-            #simple_obj_print(early3d, "halifax - early3d in _add_secondary_right")
+            ##simple_obj_print(early3d, "halifax - early3d in _add_secondary_right")
             avg_delta = sum(early3d, datetime.timedelta(0)) / len(early3d)
-            #simple_obj_print(avg_delta, "halifax - avg_delta in _add_secondary_right")
+            ##simple_obj_print(avg_delta, "halifax - avg_delta in _add_secondary_right")
             avg_date = self.utcnow - avg_delta
-            #simple_obj_print(avg_date, "halifax - avg_date in _add_secondary_right")
+            ##simple_obj_print(avg_date, "halifax - avg_date in _add_secondary_right")
 
             #print'type is', type(rec['tlast_right'])
             # sanitize tlast_right in case db value is string
@@ -2340,16 +2444,16 @@ class Categorizer(object):
                 rec['tlast_right'] = avg_date
 
             rec['secondary_right'] = right2[-(rem2):] if rem2 else []
-            #simple_obj_print(rec, "halifax new rec in _add_secondary_right")
+            ##simple_obj_print(rec, "halifax new rec in _add_secondary_right")
             
             #test where we change the last_right of the rec
             test_rec = deepcopy(rec)
             test_rec['tlast_right'] = test_rec['tlast_right'] - datetime.timedelta(days=300)
-            #simple_obj_print(test_rec,"halifax test rec after subtracting 300 days")
+            ##simple_obj_print(test_rec,"halifax test rec after subtracting 300 days")
             if avg_date > test_rec['tlast_right']:
                 print "halifax, avg_date > test_rec['tlast_right'] "
                 test_rec['tlast_right'] = avg_date
-                #simple_obj_print(test_rec,"halifax test rec after replacing with avg_date")
+                ##simple_obj_print(test_rec,"halifax test rec after replacing with avg_date")
             #write new record to dbase
             condition = {'tag': rec['tag'], 'name': rec['name']}
             db.tag_records.update_or_insert(condition,
@@ -2674,3 +2778,28 @@ class Block(object):
         step = self.make_step(self.get_condition())
         return step
 
+
+
+class Exception_Bug(object):
+    """
+    Handles the creation of exception   
+    reports for paideia.
+    Joseph Boakye <jboakye@bwachi.com> Oct 12, 2014
+    """
+    def __init__(self, exception_data):
+        """
+        Initialize a Bug object for generating bug reports on specific user
+        interactions.
+        """
+        db = current.db
+        try:
+            db.exceptions.insert(step=exception_data['step_id'],
+                           in_path=exception_data['path_id'],
+                           map_location=exception_data['loc'],
+                           user_response=exception_data['answer'],
+                           log_id=exception_data['log_id'],
+                           score=exception_data['score'])
+            db.commit()
+        except Exception:
+            print traceback.format_exc(5)
+            simple_obj_print(exception_data, "couldn't insert this exception data")
