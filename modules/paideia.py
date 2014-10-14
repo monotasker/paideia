@@ -1915,7 +1915,10 @@ class PathChooser(object):
             if len(catpaths):
                 path, newloc, category, mode = self._choose_from_cat(catpaths,
                                                                      category)
-                return path, newloc, category, mode
+                if (mode):
+                    return path, newloc, category, mode
+                else: 
+                    print 'bad mode trying another category'
             else:
                 continue
         return False
