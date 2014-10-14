@@ -953,6 +953,33 @@ class Step(object):
         return [l for l in self.data['locations']
                 if db.locations[l].loc_active is True]
 
+    def is_valid(self):
+        """
+        Step.is_valid
+        Returns true step has data
+        """
+        if self.data: return True
+        return False
+    
+    def has_locations(self):
+        """
+        Step.has_locations
+        Returns true if any of the location id's for this step is active.
+        """
+        rslt = False;
+        while True:
+            if not self.is_valid:
+                break
+            if self.get_locations():
+                rslt =  True
+                break
+            break
+        #debug
+        #simple_obj_print('step_id:' + str(self.get_id()) + ' result:' + ('True' if rslt else 'False'), "tewksbusy: has locations")
+        return rslt
+
+
+
     def _get_slides(self):
         """
         Return a dictionary of info on slide decks relevant to this step.
@@ -1793,8 +1820,9 @@ class PathChooser(object):
             # if db.tags[t].tag_position > rank]))
             pathset = db(db.paths.id.belongs(pathset_ids)).select() 
             #simple_obj_print(pathset.as_list(), "boise-- pathset after we get entire thing in PathChooser::_paths_by_category")
-            pathset = pathset.find(lambda row: all([ (db.steps[s] and db.steps[s].locations and db.steps[s].locations[0]) for s
-                                                    in row.steps]))
+            #debug
+            
+            pathset = pathset.find(lambda row: all([ Step(s).has_locations() for s in row.steps]))
             #simple_obj_print(pathset, "boise-- pathset after screening for locations in PathChooser::_paths_by_category")
     
             pathset = pathset.as_list()
