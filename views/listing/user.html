@@ -1,7 +1,13 @@
 {{extend 'layout.html'}}
 
 {{=chooser}}
-<div class='user_list'>
-    {{=LOAD('listing', 'userlist.load', vars={'value': classid}, ajax=False)}}
+<div class='user_list' id='user_list'>
+    {{=LOAD('listing', 'userlist.load', vars={'value': classid}, ajax=True)}}
 </div>
-{{print 'done rendering view'}}
+
+<script>
+$('body').on('change', 'select#class_chooser_select', function(){
+    var newval = $(this).children('option:selected').val();
+    ajax('{{=URL("listing", "userlist.load")}}', ['class_chooser_select'], 'user_list');
+});
+</script>

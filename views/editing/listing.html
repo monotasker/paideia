@@ -12,12 +12,9 @@ pass}}
 
 <script>
 if ($('select#bugs_bug_status')){
-    console.log('found it');
     $('body').on('change', 'select#bugs_bug_status', function(){
-        console.log('you changed me!');
         var newval = $(this).children('option:selected').val();
         if ((newval == 1)|(newval == 2)){
-            console.log('she come undone');
             ajax('{{=URL("editing", "undo_bug")}}', ['step', 'in_path', 'map_location', 'id', 'log_id', 'score', 'bug_status', 'user_name', 'admin_comment'], ':eval');
         }
     });
