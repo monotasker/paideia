@@ -666,16 +666,19 @@ def insert_trigger_for_steps(f,given_step_id):
             else:
                 simple_obj_print(tag_id, "orphan tag:")
         db.commit()
+    create_or_update_steps_inactive_locations(f,given_step_id)
+
 def update_trigger_for_steps(s,f):
     #simple_obj_print(s, 'bavaria s is: ')
     for r in s.select():
         db(db.step2tags.step_id==r.id).delete()
-        x = db(db.steps.id==r.id).select(db.steps.tags).first()
+        x = db(db.steps.id==r.id).select(db.steps.tags,db.steps.locations).first()
         if x:
             tag_ids = (x.as_dict())['tags']
+            locations = (x.as_dict())['locations']
             #simple_obj_print(type(tag_ids), "bavaria: type of given_step_id")
             #simple_obj_print(tag_ids,"bavaria, tag_ids in update_trigger_for_steps")
-            insert_trigger_for_steps({'tags' :tag_ids},r.id)
+            insert_trigger_for_steps({'tags' :tag_ids, 'locations': locations},r.id)
 
 
 def insert_trigger_for_paths(f,given_path_id):
@@ -685,15 +688,27 @@ def insert_trigger_for_paths(f,given_path_id):
     if (dict != type(local_f)):
         local_f = local_f.as_dict()
     #simple_obj_print(local_f, "fordham: f")
+    #delete all steps_inactive_locations data for this path
+    old_steps_list = [s['step_id'] for s in db(db.path2steps.path_id == given_path_id).select(db.path2steps.step_id).as_list()]
+    db(db.steps_inactive_locations.step_id.belongs(old_steps_list)).delete()
+    new_steps_list = []
     if 'steps' in local_f:
         step_ids = local_f['steps']
         for step_id in step_ids:
+            new_steps_list.append(step_id)
             #simple_obj_print(step_id, "fordham: step id")
             if db(db.steps.id ==step_id).count() > 0:
                 db.path2steps.insert(step_id=step_id,path_id=path_id)
             else:
                 simple_obj_print(step_id, "orphan step:")
-        db.commit()
+            db.commit()
+    old_steps_list.extend(new_steps_list)
+    for step_id in old_steps_list:
+        step_locs = db.steps[step_id].as_dict()['locations']
+        create_or_update_steps_inactive_locations({'locations': step_locs},step_id)
+     
+
+
 def update_trigger_for_paths(s,f):
     #simple_obj_print(s, 'new rochelle s is: ')
     for r in s.select():
@@ -704,41 +719,102 @@ def update_trigger_for_paths(s,f):
             #simple_obj_print(step_ids,"new rochelle, step_ids in update_trigger_for_paths")
             insert_trigger_for_paths({'steps' :step_ids},r.id)
 
+#take care off steps_inactive_locations
+def before_delete_trigger_for_paths(s):
+    #simple_obj_print(s, 'new rochelle s is: ')
+    old_steps_list = []
+    for r in s.select():
+        old_steps_list = [s['step_id'] for s in db(db.path2steps.path_id == r.id).select(db.path2steps.step_id).as_list()]
+    current.old_steps_list = old_steps_list
+#take care off steps_inactive_locations
+def after_delete_trigger_for_paths(s):
+    #simple_obj_print(s, 'new rochelle s is: ')
+    for step_id in current.old_steps_list:
+        step_locs = db.steps[step_id].as_dict()['locations']
+        create_or_update_steps_inactive_locations({'locations': step_locs},step_id)
+
+#take care off steps_inactive_locations
+def after_update_trigger_for_locations(s,f):
+    #simple_obj_print(s, 'new rochelle s is: ')
+    local_f = f
+    if (dict != type(local_f)):
+        local_f = local_f.as_dict()
+    simple_obj_print(local_f, 'new rochelle local_f is: ')
+    if (('loc_active' in local_f) and (local_f['loc_active'])):
+        for r in s.select():
+            db(db.steps_inactive_locations.loc_id ==r.id).delete()
+        db.commit()
+    #just set to inactive
+    if (('loc_active' in local_f) and (not local_f['loc_active'])):
+        #get all steps
+        steps = db(db.steps.id > 0).select(db.steps.id,db.steps.locations).as_list()
+        for r in s.select():
+            for step in steps:
+                while True:
+                    locs = step['locations']
+                    if (not locs): break
+                    if not(r.id in locs):break
+                    create_or_update_steps_inactive_locations({'locations': locs},step['id'])
+                    break
+
+def create_or_update_steps_inactive_locations(f,given_step_id):
+    step_id = int(given_step_id)
+    local_f = f
+    if (dict != type(local_f)):
+        local_f = local_f.as_dict()
+    simple_obj_print([local_f,step_id], "troy: local_f,step id")
+    #delete everything for this step first
+    db((db.steps_inactive_locations.step_id==step_id)).delete()
+    if 'locations' in local_f:
+        while True: #framingham
+            loc_ids = local_f['locations']
+            simple_obj_print(loc_ids,"troy: loc_ids")
+            if (not loc_ids): break
+            simple_obj_print(loc_ids,"troy: --we are here---")
+            bad_loc_ids = [];
+            on_to_the_next = True
+            for loc_id in loc_ids:
+                if db((db.locations.id ==loc_id) & (db.locations.loc_active == 'T')).count() == 1:
+                    on_to_the_next = False
+                    break
+                else:
+                    bad_loc_ids.append(loc_id)
+            simple_obj_print([on_to_the_next,bad_loc_ids],"troy: --ontothenext and bad_loc_ids---")
+            if not on_to_the_next: break
+            for loc_id in bad_loc_ids:
+                db((db.steps_inactive_locations.loc_id==loc_id)&(db.steps_inactive_locations.step_id==step_id)).delete()
+                loc_data = {}
+                loc_data['step_id'] = step_id
+                loc_data['loc_id'] =  loc_id
+                get_steps_inactive_locations_fields(loc_data)
+                simple_obj_print(loc_data, "troy: loc data")
+                db.steps_inactive_locations.insert(loc_id=loc_data['loc_id'],step_id=loc_data['step_id'],
+                                                   step_desc=loc_data['step_desc'],loc_desc=loc_data['loc_desc'],
+                                                   in_paths=loc_data['in_paths'])
+            break #from while true framingham
+    db.commit()
+
+
+
+def get_steps_inactive_locations_fields(id_data):
+    """
+    input: {step_id: xx, loc_id: xxx}
+    """
+    id_data['step_desc'] = (db.steps[id_data['step_id']]).as_dict()['prompt']
+    #debug
+    #simple_obj_print(((db.locations[id_data['loc_id']]).as_dict()), "bronx-location in get_steps_inactive_locations_fields")
+    id_data['loc_desc'] =  ((db.locations[id_data['loc_id']]).as_dict())['map_location']
+    id_data['in_paths'] =  [ p['path_id'] for p in   (db(db.path2steps.step_id == id_data['step_id'])).select(db.path2steps.path_id).as_list()]    
+    return True
+
 #no need for delete ... will be taken care of by foreign key
 db.steps._after_insert.append(lambda f,given_id: insert_trigger_for_steps(f,given_id))
 db.steps._after_update.append(lambda s,f: update_trigger_for_steps(s,f))
 db.paths._after_insert.append(lambda f,given_id: insert_trigger_for_paths(f,given_id))
 db.paths._after_update.append(lambda s,f: update_trigger_for_paths(s,f))
-
-"""
-These functions create step2tags and path2steps data for 
-legacy paths and steps.
-They only need to be ran once after which they SHOULD be commented out
-Joseph Boakye <jboakye@bwachi.com>
-Oct 11, 2014
-
-
----------------------  run once for legacy system -----------------
-"""
-"""
-def create_step2tags_from_steps():
-    db.step2tags.truncate()
-    for row in db(db.steps.id > 0).select():
-        insert_trigger_for_steps({'tags': row.tags},row.id)
-    return True
-create_step2tags_from_steps()
-
-def create_path2steps_from_paths():
-    db.path2steps.truncate()
-    for row in db(db.paths.id > 0).select():
-        insert_trigger_for_paths({'steps': row.steps},row.id)
-    return True
-create_path2steps_from_paths()
-"""
-
-"""
------------------  end run once for legacy system -------------
-"""
+db.paths._before_delete.append(lambda s: before_delete_trigger_for_paths(s))
+db.paths._after_delete.append(lambda s: after_delete_trigger_for_paths(s))
+db.locations._after_update.append(lambda s,f: after_update_trigger_for_locations(s,f))
 
 #exceptions .... when the bug table is not enough
 db.define_table('exceptions',
@@ -756,3 +832,59 @@ db.define_table('exceptions',
                 Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now)
                 )
+
+#exception_steps  .... steps with all inactive locations
+db.define_table('steps_inactive_locations',
+                Field('step_id', 'reference steps'),
+                Field('loc_id', 'reference locations'),
+                Field('step_desc', 'text'),
+                Field('loc_desc', 'text'),
+                Field('in_paths', 'list:integer'),
+                Field('modified_on', 'datetime', default=request.now))
+
+
+"""
+These functions create step2tags and path2steps data for 
+legacy paths and steps.
+They only need to be ran once after which they SHOULD be commented out
+Joseph Boakye <jboakye@bwachi.com>
+Oct 11, 2014
+---------------------  run once for legacy system -----------------
+"""
+
+"""
+def create_step2tags_from_steps():
+    db.step2tags.truncate()
+    for row in db(db.steps.id > 0).select():
+        insert_trigger_for_steps({'tags': row.tags},row.id)
+    return True
+create_step2tags_from_steps()
+
+def create_path2steps_from_paths():
+    db.path2steps.truncate()
+    for row in db(db.paths.id > 0).select():
+        insert_trigger_for_paths({'steps': row.steps},row.id)
+    return True
+create_path2steps_from_paths()
+"""
+
+"""
+def create_steps_inactive_locations_for_steps():
+    print "---called martha---"
+    db(db.steps_inactive_locations.id > 0).delete()
+    print "---called martha 2---"
+    steps = db(db.steps.id > 0).select(db.steps.id,db.steps.locations).as_list()
+    print "---called martha 3---"
+    for step in steps:
+        print "---called martha 4---"
+        locs = step['locations']
+        create_or_update_steps_inactive_locations({'locations': locs},step['id'])
+    db.commit()
+create_steps_inactive_locations_for_steps()
+"""
+
+
+"""
+-----------------  end run once for legacy system -------------
+"""
+

@@ -108,6 +108,8 @@ ap.append(form) }}
     <div class='responder'>
         {{if 'response_form' in locals() and response_form:}}
             {{=response_form}}
+            {{print 'in view about to show response_form'}}
+            {{print 'pre_bug_step_id: ', response_form['pre_bug_step_id']}}
         {{pass
 
         if 'continue' in response_buttons:}}
@@ -173,7 +175,7 @@ ap.append(form) }}
     });
 
     {{if 'bugreporter' in globals():}}
-    $('#bug_reporter_modal').appendTo('body');
+    <!--$('#bug_reporter_modal').appendTo('body');-->
     {{pass}}
 
     $('.popover-trigger').each(function() {

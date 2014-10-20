@@ -137,8 +137,11 @@ if auth.has_membership('administrators', auth.user_id) or auth.is_impersonating(
               (SPAN(T(' All Exceptions'), _class='icon-frown'),
                False, URL('editing', 'listing.html',
                           args=['exceptions'])),
+             (SPAN(T(' Steps with Invld. Locs'), _class='icon-frown'),
+               False, URL('editing', 'sil.html',
+                          args=['stepsinvalidlocs'])),
               ]),
-
+            
             (SPAN(T(' Utils'), _class='icon-cog'), False, None,
              [(SPAN(T(' Make paths'), _class='icon-cog'),
                False, URL('util', 'make_path')),
@@ -155,7 +158,6 @@ if auth.has_membership('administrators', auth.user_id) or auth.is_impersonating(
               (SPAN(T(' DB Backup'), _class='icon-cog'),
                False, URL('plugin_sqlite_backup', 'backup_db')),
               ]),
-
             (SPAN(T(' Web IDE'), _class='icon-code'),
              False, URL('admin', 'default', 'index')),
             (SPAN(T(' Error reports'), _class='icon-frown'),
