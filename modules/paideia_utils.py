@@ -32,7 +32,7 @@ def simple_obj_print(the_dict, title='No Title', indentation=0):
         return
     while True:
         #dictionaries
-        if type(the_dict) == type({}):
+        if ( (type(the_dict) == type({})) | (type(the_dict) == 'gluon.storage.Storage')):
             print indentation_string  + str(title) + '(dict):'
             for key in the_dict:
                 simple_obj_print(the_dict[key],key,indentation+1)

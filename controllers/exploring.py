@@ -1,6 +1,7 @@
 # coding: utf8
 from paideia import Walk, Map
 from ast import literal_eval
+from applications.paideia.modules.paideia_utils import simple_obj_print
 
 
 if 0:
@@ -77,9 +78,13 @@ def walk():
     print "\n\nstarting walk controller========================================"
     rvars = request.vars
     rargs = request.args
-    print "in controller.walk:"
-    print "args:", request.args
-    print "vars:", request.vars
+    #print "in controller.walk:"
+    #print "args:", request.args
+    #print "vars:", request.vars
+    #simple_obj_print(request.body.read(), "request body:")
+    #simple_obj_print(request, "request:")
+    #simple_obj_print(request.vars, "request.vars:")
+    #simple_obj_print(request.args, "request.args:")
 
     # form for testing paths; returned and embedded in view
     testform = SQLFORM.factory(Field('path', 'integer'),
@@ -115,6 +120,9 @@ def walk():
         stepargs['set_blocks'] = literal_eval(rvars['blocks'])
     if 'path' in rvars and not (rvars['path'] in ['', None, 'undefined']):
         stepargs['path'] = rvars['path']
+    #JOB ... oct 18, 2014 ... bug step id    
+    if 'pre_bug_step_id' in rvars and not (rvars['pre_bug_step_id'] in ['', None, 'undefined']):
+        stepargs['pre_bug_step_id'] = rvars['pre_bug_step_id']
 
     if not request.vars.loc:  # TODO: Does this do anything?
         request.vars.loc = None

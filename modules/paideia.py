@@ -148,8 +148,9 @@ class Walk(object):
         return self.user
 
     def start(self, localias, response_string=None, path=None, repeat=None,
-              step=None, set_blocks=None, recategorize=None):
+              step=None, set_blocks=None, recategorize=None,pre_bug_step_id=None):
         """
+        JOB ... oct 18, 2014 ... added bug_step_id to signature
         Issue the correct method for this interaction and return the result.
         This is the top-level interface for the Paideia module, to be called by
         the controller. The method decides whether we're starting a new step or
@@ -168,11 +169,13 @@ class Walk(object):
             if response_string:
                 #debug
                 ###simple_obj_print("response string is good","message")
+                #simple_obj_print("reply","calling Walk.reply")
                 return self.reply(localias=localias,
-                                  response_string=response_string)
+                                  response_string=response_string,
+                                  pre_bug_step_id=pre_bug_step_id)
             else:
                 #debug
-                ###simple_obj_print("ask 1","message")
+                #simple_obj_print("ask 1","calling Walk.ask")
                 return self.ask(localias=localias,
                                 path=path,
                                 repeat=repeat,
@@ -239,6 +242,7 @@ class Walk(object):
 
         p, category, redir, pastquota = user.get_path(loc, pathid=path,
                                                       repeat=repeat)
+        #simple_obj_print(p.path_dict, "Atlanta-path after get_path in ask")
         user.active_cat = category
         if redir:
             user.set_block('redirect', kwargs={'next_loc': redir})
@@ -319,8 +323,9 @@ class Walk(object):
                                                'promoted': promoted})
         return True
 
-    def reply(self, localias, response_string, path=None, step=None):
+    def reply(self, localias, response_string, path=None, step=None, pre_bug_step_id=None):
         """
+        JOB ... oct 18, 2014, added bug_step_id to the signature
         Return the information necessary to complete a step interaction.
 
         This includes evaluation of the user's reply and presentation of
@@ -340,6 +345,8 @@ class Walk(object):
         """
         #print'\n================================'
         print'\nSTART OF Walk.reply()'
+        #debug
+        #simple_obj_print((path,step), "orpington-reply called with path and step:")
         user = self._get_user()
         loc = user.get_location()
         p, cat = user.get_path(loc)[:2]
@@ -365,10 +372,10 @@ class Walk(object):
                                            response_string)
         #simple_obj_print(response_string, "halifax ----response string in reply ----")
         #simple_obj_print(prompt, "halifax ----prompt in reply ----")
-        #simple_obj_print(s.get_id(), "halifax ----step id in reply ----")
+        #simple_obj_print(pre_bug_step_id, "halifax ---- pre bug step id in reply ----")
         prompt['bugreporter'] = BugReporter().get_reporter(self.record_id,
                                                            p.get_id(),
-                                                           s.get_id(),
+                       pre_bug_step_id if pre_bug_step_id  else s.get_id(),
                                                            prompt['score'],
                                                            response_string,
                                                            user.loc.get_alias())
@@ -443,6 +450,7 @@ class Walk(object):
                 assert mycount == 1  # ensure there's never a duplicate
                 # TODO: eliminate check by making name field unique
             except Exception:
+                simple_obj_print(tag_progress, "el paso- this exception in _record_cats is not expected")
                 print traceback.format_exc(5)
                 return False
             return True
@@ -1061,7 +1069,8 @@ class Step(object):
                   'loc': location.get_alias(),
                   'response_buttons': ['map'],
                   'response_form': None,
-                  'bugreporter': None}
+                  'bugreporter': None,
+                  'pre_bug_step_id':self.get_id()}
         # TODO: this is a temporary hack for bad data
         self.npc = npc if not isinstance(npc, tuple) else npc[0]
         prompt['npc_image'] = self.npc.get_image()
@@ -1381,8 +1390,12 @@ class StepText(Step):
         this step.
         """
         # TODO: needs test
+        #JOB ... added step id for bug tracing ... oct 18, 2014
         form = SQLFORM.factory(Field('response', 'string',
                                      requires=IS_NOT_EMPTY()),
+                               #Field('pre_bug_step_id', 'string'),
+                               Field('pre_bug_step_id','string', readable=False, writable=False),
+                               hidden=dict(pre_bug_step_id=self.get_id()),
                                _autocomplete='off')
         return form
 
@@ -2154,12 +2167,17 @@ class User(object):
         cat = None
         pastq = None
 
+        #simple_obj_print(pathid, "albany-User::get_path called with pathid: ")
         if pathid:  # testing specific path
             self.path = Path(pathid)
+        #--- is this the cause of the repitions???? -- no its not ---------
         if repeat and not self.path:  # repeating a step, path finished before
             pathid = self.completed_paths.pop(-1)
             self.path = Path(pathid)
+            #simple_obj_print(pathid, "albany-User::get_path new path *popped*: ")
         # TODO: rationalize this series of conditions
+            #simple_obj_print(self.path.step_for_reply if (self.path and self.path.step_for_reply) else None,
+            #                  "albany-User::get_path new path *popped*: ")
         elif self.path and self.path.step_for_reply:
             pass
         elif self.path and repeat:  # repeating a step, path wasn't finished
