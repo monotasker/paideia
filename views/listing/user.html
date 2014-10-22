@@ -1,13 +1,26 @@
 {{extend 'layout.html'}}
 
 {{=chooser}}
-<div class='user_list' id='user_list'>
-    {{=LOAD('listing', 'userlist.load', vars={'value': classid}, ajax=True)}}
-</div>
 
-<script>
-$('body').on('change', 'select#class_chooser_select', function(){
-    var newval = $(this).children('option:selected').val();
-    ajax('{{=URL("listing", "userlist.load")}}', ['class_chooser_select'], 'user_list');
-});
+<script type="text/javascript">
+var userlist_cid = '';
+var refresh = function(){
+	//this needs to be here instead of in userlist.load otherwise you define multiple
+	//copies of the trigger
+	 //look for userlist_cid  to be set in userlist.load
+	if (userlist_cid){
+		//console.log('userlist_cid: ' + userlist_cid )
+		$('#chooser_submit').val('Working ...')
+		ajax("{{=URL('listing', 'userlist.load')}}", ['agid'], userlist_cid);
+	}
+	return false;
+}
+ $('#chooser_submit').click(refresh);  
 </script>
+
+<div class='user_list'>
+    {{=LOAD('listing', 'userlist.load', vars={'agid': classid}, ajax=False)}}
+</div>
+{{#print 'done rendering view'}}
+
+

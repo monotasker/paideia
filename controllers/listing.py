@@ -4,6 +4,8 @@ Controller supplying data for views that list users (for admin) and list slides.
 
 TODO: rationalize this controller organization
 '''
+#JOB ... this line is not liked by python ... oct 21, 2014
+#from test.pickletester import myclasses
 if 0:
     from gluon import INPUT, UL, LI, A, URL, SPAN, SELECT, OPTION, FORM
     from gluon import TABLE, TR, TD
@@ -18,6 +20,7 @@ from pprint import pprint
 
 @auth.requires_membership(role='administrators')
 def user():
+    print 'starting user ----------------------------------'
     # TODO: magic number here -- admin group is 1
     admins = db(db.auth_membership.group_id == 1
                 ).select(db.auth_membership.user_id).as_list()
@@ -28,14 +31,25 @@ def user():
     else:
         myclasses = db(db.auth_group.course_instructor == auth.user_id).select()
     myclasses = myclasses.as_list()
+    #pprint(myclasses)
 
-    chooser = FORM(SELECT(_id='class_chooser_select',
-                          _name='class_chooser_select'),
-                   _id='class_chooser')
+    chooser = FORM(SELECT(_name= 'agid',
+                          *[OPTION('{} {} {}, {}'.format(m['academic_year'], m['term'],
+                                          m['course_section'], m['institution'])
+                            , _value=m['id'])
+                              for m  in myclasses]),
+                    _id='class_chooser' )
+    chooser.append(INPUT(_type='submit', _id='chooser_submit'))
+    """
+    chooser = FORM(SELECT(_name= 'agid', _id='class_chooser_select'), _id='class_chooser')
     for m in myclasses:
         optstring = '{} {} {}, {}'.format(m['academic_year'], m['term'],
                                           m['course_section'], m['institution'])
         chooser[0].append(OPTION(optstring, _value=m['id']))
+    chooser.append(INPUT(_type='submit'))
+    """
+    
+    print 'returning------------------------------------------'
     return {'chooser': chooser, 'classid': myclasses[0]['id']}
 
 
@@ -116,11 +130,17 @@ def remove_user():
 def userlist():
     try:
         # define minimum daily required # of paths
-        if 'class_chooser_select' in request.vars:
-            row = db.auth_group[request.vars.class_chooser_select]  # from select via ajax
-        else:
+        # TODO: add class selection here so that I can narrow these figures
+        try:
+            #print 'request.vars is', request.vars            
+            #print 'value is', request.vars.value
+            #print 'agid is', request.vars.agid
+            #print 'class_chooser is', request.class_chooser
+            row = db.auth_group[request.vars.agid]
+        except:
+            print traceback.format_exc(5)
             row = db(db.auth_group.course_instructor == auth.user_id
-                     ).select().last()
+                     ).select().first()
         target = row['paths_per_day']
         freq = row['days_per_week']
 
@@ -155,7 +175,7 @@ def userlist():
 
             countlist[user.auth_user.id] = (spans[0]['count'], spans[0]['min_count'],
                                             spans[1]['count'], spans[1]['min_count'])
-        print 'returning'
+        response.js = "jQuery('#chooser_submit').val('Submit Query')"
         return {'users': users, 'countlist': countlist,
                 'target': target, 'freq': freq, 'classid': row['id']}
     except Exception:
@@ -207,3 +227,4 @@ def slides():
         #if session.walk and 'view_slides' in session.walk:
             #del session.walk['view_slides']
     return dict()
+
