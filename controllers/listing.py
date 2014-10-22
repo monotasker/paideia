@@ -140,7 +140,7 @@ def userlist():
         except:
             print traceback.format_exc(5)
             row = db(db.auth_group.course_instructor == auth.user_id
-                     ).select().first()
+                     ).select().last()
         target = row['paths_per_day']
         freq = row['days_per_week']
 
@@ -227,4 +227,3 @@ def slides():
         #if session.walk and 'view_slides' in session.walk:
             #del session.walk['view_slides']
     return dict()
-
