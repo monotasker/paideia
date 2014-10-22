@@ -34,7 +34,7 @@ tbl = TABLE(TR(TH(),
             _class='table table-condensed users_list_table')
 
 for user in users:
-    row = TR(TD(A(user.auth_user.last_name + ', ' + user.auth_user.first_name,
+    row = TR(TD(A(user.auth_user.last_name + ',' + user.auth_user.first_name,
                 _href=URL('reporting', 'user.html', args=[user.auth_user.id]))),
              TD(user.tag_progress.latest_new, _class='rank')
              )
@@ -78,3 +78,19 @@ pass
 }}
 {{=tbl}}
 {{=modal[1]}}
+
+<script type="text/javascript">
+//console.log(typeof(userlist_cid));
+try{
+	while(true){
+		if(typeof(userlist_cid) == undefined){break;}
+   		if (! userlist_cid){
+			userlist_cid = '{{=request.cid}}';
+		}
+	break;
+	}
+}
+catch(e){console.log('userlist_cid is not ready yet');}
+</script>
+
+
