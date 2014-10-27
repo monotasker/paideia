@@ -108,8 +108,8 @@ ap.append(form) }}
     <div class='responder'>
         {{if 'response_form' in locals() and response_form:}}
             {{=response_form}}
-            {{print 'in view about to show response_form'}}
-            {{print 'pre_bug_step_id: ', response_form['pre_bug_step_id']}}
+            {{#print 'in view about to show response_form'}}
+            {{#print 'pre_bug_step_id: ', response_form['pre_bug_step_id']}}
         {{pass
 
         if 'continue' in response_buttons:}}
@@ -150,6 +150,15 @@ ap.append(form) }}
         <small class='path-counter progress_text small muted'>
             'This will make {{=completed_count}} paths so far today.'
         </small>
+
+        <!--# debug                       ----------------------------------->
+        {{if (('paideia_debug' in globals()) and paideia_debug):}}
+        <small class='path-counter progress_text small muted'>
+            {{=XML(paideia_debug)}}
+        </small>
+        {{pass}}
+
+
     </div>
 {{pass}}
 

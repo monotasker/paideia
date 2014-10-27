@@ -12,6 +12,8 @@ Part of the Paideia platform built with web2py.
 import traceback
 #import locale
 from gluon import current, SQLFORM, Field, BEAUTIFY, IS_IN_DB
+from gluon.storage import Storage
+from gluon.storage import StorageList
 #from plugin_ajaxselect import AjaxSelect
 import re
 from itertools import chain
@@ -21,24 +23,27 @@ from itertools import chain
 import plugin_utils
 import datetime
 
+"""
 def simple_obj_print(the_dict, title='No Title', indentation=0):
-    """
+"""
+"""
     Prints a simple thing
     Joseph Boakye jboakye@bwachi.com
-    """
+"""
+"""
     indentation_string = ' '*indentation
     if (None == the_dict):
         print indentation_string  + '{' + str(title) + ': '  + '-None-' +  '}'
         return
     while True:
         #dictionaries
-        if ( (type(the_dict) == type({})) | (type(the_dict) == 'gluon.storage.Storage')):
+        if ( (type(the_dict) == type({})) | isinstance(the_dict, Storage)):
             print indentation_string  + str(title) + '(dict):'
             for key in the_dict:
                 simple_obj_print(the_dict[key],key,indentation+1)
             break
         #lists
-        if hasattr(the_dict, '__iter__'):
+        if ( (hasattr(the_dict, '__iter__')) |isinstance(the_dict, StorageList)) :
             print indentation_string  + str(title) + '(list):'
             count = 0         
             try:
@@ -57,8 +62,82 @@ def simple_obj_print(the_dict, title='No Title', indentation=0):
             print indentation_string  + '{' + str(title) + ': '  +  str(the_dict) +  '}'
             break
         break
+"""
+def simple_obj_print(the_dict, title='No Title', indentation=0):
+    output_obj = {'data': ''}
+    simple_obj_print_str(output_obj, the_dict, title, indentation)
+    print output_obj['data']
+
+def simple_obj_print_str(output_obj, the_dict, title='No Title', indentation=0, doing_what='S'):
+    """
+    Prints a simple thing ... same as simple_obj_print but print into string
+    Joseph Boakye jboakye@bwachi.com
+    """
+    indentation_string = ' '*indentation
+    scalar_beg = ''
+    scalar_end = ''
+    if doing_what in ('L', 'D' ):
+        scalar_beg = '<li>'
+        scalar_end = '</li>'
+    if (None == the_dict):
+        output_obj['data'] +=  indentation_string + scalar_beg + '<p>' + '{' + str(title) + ': '  + '-None-' +  '}' + '</p>' +  scalar_end
+        return
+    while True:
+        #dictionaries
+        if ( (type(the_dict) == type({})) | isinstance(the_dict, Storage)):
+            output_obj['data'] +=  (indentation_string  + str(title) + '(dict:)' + '<ol title="dict">')
+            for key in the_dict:
+                #output_obj['data'] +=  (indentation_string  + '<li>')
+                simple_obj_print_str(output_obj,the_dict[key],key,indentation+1,'D')
+                #output_obj['data'] +=  (indentation_string  + '</li>')
+            output_obj['data'] +=  (indentation_string  + '</ol>')
+            break
+
+        #lists
+        if ( (hasattr(the_dict, '__iter__')) |isinstance(the_dict, StorageList)) :
+            output_obj['data'] +=  (indentation_string  + str(title) + '(list:)' + '<ol title="list">')
+            count = 0         
+            try:
+                for value in the_dict:
+                    #output_obj['data'] +=  (indentation_string  + '<li>')
+                    simple_obj_print_str(output_obj,value, count,indentation+1,'L')
+                    #output_obj['data'] +=  (indentation_string  + '</li>')
+                    count +=1
+            except TypeError, te:
+                simple_obj_print_str(output_obj,"list is not iterable",count,indentation+1)
+                output_obj['data'] +=  (indentation_string  + '</li>')
+            output_obj['data'] +=  (indentation_string  + '</ol>')
+            break
+        #simple item
+        while True:
+            if type(the_dict) is datetime.datetime:
+                output_obj['data'] +=   (indentation_string  + scalar_beg + '<p>' + '{' + str(title) + ': ' +  \
+                     the_dict.strftime('%Y %m %d %H %M %S %f') +  '}' + '</p>' +  scalar_end)
+                break
+            output_obj['data'] +=  ( indentation_string + scalar_beg + '<p>' + '{' + str(title) + ': '  +  str(the_dict) +  '}' + '</p>' +  scalar_end)
+            break
+        break
 
 
+
+class Paideia_Debug(object):
+    """
+    Carry debug information to the screen
+    JOB ... oct 22, 2014
+    """
+    def __init__(self):
+        """
+        """
+        self.data = 'Debug Enabled'
+        
+    def do_print(self, the_object,the_title):
+        data_obj = dict(data='');
+        simple_obj_print_str(data_obj, the_object, the_title, 0)
+        self.data += data_obj['data']
+    
+    
+    
+ 
 
 
 
