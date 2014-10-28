@@ -2847,6 +2847,7 @@ class Categorizer(object):
                         else:
                             category = 'cat4'  # Not due, delta > 60 days
                     else:
+                        #current.paideia_debug.do_print({'tag': record['tag']}, "cern- this is going to be cat3")
                         category = 'cat3'  # delta between 14 and 60 days
                 else:
                     category = 'cat2'  # Not due but delta is 2 weeks or less

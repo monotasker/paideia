@@ -458,6 +458,11 @@ class Stats(object):
                 tr[idx]['revlev'] = 0
 
             # add rw_ratio
+            print 'in stats ============================================='
+            print 'tag', tr[idx]['tag']
+            print 'tr', t['tright']
+            print 'tw', t['twrong']
+            print '======================================================'
             try:
                 if not t['tright']:  # TODO: tests to sanitize bad data (None)
                     t['tright'] = 0
@@ -537,9 +542,14 @@ class Stats(object):
                       if k != 'latest_new'}
         # TODO: for some reason Categorizer changes self.tag_recs persistently
         # when it (rather than copy) is passed as argument
-        c = Categorizer(rank, categories, copy(self.tag_recs),
-                        self.user_id, utcnow=self.utcnow)
-        bls = c.categorize_tags()['tag_progress']
+        
+        #JOB ... oct 28, 2014 ... dont need to call categorize_tags
+        #just read tag progress from the db. categorize_tags has other
+        #side effects we don't want
+        #c = Categorizer(rank, categories, copy(self.tag_recs),
+        #                self.user_id, utcnow=self.utcnow)
+        #bls = c.categorize_tags()['tag_progress']
+        bls = db(db.tag_progress.name == self.user_id).select().first().as_dict()
         bl_ids = {k: v for k, v in bls.iteritems() if k[:3] == 'cat'}
         badge_levels = {}
         for k, v in bl_ids.iteritems():
