@@ -107,8 +107,6 @@ class Walk(object):
                                    tag_progress=tag_progress,
                                    new_user=new_user)
         #JOB .... oct 24, 2014
-        #current.paideia_user = self.user
-        current.paideia_walk = self
 
         #let self carry Walk object so we can
         # TODO is record_id necessary?
@@ -271,8 +269,12 @@ class Walk(object):
                     current.sequence_counter += 1
                     user.set_block(c, kwargs=myargs)
             username = user.get_name()
-            self._set_blocks()
-    
+            tag_progress,promoted,new_tags = self._set_blocks()
+                #JOB ... moved from reply ... oct 23, 2014
+            if (promoted or new_tags):
+                self._record_cats(tag_progress,
+                             promoted,
+                             new_tags)
             loc = Location(localias)
             prev_loc = user.set_location(loc)
             prev_npc = user.get_prev_npc()
@@ -311,7 +313,7 @@ class Walk(object):
             npc = s.get_npc(loc, prev_npc, prev_loc)
             user.set_npc(npc)
     
-            prompt = s.get_prompt(loc, npc, username)
+            prompt = s.get_prompt(loc, npc, username, True if user.blocks else False)
             #print'before sending to view------------------------'
             
             #debug
@@ -381,7 +383,8 @@ class Walk(object):
         """
         """
         user = self.user if not user else user
-        promoted, new_tags = user.get_categories(user_id=user.get_id())
+        tag_progress, promoted, new_tags = user.get_categories(user_id=user.get_id())
+        
         if new_tags:
             # setting order here should make new_tags step come up first
             user.set_block('new_tags', kwargs={'new_tags': new_tags,
@@ -390,7 +393,7 @@ class Walk(object):
         if promoted:
             user.set_block('new_tags', kwargs={'new_tags': new_tags,
                                                'promoted': promoted})
-        return True
+        return tag_progress, promoted, new_tags
 
     def reply(self, localias, response_string, path=None, step=None, pre_bug_step_id=None):
         """
@@ -458,7 +461,7 @@ class Walk(object):
         prompt['loc'] = loc.get_alias()
 
         p.complete_step()  # removes path.step_for_reply; cf. (user.get_path)
-        current.paideia_walk.user._reset_for_walk()
+        user._reset_for_walk()
         self._store_user(user)
 
         return prompt
@@ -726,8 +729,7 @@ class Walk(object):
         log_record_id = db.attempt_log.insert(**log_args)
         db.commit()
         #JOB ... oct 25, 2014 ... only add to completed paths if got right 
-        if got_right:
-            self.user.complete_path()
+        self.user.complete_path(got_right)
         return log_record_id
 
     def _store_user(self, user, db=None):
@@ -1274,7 +1276,7 @@ class StepContinue(Step):
     """
     An abstract subclass of Step that adds a 'continue' button to the responder.
     """
-    def get_prompt(self, loc, npc, username):
+    def get_prompt(self, loc, npc, username,user_blocks_left=True):
         """
         Return the html form to allow the user to respond to the prompt for
         this step.
@@ -1294,7 +1296,7 @@ class StepRedirect(Step):
     specific location. Otherwise, the user receives a generic instruction to
     try "another location in town".
     '''
-    def get_prompt(self, loc, npc, username):
+    def get_prompt(self, loc, npc, username, user_blocks_left=True):
         """
         Return the html form to allow the user to respond to the prompt for
         this step.
@@ -1306,7 +1308,8 @@ class StepRedirect(Step):
         #err ok not sure
         #if this is the only block, popping it from User::blocks will leave
         #User::blocks empty
-        if current.paideia_walk.user.blocks:
+        #current.paideia_debug.do_print({'user_blocks_left':user_blocks_left},"Message from StepRedirect::get_prompt")
+        if user_blocks_left:
             prompt['response_buttons'] = ['map', 'continue']
         else:
             prompt['response_buttons'] = ['map']
@@ -1466,7 +1469,7 @@ class StepText(Step):
     that input. Handles only a single string response.
     """
 
-    def get_prompt(self, location, npc, username):
+    def get_prompt(self, location, npc, username, user_blocks_left=True):
         """x"""
         prompt = super(StepText, self).get_prompt(location, npc, username)
         prompt['response_form'] = self._get_response_form()
@@ -2177,10 +2180,13 @@ class User(object):
         adds up counts of each completed path ...essentially how
         many times did you get something right
         """
-        len = 0
+        p_len = 0
         for x in  self.completed_paths['paths']:
-            len += self.completed_paths['paths'][x]
-        return len
+            #debug
+            #print {'self.completed_paths':self.completed_paths}
+            p_len += self.completed_paths['paths'][x]['right']
+            p_len += self.completed_paths['paths'][x]['wrong']
+        return p_len
     def get_id(self):
         """Return the id (from db.auth_user) of the current user."""
         return self.user_id
@@ -2320,7 +2326,7 @@ class User(object):
             pass
         if not self.tag_progress:  # in case User was badly initialized
             #debug
-            #print 'Atlanta: no tag-progress, so getting categories'
+            print 'Atlanta: no tag-progress, so getting categories'
             self.get_categories()
  
  
@@ -2411,7 +2417,7 @@ class User(object):
                 and hasattr(self, 'categories') \
                 and self.categories:
             self.cats_counter += 1
-            return None, None
+            return None, None, None
         else:
             #print 'Atlanta- get_categories called'
             utcnow = datetime.datetime.utcnow() if not utcnow else utcnow
@@ -2443,10 +2449,6 @@ class User(object):
             self.new_tags = cat_result['new_tags']
             self.cats_counter = 0  # reset counter
 
-            #JOB ... moved from reply ... oct 23, 2014
-            assert current.paideia_walk._record_cats(self.tag_progress,
-                         self.promoted,
-                         self.new_tags)
 
             #debug
             ##current.paideia_debug.do_print(self.categories, "Marseilles-tag categories output in get categories")
@@ -2456,9 +2458,9 @@ class User(object):
 
         
 
-            return self.promoted, self.new_tags
+            return self.tag_progress, self.promoted, self.new_tags
 
-    def complete_path(self):
+    def complete_path(self,got_right):
         """
         Move the current path from the path variable to 'completed_paths' list.
         Set last_npc and prev_loc before removing the path.
@@ -2473,12 +2475,15 @@ class User(object):
         #JOB ... oct 25, 2014
         #we now using hash {'path_id':count} to keep track of completed_paths
         # {'latest' : path_id} gives path_id of the latest one
-        if (str(self.path.get_id()) in self.completed_paths['paths']):
-            self.completed_paths['paths'][str(self.path.get_id())] += 1
-            self.completed_paths['latest'] = self.path.get_id()
+        if (str(self.path.get_id()) not in self.completed_paths['paths']):
+            self.completed_paths['paths'][str(self.path.get_id())] = {'right': 0, 'wrong':0}
+        if got_right:
+            self.completed_paths['paths'][str(self.path.get_id())]['right'] += 1
         else:
-            self.completed_paths['paths'][str(self.path.get_id())] = 1
-            self.completed_paths['latest'] = self.path.get_id()
+            self.completed_paths['paths'][str(self.path.get_id())]['wrong'] += 1            
+        self.completed_paths['latest'] = self.path.get_id()
+        #debug
+        #print {'self.completed_paths':self.completed_paths}
         #self.path = None ... has been moved to _make_path_choice ... we are doing complete_path
         #earlier and self.path may need to hang around a bit longer 
         #self.path = None
