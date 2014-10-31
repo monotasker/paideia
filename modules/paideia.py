@@ -1383,7 +1383,9 @@ class StepAwardBadges(StepContinue, Step):
                          'badges:\r\n'.format(conj)
                 for p in [t for t in new_tags if t]:
                     bname = [row['badge_name'] for row in nt_records
-                             if row['tag'] == p][0]
+                             if row['tag'] == p]
+                    if bname: bname =  bname[0]
+                    else: bname = 'tag {}(no name)'.format(p)
                     line = '- beginner {}\r\n'.format(bname)
                     nt_rep += line
         nt_rep += 'You can click on your name above to see details ' \
@@ -2096,7 +2098,7 @@ class PathChooser(object):
             #print [c['id'] for c in catpaths]
             #print 'category -------------'
             #print category
-            if len(catpaths):
+            if (catpaths and len(catpaths)):
                 path, newloc, category, mode = self._choose_from_cat(catpaths,
                                                                      category)
                 if (mode):
