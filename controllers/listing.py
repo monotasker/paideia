@@ -16,6 +16,7 @@ import datetime
 import traceback
 from paideia_stats import week_bounds, get_offset
 from pprint import pprint
+from dateutil.parser import parse
 
 
 @auth.requires_membership(role='administrators')
@@ -48,7 +49,7 @@ def user():
         chooser[0].append(OPTION(optstring, _value=m['id']))
     chooser.append(INPUT(_type='submit'))
     """
-    
+
     print 'returning------------------------------------------'
     return {'chooser': chooser, 'classid': myclasses[0]['id']}
 
@@ -132,7 +133,7 @@ def userlist():
         # define minimum daily required # of paths
         # TODO: add class selection here so that I can narrow these figures
         try:
-            #print 'request.vars is', request.vars            
+            #print 'request.vars is', request.vars
             #print 'value is', request.vars.value
             #print 'agid is', request.vars.agid
             #print 'class_chooser is', request.class_chooser
@@ -143,6 +144,8 @@ def userlist():
                      ).select().last()
         target = row['paths_per_day']
         freq = row['days_per_week']
+        start_date = row['start_date']
+        end_date = row['end_date']
 
         member_sel = db(db.auth_membership.group_id == row['id']).select()
         members = [m['user_id'] for m in member_sel]
@@ -157,6 +160,7 @@ def userlist():
                   ).select(db.attempt_log.dt_attempted, db.attempt_log.name)
 
         countlist = {}
+        startlist = {}
         for user in users:
             offset = get_offset(user)
 
@@ -175,11 +179,44 @@ def userlist():
 
             countlist[user.auth_user.id] = (spans[0]['count'], spans[0]['min_count'],
                                             spans[1]['count'], spans[1]['min_count'])
+            startlist[user.auth_user.id] = get_starting_set(user, start_date, end_date)
+
+        if start_date:  # make it readable for display
+            strf = '%b %e' if start_date.year == now.year else '%b %e, %Y'
+            start_date = start_date.strftime(strf)
         response.js = "jQuery('#chooser_submit').val('Submit Query')"
-        return {'users': users, 'countlist': countlist,
-                'target': target, 'freq': freq, 'classid': row['id']}
+        return {'users': users, 'countlist': countlist, 'startlist': startlist,
+                'target': target, 'freq': freq, 'classid': row['id'],
+                'start_date': start_date}
     except Exception:
         print traceback.format_exc(5)
+
+def get_starting_set(user, start_date, end_date):
+    '''
+    'user' argument is a selected row from auth_user
+    '''
+    bb = db((db.badges_begun.name == user.auth_user.id) &
+            (db.badges_begun.tag == db.tags.id)).select()
+    #for b in bb:
+        #print b.badges_begun.cat1, '::', start_date
+    if start_date:
+        try:
+            bb = bb.find(lambda row: row.badges_begun.cat1 < start_date)
+            positions = {b.tags.tag: b.tags.tag_position for b in bb}
+            #print 'positions'
+            #pprint(positions)
+            lowest = max(positions.values())
+        except ValueError:
+            try:
+                lowest = max(b.tags.tag_position for b in bb)
+            except ValueError:
+                lowest = 'No promotions'
+        print 'name:', user.auth_user['last_name']
+        print 'lowest:', lowest
+    else:
+        lowest = 'NA'
+
+    return lowest
 
 
 def add_user_form():

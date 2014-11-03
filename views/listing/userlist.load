@@ -21,22 +21,27 @@ modal = MODAL('Add members', 'Add new members to this class',
 {{
 tbl = TABLE(TR(TH(),
                TH(),
+               TH(),
                TH('This Week', _colspan='2'),
                TH('Last Week', _colspan='2'),
+               TH()
                ),
             TR(TH('Name'),
                TH('Current Set'),
+               TH('Set as of ', start_date),
                TH('days > {}'.format(target)),
                TH('days > 0'),
                TH('days > {}'.format(target)),
-               TH('days > 0')
+               TH('days > 0'),
+               TH()
                ),
             _class='table table-condensed users_list_table')
 
 for user in users:
     row = TR(TD(A(user.auth_user.last_name + ',' + user.auth_user.first_name,
                 _href=URL('reporting', 'user.html', args=[user.auth_user.id]))),
-             TD(user.tag_progress.latest_new, _class='rank')
+             TD(user.tag_progress.latest_new, _class='rank'),
+             TD(startlist[user.auth_user.id], _class='start_rank')
              )
     uid = user.auth_user.id
     if uid in countlist:
