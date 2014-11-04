@@ -202,21 +202,14 @@ def get_starting_set(user, start_date, end_date):
     if start_date:
         try:
             bb = bb.find(lambda row: row.badges_begun.cat1 < start_date)
-            positions = {b.tags.tag: b.tags.tag_position for b in bb}
-            #print 'positions'
-            #pprint(positions)
-            lowest = max(positions.values())
+            highest = max(b.tags.tag_position for b in bb
+                          if b.tags.tag_position < 900)
         except ValueError:
-            try:
-                lowest = max(b.tags.tag_position for b in bb)
-            except ValueError:
-                lowest = 'No promotions'
-        print 'name:', user.auth_user['last_name']
-        print 'lowest:', lowest
+            highest = 1
     else:
-        lowest = 'NA'
+        highest = 'NA'
 
-    return lowest
+    return highest
 
 
 def add_user_form():
