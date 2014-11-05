@@ -397,22 +397,38 @@ body.user #page .most_recent {
 }
 body.profile #page table.summary_stats,
 body.user #page table.summary_stats {
-  border-collapse: separate;
-  border-spacing: 2px;
-  border-radius: 5px;
-  padding: 5px 0;
-  background: #ffffff;
+  /*border-collapse:separate;*/
+
+  /*border-spacing:2px;*/
+
+  /*border-radius: (@lineHeightRegular/4);*/
+
+  /*padding:(@lineHeightRegular/4) 0;*/
+
+  /*background:@white;*/
+
 }
 body.profile #page table.summary_stats td,
 body.user #page table.summary_stats td {
   vertical-align: middle;
-  background: #f2eed5;
-  padding: 10px 20px;
+  /*background: @pallette1;*/
+
+  /*padding: (@lineHeightRegular/2) @lineHeightRegular;*/
+
+}
+body.profile #page table.summary_stats td:nth-child(1),
+body.user #page table.summary_stats td:nth-child(1) {
+  width: 7em;
 }
 body.profile #page table.summary_stats td ul,
 body.user #page table.summary_stats td ul {
   max-height: 120px;
   overflow: auto;
+}
+body.profile #page table.summary_stats td ul li,
+body.user #page table.summary_stats td ul li {
+  display: inline-block;
+  margin-right: 0.25em;
 }
 body.profile #page table.summary_stats td.total_cat1,
 body.user #page table.summary_stats td.total_cat1,
