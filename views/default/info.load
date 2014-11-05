@@ -18,31 +18,32 @@ import json
 }}
 {{
 # TAB 1 - BADGE INFO ==========================================================
-tab1_content = CAT(DIV(H4('Set progress'),
-                       P('So far, I have reached set {}.'.format(max_set)),
+tab1_content = CAT(H4('Set progress'),
+                   DIV(P('So far, I have reached badge set {}.'.format(max_set)),
                        P('My goal for {} is to reach the {} set of badges by '
                          '{}'.format(goal[0], goal[1], goal[2])),
                        _id='info-tab1-set-progress'),
-                   DIV(H4('Badge levels earned'),
-                       TABLE(TR(TD('level 4'), TD('master'),
+                   H4('Badge levels earned'),
+                   DIV(TABLE(TR(TD('level 4'), TD('master'),
                                 TD(len(badge_levels[4])),
-                                TD(UL([LI(b[0], _class='badge badge-success') for b in badge_levels[4]]))
+                                TD(UL([LI(b[0], _class='label label-success') for b in badge_levels[4]]))
                                 ),
                              TR(TD('level 3'), TD('journeyman'),
                                 TD(len(badge_levels[3])),
-                                TD(UL([LI(b[0]) for b in badge_levels[3]]))
+                                TD(UL([LI(b[0], _class='label label-info') for b in badge_levels[3]]))
                                 ),
                              TR(TD('level 2'), TD('apprentice'),
                                 TD(len(badge_levels[2])),
-                                TD(UL([LI(b[0], _class='badge badge-warning') for b in badge_levels[2]]))
+                                TD(UL([LI(b[0], _class='label label-primary') for b in badge_levels[2]]))
                                 ),
                              TR(TD('level 1'), TD('beginner'),
                                 TD(len(badge_levels[1])),
-                                TD(UL([LI(b[0], _class='badge badge-info') for b in badge_levels[1]]))
+                                TD(UL([LI(b[0], _class='label label-warning') for b in badge_levels[1]]))
                                 ),
-                             _class='table table-bordered'
+                             _class='table table-bordered summary_stats'
                              ),
                        _id='info-tab1-badge-levels'),
+                   H4('Detailed badge record'),
                    DIV(TABLE(THEAD(TR(TH('Badge'),
                                       TH('Set'),
                                       TH('Level'),
@@ -80,7 +81,7 @@ badgerow = TR(TD(trow['bname']),
               )
 badgerow[4]['_data-order'] = trow['tlr'][0]  # sort column by raw date
 badgerow[6]['_data-order'] = trow['tlw'][0]  # sort column by raw date
-tab1_content[2][0].append(badgerow)
+tab1_content[5][0].append(badgerow)
 
 pass
 
@@ -220,12 +221,19 @@ tab5_content = DIV(
     user_stats.answer_counts = JSON.parse('{{=XML(json.dumps(answer_counts))}}');
     user_stats.render_all();
 })();
+
+$(document).on('click',
+               'a.monthpicker, a.monthcal_nav_link_next, a.monthcal_nav_link_previous',
+               function(event){
+        event.preventDefault();
+        myurl = $(this).attr('href');
+        ajax(myurl, [], 'paideia_monthcal');
+});
 </script>
 
 </div>
 </div>
 </div>
-=======
 <style>
 /***********************/
 /* USER STATS & CHARTS */

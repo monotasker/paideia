@@ -367,16 +367,20 @@ body.user #page          {
                             box-shadow:0px 2px 6px rgba(0,0,0,0.3);}
     }
     .most_recent       {color: @accent2;}
-    table.summary_stats    {border-collapse:separate;
-                            border-spacing:2px;
-                            border-radius: (@lineHeightRegular/4);
-                            padding:(@lineHeightRegular/4) 0;
-                            background:@white;
+    table.summary_stats    {/*border-collapse:separate;*/
+                            /*border-spacing:2px;*/
+                            /*border-radius: (@lineHeightRegular/4);*/
+                            /*padding:(@lineHeightRegular/4) 0;*/
+                            /*background:@white;*/
         td                 {vertical-align:middle;
-                            background: @pallette1;
-                            padding: (@lineHeightRegular/2) @lineHeightRegular;
+                            /*background: @pallette1;*/
+                            /*padding: (@lineHeightRegular/2) @lineHeightRegular;*/
+            &:nth-child(1) {width: 7em;}
             ul             {max-height: @lineHeightRegular * 6;
-                            overflow: auto;}
+                            overflow: auto;
+                li         {display: inline-block;
+                            margin-right: 0.25em}
+            }
           
         }
         td.total_cat1,

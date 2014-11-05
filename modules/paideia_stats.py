@@ -542,7 +542,7 @@ class Stats(object):
                       if k != 'latest_new'}
         # TODO: for some reason Categorizer changes self.tag_recs persistently
         # when it (rather than copy) is passed as argument
-        
+
         #JOB ... oct 28, 2014 ... dont need to call categorize_tags
         #just read tag progress from the db. categorize_tags has other
         #side effects we don't want
@@ -787,7 +787,7 @@ class Stats(object):
         mycal.elements('th.month')[0][0] = dropdown
         for link in self._navlinks(year, month):
             mycal.elements('th.month')[0].insert(0, link)
-        wrap = DIV(_class='paideia_monthcal')
+        wrap = DIV(_class='paideia_monthcal', _id='paideia_monthcal')
         wrap.append(SPAN('Questions answered each day in',
                          _class='monthcal_intro_line'))
         wrap.append(mycal)
@@ -805,9 +805,9 @@ class Stats(object):
         next_month = (month + 1) if month < 12 else 1
         next_year = year if next_month > 1 else year + 1
         links = {'next': (next_month, next_year, 2,
-                          SPAN(_class='icon-chevron-right')),
+                          SPAN(_class='fa fa-chevron-right')),
                  'previous': (prev_month, prev_year, 0,
-                              SPAN(_class='icon-chevron-left'))}
+                              SPAN(_class='fa fa-chevron-left'))}
         linktags = []
         for k, v in links.iteritems():
             mylink = A(v[3], _href=URL('reporting', 'calendar.load',
@@ -821,17 +821,21 @@ class Stats(object):
         """
         Return an html dropdown menu of months since 2011.
         """
-        years = range(year, 2011, -1)
+        nowdate = datetime.date.today()
+        nowmonth = nowdate.month
+        nowyear = nowdate.year
+        years = range(nowyear, 2011, -1)
         picker_args = {'_class': 'dropdown-menu',
                        '_role': 'menu',
                        '_aria-labelledby': 'month-label'}
         picker = UL(**picker_args)
         for y in years:
             for m in range(12, 1, -1):
-                if not (m > month and y == year):
+                if not (m > nowmonth and y == nowyear):
                     picker.append(LI(A('{} {}'.format(calendar.month_name[m], y),
                                     _href=URL('reporting', 'calendar.load',
                                               args=[self.user_id, y, m]),
+                                    _class='monthpicker',
                                     _tabindex='-1')))
             picker.append(LI(_class='divider'))
 
