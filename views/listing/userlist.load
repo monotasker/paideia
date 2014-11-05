@@ -29,10 +29,10 @@ tbl = TABLE(TR(TH(),
             TR(TH('Name'),
                TH('Current Set'),
                TH('Set as of ', start_date),
+               TH('days active'),
                TH('days > {}'.format(target)),
-               TH('days > 0'),
+               TH('days active'),
                TH('days > {}'.format(target)),
-               TH('days > 0'),
                TH()
                ),
             _class='table table-condensed users_list_table')
