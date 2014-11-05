@@ -45,7 +45,7 @@ for user in users:
              )
     uid = user.auth_user.id
     if uid in countlist:
-        for n in range(3):
+        for n in range(4):
             num = countlist[uid][n]
             if num < freq:
                 row['_class'] = 'error'
@@ -55,7 +55,7 @@ for user in users:
             pass
         pass
     else:
-        for n in range(3):
+        for n in range(4):
             row.append(TD(_class='week-counts-{}'.format(n)))
         pass
     pass

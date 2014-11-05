@@ -191,14 +191,13 @@ def userlist():
     except Exception:
         print traceback.format_exc(5)
 
+
 def get_starting_set(user, start_date, end_date):
     '''
     'user' argument is a selected row from auth_user
     '''
     bb = db((db.badges_begun.name == user.auth_user.id) &
             (db.badges_begun.tag == db.tags.id)).select()
-    #for b in bb:
-        #print b.badges_begun.cat1, '::', start_date
     if start_date:
         try:
             bb = bb.find(lambda row: row.badges_begun.cat1 < start_date)
