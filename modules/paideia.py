@@ -1591,17 +1591,76 @@ class StepEvaluator(object):
         self.responses = responses
         self.tips = tips
 
+    def _regularize_greek(self, user_response):
+        """
+        Replaces identical looking Latin characters in Greek words with Greek.
+        """
+        equivs = {'A': 'Α',  # the keys here are latin characters and
+                  'B': 'Β',  # the values are unicode Greek, even though
+                  'E': 'Ε',  # they may (depending on the font) look the same.
+                  'H': 'Η',
+                  'I': 'Ι',
+                  'i': 'ι',
+                  'K': 'Κ',
+                  'M': 'Μ',
+                  'N': 'Ν',
+                  'v': 'ν',
+                  'O': 'Ο',
+                  'o': 'ο',
+                  'P': 'Ρ',
+                  'T': 'Τ',
+                  'u': 'υ',
+                  'X': 'Χ'}
+        user_response = user_response.decode('utf8')
+        words = user_response.split(' ')
+        Latinchars = re.compile(u'[\u0041-\u007a]|\d', re.U)
+        Greekchars = re.compile(u'[\u1f00-\u1fff]|[\u0370-\u03ff]', re.U)
+        for idx, word in enumerate(words):
+            Gklts = [l for l in word if re.match(Greekchars, l)]
+            print Gklts, 'Greek chars'
+            Latlts = [l for l in word if re.match(Latinchars, l)]
+            print Latlts, 'Latin chars'
+            if Gklts and Latlts and len(Gklts) > len(Latlts):
+                print 'FOUND LATIN CHARACTER'
+                for ltr in word:
+                    if ltr in equivs.keys():
+                        print 'bad char is', ltr
+                        words[idx] = word.replace(ltr, equivs[ltr].decode('utf8'))
+                print 'cleaned word:', words[idx]
+                print 're:', re.search(Latinchars, words[idx])
+
+        newresp = ' '.join(words)
+        print 'words =', newresp
+        assert not re.search(Latinchars, newresp)
+        return newresp.encode('utf8')
+
+    def _strip_spaces(self, user_response):
+        """
+        Remove leading, trailing, and multiple internal spaces from string.
+        """
+        user_response = user_response.strip()  # remove leading and trailing spaces
+        while '  ' in user_response:  # remove multiple inner spaces
+            user_response = user_response.replace('  ', ' ')
+        return user_response
+
     def get_eval(self, user_response=None):
         """
         Return the user's score for this step attempt along with "tips" text
         to be displayed to the user in case of a wrong answer.
+
+        Allowance is made for multiple internal spaces, leading or trailing
+        spaces, and for identical-looking Lating characters being used in place
+        of their Greek counterparts.
+
+        Special responses (and a score of 0.9) are also given if the only error
+        is the presence or absence of appropriate final punctuation.
         """
         if not user_response:
             request = current.request
             user_response = request.vars['response']
-        user_response = user_response.strip()  # remove leading and trailing spaces
-        while '  ' in user_response:  # remove multiple inner spaces
-            user_response = user_response.replace('  ', ' ')
+        user_response = self._strip_spaces(user_response)
+        user_response = self._regularize_greek(user_response)
+        print 'now resp is', user_response
         responses = {k: r for k, r in self.responses.iteritems()
                      if r and r != 'null'}
         # Compare the student's response to the regular expressions
@@ -1609,6 +1668,20 @@ class StepEvaluator(object):
             if re.match(responses['response1'], user_response, re.I | re.U):
                 score = 1
                 reply = "Right. Κάλον."
+            elif re.match(responses['response1'], (user_response + '.'), re.I | re.U):
+                score = 0.9
+                reply = "Οὐ Κάκον. You're very close. Just remember to put a " \
+                        "period on the end of a full clause."
+            elif re.match(responses['response1'], (user_response + '?'), re.I | re.U):
+                score = 0.9
+                reply = "Οὐ Κάκον. You're very close. Just remember to put a " \
+                        "question mark on the end of a question."
+            elif user_response[-1] in ['.', ',', '!', '?', ';'] and \
+                    re.match(responses['response1'], user_response[:-1], re.I | re.U):
+                score = 0.9
+                reply = "Ού κάκον. You're very close. Just remember not to put " \
+                        "a final punctuation mark on your answer if it's not a " \
+                        "complete clause"
             elif len(responses) > 1 and re.match(responses['response2'],
                                                  user_response, re.I | re.U):
                 score = 0.5
@@ -1641,6 +1714,7 @@ class StepEvaluator(object):
             reply = 'Oops! I seem to have encountered an error in this step.'
 
         tips = self.tips  # TODO: customize tips for specific errors
+        print 'resp is still', user_response
 
         return {'score': score,
                 'times_wrong': times_wrong,
