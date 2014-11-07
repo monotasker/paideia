@@ -1658,8 +1658,8 @@ class StepEvaluator(object):
         if not user_response:
             request = current.request
             user_response = request.vars['response']
-        user_response = self._strip_spaces(user_response)
-        user_response = self._regularize_greek(user_response)
+        #user_response = self._strip_spaces(user_response)
+        #user_response = self._regularize_greek(user_response)
         print 'now resp is', user_response
         responses = {k: r for k, r in self.responses.iteritems()
                      if r and r != 'null'}
