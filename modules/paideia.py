@@ -1617,21 +1617,12 @@ class StepEvaluator(object):
         Greekchars = re.compile(u'[\u1f00-\u1fff]|[\u0370-\u03ff]', re.U)
         for idx, word in enumerate(words):
             Gklts = [l for l in word if re.match(Greekchars, l)]
-            print Gklts, 'Greek chars'
             Latlts = [l for l in word if re.match(Latinchars, l)]
-            print Latlts, 'Latin chars'
             if Gklts and Latlts and len(Gklts) > len(Latlts):
-                print 'FOUND LATIN CHARACTER'
                 for ltr in word:
                     if ltr in equivs.keys():
-                        print 'bad char is', ltr
                         words[idx] = word.replace(ltr, equivs[ltr].decode('utf8'))
-                print 'cleaned word:', words[idx]
-                print 're:', re.search(Latinchars, words[idx])
-
         newresp = ' '.join(words)
-        print 'words =', newresp
-        assert not re.search(Latinchars, newresp)
         return newresp.encode('utf8')
 
     def _strip_spaces(self, user_response):
@@ -1658,9 +1649,8 @@ class StepEvaluator(object):
         if not user_response:
             request = current.request
             user_response = request.vars['response']
-        #user_response = self._strip_spaces(user_response)
-        #user_response = self._regularize_greek(user_response)
-        print 'now resp is', user_response
+        #user_response = self._strip_spaces(user_response)  FIXME: this isn't working on live site
+        #user_response = self._regularize_greek(user_response)  FIXME: this isn't working on live site
         responses = {k: r for k, r in self.responses.iteritems()
                      if r and r != 'null'}
         # Compare the student's response to the regular expressions
@@ -1714,7 +1704,6 @@ class StepEvaluator(object):
             reply = 'Oops! I seem to have encountered an error in this step.'
 
         tips = self.tips  # TODO: customize tips for specific errors
-        print 'resp is still', user_response
 
         return {'score': score,
                 'times_wrong': times_wrong,
