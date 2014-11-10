@@ -80,6 +80,8 @@ class Bug(object):
                        (db.bugs.user_response == bug_row.user_response) &
                        (db.bugs.score < 1))
         bugrows = bug_query.select()
+        logids = [b.log_id for b in bugrows]
+        message += 'logids:' + str(logids)
 
         # Update those bug reports with the new values
         bug_query.update(**{'score': newscore,
@@ -88,17 +90,14 @@ class Bug(object):
         bugusers = len(list(set([b.user_name for b in bugrows])))
         message += "\nupdated {} bug reports for {} users".format(len(bugrows), bugusers)
 
-        # Find affected attempt log rows
-        try:
-            logquery = db((db.attempt_log.step == bug_row.step) &
-                        (db.attempt_log.user_response == bug_row.user_response) &
-                        (db.attempt_log.score != newscore))
-            if not logquery.count():
-                # TODO: for now, also correct target log row directly by id
-                logquery = db(db.attempt_log.id == log_id)
-        except AttributeError:
-            logquery = db(db.attempt_log.id == log_id)
+        # Find and fix affected attempt log rows
+        logquery = db(db.attempt_log.id.belongs(logids))
         logrows = logquery.select()
+        logquery.update(**{'score': newscore})
+        message += '\ncorrecting {} attempt log entries: {}'.format(str(logquery.count()), logids)
+        # confirm that scores were changed
+        newlogs = db(db.attempt_log.id.belongs(logids)).select()
+        message += 'new scores' + str([l.score for l in newlogs])
 
         # Fix last_right, last_wrong, times_right, and times_wrong in each
         # tag_records row for each affected user
@@ -119,6 +118,9 @@ class Bug(object):
                         new_latest_right = max(newdates)
                         new_earliest_right = min(newdates)
                         for tr in myrecs:
+                            #print '------------------------------------------------'
+                            #pprint(tr)
+                            #print '------------------------------------------------'
                             message += '\ntrying to update tag_record {}'.format(tr.id)
                             updates = {}
                             # correct last right and last wrong dates
@@ -141,15 +143,18 @@ class Bug(object):
                                     updates['tlast_wrong'] = max(odates)
 
                             # correct counts for times right and wrong
-                            rightcount = sum(l.score for l in new_logs_right)
-                            updates['times_right'] = tr.times_right + rightcount
-                            updates['times_wrong'] = tr.times_wrong - rightcount
+                            rightsum = sum(l.score for l in new_logs_right)
+                            updates['times_right'] = tr.times_right + rightsum
+                            updates['times_wrong'] = tr.times_wrong - rightsum
                             if updates['times_wrong'] < 0:
                                 updates['times_wrong'] = 0
                             # commit the updates to db
                             updated_list.append(tr.id)
-                            pprint(updates)
+                            #print 'updates ==========================='
+                            #pprint(updates)
                             tr.update_record(**updates)
+                            #print '-----------------------------------------'
+                            #pprint(tr)
                     else:  # user has no wrong logs to be changed
                         pass
                 message += '\nupdated these tag records rows: {}'.format(updated_list)
@@ -158,14 +163,7 @@ class Bug(object):
                 print traceback.format_exc(5)
                 message += '\nTag_records rows for bug {} could not be reversed.'.format(bug_id)
 
-        # Fix scores for all identical attempts in log
-        # TODO: This will only work for bugs recorded since adding
-        # user_response to attempt_log table
-        logquery.update(**{'score': newscore})
-        logids = [l.id for l in logrows]
-        message += '\ncorrecting {} attempt log entries: {}'.format(str(logquery.count()), logids)
         print message
-        response.flash = message
         return message
 
     def bugresponses(self, user):
