@@ -463,7 +463,7 @@ db.define_table('paths',
                                                and db.steps[s].locations])),
                 Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
-                format='%(label)s')
+                format='%(id)s: %(label)s')
 
 #JOB ... cleaned this up ...we are removing tags_for_steps entirel
 # Oct 12, 2014
@@ -627,13 +627,13 @@ db.define_table('content_pages',
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(title)s')
 """
-HELPER TABLES  
+HELPER TABLES
 paths2steps ... follows C_UD of paths to create 1-1 relationshitp
 steps2tags ... follows C_UD of steps to create 1-1 relationshitp
 Joseph Boakye <jboakye@bwachi.com> Oct 10 2014
 zzz
 """
-db.define_table('step2tags', 
+db.define_table('step2tags',
                 Field('step_id', 'reference steps'),
                 Field('tag_id', 'reference tags'),
                 Field('modified_on', 'datetime', default=request.now))
@@ -706,7 +706,7 @@ def insert_trigger_for_paths(f,given_path_id):
     for step_id in old_steps_list:
         step_locs = db.steps[step_id].as_dict()['locations']
         create_or_update_steps_inactive_locations({'locations': step_locs},step_id)
-     
+
 
 
 def update_trigger_for_paths(s,f):
@@ -804,7 +804,7 @@ def get_steps_inactive_locations_fields(id_data):
     #debug
     #simple_obj_print(((db.locations[id_data['loc_id']]).as_dict()), "bronx-location in get_steps_inactive_locations_fields")
     id_data['loc_desc'] =  ((db.locations[id_data['loc_id']]).as_dict())['map_location']
-    id_data['in_paths'] =  [ p['path_id'] for p in   (db(db.path2steps.step_id == id_data['step_id'])).select(db.path2steps.path_id).as_list()]    
+    id_data['in_paths'] =  [ p['path_id'] for p in   (db(db.path2steps.step_id == id_data['step_id'])).select(db.path2steps.path_id).as_list()]
     return True
 
 #no need for delete ... will be taken care of by foreign key
@@ -844,7 +844,7 @@ db.define_table('steps_inactive_locations',
 
 
 """
-These functions create step2tags and path2steps data for 
+These functions create step2tags and path2steps data for
 legacy paths and steps.
 They only need to be ran once after which they SHOULD be commented out
 Joseph Boakye <jboakye@bwachi.com>
