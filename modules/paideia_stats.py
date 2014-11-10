@@ -348,6 +348,26 @@ class Stats(object):
                 t['avg_score'] = round(t['avg_score'], 1)
         return tag_recs
 
+    def _get_avg_score(self, tag, mydays=7):
+        """
+        Return the user's average score on a given tag over the past N days.
+
+        Always returns a float, since scores are floats between 0 and 1.
+        """
+        db = current.db
+        startdt = self.utcnow - datetime.timedelta(days=mydays)
+        log_query = db((db.attempt_log.name == self.user_id) &
+                       (db.attempt_log.dt_attempted >= startdt) &
+                       (db.attempt_log.step == db.steps.id) &
+                       (db.steps.tags.contains(tag))).select()
+        scores = [l.attempt_log.score for l in log_query]
+        try:
+            avg_score = sum(scores) / float(len(scores))
+        except ZeroDivisionError:  # if tag not tried at all since startdt
+            avg_score = 0
+            # FIXME: Will this not bring tags up too early?
+        return avg_score
+
     def active_tags(self, now=None):
         '''
         Find the tags that are currently active for this user, categorized 1-4.
@@ -416,6 +436,9 @@ class Stats(object):
             tr[idx] = {k: v for k, v in t.iteritems()
                     if k not in ['id', 'name', 'in_path', 'step',
                                  'secondary_right']}
+
+            # get average score over past week
+            tr[idx]['avg_score'] = self._get_avg_score(t['tag'])
 
             # get right/wrong ratio
             try:
