@@ -15,7 +15,9 @@ if ($('select#bugs_bug_status')){
     $('body').on('change', 'select#bugs_bug_status', function(){
         var newval = $(this).children('option:selected').val();
         if ((newval == 1)|(newval == 2)){
+            console.log('calling undo');
             ajax('{{=URL("editing", "undo_bug")}}', ['step', 'in_path', 'map_location', 'id', 'log_id', 'score', 'bug_status', 'user_name', 'admin_comment'], ':eval');
+            console.log('called undo');
         }
     });
 }
