@@ -47,14 +47,15 @@ tab1_content = CAT(H4('Set progress'),
                    DIV(TABLE(THEAD(TR(TH('Badge'),
                                       TH('Set'),
                                       TH('Level'),
-                                      TH('Times Right'),
-                                      TH('Last Right'),
-                                      TH('Times Wrong'),
-                                      TH('Last Wrong'),
                                       TH('Right per 1 wrong'),
+                                      TH('Avg score for 7 days'),
+                                      TH('Times Right'),
+                                      TH('Times Wrong'),
+                                      TH('Days between last right and last wrong'),
+                                      TH('Last Right'),
+                                      TH('Last Wrong'),
                                       TH('Days since last right'),
-                                      TH('Days since last wrong'),
-                                      TH('Days between last right and last wrong')
+                                      TH('Days since last wrong')
                                       ),
                                     _class='header'
                                     ),
@@ -70,17 +71,18 @@ tab1_content = CAT(H4('Set progress'),
 badgerow = TR(TD(trow['bname']),
               TD(trow['set']),
               TD(trow['curlev']),
-              TD(trow['tright']),
-              TD(trow['tlr'][1]),
-              TD(trow['twrong']),
-              TD(trow['tlw'][1]),
               TD(trow['rw_ratio']),
-              TD(trow['delta_r'].days),
-              TD(trow['delta_w'].days),
+              TD(trow['avg_score']),
+              TD(trow['tright']),
+              TD(trow['twrong']),
               TD(trow['delta_rw'].days),
+              TD(trow['tlr'][1]),
+              TD(trow['tlw'][1]),
+              TD(trow['delta_r'].days),
+              TD(trow['delta_w'].days)
               )
-badgerow[4]['_data-order'] = trow['tlr'][0]  # sort column by raw date
-badgerow[6]['_data-order'] = trow['tlw'][0]  # sort column by raw date
+badgerow[8]['_data-order'] = trow['tlr'][0]  # sort column by raw date
+badgerow[9]['_data-order'] = trow['tlw'][0]  # sort column by raw date
 tab1_content[5][0].append(badgerow)
 
 pass
