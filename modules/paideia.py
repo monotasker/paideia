@@ -1629,9 +1629,9 @@ class StepEvaluator(object):
         """
         Remove leading, trailing, and multiple internal spaces from string.
         """
-        user_response = user_response.strip()  # remove leading and trailing spaces
         while '  ' in user_response:  # remove multiple inner spaces
             user_response = user_response.replace('  ', ' ')
+        user_response = user_response.strip()  # remove leading and trailing spaces
         return user_response
 
     def get_eval(self, user_response=None):
