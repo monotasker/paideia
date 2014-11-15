@@ -219,6 +219,7 @@ tab5_content = DIV(
     var colvis = new $.fn.dataTable.ColVis( badgetable );
     $( colvis.button() ).insertBefore('div.badgetable-container');
 
+    // below inferface exposed by static/js/user_stats.js 
     user_stats.badge_set_milestones = JSON.parse('{{=XML(json.dumps(badge_set_milestones))}}');
     user_stats.answer_counts = JSON.parse('{{=XML(json.dumps(answer_counts))}}');
     user_stats.render_all();
