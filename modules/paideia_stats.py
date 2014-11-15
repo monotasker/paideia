@@ -877,6 +877,14 @@ class Stats(object):
         return dropdown
 
     def get_badge_set_milestones(self):
+        """
+        Return a list of 2-member dictionaries giving the date each set was started.
+
+        The keys for each dict are 'date' and 'badge_set'. If multiple sets
+        were started on the same day, only the highest of the sets is accorded
+        to that date. An extra dict is added to the end of the list with the
+        current date and the highest badge_set reached (to pad out graph).
+        """
         db = current.db
         today = datetime.date.today().strftime('%Y-%m-%d')
 
@@ -892,9 +900,11 @@ class Stats(object):
         # Force str because of how PostgreSQL returns date column
         # PostgreSQL returns datetime object, sqlite returns string
         # So we have to force type to sting, this won't break backwards compatibility with sqlite
-        data = [{ 'date':      str(row._extra.values()[0]),
-                  'badge_set': row.tags.tag_position
-                } for row in result]
+        data = [{'date': str(row._extra.values()[0]),
+                 'badge_set': row.tags.tag_position}
+                for row in result if row.tags.tag_position < 900]
+        data = sorted(data, key=lambda i: i['badge_set'], reverse=True)
+        print data
 
         # Make sure that the badge set number is nondecreasing.
         # Order in the SQL query above along with this ensure that there's
@@ -902,19 +912,22 @@ class Stats(object):
         milestones = []
         prev = None
         for d in data:
-            if prev != None and d['badge_set'] <= prev['badge_set']:
+            if prev != None and (d['badge_set'] >= prev['badge_set']
+                                 or d['date'] == prev['date']):  # comparing badge sets
                 continue
-
             milestones.append(d)
             prev = d
 
         # Pad the data until today
+
+        milestones = sorted(milestones, key=lambda i: i['badge_set'])
         try:
             if milestones[-1]['date'] != today:
-                milestones.append({ 'date': today,
-                                    'badge_set': milestones[-1]['badge_set'] })
+                milestones.append({'date': today,
+                                   'badge_set': milestones[-1]['badge_set']})
         except IndexError:
             pass
+        pprint(milestones)
 
         return milestones
 
@@ -945,6 +958,62 @@ class Stats(object):
                           })
 
         return counts
+
+    def get_tag_counts_over_time(start_dt=None, end_dt=None, uid=None):
+        """
+        Return
+
+        'repeated_steps': [(tagid:int, times:int, date:str)]
+        'attempts_by_tag': [{'tagid': int, 'count': int}]
+        'attempts_by_status': {'level1': int, 'review1': int}
+        """
+        db = current.db
+        auth = current.auth
+
+        end_dt = end_dt if end_dt else self._get_dayend(datetime.datetime.now())
+        start_dt = start_dt if start_dt else self._get_daystart(end_dt)
+        uid = uid if uid else auth.user_id
+
+        logs = db((db.attempt_log.name == uid) &
+                  (db.attempt_log.dt_attempted <= end_dt) &
+                  (db.attempt_log.dt_attempted > start_dt) &
+                  (db.attempt_log.step == db.steps.id).select()
+
+        alltags = [t for row in logs for t in row.steps.tags]
+        tagcounts = {}
+        for t in alltags:
+            tagcounts.setdefault(t, 0) += 1
+
+        usercats = db(db.tag_progress.name == uid).select().first()
+
+
+
+    def _get_daystart(mydt):
+        """
+        Return a datetime object for the beginning of the day of supplied datetime.
+
+        """
+        daystart = datetime.datetime(year=mydt.year,
+                                     month=mydt.month,
+                                     day=mydt.day,
+                                     hour=0,
+                                     minute=0,
+                                     second=0)
+        return daystart
+
+    def _get_dayend(mydt):
+        """
+        Return a datetime object for the beginning of the day of supplied datetime.
+
+        """
+        daystart = datetime.datetime(year=mydt.year,
+                                     month=mydt.month,
+                                     day=mydt.day,
+                                     hour=0,
+                                     minute=0,
+                                     second=0)
+        dayend = daystart + datetime.timedelta(days=1)
+        return dayend
 
 
 def week_bounds(weekday=None):
