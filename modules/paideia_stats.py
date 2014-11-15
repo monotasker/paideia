@@ -977,12 +977,15 @@ class Stats(object):
         logs = db((db.attempt_log.name == uid) &
                   (db.attempt_log.dt_attempted <= end_dt) &
                   (db.attempt_log.dt_attempted > start_dt) &
-                  (db.attempt_log.step == db.steps.id).select()
+                  (db.attempt_log.step == db.steps.id)).select()
 
         alltags = [t for row in logs for t in row.steps.tags]
         tagcounts = {}
         for t in alltags:
-            tagcounts.setdefault(t, 0) += 1
+            if t in tagcounts.keys():
+                tagcounts[t] += 1
+            else:
+                tagcounts[t] = 1
 
         usercats = db(db.tag_progress.name == uid).select().first()
 
