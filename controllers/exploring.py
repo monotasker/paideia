@@ -116,8 +116,17 @@ def walk():
             ('response' in rvars and 'response' not in [' ', None]) else None
 
     # pass along test settings to Walk.ask()
+    print '----------------args------------'
+    for x in rvars: print {x: rvars[x]}
+    print 'args'
+    for x in rargs: print x
+    print 'cookies' 
+    for x in request.cookies: print {x : request.cookies[x].value} 
+    print '------------end args------------'
     if ('blocks' in rvars) and not (rvars['blocks'] in ['', None, 'undefined']):
         stepargs['set_blocks'] = literal_eval(rvars['blocks'])
+        #debug 
+        print {'----------blocks passed------------':rvars['blocks']}
     if 'path' in rvars and not (rvars['path'] in ['', None, 'undefined']):
         stepargs['path'] = rvars['path']
     #JOB ... oct 18, 2014 ... bug step id    
