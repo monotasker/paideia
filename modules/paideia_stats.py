@@ -985,10 +985,9 @@ class Stats(object):
             newdt = start_dt + datetime.timedelta(days=d)
             datelist.append(datetime.datetime.combine(newdt.date(),
                                                       datetime.time(0,0,0,0)))
-        print 'datelist', datelist
 
         # gather common data to later filter for each day
-        uid = uid if uid else self.user_id
+        uid = self.user_id
         logs = db((db.attempt_log.name == uid) &
                   (db.attempt_log.dt_attempted <= end_dt) &
                   (db.attempt_log.dt_attempted > start_dt) &
@@ -997,7 +996,9 @@ class Stats(object):
 
         daysdata = {}
         for daystart in datelist:
-            daylogs = logs.find(lambda l: l['dt_attempted'] >= daystart)
+            dayend = daystart + datetime.timedelta(days=1)
+            daylogs = logs.find(lambda l: (l.attempt_log['dt_attempted'] >= daystart) and
+                                          (l.attempt_log['dt_attempted'] < dayend))
             alltags = [t for row in daylogs for t in row.steps.tags]
             tagcounts = {}
             for t in alltags:
@@ -1014,20 +1015,20 @@ class Stats(object):
                 cattag_counts = {t: tagcounts[t] for t in cattags}
                 tagsmissed = [t for t in usercats[cat] if t not in cattags]
 
-                catdata[cat] = {'cat_attempts': [l['id'] for l in catlogs],
+                catdata[cat] = {'cat_attempts': [l.attempt_log['id'] for l in catlogs],
                                 'cat_tags_attempted': cattag_counts,
                                 'cat_tags_missed': tagsmissed}
 
             stepcounts = {}
             for log in daylogs:
-                stepid = log['step']
+                stepid = log.attempt_log['step']
                 if stepid in stepcounts.keys():
                     stepcounts[stepid] += 1
                 else:
                     stepcounts[stepid] = 1
             repeats = {id: ct for id, ct in stepcounts.iteritems() if ct > 1}
 
-            daysdata[daystart.date()] = {'total_attempts': [l['id'] for l in daylogs],
+            daysdata[daystart.date()] = {'total_attempts': [l.attempt_log['id'] for l in daylogs],
                                          'repeated_steps': repeats,
                                          'tags_attempted': list(set(alltags)),
                                          'cat_data': catdata
