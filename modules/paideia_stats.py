@@ -9,6 +9,8 @@ from gluon import current, DIV, SPAN, A, URL, UL, LI, B
 from gluon import TAG
 from paideia_utils import make_json, load_json
 from paideia import Categorizer
+from gluon.sqlhtml import SQLFORM, Field
+from gluon.validators import IS_DATE
 from pprint import pprint
 from itertools import chain, groupby
 
@@ -356,13 +358,12 @@ class Stats(object):
         """
         db = current.db
         startdt = self.utcnow - datetime.timedelta(days=mydays)
-        log_query = db((db.attempt_log.name == self.user_id) &
-                       (db.attempt_log.dt_attempted >= startdt) &
-                       (db.attempt_log.step == db.steps.id) &
-                       (db.steps.tags.contains(tag))).select()
-        scores = [l.attempt_log.score for l in log_query]
+        logs = db((db.attempt_log.name == self.user_id) &
+                  (db.attempt_log.dt_attempted >= startdt) &
+                  (db.attempt_log.step == db.steps.id) &
+                  (db.steps.tags.contains(tag))).select(db.attempt_log.score)
         try:
-            avg_score = sum(scores) / float(len(scores))
+            avg_score = sum([l.score for l in logs]) / float(len(logs))
         except ZeroDivisionError:  # if tag not tried at all since startdt
             avg_score = 0
             # FIXME: Will this not bring tags up too early?
@@ -959,39 +960,81 @@ class Stats(object):
 
         return counts
 
-    def get_tag_counts_over_time(start_dt=None, end_dt=None, uid=None):
+    def get_tag_counts_over_time(self, start_dt, end_dt, uid=None):
         """
-        Return
+        Return a dictionary of stats on tag and step attempts over given period.
 
-        'repeated_steps': [(tagid:int, times:int, date:str)]
-        'attempts_by_tag': [{'tagid': int, 'count': int}]
-        'attempts_by_status': {'level1': int, 'review1': int}
+        daysdata = {date: {'total_attempts': [id, id, ..],
+                           'repeated_steps': {id: int, id: int, ..}
+                           'tags_attempted': list,
+                           'cat_data': {'cat1': {'cat_attempts': [id, id, ..],
+                                                 'cat_tags_attempted': {id: int, id: int, ..}
+                                                 'cat_tags_missed': list},
+                                        'rev1': ..
+                                        }
+
         """
         db = current.db
         auth = current.auth
 
-        end_dt = end_dt if end_dt else self._get_dayend(datetime.datetime.now())
-        start_dt = start_dt if start_dt else self._get_daystart(end_dt)
-        uid = uid if uid else auth.user_id
+        # get time bounds and dates for each day within those bounds
+        period = (end_dt - start_dt) if end_dt != start_dt else datetime.timedelta(days=1)
+        daysnum = abs(period.days)
+        datelist = []
+        for d in range(daysnum + 1):
+            newdt = start_dt + datetime.timedelta(days=d)
+            datelist.append(datetime.datetime.combine(newdt.date(),
+                                                      datetime.time(0,0,0,0)))
+        print 'datelist', datelist
 
+        # gather common data to later filter for each day
+        uid = uid if uid else self.user_id
         logs = db((db.attempt_log.name == uid) &
                   (db.attempt_log.dt_attempted <= end_dt) &
                   (db.attempt_log.dt_attempted > start_dt) &
                   (db.attempt_log.step == db.steps.id)).select()
-
-        alltags = [t for row in logs for t in row.steps.tags]
-        tagcounts = {}
-        for t in alltags:
-            if t in tagcounts.keys():
-                tagcounts[t] += 1
-            else:
-                tagcounts[t] = 1
-
         usercats = db(db.tag_progress.name == uid).select().first()
 
+        daysdata = {}
+        for daystart in datelist:
+            daylogs = logs.find(lambda l: l['dt_attempted'] >= daystart)
+            alltags = [t for row in daylogs for t in row.steps.tags]
+            tagcounts = {}
+            for t in alltags:
+                if t in tagcounts.keys():
+                    tagcounts[t] += 1
+                else:
+                    tagcounts[t] = 1
+            catdata = {}
+            for cat in ['cat1', 'cat2', 'cat3', 'cat4', 'rev1', 'rev2',
+                        'rev3', 'rev4']:
+                catlogs = daylogs.find(lambda l: any(t for t in l.steps.tags
+                                                if t in usercats[cat]))
+                cattags = list(set([t for l in catlogs for t in l.steps.tags]))
+                cattag_counts = {t: tagcounts[t] for t in cattags}
+                tagsmissed = [t for t in usercats[cat] if t not in cattags]
 
+                catdata[cat] = {'cat_attempts': [l['id'] for l in catlogs],
+                                'cat_tags_attempted': cattag_counts,
+                                'cat_tags_missed': tagsmissed}
 
-    def _get_daystart(mydt):
+            stepcounts = {}
+            for log in daylogs:
+                stepid = log['step']
+                if stepid in stepcounts.keys():
+                    stepcounts[stepid] += 1
+                else:
+                    stepcounts[stepid] = 1
+            repeats = {id: ct for id, ct in stepcounts.iteritems() if ct > 1}
+
+            daysdata[daystart.date()] = {'total_attempts': [l['id'] for l in daylogs],
+                                         'repeated_steps': repeats,
+                                         'tags_attempted': list(set(alltags)),
+                                         'cat_data': catdata
+                                         }
+        return daysdata
+
+    def _get_daystart(self, mydt):
         """
         Return a datetime object for the beginning of the day of supplied datetime.
 
@@ -1004,7 +1047,7 @@ class Stats(object):
                                      second=0)
         return daystart
 
-    def _get_dayend(mydt):
+    def _get_dayend(self, mydt):
         """
         Return a datetime object for the beginning of the day of supplied datetime.
 
