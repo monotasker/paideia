@@ -140,6 +140,9 @@ if auth.has_membership('administrators', auth.user_id) or auth.is_impersonating(
              (SPAN(T(' Steps with Invld. Locs'), _class='icon-frown'),
                False, URL('editing', 'sil.html',
                           args=['stepsinvalidlocs'])),
+             (SPAN(T(' Tags No Badges'), _class='icon-frown'),
+               False, URL('editing', 'tnb.html',
+                          args=['tagsnobadges'])),
               ]),
             
             (SPAN(T(' Utils'), _class='icon-cog'), False, None,

@@ -2,6 +2,7 @@
 {{
 from plugin_widgets import TOOLTIP, TABS, ROLE
 import json
+import uuid
 }}
 <div class="row">
     <div class="container">
@@ -10,43 +11,51 @@ import json
 <!--Above Tabs ================================================================-->
 
 {{
-tab1_content =   CAT(DIV(TABLE(THEAD(TR(TH('Step ID'),
-                                      TH('Step Desc'),
-                                      TH('Loc ID'),
-                                      TH('Loc Desc'),
-                                      TH('In Paths'),
-                                      TH('Record ID')
+tab1_content =   CAT(DIV(TABLE(THEAD(TR(TH('Tag ID'),
+                                      TH('Tag'),
+                                      TH('Tag Position'),
+                                      TH('Modified On')
                                       ),
                                     _class='header'
                                     ),
                               _class='table table-hover table-condensed',
-                              _id='table-sil'
+                              _id='table-tnb'
                               ),
-                        _class='dc_container siltable-container',
+                        _class='dc_container tnbtable-container',
                         _style='font: 12px sans-serif;'
                         )
                     )
 }}
-{{
-for trow in steps_inactive_locations_data:
-	silrow = TR(TD(trow['step_id']),
-	              TD(trow['step_desc']),
-	              TD(trow['loc_id']),
-	              TD(trow['loc_desc']),
-	              TD(trow['in_paths'] if trow['in_paths'] else ' ' ),
-	              TD(trow['id']),
-	              )
-	tab1_content[0][0].append(silrow)
+{{for trow in tag_no_badge_ids_data:
+	tnbrow = TR(TD(trow['id']),
+          TD(A(trow['tag'], _href=URL('plugin_listandedit', 'edit.html',
+                                    args=['badges'],
+                                    vars={'orderby':'badge_name',
+                                          'tag': trow['id'],
+                                          'badge_name': trow['tag'],
+                                          'description': 'using ' + str(trow['tag']) + ' (tag:' + str(trow['id']) +')',
+                                          'uuid':str(uuid.uuid4()),
+                                          'modified_on':str(request.now)[:19],
+                                          'redirect':'True',
+                                          'redirect_c': 'editing',
+                                          'redirect_a': 'tnb.html'}),
+              _class='plugin_listandedit_list',  target='self', 
+               )
+              ),
+          TD(trow['tag_position']),
+          TD(trow['modified_on'])
+          )
+	tab1_content[0][0].append(tnbrow)
 pass
 }}
 <!--# ASSEMBLE AND PRINT ==================================================-->
-{{=TABS([('Non Null Steps with All Invalid Locations', 'web2py_user_form', tab1_content, 'active')])
+{{=TABS([('Tags With No Badges', 'web2py_user_form', tab1_content, 'active')])
 }}
 
 <!--# LOCAL SCRIPTS ======================================================-->
 <script type="text/javascript" charset="utf-8">
 (function() {
-    var siltable = $('#table-sil').DataTable({
+    var tnbtable = $('#table-tnb').DataTable({
                         paging: false,
                         scrollY: '400px',
                         scrollX: true,
@@ -56,9 +65,9 @@ pass
                             exclude: [ 0 ]
                         }
                      });
-    new $.fn.dataTable.FixedColumns( siltable );
-    var colvis = new $.fn.dataTable.ColVis( siltable );
-    $( colvis.button() ).insertBefore('div.siltable-container');
+    new $.fn.dataTable.FixedColumns( tnbtable );
+    var colvis = new $.fn.dataTable.ColVis( tnbtable );
+    $( colvis.button() ).insertBefore('div.tnbtable-container');
 
 })();
 var rm_masthead = function() {
@@ -67,6 +76,7 @@ var rm_masthead = function() {
 
 $(window).load(rm_masthead);
 </script>
+<div id="createbadge"></div>
 
 
 
@@ -77,6 +87,9 @@ $(window).load(rm_masthead);
 </div>
 </div>
 =======
+
+
+
 <style>
 /***********************/
 /* USER STATS & CHARTS */
