@@ -424,17 +424,20 @@ db.define_table('badges_begun',
 #db.executesql('CREATE INDEX IF NOT EXISTS idx_bdgs_begun1 ON badges_begun (name)')
 #db.executesql('CREATE INDEX IF NOT EXISTS idx_bdgs_begun2 ON badges_begun (tag)')
 
+#JOB ... oct 21, 2012 ... changing list:reference tags to list:integer
 db.define_table('tag_progress',
                 Field('name', db.auth_user, default=auth.user_id),
                 Field('latest_new', 'integer', default=1),  # order ranking
-                Field('cat1', 'list:reference tags'),
-                Field('cat2', 'list:reference tags'),
-                Field('cat3', 'list:reference tags'),
-                Field('cat4', 'list:reference tags'),
-                Field('rev1', 'list:reference tags'),
-                Field('rev2', 'list:reference tags'),
-                Field('rev3', 'list:reference tags'),
-                Field('rev4', 'list:reference tags'),
+                Field('cat1', 'list:integer'),
+                Field('cat2', 'list:integer'),
+                Field('cat3', 'list:integer'),
+                Field('cat4', 'list:integer'),
+                Field('rev1', 'list:integer'),
+                Field('rev2', 'list:integer'),
+                Field('rev3', 'list:integer'),
+                Field('rev4', 'list:integer'),
+                Field('all_cat1', 'integer', default=0),   # used to help choose from cat1
+                Field('just_cats', 'integer',default=0),  # used to help choose from cat1
                 Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(name)s, %(latest_new)s')
@@ -463,7 +466,7 @@ db.define_table('paths',
                                                and db.steps[s].locations])),
                 Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
-                format='%(id)s: %(label)s')
+                format='%(label)s')
 
 #JOB ... cleaned this up ...we are removing tags_for_steps entirel
 # Oct 12, 2014
@@ -626,14 +629,18 @@ db.define_table('content_pages',
                 Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(title)s')
+
+
+
+
 """
-HELPER TABLES
+HELPER TABLES  
 paths2steps ... follows C_UD of paths to create 1-1 relationshitp
 steps2tags ... follows C_UD of steps to create 1-1 relationshitp
 Joseph Boakye <jboakye@bwachi.com> Oct 10 2014
 zzz
 """
-db.define_table('step2tags',
+db.define_table('step2tags', 
                 Field('step_id', 'reference steps'),
                 Field('tag_id', 'reference tags'),
                 Field('modified_on', 'datetime', default=request.now))
@@ -706,7 +713,7 @@ def insert_trigger_for_paths(f,given_path_id):
     for step_id in old_steps_list:
         step_locs = db.steps[step_id].as_dict()['locations']
         create_or_update_steps_inactive_locations({'locations': step_locs},step_id)
-
+     
 
 
 def update_trigger_for_paths(s,f):
@@ -804,7 +811,7 @@ def get_steps_inactive_locations_fields(id_data):
     #debug
     #simple_obj_print(((db.locations[id_data['loc_id']]).as_dict()), "bronx-location in get_steps_inactive_locations_fields")
     id_data['loc_desc'] =  ((db.locations[id_data['loc_id']]).as_dict())['map_location']
-    id_data['in_paths'] =  [ p['path_id'] for p in   (db(db.path2steps.step_id == id_data['step_id'])).select(db.path2steps.path_id).as_list()]
+    id_data['in_paths'] =  [ p['path_id'] for p in   (db(db.path2steps.step_id == id_data['step_id'])).select(db.path2steps.path_id).as_list()]    
     return True
 
 #no need for delete ... will be taken care of by foreign key
@@ -844,7 +851,7 @@ db.define_table('steps_inactive_locations',
 
 
 """
-These functions create step2tags and path2steps data for
+These functions create step2tags and path2steps data for 
 legacy paths and steps.
 They only need to be ran once after which they SHOULD be commented out
 Joseph Boakye <jboakye@bwachi.com>
