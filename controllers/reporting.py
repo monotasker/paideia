@@ -11,11 +11,12 @@ from paideia_stats import Stats
 from pprint import pprint
 from plugin_utils import islist
 #from paideia_bugs import Bug
+from dateutil.parser import parse
 
 
 @auth.requires_membership(role='administrators')
 def index():
-    reports = dict(attempts='Attemps Log',)
+    reports = dict(attempts='Attempts Log',)
     return dict(reports=reports)
 
 
@@ -223,3 +224,40 @@ def calendar():
     cal = s.monthcal(year, month)
 
     return {'cal': cal}
+
+def tag_counts():
+    '''
+    Return a dictionary of data to populate a report of user activity around tag categories.
+
+    '''
+    pprint(request.vars)
+    nowdate = datetime.datetime.combine(datetime.date.today(), datetime.time(0,0,0,0))
+    print 'start_date', request.vars['start_date']
+    if 'start_date' in request.vars.keys():
+        sdt = parse(request.vars['start_date'])
+        startdate = datetime.datetime.combine(sdt, datetime.time(0,0,0,0))
+    else:
+        startdate = nowdate - datetime.timedelta(days=7)
+
+    if 'end_date' in request.vars.keys():
+        edt = parse(request.vars['end_date'])
+        enddate = datetime.datetime.combine(edt, datetime.time(0,0,0,0))
+    else:
+        enddate = nowdate
+
+    uid = request.vars['user_id'] if 'user_id' in request.vars.keys() else None
+
+    tagdata = Stats(uid).get_tag_counts_over_time(start_dt=startdate,
+                                                  end_dt=enddate,
+                                                  uid=uid)
+
+    form = SQLFORM.factory(Field('start_date', 'date', default=startdate.date()),
+                           Field('end_date', 'date', default=enddate.date()),
+                           _name='tag_counts_form',
+                           _id='tag_counts_form'
+                           )
+    requires = IS_DATE(format='%Y-%m-%d', error_message='must be YYYY-MM-DD!')
+
+    return {'tagdata': tagdata,
+            'form': form}
+

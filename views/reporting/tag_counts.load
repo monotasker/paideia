@@ -1,0 +1,41 @@
+{{=form}}
+{{
+tag_display = CAT()
+for d in sorted(tagdata.keys()):
+
+    catstable = TABLE(TR(TH('category'), TH('attempts'), TH('tags attempted'), TH('tags missed'),
+                         _class='header'
+                         ),
+                      _class='table table-hover table-condensed',
+                      )
+    for cat, data in tagdata[d]['cat_data'].iteritems():
+        catstable.append(TR(TD(cat),
+                            TD(len(data['cat_attempts'])),
+                            TD(', '.join([str(a) for a in data['cat_tags_attempted']])),
+                            TD(', '.join([str(m) for m in data['cat_tags_missed']]))
+                            )
+                         )
+    pass
+
+    tag_display.append(DIV(H5(d),
+                           DIV('total attempts: ', len(tagdata[d]['total_attempts'])),
+                           DIV('repeated steps: ', tagdata[d]['repeated_steps']),
+                           DIV('tags attempted: ', len(tagdata[d]['tags_attempted'])),
+                           DIV('category stats', catstable)
+                           )
+                        )
+pass
+}}
+{{=tag_display}}
+
+<script>
+
+//$(document).on('submit', 'form#tag_counts_form', function(event){
+//        event.preventDefault();
+//        var sd = $(this).find('#no_table_start_date').val
+//        var ed = $(this).find('#no_table_end_date').val
+//        console.log(sd + ed)
+//        ajax("{{=URL('reporting', 'tag_counts.load')}}", ['start_date', 'end_date'], 'tag-counts');
+//});
+
+</script>

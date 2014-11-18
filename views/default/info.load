@@ -186,13 +186,16 @@ for bug in blist:
 pass
 
 # TAB 5 - STATS ==============================================================
+
 tab5_content = DIV(
                CAT(H4('Highest badge set reached to date'),
                    DIV(_id='stats-milestones'),
                    H4('Correct and incorrect answers'),
-                   DIV(_id='stats-answers'),),
+                   DIV(_id='stats-answers'),
+                   H4('Attempts by Tag Category'),
+                   LOAD('reporting', 'tag_counts.load', ajax=True, target='tag-counts'),
                 _class='stats-container')
-
+                )
 }}
 
 <!--# ASSEMBLE AND PRINT ==================================================-->
@@ -232,6 +235,8 @@ $(document).on('click',
         myurl = $(this).attr('href');
         ajax(myurl, [], 'paideia_monthcal');
 });
+
+
 </script>
 
 </div>

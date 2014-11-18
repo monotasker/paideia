@@ -148,7 +148,7 @@ def info():
             'badge_levels': badge_levels,
             'badge_table_data': badge_table_data,
             'badge_set_milestones': badge_set_milestones,
-            'answer_counts': answer_counts
+            'answer_counts': answer_counts,
             }
 
 
