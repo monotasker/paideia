@@ -193,7 +193,8 @@ tab5_content = DIV(
                    H4('Correct and incorrect answers'),
                    DIV(_id='stats-answers'),
                    H4('Attempts by Tag Category'),
-                   LOAD('reporting', 'tag_counts.load', ajax=True, target='tag-counts'),
+                   LOAD('reporting', 'tag_counts.load',
+                        vars={'user_id': user_id}, ajax=True, target='tag-counts'),
                 _class='stats-container')
                 )
 }}
