@@ -254,7 +254,7 @@ def tag_counts():
     form = SQLFORM.factory(Field('start_date', 'date', default=startdate.date()),
                            Field('end_date', 'date', default=enddate.date()),
                            Field('user_id', 'list:reference auth_user',
-                                 default=uid, readable=False),
+                                 default=uid, readable=False, writable=False),
                            _name='tag_counts_form',
                            _id='tag_counts_form'
                            )
