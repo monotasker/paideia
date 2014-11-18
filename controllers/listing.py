@@ -17,11 +17,11 @@ import traceback
 from paideia_stats import week_bounds, get_offset
 from pprint import pprint
 from dateutil.parser import parse
+from operator import itemgetter
 
 
 @auth.requires_membership(role='administrators')
 def user():
-    print 'starting user ----------------------------------'
     # TODO: magic number here -- admin group is 1
     admins = db(db.auth_membership.group_id == 1
                 ).select(db.auth_membership.user_id).as_list()
@@ -32,26 +32,22 @@ def user():
     else:
         myclasses = db(db.auth_group.course_instructor == auth.user_id).select()
     myclasses = myclasses.as_list()
-    #pprint(myclasses)
+    dated_classes = [m for m in myclasses if m['start_date']]
+    dated_classes.sort(key=itemgetter('start_date'))
 
-    chooser = FORM(SELECT(_name= 'agid',
-                          *[OPTION('{} {} {}, {}'.format(m['academic_year'], m['term'],
-                                          m['course_section'], m['institution'])
-                            , _value=m['id'])
-                              for m  in myclasses]),
+    chooser = FORM(SELECT(_name='agid',
+                          *[OPTION('{} {} {}, {}'.format(m['academic_year'],
+                                                         m['term'],
+                                                         m['course_section'],
+                                                         m['institution']),
+                                   _value=m['id'])
+                            for m in sorted(myclasses, reverse=True)
+                            ]
+                          ),
                     _id='class_chooser' )
     chooser.append(INPUT(_type='submit', _id='chooser_submit'))
-    """
-    chooser = FORM(SELECT(_name= 'agid', _id='class_chooser_select'), _id='class_chooser')
-    for m in myclasses:
-        optstring = '{} {} {}, {}'.format(m['academic_year'], m['term'],
-                                          m['course_section'], m['institution'])
-        chooser[0].append(OPTION(optstring, _value=m['id']))
-    chooser.append(INPUT(_type='submit'))
-    """
 
-    print 'returning------------------------------------------'
-    return {'chooser': chooser, 'classid': myclasses[0]['id']}
+    return {'chooser': chooser, 'classid': myclasses[-1]['id']}
 
 
 @auth.requires_membership(role='administrators')
@@ -133,10 +129,6 @@ def userlist():
         # define minimum daily required # of paths
         # TODO: add class selection here so that I can narrow these figures
         try:
-            #print 'request.vars is', request.vars
-            #print 'value is', request.vars.value
-            #print 'agid is', request.vars.agid
-            #print 'class_chooser is', request.class_chooser
             row = db.auth_group[request.vars.agid]
         except:
             print traceback.format_exc(5)
@@ -146,6 +138,8 @@ def userlist():
         freq = row['days_per_week']
         start_date = row['start_date']
         end_date = row['end_date']
+        title = '{} {} {}, {}'.format(row['academic_year'], row['term'],
+                                      row['course_section'], row['institution'])
 
         member_sel = db(db.auth_membership.group_id == row['id']).select()
         members = [m['user_id'] for m in member_sel]
@@ -187,7 +181,7 @@ def userlist():
         response.js = "jQuery('#chooser_submit').val('Submit Query')"
         return {'users': users, 'countlist': countlist, 'startlist': startlist,
                 'target': target, 'freq': freq, 'classid': row['id'],
-                'start_date': start_date}
+                'start_date': start_date, 'title': title}
     except Exception:
         print traceback.format_exc(5)
 
