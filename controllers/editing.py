@@ -124,7 +124,7 @@ def pregex():
         x = {'id':s, '1': '-','2': '-','3': '-'}
         try:
             if step['response1']:
-                print {'testing id': s, 'response1' : step['response1']}
+                #print {'testing id': s, 'response1' : step['response1']}
                 if re.match(step['response1'], "dummy", re.I | re.U):
                     print {'passed id': s, 'response1' : step['response1']}
                     pass
