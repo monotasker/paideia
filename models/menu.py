@@ -143,6 +143,9 @@ if auth.has_membership('administrators', auth.user_id) or auth.is_impersonating(
              (SPAN(T(' Tags No Badges'), _class='icon-frown'),
                False, URL('editing', 'tnb.html',
                           args=['tagsnobadges'])),
+             (SPAN(T(' Steps Problem Regexes'), _class='icon-frown'),
+               False, URL('editing', 'pregex.html',
+                          args=['stepsproblemregex'])),
               ]),
             
             (SPAN(T(' Utils'), _class='icon-cog'), False, None,

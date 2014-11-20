@@ -1,0 +1,130 @@
+{{extend 'layout.html'}}
+{{
+from plugin_widgets import TOOLTIP, TABS, ROLE
+import json
+import uuid
+}}
+<div class="row">
+    <div class="container">
+        <div class="col-xs-12">
+
+<!--Above Tabs ================================================================-->
+
+{{
+tab1_content =   CAT(DIV(TABLE(THEAD(TR(TH('Step ID'),
+                                      TH('Response1'),
+                                      TH('Response2'),
+                                      TH('Response3')
+                                      ),
+                                    _class='header'
+                                    ),
+                              _class='table table-hover table-condensed',
+                              _id='table-pregex'
+                              ),
+                        _class='dc_container pregextable-container',
+                        _style='font: 12px sans-serif;'
+                        )
+                    )
+}}
+{{for trow in exception_responses:
+	pregexrow = TR(
+          TD(A(trow['id'], _href=URL('plugin_listandedit', 'edit.html',
+                                    args=['steps',trow['id']],
+                                    vars={'orderby':'id',
+                                          'tablename':'steps',
+                                          'tag': trow['id'],
+                                          'redirect':'True',
+                                          'redirect_c': 'editing',
+                                          'redirect_a': 'pregex.html'}),
+              _class='plugin_listandedit_list',  target='self', 
+               )
+              ),
+          TD(trow['1']),
+          TD(trow['2']),
+          TD(trow['3'])
+          )
+	tab1_content[0][0].append(pregexrow)
+pass
+}}
+<!--# ASSEMBLE AND PRINT ==================================================-->
+{{=TABS([('Steps with Problem Regexes', 'web2py_user_form', tab1_content, 'active')])
+}}
+
+<!--# LOCAL SCRIPTS ======================================================-->
+<script type="text/javascript" charset="utf-8">
+(function() {
+    var pregextable = $('#table-pregex').DataTable({
+                        paging: false,
+                        scrollY: '400px',
+                        scrollX: true,
+                        renderer: 'bootstrap',
+                        order: [2, 'asc'],
+                        colVis: {
+                            exclude: [ 0 ]
+                        }
+                     });
+    new $.fn.dataTable.FixedColumns( pregextable );
+    var colvis = new $.fn.dataTable.ColVis( pregextable );
+    $( colvis.button() ).insertBefore('div.pregextable-container');
+
+})();
+var rm_masthead = function() {
+    var x = $('div#masthead').remove();
+};
+
+$(window).load(rm_masthead);
+</script>
+
+
+
+
+
+
+</div>
+</div>
+</div>
+=======
+
+
+
+<style>
+/***********************/
+/* USER STATS & CHARTS */
+/***********************/
+.stats-container {
+    width: 700px;
+    margin: 0 auto;
+}
+
+.chart .axis line,
+.chart .axis path,
+.chart .tick line {
+    fill: none;
+    stroke: black;
+}
+
+.chart .axis line,
+.chart .axis path {
+    shape-rendering: crispEdges;
+}
+
+.chart .axis text {
+    font-size: .9em;
+}
+
+#stats-milestones .inner path,
+#stats-answers .inner path {
+    stroke: #0064cd;
+}
+
+#stats-answers .inner .right {
+    fill: #0064cd;
+}
+
+#stats-answers .inner .wrong {
+    fill: #cd001d;
+}
+</style>
+
+
+
