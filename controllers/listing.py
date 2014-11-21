@@ -14,7 +14,7 @@ if 0:
     request, response = current.request, current.response
 import datetime
 import traceback
-from paideia_stats import week_bounds, get_offset
+from paideia_stats import week_bounds, get_offset, get_starting_set
 from pprint import pprint
 from dateutil.parser import parse
 from operator import itemgetter
@@ -126,8 +126,6 @@ def remove_user():
 @auth.requires_membership(role='administrators')
 def userlist():
     try:
-        # define minimum daily required # of paths
-        # TODO: add class selection here so that I can narrow these figures
         try:
             row = db.auth_group[request.vars.agid]
         except:
@@ -184,25 +182,6 @@ def userlist():
                 'start_date': start_date, 'title': title}
     except Exception:
         print traceback.format_exc(5)
-
-
-def get_starting_set(user, start_date, end_date):
-    '''
-    'user' argument is a selected row from auth_user
-    '''
-    bb = db((db.badges_begun.name == user.auth_user.id) &
-            (db.badges_begun.tag == db.tags.id)).select()
-    if start_date:
-        try:
-            bb = bb.find(lambda row: row.badges_begun.cat1 < start_date)
-            highest = max(b.tags.tag_position for b in bb
-                          if b.tags.tag_position < 900)
-        except ValueError:
-            highest = 1
-    else:
-        highest = 'NA'
-
-    return highest
 
 
 def add_user_form():

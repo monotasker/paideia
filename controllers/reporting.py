@@ -232,7 +232,7 @@ def tag_counts():
     '''
     pprint(request.vars)
     nowdate = datetime.datetime.combine(datetime.date.today(), datetime.time(0,0,0,0))
-    print 'start_date', request.vars['start_date']
+
     if 'start_date' in request.vars.keys():
         sdt = parse(request.vars['start_date'])
         startdate = datetime.datetime.combine(sdt, datetime.time(0,0,0,0))

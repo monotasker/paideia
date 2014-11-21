@@ -983,8 +983,8 @@ class Stats(object):
         datelist = []
         for d in range(daysnum + 1):
             newdt = start_dt + datetime.timedelta(days=d)
-            datelist.append(datetime.datetime.combine(newdt.date(),
-                                                      datetime.time(0,0,0,0)))
+            newdt = datetime.datetime.combine(newdt.date(), datetime.time(0,0,0,0))
+            datelist.append(newdt)
 
         # gather common data to later filter for each day
         uid = self.user_id
@@ -992,13 +992,16 @@ class Stats(object):
                   (db.attempt_log.dt_attempted <= end_dt) &
                   (db.attempt_log.dt_attempted > start_dt) &
                   (db.attempt_log.step == db.steps.id)).select()
-        usercats = db(db.tag_progress.name == uid).select().first()
 
         daysdata = {}
         for daystart in datelist:
+            # get day bounds
             dayend = daystart + datetime.timedelta(days=1)
+            # collect logs within those bounds
             daylogs = logs.find(lambda l: (l.attempt_log['dt_attempted'] >= daystart) and
                                           (l.attempt_log['dt_attempted'] < dayend))
+
+            # get all tags and total attempts for each
             alltags = [t for row in daylogs for t in row.steps.tags]
             tagcounts = {}
             for t in alltags:
@@ -1006,12 +1009,28 @@ class Stats(object):
                     tagcounts[t] += 1
                 else:
                     tagcounts[t] = 1
+
+            # reconstruct cats for this day
+            nowcats = db(db.tag_progress.name == uid).select().first()
+            proms = db(db.badges_begun.name == uid).select()
+            usercats = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
+            for row in proms:
+                for cat in ['cat4', 'cat3', 'cat2', 'cat1']:
+                    print cat
+                    if row[cat] and row[cat] < dayend:
+                        usercats[cat].append(row.tag)
+                        break
+                    else:
+                        continue
+            print usercats
+
+            # find attempts for each category
             catdata = {}
-            for cat in ['cat1', 'cat2', 'cat3', 'cat4', 'rev1', 'rev2',
-                        'rev3', 'rev4']:
+            for cat in usercats.keys():
                 catlogs = daylogs.find(lambda l: any(t for t in l.steps.tags
                                                 if t in usercats[cat]))
-                cattags = list(set([t for l in catlogs for t in l.steps.tags]))
+                cattags = list(set([t for l in catlogs for t in l.steps.tags if
+                                    t in usercats[cat]]))
                 cattag_counts = {t: tagcounts[t] for t in cattags}
                 tagsmissed = [t for t in usercats[cat] if t not in cattags]
 
@@ -1157,3 +1176,25 @@ def remove_trailing_0s(num, fmt='str'):
         else:
             out = int(out)
     return out
+
+
+def get_starting_set(user, start_date, end_date):
+    '''
+    Return the badge set a user had reached at start_date.
+    '''
+    db = current.db
+    bb = db((db.badges_begun.name == user) &
+            (db.badges_begun.tag == db.tags.id)).select()
+    if start_date:
+        try:
+            bb = bb.find(lambda row: row.badges_begun.cat1 < start_date)
+            highest = max(b.tags.tag_position for b in bb
+                          if b.tags.tag_position < 900)
+        except ValueError:
+            highest = 1
+    else:
+        highest = 'NA'
+
+    return highest
+
+
