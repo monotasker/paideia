@@ -45,7 +45,7 @@ def simple_obj_print(the_dict, title='No Title', indentation=0):
         #lists
         if ( (hasattr(the_dict, '__iter__')) |isinstance(the_dict, StorageList)) :
             print indentation_string  + str(title) + '(list):'
-            count = 0         
+            count = 0
             try:
                 for value in the_dict:
                     simple_obj_print(value, count,indentation+1)
@@ -96,7 +96,7 @@ def simple_obj_print_str(output_obj, the_dict, title='No Title', indentation=0, 
         #lists
         if ( (hasattr(the_dict, '__iter__')) |isinstance(the_dict, StorageList)) :
             output_obj['data'] +=  (indentation_string  + str(title) + '(list:)' + '<ol title="list">')
-            count = 0         
+            count = 0
             try:
                 for value in the_dict:
                     #output_obj['data'] +=  (indentation_string  + '<li>')
@@ -129,17 +129,11 @@ class Paideia_Debug(object):
         """
         """
         self.data = 'Debug Enabled'
-        
+
     def do_print(self, the_object,the_title):
         data_obj = dict(data='');
         simple_obj_print_str(data_obj, the_object, the_title, 0)
         self.data += data_obj['data']
-    
-    
-    
- 
-
-
 
 
 def uprint(myobj):

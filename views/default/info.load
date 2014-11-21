@@ -20,8 +20,8 @@ import json
 # TAB 1 - BADGE INFO ==========================================================
 tab1_content = CAT(H4('Set progress'),
                    DIV(P('So far, I have reached badge set {}.'.format(max_set)),
-                       P('My goal for {} is to reach the {} set of badges by '
-                         '{}'.format(goal[0], goal[1], goal[2])),
+                   P('I began this term at badge set {} and my goal to earn an '
+                     'A is to reach set {} by {}'.format(starting_set, target_set, end_date)),
                        _id='info-tab1-set-progress'),
                    H4('Badge levels earned'),
                    DIV(TABLE(TR(TD('level 4'), TD('master'),

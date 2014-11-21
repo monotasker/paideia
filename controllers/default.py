@@ -1,7 +1,7 @@
 #! /usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
-from paideia_stats import Stats
+from paideia_stats import Stats, get_starting_set
 from paideia_bugs import Bug
 # import traceback
 # from paideia_utils import send_error
@@ -114,15 +114,34 @@ def info():
         user = db.auth_user[auth.user_id]
 
     stats = Stats(user.id, cache=cache)
+    now = datetime.datetime.utcnow()
+
+    # get user's current course
+    myclasses = db((db.auth_membership.user_id == user.id) &
+                   (db.auth_membership.group_id == db.auth_group.id)).select()
+    myclasses = myclasses.find(lambda row: row.auth_group.start_date != None)
+    myclasses = myclasses.find(lambda row: (row.auth_group.start_date < now) and \
+                                         (row.auth_group.end_date > now))
+    myclass = myclasses.first()
 
     # tab1
     name = stats.get_name()
     tz = user.time_zone
     email = user.email
     max_set = stats.get_max()
-    goal = stats.get_goal()
     badge_levels = stats.get_badge_levels()
     badge_table_data = stats.active_tags()
+    if myclass:
+        starting_set = get_starting_set(user.id,
+                                        myclass.auth_group.start_date,
+                                        myclass.auth_group.end_date)
+    else:
+        starting_set = None
+    target_set = starting_set + 8 if starting_set else None # FIXME: get this from course row
+    end_date = myclass.auth_group.end_date if myclass else None
+    if end_date:  # make it readable for display
+        strf = '%b %e' if end_date.year == now.year else '%b %e, %Y'
+        end_date = end_date.strftime(strf)
 
     # tab2
     mycal = stats.monthcal()
@@ -142,10 +161,12 @@ def info():
             'user_id': user.id,
             'tz': tz,
             'email': email,
+            'starting_set': starting_set,
+            'target_set': target_set,
+            'end_date': end_date,
             'cal': mycal,
             'blist': blist,
             'max_set': max_set,
-            'goal': goal,
             'badge_levels': badge_levels,
             'badge_table_data': badge_table_data,
             'badge_set_milestones': badge_set_milestones,
