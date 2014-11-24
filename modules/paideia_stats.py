@@ -420,7 +420,24 @@ class Stats(object):
                                         tags_ahead
 
         '''
+        db = current.db
         tr = [r for r in self.tag_recs if r['tag'] in self.tags]
+
+        offset = get_offset(self.user)
+        daystart = datetime.datetime.combine(self.utcnow.date(),
+                                             datetime.time(0,0,0,0))
+        daystart = daystart - offset
+        yest_start = (daystart - datetime.timedelta(days=1)) + offset
+        print 'yest_start', yest_start
+
+        alltags = [r['tag'] for r in tr]
+        print 'alltags:', list(set(alltags))
+        logs = db((db.attempt_log.name == self.user_id) &
+                  (db.attempt_log.step == db.steps.id) &
+                  (db.attempt_log.dt_attempted > yest_start)).select()
+        print 'alllogs:', len(logs)
+        print [l.steps.tags for l in logs]
+
         # shorten keys for readability
         shortforms = {'tlast_right': 'tlr',
                       'tlast_wrong': 'tlw',
@@ -433,10 +450,22 @@ class Stats(object):
                     del tr[idx][k]
         now = self.utcnow if not now else now
         for idx, t in enumerate(tr):
+            print t
             # remove unnecessary keys
             tr[idx] = {k: v for k, v in t.iteritems()
                     if k not in ['id', 'name', 'in_path', 'step',
                                  'secondary_right']}
+
+            # count logs for this tag (today and yesterday)
+            taglogs = logs.find(lambda r: any(tag for tag in r.steps.tags
+                                              if t['tag'] == tag))
+            print 'taglogs:', len(taglogs)
+            todaylogs = taglogs.find(lambda r: r.attempt_log.dt_attempted > daystart)
+            yestlogs = taglogs.find(lambda r: (r.attempt_log.dt_attempted <= daystart)
+                                    and (r.attempt_log.dt_attempted > yest_start))
+            tr[idx]['todaycount'] = len(todaylogs)
+            tr[idx]['yestcount'] = len(yestlogs)
+            print 'todaylogs', len(todaylogs)
 
             # get average score over past week
             tr[idx]['avg_score'] = self._get_avg_score(t['tag'])
@@ -482,11 +511,6 @@ class Stats(object):
                 tr[idx]['revlev'] = 0
 
             # add rw_ratio
-            print 'in stats ============================================='
-            print 'tag', tr[idx]['tag']
-            print 'tr', t['tright']
-            print 'tw', t['twrong']
-            print '======================================================'
             try:
                 if not t['tright']:  # TODO: tests to sanitize bad data (None)
                     t['tright'] = 0
@@ -897,7 +921,6 @@ class Stats(object):
                  'badge_set': row.tags.tag_position}
                 for row in result if row.tags.tag_position < 900]
         data = sorted(data, key=lambda i: i['badge_set'], reverse=True)
-        print data
 
         # Make sure that the badge set number is nondecreasing.
         # Order in the SQL query above along with this ensure that there's
@@ -920,7 +943,6 @@ class Stats(object):
                                    'badge_set': milestones[-1]['badge_set']})
         except IndexError:
             pass
-        pprint(milestones)
 
         return milestones
 
@@ -1008,13 +1030,11 @@ class Stats(object):
             usercats = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
             for row in proms:
                 for cat in ['cat4', 'cat3', 'cat2', 'cat1']:
-                    print cat
                     if row[cat] and row[cat] < dayend:
                         usercats[cat].append(row.tag)
                         break
                     else:
                         continue
-            print usercats
 
             # find attempts for each category
             catdata = {}
@@ -1146,9 +1166,13 @@ def get_offset(user):
     except AttributeError:
         today = datetime.datetime.utcnow()
         now = timezone('UTC').localize(today)
-        tz_name = user.auth_user.time_zone if user.auth_user.time_zone \
+        #tz_name = user.auth_user.time_zone if user.auth_user.time_zone \
+            #else 'America/Toronto'
+        tz_name = user.time_zone if user.time_zone \
             else 'America/Toronto'
-        offset = now - timezone(tz_name).localize(today)  # when to use "ambiguous"?
+        offset = timezone(tz_name).localize(today) - now  # when to use "ambiguous"?
+        print 'timezone:', tz_name
+        print 'offset:', offset
     return offset
 
 
@@ -1175,10 +1199,8 @@ def get_starting_set(user, start_date, end_date):
     Return the badge set a user had reached at start_date.
     '''
     db = current.db
-    print 'got here'
     bb = db((db.badges_begun.name == user) &
             (db.badges_begun.tag == db.tags.id)).select()
-    print 'got here'
     if start_date:
         try:
             bb = bb.find(lambda row: row.badges_begun.cat1 < start_date)
