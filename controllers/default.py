@@ -144,7 +144,7 @@ def info():
     elif starting_set:
         target_set = starting_set + goal
     else:
-        starting_set = None
+        target_set = None
 
     end_date = myclass.auth_group.end_date if myclass else None
     if end_date:  # make it readable for display

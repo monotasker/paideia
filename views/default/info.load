@@ -48,14 +48,16 @@ tab1_content = CAT(H4('Set progress'),
                                       TH('Set'),
                                       TH('Level'),
                                       TH('Right per 1 wrong'),
-                                      TH('Avg score for 7 days'),
+                                      TH('Avg score (7 days)'),
                                       TH('Times Right'),
                                       TH('Times Wrong'),
-                                      TH('Days between last right and last wrong'),
+                                      TH('Between right and wrong'),
+                                      TH('Since last right'),
                                       TH('Last Right'),
                                       TH('Last Wrong'),
-                                      TH('Days since last right'),
-                                      TH('Days since last wrong')
+                                      TH('Since last wrong'),
+                                      TH('Attempts today'),
+                                      TH('Attempts yesterday')
                                       ),
                                     _class='header'
                                     ),
@@ -76,10 +78,12 @@ badgerow = TR(TD(trow['bname']),
               TD(trow['tright']),
               TD(trow['twrong']),
               TD(trow['delta_rw'].days),
+              TD(trow['delta_r'].days),
               TD(trow['tlr'][1]),
               TD(trow['tlw'][1]),
-              TD(trow['delta_r'].days),
-              TD(trow['delta_w'].days)
+              TD(trow['delta_w'].days),
+              TD(trow['todaycount']),
+              TD(trow['yestcount']),
               )
 badgerow[8]['_data-order'] = trow['tlr'][0]  # sort column by raw date
 badgerow[9]['_data-order'] = trow['tlw'][0]  # sort column by raw date
