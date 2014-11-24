@@ -171,7 +171,10 @@ def userlist():
 
             countlist[user.auth_user.id] = (spans[0]['count'], spans[0]['min_count'],
                                             spans[1]['count'], spans[1]['min_count'])
-            startlist[user.auth_user.id] = get_starting_set(user, start_date, end_date)
+            print 'user:', user
+            startlist[user.auth_user.id] = get_starting_set(user.auth_user.id,
+                                                            start_date,
+                                                            end_date)
 
         if start_date:  # make it readable for display
             strf = '%b %e' if start_date.year == now.year else '%b %e, %Y'

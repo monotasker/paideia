@@ -600,14 +600,6 @@ class Stats(object):
 
         return badge_levels, review_levels
 
-    def get_goal(self):
-        """
-        """
-        term = "This term"
-        set_target = None
-        sets_left = None
-        return term, set_target, sets_left
-
     def _make_logs_into_weekstats(self, logs):
         """
         Return a dictionary of the provided log data structured as in db.user_stats.
@@ -1183,8 +1175,10 @@ def get_starting_set(user, start_date, end_date):
     Return the badge set a user had reached at start_date.
     '''
     db = current.db
+    print 'got here'
     bb = db((db.badges_begun.name == user) &
             (db.badges_begun.tag == db.tags.id)).select()
+    print 'got here'
     if start_date:
         try:
             bb = bb.find(lambda row: row.badges_begun.cat1 < start_date)
