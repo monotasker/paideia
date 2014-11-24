@@ -137,7 +137,15 @@ def info():
                                         myclass.auth_group.end_date)
     else:
         starting_set = None
-    target_set = starting_set + 8 if starting_set else None # FIXME: get this from course row
+
+    goal = 8 # FIXME: get this from course row
+    if starting_set == 1:
+        target_set = goal
+    elif starting_set:
+        target_set = starting_set + goal
+    else:
+        starting_set = None
+
     end_date = myclass.auth_group.end_date if myclass else None
     if end_date:  # make it readable for display
         strf = '%b %e' if end_date.year == now.year else '%b %e, %Y'
