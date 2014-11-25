@@ -154,7 +154,7 @@ def userlist():
         countlist = {}
         startlist = {}
         for user in users:
-            offset = get_offset(user)
+            offset = get_offset(user.auth_user)
 
             spans = [{'days': thisweek, 'count': 0, 'min_count': 0},
                      {'days': lastweek, 'count': 0, 'min_count': 0}]
@@ -171,7 +171,6 @@ def userlist():
 
             countlist[user.auth_user.id] = (spans[0]['count'], spans[0]['min_count'],
                                             spans[1]['count'], spans[1]['min_count'])
-            print 'user:', user
             startlist[user.auth_user.id] = get_starting_set(user.auth_user.id,
                                                             start_date,
                                                             end_date)
