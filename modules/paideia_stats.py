@@ -1162,12 +1162,11 @@ def get_offset(user):
     Return the user's offset from utc time based on their time zone.
     '''
     try:
-        user.auth_user.offset
+        user.offset
     except AttributeError:
         today = datetime.datetime.utcnow()
         now = timezone('UTC').localize(today)
-        #tz_name = user.auth_user.time_zone if user.auth_user.time_zone \
-            #else 'America/Toronto'
+        print user
         tz_name = user.time_zone if user.time_zone \
             else 'America/Toronto'
         offset = timezone(tz_name).localize(today) - now  # when to use "ambiguous"?
