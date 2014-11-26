@@ -1755,7 +1755,7 @@ class StepEvaluator(object):
             user_response = request.vars['response']
         user_response = self._strip_spaces(user_response)
         user_response = self._regularize_greek(user_response)
-        user_response = normalize_accents(user_response)
+        #user_response = normalize_accents(user_response)
         print '***', user_response
         responses = {k: r for k, r in self.responses.iteritems()
                      if r and r != 'null'}
