@@ -5,18 +5,18 @@ from gluon import IMG, URL, SQLFORM, SPAN, DIV, UL, LI, A, Field, P, HTML
 from gluon import I
 from gluon import IS_NOT_EMPTY, IS_IN_SET
 
-from inspect import getargvalues, stack
-import traceback
 from copy import copy
 from copy import deepcopy
+import datetime
+from dateutil import parser
+from inspect import getargvalues, stack
 from itertools import chain
 from random import randint, randrange
 import re
-import datetime
-from dateutil import parser
+import traceback
 from pytz import timezone
 import pickle
-from plugin_utils import flatten
+from plugin_utils import flatten, makeutf8, encodeutf8
 from plugin_widgets import MODAL
 from pprint import pprint
 from paideia_utils import simple_obj_print
@@ -1708,7 +1708,7 @@ class StepEvaluator(object):
                   'T': 'Τ',
                   'u': 'υ',
                   'X': 'Χ'}
-        user_response = user_response.decode('utf8')
+        user_response = makeutf8(user_response)
         words = user_response.split(' ')
         Latinchars = re.compile(u'[\u0041-\u007a]|\d', re.U)
         Greekchars = re.compile(u'[\u1f00-\u1fff]|[\u0370-\u03ff]', re.U)
@@ -1720,7 +1720,7 @@ class StepEvaluator(object):
                     if ltr in equivs.keys():
                         words[idx] = word.replace(ltr, equivs[ltr].decode('utf8'))
         newresp = ' '.join(words)
-        return newresp.encode('utf8')
+        return encodeutf8(newresp)
 
     def _strip_spaces(self, user_response):
         """
@@ -1747,7 +1747,7 @@ class StepEvaluator(object):
             request = current.request
             user_response = request.vars['response']
         user_response = self._strip_spaces(user_response)
-        #user_response = self._regularize_greek(user_response)  FIXME: this isn't working on live site
+        user_response = self._regularize_greek(user_response)  # FIXME: this isn't working on live site
         responses = {k: r for k, r in self.responses.iteritems()
                      if r and r != 'null'}
         # Compare the student's response to the regular expressions
@@ -1791,7 +1791,7 @@ class StepEvaluator(object):
                 reply = "Incorrect. Try again!"
 
             # Set the increment value for times wrong, depending on score
-            if score < 1:
+            if score < 0.8:
                 times_wrong = 1
                 times_right = 0
             else:
