@@ -19,7 +19,7 @@ import pickle
 from plugin_utils import flatten, makeutf8, encodeutf8
 from plugin_widgets import MODAL
 from pprint import pprint
-from paideia_utils import simple_obj_print, test_regex
+from paideia_utils import simple_obj_print, test_regex, normalize_accents
 from paideia_utils import Paideia_Debug
 
 #True = debug to screen, False is normal
@@ -1718,7 +1718,13 @@ class StepEvaluator(object):
             if Gklts and Latlts and len(Gklts) > len(Latlts):
                 for ltr in word:
                     if ltr in equivs.keys():
-                        words[idx] = word.replace(ltr, equivs[ltr].decode('utf8'))
+                        words[idx] = word.replace(makeutf8(ltr), makeutf8(equivs[ltr]))
+            if Gklts and Latlts and len(Gklts) < len(Latlts):
+                for ltr in word:
+                    if ltr in equivs.values():
+                        myletter = [l for g, l in equivs.iteritems()
+                                    if makeutf8(g) == makeutf8(ltr)]
+                        words[idx] = word.replace(makeutf8(ltr), makeutf8(myletter))
         newresp = ' '.join(words)
         return encodeutf8(newresp)
 
@@ -1728,6 +1734,7 @@ class StepEvaluator(object):
         """
         while '  ' in user_response:  # remove multiple inner spaces
             user_response = user_response.replace('  ', ' ')
+            print 'removed space from user response'
         user_response = user_response.strip()  # remove leading and trailing spaces
         return user_response
 
@@ -1747,7 +1754,9 @@ class StepEvaluator(object):
             request = current.request
             user_response = request.vars['response']
         user_response = self._strip_spaces(user_response)
-        user_response = self._regularize_greek(user_response)  # FIXME: this isn't working on live site
+        user_response = self._regularize_greek(user_response)
+        user_response = normalize_accents(user_response)
+        print '***', user_response
         responses = {k: r for k, r in self.responses.iteritems()
                      if r and r != 'null'}
         # Compare the student's response to the regular expressions

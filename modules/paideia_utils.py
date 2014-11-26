@@ -21,6 +21,7 @@ from itertools import chain
 #import datetime
 #import json
 import plugin_utils
+from plugin_utils import makeutf8, encodeutf8
 import datetime
 
 """
@@ -422,7 +423,7 @@ def load_json(data):
     return plugin_utils.load_json(data)
 
 
-def normalize_accents(strings):
+def normalize_accents(string):
     """
     Return a polytonic Greek unicode string with accents removed.
 
@@ -431,8 +432,7 @@ def normalize_accents(strings):
 
     So far this function only handles lowercase strings.
     """
-    if not isinstance(strings, list):
-        strings = [strings]
+    strings = string.split(' ')
 
     equivs = {'α': ['ά', 'ὰ', 'ᾶ'],
               'ἀ': ['ἄ', 'ἂ', 'ἆ'],
@@ -449,7 +449,7 @@ def normalize_accents(strings):
               'ῃ': ['ῇ', 'ῄ', 'ῂ'],
               'ᾐ': ['ᾔ', 'ᾒ', 'ᾖ'],
               'ᾑ': ['ᾕ', 'ᾓ', 'ᾗ'],
-              'ι': ['ῖ', 'ϊ', 'ί', 'ὶ'],
+              'ι': ['ῖ', 'ϊ', 'ί', 'ὶ', 'ί'],
               'ἰ': ['ἴ', 'ἲ', 'ἶ'],
               'ἱ': ['ἵ', 'ἳ', 'ἷ'],
               'ο': ['ό', 'ὸ'],
@@ -469,34 +469,24 @@ def normalize_accents(strings):
     restr = '|'.join(accented)
     newstrings = []
     for mystring in strings:
-        if mystring not in ['τίνος', 'τί', 'τίς', 'τίνα', 'τίνας', 'τίνι']:
-            search = re.search(restr, mystring)
-            if search:
-                matching_letters = search.group()  # could be multiple
-                # get relevant subset of equivs dictionary
+        mystring = mystring.replace('ί', 'ί')  # avoid q-i iota on windows
+        exempt = ['τίνος', 'τί', 'τίς', 'τίνα', 'τίνας', 'τίνι',
+                  'Τίνος', 'Τί', 'Τίς', 'Τίνα', 'Τίνας', 'Τίνι']
+        if mystring not in exempt:
+            matching_letters = re.findall(makeutf8(restr), makeutf8(mystring), re.I | re.U)
+            if matching_letters:
                 edict = {k: v for k, v in equivs.iteritems()
-                        if [m for m in v if m in matching_letters]}
-                # eliminate absent accented letters from values
+                        if [m for m in v if makeutf8(m) in matching_letters]}
                 for k, v in edict.iteritems():
-                    edict[k] = [l for l in v if l in matching_letters]
-                    pairs = edict.items()
-                    for idx, p in enumerate(pairs):
-                        if len(p[1]) > 1:  # handle multiple matching values
-                            newpairs = [(v, p[0]) for v in p[1][1:]]
-                            pairs.extend(newpairs)
-                        pairs[idx] = (p[1][0], p[0])
-                newstrings.append(multiple_replace(mystring, *pairs))
+                    myval = [l for l in v if makeutf8(l) in matching_letters][0]
+                    mystring = mystring.replace(myval, k)
             else:
-                newstrings.append(mystring)
+                pass
         else:
-            newstrings.append(mystring)
-        #myloc = locale.getdefaultlocale()
-        # TODO: get alphabetical sorting working here
-        #print 'default locale is', myloc
-        #locale.setlocale(locale.LC_ALL, 'el_GR.UTF-8')
-        newstrings = sorted(newstrings)
-        #locale.setlocale(locale.LC_ALL, myloc)
-    return newstrings
+            pass
+        newstrings.append(mystring)
+    newstring = ' '.join(newstrings)
+    return encodeutf8(newstring)
 
 
 def gather_vocab():
