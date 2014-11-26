@@ -19,7 +19,7 @@ import pickle
 from plugin_utils import flatten, makeutf8, encodeutf8
 from plugin_widgets import MODAL
 from pprint import pprint
-from paideia_utils import simple_obj_print
+from paideia_utils import simple_obj_print, test_regex
 from paideia_utils import Paideia_Debug
 
 #True = debug to screen, False is normal
@@ -1756,34 +1756,36 @@ class StepEvaluator(object):
         score = 0
 
         try:
-            if re.match(responses['response1'], user_response, re.I | re.U):
+            regex1 = re.compile(makeutf8(responses['response1']), re.I | re.U)
+            regex2 = re.compile(makeutf8(responses['response2']), re.I | re.U) \
+                if len(responses) > 1 else None
+            regex3 = re.compile(makeutf8(responses['response3']), re.I | re.U) \
+                if len(responses) > 2 else None
+
+            if re.match(regex1, makeutf8(user_response)):
                 score = 1
                 reply = "Right. Κάλον."
-            elif re.match(responses['response1'], (user_response + '.'), re.I | re.U):
+            elif re.match(regex1, makeutf8(user_response + '.')):
                 score = 0.9
                 reply = "Οὐ Κάκον. You're very close. Just remember to put a " \
                         "period on the end of a full clause."
-            elif re.match(responses['response1'], (user_response + '?'), re.I | re.U):
+            elif re.match(regex1, makeutf8(user_response + '?')):
                 score = 0.9
                 reply = "Οὐ Κάκον. You're very close. Just remember to put a " \
                         "question mark on the end of a question."
             elif user_response[-1] in ['.', ',', '!', '?', ';'] and \
-                    re.match(responses['response1'], user_response[:-1], re.I | re.U):
+                    re.match(regex1, makeutf8(user_response[:-1])):
                 score = 0.9
                 reply = "Ού κάκον. You're very close. Just remember not to put " \
                         "a final punctuation mark on your answer if it's not a " \
                         "complete clause"
-            elif len(responses) > 1 and re.match(responses['response2'],
-                                                 user_response, re.I | re.U):
+            elif regex2 and re.match(regex2, makeutf8(user_response)):
                 score = 0.5
-                #  TODO: Get this score value from the db instead of hard
-                #  coding it here.
+                #  TODO: Get this score value from the db instead
                 reply = "Οὐ κάκον. You're close."
                 #  TODO: Vary the replies
-            elif len(responses) > 2 and re.match(responses['response3'],
-                                                 user_response, re.I | re.U):
-                #  TODO: Get this score value from the db instead of hard
-                #  coding it here.
+            elif regex3 and re.match(regex3, makeutf8(user_response)):
+                #  TODO: Get this score value from the db instead
                 score = 0.3
                 reply = "Οὐ κάκον. You're close."
             else:
@@ -1800,13 +1802,15 @@ class StepEvaluator(object):
 
         # Handle errors if the student's response cannot be evaluated
         except re.error:
-            exception_msg = 'these are the responses for a step having errors in evaluation: ' + str(responses)  + 'user response is:' + user_response
+            exception_msg = 'these are the responses for a step having errors ' \
+                            'in evaluation: ' + str(responses)  + 'user ' \
+                            'response is:' + user_response
             Exception_Bug({'log_id':0,
-                                       'path_id':0,
-                                       'step_id':0,
-                                       'score':0,
-                                       'answer':exception_msg,
-                                       'loc':0})
+                           'path_id':0,
+                           'step_id':0,
+                           'score':0,
+                           'answer':exception_msg,
+                           'loc':0})
             #current.paideia_debug.do_print({'user_response':user_response,
                                          #'responses':responses},"error in StepEvaluator::get_eval")
             # FIXME: is there still a view for this?
