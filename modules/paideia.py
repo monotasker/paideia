@@ -5,21 +5,21 @@ from gluon import IMG, URL, SQLFORM, SPAN, DIV, UL, LI, A, Field, P, HTML
 from gluon import I
 from gluon import IS_NOT_EMPTY, IS_IN_SET
 
+from inspect import getargvalues, stack
+import traceback
 from copy import copy
 from copy import deepcopy
-import datetime
-from dateutil import parser
-from inspect import getargvalues, stack
 from itertools import chain
 from random import randint, randrange
 import re
-import traceback
+import datetime
+from dateutil import parser
 from pytz import timezone
 import pickle
-from plugin_utils import flatten, makeutf8, encodeutf8
+from plugin_utils import flatten
 from plugin_widgets import MODAL
 from pprint import pprint
-from paideia_utils import simple_obj_print, test_regex, normalize_accents
+from paideia_utils import simple_obj_print
 from paideia_utils import Paideia_Debug
 
 #True = debug to screen, False is normal
@@ -595,7 +595,7 @@ class Walk(object):
                 #debug ... dont forget to take this out!
                 #tag_progress['cat2'].append(82)
                 #debug
-
+                #current.paideia_debug.do_print(({'tag_progres before update': tag_progress}), "Marseilles- tag_progress")
                 db.tag_progress.update_or_insert(condition, **tag_progress)
                 db.commit()
                 mycount = db(db.tag_progress.name == uid).count()
@@ -1214,7 +1214,7 @@ class Step(object):
         Since user.set_block is ONLY called in Walk.ask(), these values are
         always set in that top-level method.
         """
-        #debug ... DONT FORGET TO TURN OFF
+        #debug ... DONT FORGET TO TURN back on
         raw_prompt = self.data['prompt'] if not raw_prompt else raw_prompt
         #debug
 
@@ -1708,7 +1708,7 @@ class StepEvaluator(object):
                   'T': 'Τ',
                   'u': 'υ',
                   'X': 'Χ'}
-        user_response = makeutf8(user_response)
+        user_response = user_response.decode('utf8')
         words = user_response.split(' ')
         Latinchars = re.compile(u'[\u0041-\u007a]|\d', re.U)
         Greekchars = re.compile(u'[\u1f00-\u1fff]|[\u0370-\u03ff]', re.U)
@@ -1718,15 +1718,9 @@ class StepEvaluator(object):
             if Gklts and Latlts and len(Gklts) > len(Latlts):
                 for ltr in word:
                     if ltr in equivs.keys():
-                        words[idx] = word.replace(makeutf8(ltr), makeutf8(equivs[ltr]))
-            if Gklts and Latlts and len(Gklts) < len(Latlts):
-                for ltr in word:
-                    if ltr in equivs.values():
-                        myletter = [l for g, l in equivs.iteritems()
-                                    if makeutf8(g) == makeutf8(ltr)]
-                        words[idx] = word.replace(makeutf8(ltr), makeutf8(myletter))
+                        words[idx] = word.replace(ltr, equivs[ltr].decode('utf8'))
         newresp = ' '.join(words)
-        return encodeutf8(newresp)
+        return newresp.encode('utf8')
 
     def _strip_spaces(self, user_response):
         """
@@ -1734,7 +1728,6 @@ class StepEvaluator(object):
         """
         while '  ' in user_response:  # remove multiple inner spaces
             user_response = user_response.replace('  ', ' ')
-            print 'removed space from user response'
         user_response = user_response.strip()  # remove leading and trailing spaces
         return user_response
 
@@ -1754,9 +1747,7 @@ class StepEvaluator(object):
             request = current.request
             user_response = request.vars['response']
         user_response = self._strip_spaces(user_response)
-        user_response = self._regularize_greek(user_response)
-        #user_response = normalize_accents(user_response)
-        print '***', user_response
+        #user_response = self._regularize_greek(user_response)  FIXME: this isn't working on live site
         responses = {k: r for k, r in self.responses.iteritems()
                      if r and r != 'null'}
         # Compare the student's response to the regular expressions
@@ -1778,27 +1769,31 @@ class StepEvaluator(object):
             if re.match(regex1, makeutf8(user_response)):
                 score = 1
                 reply = "Right. Κάλον."
-            elif re.match(regex1, makeutf8(user_response + '.')):
+            elif re.match(responses['response1'], (user_response + '.'), re.I | re.U):
                 score = 0.9
                 reply = "Οὐ Κάκον. You're very close. Just remember to put a " \
                         "period on the end of a full clause."
-            elif re.match(regex1, makeutf8(user_response + '?')):
+            elif re.match(responses['response1'], (user_response + '?'), re.I | re.U):
                 score = 0.9
                 reply = "Οὐ Κάκον. You're very close. Just remember to put a " \
                         "question mark on the end of a question."
             elif user_response[-1] in ['.', ',', '!', '?', ';'] and \
-                    re.match(regex1, makeutf8(user_response[:-1])):
+                    re.match(responses['response1'], user_response[:-1], re.I | re.U):
                 score = 0.9
                 reply = "Ού κάκον. You're very close. Just remember not to put " \
                         "a final punctuation mark on your answer if it's not a " \
                         "complete clause"
-            elif regex2 and re.match(regex2, makeutf8(user_response)):
+            elif len(responses) > 1 and re.match(responses['response2'],
+                                                 user_response, re.I | re.U):
                 score = 0.5
-                #  TODO: Get this score value from the db instead
+                #  TODO: Get this score value from the db instead of hard
+                #  coding it here.
                 reply = "Οὐ κάκον. You're close."
                 #  TODO: Vary the replies
-            elif regex3 and re.match(regex3, makeutf8(user_response)):
-                #  TODO: Get this score value from the db instead
+            elif len(responses) > 2 and re.match(responses['response3'],
+                                                 user_response, re.I | re.U):
+                #  TODO: Get this score value from the db instead of hard
+                #  coding it here.
                 score = 0.3
                 reply = "Οὐ κάκον. You're close."
             else:
@@ -1806,7 +1801,7 @@ class StepEvaluator(object):
                 reply = "Incorrect. Try again!"
 
             # Set the increment value for times wrong, depending on score
-            if score < 0.8:
+            if score < 1:
                 times_wrong = 1
                 times_right = 0
             else:
@@ -1815,15 +1810,13 @@ class StepEvaluator(object):
 
         # Handle errors if the student's response cannot be evaluated
         except re.error:
-            exception_msg = 'these are the responses for a step having errors ' \
-                            'in evaluation: ' + str(responses)  + 'user ' \
-                            'response is:' + user_response
+            exception_msg = 'these are the responses for a step having errors in evaluation: ' + str(responses)  + 'user response is:' + user_response
             Exception_Bug({'log_id':0,
-                           'path_id':0,
-                           'step_id':0,
-                           'score':0,
-                           'answer':exception_msg,
-                           'loc':0})
+                                       'path_id':0,
+                                       'step_id':0,
+                                       'score':0,
+                                       'answer':exception_msg,
+                                       'loc':0})
             #current.paideia_debug.do_print({'user_response':user_response,
                                          #'responses':responses},"error in StepEvaluator::get_eval")
             # FIXME: is there still a view for this?
@@ -2042,14 +2035,20 @@ class PathChooser(object):
         db = current.db if not db else db
         self.loc_id = loc_id
         self.completed = paths_completed
-        self.CONSTANT_MOD_CAT1 = 20
+        self.CONSTANT_MOD_CAT = 20
         self.CONSTANT_USE_CAT = 'cat1'
         self.CONSTANT_USE_REV = 'rev1'
         self.just_cats = tag_progress['just_cats']
-        self.all_cat1 = tag_progress['all_cat1']
+        self.all_cat = tag_progress['all_cat1']   #all_cat1 in dbase => all_cat
         self.tag_progress = tag_progress
         #debug
         ##current.paideia_debug.do_print(self, "boise-- all of self  in PathChooser::__init__")
+    def _set_pathchooser_rank(self,tag_progress=None,given_rank=0):
+        if (tag_progress and 'latest_new' in tag_progress and tag_progress['latest_new']):
+            self.rank = tag_progress['latest_new']
+        else: self.rank = given_rank
+
+
 
     def _order_cats(self):
         """
@@ -2083,33 +2082,31 @@ class PathChooser(object):
         ##current.paideia_debug.do_print(cat_list, "boise-- cat_list in PathChooser::_order_cats")
         return cat_list
 
-    def _decide_between_rev1_and_cat1(self):
+
+    def _refine_cat_choice(self):
         """
         What's it going to be? rev1 or cat1
         """
-        decide_keys = [self.CONSTANT_USE_CAT, self.CONSTANT_USE_REV]
-        self.all_cat1 = self.all_cat1%self.CONSTANT_MOD_CAT1 #reset after MOD_CAT1
-        if (0 == self.all_cat1): self.just_cats = 0
-        amt_of_just_cats_needed = (self.CONSTANT_MOD_CAT1/2) - self.just_cats
-        amt_left_in_cycle  =  self.CONSTANT_MOD_CAT1 - self.all_cat1
+        self.all_cat = self.all_cat%self.CONSTANT_MOD_CAT #reset after MOD_CAT1
+        if (0 == self.all_cat): self.just_cats = 0
+        amt_of_just_cats_needed = (self.CONSTANT_MOD_CAT/2) - self.just_cats
+        amt_left_in_cycle  =  self.CONSTANT_MOD_CAT - self.all_cat
         cat1_deficit = True if (amt_of_just_cats_needed > amt_left_in_cycle) else False
-        self.all_cat1 += 1
+        self.all_cat += 1
         rslt = self.CONSTANT_USE_CAT
         if cat1_deficit:
             self.just_cats += 1
             rslt =  self.CONSTANT_USE_CAT
         else:
-            decide_key = decide_keys[randrange(0,2)]
-            if (self.CONSTANT_USE_CAT == decide_key): self.just_cats += 1
-            rslt =  decide_key
+            rslt =  self.CONSTANT_USE_REV
         #current.paideia_debug.do_print({ 'amt_of_just_cats_needed': amt_of_just_cats_needed,
-                                      #   'amt_left_in_cycle': amt_left_in_cycle,
-                                      #   'cat1_deficit':cat1_deficit,
-                                      #   'self.all_cat1':self.all_cat1,
-                                      #   'self.just_cats':self.just_cats,
-                                      #   'rslt': rslt}, "in _decide_between_rev1_and_cat1")
+                                         #'amt_left_in_cycle': amt_left_in_cycle,
+                                         #'cat1_deficit':cat1_deficit,
+                                         #'self.all_cat1':self.all_cat,
+                                        #'self.just_cats':self.just_cats,
+                                        #'rslt': rslt}, "bilbao in _decide_between_rev1_and_cat1")
         self.tag_progress['just_cats'] = self.just_cats
-        self.tag_progress['all_cat1']  = self.all_cat1
+        self.tag_progress['all_cat1']  = self.all_cat
         return rslt
 
 
@@ -2136,16 +2133,15 @@ class PathChooser(object):
             #create a cleaner qeury to get the path ... JOB ..oct 08,2014
             #conditions: tags_for_steps in tag_progress[rev_cat](tags)
             taglist = []
-            if (1 == cat):
-                use_cat1 = self._decide_between_rev1_and_cat1()
-                tag_revs = self.categories[self.CONSTANT_USE_REV]
+            use_cat1 = self._refine_cat_choice()
+            if(self.CONSTANT_USE_CAT == use_cat1):
+                cat = 1
                 tag_cats = self.categories[self.CONSTANT_USE_CAT]
-                tag_revs_only = list(set(tag_revs).difference(tag_cats))
-                if ((self.CONSTANT_USE_REV == use_cat1 )and tag_revs_only): taglist = tag_revs_only
-                else: taglist = tag_cats
-                #current.paideia_debug.do_print({'tag_revs':tag_revs,'tag_cats':tag_cats,'tag_revs_only':tag_revs_only,'use_cat1':use_cat1}, "boise-- taglist in PathChooser::_paths_by_category")
+                taglist = tag_cats
+                #current.paideia_debug.do_print({'cat':cat, 'new ones':taglist}, "boise-- taglist in PathChooser::_paths_by_category")
             else:
                 taglist = self.categories['rev{}'.format(cat)]
+                #current.paideia_debug.do_print({'cat':cat, 'old ones':taglist}, "boise-- taglist in PathChooser::_paths_by_category")
             #current.paideia_debug.do_print({'taglist':taglist}, "boise-- taglist in PathChooser::_paths_by_category")
 
             #get all steps in this taglist
@@ -2416,7 +2412,8 @@ class User(object):
 
             self.old_categories = {}
             self.tag_records = tag_records
-            self.rank = tag_progress['latest_new'] if tag_progress else 1
+            self._set_user_rank(tag_progress,1)
+            #self.rank = tag_progress['latest_new'] if tag_progress else 1
             self.tag_progress = tag_progress
             self.promoted = None
             self.new_tags = None
@@ -2454,6 +2451,12 @@ class User(object):
             #debug ... dont forget to remove this
             #current.paideia_debug.do_print( traceback.format_exc(),'who called me')
             #current.paideia_debug.do_print( traceback.extract_stack(),'who called me')
+
+    def _set_user_rank(self,tag_progress=None,given_rank=0):
+        if (tag_progress and 'latest_new' in tag_progress and tag_progress['latest_new']):
+            self.rank = tag_progress['latest_new']
+        else: self.rank = given_rank
+
 
     def get_completed_paths_len(self):
         """
@@ -2745,7 +2748,9 @@ class User(object):
             #debug
             #current.paideia_debug.do_print(cat_result, "halifax cat_result")
 
-            self.rank = cat_result['tag_progress']['latest_new']
+            self._set_user_rank(cat_result['tag_progress'],0)
+            #self.rank = cat_result['tag_progress']['latest_new']
+
             self.tag_records = cat_result['tag_records']  # FIXME: do changes get recorded?
             self.tag_progress = cat_result['tag_progress']
             self.tag_progress['just_cats'] = just_cats
@@ -2835,6 +2840,13 @@ class Categorizer(object):
         self.utcnow = utcnow if utcnow else datetime.datetime.utcnow()
         self.secondary_right = secondary_right
 
+    def _set_categorizer_rank(self,tag_progress=None,given_rank=0):
+        if (tag_progress and 'latest_new' in tag_progress and tag_progress['latest_new']):
+            self.rank = tag_progress['latest_new']
+        else: self.rank = given_rank
+
+
+
     def _sanitize_recs(self, tag_records):
         """
         Remove any illegitimate tag_records data.
@@ -2886,7 +2898,7 @@ class Categorizer(object):
                   'cat2': [], 'rev2': [],
                   'cat3': [], 'rev3': [],
                   'cat4': [], 'rev4': [],
-                  'latest_new': rank,
+                  'latest_new': self.rank,
                    'just_cats': 0, 'all_cat1':0}
             return {'tag_progress': tp,
                     'tag_records': tag_records,
@@ -2928,26 +2940,40 @@ class Categorizer(object):
             new_tags = cat_changes['new_tags']
             tag_progress = copy(cat_changes['categories'])
 
-            # If there are no tags left in category 1, introduce next set
-            if not tag_progress['rev1']:
-                newlist = self._introduce_tags()
-                if not new_tags:
-                    new_tags = {'rev1':newlist,'rev2':[],'rev3':[],'rev4':[]}
-                else:  new_tags['rev1'].extend(newlist)
-                #categories['cat1'] = categories['rev1'] = newlist
-                #tag_progress['cat1'] = tag_progress['rev1'] = newlist
-                categories['cat1'] = categories['rev1'] = list(set(new_tags['rev1']))[:]
-                tag_progress['cat1'] = tag_progress['rev1'] = list(set(new_tags['rev1']))[:]
+            #add cats for new tags
+            for i in range(1,5):
+                idx = 'rev{}'.format(i)
+                if (new_tags and idx in new_tags and new_tags[idx]):
+                    idxcat = 'cat{}'.format(i)
+                    curr_cat = tag_progress[idxcat] if (idxcat in tag_progress and tag_progress[idxcat]) else []
+                    tag_progress[idxcat] = list(set(curr_cat).union(new_tags[idx]))[:]
 
+
+            # If there are no tags left in category 1, introduce next set
+            #current.paideia_debug.do_print({'tag_progress':tag_progress,}, "demerara ... this is why introduce_tags may never be called")
+            if self._check_if_cat1_needed(tag_progress):
+                #current.paideia_debug.do_print('--cat1 needed ---', "demerara -- cat1 needed")
+                while True:
+                    newlist = self._introduce_tags(rank=rank)
+                    if not newlist:
+                        current.paideia_debug.do_print({'rank': rank}, "ERROR: failed to get tags for rank")
+                        break
+                    curr_rev1 = tag_progress['rev1'] if ('rev1' in tag_progress and tag_progress['rev1']) else []
+                    curr_cat1 = tag_progress['cat1'] if ('cat1' in tag_progress and tag_progress['cat1'])else []
+                    tag_progress['cat1'] = list(set(curr_cat1).union(newlist))[:]
+                    tag_progress['rev1'] = list(set(curr_rev1).union(newlist))[:]
+                    if not new_tags: new_tags = {'rev1':[]}
+                    curr_new_tags_rev1 = new_tags['rev1'] if (new_tags and 'rev1' in new_tags and new_tags['rev1']) else []
+                    new_tags['rev1'] = list(set(curr_new_tags_rev1).union(newlist))[:]
+
+                    curr_rev1 = categories['rev1'] if ('rev1' in categories and categories['rev1']) else []
+                    curr_cat1 = categories['cat1'] if ('cat1' in categories and categories['cat1']) else []
+                    categories['cat1'] = list(set(curr_cat1).union(newlist))[:]
+                    categories['rev1'] = list(set(curr_rev1).union(newlist))[:]
+                    break
             # Re-insert 'latest new' to match tag_progress table in db
             tag_progress['latest_new'] = self.rank
             #current.paideia_debug.do_print({'categories':tag_progress}, "Lisbon-final cat progress-------------------------")
-
-            #print'final tag_progress------------------------'
-            ##pprint(cat_changes)
-
-            #print'final categories------------------------'
-            ##pprint(cat_changes)
 
             return {'tag_progress': tag_progress,
                     'tag_records': self.tag_records,
@@ -2955,6 +2981,20 @@ class Categorizer(object):
                     'promoted': promoted,
                     'demoted': demoted,
                     'categories': categories}
+
+    def _check_if_cat1_needed(self,cats):
+        result = True
+        while True:
+            if not 'cat1' in  cats: return result
+            if not cats['cat1']:    return result
+            #all_cat2andup = list(chain.from_iterable([cats[c] for c
+            #                          in ['cat2','cat3','cat4']
+            #                          if (c in cats and cats[c])]))
+            #rev1set = set(cats['rev1'] if ('rev1' in cats and cats['rev1']) else [])
+            #cat1inrev1 = rev1set.difference(all_cat2andup)
+            #if not cat1inrev1: return result
+            break
+        return False
 
     def _remove_dups(self, categories, rank):
         """
@@ -3081,6 +3121,7 @@ class Categorizer(object):
             avg_score = sum(scores) / float(len(scores))
         except ZeroDivisionError:  # if tag not tried at all since startdt
             avg_score = 0
+            # FIXME: Will this not bring tags up too early?
         return avg_score
 
     def _get_ratio(self, record):
@@ -3183,9 +3224,9 @@ class Categorizer(object):
                 category = 'rev1'  # Spaced repetition requires review
             #print'************** category is ', category
             #debug - dont forget to remove this
-            debug_x_delete_me = ['rev1','rev2']
+            #debug_x_delete_me = ['rev1','rev2']
             #category = debug_x_delete_me[debug_toggle_delete_me%2]
-            debug_toggle_delete_me +=1
+            #debug_toggle_delete_me +=1
             #end debug
             #current.paideia_debug.do_print({'category': 'rev1', 'tag': record['tag']}, "cern")
 
@@ -3204,11 +3245,13 @@ class Categorizer(object):
         db = current.db if not db else db
         rank = self.rank if rank is None else rank
 
+        #current.paideia_debug.do_print({'begin rank': rank}, "in introduce tags")
         if rank in (None, 0):
             rank = 1
         else:
             rank += 1
         self.rank = rank
+        #current.paideia_debug.do_print({'end rank': rank,'end self.rank':self.rank}, "in introduce tags")
 
         newtags = [t['id'] for t in
                    db(db.tags.tag_position == rank).select().as_list()]
@@ -3272,7 +3315,10 @@ class Categorizer(object):
                        if k[:3] == 'cat'}  # facilitates demotion tasks
             #copy oldcats into new new 'cats'
             for k in oldcats:
-                cats[k] = oldcats[k][:]
+                if (k in oldcats and oldcats[k]):
+                    cats[k] = oldcats[k][:]
+                else:
+                    cats[k] = []
             #current.paideia_debug.do_print({'cats' : cats},"surrey cats after updating with oldcats in _find_cat_changes")
 
             #new_tags = []
@@ -3320,6 +3366,7 @@ class Categorizer(object):
 
             #this should be done for promoted instead? ... JOB ... nov 05, 2014
             #now being done for promotion
+            #removal
             if any([k for k, v in promoted.iteritems() if v]):
                 for tag in list(chain.from_iterable(promoted.values())):  # then restore old max in cats
                     catidx = [k for k, v in oldcats.iteritems()
@@ -3351,6 +3398,7 @@ class Categorizer(object):
                         pass
 
             #add cats for promoted tags
+            #addition
             for k in promoted:
                 while True:
                     if (not('rev' == k[:3])) : break
@@ -3364,6 +3412,7 @@ class Categorizer(object):
                     #current.paideia_debug.do_print(({'k': k, 'catidx': catidx, 'cats[catidx]': cats[catidx]} ), "Arden- setting cats for promoted")
                     break
 
+            """
             #add cats for new tags
             for k in new_tags:
                 while True:
@@ -3372,11 +3421,17 @@ class Categorizer(object):
                     catidx = k.replace('rev','cat')
                     if (catidx in oldcats) :
                         cats[catidx] = []
-                        cats[catidx] =  list((set(oldcats[catidx])).union(new_tags[k]))[:]
+                        x = []
+                        if (catidx in oldcats and oldcats[catidx]): x = oldcats[catidx][:]
+                        #cats[catidx] =  list((set(oldcats[catidx])).union(new_tags[k]))[:]
+                        cats[catidx] =  list((set(x)).union(new_tags[k]))[:]
                         #current.paideia_debug.do_print(({'k': k, 'catidx': catidx, 'cats[catidx]': cats[catidx]} ), "Arden- setting cats for new tags")
                     else:
                         cats[catidx] = new_tags[k][:]
                     break
+            """
+            #debug ... dont forget to remove
+            #cats['cat1'] = []
             return {'categories': cats,
                     'demoted': demoted if any([d for d in demoted.values()])
                                else None,
