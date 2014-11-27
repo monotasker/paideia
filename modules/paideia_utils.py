@@ -464,6 +464,13 @@ def normalize_accents(string):
               'ῳ': ['ῷ', 'ῴ', 'ῲ'],
               'ᾠ': ['ᾤ', 'ᾢ', 'ᾦ'],
               'ᾡ': ['ᾥ', 'ᾣ', 'ᾧ'],
+              'Ῥ': ['῾Ρ'],  # also handle improperly formed marks
+              'Ἁ': ['῾Α'],
+              'Ἑ': ['῾Ε'],
+              'Ἱ': ['῾Ι'],
+              'Ὑ': ['῾Υ'],
+              'Ὁ': ['῾Ο'],
+              'Ὡ': ['῾Ω'],
               }
     accented = chain(*equivs.values())
     restr = '|'.join(accented)

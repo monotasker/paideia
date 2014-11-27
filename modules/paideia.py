@@ -1766,10 +1766,14 @@ class StepEvaluator(object):
 
         try:
             regex1 = re.compile(makeutf8(responses['response1']), re.I | re.U)
-            regex2 = re.compile(makeutf8(responses['response2']), re.I | re.U) \
-                if len(responses) > 1 else None
-            regex3 = re.compile(makeutf8(responses['response3']), re.I | re.U) \
-                if len(responses) > 2 else None
+            if 'response2' in responses.keys():
+                regex2 = re.compile(makeutf8(responses['response2']), re.I | re.U)
+            else:
+                regex2 = None
+            if 'response3' in responses.keys():
+                regex3 = re.compile(makeutf8(responses['response3']), re.I | re.U)
+            else:
+                regex3 = None
 
             if re.match(regex1, makeutf8(user_response)):
                 score = 1
