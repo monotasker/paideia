@@ -28,7 +28,7 @@ ap.append(form) }}
     <!--# npc image on left ================================================-->
     {{=DIV(npc_image, _class='speaker')}}
 
-    <!--# prompt/reply div---------------------------------------------------->
+    <!--# prompt/reply div==================================================-->
     <div class='npc prompt'>
         <p class='prompt-text'>{{=MARKMIN(prompt_text)}}</p>
         {{if 'readable_long' in globals():
@@ -41,7 +41,7 @@ ap.append(form) }}
                                        **readable_long_args)}}
             {{=xamples}}
         {{pass}}
-        <!--# audio for prompt ----------------------------------------------->
+        <!--# audio for prompt =============================================-->
         {{if audio:}}
             <audio controls="true" autoplay="true" id="{{=audio['title']}}"
                 class="prompt_audio">
@@ -55,7 +55,7 @@ ap.append(form) }}
             </audio>
         {{pass}}
 
-        <!--# image for prompt ----------------------------------------------->
+        <!--# image for prompt =============================================-->
         {{if widget_img:
             img = IMG(_src=URL('static/images/', widget_img['file']),
                         _title=widget_img['title'],
@@ -64,7 +64,7 @@ ap.append(form) }}
             {{=img}}
         {{pass}}
         <div>
-        <!--# hints popup for reply------------------------------------------->
+        <!--# hints popup for reply=========================================-->
         {{if 'hints' in globals() and hints:
             hint_list = UL()
             for h in hints:
@@ -75,7 +75,7 @@ ap.append(form) }}
             {{=hinter}}
 
         {{pass}}
-        <!--# instructions popup for prompt/reply----------------------------->
+        <!--# instructions popup for prompt/reply===========================-->
         {{if 'instructions' in globals() and instructions:
             ilist = UL(_class='prompt_instructions')
             for itext in instructions:
@@ -88,7 +88,7 @@ ap.append(form) }}
             {{=i_pop}}
         {{pass}}
 
-        <!--# slides popup for prompt/reply----------------------------------->
+        <!--# slides popup for prompt/reply=================================-->
         {{if 'slidedecks' in globals() and slidedecks:
             decklist = UL(_class='prompt_slides')
             for did, dname in slidedecks.iteritems():
@@ -104,7 +104,7 @@ ap.append(form) }}
         </div>
     </div>
 
-    <!--# responder div ------------------------------------------------------>
+    <!--# responder div ====================================================-->
     <div class='responder'>
         {{if 'response_form' in locals() and response_form:}}
             {{=response_form}}
@@ -146,12 +146,12 @@ ap.append(form) }}
             {{=bugreporter}}
         {{pass}}
 
-        <!--# path counter for prompt/reply----------------------------------->
+        <!--# path counter for prompt/reply=================================-->
         <small class='path-counter progress_text small muted'>
             'This will make {{=completed_count}} paths so far today.'
         </small>
 
-        <!--# debug                       ----------------------------------->
+        <!--# debug                       =================================-->
         {{if (('paideia_debug' in globals()) and paideia_debug):}}
         <small class='path-counter progress_text small muted'>
             {{=XML(paideia_debug)}}
@@ -184,7 +184,7 @@ ap.append(form) }}
     });
 
     {{if 'bugreporter' in globals():}}
-    <!--$('#bug_reporter_modal').appendTo('body');-->
+    //$('#bug_reporter_modal').appendTo('body');
     {{pass}}
 
     $('.popover-trigger').each(function() {
@@ -199,3 +199,4 @@ ap.append(form) }}
         event.preventDefault();
     });
 </script>
+
