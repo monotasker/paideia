@@ -18,6 +18,7 @@ from plugin_utils import flatten, makeutf8, encodeutf8
 from plugin_widgets import MODAL
 from pprint import pprint
 from paideia_utils import simple_obj_print, Paideia_Debug
+from paideia_utils import test_regex, normalize_accents
 
 #True = debug to screen, False is normal
 #current.paideia_DEBUG_MODE is set in Walk::init
@@ -1745,7 +1746,7 @@ class StepEvaluator(object):
             user_response = request.vars['response']
         user_response = self._strip_spaces(user_response)
         user_response = self._regularize_greek(user_response)
-        # user_response = normalize_accents(user_response)  # FIXME: this isn't working on live site
+        user_response = normalize_accents(user_response)  # FIXME: this isn't working on live site
         responses = {k: r for k, r in self.responses.iteritems()
                      if r and r != 'null'}
         # Compare the student's response to the regular expressions
@@ -2029,7 +2030,7 @@ class PathChooser(object):
         self.categories = {k: v for k, v in tag_progress.iteritems()
                            if k not in ['name', 'latest_new']}
         #debug
-        ##current.paideia_debug.do_print(self.categories, "boise-- self.categories in PathChooser::__init__")
+        #current.paideia_debug.do_print(self.categories, "boise-- self.categories in PathChooser::__init__")
         self.rank = tag_progress['latest_new']
         db = current.db if not db else db
         self.loc_id = loc_id
@@ -2098,12 +2099,14 @@ class PathChooser(object):
             rslt =  self.CONSTANT_USE_CAT
         else:
             rslt =  self.CONSTANT_USE_REV
-        #current.paideia_debug.do_print({ 'amt_of_just_cats_needed': amt_of_just_cats_needed,
-                                         #'amt_left_in_cycle': amt_left_in_cycle,
-                                         #'cat1_deficit':cat1_deficit,
-                                         #'self.all_cat1':self.all_cat,
-                                        #'self.just_cats':self.just_cats,
-                                        #'rslt': rslt}, "bilbao in _decide_between_rev1_and_cat1")
+        """
+        current.paideia_debug.do_print({ 'amt_of_just_cats_needed': amt_of_just_cats_needed,
+                                         'amt_left_in_cycle': amt_left_in_cycle,
+                                         'cat1_deficit':cat1_deficit,
+                                         'self.all_cat1':self.all_cat,
+                                        'self.just_cats':self.just_cats,
+                                        'rslt': rslt}, "bilbao in _decide_between_rev1_and_cat1")
+        """
         self.tag_progress['just_cats'] = self.just_cats
         self.tag_progress['all_cat1']  = self.all_cat
         return rslt
@@ -2405,7 +2408,7 @@ class User(object):
             self.path = None
             #JOB ... oct 25, 2014, self.completed paths will now be a hash {'path_id': count}
             #point latest to some default path? ... used for repeat should be valid for repeats unless server gets reset somewhere in between takes
-            self.completed_paths = {'latest': None, 'paths': {}}
+            self.completed_paths = {'latest': None, 'paths': {}, 'error': 0}  #error keeps us going to the next categorizer after an error
 
             self.cats_counter = 0  # timing re-categorization in get_categories()
 
@@ -2612,7 +2615,7 @@ class User(object):
             pass
         if not self.tag_progress:  # in case User was badly initialized
             #debug
-            print 'Atlanta: no tag-progress, so getting categories'
+            #current.paideia_debug.do_print('Atlanta: no tag-progress, so getting categories', 'msg')
             self.get_categories()
 
         if 'just_cats' not in self.tag_progress:self.tag_progress['just_cats'] = 0
@@ -2620,7 +2623,9 @@ class User(object):
         choice, redir, cat, mode = PathChooser(self.tag_progress,
                                                 loc.get_id(),
                                                 self.completed_paths).choose()
+        #current.paideia_debug.do_print({'choice':choice, 'redir':redir, 'cat':cat, 'mode':mode}, 'alfafa')
 
+        
         #tag_progress gets updated in PathChooser and we need to update it for cat1 purposes
         #current.paideia_debug.do_print({'self.tag_progress':self.tag_progress}, "********************albany-saving tag_progres************")
         condition = {'name': self.get_id()}
@@ -2647,7 +2652,7 @@ class User(object):
         cat = None
         pastq = None
         while True:
-            ##current.paideia_debug.do_print({'pathid':pathid, 'loc':loc.get_alias()}, "albany-User::get_path called ")
+            #current.paideia_debug.do_print({'pathid':pathid, 'loc':loc.get_alias()}, "albany-User::get_path called ")
             if pathid:  # testing specific path
                 self.path = Path(pathid)
             #--- is this the cause of the repitions???? -- no its not ---------
@@ -2673,7 +2678,7 @@ class User(object):
                 pass
             else:  # choosing a new path
                 self.path, redir, cat = self._make_path_choice(loc)
-                #current.paideia_debug.do_print({'self.path':self.path.get_id(), 'cat':cat}, "albany-User::get_path called ... after calling _make_path_choice ")
+                #current.paideia_debug.do_print({'self.path':self.path,'self.path_id':self.path.get_id() if self.path else None, 'cat':cat}, "albany-User::get_path called ... after calling _make_path_choice ")
                 if (not self.path): break # and return Nones
             #debug
             ##current.paideia_debug.do_print(self.completed_paths,"Atlanta-completed paths")
