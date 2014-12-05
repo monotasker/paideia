@@ -58,3 +58,6 @@ ADD COLUMN  all_cat1 INTEGER default 0,
 ADD COLUMN  just_cats INTEGER default 0
 ;
 
+ALTER TABLE audio
+ADD COLUMN  clip_m4a  character varying(512)
+;
