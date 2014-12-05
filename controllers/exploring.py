@@ -47,6 +47,9 @@ def index():
     print 'getting index'
     print 'vars', request.vars
     print 'args', request.args
+    response.files.append(URL('static', 'js/jquery.jplayer.min.js'))
+    response.files.append(URL('static', 'js/play_audio_clip.js'))
+    response.files.append(URL('static', 'css/jplayer.pink.flag.css'))
     return {}
 
 
@@ -74,6 +77,8 @@ def walk():
     is exploring/walk.load. This view should be presented in the #page
     element of exploring/index.html.
     """
+
+    
     request = current.request
     print "\n\nstarting walk controller========================================"
     rvars = request.vars

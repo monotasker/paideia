@@ -1192,6 +1192,21 @@ class Step(object):
             audio = {'title': aud_row['title'],
                      'mp3': aud_row['clip'],
                      'ogg': aud_row['clip_ogg'] if aud_row['clip_ogg'] else None}
+            audio_args_for_js = {'title': 'Paideia Audio'}
+            media_supplied = ""
+            if aud_row['clip_m4a']:
+                audio_args_for_js['m4a'] = "/paideia/default/download.load/" + aud_row['clip_m4a']
+                media_supplied = "m4a"
+            if aud_row['clip']: 
+                audio_args_for_js['mp3'] = "/paideia/default/download.load/" + aud_row['clip']
+                if media_supplied: media_supplied += ",mp3"
+                else:media_supplied = "mp3"
+            if aud_row['clip_ogg']:
+                audio_args_for_js['ogg'] = "/paideia/default/download.load/" + aud_row['clip_ogg']
+                if media_supplied: media_supplied += ",ogg"
+                else:media_supplied = "ogg"
+            audio['audio_args_for_js'] = str(audio_args_for_js)
+            audio['media_supplied'] = media_supplied
             return audio
         else:
             return None
@@ -1346,6 +1361,20 @@ class Step(object):
             return instructions
         else:
             return None
+
+    def __str__(self):
+        """
+        print a step object
+        JOB: ..dec 1, 2014
+        """
+        info  = {'Class': 'Step',
+                 'data' : str(self.data),
+                 'repeating': self.repeating,
+                 'npc': self.npc,
+                 'redirect_loc_id': self.redirect_loc_id ,
+                 'kwargs': str(self.kwargs),
+                 'cat_tag':self.cat_tag}
+        return str(info)
 
 
 class StepContinue(Step):
@@ -2015,8 +2044,18 @@ class Path(object):
         """
         Return a list containing all the steps of this path as Step objects.
         """
+        
+        """
+        #debug ... testing audio ... dont forget to remove this
+        steplist = [StepFactory().get_instance(step_id=i)
+                    for i in [446,448,451,452,453,454,455,456,457,459,445,447]]
+        #dont forget to uncomment this
+        """
+        
+        
         steplist = [StepFactory().get_instance(step_id=i)
                     for i in self.path_dict['steps']]
+        
         return steplist
 
 
