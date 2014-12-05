@@ -1746,7 +1746,7 @@ class StepEvaluator(object):
             user_response = request.vars['response']
         user_response = self._strip_spaces(user_response)
         user_response = self._regularize_greek(user_response)
-        user_response = normalize_accents(user_response)  # FIXME: this isn't working on live site
+        user_response = normalize_accents(user_response)
         responses = {k: r for k, r in self.responses.iteritems()
                      if r and r != 'null'}
         # Compare the student's response to the regular expressions
@@ -2625,7 +2625,7 @@ class User(object):
                                                 self.completed_paths).choose()
         #current.paideia_debug.do_print({'choice':choice, 'redir':redir, 'cat':cat, 'mode':mode}, 'alfafa')
 
-        
+
         #tag_progress gets updated in PathChooser and we need to update it for cat1 purposes
         #current.paideia_debug.do_print({'self.tag_progress':self.tag_progress}, "********************albany-saving tag_progres************")
         condition = {'name': self.get_id()}
