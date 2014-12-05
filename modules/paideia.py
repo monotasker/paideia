@@ -474,8 +474,8 @@ class Walk(object):
         """
         #current.paideia_debug.do_print({'user.tag_records':user.tag_records},"Brisbane - user.tag_records before calling _record_step")
         self.record_id = self._record_step(user.get_id(),
-                                           p.get_id(),
                                            s.get_id(),
+                                           p.get_id(),
                                            prompt['score'],
                                            prompt['times_right'],
                                            prompt['times_wrong'],
@@ -768,6 +768,8 @@ class Walk(object):
         TODO: be sure not to log redirect and utility steps. (filter them out
         before calling _record_step())
         """
+        print 'recording step', step_id
+        print 'recording path', path_id
         mynow = datetime.datetime.utcnow() if not now else now
         db = current.db
         # TODO: Store and roll back db changes if impersonating
@@ -792,6 +794,8 @@ class Walk(object):
                     oldrec = None
                 self._update_tag_secondary(t, oldrec, user_id, now=mynow)
 
+        print 'recording step', step_id
+        print 'recording path', path_id
         log_args = {'name': user_id,
                     'step': step_id,
                     'in_path': path_id,
@@ -1087,6 +1091,7 @@ class Step(object):
         """
         Return the id of the current step as an integer.
         """
+        pprint(self.data)
         return self.data['id']
 
     def get_npcs(self):
@@ -1197,7 +1202,7 @@ class Step(object):
             if aud_row['clip_m4a']:
                 audio_args_for_js['m4a'] = "/paideia/default/download.load/" + aud_row['clip_m4a']
                 media_supplied = "m4a"
-            if aud_row['clip']: 
+            if aud_row['clip']:
                 audio_args_for_js['mp3'] = "/paideia/default/download.load/" + aud_row['clip']
                 if media_supplied: media_supplied += ",mp3"
                 else:media_supplied = "mp3"
@@ -2044,18 +2049,18 @@ class Path(object):
         """
         Return a list containing all the steps of this path as Step objects.
         """
-        
+
         """
         #debug ... testing audio ... dont forget to remove this
         steplist = [StepFactory().get_instance(step_id=i)
                     for i in [446,448,451,452,453,454,455,456,457,459,445,447]]
         #dont forget to uncomment this
         """
-        
-        
+
+
         steplist = [StepFactory().get_instance(step_id=i)
                     for i in self.path_dict['steps']]
-        
+
         return steplist
 
 

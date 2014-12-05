@@ -427,16 +427,16 @@ class Stats(object):
         daystart = datetime.datetime.combine(self.utcnow.date(),
                                              datetime.time(0,0,0,0))
         daystart = daystart - offset
-        yest_start = (daystart - datetime.timedelta(days=1)) + offset
+        yest_start = (daystart - datetime.timedelta(days=1))
+        print 'daystart', daystart
         print 'yest_start', yest_start
 
         alltags = [r['tag'] for r in tr]
         print 'alltags:', list(set(alltags))
         logs = db((db.attempt_log.name == self.user_id) &
-                  (db.attempt_log.step == db.steps.id) &
-                  (db.attempt_log.dt_attempted > yest_start)).select()
+                  (db.attempt_log.step == db.steps.id)).select()
+                  #(db.attempt_log.dt_attempted > yest_start)).select()
         print 'alllogs:', len(logs)
-        print [l.steps.tags for l in logs]
 
         # shorten keys for readability
         shortforms = {'tlast_right': 'tlr',
@@ -450,7 +450,7 @@ class Stats(object):
                     del tr[idx][k]
         now = self.utcnow if not now else now
         for idx, t in enumerate(tr):
-            print t
+            print t['tag']
             # remove unnecessary keys
             tr[idx] = {k: v for k, v in t.iteritems()
                     if k not in ['id', 'name', 'in_path', 'step',
@@ -1211,5 +1211,3 @@ def get_starting_set(user, start_date, end_date):
         highest = 'NA'
 
     return highest
-
-
