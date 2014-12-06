@@ -989,12 +989,12 @@ class Stats(object):
         # get time bounds and dates for each day within those bounds
         offset = get_offset(self.user)
         end -= offset  # beginning of last day
-        print 'end', end
+        #print 'end', end
         start -= offset
-        print 'start', start
+        #print 'start', start
         period = (end - start) if end != start else datetime.timedelta(days=1)
         daysnum = abs(period.days)
-        print 'daysnum', daysnum
+        #print 'daysnum', daysnum
         datelist = []
         daycounter = daysnum + 1 if daysnum > 1 else daysnum
         for d in range(daycounter):
@@ -1014,8 +1014,8 @@ class Stats(object):
         for daystart in datelist:
             # collect logs within day bounds
             dayend = daystart + datetime.timedelta(days=1)
-            print 'daystart', daystart
-            print 'dayend', dayend
+            #print 'daystart', daystart
+            #print 'dayend', dayend
 
             daylogs = logs.find(lambda l: (l.attempt_log['dt_attempted'] >= daystart) and
                                           (l.attempt_log['dt_attempted'] < dayend))

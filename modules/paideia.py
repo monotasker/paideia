@@ -1581,7 +1581,8 @@ class StepViewSlides(Step):
         # build slide deck list
         slides = []
         for row in sliderows:
-            deckurl = URL('listing', 'slides.html', args=[row['id']])
+            baseurl = 'http://ianwscott.webfactional.com/paideia/listing/slides.html/'
+            deckurl = baseurl + row['id']
             slides.append('- [{} {}]'.format(row['deck_name'], deckurl))
         slides = '\n'.join(slides)
 
