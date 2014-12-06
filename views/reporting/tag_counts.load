@@ -1,7 +1,7 @@
 {{=form}}
 {{
 tag_display = CAT()
-for d in sorted(tagdata.keys()):
+for d in sorted(tagdata.keys(), reverse=True):
 
     catstable = TABLE(TR(TH('category'), TH('attempts'), TH('tags attempted'), TH('tags missed'),
                          _class='header'

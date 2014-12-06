@@ -423,20 +423,18 @@ class Stats(object):
         db = current.db
         tr = [r for r in self.tag_recs if r['tag'] in self.tags]
 
+        # get bounds for today and yesterday
         offset = get_offset(self.user)
         daystart = datetime.datetime.combine(self.utcnow.date(),
                                              datetime.time(0,0,0,0))
         daystart = daystart - offset
         yest_start = (daystart - datetime.timedelta(days=1))
-        print 'daystart', daystart
-        print 'yest_start', yest_start
 
+        # collect recent attempt logs
         alltags = [r['tag'] for r in tr]
-        print 'alltags:', list(set(alltags))
         logs = db((db.attempt_log.name == self.user_id) &
-                  (db.attempt_log.step == db.steps.id)).select()
-                  #(db.attempt_log.dt_attempted > yest_start)).select()
-        print 'alllogs:', len(logs)
+                  (db.attempt_log.step == db.steps.id) &
+                  (db.attempt_log.dt_attempted > yest_start)).select()
 
         # shorten keys for readability
         shortforms = {'tlast_right': 'tlr',
@@ -450,7 +448,6 @@ class Stats(object):
                     del tr[idx][k]
         now = self.utcnow if not now else now
         for idx, t in enumerate(tr):
-            print t['tag']
             # remove unnecessary keys
             tr[idx] = {k: v for k, v in t.iteritems()
                     if k not in ['id', 'name', 'in_path', 'step',
@@ -459,13 +456,11 @@ class Stats(object):
             # count logs for this tag (today and yesterday)
             taglogs = logs.find(lambda r: any(tag for tag in r.steps.tags
                                               if t['tag'] == tag))
-            print 'taglogs:', len(taglogs)
             todaylogs = taglogs.find(lambda r: r.attempt_log.dt_attempted > daystart)
             yestlogs = taglogs.find(lambda r: (r.attempt_log.dt_attempted <= daystart)
                                     and (r.attempt_log.dt_attempted > yest_start))
             tr[idx]['todaycount'] = len(todaylogs)
             tr[idx]['yestcount'] = len(yestlogs)
-            print 'todaylogs', len(todaylogs)
 
             # get average score over past week
             tr[idx]['avg_score'] = self._get_avg_score(t['tag'])
@@ -974,7 +969,7 @@ class Stats(object):
 
         return counts
 
-    def get_tag_counts_over_time(self, start_dt, end_dt, uid=None):
+    def get_tag_counts_over_time(self, start, end, uid=None):
         """
         Return a dictionary of stats on tag and step attempts over given period.
 
@@ -992,26 +987,36 @@ class Stats(object):
         auth = current.auth
 
         # get time bounds and dates for each day within those bounds
-        period = (end_dt - start_dt) if end_dt != start_dt else datetime.timedelta(days=1)
+        offset = get_offset(self.user)
+        end -= offset  # beginning of last day
+        print 'end', end
+        start -= offset
+        print 'start', start
+        period = (end - start) if end != start else datetime.timedelta(days=1)
         daysnum = abs(period.days)
+        print 'daysnum', daysnum
         datelist = []
-        for d in range(daysnum + 1):
-            newdt = start_dt + datetime.timedelta(days=d)
-            newdt = datetime.datetime.combine(newdt.date(), datetime.time(0,0,0,0))
+        daycounter = daysnum + 1 if daysnum > 1 else daysnum
+        for d in range(daycounter):
+            newdt = start + datetime.timedelta(days=d)
             datelist.append(newdt)
+        datelist = datelist[::-1]  # reverse so that latest comes first
 
         # gather common data to later filter for each day
         uid = self.user_id
+        final_dt = end + datetime.timedelta(days=1)  # to get end of last day
         logs = db((db.attempt_log.name == uid) &
-                  (db.attempt_log.dt_attempted <= end_dt) &
-                  (db.attempt_log.dt_attempted > start_dt) &
+                  (db.attempt_log.dt_attempted <= end) &
+                  (db.attempt_log.dt_attempted > start) &
                   (db.attempt_log.step == db.steps.id)).select()
 
         daysdata = {}
         for daystart in datelist:
-            # get day bounds
+            # collect logs within day bounds
             dayend = daystart + datetime.timedelta(days=1)
-            # collect logs within those bounds
+            print 'daystart', daystart
+            print 'dayend', dayend
+
             daylogs = logs.find(lambda l: (l.attempt_log['dt_attempted'] >= daystart) and
                                           (l.attempt_log['dt_attempted'] < dayend))
 
@@ -1035,6 +1040,7 @@ class Stats(object):
                         break
                     else:
                         continue
+            # FIXME: doesn't account for promotions during the day
 
             # find attempts for each category
             catdata = {}
@@ -1058,12 +1064,12 @@ class Stats(object):
                 else:
                     stepcounts[stepid] = 1
             repeats = {id: ct for id, ct in stepcounts.iteritems() if ct > 1}
-
-            daysdata[daystart.date()] = {'total_attempts': [l.attempt_log['id'] for l in daylogs],
-                                         'repeated_steps': repeats,
-                                         'tags_attempted': list(set(alltags)),
-                                         'cat_data': catdata
-                                         }
+            print 'date', dayend.date()
+            daysdata[dayend.date()] = {'total_attempts': [l.attempt_log['id'] for l in daylogs],
+                                       'repeated_steps': repeats,
+                                       'tags_attempted': list(set(alltags)),
+                                       'cat_data': catdata
+                                       }
         return daysdata
 
     def _get_daystart(self, mydt):
