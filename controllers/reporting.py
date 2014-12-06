@@ -227,28 +227,30 @@ def calendar():
 
 def tag_counts():
     '''
-    Return a dictionary of data to populate a report of user activity around tag categories.
+    Return a dictionary of data on user activity around tag categories.
 
     '''
-    pprint(request.vars)
-    nowdate = datetime.datetime.combine(datetime.date.today(), datetime.time(0,0,0,0))
+    nowdate = datetime.datetime.combine(datetime.date.today(),
+                                        datetime.time(0,0,0,0))
 
     if 'start_date' in request.vars.keys():
         sdt = parse(request.vars['start_date'])
         startdate = datetime.datetime.combine(sdt, datetime.time(0,0,0,0))
     else:
-        startdate = nowdate - datetime.timedelta(days=7)
+        startdate = nowdate - datetime.timedelta(days=2)
+    print 'startdate', startdate
 
     if 'end_date' in request.vars.keys():
         edt = parse(request.vars['end_date'])
         enddate = datetime.datetime.combine(edt, datetime.time(0,0,0,0))
     else:
         enddate = nowdate
+    print 'enddate', enddate
 
     uid = request.vars['user_id'] if 'user_id' in request.vars.keys() else None
 
-    tagdata = Stats(uid).get_tag_counts_over_time(start_dt=startdate,
-                                                  end_dt=enddate,
+    tagdata = Stats(uid).get_tag_counts_over_time(start=startdate,
+                                                  end=enddate,
                                                   uid=uid)
 
     form = SQLFORM.factory(Field('start_date', 'date', default=startdate.date()),
