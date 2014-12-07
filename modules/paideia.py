@@ -41,11 +41,9 @@ new standalone function simple_object_print  to#printsimple objects
 def util_get_args():
     """
     Returns a collection of all the calling function's arguments.
-
     The returned collection is a tuple containing dictionary of calling
     function's named arguments and a list of calling function's unnamed
     positional arguments.
-
     By Kelly Yancey:
     kbyanc.blogspot.ca/2007/07/python-aggregating-function-arguments.html
     """
@@ -64,7 +62,6 @@ class Map(object):
     def show(self, mapnum=None, db=None):
         """
         Return data for the paideia navigation map interface.
-
         The mapnum argument is to facilitate future expansion to multiple
         levels of the map.
         """
@@ -247,10 +244,8 @@ class Walk(object):
             step=None, set_blocks=None, recategorize=None):
         """
         Return the information necessary to initiate a step interaction.
-
         The "path" argument is used only for dependency injection during
         unit testing.
-
         In the returned dictionary, 'reply' item has the following dict as its
         value:
             'prompt':
@@ -259,12 +254,10 @@ class Walk(object):
             'slides':
             'bg_image':
         The value of 'responder' is a web2py html helper object.
-
         The 'set_blocks' argument is used to set blocking conditions manually
             for testing purposes. It's value is a dictionary consisting of
                 key: name of the blocking condition (str)
                 value: dictionary of kwargs to be passed to the Block
-
         """
         p = category = redir = pastquota =  None
         loc = prev_loc = prev_npc = None
@@ -431,10 +424,8 @@ class Walk(object):
         """
         JOB ... oct 18, 2014, added bug_step_id to the signature
         Return the information necessary to complete a step interaction.
-
         This includes evaluation of the user's reply and presentation of
         the npc's response message.
-
         In the returned dictionary, the item 'reply' has as its value a
         dictionary with the following keys:
             'bg_image':
@@ -474,8 +465,8 @@ class Walk(object):
         """
         #current.paideia_debug.do_print({'user.tag_records':user.tag_records},"Brisbane - user.tag_records before calling _record_step")
         self.record_id = self._record_step(user.get_id(),
-                                           p.get_id(),
                                            s.get_id(),
+                                           p.get_id(),
                                            prompt['score'],
                                            prompt['times_right'],
                                            prompt['times_wrong'],
@@ -505,10 +496,8 @@ class Walk(object):
     def _record_promotions(self, promoted, user_id):
         """
         Record awarding of new or promoted badges in db.badges_begun
-
         The 'promoted' argument is a dictionary with categories as keys and
         lists of tag id's as the values.
-
         Called by Walk._record_cats()
         JOB: added db.commit() after db.badges_begun.update_or_insert
         """
@@ -535,10 +524,8 @@ class Walk(object):
     def _record_demotions(self, demoted, user_id):
         """
         Delete demoted badges from  db.badges_begun
-
         The 'demoted' argument is a dictionary with categories as keys and
         lists of tag id's as the values.
-
         Called by Walk._record_cats()
         JOB: added db.commit() after db.badges_begun.update_or_insert
         """
@@ -548,7 +535,6 @@ class Walk(object):
     def _record_cats(self, tag_progress, promoted, new_tags, demoted, db=None):
         """
         Record changes to the user's working tags and their categorization.
-
         Changes recorded in the following db tables:
         - badges_begun: new and promoted tags
         - tag_progress: changes to categorization (only if changes made)
@@ -750,7 +736,6 @@ class Walk(object):
                      now=None):
         """
         Record this step attempt and its impact on user's performance record.
-
         Changes recorded in the following db tables:
         - attempt_log: log this attempt
         - tag_records: changes to
@@ -759,15 +744,15 @@ class Walk(object):
                             - tlast_wrong
                             - tlast_right
                             - secondary_right (add datetime to list)
-
         TODO: if secondary_right is sufficient length, delete it and
                 - add 1 to times_right
                 - set tlast_right to now
             but best done along the way, when first updating tag_records
-
         TODO: be sure not to log redirect and utility steps. (filter them out
         before calling _record_step())
         """
+        print 'recording step', step_id
+        print 'recording path', path_id
         mynow = datetime.datetime.utcnow() if not now else now
         db = current.db
         # TODO: Store and roll back db changes if impersonating
@@ -792,6 +777,8 @@ class Walk(object):
                     oldrec = None
                 self._update_tag_secondary(t, oldrec, user_id, now=mynow)
 
+        print 'recording step', step_id
+        print 'recording path', path_id
         log_args = {'name': user_id,
                     'step': step_id,
                     'in_path': path_id,
@@ -806,7 +793,6 @@ class Walk(object):
     def _store_user(self, user, db=None):
         """
         Store the current User object (from self.user) in session.user
-
         If successful, returns an integer representing the successfully
         added/updated db row. If unsuccessful, returns False.
         """
@@ -978,7 +964,6 @@ class BugReporter(object):
     """
     Class representing a bug-reporting widget to be presented along with the
     evaluation of the current step.
-
     """
     def __init__(self):
         """Initialize a BugReporter object"""
@@ -988,7 +973,6 @@ class BugReporter(object):
                      score, response_string, loc_id):
         """
         Return a link to trigger submission of a bug report for current step.
-
         Returns a web2py A() html helper object, ready for embedding in a
         web2py view template. This is meant to be embedded in the reply UI
         which presents the user with an evaluation of the step input.
@@ -1028,7 +1012,6 @@ class BugReporter(object):
 class StepFactory(object):
     """
     A factory class allowing automatic generation of correct Step subclasses.
-
     This allows easy changing/extension of Step classes without having to
     make changes to other application code. At present the decision is made
     based on the "widget_type" field supplied in db.steps. But there is not a
@@ -1037,7 +1020,6 @@ class StepFactory(object):
     def get_instance(self, step_id, repeating=None, kwargs=None, db=None):
         """
         Return the correct subclass of Step based on record's 'widget_type'.
-
         The ids correspond to the following 'widget_type' labels:
         1. test response
         2. multiple choice (single option)
@@ -1087,6 +1069,7 @@ class Step(object):
         """
         Return the id of the current step as an integer.
         """
+        pprint(self.data)
         return self.data['id']
 
     def get_npcs(self):
@@ -1098,7 +1081,6 @@ class Step(object):
     def get_tags(self):
         """
         Return a dictionary of tag id's associated with the current Step.
-
         Keys for the dictionary are 'primary' and 'secondary'. Values are lists
         of integers (db.tags row id's).
         """
@@ -1145,10 +1127,8 @@ class Step(object):
     def _get_slides(self):
         """
         Return a dictionary of info on slide decks relevant to this step.
-
         The keys are deck ids, while the values are the deck names (as
         strings). If this step has no associated slides, returns None.
-
         """
         db = current.db
         tags = db(db.tags.id.belongs(self.data['tags'])).select()
@@ -1167,7 +1147,6 @@ class Step(object):
     def _get_widget_image(self):
         """
         Return a dictionary of information on the widget image for the step.
-
         If this step requires no such image, return None
         """
         if not self.data['widget_image'] in [9, None]:  # TODO: magic number here:
@@ -1221,11 +1200,9 @@ class Step(object):
         Return the prompt information for the step. In the Step base class
         this is a simple string. Before returning, though, any necessary
         replacements or randomizations are made.
-
         If the step cannot be performed in this location, this method returns
         the string 'redirect' so that the Walk.ask() method that called it can
         set a redirect block.
-
         Extra data for block steps is passed via the 'kwargs' instance
         variable which in turn comes (via StepFactory) from the 'kwargs'
         argument at Block instantiation (called in turn by user.set_block).
@@ -1293,18 +1270,15 @@ class Step(object):
     def get_npc(self, loc, prev_npc=None, prev_loc=None):
         """
         Return an Npc object appropriate for this step
-
         If there is no suitable npc available here, returns a tuple containing
             - the id of another suitable location [0]
             - the id of an npc at this location who will deliver a redirect
               message [1]
         If possible, the redirect message will be given by the same npc as in
         the last step.
-
         Because the redirect block must be set on the Path object, to which
         the Step has no access, the actual block is set by the Walk object
         after this method's value is returned.
-
         This method is also where all checking is done for compatibility between
         the chosen step, location, and npc.
         """
@@ -1355,9 +1329,7 @@ class Step(object):
     def _get_instructions(self):
         """
         Return a list of relevant step instructions as strings.
-
         If no instructions available, return None.
-
         """
         db = current.db
         if self.data['instructions']:
@@ -1400,7 +1372,6 @@ class StepRedirect(Step):
     '''
     A subclass of Step. Handles the user interaction when the user needs to be
     sent to another location.
-
     This class works best if either the 'next_step_id' (int) or the 'next_loc'
     (int) are supplied. In that case the prompt will direct the user to a
     specific location. Otherwise, the user receives a generic instruction to
@@ -1556,7 +1527,6 @@ class StepViewSlides(Step):
         TODO:brasil-look here to solve the slides problem ... JOB nov 2, 2014
         Return the string for the step prompt with context-based information
         substituted for tokens framed by [[]].
-
         new_tags value should be a list of tag id's as integers
         """
         db = current.db
@@ -1581,7 +1551,8 @@ class StepViewSlides(Step):
         # build slide deck list
         slides = []
         for row in sliderows:
-            deckurl = URL('listing', 'slides.html', args=[row['id']])
+            baseurl = 'http://ianwscott.webfactional.com/paideia/listing/slides.html/'
+            deckurl = baseurl + row['id']
             slides.append('- [{} {}]'.format(row['deck_name'], deckurl))
         slides = '\n'.join(slides)
 
@@ -1767,11 +1738,9 @@ class StepEvaluator(object):
         """
         Return the user's score for this step attempt along with "tips" text
         to be displayed to the user in case of a wrong answer.
-
         Allowance is made for multiple internal spaces, leading or trailing
         spaces, and for identical-looking Lating characters being used in place
         of their Greek counterparts.
-
         Special responses (and a score of 0.9) are also given if the only error
         is the presence or absence of appropriate final punctuation.
         """
@@ -1780,7 +1749,7 @@ class StepEvaluator(object):
             user_response = request.vars['response']
         user_response = self._strip_spaces(user_response)
         user_response = self._regularize_greek(user_response)
-        user_response = normalize_accents(user_response)  # FIXME: this isn't working on live site
+        user_response = normalize_accents(user_response)
         responses = {k: r for k, r in self.responses.iteritems()
                      if r and r != 'null'}
         # Compare the student's response to the regular expressions
@@ -1884,20 +1853,17 @@ class MultipleEvaluator(StepEvaluator):
 class Path(object):
     """
     A class representing one 'path' in the game.
-
     Following the metaphor of 'walking' around the game environment, a 'path'
     is one discrete chain of user interactions with one or more npcs. A 'path'
     may include as little as one question-answer pair (one 'step') or may
     include any number of inter-dependent interactions ('steps') in a set
     linear sequence.
-
     So far there is no infrastructure for paths without a set sequence.
     """
 
     def __init__(self, path_id=None, db=None):
         """
         Initialize a paideia.Path object.
-
         The following arguments are required at init:
             path_id
             loc_id
@@ -1949,7 +1915,6 @@ class Path(object):
     def end_prompt(self, stepid):
         """
         End prompt cycle before sending prompt data to view.
-
         For 1-stage steps this is the end of the step. For 2-stage steps
         this prepares for the reply stage (processing of the user response).
         """
@@ -1977,7 +1942,6 @@ class Path(object):
     def  _reset_steps(self):
         """
         Return all completed steps to the self.steps list.
-
         Intended to prepare for repeating an already-completed step.
         """
         if self.completed_steps:
@@ -2033,7 +1997,6 @@ class Path(object):
     def get_step_for_reply(self):
         """
         Return the Step object that is currently active for this path.
-
         This should be the path whose prompt has already been viewed by the user
         and to which the user has submitted a response. This method should only
         be called for steps which allow a user response, i.e. not for:
@@ -2049,20 +2012,19 @@ class Path(object):
         """
         Return a list containing all the steps of this path as Step objects.
         """
-        
-        
+
         """
         #debug ... testing audio ... dont forget to remove this
         steplist = [StepFactory().get_instance(step_id=i)
                     for i in [446,448,451,452,453,454,455,456,457,459,445,447]]
         #dont forget to uncomment this
         """
-        
+
         
         steplist = [StepFactory().get_instance(step_id=i)
                     for i in self.path_dict['steps']]
         
-        
+
         return steplist
 
 
@@ -2100,7 +2062,6 @@ class PathChooser(object):
         """
         Choose a category to prefer in path selection and order categories
         beginning with that number.
-
         Returns a list with four members including the integers one-four.
         """
         # TODO: Look at replacing this method with scipy.stats.rv_discrete()
@@ -2161,7 +2122,6 @@ class PathChooser(object):
     def _paths_by_category(self, cat, rank):
         """
         Assemble list of paths tagged with tags in each category for this user.
-
         Returns a dictionary with categories as keys and corresponding lists
         as values.
         """
@@ -2238,23 +2198,19 @@ class PathChooser(object):
     def _choose_from_cat(self, cpaths, category):
         """
         Select a path from the category supplied as an argument.
-
         Returns a 3-member tuple. The first value is the chosen path, and the
         second is a location id. If the location id is None, it means that the
         path can be begun in the current location. If that second member is an
         integer then the user should be redirected to that location. The third
         member is an integer between 1 and 4 corresponding to the category from
         which the path was chosen.
-
         Note: This method is *not* intended to handle categories with no
         available paths for this user. If such a category is supplied the
         method will raise an error.
-
         JOB: Oct 12, 2014 : _paths_by_category is supposed to have filtered out
         all paths that have steps with no locations, so we can skip that step
         here and make sure that it is working in _paths_by_category if we have
         a problem here
-
         """
 
         path = None
@@ -2368,14 +2324,12 @@ class PathChooser(object):
     def choose(self, db=None):
         """
         Choose a path for the current user based on performance record.
-
         The algorithm looks for paths using the following tests, in this order:
         - has a due tag & can be started in current location & untried today
         - has a due tag & untried today
         - has a due tag & already tried today
         - has a tag that's not due & untried today
         - any random path
-
         Returns a 3-member tuple:
             [0] Path chosen (as a row object as_dict)
             [1] location id where Path must be started (or None if current loc)
@@ -2428,7 +2382,6 @@ class User(object):
     """
     An object representing the current user, including his/her performance
     data and the paths completed and active in this session.
-
     """
 
     #debug
@@ -2436,7 +2389,6 @@ class User(object):
     #def __init__(self, userdata, tag_records, tag_progress):
         """
         Initialize a paideia.User object.
-
         ## Argument types and structures
         - userdata: {'first_name': str, 'id': int, ..}
         - tag_progress: rows.as_dict()
@@ -2534,12 +2486,10 @@ class User(object):
     def check_for_blocks(self):
         """
         Check whether new block needed, then activate first block (if any).
-
         If a block is found:
         - Returns a step subclass instance (StepRedirect, StepQuotaReached,
             StepAwardBadges, or StepViewSlides)
         - also sets self.step_sent_id
-
         If a block is not found:
         - Returns False
         """
@@ -2595,10 +2545,8 @@ class User(object):
     def is_stale(self, now=None, start=None, time_zone=None, db=None):
         """
         Return true if the currently stored User should be discarded.
-
         User should be discarded (and a new one generated) at midnight local
         time.
-
         The arguments 'now', 'start', and 'tzone' are only used for dependency
         injection in unit testing.
         """
@@ -2629,10 +2577,8 @@ class User(object):
     def set_location(self, loc):
         """
         Update the user's location after initialization of the User object.
-
         Includes setting of self.prev_loc to the old location id and calling
         of path.set_location().
-
         Returns a boolean indicating success/failure.
         """
         if isinstance(self.prev_loc, int):
@@ -2671,7 +2617,7 @@ class User(object):
                                                 self.completed_paths).choose()
         #current.paideia_debug.do_print({'choice':choice, 'redir':redir, 'cat':cat, 'mode':mode}, 'alfafa')
 
-        
+
         #tag_progress gets updated in PathChooser and we need to update it for cat1 purposes
         #current.paideia_debug.do_print({'self.tag_progress':self.tag_progress}, "********************albany-saving tag_progres************")
         condition = {'name': self.get_id()}
@@ -2688,10 +2634,8 @@ class User(object):
     def get_path(self, loc, db=None, pathid=None, repeat=None):
         """
         Return the currently active Path object.
-
         Only the 'loc' argument is strictly necessary. The others are used for
         dependency injection during testing.
-
         """
         db = current.db if not db else db
         redir = None
@@ -2744,12 +2688,9 @@ class User(object):
                        tag_records=None, utcnow=None):
         """
         Return a categorized dictionary with four lists of tag id's.
-
         This method is important primarily to decide whether a new
         categorization is necessary before instantiating a Categorizer object
-
         # TODO: do we need to create new categorizer object each time?
-
         The method is intended to be called with no arguments
         """
         just_cats = 0
@@ -2870,7 +2811,6 @@ class User(object):
 class Categorizer(object):
     """
     A class that categorizes a user's active tags based on past performance.
-
     The categories range from 1 (need immediate review) to 4 (no review
     needed). Returns a dictionary with four keys corresponding to the four
     categories. The value for each key is a list holding the id's
@@ -2915,7 +2855,6 @@ class Categorizer(object):
                         old_categories=None, db=None):
         """
         Return a categorized dictionary of grammatical tags.
-
         The keys are the four categories used in the path selection algorithm,
         and the values are lists of integers (representing the tags to be
         placed in each category). The categorization is based on user
@@ -3064,7 +3003,6 @@ class Categorizer(object):
     def _add_secondary_right(self, rec):
         """
         Return the given tag record adjusted based on secondary_right data.
-
         For every CONST_SEC_RIGHT_MOD secondary_right entries, add 1 to times_right and change
         tlast_right based on the average of those three attempt dates.
         """
@@ -3157,7 +3095,6 @@ class Categorizer(object):
     def _get_avg(self, tag, mydays=7):
         """
         Return the user's average score on a given tag over the past N days.
-
         Always returns a float, since scores are floats between 0 and 1.
         """
         db = current.db
@@ -3177,7 +3114,6 @@ class Categorizer(object):
     def _get_ratio(self, record):
         """
         Return the user's ratio of right to wrong answers for a given tag.
-
         Called by _core_algorithm()
         """
         try:
@@ -3194,7 +3130,6 @@ class Categorizer(object):
     def _core_algorithm(self, tag_records=None):
         """
         Return dict of the user's active tags categorized by past performance.
-
         The tag_records argument should be a list of dictionaries, each of
         which includes the following keys and value types:
             {'tag': <int>,
@@ -3202,13 +3137,11 @@ class Categorizer(object):
              'tlast_wrong': <datetime>,
              'times_right': <float>,
              'times_wrong': <float>}
-
         The return value is a dict with the following keys and value types:
             {'cat1': [int, int ...],
              'cat2': [],
              'cat3': [],
              'cat4': []}
-
         TODO: Could this be done by a cron job or separate background process?
         TODO: Factor in how many times a tag has been successful or not
         TODO: Require that a certain number of successes are recent
@@ -3288,7 +3221,6 @@ class Categorizer(object):
     def _introduce_tags(self, rank=None, db=None):
         """
         Add the next set of tags to cat1 in the user's tag_progress
-
         Returns a dictionary of categories identical to that returned by
         categorize_tags
         """
@@ -3502,7 +3434,6 @@ class Categorizer(object):
     def _clean_tag_records(self,record_list=None, db=None):
         """
         Find and remove any duplicate entries in record_list.
-
         This method is really safeguarding against faulty db updating in Walk.
         It should probably be deprecated, or should simply log a silent error
         when a duplicate is detected.
@@ -3522,7 +3453,6 @@ class Categorizer(object):
 class Block(object):
     """
     An object representing a pending interruption in the flow of the game.
-
     The possible Block conditions are of two kinds. The first simply yield a
     step that can be returned by Path.get_step_for_prompt in lieu of the
     normally slated step:
@@ -3596,3 +3526,4 @@ class Exception_Bug(object):
         except Exception:
             print traceback.format_exc(5)
             #current.paideia_debug.do_print(exception_data, "couldn't insert this exception data")
+            
