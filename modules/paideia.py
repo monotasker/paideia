@@ -474,8 +474,8 @@ class Walk(object):
         """
         #current.paideia_debug.do_print({'user.tag_records':user.tag_records},"Brisbane - user.tag_records before calling _record_step")
         self.record_id = self._record_step(user.get_id(),
-                                           s.get_id(),
                                            p.get_id(),
+                                           s.get_id(),
                                            prompt['score'],
                                            prompt['times_right'],
                                            prompt['times_wrong'],
@@ -768,8 +768,6 @@ class Walk(object):
         TODO: be sure not to log redirect and utility steps. (filter them out
         before calling _record_step())
         """
-        print 'recording step', step_id
-        print 'recording path', path_id
         mynow = datetime.datetime.utcnow() if not now else now
         db = current.db
         # TODO: Store and roll back db changes if impersonating
@@ -794,8 +792,6 @@ class Walk(object):
                     oldrec = None
                 self._update_tag_secondary(t, oldrec, user_id, now=mynow)
 
-        print 'recording step', step_id
-        print 'recording path', path_id
         log_args = {'name': user_id,
                     'step': step_id,
                     'in_path': path_id,
@@ -1091,7 +1087,6 @@ class Step(object):
         """
         Return the id of the current step as an integer.
         """
-        pprint(self.data)
         return self.data['id']
 
     def get_npcs(self):
@@ -1192,27 +1187,32 @@ class Step(object):
         If this step requires no such audio, return None
         """
         if not self.data['prompt_audio'] in [0, 1, None]:  # TODO: magic number
-            db = current.db
-            aud_row = db.audio(self.data['prompt_audio'])
-            audio = {'title': aud_row['title'],
-                     'mp3': aud_row['clip'],
-                     'ogg': aud_row['clip_ogg'] if aud_row['clip_ogg'] else None}
-            audio_args_for_js = {'title': 'Paideia Audio'}
-            media_supplied = ""
-            if aud_row['clip_m4a']:
-                audio_args_for_js['m4a'] = "/paideia/default/download.load/" + aud_row['clip_m4a']
-                media_supplied = "m4a"
-            if aud_row['clip']:
-                audio_args_for_js['mp3'] = "/paideia/default/download.load/" + aud_row['clip']
-                if media_supplied: media_supplied += ",mp3"
-                else:media_supplied = "mp3"
-            if aud_row['clip_ogg']:
-                audio_args_for_js['ogg'] = "/paideia/default/download.load/" + aud_row['clip_ogg']
-                if media_supplied: media_supplied += ",ogg"
-                else:media_supplied = "ogg"
-            audio['audio_args_for_js'] = str(audio_args_for_js)
-            audio['media_supplied'] = media_supplied
-            return audio
+            while True:
+                db = current.db
+                aud_row = db.audio(self.data['prompt_audio'])
+                if not aud_row['clip_m4a']: break
+                audio = {'title': aud_row['title'],
+                         'mp3': aud_row['clip'],
+                         'ogg': aud_row['clip_ogg'] if aud_row['clip_ogg'] else None}
+                audio_args_for_js = {'title': 'Paideia Audio'}
+                media_supplied = ""
+                if aud_row['clip_m4a']:
+                    audio_args_for_js['m4a'] = "/paideia/default/download.load/" + aud_row['clip_m4a']
+                    media_supplied = "m4a"
+                """
+                only doing m4a for now
+                if aud_row['clip']: 
+                    audio_args_for_js['mp3'] = "/paideia/default/download.load/" + aud_row['clip']
+                    if media_supplied: media_supplied += ",mp3"
+                    else:media_supplied = "mp3"
+                if aud_row['clip_ogg']:
+                    audio_args_for_js['ogg'] = "/paideia/default/download.load/" + aud_row['clip_ogg']
+                    if media_supplied: media_supplied += ",ogg"
+                    else:media_supplied = "ogg"
+                """
+                audio['audio_args_for_js'] = str(audio_args_for_js)
+                audio['media_supplied'] = media_supplied
+                return audio
         else:
             return None
 
@@ -1581,8 +1581,7 @@ class StepViewSlides(Step):
         # build slide deck list
         slides = []
         for row in sliderows:
-            baseurl = 'http://ianwscott.webfactional.com/paideia/listing/slides.html/'
-            deckurl = baseurl + row['id']
+            deckurl = URL('listing', 'slides.html', args=[row['id']])
             slides.append('- [{} {}]'.format(row['deck_name'], deckurl))
         slides = '\n'.join(slides)
 
@@ -1781,7 +1780,7 @@ class StepEvaluator(object):
             user_response = request.vars['response']
         user_response = self._strip_spaces(user_response)
         user_response = self._regularize_greek(user_response)
-        user_response = normalize_accents(user_response)
+        user_response = normalize_accents(user_response)  # FIXME: this isn't working on live site
         responses = {k: r for k, r in self.responses.iteritems()
                      if r and r != 'null'}
         # Compare the student's response to the regular expressions
@@ -2050,18 +2049,20 @@ class Path(object):
         """
         Return a list containing all the steps of this path as Step objects.
         """
-
+        
+        
         """
         #debug ... testing audio ... dont forget to remove this
         steplist = [StepFactory().get_instance(step_id=i)
                     for i in [446,448,451,452,453,454,455,456,457,459,445,447]]
         #dont forget to uncomment this
         """
-
-
+        
+        
         steplist = [StepFactory().get_instance(step_id=i)
                     for i in self.path_dict['steps']]
-
+        
+        
         return steplist
 
 
@@ -2670,7 +2671,7 @@ class User(object):
                                                 self.completed_paths).choose()
         #current.paideia_debug.do_print({'choice':choice, 'redir':redir, 'cat':cat, 'mode':mode}, 'alfafa')
 
-
+        
         #tag_progress gets updated in PathChooser and we need to update it for cat1 purposes
         #current.paideia_debug.do_print({'self.tag_progress':self.tag_progress}, "********************albany-saving tag_progres************")
         condition = {'name': self.get_id()}
