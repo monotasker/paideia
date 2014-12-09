@@ -1173,7 +1173,7 @@ class Step(object):
                 audio = {'title': aud_row['title'],
                          'mp3': aud_row['clip'],
                          'ogg': aud_row['clip_ogg'] if aud_row['clip_ogg'] else None}
-                audio_args_for_js = {'title': 'Paideia Audio'}
+                audio_args_for_js = {'title': ''}
                 media_supplied = ""
                 if aud_row['clip_m4a']:
                     audio_args_for_js['m4a'] = "/paideia/default/download.load/" + aud_row['clip_m4a']
@@ -2013,17 +2013,17 @@ class Path(object):
         Return a list containing all the steps of this path as Step objects.
         """
 
-        """
+        
         #debug ... testing audio ... dont forget to remove this
+        """
         steplist = [StepFactory().get_instance(step_id=i)
                     for i in [446,448,451,452,453,454,455,456,457,459,445,447]]
-        #dont forget to uncomment this
         """
-
+        #dont forget to uncomment this
         
+
         steplist = [StepFactory().get_instance(step_id=i)
                     for i in self.path_dict['steps']]
-        
 
         return steplist
 

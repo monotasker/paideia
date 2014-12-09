@@ -35,12 +35,12 @@
 
 	font-family:Verdana, Arial, sans-serif;
 	line-height:1.6;
-	color: #fff;
-	border-top:1px solid #554461;
-	border-left:1px solid #554461;
-	border-right:1px solid #180a1f;
-	border-bottom:1px solid #180a1f;
-	background-color:#3a2a45;
+	color: #000000;
+	border-top:1px solid #ffffff;
+	border-left:1px solid #ffffff;
+	border-right:1px solid #ffffff;
+	border-bottom:1px solid #ffffff;
+	background-color:#ffffff;
 }
 .jp-audio {
 	width:240px;
@@ -110,14 +110,14 @@
 }
 
 .jp-audio .jp-controls-holder {
-	height: 80px;
+	height: 31px;
 }
 .jp-audio-stream .jp-controls-holder {
 	height: 50px;
 }
 
 .jp-controls {
-	background: url("jplayer.pink.flag.jpg") 0 0 no-repeat;
+	background-color: #ffffff;
 	padding: 1px 0 2px 1px;
 	overflow:hidden;
 	width: 201px;
@@ -154,23 +154,24 @@
 /* @group single player controls */
 
 .jp-type-single .jp-controls button {
-	width: 99px;
+	width: 41px;
 }
 
 .jp-type-single  .jp-play {
-	background: url("jplayer.pink.flag.jpg") 0px -40px no-repeat;
+	background-color: #ffffff;
+	cursor: pointer
 }
 
 .jp-type-single  .jp-play:focus {
-	background: url("jplayer.pink.flag.jpg") -100px -40px no-repeat;
+	background-clor: #ffffff;
 }
 
 .jp-state-playing .jp-type-single  .jp-play {
-	background: url("jplayer.pink.flag.jpg") 0px -120px no-repeat;
+	background-color: #ffffff;
 }
 
 .jp-state-playing .jp-type-single  .jp-play:focus {
-	background: url("jplayer.pink.flag.jpg") -100px -120px no-repeat;
+	background-color: #ffffff;
 }
 
 /* The right border is normally in the ul background image. */
@@ -180,11 +181,11 @@
 }
 
 .jp-type-single .jp-stop {
-	background: url("jplayer.pink.flag.jpg") 0px -80px no-repeat;
+	background-color: #ffffff;
 }
 
 .jp-type-single .jp-stop:focus {
-	background: url("jplayer.pink.flag.jpg") -100px -80px no-repeat;
+	background-color: #ffffff;
 }
 
 /* @end */
