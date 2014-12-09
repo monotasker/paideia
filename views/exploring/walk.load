@@ -79,7 +79,7 @@ ap.append(form) }}
 		      To play the media you will need to either update your browser to a recent version or update your <a href="http://get.adobe.com/flashplayer/" target="_blank">Flash plugin</a>.
 		    </div>
 		  </div>
-		</div>        
+		</div>
 		{{pass}}
 
         <!--# image for prompt =============================================-->
@@ -192,27 +192,31 @@ ap.append(form) }}
 <!--# page javascript ======================================================-->
 <script>
 
-    var headroom = $('.navbar').outerHeight();
-    //var footroom = '20px';
-    var divheight = window.innerHeight - headroom; // + footroom);
-    $('#page').css('height', divheight);
-    $('.speaker img').css('height', divheight);
-
-    {{if 'bg_image' in globals():}}
-    $('#page').css("background-image", "url({{=bg_image}})");
-    $('#page').css("background-size", "auto 100%");
-    {{pass}}
-
-    $(window).resize(function() {
+    function fit_to_height() {
         var headroom = $('.navbar').outerHeight();
         //var footroom = '20px';
         var divheight = window.innerHeight - headroom;  //+ footroom);
         $('#page, .speaker img, #town_map').css('height', divheight);
-    });
+    }
+    fit_to_height()
+    //var headroom = $('.navbar').outerHeight();
+    //var footroom = '20px';
+    //var divheight = window.innerHeight - headroom; // + footroom);
+    //$('#page').css('height', divheight);
+    //$('.speaker img').css('height', divheight);
 
-    {{if 'bugreporter' in globals():}}
-    //$('#bug_reporter_modal').appendTo('body');
+    {{if 'bg_image' in globals():}}
+    $('#page').css("background-image", "url({{=bg_image}})");
+    $('#page').css("background-size", "auto 100%");
+    {{else:}}
+    $('#page').css("background-image", "none");
+    $('#page').css("background-size", "100% auto");
     {{pass}}
+
+
+    $(window).resize(function() {
+        fit_to_height();
+    });
 
     $('.popover-trigger').each(function() {
         var $this = $(this);
@@ -226,6 +230,7 @@ ap.append(form) }}
         event.preventDefault();
     });
 </script>
+
 {{if 'audio' in globals() and audio:}}
 	<script type="text/javascript">
 	//<![CDATA[
