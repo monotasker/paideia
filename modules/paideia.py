@@ -1180,7 +1180,7 @@ class Step(object):
                     media_supplied = "m4a"
                 """
                 only doing m4a for now
-                if aud_row['clip']: 
+                if aud_row['clip']:
                     audio_args_for_js['mp3'] = "/paideia/default/download.load/" + aud_row['clip']
                     if media_supplied: media_supplied += ",mp3"
                     else:media_supplied = "mp3"
@@ -2020,10 +2020,10 @@ class Path(object):
         #dont forget to uncomment this
         """
 
-        
+
         steplist = [StepFactory().get_instance(step_id=i)
                     for i in self.path_dict['steps']]
-        
+
 
         return steplist
 
@@ -3526,4 +3526,4 @@ class Exception_Bug(object):
         except Exception:
             print traceback.format_exc(5)
             #current.paideia_debug.do_print(exception_data, "couldn't insert this exception data")
-            
+
