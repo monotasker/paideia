@@ -1180,7 +1180,7 @@ class Step(object):
                     media_supplied = "m4a"
                 """
                 only doing m4a for now
-                if aud_row['clip']:
+                if aud_row['clip']: 
                     audio_args_for_js['mp3'] = "/paideia/default/download.load/" + aud_row['clip']
                     if media_supplied: media_supplied += ",mp3"
                     else:media_supplied = "mp3"
@@ -1896,6 +1896,9 @@ class Path(object):
         self.step_for_reply = None
         self.cat_tag = None
 
+    def get_dict(self):
+        return self.path_dict
+
     def get_id(self):
         """Return the id of the current Path object."""
         return self.path_dict['id']
@@ -2026,12 +2029,14 @@ class Path(object):
         Return a list containing all the steps of this path as Step objects.
         """
 
-
+        
         #debug ... testing audio ... dont forget to remove this
         """
         steplist = [StepFactory().get_instance(step_id=i)
                     for i in [446,448,451,452,453,454,455,456,457,459,445,447]]
         """
+        #dont forget to uncomment this
+        
 
         steplist = [StepFactory().get_instance(step_id=i)
                     for i in self.path_dict['steps']]
@@ -2223,7 +2228,8 @@ class PathChooser(object):
         here and make sure that it is working in _paths_by_category if we have
         a problem here
         """
-
+        
+        #current.paideia_debug.do_print("choose from cat called", "message")
         path = None
         new_loc = None
         mode = None
@@ -2243,11 +2249,14 @@ class PathChooser(object):
             #current.paideia_debug.do_print({'p_here_new':[p['id'] for p in p_here_new] if p_here_new else []}, "vernon- p_here_new in Pathchooser::_choose_from_cat")
             p_all  = [p for p in cpaths]
             #current.paideia_debug.do_print({'p_all':[p['id'] for p in p_all] if p_all else []}, "vernon- p_all in Pathchooser::_choose_from_cat")
+            p_visited_ids = list(set([p['id'] for p in cpaths]).intersection(completed_list))
+            p_visited  = [p for p in cpaths if p['id'] in p_visited_ids]
             if p_here_new:
                 #current.paideia_debug.do_print({'p_here_new':[p['id'] for p in p_here_new]}, "vernon- attempting p_here_new in Pathchooser::_choose_from_cat")
                 path = p_here_new[randrange(0, len(p_here_new))]
                 mode = 'here_new'
-            elif p_new:
+                break
+            if p_new:
                 # While loop safeguards against looking for location for a step
                 # that has no locations assigned.
                 #JOB ... infinite loop danger here?? oct 12, 2014
@@ -2272,42 +2281,42 @@ class PathChooser(object):
                     except ValueError:
                         current.paideia_debug.do_print("vernon-randrange error NOT permitted", '-altoona-')
                         print traceback.format_exc(5)
-            elif p_here:
-                #current.paideia_debug.do_print({'p_here':[p['id'] for p in p_here]}, "vernon- attempting p_here in Pathchooser::_choose_from_cat")
+                break
+            if p_visited:
+                #current.paideia_debug.do_print({'p_visited':[p['id'] for p in p_visited]}, "vernon- attempting p_visited in Pathchooser::_choose_from_cat")
                 try:
-                    #now based on how many times step has been seen ... JOB oct 25, 2014
-                    """
-                    x = randrange(0, len(p_here))
-                    ##current.paideia_debug.do_print({'random':x}, "vernon- random index for p_here in Pathchooser::_choose_from_cat")
-                    path = p_here[randrange(0, len(p_here))]
-                    path = p_here[x]
-                    """
-                    p_here_objs = {str(p['id']):p for p in p_here}
-                    p_here_scores = {k:0 for k in p_here_objs}
-                    #print p_here_objs
-                    #print p_here_scores
+                    p_here_objs = [{'id': str(p['id']),'score':0, 'path': p} for p in p_visited]
+                    for x in p_here_objs:
+                        if (x['id'] in self.completed['paths']):
+                            x['score'] = self.completed['paths'][x['id']]['wrong'] + self.completed['paths'][x['id']]['right'] 
                     #current.paideia_debug.do_print({'p_here_objs':p_here_objs}, "vernon- p_here_objs in Pathchooser::_choose_from_cat")
-                    for k in completed_list:
-                        k_str = str(k)
-                        if ((k_str in  self.completed['paths']) and (k_str in p_here_scores)):
-                            p_here_scores[k_str] = self.completed['paths'][k_str]
-                    p_here_scores_sorted = sorted(p_here_scores, key = lambda k: p_here_scores[k])
-                    #print {'p_here_scores_sorted':p_here_scores_sorted}
-                    use_this_p_here = [ p_here_objs[k] for k in p_here_scores_sorted]
-                    path = use_this_p_here[0]
-                    #print {'use_this_p_here':use_this_p_here}
-                    #print {'path':path}
-                    mode = 'repeat_here'
-                    #current.paideia_debug.do_print({'p_here_objs':p_here_objs,
-                                                  #  'p_here_scores':p_here_scores,
-                                                  #  'p_here_scores_sorted':p_here_scores_sorted,
-                                                  #  'use_this_p_here':use_this_p_here},
-                                     #"vernon- sorted pheres in Pathchooser::_choose_from_cat")
-
+                    mode = 'repeated'
+                    new_loc = None
+                    while True:
+                        if not p_here_objs:break
+                        p_here_objs_sorted = sorted(p_here_objs, key = lambda k: k['score'])
+                        #current.paideia_debug.do_print({'p_here_objs_sorted':[{x['id']:x['score']} for x in p_here_objs_sorted]}, "vernon- p_here_scores_sorted in Pathchooser::_choose_from_cat")
+                        use_this_p_here = [ k['path'] for k in p_here_objs_sorted]
+                        #current.paideia_debug.do_print({
+                        #  'use_this_p_here':use_this_p_here},
+                        #  "vernon- sorted pheres in Pathchooser::_choose_from_cat")
+                        path = use_this_p_here[0]			
+                        new_locs = db.steps(path['steps'][0]).locations
+                        goodlocs = [l for l in new_locs if db.locations[l].loc_active is True]
+                        if self.loc_id in goodlocs: 
+                            new_loc = self.loc_id
+                            break
+                        new_loc = goodlocs[randrange(0, len(goodlocs))] if len(goodlocs) else None
+                        if new_loc:break
+                        p_here_objs.pop(0)
                 except ValueError:
                     current.paideia_debug.do_print("weired exception NOT permitted", '-altoona-')
                     print traceback.format_exc(5)
-            elif p_all:
+            if new_loc:
+                if (self.loc_id == new_loc): new_loc = None #new_loc = None means keep curr_loc
+                break
+            #else fall through to the last one
+            if p_all: #redundant ... shouldn't get to this point ... JOB ... dec 11, 2014
                 #current.paideia_debug.do_print({'p_all':[p['id'] for p in p_all]}, "vernon- attempting p_all in Pathchooser::_choose_from_cat")
                 loopmax = len(p_all)*5
                 loopcount = 0
@@ -2327,6 +2336,7 @@ class PathChooser(object):
                     except ValueError:
                         current.paideia_debug.do_print("vernon-randrange error NOT permitted", '-banf-')
                         print traceback.format_exc(5)
+                break  #redundant at the moment
             break #from main while True
         #debug
         #current.paideia_debug.do_print( ({'path':path}, {'new_loc':int(new_loc) if new_loc else None}, {'category':category}, {'mode':mode}), "vernon-- (path, new_loc, category, mode) in PathChooser::_choose_from_cat")
@@ -2368,10 +2378,7 @@ class PathChooser(object):
         # cycle through categories, starting with the one from _get_category()
         for cat in cat_list:
             catpaths, category,use_cat1 = self._paths_by_category(cat, self.rank)
-            #print 'catpaths -------------'
-            #print [c['id'] for c in catpaths]
-            #print 'category -------------'
-            #print category
+            #current.paideia_debug.do_print({'category': category,'use_cat1': use_cat1, 'cat':cat},"msg")
             if (catpaths and len(catpaths)):
                 path, newloc, category, mode = self._choose_from_cat(catpaths,
                                                                      category)
@@ -2417,7 +2424,7 @@ class User(object):
             self.path = None
             #JOB ... oct 25, 2014, self.completed paths will now be a hash {'path_id': count}
             #point latest to some default path? ... used for repeat should be valid for repeats unless server gets reset somewhere in between takes
-            self.completed_paths = {'latest': None, 'paths': {}, 'error': 0}  #error keeps us going to the next categorizer after an error
+            self.completed_paths = {'latest': None, 'paths': {}}
 
             self.cats_counter = 0  # timing re-categorization in get_categories()
 
@@ -2789,7 +2796,7 @@ class User(object):
         #we now using hash {'path_id':count} to keep track of completed_paths
         # {'latest' : path_id} gives path_id of the latest one
         if (str(self.path.get_id()) not in self.completed_paths['paths']):
-            self.completed_paths['paths'][str(self.path.get_id())] = {'right': 0, 'wrong':0}
+            self.completed_paths['paths'][str(self.path.get_id())] = {'right': 0, 'wrong':0, 'path_dict':self.path.get_dict()}
         if got_right:
             self.completed_paths['paths'][str(self.path.get_id())]['right'] += 1
         else:
@@ -3537,4 +3544,3 @@ class Exception_Bug(object):
         except Exception:
             print traceback.format_exc(5)
             #current.paideia_debug.do_print(exception_data, "couldn't insert this exception data")
-
