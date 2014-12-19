@@ -477,8 +477,17 @@ def normalize_accents(string):
     newstrings = []
     for mystring in strings:
         mystring = mystring.replace('ί', 'ί')  # avoid q-i iota on windows
+
+        # this is ugly
         exempt = ['τίνος', 'τί', 'τίς', 'τίνα', 'τίνας', 'τίνι',
                   'Τίνος', 'Τί', 'Τίς', 'Τίνα', 'Τίνας', 'Τίνι']
+        ex_period = [x + '.' for x in exempt]
+        ex_scolon = [x + ';' for x in exempt]
+        ex_comma = [x + ',' for x in exempt]
+        ex_qmark = [x + '?' for x in exempt]
+        ex_colon = [x + ':' for x in exempt]
+        exempt = chain(exempt, ex_colon, ex_comma, ex_qmark, ex_scolon, ex_period)
+
         if mystring not in exempt:
             matching_letters = re.findall(makeutf8(restr), makeutf8(mystring), re.I | re.U)
             if matching_letters:
