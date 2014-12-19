@@ -1768,6 +1768,19 @@ class StepEvaluator(object):
             else:
                 regex3 = None
 
+            # debugging output
+            print 'regex -------------------------------------'
+            print makeutf8(user_response)
+            printmatch = re.match(regex1, user_response)
+            if printmatch:
+                print printmatch.group()
+            else:
+                print 'failed'
+            print 'In test_regex -------------------------------'
+            for k, v in test_regex(responses['response1'], [user_response]).iteritems():
+                print makeutf8(k), v
+
+
             if re.match(regex1, makeutf8(user_response)):
                 score = 1
                 reply = "Right. Κάλον."
