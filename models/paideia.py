@@ -35,8 +35,7 @@ response.files.append(URL('static', 'css/plugin_slider.css'))
 dtnow = datetime.datetime.utcnow()
 
 db.define_table('classes',
-                Field('institution', 'string', default='Tyndale Seminary',
-                      unique=True),
+                Field('institution', 'string', default='Tyndale Seminary'),
                 Field('academic_year', 'integer', default=dtnow.year),  # year
                 Field('term', 'string'),
                 Field('course_section', 'string'),
@@ -46,13 +45,39 @@ db.define_table('classes',
                 Field('end_date', 'datetime'),
                 Field('paths_per_day', 'integer', default=40),
                 Field('days_per_week', 'integer', default=5),
-                Field('members', 'list:reference auth_user'),
+                Field('a_target', 'integer'),
+                Field('b_target', 'integer'),
+                Field('c_target', 'integer'),
+                Field('d_target', 'integer'),
+                Field('f_target', 'integer'),
                 Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(institution)s, %(academic_year)s %(term)s '
                        '%(course_section)s %(instructor.last_name)s, '
                        '%(instructor.first_name)s'
                 )
+db.classes.term.requires = IS_EMPTY_OR(IS_IN_SET(('fall',
+                                                  'winter intersession',
+                                                  'winter',
+                                                  'spring/summer')))
+
+db.define_table('class_membership',
+                Field('name', 'reference auth_user'),
+                Field('class_section', 'reference classes'),
+                Field('custom_start', 'datetime'),
+                Field('starting_set'),
+                Field('custom_end', 'datetime'),
+                Field('ending_set'),
+                Field('final_grade', 'list:string'),
+                Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+                Field('modified_on', 'datetime', default=request.now),
+                format='%(name)s, %(class_section)s'
+                )
+db.class_membership.final_grade.requires = IS_EMPTY_OR(IS_IN_SET(('A+', 'A', 'A-',
+                                                                  'B+', 'B', 'B-',
+                                                                  'C+', 'C', 'C-',
+                                                                  'D+', 'D', 'D-',
+                                                                  'F')))
 
 db.define_table('images',
                 Field('image', 'upload', length=128,
@@ -636,13 +661,13 @@ db.define_table('content_pages',
 
 
 """
-HELPER TABLES  
+HELPER TABLES
 paths2steps ... follows C_UD of paths to create 1-1 relationshitp
 steps2tags ... follows C_UD of steps to create 1-1 relationshitp
 Joseph Boakye <jboakye@bwachi.com> Oct 10 2014
 zzz
 """
-db.define_table('step2tags', 
+db.define_table('step2tags',
                 Field('step_id', 'reference steps'),
                 Field('tag_id', 'reference tags'),
                 Field('modified_on', 'datetime', default=request.now))
@@ -715,7 +740,7 @@ def insert_trigger_for_paths(f,given_path_id):
     for step_id in old_steps_list:
         step_locs = db.steps[step_id].as_dict()['locations']
         create_or_update_steps_inactive_locations({'locations': step_locs},step_id)
-     
+
 
 
 def update_trigger_for_paths(s,f):
@@ -813,7 +838,7 @@ def get_steps_inactive_locations_fields(id_data):
     #debug
     #simple_obj_print(((db.locations[id_data['loc_id']]).as_dict()), "bronx-location in get_steps_inactive_locations_fields")
     id_data['loc_desc'] =  ((db.locations[id_data['loc_id']]).as_dict())['map_location']
-    id_data['in_paths'] =  [ p['path_id'] for p in   (db(db.path2steps.step_id == id_data['step_id'])).select(db.path2steps.path_id).as_list()]    
+    id_data['in_paths'] =  [ p['path_id'] for p in   (db(db.path2steps.step_id == id_data['step_id'])).select(db.path2steps.path_id).as_list()]
     return True
 
 #no need for delete ... will be taken care of by foreign key
@@ -853,7 +878,7 @@ db.define_table('steps_inactive_locations',
 
 
 """
-These functions create step2tags and path2steps data for 
+These functions create step2tags and path2steps data for
 legacy paths and steps.
 They only need to be ran once after which they SHOULD be commented out
 Joseph Boakye <jboakye@bwachi.com>

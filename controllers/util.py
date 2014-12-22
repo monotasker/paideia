@@ -17,7 +17,7 @@ import paideia_path_factory
 import traceback
 import StringIO
 import uuid
-#from pprint import pprint
+from pprint import pprint
 
 
 @auth.requires_membership('administrators')
@@ -101,13 +101,19 @@ def migrate_field():
 
 @auth.requires_membership('administrators')
 def to_migrate_table():
-    items = db(db.pages.id > 0).select()
-    c = 0
+    items = db(db.auth_membership.id > 0).select()
     for i in items:
-        db.journal_pages.insert(**{'journal_page': i.page})
-        c += 1
-
-    return dict(records_moved=c)
+        if i.group_id == 1:
+            pass
+        else:
+            cls = db((db.auth_group.id == i.group_id) &
+                     (db.auth_group.end_date == db.classes.end_date)
+                     ).select().first()
+            print i.user_id, ':', cls.classes.id
+            db.class_membership.update_or_insert(**{'name': i.user_id,
+                                                    'class_section': cls.classes.id})
+    cc = db(db.class_membership.id > 0).select().as_dict()
+    return {'result': pprint(cc)}
 
 
 @auth.requires_membership('administrators')

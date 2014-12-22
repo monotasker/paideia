@@ -1180,7 +1180,7 @@ class Step(object):
                     media_supplied = "m4a"
                 """
                 only doing m4a for now
-                if aud_row['clip']: 
+                if aud_row['clip']:
                     audio_args_for_js['mp3'] = "/paideia/default/download.load/" + aud_row['clip']
                     if media_supplied: media_supplied += ",mp3"
                     else:media_supplied = "mp3"
@@ -1769,17 +1769,13 @@ class StepEvaluator(object):
                 regex3 = None
 
             # debugging output
-            print 'regex -------------------------------------'
-            print makeutf8(user_response)
-            printmatch = re.match(regex1, user_response)
-            if printmatch:
-                print printmatch.group()
-            else:
-                print 'failed'
-            print 'In test_regex -------------------------------'
-            for k, v in test_regex(responses['response1'], [user_response]).iteritems():
-                print makeutf8(k), v
-
+            #print 'regex -------------------------------------'
+            #print makeutf8(user_response)
+            #printmatch = re.match(regex1, makeutf8(user_response))
+            #if printmatch:
+                #print printmatch.group()
+            #else:
+                #print 'failed'
 
             if re.match(regex1, makeutf8(user_response)):
                 score = 1
@@ -2029,14 +2025,14 @@ class Path(object):
         Return a list containing all the steps of this path as Step objects.
         """
 
-        
+
         #debug ... testing audio ... dont forget to remove this
         """
         steplist = [StepFactory().get_instance(step_id=i)
                     for i in [446,448,451,452,453,454,455,456,457,459,445,447]]
         """
         #dont forget to uncomment this
-        
+
 
         steplist = [StepFactory().get_instance(step_id=i)
                     for i in self.path_dict['steps']]
@@ -2228,7 +2224,7 @@ class PathChooser(object):
         here and make sure that it is working in _paths_by_category if we have
         a problem here
         """
-        
+
         #current.paideia_debug.do_print("choose from cat called", "message")
         path = None
         new_loc = None
@@ -2288,7 +2284,7 @@ class PathChooser(object):
                     p_here_objs = [{'id': str(p['id']),'score':0, 'path': p} for p in p_visited]
                     for x in p_here_objs:
                         if (x['id'] in self.completed['paths']):
-                            x['score'] = self.completed['paths'][x['id']]['wrong'] + self.completed['paths'][x['id']]['right'] 
+                            x['score'] = self.completed['paths'][x['id']]['wrong'] + self.completed['paths'][x['id']]['right']
                     #current.paideia_debug.do_print({'p_here_objs':p_here_objs}, "vernon- p_here_objs in Pathchooser::_choose_from_cat")
                     mode = 'repeated'
                     new_loc = None
@@ -2300,10 +2296,10 @@ class PathChooser(object):
                         #current.paideia_debug.do_print({
                         #  'use_this_p_here':use_this_p_here},
                         #  "vernon- sorted pheres in Pathchooser::_choose_from_cat")
-                        path = use_this_p_here[0]			
+                        path = use_this_p_here[0]
                         new_locs = db.steps(path['steps'][0]).locations
                         goodlocs = [l for l in new_locs if db.locations[l].loc_active is True]
-                        if self.loc_id in goodlocs: 
+                        if self.loc_id in goodlocs:
                             new_loc = self.loc_id
                             break
                         new_loc = goodlocs[randrange(0, len(goodlocs))] if len(goodlocs) else None

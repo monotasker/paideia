@@ -60,7 +60,7 @@ def _i_am_running_under_test():
 # define database storage
 #-------------------------------------------------------------
 """
-test will now be using postgres instead of sqllite 
+test will now be using postgres instead of sqllite
 a new test database called paideia_test will be used for tests
 JOB ... jboakye@bwachi.com ... oct 5, 2014
 """
@@ -79,7 +79,7 @@ print '--- using dbase: ',postgre['db_name'], ' ---'
 # check_reserved makes sure no column names conflict with back-end db's
 connect_string = 'postgres://%s:%s@%s/%s' % (postgre['username'], postgre['password'],
                                            postgre['host'], postgre['db_name'])
-db = DAL(connect_string, pool_size=1, check_reserved=['sqlite', 'postgres'], fake_migrate=True)
+db = DAL(connect_string, pool_size=1, check_reserved=['sqlite', 'postgres'], migrate=False, fake_migrate=True)
 
 #-------------------------------------------------------------
 # Set up logging
