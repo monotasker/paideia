@@ -1,7 +1,7 @@
 #! /usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
-from paideia_stats import Stats, get_starting_set
+from paideia_stats import Stats, get_set_at_date
 from paideia_bugs import Bug
 # import traceback
 # from paideia_utils import send_error
@@ -117,11 +117,12 @@ def info():
     now = datetime.datetime.utcnow()
 
     # get user's current course
-    myclasses = db((db.auth_membership.user_id == user.id) &
-                   (db.auth_membership.group_id == db.auth_group.id)).select()
-    myclasses = myclasses.find(lambda row: row.auth_group.start_date != None)
-    myclasses = myclasses.find(lambda row: (row.auth_group.start_date < now) and \
-                                         (row.auth_group.end_date > now))
+    myclasses = db((db.class_membership.name == user.id) &
+                   (db.class_membership.class_section == db.classes.id)
+                   ).select()
+    myclasses = myclasses.find(lambda row: row.classes.start_date != None)
+    myclasses = myclasses.find(lambda row: (row.classes.start_date < now) and \
+                                         (row.classes.end_date > now))
     myclass = myclasses.first()
 
     # tab1
@@ -131,25 +132,19 @@ def info():
     max_set = stats.get_max()
     badge_levels = stats.get_badge_levels()
     badge_table_data = stats.active_tags()
+
+    start_date, fmt_start, end_date, fmt_end = None, None, None, None
     if myclass:
-        starting_set = get_starting_set(user.id,
-                                        myclass.auth_group.start_date,
-                                        myclass.auth_group.end_date)
+        start_date, fmt_start, end_date, fmt_end = get_term_bounds(
+            myclass.class_membership.as_dict(),
+            myclass.classes.start_date,
+            myclass.classes.end_date)
+        starting_set = get_set_at_date(user.id, start_date)
     else:
         starting_set = None
 
-    goal = 8 # FIXME: get this from course row
-    if starting_set == 1:
-        target_set = goal
-    elif starting_set:
-        target_set = starting_set + goal
-    else:
-        target_set = None
-
-    end_date = myclass.auth_group.end_date if myclass else None
-    if end_date:  # make it readable for display
-        strf = '%b %e' if end_date.year == now.year else '%b %e, %Y'
-        end_date = end_date.strftime(strf)
+    goal = myclass.classes.a_target if myclass else None
+    target_set = starting_set + goal if starting_set else None
 
     # tab2
     mycal = stats.monthcal()
@@ -171,7 +166,7 @@ def info():
             'email': email,
             'starting_set': starting_set,
             'target_set': target_set,
-            'end_date': end_date,
+            'end_date': fmt_end,
             'cal': mycal,
             'blist': blist,
             'max_set': max_set,
