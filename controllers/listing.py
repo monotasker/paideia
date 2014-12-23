@@ -14,7 +14,7 @@ if 0:
     request, response = current.request, current.response
 import datetime
 import traceback
-from paideia_stats import week_bounds, get_offset, get_starting_set
+from paideia_stats import make_classlist
 from pprint import pprint
 from dateutil.parser import parse
 from operator import itemgetter
@@ -28,9 +28,9 @@ def user():
     admins = [a['user_id'] for a in admins]
     admins.append(auth.user_id)
     if auth.user_id in admins:
-        myclasses = db(db.auth_group.course_instructor != None).select()
+        myclasses = db(db.classes.instructor != None).select()
     else:
-        myclasses = db(db.auth_group.course_instructor == auth.user_id).select()
+        myclasses = db(db.classes.instructor == auth.user_id).select()
     myclasses = myclasses.as_list()
     dated_classes = [m for m in myclasses if m['start_date']]
     dated_classes.sort(key=itemgetter('start_date'))
@@ -115,75 +115,40 @@ def remove_user():
     '''
     uid = request.vars.uid
     classid = request.vars.classid
-    q = db((db.auth_membership.user_id == uid) &
-           (db.auth_membership.group_id == classid))
-    print 'found', q.count(), 'records'
+    q = db((db.class_membership.name == uid) &
+           (db.class_membership.class_section == classid))
     q.delete()
-    print 'classid is', classid
     redirect(URL('userlist.load', vars={'value': classid}))
-
 
 @auth.requires_membership(role='administrators')
 def userlist():
     try:
-        try:
-            row = db.auth_group[request.vars.agid]
-        except:
-            print traceback.format_exc(5)
-            row = db(db.auth_group.course_instructor == auth.user_id
-                     ).select().last()
-        target = row['paths_per_day']
-        freq = row['days_per_week']
-        start_date = row['start_date']
-        end_date = row['end_date']
-        title = '{} {} {}, {}'.format(row['academic_year'], row['term'],
-                                      row['course_section'], row['institution'])
-
-        member_sel = db(db.auth_membership.group_id == row['id']).select()
-        members = [m['user_id'] for m in member_sel]
-        users = db((db.auth_user.id == db.tag_progress.name) &
-                   (db.auth_user.id.belongs([m['id'] for m in members]))
-                   ).select(orderby=db.auth_user.last_name)
-
-        lastweek, lw_firstday, thisweek = week_bounds()
-
-        logs = db((db.attempt_log.name.belongs([u.auth_user.id for u in users])) &
-                  (db.attempt_log.dt_attempted > lw_firstday)
-                  ).select(db.attempt_log.dt_attempted, db.attempt_log.name)
-
-        countlist = {}
-        startlist = {}
-        for user in users:
-            offset = get_offset(user.auth_user)
-
-            spans = [{'days': thisweek, 'count': 0, 'min_count': 0},
-                     {'days': lastweek, 'count': 0, 'min_count': 0}]
-            for span in spans:
-                for day in span['days']:
-                    mylogs = logs.find(lambda row: row.name == user.auth_user.id)
-                    daycount = len([l for l in mylogs if (l['dt_attempted'] - offset).day == day])
-                    #count = len(logs.find(lambda row: tz.fromutc(row.dt_attempted).day == day))
-
-                    if daycount > 0:
-                        span['count'] += 1
-                    if daycount >= target:
-                        span['min_count'] += 1
-
-            countlist[user.auth_user.id] = (spans[0]['count'], spans[0]['min_count'],
-                                            spans[1]['count'], spans[1]['min_count'])
-            startlist[user.auth_user.id] = get_starting_set(user.auth_user.id,
-                                                            start_date,
-                                                            end_date)
-
-        if start_date:  # make it readable for display
-            strf = '%b %e' if start_date.year == now.year else '%b %e, %Y'
-            start_date = start_date.strftime(strf)
-        response.js = "jQuery('#chooser_submit').val('Submit Query')"
-        return {'users': users, 'countlist': countlist, 'startlist': startlist,
-                'target': target, 'freq': freq, 'classid': row['id'],
-                'start_date': start_date, 'title': title}
-    except Exception:
+        classrow = db.classes[request.vars.agid].as_dict()
+    except:  # choose a class to display as default
         print traceback.format_exc(5)
+        classrow = db(db.classes.instructor == auth.user_id
+                        ).select().last().as_dict()
+    target = classrow['paths_per_day']
+    freq = classrow['days_per_week']
+    title = '{} {} {}, {}'.format(classrow['academic_year'], classrow['term'],
+                                  classrow['course_section'],
+                                  classrow['institution'])
+    member_sel = db(db.class_membership.class_section == classrow['id']).select()
+    users = db((db.auth_user.id == db.tag_progress.name) &
+               (db.auth_user.id.belongs([m['name'] for m in member_sel]))
+               ).select(orderby=db.auth_user.last_name)
+    start_date = classrow['start_date']
+    end_date = classrow['end_date']
+    classlist = make_classlist(member_sel, users, start_date,
+                               end_date, target, classrow)
+
+    response.js = "jQuery('#chooser_submit').val('View Class')"
+
+    return {'userlist': classlist,
+            'target': target,
+            'freq': freq,
+            'classid': classrow['id'],
+            'title': title}
 
 
 def add_user_form():
