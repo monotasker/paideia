@@ -92,11 +92,11 @@ class Stats(object):
         self.name = '{}, {}'.format(self.user.last_name, self.user.first_name)
 
         # class/group info --------------------------------------------------
-        msel = db((db.auth_membership.user_id == self.user_id) &
-                  (db.auth_membership.group_id == db.auth_group.id)).select()
+        msel = db((db.class_membership.name == user_id) &
+                  (db.class_membership.class_section == db.classes.id)).select()
         try:
-            self.targetcount = [m.auth_group.paths_per_day for m in msel
-                                if m.auth_group.paths_per_day][0]
+            self.targetcount = [m.classes.paths_per_day for m in msel
+                                if m.classes.paths_per_day][0]
         except IndexError:  # no group target for user
             self.targetcount = 20
 
@@ -1199,21 +1199,139 @@ def remove_trailing_0s(num, fmt='str'):
     return out
 
 
-def get_starting_set(user, start_date, end_date):
+def get_set_at_date(user_id, mydt):
     '''
     Return the badge set a user had reached at start_date.
     '''
     db = current.db
-    bb = db((db.badges_begun.name == user) &
+    bb = db((db.badges_begun.name == user_id) &
             (db.badges_begun.tag == db.tags.id)).select()
-    if start_date:
-        try:
-            bb = bb.find(lambda row: row.badges_begun.cat1 < start_date)
-            highest = max(b.tags.tag_position for b in bb
-                          if b.tags.tag_position < 900)
-        except ValueError:
-            highest = 1
-    else:
-        highest = 'NA'
+    try:
+        bb = bb.find(lambda row: row.badges_begun.cat1 < mydt)
+        highest = max(b.tags.tag_position for b in bb
+                      if b.tags.tag_position < 900)
+    except ValueError:
+        highest = 1
 
     return highest
+
+
+def get_daycounts(user, target):
+    """
+    Return a 4-member tuple giving the number of active days in the past 2 weeks.
+    """
+    db = current.db
+    offset = get_offset(user)
+    lastweek, lw_firstday, thisweek = week_bounds()
+    spans = [{'days': thisweek, 'count': 0, 'min_count': 0},
+             {'days': lastweek, 'count': 0, 'min_count': 0}]
+
+    logs = db((db.attempt_log.name == user.id) &
+              (db.attempt_log.dt_attempted > lw_firstday)
+              ).select(db.attempt_log.dt_attempted, db.attempt_log.name)
+
+    mylogs = logs.find(lambda row: row.name == user.id)
+    for span in spans:
+        for day in span['days']:
+            daycount = len([l for l in mylogs if (l['dt_attempted'] - offset).day == day])
+            #count = len(logs.find(lambda row: tz.fromutc(row.dt_attempted).day == day))
+
+            if daycount > 0:
+                span['count'] += 1
+            if daycount >= target:
+                span['min_count'] += 1
+
+    return (spans[0]['count'], spans[0]['min_count'],
+            spans[1]['count'], spans[1]['min_count'])
+
+
+def get_term_bounds(meminfo, start_date, end_date):
+    """
+    Return start and end dates for the term in datetime and readable formats
+
+    """
+    db = current.db
+    now = datetime.datetime.utcnow()
+    def make_readable(mydt):
+        strf = '%b %e' if mydt.year == now.year else '%b %e, %Y'
+        return mydt.strftime(strf)
+
+    myclasses = db((db.class_membership.name == meminfo['name']) &
+                   (db.class_membership.class_section == db.classes.id)
+                   ).select().as_list()
+
+    if len(myclasses) > 1:  # extend term bounds back to end of prev course
+        end_dates = {c['classes']['id']: c['classes']['end_date'] for c in myclasses}
+        custom_ends = {c['classes']['id']: c['class_membership']['custom_end']
+                       for c in myclasses if c['class_membership']['custom_end']}
+        if custom_ends:
+            for cid, dt in end_dates.iteritems():
+                if cid in custom_ends.keys() and custom_ends[cid] > dt:
+                    end_dates[cid] = custom_ends[cid]
+        print 'ends -------------------------------------'
+        print sorted(end_dates.values())
+        previous = sorted(end_dates.values())[-2]
+        start_date = previous if previous < start_date else start_date
+
+    mystart = meminfo.custom_start if meminfo.custom_start else start_date
+    fmt_start = make_readable(mystart)
+    myend = meminfo.custom_end if meminfo.custom_end else end_date
+    fmt_end = make_readable(myend)
+
+    return mystart, fmt_start, myend, fmt_end
+
+
+def compute_letter_grade(myprog, classrow):
+    """
+    Computes student's letter grade based on his/her progress in badge sets.
+    """
+    gradedict = {classrow['a_target']: 'A', classrow['b_target']: 'B',
+                 classrow['c_target']: 'C', classrow['d_target']: 'D'}
+
+    if myprog in gradedict.keys():
+        mygrade = gradedict[myprog]
+    elif myprog > classrow['a_target']:
+        mygrade = 'A'
+    else:
+        mygrade = 'F'
+
+    return mygrade
+
+
+def make_classlist(member_sel, users, start_date, end_date, target, classrow):
+    """
+    Return a dictionary of information on each student in the class.
+    """
+    userlist = {}
+    for user in users:
+        uid = user.auth_user.id
+        myname = '{}, {}'.format(user.auth_user.last_name,
+                                 user.auth_user.first_name)
+        meminfo = member_sel.find(lambda row: row.name == uid)[0]
+        mystart, fmt_start, myend, fmt_end = get_term_bounds(
+            meminfo, start_date, end_date)
+
+        mycounts = get_daycounts(user.auth_user, target)
+        startset = meminfo.starting_set if meminfo.starting_set \
+            else get_set_at_date(uid, mystart)
+
+        if datetime.datetime.utcnow() < myend:  # during class term
+            currset = user.tag_progress.latest_new
+        else:  # after class term
+            currset = get_set_at_date(uid, myend)
+
+        myprog = currset - startset
+        mygrade = compute_letter_grade(myprog, classrow)
+
+        userlist[uid] = {'name': myname,
+                         'counts': mycounts,
+                         'current_set': currset,
+                         'starting_set': startset,
+                         'progress': myprog,
+                         'grade': mygrade,
+                         'start_date': fmt_start,
+                         'end_date': fmt_end,
+                         'tp_id': user.tag_progress.id}
+
+    return userlist
+

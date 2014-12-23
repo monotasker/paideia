@@ -22,31 +22,42 @@ modal = MODAL('Add members', 'Add new members to this class',
 tbl = TABLE(TR(TH(),
                TH(),
                TH(),
+               TH(),
+               TH(),
+               TH(),
+               TH(),
+               TH(),
                TH('This Week', _colspan='2'),
                TH('Last Week', _colspan='2'),
                TH()
                ),
             TR(TH('Name'),
                TH('Current Set'),
-               TH('Set as of ', start_date),
-               TH('days active'),
-               TH('days > {}'.format(target)),
-               TH('days active'),
-               TH('days > {}'.format(target)),
+               TH('Set at course start'),
+               TH('Term Progress'),
+               TH('Current Grade'),
+               TH('Course Start'),
+               TH('Course End'),
+               TH('Days Active'),
+               TH('Days > {}'.format(target)),
+               TH('Days Active'),
+               TH('Days > {}'.format(target)),
                TH()
                ),
             _class='table table-condensed users_list_table')
 
-for user in users:
-    row = TR(TD(A(user.auth_user.last_name + ',' + user.auth_user.first_name,
-                _href=URL('reporting', 'user.html', args=[user.auth_user.id]))),
-             TD(user.tag_progress.latest_new, _class='rank'),
-             TD(startlist[user.auth_user.id], _class='start_rank')
+for uid, infodict in userlist.iteritems():
+    row = TR(TD(A(infodict['name'], _href=URL('reporting', 'user.html', args=[uid]))),
+             TD(infodict['current_set'], _class='rank'),
+             TD(infodict['starting_set'], _class='start_rank'),
+             TD(infodict['progress'], _class='start_rank'),
+             TD(infodict['grade'], _class='start_rank'),
+             TD(infodict['start_date'], _class='start_rank'),
+             TD(infodict['end_date'], _class='start_rank'),
              )
-    uid = user.auth_user.id
-    if uid in countlist:
+    if infodict['counts']:
         for n in range(4):
-            num = countlist[uid][n]
+            num = infodict['counts'][n]
             if num < freq:
                 row['_class'] = 'error'
                 row.append(TD(num, _class='week-counts-{} error'.format(n)))
@@ -68,13 +79,13 @@ for user in users:
                             _class='btn btn-error',
                             _href=URL('listing', 'demote_user',
                                       vars={'uid': uid, 'classid': classid,
-                                            'rec': user.tag_progress.id}),
+                                            'rec': infodict['tp_id']}),
                             cid=request.cid),
                           A('ahead',
                             _class='btn btn-success',
                             _href=URL('listing', 'promote_user',
                                       vars={'uid': uid, 'classid': classid,
-                                            'rec': user.tag_progress.id}),
+                                            'rec': infodict['tp_id']}),
                             cid=request.cid),
                           _class='btn-group')
                         )))
@@ -86,7 +97,7 @@ pass
 {{=modal[1]}}
 
 <script type="text/javascript">
-//console.log(typeof(userlist_cid));
+
 try{
 	while(true){
 		if(typeof(userlist_cid) == undefined){break;}

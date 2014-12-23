@@ -101,6 +101,25 @@ def migrate_field():
 
 @auth.requires_membership('administrators')
 def to_migrate_table():
+    #===========================================================
+    #items = db(db.auth_group.id > 0).select()
+    #for i in items:
+        #if i.end_date:
+            #db.classes.update_or_insert(**{'institution': i.institution,
+                                           #'academic_year': i.academic_year,
+                                           #'term': i.term,
+                                           #'course_section': i.course_section,
+                                           #'instructor': i.course_instructor,
+                                           #'start_date': i.start_date,
+                                           #'end_date': i.end_date,
+                                           #'paths_per_day': i.paths_per_day,
+                                           #'days_per_week': i.days_per_week
+                                           #})
+        #else:
+            #pass
+    #cc = db(db.classes.id > 0).select().as_dict()
+
+    #===========================================================
     items = db(db.auth_membership.id > 0).select()
     for i in items:
         if i.group_id == 1:
