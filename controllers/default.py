@@ -1,7 +1,7 @@
 #! /usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
-from paideia_stats import Stats, get_set_at_date
+from paideia_stats import Stats, get_set_at_date, get_term_bounds
 from paideia_bugs import Bug
 # import traceback
 # from paideia_utils import send_error

@@ -1280,9 +1280,9 @@ def get_term_bounds(meminfo, start_date, end_date):
         previous = sorted(end_dates.values())[-2]
         start_date = previous if previous < start_date else start_date
 
-    mystart = meminfo.custom_start if meminfo.custom_start else start_date
+    mystart = meminfo['custom_start'] if meminfo['custom_start'] else start_date
     fmt_start = make_readable(mystart)
-    myend = meminfo.custom_end if meminfo.custom_end else end_date
+    myend = meminfo['custom_end'] if meminfo['custom_end'] else end_date
     fmt_end = make_readable(myend)
 
     return mystart, fmt_start, myend, fmt_end
