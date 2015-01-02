@@ -1128,17 +1128,24 @@ def week_bounds(weekday=None):
     delta = datetime.timedelta(days=(8 + today_index))
     lw_firstday = today - delta
 
+    def get_lastmonth(yr, mth):
+        if mth == 1:
+            lastmonth = calendar.monthcalendar(yr - 1, 12)
+        else:
+            lastmonth = calendar.monthcalendar(yr, mth - 1)
+        return lastmonth
+
     tw_prev = None
-    if 0 in thisweek:
+    if 0 in thisweek:  # first week of month
         if thisweek.index(0) < thisweek.index(today.day):
-            lastmonth = calendar.monthcalendar(today.year, today.month - 1)
+            lastmonth = get_lastmonth(today.year, today.month)
             tw_prev = lastmonth[-1]
             lastweek = lastmonth[-2]
             thisweek = [d for d in chain(thisweek, tw_prev) if d != 0]
 
     lw_prev = None
-    if 0 in lastweek:
-        lastmonth = calendar.monthcalendar(today.year, today.month - 1)
+    if 0 in lastweek:  # last week was first of month
+        lastmonth = get_lastmonth(today.year, today.month)
         lw_prev = lastmonth[-1]
         lastweek = [d for d in chain(lastweek, lw_prev) if d != 0]
 
