@@ -53,8 +53,7 @@ db.define_table('classes',
                 Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(institution)s, %(academic_year)s %(term)s '
-                       '%(course_section)s %(instructor.last_name)s, '
-                       '%(instructor.first_name)s'
+                       '%(course_section)s, %(instructor)s'
                 )
 db.classes.term.requires = IS_EMPTY_OR(IS_IN_SET(('fall',
                                                   'winter intersession',
@@ -337,12 +336,12 @@ db.define_table('steps',
                 Field('widget_type', db.step_types, default=1),
                 Field('widget_image', db.images, default=0),
                 Field('step_options', 'list:string'),  # was options (reserved)
-                Field('response1'),
+                Field('response1', 'text'),
                 Field('readable_response'),
                 Field('outcome1', default=None),
-                Field('response2', default=None),
+                Field('response2', 'text', default=None),
                 Field('outcome2', default=None),
-                Field('response3', default=None),
+                Field('response3', 'text', default=None),
                 Field('outcome3', default=None),
                 Field('hints', 'list:reference step_hints'),
                 Field('instructions', 'list:reference step_instructions'),
@@ -921,4 +920,3 @@ create_steps_inactive_locations_for_steps()
 """
 -----------------  end run once for legacy system -------------
 """
-
