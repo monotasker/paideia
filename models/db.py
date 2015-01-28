@@ -189,9 +189,10 @@ db.auth_user._format = lambda row: '{}, {}: {}'.format(row.last_name,
 # -------------------------------------------------------------
 
 mail = Mail()
-mail.settings.server = keydata['email_sender']  # 'logging' # SMTP server
+mail.settings.server = keydata['email_server']  # 'logging' # SMTP server
 mail.settings.sender = keydata['email_address']  # email
-mail.settings.login = '{}:{}'.format(keydata['email_address'], keydata['email_pass'])  # credentials or None
+mail.settings.login = '{}:{}'.format(keydata['email_user'], keydata['email_pass'])  # credentials or None
+mail.settings.tls = True
 current.mail = mail
 
 auth.settings.mailer = mail                    # for user email verification
@@ -200,7 +201,7 @@ auth.settings.registration_requires_approval = False
 auth.messages.verify_email = 'Click on the link http://' \
     + request.env.http_host + URL('default', 'user', args=['verify_email']) \
     + '/%(key)s to verify your email'
-auth.settings.reset_password_requires_verification = False
+auth.settings.reset_password_requires_verification = True
 auth.messages.reset_password = 'Click on the link http://' \
     + request.env.http_host + URL('default', 'user', args=['reset_password'])\
     + '/%(key)s to reset your password'
