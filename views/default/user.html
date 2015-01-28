@@ -22,6 +22,12 @@
     </div>
 {{pass}}
 
+{{if request.args(0)=='request_reset_password' and not 'request_reset_password' in auth.settings.actions_disabled:}}
+    <div class='requestresetpasswordform'>
+        {{=form}}
+    </div>
+{{pass}}
+
 {{if request.args(0)=='change_password' and not 'change_password' in auth.settings.actions_disabled:}}
     <div class='changepasswordform'>
         {{=form}}
