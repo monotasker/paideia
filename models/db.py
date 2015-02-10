@@ -211,7 +211,6 @@ auth.messages.reset_password = 'Click on the link http://' \
 # -------------------------------------------------------------
 
 auth.settings.login_captcha = None
-# TODO: turn these back on!!!!
 auth.settings.register_captcha = Recaptcha(request,
     keydata['captcha_public_key'], keydata['captcha_private_key'])
 auth.settings.retrieve_username_captcha = Recaptcha(request,
