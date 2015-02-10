@@ -28,7 +28,7 @@ response.mobiletitle = mytitle
 response.subtitle = T('Learning New Testament Greek in Context')
 response.homeurl = URL('default', 'index')
 
-#http://dev.w3.org/html5/markup/meta.name.html
+# http://dev.w3.org/html5/markup/meta.name.html
 response.meta.author = 'Ian W. Scott'
 response.meta.description = 'An online, interactive course in ' \
                             'New Testament Greek'
@@ -38,6 +38,7 @@ response.meta.generator = 'Web2py Enterprise Framework'
 response.meta.copyright = XML('All content copyright &copy; 2011-{}, '
                               'Ian W. Scott. Source code available on '.format(datetime.now().year),
                               A('GitHub', _href="https://github.com/monotasker/paideia"))
+response.meta.google_verify = 'MlxOzReGJ8Y2vVC_V7HK9TLNiUUIabrt_Mt_m0D8MSc'
 
 # Layout ===================================================================
 
@@ -147,7 +148,7 @@ if auth.has_membership('administrators', auth.user_id) or auth.is_impersonating(
                False, URL('editing', 'pregex.html',
                           args=['stepsproblemregex'])),
               ]),
-            
+
             (SPAN(T(' Utils'), _class='icon-cog'), False, None,
              [(SPAN(T(' Make paths'), _class='icon-cog'),
                False, URL('util', 'make_path')),
