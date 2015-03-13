@@ -3170,7 +3170,8 @@ class TestStep():
           'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
           'id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw">'
           '<input type="submit" value="Submit" /></td><td class="w2p_fc"></td>'
-          '</tr></table></form>',
+          '</tr></table><div style="display:none;"><input name="pre_bug_step_id" '
+          'type="hidden" value="1" /></div></form>',
           None,  # kwargs
           ),
          ('case2', 2,  # StepText ------------------------------
@@ -3189,7 +3190,8 @@ class TestStep():
           'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
           'id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw">'
           '<input type="submit" value="Submit" /></td><td class="w2p_fc"></td>'
-          '</tr></table></form>',
+          '</tr></table><div style="display:none;"><input name="pre_bug_step_id" '
+          'type="hidden" value="2" /></div></form>',
           None,  # kwargs
           ),
          ('case2', 19,  # StepText ------------------------------
@@ -3210,7 +3212,8 @@ class TestStep():
           'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
           'id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw">'
           '<input type="submit" value="Submit" /></td><td class="w2p_fc"></td>'
-          '</tr></table></form>',
+          '</tr></table><div style="display:none;"><input name="pre_bug_step_id" '
+          'type="hidden" value=".*" /></div></form>',
           None,  # kwargs
           ),  # will redirect (currently no case works for step 19)
          ('case1', 30,  # StepRedirect ------------------------------
@@ -3268,34 +3271,37 @@ class TestStep():
          ('case2', 126,  # StepAwardBadges ------------------------------
           'agora',
           [1, 14, 17, 40, 41, 42],  # npcs here
-          'Congratulations, Homer! \n'  # prompt text
-          'and you\'re ready to start working on some new badges:\r\n'
+          'Congratulations, Homer! \r\n'  # prompt text
+          'You have been promoted to these new badge levels:\r\n'
+          '- apprentice alphabet basics\r\n'  # FIXME: order is wrong in message
+          '\r\n'
+          ' and you\'re ready to start working on some new badges:\r\n'
           '- beginner alphabet (intermediate)\r\n'
           'You can click on your name above to see details '
-          'of your progress so far.\n'
-          'You have been promoted to these new badge levels:\r\n'
-          '- apprentice alphabet basics\r\n',  # FIXME: order is wrong in message
+          'of your progress so far.',
           None,  # instructions
           None,  # slide decks
           None,  # widget image
           ['map', 'continue'],  # response buttons
           None,  # response form
-          {'new_tags': [62], 'promoted': {'cat2': [61]}},  # kwargs
+          {'new_tags': {'rev1': [62], 'rev2':[], 'rev3':[], 'rev4':[]},
+           'promoted': {'rev2': [61]}},  # kwargs
           ),  # promoted, no new tags (for new badges)
          ('case3', 126,  # StepAwardBadges ------------------------------
           'synagogue',
           [31, 32],  # npcs here
-          'Congratulations, Homer! \n'  # prompt text
-          'You can click on your name above to see details '
-          'of your progress so far.\n'
+          'Congratulations, Homer! \r\n'  # prompt text
           'You have been promoted to these new badge levels:\r\n'
-          '- apprentice alphabet basics\r\n',
+          '- apprentice alphabet basics\r\n'
+          '\r\n'
+          'You can click on your name above to see details '
+          'of your progress so far.',
           None,   # instructions
           None,   # slide decks
           None,   # widget image
           ['map', 'continue'],  # response buttons
           None,  # response form
-          {'promoted': {'cat2': [61]}},  # kwargs
+          {'promoted': {'rev2': [61]}},  # kwargs
           ),  # promoted, no new tags (for new badges)
          ('case2', 127,  # StepViewSlides ------------------------------
           'agora',
@@ -3310,7 +3316,7 @@ class TestStep():
           None,  # widget image
           ['map'],  # response buttons
           None,  # response form
-          {'new_tags': [62]},  # kwargs
+          {'new_tags': {'rev1': [62]}},  # kwargs
           ),  # new tags and promoted (for view slides)
          ])
     def test_step_get_prompt(self, caseid, stepid, alias, npcshere, promptext,
@@ -3847,7 +3853,7 @@ class TestPath():
          (19, 19, [], [3, 1, 13, 8, 11], 'domus_A'),
          (1, 71, [], [3, 1, 6, 7, 8, 11], 'domus_A'),
          (1, 71, [], [3, 1, 6, 7, 8, 11], 'domus_A'),
-         #(63, 66, [67, 68], [3, 1], 'domus_A')  # first step doesn't take reply
+         # (63, 66, [67, 68], [3, 1], 'domus_A')  # first step doesn't take reply
          ])
     def test_path_get_step_for_reply(self, pathid, stepid, stepsleft, locs,
                                      localias, user_login, db):
@@ -6000,7 +6006,7 @@ class TestBugReporter():
                                0.5,  # 'score':
                                'hi',  # 'response_string':
                                8)  # 'loc_id':
-                               ])
+                              ])
     def test_bugreporter_get_reporter(self, record_id, path_id, step_id, score,
                                       response_string, loc_id):
         """
