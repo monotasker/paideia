@@ -92,22 +92,14 @@ class Walk(object):
         current.paideia_DEBUG_MODE = self.DEBUG_MODE
         current.paideia_debug = Paideia_Debug()
         current.sequence_counter = 0
-        #-----------------------------------------------
+
         db = current.db if not db else db
-        # TODO: fix redundant db call here
         self.response_string = response_string
-        # TODO: move retrieval of data to user init so it's not duplicated when
-        # just retrieving existing User.
         self.user = self._get_user(userdata=userdata,
                                    tag_records=tag_records,
                                    tag_progress=tag_progress,
                                    new_user=new_user)
-        #JOB .... oct 24, 2014
-
-        #let self carry Walk object so we can
-        # TODO is record_id necessary?
         self.record_id = None  # stores step log row id after db update
-        #JOB ... oct 22, 2014
 
     def _new_user(self, userdata, tag_records, tag_progress):
         '''Return a new User object for the currently logged in user.'''
@@ -1981,7 +1973,6 @@ class Path(object):
         if not self.step_for_prompt:
             assert self._prepare_for_prompt()
         mystep = self.step_for_prompt
-        #debug
         ####current.paideia_debug.do_print(mystep, "mystep")
 
         next_loc = None
@@ -2004,7 +1995,7 @@ class Path(object):
         else:
             mystep.loc = loc  # update location on step
 
-        return (mystep, next_loc, error_string)
+        return mystep, next_loc, error_string
 
     def get_step_for_reply(self):
         """
@@ -2404,6 +2395,8 @@ class User(object):
         - tag_records: rows.as_dict
         """
         db = current.db
+        if 'sequence_counter' not in dir(current):  # TODO: this is for testing and not functionally necessary
+            current.sequence_counter = 0
         try:
             self.time_zone = userdata['time_zone']
             #current.paideia_debug.do_print(({'blocks':[b.get_condition() for b in blocks] }), "Brisbane- creating user these are the blocks")
@@ -2453,11 +2446,9 @@ class User(object):
             self.reported_promotions = False
             #self.just_cats = 0
             #self.all_cat1  = 0
-            #debug ... dont forget to remove
             #raise Exception ("who called me?")
         except Exception:
             print traceback.format_exc(5)
-            #debug ... dont forget to remove this
             #current.paideia_debug.do_print( traceback.format_exc(),'who called me')
             #current.paideia_debug.do_print( traceback.extract_stack(),'who called me')
 

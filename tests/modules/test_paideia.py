@@ -3775,7 +3775,7 @@ class TestPath():
         # TODO: test edge cases with, e.g., repeat set
         # TODO: test middle of multi-step path
         path, pathsteps = mypath(pathid, db)
-        actual, nextloc = path.get_step_for_prompt(Location(localias))
+        actual, nextloc, errstring = path.get_step_for_prompt(Location(localias))
 
         assert path.step_for_prompt.get_id() == stepid
         assert path.step_for_reply == None
@@ -3789,6 +3789,7 @@ class TestPath():
         except TypeError:  # if path.steps is empty, can't be iterated
             assert path.steps == stepsleft
         assert nextloc is None
+        assert errstring is None
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize(
@@ -3805,7 +3806,7 @@ class TestPath():
         # TODO: redirect can be caused by 2 situations: bad loc or wrong npcs
         # here
         path, pathsteps = mypath(pathid, db)
-        actual, nextloc = path.get_step_for_prompt(Location(localias))
+        actual, nextloc, errstring = path.get_step_for_prompt(Location(localias))
 
         assert path.step_for_reply is None  # step isn't activated
         assert path.step_for_prompt.get_id() == stepid  # step isn't activated
@@ -3819,6 +3820,7 @@ class TestPath():
         except TypeError:  # if path.steps is empty, can't be iterated
             assert path.steps == stepsleft
         assert nextloc in actual.get_locations()
+        assert errstring is None
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize(
