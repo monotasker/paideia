@@ -3308,8 +3308,8 @@ class TestStep():
           [1, 14, 17, 21, 40, 41, 42],  # npcs here
           'Take some time now to review these new slide '
           'sets. They will help with work on your new badges:\n'
-          '- [The Alphabet II /paideia/listing/slides.html/3]\n'
-          '- [Greek Words - More Basics /paideia/listing/slides.html/8]',
+          '- [The Alphabet II http://ianwscott.webfactional.com/paideia/listing/slides.html/3]\n'
+          '- [Greek Words - More Basics http://ianwscott.webfactional.com/paideia/listing/slides.html/8]',
           # removed data-w2p_disable_with="default" from <a>
           None,  # instructions
           None,  # slide decks
@@ -3375,7 +3375,7 @@ class TestStep():
           None,  # nextloc
           20,  # quota
           'How could you write the word "meet" using Greek letters?',  # promptin
-          'How could you write the word "meet" using Greek letters?',  # promptout
+          {'newstr': 'How could you write the word "meet" using Greek letters?'},  # promptout
           ),
          (2,  # step
           [62],  # newbadges
@@ -3383,7 +3383,7 @@ class TestStep():
           None,  # nextloc
           20,  # quota
           'How could you write the word "bought" using Greek letters?',  # promptin
-          'How could you write the word "bought" using Greek letters?',  # promptout
+          {'newstr': 'How could you write the word "bought" using Greek letters?'},  # promptout
           ),
          (101,  # step
           [62],  # newbadges
@@ -3391,11 +3391,11 @@ class TestStep():
           None,  # nextloc
           20,  # quota
           'Is this an English clause?\r\n\r\n"The cat sat."',  # promptin
-          'Is this an English clause?\r\n\r\n"The cat sat."',  # promptout
+          {'newstr': 'Is this an English clause?\r\n\r\n"The cat sat."'},  # promptout
           )
          ])  # don't use steps 30, 125, 126, 127 (block)
-    def test_step_make_replacements(self, stepid, newbadges, promoted, nextloc,
-                                    quota, promptin, promptout):
+    def test_step_make_replacements(self, stepid, newbadges, promoted,
+                                    nextloc, quota, promptin, promptout):
         """Unit test for method Step._make_replacements()"""
         step = mystep(stepid)
         outargs = {'raw_prompt': promptin,
