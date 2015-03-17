@@ -2395,28 +2395,28 @@ class User(object):
         - tag_records: rows.as_dict
         """
         db = current.db
-        if 'sequence_counter' not in dir(current):  # TODO: this is for testing and not functionally necessary
+        # TODO: this 'if' is for testing and not functionally necessary
+        if 'sequence_counter' not in dir(current):
             current.sequence_counter = 0
         try:
             self.time_zone = userdata['time_zone']
-            #current.paideia_debug.do_print(({'blocks':[b.get_condition() for b in blocks] }), "Brisbane- creating user these are the blocks")
-            self.blocks = blocks  # FIXME: somehow pass previous day's blocks in user._is_stale()?
-            #current.paideia_debug.do_print(({'blocks':[b.get_condition() for b in self.blocks] }), "Brisbane- creating user these are the self.blocks")
+            self.blocks = blocks
+            # FIXME: somehow pass previous day's blocks in user._is_stale()?
             self.name = userdata['first_name']
             self.user_id = userdata['id']
 
             self.path = None
-            #JOB ... oct 25, 2014, self.completed paths will now be a hash {'path_id': count}
-            #point latest to some default path? ... used for repeat should be valid for repeats unless server gets reset somewhere in between takes
+            #each path in self.completed['paths'] will now be a hash {'path_id': {'right': int, 'wrong': int}}
             self.completed_paths = {'latest': None, 'paths': {}}
 
             self.cats_counter = 0  # timing re-categorization in get_categories()
 
             self.old_categories = {}
             self.tag_records = tag_records
-            self._set_user_rank(tag_progress, 1)
+            self._set_user_rank(tag_progress, 1)  # FIXME: return, don't set in method?
             #self.rank = tag_progress['latest_new'] if tag_progress else 1
             self.tag_progress = tag_progress
+            print 'user tp:\n', self.tag_progress
             self.promoted = None
             self.new_tags = None
 
@@ -2427,33 +2427,33 @@ class User(object):
             self.prev_loc = None
             self.npc = None
             self.prev_npc = None
-            msel = db((db.auth_membership.user_id == self.user_id) &
-                      (db.auth_membership.group_id == db.auth_group.id)).select()
-            # FIXME: Handle registered users without a class assignment
-            # put everyone either in a class at registration or in (by default)
-            # a generic 'class' with generic presets
-            try:
-                target = [m.auth_group.paths_per_day for m in msel
-                          if m.auth_group.paths_per_day][0]
-            except IndexError:
-                print traceback.format_exc(5)
-                target = 20
-            self.quota = target
+            self.quota = self._get_paths_quota(self.user_id)
 
             self.past_quota = False
             self.viewed_slides = False
             self.reported_badges = False
             self.reported_promotions = False
-            #self.just_cats = 0
-            #self.all_cat1  = 0
-            #raise Exception ("who called me?")
         except Exception:
             print traceback.format_exc(5)
-            #current.paideia_debug.do_print( traceback.format_exc(),'who called me')
-            #current.paideia_debug.do_print( traceback.extract_stack(),'who called me')
+
+    def _get_paths_quota(self, user_id):
+        """Return the daily path quota (int) for the user's class section."""
+        db = current.db
+        msel = db((db.class_membership.name == self.user_id) &
+                  (db.class_membership.class_section == db.classes.id)
+                  ).select()
+        try:
+            target = [m.classes.paths_per_day for m in msel
+                      if m.classes.paths_per_day][0]
+        except IndexError:
+            print 'user not a member of any class, defaulting to 20 quota'
+            target = 20
+        return target
 
     def _set_user_rank(self, tag_progress=None, given_rank=0):
-        if (tag_progress and 'latest_new' in tag_progress and tag_progress['latest_new']):
+        if (tag_progress and
+                'latest_new' in tag_progress and
+                tag_progress['latest_new']):
             self.rank = tag_progress['latest_new']
         else: self.rank = given_rank
 
