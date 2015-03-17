@@ -4056,9 +4056,38 @@ class TestUser(object):
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('localias,completed,tpout,trecs,redirect,expected',
         [('shop_of_alexander',  # loc 6, (only 1 untried here)
-          [2, 3, 5, 8, 63, 95, 96, 97, 99, 102, 256, 40,
-          9, 410, 411, 412, 413, 414, 415, 416, 417, 418,
-          419, 420, 421, 422, 423, 444, 445],  # completed
+          {'latest': None,
+           'paths': {2: {'right': 1, 'wrong': 0},
+                     3: {'right': 1, 'wrong': 0},
+                     5: {'right': 1, 'wrong': 0},
+                     8: {'right': 1, 'wrong': 0},
+                     9: {'right': 1, 'wrong': 0},
+                     40: {'right': 1, 'wrong': 0},
+                     63: {'right': 1, 'wrong': 0},
+                     95: {'right': 1, 'wrong': 0},
+                     96: {'right': 1, 'wrong': 0},
+                     97: {'right': 1, 'wrong': 0},
+                     99: {'right': 1, 'wrong': 0},
+                     102: {'right': 1, 'wrong': 0},
+                     256: {'right': 1, 'wrong': 0},
+                     410: {'right': 1, 'wrong': 0},
+                     411: {'right': 1, 'wrong': 0},
+                     412: {'right': 1, 'wrong': 0},
+                     413: {'right': 1, 'wrong': 0},
+                     414: {'right': 1, 'wrong': 0},
+                     415: {'right': 1, 'wrong': 0},
+                     416: {'right': 1, 'wrong': 0},
+                     417: {'right': 1, 'wrong': 0},
+                     418: {'right': 1, 'wrong': 0},
+                     419: {'right': 1, 'wrong': 0},
+                     420: {'right': 1, 'wrong': 0},
+                     421: {'right': 1, 'wrong': 0},
+                     422: {'right': 1, 'wrong': 0},
+                     423: {'right': 1, 'wrong': 0},
+                     444: {'right': 1, 'wrong': 0},
+                     445: {'right': 1, 'wrong': 0}
+                     }
+           },  # completed
           {'latest_new': 1,  # tpout
           'cat1': [61], 'cat2': [],
           'cat3': [], 'cat4': [],
