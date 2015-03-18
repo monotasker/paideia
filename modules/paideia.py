@@ -6,7 +6,7 @@ from gluon import IS_NOT_EMPTY, IS_IN_SET
 
 from inspect import getargvalues, stack
 import traceback
-from copy import copy, deepcopy
+from copy import copy
 from itertools import chain
 from random import randint, randrange
 import re
@@ -739,8 +739,6 @@ class Walk(object):
         TODO: be sure not to log redirect and utility steps. (filter them out
         before calling _record_step())
         """
-        print 'recording step', step_id
-        print 'recording path', path_id
         mynow = datetime.datetime.utcnow() if not now else now
         db = current.db
         # TODO: Store and roll back db changes if impersonating
@@ -774,7 +772,6 @@ class Walk(object):
                     'user_response': response_string}  # time automatic in db
         log_record_id = db.attempt_log.insert(**log_args)
         db.commit()
-        #JOB ... oct 25, 2014 ... only add to completed paths if got right
         self.user.complete_path(got_right)
         return log_record_id
 
@@ -2601,24 +2598,18 @@ class User(object):
         """
         choice = None
         if self.path:  # TODO: do I want this catch here?
-            #JOB ... oct 25, 2014 ... complete_path now occurs after user gets path right
-            #   is only 1 step in the path being used?
-            #self.complete_path()  # catch end-of-path and triggers new choice -- oct 25, 2014 ... self.path = None has been moved from self.complete_path as we are completing path as soon as a right result is recorded so may need to keep path around
             self.path = None
-            pass
         if not self.tag_progress:  # in case User was badly initialized
-            #debug
-            #current.paideia_debug.do_print('Atlanta: no tag-progress, so getting categories', 'msg')
+            print 'no tag-progress, so getting categories'
             self.get_categories()
 
-        if 'just_cats' not in self.tag_progress: self.tag_progress['just_cats'] = 0
-        if 'all_cat1' not in self.tag_progress: self.tag_progress['all_cat1'] = 0
+        if 'just_cats' not in self.tag_progress:
+            self.tag_progress['just_cats'] = 0
+        if 'all_cat1' not in self.tag_progress:
+            self.tag_progress['all_cat1'] = 0
         choice, redir, cat, mode = PathChooser(self.tag_progress,
                                                 loc.get_id(),
                                                 self.completed_paths).choose()
-        #current.paideia_debug.do_print({'choice':choice, 'redir':redir, 'cat':cat, 'mode':mode}, 'alfafa')
-        #tag_progress gets updated in PathChooser and we need to update it for cat1 purposes
-        #current.paideia_debug.do_print({'self.tag_progress':self.tag_progress}, "********************albany-saving tag_progres************")
         condition = {'name': self.get_id()}
         current.db.tag_progress.update_or_insert(condition, **self.tag_progress)
         current.db.commit()
@@ -2640,38 +2631,26 @@ class User(object):
         cat = None
         pastq = None
         while True:
-            #current.paideia_debug.do_print({'pathid':pathid, 'loc':loc.get_alias()}, "albany-User::get_path called ")
             if pathid:  # testing specific path
                 self.path = Path(pathid)
-            #--- is this the cause of the repitions???? -- no its not ---------
+
             if repeat and not self.path:  # repeating a step, path finished before
-                #current.paideia_debug.do_print({'repeat':repeat}, "albany-User::get_path called - repeat and not self.path")
-                #xxx --- this is important for repition problem
-                #if we are using hash ... we dont know the latest one is in 'latest'
-                #pathid = self.completed_paths.pop(-1)
                 pathid = self.completed_paths['latest']
                 self.path = Path(pathid)
-                ##current.paideia_debug.do_print(pathid, "albany-User::get_path new path *popped*: ")
-            # TODO: rationalize this series of conditions
-                ##current.paideia_debug.do_print(self.path.step_for_reply if (self.path and self.path.step_for_reply) else None,
-                #                  "albany-User::get_path new path *popped*: ")
             elif self.path and self.path.step_for_reply:
-                #current.paideia_debug.do_print({'self.path':self.path.get_id(), 'self.path.step_for_reply': self.path.step_for_reply.get_id()}, "albany-User::get_path called - self.path and self.path.step_for_reply")
                 pass
             elif self.path and repeat:  # repeating a step, path wasn't finished
-                #current.paideia_debug.do_print({'self.path':self.path.get_id(), 'repeat': repeat}, "albany-User::get_path called - self.path and repeat")
                 pass
             elif self.path and len(self.path.steps):  # unfinished step in self.path
-                #current.paideia_debug.do_print({'self.path':self.path.get_id(), 'len(self.path.steps)': len(self.path.steps)}, "albany-User::get_path called - self.path and len(self.path.steps)")
                 pass
             else:  # choosing a new path
                 self.path, redir, cat = self._make_path_choice(loc)
-                #current.paideia_debug.do_print({'self.path':self.path,'self.path_id':self.path.get_id() if self.path else None, 'cat':cat}, "albany-User::get_path called ... after calling _make_path_choice ")
-                if (not self.path): break  # and return Nones
-            #debug
-            ##current.paideia_debug.do_print(self.completed_paths,"Atlanta-completed paths")
-            #end debug
-            if self.get_completed_paths_len() >= self.quota and self.past_quota is False:
+                print 'path chosen:', self.path.get_id()
+                if (not self.path):
+                    break  # and return Nones
+
+            if self.get_completed_paths_len() >= self.quota and \
+                    self.past_quota is False:
                 pastq = True
                 self.past_quota = True
             if len(self.blocks) > 0:
@@ -2712,7 +2691,6 @@ class User(object):
             self.cats_counter += 1
             return None, None, None, None
         else:
-            #print 'Atlanta- get_categories called'
             utcnow = datetime.datetime.utcnow() if not utcnow else utcnow
             try:
                 tag_progress_sel = db(db.tag_progress.name == user_id
@@ -2734,13 +2712,9 @@ class User(object):
                             utcnow=utcnow)
             cat_result = c.categorize_tags()
 
-            #debug
-            #current.paideia_debug.do_print(cat_result, "halifax cat_result")
-
             self._set_user_rank(cat_result['tag_progress'], 0)
-            #self.rank = cat_result['tag_progress']['latest_new']
 
-            self.tag_records = cat_result['tag_records']  # FIXME: do changes get recorded?
+            self.tag_records = cat_result['tag_records']
             self.tag_progress = cat_result['tag_progress']
             self.tag_progress['just_cats'] = just_cats
             self.tag_progress['all_cat1'] = all_cat1
@@ -2749,28 +2723,25 @@ class User(object):
             self.new_tags = cat_result['new_tags']
             self.cats_counter = 0  # reset counter
 
-            ###current.paideia_debug.do_print(self.categories, "Marseilles-tag categories output in get categories")
-            ###current.paideia_debug.do_print(self.tag_progress, "Marseilles-tag progress output in get categories")
-            ##current.paideia_debug.do_print(self.promoted, "Marseilles-tag promoted output in get categories")
-            ##current.paideia_debug.do_print(self.new_tags, "Marseilles-tag new tags output in get categories")
-
-            return self.tag_progress, self.promoted, self.new_tags, cat_result['demoted']
+            return (self.tag_progress, self.promoted,
+                    self.new_tags, cat_result['demoted'])
 
     def complete_path(self, got_right):
         """
         Move the current path from the path variable to 'completed_paths' list.
         Set last_npc and prev_loc before removing the path.
-        """
+
+        Argument 'got_right' is a boolean indicating success or failure in this
+        path attempt.
+
         # Only id of paths stored to conserve memory.
         # prev_loc and prev_user info not drawn from old paths but
         # carried on User.
         # Repeating path must be triggered before path is completed.
-        #debug
-        ##current.paideia_debug.do_print(self.completed_paths, 'Atlanta-complete_path called')
-        #self.completed_paths.append(self.path.get_id())
-        #JOB ... oct 25, 2014
+
         #we now using hash {'path_id':count} to keep track of completed_paths
         # {'latest' : path_id} gives path_id of the latest one
+        """
         if (str(self.path.get_id()) not in self.completed_paths['paths']):
             pdict = {'right': 0, 'wrong': 0, 'path_dict': self.path.get_dict()}
             self.completed_paths['paths'][str(self.path.get_id())] = pdict
@@ -2779,11 +2750,7 @@ class User(object):
         else:
             self.completed_paths['paths'][str(self.path.get_id())]['wrong'] += 1
         self.completed_paths['latest'] = self.path.get_id()
-        #debug
-        #print {'self.completed_paths':self.completed_paths}
-        #self.path = None ... has been moved to _make_path_choice ... we are doing complete_path
-        #earlier and self.path may need to hang around a bit longer
-        #self.path = None
+
         return True
 
     def _reset_for_walk(self):
@@ -2851,23 +2818,19 @@ class Categorizer(object):
         and the values are lists of integers (representing the tags to be
         placed in each category). The categorization is based on user
         performance (drawn from tag_records) and timing (spaced repetition).
-        JOB 2014/09/28 :
-            we get a fresh copy of tag_records every time. don't even bother to bring
-            tag_records to this function because it will be ignored
         """
         rank = self.rank if not rank else rank
         if not rank:
             rank = 1
         old_categories = self.old_categories if not old_categories \
                          else old_categories
-        #tag_records = self.tag_records if not tag_records else tag_records
-        db = current.db if not db else db
-        tagorder = db.tag_records.tag
-        tag_records = db(db.tag_records.name == self.user_id).select(orderby=tagorder).as_list()
-        ###current.paideia_debug.do_print(tag_records,"Minnedosa, this is what we got")
 
-        #if tag_records:
-        #    tag_records = self._sanitize_recs(tag_records)
+        if not tag_records:  # allows passing trecs for testing
+            db = current.db if not db else db
+            tagorder = db.tag_records.tag
+            tag_records = db(db.tag_records.name == self.user_id
+                             ).select(orderby=tagorder).as_list()
+
         self.tag_records = tag_records
         new_tags = None
 
@@ -2890,32 +2853,15 @@ class Categorizer(object):
                     'categories': categories}
         else:
             # otherwise, categorize tags that have been tried
-            # TODO:uncomment and do _add_secondary_right properly
 
             for idx, t in enumerate([t for t in tag_records
                                      if tag_records and t['secondary_right']]):
                 self._add_secondary_right(t)
-                ###current.paideia_debug.do_print(t, "***--halifax--*** t after add secondary right")
             categories = self._core_algorithm()
-
-            #debug
-            #current.paideia_debug.do_print({'categories':categories}, "Lisbon-categories after core algorithm---------------------")
-
             categories = self._add_untried_tags(categories)
-            #debug
-            #current.paideia_debug.do_print({'categories':categories}, "Lisbon-categories after add untried-------------------------")
-
             categories = self._remove_dups(categories, rank)
-
-            #debug
-            #current.paideia_debug.do_print({'categories':categories}, "Lisbon-categories after remove dups-------------------------")
-
             categories.update((c, []) for c in ['cat1', 'cat2', 'cat3', 'cat4'])
             cat_changes = self._find_cat_changes(categories, old_categories)
-
-            #debug
-            ###current.paideia_debug.do_print(categories, "categories after cat changes -------------------------")
-            ##pprint(cat_changes)
 
             promoted = cat_changes['promoted']
             demoted = cat_changes['demoted']
@@ -2931,9 +2877,7 @@ class Categorizer(object):
                     tag_progress[idxcat] = list(set(curr_cat).union(new_tags[idx]))[:]
 
             # If there are no tags left in category 1, introduce next set
-            #current.paideia_debug.do_print({'tag_progress':tag_progress,}, "demerara ... this is why introduce_tags may never be called")
             if self._check_if_cat1_needed(tag_progress):
-                #current.paideia_debug.do_print('--cat1 needed ---', "demerara -- cat1 needed")
                 while True:
                     newlist = self._introduce_tags(rank=rank)
                     if not newlist:
@@ -2954,7 +2898,6 @@ class Categorizer(object):
                     break
             # Re-insert 'latest new' to match tag_progress table in db
             tag_progress['latest_new'] = self.rank
-            #current.paideia_debug.do_print({'categories':tag_progress}, "Lisbon-final cat progress-------------------------")
 
             return {'tag_progress': tag_progress,
                     'tag_records': self.tag_records,
@@ -2964,18 +2907,10 @@ class Categorizer(object):
                     'categories': categories}
 
     def _check_if_cat1_needed(self, cats):
-        result = True
-        while True:
-            if 'cat1' not in cats: return result
-            if not cats['cat1']: return result
-            #all_cat2andup = list(chain.from_iterable([cats[c] for c
-            #                          in ['cat2','cat3','cat4']
-            #                          if (c in cats and cats[c])]))
-            #rev1set = set(cats['rev1'] if ('rev1' in cats and cats['rev1']) else [])
-            #cat1inrev1 = rev1set.difference(all_cat2andup)
-            #if not cat1inrev1: return result
-            break
-        return False
+        if 'cat1' not in cats or not cats['cat1']:
+            return True
+        else:
+            return False
 
     def _remove_dups(self, categories, rank):
         """
@@ -2986,41 +2921,25 @@ class Categorizer(object):
             if v:
                 rankv = [t for t in v if db.tags(t)
                         and (db.tags[t].tag_position <= rank)]
-                #debug -
-                debug_delete = [t for t in v if db.tags(t)]
-                #current.paideia_debug.do_print({'debug_delete':debug_delete, k: v}, "neepawa- in remove_dups, all tags")
-                categories[k] = list(set(rankv))
+                rankv = list(set(rankv))
+                rankv.sort()
+                categories[k] = rankv
         return categories
 
     def _add_secondary_right(self, rec):
         """
         Return the given tag record adjusted based on secondary_right data.
-        For every CONST_SEC_RIGHT_MOD secondary_right entries, add 1 to times_right and change
-        tlast_right based on the average of those three attempt dates.
+        For every CONST_SEC_RIGHT_MOD secondary_right entries, add 1 to
+        times_right and change tlast_right based on the average of those
+        attempt dates.
         """
         CONST_SEC_RIGHT_MOD = 20
         db = current.db
         rec = rec[0] if isinstance(rec, list) else rec
 
-        """ uncomment this to generate enough secondarys to test ... do this only in test server
-        #Joseph Boakye <jboakye@bwachi.com>
-        #testing ***** DONT FORGET TO REMOVE THIS!!! ****
-        #we are going to create at least 20 secondary right as we dont have a lot in
-        #the system, so we can test this
-        rlen = len(rec['secondary_right'])
-        if (rlen):
-            for i in range(1,23):
-                (rec['secondary_right']).append(rec['secondary_right'][0])
-        #--------- end generating secondary rights for testing - dont forget to remove --------------
-        """
         right2 = flatten(rec['secondary_right'])  # FIXME: sanitizing data
-        ###current.paideia_debug.do_print(rec, "neepawa- origional rec in _add_secondary_right")
-        ###current.paideia_debug.do_print(right2, "neepawa- right2 in _add_secondary_right")
-        ###current.paideia_debug.do_print( rec['secondary_right'], "minnedosa - rec sec right in _add_secondary_right,right2")
-
         if right2 != rec['secondary_right']:  # FIXME: can remove when data clean
             right2.sort()
-        ###current.paideia_debug.do_print(right2, "halifax - right2 sorted in _add_secondary_right,right2")
 
         rlen = len(right2)
         rem2 = rlen % CONST_SEC_RIGHT_MOD
@@ -3033,23 +2952,15 @@ class Categorizer(object):
                 rec['times_right'] = 0
             rec['times_right'] += triplets2
 
-            ###current.paideia_debug.do_print(rlen, "halifax - rlen in _add_secondary_right")
-            ###current.paideia_debug.do_print(triplets2, "halifax - triplets2 in _add_secondary_right")
-            ###current.paideia_debug.do_print(rem2, "halifax - rem2 in _add_secondary_right")
-
-            # move tlast_right forward based on mean of oldest 3 secondary_right
+            # move tlast_right forward based on mean of oldest
+            # CONST_SEC_RIGHT_MOD secondary_right dates
             early3 = right2[: -(rem2)] if rem2 else right2[:]
-            ###current.paideia_debug.do_print(early3, "halifax - early3 in _add_secondary_right")
             early3d = [self.utcnow -
                        datetime.datetime.strptime(s, '%Y-%m-%d %H:%M:%S.%f')
                        for s in early3]
-            ###current.paideia_debug.do_print(early3d, "halifax - early3d in _add_secondary_right")
             avg_delta = sum(early3d, datetime.timedelta(0)) / len(early3d)
-            ###current.paideia_debug.do_print(avg_delta, "halifax - avg_delta in _add_secondary_right")
             avg_date = self.utcnow - avg_delta
-            ###current.paideia_debug.do_print(avg_date, "halifax - avg_date in _add_secondary_right")
 
-            #print'type is', type(rec['tlast_right'])
             # sanitize tlast_right in case db value is string
             if not isinstance(rec['tlast_right'], (datetime.datetime, tuple)):
                 rec['tlast_right'] = parser.parse(rec['tlast_right'])
@@ -3060,16 +2971,15 @@ class Categorizer(object):
                 rec['tlast_right'] = avg_date
 
             rec['secondary_right'] = right2[-(rem2):] if rem2 else []
-            ###current.paideia_debug.do_print(rec, "halifax new rec in _add_secondary_right")
 
+            # FIXME: remove this test code
             #test where we change the last_right of the rec
-            test_rec = deepcopy(rec)
-            test_rec['tlast_right'] = test_rec['tlast_right'] - datetime.timedelta(days=300)
-            ###current.paideia_debug.do_print(test_rec,"halifax test rec after subtracting 300 days")
-            if avg_date > test_rec['tlast_right']:
-                print "halifax, avg_date > test_rec['tlast_right'] "
-                test_rec['tlast_right'] = avg_date
-                ###current.paideia_debug.do_print(test_rec,"halifax test rec after replacing with avg_date")
+            #test_rec = deepcopy(rec)
+            #test_rec['tlast_right'] = test_rec['tlast_right'] - datetime.timedelta(days=300)
+            #if avg_date > test_rec['tlast_right']:
+            #    print "halifax, avg_date > test_rec['tlast_right'] "
+            #    test_rec['tlast_right'] = avg_date
+
             #write new record to dbase
             condition = {'tag': rec['tag'], 'name': rec['name']}
             db.tag_records.update_or_insert(condition,
@@ -3136,7 +3046,6 @@ class Categorizer(object):
         TODO: Require that a certain number of successes are recent
         TODO: Look at secondary tags as well
         """
-        ##current.paideia_debug.do_print({'tag_records': tag_records}, "tyne - in _core_algorithm")
         categories = {'rev1': [], 'rev2': [], 'rev3': [], 'rev4': []}
         tag_records = tag_records if tag_records else self.tag_records
         #debug
@@ -3195,15 +3104,8 @@ class Categorizer(object):
             else:
                 category = 'rev1'  # Spaced repetition requires review
             #print'************** category is ', category
-            #debug - dont forget to remove this
-            #debug_x_delete_me = ['rev1','rev2']
-            #category = debug_x_delete_me[debug_toggle_delete_me%2]
-            #debug_toggle_delete_me +=1
-            #end debug
-            #current.paideia_debug.do_print({'category': 'rev1', 'tag': record['tag']}, "cern")
 
             categories[category].append(record['tag'])
-            #categories.append({category: record['tag']})
 
         return categories
 
@@ -3276,130 +3178,78 @@ class Categorizer(object):
         """
         Determine whether any of the categorized tags are promoted or demoted.
         """
-        #current.paideia_debug.do_print({'oldcats':oldcats},"glasgow- just entered _find_cat_changes")
-        #current.paideia_debug.do_print({'cats':cats},"glasgow- just entered _find_cat_changes")
         uid = self.user_id if not uid else uid
         if oldcats:
             demoted = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
             promoted = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
             oldcats = {k: v for k, v in oldcats.iteritems()
                        if k[:3] == 'cat'}  # facilitates demotion tasks
+            print 'oldcats ------------------------\n', oldcats
+            oldcats = self._remove_dups(oldcats, self.rank)
+            print 'oldcats ------------------------\n', oldcats
             #copy oldcats into new new 'cats'
+            # in preparation for finding diffs from rev1-4 and updating as
+            # appropriate
             for k in oldcats:
                 if (k in oldcats and oldcats[k]):
                     cats[k] = oldcats[k][:]
                 else:
                     cats[k] = []
-            #current.paideia_debug.do_print({'cats' : cats},"surrey cats after updating with oldcats in _find_cat_changes")
 
-            #new_tags = []
             new_tags = {'rev1': [], 'rev2': [], 'rev3': [], 'rev4': []}
             cnms = ['rev1', 'rev2', 'rev3', 'rev4']
             oldkeys = ['cat1', 'cat2', 'cat3', 'cat4']
             # TODO: cleaning up bad data; deprecate after finished
             oldcats = self._fix_oldcats(oldcats, uid, bbrows=bbrows)
-            #current.paideia_debug.do_print({'oldcats' : oldcats},"surrey oldcats in _find_cat_changes")
+            print 'oldcats ------------------------\n', oldcats
+            print 'cats ------------------------\n', cats
 
             for cat, taglist in cats.iteritems():
                 oldkey = 'cat{}'.format(cat[-1:])
-                #--revcat = cat.replace('cat', 'rev')
-                #--cats[revcat] = taglist[:]  # copy bc demotion only changes one
-                #JOB ... oct 20, 2014 ... par around "cat in cnms"
                 if taglist and (cat in cnms):
                     # Is tag completely new to this user?
                     oldvals = [v for v in oldcats.values() if v]
-                    #current.paideia_debug.do_print({'oldvals' : oldvals},"trieste oldvals in _find_cat_changes")
-
-                    #debug
-                    #print'trieste-oldvals', oldvals
                     all_old_tags = list(chain.from_iterable(oldvals))
+                    #print 'all_old_tags ------------------------\n', all_old_tags
                     new_tags[cat] = [t for t in cats[cat] if t not in all_old_tags]
-                    #new_tags.extend([t for t in taglist if t not in all_old_tags])
 
                     # was tag in a lower category before?
                     idx = oldkeys.index(oldkey)
                     was_lower = list(chain.from_iterable([oldcats[c] for c
                                                           in oldkeys[:idx]
                                                           if oldcats[c]]))
-                    #current.paideia_debug.do_print({'was_lower': was_lower}, "trieste- was lower ")
-                    promoted[cat] = [t for t in cats[cat] if t in was_lower]
-                    ##current.paideia_debug.do_print(promoted, "trieste- promoted")
+                    promoted[oldkey] = [t for t in cats[cat] if t in was_lower]
 
                     # was tag in a higher category before?
                     was_higher = list(chain.from_iterable([oldcats[c] for c
                                                            in oldkeys[idx + 1:]
                                                            if oldcats[c]]))
-                    demoted[cat] = [t for t in taglist if t in was_higher]
+                    demoted[oldkey] = [t for t in taglist if t in was_higher]
+            print 'promoted -----------------\n', promoted
+            print 'demoted -----------------\n', demoted
+            print 'new_tags -----------------\n', new_tags
 
-            #this should be done for promoted instead? ... JOB ... nov 05, 2014
-            #now being done for promotion
-            #removal
+            # remove promoted from old cat list and insert into higher cat list
             if any([k for k, v in promoted.iteritems() if v]):
-                for tag in list(chain.from_iterable(promoted.values())):  # then restore old max in cats
+                for tag in list(chain.from_iterable(promoted.values())):
                     catidx = [k for k, v in oldcats.iteritems()
                                 if v and tag in v][0]
                     revidx = [k.replace('rev', 'cat') for k, v
                               in cats.iteritems()
                               if v and tag in v and k in cnms][0]
                     try:
-                        cat_set = set(cats[catidx])
-                        #print {'tag to remove': tag, 'catidx':catidx}
-                        #print {'cat set': cat_set}
-                        if tag in cat_set: cat_set.remove(tag)
-                        #print {'cat set after tag removed': cat_set}
-                        cats[catidx] = []
-                        cats[catidx] = list(cat_set)[:]
-                        #print{'cats[catidx] finally': cats[catidx]}
-
-                        """
-                        cat_set = set(cats[revidx])
-                        print {'tag to add': tag, 'revidx':revidx}
-                        print {'cat set': cat_set}
-                        cat_set.add(tag)
-                        print {'cat set after tag added': cat_set}
-                        cats[revidx] = []
-                        cats[revidx] = list(cat_set)[:]
-                        print{'cats[revidx] finally': cats[revidx]}
-                        """
+                        if tag in cats[catidx]:
+                            cats[catidx].remove(tag)
+                            cats[revidx].append(tag)
                     except ValueError:
-                        #current.paideia_debug.do_print(({'promoted': promoted,'cats': cats} ), "Arden- UNEXPECTED ERROR while working on demotions")
-                        pass
+                        print traceback.format_exc()
 
-            #add cats for promoted tags
-            #addition
-            for k in promoted:
-                while True:
-                    if (not('rev' == k[:3])): break
-                    if (not(promoted[k])): break
-                    catidx = k.replace('rev', 'cat')
-                    if (catidx in oldcats):
-                        cats[catidx] = []
-                        cats[catidx] = list((set(oldcats[catidx])).union(promoted[k]))[:]
-                    else:
-                        cats[catidx] = promoted[k][:]
-                    #current.paideia_debug.do_print(({'k': k, 'catidx': catidx, 'cats[catidx]': cats[catidx]} ), "Arden- setting cats for promoted")
-                    break
-
-            """
             #add cats for new tags
-            for k in new_tags:
-                while True:
-                    if (not('rev' == k[:3])) : break
-                    if (not(new_tags[k])): break
-                    catidx = k.replace('rev','cat')
-                    if (catidx in oldcats) :
-                        cats[catidx] = []
-                        x = []
-                        if (catidx in oldcats and oldcats[catidx]): x = oldcats[catidx][:]
-                        #cats[catidx] =  list((set(oldcats[catidx])).union(new_tags[k]))[:]
-                        cats[catidx] =  list((set(x)).union(new_tags[k]))[:]
-                        #current.paideia_debug.do_print(({'k': k, 'catidx': catidx, 'cats[catidx]': cats[catidx]} ), "Arden- setting cats for new tags")
-                    else:
-                        cats[catidx] = new_tags[k][:]
-                    break
-            """
-            #debug ... dont forget to remove
-            #cats['cat1'] = []
+            for k, v in new_tags.iteritems():
+                if v and k in cnms:
+                    catidx = k.replace('rev', 'cat')
+                    cats[catidx].extend(v)
+
             return {'categories': cats,
                     'demoted': demoted if any([d for d in demoted.values()])
                                else None,
@@ -3417,7 +3267,6 @@ class Categorizer(object):
                     'promoted': None,
                     'new_tags': new_tags}
 
-    #added self as first argument ... JOB ... sept 21 2013
     def _clean_tag_records(self, record_list=None, db=None):
         """
         Find and remove any duplicate entries in record_list.
