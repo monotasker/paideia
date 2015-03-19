@@ -606,9 +606,12 @@ class Walk(object):
     def _update_tag_record(self, tag, oldrec, user_id, tright, twrong,
                            got_right, score, step_id=None, now=None):
         """
-        """
-        # TODO: why the below instead of current approach?
-        """
+        Update the tag_records row for the selected tag for this attempt's.
+
+        Creates a new tag_records entry if there is none already for the
+        selected tag. Returns the id of the row that is updated/created.
+
+        *Old approach by JOB* -------------------------------------------
         SQL_TEMPLATE_UPDATE_TAG_RECORDS = "\
                                           UPDATE tag_records \
                                           SET    %s = coalesce(%s,0) + %f \
@@ -616,6 +619,19 @@ class Walk(object):
                                           ,step = %d \
                                           WHERE  name = %d \
                                           AND    tag =  %d; "
+
+        sql_string = None
+        if got_right:
+            sql_string = SQL_TEMPLATE_UPDATE_TAG_RECORDS % ('times_right',
+                                'times_right', newdata['times_right'],
+                                'tlast_right', newdata['tlast_right'],
+                                newdata['step'], user_id, tag)
+        else:
+            sql_string = SQL_TEMPLATE_UPDATE_TAG_RECORDS % ('times_wrong',
+                                'times_wrong', newdata['times_wrong'],
+                                'tlast_wrong', newdata['tlast_wrong'],
+                                newdata['step'], user_id, tag)
+        rslt = db.executesql(sql_string)
         """
 
         now = datetime.datetime.utcnow() if not now else now
@@ -641,10 +657,7 @@ class Walk(object):
                    'name': user_id}
         if oldrec:
             if got_right:
-                #print 'tright:', tright
-                #print 'oldrec tright:', oldrec['times_right']
                 newdata['times_right'] = tright + oldrec['times_right']
-                #print 'nd times_right', newdata['times_right']
                 newdata['times_wrong'] = twrong + oldrec['times_wrong']
                 newdata['tlast_wrong'] = oldrec['tlast_wrong']
             else:
@@ -657,29 +670,11 @@ class Walk(object):
         myrec = db.tag_records.update_or_insert(condition, **newdata)
         db.commit()
 
-            # TODO: why the below instead of current approach?
-        """
-        sql_string = None
-        if got_right:
-            sql_string = SQL_TEMPLATE_UPDATE_TAG_RECORDS % ('times_right',
-                                'times_right', newdata['times_right'],
-                                'tlast_right', newdata['tlast_right'],
-                                newdata['step'], user_id, tag)
-        else:
-            sql_string = SQL_TEMPLATE_UPDATE_TAG_RECORDS % ('times_wrong',
-                                'times_wrong', newdata['times_wrong'],
-                                'tlast_wrong', newdata['tlast_wrong'],
-                                newdata['step'], user_id, tag)
-        rslt = db.executesql(sql_string)
-        """
-
         # double check insertion/update
         tagrecs = db((db.tag_records.tag == tag) &
                      (db.tag_records.name == user_id)).select()
         assert len(tagrecs) == 1
         tagrec = tagrecs.first()
-        #print 'fresh tagrec:'
-        #pprint(tagrec)
 
         return tagrec.id
 

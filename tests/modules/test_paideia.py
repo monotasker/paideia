@@ -170,6 +170,7 @@ def mycatsout_remove_dups():
           }
     return tp
 
+
 @pytest.fixture
 def mycatsout_find_changes():
     """A fixture providing mock tag_progress records"""
@@ -5133,7 +5134,7 @@ class TestCategorizer():
                                {'cat1': [], 'cat2': [61],  # promoted
                                 'cat3': [], 'cat4': []},
                                {'rev1': [6, 29, 62, 82, 83], 'rev2': [],
-                                'rev3': [], 'rev4': []}, # new tags
+                                'rev3': [], 'rev4': []},  # new tags
                                )
                               ])
     def test_categorizer_categorize_tags(self, casename, rank, catsin,
@@ -5356,7 +5357,7 @@ class TestWalk():
                                'Simon',  # firstname
                                0,  # times right
                                1,  # times wrong
-                               True,  # got right
+                               False,  # got right
                                0.0,  # score
                                mytagpros()['Simon Pan 2014-03-21'],  # tpout
                                ),
@@ -5367,7 +5368,7 @@ class TestWalk():
                                'Simon',  # firstname
                                0,  # times right
                                1,  # times wrong
-                               True,  # got right
+                               False,  # got right
                                0.5,  # score
                                mytagpros()['Simon Pan 2014-03-21'],  # tpout
                                )
@@ -5388,9 +5389,10 @@ class TestWalk():
         db((db.tag_records.name == user_login['id']) &
            (db.tag_records.tag == tag)).delete()
         db.commit()
-        #db.tag_records.insert(**oldrec)
-        #db.commit()
+        # FIXME: insert row for the tag here so that it has to be updated
+        # instead of the test always creating a new row.
 
+        """
         # used to simulate actual logs when method corrected inaccurate trecs
         # correction from raw logs no longer performed by method
         #last_right = now
@@ -5404,6 +5406,7 @@ class TestWalk():
                       #last_wrong,
                       #earliest,  # earliest attempt
                       #db)
+        """
 
         rightlogs = 0
         wronglogs = 1
