@@ -255,62 +255,43 @@ class Walk(object):
         s = newloc_id = error_string = None
         prompt = None
         while True:
-            ##current.paideia_debug.do_print((set_blocks,self.user.name), "Marseilles-ask")
             #print'STARTING WALK.ASK---------------------------------------'
             user = self.user
-            #current.paideia_debug.do_print({'user.blocks':[b.get_condition() for b in user.blocks]}, "Brisbane- the user of ask")
-            #print'Tag progress is------------------'
-            ##pprint(user.tag_progress)
             # allow artificial setting of blocks during interface testing
             if set_blocks:
                 for c, v in set_blocks.iteritems():
                     myargs = {n: a for n, a in v.iteritems()}
-                    #current.paideia_debug.do_print({c: v}, "+-+-+- already existing set_blocks")
-                    ##current.paideia_debug.do_print(({'sc': current.sequence_counter},{'c':c},{'myargs': myargs}), "Marseilles- calling user.setblock in aask")
                     current.sequence_counter += 1
                     user.set_block(c, kwargs=myargs)
             username = user.get_name()
             tag_progress, promoted, new_tags, demoted = self._set_blocks()
-            #current.paideia_debug.do_print({'promoted': promoted,'new_tags:': new_tags,'demoted':demoted}, "Brisbane- after calling set_blocks")
-            #JOB ... moved from reply ... oct 23, 2014
             if (promoted or new_tags or demoted):
-                # if (True):
-                    # current.paideia_debug.do_print({'promoted': promoted,'new_tags:': new_tags,'demoted':demoted}, "Marseilles- calling _record_cats")
-                assert self._record_cats(tag_progress,
-                             promoted,
-                             new_tags, demoted)
-                # current.paideia_debug.do_print({'tag_progress': tag_progress}, "Brisbane-tag_progress after _record_cats")
-                # current.paideia_debug.do_print({'user.tag_progress': user.tag_progress}, "Brisbane-user.tag_progress after _record_cats")
+                assert self._record_cats(tag_progress, promoted,
+                                         new_tags, demoted)
             loc = Location(localias)
-            #current.paideia_debug.do_print({'loc':loc.get_name(), 'localias': localias}, "Brisbane- loc and localias in ask")
             prev_loc = user.set_location(loc)
             prev_npc = user.get_prev_npc()
 
             p, category, redir, pastquota = user.get_path(loc, pathid=path,
                                                           repeat=repeat)
-            #current.paideia_debug.do_print({'p':p.get_id(), 'category': category, 'redir':redir, 'pastquota':pastquota}, "Brisbane-after user.getpath is called in ask")
 
             if (not p): break  # no paths for this location for this category
 
             user.active_cat = category
             if redir:
-                #current.paideia_debug.do_print(({'sc': current.sequence_counter},{'redir':redir}), "Brisbane- calling user.setblock for redir in aask")
                 current.sequence_counter += 1
                 user.set_block('redirect', kwargs={'next_loc': redir})
             if pastquota:
-                #current.paideia_debug.do_print(({'sc': current.sequence_counter},{'user.quota': user.quota}), "Brisbane- calling user.setblock for quota in aask")
                 current.sequence_counter += 1
                 user.set_block('quota_reached', kwargs={'quota': user.quota})
 
             s, newloc_id, error_string = p.get_step_for_prompt(loc, repeat=repeat)
 
             if newloc_id:
-                #current.paideia_debug.do_print(({'sc': current.sequence_counter},{'newloc_id':newloc_id}), "Brisbane- calling user.setblock for newloc_id in aask")
                 current.sequence_counter += 1
                 user.set_block('redirect', kwargs={'next_loc': newloc_id})
 
             # TODO: make sure 'new_tags' is returned before 'view_slides'
-            #current.paideia_debug.do_print(({'sc': current.sequence_counter}), "Brisbane- checking for blocks in ask")
             current.sequence_counter += 1
             block = user.check_for_blocks()
             if block:
@@ -322,23 +303,15 @@ class Walk(object):
             if not user.blocks:
                 user.clear_block_records()
             prompt = s.get_prompt(loc, npc, username, user_blocks_left=True if user.blocks else False)
-            #print'before sending to view------------------------'
 
-            #debug
-            ####current.paideia_debug.do_print(user.completed_paths,'user.completed_paths')
             extra_fields = {'completed_count': user.get_completed_paths_len(),
                             'category': category,
                             'pid': p.get_id()
                             }
-            #debug
-            ####current.paideia_debug.do_print(extra_fields,'extra_fields')
-
             prompt.update(extra_fields)
 
             p.end_prompt(s.get_id())  # send id to tell whether its a block step
             self._store_user(user)
-            #debug
-            ####current.paideia_debug.do_print('returning from ask','msg')
             break  # from utility while loop
 
         # propagating errors and alerting user instead of crashing
@@ -392,18 +365,13 @@ class Walk(object):
         """
         user = self.user if not user else user
         tag_progress, promoted, new_tags, demoted = user.get_categories(user_id=user.get_id())
-        #current.paideia_debug.do_print({'promoted':promoted,
-        #                                'new_tags':new_tags,
-        #                                'demoted': demoted},"-----_set_blocks called")
 
         if new_tags:
-            #current.paideia_debug.do_print('new_tags in effect','_set_blocks')
             # setting order here should make new_tags step come up first
             user.set_block('new_tags', kwargs={'new_tags': new_tags,
                                                'promoted': promoted})
             user.set_block('view_slides', kwargs={'new_tags': new_tags})
         if promoted:
-            #current.paideia_debug.do_print('promoted in effect','_set_blocks')
             user.set_block('new_tags', kwargs={'new_tags': new_tags,
                                                'promoted': promoted})
         return tag_progress, promoted, new_tags, demoted
@@ -638,85 +606,81 @@ class Walk(object):
     def _update_tag_record(self, tag, oldrec, user_id, tright, twrong,
                            got_right, score, step_id=None, now=None):
         """
-        JOB (jboakye@bwachi.com) Sept 09, 2014
-        Adding step_id as arg before now. Adds the last step id, may be a validation
-        issue without a valid step_id
+        """
+        # TODO: why the below instead of current approach?
+        """
+        SQL_TEMPLATE_UPDATE_TAG_RECORDS = "\
+                                          UPDATE tag_records \
+                                          SET    %s = coalesce(%s,0) + %f \
+                                              ,%s = '%s' \
+                                          ,step = %d \
+                                          WHERE  name = %d \
+                                          AND    tag =  %d; "
         """
 
-        SQL_TEMPLATE_UPDATE_TAG_RECORDS = "\
-        UPDATE tag_records \
-        SET    %s = coalesce(%s,0) + %f \
-              ,%s = '%s' \
-        ,step = %d \
-        WHERE  name = %d \
-        AND    tag =  %d; "
-
         now = datetime.datetime.utcnow() if not now else now
-        ###current.paideia_debug.do_print(oldrec,"oldrec d---------------------------")
         oldrec = oldrec if not isinstance(oldrec, list) else oldrec[0]  # FIXME
-        #debug ... JOB
-        #print'oldrec new ---------------------------'
-        ###current.paideia_debug.do_print(oldrec,"oldrec new---------------------------")
-        #printtype(oldrec)
-        ###current.paideia_debug.do_print(got_right,"gotright")
-        ###current.paideia_debug.do_print(tright,"tright")
-        ###current.paideia_debug.do_print(twrong,"twrong")
-        ###current.paideia_debug.do_print(score,"score")
-        ###current.paideia_debug.do_print(tag,"tag")
-        ###current.paideia_debug.do_print(user_id,"user_id")
-        ###current.paideia_debug.do_print(step_id,"step_id")
-
-        tlright = now
-        tlwrong = now
         db = current.db
 
-        #we are going to grab the old rec from the dbase until we find out
-        #why it is not present here sometimes
-        #always grab a new one anyway
-        use_this_oldrec = None
-        try:
-            if not use_this_oldrec:
-                #debug
-                #print'houston, we have a null oldrec'
-                use_this_oldrec = db((db.tag_records.tag == tag) &
+        # FIXME: oldrec not showing up here sometimes?
+        if not oldrec:
+            try:
+                oldrec = db((db.tag_records.tag == tag) &
                             (db.tag_records.name == user_id)
                             ).select().first().as_dict()
-        except Exception:
-            use_this_oldrec = None
-        ###current.paideia_debug.do_print(use_this_oldrec,"use this oldrec beta")
+            except:
+                print traceback.format_exc()
+                oldrec = None
 
-        newdata = {'name': user_id,
-                   'tag': tag,
-                   'times_right': tright,
+        newdata = {'times_right': tright,
                    'times_wrong': twrong,
-                   'tlast_right': tlright,
-                   'tlast_wrong': tlwrong,
-                    'step': step_id}
-        if use_this_oldrec:
-            sql_string = None
+                   'tlast_right': now,
+                   'tlast_wrong': now,
+                   'step': step_id,
+                   'tag': tag,
+                   'name': user_id}
+        if oldrec:
             if got_right:
-                sql_string = SQL_TEMPLATE_UPDATE_TAG_RECORDS % ('times_right',
-                                    'times_right', tright, 'tlast_right', now,
-                                    step_id, user_id, tag)
+                #print 'tright:', tright
+                #print 'oldrec tright:', oldrec['times_right']
+                newdata['times_right'] = tright + oldrec['times_right']
+                #print 'nd times_right', newdata['times_right']
+                newdata['times_wrong'] = twrong + oldrec['times_wrong']
+                newdata['tlast_wrong'] = oldrec['tlast_wrong']
             else:
-                sql_string = SQL_TEMPLATE_UPDATE_TAG_RECORDS % ('times_wrong',
-                                    'times_wrong', twrong, 'tlast_wrong', now,
-                                    step_id, user_id, tag)
-            #debug
-            #print'sql string is:' + sql_string
-            rslt = db.executesql(sql_string)
-        else:  # new one
-            db.tag_records.insert(**newdata)
+                newdata['times_right'] = tright + oldrec['times_right']
+                newdata['times_wrong'] = twrong + oldrec['times_wrong']
+                newdata['tlast_right'] = oldrec['tlast_right']
+
+        # write updates to db here
+        condition = {'name': user_id, 'tag': tag}
+        myrec = db.tag_records.update_or_insert(condition, **newdata)
         db.commit()
-        #debug
-        #print'accra'
-        #printdb._lastsql
-        ###current.paideia_debug.do_print(db._timings,"db timings")
-        #print'end accra'
-        tagrec = db((db.tag_records.tag == tag) &
-                    (db.tag_records.name == user_id)
-                    ).select()
-        tagrec = tagrec.first()
+
+            # TODO: why the below instead of current approach?
+        """
+        sql_string = None
+        if got_right:
+            sql_string = SQL_TEMPLATE_UPDATE_TAG_RECORDS % ('times_right',
+                                'times_right', newdata['times_right'],
+                                'tlast_right', newdata['tlast_right'],
+                                newdata['step'], user_id, tag)
+        else:
+            sql_string = SQL_TEMPLATE_UPDATE_TAG_RECORDS % ('times_wrong',
+                                'times_wrong', newdata['times_wrong'],
+                                'tlast_wrong', newdata['tlast_wrong'],
+                                newdata['step'], user_id, tag)
+        rslt = db.executesql(sql_string)
+        """
+
+        # double check insertion/update
+        tagrecs = db((db.tag_records.tag == tag) &
+                     (db.tag_records.name == user_id)).select()
+        assert len(tagrecs) == 1
+        tagrec = tagrecs.first()
+        #print 'fresh tagrec:'
+        #pprint(tagrec)
+
         return tagrec.id
 
     def _record_step(self, user_id, step_id, path_id, score, raw_tright,
@@ -789,7 +753,8 @@ class Walk(object):
         #  else:
         try:
             myuser = pickle.dumps(user)
-            rownum = db.session_data.update_or_insert(db.session_data.name == user.get_id(),
+            condition = {'name': user.get_id()}
+            rownum = db.session_data.update_or_insert(condition,
                                                       name=user.get_id(),
                                                       other_data=myuser)
             db.commit()
@@ -2413,8 +2378,8 @@ class User(object):
             self._set_user_rank(tag_progress, 1)  # FIXME: return, don't set in method?
             #self.rank = tag_progress['latest_new'] if tag_progress else 1
             self.tag_progress = tag_progress
-            print 'user tp:\n', self.tag_progress
             self.promoted = None
+            self.demoted = None
             self.new_tags = None
 
             self.inventory = []
@@ -2510,13 +2475,11 @@ class User(object):
     def set_block(self, condition, kwargs=None):
         """ Set a blocking condition on this Path object. """
         myblocks = [b.get_condition() for b in self.blocks]
-        ##current.paideia_debug.do_print(({'sc': current.sequence_counter}, {'condition':condition},{'kwargs':kwargs},{'self.blocks':[x.condition for x in  self.blocks] if self.blocks else []}), "Marseilles- in User::_set_block, these are the  blocks before")
         current.sequence_counter += 1
 
         def _inner_set_block():
             if condition not in myblocks:
                 self.blocks.append(Block(condition, kwargs=kwargs))
-                #current.paideia_debug.do_print(({'sc': current.sequence_counter}, {'condition':condition},{'kwargs':kwargs},{'self.blocks':[x.condition for x in  self.blocks] if self.blocks else None}), "Brisbane- in inner_set_block in User::_set_block, these are the  blocks before")
 
         if condition == 'view_slides':
             if not self.viewed_slides:
@@ -2527,7 +2490,6 @@ class User(object):
                 _inner_set_block()
                 self.reported_badges = True
             else:
-                ##current.paideia_debug.do_print(({'sc': current.sequence_counter},{'self.reported_badges':self.reported_badges}, {'condition':condition},{'kwargs':kwargs},{'self.blocks':[x.condition for x in  self.blocks] if self.blocks else []}), "Marseilles- in User::_set_block, new_tags but reported_badges is true")
                 current.sequence_counter += 1
         #elif condition == 'promoted':
         #    if not self.reported_promotions:
@@ -2536,7 +2498,6 @@ class User(object):
         else:
             _inner_set_block()
 
-        ##current.paideia_debug.do_print(({'sc': current.sequence_counter},{'self.blocks':[x.condition for x in  self.blocks] if self.blocks else []}), "Marseilles- in User::_set_block, these blocks where found")
         current.sequence_counter += 1
         return True
 
@@ -2668,49 +2629,50 @@ class User(object):
         This method is important primarily to decide whether a new
         categorization is necessary before instantiating a Categorizer object
         # TODO: do we need to create new categorizer object each time?
-        The method is intended to be called with no arguments
+        The method is intended to be called with no arguments unless values
+        are being provided for testing.
         """
         just_cats = 0
         all_cat1 = 0
 
-        ##current.paideia_debug.do_print(old_categories, "Categories called")
         db = current.db
         user_id = self.user_id if not user_id else user_id
         if not tag_records:
             tag_records = db(db.tag_records.name == user_id).select().as_list()
         self.tag_records = tag_records
 
-        #debug
-        ###current.paideia_debug.do_print(self.cats_counter, "self.cats_counter")
-        #dont forget to remove the ff line
-        #self.cats_counter = 5
-
         if (self.cats_counter in range(0, 4)) \
                 and hasattr(self, 'categories') \
+                and self.tag_progress \
                 and self.categories:
             self.cats_counter += 1
-            return None, None, None, None
+            return self.tag_progress, None, None, None
         else:
             utcnow = datetime.datetime.utcnow() if not utcnow else utcnow
             try:
-                tag_progress_sel = db(db.tag_progress.name == user_id
-                                      ).select()
-                assert len(tag_progress_sel) == 1
-                self.tag_progress = tag_progress_sel.first().as_dict()
-                rank = self.tag_progress['latest_new']
-                just_cats = self.tag_progress['just_cats']
-                all_cat1 = self.tag_progress['all_cat1']
-
+                if old_categories:
+                    tpdict = old_categories
+                else:
+                    tp_sel = db(db.tag_progress.name == user_id).select()
+                    assert len(tp_sel) == 1
+                    tpdict = tp_sel.first().as_dict()
+                print 'tpdict ---------------\n', tpdict
+                self.tag_progress = tpdict
+                rank = tpdict['latest_new']
+                just_cats = tpdict['just_cats'] if 'just_cats' in tpdict else 0
+                all_cat1 = tpdict['all_cat1'] if 'all_cat1' in tpdict else 0
                 # TODO: below is 'magic' hack based on specific db field names
-                categories = {k: v for k, v in self.tag_progress.iteritems()
+                categories = {k: v for k, v in tpdict.iteritems()
                               if k[:3] in ['cat', 'rev']}
             except (AttributeError, AssertionError):
+                print traceback.format_exc()
                 categories = None
             self.old_categories = copy(categories)
 
             c = Categorizer(rank, categories, tag_records, user_id,
                             utcnow=utcnow)
-            cat_result = c.categorize_tags()
+            cat_result = c.categorize_tags(old_categories=old_categories)
+            # passing 'old_categories' allows it to be passed on in testing
 
             self._set_user_rank(cat_result['tag_progress'], 0)
 
@@ -2721,6 +2683,7 @@ class User(object):
             self.categories = cat_result['categories']
             self.promoted = cat_result['promoted']
             self.new_tags = cat_result['new_tags']
+            self.demoted = cat_result['demoted']
             self.cats_counter = 0  # reset counter
 
             return (self.tag_progress, self.promoted,
@@ -2786,8 +2749,8 @@ class Categorizer(object):
         self.rank = rank
         self.tag_records = tag_records
         self.old_categories = tag_progress
-        #print'Categorizer __init__: categories ------------------'
-        ##pprint(tag_progress)
+        print'Categorizer __init__: categories ------------------'
+        pprint(tag_progress)
         self.utcnow = utcnow if utcnow else datetime.datetime.utcnow()
         self.secondary_right = secondary_right
 
@@ -2824,6 +2787,8 @@ class Categorizer(object):
             rank = 1
         old_categories = self.old_categories if not old_categories \
                          else old_categories
+        print 'categorize_tags ==================='
+        print 'old_categories:', old_categories
 
         if not tag_records:  # allows passing trecs for testing
             db = current.db if not db else db
@@ -2858,10 +2823,14 @@ class Categorizer(object):
                                      if tag_records and t['secondary_right']]):
                 self._add_secondary_right(t)
             categories = self._core_algorithm()
+            print 'after core ----------------\n', categories
             categories = self._add_untried_tags(categories)
+            print 'after untried ----------------\n', categories
             categories = self._remove_dups(categories, rank)
+            print 'after dups ----------------\n', categories
             categories.update((c, []) for c in ['cat1', 'cat2', 'cat3', 'cat4'])
             cat_changes = self._find_cat_changes(categories, old_categories)
+            print 'after cat changes ----------------\n', cat_changes['categories']
 
             promoted = cat_changes['promoted']
             demoted = cat_changes['demoted']
