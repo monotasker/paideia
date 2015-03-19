@@ -22,7 +22,7 @@ from pprint import pprint
 import re
 from copy import copy
 from random import randint
-from dateutil import parser
+#from dateutil import parser
 from difflib import Differ
 from itertools import chain
 from urllib import quote_plus
@@ -151,6 +151,7 @@ def mycatsout_add_untried():
                                             116, 119, 120, 122]},
           }
     return tp
+
 
 @pytest.fixture
 def mycatsout_remove_dups():
@@ -4330,6 +4331,7 @@ class TestUser(object):
                      99: {'right': 1, 'wrong': 0},
                      102: {'right': 1, 'wrong': 0},
                      256: {'right': 1, 'wrong': 0},
+                     409: {'right': 1, 'wrong': 0},
                      410: {'right': 1, 'wrong': 0},
                      411: {'right': 1, 'wrong': 0},
                      412: {'right': 1, 'wrong': 0},
@@ -4436,8 +4438,9 @@ class TestUser(object):
         else:
             assert apastq is None
 
-    @pytest.mark.skipif(True, reason='just because')
-    @pytest.mark.parametrize('tpin,rankout,tpout,trecs,counter,promoted,newtags',
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('tpin,rankout,tpout,trecs,counter,promoted,'
+                             'new_tags,demoted',
         [({'latest_new': 1,  # tpin =========================================
            'cat1': [1], 'cat2': [],
            'cat3': [], 'cat4': [],
@@ -4445,7 +4448,7 @@ class TestUser(object):
            'rev3': [], 'rev4': []},
           1,  # rank out
           {'latest_new': 1,  # tpout
-           'cat1': [61], 'cat2': [],  # FIXME: this is wrong
+           'cat1': [61], 'cat2': [],
            'cat3': [], 'cat4': [],
            'rev1': [61], 'rev2': [],
            'rev3': [], 'rev4': []},
@@ -4458,18 +4461,20 @@ class TestUser(object):
             'secondary_right': []}],
           4,  # counter
           None,  # promoted
-          [61]  # new tags
+          {'rev1': [61], 'rev2': [],
+           'rev3': [], 'rev4': []},  # new tags
+          None  # demoted
           ),
          ({'latest_new': 1,  # tpin =========================================
            'cat1': [1], 'cat2': [],
            'cat3': [], 'cat4': [],
-           'rev1': [], 'rev2': [],
+           'rev1': [1], 'rev2': [],
            'rev3': [], 'rev4': []},
           1,  # rank out
-          {'latest_new': 1,  # tpout
+          {'latest_new': 1,  # tpout; doesn't change because no categorization
            'cat1': [1], 'cat2': [],
            'cat3': [], 'cat4': [],
-           'rev1': [], 'rev2': [],
+           'rev1': [1], 'rev2': [],
            'rev3': [], 'rev4': []},
           [{'name': 1,  # trecs
             'tag': 1,
@@ -4480,58 +4485,64 @@ class TestUser(object):
             'secondary_right': []}],
           3,  # counter
           None,  # promoted
-          None  # new tags
+          None,  # new tags
+          None  # demoted
           )
          ])
     def test_user_get_categories(self, tpin, rankout, tpout, trecs, counter,
-                                 promoted, newtags, user_login, db):
+                                 promoted, demoted, new_tags, user_login, db):
         """
         Unit test for User._get_categories() method.
         """
+        # set up mock user
         user = User(user_login, trecs, tpin)
         user.cats_counter = counter
+
         # set up tag records for user
-        try:
-            db.tag_progress(db.tag_progress.name == user_login['id']).id
-        except AttributeError:
-            db.tag_progress.insert(name=user_login['id'])
+        db(db.tag_progress.name == user_login['id']).delete()
+        db.tag_progress.insert(name=user_login['id'], **tpin)
 
         # set up tag records for user
         db(db.tag_records.name == user_login['id']).delete()
         for tr in trecs:
             tr['name'] = user_login['id']
             db.tag_records.insert(**tr)
-        #print 'tagrecs in test'
-        #pprint(db(db.tag_records.name == user_login['id']).select().as_list())
 
         # set these to allow for retrieval if counter < 5
         user.tag_progress = tpin
-        user.categories = {c: l for c, l in tpin.iteritems() if c[:3] == 'cat'}
-        atp, apromoted, anew_tags, ademoted = user.get_categories()
+        user.categories = {c: l for c, l in tpin.iteritems()
+                           if c[:3] in ['cat', 'rev']}
 
-        print 'user.tag_progress'
-        pprint(user.tag_progress)
-        print 'user.categories'
-        pprint(user.categories)
+        atp, apromoted, anew_tags, ademoted = user.get_categories()
+        print 'atp --------------'
+        pprint(atp)
+        print 'apromoted -------------'
+        pprint(apromoted)
+        print 'anew_tags --------------'
+        pprint(anew_tags)
+        print 'ademoted -------------'
+        pprint(ademoted)
 
         newcounter = counter + 1 if counter < 4 else 0
         assert user.cats_counter == newcounter
         for c, l in tpout.iteritems():
+            assert atp[c] == l
             assert user.tag_progress[c] == l
             if c in ['cat1', 'cat2', 'cat3', 'cat4']:
                 assert user.categories[c] == l
         assert user.rank == tpout['latest_new']
-        assert atp == user.promoted == promoted
+        #print 'promoted -----------------\nactual:', apromoted, '\nexpected:', promoted
         assert apromoted == user.promoted == promoted
-        assert anew_tags == user.new_tags == newtags
-        print 'demoted:', ademoted
+        #print 'new_tags -----------------\nactual:', anew_tags, '\nexpected:', new_tags
+        assert anew_tags == user.new_tags == new_tags
+        #print 'demoted -----------------\nactual:', ademoted, '\nexpected:', demoted
         assert ademoted == user.demoted == demoted
+
         for k, v in user.tag_progress.iteritems():
             print k
             print v
             assert v == atp[k]
-        #print 'user.tag_records =========================================='
-        #pprint(user.tag_records)
+
         for idx, tr in enumerate(user.tag_records):
             for field, content in tr.iteritems():
                 print field
@@ -5325,65 +5336,105 @@ class TestWalk():
                     assert now - thisbb.first()[v] < datetime.timedelta(hours=1)
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('tag,oldrecs,firstname,tright,twrong,'
+    @pytest.mark.parametrize('tag,step_id,path_id,oldrecs,firstname,tright,twrong,'
                              'got_right,score,tpout',
                              [(1,  # tag
-                               mytagrecs()['Simon Pan 2014-03-21'],  # tag recs
+                               174,  # step_id
+                               155,  # path_id
+                               mytagrecs()['Simon Pan 2014-03-21'],  # oldrecs
                                'Simon',  # firstname
                                1,  # times right
                                0,  # times wrong
                                True,  # got right
                                1.0,  # score
                                mytagpros()['Simon Pan 2014-03-21'],  # tpout
+                               ),
+                              (1,  # tag
+                               174,  # step_id
+                               155,  # path_id
+                               mytagrecs()['Simon Pan 2014-03-21'],  # oldrecs
+                               'Simon',  # firstname
+                               0,  # times right
+                               1,  # times wrong
+                               True,  # got right
+                               0.0,  # score
+                               mytagpros()['Simon Pan 2014-03-21'],  # tpout
+                               ),
+                              (1,  # tag
+                               174,  # step_id
+                               155,  # path_id
+                               mytagrecs()['Simon Pan 2014-03-21'],  # oldrecs
+                               'Simon',  # firstname
+                               0,  # times right
+                               1,  # times wrong
+                               True,  # got right
+                               0.5,  # score
+                               mytagpros()['Simon Pan 2014-03-21'],  # tpout
                                )
                               ])
-    def test_walk_update_tag_record(self, tag, oldrecs, firstname, tright,
-                                    twrong, got_right, score, tpout,
-                                    user_login, db):
+    def test_walk_update_tag_record(self, tag, step_id, path_id, oldrecs,
+                                    firstname, tright, twrong, got_right,
+                                    score, tpout, user_login, db):
         """
         Simulates inaccurate tag_records data for times_right and times_wrong.
         Should be corrected automatically by method, drawing on raw logs.
         """
         now = datetime.datetime(2014, 3, 24, 0, 0, 0)
-        oldrec = [o for o in oldrecs if o['tag'] == tag][0]
-        last_right = now
-        earliest = datetime.datetime(2013, 9, 1, 0, 0, 0)
-        last_wrong = now - datetime.timedelta(days=3)
-        log_generator(user_login['id'],
-                      tag,
-                      20,  # total log count
-                      11,  # number right,
-                      last_right,
-                      last_wrong,
-                      earliest,  # earliest attempt
-                      db)
-        rightlogs = 11
-        wronglogs = 9
+        oldrecs = [o for o in oldrecs if o['tag'] == tag]
+        assert len(oldrecs) == 1
+        oldrec = oldrecs[0]
+        del oldrec['id']  # since new id will be assigned on insert
+        pprint(oldrec)
+        db((db.tag_records.name == user_login['id']) &
+           (db.tag_records.tag == tag)).delete()
+        db.commit()
+        #db.tag_records.insert(**oldrec)
+        #db.commit()
+
+        # used to simulate actual logs when method corrected inaccurate trecs
+        # correction from raw logs no longer performed by method
+        #last_right = now
+        #earliest = datetime.datetime(2013, 9, 1, 0, 0, 0)
+        #last_wrong = now - datetime.timedelta(days=3)
+        #log_generator(user_login['id'],
+                      #tag,
+                      #20,  # total log count
+                      #11,  # number right,
+                      #last_right,
+                      #last_wrong,
+                      #earliest,  # earliest attempt
+                      #db)
+
+        rightlogs = 0
+        wronglogs = 1
 
         walk = Walk(userdata=user_login,
                     tag_records=oldrecs,
                     tag_progress=tpout,
                     db=db)
         arec = walk._update_tag_record(tag, oldrec, user_login['id'], tright,
-                                       twrong, got_right, score, now=now)
+                                       twrong, got_right, score,
+                                       step_id=step_id, now=now)
+        print 'arec:', arec
         arec_row = db.tag_records(arec)
 
         assert arec_row
-        assert arec_row['times_right'] == rightlogs + tright
-        assert arec_row['times_wrong'] == wronglogs + twrong
+        assert arec_row['times_right'] == oldrec['times_right'] + tright
+        assert arec_row['times_wrong'] == oldrec['times_wrong'] + twrong
+        assert arec_row['step'] == step_id
+        assert arec_row['tag'] == tag
         if tright == 1:
-            assert arec_row['tlast_wrong'] >= earliest
-            assert arec_row['tlast_wrong'] <= last_wrong
+            assert arec_row['tlast_wrong'] == oldrec['tlast_wrong']
             assert arec_row['tlast_right'] == now
         else:
+            assert arec_row['tlast_right'] == oldrec['tlast_right']
             assert arec_row['tlast_wrong'] == now
-            assert arec_row['tlast_right'] >= earliest
-            assert arec_row['tlast_right'] <= last_right
 
         # teardown after injecting test data for user into db
         db(db.tag_records.id == arec).delete()
-        assert db(db.tag_records.id == arec).count() == 0
         db(db.attempt_log.name == user_login['id']).delete()
+        db.commit()
+        assert db(db.tag_records.id == arec).count() == 0
         assert db(db.attempt_log.name == user_login['id']).count() == 0
 
     @pytest.mark.skipif(False, reason='just because')
