@@ -5500,6 +5500,7 @@ class TestWalk():
                     tag_records=oldrecs,
                     tag_progress=tpout,
                     db=db)
+        walk.user.path = Path(path_id=path_id, db=db)
         raw_tright = tright
         raw_twrong = twrong
         starting_loglength = len(db(db.attempt_log.name == user_login['id']).select())
