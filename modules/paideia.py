@@ -731,6 +731,8 @@ class Walk(object):
                     'user_response': response_string}  # time automatic in db
         log_record_id = db.attempt_log.insert(**log_args)
         db.commit()
+        print 'log id:', log_record_id
+        print 'got_right:', got_right
         self.user.complete_path(got_right)
         return log_record_id
 
@@ -2700,6 +2702,8 @@ class User(object):
         #we now using hash {'path_id':count} to keep track of completed_paths
         # {'latest' : path_id} gives path_id of the latest one
         """
+        print 'completed_paths:', self.completed_paths['paths']
+        print 'self.path.get_id():', self.path.get_id()
         if (str(self.path.get_id()) not in self.completed_paths['paths']):
             pdict = {'right': 0, 'wrong': 0, 'path_dict': self.path.get_dict()}
             self.completed_paths['paths'][str(self.path.get_id())] = pdict
