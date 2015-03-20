@@ -744,17 +744,15 @@ class Walk(object):
         """
         db = current.db if not db else db
 
-        # TODO: Store and roll back db changes if impersonating
-        #  if auth.is_impersonating():  # shadowing another user
-        #  return False  # don't record in db
-        #  else:
         try:
             myuser = pickle.dumps(user)
+            print 'userid:', user.get_id()
             condition = {'name': user.get_id()}
             rownum = db.session_data.update_or_insert(condition,
                                                       name=user.get_id(),
                                                       other_data=myuser)
             db.commit()
+            print 'rownum:', rownum
             return rownum
         except Exception:
             print traceback.format_exc(5)
@@ -1995,25 +1993,25 @@ class PathChooser(object):
         """Initialize a PathChooser object to select the user's next path."""
         self.categories = {k: v for k, v in tag_progress.iteritems()
                            if k not in ['name', 'latest_new']}
-        #debug
-        #current.paideia_debug.do_print(self.categories, "boise-- self.categories in PathChooser::__init__")
         self.rank = tag_progress['latest_new']
         db = current.db if not db else db
         self.loc_id = loc_id
         self.completed = paths_completed
-        self.CONSTANT_MOD_CAT = 20
+        self.CYCLE_LENGTH = 20  # number of path selections per cycle
         self.CONSTANT_USE_CAT = 'cat1'
         self.CONSTANT_USE_REV = 'rev1'
-        self.just_cats = tag_progress['just_cats']
-        self.all_cat = tag_progress['all_cat1']   # all_cat1 in dbase => all_cat
+        self.cat1_choices = tag_progress['cat1_choices'] \
+            if 'cat1_choices' in tag_progress.keys() else 0  # counts cat1 choices
+        self.all_choices = tag_progress['all_choices'] \
+            if 'all_choices' in tag_progress.keys() else 0  # counts total choices
         self.tag_progress = tag_progress
-        ##current.paideia_debug.do_print(self, "boise-- all of self  in PathChooser::__init__")
 
     def _set_pathchooser_rank(self, tag_progress=None, given_rank=0):
         if (tag_progress and 'latest_new' in tag_progress and
                 tag_progress['latest_new']):
             self.rank = tag_progress['latest_new']
-        else: self.rank = given_rank
+        else:
+            self.rank = given_rank
 
     def _order_cats(self):
         """
@@ -2022,11 +2020,6 @@ class PathChooser(object):
         Returns a list with four members including the integers one-four.
         """
         # TODO: Look at replacing this method with scipy.stats.rv_discrete()
-
-        """
-        cat = randint(1, 10)
-        cat = (cat%4) + 1
-        """
 
         switch = randint(1, 100)
 
@@ -2040,116 +2033,111 @@ class PathChooser(object):
             cat = 4
 
         cat_list = range(1, 5)[(cat - 1):4] + range(1, 5)[0:(cat - 1)]
-        ##current.paideia_debug.do_print(cat_list, "boise-- cat_list in PathChooser::_order_cats")
         return cat_list
 
-    def _refine_cat_choice(self):
+    def _check_force_new(self):
         """
-        What's it going to be? rev1 or cat1
+        Determines whether to select from categories normally or force cat1.
+
+        The point here is to ensure that at least X proportion of every Y paths
+        chosen are genuinely new material for the user (i.e., have tags in cat1)
+        rather than being drawn from other tags that are simply up for review
+        (which are also included in rev1).
+
+        Returns 'True' if we are forcing the choice of new
+        material. Otherwise returns False.
         """
-        self.all_cat = self.all_cat % self.CONSTANT_MOD_CAT  # reset after MOD_CAT1
-        if (0 == self.all_cat): self.just_cats = 0
-        amt_of_just_cats_needed = (self.CONSTANT_MOD_CAT/2) - self.just_cats
-        amt_left_in_cycle = self.CONSTANT_MOD_CAT - self.all_cat
-        cat1_deficit = True if (amt_of_just_cats_needed > amt_left_in_cycle) else False
-        self.all_cat += 1
-        rslt = self.CONSTANT_USE_CAT
+        # reset choice counter at end of each cycle
+        self.all_choices = self.all_choices % self.CYCLE_LENGTH
+        if self.all_choices == 0:
+            self.cat1_choices = 0
+
+        # cat1 choices still needed this cycle to make up quota
+        cat1_still_needed = (self.CYCLE_LENGTH/2) - self.cat1_choices
+        left_in_cycle = self.CYCLE_LENGTH - self.all_choices
+
+        # do we need all remaining choices in this cycle to make up cat1 quota?
+        cat1_deficit = True if (cat1_still_needed >= left_in_cycle) else False
         if cat1_deficit:
-            self.just_cats += 1
-            rslt = self.CONSTANT_USE_CAT
+            self.cat1_choices += 1  # FIXME: what about regular cat1 choices?
+            rslt = True
         else:
-            rslt = self.CONSTANT_USE_REV
-        """
-        current.paideia_debug.do_print({ 'amt_of_just_cats_needed': amt_of_just_cats_needed,
-                                         'amt_left_in_cycle': amt_left_in_cycle,
-                                         'cat1_deficit':cat1_deficit,
-                                         'self.all_cat1':self.all_cat,
-                                        'self.just_cats':self.just_cats,
-                                        'rslt': rslt}, "bilbao in _decide_between_rev1_and_cat1")
-        """
-        self.tag_progress['just_cats'] = self.just_cats
-        self.tag_progress['all_cat1'] = self.all_cat
+            rslt = False
+
+        self.all_choices += 1
+        self.tag_progress['cat1_choices'] = self.cat1_choices
+        self.tag_progress['all_choices'] = self.all_choices
         return rslt
 
     def _paths_by_category(self, cat, rank):
         """
-        Assemble list of paths tagged with tags in each category for this user.
-        Returns a dictionary with categories as keys and corresponding lists
-        as values.
-        """
-        #current.paideia_debug.do_print({'cat':cat,'rank': rank}, "vernon:paths by category called")
+        Assemble list of paths tagged with tags in the chosen category.
 
+        Return a dictionary with categories as keys and corresponding lists
+        pathset :: list of dictionaries holding the data for selected paths
+        cat :: integer representing the category from which choice was made
+        force_cat1 :: boolean indicating whether or not cat1 selection was forced
+
+        """
+        db = current.db
         pathset = None
-        use_cat1 = self.CONSTANT_USE_CAT
+        force_cat1 = False
         while True:
-            db = current.db
             # TODO: set up computed field
             # if not db(db.paths).select().first().path_tags:
             # for row in db(db.paths.id > 0).select():
             # db(db.paths.id == row.id).update(steps=row.steps)
-            # TODO: include paths with tag as secondary, maybe in second list
+            # TODO: include paths with tag as secondary, maybe in second list?
             # TODO: cache the select below and just re-order randomly
 
-            #create a cleaner qeury to get the path ... JOB ..oct 08,2014
-            #conditions: tags_for_steps in tag_progress[rev_cat](tags)
             taglist = []
-            use_cat1 = self._refine_cat_choice()
-            if(self.CONSTANT_USE_CAT == use_cat1):
+
+            if self._check_force_new():
                 cat = 1
-                tag_cats = self.categories[self.CONSTANT_USE_CAT]
-                taglist = tag_cats
-                #current.paideia_debug.do_print({'cat':cat, 'new ones':taglist}, "boise-- taglist in PathChooser::_paths_by_category")
+                force_cat1 = True
+                taglist = self.categories['cat1']
             else:
                 taglist = self.categories['rev{}'.format(cat)]
-                #current.paideia_debug.do_print({'cat':cat, 'old ones':taglist}, "boise-- taglist in PathChooser::_paths_by_category")
-            #current.paideia_debug.do_print({'taglist':taglist}, "boise-- taglist in PathChooser::_paths_by_category")
 
-            #get all steps in this taglist
-            stepslist_unhashable = db(db.step2tags.tag_id.belongs(taglist)
-                                      ).select(db.step2tags.step_id).as_list()
-            ##current.paideia_debug.do_print(stepslist_unhashable, "boise-- stepslist_unhashable in PathChooser::_paths_by_category")
-            if (not stepslist_unhashable): break
-            stepslist = [v['step_id'] for v in stepslist_unhashable]
-            ##current.paideia_debug.do_print(stepslist, "boise-- stepslist in PathChooser::_paths_by_category")
+            stepsrows = db(db.steps.tags.contains(taglist)).select()
+            stepsrows = stepsrows.find(lambda row: row.status != 2)
+            stepslist = [v.id for v in stepsrows]
+            if not stepslist:
+                break
 
-            #status of steps != 2
-            stepslist_unhashable = db((db.steps.id.belongs(stepslist)) &
-                                      (db.steps.status != 2)
-                                      ).select(db.steps.id).as_list()
-            ##current.paideia_debug.do_print(stepslist, "boise-- stepslist_unhashable cleared of status != 2 in PathChooser::_paths_by_category")
-            stepslist = [v['id'] for v in stepslist_unhashable]
-            ##current.paideia_debug.do_print(stepslist, "boise-- stepslist cleared of status != 2 in PathChooser::_paths_by_category")
-            if (not stepslist): break
-            #pathset = pathset.find(lambda row: len(row.steps) > 0 and
-            #                       all([s for s in row.steps
-            #                            if (db.steps[s].status != 2)]))
+            """
+            TODO: Why did JOB do it this way?
+            # get id's for all steps marked with tags in taglist
+            #stepslist_unhashable = db(db.step2tags.tag_id.belongs(taglist)
+                                      #).select(db.step2tags.step_id).as_list()
+            #if not stepslist_unhashable:
+                #break
+            #stepslist = [v['step_id'] for v in stepslist_unhashable]
 
-            #all paths in steplist from taglist
-            pathset_ids_unhashable = db(db.path2steps.step_id.belongs(stepslist)
-                                        ).select(db.path2steps.path_id
-                                                 ).as_list()
-            ##current.paideia_debug.do_print(pathset_ids_unhashable, "boise--  pathset_ids_unhasable fresh in PathChooser::_paths_by_category")
-            pathset_ids = [v['path_id'] for v in pathset_ids_unhashable]
-            ##current.paideia_debug.do_print(pathset_ids, "boise--  pathset_ids fresh in PathChooser::_paths_by_category")
-            if (not pathset_ids): break
+            # remove steps with status 2 (deactivated)
+            #stepslist_unhashable = db((db.steps.id.belongs(stepslist)) &
+                                      #(db.steps.status != 2)
+                                      #).select(db.steps.id).as_list()
+            #stepslist = [v['id'] for v in stepslist_unhashable]
+            """
 
-            # pathset.exclude(lambda row: any([t for s in row.steps
-            # for t in db.steps[s].tags
-            # if db.tags[t].tag_position > rank]))
-            pathset = db(db.paths.id.belongs(pathset_ids)).select()
-            ##current.paideia_debug.do_print(pathset.as_list(), "boise-- pathset after we get entire thing in PathChooser::_paths_by_category")
-            #debug
+            """
+            # find all paths with a step in steplist
+            #pathset_ids_unhashable = db(db.path2steps.step_id.belongs(stepslist)
+                                        #).select(db.path2steps.path_id
+                                                 #).as_list()
+            #pathset_ids = [v['path_id'] for v in pathset_ids_unhashable]
+            #if not pathset_ids:
+                #break
+            """
 
-            pathset = pathset.find(lambda row: all([Step(s).has_locations() for s in row.steps]))
-            ##current.paideia_debug.do_print(pathset, "boise-- pathset after screening for locations in PathChooser::_paths_by_category")
-
+            pathset = db(db.paths.steps.contains(stepslist)).select()
+            # filter out any paths whose steps don't have a location
+            pathset = pathset.find(lambda row: all([Step(s).has_locations()
+                                                    for s in row.steps]))
             pathset = pathset.as_list()
-
-            #debug
-            ###current.paideia_debug.do_print(pathset, "boise-- pathset in PathChooser::_paths_by_category")
-            ##current.paideia_debug.do_print(cat,     "boise-- cat in PathChooser::_paths_by_category")
             break
-        return (pathset, cat, use_cat1)
+        return pathset, cat, force_cat1
 
     def _choose_from_cat(self, cpaths, category):
         """
@@ -2160,107 +2148,114 @@ class PathChooser(object):
         integer then the user should be redirected to that location. The third
         member is an integer between 1 and 4 corresponding to the category from
         which the path was chosen.
+
         Note: This method is *not* intended to handle categories with no
         available paths for this user. If such a category is supplied the
         method will raise an error.
-        JOB: Oct 12, 2014 : _paths_by_category is supposed to have filtered out
-        all paths that have steps with no locations, so we can skip that step
-        here and make sure that it is working in _paths_by_category if we have
-        a problem here
+
+        _paths_by_category is supposed to have filtered out
+        all paths that have steps with no locations
+
         """
 
-        #current.paideia_debug.do_print("choose from cat called", "message")
         path = None
         new_loc = None
         mode = None
-        #current.paideia_debug.do_print({'raw self.completed': self.completed}, "vernon- raw self.completed in Pathchooser::_choose_from_cat")
-        completed_list = [int(k) for k in self.completed['paths']]
+        completed_list = [int(k) for k in self.completed['paths'].keys()]
+        print 'completed_list --------------'
+        print completed_list
+
         while True:
             loc_id = self.loc_id
-            #current.paideia_debug.do_print({'loc_id':loc_id}, "vernon -current loc_id in Pathchooser::_choose_from_cat")
             db = current.db
-            #current.paideia_debug.do_print({'self.completed': completed_list}, "vernon- self.completed in Pathchooser::_choose_from_cat")
             p_new = [p for p in cpaths if p['id'] not in completed_list]
-            #current.paideia_debug.do_print({'p_new':[p['id'] for p in p_new] if p_new else []}, "vernon- pnew in Pathchooser::_choose_from_cat")
             p_here = [p for p in cpaths
                       if loc_id in db.steps[int(p['steps'][0])].locations]
-            #current.paideia_debug.do_print({'p_here':[p['id'] for p in p_here] if p_here else []}, "vernon- p_here in Pathchooser::_choose_from_cat")
             p_here_new = [p for p in p_here if p in p_new]
-            #current.paideia_debug.do_print({'p_here_new':[p['id'] for p in p_here_new] if p_here_new else []}, "vernon- p_here_new in Pathchooser::_choose_from_cat")
             p_all = [p for p in cpaths]
-            #current.paideia_debug.do_print({'p_all':[p['id'] for p in p_all] if p_all else []}, "vernon- p_all in Pathchooser::_choose_from_cat")
-            p_visited_ids = list(set([p['id'] for p in cpaths]).intersection(completed_list))
-            p_visited = [p for p in cpaths if p['id'] in p_visited_ids]
+            p_tried_ids = list(set([p['id'] for p in cpaths]
+                                   ).intersection(completed_list))
+            p_tried = [p for p in cpaths if p['id'] in p_tried_ids]
+            print 'ptried -------------'
+            print [p['id'] for p in p_tried]
+
+            # untried path available here
             if p_here_new:
-                #current.paideia_debug.do_print({'p_here_new':[p['id'] for p in p_here_new]}, "vernon- attempting p_here_new in Pathchooser::_choose_from_cat")
                 path = p_here_new[randrange(0, len(p_here_new))]
                 mode = 'here_new'
                 break
+            # untried path available elsewhere
             if p_new:
-                # While loop safeguards against looking for location for a step
-                # that has no locations assigned.
-                #JOB ... infinite loop danger here?? oct 12, 2014
-                #    ... adding a safeguard against infinite looping ... wasnt happening
-                #    ...because at this point all paths should only have steps with locations anyways
-                #current.paideia_debug.do_print({'p_new':[p['id'] for p in p_new]}, "vernon- attempting p_new in Pathchooser::_choose_from_cat")
-                loopmax = len(p_new)*5
+                loopmax = len(p_new)*5  # prevent infinite loop
                 loopcount = 0
                 while path is None:
                     try:
-                        loopcount += 1
-                        if (loopcount > loopmax): break
+                        loopcount += 1  # prevent infinite loop
+                        if (loopcount > loopmax):
+                            break
+
+                        # choose randomly from untried paths
                         idx = randrange(0, len(p_new))
                         path = p_new[idx]
+
+                        # find location for new path to be started
                         new_locs = db.steps(path['steps'][0]).locations
-                        goodlocs = [l for l in new_locs if db.locations[l].loc_active is True]
+                        goodlocs = [l for l in new_locs
+                                    if db.locations[l].loc_active is True]
                         new_loc = goodlocs[randrange(0, len(goodlocs))]
                         mode = 'new_elsewhere'
                     except TypeError:
                         path = None
-                        current.paideia_debug.do_print("vernon- TypeError should NOT happen ... filtering for blank locations in _path_by_category is not working ", '-altoona-')
                     except ValueError:
-                        current.paideia_debug.do_print("vernon-randrange error NOT permitted", '-altoona-')
                         print traceback.format_exc(5)
                 break
-            if p_visited:
-                #current.paideia_debug.do_print({'p_visited':[p['id'] for p in p_visited]}, "vernon- attempting p_visited in Pathchooser::_choose_from_cat")
+            if p_tried:
                 try:
-                    p_here_objs = [{'id': str(p['id']), 'score':0, 'path': p} for p in p_visited]
-                    for x in p_here_objs:
-                        if (x['id'] in self.completed['paths']):
-                            x['score'] = self.completed['paths'][x['id']]['wrong'] + self.completed['paths'][x['id']]['right']
-                    #current.paideia_debug.do_print({'p_here_objs':p_here_objs}, "vernon- p_here_objs in Pathchooser::_choose_from_cat")
+                    repeats = [{'id': str(p['id']), 'count':0, 'path': p}
+                                   for p in p_tried]
+                    # get number of attempts for each path visited
+                    for prep in repeats:
+                        pid = int(prep['id'])
+
+                        comp_rec = self.completed['paths'][pid]
+                        if pid in self.completed['paths'].keys():
+                            prep['count'] = comp_rec['wrong'] + comp_rec['right']
+
                     mode = 'repeated'
                     new_loc = None
-                    while True:
-                        if not p_here_objs: break
-                        p_here_objs_sorted = sorted(p_here_objs,
-                                                    key=lambda k: k['score'])
-                        #current.paideia_debug.do_print({'p_here_objs_sorted':[{x['id']:x['score']} for x in p_here_objs_sorted]}, "vernon- p_here_scores_sorted in Pathchooser::_choose_from_cat")
-                        use_this_p_here = [k['path'] for k
-                                           in p_here_objs_sorted]
-                        #current.paideia_debug.do_print({
-                        #  'use_this_p_here':use_this_p_here},
-                        #  "vernon- sorted pheres in Pathchooser::_choose_from_cat")
-                        path = use_this_p_here[0]
-                        new_locs = db.steps(path['steps'][0]).locations
-                        goodlocs = [l for l in new_locs if db.locations[l].loc_active is True]
+
+                    while True:  # find an available repeat path
+                        if not repeats:  # prevent infinite loop
+                            break
+                        # repeat all once before repeating another twice, etc.
+                        # TODO: randomize order of paths with equal counts
+                        repeats_sorted = sorted(repeats,
+                                                    key=lambda k: k['count'])
+                        path = repeats_sorted[0]['path']
+
+                        # find loc for repeat path
+                        path_locs = db.steps(path['steps'][0]).locations
+                        goodlocs = [l for l in path_locs
+                                    if db.locations[l].loc_active is True]
+                        # repeat path can be done here
                         if self.loc_id in goodlocs:
                             new_loc = self.loc_id
                             break
-                        new_loc = goodlocs[randrange(0, len(goodlocs))] if len(goodlocs) else None
-                        if new_loc: break
-                        p_here_objs.pop(0)
+                        # need to start repeat path elsewhere
+                        new_loc = goodlocs[randrange(0, len(goodlocs))] \
+                                           if len(goodlocs) else None
+                        if new_loc:
+                            break
+                        repeats.pop(0)  # if no viable loc for path, try another
                 except ValueError:
-                    current.paideia_debug.do_print("weired exception NOT permitted", '-altoona-')
                     print traceback.format_exc(5)
             if new_loc:
-                if (self.loc_id == new_loc): new_loc = None  # new_loc = None means keep curr_loc
-                break
-            #else fall through to the last one
-            if p_all:  # redundant ... shouldn't get to this point ... JOB ... dec 11, 2014
-                #current.paideia_debug.do_print({'p_all':[p['id'] for p in p_all]}, "vernon- attempting p_all in Pathchooser::_choose_from_cat")
-                loopmax = len(p_all)*5
+                if self.loc_id == new_loc:
+                    new_loc = None  # new_loc = None means keep curr_loc
+                    break
+            # else choose from category paths at random
+            if p_all:  # redundant ... shouldn't get to this point
+                loopmax = len(p_all)*5  # ensure no infinite loop
                 loopcount = 0
                 while path is None:
                     try:
@@ -2271,17 +2266,14 @@ class PathChooser(object):
                         new_locs = db.steps(path['steps'][0]).locations
                         goodlocs = [l for l in new_locs if db.locations[l].loc_active is True]
                         new_loc = goodlocs[randrange(0, len(goodlocs))]
-                        mode = 'all_oldelsewhere'
+                        mode = 'any from category'
                     except TypeError:
                         path = None
-                        current.paideia_debug.do_print("vernon- TypeError should NOT happen ... filtering for blank locations in _path_by_category is not working ", '-altoona-')
                     except ValueError:
-                        current.paideia_debug.do_print("vernon-randrange error NOT permitted", '-banf-')
                         print traceback.format_exc(5)
                 break  # redundant at the moment
             break  # from main while True
-        # debug
-        # current.paideia_debug.do_print( ({'path':path}, {'new_loc':int(new_loc) if new_loc else None}, {'category':category}, {'mode':mode}), "vernon-- (path, new_loc, category, mode) in PathChooser::_choose_from_cat")
+
         return (path, new_loc, category, mode)
 
     def choose(self, db=None):
@@ -2300,42 +2292,23 @@ class PathChooser(object):
         """
         db = current.db if not db else db
 
-        """
-        cat_list = self._order_cats()
-        print {'cat_list':cat_list}
-        rev_list = ['rev{}'.format(c) for c in range(1,5)]
-        print {'rev_list':rev_list}
-        good_rev_nums = [l[3:] for l in rev_list if self.categories[l]]
-        print {'good_rev_nums':good_rev_nums}
-        no_good_rev_nums = set(rev_list).difference(good_rev_nums)
-        print {'no_good_rev_nums': no_good_rev_nums}
-        for n in no_good_rev_nums:
-            cat_list.remove(n)
-        """
-
         cat_list = [c for c in self._order_cats()
                     if self.categories['rev{}'.format(c)]]
-        #current.paideia_debug.do_print(cat_list, "boise-- catlist in PathChooser::choose")
+        # 'if' guarantees that no categories are attempted for which no tags
+        # due
 
-        # cycle through categories, starting with the one from _get_category()
+        # cycle through categories, prioritised in _order_cats()
         for cat in cat_list:
             catpaths, category, use_cat1 = self._paths_by_category(cat, self.rank)
-            #current.paideia_debug.do_print({'category': category,'use_cat1': use_cat1, 'cat':cat},"msg")
-            if (catpaths and len(catpaths)):
+            if catpaths and len(catpaths):
                 path, newloc, category, mode = self._choose_from_cat(catpaths,
                                                                      category)
-                if (mode):
-                    #current.paideia_debug.do_print({'path': path,
-                                                    #'newloc': newloc,
-                                                    #'category':category,
-                                                    # 'mode': mode}, "Brisbane: returning from choose")
+                if mode:
                     return path, newloc, category, mode
                 else:
                     print 'bad mode trying another category'
             else:
                 continue
-        #debug
-        #print current.paideia_debug.data
         return None, None, None, None
 
 
@@ -2561,10 +2534,10 @@ class User(object):
             print 'no tag-progress, so getting categories'
             self.get_categories()
 
-        if 'just_cats' not in self.tag_progress:
-            self.tag_progress['just_cats'] = 0
-        if 'all_cat1' not in self.tag_progress:
-            self.tag_progress['all_cat1'] = 0
+        if 'cat1_choices' not in self.tag_progress:
+            self.tag_progress['cat1_choices'] = 0
+        if 'all_choices' not in self.tag_progress:
+            self.tag_progress['all_choices'] = 0
         choice, redir, cat, mode = PathChooser(self.tag_progress,
                                                 loc.get_id(),
                                                 self.completed_paths).choose()
@@ -2629,8 +2602,8 @@ class User(object):
         The method is intended to be called with no arguments unless values
         are being provided for testing.
         """
-        just_cats = 0
-        all_cat1 = 0
+        cat1_choices = 0
+        all_choices = 0
 
         db = current.db
         user_id = self.user_id if not user_id else user_id
@@ -2656,8 +2629,8 @@ class User(object):
                 print 'tpdict ---------------\n', tpdict
                 self.tag_progress = tpdict
                 rank = tpdict['latest_new']
-                just_cats = tpdict['just_cats'] if 'just_cats' in tpdict else 0
-                all_cat1 = tpdict['all_cat1'] if 'all_cat1' in tpdict else 0
+                cat1_choices = tpdict['cat1_choices'] if 'cat1_choices' in tpdict.keys() else 0
+                all_choices = tpdict['all_choices'] if 'all_choices' in tpdict.keys() else 0
                 # TODO: below is 'magic' hack based on specific db field names
                 categories = {k: v for k, v in tpdict.iteritems()
                               if k[:3] in ['cat', 'rev']}
@@ -2675,8 +2648,8 @@ class User(object):
 
             self.tag_records = cat_result['tag_records']
             self.tag_progress = cat_result['tag_progress']
-            self.tag_progress['just_cats'] = just_cats
-            self.tag_progress['all_cat1'] = all_cat1
+            self.tag_progress['cat1_choices'] = cat1_choices
+            self.tag_progress['all_choices'] = all_choices
             self.categories = cat_result['categories']
             self.promoted = cat_result['promoted']
             self.new_tags = cat_result['new_tags']
@@ -2702,8 +2675,6 @@ class User(object):
         #we now using hash {'path_id':count} to keep track of completed_paths
         # {'latest' : path_id} gives path_id of the latest one
         """
-        print 'completed_paths:', self.completed_paths['paths']
-        print 'self.path.get_id():', self.path.get_id()
         if (str(self.path.get_id()) not in self.completed_paths['paths']):
             pdict = {'right': 0, 'wrong': 0, 'path_dict': self.path.get_dict()}
             self.completed_paths['paths'][str(self.path.get_id())] = pdict
@@ -2807,7 +2778,7 @@ class Categorizer(object):
                   'cat3': [], 'rev3': [],
                   'cat4': [], 'rev4': [],
                   'latest_new': self.rank,
-                  'just_cats': 0, 'all_cat1': 0}
+                  'cat1_choices': 0, 'all_choices': 0}
             return {'tag_progress': tp,
                     'tag_records': tag_records,
                     'new_tags': {'rev1': categories['rev1'], 'rev2': [],
