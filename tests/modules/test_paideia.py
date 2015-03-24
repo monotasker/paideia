@@ -6790,13 +6790,14 @@ class TestBugReporter():
                 'data-w2p_target="bug_reporter" href="/paideia/creating/bug.'
                 'load?'
                 'answer={}'
+                '&amp;bug_step_id={}'
                 '&amp;loc_id={}'
                 '&amp;log_id={}'
                 '&amp;path_id={}'
                 '&amp;score={}'
-                '&amp;step_id={}">click here<i class="icon-bug"></i></a> '
-                'to submit a bug report. You can find the instructor&#x27;s '
-                'response in the &quot;bug reports&quot; tab of your user '
+                '">click here<i class="icon-bug"></i></a> '
+                'to submit a bug report. You can read your instructor&#x27;s '
+                'response later in the &quot;bug reports&quot; tab of your user '
                 'profile.</p>'
                 '</div>'
                 '<div class="modal-footer">'
@@ -6810,5 +6811,10 @@ class TestBugReporter():
 
         actual = BugReporter().get_reporter(record_id, path_id, step_id,
                                             score, response_string, loc_id)
+
+        print 'actual---------------'
+        print actual
+        print 'expected------------------'
+        print xpct[0]
 
         assert actual.xml() == xpct[0]
