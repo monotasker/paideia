@@ -6596,6 +6596,7 @@ class TestPathChooser():
                                           45: {'right': 1, 'wrong': 0},
                                           97: {'right': 1, 'wrong': 0},
                                           98: {'right': 1, 'wrong': 0},
+                                          99: {'right': 1, 'wrong': 0},
                                           100: {'right': 1, 'wrong': 0},
                                           101: {'right': 1, 'wrong': 0},
                                           103: {'right': 1, 'wrong': 0},
@@ -6624,6 +6625,20 @@ class TestPathChooser():
                                           333: {'right': 1, 'wrong': 0},
                                           334: {'right': 1, 'wrong': 0},
                                           366: {'right': 1, 'wrong': 0},
+                                          409: {'right': 1, 'wrong': 0},
+                                          410: {'right': 1, 'wrong': 0},
+                                          411: {'right': 1, 'wrong': 0},
+                                          412: {'right': 1, 'wrong': 0},
+                                          413: {'right': 1, 'wrong': 0},
+                                          414: {'right': 1, 'wrong': 0},
+                                          415: {'right': 1, 'wrong': 0},
+                                          416: {'right': 1, 'wrong': 0},
+                                          417: {'right': 1, 'wrong': 0},
+                                          418: {'right': 1, 'wrong': 0},
+                                          419: {'right': 1, 'wrong': 0},
+                                          420: {'right': 1, 'wrong': 0},
+                                          421: {'right': 1, 'wrong': 0},
+                                          423: {'right': 1, 'wrong': 0},
                                           424: {'right': 1, 'wrong': 0},
                                           425: {'right': 1, 'wrong': 0},
                                           426: {'right': 1, 'wrong': 0},
@@ -6695,7 +6710,7 @@ class TestPathChooser():
                                           102: {'right': 1, 'wrong': 0},
                                           256: {'right': 1, 'wrong': 0}}
                                 },  # last row is cat2 [61]
-                                {'latest_new': 2,
+                               {'latest_new': 2,
                                  'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
                                  'cat3': [], 'cat4': [],
                                  'rev1': [6, 29, 62, 82, 83], 'rev2': [61],
@@ -6806,8 +6821,8 @@ class TestBugReporter():
                 '</div>'
                 '</div>'
                 '</div>'
-                '</div>'.format(response_string, loc_id, record_id, path_id,
-                                score, step_id)]
+                '</div>'.format(response_string, step_id, loc_id, record_id,
+                                path_id, score)]
 
         actual = BugReporter().get_reporter(record_id, path_id, step_id,
                                             score, response_string, loc_id)
