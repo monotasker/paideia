@@ -2166,6 +2166,8 @@ class PathChooser(object):
             loc_id = self.loc_id
             db = current.db
             p_new = [p for p in cpaths if p['id'] not in completed_list]
+            print 'pnew -----------------'
+            print sorted([p['id'] for p in p_new])
             p_here = [p for p in cpaths
                       if loc_id in db.steps[int(p['steps'][0])].locations]
             p_here_new = [p for p in p_here if p in p_new]
@@ -2174,7 +2176,7 @@ class PathChooser(object):
                                    ).intersection(completed_list))
             p_tried = [p for p in cpaths if p['id'] in p_tried_ids]
             print 'ptried -------------'
-            print [p['id'] for p in p_tried]
+            print sorted([p['id'] for p in p_tried])
 
             # untried path available here
             if p_here_new:
