@@ -923,12 +923,9 @@ class BugReporter(object):
         which presents the user with an evaluation of the step input.
         """
 
-        #debug
-        #print 'halifax ---- get_reporter called with step_id: ', step_id
-        #print 'halifax ---- get_reporter called with response_string: ', response_string
         response_string = response_string.decode('utf-8')
         response_string = response_string.encode('utf-8')
-        #changing bug_id field to bug_step_id ... JOB ... oct 03, 2014
+
         vardict = {'answer': response_string,
                    'loc_id': loc_id,
                    'log_id': record_id,
@@ -941,8 +938,8 @@ class BugReporter(object):
                 _class='bug_reporter_link btn btn-danger',
                 _href=URL('paideia', 'creating', 'bug.load', vars=vardict),
                 cid='bug_reporter'),
-              ' to submit a bug report. You can find the instructor\'s ',
-              'response in the "bug reports" tab of your user profile.')
+              ' to submit a bug report. You can read your instructor\'s ',
+              'response later in the "bug reports" tab of your user profile.')
 
         br = MODAL('Something wrong?',
                    'Did you run into a problem?',
