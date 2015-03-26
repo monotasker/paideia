@@ -50,7 +50,7 @@ db.define_table('classes',
                 Field('c_target', 'integer'),
                 Field('d_target', 'integer'),
                 Field('f_target', 'integer'),
-                Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(institution)s, %(academic_year)s %(term)s '
                        '%(course_section)s, %(instructor)s'
@@ -68,7 +68,7 @@ db.define_table('class_membership',
                 Field('custom_end', 'datetime'),
                 Field('ending_set'),
                 Field('final_grade', 'list:string'),
-                Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(name)s, %(class_section)s'
                 )
@@ -83,7 +83,7 @@ db.define_table('images',
                     uploadfolder=os.path.join(request.folder, "static/images")),
                 Field('title', 'string', length=256),
                 Field('description', 'string', length=256),
-                Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(title)s')
 
@@ -96,28 +96,28 @@ db.define_table('audio',
                     uploadfolder=os.path.join(request.folder, "static/audio")),
                 Field('title', 'string', length=256),
                 Field('description', 'string', length=256),
-                Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(title)s')
 
 db.define_table('journals',
                 Field('name', db.auth_user, default=auth.user_id),
                 Field('journal_pages', 'list:reference journal_pages'),  # was pages
-                Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(name)s')
 db.journals.name.requires = IS_NOT_IN_DB(db, 'journals.name')
 
 db.define_table('journal_pages',
                 Field('journal_page', 'text'),  # was page (reserved term)
-                Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(page)s')
 
 db.define_table('categories',
                 Field('category', unique=True),
                 Field('description'),
-                Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(category)s')
 
@@ -125,7 +125,7 @@ db.define_table('tags',
                 Field('tag', 'string', unique=True),
                 Field('tag_position', 'integer'),  # was position (reserved)
                 Field('slides', 'list:reference plugin_slider_decks'),
-                Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format=lambda row: row['tag'])
 #db.executesql('CREATE INDEX IF NOT EXISTS idx_tags1 ON tags (tag, tag_position);')
@@ -154,7 +154,7 @@ db.define_table('lemmas',
                 Field('thematic_pattern', 'string', default='none'),
                 Field('real_stem', 'string', default='none'),
                 Field('extra_tags', 'list:reference tags'),
-                Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(lemma)s')
 db.lemmas.part_of_speech.requires = IS_IN_SET(('verb', 'adverb', 'noun',
@@ -182,7 +182,7 @@ db.lemmas.extra_tags.widget = lambda field, value: AjaxSelect(field, value,
 db.define_table('step_instructions',
                 Field('instruction_label'),  # was label (reserved term)
                 Field('instruction_text', 'text'),  # was text (reserved term)
-                Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(instruction_label)s')
 
@@ -194,7 +194,7 @@ db.define_table('constructions',
                 Field('form_function'),
                 Field('instructions', 'list:reference step_instructions'),
                 Field('tags', 'list:reference tags'),
-                Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(construction_label)s')
 db.constructions.instructions.requires = IS_IN_DB(db, 'step_instructions.id',
@@ -233,7 +233,7 @@ db.define_table('word_forms',
                 Field('thematic_pattern', 'string', default='none'),
                 Field('construction', db.constructions),
                 Field('tags', 'list:reference tags'),
-                Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(word_form)s')
 db.word_forms.tense.requires = IS_IN_SET(('present', 'imperfect', 'future',
@@ -268,35 +268,34 @@ db.word_forms.tags.widget = lambda field, value: AjaxSelect(field, value,
 
 db.define_table('badges',
                 Field('badge_name', 'string', unique=True),
-                Field('tag', db.tags),
+                Field('tag', 'reference tags'),
                 Field('description', 'text'),
-                Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(badge_name)s')
 db.badges.badge_name.requires = IS_NOT_IN_DB(db, 'badges.badge_name')
-db.badges.tag.requires = IS_EMPTY_OR(IS_IN_DB(db, 'tags.id', db.tags._format))
 #db.executesql('CREATE INDEX IF NOT EXISTS idx_badges1 ON badges (tag);')
 
 db.define_table('locations',
                 Field('map_location'),  # was location (reserved term)
                 Field('loc_alias'),  # was alias (reserved term)
                 Field('readable'),
-                Field('bg_image', db.images),
+                Field('bg_image', 'reference images'),
                 Field('loc_active', 'boolean'),
-                Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(map_location)s')
 db.locations.map_location.requires = IS_NOT_IN_DB(db, 'locations.map_location')
 db.locations.loc_alias.requires = IS_NOT_IN_DB(db, 'locations.loc_alias')
-db.locations.bg_image.requires = IS_EMPTY_OR(IS_IN_DB(db, 'images.id',
-                                                     db.images._format))
+#db.locations.bg_image.requires = IS_EMPTY_OR(IS_IN_DB(db, 'images.id',
+#                                                      db.images._format))
 
 db.define_table('npcs',
                 Field('name', 'string', unique=True),
                 Field('map_location', 'list:reference locations'),  # location
-                Field('npc_image', db.images),
+                Field('npc_image', 'reference images'),
                 Field('notes', 'text'),
-                Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(name)s')
 db.npcs.name.requires = IS_NOT_IN_DB(db, 'npcs.name')
@@ -312,29 +311,29 @@ db.define_table('step_types',
                 Field('step_type'),  # was type (reserved term)
                 Field('widget'),
                 Field('step_class'),
-                Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(step_type)s')
 
 db.define_table('step_hints',
                 Field('hint_label'),  # was label (reserved term)
                 Field('hint_text', 'text'),   # was text (reserved term)
-                Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(hint_label)s')
 
 db.define_table('step_status',
                 Field('status_num', 'integer', unique=True),
                 Field('status_label', 'text', unique=True),
-                Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(status_label)s')
 
 db.define_table('steps',
                 Field('prompt', 'text'),
-                Field('prompt_audio', db.audio, default=0),
-                Field('widget_type', db.step_types, default=1),
-                Field('widget_image', db.images, default=0),
+                Field('prompt_audio', 'reference audio', default=0),
+                Field('widget_type', 'reference step_types', default=1),
+                Field('widget_image', 'reference images', default=0),
                 Field('step_options', 'list:string'),  # was options (reserved)
                 Field('response1', 'text'),
                 Field('readable_response'),
@@ -351,16 +350,17 @@ db.define_table('steps',
                 Field('lemmas', 'list:reference lemmas'),
                 Field('npcs', 'list:reference npcs'),
                 Field('locations', 'list:integer'),
-                Field('status', db.step_status, default=1),
-                Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+                Field('status', 'reference step_status', default=1),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(id)s: %(prompt)s')
-db.steps.prompt_audio.requires = IS_EMPTY_OR(IS_IN_DB(db, 'audio.id',
-                                                      db.audio._format))
-db.steps.widget_image.requires = IS_EMPTY_OR(IS_IN_DB(db, 'images.id',
-                                                      db.images._format))
+#db.steps.prompt_audio.requires = IS_EMPTY_OR(IS_IN_DB(db, 'audio.id',
+#                                                      db.audio._format))
+#db.steps.widget_image.requires = IS_EMPTY_OR(IS_IN_DB(db, 'images.id',
+#                                                      db.images._format))
 db.steps.step_options.widget = SQLFORM.widgets.list.widget
-db.steps.npcs.requires = IS_IN_DB(db, 'npcs.id', db.npcs._format, multiple=True)
+db.steps.npcs.requires = IS_IN_DB(db, 'npcs.id', db.npcs._format,
+                                  multiple=True)
 db.steps.npcs.widget = lambda field, value: AjaxSelect(field, value,
                                                        indx=1,
                                                        multi='basic',
@@ -385,7 +385,8 @@ db.steps.tags_secondary.widget = lambda field, value: AjaxSelect(field, value,
                                                                  lister='simple',
                                                                  orderby='tag'
                                                                  ).widget()
-db.steps.tags_ahead.requires = IS_IN_DB(db, 'tags.id', db.tags._format, multiple=True)
+db.steps.tags_ahead.requires = IS_IN_DB(db, 'tags.id', db.tags._format,
+                                        multiple=True)
 db.steps.tags_ahead.widget = lambda field, value: AjaxSelect(field, value,
                                                              indx=4,
                                                              refresher=True,
@@ -438,22 +439,24 @@ db.steps.lemmas.widget = lambda field, value: \
                                                        ).widget()
 
 db.define_table('badges_begun',
-                Field('name', db.auth_user, default=auth.user_id),
-                Field('tag', db.tags),
+                Field('name', 'reference auth_user', default=auth.user_id),
+                Field('tag', 'reference tags'),
                 Field('cat1', 'datetime', default=dtnow),
                 Field('cat2', 'datetime'),
                 Field('cat3', 'datetime'),
                 Field('cat4', 'datetime'),
-                Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(name)s, %(tag)s')
 #db.executesql('CREATE INDEX IF NOT EXISTS idx_bdgs_begun1 ON badges_begun (name)')
 #db.executesql('CREATE INDEX IF NOT EXISTS idx_bdgs_begun2 ON badges_begun (tag)')
 
-#JOB ... oct 21, 2012 ... changing list:reference tags to list:integer
 db.define_table('tag_progress',
-                Field('name', db.auth_user, default=auth.user_id),
+                Field('name', 'reference auth_user', default=auth.user_id,
+                      unique=True),
                 Field('latest_new', 'integer', default=1),  # order ranking
+                # FIXME: change cat fields back to list:reference
+                # (will require removing legacy tag ids)
                 Field('cat1', 'list:integer'),
                 Field('cat2', 'list:integer'),
                 Field('cat3', 'list:integer'),
@@ -462,9 +465,9 @@ db.define_table('tag_progress',
                 Field('rev2', 'list:integer'),
                 Field('rev3', 'list:integer'),
                 Field('rev4', 'list:integer'),
-                Field('all_cat1', 'integer', default=0),   # used to help choose from cat1
-                Field('just_cats', 'integer',default=0),  # used to help choose from cat1
-                Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+                Field('all_choices', 'integer', default=0),   # used to help choose from cat1
+                Field('cat1_choices', 'integer', default=0),  # used to help choose from cat1
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(name)s, %(latest_new)s')
 db.tag_progress.name.requires = IS_NOT_IN_DB(db, db.tag_progress.name)
@@ -472,16 +475,17 @@ db.tag_progress.name.requires = IS_NOT_IN_DB(db, db.tag_progress.name)
 db.define_table('path_styles',
                 Field('style_label', unique=True),
                 Field('components', 'list:string'),
-                Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(style_label)s')
 
 db.define_table('paths',
                 Field('label'),
                 #JOB ... turning steps into a list of  integers as it seems to have issues
+                # FIXME: turn back into list:reference
                 #Field('steps', 'list:reference steps'),
                 Field('steps', 'list:integer'),
-                Field('path_style', db.path_styles),
+                Field('path_style', 'reference path_styles'),
                 Field('path_tags',
                     compute=lambda row: row.steps),
                 # compute=lambda row: [tag for step in row.paths.steps
@@ -490,12 +494,11 @@ db.define_table('paths',
                       compute=lambda row: all([s for s in row.paths.steps
                                                if (db.steps[s].status != 2)
                                                and db.steps[s].locations])),
-                Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(label)s')
 
-#JOB ... cleaned this up ...we are removing tags_for_steps entirel
-# Oct 12, 2014
+# FIXME
 #db.paths.tags_for_steps = Field.Virtual('tags_for_steps',
 #                              lambda row: [tag for step in row.paths.steps
 #                                           for tag in db.steps[step].tags])
@@ -534,79 +537,84 @@ db.paths.steps.widget = lambda field, value: AjaxSelect(field, value,
 """
 
 db.define_table('attempt_log',
-                Field('name', db.auth_user, default=auth.user_id),
-                Field('step', db.steps),
-                Field('in_path', db.paths),  # was path (reserved term)
+                Field('name', 'reference auth_user', default=auth.user_id),
+                Field('step', 'reference steps'),
+                Field('in_path', 'reference paths'),  # was path (reserved term)
                 Field('score', 'double'),
                 Field('dt_attempted', 'datetime', default=dtnow),
                 Field('user_response', 'string'),
-                Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 )
-db.attempt_log.name.requires = IS_IN_DB(db, 'auth_user.id',
-                                db.auth_user._format)
-db.attempt_log.step.requires = IS_IN_DB(db, 'steps.id', db.steps._format)
-db.attempt_log.in_path.requires = IS_IN_DB(db, 'paths.id', db.paths._format)
 #db.executesql('CREATE INDEX IF NOT EXISTS idx_alog_1 ON attempt_log (name);')
 #db.executesql('CREATE INDEX IF NOT EXISTS idx_alog_2 ON attempt_log (name, dt_attempted);')
 #db.executesql('CREATE INDEX IF NOT EXISTS idx_alog_3 ON attempt_log (dt_attempted);')
 #db.executesql('CREATE INDEX IF NOT EXISTS idx_alog_3 ON attempt_log (in_path);')
 
 db.define_table('tag_records',
-                Field('name', db.auth_user, default=auth.user_id),
-                Field('tag', db.tags),
+                Field('name', 'reference auth_user', default=auth.user_id),
+                Field('tag', 'reference tags'),
                 Field('times_right', 'double'),
                 Field('times_wrong', 'double'),
                 Field('tlast_wrong', 'datetime', default=dtnow),
                 Field('tlast_right', 'datetime', default=dtnow),
-                Field('in_path', db.paths),  # was path (reserved term)
-                Field('step', db.steps),
+                Field('in_path', 'reference paths'),  # was path (reserved term)
+                Field('step', 'reference steps'),
                 Field('secondary_right', 'list:string'),
-                Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 )
-db.tag_records.name.requires = IS_IN_DB(db, 'auth_user.id',
-                                    db.auth_user._format)
-db.tag_records.tag.requires = IS_IN_DB(db, 'tags.id', db.tags._format)
-db.tag_records.step.requires = IS_IN_DB(db, 'steps.id', db.steps._format)
-db.tag_records.in_path.requires = IS_IN_DB(db, 'paths.id', db.paths._format)
 #db.executesql('CREATE INDEX IF NOT EXISTS idx_trecs_1 ON tag_records (name, tag);')
 #db.executesql('CREATE INDEX IF NOT EXISTS idx_trecs_2 ON tag_records (tag, name);')
 
+db.define_table('tag_records2',  # FIXME: table for temporary testing, remove
+                Field('name', 'reference auth_user', default=auth.user_id),
+                Field('tag', 'reference tags'),
+                Field('times_right', 'double'),
+                Field('times_wrong', 'double'),
+                Field('tlast_wrong', 'datetime', default=dtnow),
+                Field('tlast_right', 'datetime', default=dtnow),
+                Field('in_path', 'reference paths'),  # was path (reserved term)
+                Field('step', 'reference steps'),
+                Field('secondary_right', 'list:string'),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
+                Field('modified_on', 'datetime', default=request.now),
+                )
+
 db.define_table('bug_status',
                 Field('status_label'),
-                Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(status_label)s')
 
 db.define_table('bugs',
-                Field('step', db.steps),
-                Field('in_path', db.paths),
-                Field('map_location', db.locations),
+                Field('step', 'reference steps'),
+                Field('in_path', 'reference paths'),
+                Field('map_location', 'reference locations'),
                 Field('user_response'),
                 Field('score', 'double'),
-                Field('log_id', db.attempt_log),
-                Field('user_name', db.auth_user, default=auth.user_id),
+                Field('log_id', 'reference attempt_log'),
+                Field('user_name', 'reference auth_user', default=auth.user_id),
                 Field('date_submitted', 'datetime', default=dtnow),
-                Field('bug_status', db.bug_status, default=5),
+                Field('bug_status', 'reference bug_status', default=5),
                 Field('admin_comment', 'text'),
                 Field('hidden', 'boolean'),
-                Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(step)s')
 #db.executesql('CREATE INDEX IF NOT EXISTS idx_bugs_1 ON bugs (user_name, bug_status);')
 
 db.define_table('session_data',
-                Field('name', db.auth_user),  # default=auth.user_id
+                Field('name', 'reference auth_user'),  # default=auth.user_id
                 Field('updated', 'datetime', default=dtnow),
                 Field('session_start', 'datetime', default=dtnow),
                 Field('other_data', 'text'),
-                Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(name)s')
 
 db.define_table('user_stats',
-                Field('name', db.auth_user, default=auth.user_id),
+                Field('name', 'reference auth_user', default=auth.user_id),
                 Field('year', 'integer'),
                 Field('month', 'integer'),
                 Field('week', 'integer'),
@@ -629,19 +637,19 @@ db.define_table('user_stats',
                 Field('logs_right', 'list:reference attempt_log'),
                 Field('logs_wrong', 'list:reference attempt_log'),
                 Field('done', 'integer', default=0),
-                Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(name)s, %(year)s, %(month)s, %(week)s')
 #db.executesql('CREATE INDEX IF NOT EXISTS idx_userstats_1 '
-              #'ON user_stats (week, year, name);')
+#              'ON user_stats (week, year, name);')
 #db.executesql('CREATE INDEX IF NOT EXISTS idx_userstats_1 '
-              #'ON user_stats (name, week, year);')
+#              'ON user_stats (name, week, year);')
 #db.executesql('CREATE INDEX IF NOT EXISTS idx_userstats_1 '
-              #'ON user_stats (year, week, name);')
+#              'ON user_stats (year, week, name);')
 
 db.define_table('topics',
                 Field('topic', 'string'),
-                Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(topic)s')
 
@@ -652,11 +660,9 @@ db.define_table('content_pages',
                 Field('last_updated', 'datetime', default=dtnow),
                 Field('author', 'reference auth_user', default=auth.user_id),
                 Field('topics', 'list:reference topics'),
-                Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(title)s')
-
-
 
 
 """
@@ -664,7 +670,6 @@ HELPER TABLES
 paths2steps ... follows C_UD of paths to create 1-1 relationshitp
 steps2tags ... follows C_UD of steps to create 1-1 relationshitp
 Joseph Boakye <jboakye@bwachi.com> Oct 10 2014
-zzz
 """
 db.define_table('step2tags',
                 Field('step_id', 'reference steps'),
@@ -678,155 +683,158 @@ db.define_table('path2steps',
                 Field('modified_on', 'datetime', default=request.now))
 
 
-def insert_trigger_for_steps(f,given_step_id):
+def insert_trigger_for_steps(f, given_step_id):
     #given_step_id is of <class 'gluon.dal.Reference'>
-    #simple_obj_print(type(given_step_id), "troy: type of given_step_id")
     step_id = int(given_step_id)
-    #simple_obj_print(step_id, "troy: step_id")
-    #simple_obj_print(type(f), "troy: f for step")
     local_f = f
     if (dict != type(local_f)):
         local_f = local_f.as_dict()
-    #simple_obj_print(local_f, "troy: local_f for step")
-    #simple_obj_print(type(f), "troy: type of f in insert_trigger_for_steps")
-    #simple_obj_print(f, "troy: f for step")
     if 'tags' in local_f:
         tag_ids = local_f['tags']
         for tag_id in tag_ids:
-            #simple_obj_print(tag_id, "troy: tag id")
-            if db(db.tags.id ==tag_id).count() > 0:
-                db.step2tags.insert(tag_id=tag_id,step_id=step_id)
+            if db(db.tags.id == tag_id).count() > 0:
+                db.step2tags.insert(tag_id=tag_id, step_id=step_id)
             else:
                 simple_obj_print(tag_id, "orphan tag:")
         db.commit()
-    create_or_update_steps_inactive_locations(f,given_step_id)
+    create_or_update_steps_inactive_locations(f, given_step_id)
 
-def update_trigger_for_steps(s,f):
-    #simple_obj_print(s, 'bavaria s is: ')
+
+def update_trigger_for_steps(s, f):
     for r in s.select():
-        db(db.step2tags.step_id==r.id).delete()
-        x = db(db.steps.id==r.id).select(db.steps.tags,db.steps.locations).first()
+        db(db.step2tags.step_id == r.id).delete()
+        x = db(db.steps.id == r.id
+               ).select(db.steps.tags, db.steps.locations).first()
         if x:
             tag_ids = (x.as_dict())['tags']
             locations = (x.as_dict())['locations']
-            #simple_obj_print(type(tag_ids), "bavaria: type of given_step_id")
-            #simple_obj_print(tag_ids,"bavaria, tag_ids in update_trigger_for_steps")
-            insert_trigger_for_steps({'tags' :tag_ids, 'locations': locations},r.id)
+            insert_trigger_for_steps({'tags': tag_ids, 'locations': locations},
+                                     r.id)
 
 
-def insert_trigger_for_paths(f,given_path_id):
+def insert_trigger_for_paths(f, given_path_id):
     path_id = int(given_path_id)
-    #simple_obj_print(path_id, "fordham: path_id")
     local_f = f
     if (dict != type(local_f)):
         local_f = local_f.as_dict()
-    #simple_obj_print(local_f, "fordham: f")
-    #delete all steps_inactive_locations data for this path
-    old_steps_list = [s['step_id'] for s in db(db.path2steps.path_id == given_path_id).select(db.path2steps.step_id).as_list()]
+    # delete all steps_inactive_locations data for this path
+    old_steps_list = [s['step_id'] for s
+                      in db(db.path2steps.path_id == given_path_id
+                            ).select(db.path2steps.step_id).as_list()]
     db(db.steps_inactive_locations.step_id.belongs(old_steps_list)).delete()
     new_steps_list = []
     if 'steps' in local_f:
         step_ids = local_f['steps']
         for step_id in step_ids:
             new_steps_list.append(step_id)
-            #simple_obj_print(step_id, "fordham: step id")
-            if db(db.steps.id ==step_id).count() > 0:
-                db.path2steps.insert(step_id=step_id,path_id=path_id)
+            if db(db.steps.id == step_id).count() > 0:
+                db.path2steps.insert(step_id=step_id, path_id=path_id)
             else:
                 simple_obj_print(step_id, "orphan step:")
             db.commit()
     old_steps_list.extend(new_steps_list)
     for step_id in old_steps_list:
         step_locs = db.steps[step_id].as_dict()['locations']
-        create_or_update_steps_inactive_locations({'locations': step_locs},step_id)
+        create_or_update_steps_inactive_locations({'locations': step_locs},
+                                                  step_id)
 
 
-
-def update_trigger_for_paths(s,f):
-    #simple_obj_print(s, 'new rochelle s is: ')
+def update_trigger_for_paths(s, f):
     for r in s.select():
-        db(db.path2steps.path_id==r.id).delete()
-        x = db(db.paths.id==r.id).select(db.paths.steps).first()
+        db(db.path2steps.path_id == r.id).delete()
+        x = db(db.paths.id == r.id).select(db.paths.steps).first()
         if x:
             step_ids = (x.as_dict())['steps']
-            #simple_obj_print(step_ids,"new rochelle, step_ids in update_trigger_for_paths")
-            insert_trigger_for_paths({'steps' :step_ids},r.id)
+            insert_trigger_for_paths({'steps': step_ids}, r.id)
 
-#take care off steps_inactive_locations
+
+#take care of steps_inactive_locations
 def before_delete_trigger_for_paths(s):
-    #simple_obj_print(s, 'new rochelle s is: ')
     old_steps_list = []
     for r in s.select():
-        old_steps_list = [s['step_id'] for s in db(db.path2steps.path_id == r.id).select(db.path2steps.step_id).as_list()]
+        old_steps_list = [stp['step_id'] for stp
+                          in db(db.path2steps.path_id == r.id
+                                ).select(db.path2steps.step_id).as_list()]
     current.old_steps_list = old_steps_list
-#take care off steps_inactive_locations
-def after_delete_trigger_for_paths(s):
-    #simple_obj_print(s, 'new rochelle s is: ')
-    for step_id in current.old_steps_list:
-        step_locs = db.steps[step_id].as_dict()['locations']
-        create_or_update_steps_inactive_locations({'locations': step_locs},step_id)
+
 
 #take care off steps_inactive_locations
-def after_update_trigger_for_locations(s,f):
-    #simple_obj_print(s, 'new rochelle s is: ')
+def after_delete_trigger_for_paths(s):
+    for step_id in current.old_steps_list:
+        step_locs = db.steps[step_id].as_dict()['locations']
+        create_or_update_steps_inactive_locations({'locations': step_locs},
+                                                  step_id)
+
+
+#take care off steps_inactive_locations
+def after_update_trigger_for_locations(s, f):
     local_f = f
     if (dict != type(local_f)):
         local_f = local_f.as_dict()
     simple_obj_print(local_f, 'new rochelle local_f is: ')
     if (('loc_active' in local_f) and (local_f['loc_active'])):
         for r in s.select():
-            db(db.steps_inactive_locations.loc_id ==r.id).delete()
+            db(db.steps_inactive_locations.loc_id == r.id).delete()
         db.commit()
     #just set to inactive
     if (('loc_active' in local_f) and (not local_f['loc_active'])):
         #get all steps
-        steps = db(db.steps.id > 0).select(db.steps.id,db.steps.locations).as_list()
+        steps = db(db.steps.id > 0
+                   ).select(db.steps.id, db.steps.locations).as_list()
         for r in s.select():
             for step in steps:
                 while True:
                     locs = step['locations']
-                    if (not locs): break
-                    if not(r.id in locs):break
-                    create_or_update_steps_inactive_locations({'locations': locs},step['id'])
+                    if (not locs):
+                        break
+                    if not(r.id in locs):
+                        break
+                    create_or_update_steps_inactive_locations({'locations': locs},
+                                                              step['id'])
                     break
 
-def create_or_update_steps_inactive_locations(f,given_step_id):
+
+def create_or_update_steps_inactive_locations(f, given_step_id):
     step_id = int(given_step_id)
     local_f = f
     if (dict != type(local_f)):
         local_f = local_f.as_dict()
-    simple_obj_print([local_f,step_id], "troy: local_f,step id")
-    #delete everything for this step first
-    db((db.steps_inactive_locations.step_id==step_id)).delete()
+    simple_obj_print([local_f, step_id], "troy: local_f,step id")
+    # delete everything for this step first
+    db((db.steps_inactive_locations.step_id == step_id)).delete()
     if 'locations' in local_f:
-        while True: #framingham
+        while True:
             loc_ids = local_f['locations']
-            simple_obj_print(loc_ids,"troy: loc_ids")
-            if (not loc_ids): break
-            simple_obj_print(loc_ids,"troy: --we are here---")
-            bad_loc_ids = [];
+            if (not loc_ids):
+                break
+            bad_loc_ids = []
             on_to_the_next = True
             for loc_id in loc_ids:
-                if db((db.locations.id ==loc_id) & (db.locations.loc_active == 'T')).count() == 1:
+                if db((db.locations.id == loc_id) &
+                      (db.locations.loc_active == 'T')
+                      ).count() == 1:
                     on_to_the_next = False
                     break
                 else:
                     bad_loc_ids.append(loc_id)
-            simple_obj_print([on_to_the_next,bad_loc_ids],"troy: --ontothenext and bad_loc_ids---")
-            if not on_to_the_next: break
+            if not on_to_the_next:
+                break
             for loc_id in bad_loc_ids:
-                db((db.steps_inactive_locations.loc_id==loc_id)&(db.steps_inactive_locations.step_id==step_id)).delete()
+                db((db.steps_inactive_locations.loc_id == loc_id) &
+                   (db.steps_inactive_locations.step_id == step_id)
+                   ).delete()
                 loc_data = {}
                 loc_data['step_id'] = step_id
-                loc_data['loc_id'] =  loc_id
+                loc_data['loc_id'] = loc_id
                 get_steps_inactive_locations_fields(loc_data)
                 simple_obj_print(loc_data, "troy: loc data")
-                db.steps_inactive_locations.insert(loc_id=loc_data['loc_id'],step_id=loc_data['step_id'],
-                                                   step_desc=loc_data['step_desc'],loc_desc=loc_data['loc_desc'],
+                db.steps_inactive_locations.insert(loc_id=loc_data['loc_id'],
+                                                   step_id=loc_data['step_id'],
+                                                   step_desc=loc_data['step_desc'],
+                                                   loc_desc=loc_data['loc_desc'],
                                                    in_paths=loc_data['in_paths'])
-            break #from while true framingham
+            break  # from while true
     db.commit()
-
 
 
 def get_steps_inactive_locations_fields(id_data):
@@ -834,22 +842,29 @@ def get_steps_inactive_locations_fields(id_data):
     input: {step_id: xx, loc_id: xxx}
     """
     id_data['step_desc'] = (db.steps[id_data['step_id']]).as_dict()['prompt']
-    #debug
-    #simple_obj_print(((db.locations[id_data['loc_id']]).as_dict()), "bronx-location in get_steps_inactive_locations_fields")
-    id_data['loc_desc'] =  ((db.locations[id_data['loc_id']]).as_dict())['map_location']
-    id_data['in_paths'] =  [ p['path_id'] for p in   (db(db.path2steps.step_id == id_data['step_id'])).select(db.path2steps.path_id).as_list()]
+    id_data['loc_desc'] = (db.locations[id_data['loc_id']]).as_dict()['map_location']
+    id_data['in_paths'] = [p['path_id'] for p
+                           in db(db.path2steps.step_id == id_data['step_id']
+                                 ).select(db.path2steps.path_id).as_list()]
     return True
 
 #no need for delete ... will be taken care of by foreign key
-db.steps._after_insert.append(lambda f,given_id: insert_trigger_for_steps(f,given_id))
-db.steps._after_update.append(lambda s,f: update_trigger_for_steps(s,f))
-db.paths._after_insert.append(lambda f,given_id: insert_trigger_for_paths(f,given_id))
-db.paths._after_update.append(lambda s,f: update_trigger_for_paths(s,f))
-db.paths._before_delete.append(lambda s: before_delete_trigger_for_paths(s))
-db.paths._after_delete.append(lambda s: after_delete_trigger_for_paths(s))
-db.locations._after_update.append(lambda s,f: after_update_trigger_for_locations(s,f))
+db.steps._after_insert.append(
+    lambda f, given_id: insert_trigger_for_steps(f, given_id))
+db.steps._after_update.append(
+    lambda s, f: update_trigger_for_steps(s, f))
+db.paths._after_insert.append(
+    lambda f, given_id: insert_trigger_for_paths(f, given_id))
+db.paths._after_update.append(
+    lambda s, f: update_trigger_for_paths(s, f))
+db.paths._before_delete.append(
+    lambda s: before_delete_trigger_for_paths(s))
+db.paths._after_delete.append(
+    lambda s: after_delete_trigger_for_paths(s))
+db.locations._after_update.append(
+    lambda s, f: after_update_trigger_for_locations(s, f))
 
-#exceptions .... when the bug table is not enough
+# exceptions .... when the bug table is not enough
 db.define_table('exceptions',
                 Field('step', 'text'),
                 Field('in_path', 'text'),
@@ -862,11 +877,11 @@ db.define_table('exceptions',
                 Field('bug_status', db.bug_status, default=5),
                 Field('admin_comment', 'text'),
                 Field('hidden', 'boolean'),
-                Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now)
                 )
 
-#exception_steps  .... steps with all inactive locations
+# exception_steps  .... steps with all inactive locations
 db.define_table('steps_inactive_locations',
                 Field('step_id', 'reference steps'),
                 Field('loc_id', 'reference locations'),
@@ -875,7 +890,6 @@ db.define_table('steps_inactive_locations',
                 Field('in_paths', 'list:integer'),
                 Field('modified_on', 'datetime', default=request.now))
 
-
 """
 These functions create step2tags and path2steps data for
 legacy paths and steps.
@@ -883,9 +897,7 @@ They only need to be ran once after which they SHOULD be commented out
 Joseph Boakye <jboakye@bwachi.com>
 Oct 11, 2014
 ---------------------  run once for legacy system -----------------
-"""
 
-"""
 def create_step2tags_from_steps():
     db.step2tags.truncate()
     for row in db(db.steps.id > 0).select():
@@ -899,9 +911,7 @@ def create_path2steps_from_paths():
         insert_trigger_for_paths({'steps': row.steps},row.id)
     return True
 create_path2steps_from_paths()
-"""
 
-"""
 def create_steps_inactive_locations_for_steps():
     print "---called martha---"
     db(db.steps_inactive_locations.id > 0).delete()
@@ -914,9 +924,6 @@ def create_steps_inactive_locations_for_steps():
         create_or_update_steps_inactive_locations({'locations': locs},step['id'])
     db.commit()
 create_steps_inactive_locations_for_steps()
-"""
 
-
-"""
 -----------------  end run once for legacy system -------------
 """
