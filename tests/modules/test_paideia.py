@@ -5332,7 +5332,8 @@ class TestWalk():
         actual_tp = sel_tp.first().as_dict()
         for k, v in actual_tp.iteritems():
             tpout['name'] = user_login['id']
-            if k not in ['id', 'modified_on', 'uuid', 'just_cats', 'all_cat1']:
+            if k not in ['id', 'modified_on', 'uuid', 'cat1_choices',
+                         'all_choices']:
                 assert v == tpout[k]
 
         # badges_begun insertion ----------------------------------------------
@@ -5608,7 +5609,7 @@ class TestWalk():
         dbuser = pickle.loads(sd['other_data'])
         assert dbuser.get_id() == user_login['id']
 
-    @pytest.mark.skipif(True, reason='just because')
+    @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('pathid,stepid,alias,npcshere,trecs,tpout,redir,'
                              'promptext,instrs,slidedecks,widgimg,rbuttons,'
                              'rform,replystep',
@@ -5674,15 +5675,13 @@ class TestWalk():
           19,  # step
           'agora',  # alias
           [1],  # npcs here
-          [{'name': 141,
-            'tag': 61,
+          [{'tag': 61,
             'tlast_right': dt('2013-01-29'),
             'tlast_wrong': dt('2013-01-28'),
             'times_right': 20,
             'times_wrong': 2,
             'secondary_right': []},
-           {'name': 141,
-            'tag': 62,
+           {'tag': 62,
             'tlast_right': dt('2013-03-20'),
             'tlast_wrong': dt('2013-03-20'),
             'times_right': 1,
@@ -5717,8 +5716,7 @@ class TestWalk():
           101,  # step
           'agora',  # alias
           [2, 8, 14, 17, 31, 40, 41, 42],  # npcs here
-          [{'name': 1,
-            'tag': 61,
+          [{'tag': 61,
             'tlast_right': dt('2013-01-29'),
             'tlast_wrong': dt('2013-01-28'),
             'times_right': 10,
@@ -5736,105 +5734,105 @@ class TestWalk():
           None,  # instructions
           None,  # slide decks
           None,  # widget image
-          ['map', 'continue'],  # response buttons
+          ['map'],  # response buttons
           None,  # response form
           False  # replystep
           ),
-         #(2,  # path # case1======================================================
-          #1,  # step
-          #'shop_of_alexander',
-          #[2, 8, 17],  # npcs here (for step)
-          #[{'name': 1,  # trecs
-            #'tag': 1,
-            #'tlast_right': dt('2013-01-29'),
-            #'tlast_wrong': dt('2013-01-29'),
-            #'times_right': 1,
-            #'times_wrong': 1,
-            #'secondary_right': None}],
-          #{'latest_new': 1,  # tpout
-           #'cat1': [61], 'cat2': [],
-           #'cat3': [], 'cat4': [],
-           #'rev1': [], 'rev2': [],
-           #'rev3': [], 'rev4': []},
-          #False,  # redirect?
-          #'How could you write the word "meet" using Greek letters?',
-          #['Focus on finding Greek letters that make the *sounds* of the '
-           #'English word. Don\'t look for Greek "equivalents" for each '
-           #'English letter.'],  # instructions
-          #{1: 'Introduction', 2: 'The Alphabet', 6: 'Noun Basics', 7: 'Greek Words I'},
-          #None,  # widget image
-          #[],  # response buttons
-          #'<form action="#" autocomplete="off" enctype="multipart/form-data" '
-          #'method="post"><table><tr id="no_table_response__row">'
-          #'<td class="w2p_fl"><label for="no_table_response" id="no_table_'
-          #'response__label">Response: </label></td><td class="w2p_fw">'
-          #'<input class="string" id="no_table_response" name="response" '
-          #'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
-          #'id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw">'
-          #'<input type="submit" value="Submit" /></td><td class="w2p_fc"></td>'
-          #'</tr></table></form>',
-          #True  # replystep
-          #),
-         #(3,  # path # case1======================================================
-          #2,  # step
-          #'shop_of_alexander',
-          #[2, 8, 17],  # npcs here FIXME
-          #[{'name': 1,  # trecs
-            #'tag': 1,
-            #'tlast_right': dt('2013-01-29'),
-            #'tlast_wrong': dt('2013-01-29'),
-            #'times_right': 1,
-            #'times_wrong': 1,
-            #'secondary_right': None}],
-          #{'latest_new': 1,  # tpout
-           #'cat1': [61], 'cat2': [],
-           #'cat3': [], 'cat4': [],
-           #'rev1': [], 'rev2': [],
-           #'rev3': [], 'rev4': []},
-          #False,  # redirect?
-          #'How could you write the word "bought" using Greek letters?',  # text
-          #None,  # instructions
-          #{1: 'Introduction', 2: 'The Alphabet', 6: 'Noun Basics', 7: 'Greek Words I'},
-          #None,  # widget image
-          #[],  # response buttons
-          #'<form action="#" autocomplete="off" enctype="multipart/form-data" '
-          #'method="post"><table><tr id="no_table_response__row">'
-          #'<td class="w2p_fl"><label for="no_table_response" id="no_table_'
-          #'response__label">Response: </label></td><td class="w2p_fw">'
-          #'<input class="string" id="no_table_response" name="response" '
-          #'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
-          #'id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw">'
-          #'<input type="submit" value="Submit" /></td><td class="w2p_fc"></td>'
-          #'</tr></table></form>',
-          #True  # replystep
-          #),
-         #(89,  # path # case1======================================================
-          #101,  # step
-          #'shop_of_alexander',
-          #[2, 8, 14, 17, 31, 40, 41, 42],  # npcs here
-          #[{'name': 1,  # trecs
-            #'tag': 1,
-            #'tlast_right': dt('2013-01-29'),
-            #'tlast_wrong': dt('2013-01-29'),
-            #'times_right': 1,
-            #'times_wrong': 1,
-            #'secondary_right': None}],
-          #{'latest_new': 1,  # tpout
-           #'cat1': [61], 'cat2': [],
-           #'cat3': [], 'cat4': [],
-           #'rev1': [], 'rev2': [],
-           #'rev3': [], 'rev4': []},
-          #True,  # redirect?
-          #'Hi there. Sorry, I don\'t have anything for you to '  # prompt text
-          #'do here at the moment. I think someone was looking '
-          #'for you at somewhere else in town.',
-          #None,  # instructions
-          #None,  # slide decks
-          #None,  # widget image
-          #['map', 'continue'],  # response buttons
-          #None,  # response form
-          #False  # replystep
-          #)
+         (2,  # path # case1======================================================
+          1,  # step
+          'agora',
+          [2, 8, 17],  # npcs here (for step)
+          [{'tag': 1,  # trecs
+            'tlast_right': dt('2013-01-29'),
+            'tlast_wrong': dt('2013-01-29'),
+            'times_right': 1,
+            'times_wrong': 1,
+            'secondary_right': None}],
+          {'latest_new': 1,  # tpout
+           'cat1': [61], 'cat2': [],
+           'cat3': [], 'cat4': [],
+           'rev1': [], 'rev2': [],
+           'rev3': [], 'rev4': []},
+          False,  # redirect?
+          'How could you write the word "meet" using Greek letters?',
+          ['Focus on finding Greek letters that make the *sounds* of the '
+           'English word. Don\'t look for Greek "equivalents" for each '
+           'English letter.'],  # instructions
+          {1: 'Introduction', 2: 'The Alphabet', 6: 'Noun Basics', 7: 'Greek Words I'},
+          None,  # widget image
+          [],  # response buttons
+          '<form action="#" autocomplete="off" enctype="multipart/form-data" '
+          'method="post"><table><tr id="no_table_response__row"><td '
+          'class="w2p_fl"><label for="no_table_response" '
+          'id="no_table_response__label">Response: </label></td><td '
+          'class="w2p_fw"><input class="string" id="no_table_response" '
+          'name="response" type="text" value="" /></td><td class="w2p_fc"></td>'
+          '</tr><tr id="submit_record__row"><td class="w2p_fl"></td><td '
+          'class="w2p_fw"><input type="submit" value="Submit" /></td><td '
+          'class="w2p_fc"></td></tr></table><div style="display:none;">'
+          '<input name="pre_bug_step_id" type="hidden" value="1" /></div>'
+          '</form>',
+          True  # replystep
+          ),
+         (3,  # path # case1======================================================
+          2,  # step
+          'agora',
+          [2, 8, 17],  # npcs here FIXME
+          [{'tag': 1,  # trecs
+            'tlast_right': dt('2013-01-29'),
+            'tlast_wrong': dt('2013-01-29'),
+            'times_right': 1,
+            'times_wrong': 1,
+            'secondary_right': None}],
+          {'latest_new': 1,  # tpout
+           'cat1': [61], 'cat2': [],
+           'cat3': [], 'cat4': [],
+           'rev1': [], 'rev2': [],
+           'rev3': [], 'rev4': []},
+          False,  # redirect?
+          'How could you write the word "bought" using Greek letters?',  # text
+          None,  # instructions
+          {1: 'Introduction', 2: 'The Alphabet', 6: 'Noun Basics', 7: 'Greek Words I'},
+          None,  # widget image
+          [],  # response buttons
+          '<form action="#" autocomplete="off" enctype="multipart/form-data" '
+          'method="post"><table><tr id="no_table_response__row">'
+          '<td class="w2p_fl"><label for="no_table_response" id="no_table_'
+          'response__label">Response: </label></td><td class="w2p_fw">'
+          '<input class="string" id="no_table_response" name="response" '
+          'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
+          'id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw">'
+          '<input type="submit" value="Submit" /></td><td class="w2p_fc"></td>'
+          '</tr></table><div style="display:none;"><input name="pre_bug_step_id" '
+          'type="hidden" value="2" /></div></form>',
+          True  # replystep
+          ),
+         (89,  # path # case1======================================================
+          101,  # step
+          'agora',
+          [2, 8, 14, 17, 31, 40, 41, 42],  # npcs here
+          [{'tag': 1,  # trecs
+            'tlast_right': dt('2013-01-29'),
+            'tlast_wrong': dt('2013-01-29'),
+            'times_right': 1,
+            'times_wrong': 1,
+            'secondary_right': None}],
+          {'latest_new': 1,  # tpout
+           'cat1': [61], 'cat2': [],
+           'cat3': [], 'cat4': [],
+           'rev1': [], 'rev2': [],
+           'rev3': [], 'rev4': []},
+          True,  # redirect?
+          'Hi there. Sorry, I don\'t have anything for you to '  # prompt text
+          'do here at the moment. I think someone was looking '
+          'for you at \xe1\xbc\xa1 \xcf\x83\xcf\x84\xce\xbf\xce\xac.',
+          None,  # instructions
+          None,  # slide decks
+          None,  # widget image
+          ['map'],  # response buttons
+          None,  # response form
+          False  # replystep
+          )
          ])
     def test_walk_ask(self, pathid, stepid, alias, npcshere, trecs, tpout, redir,
                       promptext, instrs, slidedecks, widgimg, rbuttons,
@@ -5843,8 +5841,9 @@ class TestWalk():
         """
         # setting up test objects and db test data
         tpout['name'] = user_login['id']
+
+        # set up attempt_log rows
         db(db.attempt_log.name == user_login['id']).delete()
-        db.commit()
         atags = chain.from_iterable([v for k, v in tpout.iteritems()
                                      if k in ['cat1', 'cat2', 'cat3', 'cat4']])
         for t in atags:
@@ -5853,17 +5852,17 @@ class TestWalk():
             s['tag'] = t
             mycount = s['times_wrong'] + s['times_right']
             if mycount > 0:
+                print 'inserting', mycount, 'logs for tag', t
                 log_generator(user_login['id'], s['tag'], mycount,
                               s['times_right'], s['tlast_right'],
                               s['tlast_wrong'], dt('2013-01-01'), db)
         db(db.tag_progress.name == user_login['id']).delete()
-        db.commit()
         db.tag_progress.insert(**tpout)
+
+        # set up tag_regords
         db(db.tag_records.name == user_login['id']).delete()
-        db.commit()
-        print 'trecs:\n', trecs
         for tr in trecs:
-            print 'tag:', tr['tag']
+            print 'inserting tag record for tag:', tr['tag']
             db.tag_records.insert(**tr)
         db.commit()
 

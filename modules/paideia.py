@@ -16,10 +16,9 @@ from pytz import timezone
 import pickle
 from plugin_utils import flatten, makeutf8, encodeutf8
 from plugin_widgets import MODAL
-from pprint import pprint
+#from pprint import pprint
 from paideia_utils import Paideia_Debug, normalize_accents
 
-#True = debug to screen, False is normal
 #current.paideia_DEBUG_MODE is set in Walk::init
 # TODO: move these notes elsewhere
 """
@@ -86,7 +85,6 @@ class Walk(object):
                  new_user=None):
         """Initialize a Walk object."""
         #set DEBUG_MODE to True to see debugging info on the screen
-        #also uncomment  paideia_debug.do_print stmts
         #-----------------------------------------------
         self.DEBUG_MODE = False
         current.paideia_DEBUG_MODE = self.DEBUG_MODE
@@ -103,9 +101,6 @@ class Walk(object):
 
     def _new_user(self, userdata, tag_records, tag_progress):
         '''Return a new User object for the currently logged in user.'''
-        #current.paideia_debug.do_print({'userdata':userdata,
-        #                                'tag_records':tag_records,
-        #                                'tag_progress': tag_progress},"_new_user called:before")
         auth = current.auth
         db = current.db
         uid = auth.user_id
@@ -122,9 +117,6 @@ class Walk(object):
                 db.commit()
                 tag_progress = db(db.tag_progress.name == uid).select().first()
             tag_progress = tag_progress.as_dict()
-        #current.paideia_debug.do_print({'userdata':userdata,
-        #                                'tag_records':tag_records,
-        #                                'tag_progress': tag_progress},"_new_user called:after")
         return User(userdata, tag_records, tag_progress, blocks=[])  # TODO: find out where the mysterious blocks are coming from
 
     def _get_user(self, userdata=None, tag_records=None,
@@ -133,17 +125,12 @@ class Walk(object):
         Initialize or re-activate User object.
         All named arguments are necessary.
         '''
-        #current.paideia_debug.do_print({'userdata':userdata,
-        #                                'tag_records':tag_records,
-        #                                'tag_progress': tag_progress,
-        #                                'new_user': new_user}," Brisbane in _get_user")
         auth = current.auth
         db = current.db
         try:  # look for user object already on this Walk
             assert (self.user) and new_user is None
         except (AttributeError, AssertionError):  # because no user yet on this Walk
             try:
-                #current.paideia_debug.do_print('sd = db(db.session_data.name'," Brisbane in _get_user trying to get sd")
                 sd = db(db.session_data.name ==
                         auth.user_id).select().first()
                 if sd:
@@ -155,10 +142,8 @@ class Walk(object):
                 assert not new_user
             except (KeyError, TypeError):  # Problem with session data
                 print traceback.format_exc(5)
-                #current.paideia_debug.do_print({'trace': traceback.format_exc(5)}," Brisbane in exception for _get_user")
                 self.user = self._new_user(userdata, tag_records, tag_progress)
             except (AssertionError, AttributeError):  # user stale or block
-                #current.paideia_debug.do_print('self.user = self._new_user(userdata, tag_records, tag_progress)'," Brisbane in _get_user ")
                 self.user = self._new_user(userdata, tag_records, tag_progress)
         if isinstance(self.user.quota, list):
             self.user.quota = self.user.quota[0]
@@ -173,30 +158,15 @@ class Walk(object):
         the controller. The method decides whether we're starting a new step or
         responding to one in-process.
         """
-        #print'\nIN START'
-        #debug
-        ####current.paideia_debug.do_print(localias,"localias")
-        ####current.paideia_debug.do_print(response_string,"response_string")
-        ####current.paideia_debug.do_print(path,"path")
-        ####current.paideia_debug.do_print(repeat,"repeat")
-        ####current.paideia_debug.do_print(set_blocks,"set_blocks")
-        ####current.paideia_debug.do_print(recategorize,"recategorize")
-
-        #JOB ... oct 22, 2014
         result = None
 
         try:
             while True:
                 if response_string:
-                    #debug
-                    ####current.paideia_debug.do_print("response string is good","message")
-                    ##current.paideia_debug.do_print("reply","calling Walk.reply")
                     result = self.reply(localias=localias,
                                       response_string=response_string,
                                       pre_bug_step_id=pre_bug_step_id)
                 if result: break
-                #debug
-                ##current.paideia_debug.do_print("ask 1","calling Walk.ask")
                 result = self.ask(localias=localias,
                                 path=path,
                                 repeat=repeat,
@@ -207,26 +177,19 @@ class Walk(object):
         except Exception:
             print traceback.format_exc(5)
             self.clean_user()  # get rid of any problem path data
-            #debug
-            ####current.paideia_debug.do_print("ask 2","message")
             result = self.ask(localias=localias, path=path, step=step)
-            ####current.paideia_debug.do_print("ask 2 finished","message")
-            #return excp_ask
         if self.DEBUG_MODE:
             result['paideia_debug'] = '<div>' + current.paideia_debug.data + '</div>'
         else:
             #TODO: strip off html tags
             print current.paideia_debug.data
             result['paideia_debug'] = ''
-        #debug
-        #print result
         return result
 
     def clean_user(self):
         """
         In case of irrecoverable conflict in user data, remove all path/steps.
         """
-        #print'\n error, cleaning user--------------------------------------\n'
         user = self._get_user()
         user.path = None
         self._store_user(user)
@@ -394,22 +357,13 @@ class Walk(object):
             'times_wrong':
             'user_response':
         """
-        #print'\n================================'
-        ##current.paideia_debug.do_print({'response_string':response_string}, "Marseilles- reply")
-        print'\nSTART OF Walk.reply()'
-        #debug
-        ##current.paideia_debug.do_print((path,step), "orpington-reply called with path and step:")
+        #print'\nSTART OF Walk.reply()'
         user = self._get_user()
         loc = user.get_location()
         p, cat = user.get_path(loc)[:2]
 
-        #current.paideia_debug.do_print("ask 3","message")
-
         s = p.get_step_for_reply()
-        #print'\n 00000001'
         if (not response_string) or re.match(response_string, r'\s+'):
-            #debug
-            ###cask(urrent.paideia_debug.do_print("ask 3","message")
             #return self.ask()  # TODO: will this actually re-prompt the same step?
             return None
         prompt = s.get_reply(response_string)  # loc and npc stored on step
@@ -419,7 +373,6 @@ class Walk(object):
                                  user.promoted,
                                  user.new_tags)
         """
-        #current.paideia_debug.do_print({'user.tag_records':user.tag_records},"Brisbane - user.tag_records before calling _record_step")
         self.record_id = self._record_step(user.get_id(),
                                            s.get_id(),
                                            p.get_id(),
@@ -429,9 +382,6 @@ class Walk(object):
                                            user.tag_records,
                                            s.get_tags(),
                                            response_string)
-        ##current.paideia_debug.do_print(response_string, "halifax ----response string in reply ----")
-        ##current.paideia_debug.do_print(prompt, "halifax ----prompt in reply ----")
-        ##current.paideia_debug.do_print(pre_bug_step_id, "halifax ---- pre bug step id in reply ----")
         prompt['bugreporter'] = BugReporter().get_reporter(self.record_id,
                                                            p.get_id(),
                        pre_bug_step_id if pre_bug_step_id else s.get_id(),
@@ -466,7 +416,6 @@ class Walk(object):
                         data = {'name': user_id,
                                 'tag': tag,
                                 cat.replace('rev', 'cat'): now}
-                        #current.paideia_debug.do_print(({'data': data}), "Marseilles- data being recorded in _record_promotion")
                         db.badges_begun.update_or_insert(
                                 (db.badges_begun.name == user_id) &
                                 (db.badges_begun.tag == tag), **data)
@@ -493,54 +442,28 @@ class Walk(object):
         - badges_begun: new and promoted tags
         - tag_progress: changes to categorization (only if changes made)
         """
-        #current.paideia_debug.do_print(({'tag_progress': tag_progress},{'promoted': promoted}, {'new_tags': new_tags},{'demoted': demoted}), "Marseilles- record_cats called")
         db = current.db if not db else db
         auth = current.auth
         uid = self.user.get_id()
         if uid == auth.user_id:
             # TODO: make sure promoted and new_tags info passed on correctly
-            # combine promoted and new_tags for recording purposes
 
-            #JOB ... oct 30, 2014... commenting out
-            #if promoted:
-            #    promoted['cat1'] = new_tags
-            #elif new_tags:
-            #    promoted = {'cat1': new_tags}
-
-            #else:
-            #    promoted is None
             if promoted:
-                #debug dont forget to delete
-                #promoted['cat1'].append(72)
-                #promoted['cat3']= [18]
-                #end debug
-                ##current.paideia_debug.do_print(({'promoted before record': promoted}), "Marseilles- record_cats called")
                 assert self._record_promotions(promoted, uid)
-                ##current.paideia_debug.do_print(({'promoted_after record': promoted}), "Marseilles- record_cats called")
             if demoted:
-                ##current.paideia_debug.do_print(({'demoted before record': demoted}), "Marseilles- record_cats called")
                 assert self._record_demotions(demoted, uid)
-                ##current.paideia_debug.do_print(({'demoted after record': demoted}), "Marseilles- record_cats called")
             if new_tags:
-                #current.paideia_debug.do_print(({'new_tags': new_tags}), "Marseilles- recording new_tags")
-                #assert self._record_promotions({'cat1':new_tags}, uid)
                 assert self._record_promotions(new_tags, uid)
             try:
                 tag_progress['name'] = uid
                 condition = {'name': uid}
-                #pprint(tag_progress)
 
-                #debug ... dont forget to take this out!
-                #tag_progress['cat2'].append(82)
-                #debug
-                #current.paideia_debug.do_print(({'tag_progres before update': tag_progress}), "Marseilles- tag_progress")
                 db.tag_progress.update_or_insert(condition, **tag_progress)
                 db.commit()
                 mycount = db(db.tag_progress.name == uid).count()
                 assert mycount == 1  # ensure there's never a duplicate
                 # TODO: eliminate check by making name field unique
             except Exception:
-                #current.paideia_debug.do_print(tag_progress, "el paso- this exception in _record_cats is not expected")
                 print traceback.format_exc(5)
                 return False
             return True
@@ -566,9 +489,6 @@ class Walk(object):
                                                  tag=tag,
                                                  secondary_right=sec_right)
         db.commit()
-        #debug
-        #print'in update_tag_secondary'
-        #printdb._lastsql
         return tagrec
 
     def _add_from_logs(self, tag, user_id, newdata, tright, twrong, got_right):
@@ -722,8 +642,6 @@ class Walk(object):
                     oldrec = None
                 self._update_tag_secondary(t, oldrec, user_id, now=mynow)
 
-        print 'recording step', step_id
-        print 'recording path', path_id
         log_args = {'name': user_id,
                     'step': step_id,
                     'in_path': path_id,
@@ -731,8 +649,6 @@ class Walk(object):
                     'user_response': response_string}  # time automatic in db
         log_record_id = db.attempt_log.insert(**log_args)
         db.commit()
-        print 'log id:', log_record_id
-        print 'got_right:', got_right
         self.user.complete_path(got_right)
         return log_record_id
 
@@ -746,13 +662,11 @@ class Walk(object):
 
         try:
             myuser = pickle.dumps(user)
-            print 'userid:', user.get_id()
             condition = {'name': user.get_id()}
             rownum = db.session_data.update_or_insert(condition,
                                                       name=user.get_id(),
                                                       other_data=myuser)
             db.commit()
-            print 'rownum:', rownum
             return rownum
         except Exception:
             print traceback.format_exc(5)
@@ -1011,7 +925,6 @@ class Step(object):
         """
         Return the id of the current step as an integer.
         """
-        pprint(self.data)
         return self.data['id']
 
     def get_npcs(self):
@@ -1060,8 +973,6 @@ class Step(object):
                 rslt = True
                 break
             break
-        #debug
-        ##current.paideia_debug.do_print('step_id:' + str(self.get_id()) + ' result:' + ('True' if rslt else 'False'), "tewksbusy: has locations")
         return rslt
 
     def _get_slides(self):
@@ -1178,8 +1089,6 @@ class Step(object):
         Return the provided string with tokens replaced by personalized
         information for the current user.
         """
-        #print'raw_prompt ======================================'
-        #printraw_prompt
         if not reps:
             reps = {}
             reps['[[user]]'] = username
@@ -1203,8 +1112,6 @@ class Step(object):
                 v = ''
             newstr = newstr.replace(k, v)
 
-        #print'new string ====================================='
-        #printnew_string
         return {'newstr': newstr}
 
     def get_npc(self, loc, prev_npc=None, prev_loc=None):
@@ -1242,9 +1149,7 @@ class Step(object):
                 try:
                     pick = npc_here_list[randrange(len(npc_here_list))]
                 except ValueError:  # "empty range for randrange()" if no npcs here
-                    #debug
                     current.paideia_debug.do_print("randrange error permitted", '-boston-')
-                    #print traceback.format_exc(5)
                     mail = current.mail
                     msg = HTML(P('In selecting an npc there were none found for'
                                  'the combination:',
@@ -1325,13 +1230,6 @@ class StepRedirect(Step):
         this step.
         """
         prompt = super(StepRedirect, self).get_prompt(loc, npc, username)
-        #JOB ... oct 23, 2014 ... be forced to go back to the map
-        #if redirect is the only block
-        #if you continue, bad things can happen in the background
-        #err ok not sure
-        #if this is the only block, popping it from User::blocks will leave
-        #User::blocks empty
-        ##current.paideia_debug.do_print({'user_blocks_left':user_blocks_left},"Message from StepRedirect::get_prompt")
         if user_blocks_left:
             prompt['response_buttons'] = ['map', 'continue']
         else:
@@ -1394,8 +1292,6 @@ class StepAwardBadges(StepContinue, Step):
                                       and kw['new_tags']) else None
         promoted = kw['promoted'] if ('promoted' in kw.keys()
                                       and kw['promoted']) else None
-        #print'new tags:', new_tags, 'promoted', promoted
-        #current.paideia_debug.do_print({'kw':kw},"_make_replacements called")
 
         conj = " and you're" if promoted else "You are"
         nt_rep = ''
@@ -1445,8 +1341,6 @@ class StepAwardBadges(StepContinue, Step):
                         prom_rep += line
         appds['[[promoted_list]]'] = prom_rep
 
-        #print'reps are ==================================================='
-        #pprint(reps)
         newstr = (super(StepAwardBadges, self
                         )._make_replacements(raw_prompt, username,
                                              reps=reps, appds=appds))['newstr']
@@ -1709,15 +1603,6 @@ class StepEvaluator(object):
             else:
                 regex3 = None
 
-            # debugging output
-            #print 'regex -------------------------------------'
-            #print makeutf8(user_response)
-            #printmatch = re.match(regex1, makeutf8(user_response))
-            #if printmatch:
-                #print printmatch.group()
-            #else:
-                #print 'failed'
-
             if re.match(regex1, makeutf8(user_response)):
                 score = 1
                 reply = "Right. Κάλον."
@@ -1772,11 +1657,7 @@ class StepEvaluator(object):
                            'score': 0,
                            'answer': exception_msg,
                            'loc': 0})
-            #current.paideia_debug.do_print({'user_response':user_response,
-            #                                'responses':responses},"error in StepEvaluator::get_eval")
             # FIXME: is there still a view for this?
-            #debug
-            #redirect(URL('index', args=['error', 'regex']))
             reply = 'Oops! I seem to have encountered an error in this step.'
 
         tips = self.tips  # TODO: customize tips for specific errors
@@ -1849,16 +1730,13 @@ class Path(object):
                 # TODO: Does this cause problems?
                 self._reset_steps()
 
-                #added by JOB ... sept 22, 2014, step_for_prompt needs to be set after reset
+                # added by JOB ... sept 22, 2014, step_for_prompt needs to be
+                # set after reset
                 if self.steps:
                     next_step = self.steps.pop(0)
                     self.step_for_prompt = next_step
-                ####current.paideia_debug.do_print("_prepare_for_prompt:stepcount < 1","message")
-                ####current.paideia_debug.do_print(self.step_for_prompt, "step_for_promt in _prepare_for_prompt:stepcount < 1")
                 return True
             else:
-                ####current.paideia_debug.do_print(len(self.steps),"in _prepare_for_prompt: ', len(self.steps), 'steps remain'")
-                #print'in _prepare_for_prompt: ', len(self.steps), 'steps remain'
                 next_step = self.steps.pop(0)
                 self.step_for_prompt = next_step
                 return True
@@ -1902,11 +1780,8 @@ class Path(object):
             self.steps = copy(self.completed_steps)
             self.completed_steps = []
         if len(self.steps) == 0:
-            #changed by JOB ... sept 22, 2014 ... get_steps takes no args
-            #self.steps = self.get_steps(self.username)
             self.steps = self.get_steps()
             assert len(self.steps) > 0
-        ####current.paideia_debug.do_print(self.steps,"in _reset_steps, this is self.steps")
         return True
 
     def get_step_for_prompt(self, loc, repeat=None):
@@ -1918,22 +1793,15 @@ class Path(object):
         if repeat:
             assert self._reset_steps()
 
-        # make sure controller hasn't skipped processing an earlier step's reply
-        # if self.step_for_reply:
-        # self.step_for_prompt = copy(self.step_for_reply)
-        # self.step_for_reply = None
-
         # get step if there isn't already one from redirect
         if not self.step_for_prompt:
             assert self._prepare_for_prompt()
         mystep = self.step_for_prompt
-        ####current.paideia_debug.do_print(mystep, "mystep")
 
         next_loc = None
         error_string = None
         this_step_id = None
         goodlocs = mystep.get_locations()
-        ##current.paideia_debug.do_print(goodlocs, "philadelphia - goodlocs")
         if not loc.get_id() in goodlocs:
             try:
                 this_step_id = mystep.get_id()
@@ -2159,15 +2027,11 @@ class PathChooser(object):
         new_loc = None
         mode = None
         completed_list = [int(k) for k in self.completed['paths'].keys()]
-        print 'completed_list --------------'
-        print completed_list
 
         while True:
             loc_id = self.loc_id
             db = current.db
             p_new = [p for p in cpaths if p['id'] not in completed_list]
-            print 'pnew -----------------'
-            print sorted([p['id'] for p in p_new])
             p_here = [p for p in cpaths
                       if loc_id in db.steps[int(p['steps'][0])].locations]
             p_here_new = [p for p in p_here if p in p_new]
@@ -2175,8 +2039,6 @@ class PathChooser(object):
             p_tried_ids = list(set([p['id'] for p in cpaths]
                                    ).intersection(completed_list))
             p_tried = [p for p in cpaths if p['id'] in p_tried_ids]
-            print 'ptried -------------'
-            print sorted([p['id'] for p in p_tried])
 
             # untried path available here
             if p_here_new:
@@ -2396,8 +2258,6 @@ class User(object):
         """
         p_len = 0
         for x in self.completed_paths['paths']:
-            #debug
-            #print {'self.completed_paths':self.completed_paths}
             p_len += self.completed_paths['paths'][x]['right']
             p_len += self.completed_paths['paths'][x]['wrong']
         return p_len
@@ -2430,12 +2290,9 @@ class User(object):
             for b in self.blocks:
                 if not b.get_condition() in [c.get_condition() for c in blockset]:
                     blockset.append(b)
-                    #current.paideia_debug.do_print(({'sc': current.sequence_counter},{'b':b.get_condition()}), "Brisbane- in check for blocks, appending b")
             self.blocks = blockset
-            ##current.paideia_debug.do_print(({'sc': current.sequence_counter},{'self.blocks':[x.condition for x in  self.blocks] if self.blocks else []}), "Marseilles- in check for blocks, these blocks where found")
             current.sequence_counter += 1
             myblock = self.blocks.pop(0)
-            #current.paideia_debug.do_print(({'sc': current.sequence_counter},{'my block': myblock.condition if myblock  else 'Empty'},{'new self.blocks':[x.condition for x in  self.blocks] if self.blocks else None}), "Brisbane- in check_for_blocks, these are the blocks left")
             current.sequence_counter += 1
             return myblock
         else:
@@ -2487,7 +2344,6 @@ class User(object):
         start = self.session_start if not start else start
         lstart = tz.fromutc(start)
         daystart = local_now.replace(hour=0, minute=0, second=0, microsecond=0)
-        #current.paideia_debug.do_print(({'sc': current.sequence_counter},{'self.blocks':[x.condition for x in  self.blocks] if self.blocks else None}), "Brisbanme- in User::is_stale ... end")
         if lstart < daystart:
             return True
         elif lstart > local_now:
@@ -2625,7 +2481,6 @@ class User(object):
                     tp_sel = db(db.tag_progress.name == user_id).select()
                     assert len(tp_sel) == 1
                     tpdict = tp_sel.first().as_dict()
-                print 'tpdict ---------------\n', tpdict
                 self.tag_progress = tpdict
                 rank = tpdict['latest_new']
                 cat1_choices = tpdict['cat1_choices'] if 'cat1_choices' in tpdict.keys() else 0
@@ -2718,8 +2573,6 @@ class Categorizer(object):
         self.rank = rank
         self.tag_records = tag_records
         self.old_categories = tag_progress
-        print'Categorizer __init__: categories ------------------'
-        pprint(tag_progress)
         self.utcnow = utcnow if utcnow else datetime.datetime.utcnow()
         self.secondary_right = secondary_right
 
@@ -2756,8 +2609,6 @@ class Categorizer(object):
             rank = 1
         old_categories = self.old_categories if not old_categories \
                          else old_categories
-        print 'categorize_tags ==================='
-        print 'old_categories:', old_categories
 
         if not tag_records:  # allows passing trecs for testing
             db = current.db if not db else db
@@ -2792,14 +2643,10 @@ class Categorizer(object):
                                      if tag_records and t['secondary_right']]):
                 self._add_secondary_right(t)
             categories = self._core_algorithm()
-            print 'after core ----------------\n', categories
             categories = self._add_untried_tags(categories)
-            print 'after untried ----------------\n', categories
             categories = self._remove_dups(categories, rank)
-            print 'after dups ----------------\n', categories
             categories.update((c, []) for c in ['cat1', 'cat2', 'cat3', 'cat4'])
             cat_changes = self._find_cat_changes(categories, old_categories)
-            print 'after cat changes ----------------\n', cat_changes['categories']
 
             promoted = cat_changes['promoted']
             demoted = cat_changes['demoted']
@@ -2819,7 +2666,9 @@ class Categorizer(object):
                 while True:
                     newlist = self._introduce_tags(rank=rank)
                     if not newlist:
-                        current.paideia_debug.do_print({'rank': rank}, "ERROR: failed to get tags for rank")
+                        current.paideia_debug.do_print({'rank': rank},
+                                                       "ERROR: failed to get "
+                                                       "tags for rank")
                         break
                     curr_rev1 = tag_progress['rev1'] if ('rev1' in tag_progress and tag_progress['rev1']) else []
                     curr_cat1 = tag_progress['cat1'] if ('cat1' in tag_progress and tag_progress['cat1'])else []
@@ -2905,18 +2754,9 @@ class Categorizer(object):
 
             # move tlast_right forward to reflect recent secondary success
             if avg_date > rec['tlast_right']:
-                print "halifax, avg_date > rec['tlast_right'] "
                 rec['tlast_right'] = avg_date
 
             rec['secondary_right'] = right2[-(rem2):] if rem2 else []
-
-            # FIXME: remove this test code
-            #test where we change the last_right of the rec
-            #test_rec = deepcopy(rec)
-            #test_rec['tlast_right'] = test_rec['tlast_right'] - datetime.timedelta(days=300)
-            #if avg_date > test_rec['tlast_right']:
-            #    print "halifax, avg_date > test_rec['tlast_right'] "
-            #    test_rec['tlast_right'] = avg_date
 
             #write new record to dbase
             condition = {'tag': rec['tag'], 'name': rec['name']}
@@ -2986,10 +2826,8 @@ class Categorizer(object):
         """
         categories = {'rev1': [], 'rev2': [], 'rev3': [], 'rev4': []}
         tag_records = tag_records if tag_records else self.tag_records
-        #debug
-        debug_toggle_delete_me = 0
+
         for record in tag_records:
-            #print'halifax tag', record['tag'], '================================='
             lrraw = record['tlast_right']
             lwraw = record['tlast_wrong']
             lr = lrraw if not isinstance(lrraw, str) else parser.parse(lrraw)
@@ -3035,13 +2873,11 @@ class Categorizer(object):
                         else:
                             category = 'rev4'  # Not due, delta > 60 days
                     else:
-                        ##current.paideia_debug.do_print({'tag': record['tag']}, "cern- this is going to be cat3")
                         category = 'rev3'  # delta between 14 and 60 days
                 else:
                     category = 'rev2'  # Not due but delta is 2 weeks or less
             else:
                 category = 'rev1'  # Spaced repetition requires review
-            #print'************** category is ', category
 
             categories[category].append(record['tag'])
 
@@ -3056,13 +2892,11 @@ class Categorizer(object):
         db = current.db if not db else db
         rank = self.rank if rank is None else rank
 
-        #current.paideia_debug.do_print({'begin rank': rank}, "in introduce tags")
         if rank in (None, 0):
             rank = 1
         else:
             rank += 1
         self.rank = rank
-        #current.paideia_debug.do_print({'end rank': rank,'end self.rank':self.rank}, "in introduce tags")
 
         newtags = [t['id'] for t in
                    db(db.tags.tag_position == rank).select().as_list()]
@@ -3122,9 +2956,8 @@ class Categorizer(object):
             promoted = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
             oldcats = {k: v for k, v in oldcats.iteritems()
                        if k[:3] == 'cat'}  # facilitates demotion tasks
-            print 'oldcats ------------------------\n', oldcats
             oldcats = self._remove_dups(oldcats, self.rank)
-            print 'oldcats ------------------------\n', oldcats
+
             #copy oldcats into new new 'cats'
             # in preparation for finding diffs from rev1-4 and updating as
             # appropriate
@@ -3139,8 +2972,6 @@ class Categorizer(object):
             oldkeys = ['cat1', 'cat2', 'cat3', 'cat4']
             # TODO: cleaning up bad data; deprecate after finished
             oldcats = self._fix_oldcats(oldcats, uid, bbrows=bbrows)
-            print 'oldcats ------------------------\n', oldcats
-            print 'cats ------------------------\n', cats
 
             for cat, taglist in cats.iteritems():
                 oldkey = 'cat{}'.format(cat[-1:])
@@ -3148,7 +2979,6 @@ class Categorizer(object):
                     # Is tag completely new to this user?
                     oldvals = [v for v in oldcats.values() if v]
                     all_old_tags = list(chain.from_iterable(oldvals))
-                    #print 'all_old_tags ------------------------\n', all_old_tags
                     new_tags[cat] = [t for t in cats[cat] if t not in all_old_tags]
 
                     # was tag in a lower category before?
@@ -3163,9 +2993,6 @@ class Categorizer(object):
                                                            in oldkeys[idx + 1:]
                                                            if oldcats[c]]))
                     demoted[oldkey] = [t for t in taglist if t in was_higher]
-            print 'promoted -----------------\n', promoted
-            print 'demoted -----------------\n', demoted
-            print 'new_tags -----------------\n', new_tags
 
             # remove promoted from old cat list and insert into higher cat list
             if any([k for k, v in promoted.iteritems() if v]):
@@ -3247,7 +3074,6 @@ class Block(object):
         """
         self.condition = condition
         self.kwargs = kwargs
-        ##current.paideia_debug.do_print(({'sc': current.sequence_counter},{'self.condition':self.condition},{'self.kwargs':self.kwargs}), "Marseilles- Block constructor called")
         current.sequence_counter += 1
 
     def make_step(self, condition):
@@ -3262,7 +3088,6 @@ class Block(object):
                   step_classes[condition]).select(orderby='<random>').first()
         mystep = StepFactory().get_instance(step_id=step['id'],
                                             kwargs=self.kwargs)
-        ##current.paideia_debug.do_print(({'sc': current.sequence_counter},{'condition':condition},{'mystep':mystep}), "Marseilles- Block::make_step called")
         current.sequence_counter += 1
         return mystep
 
@@ -3298,4 +3123,3 @@ class Exception_Bug(object):
             db.commit()
         except Exception:
             print traceback.format_exc(5)
-            #current.paideia_debug.do_print(exception_data, "couldn't insert this exception data")
