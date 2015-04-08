@@ -14,7 +14,7 @@ import datetime
 from dateutil import parser
 from pytz import timezone
 import pickle
-from plugin_utils import flatten, makeutf8, encodeutf8
+from plugin_utils import flatten, makeutf8, encodeutf8, ErrorReport
 from plugin_widgets import MODAL
 #from pprint import pprint
 from paideia_utils import Paideia_Debug, normalize_accents
@@ -565,7 +565,7 @@ class Walk(object):
                             (db.tag_records.name == user_id)
                             ).select().first().as_dict()
             except:
-                print traceback.format_exc()
+                #print traceback.format_exc()
                 oldrec = None
 
         newdata = {'times_right': tright,
@@ -947,10 +947,22 @@ class Step(object):
         """
         Step.get_locations
         Return a list of the location id's for this step.
+
+        Filters out locations which are not currently set as active.
+
         """
         db = current.db
-        return [l for l in self.data['locations']
-                if db.locations[l].loc_active is True]
+        if self.data['locations']:
+            locs = [l for l in self.data['locations']
+                    if db.locations[l].loc_active is True]
+        else:
+            locs = None
+            stepid = self.get_id()
+            xtra_msg = 'Step {} has no assigned locations'.format(self.get_id())
+            ErrorReport().send_report('Step', 'get_locations',
+                                      subtitle='no locations for step',
+                                      xtra=xtra_msg)
+        return locs
 
     def is_valid(self):
         """
@@ -1190,11 +1202,11 @@ class Step(object):
         JOB: ..dec 1, 2014
         """
         info = {'Class': 'Step',
-                 'data': str(self.data),
-                 'repeating': self.repeating,
-                 'npc': self.npc,
-                 'redirect_loc_id': self.redirect_loc_id,
-                 'kwargs': str(self.kwargs),
+                'data': str(self.data),
+                'repeating': self.repeating,
+                'npc': self.npc,
+                'redirect_loc_id': self.redirect_loc_id,
+                'kwargs': str(self.kwargs),
                 'cat_tag': self.cat_tag}
         return str(info)
 
@@ -1866,9 +1878,11 @@ class PathChooser(object):
         self.CONSTANT_USE_CAT = 'cat1'
         self.CONSTANT_USE_REV = 'rev1'
         self.cat1_choices = tag_progress['cat1_choices'] \
-            if 'cat1_choices' in tag_progress.keys() else 0  # counts cat1 choices
+            if 'cat1_choices' in tag_progress.keys() \
+            and tag_progress['cat1_choices'] else 0  # counts cat1 choices
         self.all_choices = tag_progress['all_choices'] \
-            if 'all_choices' in tag_progress.keys() else 0  # counts total choices
+            if 'all_choices' in tag_progress.keys() \
+            and tag_progress['all_choices'] else 0  # counts total choices
         self.tag_progress = tag_progress
 
     def _set_pathchooser_rank(self, tag_progress=None, given_rank=0):
@@ -1967,6 +1981,8 @@ class PathChooser(object):
             stepsrows = db(db.steps.tags.contains(taglist)).select()
             stepsrows = stepsrows.find(lambda row: row.status != 2)
             stepslist = [v.id for v in stepsrows]
+            print 'stepslist----------------'
+            print sorted(stepslist)
             if not stepslist:
                 break
 
@@ -1996,7 +2012,11 @@ class PathChooser(object):
                 #break
             """
 
-            pathset = db(db.paths.steps.contains(stepslist)).select()
+            #pathset = db(db.paths.steps.contains(stepslist)).select()
+            pathset = db(db.paths.id > 0).select()
+            pathset = pathset.find(lambda row: any(s for s in row.steps
+                                                   if s in stepslist))
+
             # filter out any paths whose steps don't have a location
             pathset = pathset.find(lambda row: all([Step(s).has_locations()
                                                     for s in row.steps]))

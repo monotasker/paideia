@@ -28,10 +28,6 @@ import datetime
 def simple_obj_print(the_dict, title='No Title', indentation=0):
 """
 """
-    Prints a simple thing
-    Joseph Boakye jboakye@bwachi.com
-"""
-"""
     indentation_string = ' '*indentation
     if (None == the_dict):
         print indentation_string  + '{' + str(title) + ': '  + '-None-' +  '}'
@@ -64,61 +60,76 @@ def simple_obj_print(the_dict, title='No Title', indentation=0):
             break
         break
 """
+
+
 def simple_obj_print(the_dict, title='No Title', indentation=0):
+    """
+    Prints a simple thing
+    Joseph Boakye jboakye@bwachi.com
+    """
     output_obj = {'data': ''}
     simple_obj_print_str(output_obj, the_dict, title, indentation)
     print output_obj['data']
+
 
 def simple_obj_print_str(output_obj, the_dict, title='No Title', indentation=0, doing_what='S'):
     """
     Prints a simple thing ... same as simple_obj_print but print into string
     Joseph Boakye jboakye@bwachi.com
+    some reformatting by Ian W Scott scottianw@gmail.com
     """
     indentation_string = ' '*indentation
     scalar_beg = ''
     scalar_end = ''
-    if doing_what in ('L', 'D' ):
+    if doing_what in ('L', 'D'):
         scalar_beg = '<li>'
         scalar_end = '</li>'
     if (None == the_dict):
-        output_obj['data'] +=  indentation_string + scalar_beg + '<p>' + '{' + str(title) + ': '  + '-None-' +  '}' + '</p>' +  scalar_end
+        output_obj['data'] = ''.join([indentation_string, scalar_beg, '<p>',
+                                      '{', str(title), ': ', '-None-', '}',
+                                      '</p>', scalar_end])
         return
     while True:
         #dictionaries
-        if ( (type(the_dict) == type({})) | isinstance(the_dict, Storage)):
-            output_obj['data'] +=  (indentation_string  + str(title) + '(dict:)' + '<ol title="dict">')
+        if isinstance(the_dict, Storage | dict):
+            output_obj['data'] = ''.join([indentation_string, str(title),
+                                          '(dict:)', '<ol title="dict">'])
             for key in the_dict:
-                #output_obj['data'] +=  (indentation_string  + '<li>')
-                simple_obj_print_str(output_obj,the_dict[key],key,indentation+1,'D')
-                #output_obj['data'] +=  (indentation_string  + '</li>')
-            output_obj['data'] +=  (indentation_string  + '</ol>')
+                simple_obj_print_str(output_obj, the_dict[key], key,
+                                     indentation + 1, 'D')
+            output_obj['data'] += (indentation_string + '</ol>')
             break
 
         #lists
-        if ( (hasattr(the_dict, '__iter__')) |isinstance(the_dict, StorageList)) :
-            output_obj['data'] +=  (indentation_string  + str(title) + '(list:)' + '<ol title="list">')
+        if hasattr(the_dict, '__iter__') or isinstance(the_dict, StorageList):
+            output_obj['data'] = ''.join([indentation_string, str(title),
+                                          '(list:)', '<ol title="list">'])
             count = 0
             try:
                 for value in the_dict:
-                    #output_obj['data'] +=  (indentation_string  + '<li>')
-                    simple_obj_print_str(output_obj,value, count,indentation+1,'L')
-                    #output_obj['data'] +=  (indentation_string  + '</li>')
-                    count +=1
+                    simple_obj_print_str(output_obj, value, count,
+                                         indentation + 1, 'L')
+                    count += 1
             except TypeError, te:
-                simple_obj_print_str(output_obj,"list is not iterable",count,indentation+1)
-                output_obj['data'] +=  (indentation_string  + '</li>')
-            output_obj['data'] +=  (indentation_string  + '</ol>')
+                simple_obj_print_str(output_obj, "list is not iterable",
+                                     count, indentation + 1)
+                output_obj['data'] += (indentation_string + '</li>')
+            output_obj['data'] += (indentation_string + '</ol>')
             break
         #simple item
         while True:
             if type(the_dict) is datetime.datetime:
-                output_obj['data'] +=   (indentation_string  + scalar_beg + '<p>' + '{' + str(title) + ': ' +  \
-                     the_dict.strftime('%Y %m %d %H %M %S %f') +  '}' + '</p>' +  scalar_end)
+                strft = the_dict.strftime('%Y %m %d %H %M %S %f')
+                output_obj['data'] = ''.join([indentation_string, scalar_beg,
+                                              '<p>', '{', str(title), ': ',
+                                              strft, '}', '</p>', scalar_end])
                 break
-            output_obj['data'] +=  ( indentation_string + scalar_beg + '<p>' + '{' + str(title) + ': '  +  str(the_dict) +  '}' + '</p>' +  scalar_end)
+            output_obj['data'] = ''.join([indentation_string, scalar_beg,
+                                          '<p>', '{', str(title), ': ',
+                                          str(the_dict), '}', '</p>',
+                                          scalar_end])
             break
         break
-
 
 
 class Paideia_Debug(object):
@@ -131,14 +142,19 @@ class Paideia_Debug(object):
         """
         self.data = 'Debug Enabled'
 
-    def do_print(self, the_object,the_title):
-        data_obj = dict(data='');
+    def do_print(self, the_object, the_title):
+        data_obj = dict(data='')
         simple_obj_print_str(data_obj, the_object, the_title, 0)
         self.data += data_obj['data']
 
 
 def uprint(myobj):
     """
+    Smart wrapper function to print simple unicode types in a readable form.
+
+    Addresses the problem of print statements to stdout giving unicode code
+    points instead of readable characters.
+
     """
     if type(myobj) == None:
         print 'None'
@@ -152,12 +168,13 @@ def uprint(myobj):
              str: makeutf8}
     printfunc = calls[type(myobj)]
     prettystring = printfunc(myobj)
-    #print prettystring
     return prettystring
 
 
 def uprint_dict(mydict, lvl=0, html=False):
     """
+    Prints a unicode dictionary in readable form.
+
     """
     assert isinstance(mydict, dict)
     indent = '    ' * lvl if lvl > 0 else ''
@@ -180,6 +197,8 @@ def uprint_dict(mydict, lvl=0, html=False):
 
 def uprint_list(mylist, lvl=0):
     """
+    Prints a unicode list in readable form.
+
     """
     assert isinstance(mylist, list)
     indent = '    ' * lvl if lvl > 0 else ''
@@ -202,6 +221,7 @@ def uprint_list(mylist, lvl=0):
 
 def uprint_tuple(mytup, lvl=0):
     """
+    Prints a unicode tuple in readable form.
     """
     assert isinstance(mytup, tuple)
     indent = '    ' * lvl if lvl > 0 else ''
@@ -222,26 +242,17 @@ def uprint_tuple(mytup, lvl=0):
     return newtup
 
 
-def islist(dat):
-    """
-    Return the supplied object converted to a list if it is not already.
-
-    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
-    """
-    return plugin_utils.islist(dat)
-
-
 def sanitize_greek(strings):
     """
-    Check for latin characters mixed with Greek.
+    Check for latin similar characters mixed with Greek and convert them to
+    Greek.
+
     """
     try:
         newstrings = []
         for string in strings:
             string = makeutf8(string)
             rgx = makeutf8(r'(?P<a>[Α-Ωα-ω])?([a-z]|[A-Z]|\d)(?(a).*|[Α-Ωα-ω])')
-            #print 'filterrgx ==============================='
-            #print rgx
             latin = re.compile(rgx, re.U)
             mymatch = re.search(latin, string)
             if not mymatch:
@@ -274,80 +285,10 @@ def sanitize_greek(strings):
                 newstring = multiple_replace(string, *subs)
                 print 'replaced with Greek characters:'
                 print newstring
-            #print 'newstring is ============================'
-            #print newstring
             newstrings.append(newstring)
         return newstrings
     except Exception:
         print traceback.format_exc(12)
-
-
-def clr(string, mycol='white'):
-    """
-    Return a string surrounded by ansi colour escape sequences.
-
-    This function is intended to simplify colourizing terminal output.
-    The default color is white. The function can take any number of positional
-    arguments as component strings, which will be joined (space delimited)
-    before being colorized.
-
-    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
-    """
-    return plugin_utils.clr(string, mycol)
-
-
-def printutf(string):
-    """
-    Convert unicode string to readable characters for printing.
-
-    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
-    """
-    return plugin_utils.printutf(string)
-
-
-def capitalize(letter):
-    """
-    Convert string to upper case in utf-8 safe way.
-
-    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
-    """
-    return plugin_utils.capitalize(letter)
-
-
-def lowercase(letter):
-    """
-    Convert string to lower case in utf-8 safe way.
-
-    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
-    """
-    return plugin_utils.lowercase(letter)
-
-
-def makeutf8(rawstring):
-    """
-    Return the string decoded as utf8 if it wasn't already.
-
-    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
-    """
-    return plugin_utils.makeutf8(rawstring)
-
-
-def firstletter(mystring):
-    """
-    Find the first letter of a byte-encoded unicode string.
-
-    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
-    """
-    return plugin_utils.firstletter(mystring)
-
-
-def capitalize_first(mystring):
-    """
-    Return the supplied string with its first letter capitalized.
-
-    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
-    """
-    return plugin_utils.capitalize_first(mystring)
 
 
 def test_regex(regex, readables):
@@ -356,8 +297,8 @@ def test_regex(regex, readables):
 
     The "readables" argument should be a list of strings to be tested.
 
-    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
     """
+    #TODO: DEPRECATE IN FAVOUR OF PLUGIN_UTILS VERSION
     readables = islist(readables)
     test_regex = re.compile(makeutf8(regex), re.I | re.U)
     rdict = {}
@@ -385,42 +326,6 @@ def test_step_regex():
         result = BEAUTIFY(form.errors)
 
     return form, result
-
-
-def flatten(items, seqtypes=(list, tuple)):
-    """
-    Convert an arbitrarily deep nested list into a single flat list.
-
-    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
-    """
-    return plugin_utils.flatten(items, seqtypes)
-
-
-def send_error(myclass, mymethod, myrequest):
-    """
-    Send an email reporting error and including debug info.
-
-    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
-    """
-    plugin_utils.send_error(myclass, mymethod, myrequest)
-
-
-def make_json(data):
-    """
-    Return json object representing the data provided in dictionary "data".
-
-    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
-    """
-    return plugin_utils.make_json(data)
-
-
-def load_json(data):
-    """
-    Read a json object and return as a simple python type object.
-
-    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
-    """
-    return plugin_utils.load_json(data)
 
 
 def normalize_accents(string):
@@ -538,7 +443,7 @@ def gather_vocab():
          'λιξ', 'ρωλ', 'λαβ', 'ὀδ', 'λαξ', 'δοτς', 'ἀνκλ', 'ρακ', 'πεγ', 'τυνα',
          'βρυμ', 'καρπ', 'βρεδ', 'κιπ', 'μηδ', 'δαλ', 'βετ', 'διπ', 'κλιν', 'πετ',
          'βαδι', 'λικς', 'δακς']
-    mywords = [l for l in unique_words if not l in x]
+    mywords = [l for l in unique_words if l not in x]
     mywords_dict = {}
     dups_dict = {}
     for word in mywords:
@@ -552,8 +457,108 @@ def gather_vocab():
     return mywords_dict, dups_dict
 
 
+"""""""""""""""""""""""""""""""""""""""""""""""""""
+ALL BELOW ARE DEPRECATED, MOVED TO plugin_utils
+"""""""""""""""""""""""""""""""""""""""""""""""""""
+
+
 def multiple_replace(string, *key_values):
     """
     DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
     """
     return plugin_utils.multiple_replacer(string, *key_values)
+
+
+def islist(dat):
+    """
+    Return the supplied object converted to a list if it is not already.
+
+    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
+    """
+    return plugin_utils.islist(dat)
+
+
+def clr(string, mycol='white'):
+    """
+    Return a string surrounded by ansi colour escape sequences.
+
+    This function is intended to simplify colourizing terminal output.
+    The default color is white. The function can take any number of positional
+    arguments as component strings, which will be joined (space delimited)
+    before being colorized.
+
+    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
+    """
+    return plugin_utils.clr(string, mycol)
+
+
+def printutf(string):
+    """
+    Convert unicode string to readable characters for printing.
+
+    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
+    """
+    return plugin_utils.printutf(string)
+
+
+def capitalize(letter):
+    """
+    Convert string to upper case in utf-8 safe way.
+
+    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
+    """
+    return plugin_utils.capitalize(letter)
+
+
+def lowercase(letter):
+    """
+    Convert string to lower case in utf-8 safe way.
+
+    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
+    """
+    return plugin_utils.lowercase(letter)
+
+
+def firstletter(mystring):
+    """
+    Find the first letter of a byte-encoded unicode string.
+
+    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
+    """
+    return plugin_utils.firstletter(mystring)
+
+
+def capitalize_first(mystring):
+    """
+    Return the supplied string with its first letter capitalized.
+
+    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
+    """
+    return plugin_utils.capitalize_first(mystring)
+
+
+def flatten(items, seqtypes=(list, tuple)):
+    """
+    Convert an arbitrarily deep nested list into a single flat list.
+
+    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
+    """
+    return plugin_utils.flatten(items, seqtypes)
+
+
+def make_json(data):
+    """
+    Return json object representing the data provided in dictionary "data".
+
+    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
+    """
+    return plugin_utils.make_json(data)
+
+
+def load_json(data):
+    """
+    Read a json object and return as a simple python type object.
+
+    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
+    """
+    return plugin_utils.load_json(data)
