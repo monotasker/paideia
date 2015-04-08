@@ -91,7 +91,7 @@ def simple_obj_print_str(output_obj, the_dict, title='No Title', indentation=0, 
         return
     while True:
         #dictionaries
-        if isinstance(the_dict, Storage | dict):
+        if isinstance(the_dict, (Storage, dict)):
             output_obj['data'] = ''.join([indentation_string, str(title),
                                           '(dict:)', '<ol title="dict">'])
             for key in the_dict:
