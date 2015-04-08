@@ -3404,6 +3404,18 @@ class TestStep():
         assert isinstance(step, stype) is True
 
     @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('stepid,expected',
+                             [(1, True),
+                              (1, False)
+                              ])
+    def test_step_has_locations(self, stepid, expected):
+        """Test for method Step.get_id """
+        step = StepFactory().get_instance(stepid)
+        if expected is False:
+            step.data['locations'] = None
+        assert step.has_locations() == expected
+
+    @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize("stepid", [1, 2])
     def test_step_get_tags(self, stepid, mysteps):
         """Test for method Step.get_tags """
@@ -5609,7 +5621,7 @@ class TestWalk():
         dbuser = pickle.loads(sd['other_data'])
         assert dbuser.get_id() == user_login['id']
 
-    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.skipif(True, reason='just because')
     @pytest.mark.parametrize('pathid,stepid,alias,npcshere,trecs,tpout,redir,'
                              'promptext,instrs,slidedecks,widgimg,rbuttons,'
                              'rform,replystep',
@@ -6107,6 +6119,7 @@ class TestWalk():
         lastlog = db(db.attempt_log.id > 0).select().last()
         rs = response_string.decode('utf8').encode('utf8')
         print 'rs is', type(rs)
+
         bug_info = (quote_plus(rs),
                     alias,
                     lastlog.id,
@@ -6144,6 +6157,8 @@ class TestWalk():
                         '<button aria-hidden="true" class="pull-right" '
                         'data-dismiss="modal" type="button">Close</button>'
                         '</div></div></div></div>'.format(*bug_info)]
+        print 'actual ============'
+        print a['bugreporter'].xml()
         assert re.match(bug_reporter[0], a['bugreporter'].xml())
         assert not thiswalk.user.path.step_for_reply
         assert not thiswalk.user.path.step_for_prompt
@@ -6156,6 +6171,44 @@ class TestPathChooser():
     '''
     Unit testing class for the paideia.PathChooser class.
     '''
+
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('tp_extra,force_cat1',
+                             [({'all_choices': False, 'cat1_choices': False},
+                               False  # force_cat1
+                               ),
+                              ({'all_choices': 0, 'cat1_choices': 0},
+                               False  # force_cat1
+                               ),
+                              ({'all_choices': 10, 'cat1_choices': 0},
+                               True  # force_cat1
+                               ),
+                              ({'all_choices': 15, 'cat1_choices': 6},
+                               False  # force_cat1
+                               ),
+                              ({'all_choices': 15, 'cat1_choices': 5},
+                               True  # force_cat1
+                               ),
+                              ])
+    def test_pathchooser_check_force_new(self, tp_extra, force_cat1):
+        """
+        Unit test for the paideia.Pathchooser._check_force_new() method.
+        """
+        tp = {'latest_new': 1,  # tpout
+              'cat1': [61], 'cat2': [],
+              'cat3': [], 'cat4': [],
+              'rev1': [61], 'rev2': [],
+              'rev3': [], 'rev4': []}
+        tp.update(tp_extra)
+        locid = 6  # 'shop_of_alexander'
+        completed = {'latest': None,
+                     'paths': {102: {'right': 1, 'wrong': 0}}
+                     },
+        chooser = PathChooser(tp, locid, completed)
+        chooser.CYCLE_LENGTH = 20
+        actual = chooser._check_force_new()
+        expected = force_cat1
+        assert actual == expected
 
     @pytest.mark.skipif(False, reason='just because')
     def test_pathchooser_order_cats(self):
