@@ -16,7 +16,7 @@ from pytz import timezone
 import pickle
 from plugin_utils import flatten, makeutf8, encodeutf8, ErrorReport
 from plugin_widgets import MODAL
-#from pprint import pprint
+from pprint import pprint
 from paideia_utils import Paideia_Debug, normalize_accents
 
 #current.paideia_DEBUG_MODE is set in Walk::init
@@ -2724,6 +2724,8 @@ class Categorizer(object):
         Remove any duplicate tags and any tags beyond user's current rank.
         """
         db = current.db
+        print 'categories======================================='
+        pprint(categories)
         for k, v in categories.iteritems():
             if v:
                 rankv = [t for t in v if db.tags(t)
@@ -2975,7 +2977,7 @@ class Categorizer(object):
             demoted = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
             promoted = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
             oldcats = {k: v for k, v in oldcats.iteritems()
-                       if k[:3] == 'cat'}  # facilitates demotion tasks
+                       if k[:3] == 'cat' and k != 'cat1_choices'}  # facilitates demotion tasks
             oldcats = self._remove_dups(oldcats, self.rank)
 
             #copy oldcats into new new 'cats'

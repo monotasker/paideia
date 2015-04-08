@@ -86,11 +86,11 @@ connect_string = 'postgres://%s:%s@%s/%s' % (postgre['username'],
 if _i_am_running_under_test():
     db = DAL(connect_string, pool_size=1,
              check_reserved=['sqlite', 'postgres'],
-             migrate=False, fake_migrate=False)
+             migrate=False, fake_migrate_all=False)
 else:
     db = DAL(connect_string, pool_size=1,
              check_reserved=['sqlite', 'postgres'],
-             migrate=True, fake_migrate=False)
+             migrate=True, fake_migrate_all=False)
 
 # -------------------------------------------------------------
 # Set up logging
