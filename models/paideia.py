@@ -567,20 +567,6 @@ db.define_table('tag_records',
 #db.executesql('CREATE INDEX IF NOT EXISTS idx_trecs_1 ON tag_records (name, tag);')
 #db.executesql('CREATE INDEX IF NOT EXISTS idx_trecs_2 ON tag_records (tag, name);')
 
-db.define_table('tag_records2',  # FIXME: table for temporary testing, remove
-                Field('name', 'reference auth_user', default=auth.user_id),
-                Field('tag', 'reference tags'),
-                Field('times_right', 'double'),
-                Field('times_wrong', 'double'),
-                Field('tlast_wrong', 'datetime', default=dtnow),
-                Field('tlast_right', 'datetime', default=dtnow),
-                Field('in_path', 'reference paths'),  # was path (reserved term)
-                Field('step', 'reference steps'),
-                Field('secondary_right', 'list:string'),
-                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
-                Field('modified_on', 'datetime', default=request.now),
-                )
-
 db.define_table('bug_status',
                 Field('status_label'),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
