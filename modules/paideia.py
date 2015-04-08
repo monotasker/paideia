@@ -622,8 +622,10 @@ class Walk(object):
         db = current.db
         # TODO: Store and roll back db changes if impersonating
         # TODO: should the threshold here be less than 1 for 'right'?
-        # made change JOB ... got_right seems to be sending the opposite of what it should be -sept 21 2014
-        #fix: if it is make it slightly higher and change the comparison sign
+        # made change JOB ... got_right seems to be sending the opposite of
+        # what it should be -sept 21 2014
+        # fix: if it is make it slightly higher and change the comparison
+        # sign
         score_helper = score + 0.1
         got_right = True if ((score_helper - 1.0) > 0.00000001) else False  # float inaccuracy
 
@@ -647,6 +649,9 @@ class Walk(object):
                     'in_path': path_id,
                     'score': score,
                     'user_response': response_string}  # time automatic in db
+        print 'log args ===================================='
+        print type(log_args['user_response'])
+        pprint(log_args['user_response'])
         log_record_id = db.attempt_log.insert(**log_args)
         db.commit()
         self.user.complete_path(got_right)
