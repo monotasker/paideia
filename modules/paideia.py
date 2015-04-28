@@ -14,9 +14,9 @@ import datetime
 from dateutil import parser
 from pytz import timezone
 import pickle
-from plugin_utils import flatten, makeutf8, encodeutf8, ErrorReport
+from plugin_utils import flatten, makeutf8, encodeutf8  # , ErrorReport
 from plugin_widgets import MODAL
-from pprint import pprint
+# from pprint import pprint
 from paideia_utils import Paideia_Debug, normalize_accents
 
 #current.paideia_DEBUG_MODE is set in Walk::init
@@ -140,6 +140,18 @@ class Walk(object):
                 assert self.user
                 assert self.user.is_stale() is False
                 assert not new_user
+                # FIXME: temporary sanitization of pickled session data
+                # adjusting to new db field names - Apr 28, 2015
+                tp = self.user.tag_progress
+                tpkeys = tp.keys()
+                for oldkey, newkey in {'just_cats': 'cat1_choices',
+                                       'all_cats': 'all_choices'}.iteritems():
+                    if oldkey in tpkeys:
+                        print 'removing', oldkey, 'from stored tag_progress'
+                        tp[newkey] = copy(tp[oldkey])
+                        del tp[oldkey]
+                # FIXME: end of temporary sanitization
+
             except (KeyError, TypeError):  # Problem with session data
                 print traceback.format_exc(5)
                 self.user = self._new_user(userdata, tag_records, tag_progress)
@@ -648,10 +660,10 @@ class Walk(object):
                     'step': step_id,
                     'in_path': path_id,
                     'score': score,
-                    'user_response': response_string}  # time automatic in db
+                    'user_response': makeutf8(response_string)}  # time automatic in db
         print 'log args ===================================='
         print type(log_args['user_response'])
-        pprint(log_args['user_response'])
+        print log_args['user_response']
         log_record_id = db.attempt_log.insert(**log_args)
         db.commit()
         self.user.complete_path(got_right)
@@ -964,9 +976,12 @@ class Step(object):
             locs = None
             stepid = self.get_id()
             xtra_msg = 'Step {} has no assigned locations'.format(self.get_id())
+            # FIXME: turning off to silence email spam during testing
+            """
             ErrorReport().send_report('Step', 'get_locations',
                                       subtitle='no locations for step',
                                       xtra=xtra_msg)
+            """
         return locs
 
     def is_valid(self):
@@ -1347,7 +1362,13 @@ class StepAwardBadges(StepContinue, Step):
                 ranks = ['beginner', 'apprentice', 'journeyman', 'master']
                 prom_clean = {k: v for k, v in promoted.iteritems() if v}
                 for rank, lst in prom_clean.iteritems():
-                    ranknum = int(rank.replace('rev', ''))
+                    # FIXME: why is this sometimes getting 'cat' instead of
+                    # 'rev'?  Apr 28, 2015
+                    try:
+                        ranknum = int(rank.replace('rev', ''))
+                    except ValueError:  # because getting 'cat' instead of 'rev'
+                        ranknum = int(rank.replace('cat', ''))
+                    # end of hack ------------------------------------------
                     label = ranks[ranknum - 1]
                     for l in lst:
                         bname = [row['badge_name'] for row in prom_records
@@ -1976,18 +1997,27 @@ class PathChooser(object):
 
             taglist = []
 
+            def get_stepslist(taglist):
+                myrows = db(db.steps.tags.contains(taglist)).select()
+                myrows = myrows.find(lambda row: row.status != 2)
+                mylist = [v.id for v in myrows]
+                return mylist
+
+            taglist = self.categories['rev{}'.format(cat)]
             if self._check_force_new():
                 cat = 1
                 force_cat1 = True
-                taglist = self.categories['cat1']
+                taglist_cat1 = self.categories['cat1']
+                stepslist = get_stepslist(taglist_cat1)
+                if not stepslist:  # In case no steps in db for cat1 tags
+                    # FIXME: send an error report here?
+                    stepslist = get_stepslist(taglist)
+                print 'taglist from cat1:', taglist
             else:
-                taglist = self.categories['rev{}'.format(cat)]
+                stepslist = get_stepslist(taglist)
 
-            stepsrows = db(db.steps.tags.contains(taglist)).select()
-            stepsrows = stepsrows.find(lambda row: row.status != 2)
-            stepslist = [v.id for v in stepsrows]
-            print 'stepslist----------------'
-            print sorted(stepslist)
+            print 'in _paths_by_category --------------------------------'
+            print 'stepslist:', sorted(stepslist)
             if not stepslist:
                 break
 
@@ -2021,10 +2051,14 @@ class PathChooser(object):
             pathset = db(db.paths.id > 0).select()
             pathset = pathset.find(lambda row: any(s for s in row.steps
                                                    if s in stepslist))
+            print 'paths for those steps:'
+            print [p.id for p in pathset]
 
             # filter out any paths whose steps don't have a location
             pathset = pathset.find(lambda row: all([Step(s).has_locations()
                                                     for s in row.steps]))
+            print 'paths with valid location:'
+            print [p.id for p in pathset]
             pathset = pathset.as_list()
             break
         return pathset, cat, force_cat1
@@ -2053,16 +2087,21 @@ class PathChooser(object):
         mode = None
         completed_list = [int(k) for k in self.completed['paths'].keys()]
 
+        print 'in _choose_from_cat ---------------------------------'
         while True:
             loc_id = self.loc_id
             db = current.db
             p_new = [p for p in cpaths if p['id'] not in completed_list]
+            print 'p_new:', [p['id'] for p in p_new]
             p_here = [p for p in cpaths
                       if loc_id in db.steps[int(p['steps'][0])].locations]
+            print 'p_here:', [p['id'] for p in p_here]
             p_here_new = [p for p in p_here if p in p_new]
+            print 'p_here_new:', [p['id'] for p in p_here_new]
             p_all = [p for p in cpaths]
             p_tried_ids = list(set([p['id'] for p in cpaths]
                                    ).intersection(completed_list))
+            print 'p_tried:', p_tried_ids
             p_tried = [p for p in cpaths if p['id'] in p_tried_ids]
 
             # untried path available here
@@ -2185,7 +2224,10 @@ class PathChooser(object):
 
         # cycle through categories, prioritised in _order_cats()
         for cat in cat_list:
+            print 'checking in cat', cat, '========================================='
             catpaths, category, use_cat1 = self._paths_by_category(cat, self.rank)
+            print 'forcing cat1?', use_cat1
+            print 'catpaths:', [c['id'] for c in catpaths]
             if catpaths and len(catpaths):
                 path, newloc, category, mode = self._choose_from_cat(catpaths,
                                                                      category)
@@ -2421,6 +2463,12 @@ class User(object):
         choice, redir, cat, mode = PathChooser(self.tag_progress,
                                                 loc.get_id(),
                                                 self.completed_paths).choose()
+        print 'in _make_path_choice ----------------------------------------'
+        print 'choice:', choice
+        print 'redir:', redir
+        print 'cat:', cat
+        print 'mode:', mode
+        print '-------------------------------------------------------------'
         condition = {'name': self.get_id()}
         current.db.tag_progress.update_or_insert(condition, **self.tag_progress)
         current.db.commit()
@@ -2729,8 +2777,6 @@ class Categorizer(object):
         Remove any duplicate tags and any tags beyond user's current rank.
         """
         db = current.db
-        print 'categories======================================='
-        pprint(categories)
         for k, v in categories.iteritems():
             if v:
                 rankv = [t for t in v if db.tags(t)
