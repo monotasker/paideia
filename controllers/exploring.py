@@ -1,7 +1,7 @@
 # coding: utf8
 from paideia import Walk, Map
 from ast import literal_eval
-from applications.paideia.modules.paideia_utils import simple_obj_print
+# from applications.paideia.modules.paideia_utils import simple_obj_print
 
 
 if 0:
@@ -78,7 +78,6 @@ def walk():
     element of exploring/index.html.
     """
 
-    
     request = current.request
     print "\n\nstarting walk controller========================================"
     rvars = request.vars
@@ -110,7 +109,7 @@ def walk():
         print "controller.walk: getting map"
         return {'map': Map().show(),
                 'form': testform}
-    elif rargs[0] == 'repeat' and not 'response' in rvars.keys():
+    elif rargs[0] == 'repeat' and 'response' not in rvars.keys():
         print "controller.walk: setting repeat signal"
         stepargs = {'repeat': True}
     else:
@@ -121,20 +120,21 @@ def walk():
             ('response' in rvars and 'response' not in [' ', None]) else None
 
     # pass along test settings to Walk.ask()
-    print '----------------args------------'
+    print '----------------args & vars------------'
+    print 'vars:'
     for x in rvars: print {x: rvars[x]}
-    print 'args'
+    print 'args:'
     for x in rargs: print x
-    print 'cookies' 
-    for x in request.cookies: print {x : request.cookies[x].value} 
-    print '------------end args------------'
+    # print 'cookies'
+    # for x in request.cookies: print {x : request.cookies[x].value}
+    print '------------end args & vars------------'
     if ('blocks' in rvars) and not (rvars['blocks'] in ['', None, 'undefined']):
         stepargs['set_blocks'] = literal_eval(rvars['blocks'])
-        #debug 
-        print {'----------blocks passed------------':rvars['blocks']}
+        #debug
+        print {'----------blocks passed------------': rvars['blocks']}
     if 'path' in rvars and not (rvars['path'] in ['', None, 'undefined']):
         stepargs['path'] = rvars['path']
-    #JOB ... oct 18, 2014 ... bug step id    
+    #JOB ... oct 18, 2014 ... bug step id
     if 'pre_bug_step_id' in rvars and not (rvars['pre_bug_step_id'] in ['', None, 'undefined']):
         stepargs['pre_bug_step_id'] = rvars['pre_bug_step_id']
 
