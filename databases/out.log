@@ -1,0 +1,39 @@
+NOTICE:  CREATE TABLE will create implicit sequence "attempt_log_id_seq" for serial column "attempt_log.id"
+NOTICE:  CREATE TABLE / PRIMARY KEY will create implicit index "attempt_log_pkey" for table "attempt_log"
+psql: FATAL:  password authentication failed for user "ianwscott"
+psql: fe_sendauth: no password supplied
+psql: fe_sendauth: no password supplied
+psql: fe_sendauth: no password supplied
+psql: fe_sendauth: no password supplied
+psql: fe_sendauth: no password supplied
+psql: fe_sendauth: no password supplied
+psql: fe_sendauth: no password supplied
+psql: fe_sendauth: no password supplied
+psql: fe_sendauth: no password supplied
+psql: fe_sendauth: no password supplied
+psql: fe_sendauth: no password supplied
+psql: fe_sendauth: no password supplied
+psql: fe_sendauth: no password supplied
+psql: fe_sendauth: no password supplied
+psql: fe_sendauth: no password supplied
+psql: fe_sendauth: no password supplied
+psql: fe_sendauth: no password supplied
+psql: fe_sendauth: no password supplied
+psql: fe_sendauth: no password supplied
+psql: fe_sendauth: no password supplied
+psql: fe_sendauth: no password supplied
+psql: fe_sendauth: no password supplied
+psql: fe_sendauth: no password supplied
+psql: fe_sendauth: no password supplied
+psql: fe_sendauth: no password supplied
+psql: fe_sendauth: no password supplied
+psql: fe_sendauth: no password supplied
+psql: fe_sendauth: no password supplied
+psql: fe_sendauth: no password supplied
+psql: fe_sendauth: no password supplied
+psql: fe_sendauth: no password supplied
+psql: fe_sendauth: no password supplied
+psql: fe_sendauth: no password supplied
+psql: fe_sendauth: no password supplied
+psql: fe_sendauth: no password supplied
+psql: fe_sendauth: no password supplied
