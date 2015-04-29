@@ -661,9 +661,9 @@ class Walk(object):
                     'in_path': path_id,
                     'score': score,
                     'user_response': makeutf8(response_string)}  # time automatic in db
-        print 'log args ===================================='
-        print type(log_args['user_response'])
-        print log_args['user_response']
+        #print 'log args ===================================='
+        #print type(log_args['user_response'])
+        #print log_args['user_response']  # FIXME: caused unicode error on live
         log_record_id = db.attempt_log.insert(**log_args)
         db.commit()
         self.user.complete_path(got_right)
@@ -2012,12 +2012,12 @@ class PathChooser(object):
                 if not stepslist:  # In case no steps in db for cat1 tags
                     # FIXME: send an error report here?
                     stepslist = get_stepslist(taglist)
-                print 'taglist from cat1:', taglist
+                # print 'taglist from cat1:', taglist
             else:
                 stepslist = get_stepslist(taglist)
 
-            print 'in _paths_by_category --------------------------------'
-            print 'stepslist:', sorted(stepslist)
+            # print 'in _paths_by_category --------------------------------'
+            # print 'stepslist:', sorted(stepslist)
             if not stepslist:
                 break
 
@@ -2051,14 +2051,14 @@ class PathChooser(object):
             pathset = db(db.paths.id > 0).select()
             pathset = pathset.find(lambda row: any(s for s in row.steps
                                                    if s in stepslist))
-            print 'paths for those steps:'
-            print [p.id for p in pathset]
+            # print 'paths for those steps:'
+            # print [p.id for p in pathset]
 
             # filter out any paths whose steps don't have a location
             pathset = pathset.find(lambda row: all([Step(s).has_locations()
                                                     for s in row.steps]))
-            print 'paths with valid location:'
-            print [p.id for p in pathset]
+            # print 'paths with valid location:'
+            # print [p.id for p in pathset]
             pathset = pathset.as_list()
             break
         return pathset, cat, force_cat1
@@ -2087,21 +2087,21 @@ class PathChooser(object):
         mode = None
         completed_list = [int(k) for k in self.completed['paths'].keys()]
 
-        print 'in _choose_from_cat ---------------------------------'
+        # print 'in _choose_from_cat ---------------------------------'
         while True:
             loc_id = self.loc_id
             db = current.db
             p_new = [p for p in cpaths if p['id'] not in completed_list]
-            print 'p_new:', [p['id'] for p in p_new]
+            # print 'p_new:', [p['id'] for p in p_new]
             p_here = [p for p in cpaths
                       if loc_id in db.steps[int(p['steps'][0])].locations]
-            print 'p_here:', [p['id'] for p in p_here]
+            # print 'p_here:', [p['id'] for p in p_here]
             p_here_new = [p for p in p_here if p in p_new]
-            print 'p_here_new:', [p['id'] for p in p_here_new]
+            # print 'p_here_new:', [p['id'] for p in p_here_new]
             p_all = [p for p in cpaths]
             p_tried_ids = list(set([p['id'] for p in cpaths]
                                    ).intersection(completed_list))
-            print 'p_tried:', p_tried_ids
+            # print 'p_tried:', p_tried_ids
             p_tried = [p for p in cpaths if p['id'] in p_tried_ids]
 
             # untried path available here
@@ -2224,10 +2224,10 @@ class PathChooser(object):
 
         # cycle through categories, prioritised in _order_cats()
         for cat in cat_list:
-            print 'checking in cat', cat, '========================================='
+            #print 'checking in cat', cat, '========================================='
             catpaths, category, use_cat1 = self._paths_by_category(cat, self.rank)
-            print 'forcing cat1?', use_cat1
-            print 'catpaths:', [c['id'] for c in catpaths]
+            #print 'forcing cat1?', use_cat1
+            #print 'catpaths:', [c['id'] for c in catpaths]
             if catpaths and len(catpaths):
                 path, newloc, category, mode = self._choose_from_cat(catpaths,
                                                                      category)
