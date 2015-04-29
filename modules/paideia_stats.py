@@ -8,10 +8,10 @@ from pytz import timezone, utc
 from gluon import current, DIV, SPAN, A, URL, UL, LI, B
 from gluon import TAG
 from paideia_utils import make_json, load_json
-from paideia import Categorizer
-from gluon.sqlhtml import SQLFORM, Field
-from gluon.validators import IS_DATE
-from pprint import pprint
+# from paideia import Categorizer
+# from gluon.sqlhtml import SQLFORM  # , Field
+# from gluon.validators import IS_DATE
+# from pprint import pprint
 from itertools import chain, groupby
 
 
@@ -112,7 +112,6 @@ class Stats(object):
         self.badge_levels, self.review_levels = self._find_badge_levels()
         self.tags = list(set([tup[1] for v
                               in self.badge_levels.values() for tup in v]))
-
 
         # date of each tag promotion
         self.badges_begun = db(db.badges_begun.name == self.user_id).select()
@@ -426,7 +425,7 @@ class Stats(object):
         # get bounds for today and yesterday
         offset = get_offset(self.user)
         daystart = datetime.datetime.combine(self.utcnow.date(),
-                                             datetime.time(0,0,0,0))
+                                             datetime.time(0, 0, 0, 0))
         daystart = daystart - offset
         yest_start = (daystart - datetime.timedelta(days=1))
 
@@ -593,7 +592,8 @@ class Stats(object):
         #                self.user_id, utcnow=self.utcnow)
         #bls = c.categorize_tags()['tag_progress']
         bls = db(db.tag_progress.name == self.user_id).select().first().as_dict()
-        bl_ids = {k: v for k, v in bls.iteritems() if k[:3] == 'cat'}
+        bl_ids = {k: v for k, v in bls.iteritems()
+                  if k[:3] == 'cat' and k != 'cat1_choices'}
         badge_levels = {}
         for k, v in bl_ids.iteritems():
             level = int(k[3:])
@@ -956,16 +956,16 @@ class Stats(object):
         counts = []
         for (date, scores) in result:
             scores = list(scores)
-            total  = len(scores)
-            right  = len(filter(lambda r: r.score >= 1.0, scores))
+            total = len(scores)
+            right = len(filter(lambda r: r.score >= 1.0, scores))
 
             # Force str because of how PostgreSQL returns date column
             # PostgreSQL returns datetime object, sqlite returns string
             # So we have to force type to sting, this won't break backwards compatibility with sqlite
-            counts.append({ 'date':  str(date),
-                            'right': right,
-                            'wrong': total - right
-                          })
+            counts.append({'date': str(date),
+                           'right': right,
+                           'wrong': total - right
+                           })
 
         return counts
 
@@ -1259,6 +1259,7 @@ def get_term_bounds(meminfo, start_date, end_date):
     """
     db = current.db
     now = datetime.datetime.utcnow()
+
     def make_readable(mydt):
         strf = '%b %e' if mydt.year == now.year else '%b %e, %Y'
         return mydt.strftime(strf)
@@ -1341,4 +1342,3 @@ def make_classlist(member_sel, users, start_date, end_date, target, classrow):
                          'tp_id': user.tag_progress.id}
 
     return userlist
-
