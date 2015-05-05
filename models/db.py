@@ -78,7 +78,7 @@ if _i_am_running_under_test():
     postgre['db_name'] = keydata['postgre_testdbname']
 print '--- using dbase: ', postgre['db_name'], ' ---'
 # check_reserved makes sure no column names conflict with back-end db's
-connect_string = 'postgres:psycopg2//%s:%s@%s/%s' % (postgre['username'],
+connect_string = 'postgres:psycopg2://%s:%s@%s/%s' % (postgre['username'],
                                              postgre['password'],
                                              postgre['host'],
                                              postgre['db_name'])
@@ -90,7 +90,7 @@ if _i_am_running_under_test():
 else:
     db = DAL(connect_string, pool_size=1,
              check_reserved=['sqlite', 'postgres'],
-             migrate=True, fake_migrate_all=False)
+             migrate=False, fake_migrate_all=False)
 
 # -------------------------------------------------------------
 # Set up logging
