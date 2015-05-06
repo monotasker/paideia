@@ -87,10 +87,13 @@ if _i_am_running_under_test():
     db = DAL(connect_string, pool_size=1,
              check_reserved=['sqlite', 'postgres'],
              migrate=False, fake_migrate_all=False)
+    print '--- adapter: ', db._adapter.driver.__name__
+    print '--- TEST DATABASE ---'
 else:
     db = DAL(connect_string, pool_size=1,
              check_reserved=['sqlite', 'postgres'],
-             migrate=True, fake_migrate_all=False)
+             migrate=False, fake_migrate_all=True)
+    print '--- adapter: ', db._adapter.driver.__name__
 
 # -------------------------------------------------------------
 # Set up logging

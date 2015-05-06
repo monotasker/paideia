@@ -36,8 +36,10 @@ response.meta.keywords = 'Greek, koine, New Testament, language, ' \
                          'education, learning'
 response.meta.generator = 'Web2py Enterprise Framework'
 response.meta.copyright = XML('All content copyright &copy; 2011-{}, '
-                              'Ian W. Scott. Source code available on '.format(datetime.now().year),
-                              A('GitHub', _href="https://github.com/monotasker/paideia"))
+                              'Ian W. Scott. Source code available on '
+                              ''.format(datetime.now().year),
+                              A('GitHub',
+                                _href="https://github.com/monotasker/paideia"))
 response.meta.google_verify = 'MlxOzReGJ8Y2vVC_V7HK9TLNiUUIabrt_Mt_m0D8MSc'
 
 # Layout ===================================================================
@@ -77,7 +79,8 @@ if auth.has_membership('administrators', auth.user_id) or auth.is_impersonating(
               (SPAN(T(' Lemmas'), _class='icon-plus-sign-alt'),
                False, URL('editing', 'listing.html',
                           args=['lemmas'],
-                          vars={'orderby': 'lemma'})),
+                          vars={'orderby': 'lemma',
+                                'collation': 'el'})),
               (SPAN(T(' Constructions'), _class='icon-plus-sign-alt'),
                False, URL('editing', 'listing.html',
                           args=['constructions'],
@@ -85,7 +88,8 @@ if auth.has_membership('administrators', auth.user_id) or auth.is_impersonating(
               (SPAN(T(' Word forms'), _class='icon-plus-sign-alt'),
                False, URL('editing', 'listing.html',
                           args=['word_forms'],
-                          vars={'orderby': 'word_form'})),
+                          vars={'orderby': 'word_form',
+                                'collation': 'el'})),
               (SPAN(T(' Tags'), _class='icon-tag'),
                False, URL('editing', 'listing.html',
                           args=['tags'],
