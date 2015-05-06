@@ -14,6 +14,7 @@ import datetime
 import os
 import uuid
 from applications.paideia.modules.paideia_utils import simple_obj_print
+from plugin_widgets import SortedOptionsWidget
 # import re
 
 if 0:
@@ -236,6 +237,8 @@ db.define_table('word_forms',
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(word_form)s')
+db.word_forms.source_lemma.widget = \
+    lambda fld, val: SortedOptionsWidget().widget(fld, val, collation='el')
 db.word_forms.tense.requires = IS_IN_SET(('present', 'imperfect', 'future',
                                           'aorist1', 'aorist2', 'perfect1',
                                           'perfect2', 'pluperfect', 'none'))
