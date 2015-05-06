@@ -92,7 +92,7 @@ if _i_am_running_under_test():
 else:
     db = DAL(connect_string, pool_size=1,
              check_reserved=['sqlite', 'postgres'],
-             migrate=False, fake_migrate_all=True)
+             migrate=True, fake_migrate_all=False)
     print '--- adapter: ', db._adapter.driver.__name__
 
 # -------------------------------------------------------------
