@@ -135,7 +135,7 @@ if auth.has_membership('administrators', auth.user_id) or auth.is_impersonating(
                           args=['word_forms'],
                           vars={'orderby': 'word_form',
                                 'collation': 'el',
-                                'restrictor': {'number': None}})),
+                                'restrictor': {'construction': None}})),
               (SPAN(T(' New Bug reports'), _class='icon-warning-sign'),
                False, URL('editing', 'listing.html',
                           args=['bugs'],

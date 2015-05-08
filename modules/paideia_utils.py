@@ -360,7 +360,6 @@ def normalize_accents(string):
         if mystring not in exempt:
             matching_letters = re.findall(makeutf8(restr), mystring,
                                           re.I | re.U)
-            print 'matching_letters', uprint(matching_letters)
             if matching_letters:
                 edict = {makeutf8(k): v for k, v in equivs.iteritems()
                         if [m for m in v if makeutf8(m) in matching_letters]}

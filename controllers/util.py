@@ -90,9 +90,6 @@ def gather_word_forms():
         ptrn = re.compile(u'[\u0370-\u03FF\u1F00-\u1FFF]+', flags=re.U)
         items = flatten([re.findall(ptrn, makeutf8(i)) for i in items])
         items = sanitize_greek(items)
-        for i in items:
-            if isinstance(i, list):
-                print 'bad value** ', i, type(i)
         items = [makeutf8(normalize_accents(i)) for i in items]
         if vv.unique:
             items = list(set(items))
@@ -110,7 +107,7 @@ def gather_word_forms():
         else:
             newdata = [{'word_form': item} for item in items]
             rowcount = db.word_forms.bulk_insert(newdata)
-            response.flash = 'Success. Added', rowcount, 'new word forms.'
+            response.flash = 'Success. Added', len(rowcount), 'new word forms.'
 
     elif form.errors:
         items = BEAUTIFY(form.errors)
