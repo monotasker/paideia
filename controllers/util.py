@@ -6,18 +6,116 @@ Controller functions handling back-end utility tasks (mostly db maintenance).
 """
 
 if 0:
-    from gluon import current, SQLFORM, Field, IS_IN_SET
+    from gluon import current, SQLFORM, Field, IS_IN_SET, BEAUTIFY
     db = current.db
     auth = current.auth
     request = current.request
     response = current.response
-from paideia_utils import test_step_regex, gather_vocab
-#from plugin_utils import capitalize
+from paideia_utils import test_step_regex, normalize_accents, sanitize_greek
+from plugin_utils import flatten, makeutf8
 import paideia_path_factory
+import re
 import traceback
 import StringIO
 import uuid
 from pprint import pprint
+
+
+@auth.requires_membership('administrators')
+def gather_word_forms():
+    """
+    Return a list of all strings satisfying the supplied regex.
+
+    The fieldnames argument should be a list, so that multiple target fields
+    can be searched at once.
+
+    The optional 'unique' keyword argument determines whether duplicates will
+    be removed from the list. (Defaults to True.)
+
+    The optional 'filterfunc' keyword argument allows a function to be passed
+    which which will be used to alter the gathered strings. This alteration will
+    happen before duplicate values are removed. So, for example, the strings
+    can be normalized for case or accent characters if those variations are
+    not significant.
+    """
+
+    items = []
+    db = current.db
+    x = ['πιλ', 'βοδυ', 'μειδ', 'νηλ', 'ἰλ', 'σαγγ', 'ἁμ', 'ἱτ', 'ἑλπ', 'ἑλω', 'ο',
+         'βοτ', 'ὁλ', 'ὁγ', 'παθ', 'τιψ', 'β', 'σωλ', 'κορπ', 'ὡλ', 'κατς', 'γγς',
+         'μωλτεγγ', 'δεκ', 'φιξ', 'βαλ', 'διλ', 'δαξ', 'δρομα', 'δακ', 'δαγ', 'ἁγ',
+         'λοξ', 'δυδ', 'βωθ', 'ὐψ', 'καν', 'καβ', 'ὀτ', 'βαδ', 'μωστ', 'μοισδ',
+         'μιλ', 'βελ', 'ἑδ', 'θοτ', 'κιλ', 'κρω', 'βοχ', 'ω', 'μεντ', 'ἁτ', 'νεατ',
+         'σπηρ', 'βοδι', 'πιτ', 'βονδ', 'ἁρδ', 'δοκς', 'μελτ', 'βεδ', 'μαλ', 'δατς',
+         'σωπ', 'α', 'πενσιλ', 'κς', 'δεκς', 'αριας', 'βαγγ', 'σετ', 'βρουμ', 'ἀδ',
+         'πωλ', 'δατ', 'ἁγγ', 'πραυδ', 'αὐτης', 'νειλ', 'σογγ', 'ζαπ', 'κλαδ',
+         'νιτ', 'φαξ', 'βολ', 'κεπτ', 'μοιστ', 'ἁμερ', 'τουνα', 'προγγ', 'τ',
+         'κλυν', 'λοβ', 'πλειαρ', 'κροπ', 'βανδ', 'μωλτεν', 'υτ', 'κοτ', 'κοπ',
+         'ἀτ', 'φυξ', 'ὡλι', 'μυτ', 'θατ', 'δοτ', 'βικς', 'ἁμαρ', 'λωφερ', 'δοκ',
+         'ταπ', 'ἀβωδ', 'ὑτος', 'λωφρ', 'ἁμρ', 'ροκ', 'πς', 'βαδυ', 'οὐψ', 'πραγγ',
+         'σπειρ', 'ἀγγλ', 'σλαψ', 'πλαυ', 'δραμα', 'φοξ', 'ἱτεδ', 'ὁτ', 'δογ',
+         'δολ', 'ρω', 'δοξ', 'ὗτος', 'μιτ', 'αὑ', 'ἱτς', 'μωλτ', 'βατ', 'βαχ',
+         'βικ', 'μιαλ', 'μολ', 'μιελ', 'κον', 'μωισδ', 'κραπ', 'καπ', 'ὑπ', 'ἀγκλ',
+         'λιξ', 'ρωλ', 'λαβ', 'ὀδ', 'λαξ', 'δοτς', 'ἀνκλ', 'ρακ', 'πεγ', 'τυνα',
+         'βρυμ', 'καρπ', 'βρεδ', 'κιπ', 'μηδ', 'δαλ', 'βετ', 'διπ', 'κλιν', 'πετ',
+         'βαδι', 'λικς', 'δακς', 'πς', 'ὑπ', 'κς', 'α', 'ος', 'μιτ', 'βρεδ', 'ί',
+         'ο', 'νεατ', 'δι', 'Ω', 'τ', 'υτ', 'η', 'ον', 'β', 'α', 'δεξ', 'παι']
+    x = [makeutf8(word) for word in x]
+
+    form = SQLFORM.factory(Field('search_table', default='steps',
+                                 writable=False),
+                           Field('search_field',
+                                 requires=IS_IN_SET(['prompt',
+                                                     'readable_response'])),
+                           Field('write_table', default='word_forms',
+                                 writable=False),
+                           Field('write_field', default='word_form',
+                                 writable=False),
+                           Field('unique', 'boolean', default=True),
+                           Field('testing', 'boolean', default=True),
+                           Field('new', 'boolean', default=True))
+    form.vars.search_table = 'steps'
+    form.vars.write_table = 'word_forms'
+    form.vars.write_field = 'word_form'
+
+    if form.process().accepted:
+        vv = form.vars
+        filter_func = eval(vv.filter_func) if vv.filter_func else None
+        trans_func = eval(vv.trans_func) if vv.trans_func else None
+
+        rows = db(db[vv.search_table].id > 0).select()
+        for r in rows:
+            items.append(r[vv['search_field']])
+
+        ptrn = re.compile(u'[\u0370-\u03FF\u1F00-\u1FFF]+', flags=re.U)
+        items = flatten([re.findall(ptrn, makeutf8(i)) for i in items])
+        items = sanitize_greek(items)
+        for i in items:
+            if isinstance(i, list):
+                print 'bad value** ', i, type(i)
+        items = [makeutf8(normalize_accents(i)) for i in items]
+        if vv.unique:
+            items = list(set(items))
+        items = [i.lower() for i in items if i not in x]
+
+        if vv.new:
+            existing = [makeutf8(r['word_form']) for r in
+                        db(db.word_forms.id > 0).select(db.word_forms.word_form)]
+            items = [i for i in items if i not in existing
+                     and i.capitalize() not in existing
+                     and i.lower() not in existing]
+        if vv.testing:
+            pass
+            response.flash = 'Success, but nothing written to database.'
+        else:
+            newdata = [{'word_form': item} for item in items]
+            rowcount = db.word_forms.bulk_insert(newdata)
+            response.flash = 'Success. Added', rowcount, 'new word forms.'
+
+    elif form.errors:
+        items = BEAUTIFY(form.errors)
+
+    return {'form': form, 'items': items}
 
 
 @auth.requires_membership('administrators')
@@ -27,12 +125,6 @@ def test_regex():
     """
     form, result = test_step_regex()
     return {'form': form, 'result': result}
-
-
-@auth.requires_membership('administrators')
-def collect_step_vocab():
-    vocab, dups = gather_vocab()
-    return {'vocab': vocab, 'dups': dups}
 
 
 @auth.requires_membership('administrators')
@@ -101,25 +193,27 @@ def migrate_field():
 
 @auth.requires_membership('administrators')
 def to_migrate_table():
-    #===========================================================
-    #items = db(db.auth_group.id > 0).select()
-    #for i in items:
-        #if i.end_date:
-            #db.classes.update_or_insert(**{'institution': i.institution,
-                                           #'academic_year': i.academic_year,
-                                           #'term': i.term,
-                                           #'course_section': i.course_section,
-                                           #'instructor': i.course_instructor,
-                                           #'start_date': i.start_date,
-                                           #'end_date': i.end_date,
-                                           #'paths_per_day': i.paths_per_day,
-                                           #'days_per_week': i.days_per_week
-                                           #})
-        #else:
-            #pass
-    #cc = db(db.classes.id > 0).select().as_dict()
+    """
+    ===========================================================
+    items = db(db.auth_group.id > 0).select()
+    for i in items:
+        if i.end_date:
+            db.classes.update_or_insert(**{'institution': i.institution,
+                                           'academic_year': i.academic_year,
+                                           'term': i.term,
+                                           'course_section': i.course_section,
+                                           'instructor': i.course_instructor,
+                                           'start_date': i.start_date,
+                                           'end_date': i.end_date,
+                                           'paths_per_day': i.paths_per_day,
+                                           'days_per_week': i.days_per_week
+                                           })
+        else:
+            pass
+    cc = db(db.classes.id > 0).select().as_dict()
 
-    #===========================================================
+    ===========================================================
+    """
     items = db(db.auth_membership.id > 0).select()
     for i in items:
         if i.group_id == 1:
@@ -182,17 +276,16 @@ def update_uuids():
 
     return {'changes': retval}
 
-
+"""
 @auth.requires_membership('administrators')
 def set_timestamps():
-    """
-    Make sure that every record in the database has a uuid.
-    """
+    # Make sure that every record in the database has a uuid.
+
     retval = {}
     mytime = datetime.datetime(2014, 1, 1)
     for t in db.tables:
         #if t in ['lemmas', 'constructions', 'word_forms', 'badges', 'steps',
-                 #'paths', 'plugin_slider_slides', 'plugin_slider_decks']
+        #         'paths', 'plugin_slider_slides', 'plugin_slider_decks']
         print 'start table'
         recs = db(db[t].id > 0).select()
         print 'found', len(recs), 'records'
@@ -208,3 +301,4 @@ def set_timestamps():
                      'dated {}'.format(dated))
 
     return {'changes': retval}
+"""

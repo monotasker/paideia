@@ -24,43 +24,6 @@ import plugin_utils
 from plugin_utils import makeutf8, encodeutf8
 import datetime
 
-"""
-def simple_obj_print(the_dict, title='No Title', indentation=0):
-"""
-"""
-    indentation_string = ' '*indentation
-    if (None == the_dict):
-        print indentation_string  + '{' + str(title) + ': '  + '-None-' +  '}'
-        return
-    while True:
-        #dictionaries
-        if ( (type(the_dict) == type({})) | isinstance(the_dict, Storage)):
-            print indentation_string  + str(title) + '(dict):'
-            for key in the_dict:
-                simple_obj_print(the_dict[key],key,indentation+1)
-            break
-        #lists
-        if ( (hasattr(the_dict, '__iter__')) |isinstance(the_dict, StorageList)) :
-            print indentation_string  + str(title) + '(list):'
-            count = 0
-            try:
-                for value in the_dict:
-                    simple_obj_print(value, count,indentation+1)
-                    count +=1
-            except TypeError, te:
-                simple_obj_print("list is not iterable",count,indentation+1)
-            break
-        #simple item
-        while True:
-            if type(the_dict) is datetime.datetime:
-                print indentation_string  + '{' + str(title) + ': ' +  \
-                     the_dict.strftime('%Y %m %d %H %M %S %f') +  '}'
-                break
-            print indentation_string  + '{' + str(title) + ': '  +  str(the_dict) +  '}'
-            break
-        break
-"""
-
 
 def simple_obj_print(the_dict, title='No Title', indentation=0):
     """
@@ -137,6 +100,7 @@ class Paideia_Debug(object):
     Carry debug information to the screen
     JOB ... oct 22, 2014
     """
+    # TODO: Re-evaluate this
     def __init__(self):
         """
         """
@@ -337,67 +301,70 @@ def normalize_accents(string):
 
     So far this function only handles lowercase strings.
     """
-    strings = string.split(' ')
+    strings = makeutf8(string).split(' ')
 
-    equivs = {'α': ['ά', 'ὰ', 'ᾶ'],
-              'ἀ': ['ἄ', 'ἂ', 'ἆ'],
-              'ἁ': ['ἅ', 'ἃ', 'ἇ'],
-              'ᾳ': ['ᾷ', 'ᾲ', 'ᾴ'],
-              'ᾀ': ['ᾄ', 'ᾂ', 'ᾆ'],
-              'ᾁ': ['ᾅ', 'ᾃ', 'ᾇ'],
-              'ε': ['έ', 'ὲ'],
-              'ἐ': ['ἔ', 'ἒ'],
-              'ἑ': ['ἕ', 'ἓ'],
-              'η': ['ῆ', 'ή', 'ὴ'],
-              'ἠ': ['ἤ', 'ἢ', 'ἦ'],
-              'ἡ': ['ἥ', 'ἣ', 'ἧ'],
-              'ῃ': ['ῇ', 'ῄ', 'ῂ'],
-              'ᾐ': ['ᾔ', 'ᾒ', 'ᾖ'],
-              'ᾑ': ['ᾕ', 'ᾓ', 'ᾗ'],
-              'ι': ['ῖ', 'ϊ', 'ί', 'ὶ', 'ί'],
-              'ἰ': ['ἴ', 'ἲ', 'ἶ'],
-              'ἱ': ['ἵ', 'ἳ', 'ἷ'],
-              'ο': ['ό', 'ὸ'],
-              'ὀ': ['ὄ', 'ὂ'],
-              'ὁ': ['ὅ', 'ὃ'],
-              'υ': ['ῦ', 'ϋ', 'ύ', 'ὺ'],
-              'ὐ': ['ὔ', 'ὒ', 'ὖ'],
-              'ὑ': ['ὕ', 'ὓ', 'ὗ'],
-              'ω': ['ῶ', 'ώ', 'ὼ'],
-              'ὠ': ['ὤ', 'ὢ', 'ὦ'],
-              'ὡ': ['ὥ', 'ὣ', 'ὧ'],
-              'ῳ': ['ῷ', 'ῴ', 'ῲ'],
-              'ᾠ': ['ᾤ', 'ᾢ', 'ᾦ'],
-              'ᾡ': ['ᾥ', 'ᾣ', 'ᾧ'],
-              'Ῥ': ['῾Ρ'],  # also handle improperly formed marks
-              'Ἁ': ['῾Α'],
-              'Ἑ': ['῾Ε'],
-              'Ἱ': ['῾Ι'],
-              'Ὑ': ['῾Υ'],
-              'Ὁ': ['῾Ο'],
-              'Ὡ': ['῾Ω'],
+    equivs = {u'α': [u'ά', u'ὰ', u'ᾶ'],
+              u'ἀ': [u'ἄ', u'ἂ', u'ἆ'],
+              u'ἁ': [u'ἅ', u'ἃ', u'ἇ'],
+              u'ᾳ': [u'ᾷ', u'ᾲ', u'ᾴ'],
+              u'ᾀ': [u'ᾄ', u'ᾂ', u'ᾆ'],
+              u'ᾁ': [u'ᾅ', u'ᾃ', u'ᾇ'],
+              u'ε': [u'έ', u'ὲ'],
+              u'ἐ': [u'ἔ', u'ἒ'],
+              u'ἑ': [u'ἕ', u'ἓ'],
+              u'η': [u'ῆ', u'ή', u'ὴ'],
+              u'ἠ': [u'ἤ', u'ἢ', u'ἦ'],
+              u'ἡ': [u'ἥ', u'ἣ', u'ἧ'],
+              u'ῃ': [u'ῇ', u'ῄ', u'ῂ'],
+              u'ᾐ': [u'ᾔ', u'ᾒ', u'ᾖ'],
+              u'ᾑ': [u'ᾕ', u'ᾓ', u'ᾗ'],
+              u'ι': [u'ῖ', u'ϊ', u'ί', u'ὶ', u'ί'],
+              u'ἰ': [u'ἴ', u'ἲ', u'ἶ'],
+              u'ἱ': [u'ἵ', u'ἳ', u'ἷ'],
+              u'ο': [u'ό', u'ὸ'],
+              u'ὀ': [u'ὄ', u'ὂ'],
+              u'ὁ': [u'ὅ', u'ὃ'],
+              u'υ': [u'ῦ', u'ϋ', u'ύ', u'ὺ'],
+              u'ὐ': [u'ὔ', u'ὒ', u'ὖ'],
+              u'ὑ': [u'ὕ', u'ὓ', u'ὗ'],
+              u'ω': [u'ῶ', u'ώ', u'ὼ'],
+              u'ὠ': [u'ὤ', u'ὢ', u'ὦ'],
+              u'ὡ': [u'ὥ', u'ὣ', u'ὧ'],
+              u'ῳ': [u'ῷ', u'ῴ', u'ῲ'],
+              u'ᾠ': [u'ᾤ', u'ᾢ', u'ᾦ'],
+              u'ᾡ': [u'ᾥ', u'ᾣ', u'ᾧ'],
+              u'Ῥ': [u'῾Ρ'],  # also handle improperly formed marks
+              u'Ἁ': [u'῾Α'],
+              u'Ἑ': [u'῾Ε'],
+              u'Ἱ': [u'῾Ι'],
+              u'Ὑ': [u'῾Υ'],
+              u'Ὁ': [u'῾Ο'],
+              u'Ὡ': [u'῾Ω'],
               }
     accented = chain(*equivs.values())
     restr = '|'.join(accented)
     newstrings = []
     for mystring in strings:
-        mystring = mystring.replace('ί', 'ί')  # avoid q-i iota on windows
+        mystring = mystring.replace(u'ί', u'ί')  # avoid q-i iota on windows
 
         # this is ugly
-        exempt = ['τίνος', 'τί', 'τίς', 'τίνα', 'τίνας', 'τίνι',
-                  'Τίνος', 'Τί', 'Τίς', 'Τίνα', 'Τίνας', 'Τίνι']
-        ex_period = [x + '.' for x in exempt]
-        ex_scolon = [x + ';' for x in exempt]
-        ex_comma = [x + ',' for x in exempt]
-        ex_qmark = [x + '?' for x in exempt]
-        ex_colon = [x + ':' for x in exempt]
+        exempt = [u'τίνος', u'τί', u'τίς', u'τίνα', u'τίνας', u'τίνι',
+                  u'Τίνος', u'Τί', u'Τίς', u'Τίνα', u'Τίνας', u'Τίνι']
+        ex_period = [x + u'.' for x in exempt]
+        ex_scolon = [x + u';' for x in exempt]
+        ex_comma = [x + u',' for x in exempt]
+        ex_qmark = [x + u'?' for x in exempt]
+        ex_colon = [x + u':' for x in exempt]
         exempt = chain(exempt, ex_colon, ex_comma, ex_qmark, ex_scolon, ex_period)
 
         if mystring not in exempt:
-            matching_letters = re.findall(makeutf8(restr), makeutf8(mystring), re.I | re.U)
+            matching_letters = re.findall(makeutf8(restr), mystring,
+                                          re.I | re.U)
+            print 'matching_letters', uprint(matching_letters)
             if matching_letters:
-                edict = {k: v for k, v in equivs.iteritems()
+                edict = {makeutf8(k): v for k, v in equivs.iteritems()
                         if [m for m in v if makeutf8(m) in matching_letters]}
+                print 'edict', edict
                 for k, v in edict.iteritems():
                     myval = [l for l in v if makeutf8(l) in matching_letters][0]
                     mystring = mystring.replace(myval, k)
@@ -408,53 +375,6 @@ def normalize_accents(string):
         newstrings.append(mystring)
     newstring = ' '.join(newstrings)
     return encodeutf8(newstring)
-
-
-def gather_vocab():
-    """
-    Return a list of all Greek words used in steps.
-    """
-    db = current.db
-    steps = db(db.steps.id > 0).select()
-
-    words = []
-    for s in steps:
-        regex = re.compile(u'[^\w\.,\?!\"\'\-\*\s\|\<\>;\(\)\\\:\[\]\/]+')
-        strings = ' '.join([s.prompt, s.readable_response])
-        words.extend(regex.findall(strings))
-    lower_words = [w.decode('utf-8').lower().encode('utf-8') for w in words]
-    normal_words = normalize_accents(lower_words)
-    unique_words = list(set(normal_words))
-    x = ['πιλ', 'βοδυ', 'μειδ', 'νηλ', 'ἰλ', 'σαγγ', 'ἁμ', 'ἱτ', 'ἑλπ', 'ἑλω', 'ο',
-         'βοτ', 'ὁλ', 'ὁγ', 'παθ', 'τιψ', 'β', 'σωλ', 'κορπ', 'ὡλ', 'κατς', 'γγς',
-         'μωλτεγγ', 'δεκ', 'φιξ', 'βαλ', 'διλ', 'δαξ', 'δρομα', 'δακ', 'δαγ', 'ἁγ',
-         'λοξ', 'δυδ', 'βωθ', 'ὐψ', 'καν', 'καβ', 'ὀτ', 'βαδ', 'μωστ', 'μοισδ',
-         'μιλ', 'βελ', 'ἑδ', 'θοτ', 'κιλ', 'κρω', 'βοχ', 'ω', 'μεντ', 'ἁτ', 'νεατ',
-         'σπηρ', 'βοδι', 'πιτ', 'βονδ', 'ἁρδ', 'δοκς', 'μελτ', 'βεδ', 'μαλ', 'δατς',
-         'σωπ', 'α', 'πενσιλ', 'κς', 'δεκς', 'αριας', 'βαγγ', 'σετ', 'βρουμ', 'ἀδ',
-         'πωλ', 'δατ', 'ἁγγ', 'πραυδ', 'αὐτης', 'νειλ', 'σογγ', 'ζαπ', 'κλαδ',
-         'νιτ', 'φαξ', 'βολ', 'κεπτ', 'μοιστ', 'ἁμερ', 'τουνα', 'προγγ', 'τ',
-         'κλυν', 'λοβ', 'πλειαρ', 'κροπ', 'βανδ', 'μωλτεν', 'υτ', 'κοτ', 'κοπ',
-         'ἀτ', 'φυξ', 'ὡλι', 'μυτ', 'θατ', 'δοτ', 'βικς', 'ἁμαρ', 'λωφερ', 'δοκ',
-         'ταπ', 'ἀβωδ', 'ὑτος', 'λωφρ', 'ἁμρ', 'ροκ', 'πς', 'βαδυ', 'οὐψ', 'πραγγ',
-         'σπειρ', 'ἀγγλ', 'σλαψ', 'πλαυ', 'δραμα', 'φοξ', 'ἱτεδ', 'ὁτ', 'δογ',
-         'δολ', 'ρω', 'δοξ', 'ὗτος', 'μιτ', 'αὑ', 'ἱτς', 'μωλτ', 'βατ', 'βαχ',
-         'βικ', 'μιαλ', 'μολ', 'μιελ', 'κον', 'μωισδ', 'κραπ', 'καπ', 'ὑπ', 'ἀγκλ',
-         'λιξ', 'ρωλ', 'λαβ', 'ὀδ', 'λαξ', 'δοτς', 'ἀνκλ', 'ρακ', 'πεγ', 'τυνα',
-         'βρυμ', 'καρπ', 'βρεδ', 'κιπ', 'μηδ', 'δαλ', 'βετ', 'διπ', 'κλιν', 'πετ',
-         'βαδι', 'λικς', 'δακς']
-    mywords = [l for l in unique_words if l not in x]
-    mywords_dict = {}
-    dups_dict = {}
-    for word in mywords:
-        dup = db(db.word_forms.word_form == word).select()
-        if dup:
-            dups_dict[word] = dup[0].id
-        else:
-            newindex = db.word_forms.insert(word_form=word)
-            mywords_dict[word] = newindex
-
-    return mywords_dict, dups_dict
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""
