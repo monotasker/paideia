@@ -33,6 +33,7 @@ from pprint import pprint
 import datetime
 sys.path.insert(0, '')
 
+
 def simple_obj_print(the_dict, title='No Title', indentation=0):
     """
     Prints a simple thing
@@ -40,38 +41,38 @@ def simple_obj_print(the_dict, title='No Title', indentation=0):
     """
     indentation_string = ' '*indentation
     if (None == the_dict):
-        print indentation_string  + '{' + str(title) + ': '  + '-None-' +  '}'
+        print indentation_string + '{' + str(title) + ': ' + '-None-' + '}'
         return
     while True:
         #dictionaries
-        if type(the_dict) == type({}):
-            print indentation_string  + str(title) + '(dict):'
+        if isinstance(the_dict, dict):
+            print indentation_string + str(title) + '(dict):'
             for key in the_dict:
-                simple_obj_print(the_dict[key],key,indentation+1)
+                simple_obj_print(the_dict[key], key, indentation+1)
             break
         #lists
         if hasattr(the_dict, '__iter__'):
-            print indentation_string  + str(title) + '(list):'
-            count = 0         
+            print indentation_string + str(title) + '(list):'
+            count = 0
             try:
                 for value in the_dict:
-                    simple_obj_print(value, count,indentation+1)
-                    count +=1
+                    simple_obj_print(value, count, indentation+1)
+                    count += 1
             except TypeError, te:
-                simple_obj_print("list is not iterable",count,indentation+1)
-            except ValueError,ve:
-                simple_obj_print("cannot get list value",count,indentation+1)
+                simple_obj_print("list is not iterable", count, indentation+1)
+            except ValueError, ve:
+                simple_obj_print("cannot get list value", count, indentation+1)
             break
         #simple item
         while True:
             if type(the_dict) is datetime.datetime:
-                print indentation_string  + '{' + str(title) + ': ' +  \
-                     the_dict.strftime('%Y %m %d %H %M %S %f') +  '}'
+                print indentation_string + '{' + str(title) + ': ' +  \
+                     the_dict.strftime('%Y %m %d %H %M %S %f') + '}'
                 break
             if True:
-                print indentation_string  + '{' + str(title) + ': '  +  str(the_dict) +  '}'
+                print indentation_string + '{' + str(title) + ': ' + str(the_dict) + '}'
                 break
-            #print indentation_string  + '{' + str(title) + ': '  +  'not printable' +  '}'
+            #print indentation_string + '{' + str(title) + ': '  +  'not printable' +  '}'
             #break
         break
 
@@ -87,7 +88,8 @@ if 'site-packages' not in sys.path:
 from gluon.shell import env
 web2py_env = env(appname, import_models=True,
                          extra_request=dict(is_local=True))
-simple_obj_print(web2py_env,"web2py_env")
+# simple_obj_print(web2py_env,"web2py_env")
+
 
 @pytest.fixture(scope='module')
 def baseurl(appname):
@@ -241,13 +243,12 @@ def web2py(appname, fixture_create_testfile_for_application):
     web2py_env = env(appname, import_models=True,
                      extra_request=dict(is_local=True))
 
-
-    # Uncomment next 2 lines to allow using global Web2py objects directly
+    # Uncomment next 3 lines to allow using global Web2py objects directly
     # in your test scripts.
-    simple_obj_print(web2py_env,"web2py_env")
     if hasattr(web2py_env, '__file__'):
         del web2py_env['__file__']  # avoid py.test import error
     globals().update(web2py_env)
+    # simple_obj_print(web2py_env,"web2py_env")
 
     return Storage(web2py_env)
 
@@ -284,4 +285,3 @@ def db(web2py, request):
 
     request.addfinalizer(fin)
     return mydb
-
