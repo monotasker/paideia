@@ -304,42 +304,58 @@ def normalize_accents(string):
     strings = makeutf8(string).split(' ')
 
     equivs = {u'α': [u'ά', u'ὰ', u'ᾶ'],
+              u'Α': [u'Ά', u'Ὰ'],  # caps
               u'ἀ': [u'ἄ', u'ἂ', u'ἆ'],
+              u'Ἀ': [u'Ἄ', u'Ἂ', u'Ἆ', u'᾿Α'],  # caps (including combining )
               u'ἁ': [u'ἅ', u'ἃ', u'ἇ'],
+              u'Ἁ': [u'Ἅ', u'Ἃ', u'Ἇ', u'῾Α'],  # caps (including combining)
               u'ᾳ': [u'ᾷ', u'ᾲ', u'ᾴ'],
               u'ᾀ': [u'ᾄ', u'ᾂ', u'ᾆ'],
               u'ᾁ': [u'ᾅ', u'ᾃ', u'ᾇ'],
               u'ε': [u'έ', u'ὲ'],
+              u'Ε': [u'Έ', u'Ὲ'],  # caps
               u'ἐ': [u'ἔ', u'ἒ'],
+              u'Ἐ': [u'Ἔ', u'Ἒ', u'᾿Ε'],  # caps (including combining)
               u'ἑ': [u'ἕ', u'ἓ'],
+              u'Ἑ': [u'Ἕ', u'Ἓ', u'῾Ε'],  # caps (including combining)
               u'η': [u'ῆ', u'ή', u'ὴ'],
+              u'Η': [u'Ή', u'Ὴ'],  # caps
               u'ἠ': [u'ἤ', u'ἢ', u'ἦ'],
+              u'Ἠ': [u'Ἤ', u'Ἢ', u'Ἦ', u'᾿Η'],  # caps (including combining)
               u'ἡ': [u'ἥ', u'ἣ', u'ἧ'],
+              u'Ἡ': [u'Ἥ', u'Ἣ', u'Ἧ', u'῾Η'],  # caps (including combining)
               u'ῃ': [u'ῇ', u'ῄ', u'ῂ'],
               u'ᾐ': [u'ᾔ', u'ᾒ', u'ᾖ'],
               u'ᾑ': [u'ᾕ', u'ᾓ', u'ᾗ'],
               u'ι': [u'ῖ', u'ϊ', u'ί', u'ὶ', u'ί'],
               u'ἰ': [u'ἴ', u'ἲ', u'ἶ'],
               u'ἱ': [u'ἵ', u'ἳ', u'ἷ'],
+              u'Ι': [u'Ϊ', u'Ί', u'Ὶ', u'Ί'],  # caps
+              u'Ἰ': [u'Ἴ', u'Ἲ', u'Ἶ', u'᾿Ι'],  # caps (including combining)
+              u'Ἱ': [u'Ἵ', u'Ἳ', u'Ἷ', u'῾Ι'],  # caps (including combining)
               u'ο': [u'ό', u'ὸ'],
               u'ὀ': [u'ὄ', u'ὂ'],
               u'ὁ': [u'ὅ', u'ὃ'],
+              u'Ο': [u'Ό', u'Ὸ'],  # caps
+              u'Ὀ': [u'Ὄ', u'Ὂ', u'᾿Ο'],  # caps (including combining)
+              u'Ὁ': [u'Ὅ', u'Ὃ', u'῾Ο'],  # caps (including combining)
               u'υ': [u'ῦ', u'ϋ', u'ύ', u'ὺ'],
               u'ὐ': [u'ὔ', u'ὒ', u'ὖ'],
               u'ὑ': [u'ὕ', u'ὓ', u'ὗ'],
+              u'Υ': [u'Ϋ', u'Ύ', u'Ὺ'],  # caps TODO: no capital U with smooth?
+              u'Ὑ': [u'Ὕ', u'Ὓ', u'Ὗ', u'῾Υ'],  # caps (including combining)
               u'ω': [u'ῶ', u'ώ', u'ὼ'],
               u'ὠ': [u'ὤ', u'ὢ', u'ὦ'],
               u'ὡ': [u'ὥ', u'ὣ', u'ὧ'],
+              u'Ω': [u'Ώ', u'Ὼ'],  # caps
+              u'Ὠ': [u'Ὤ', u'Ὢ', u'Ὦ', u'᾿Ω'],  # caps (including combining)
+              u'Ὡ': [u'Ὥ', u'Ὣ', u'Ὧ', u'῾Ω'],  # caps (including combining)
               u'ῳ': [u'ῷ', u'ῴ', u'ῲ'],
               u'ᾠ': [u'ᾤ', u'ᾢ', u'ᾦ'],
               u'ᾡ': [u'ᾥ', u'ᾣ', u'ᾧ'],
-              u'Ῥ': [u'῾Ρ'],  # also handle improperly formed marks
-              u'Ἁ': [u'῾Α'],
-              u'Ἑ': [u'῾Ε'],
-              u'Ἱ': [u'῾Ι'],
-              u'Ὑ': [u'῾Υ'],
-              u'Ὁ': [u'῾Ο'],
-              u'Ὡ': [u'῾Ω'],
+              u'Ῥ': [u'῾Ρ'],  # also handle improperly formed marks (rough)
+              u'"': [u'“', u'”'],  # handle curly quotes
+              u"'": [u'‘', u'’']
               }
     accented = chain(*equivs.values())
     restr = '|'.join(accented)
@@ -361,12 +377,14 @@ def normalize_accents(string):
             matching_letters = re.findall(makeutf8(restr), mystring,
                                           re.I | re.U)
             if matching_letters:
+
                 edict = {makeutf8(k): v for k, v in equivs.iteritems()
                         if [m for m in v if makeutf8(m) in matching_letters]}
-                print 'edict', edict
+
                 for k, v in edict.iteritems():
-                    myval = [l for l in v if makeutf8(l) in matching_letters][0]
-                    mystring = mystring.replace(myval, k)
+                    myvals = [l for l in v if makeutf8(l) in matching_letters]
+                    for val in myvals:
+                        mystring = mystring.replace(val, k)
             else:
                 pass
         else:
