@@ -10,18 +10,13 @@ Part of the Paideia platform built with web2py.
 
 """
 import traceback
-#import locale
 from gluon import current, SQLFORM, Field, BEAUTIFY, IS_IN_DB
 from gluon.storage import Storage
 from gluon.storage import StorageList
-#from plugin_ajaxselect import AjaxSelect
 import re
 from itertools import chain
 #from pprint import pprint
-#import datetime
-#import json
-import plugin_utils
-from plugin_utils import makeutf8, encodeutf8
+from plugin_utils import makeutf8, multiple_replace  # encodeutf8,
 import datetime
 
 
@@ -112,162 +107,326 @@ class Paideia_Debug(object):
         self.data += data_obj['data']
 
 
-def uprint(myobj):
+class Uprinter(object):
     """
-    Smart wrapper function to print simple unicode types in a readable form.
+    Class for printing simple unicode types in a readable (utf8 encoded) form.
 
     Addresses the problem of print statements to stdout giving unicode code
     points instead of readable characters.
 
     """
-    if type(myobj) == None:
-        print 'None'
-    calls = {dict: uprint_dict,
-             list: uprint_list,
-             tuple: uprint_tuple,
-             unicode: makeutf8,
-             int: makeutf8,
-             long: makeutf8,
-             float: makeutf8,
-             str: makeutf8}
-    printfunc = calls[type(myobj)]
-    prettystring = printfunc(myobj)
-    return prettystring
+    def __init__(self):
+        """
+        """
+        pass
 
+    def uprint(self, myobj):
+        """
+        Smart wrapper function to print simple unicode types in a readable form.
 
-def uprint_dict(mydict, lvl=0, html=False):
-    """
-    Prints a unicode dictionary in readable form.
+        Addresses the problem of print statements to stdout giving unicode code
+        points instead of readable characters.
 
-    """
-    assert isinstance(mydict, dict)
-    indent = '    ' * lvl if lvl > 0 else ''
-    newdict = '\n' + indent + '{\n'
-    for k, i in mydict.iteritems():
+        """
+        if type(myobj) == None:
+            print 'None'
+        calls = {dict: self._uprint_dict,
+                 list: self._uprint_list,
+                 tuple: self._uprint_tuple,
+                 unicode: self._internal_print,
+                 int: self._internal_print,
+                 long: self._internal_print,
+                 float: self._internal_print,
+                 complex: self._internal_print,
+                 str: self._internal_print}
+        printfunc = calls[type(myobj)]
+        return printfunc(myobj)
+
+    def _internal_print(self, i, lvl):
+        """
+        """
         if isinstance(i, dict):
-            i = uprint_dict(i, lvl=lvl + 1)
+            i = self._uprint_dict(i, lvl=lvl + 1)
         elif isinstance(i, list):
-            i = uprint_list(i, lvl=lvl + 1)
+            i = self._uprint_list(i, lvl=lvl + 1)
         elif isinstance(i, tuple):
-            i = uprint_tuple(i, lvl=lvl + 1)
+            i = self._uprint_tuple(i, lvl=lvl + 1)
         elif isinstance(i, (int, long, float, complex)):
-            i = str(i)
+            i = makeutf8(str(i))
         else:
             i = makeutf8(i)
-        newdict += indent + ' ' + makeutf8(k) + ': ' + i + ',\n'
-    newdict += '\n' + indent + ' }'
-    return newdict
+        return i, lvl
+
+    def _uprint_dict(self, mydict, lvl=0, html=False):
+        """
+        Prints a unicode dictionary in readable form.
+
+        """
+        assert isinstance(mydict, dict)
+        indent = '    ' * lvl if lvl > 0 else ''
+        newdict = '\n' + indent + '{\n'
+        for k, i in mydict.iteritems():
+            i, lvl = self._internal_print(i, lvl)
+            newdict += indent + ' ' + makeutf8(k) + ': ' + i + ',\n'
+        newdict += '\n' + indent + ' }'
+        return newdict
+
+    def _uprint_list(self, mylist, lvl=0):
+        """
+        Prints a unicode list in readable form.
+
+        """
+        assert isinstance(mylist, list)
+        indent = '    ' * lvl if lvl > 0 else ''
+        newlist = '\n' + indent + '['
+        for i in mylist:
+            i, lvl = self._internal_print(i, lvl)
+            newlist += indent + ' ' + i + ',\n'
+        newlist += indent + ' ]'
+        return newlist
+
+    def _uprint_tuple(self, mytup, lvl=0):
+        """
+        Prints a unicode tuple in readable form.
+        """
+        assert isinstance(mytup, tuple)
+        indent = '    ' * lvl if lvl > 0 else ''
+        newtup = '\n' + indent + '('
+        for i in mytup:
+            i, lvl = self._internal_print(i, lvl)
+            newtup += indent + ' ' + i + ',\n'
+        newtup += indent + ' )'
+        return newtup
 
 
-def uprint_list(mylist, lvl=0):
+class GreekNormalizer(object):
     """
-    Prints a unicode list in readable form.
-
     """
-    assert isinstance(mylist, list)
-    indent = '    ' * lvl if lvl > 0 else ''
-    newlist = '\n' + indent + '['
-    for i in mylist:
-        if isinstance(i, dict):
-            i = uprint_dict(i, lvl=lvl + 1)
-        elif isinstance(i, list):
-            i = uprint_list(i, lvl=lvl + 1)
-        elif isinstance(i, tuple):
-            i = uprint_tuple(i, lvl=lvl + 1)
-        elif isinstance(i, (int, long, float, complex)):
-            i = str(i)
-        else:
-            i = makeutf8(i)
-        newlist += indent + ' ' + i + ',\n'
-    newlist += indent + ' ]'
-    return newlist
+    def __init__(self):
+        """
+        Initialize new GreekNormalizer instance.
+        """
+        pass
 
+    def normalize(self, strings):
+        """
+        Primary normalization method that applies all of the other methods.
 
-def uprint_tuple(mytup, lvl=0):
-    """
-    Prints a unicode tuple in readable form.
-    """
-    assert isinstance(mytup, tuple)
-    indent = '    ' * lvl if lvl > 0 else ''
-    newtup = '\n' + indent + '('
-    for i in mytup:
-        if isinstance(i, dict):
-            i = uprint_dict(i, lvl=lvl + 1)
-        elif isinstance(i, list):
-            i = uprint_list(i, lvl=lvl + 1)
-        elif isinstance(i, tuple):
-            i = uprint_tuple(i, lvl=lvl + 1)
-        elif isinstance(i, (int, long, float, complex)):
-            i = str(i)
-        else:
-            i = makeutf8(i)
-        newtup += indent + ' ' + i + ',\n'
-    newtup += indent + ' )'
-    return newtup
+        This may be called with either a single string or a list of strings. It
+        will return the same type as was supplied initially as the argument,
+        except that any strings will be returned as unicode strings, regardless
+        of their encoding or type when they were supplied.
 
+        """
+        strings = [strings] if not isinstance(strings, list) else strings
 
-def sanitize_greek(strings):
-    """
-    Check for latin similar characters mixed with Greek and convert them to
-    Greek.
+        strings = self.convert_latin_chars(strings)
+        strings = self.normalize_accents(strings)
+        strings = self.strip_extra_spaces(strings)
 
-    """
-    try:
+        if len(strings) == 1:
+            strings = strings[0]
+        return strings
+
+    def convert_latin_chars(self, strings):
+        """
+        Check for latin similar characters mixed with Greek and convert them to
+        Greek.
+
+        """
+        strings = [strings] if not isinstance(strings, list) else strings
+        try:
+            newstrings = []
+            for string in strings:
+                string = unicode(makeutf8(string))
+                rgx = ur'(?P<a>[Α-Ωα-ω])?([a-z]|[A-Z]|\d)(?(a).*|[Α-Ωα-ω])'
+                latin = re.compile(rgx, re.U)
+                mymatch = re.search(latin, string)
+                if not mymatch:
+                    newstring = string
+                else:
+                    subs = {u'a': u'α',
+                            u'A': u'Α',
+                            u'd': u'δ',
+                            u'e': u'ε',
+                            u'E': u'Ε',
+                            u'Z': u'Ζ',
+                            u'H': u'Η',
+                            u'i': u'ι',
+                            u'I': u'Ι',
+                            u'k': u'κ',
+                            u'K': u'Κ',
+                            u'v': u'ν',
+                            u'N': u'Ν',
+                            u'o': u'ο',
+                            u'O': u'Ο',
+                            u'p': u'ρ',
+                            u'P': u'Ρ',
+                            u't': u'τ',
+                            u'T': u'Τ',
+                            u'x': u'χ',
+                            u'X': u'Χ',
+                            u'w': u'ω'}
+                    print 'Latin character found in Greek string: '
+                    print mymatch.group(), 'in', string
+                    newstring = multiple_replace(string, subs)
+                    print 'replaced with Greek characters:'
+                    print newstring
+                newstrings.append(newstring)
+            if len(newstrings) == 1:
+                newstrings = newstrings[0]
+            return newstrings
+        except Exception:
+            print traceback.format_exc(12)
+            return False
+
+    def strip_extra_spaces(self, strings):
+        """
+        Remove leading, trailing, and multiple internal spaces from string.
+        """
+        strings = [strings] if not isinstance(strings, list) else strings
         newstrings = []
         for string in strings:
-            string = makeutf8(string)
-            rgx = makeutf8(r'(?P<a>[Α-Ωα-ω])?([a-z]|[A-Z]|\d)(?(a).*|[Α-Ωα-ω])')
-            latin = re.compile(rgx, re.U)
-            mymatch = re.search(latin, string)
-            if not mymatch:
-                newstring = string
-            else:
-                subs = (('a', 'α'),
-                        ('A', 'Α'),
-                        ('d', 'δ'),
-                        ('e', 'ε'),
-                        ('E', 'Ε'),
-                        ('Z', 'Ζ'),
-                        ('H', 'Η'),
-                        ('i', 'ι'),
-                        ('I', 'Ι'),
-                        ('k', 'κ'),
-                        ('K', 'Κ'),
-                        ('n', 'ν'),
-                        ('N', 'Ν'),
-                        ('o', 'ο'),
-                        ('O', 'Ο'),
-                        ('r', 'ρ'),
-                        ('R', 'Ρ'),
-                        ('t', 'τ'),
-                        ('T', 'Τ'),
-                        ('x', 'χ'),
-                        ('X', 'Χ'),
-                        ('w', 'ω'))
-                print 'Latin character found in Greek string: '
-                print mymatch.group(), 'in', string
-                newstring = multiple_replace(string, *subs)
-                print 'replaced with Greek characters:'
-                print newstring
-            newstrings.append(newstring)
+            user_response = unicode(makeutf8(string))
+            while '  ' in user_response:  # remove multiple inner spaces
+                user_response = user_response.replace('  ', ' ')
+            user_response = user_response.strip()  # remove leading and trailing spaces
+            newstrings.append(user_response)
+        if len(newstrings) == 1:
+            newstrings = newstrings[0]
         return newstrings
-    except Exception:
-        print traceback.format_exc(12)
+
+    def normalize_accents(self, strings):
+        """
+        Return a polytonic Greek unicode string with accents removed.
+
+        The one argument should be a list of strings to be normalized. It can
+        also handle a single string.
+
+        """
+        instrings = [strings] if not isinstance(strings, list) else strings
+
+        outstrings = []
+        for string in instrings:
+            substrs = unicode(makeutf8(string)).split(' ')
+
+            equivs = {u'α': [u'ά', u'ὰ', u'ᾶ'],
+                    u'Α': [u'Ά', u'Ὰ'],  # caps
+                    u'ἀ': [u'ἄ', u'ἂ', u'ἆ'],
+                    u'Ἀ': [u'Ἄ', u'Ἂ', u'Ἆ', u'᾿Α'],  # caps (including combining )
+                    u'ἁ': [u'ἅ', u'ἃ', u'ἇ'],
+                    u'Ἁ': [u'Ἅ', u'Ἃ', u'Ἇ', u'῾Α'],  # caps (including combining)
+                    u'ᾳ': [u'ᾷ', u'ᾲ', u'ᾴ'],
+                    u'ᾀ': [u'ᾄ', u'ᾂ', u'ᾆ'],
+                    u'ᾁ': [u'ᾅ', u'ᾃ', u'ᾇ'],
+                    u'ε': [u'έ', u'ὲ'],
+                    u'Ε': [u'Έ', u'Ὲ'],  # caps
+                    u'ἐ': [u'ἔ', u'ἒ'],
+                    u'Ἐ': [u'Ἔ', u'Ἒ', u'᾿Ε'],  # caps (including combining)
+                    u'ἑ': [u'ἕ', u'ἓ'],
+                    u'Ἑ': [u'Ἕ', u'Ἓ', u'῾Ε'],  # caps (including combining)
+                    u'η': [u'ῆ', u'ή', u'ὴ'],
+                    u'Η': [u'Ή', u'Ὴ'],  # caps
+                    u'ἠ': [u'ἤ', u'ἢ', u'ἦ'],
+                    u'Ἠ': [u'Ἤ', u'Ἢ', u'Ἦ', u'᾿Η'],  # caps (including combining)
+                    u'ἡ': [u'ἥ', u'ἣ', u'ἧ'],
+                    u'Ἡ': [u'Ἥ', u'Ἣ', u'Ἧ', u'῾Η'],  # caps (including combining)
+                    u'ῃ': [u'ῇ', u'ῄ', u'ῂ'],
+                    u'ᾐ': [u'ᾔ', u'ᾒ', u'ᾖ'],
+                    u'ᾑ': [u'ᾕ', u'ᾓ', u'ᾗ'],
+                    u'ι': [u'ῖ', u'ϊ', u'ί', u'ὶ', u'ί'],
+                    u'ἰ': [u'ἴ', u'ἲ', u'ἶ'],
+                    u'ἱ': [u'ἵ', u'ἳ', u'ἷ'],
+                    u'Ι': [u'Ϊ', u'Ί', u'Ὶ', u'Ί'],  # caps
+                    u'Ἰ': [u'Ἴ', u'Ἲ', u'Ἶ', u'᾿Ι'],  # caps (including combining)
+                    u'Ἱ': [u'Ἵ', u'Ἳ', u'Ἷ', u'῾Ι'],  # caps (including combining)
+                    u'ο': [u'ό', u'ὸ'],
+                    u'ὀ': [u'ὄ', u'ὂ'],
+                    u'ὁ': [u'ὅ', u'ὃ'],
+                    u'Ο': [u'Ό', u'Ὸ'],  # caps
+                    u'Ὀ': [u'Ὄ', u'Ὂ', u'᾿Ο'],  # caps (including combining)
+                    u'Ὁ': [u'Ὅ', u'Ὃ', u'῾Ο'],  # caps (including combining)
+                    u'υ': [u'ῦ', u'ϋ', u'ύ', u'ὺ'],
+                    u'ὐ': [u'ὔ', u'ὒ', u'ὖ'],
+                    u'ὑ': [u'ὕ', u'ὓ', u'ὗ'],
+                    u'Υ': [u'Ϋ', u'Ύ', u'Ὺ'],  # caps TODO: no capital U with smooth?
+                    u'Ὑ': [u'Ὕ', u'Ὓ', u'Ὗ', u'῾Υ'],  # caps (including combining)
+                    u'ω': [u'ῶ', u'ώ', u'ὼ'],
+                    u'ὠ': [u'ὤ', u'ὢ', u'ὦ'],
+                    u'ὡ': [u'ὥ', u'ὣ', u'ὧ'],
+                    u'Ω': [u'Ώ', u'Ὼ'],  # caps
+                    u'Ὠ': [u'Ὤ', u'Ὢ', u'Ὦ', u'᾿Ω'],  # caps (including combining)
+                    u'Ὡ': [u'Ὥ', u'Ὣ', u'Ὧ', u'῾Ω'],  # caps (including combining)
+                    u'ῳ': [u'ῷ', u'ῴ', u'ῲ'],
+                    u'ᾠ': [u'ᾤ', u'ᾢ', u'ᾦ'],
+                    u'ᾡ': [u'ᾥ', u'ᾣ', u'ᾧ'],
+                    u'Ῥ': [u'῾Ρ'],  # also handle improperly formed marks (rough)
+                    u'"': [u'“', u'”'],  # handle curly quotes
+                    u"'": [u'‘', u'’']
+                    }
+            accented = chain(*equivs.values())
+            restr = '|'.join(accented)
+            newstrings = []
+
+            # this is ugly
+            exempt = [u'τίνος', u'τί', u'τίς', u'τίνα', u'τίνας', u'τίνι',
+                      u'Τίνος', u'Τί', u'Τίς', u'Τίνα', u'Τίνας', u'Τίνι']
+            ex_period = [x + u'.' for x in exempt]
+            ex_scolon = [x + u';' for x in exempt]
+            ex_comma = [x + u',' for x in exempt]
+            ex_qmark = [x + u'?' for x in exempt]
+            ex_colon = [x + u':' for x in exempt]
+            exempt = list(chain(exempt, ex_colon, ex_comma, ex_qmark, ex_scolon, ex_period))
+
+            for mystring in substrs:
+                mystring = unicode(makeutf8(mystring)).strip()
+                mystring = mystring.replace(u'ί', u'ί')  # avoid q-i iota on windows
+
+                if mystring not in exempt:
+                    print makeutf8(mystring), 'not exempt', type(mystring)
+                    matching_letters = re.findall(makeutf8(restr), mystring,
+                                                re.I | re.U)
+                    if matching_letters:
+
+                        edict = {k: v for k, v in equivs.iteritems()
+                                if [m for m in v if m in matching_letters]}
+                        key_vals = {ltr: k
+                                    for ltr in list(chain(*edict.values()))
+                                    for k in edict.keys()
+                                    if ltr in edict[k]}
+                        print key_vals
+                        mystring = multiple_replace(mystring, key_vals)
+                        '''
+                        for k, v in edict.iteritems():
+                            myvals = [l for l in v if makeutf8(l) in matching_letters]
+                            for val in myvals:
+                                mystring = mystring.replace(val, k)
+                        '''
+                    else:
+                        pass
+                else:
+                    print makeutf8(mystring), 'exempt'
+                    pass
+                newstrings.append(mystring)
+            newstring = ' '.join(newstrings)
+            outstrings.append(newstring)
+        if len(outstrings) == 1:
+            outstrings = outstrings[0]
+        return outstrings
 
 
-def test_regex(regex, readables):
+def check_regex(rgx, readables):
     """
     Return a re.match object for each given string, tested with the given regex.
 
     The "readables" argument should be a list of strings to be tested.
 
     """
-    #TODO: DEPRECATE IN FAVOUR OF PLUGIN_UTILS VERSION
-    readables = islist(readables)
-    test_regex = re.compile(makeutf8(regex), re.I | re.U)
+    readables = readables if isinstance(readables, list) else [readables]
+    pattern = re.compile(unicode(makeutf8(rgx)), re.I | re.U)
     rdict = {}
     for rsp in readables:
-        match = re.match(test_regex, makeutf8(rsp))
+        match = re.match(pattern, unicode(makeutf8(rsp)))
         rdict[rsp] = True if match else False
     return rdict
 
@@ -284,218 +443,9 @@ def test_step_regex():
     if form.process(dbio=False, keepvalues=True).accepted:
         sid = form.vars.step_number
         row = db.steps(sid)
-        result = test_regex(row.response1, row.readable_response.split('|'))
+        result = check_regex(row.response1, row.readable_response.split('|'))
         result = BEAUTIFY(result)
     elif form.errors:
         result = BEAUTIFY(form.errors)
 
     return form, result
-
-
-def normalize_accents(string):
-    """
-    Return a polytonic Greek unicode string with accents removed.
-
-    The one argument should be a list of strings to be normalized. It can
-    also handle a single string.
-
-    So far this function only handles lowercase strings.
-    """
-    strings = makeutf8(string).split(' ')
-
-    equivs = {u'α': [u'ά', u'ὰ', u'ᾶ'],
-              u'Α': [u'Ά', u'Ὰ'],  # caps
-              u'ἀ': [u'ἄ', u'ἂ', u'ἆ'],
-              u'Ἀ': [u'Ἄ', u'Ἂ', u'Ἆ', u'᾿Α'],  # caps (including combining )
-              u'ἁ': [u'ἅ', u'ἃ', u'ἇ'],
-              u'Ἁ': [u'Ἅ', u'Ἃ', u'Ἇ', u'῾Α'],  # caps (including combining)
-              u'ᾳ': [u'ᾷ', u'ᾲ', u'ᾴ'],
-              u'ᾀ': [u'ᾄ', u'ᾂ', u'ᾆ'],
-              u'ᾁ': [u'ᾅ', u'ᾃ', u'ᾇ'],
-              u'ε': [u'έ', u'ὲ'],
-              u'Ε': [u'Έ', u'Ὲ'],  # caps
-              u'ἐ': [u'ἔ', u'ἒ'],
-              u'Ἐ': [u'Ἔ', u'Ἒ', u'᾿Ε'],  # caps (including combining)
-              u'ἑ': [u'ἕ', u'ἓ'],
-              u'Ἑ': [u'Ἕ', u'Ἓ', u'῾Ε'],  # caps (including combining)
-              u'η': [u'ῆ', u'ή', u'ὴ'],
-              u'Η': [u'Ή', u'Ὴ'],  # caps
-              u'ἠ': [u'ἤ', u'ἢ', u'ἦ'],
-              u'Ἠ': [u'Ἤ', u'Ἢ', u'Ἦ', u'᾿Η'],  # caps (including combining)
-              u'ἡ': [u'ἥ', u'ἣ', u'ἧ'],
-              u'Ἡ': [u'Ἥ', u'Ἣ', u'Ἧ', u'῾Η'],  # caps (including combining)
-              u'ῃ': [u'ῇ', u'ῄ', u'ῂ'],
-              u'ᾐ': [u'ᾔ', u'ᾒ', u'ᾖ'],
-              u'ᾑ': [u'ᾕ', u'ᾓ', u'ᾗ'],
-              u'ι': [u'ῖ', u'ϊ', u'ί', u'ὶ', u'ί'],
-              u'ἰ': [u'ἴ', u'ἲ', u'ἶ'],
-              u'ἱ': [u'ἵ', u'ἳ', u'ἷ'],
-              u'Ι': [u'Ϊ', u'Ί', u'Ὶ', u'Ί'],  # caps
-              u'Ἰ': [u'Ἴ', u'Ἲ', u'Ἶ', u'᾿Ι'],  # caps (including combining)
-              u'Ἱ': [u'Ἵ', u'Ἳ', u'Ἷ', u'῾Ι'],  # caps (including combining)
-              u'ο': [u'ό', u'ὸ'],
-              u'ὀ': [u'ὄ', u'ὂ'],
-              u'ὁ': [u'ὅ', u'ὃ'],
-              u'Ο': [u'Ό', u'Ὸ'],  # caps
-              u'Ὀ': [u'Ὄ', u'Ὂ', u'᾿Ο'],  # caps (including combining)
-              u'Ὁ': [u'Ὅ', u'Ὃ', u'῾Ο'],  # caps (including combining)
-              u'υ': [u'ῦ', u'ϋ', u'ύ', u'ὺ'],
-              u'ὐ': [u'ὔ', u'ὒ', u'ὖ'],
-              u'ὑ': [u'ὕ', u'ὓ', u'ὗ'],
-              u'Υ': [u'Ϋ', u'Ύ', u'Ὺ'],  # caps TODO: no capital U with smooth?
-              u'Ὑ': [u'Ὕ', u'Ὓ', u'Ὗ', u'῾Υ'],  # caps (including combining)
-              u'ω': [u'ῶ', u'ώ', u'ὼ'],
-              u'ὠ': [u'ὤ', u'ὢ', u'ὦ'],
-              u'ὡ': [u'ὥ', u'ὣ', u'ὧ'],
-              u'Ω': [u'Ώ', u'Ὼ'],  # caps
-              u'Ὠ': [u'Ὤ', u'Ὢ', u'Ὦ', u'᾿Ω'],  # caps (including combining)
-              u'Ὡ': [u'Ὥ', u'Ὣ', u'Ὧ', u'῾Ω'],  # caps (including combining)
-              u'ῳ': [u'ῷ', u'ῴ', u'ῲ'],
-              u'ᾠ': [u'ᾤ', u'ᾢ', u'ᾦ'],
-              u'ᾡ': [u'ᾥ', u'ᾣ', u'ᾧ'],
-              u'Ῥ': [u'῾Ρ'],  # also handle improperly formed marks (rough)
-              u'"': [u'“', u'”'],  # handle curly quotes
-              u"'": [u'‘', u'’']
-              }
-    accented = chain(*equivs.values())
-    restr = '|'.join(accented)
-    newstrings = []
-    for mystring in strings:
-        mystring = mystring.replace(u'ί', u'ί')  # avoid q-i iota on windows
-
-        # this is ugly
-        exempt = [u'τίνος', u'τί', u'τίς', u'τίνα', u'τίνας', u'τίνι',
-                  u'Τίνος', u'Τί', u'Τίς', u'Τίνα', u'Τίνας', u'Τίνι']
-        ex_period = [x + u'.' for x in exempt]
-        ex_scolon = [x + u';' for x in exempt]
-        ex_comma = [x + u',' for x in exempt]
-        ex_qmark = [x + u'?' for x in exempt]
-        ex_colon = [x + u':' for x in exempt]
-        exempt = chain(exempt, ex_colon, ex_comma, ex_qmark, ex_scolon, ex_period)
-
-        if mystring not in exempt:
-            matching_letters = re.findall(makeutf8(restr), mystring,
-                                          re.I | re.U)
-            if matching_letters:
-
-                edict = {makeutf8(k): v for k, v in equivs.iteritems()
-                        if [m for m in v if makeutf8(m) in matching_letters]}
-
-                for k, v in edict.iteritems():
-                    myvals = [l for l in v if makeutf8(l) in matching_letters]
-                    for val in myvals:
-                        mystring = mystring.replace(val, k)
-            else:
-                pass
-        else:
-            pass
-        newstrings.append(mystring)
-    newstring = ' '.join(newstrings)
-    return encodeutf8(newstring)
-
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""
-ALL BELOW ARE DEPRECATED, MOVED TO plugin_utils
-"""""""""""""""""""""""""""""""""""""""""""""""""""
-
-
-def multiple_replace(string, *key_values):
-    """
-    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
-    """
-    return plugin_utils.multiple_replacer(string, *key_values)
-
-
-def islist(dat):
-    """
-    Return the supplied object converted to a list if it is not already.
-
-    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
-    """
-    return plugin_utils.islist(dat)
-
-
-def clr(string, mycol='white'):
-    """
-    Return a string surrounded by ansi colour escape sequences.
-
-    This function is intended to simplify colourizing terminal output.
-    The default color is white. The function can take any number of positional
-    arguments as component strings, which will be joined (space delimited)
-    before being colorized.
-
-    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
-    """
-    return plugin_utils.clr(string, mycol)
-
-
-def printutf(string):
-    """
-    Convert unicode string to readable characters for printing.
-
-    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
-    """
-    return plugin_utils.printutf(string)
-
-
-def capitalize(letter):
-    """
-    Convert string to upper case in utf-8 safe way.
-
-    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
-    """
-    return plugin_utils.capitalize(letter)
-
-
-def lowercase(letter):
-    """
-    Convert string to lower case in utf-8 safe way.
-
-    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
-    """
-    return plugin_utils.lowercase(letter)
-
-
-def firstletter(mystring):
-    """
-    Find the first letter of a byte-encoded unicode string.
-
-    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
-    """
-    return plugin_utils.firstletter(mystring)
-
-
-def capitalize_first(mystring):
-    """
-    Return the supplied string with its first letter capitalized.
-
-    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
-    """
-    return plugin_utils.capitalize_first(mystring)
-
-
-def flatten(items, seqtypes=(list, tuple)):
-    """
-    Convert an arbitrarily deep nested list into a single flat list.
-
-    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
-    """
-    return plugin_utils.flatten(items, seqtypes)
-
-
-def make_json(data):
-    """
-    Return json object representing the data provided in dictionary "data".
-
-    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
-    """
-    return plugin_utils.make_json(data)
-
-
-def load_json(data):
-    """
-    Read a json object and return as a simple python type object.
-
-    DEPRECATED IN FAVOUR OF PLUGIN_UTILS VERSION
-    """
-    return plugin_utils.load_json(data)

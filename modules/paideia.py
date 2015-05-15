@@ -14,10 +14,11 @@ import datetime
 from dateutil import parser
 from pytz import timezone
 import pickle
-from plugin_utils import flatten, makeutf8, encodeutf8  # , ErrorReport
+from plugin_utils import flatten, makeutf8  # , ErrorReport
 from plugin_widgets import MODAL
 # from pprint import pprint
-from paideia_utils import Paideia_Debug, normalize_accents
+from paideia_utils import Paideia_Debug, GreekNormalizer
+from paideia_util import strip_spaces
 
 #current.paideia_DEBUG_MODE is set in Walk::init
 # TODO: move these notes elsewhere
@@ -1564,49 +1565,6 @@ class StepEvaluator(object):
         self.responses = responses
         self.tips = tips
 
-    def _regularize_greek(self, user_response):
-        """
-        Replaces identical looking Latin characters in Greek words with Greek.
-        """
-        equivs = {'A': 'Α',  # the keys here are latin characters and
-                  'B': 'Β',  # the values are unicode Greek, even though
-                  'E': 'Ε',  # they may (depending on the font) look the same.
-                  'H': 'Η',
-                  'I': 'Ι',
-                  'i': 'ι',
-                  'K': 'Κ',
-                  'M': 'Μ',
-                  'N': 'Ν',
-                  'v': 'ν',
-                  'O': 'Ο',
-                  'o': 'ο',
-                  'P': 'Ρ',
-                  'T': 'Τ',
-                  'u': 'υ',
-                  'X': 'Χ'}
-        user_response = makeutf8(user_response)
-        words = user_response.split(' ')
-        Latinchars = re.compile(u'[\u0041-\u007a]|\d', re.U)
-        Greekchars = re.compile(u'[\u1f00-\u1fff]|[\u0370-\u03ff]', re.U)
-        for idx, word in enumerate(words):
-            Gklts = [l for l in word if re.match(Greekchars, l)]
-            Latlts = [l for l in word if re.match(Latinchars, l)]
-            if Gklts and Latlts and len(Gklts) > len(Latlts):
-                for ltr in word:
-                    if ltr in equivs.keys():
-                        words[idx] = word.replace(ltr, makeutf8(equivs[ltr]))
-        newresp = ' '.join(words)
-        return encodeutf8(newresp)
-
-    def _strip_spaces(self, user_response):
-        """
-        Remove leading, trailing, and multiple internal spaces from string.
-        """
-        while '  ' in user_response:  # remove multiple inner spaces
-            user_response = user_response.replace('  ', ' ')
-        user_response = user_response.strip()  # remove leading and trailing spaces
-        return user_response
-
     def get_eval(self, user_response=None):
         """
         Return the user's score for this step attempt along with "tips" text
@@ -1620,9 +1578,7 @@ class StepEvaluator(object):
         if not user_response:
             request = current.request
             user_response = request.vars['response']
-        user_response = self._strip_spaces(user_response)
-        user_response = self._regularize_greek(user_response)
-        user_response = normalize_accents(user_response)
+        user_response = GreekNormalizer().normalize(user_response)
         responses = {k: r for k, r in self.responses.iteritems()
                      if r and r != 'null'}
         # Compare the student's response to the regular expressions
