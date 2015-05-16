@@ -2,11 +2,23 @@
 # -*- coding:utf-8 -*-
 
 import re
+from gluon import current
 from collections import OrderedDict
 #from pprint import pprint
-from paideia_utils import clr
-import argparse
+from plugin_utils import clr, makeutf8
+#import argparse
 import traceback
+
+"""
+
+Interface:
+
+To set up a grammatical pattern to test against, instantiate one of the Parser
+child classes.
+
+NounPhrase(None, Article(), Noun())
+
+"""
 
 wordforms = {'ἀνηρ': {'gender': 'masc',
                       'part_of_speech': 'noun',
@@ -38,9 +50,9 @@ def tokenize(str):
     clauses = re.split(r'[\.\?;:,]', str)
     tokenized = []
     for c in clauses:
-       token_dict = OrderedDict((t.decode('utf-8').lower().encode('utf-8'), None)
-                                for t in c.split(' '))
-       tokenized.append(token_dict)
+        token_dict = OrderedDict((unicode(makeutf8(t)), None)
+                                 for t in c.split(' '))
+        tokenized.append(token_dict)
     return tokenized
 
 
@@ -63,58 +75,63 @@ class Parser(object):
         constructions expected as constituents of this parent construction.
         """
         self.restring = args[0].strip() if args[0] else None
-        self.structures = list(args[1:])
+        self.structures = args[1]
         try:
             self.top = True if self.structures[-1] == 'top' else False
             if self.top:
                 self.structures = self.structures[:-1]
         except IndexError:  # because no substructures
             pass
+        print 'self.structures', self.structures
+        print 'self.top', self.top
 
         self.classname = type(self).__name__
 
-    def validate(self, validleaves, failedleaves=[]):
+    def validate(self, validlfs, failedlfs=[]):
         """
         compare list of word tokens to definition of valid natural language expressions.
 
         clause should be Clause() object
         """
+        validlfs = [validlfs] if isinstance(validlfs, OrderedDict) else validlfs
         # validate constituent structures recursively
         if self.structures:
             for s in self.structures:
-                validleaves, failedleaves = s.validate(validleaves, failedleaves)
-                if len(validleaves) < 1:
-                    return validleaves, failedleaves
+                validlfs, failedlfs = s.validate(validlfs, failedlfs)
+                if len(validlfs) < 1:
+                    return validlfs, failedlfs
 
         # test sub-structure order for any viable leaves
-        for idx, leaf in enumerate(validleaves):
+        for idx, leaf in enumerate(validlfs):
             leaf, match = self.test_order(leaf)
             if not match:
-                failedleaves.append(validleaves.pop(idx))
-            if len(validleaves) < 1:
-                return validleaves, failedleaves
+                failedlfs.append(validlfs.pop(idx))
+            if len(validlfs) < 1:
+                return validlfs, failedlfs
 
         # find matching string for remaining viable leaves
         if self.restring:
-            validleaves, failedleaves = self.match_string(validleaves, failedleaves)
-            if len(validleaves) < 1:
-                return validleaves, failedleaves
+            validlfs, failedlfs = self.match_string(validlfs, failedlfs)
+            if len(validlfs) < 1:
+                return validlfs, failedlfs
 
         # find any untagged words if this structure is top level
         if self.top:
-            for v in validleaves:
+            for v in validlfs:
                 for w in v: print w,
                 print ''
-            for idx, leaf in enumerate(validleaves):
+            for idx, leaf in enumerate(validlfs):
                 untagged = [t for t, v in leaf.iteritems() if not v]
                 if untagged:
-                    failedleaves.append(validleaves.pop(idx))
+                    failedlfs.append(validlfs.pop(idx))
                     print clr(['some extra words left over'], self.myc)
                     for w in untagged: print w
-            if not validleaves:
-                return validleaves, failedleaves
+            if not validlfs:
+                return False, validlfs, failedlfs
+            else:
+                return True, validlfs, failedlfs
 
-        return validleaves, failedleaves
+        return validlfs, failedlfs
 
     def match_string(self, validleaves, failedleaves,
                      restring=None, classname=None):
@@ -128,7 +145,7 @@ class Parser(object):
         restring = self.restring if not restring else restring
         classname = self.classname if not classname else classname
 
-        test = re.compile(restring, re.U|re.I)
+        test = re.compile(restring, re.U | re.I)
         mymatch = test.findall(' '.join(validleaves[0]))
 
         # TODO: split into leaves if (b) match already tagged
@@ -144,7 +161,7 @@ class Parser(object):
             validleaves = [tag_token(m, leaf)
                            for leaf in validleaves for m in mymatch]
             #print clr('now working with {} leaves in parsing '
-                      #'tree'.format(len(validleaves)), self.myc)
+            #          'tree'.format(len(validleaves)), self.myc)
             print '\n',
         else:
             failedleaves.extend(validleaves[:])
@@ -257,7 +274,7 @@ class Parser(object):
         print 'Do {} and {} agree?'.format(words[p1], words[p2]),
         parsed = [self.parseform(words[p1]),
                   self.parseform(words[p2])]
-        categories =  ['gender', 'number', 'case']
+        categories = ['gender', 'number', 'case']
         conflicts = [c for c in categories if parsed[0][c] != parsed[1][c]]
         agreement = False if conflicts else True
 
@@ -393,6 +410,7 @@ class Art(Parser):
 class Adjective(Parser):
     pass
 
+'''
 def main(string, pattern):
     """Take the  strings in 'strings' variable and validate them."""
     result = None
@@ -412,10 +430,13 @@ def main(string, pattern):
     print '============================================================='
 
     return result
+'''
 
+'''
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('string', help='the string to be evaluated')
     parser.add_argument('pattern', help='the pattern against which to evaluate the string')
     args = parser.parse_args()
     main(args.string, args.pattern)
+'''

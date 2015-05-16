@@ -15,6 +15,7 @@ from gluon.storage import Storage
 from gluon.storage import StorageList
 import re
 from itertools import chain
+from collections import OrderedDict
 #from pprint import pprint
 from plugin_utils import makeutf8, multiple_replace  # encodeutf8,
 import datetime
@@ -130,7 +131,8 @@ class Uprinter(object):
         """
         if type(myobj) == None:
             print 'None'
-        calls = {dict: self._uprint_dict,
+        calls = {OrderedDict: self._uprint_ordered_dict,
+                 dict: self._uprint_dict,
                  list: self._uprint_list,
                  tuple: self._uprint_tuple,
                  unicode: self._internal_print,
@@ -145,6 +147,8 @@ class Uprinter(object):
     def _internal_print(self, i, lvl):
         """
         """
+        if isinstance(i, OrderedDict):
+            i = self._uprint_ordered_dict(i, lvl=lvl + 1)
         if isinstance(i, dict):
             i = self._uprint_dict(i, lvl=lvl + 1)
         elif isinstance(i, list):
@@ -156,6 +160,20 @@ class Uprinter(object):
         else:
             i = makeutf8(i)
         return i, lvl
+
+    def _uprint_ordered_dict(self, myod, lvl=0, html=False):
+        """
+        Prints a unicode OrderedDict in readable form.
+
+        """
+        assert isinstance(myod, OrderedDict)
+        indent = '    ' * lvl if lvl > 0 else ''
+        newod = '\n' + indent + 'OrderedDict([\n'
+        for k, i in myod.iteritems():
+            i, lvl = self._internal_print(i, lvl)
+            newod += indent + ' (' + makeutf8(k) + ', ' + i + '),\n'
+        newod += '\n' + indent + ' ])'
+        return newod
 
     def _uprint_dict(self, mydict, lvl=0, html=False):
         """

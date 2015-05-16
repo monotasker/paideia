@@ -11,8 +11,8 @@ This file
 - Creates a complete web2py environment, similar to web2py shell.
 - Creates a WebClient instance to browse your application, similar to a real
 web browser.
-- Propagates some application data to test cases via fixtures, like baseurl and
-automatic appname discovery.
+- Propagates some application data to test cases via fixtures, like baseurl
+and automatic appname discovery.
 
 To write to db in test:
 
@@ -21,60 +21,21 @@ web2py.db.commit()
 
 To run tests:
 
-cd web2py (you must be in web2py root directory to run tests)
-python web2py.py -a my_password --nogui &
-py.test -x [-l] [-q|-v] -s applications/my_app_name/tests
+cd path/to/web2py (you must be in web2py root directory to run tests)
+python2.7 -m pytest -x [-l] [-q|-v] -s applications/my_app_name/tests
+
+(used to need running web2py instance:
+    python web2py.py -a my_password --nogui &
+but no longer necessary.)
+
+
 '''
 
 import os
 import pytest
 import sys
 from pprint import pprint
-import datetime
-sys.path.insert(0, '')
-
-
-def simple_obj_print(the_dict, title='No Title', indentation=0):
-    """
-    Prints a simple thing
-    Joseph Boakye jboakye@bwachi.com
-    """
-    indentation_string = ' '*indentation
-    if (None == the_dict):
-        print indentation_string + '{' + str(title) + ': ' + '-None-' + '}'
-        return
-    while True:
-        #dictionaries
-        if isinstance(the_dict, dict):
-            print indentation_string + str(title) + '(dict):'
-            for key in the_dict:
-                simple_obj_print(the_dict[key], key, indentation+1)
-            break
-        #lists
-        if hasattr(the_dict, '__iter__'):
-            print indentation_string + str(title) + '(list):'
-            count = 0
-            try:
-                for value in the_dict:
-                    simple_obj_print(value, count, indentation+1)
-                    count += 1
-            except TypeError, te:
-                simple_obj_print("list is not iterable", count, indentation+1)
-            except ValueError, ve:
-                simple_obj_print("cannot get list value", count, indentation+1)
-            break
-        #simple item
-        while True:
-            if type(the_dict) is datetime.datetime:
-                print indentation_string + '{' + str(title) + ': ' +  \
-                     the_dict.strftime('%Y %m %d %H %M %S %f') + '}'
-                break
-            if True:
-                print indentation_string + '{' + str(title) + ': ' + str(the_dict) + '}'
-                break
-            #print indentation_string + '{' + str(title) + ': '  +  'not printable' +  '}'
-            #break
-        break
+#sys.path.insert(0, '')
 
 # allow imports from modules and site-packages
 dirs = os.path.split(__file__)[0]
@@ -85,10 +46,9 @@ if modules_path not in sys.path:
 if 'site-packages' not in sys.path:
     sys.path.append('site-packages')  # imports from site-packages
 
-from gluon.shell import env
-web2py_env = env(appname, import_models=True,
-                         extra_request=dict(is_local=True))
-# simple_obj_print(web2py_env,"web2py_env")
+#from gluon.shell import env
+#web2py_env = env(appname, import_models=True,
+                 #extra_request=dict(is_local=True))
 
 
 @pytest.fixture(scope='module')
@@ -107,7 +67,6 @@ def appname():
 
     Your test scripts must be on applications/<your_app>/tests
     '''
-
     dirs = os.path.split(__file__)[0]
     appname = dirs.split(os.path.sep)[-2]
     return appname
@@ -167,7 +126,8 @@ def fixture_cleanup_db(web2py):
 
 @pytest.fixture(scope='module')
 def client(baseurl, fixture_create_testfile_for_application):
-    '''Create a new WebClient instance once per module.
+    '''
+    Create a new WebClient instance once per module.
     '''
     from gluon.contrib.webclient import WebClient
     webclient = WebClient(baseurl)
@@ -248,7 +208,6 @@ def web2py(appname, fixture_create_testfile_for_application):
     if hasattr(web2py_env, '__file__'):
         del web2py_env['__file__']  # avoid py.test import error
     globals().update(web2py_env)
-    # simple_obj_print(web2py_env,"web2py_env")
 
     return Storage(web2py_env)
 

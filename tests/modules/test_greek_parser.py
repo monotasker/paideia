@@ -11,33 +11,43 @@
 
 import pytest
 from collections import OrderedDict
-import re
+#import re
 from pprint import pprint
-from greek_parser import main, Clause, NounPhrase, Subject, Noun, Verb, DirObject, tokenize
+from greek_parser import NounPhrase, Noun, tokenize
+#from plugin_utils import makeutf8
+from paideia_utils import Uprinter
+
 
 class TestNoun():
     """
     """
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('nominal,string,expected',
-            [('ἀρτον',  # nominal
-              'Τον ἀρτον ὁ ἀνηρ πωλει.',  # string
-             ([OrderedDict([('τον', None),
-                            ('ἀρτον', ['Noun']),
-                            ('ὁ', None),
-                            ('ἀνηρ', None),
-                            ('πωλει', None)])
+            [(ur'ἀρτον|λογον',  # nominal
+              u'Τον ἀρτον ὁ ἀνηρ πωλει.',  # string
+             (False, [], [OrderedDict([(u'τον', None),
+                                       (u'ἀρτον', ['Noun']),
+                                       (u'ὁ', None),
+                                       (u'ἀνηρ', None),
+                                       (u'πωλει', None)])
                ],
               [])
               ),
              ])
-    def test_find_article(self, nominal, string, expected):
+    def test_validate(self, nominal, string, expected):
         """
         """
         tkns = tokenize(string)[0]
-        actual = Noun('ἀρτον|λογον', ['top']).match_string([tkns], [])
-        print actual
+        aresult, avalid, afailed = Noun(nominal, ['top']).validate(tkns)
+        print 'actual result ------------------------'
+        print aresult
+        print 'valid leaves --------------------------'
+        print Uprinter().uprint(avalid)
+        print 'failed leaves -------------------------'
+        print Uprinter().uprint(afailed)
+        print type(afailed[0])
         assert actual == expected
+
 
 class TestNounPhrase():
     """
@@ -53,6 +63,7 @@ class TestNounPhrase():
         actual = NounPhrase([tkns]).find_article()
 
 
+'''
 @pytest.mark.skipif(False, reason='just because')
 @pytest.mark.parametrize('string,expected',
         [('Τον ἀρτον ὁ ἀνηρ πωλει.', 'pass'),
@@ -73,3 +84,4 @@ def test_main(string, expected):
                      'top')
     actual = main(string, pattern)
     assert actual == expected
+'''
