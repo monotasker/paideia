@@ -18,7 +18,6 @@ from plugin_utils import flatten, makeutf8  # , ErrorReport
 from plugin_widgets import MODAL
 # from pprint import pprint
 from paideia_utils import Paideia_Debug, GreekNormalizer
-from paideia_util import strip_spaces
 
 #current.paideia_DEBUG_MODE is set in Walk::init
 # TODO: move these notes elsewhere
