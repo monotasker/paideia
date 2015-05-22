@@ -1,13 +1,14 @@
 #! /usr/bin/python
 # -*- coding:utf-8 -*-
 
-import re
-from gluon import current
-from collections import OrderedDict
-#from pprint import pprint
-from plugin_utils import clr, makeutf8
 #import argparse
-import traceback
+from copy import copy, deepcopy
+from gluon import current
+#from paideia_utils import Uprinter
+from plugin_utils import clr, makeutf8
+#from pprint import pprint
+import re
+#import traceback
 
 """
 
@@ -43,16 +44,21 @@ def tokenize(str):
     """
     Divide a string into clauses and each clause into word tokens.
 
-    Returns a list of OrderedDicts, each of which represents one clause
-    (or fragment). The keys in each dict are the tokens which make up the
-    clause, ordered according to their appearance in the string.
+    Returns a list of lists, each of which represents one clause
+    (or fragment). The members of each list are 2-member tuples including [0] a
+    word from the clause, and [1] a dictionary. Each dictionary contains the
+    key 'index' with an integer giving the position of the word in the clause.
+    These tuples are ordered according to the appearance of the words in the
+    original string.
+
     """
     clauses = re.split(r'[\.\?;:,]', str)
     tokenized = []
     for c in clauses:
-        token_dict = OrderedDict((unicode(makeutf8(t)), None)
-                                 for t in c.split(' '))
-        tokenized.append(token_dict)
+        words = c.split(' ')
+        token_list = [(unicode(makeutf8(t)), {'index': words.index(t)})
+                      for t in words]
+        tokenized.append(token_list)
     return tokenized
 
 
@@ -75,17 +81,44 @@ class Parser(object):
         constructions expected as constituents of this parent construction.
         """
         self.restring = args[0].strip() if args[0] else None
-        self.structures = args[1]
+        self.structures = args[1:]
         try:
             self.top = True if self.structures[-1] == 'top' else False
             if self.top:
                 self.structures = self.structures[:-1]
         except IndexError:  # because no substructures
-            pass
+            self.structures = None
+            self.top = False
         print 'self.structures', self.structures
         print 'self.top', self.top
 
         self.classname = type(self).__name__
+
+    def filter_pos(self, parts, pos):
+        """
+        Return a list of leaf tuples filtered based on the desired part of speech.
+        """
+        mytuples = [p for p in parts if p[1]['pos'] == pos]
+        return mytuples
+
+    def modifies(self, leaf, modifier, modified):
+        """
+        """
+        modindex = modifier[1]['index']
+        leaf[modindex][1]['modifies'] = modified[1]['index']
+        return leaf
+
+    def __enter__(self):
+        """ Necessary to use in 'with' condition."""
+        return self
+
+    def find_current_parts(self, leaf):
+        """
+        Return a list of the leaf tuples belonging to the current construction.
+        """
+        parts = [p for p in leaf
+                 if 'current' in p[1].keys() and p[1]['current']]
+        return parts
 
     def validate(self, validlfs, failedlfs=[]):
         """
@@ -93,164 +126,163 @@ class Parser(object):
 
         clause should be Clause() object
         """
-        validlfs = [validlfs] if isinstance(validlfs, OrderedDict) else validlfs
+        #print 'in validate: failedlfs in'
+        #print Uprinter().uprint(failedlfs)
+        #print 'in validate: validlfs in'
+        #print Uprinter().uprint(validlfs)
+        validlfs = [validlfs] if isinstance(validlfs[0], tuple) else validlfs
         # validate constituent structures recursively
         if self.structures:
             for s in self.structures:
+                print 'validating', s
                 validlfs, failedlfs = s.validate(validlfs, failedlfs)
                 if len(validlfs) < 1:
+                    print 'failed while validating', s
                     return validlfs, failedlfs
-
-        # test sub-structure order for any viable leaves
-        for idx, leaf in enumerate(validlfs):
-            leaf, match = self.test_order(leaf)
-            if not match:
-                failedlfs.append(validlfs.pop(idx))
-            if len(validlfs) < 1:
-                return validlfs, failedlfs
 
         # find matching string for remaining viable leaves
         if self.restring:
+            print 'checking for restring', makeutf8(self.restring)
             validlfs, failedlfs = self.match_string(validlfs, failedlfs)
-            if len(validlfs) < 1:
+            if len(validlfs) < 1:  # no valid leaves, validation fails
+                return validlfs, failedlfs
+
+        # test sub-structure order for any viable leaves
+        if self.structures:
+            validlfs, failedlfs = self.test_order(validlfs, failedlfs)
+            if len(validlfs) < 1:  # no valid leaves, validation fails
                 return validlfs, failedlfs
 
         # find any untagged words if this structure is top level
+        # if found, validation fails
         if self.top:
             for v in validlfs:
                 for w in v: print w,
                 print ''
             for idx, leaf in enumerate(validlfs):
-                untagged = [t for t, v in leaf.iteritems() if not v]
+                untagged = [t for t in leaf if 'pos' not in t[1].keys()]
                 if untagged:
                     failedlfs.append(validlfs.pop(idx))
                     print clr(['some extra words left over'], self.myc)
                     for w in untagged: print w
             if not validlfs:
-                return False, validlfs, failedlfs
+                return validlfs, failedlfs
             else:
-                return True, validlfs, failedlfs
+                pass
+
+        validlfs, failedlfs = self.strip_current_flags(validlfs, failedlfs)
 
         return validlfs, failedlfs
+
+    def strip_current_flags(self, validlfs, failedlfs):
+        """
+        """
+        newvalids = []
+        newfaileds = []
+        for v in validlfs:
+            for idx, part in enumerate(v):
+                try:
+                    del v[idx][1]['current']
+                except KeyError:
+                    pass
+            newvalids.append(copy(v))
+        for f in failedlfs:
+            for idx, part in enumerate(v):
+                try:
+                    del f[idx][1]['current']
+                except KeyError:
+                    pass
+            newfaileds.append(copy(f))
+        return newvalids, newfaileds
 
     def match_string(self, validleaves, failedleaves,
                      restring=None, classname=None):
         '''
         Identify token strings that match the current construction.
 
-        tokens
-        : The ordered list of strings conaining the actual utterance.
+        validleaves
+        : An OrderedDict with the words as keys and dictionaries (or None) for
+        values. The dictionaries may have the keys 'pos' (str, classname for
+        a part of speech) and 'modifies' (int, index of another word modified
+        by this one).
         '''
-
         restring = self.restring if not restring else restring
         classname = self.classname if not classname else classname
 
         test = re.compile(restring, re.U | re.I)
-        mymatch = test.findall(' '.join(validleaves[0]))
+        print 'restring is', restring
+        validleaves = validleaves if isinstance(validleaves[0], list) \
+            else [validleaves]
+        validstring = ' '.join([i[0] for i in validleaves[0]])
+        print 'validstring is', validstring
+        mymatch = test.findall(' '.join([i[0] for i in validleaves[0]]))
+        print 'mymatch is'
+        for m in mymatch:
+            print makeutf8(m)
 
-        # TODO: split into leaves if (b) match already tagged
-        def tag_token(matchstring, leaf):
-            for word in matchstring.split(' '):  # allows for multi-word match strings
-                try:
-                    leaf[word].append(classname)
-                except AttributeError:
-                    leaf[word] = [classname]
-            return leaf
+        def tag_token(matchstring, leafcopy):
+            print 'in tag_token---------------------------'
+            print 'matchstring:', matchstring
+            matchindex = [l[1]['index'] for l in leafcopy
+                          if l[0] == matchstring][0]
+            print 'matchindex:', matchindex
+            if 'pos' not in leafcopy[matchindex][1].keys():  # only tag word if currently untagged
+                leafcopy[matchindex][1]['pos'] = classname
+                leafcopy[matchindex][1]['current'] = True
+                print 'tagged as:', classname
+                print leafcopy
+            else:
+                print 'already tagged, leaf invalid'
+                return False
+            return leafcopy
 
+        newvalids = []
+        newfaileds = []
         if mymatch:
-            validleaves = [tag_token(m, leaf)
-                           for leaf in validleaves for m in mymatch]
-            #print clr('now working with {} leaves in parsing '
-            #          'tree'.format(len(validleaves)), self.myc)
-            print '\n',
+            print 'mymatch', mymatch
+            for leaf in validleaves:
+                print 'tagging leaf:', leaf
+                for m in mymatch:
+                    if m in [w[0] for w in leaf]:  # because findall and case
+                        print 'tagging leaf with', makeutf8(m), '==============='
+                        taggedleaf = tag_token(m, deepcopy(leaf))
+                        if taggedleaf and taggedleaf not in newvalids:
+                            print 'appending valid leaf'
+                            newvalids.append(taggedleaf)
+                        elif not taggedleaf and leaf not in newfaileds:
+                            print 'appending failed leaf'
+                            newfaileds.append(leaf)
+                        else:
+                            print 'leaf is duplicate'
+                    else:
+                        print 'match', m, 'is not in string'
+                        pass
         else:
-            failedleaves.extend(validleaves[:])
-            validleaves = []
-        return (validleaves, failedleaves)
+            newfaileds.extend(validleaves[:])
 
-    def test_order(self, tokens):
+        return newvalids, newfaileds
+
+    def test_order(self, validleaves, failedleaves):
         """ """
-        match = True
-        return tokens, match
+        return validleaves, failedleaves
 
-    def get_struct_order(self, tokens):
+    def before(self, prior, latter):
         """
-        Returns a dictionary of Parser subclass names and their index in tokens.
-
-        This method also sets the self.structs class instance variable to the
-        return value.
+        Return True if prior tuple comes before latter in their leaf.
         """
-        try:
-            structs = {}
-            for i, v in enumerate(tokens.values()):
-                try:
-                    structs[v] = i
-                except TypeError:  # if the value is a list
-                    for l in v:
-                        structs[l] = i
-            self.structs = structs
-            return structs
-        except Exception:
-            print traceback.format_exc(5)
+        if prior[1]['index'] < latter[1]['index']:
+            return True
+        else:
+            return False
 
-    def before(self, struct1, struct2, proximity=0, allow=[], exclude=[], require=[]):
+    def after(self, latter, prior):
         """
-        Test whether struct1 appears before struct2 in the parsed tokens.
-
-        Returns a boolean (True if struct1 comes before).
-
-        proximity (int)
-        :keyword argument, gives the maximum index places the two structures
-        may stand apart in the token dictionary. The default value (0)
-        indicates that proximity will not be considered.
-
-        allow (list of strings)
-        :keyword argument, lists the structures (type names) that may appear
-        between struct1 and struct2.
-
-        exclude (list of strings)
-        :keyword argument, lists the structures (type names) that may not appear
-        between struct1 and struct2.
+        Return True if latter tuple comes after prior in their leaf.
         """
-        structs = self.structs
-        p1 = structs[struct1]
-        p2 = structs[struct2]
-        fit = True if p1 < p2 else False
-        if fit and proximity > 0:
-            fit = True if p2 - p1 <= proximity else False
-        if fit and (allow or exclude or require):
-            fit = self.between(p1, p2, allow, exclude, require)
-        return p1, p2 if fit else False
-
-    def after(self, struct1, struct2, proximity=0,
-              allow=[], exclude=[], require=[]):
-        """
-        Test whether struct1 appears before struct2 in the parsed tokens.
-
-        Returns a boolean (True if struct1 comes before).
-
-        proximity (int)
-        :keyword argument, gives the maximum index places the two structures
-        may stand apart in the token dictionary. The default value (0)
-        indicates that proximity will not be considered.
-
-        allow (list of strings)
-        :keyword argument, lists the structures (type names) that may appear
-        between struct1 and struct2.
-
-        exclude (list of strings)
-        :keyword argument, lists the structures (type names) that may not appear
-        between struct1 and struct2.
-        """
-        structs = self.structs
-        p1 = structs[struct1]
-        p2 = structs[struct2]
-        fit = True if p2 < p1 else False
-        if fit and proximity > 0:
-            fit = True if p1 - p2 <= proximity else False
-        if fit and (allow or exclude or require):
-            fit = self.between(p2, p1, allow, exclude, require)
-        return fit
+        if prior[1]['index'] < latter[1]['index']:
+            return False
+        else:
+            return True
 
     def between(self, p1, p2, allow=[], exclude=[], require=[]):
         """
@@ -296,6 +328,12 @@ class Parser(object):
         myform = Inflector().get_db_form(kwargs, lemid)
         return myform
 
+    def __exit__(self, type, value, traceback):
+        """
+        Necessary for use in 'with' condition.
+        """
+        print 'destroying instance'
+
 
 class Clause(Parser):
     """ """
@@ -317,58 +355,31 @@ class Verb(Parser):
 class NounPhrase(Parser):
     myc = 'lightcyan'
 
-    def __init__(self, *args):
+    def test_order(self, validlfs, failedlfs):
         """
         """
-        super(NounPhrase, self).__init__(*args)
-        self.definite = False
-        if 'def' in self.structures:
-            self.definite = True
-            self.structures.remove('def')
+        newvalids = []
+        newfaileds = []
 
-    def find_article(self, nominal, leaf):
-        """
-        Add the appropriate def article to the substructures of a noun phrase.
-        """
-        gram, lemid = self.parseform(nominal)
-        kwargs = {'gender': gram['gender'],
-                  'case': gram['case'],
-                  'number': gram['number'],
-                  'part_of_speech': 'def_art'
-                  }
-        myart = self.getform(lemid, **kwargs)[0]  # TODO: What about multiple matches?
-        validleaves, failedleaves = self.match_string([leaf], [],
-                                                      restring=myart,
-                                                      classname='Art')
-        return validleaves[0]
+        # Does article precede its noun? If so mark as modifying that noun
+        if [s for s in self.structures if isinstance(s, Art)]:
+            print 'article present, checking order'
+            for leaf in validlfs:
+                parts = self.find_current_parts(leaf)
+                print 'parts', parts  # problem is 'current' stripped
+                mynoun = self.filter_pos(parts, 'Noun')[0]
+                myarts = self.filter_pos(parts, 'Art')
+                for art in myarts:
+                    newleaf = copy(leaf)
+                    if self.before(art, mynoun):
+                        # record modification link
+                        newleaf = self.modifies(newleaf, art, mynoun)
+                        if newleaf not in newvalids:
+                            newvalids.append(newleaf)
+                    elif newleaf not in newfaileds:
+                        newfaileds.append(newleaf)
 
-    def test_order(self, tokens):
-        """
-        """
-        print 'testing order for', clr(self.classname, self.myc)
-        match = False
-
-        if self.definite:  # look for article(s) in valid configuration
-            nominals = [t for t, v in tokens.iteritems() if v and 'Noun' in v]
-            for n in nominals:
-                tokens = self.find_article(n, tokens)
-            structs = self.get_struct_order(tokens)
-            for k, v in structs.iteritems(): print clr([k, v, ';'], self.myc),
-
-            # TODO: check presence of non-agreeing art between agreeing art and
-            # noun (or agreeing art without agreeing adj); also gen art
-            # possible if gen modifier also there.
-            matches = [self.before('Art', 'Noun', allow='Adj'),
-                       self.before('Art', 'Noun', proximity=1)]
-            match = list(set([m for m in matches if m]))
-            if match:
-                agreements = [m for m in match
-                              if m and self.agree(m[0], m[1], tokens.keys())]
-                match = True if agreements else False
-        else:
-            match = True
-
-        return tokens, match
+        return newvalids, newfaileds
 
 
 class DirObject(NounPhrase):
@@ -394,9 +405,10 @@ class DatPhrase(NounPhrase):
     """
     """
 
+
 class Noun(Parser):
     """
-    Defniteness ambiguous.
+    Definiteness ambiguous.
     """
     pass
 
