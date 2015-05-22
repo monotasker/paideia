@@ -23,7 +23,7 @@ if target_set:
                   'A is to reach set {} by {}'.format(starting_set,
                                                       target_set,
                                                       end_date)),
-else
+else:
     targetmsg = ''
 pass
 tab1_content = CAT(H4('Set progress'),
