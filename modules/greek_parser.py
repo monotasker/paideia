@@ -117,7 +117,7 @@ class Parser(object):
         Return a list of the leaf tuples belonging to the current construction.
         """
         parts = [p for p in leaf
-                 if 'current' in p[1].keys() and p[1]['current']]
+                 if 'current' in p[1].keys() and p[1]['current'] == 0]
         return parts
 
     def validate(self, validlfs, failedlfs=[]):
@@ -170,10 +170,9 @@ class Parser(object):
             else:
                 pass
 
-        validlfs, failedlfs = self.strip_current_flags(validlfs, failedlfs)
-
         return validlfs, failedlfs
 
+    '''
     def strip_current_flags(self, validlfs, failedlfs):
         """
         """
@@ -194,6 +193,7 @@ class Parser(object):
                     pass
             newfaileds.append(copy(f))
         return newvalids, newfaileds
+    '''
 
     def match_string(self, validleaves, failedleaves,
                      restring=None, classname=None):
@@ -206,16 +206,17 @@ class Parser(object):
         a part of speech) and 'modifies' (int, index of another word modified
         by this one).
         '''
-        restring = self.restring if not restring else restring
+        restring = unicode(makeutf8(self.restring)) if not restring \
+            else unicode(makeutf8(restring))
         classname = self.classname if not classname else classname
 
         test = re.compile(restring, re.U | re.I)
-        print 'restring is', restring
+        print 'restring is', restring, type(restring)
         validleaves = validleaves if isinstance(validleaves[0], list) \
             else [validleaves]
         validstring = ' '.join([i[0] for i in validleaves[0]])
-        print 'validstring is', validstring
-        mymatch = test.findall(' '.join([i[0] for i in validleaves[0]]))
+        print 'validstring is', validstring, type(validstring)
+        mymatch = test.findall(validstring)
         print 'mymatch is'
         for m in mymatch:
             print makeutf8(m)
@@ -226,9 +227,13 @@ class Parser(object):
             matchindex = [l[1]['index'] for l in leafcopy
                           if l[0] == matchstring][0]
             print 'matchindex:', matchindex
-            if 'pos' not in leafcopy[matchindex][1].keys():  # only tag word if currently untagged
-                leafcopy[matchindex][1]['pos'] = classname
-                leafcopy[matchindex][1]['current'] = True
+            mydict = leafcopy[matchindex][1]
+            if 'pos' not in mydict.keys():  # only tag word if currently untagged
+                mydict['pos'] = classname
+                if 'current' in mydict.keys():
+                    mydict['current'] += 1
+                else:
+                    mydict['current'] = 0
                 print 'tagged as:', classname
                 print leafcopy
             else:
@@ -258,6 +263,7 @@ class Parser(object):
                         print 'match', m, 'is not in string'
                         pass
         else:
+            print 'no match'
             newfaileds.extend(validleaves[:])
 
         return newvalids, newfaileds
@@ -320,13 +326,13 @@ class Parser(object):
         formrow['part_of_speech'] = lemmarow['part_of_speech']
         return formrow, lemmarow.id
 
-    def getform(self, lemid, **kwargs):
+    def getform(self, **kwargs):
         """
         Return a list of possible declined forms for the supplied parsing.
         """
-        from paideia_path_factory import Inflector
-        myform = Inflector().get_db_form(kwargs, lemid)
-        return myform
+        db = current.db
+        myform = db().select(**kwargs)
+        return myform.as_dict()
 
     def __exit__(self, type, value, traceback):
         """
@@ -355,6 +361,29 @@ class Verb(Parser):
 class NounPhrase(Parser):
     myc = 'lightcyan'
 
+    def __init__(self, *args):
+        """
+        """
+        if 'def' in args:
+            self.definite = True
+        elif 'def?' in args:
+            self.definite = 'maybe'
+
+    def find_agree(self, refword, pos):
+        """
+        """
+        db = current.db
+        if pos == 'article':
+            parsing, lemid = self.parseform(refword)
+            artlemid = db(db.lemmas.lemma == 'ὁ').select(db.lemmas.id)
+            argdict = {'lemma': artlemid.id,
+                       'grammatical_case': parsing['grammatical_case'],
+                       'gender': parsing['gender'],
+                       'number': parsing['number']}
+            artform = self.getform(argdict)
+            myword = artform['word_form']
+        return myword
+
     def test_order(self, validlfs, failedlfs):
         """
         """
@@ -362,12 +391,14 @@ class NounPhrase(Parser):
         newfaileds = []
 
         # Does article precede its noun? If so mark as modifying that noun
-        if [s for s in self.structures if isinstance(s, Art)]:
-            print 'article present, checking order'
+        if self.definite:
+            print 'phrase is definite, checking order'
             for leaf in validlfs:
                 parts = self.find_current_parts(leaf)
-                print 'parts', parts  # problem is 'current' stripped
                 mynoun = self.filter_pos(parts, 'Noun')[0]
+                artform = self.find_agree(mynoun, 'article')
+
+                print 'parts', parts  # problem is 'current' stripped
                 myarts = self.filter_pos(parts, 'Art')
                 for art in myarts:
                     newleaf = copy(leaf)
