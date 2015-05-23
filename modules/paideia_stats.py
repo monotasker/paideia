@@ -7,7 +7,7 @@ from copy import copy
 from pytz import timezone, utc
 from gluon import current, DIV, SPAN, A, URL, UL, LI, B
 from gluon import TAG
-from paideia_utils import make_json, load_json
+from plugin_utils import make_json, load_json
 # from paideia import Categorizer
 # from gluon.sqlhtml import SQLFORM  # , Field
 # from gluon.validators import IS_DATE
