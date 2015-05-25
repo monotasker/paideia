@@ -2418,12 +2418,12 @@ class User(object):
         choice, redir, cat, mode = PathChooser(self.tag_progress,
                                                 loc.get_id(),
                                                 self.completed_paths).choose()
-        print 'in _make_path_choice ----------------------------------------'
-        print 'choice:', choice
-        print 'redir:', redir
-        print 'cat:', cat
-        print 'mode:', mode
-        print '-------------------------------------------------------------'
+        #print 'in _make_path_choice ----------------------------------------'
+        #print 'choice:', choice
+        #print 'redir:', redir
+        #print 'cat:', cat
+        #print 'mode:', mode
+        #print '-------------------------------------------------------------'
         condition = {'name': self.get_id()}
         current.db.tag_progress.update_or_insert(condition, **self.tag_progress)
         current.db.commit()
@@ -2459,7 +2459,7 @@ class User(object):
                 pass
             else:  # choosing a new path
                 self.path, redir, cat = self._make_path_choice(loc)
-                print 'path chosen:', self.path.get_id()
+                #print 'path chosen:', self.path.get_id()
                 if (not self.path):
                     break  # and return Nones
 

@@ -2,7 +2,7 @@
 # -*- coding:utf-8 -*-
 
 #import argparse
-from copy import copy, deepcopy
+from copy import deepcopy
 from gluon import current
 #from paideia_utils import Uprinter
 from plugin_utils import clr, makeutf8
@@ -58,7 +58,7 @@ def tokenize(str):
         words = c.split(' ')
         token_list = [(unicode(makeutf8(t)), {'index': words.index(t)})
                       for t in words]
-        tokenized.append(token_list)
+        tokenized.append({0: token_list})
     return tokenized
 
 
@@ -91,6 +91,7 @@ class Parser(object):
             self.top = False
         print 'self.structures', self.structures
         print 'self.top', self.top
+        self.matching_words = []
 
         self.classname = type(self).__name__
 
@@ -112,6 +113,21 @@ class Parser(object):
         """ Necessary to use in 'with' condition."""
         return self
 
+    def find_child_words(self):
+        """
+        """
+        if self.structures:
+            mywords = []
+            for s in self.structures:
+                myname = type(s).__name__
+                struct_words = s.matching_words
+                mywords.append([myname, struct_words])
+            print 'finding child words'
+            print mywords
+            return mywords
+        else:
+            return None
+
     def find_current_parts(self, leaf):
         """
         Return a list of the leaf tuples belonging to the current construction.
@@ -120,17 +136,12 @@ class Parser(object):
                  if 'current' in p[1].keys() and p[1]['current'] == 0]
         return parts
 
-    def validate(self, validlfs, failedlfs=[]):
+    def validate(self, validlfs, failedlfs={}):
         """
         compare list of word tokens to definition of valid natural language expressions.
 
         clause should be Clause() object
         """
-        #print 'in validate: failedlfs in'
-        #print Uprinter().uprint(failedlfs)
-        #print 'in validate: validlfs in'
-        #print Uprinter().uprint(validlfs)
-        validlfs = [validlfs] if isinstance(validlfs[0], tuple) else validlfs
         # validate constituent structures recursively
         if self.structures:
             for s in self.structures:
@@ -156,13 +167,14 @@ class Parser(object):
         # find any untagged words if this structure is top level
         # if found, validation fails
         if self.top:
-            for v in validlfs:
+            for v in validlfs.values():
                 for w in v: print w,
                 print ''
-            for idx, leaf in enumerate(validlfs):
+            for idx, leaf in validlfs.iteritems():
                 untagged = [t for t in leaf if 'pos' not in t[1].keys()]
                 if untagged:
-                    failedlfs.append(validlfs.pop(idx))
+                    failedlfs[idx] = validlfs[idx]
+                    validlfs = {k: v for k, v in validlfs.iteritems() if k != idx}
                     print clr(['some extra words left over'], self.myc)
                     for w in untagged: print w
             if not validlfs:
@@ -211,11 +223,8 @@ class Parser(object):
         classname = self.classname if not classname else classname
 
         test = re.compile(restring, re.U | re.I)
-        print 'restring is', restring, type(restring)
-        validleaves = validleaves if isinstance(validleaves[0], list) \
-            else [validleaves]
+
         validstring = ' '.join([i[0] for i in validleaves[0]])
-        print 'validstring is', validstring, type(validstring)
         mymatch = test.findall(validstring)
         print 'mymatch is'
         for m in mymatch:
@@ -239,24 +248,34 @@ class Parser(object):
             else:
                 print 'already tagged, leaf invalid'
                 return False
+
             return leafcopy
 
-        newvalids = []
-        newfaileds = []
+        newvalids = {}
+        newfaileds = {}
         if mymatch:
             print 'mymatch', mymatch
-            for leaf in validleaves:
+            for key, leaf in validleaves.iteritems():
                 print 'tagging leaf:', leaf
                 for m in mymatch:
                     if m in [w[0] for w in leaf]:  # because findall and case
                         print 'tagging leaf with', makeutf8(m), '==============='
                         taggedleaf = tag_token(m, deepcopy(leaf))
-                        if taggedleaf and taggedleaf not in newvalids:
-                            print 'appending valid leaf'
-                            newvalids.append(taggedleaf)
-                        elif not taggedleaf and leaf not in newfaileds:
-                            print 'appending failed leaf'
-                            newfaileds.append(leaf)
+                        if taggedleaf and taggedleaf not in newvalids.values():
+                            if key in newvalids.keys():
+                                newkey = max(newvalids.keys()) + 1
+                            else:
+                                newkey = key
+                            print 'appending valid leaf', newkey
+                            newvalids[newkey] = taggedleaf
+                            self.matching_words.append([classname, m, key])
+                        elif not taggedleaf and leaf not in newfaileds.values():
+                            if key in newfaileds.keys():
+                                newkey = max(newfaileds.keys()) + 1
+                            else:
+                                newkey = key
+                            print 'appending failed leaf', newkey
+                            newfaileds[newkey] = leaf
                         else:
                             print 'leaf is duplicate'
                     else:
@@ -264,7 +283,8 @@ class Parser(object):
                         pass
         else:
             print 'no match'
-            newfaileds.extend(validleaves[:])
+            newfaileds = deepcopy(validleaves)
+            newvalids = {}
 
         return newvalids, newfaileds
 
@@ -316,23 +336,59 @@ class Parser(object):
         conflicts = [c for c in categories if parsed[0][c] != parsed[1][c]]
         agreement = False if conflicts else True
 
+    def find_agree(self, refword, pos=None, lemma=None):
+        """
+        Return the form of the specified lemma that agrees with the refword.
+        """
+        db = current.db
+        if pos == 'article':
+            parsing = self.parseform(refword)
+            print 'parsing'
+            print parsing
+            artlemid = db(db.lemmas.lemma == 'ὁ').select(db.lemmas.id).first().id
+            print 'artlemid', artlemid
+            argdict = {'source_lemma': artlemid,
+                       'grammatical_case': parsing['grammatical_case'],
+                       'gender': parsing['gender'],
+                       'number': parsing['number']}
+            print 'argdict'
+            print argdict
+            myword = self.getform(argdict)
+        return myword
+
     def parseform(self, token):
         """
         Return a dictionary holding the grammatical information for the token.
         """
         db = current.db
-        formrow = db.word_forms(db.word_forms.word_form == token).as_dict()
-        lemmarow = db.lemmas(formrow.source_lemma)
-        formrow['part_of_speech'] = lemmarow['part_of_speech']
-        return formrow, lemmarow.id
+        try:
+            formrow = db.word_forms(db.word_forms.word_form == token).as_dict()
+        except AttributeError:
+            formrow = db.word_forms(db.word_forms.word_form == token.lower()).as_dict()
 
-    def getform(self, **kwargs):
+        lemmarow = db.lemmas(formrow['source_lemma'])
+        formrow['part_of_speech'] = lemmarow['part_of_speech']
+        return formrow
+
+    def getform(self, kwargs, db=None):
         """
         Return a list of possible declined forms for the supplied parsing.
         """
-        db = current.db
-        myform = db().select(**kwargs)
-        return myform.as_dict()
+        db = current.db if not db else db
+        tbl = db['word_forms']
+        query = tbl.id > 0
+        for k, v in kwargs.iteritems():
+            query &= tbl[k] == v
+        print 'query in getform'
+        print query
+        myforms = db(query).select()
+        forms = [row['word_form'] for row in myforms]
+        if len(forms) == 1:
+            forms = forms[0]
+        elif not forms:
+            forms = None
+        print forms
+        return forms
 
     def __exit__(self, type, value, traceback):
         """
@@ -366,49 +422,62 @@ class NounPhrase(Parser):
         """
         if 'def' in args:
             self.definite = True
+            args = [a for a in args if a != 'def']
         elif 'def?' in args:
             self.definite = 'maybe'
+            args = [a for a in args if a != 'def?']
+        else:
+            self.definite = False
 
-    def find_agree(self, refword, pos):
+        super(NounPhrase, self).__init__(*args)
+
+    def match_article(self, artform, leaf):
         """
         """
-        db = current.db
-        if pos == 'article':
-            parsing, lemid = self.parseform(refword)
-            artlemid = db(db.lemmas.lemma == 'ὁ').select(db.lemmas.id)
-            argdict = {'lemma': artlemid.id,
-                       'grammatical_case': parsing['grammatical_case'],
-                       'gender': parsing['gender'],
-                       'number': parsing['number']}
-            artform = self.getform(argdict)
-            myword = artform['word_form']
-        return myword
+        tokenstring = ' '.join([w[0] for w in leaf])
+        pattern = re.compile(artform, re.I | re.U)
+        arts = pattern.findall(tokenstring)
+        return arts
 
     def test_order(self, validlfs, failedlfs):
         """
         """
-        newvalids = []
-        newfaileds = []
+        newvalids = {}
+        newfaileds = {}
 
         # Does article precede its noun? If so mark as modifying that noun
         if self.definite:
+            child_words = self.find_child_words()
+            # find and tag article in valid leaves
             print 'phrase is definite, checking order'
-            for leaf in validlfs:
-                parts = self.find_current_parts(leaf)
-                mynoun = self.filter_pos(parts, 'Noun')[0]
+            for key, leaf in validlfs.iteritems():
+                mynouns = [c for c in child_words if c[0] == 'Noun'][0]
+                print 'mynouns'
+                print mynouns
+                mynoun = mynouns[0][1][key]
                 artform = self.find_agree(mynoun, 'article')
-
-                print 'parts', parts  # problem is 'current' stripped
-                myarts = self.filter_pos(parts, 'Art')
-                for art in myarts:
-                    newleaf = copy(leaf)
-                    if self.before(art, mynoun):
-                        # record modification link
-                        newleaf = self.modifies(newleaf, art, mynoun)
-                        if newleaf not in newvalids:
-                            newvalids.append(newleaf)
-                    elif newleaf not in newfaileds:
-                        newfaileds.append(newleaf)
+                myarts = self.match_article(artform, leaf)
+                # tag any valid articles
+                if myarts:
+                    for art in myarts:
+                        validlfs, failedlfs = self.match_string(validlfs,
+                                                                failedlfs,
+                                                                restring=art)
+            # FIXME: what about optional article?
+            # now check article-noun order in successful leaves
+            for key, leaf in validlfs.iteritems():
+                newleaf = deepcopy(leaf)
+                if self.before(art, mynoun):
+                    # record modification link
+                    newleaf = self.modifies(newleaf, art, mynoun)
+                    if newleaf not in newvalids:
+                        newkey = max(newvalids.keys()) + 1 \
+                            if newvalids.keys() else 0
+                        newvalids[key] = newleaf
+                elif newleaf not in newfaileds:
+                    newkey = max(newfaileds.keys()) + 1 \
+                        if newfaileds.keys() else 0
+                    newfaileds[key] = newleaf
 
         return newvalids, newfaileds
 
