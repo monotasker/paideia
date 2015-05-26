@@ -11,7 +11,7 @@ if 0:
     auth = current.auth
     request = current.request
     response = current.response
-from paideia_utils import test_step_regex, normalize_accents, sanitize_greek
+from paideia_utils import test_step_regex, GreekNormalizer
 from plugin_utils import flatten, makeutf8
 import paideia_path_factory
 import re
@@ -89,8 +89,8 @@ def gather_word_forms():
 
         ptrn = re.compile(u'[\u0370-\u03FF\u1F00-\u1FFF]+', flags=re.U)
         items = flatten([re.findall(ptrn, makeutf8(i)) for i in items])
-        items = sanitize_greek(items)
-        items = [makeutf8(normalize_accents(i)) for i in items]
+        normalizer = GreekNormalizer()
+        items = [normalizer.normalize(i) for i in items]
         if vv.unique:
             items = list(set(items))
         items = [i.lower() for i in items if i not in x]
