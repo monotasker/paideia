@@ -16,17 +16,15 @@ TranslateWordPathFactory:class (extends PathFactory)
 : A subclass that includes extra helper logic for simple translation paths.
 
 """
-from ast import literal_eval
-from copy import copy
+#from ast import literal_eval
+#from copy import copy
 # import datetime
 import functools
 from gluon import current, SQLFORM, Field, BEAUTIFY, IS_IN_DB, UL, LI
 from gluon import CAT, H2
 from itertools import product, chain
-from paideia_utils import capitalize_first, test_regex, uprint
-from paideia_utils import islist  # sanitize_greek,
-# from plugin_ajaxselect import AjaxSelect
-from plugin_utils import flatten, makeutf8
+from paideia_utils import check_regex, Uprinter
+from plugin_utils import flatten, makeutf8, islist
 from pprint import pprint
 from random import randrange, shuffle
 import re
@@ -1051,7 +1049,7 @@ class StepFactory(object):
                   'hints': hints}  # [randrange(len(npcs))] if mult
 
         try:
-            matchdicts = [test_regex(x, rdbls) for x in rxs]
+            matchdicts = [check_regex(x, rdbls) for x in rxs]
             xfail = {}
             for idx, regex in enumerate(rxs):
                 if mytype not in [3]:
@@ -1503,18 +1501,19 @@ class PathFactory(object):
                 psub.append(LI('steps were duplicates: {}'.format(len(duplicates))))
                 content = pv['steps']
                 mycontent = UL()
+                UP = Uprinter()
                 for key, c in content.iteritems():
                     mycontent.append(LI(key))
                     mystep = UL()
                     mystep.append(LI('widget_type:', db.step_types(c['widget_type']).step_type))
-                    mystep.append(LI('prompt:', uprint(c['prompt'])))
-                    mystep.append(LI('readable_response:', uprint(c['readable_response'])))
-                    mystep.append(LI('response1:', uprint(c['response1'])))
+                    mystep.append(LI('prompt:', UP.uprint(c['prompt'])))
+                    mystep.append(LI('readable_response:', UP.uprint(c['readable_response'])))
+                    mystep.append(LI('response1:', UP.uprint(c['response1'])))
                     mystep.append(LI('outcome1:', c['outcome1']))
-                    mystep.append(LI('response2:', uprint(c['response2'])
+                    mystep.append(LI('response2:', UP.uprint(c['response2'])
                                      if c['response2'] else None))
                     mystep.append(LI('outcome2:', c['outcome2']))
-                    mystep.append(LI('response3:', uprint(c['response3'])
+                    mystep.append(LI('response3:', UP.uprint(c['response3'])
                                      if c['response3'] else None))
                     mystep.append(LI('outcome3:', c['outcome3']))
                     tags = [t['tag'] for t in
@@ -1529,18 +1528,18 @@ class PathFactory(object):
                                      ).select()]
                     mystep.append(LI('tags_ahead:', tags_ahead))
                     mycontent.append(LI(mystep))
-                    npcs = [uprint(t['name']) for t in
+                    npcs = [UP.uprint(t['name']) for t in
                             db(db.npcs.id.belongs(islist(c['npcs']))).select()]
                     mystep.append(LI('npcs:', npcs))
                     locations = [t['map_location'] for t in
                                  db(db.locations.id.belongs(c['locations'])
                                     ).select()
                                  ]
-                    mystep.append(LI('locations:', uprint(locations)))
+                    mystep.append(LI('locations:', UP.uprint(locations)))
                     lemmas = [t['lemma'] for t in
                               db(db.lemmas.id.belongs(c['lemmas'])).select()] \
                         if 'lemmas' in c.keys() else None
-                    mystep.append(LI('lemmas:', uprint(lemmas)
+                    mystep.append(LI('lemmas:', UP.uprint(lemmas)
                                      if lemmas else None))
                     mystep.append(LI('status:',
                                      db.step_status(c['status']).status_label
