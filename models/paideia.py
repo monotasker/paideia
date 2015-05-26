@@ -737,7 +737,7 @@ def update_trigger_for_paths(s, f):
             insert_trigger_for_paths({'steps': step_ids}, r.id)
 
 
-#take care of steps_inactive_locations
+# take care of steps_inactive_locations
 def before_delete_trigger_for_paths(s):
     old_steps_list = []
     for r in s.select():
@@ -747,7 +747,7 @@ def before_delete_trigger_for_paths(s):
     current.old_steps_list = old_steps_list
 
 
-#take care off steps_inactive_locations
+# take care of steps_inactive_locations
 def after_delete_trigger_for_paths(s):
     for step_id in current.old_steps_list:
         step_locs = db.steps[step_id].as_dict()['locations']
