@@ -5,7 +5,9 @@
 <div class="col-xs-12">
 <h2>Number of paths in DB for each tag</h2>
 Steps without a path <span class="badge badge-warning">{{=len(not_in_path)}}</span>
+{{=sorted([s.id for s in not_in_path])}}
 Deactivated steps <span class="badge badge-info">{{=len(deactivated)}}</span>
+{{=sorted([s.id for s in deactivated])}}
 {{=A('Find tag conflicts',
       _href=URL('reporting', 'tag_conflicts.load'),
       _class="btn btn-danger",
