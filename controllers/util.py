@@ -11,6 +11,7 @@ if 0:
     auth = current.auth
     request = current.request
     response = current.response
+from gluon import validators
 from paideia_utils import test_step_regex, GreekNormalizer
 from plugin_utils import flatten, makeutf8
 import paideia_path_factory
@@ -19,6 +20,74 @@ import traceback
 import StringIO
 import uuid
 from pprint import pprint
+import datetime
+
+
+@auth.requires_membership('administrators')
+def validate_records():
+    """
+    """
+    tbl = request.args[0]
+    tbl = db[tbl]
+    fs = tbl.fields
+    out = {}
+    for idx, f in enumerate(fs):
+        myout = {}
+        myf = tbl[f]
+        myout['type'] = myf.type
+        myout['requires'] = myf.requires
+        tparts = myf.type.split(' ')
+        typetbl = {'list:reference': list,
+                   'id': (int, long),
+                   'text': str,
+                   'string': str,
+                   'reference': (int, long),
+                   'list:integer': list,
+                   'list:string': list,
+                   'datetime': datetime.datetime,
+                   'date': datetime.date,
+                   'double': float,
+                   'boolean': bool}
+        mytype = tparts[0] if tparts[0] not in typetbl.keys() else typetbl[tparts[0]]
+        if mytype in [str, int, long, float, bool]:
+            allow_none = True
+        elif isinstance(myf.requires, validators.IS_EMPTY_OR):
+            allow_none = True
+        else:
+            allow_none = False
+        #badtypes = []
+        #for row in db(tbl.id > 0).select():
+            #if not isinstance(row[f], mytype):
+                #if not row[f] and not allow_none:
+                    #badtypes.append('row {} value {} is not type {}'
+                                    #''.format(row.id, row[f], mytype))
+        #if badtypes:
+            #myout['values of wrong type'] = badtypes
+
+        if mytype == 'list:reference':
+            missings = []
+            reftbl = db[tparts[1]]
+            for row in db(tbl.id > 0).select():
+                if row[f]:
+                    missing = [r for r in row[f]
+                            if not db(reftbl.id == r).select().first()]
+                    if row[f] and missing:
+                        missings.append('row {}: no {} records {}'
+                                        ''.format(row.id, reftbl, missing))
+            if missings:
+                myout['missing listref ids'] = missings
+        if myf.referent:
+            missings = []
+            for row in db(tbl.id > 0).select():
+                rowval = row[f]
+                refrec = db(myf.referent == rowval).count()
+                if rowval and refrec != 1:
+                    missings.append('row {}: no {} record with value {}'
+                                    ''.format(row.id, myf.referent, row[f]))
+            if missings:
+                myout['missing reference records'] = missings
+        out[myf.label] = myout
+    return {'result': BEAUTIFY(out)}
 
 
 @auth.requires_membership('administrators')
@@ -147,7 +216,7 @@ def make_path():
 @auth.requires_membership('administrators')
 def bulk_update():
     """
-    Controller function to perform a programmatic update to a field in one table.
+    Controller to perform a programmatic update to a field in one table.
     """
     myrecs = None
     form = SQLFORM.factory(
@@ -172,6 +241,9 @@ def bulk_update():
 
 @auth.requires_membership('administrators')
 def migrate_field():
+    """
+    For specified fields copies all records from origin field to target field.
+    """
     fields = {'plugin_slider_slides': ('content', 'slide_content')}
 
     for t, f in fields.iteritems():

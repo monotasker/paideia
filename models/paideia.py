@@ -298,8 +298,8 @@ db.define_table('locations',
                 format='%(map_location)s')
 db.locations.map_location.requires = IS_NOT_IN_DB(db, 'locations.map_location')
 db.locations.loc_alias.requires = IS_NOT_IN_DB(db, 'locations.loc_alias')
-#db.locations.bg_image.requires = IS_EMPTY_OR(IS_IN_DB(db, 'images.id',
-#                                                      db.images._format))
+db.locations.bg_image.requires = IS_EMPTY_OR(IS_IN_DB(db, 'images.id',
+                                                      db.images._format))
 
 db.define_table('npcs',
                 Field('name', 'string', unique=True),
@@ -365,10 +365,10 @@ db.define_table('steps',
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(id)s: %(prompt)s')
-#db.steps.prompt_audio.requires = IS_EMPTY_OR(IS_IN_DB(db, 'audio.id',
-#                                                      db.audio._format))
-#db.steps.widget_image.requires = IS_EMPTY_OR(IS_IN_DB(db, 'images.id',
-#                                                      db.images._format))
+db.steps.prompt_audio.requires = IS_EMPTY_OR(IS_IN_DB(db, 'audio.id',
+                                                      db.audio._format))
+db.steps.widget_image.requires = IS_EMPTY_OR(IS_IN_DB(db, 'images.id',
+                                                      db.images._format))
 db.steps.step_options.widget = SQLFORM.widgets.list.widget
 db.steps.npcs.requires = IS_IN_DB(db, 'npcs.id', db.npcs._format,
                                   multiple=True)
@@ -387,8 +387,8 @@ db.steps.tags.widget = lambda field, value: AjaxSelect(field, value,
                                                        lister='simple',
                                                        orderby='tag_position'
                                                        ).widget()
-db.steps.tags_secondary.requires = IS_IN_DB(db, 'tags.id', db.tags._format,
-                                            multiple=True)
+db.steps.tags_secondary.requires = IS_EMPTY_OR(IS_IN_DB(db, 'tags.id', db.tags._format,
+                                               multiple=True))
 db.steps.tags_secondary.widget = lambda field, value: AjaxSelect(field, value,
                                                                  indx=3,
                                                                  refresher=True,
@@ -396,8 +396,8 @@ db.steps.tags_secondary.widget = lambda field, value: AjaxSelect(field, value,
                                                                  lister='simple',
                                                                  orderby='tag'
                                                                  ).widget()
-db.steps.tags_ahead.requires = IS_IN_DB(db, 'tags.id', db.tags._format,
-                                        multiple=True)
+db.steps.tags_ahead.requires = IS_EMPTY_OR(IS_IN_DB(db, 'tags.id', db.tags._format,
+                                           multiple=True))
 db.steps.tags_ahead.widget = lambda field, value: AjaxSelect(field, value,
                                                              indx=4,
                                                              refresher=True,
