@@ -55,14 +55,14 @@ def validate_records():
             allow_none = True
         else:
             allow_none = False
-        #badtypes = []
-        #for row in db(tbl.id > 0).select():
-            #if not isinstance(row[f], mytype):
-                #if not row[f] and not allow_none:
-                    #badtypes.append('row {} value {} is not type {}'
-                                    #''.format(row.id, row[f], mytype))
-        #if badtypes:
-            #myout['values of wrong type'] = badtypes
+        badtypes = []
+        for row in db(tbl.id > 0).select():
+            if not isinstance(row[f], mytype):
+                if not row[f] and not allow_none:
+                    badtypes.append('row {} value {} is not type {}'
+                                    ''.format(row.id, row[f], mytype))
+        if badtypes:
+            myout['values of wrong type'] = badtypes
 
         if mytype == 'list:reference':
             missings = []
