@@ -177,7 +177,8 @@ db.lemmas.thematic_pattern.requires = IS_EMPTY_OR(IS_IN_SET(('alpha thematic',
                                                              'epsilon contract2',
                                                              'omicron contract',
                                                              '3rd decl upsilon',
-                                                             '3rd decl epsilon')))
+                                                             '3rd decl epsilon',
+                                                             'liquid verb')))
 db.lemmas.extra_tags.requires = IS_IN_DB(db, 'tags.id',
                                          db.tags._format,
                                          multiple=True)
