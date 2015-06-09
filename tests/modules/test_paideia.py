@@ -15,6 +15,7 @@ from paideia import StepFactory, StepText, StepMultiple, NpcChooser, Step
 from paideia import StepRedirect, StepViewSlides, StepAwardBadges
 from paideia import StepEvaluator, MultipleEvaluator, StepQuotaReached
 from paideia import Block, BugReporter, Map
+from plugin_utils import makeutf8
 from gluon import current, IMG
 
 import datetime
@@ -25,7 +26,7 @@ from random import randint
 #from dateutil import parser
 from difflib import Differ
 from itertools import chain
-from urllib import quote_plus
+#from urllib import quote_plus
 import pickle
 
 
@@ -3349,7 +3350,7 @@ class TestNpc():
         """Test for method Npc.get_locations()"""
         locs = mynpc.get_locations()
         assert isinstance(locs[0], (int, long))
-        assert locs[0] == 8  # 6 also in db but not yet active
+        assert locs[0] in [13, 8]  # 6 also in db but not yet active
 
     def test_npc_get_description(self, mynpc):
         """Test for method Npc.get_description()"""
@@ -3878,7 +3879,7 @@ class TestStep():
         assert actual['instructions'] == instrs
         assert actual['slidedecks'] == slides
         assert actual['hints'] == tips
-        assert actual['user_response'] == resptext
+        assert actual['user_response'] == unicode(makeutf8(resptext))
         assert actual['score'] == score
         assert actual['times_right'] == int(score)
         assert actual['times_wrong'] == abs(int(score) - 1)
@@ -3954,7 +3955,7 @@ class TestStepEvaluator():
         assert actual['reply'] == rtext
         assert actual['times_wrong'] == twrong
         assert actual['times_right'] == tright
-        assert actual['user_response'] == uresp
+        assert actual['user_response'] == unicode(makeutf8(uresp))
         assert actual['tips'] == tips
 
 
@@ -3994,7 +3995,7 @@ class TestMultipleEvaluator():
         assert actual['reply'] == rtext
         assert actual['times_wrong'] == twrong
         assert actual['times_right'] == tright
-        assert actual['user_response'] == uresp
+        assert actual['user_response'] == unicode(makeutf8(uresp))
         assert actual['tips'] == tips
 
 
@@ -5584,6 +5585,9 @@ class TestWalk():
                              db, web2py):
         """Unit test for Walk._store_user"""
         # setup ===============================================================
+        # force creation of new user
+        db(db.session_data.name == user_login['id']).delete()
+
         walk = Walk(userdata=user_login,
                     tag_records=tagrecs,
                     tag_progress=tpin,
@@ -5591,6 +5595,7 @@ class TestWalk():
         user = walk._get_user()  # initialized new user in Walk.__init__()
         assert isinstance(user, User)
         assert user.get_id() == user_login['id']
+        print user
 
         # set up controlled record in session_data
         db(db.session_data.name == user_login['id']).delete()
@@ -5621,7 +5626,7 @@ class TestWalk():
         dbuser = pickle.loads(sd['other_data'])
         assert dbuser.get_id() == user_login['id']
 
-    @pytest.mark.skipif(True, reason='just because')
+    @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('pathid,stepid,alias,npcshere,trecs,tpout,redir,'
                              'promptext,instrs,slidedecks,widgimg,rbuttons,'
                              'rform,replystep',
@@ -5931,7 +5936,7 @@ class TestWalk():
             assert isinstance(thiswalk.user.path.step_for_reply, Step)
             assert thiswalk.user.path.step_for_reply.get_id() == stepid
 
-    @pytest.mark.skipif(True, reason='just because')
+    @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('pathid,stepid,alias,npcshere,trecs,tpout,'
                              'creply,wreply,instrs,slidedecks,rbuttons,'
                              'readable_short,readable_long,tips,cresponse,'
@@ -5965,65 +5970,63 @@ class TestWalk():
             'times_wrong': 0,
             'secondary_right': None}
            ],
-          {'latest_new': 4,  # ------------------------------------------------ tpout
+          {'latest_new': 4,  # ---------------------------------------tpout
            'cat1': [62, 63, 68, 115, 72, 89, 36],
            'cat2': [61, 66],
            'cat3': [], 'cat4': [],
            'rev1': [62, 63, 68, 115, 72, 89, 36], 'rev2': [61, 66],
            'rev3': [], 'rev4': []},
-          'Right. Κάλον.\nYou said\n- πωλ\n',  # ------------------------------ correct reply
-          'Incorrect. Try again!\nYou said\n- βλα\nThe correct '  # ----------- wrong reply
+          'Right. Κάλον.\nYou said\n- πωλ\n',  # ---------------------correct reply
+          'Incorrect. Try again!\nYou said\n- βλα\nThe correct '  # --wrong reply
             'response is\n- πωλ',
           ['Focus on finding Greek letters that make the *sounds* of the '  # -- instructions
            'English word. Don\'t look for Greek "equivalents" for each '
            'English letter.'],
-          {3L: 'The Alphabet II', 8L: 'Greek Words - More Basics'},  # ------------------- slide decks
-          [],  # -------------------------------------------------------------- response buttons
-          ['πωλ'],  # --------------------------------------------------------- readable short
-          [],  # -------------------------------------------------------------- readable long
-          None,  # -------------------------------------------------------------- tips
+          {3L: 'The Alphabet II', 8L: 'Greek Words - More Basics'},  # --slide decks
+          [],  # ---------------------------------------------response buttons
+          ['πωλ'],  # ----------------------------------------readable short
+          [],  # ---------------------------------------------readable long
+          None,  # -------------------------------------------tips
           'πωλ',  # response correct ------------------------------------------
           'βλα',  # response wrong --------------------------------------------
           ),
-         #(19,  # path # case2 ======================================================
-          #19,  # step
-          #'agora',  # alias
-          #[1],  # npcs here
-          #[{'name': 141,
-            #'tag': 61,
-            #'tlast_right': dt('2013-01-29'),
-            #'tlast_wrong': dt('2013-01-28'),
-            #'times_right': 20,
-            #'times_wrong': 2,
-            #'secondary_right': []},
-           #{'name': 141,
-            #'tag': 62,
-            #'tlast_right': dt('2013-03-20'),
-            #'tlast_wrong': dt('2013-03-20'),
-            #'times_right': 1,
-            #'times_wrong': 1,
-            #'secondary_right': []}],
-          #{'latest_new': 2,  # tpout
-           #'cat1': [62], 'cat2': [61],
-           #'cat3': [], 'cat4': [],
-           #'rev1': [62], 'rev2': [61],
-           #'rev3': [], 'rev4': []},
-          #'How could you spell the word "pole" with Greek letters?',  # prompt text
-          #['Focus on finding Greek letters that make the *sounds* of the '
-           #'English word. Don\'t look for Greek "equivalents" for each '
-           #'English letter.'],  # instructions
-          #{3L: 'The Alphabet II', 8L: 'Greek Words II'},  # slide decks
-          #[],  # response buttons
-          #'<form action="#" autocomplete="off" enctype="multipart/form-data" '
-          #'method="post"><table><tr id="no_table_response__row">'
-          #'<td class="w2p_fl"><label for="no_table_response" id="no_table_'
-          #'response__label">Response: </label></td><td class="w2p_fw">'
-          #'<input class="string" id="no_table_response" name="response" '
-          #'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
-          #'id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw">'
-          #'<input type="submit" value="Submit" /></td><td class="w2p_fc"></td>'
-          #'</tr></table></form>',
-          #),
+         (19,  # path # case2 ======================================================
+          19,  # ------------------------------------------------------step
+          'agora',  # -------------------------------------------------alias
+          [1],  # -----------------------------------------------------npcs here
+          [{'name': 141,  # -------------------------------------------trecs
+            'tag': 61,
+            'tlast_right': dt('2013-01-29'),
+            'tlast_wrong': dt('2013-01-28'),
+            'times_right': 20,
+            'times_wrong': 2,
+            'secondary_right': []},
+           {'name': 141,
+            'tag': 62,
+            'tlast_right': dt('2013-03-20'),
+            'tlast_wrong': dt('2013-03-20'),
+            'times_right': 1,
+            'times_wrong': 1,
+            'secondary_right': []}],
+          {'latest_new': 2,  # -------------------------------------------tpout
+           'cat1': [62], 'cat2': [61],
+           'cat3': [], 'cat4': [],
+           'rev1': [62], 'rev2': [61],
+           'rev3': [], 'rev4': []},
+          'Right. Κάλον.\nYou said\n- πωλ\n',  # ---------------------correct reply
+          'Incorrect. Try again!\nYou said\n- βλα\nThe correct '  # --wrong reply
+            'response is\n- πωλ',
+          ['Focus on finding Greek letters that make the *sounds* of the '
+           'English word. Don\'t look for Greek "equivalents" for each '
+           'English letter.'],  # instructions
+          {3L: 'The Alphabet II', 8L: 'Greek Words II'},  # ---------slide decks
+          [],  # response buttons
+          ['πωλ'],  # ---------------------------------------------readable short
+          [],  # --------------------------------------------------readable long
+          None,  # ------------------------------------------------tips
+          'πωλ',  # response correct ------------------------------------------
+          'βλα',  # response wrong --------------------------------------------
+          ),
          #(89,  # path # case2======================================================
           #101,  # step
           #'agora',  # alias
@@ -6098,7 +6101,9 @@ class TestWalk():
                 reply_text = creply
 
         thiswalk.start(alias, path=pathid)
+        print 'execute ==================================================='
         a = thiswalk.start(alias, response_string=response_string)
+        print 'starting evaluation -====================================='
 
         assert a['sid'] == stepid
         assert a['pid'] == pathid
@@ -6116,23 +6121,23 @@ class TestWalk():
         assert a['hints'] == tips
         assert a['response_buttons'] == ['map', 'retry', 'continue']
 
-        lastlog = db(db.attempt_log.id > 0).select().last()
-        rs = response_string.decode('utf8').encode('utf8')
-        print 'rs is', type(rs)
+        #lastlog = db(db.attempt_log.id > 0).select().last()
+        #rs = makeutf8(response_string)
+        #print 'rs is', type(rs)
 
-        bug_info = (quote_plus(rs),
-                    alias,
-                    lastlog.id,
-                    pathid,
-                    score,
-                    stepid)
-        bug_reporter = ['<a class="bug_reporter" '
+        #bug_info = (quote_plus(rs.encode('utf8')),
+        #            #alias,
+        #            #lastlog.id,
+        #            #pathid,
+        #            #score,
+        #            #stepid)
+        bug_reporter = [r'<a class="bug_reporter" '
                         'data-keyboard="data-keyboard" '
                         'data-target="#bug_reporter_modal" '
                         'data-toggle="modal" '
                         'href="#bug_reporter_modal" '
                         'id="bug_reporter_modal_trigger">'
-                        'Something wrong?</a>'
+                        'Something wrong\?</a>'
                         '<div aria-hidden="true" aria-labelledby="bug_reporter_modal_trigger" '
                         'class="modal fade " '
                         'data-keyboard="true" '
@@ -6141,22 +6146,22 @@ class TestWalk():
                         '<div class="modal-dialog modal-lg">'
                         '<div class="modal-content">'
                         '<div class="modal-header">'
-                        '<h3 class="modal-title" id="myModalLabel">Did you run into a problem?</h3>'
+                        '<h3 class="modal-title" id="myModalLabel">Did you run into a problem\?</h3>'
                         '</div>'
                         '<div class="modal-body ">'
-                        '<p>Think your answer should have been correct? '
+                        '<p>Think your answer should have been correct\? '
                         '<a class="bug_reporter_link btn btn-danger" '
                         'data-w2p_disable_with="default" '
                         'data-w2p_method="GET" data-w2p_target="bug_reporter" '
-                        'href="/paideia/creating/bug.load?.*'
+                        'href="/paideia/creating/bug.load\?.*'
                         '">click here<i class="icon-bug"></i></a> '
-                        'to submit a bug report. You can find the '
-                        'instructor&#x27;s response in the &quot;bug '
+                        'to submit a bug report. You can read your '
+                        'instructor&#x27;s response later in the &quot;bug '
                         'reports&quot; tab of your user profile.</p></div>'
                         '<div class="modal-footer">'
                         '<button aria-hidden="true" class="pull-right" '
                         'data-dismiss="modal" type="button">Close</button>'
-                        '</div></div></div></div>'.format(*bug_info)]
+                        '</div></div></div></div>']
         print 'actual ============'
         print a['bugreporter'].xml()
         assert re.match(bug_reporter[0], a['bugreporter'].xml())
