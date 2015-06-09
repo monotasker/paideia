@@ -16,7 +16,7 @@ from pytz import timezone
 import pickle
 from plugin_utils import flatten, makeutf8  # , ErrorReport
 from plugin_widgets import MODAL
-# from pprint import pprint
+from pprint import pprint
 from paideia_utils import Paideia_Debug, GreekNormalizer
 
 #current.paideia_DEBUG_MODE is set in Walk::init
@@ -134,6 +134,7 @@ class Walk(object):
                 sd = db(db.session_data.name ==
                         auth.user_id).select().first()
                 if sd:
+                    pprint(sd['other_data'])
                     self.user = pickle.loads(sd['other_data'])
                 else:
                     self.user = None
@@ -151,12 +152,14 @@ class Walk(object):
                         tp[newkey] = copy(tp[oldkey])
                         del tp[oldkey]
                 # FIXME: end of temporary sanitization
+                print 're-using user from db ------------'
 
             except (KeyError, TypeError):  # Problem with session data
                 print traceback.format_exc(5)
                 self.user = self._new_user(userdata, tag_records, tag_progress)
             except (AssertionError, AttributeError):  # user stale or block
                 self.user = self._new_user(userdata, tag_records, tag_progress)
+                print 'creating new user from data ------------'
         if isinstance(self.user.quota, list):
             self.user.quota = self.user.quota[0]
         return self.user
@@ -372,6 +375,7 @@ class Walk(object):
         #print'\nSTART OF Walk.reply()'
         user = self._get_user()
         loc = user.get_location()
+        print 'loc is', loc
         p, cat = user.get_path(loc)[:2]
 
         s = p.get_step_for_reply()
@@ -1578,6 +1582,8 @@ class StepEvaluator(object):
             request = current.request
             user_response = request.vars['response']
         user_response = GreekNormalizer().normalize(user_response)
+        print 'in get_eval user_response is', type(user_response)
+        user_response = makeutf8(user_response)
         responses = {k: r for k, r in self.responses.iteritems()
                      if r and r != 'null'}
         # Compare the student's response to the regular expressions
@@ -2250,6 +2256,73 @@ class User(object):
             self.reported_promotions = False
         except Exception:
             print traceback.format_exc(5)
+
+    def __str__(self):
+        strout = ['---------------------------------\n'
+                  'Paideia User Object--------------\n'
+                  '---------------------------------\n'
+                  'USER DATA\n'
+                  '---------------------------------\n'
+                  'name: {name}\n'
+                  'user_id: {user_id}\n'
+                  'time_zone: {time_zone}\n'
+                  'quota: {quota}\n'
+                  '---------------------------------\n'
+                  'CURRENT PATH\n'
+                  '---------------------------------\n'
+                  '{path}\n'
+                  '\n---------------------------------\n'
+                  'CURRENT STATE\n'
+                  'session_start: {session_start}\n'
+                  'blocks: {blocks}\n'
+                  'completed_paths: {completed_paths}\n'
+                  'cats_counter: {cats_counter}\n'
+                  'inventory: {inventory}\n'
+                  '---------------------------------\n'
+                  'PROMOTION AND RANKING\n'
+                  '---------------------------------\n'
+                  'old_categories----------\n'
+                  '{old_categories}\n'
+                  'tag_progress------------\n'
+                  '{tag_progress}\n'
+                  'tag_records-------------\n'
+                  '{tag_records}\n'
+                  'promoted----------------\n'
+                  '{promoted}\n'
+                  'demoted-----------------\n'
+                  '{demoted}\n'
+                  'new_tags----------------\n'
+                  '{new_tags}\n'
+                  '---------------------------------\n'
+                  'LOCATION AND NPC\n'
+                  '---------------------------------\n'
+                  'loc: {loc}\n'
+                  'prev_loc: {prev_loc}\n'
+                  'npc: {npc}\n'
+                  'prev_npc: {prev_npc}\n'
+                  '---------------------------------\n'
+                  'FLAGS\n'
+                  '---------------------------------\n'
+                  'past_quota:', self.past_quota, '\n'
+                  'viewed_slides:', self.viewed_slides, '\n'
+                  'reported_badges:', self.reported_badges, '\n'
+                  'reported_promotions:', self.reported_promotions, '\n'
+                  '---------------------------------\n']
+        return strout[0].format(name=self.name, user_id=self.user_id,
+                                time_zone=self.time_zone, quota=self.quota,
+                                path=self.path, session_start=self.session_start,
+                                blocks=self.blocks, completed_paths=self.completed_paths,
+                                cats_counter=self.cats_counter, inventory=self.inventory,
+                                old_categories=pprint(self.old_categories),
+                                tag_progress=pprint(self.tag_progress),
+                                tag_records=pprint(self.tag_records),
+                                promoted=self.promoted, demoted=self.demoted,
+                                new_tags=self.new_tags, loc=self.loc,
+                                prev_loc=self.prev_loc, npc=self.npc,
+                                prev_npc=self.prev_npc, past_quota=self.past_quota,
+                                viewed_slides=self.viewed_slides,
+                                reported_badges=self.reported_badges,
+                                reported_promotions=self.reported_promotions)
 
     def _get_paths_quota(self, user_id):
         """Return the daily path quota (int) for the user's class section."""
