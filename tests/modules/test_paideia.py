@@ -3182,8 +3182,8 @@ def mypath(pathid, db):
     """
     A pytest fixture providing a paideia.Path object for testing.
 
-    Outputs all valid path/step combinations from mypaths and mysteps (i.e.
-    only combinations whose step belongs to the path in question).
+    Second member of output tuple is list of step ids that belong
+    to the path in question.
     """
     path = Path(pathid, db=db)
     path_steps = db.paths[pathid].steps
@@ -3428,7 +3428,8 @@ class TestStep():
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('caseid,stepid,alias,npcshere,promptext,instrs,'
-                             'slidedecks,widgimg,rbuttons,rform,kwargs',
+                             'slidedecks,widgimg,rbuttons,rform,kwargs,'
+                             'audio',
         [('case1', 1,  # StepText ------------------------------
           'shop_of_alexander',
           [2, 8, 17],  # npcs here (for step)
@@ -3450,6 +3451,10 @@ class TestStep():
           '</tr></table><div style="display:none;"><input name="pre_bug_step_id" '
           'type="hidden" value="1" /></div></form>',
           None,  # kwargs
+          {'audio_args_for_js': "{'m4a': '/paideia/default/download.load/audio.clip_m4a.b6e1beb8683180e8.53746570303030312e6d3461.m4a', 'title': ''}",
+           'ogg': None,
+           'media_supplied': 'm4a',
+           'mp3': '', 'title': 'StepPrompt0001'},  # audio
           ),
          ('case2', 2,  # StepText ------------------------------
           'agora',
@@ -3470,6 +3475,10 @@ class TestStep():
           '</tr></table><div style="display:none;"><input name="pre_bug_step_id" '
           'type="hidden" value="2" /></div></form>',
           None,  # kwargs
+          {'audio_args_for_js': "{'m4a': '/paideia/default/download.load/audio.clip_m4a.abef698d8dae36e3.53746570303030322e6d3461.m4a', 'title': ''}",
+           'ogg': None, 'media_supplied': 'm4a',
+           'mp3': '',
+           'title': 'StepPrompt0002'},  # audio
           ),
          ('case2', 19,  # StepText ------------------------------
           'agora',
@@ -3492,6 +3501,9 @@ class TestStep():
           '</tr></table><div style="display:none;"><input name="pre_bug_step_id" '
           'type="hidden" value=".*" /></div></form>',
           None,  # kwargs
+          {'audio_args_for_js': "{'m4a': '/paideia/default/download.load/audio.clip_m4a.857ac2a83978839d.53746570303031392e6d3461.m4a', 'title': ''}",
+           'ogg': None, 'media_supplied': 'm4a',
+           'mp3': '', 'title': 'StepPrompt0019'},  # audio
           ),  # will redirect (currently no case works for step 19)
          ('case1', 30,  # StepRedirect ------------------------------
           'shop_of_alexander',
@@ -3505,6 +3517,7 @@ class TestStep():
           ['map', 'continue'],  # response buttons
           None,  # response form
           None,  # kwargs
+          None,  # audio
           ),  # redirect step
          ('case1', 101,  # StepMultiple ------------------------------
           'shop_of_alexander',
@@ -3532,6 +3545,7 @@ class TestStep():
           'value=".*" /><input name="_formname" type="hidden" '
           'value="no_table/create" /></div></form>',
           None,  # kwargs
+          None,  # audio
           ),
          ('case2', 125,  # StepQuotaReached ------------------------------
           'agora',
@@ -3544,6 +3558,7 @@ class TestStep():
           ['map', 'continue'],  # response buttons
           None,  # response form
           {'quota': 20},  # kwargs
+          None,  # audio
           ),
          ('case2', 126,  # StepAwardBadges ------------------------------
           'agora',
@@ -3563,6 +3578,7 @@ class TestStep():
           None,  # response form
           {'new_tags': {'rev1': [62], 'rev2':[], 'rev3':[], 'rev4':[]},
            'promoted': {'rev2': [61]}},  # kwargs
+          None,  # audio
           ),  # promoted, no new tags (for new badges)
          ('case3', 126,  # StepAwardBadges ------------------------------
           'synagogue',
@@ -3579,6 +3595,7 @@ class TestStep():
           ['map', 'continue'],  # response buttons
           None,  # response form
           {'promoted': {'rev2': [61]}},  # kwargs
+          None,  # audio
           ),  # promoted, no new tags (for new badges)
          ('case2', 127,  # StepViewSlides ------------------------------
           'agora',
@@ -3594,11 +3611,12 @@ class TestStep():
           ['map'],  # response buttons
           None,  # response form
           {'new_tags': {'rev1': [62]}},  # kwargs
+          None,  # audio
           ),  # new tags and promoted (for view slides)
          ])
     def test_step_get_prompt(self, caseid, stepid, alias, npcshere, promptext,
                              instrs, slidedecks, widgimg, rbuttons, rform,
-                             kwargs, npc_data, bg_imgs, db):
+                             kwargs, audio, npc_data, bg_imgs, db):
         """Test for method Step.get_prompt"""
         step = StepFactory().get_instance(stepid, kwargs=kwargs)
         npc = Npc(npcshere[0], db)  # FIXME: randint(0, len(npcshere))
@@ -3640,7 +3658,9 @@ class TestStep():
             assert actual['response_form']
         assert actual['bugreporter'] == None
         assert actual['response_buttons'] == rbuttons
-        assert actual['audio'] == None  # FIXME: add case with audio (path 380, step 445)
+        print 'audio'
+        print actual['audio']
+        assert actual['audio'] == audio  # FIXME: add case with audio (path 380, step 445)
         assert actual['loc'] == alias
 
     @pytest.mark.skipif(False, reason='just because')
@@ -4037,15 +4057,15 @@ class TestPath():
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize(
-        'casenum,locid,localias,pathid,stepid,stepsleft,locs',
-        [('case3', 11, 'synagogue', 19, 19, [], [3, 1, 13, 8, 11]),
-         ('case4', 8, 'agora', 1, 71, [], [3, 1, 6, 7, 8, 11]),
-         ('case5', 1, 'domus_A', 1, 71, [], [3, 1, 6, 7, 8, 11]),
-         ('case5', 1, 'domus_A', 63, 66, [67, 68], [3, 1])
+        'casenum,locid,localias,pathid,stepid,stepsleft,locs,mynextloc',
+        [('case3', 1, 'synagogue', 19, 19, [], [3, 1, 13, 8, 11], 1),
+         ('case4', 8, 'agora', 1, 71, [], [3, 1, 6, 7, 8, 11], None),
+         ('case5', 1, 'domus_A', 1, 71, [], [3, 1, 6, 7, 8, 11], None),
+         ('case5', 1, 'domus_A', 63, 66, [67, 68], [3, 1], None)
          ])
     def test_path_get_step_for_prompt(self, casenum, locid, localias, pathid,
-                                      stepid, stepsleft, locs, db, user_login,
-                                      mysteps):
+                                      stepid, stepsleft, locs, mynextloc,
+                                      db, user_login, mysteps):
         """
         Unit test for Path.get_step_for_prompt() where no redirect prompted.
         """
@@ -4056,8 +4076,11 @@ class TestPath():
 
         assert path.step_for_prompt.get_id() == stepid
         assert path.step_for_reply == None
+        print 'actual step:', stepid
         assert actual.get_id() == stepid
+        print 'actual path:', pathid
         assert path.get_id() == pathid
+        print 'actual locs:', actual.get_locations()
         assert locid in locs
         assert locid in actual.get_locations()
         assert isinstance(actual, Step)
@@ -4065,7 +4088,7 @@ class TestPath():
             assert [s.get_id() for s in path.steps] == stepsleft
         except TypeError:  # if path.steps is empty, can't be iterated
             assert path.steps == stepsleft
-        assert nextloc is None
+        assert mynextloc == nextloc
         assert errstring is None
 
     @pytest.mark.skipif(False, reason='just because')
@@ -5571,46 +5594,57 @@ class TestWalk():
         assert db(db.tag_records.name == user_login['id']).delete()
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('tpin,tagrecs,existing_row',
+    @pytest.mark.parametrize('tpin,tagrecs,existing_row,active_path',
                              [(mytagpros()['Simon Pan 2014-03-21'],  # tpin
                                mytagrecs()['Simon Pan 2014-03-21'],  # tagrecs
-                               True  # existing_row
+                               True,  # existing_row
+                               None   # active_path
                                ),
                               (mytagpros()['Simon Pan 2014-03-21'],  # tpin
                                mytagrecs()['Simon Pan 2014-03-21'],  # tagrecs
-                               False  # existing_row
+                               False,  # existing_row
+                               None   # active_path
+                               ),
+                              (mytagpros()['Simon Pan 2014-03-21'],  # tpin
+                               mytagrecs()['Simon Pan 2014-03-21'],  # tagrecs
+                               False,  # existing_row
+                               3  # active_path
                                )
                               ])
-    def test_walk_store_user(self, tagrecs, tpin, existing_row, user_login,
-                             db, web2py):
+    def test_walk_store_user(self, tagrecs, tpin, existing_row, active_path,
+                             user_login, db, web2py):
         """Unit test for Walk._store_user"""
         # setup ===============================================================
         # force creation of new user
         db(db.session_data.name == user_login['id']).delete()
+        db.commit()
 
         walk = Walk(userdata=user_login,
                     tag_records=tagrecs,
                     tag_progress=tpin,
                     db=db)
         user = walk._get_user()  # initialized new user in Walk.__init__()
+        if active_path:
+            user.path = mypath(active_path, db)
         assert isinstance(user, User)
         assert user.get_id() == user_login['id']
+
+        print '====================================================='
+        print 'in test_walk_store_user, user object is'
+        print '====================================================='
         print user
+        print '=================================================END\n'
 
-        # set up controlled record in session_data
-        db(db.session_data.name == user_login['id']).delete()
-        db.commit()
-
-        if existing_row:
+        if existing_row:  # whether db row for session_data exists for user
             newrec = db.session_data.insert(name=user_login['id'])
             db.commit()
-            print 'newrec inserted for update:', newrec
+            print 'test_walk_store_user:: newrec inserted for later update:', newrec
         else:
-            print 'newrec not inserted, creating new row for user'
+            print 'test_walk_store_user:: newrec not inserted, creating new row for user'
 
         # store the user instance in db =======================================
         rowid = walk._store_user(user, db=db)  # returns id of row if successful
-        print 'rowid:', rowid
+        print 'test_walk_store_user:: id of inserted row:', rowid
         if existing_row:
             assert rowid is None
             storedrow = db(db.session_data.name == user_login['id']
@@ -5629,10 +5663,10 @@ class TestWalk():
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('pathid,stepid,alias,npcshere,trecs,tpout,redir,'
                              'promptext,instrs,slidedecks,widgimg,rbuttons,'
-                             'rform,replystep',
+                             'rform,replystep,audio',
         [(19,  # path # case3 ======================================================
           19,  # step
-          'synagogue',  # alias
+          'domus_A',  # alias
           [1],  # npcs here FIXME
           [{'tag': 61,  # trecs
             'tlast_right': dt('2013-01-27'),
@@ -5686,11 +5720,16 @@ class TestWalk():
           '<input type="submit" value="Submit" /></td><td class="w2p_fc"></td>'
           '</tr></table><div style="display:none;"><input name="pre_bug_step_id" '
           'type="hidden" value="19" /></div></form>',
-          True  # replystep
+          True,  # replystep
+          {'audio_args_for_js': "{'m4a': '/paideia/default/download.load/audio.clip_m4a.857ac2a83978839d.53746570303031392e6d3461.m4a', 'title': ''}",
+           'media_supplied': 'm4a',
+           'mp3': '',
+           'ogg': None,
+           'title': 'StepPrompt0019'}  # audio
           ),
          (19,  # path # case2 ======================================================
           19,  # step
-          'agora',  # alias
+          'domus_A',  # alias
           [1],  # npcs here
           [{'tag': 61,
             'tlast_right': dt('2013-01-29'),
@@ -5727,7 +5766,12 @@ class TestWalk():
           '<input type="submit" value="Submit" /></td><td class="w2p_fc"></td>'
           '</tr></table><div style="display:none;"><input name="pre_bug_step_id" '
           'type="hidden" value="19" /></div></form>',
-          True  # replystep
+          True,  # replystep
+          {'audio_args_for_js': "{'m4a': '/paideia/default/download.load/audio.clip_m4a.857ac2a83978839d.53746570303031392e6d3461.m4a', 'title': ''}",
+           'media_supplied': 'm4a',
+           'mp3': '',
+           'ogg': None,
+           'title': 'StepPrompt0019'}  # audio
           ),
          (89,  # path # case2======================================================
           101,  # step
@@ -5753,11 +5797,12 @@ class TestWalk():
           None,  # widget image
           ['map'],  # response buttons
           None,  # response form
-          False  # replystep
+          False,  # replystep
+          None,  # audio
           ),
          (2,  # path # case1======================================================
           1,  # step
-          'agora',
+          'domus_A',
           [2, 8, 17],  # npcs here (for step)
           [{'tag': 1,  # trecs
             'tlast_right': dt('2013-01-29'),
@@ -5789,41 +5834,47 @@ class TestWalk():
           'class="w2p_fc"></td></tr></table><div style="display:none;">'
           '<input name="pre_bug_step_id" type="hidden" value="1" /></div>'
           '</form>',
-          True  # replystep
+          True,  # replystep
+          {'audio_args_for_js': "{'m4a': '/paideia/default/download.load/audio.clip_m4a.b6e1beb8683180e8.53746570303030312e6d3461.m4a', 'title': ''}",
+           'media_supplied': 'm4a',
+           'mp3': '',
+           'ogg': None,
+           'title': 'StepPrompt0001'}  # audio
           ),
-         (3,  # path # case1======================================================
-          2,  # step
-          'agora',
-          [2, 8, 17],  # npcs here FIXME
-          [{'tag': 1,  # trecs
-            'tlast_right': dt('2013-01-29'),
-            'tlast_wrong': dt('2013-01-29'),
-            'times_right': 1,
-            'times_wrong': 1,
-            'secondary_right': None}],
-          {'latest_new': 1,  # tpout
-           'cat1': [61], 'cat2': [],
-           'cat3': [], 'cat4': [],
-           'rev1': [], 'rev2': [],
-           'rev3': [], 'rev4': []},
-          False,  # redirect?
-          'How could you write the word "bought" using Greek letters?',  # text
-          None,  # instructions
-          {1: 'Introduction', 2: 'The Alphabet', 6: 'Noun Basics', 7: 'Greek Words I'},
-          None,  # widget image
-          [],  # response buttons
-          '<form action="#" autocomplete="off" enctype="multipart/form-data" '
-          'method="post"><table><tr id="no_table_response__row">'
-          '<td class="w2p_fl"><label for="no_table_response" id="no_table_'
-          'response__label">Response: </label></td><td class="w2p_fw">'
-          '<input class="string" id="no_table_response" name="response" '
-          'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
-          'id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw">'
-          '<input type="submit" value="Submit" /></td><td class="w2p_fc"></td>'
-          '</tr></table><div style="display:none;"><input name="pre_bug_step_id" '
-          'type="hidden" value="2" /></div></form>',
-          True  # replystep
-          ),
+         #(3,  # path # case1======================================================
+          #2,  # step
+          #'agora',
+          #[2, 8, 17],  # npcs here FIXME
+          #[{'tag': 1,  # trecs
+            #'tlast_right': dt('2013-01-29'),
+            #'tlast_wrong': dt('2013-01-29'),
+            #'times_right': 1,
+            #'times_wrong': 1,
+            #'secondary_right': None}],
+          #{'latest_new': 1,  # tpout
+           #'cat1': [61], 'cat2': [],
+           #'cat3': [], 'cat4': [],
+           #'rev1': [], 'rev2': [],
+           #'rev3': [], 'rev4': []},
+          #False,  # redirect?
+          #'How could you write the word "bought" using Greek letters?',  # text
+          #None,  # instructions
+          #{1: 'Introduction', 2: 'The Alphabet', 6: 'Noun Basics', 7: 'Greek Words I'},
+          #None,  # widget image
+          #[],  # response buttons
+          #'<form action="#" autocomplete="off" enctype="multipart/form-data" '
+          #'method="post"><table><tr id="no_table_response__row">'
+          #'<td class="w2p_fl"><label for="no_table_response" id="no_table_'
+          #'response__label">Response: </label></td><td class="w2p_fw">'
+          #'<input class="string" id="no_table_response" name="response" '
+          #'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
+          #'id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw">'
+          #'<input type="submit" value="Submit" /></td><td class="w2p_fc"></td>'
+          #'</tr></table><div style="display:none;"><input name="pre_bug_step_id" '
+          #'type="hidden" value="2" /></div></form>',
+          #True,  # replystep
+          #None,  # audio
+          #),
          (89,  # path # case1======================================================
           101,  # step
           'agora',
@@ -5848,18 +5899,20 @@ class TestWalk():
           None,  # widget image
           ['map'],  # response buttons
           None,  # response form
-          False  # replystep
+          False,  # replystep
+          None,  # audio
           )
          ])
     def test_walk_ask(self, pathid, stepid, alias, npcshere, trecs, tpout, redir,
                       promptext, instrs, slidedecks, widgimg, rbuttons,
-                      rform, replystep, npc_data, bg_imgs, db, user_login):
+                      rform, replystep, audio, npc_data, bg_imgs, db,
+                      user_login):
         """
         """
-        # setting up test objects and db test data
+        # setting up test objects and db test data =====================
         tpout['name'] = user_login['id']
 
-        # set up attempt_log rows
+        # set up attempt_log rows --------------------------------------
         db(db.attempt_log.name == user_login['id']).delete()
         atags = chain.from_iterable([v for k, v in tpout.iteritems()
                                      if k in ['cat1', 'cat2', 'cat3', 'cat4']])
@@ -5869,20 +5922,24 @@ class TestWalk():
             s['tag'] = t
             mycount = s['times_wrong'] + s['times_right']
             if mycount > 0:
-                print 'inserting', mycount, 'logs for tag', t
+                print 'test_walk_ask:: inserting', mycount, 'logs for tag', t
                 log_generator(user_login['id'], s['tag'], mycount,
                               s['times_right'], s['tlast_right'],
                               s['tlast_wrong'], dt('2013-01-01'), db)
+        # set up tag_progress record ------------------------------------
         db(db.tag_progress.name == user_login['id']).delete()
         db.tag_progress.insert(**tpout)
 
-        # set up tag_regords
+        # set up tag_records --------------------------------------------
         db(db.tag_records.name == user_login['id']).delete()
         for tr in trecs:
-            print 'inserting tag record for tag:', tr['tag']
+            print 'test_walk_ask:: inserting tag record for tag:', tr['tag']
             db.tag_records.insert(**tr)
         db.commit()
 
+        # set up walk and user objects ----------------------------------
+        db(db.session_data.name == user_login['id']).delete()
+        db.commit()
         thiswalk = Walk(userdata=user_login,
                         tag_records=trecs,
                         tag_progress=tpout,
@@ -5891,9 +5948,11 @@ class TestWalk():
         thiswalk.user.categories = {k: v for k, v in tpout.iteritems()
                                     if k[:3] in ['cat', 'rev']}
         loc = Location(alias)
-        # setup done
+        # setup done =============================================
 
         actual = thiswalk.ask(alias)
+        print 'test_walk_ask:: Actual result ------------------'
+        pprint(actual)
 
         if redir:
             assert actual['sid'] == 30
@@ -5918,15 +5977,15 @@ class TestWalk():
         assert actual['bg_image'] == bg_imgs[loc.get_id()]
         #assert actual['npc_image']['_src'] == npc_data[npc.get_id()]['image']
         if actual['response_form']:
-            print 'actual["response_form"]:\n', actual['response_form']
-            print 'rform:\n', rform
+            #print 'actual["response_form"]:\n', actual['response_form']
+            #print 'rform:\n', rform
             assert re.match(rform, actual['response_form'].xml())
         elif rform:
-            pprint(actual['response_form'])
+            #pprint(actual['response_form'])
             assert actual['response_form']
         assert actual['bugreporter'] == None
         assert actual['response_buttons'] == rbuttons
-        assert actual['audio'] == None  # FIXME: add case with audio (path 380, step 445)
+        assert actual['audio'] == audio
         assert actual['loc'] == alias
         assert thiswalk.user.path.steps == []  # because only step activated
         if redir:
@@ -5936,6 +5995,13 @@ class TestWalk():
             assert isinstance(thiswalk.user.path.step_for_reply, Step)
             assert thiswalk.user.path.step_for_reply.get_id() == stepid
 
+        # teardown to prevent test pollution
+        db(db.attempt_log.name == user_login['id']).delete()
+        db(db.tag_progress.name == user_login['id']).delete()
+        db(db.tag_records.name == user_login['id']).delete()
+        db(db.session_data.name == user_login['id']).delete()
+        db.commit()
+
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('pathid,stepid,alias,npcshere,trecs,tpout,'
                              'creply,wreply,instrs,slidedecks,rbuttons,'
@@ -5943,7 +6009,7 @@ class TestWalk():
                              'wresponse',
         [(19,  # path # case3 ======================================================
           19,  # step
-          'synagogue',  # alias
+          'domus_A',  # alias
           [1],  # npcs here FIXME
           [{'tag': 61,  # trecs
             'tlast_right': dt('2013-01-27'),
@@ -5990,65 +6056,70 @@ class TestWalk():
           'πωλ',  # response correct ------------------------------------------
           'βλα',  # response wrong --------------------------------------------
           ),
-         (19,  # path # case2 ======================================================
-          19,  # ------------------------------------------------------step
-          'agora',  # -------------------------------------------------alias
-          [1],  # -----------------------------------------------------npcs here
-          [{'name': 141,  # -------------------------------------------trecs
-            'tag': 61,
-            'tlast_right': dt('2013-01-29'),
-            'tlast_wrong': dt('2013-01-28'),
-            'times_right': 20,
-            'times_wrong': 2,
-            'secondary_right': []},
-           {'name': 141,
-            'tag': 62,
-            'tlast_right': dt('2013-03-20'),
-            'tlast_wrong': dt('2013-03-20'),
-            'times_right': 1,
-            'times_wrong': 1,
-            'secondary_right': []}],
-          {'latest_new': 2,  # -------------------------------------------tpout
-           'cat1': [62], 'cat2': [61],
-           'cat3': [], 'cat4': [],
-           'rev1': [62], 'rev2': [61],
-           'rev3': [], 'rev4': []},
-          'Right. Κάλον.\nYou said\n- πωλ\n',  # ---------------------correct reply
-          'Incorrect. Try again!\nYou said\n- βλα\nThe correct '  # --wrong reply
-            'response is\n- πωλ',
-          ['Focus on finding Greek letters that make the *sounds* of the '
-           'English word. Don\'t look for Greek "equivalents" for each '
-           'English letter.'],  # instructions
-          {3L: 'The Alphabet II', 8L: 'Greek Words II'},  # ---------slide decks
-          [],  # response buttons
-          ['πωλ'],  # ---------------------------------------------readable short
-          [],  # --------------------------------------------------readable long
-          None,  # ------------------------------------------------tips
-          'πωλ',  # response correct ------------------------------------------
-          'βλα',  # response wrong --------------------------------------------
-          ),
+         #(19,  # path # case2 ======================================================
+          #19,  # ------------------------------------------------------step
+          #'agora',  # -------------------------------------------------alias
+          #[1],  # -----------------------------------------------------npcs here
+          #[{'name': 141,  # -------------------------------------------trecs
+            #'tag': 61,
+            #'tlast_right': dt('2013-01-29'),
+            #'tlast_wrong': dt('2013-01-28'),
+            #'times_right': 20,
+            #'times_wrong': 2,
+            #'secondary_right': []},
+           #{'name': 141,
+            #'tag': 62,
+            #'tlast_right': dt('2013-03-20'),
+            #'tlast_wrong': dt('2013-03-20'),
+            #'times_right': 1,
+            #'times_wrong': 1,
+            #'secondary_right': []}],
+          #{'latest_new': 2,  # -------------------------------------------tpout
+           #'cat1': [62], 'cat2': [61],
+           #'cat3': [], 'cat4': [],
+           #'rev1': [62], 'rev2': [61],
+           #'rev3': [], 'rev4': []},
+          #'Right. Κάλον.\nYou said\n- πωλ\n',  # ---------------------correct reply
+          #'Incorrect. Try again!\nYou said\n- βλα\nThe correct '  # --wrong reply
+            #'response is\n- πωλ',
+          #['Focus on finding Greek letters that make the *sounds* of the '
+           #'English word. Don\'t look for Greek "equivalents" for each '
+           #'English letter.'],  # instructions
+          #{3L: 'The Alphabet II', 8L: 'Greek Words II'},  # ---------slide decks
+          #[],  # response buttons
+          #['πωλ'],  # ---------------------------------------------readable short
+          #[],  # --------------------------------------------------readable long
+          #None,  # ------------------------------------------------tips
+          #'πωλ',  # response correct ------------------------------------------
+          #'βλα',  # response wrong --------------------------------------------
+          #),
          #(89,  # path # case2======================================================
-          #101,  # step
-          #'agora',  # alias
-          #[2, 8, 14, 17, 31, 40, 41, 42],  # npcs here
-          #[{'name': 1,
+          #101,  # ---------------------------------------------------------step
+          #'agora',  # ----------------------------------------------------alias
+          #[2, 8, 14, 17, 31, 40, 41, 42],  # -------------------------npcs here
+          #[{'name': 1,  # ------------------------------------------------trecs
             #'tag': 61,
             #'tlast_right': dt('2013-01-29'),
             #'tlast_wrong': dt('2013-01-28'),
             #'times_right': 10,
             #'times_wrong': 2,
             #'secondary_right': []}],
-          #{'latest_new': 2,  # tpout
+          #{'latest_new': 2,  # -------------------------------------------tpout
            #'cat1': [62], 'cat2': [61],
            #'cat3': [], 'cat4': [],
            #'rev1': [], 'rev2': [],
            #'rev3': [], 'rev4': []},
-          #r'Hi there. Sorry, I don\'t have anything for you to '  # prompt text
-          #'do here at the moment. I think someone was looking '
-          #'for you at .*\.',
+          #'Right. Κάλον.\nYou said\n- πωλ\n',  # ----------------correct reply
+          #'Incorrect. Try again!\nYou said\n- βλα\nThe correct '  # wrong reply
+          #'response is\n- πωλ',
           #None,  # instructions
           #None,  # slide decks
           #['map', 'continue'],  # response buttons
+          #['πωλ'],  # ---------------------------------------------readable short
+          #[],  # --------------------------------------------------readable long
+          #None,  # ------------------------------------------------tips
+          #'πωλ',  # response correct ------------------------------------------
+          #'βλα',  # response wrong --------------------------------------------
           #),
          ])
     def test_walk_reply(self, pathid, stepid, alias, npcshere, trecs, tpout,
@@ -6056,12 +6127,18 @@ class TestWalk():
                         readable_short, readable_long, tips, cresponse,
                         wresponse, npc_data, bg_imgs, db, user_login):
         """Unit test for paideia.Walk.reply() method."""
-
-        # setting up test objects and db test data
-        tpout['name'] = user_login['id']
+        # resetting db data
         db(db.attempt_log.name == user_login['id']).delete()
+        db(db.tag_progress.name == user_login['id']).delete()
+        db(db.tag_records.name == user_login['id']).delete()
+        db(db.session_data.name == user_login['id']).delete()
+        db.commit()
+
+        # setting up test objects and db test data ==========================
+        tpout['name'] = user_login['id']
         atags = chain.from_iterable([v for k, v in tpout.iteritems()
                                      if k in ['cat1', 'cat2', 'cat3', 'cat4']])
+        # set up attempt_log records ---------------------------------------
         for t in atags:
             thisrec = [r for r in trecs if r['tag'] == t]
             s = thisrec[0] if thisrec else trecs[0]  # if no trec for tag, use first rec for data
@@ -6069,10 +6146,16 @@ class TestWalk():
             mycount = s['times_wrong'] + s['times_right']
             log_generator(user_login['id'], s['tag'], mycount, s['times_right'],
                         s['tlast_right'], s['tlast_wrong'], dt('2013-01-01'), db)
-        db(db.tag_progress.name == user_login['id']).delete()
+        # set up tag_progress and tag_records ------------------------------
         db.tag_progress.insert(**tpout)
         db(db.tag_records.name == user_login['id']).delete()
-        db.tag_records.bulk_insert(trecs)
+        for tr in trecs:
+            print 'test_walk_ask:: inserting tag record for tag:', tr['tag']
+            db.tag_records.insert(**tr)
+            # FIXME: duplicate index key error here on second case run
+        db.commit()
+
+        # set up walk and user objects -------------------------------------
         thiswalk = Walk(userdata=user_login,
                         tag_records=trecs,
                         tag_progress=tpout,
@@ -6083,7 +6166,7 @@ class TestWalk():
                                     if k[:3] in ['cat', 'rev']}
         assert thiswalk.user.path.get_id() == pathid
         assert thiswalk.user.path.step_for_reply.get_id() == stepid
-        # setup done
+        # setup done =======================================================
 
         # test for both a correct and an incorrect response
         for n, case in enumerate(['right', 'wrong']):
@@ -6101,9 +6184,9 @@ class TestWalk():
                 reply_text = creply
 
         thiswalk.start(alias, path=pathid)
-        print 'execute ==================================================='
+        print 'test_walk_reply:: execute ==================================================='
         a = thiswalk.start(alias, response_string=response_string)
-        print 'starting evaluation -====================================='
+        print 'etest_walk_reply:: valuating test output ===================================='
 
         assert a['sid'] == stepid
         assert a['pid'] == pathid
@@ -6162,12 +6245,19 @@ class TestWalk():
                         '<button aria-hidden="true" class="pull-right" '
                         'data-dismiss="modal" type="button">Close</button>'
                         '</div></div></div></div>']
-        print 'actual ============'
-        print a['bugreporter'].xml()
+        #print 'actual ============'
+        #print a['bugreporter'].xml()
         assert re.match(bug_reporter[0], a['bugreporter'].xml())
         assert not thiswalk.user.path.step_for_reply
         assert not thiswalk.user.path.step_for_prompt
         assert thiswalk.user.path.completed_steps[-1].get_id() == stepid
+
+        # teardown db data
+        db(db.attempt_log.name == user_login['id']).delete()
+        db(db.tag_progress.name == user_login['id']).delete()
+        db(db.tag_records.name == user_login['id']).delete()
+        db(db.session_data.name == user_login['id']).delete()
+        db.commit()
 
 
 @pytest.mark.skipif('global_runall is False '
@@ -6281,7 +6371,7 @@ class TestPathChooser():
                                 'cat3': [], 'cat4': [],
                                 'rev1': [62], 'rev2': [61],
                                 'rev3': [], 'rev4': []},
-                               [4, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
+                               [4, 7, 9, 10, 11, 12, 13, 14, 16, 17, 18,
                                 19, 21, 22, 23, 34, 35, 97, 98, 100, 101, 103,
                                 257, 261, 277, 424, 425, 426, 427, 428, 429,
                                 430, 431, 433, 434, 435, 436, 437, 439, 440,
@@ -6319,7 +6409,7 @@ class TestPathChooser():
                                 'cat3': [], 'cat4': [],
                                 'rev1': [6, 29, 62, 82, 83], 'rev2': [61],
                                 'rev3': [], 'rev4': []},
-                               [4, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
+                               [4, 7, 9, 10, 11, 12, 13, 14, 16, 17, 18,
                                 19, 21, 22, 23, 34, 35, 97, 98, 100, 101, 103,
                                 120, 141, 208, 257, 261, 277, 333, 424, 425,
                                 426, 427, 428, 429, 430, 431, 433, 434, 435,
@@ -6341,14 +6431,18 @@ class TestPathChooser():
         if force_cat1:
             chooser.cat1_choices = 0
             chooser.all_choices = 10
-        cpaths, cat, forced = chooser._paths_by_category(mycat, tpout['latest_new'])
-
+        cpaths, cat, forced = chooser._paths_by_category(mycat,
+                                                         tpout['latest_new'])
+        print 'cat:', cat
+        print 'forced:', forced
         cpath_ids = [row['id'] for row in cpaths]
         #print 'actual cpaths:', cpath_ids
         cpath_ids.sort()
-        extra_actual = [row['id'] for row in cpaths if row['id'] not in expected]
-        #print 'extra actual cpaths:', extra_actual
-        #print 'extra expected:', [row for row in expected if row not in cpath_ids]
+        extra_actual = [row['id'] for row in cpaths
+                        if row['id'] not in expected]
+        print 'extra actual cpaths:', extra_actual
+        print 'extra expected:', [row for row in expected
+                                  if row not in cpath_ids]
         assert cpath_ids == expected
 
         if force_cat1:

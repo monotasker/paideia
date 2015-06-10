@@ -90,6 +90,8 @@ class Stats(object):
         self.user_id = user_id
         self.user = db.auth_user(user_id)
         self.name = '{}, {}'.format(self.user.last_name, self.user.first_name)
+        print 'Stats.__init__:: name:', self.name
+        print 'Stats.__init__:: user_id:', self.user_id
 
         # class/group info --------------------------------------------------
         msel = db((db.class_membership.name == user_id) &
@@ -106,6 +108,8 @@ class Stats(object):
                                    ).select().first().as_dict()
         except AttributeError:
             self.tag_progress = {}
+        print 'Stats.__init__:: tag_progress:', self.tag_progress
+
         self.tag_recs = db(db.tag_records.name == self.user_id
                            ).select().as_list()  # cacheable=True
         # TODO: find and notify re. duplicate tag_records rows
@@ -495,13 +499,21 @@ class Stats(object):
                 tr[idx][i] = (t[i], t[i].strftime(strf))
 
             # add level data
+            print 'badge_levels--------------'
+            print self.badge_levels
+            print 'review_levels--------------'
+            print self.review_levels
+            print 't["tag"]--------------------'
+            print t['tag']
             try:
                 tr[idx]['curlev'] = [l for l, tgs in self.badge_levels.iteritems()
                                     if t['tag'] in [tg[1] for tg in tgs]][0]
+            except IndexError:
+                tr[idx]['curlev'] = 0
+            try:
                 tr[idx]['revlev'] = [l for l, tgs in self.review_levels.iteritems()
                                     if t['tag'] in [tg[1] for tg in tgs]][0]
             except IndexError:
-                tr[idx]['curlev'] = 0
                 tr[idx]['revlev'] = 0
 
             # add rw_ratio
@@ -582,27 +594,23 @@ class Stats(object):
             rank = 1
         categories = {k: v for k, v in self.tag_progress.iteritems()
                       if k != 'latest_new'}
-        # TODO: for some reason Categorizer changes self.tag_recs persistently
-        # when it (rather than copy) is passed as argument
 
-        #JOB ... oct 28, 2014 ... dont need to call categorize_tags
-        #just read tag progress from the db. categorize_tags has other
-        #side effects we don't want
-        #c = Categorizer(rank, categories, copy(self.tag_recs),
-        #                self.user_id, utcnow=self.utcnow)
-        #bls = c.categorize_tags()['tag_progress']
-        bls = db(db.tag_progress.name == self.user_id).select().first().as_dict()
+        bls = self.tag_progress
+        print 'Stats._find_badge_levels:: bls:', bls
+        #bls = db(db.tag_progress.name == self.user_id).select().first().as_dict()
         bl_ids = {k: v for k, v in bls.iteritems()
                   if k[:3] == 'cat' and k != 'cat1_choices'}
+        print 'Stats._find_badge_levels:: bl_ids:', bl_ids
         badge_levels = {}
         for k, v in bl_ids.iteritems():
             level = int(k[3:])
             badgelist = []
-            for tag in v:
-                mybadge = db.badges(db.badges.tag == tag)
-                badge_name = mybadge.badge_name if mybadge \
-                    else 'tag id: {}'.format(tag)
-                badgelist.append((badge_name, tag))
+            if v:
+                for tag in v:
+                    mybadge = db.badges(db.badges.tag == tag)
+                    badge_name = mybadge.badge_name if mybadge \
+                        else 'tag id: {}'.format(tag)
+                    badgelist.append((badge_name, tag))
             badge_levels[level] = badgelist
 
         rl_ids = {k: v for k, v in bls.iteritems() if k[:3] == 'rev'}
@@ -610,11 +618,12 @@ class Stats(object):
         for k, v in rl_ids.iteritems():
             level = int(k[3:])
             badgelist = []
-            for tag in v:
-                mybadge = db.badges(db.badges.tag == tag)
-                badge_name = mybadge.badge_name if mybadge \
-                    else 'tag id: {}'.format(tag)
-                badgelist.append((badge_name, tag))
+            if v:
+                for tag in v:
+                    mybadge = db.badges(db.badges.tag == tag)
+                    badge_name = mybadge.badge_name if mybadge \
+                        else 'tag id: {}'.format(tag)
+                    badgelist.append((badge_name, tag))
             review_levels[level] = badgelist
 
         return badge_levels, review_levels

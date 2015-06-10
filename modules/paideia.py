@@ -4,36 +4,59 @@ from gluon import current
 from gluon import IMG, URL, SQLFORM, SPAN, UL, LI, A, Field, P, HTML, I
 from gluon import IS_NOT_EMPTY, IS_IN_SET
 
-from inspect import getargvalues, stack
-import traceback
 from copy import copy
-from itertools import chain
-from random import randint, randrange
-import re
 import datetime
 from dateutil import parser
-from pytz import timezone
+from inspect import getargvalues, stack
+from itertools import chain
+#import os
+from paideia_utils import Paideia_Debug, GreekNormalizer
 import pickle
 from plugin_utils import flatten, makeutf8  # , ErrorReport
 from plugin_widgets import MODAL
-from pprint import pprint
-from paideia_utils import Paideia_Debug, GreekNormalizer
+#from pprint import pprint
+from pytz import timezone
+from random import randint, randrange
+import re
+import traceback
 
-#current.paideia_DEBUG_MODE is set in Walk::init
-# TODO: move these notes elsewhere
 """
+ABOUT
+---------
+This module holds the core game logic for the Paideia web-app for language
+learning. It is designed to run in the context of the web2py framework and
+relies heavily on the pydal database abstraction layer, developed as part of
+web2py.
+
+CREDITS AND COPYRIGHT
+---------------------
+Copyright Ian W. Scott, 2012-2015
+Additional contributions by Joseph Boakye <jboakye@bwachi.com> (Fall 2014)
+
+DEBUG MODE
+------------
+current.paideia_DEBUG_MODE is set in Walk.init
+
+UPGRADING
+-----------
 The following files exist outside the paideia app folder and so need to be
 watched when upgrading web2py:
 - web2py/routes.py
-"""
 
 """
-Changes by Joseph Boakye ... Sep 21, 2014
-added self as first argument to this function
-    def _clean_tag_records(self,record_list=None, db=None):
-update_tag_record was completely redone
-new standalone function simple_object_print  to#printsimple objects
-"""
+
+
+class MyPickler (pickle.Pickler):
+    """Pickler subclass for debugging pickling problems."""
+    def save(self, obj):
+        try:
+            pickle.Pickler.save(self, obj)
+        except Exception, e:
+            print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
+            print 'pickling object of type', type(obj)
+            print obj
+            print 'error ================'
+            print e
 
 
 def util_get_args():
@@ -134,7 +157,6 @@ class Walk(object):
                 sd = db(db.session_data.name ==
                         auth.user_id).select().first()
                 if sd:
-                    pprint(sd['other_data'])
                     self.user = pickle.loads(sd['other_data'])
                 else:
                     self.user = None
@@ -148,18 +170,24 @@ class Walk(object):
                 for oldkey, newkey in {'just_cats': 'cat1_choices',
                                        'all_cats': 'all_choices'}.iteritems():
                     if oldkey in tpkeys:
-                        print 'removing', oldkey, 'from stored tag_progress'
+                        current.paideia_debug.do_print('removing {} from stored '
+                                                       'tag_progress'.format(oldkey),
+                                                       'Walk.get_user')
                         tp[newkey] = copy(tp[oldkey])
                         del tp[oldkey]
                 # FIXME: end of temporary sanitization
-                print 're-using user from db ------------'
+                current.paideia_debug.do_print('re-using user from '
+                                               'db ------------',
+                                               'Walk.get_user')
 
             except (KeyError, TypeError):  # Problem with session data
                 print traceback.format_exc(5)
                 self.user = self._new_user(userdata, tag_records, tag_progress)
             except (AssertionError, AttributeError):  # user stale or block
                 self.user = self._new_user(userdata, tag_records, tag_progress)
-                print 'creating new user from data ------------'
+                current.paideia_debug.do_print('creating new user from data '
+                                               '------------',
+                                               'Walk._get_user')
         if isinstance(self.user.quota, list):
             self.user.quota = self.user.quota[0]
         return self.user
@@ -197,7 +225,7 @@ class Walk(object):
             result['paideia_debug'] = '<div>' + current.paideia_debug.data + '</div>'
         else:
             #TODO: strip off html tags
-            print current.paideia_debug.data
+            #print current.paideia_debug.data
             result['paideia_debug'] = ''
         return result
 
@@ -375,8 +403,10 @@ class Walk(object):
         #print'\nSTART OF Walk.reply()'
         user = self._get_user()
         loc = user.get_location()
-        print 'loc is', loc
+        #print 'loc is', type(loc), loc
         p, cat = user.get_path(loc)[:2]
+        print 'in walk.reply:: path is ------------------------------------'
+        print p
 
         s = p.get_step_for_reply()
         if (not response_string) or re.match(response_string, r'\s+'):
@@ -421,7 +451,7 @@ class Walk(object):
         The 'promoted' argument is a dictionary with categories as keys and
         lists of tag id's as the values.
         Called by Walk._record_cats()
-        JOB: added db.commit() after db.badges_begun.update_or_insert
+
         """
         db = current.db
         now = datetime.datetime.utcnow()
@@ -691,6 +721,13 @@ class Walk(object):
             return rownum
         except Exception:
             print traceback.format_exc(5)
+            #try:
+            #    #with open('tempfile.txt', 'wb') as tempfile:
+            #        #myuser = MyPickler(tempfile).dump(user)
+            #        #os.remove('tempfile.txt')
+            #except Exception:
+            #    #print traceback.format_exc(5)
+            #    #return False
             return False
 
 
@@ -702,7 +739,14 @@ class Location(object):
     def __init__(self, alias, db=None):
         """Initialize a Location object."""
         db = current.db if not db else db
-        self.data = db(db.locations.loc_alias == alias).select().first()
+        self.data = db(db.locations.loc_alias == alias).select().first().as_dict()
+
+    def __str__(self):
+        """Return string to represent a Location instance"""
+        strout = 'Paideia Location Object -----------------------\n{}'
+        mydata = self.data
+        strout.format(mydata)
+        return strout
 
     def get_alias(self):
         """Return the alias of the current Location as a string."""
@@ -755,10 +799,22 @@ class Npc(object):
             self.id_num = id_num.get_id()
         else:
             self.id_num = id_num
-        self.data = db.npcs(id_num)
+        self.data = db.npcs(id_num).as_dict()
         # get image here so that db interaction stays in __init__ method
-        self.image_id = self.data.npc_image
+        self.image_id = self.data['npc_image']
         self.image = db.images[self.image_id].image
+
+    def __str__(self):
+        """Return string to represent a Location instance"""
+        strout = ['Paideia Npc Object ------------------------\n'
+                  'id_num: {id_num}\n'
+                  'image_id: {image_id}\n'
+                  'image: {image}\n'
+                  'data:\n{data}\n']
+        return strout[0].format(id_num=self.id_num,
+                                image_id=self.image_id,
+                                image=self.image,
+                                data=self.data)
 
     def get_id(self):
         """return the database row id of the current npc"""
@@ -766,7 +822,7 @@ class Npc(object):
 
     def get_name(self):
         """return the name of the current npc"""
-        return self.data.name
+        return self.data['name']
 
     def get_image(self, db=None):
         """
@@ -782,7 +838,7 @@ class Npc(object):
         Return a list of ids (ints) for locations where this step can activate.
         """
         db = current.db
-        locs = [l for l in self.data.map_location
+        locs = [l for l in self.data['map_location']
                 if db.locations[l].loc_active is True]
         return locs
 
@@ -795,7 +851,7 @@ class Npc(object):
 
     def get_description(self):
         """docstring for Npc.get_description"""
-        return self.data.notes
+        return self.data['notes']
 
 
 class NpcChooser(object):
@@ -1185,7 +1241,8 @@ class Step(object):
                 try:
                     pick = npc_here_list[randrange(len(npc_here_list))]
                 except ValueError:  # "empty range for randrange()" if no npcs here
-                    current.paideia_debug.do_print("randrange error permitted", '-boston-')
+                    #current.paideia_debug.do_print("randrange error permitted",
+                    #                               'Step.get_npc')
                     mail = current.mail
                     msg = HTML(P('In selecting an npc there were none found for'
                                  'the combination:',
@@ -1201,7 +1258,9 @@ class Step(object):
                     try:
                         pick = npc_list[randrange(len(npc_list))]
                     except ValueError:
-                        current.paideia_debug.do_print("randrange error NOT permitted", '-new york-')
+                        current.paideia_debug.do_print("randrange error NOT "
+                                                       "permitted",
+                                                       'Step.get_npc')
                         print traceback.format_exc(5)
                 assert pick
                 self.npc = Npc(pick)
@@ -1223,8 +1282,8 @@ class Step(object):
     def __str__(self):
         """
         print a step object
-        JOB: ..dec 1, 2014
         """
+        strout = 'Paideia Step object -----------\n{}'
         info = {'Class': 'Step',
                 'data': str(self.data),
                 'repeating': self.repeating,
@@ -1232,7 +1291,7 @@ class Step(object):
                 'redirect_loc_id': self.redirect_loc_id,
                 'kwargs': str(self.kwargs),
                 'cat_tag': self.cat_tag}
-        return str(info)
+        return strout.format(str(info))
 
 
 class StepContinue(Step):
@@ -1582,7 +1641,7 @@ class StepEvaluator(object):
             request = current.request
             user_response = request.vars['response']
         user_response = GreekNormalizer().normalize(user_response)
-        print 'in get_eval user_response is', type(user_response)
+        #print 'in get_eval user_response is', type(user_response)
         user_response = makeutf8(user_response)
         responses = {k: r for k, r in self.responses.iteritems()
                      if r and r != 'null'}
@@ -1811,7 +1870,8 @@ class Path(object):
                 rawstring = 'Step: {} possible empty location - tag:philadelphia'
                 error_string = rawstring.format(this_step_id)
                 current.paideia_debug.do_print(error_string + "randrange error "
-                                               "NOT permitted", '-philadelpha-')
+                                               "NOT permitted",
+                                               'Path.get_step_for_prompt')
                 print traceback.format_exc(5)
         else:
             mystep.loc = loc  # update location on step
@@ -1973,12 +2033,9 @@ class PathChooser(object):
                 if not stepslist:  # In case no steps in db for cat1 tags
                     # FIXME: send an error report here?
                     stepslist = get_stepslist(taglist)
-                # print 'taglist from cat1:', taglist
             else:
                 stepslist = get_stepslist(taglist)
 
-            # print 'in _paths_by_category --------------------------------'
-            # print 'stepslist:', sorted(stepslist)
             if not stepslist:
                 break
 
@@ -2303,23 +2360,32 @@ class User(object):
                   '---------------------------------\n'
                   'FLAGS\n'
                   '---------------------------------\n'
-                  'past_quota:', self.past_quota, '\n'
-                  'viewed_slides:', self.viewed_slides, '\n'
-                  'reported_badges:', self.reported_badges, '\n'
-                  'reported_promotions:', self.reported_promotions, '\n'
+                  'past_quota: {past_quota}\n'
+                  'viewed_slides: {viewed_slides}\n'
+                  'reported_badges: {reported_badges}\n'
+                  'reported_promotions: {reported_promotions}\n'
                   '---------------------------------\n']
-        return strout[0].format(name=self.name, user_id=self.user_id,
-                                time_zone=self.time_zone, quota=self.quota,
-                                path=self.path, session_start=self.session_start,
-                                blocks=self.blocks, completed_paths=self.completed_paths,
-                                cats_counter=self.cats_counter, inventory=self.inventory,
-                                old_categories=pprint(self.old_categories),
-                                tag_progress=pprint(self.tag_progress),
-                                tag_records=pprint(self.tag_records),
-                                promoted=self.promoted, demoted=self.demoted,
-                                new_tags=self.new_tags, loc=self.loc,
-                                prev_loc=self.prev_loc, npc=self.npc,
-                                prev_npc=self.prev_npc, past_quota=self.past_quota,
+        return strout[0].format(name=self.name,
+                                user_id=self.user_id,
+                                time_zone=self.time_zone,
+                                quota=self.quota,
+                                path=self.path,
+                                session_start=self.session_start,
+                                blocks=self.blocks,
+                                completed_paths=self.completed_paths,
+                                cats_counter=self.cats_counter,
+                                inventory=self.inventory,
+                                old_categories=self.old_categories,
+                                tag_progress=self.tag_progress,
+                                tag_records=self.tag_records,
+                                promoted=self.promoted,
+                                demoted=self.demoted,
+                                new_tags=self.new_tags,
+                                loc=self.loc,
+                                prev_loc=self.prev_loc,
+                                npc=self.npc,
+                                prev_npc=self.prev_npc,
+                                past_quota=self.past_quota,
                                 viewed_slides=self.viewed_slides,
                                 reported_badges=self.reported_badges,
                                 reported_promotions=self.reported_promotions)
@@ -2481,7 +2547,7 @@ class User(object):
         if self.path:  # TODO: do I want this catch here?
             self.path = None
         if not self.tag_progress:  # in case User was badly initialized
-            print 'no tag-progress, so getting categories'
+            #print 'no tag-progress, so getting categories'
             self.get_categories()
 
         if 'cat1_choices' not in self.tag_progress:
@@ -2767,9 +2833,10 @@ class Categorizer(object):
                 while True:
                     newlist = self._introduce_tags(rank=rank)
                     if not newlist:
-                        current.paideia_debug.do_print({'rank': rank},
-                                                       "ERROR: failed to get "
-                                                       "tags for rank")
+                        current.paideia_debug.do_print("ERROR: failed to get "
+                                                       "tags for rank {}"
+                                                       "".format(rank),
+                                                       'Categorizer.categorize_tags')
                         break
                     curr_rev1 = tag_progress['rev1'] if ('rev1' in tag_progress and tag_progress['rev1']) else []
                     curr_cat1 = tag_progress['cat1'] if ('cat1' in tag_progress and tag_progress['cat1'])else []
