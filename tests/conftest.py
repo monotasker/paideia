@@ -34,7 +34,7 @@ but no longer necessary.)
 import os
 import pytest
 import sys
-from pprint import pprint
+#from pprint import pprint
 #sys.path.insert(0, '')
 
 # allow imports from modules and site-packages
@@ -48,7 +48,7 @@ if 'site-packages' not in sys.path:
 
 #from gluon.shell import env
 #web2py_env = env(appname, import_models=True,
-                 #extra_request=dict(is_local=True))
+#                 extra_request=dict(is_local=True))
 
 
 @pytest.fixture(scope='module')
@@ -105,7 +105,7 @@ def fixture_create_testfile_for_application(request, appname):
     request.addfinalizer(_remove_temp_file_after_tests)
 
 
-@pytest.fixture(autouse=True)
+#@pytest.fixture(autouse=True)
 def fixture_cleanup_db(web2py):
     '''Truncate all database tables before every single test case.
 
@@ -113,14 +113,17 @@ def fixture_cleanup_db(web2py):
     to allocate your database in memory.
 
     Automatically called by test.py due to decorator.
+
     '''
+    # TODO: Is this deprecated in favor of the fin() finalizer function of the
+    # db fixture?
 
     # TODO: figure out db rollback to standard state (not truncate to None)
     # web2py.db.rollback()
     # for tab in web2py.db.tables:
     #     web2py.db[tab].truncate()
     # web2py.db.commit()
-    print 'ran fixture cleanup !!!!!!!!!!!!!!!!!!!!!!!!!'
+    print '\nran fixture cleanup !!!!!!!!!!!!!!!!!!!!!!!!!\n'
     pass
 
 
@@ -176,9 +179,11 @@ def user_login(request, web2py, client, db):
         """
         Delete the test user's account.
         """
-        user_record.delete_record()
+        # FIXME: below causes db hang in test_walk_reply case 2
+        # user_record.delete_record()
+        # db.commit()
         # TODO: remove test user's performance record
-        assert user_query.count() == 0
+        #assert user_query.count() == 0
 
     request.addfinalizer(fin)
     return user_record.as_dict()
@@ -226,6 +231,7 @@ def db(web2py, request):
     the requesting test function. This dictionary should have db table names as
     its keys and a list of newly-inserted row id numbers as the values.
     """
+    # TODO: make sure test functions all create a 'newrows' dictionary
     mydb = web2py.db
     newrows = getattr(request.node.instance, 'newrows', None)
 
@@ -234,7 +240,7 @@ def db(web2py, request):
         Delete any newly inserted rows in the test database.
         """
         print 'checking for inserted rows to remove**********'
-        pprint(newrows)
+        #pprint(newrows)
         if newrows:
             print 'removing'
             for tbl, rowids in newrows.iteritems():

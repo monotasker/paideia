@@ -11,24 +11,21 @@
 
 import pytest
 import datetime
-from dateutil import parser
+#from dateutil import parser
 from pprint import pprint
 from pytz import timezone
 from gluon import current
 from paideia_stats import Stats
-from paideia_utils import make_json
+from plugin_utils import make_json
 
 
 @pytest.fixture()  # params=[n for n in range(4)]
-def myStats(user_login, web2py):  # request
+def myStats(user_login, web2py, db):  # request
     """
     A pytest fixture providing a Stats object for testing.
 
     user_login fixture from conftest.py
     """
-    # case = request.param
-    db = web2py.db
-
     alrows = db(db.attempt_log.name == user_login['id'])
     print '============================================================='
     print 'found', alrows.count(), 'attempt_log rows'
@@ -79,8 +76,7 @@ def myStats(user_login, web2py):  # request
                'user_response': 'βλα',
                }]
     logs = web2py.db.attempt_log.bulk_insert(aldata)
-    web2py.db.commit()
-    print 'logs are', logs
+    db.commit()
 
     bbrows = db(db.badges_begun.name == user_login['id'])
     if not bbrows.isempty():
@@ -106,12 +102,12 @@ def myStats(user_login, web2py):  # request
     if not trrows.isempty():
         trrows.delete()
     trdata = {'name': user_login['id'],
-            'tag': 72,
-            'times_right': 3.5,
-            'times_wrong': 2.0,
-            'tlast_wrong': datetime.datetime(2014, 1, 31, 10, 0),
-            'tlast_right': datetime.datetime(2014, 2, 1, 20, 0),
-            'secondary_right': []}
+              'tag': 72,
+              'times_right': 3.5,
+              'times_wrong': 2.0,
+              'tlast_wrong': datetime.datetime(2014, 1, 31, 10, 0),
+              'tlast_right': datetime.datetime(2014, 2, 1, 20, 0),
+              'secondary_right': []}
     db.tag_records.insert(**trdata)
     db.commit()
 
@@ -119,28 +115,28 @@ def myStats(user_login, web2py):  # request
     if not usrows.isempty():
         usrows.delete()
     usdata = {'name': user_login['id'],
-            'year': 2014,
-            'month': 1,
-            'week': 5,
-            'updated': datetime.datetime.now(),
-            'day1': datetime.date(2014, 1, 26),
-            'day2': datetime.date(2014, 1, 27),
-            'day3': datetime.date(2014, 1, 28),
-            'day4': datetime.date(2014, 1, 29),
-            'day5': datetime.date(2014, 1, 30),
-            'day6': datetime.date(2014, 1, 31),
-            'day7': datetime.date(2014, 2, 1),
-            'count1': [],
-            'count2': [logs[0]],
-            'count3': [],
-            'count4': [l for l in logs[1:4]],
-            'count5': [],
-            'count6': [logs[4]],
-            'count7': [logs[5]],
-            'logs_by_tag': make_json({72: logs}),
-            'logs_right': [logs[0], logs[1], logs[5]],
-            'logs_wrong': [logs[2], logs[3], logs[4]],
-            'done': 6}
+              'year': 2014,
+              'month': 1,
+              'week': 5,
+              'updated': datetime.datetime.now(),
+              'day1': datetime.date(2014, 1, 26),
+              'day2': datetime.date(2014, 1, 27),
+              'day3': datetime.date(2014, 1, 28),
+              'day4': datetime.date(2014, 1, 29),
+              'day5': datetime.date(2014, 1, 30),
+              'day6': datetime.date(2014, 1, 31),
+              'day7': datetime.date(2014, 2, 1),
+              'count1': [],
+              'count2': [logs[0]],
+              'count3': [],
+              'count4': [l for l in logs[1:4]],
+              'count5': [],
+              'count6': [logs[4]],
+              'count7': [logs[5]],
+              'logs_by_tag': make_json({72: logs}),
+              'logs_right': [logs[0], logs[1], logs[5]],
+              'logs_wrong': [logs[2], logs[3], logs[4]],
+              'done': 6}
     db.user_stats.insert(**usdata)
     db.commit()
 
@@ -153,9 +149,32 @@ class TestStats():
     Unit testing class for the Stats class in modules/paideia_stats.py
     '''
 
+    def test_find_badge_levels(self, myStats):
+        """
+        """
+        stats = myStats[0]
+        expected = ({1: [('the definite article', 72L)],
+                     2: [],
+                     3: [],
+                     4: []
+                     },
+                    {1: [],
+                     2: [],
+                     3: [],
+                     4: []
+                     }
+                    )
+        assert stats._find_badge_levels() == expected
+
+    def test_get_name(self, myStats):
+        """
+        """
+        stats = myStats[0]
+        assert stats.get_name() == 'Simpson, Homer'
+
     def test_local(self, myStats):
         """
-        Unit test for methodname.
+        Unit test for Stats._local.
 
         # TODO: add test for daylight savings handling
         """
@@ -205,32 +224,6 @@ class TestStats():
             print 'expected:', expected[0][k]
             assert actual[0][k] == expected[0][k]
 
-    def test_add_progress_data(self, myStats, web2py, user_login):
-        """
-        """
-        db = web2py.db
-        tr = db(db.tag_records.name == user_login['id']).select().as_list()
-        for idx, t in enumerate(tr):
-            tr[idx] = {k: v for k, v in t.iteritems()
-                    if k not in ['id', 'name', 'in_path', 'step']}
-            #print 'lastright = ', parser.parse(t['tlast_right'])
-            #tr[idx]['tlast_right'] = parser.parse(t['tlast_right'])
-            #tr[idx]['tlast_wrong'] = parser.parse(t['tlast_wrong'])
-
-        expected = [{'secondary_right': [],
-                     'tag': 72L,
-                     'times_right': 3.5,
-                     'times_wrong': 2.0,
-                     'tlast_right': datetime.datetime(2014, 2, 1, 20, 0),
-                     'tlast_wrong': datetime.datetime(2014, 1, 31, 10, 0),
-                     # below is added by this method
-                     'current_level': 1,
-                     'review_level': 1}]
-        actual = myStats[0]._add_progress_data(tr)
-        assert len(actual) == len(expected)
-        for k in actual[0].keys():
-            assert actual[0][k] == expected[0][k]
-
     def test_add_tag_data(self, myStats, web2py, user_login):
         """docstring for test_add_tag_data"""
         db = web2py.db
@@ -238,9 +231,6 @@ class TestStats():
         for idx, t in enumerate(tr):
             tr[idx] = {k: v for k, v in t.iteritems()
                     if k not in ['id', 'name', 'in_path', 'step']}
-            #print 'lastright = ', parser.parse(t['tlast_right'])
-            #tr[idx]['tlast_right'] = parser.parse(t['tlast_right'])
-            #tr[idx]['tlast_wrong'] = parser.parse(t['tlast_wrong'])
         expected = [{'secondary_right': [],
                      'tag': 72L,
                      'times_right': 3.5,
@@ -249,14 +239,14 @@ class TestStats():
                      'tlast_wrong': datetime.datetime(2014, 1, 31, 10, 0),
                      # below is added by this method
                      'set': 3,
-                     'badge_name': 'the definite article',
-                     'badge_description': 'using singular forms of the '
-                                          'definite article',
+                     'bname': 'the definite article',
+                     'bdescr': 'using singular forms of the definite article',
                      'slides': [10]}]
         actual = myStats[0]._add_tag_data(tr)
         pprint(actual)
         assert len(actual) == len(expected)
-        for k in actual[0].keys():
+        for k in [i for i in actual[0].keys() if i not in ['uuid',
+                                                           'modified_on']]:
             assert actual[0][k] == expected[0][k]
 
     def test_make_logs_into_weekstats(self, myStats, web2py):
@@ -292,9 +282,6 @@ class TestStats():
         for idx, t in enumerate(tr):
             tr[idx] = {k: v for k, v in t.iteritems()
                     if k not in ['id', 'name', 'in_path', 'step']}
-            #print 'lastright = ', parser.parse(t['tlast_right'])
-            #tr[idx]['tlast_right'] = parser.parse(t['tlast_right'])
-            #tr[idx]['tlast_wrong'] = parser.parse(t['tlast_wrong'])
         expected = [{'secondary_right': [],
                      'avg_score': 0.6,
                      'tag': 72L,
@@ -323,7 +310,8 @@ class TestStats():
         pprint(actual)
         assert len(actual) == len(expected)
         assert len(actual[0].keys()) == len(actual[0].keys())
-        for k in actual[0].keys():
+        for k in [i for i in actual[0].keys() if i not in ['uuid',
+                                                           'modified_on']]:
             if isinstance(actual[0][k], dict):
                 for sk in actual[0][k].keys():
                     if isinstance(actual[0][k][sk], dict):
@@ -334,10 +322,14 @@ class TestStats():
             else:
                 assert actual[0][k] == expected[0][k]
 
-    def test_active_tags(self, user_login, myStats, web2py):
+    def test_get_average_score(self, myStats):
         """
         """
-        db = web2py.db
+        assert False
+
+    def test_active_tags(self, user_login, myStats, web2py, db):
+        """
+        """
         toronto = timezone('America/Toronto')
         logs = myStats[1]
         now = datetime.datetime(2014, 2, 2, 2, 0)
@@ -345,27 +337,31 @@ class TestStats():
         dtr = datetime.datetime(2014, 2, 1, 20, 0)
         dtw_local = toronto.localize(datetime.datetime(2014, 1, 31, 05, 0))
         dtr_local = toronto.localize(datetime.datetime(2014, 2, 1, 15, 0))
-        print 'delta_right:', now - dtr
-        print 'delta_wrong:', now - dtw
+        #print 'delta_right:', now - dtr
+        #print 'delta_wrong:', now - dtw
         tagnum = 72
         badgerow = db.badges(db.badges.tag == tagnum)
+
         expected = [{'tag': tagnum,
                      'avg_score': 0.6,
-                     'times_right': 3.5,
-                     'times_wrong': 2.0,
-                     'tlast_wrong': (dtw_local, 'Jan 31'),
-                     'tlast_right': (dtr_local, 'Feb  1'),
+                     'tright': 3.5,
+                     'twrong': 2.0,
+                     'tlw': (dtw_local, 'Jan 31'),
+                     'tlr': (dtr_local, 'Feb  1'),
+                     'rw_ratio': 1.8,
+                     'todaycount': 0,
+                     'yestcount': 0,
                      'secondary_right': [],
                      'set': 3,
                      'rw_ratio': 3.5 / 2.0,
-                     'delta_wrong': now - dtw,
-                     'delta_right': now - dtr,
-                     'delta_right_wrong': dtr - dtw if dtr > dtw else datetime.timedelta(days=0),
-                     'badge_name': badgerow.badge_name,
-                     'badge_description': badgerow.description,
+                     'delta_w': now - dtw,
+                     'delta_r': now - dtr,
+                     'delta_rw': dtr - dtw if dtr > dtw else datetime.timedelta(days=0),
+                     'bname': badgerow.badge_name,
+                     'bdescr': badgerow.description,
                      'slides': [10],
-                     'current_level': 1,
-                     'review_level': 1,
+                     'curlev': 1,
+                     'revlev': 1,
                      'cat1_reached':  (toronto.localize(datetime.datetime(2013, 12, 31, 19, 0)),
                                        'Dec 31, 2013'),
                      'cat2_reached':  (None, None),
@@ -397,10 +393,13 @@ class TestStats():
                      }]
 
         actual = myStats[0].active_tags(now=now)
-        #print 'actal dw:', actual[0]['delta_wrong']
-        #print 'actal dr:', actual[0]['delta_right']
-        #pprint(actual)
+        print 'test_active_tags:: actual -----------------------------'
+        pprint(actual)
+        # make sure no differences between actual and expected dict structures
         assert len(actual) == len(expected)
+        assert not [k for k in actual[0].keys()
+                    if k not in expected[0]
+                    and k not in ['uuid', 'modified_on']]
         for k in actual[0].keys():
             print k
             print 'actual:', actual[0][k]
