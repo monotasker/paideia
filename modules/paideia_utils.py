@@ -237,9 +237,12 @@ class GreekNormalizer(object):
         of their encoding or type when they were supplied.
 
         """
+        print 'starting normalize'
         strings = [strings] if not isinstance(strings, list) else strings
 
+        print 'about to normalize accents'
         strings = self.convert_latin_chars(strings)
+        print 'about to normalize accents'
         strings = self.normalize_accents(strings)
         strings = self.strip_extra_spaces(strings)
 
@@ -380,29 +383,32 @@ class GreekNormalizer(object):
                       u'ᾠ': [u'ᾤ', u'ᾢ', u'ᾦ'],
                       u'ᾡ': [u'ᾥ', u'ᾣ', u'ᾧ'],
                       u'Ῥ': [u'῾Ρ'],  # also handle improperly formed marks (rough)
-                      u'"': [u'“', u'”'],  # handle curly quotes
-                      u"'": [u'‘', u'’']
+                      u'"': [u'“', u'”', u'«', u'»'],  # handle curly quotes
+                      u"'": [u'‘', u'’'],
+                      u";": [u'\?']
                       }
             accented = chain(*equivs.values())
             restr = '|'.join(accented)
             newstrings = []
-
-            # this is ugly
+            # FIXME: this is ugly and conflicts with question mark conversion
             exempt = [u'τίνος', u'τί', u'τίς', u'τίνα', u'τίνας', u'τίνι',
                       u'Τίνος', u'Τί', u'Τίς', u'Τίνα', u'Τίνας', u'Τίνι']
             ex_period = [x + u'.' for x in exempt]
             ex_scolon = [x + u';' for x in exempt]
+            ex_anotel = [x + u'·' for x in exempt]
             ex_comma = [x + u',' for x in exempt]
-            ex_qmark = [x + u'?' for x in exempt]
+            ex_qmark = [x + u'\?' for x in exempt]
             ex_colon = [x + u':' for x in exempt]
-            exempt = list(chain(exempt, ex_colon, ex_comma, ex_qmark, ex_scolon, ex_period))
+            exempt = list(chain(exempt, ex_colon, ex_comma, ex_qmark, ex_scolon,
+                          ex_period, ex_anotel))
 
             for mystring in substrs:
                 mystring = unicode(makeutf8(mystring)).strip()
                 mystring = mystring.replace(u'ί', u'ί')  # avoid q-i iota on windows
 
                 if mystring not in exempt:
-                    print makeutf8(mystring), 'not exempt', type(mystring)
+                    # below print statement causes UnicodeEncodeError on live server
+                    # print mystring, 'not exempt', type(mystring)
                     matching_letters = re.findall(makeutf8(restr), mystring,
                                                 re.I | re.U)
                     if matching_letters:
@@ -424,7 +430,8 @@ class GreekNormalizer(object):
                     else:
                         pass
                 else:
-                    print makeutf8(mystring), 'exempt'
+                    # below print statement causes UnicodeEncodeError on live server
+                    # print mystring, 'exempt'
                     pass
                 newstrings.append(mystring)
             newstring = ' '.join(newstrings)
