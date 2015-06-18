@@ -240,7 +240,6 @@ class GreekNormalizer(object):
         print 'starting normalize'
         strings = [strings] if not isinstance(strings, list) else strings
 
-        print 'about to normalize accents'
         strings = self.convert_latin_chars(strings)
         print 'about to normalize accents'
         strings = self.normalize_accents(strings)
@@ -411,6 +410,7 @@ class GreekNormalizer(object):
                     # print mystring, 'not exempt', type(mystring)
                     matching_letters = re.findall(makeutf8(restr), mystring,
                                                 re.I | re.U)
+                    print 'matching letters:', matching_letters
                     if matching_letters:
 
                         edict = {k: v for k, v in equivs.iteritems()

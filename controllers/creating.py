@@ -24,16 +24,25 @@ def tag():
 @auth.requires_login()
 def bug():
     """
+    Return the modal form allowing a user to submit a content bug.
+    """
+    return {}
+
+
+@auth.requires_login()
+def submit_bug():
+    """
     Create a new bug report for a step.
     The step_id is now being passed in as bug_step_id instead of step_id as it was
     Apparently conflicting with some other step id:  JOB <jboakye@bwachi.com> 20141003
     """
-    print 'controller.bug:'
+    vbs = True
+    if vbs: print 'controller.bug:'
     rvars = request.vars
-    print 'vars are', rvars
+    if vbs: print 'vars are', rvars
     b = Bug(step_id=rvars.bug_step_id, path_id=rvars.path_id, loc_id=rvars.loc_id)
-    print 'created bug object successfully'
-    print 'bug is', b
+    if vbs: print 'created bug object successfully'
+    if vbs: print 'bug is', b
     logged = b.log_new(rvars.answer, rvars.log_id, rvars.score)
-    print 'logged bug - response is', logged
-    return dict(success=logged)
+    if vbs: print 'logged bug - response is', logged
+    return {'success': logged}

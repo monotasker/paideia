@@ -152,7 +152,7 @@ ap.append(form) }}
         {{pass
 
         if 'bugreporter' in globals() and bugreporter:}}
-            {{=bugreporter}}
+            {{=LOAD('creating', 'bug.load', vars=bugreporter, ajax=True)}}
         {{pass}}
 
         <!--# path counter for prompt/reply=================================-->
@@ -174,49 +174,53 @@ ap.append(form) }}
 <!--# page javascript ======================================================-->
 <script>
 
-    function fit_to_height() {
-        var headroom = $('.navbar').outerHeight();
-        //var footroom = '20px';
-        var divheight = window.innerHeight - headroom;  //+ footroom);
-        $('#page, .speaker img, #town_map').css('height', divheight);
-    }
-    fit_to_height()
+$('.bug_reporter_modal').on('show.bs.modal', function(event){
+    $('#bug_reporter_comment').focus();
+});
+
+function fit_to_height() {
+    var headroom = $('.navbar').outerHeight();
+    //var footroom = '20px';
+    var divheight = window.innerHeight - headroom;  //+ footroom);
+    $('#page, .speaker img, #town_map').css('height', divheight);
+}
+fit_to_height()
+
     //var headroom = $('.navbar').outerHeight();
     //var footroom = '20px';
     //var divheight = window.innerHeight - headroom; // + footroom);
     //$('#page').css('height', divheight);
     //$('.speaker img').css('height', divheight);
 
-    {{if 'bg_image' in globals():}}
-    $('#page').css("background-image", "url({{=bg_image}})");
-    $('#page').css("background-size", "auto 100%");
-    {{else:}}
-    $('#page').css("background-image", "none");
-    $('#page').css("background-size", "100% auto");
-    {{pass}}
+{{if 'bg_image' in globals():}}
+$('#page').css("background-image", "url({{=bg_image}})");
+$('#page').css("background-size", "auto 100%");
+{{else:}}
+$('#page').css("background-image", "none");
+$('#page').css("background-size", "100% auto");
+{{pass}}
 
 
-    $(window).resize(function() {
-        fit_to_height();
-    });
+$(window).resize(function() {
+    fit_to_height();
+});
 
-    $('.popover-trigger').each(function() {
-        var $this = $(this);
-        $this.popover({html: true,
-                       animation: true,
-                       content: $this.find('.popover-content').html()});
-    });
+$('.popover-trigger').each(function() {
+    var $this = $(this);
+    $this.popover({html: true,
+                    animation: true,
+                    content: $this.find('.popover-content').html()});
+});
 
-    $('#responder submit').click(function(event){
-        window.parent.web2py_component("/paideia/exploring/walk.load/reply","page");
-        event.preventDefault();
-    });
+$('#responder submit').click(function(event){
+    window.parent.web2py_component("/paideia/exploring/walk.load/reply","page");
+    event.preventDefault();
+});
 </script>
 
 {{if 'audio' in globals() and audio:}}
 	<script type="text/javascript">
 	//<![CDATA[
-	//alert('hip hop hooray');
 	window.setTimeout(jp_after_trigger,500);
 	window.setTimeout(paideia_play_audio_clip,1000, "#{{=audio['title']}}",{{=XML(audio['audio_args_for_js'])}},"{{=XML(audio['media_supplied'])}}",1);
 	//]]>
