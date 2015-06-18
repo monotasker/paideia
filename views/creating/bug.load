@@ -1,1 +1,33 @@
-{{=SPAN('Thank you')}}
+{{
+# modal form for submitting a content bug report
+# called via ajax from the walk.load view
+from plugin_widgets import MODAL
+
+c = P('Think your answer should have been correct? Click the button ',
+      'below to submit an automated bug report. The details of this step and ',
+      'your response are included automatically. You may provide any other ',
+      'information you think may be helpful in the "comments" field, or simply ',
+      'leave that field blank. You can read your instructor\'s ',
+      'response later in the "bug reports" tab of your user profile.',
+      FORM(LABEL('Comments', _class='bug_reporter_comment_label', _for='bug_reporter_comment'),
+           TEXTAREA(_id='bug_reporter_comment', _class='bug_reporter_comment form-control'),
+           A('Submit report  ',
+             SPAN(_class='glyphicon glyphicon-circle-arrow-up'),
+             _class='bug_reporter_link btn btn-danger',
+             _href=URL('paideia', 'creating', 'submit_bug.load', vars=request.vars),
+             cid='bug_reporter_modal_content')
+           )
+      )
+}}
+
+{{=MODAL('Something wrong?',
+       'Did you run into a problem?',
+       c,
+       trigger_type='link',
+       trigger_classes='bug_reporter',
+       id='bug_reporter_modal')
+}}
+
+<script>
+$('#bug_reporter_modal').find('.modal-body').attr('id', 'bug_reporter_modal_content');
+</script>

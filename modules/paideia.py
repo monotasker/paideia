@@ -1,7 +1,7 @@
 #! /usr/bin/python
 # -*- coding: utf-8-*-
 from gluon import current
-from gluon import IMG, URL, SQLFORM, SPAN, UL, LI, A, Field, P, HTML, I
+from gluon import IMG, URL, SQLFORM, SPAN, UL, LI, A, Field, P, HTML
 from gluon import IS_NOT_EMPTY, IS_IN_SET
 
 from copy import copy
@@ -13,7 +13,6 @@ from itertools import chain
 from paideia_utils import Paideia_Debug, GreekNormalizer
 import pickle
 from plugin_utils import flatten, makeutf8  # , ErrorReport
-from plugin_widgets import MODAL
 #from pprint import pprint
 from pytz import timezone
 from random import randint, randrange
@@ -923,23 +922,8 @@ class BugReporter(object):
                    'path_id': path_id,
                    'score': score,
                    'bug_step_id': step_id}
-        c = P('Think your answer should have been correct? ',
-              A('click here',
-                I(_class='icon-bug'),
-                _class='bug_reporter_link btn btn-danger',
-                _href=URL('paideia', 'creating', 'bug.load', vars=vardict),
-                cid='bug_reporter'),
-              ' to submit a bug report. You can read your instructor\'s ',
-              'response later in the "bug reports" tab of your user profile.')
 
-        br = MODAL('Something wrong?',
-                   'Did you run into a problem?',
-                   c,
-                   trigger_type='link',
-                   trigger_classes='bug_reporter',
-                   id='bug_reporter_modal')
-
-        return br
+        return vardict
 
 
 class StepFactory(object):

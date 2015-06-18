@@ -39,21 +39,10 @@ class Bug(object):
                            user_response=answer,
                            log_id=log_id,
                            score=score)
-            response.flash = 'Thanks for reporting this potential bug. We '\
-                             'will look at the question to see what the '\
-                             'problem was. If there turns out to be a '\
-                             'problem with the question, this answer will '\
-                             'be ignored as we track your learning. Check '\
-                             'your profile page in the next few days to see '\
-                             'the instructor\'s response to your bug report.'
             return True
         except Exception:
             print traceback.format_exc(5)
             mail = current.mail
-            response.flash = 'Sorry, something went wrong with your bug' \
-                             'report. An email including the details of ' \
-                             'your response has been sent automatically to ' \
-                             'the instructor.'
             msg = '<html>A user tried to submit a step bug report, but the' \
                   'report failed. Traceback: {} \n\n' \
                   'The request data is:\n{}\n' \
@@ -130,13 +119,13 @@ class Bug(object):
                                     tr.tlast_wrong < new_latest_right:
                                 rightids = [r.id for r in new_logs_right]
                                 oldlogs = db((db.attempt_log.name == myname) &
-                                            (db.attempt_log.dt_attempted
-                                            > new_earliest_right) &
-                                            (db.attempt_log.dt_attempted
-                                            < new_latest_right) &
-                                            (db.attempt_log.step.tags.contains([tr.tag])) &
-                                            (abs(db.attempt_log.score - 1) > 0.00000009)
-                                            ).select()
+                                             (db.attempt_log.dt_attempted
+                                              > new_earliest_right) &
+                                             (db.attempt_log.dt_attempted
+                                              < new_latest_right) &
+                                             (db.attempt_log.step.tags.contains([tr.tag])) &
+                                             (abs(db.attempt_log.score - 1) > 0.00000009)
+                                             ).select()
                                 oldlogs.exclude(lambda r: r.id in rightids)
                                 if oldlogs:
                                     odates = [l.dt_attempted for l in oldlogs]
