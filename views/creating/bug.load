@@ -10,12 +10,13 @@ c = P('Think your answer should have been correct? Click the button ',
       'leave that field blank. You can read your instructor\'s ',
       'response later in the "bug reports" tab of your user profile.',
       FORM(LABEL('Comments', _class='bug_reporter_comment_label', _for='bug_reporter_comment'),
-           TEXTAREA(_id='bug_reporter_comment', _class='bug_reporter_comment form-control'),
+           TEXTAREA(_id='bug_reporter_comment',
+                    _name='bug_reporter_comment',
+                    _class='bug_reporter_comment form-control'),
            A('Submit report  ',
              SPAN(_class='glyphicon glyphicon-circle-arrow-up'),
              _class='bug_reporter_link btn btn-danger',
-             _href=URL('paideia', 'creating', 'submit_bug.load', vars=request.vars),
-             cid='bug_reporter_modal_content')
+             _href='#')
            )
       )
 }}
@@ -29,5 +30,13 @@ c = P('Think your answer should have been correct? Click the button ',
 }}
 
 <script>
+
+// set id of bootstrap-created div to catch ajax callback message
 $('#bug_reporter_modal').find('.modal-body').attr('id', 'bug_reporter_modal_content');
+
+$('.bug_reporter_link').on('click', function(event){
+    ajax("{{=URL('paideia', 'creating', 'submit_bug.load', vars=request.vars)}}", ['bug_reporter_comment'], 'bug_reporter_modal_content');
+    event.preventDefault();
+});
+
 </script>

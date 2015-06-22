@@ -179,15 +179,25 @@ tab3_content = XML(cal)
 # TAB 4 - BUGS ===============================================================
 tab4_content = TABLE(TR(TH('question'),
                         TH('your answer'),
+                        TH('original score'),
                         TH('submitted'),
+                        TH('your comments'),
                         TH('evaluation'),
+                        TH('adjusted score'),
                         TH('instructor\'s comments')),
                      _class='table table-condensed')
+status_classes = {'awaiting review': '',
+                  'confirmed': 'danger',
+                  'duplicate': '',
+                  'fixed': 'success',
+                  'not_a_bug': 'warning',
+                  'allowance_given': 'warning'}
 for bug in blist:
-    row = TR()
+    row = TR(_class=status_classes[bug[6]])
     # first position is the id, used in edit link
     for val in bug[1:]:
-        row.append(TD(val))
+        val = val if val != None else ''
+        row.append(TD(val, _class=status_classes[bug[6]]))
     pass
     row.append(ROLE(TD(A('edit', _href=URL('editing', 'listing.html',
                                            args=['bugs', bug[0]],
