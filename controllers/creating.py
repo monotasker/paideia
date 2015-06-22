@@ -43,6 +43,6 @@ def submit_bug():
     b = Bug(step_id=rvars.bug_step_id, path_id=rvars.path_id, loc_id=rvars.loc_id)
     if vbs: print 'created bug object successfully'
     if vbs: print 'bug is', b
-    logged = b.log_new(rvars.answer, rvars.log_id, rvars.score)
+    logged = b.log_new(rvars.answer, rvars.log_id, rvars.score, rvars.bug_reporter_comment)
     if vbs: print 'logged bug - response is', logged
     return {'success': logged}
