@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 if 0:
-    from gluon import current, URL, SPAN, XML, A
+    from gluon import current, URL, SPAN, XML, A, I
     response, request, T = current.response, current.request, current.t
     auth = current.auth
 from datetime import datetime
@@ -50,20 +50,20 @@ response.fluid_layout = True
 
 # Menu =====================================================================
 
-response.menu = [(SPAN(T(' Home'), _class='icon-home'),
+response.menu = [(SPAN(I(_class='fa fa-home'), T(' Home')),
                   False, URL('default', 'index'), []),
-                 (SPAN(T(' Map'), _class='icon-map-marker'),
+                 (SPAN(I(_class='fa fa-map-marker'), T(' Map')),
                   False, URL('exploring', 'index'), []),
-                 (SPAN(T(' Slides'), _class='icon-picture'),
+                 (SPAN(I(_class='fa fa-film'), T(' Slides')),
                   False, URL('listing', 'slides'), []),
-                 (SPAN(T(' Vocabulary'), _class='icon-picture'),
+                 (SPAN(I(_class='fa fa-filter'), T(' Vocabulary')),
                   False, URL('reporting', 'vocabulary.html'), [])
                  ]
 m = response.menu
 
 if auth.has_membership('administrators', auth.user_id) or auth.is_impersonating():
-    m += [(SPAN(T(' Admin'), _class='icon-cog'), False, None,
-           [(SPAN(T(' Create'), _class='icon-leaf'), False, None,
+    m += [(SPAN(I(_class='fa fa-cog'), T(' Admin')), False, None,
+           [(SPAN(I(_class='fa fa-leaf fa-fw'), T(' Create'), _class='icon-leaf'), False, None,
              [(SPAN(T(' Slide decks'), _class='icon-tasks'),
                False, URL('editing', 'listing.html', args=['plugin_slider_decks'])),
               (SPAN(T(' Slides'), _class='icon-film'),
@@ -118,7 +118,7 @@ if auth.has_membership('administrators', auth.user_id) or auth.is_impersonating(
                           args=['images'])),
               ]),
 
-            (SPAN(T(' Reports'), _class='icon-bar-chart'), False, None,
+            (SPAN(I(_class='fa fa-bar-chart fa-fw'), T(' Reports')), False, None,
              [(SPAN(T(' Users'), _class='icon-group'),
                False, URL('listing', 'user')),
               (SPAN(T(' Individual user'), _class='icon-group'),
