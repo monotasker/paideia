@@ -165,10 +165,10 @@ if auth.has_membership('administrators', auth.user_id) or auth.is_impersonating(
                           args=['stepsproblemregex'])),
               ]),
 
-            (SPAN(T(' Utils'), _class='icon-cog'), False, None,
-             [(SPAN(T(' Make paths'), _class='icon-cog'),
+            (SPAN(I(_class='fa fa-cog fa-fw'), T(' Utils'), _class='icon-cog'), False, None,
+             [(SPAN(I(_class='fa fa-industry fa-fw'), T(' Make paths'), _class='icon-cog'),
                False, URL('util', 'make_path')),
-              (SPAN(T(' Test step regex'), _class='icon-cog'),
+              (SPAN(I(_class='fa fa-thunbs-o-up fa-fw'), T(' Test step regex'), _class='icon-cog'),
                False, URL('util', 'test_regex')),
               (SPAN(T(' Gather word forms'), _class='icon-cog'),
                False, URL('util', 'gather_word_forms')),
@@ -183,11 +183,14 @@ if auth.has_membership('administrators', auth.user_id) or auth.is_impersonating(
               (SPAN(T(' DB Backup'), _class='icon-cog'),
                False, URL('plugin_sqlite_backup', 'backup_db')),
               ]),
-            (SPAN(T(' Web IDE'), _class='icon-code'),
+
+            (SPAN(I(_class='fa fa-code fa-fw'), T(' Web IDE'), _class='icon-code'),
              False, URL('admin', 'default', 'index')),
-            (SPAN(T(' Error reports'), _class='icon-frown'),
+
+            (SPAN(I(_class='fa fa-warning fa-fw'), T(' Error reports'), _class='icon-frown'),
              False, URL('admin', 'default', 'errors/paideia')),
-            (SPAN(T(' Database'), _class='icon-sitemap'),
+
+            (SPAN(I(_class='fa fa-database fa-fw'), T(' Database'), _class='icon-sitemap'),
              False, URL('appadmin', 'index')),
             ])
           ]
