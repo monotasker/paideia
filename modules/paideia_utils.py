@@ -144,7 +144,7 @@ class Uprinter(object):
         printfunc = calls[type(myobj)]
         return printfunc(myobj)
 
-    def _internal_print(self, i, lvl):
+    def _internal_print(self, i, lvl=0):
         """
         """
         indent = '    ' * lvl if lvl > 0 else ''

@@ -170,7 +170,7 @@ db.lemmas.part_of_speech.requires = IS_IN_SET(('verb', 'adverb', 'noun',
                                                'pronoun', 'proper_noun',
                                                'conjunction', 'preposition',
                                                'particle', 'adjective',
-                                               'interjection'))
+                                               'interjection', 'article'))
 db.lemmas.thematic_pattern.requires = IS_EMPTY_OR(IS_IN_SET(('alpha thematic',
                                                              'alpha contract',
                                                              'epsilon contract1',

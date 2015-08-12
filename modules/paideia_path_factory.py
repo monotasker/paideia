@@ -20,19 +20,21 @@ TranslateWordPathFactory:class (extends PathFactory)
 #from copy import copy
 # import datetime
 import functools
-from gluon import current, SQLFORM, Field, BEAUTIFY, IS_IN_DB, UL, LI
-from gluon import CAT, H2
+from gluon import current, SQLFORM, Field, BEAUTIFY, IS_IN_DB, UL, LI, SPAN
+from gluon import CAT, H3
 from itertools import product, chain
+from kitchen.text.converters import to_unicode, to_bytes
 from paideia_utils import check_regex, Uprinter
-from plugin_utils import flatten, makeutf8, islist
-from pprint import pprint
+from plugin_utils import flatten, makeutf8, islist, capitalize_first
+# from pprint import pprint
 from random import randrange, shuffle
 import re
 import traceback
-#added ... JOB ... Oct 10, 2014
-from paideia_utils import simple_obj_print
+# from paideia_utils import simple_obj_print
+
 
 class ResultCollector(object):
+
     def __init__(self, func):
         """
         Decorator class that collects db insertion attempts on session.results.
@@ -140,6 +142,10 @@ class Inflector(object):
 
         def _get_ref(modform, constraint):
             """
+            Return the db record matching the supplied word form.
+
+            If that form is not in the db, try to create it.
+
             """
             ref = db.word_forms(db.word_forms.word_form == modform)
             if modform and not ref:  # add new word_form to db for modform
@@ -167,7 +173,7 @@ class Inflector(object):
                 declension = lemform['declension']
             return declension
 
-        def _get_property(cst, lemform, ref, prop):
+        def _get_property(cst, lemform, ref, prop, part_of_speech):
             defaults = {'tense': 'present',
                         'voice': 'active',
                         'person': '3',
@@ -175,7 +181,9 @@ class Inflector(object):
             if cst and prop in cst.keys():
                 propval = cst[prop]
             elif ref and (prop in ref.keys()) and \
-                    ref[prop] not in ['none', None] and (prop != 'gender'):
+                    ref[prop] not in ['none', None] and \
+                    ((prop != 'gender') or
+                     (part_of_speech in ['adjective', 'article', 'pronoun'])):
                 propval = ref[prop]
             elif prop == 'gender':
                 propval = lemform[prop]
@@ -194,7 +202,6 @@ class Inflector(object):
 
         # gather the 3 sources influencing the target form's inflection
         lem, lemform = _get_lemma(mylemma, constraint)
-        print mylemma
         assert lem
         assert lemform
         ref = _get_ref(modform, modconstraint)
@@ -219,9 +226,9 @@ class Inflector(object):
             mykeys.extend(['grammatical_case', 'gender', 'number'])
         # FIXME: add tags field
         for k in mykeys:
-            print 'getting', k
-            parsing[k] = _get_property(cst, lemform, ref, k)
-        parsing['construction'] = _get_construction_label(parsing)  # must be last
+            parsing[k] = _get_property(cst, lemform, ref, k,
+                                       parsing['part_of_speech'])
+        # parsing['construction'] = _get_construction_label(parsing)  # must be last
         parsing['source_lemma'] = lem.lemma
 
         # get the inflected form's row from the db
@@ -252,7 +259,7 @@ class Inflector(object):
                         if f not in reqs
                         and f not in parsing.keys()]
         for f in extra_fields:
-            parsing[f] = None
+            parsing[f] = 'none'
         return parsing
 
     def get_db_form(self, parsing, lemid):
@@ -261,6 +268,7 @@ class Inflector(object):
         """
         db = current.db
 
+        '''
         def _gender_cats(gender):
             """
             Return a list of gender categories for an item of this gender.
@@ -271,21 +279,22 @@ class Inflector(object):
             if parsing['gender'] in ['masculine', 'neuter']:
                 genders.append('masculine or neuter')
             return genders
-
-        parsing = self._fill_missing_fields(parsing)
-        myrow = db((db.word_forms.source_lemma == lemid) &
-                   (db.word_forms.grammatical_case == parsing['grammatical_case']) &
-                   (db.word_forms.tense == parsing['tense']) &
-                   (db.word_forms.voice == parsing['voice']) &
-                   (db.word_forms.mood == parsing['mood']) &
-                   (db.word_forms.person == parsing['person']) &
-                   (db.word_forms.gender.belongs(_gender_cats(parsing['gender']))) &
-                   (db.word_forms.number == parsing['number']) &
-                   (db.word_forms.declension == parsing['declension']) &
-                   (db.word_forms.tags == parsing['tags']) &
-                   (db.word_forms.thematic_pattern == parsing['thematic_pattern']) &
-                   (db.word_forms.construction == parsing['construction'])
-                   ).select().first()
+        '''
+        if 'construction' in parsing.keys() and parsing['construction']:
+            myrow = db((db.word_forms.source_lemma == lemid) &
+                       (db.word_forms.construction == parsing['construction'])
+                       ).select().first()
+        else:
+            parsing = self._fill_missing_fields(parsing)
+            myrow = db((db.word_forms.source_lemma == lemid) &
+                       (db.word_forms.grammatical_case == parsing['grammatical_case']) &
+                       (db.word_forms.tense == parsing['tense']) &
+                       (db.word_forms.voice == parsing['voice']) &
+                       (db.word_forms.mood == parsing['mood']) &
+                       (db.word_forms.person == parsing['person']) &
+                       (db.word_forms.gender == parsing['gender']) &
+                       (db.word_forms.number == parsing['number'])
+                       ).select().first()
         return myrow, parsing
 
 
@@ -345,13 +354,18 @@ class MorphParser(object):
         """
         Return a string giving the declension of the supplied nom. sing. noun.
         """
-        wordform = makeutf8(wordform)
+        wordform = to_unicode(wordform, encoding='utf8')
         end = [e for e in self.nom_endings.keys()
                if re.match(u'.*{}$'.format(e), wordform)]
         if end:
             declension = self.nom_endings[end[0]]['declension']
         else:
-            declension = '3'
+            if wordform in [u'ὁ', u'το']:
+                declension = '2'
+            elif wordform in [u'ἡ']:
+                declension = '2'
+            else:
+                declension = '3'
         return declension
 
     def infer_case(self, wordform, lemma):
@@ -644,9 +658,8 @@ class WordFactory(object):
                                          'mood'],
                      'adverb': ['source_lemma'],
                      'particle': ['source_lemma'],
-                     'conjunction': ['source_lemma', 'case', 'gender',
-                                     'number'],
-                     'article': ['source_lemma'],
+                     'conjunction': ['source_lemma'],
+                     'article': ['source_lemma', 'case', 'gender', 'number'],
                      'idiom': ['source_lemma']}
 
     def __init__(self):
@@ -665,7 +678,6 @@ class WordFactory(object):
         # FIXME: below is hack to fix confusion over ordinal numbers
         if re.search('verb', construction_label):
             construction_label = construction_label.replace('decl', '')
-        pprint(construction_label)
         construction_row = db.constructions(db.constructions.construction_label
                                             == construction_label)
         return construction_label, construction_row, cstbits, shortbits
@@ -962,11 +974,7 @@ class StepFactory(object):
         """ """
         db = current.db
         try:
-            #debug
-            simple_obj_print(kwargs, "kwargs in step_to_db")
-            print '--berlin-- called to do insertion'
             sid = db.steps.insert(**kwargs)
-            #added JOB ... oct 11, 2014
             db.commit()
             return sid
         except Exception:
@@ -1018,16 +1026,12 @@ class StepFactory(object):
         # ititle = img[1] if img else None
         images_missing = img[2] if img else None
 
-        print 'templates'
-        print 'rxs:', xtemp
-        print 'rdbls:', rtemp
         pros, rxs, rdbls = self._format_strings(combodict, ptemp, xtemp, rtemp)
         rdbls = [r for r in islist(rdbls) if isinstance(r, (str, unicode))]
         if len(rdbls) >= 1:
             rdbls = '|'.join(rdbls)
         else:
             rdbls = ['']
-        print 'now rdbls is', rdbls
         tags = self.get_step_tags(tags1, tags2, tags3, pros, rdbls)
         kwargs = {'prompt': pros[randrange(len(pros))],  # sanitize_greek(pros[randrange(len(pros))]),
                   'widget_type': mytype,
@@ -1073,11 +1077,6 @@ class StepFactory(object):
             traceback.print_exc(12)
             stepresult = ('failure')
 
-        print 'stepresult ---------------------------------------------'
-        pprint(stepresult)
-        print 'images missing ---------------------------------------------'
-        pprint(images_missing)
-
         return stepresult, images_missing
 
     def _make_image(self, combodict, itemp):
@@ -1118,12 +1117,13 @@ class StepFactory(object):
                                     with "modform".
 
         """
-        prompts = [self._do_substitution(p, combodict) for p in ptemps]
+        prompts = [capitalize_first(self._do_substitution(p, combodict))
+                   for p in ptemps]
         if xtemps not in ['', None]:
             rxs = []
             for x in xtemps:
                 if re.search(r'{', x):
-                    rxs.append(self._do_substitution(x, combodict))
+                    rxs.append(self._do_substitution(x, combodict, regex=True))
                 else:
                     rxs.append(x)
         else:
@@ -1132,18 +1132,27 @@ class StepFactory(object):
             rdbls = []
             for r in rtemps:
                 if re.search(r'{', r):
-                    print 'doing substitution on rdbls*********'
-                    print r
-                    print combodict
-                    rdbls.append(self._do_substitution(r, combodict))
-                else:
-                    rdbls.append(r)
-            print 'rdbls returned are:', rdbls
+                    r = self._do_substitution(r, combodict)
+                if re.match(r'.*[\.\?;\!]', r):
+                    r = capitalize_first(r)
+                rdbls.append(r)
         else:
             rdbls = None
         return prompts, rxs, rdbls
 
-    def _do_substitution(self, temp, combodict):
+    def _add_caps_option(self, myform):
+        """
+        Reformat string to add regex syntax for the first letter to be capitalized.
+        """
+        myform = to_unicode(myform, encoding='utf8')
+        first = myform[:1]
+        cap = first.upper()
+        rest = myform[1:]
+        myform = u'({}|{}){}'.format(first, cap, rest)
+        myform = to_bytes(myform, encoding='utf8')
+        return myform
+
+    def _do_substitution(self, temp, combodict, regex=False):
         """
         Make the necessary replacements for the suplied template string.
 
@@ -1153,7 +1162,6 @@ class StepFactory(object):
         ready_strings = []
         subpairs = {}
 
-        'in do_substitution temp is', temp
         fields = re.findall(r'(?<={).*?(?=})', temp)
         if not fields:
             return temp
@@ -1163,7 +1171,7 @@ class StepFactory(object):
                 myform = WordFactory().get_wordform(f, combodict)
             else:
                 myform = combodict[f]
-            subpairs[f] = myform
+            subpairs[f] = self._add_caps_option(myform) if regex else myform
         ready_strings = temp.format(**subpairs)
         return ready_strings
 
@@ -1217,7 +1225,6 @@ class StepFactory(object):
         return (newtags1, newtags2, newtags3)
 
 
-
 class PathFactory(object):
     """
     An abstract parent class to create paths (with steps) procedurally.
@@ -1247,11 +1254,13 @@ class PathFactory(object):
                 Field('avoid', 'list:string'),
                 Field('testing', 'boolean')]
 
-        #myajax = lambda field, value: AjaxSelect(field, value, indx=1,
-                                                 #multi='basic',
-                                                 #lister='simple',
-                                                 #orderby='tag'
-                                                 #).widget()
+        """
+        myajax = lambda field, value: AjaxSelect(field, value, indx=1,
+                                                 multi='basic',
+                                                 lister='simple',
+                                                 orderby='tag'
+                                                 ).widget()
+        """
 
         for n in ['one', 'two', 'three', 'four', 'five']:
             fbs = [Field('{}_prompt_template'.format(n), 'list:string'),
@@ -1402,13 +1411,13 @@ class PathFactory(object):
         combos = self.make_combos(wordlists, aligned, avoid)
         paths = {}
         for idx, c in enumerate(combos):  # one path for each combo
-            label = label_template.format(makeutf8('-').join(makeutf8(c)))
             mykeys = ['words{}'.format(n + 1) for n in range(len(c))]
             combodict = dict(zip(mykeys, c))  # keys are template placeholders
 
+            label = label_template.format(**combodict)
+
             pdata = {'steps': {}, 'new_forms': {}, 'images_missing': []}
             for i, s in enumerate(stepsdata):  # each step in path
-                print 'getting step', i, '=========================='
                 # sanitize form response =============================="
                 numstrings = ['one_', 'two_', 'three_', 'four_', 'five_']
                 sdata = {k.replace(numstrings[i], ''): v for k, v in s.iteritems()}
@@ -1441,7 +1450,7 @@ class PathFactory(object):
         expects a list of tuples, each providing a combination to be excluded.
 
         """
-        if len(wordlists) > 1 and aligned is True:
+        if len(wordlists) > 1 and aligned:
             combos = zip(*wordlists)
         elif len(wordlists) > 1:
             combos = list(product(*wordlists))
@@ -1457,8 +1466,6 @@ class PathFactory(object):
         """ """
         db = current.db
         try:
-            #debug
-            print 'inserting into path'
             pid = db.paths.insert(label=label, steps=steps)
             db.commit()
             return pid
@@ -1496,77 +1503,99 @@ class PathFactory(object):
                 pout = LI('Path: {}'.format(pk))
 
                 psub = UL()
-                psub.append(LI('steps succeeded: {}'.format(len(successes))))
-                psub.append(LI('steps failed: {}'.format(len(failures))))
-                psub.append(LI('steps were duplicates: {}'.format(len(duplicates))))
+                psub.append(LI(SPAN('steps succeeded', _class='ppf_label'),
+                               len(successes)))
+                psub.append(LI(SPAN('steps failed', _class='ppf_label'),
+                               len(failures)))
+                psub.append(LI(SPAN('steps were duplicates', _class='ppf_label'),
+                               len(duplicates)))
                 content = pv['steps']
                 mycontent = UL()
                 UP = Uprinter()
                 for key, c in content.iteritems():
                     mycontent.append(LI(key))
                     mystep = UL()
-                    mystep.append(LI('widget_type:', db.step_types(c['widget_type']).step_type))
-                    mystep.append(LI('prompt:', UP.uprint(c['prompt'])))
-                    mystep.append(LI('readable_response:', UP.uprint(c['readable_response'])))
-                    mystep.append(LI('response1:', UP.uprint(c['response1'])))
-                    mystep.append(LI('outcome1:', c['outcome1']))
-                    mystep.append(LI('response2:', UP.uprint(c['response2'])
-                                     if c['response2'] else None))
-                    mystep.append(LI('outcome2:', c['outcome2']))
-                    mystep.append(LI('response3:', UP.uprint(c['response3'])
+                    mystep.append(LI(SPAN('widget_type', _class='ppf_label'),
+                                     db.step_types(c['widget_type']).step_type))
+                    mystep.append(LI(SPAN('prompt', _class='ppf_label'),
+                                     makeutf8(c['prompt'][0])))
+                    mystep.append(LI(SPAN('readable_response', _class='ppf_label'),
+                                     makeutf8(c['readable_response'])))
+                    mystep.append(LI(SPAN('response1', _class='ppf_label'),
+                                     makeutf8(c['response1'])))
+                    mystep.append(LI(SPAN('outcome1', _class='ppf_label'),
+                                     c['outcome1']))
+                    mystep.append(LI(SPAN('response2', _class='ppf_label'),
+                                     makeutf8(c['response2'])
+                                  if c['response2'] else None))
+                    mystep.append(LI(SPAN('outcome2', _class='ppf_label'),
+                                     c['outcome2']))
+                    mystep.append(LI(SPAN('response3', _class='ppf_label'),
+                                     makeutf8(c['response3'])
                                      if c['response3'] else None))
-                    mystep.append(LI('outcome3:', c['outcome3']))
+                    mystep.append(LI(SPAN('outcome3', _class='ppf_label'),
+                                     c['outcome3']))
                     tags = [t['tag'] for t in
                             db(db.tags.id.belongs(c['tags'])).select()]
-                    mystep.append(LI('tags:', tags))
+                    mystep.append(LI(SPAN('tags', _class='ppf_label'),
+                                     ', '.join(tags)))
                     tags_secondary = [t['tag'] for t in
                                       db(db.tags.id.belongs(c['tags_secondary'])
                                          ).select()]
-                    mystep.append(LI('tags_secondary:', tags_secondary))
+                    mystep.append(SPAN(LI('tags_secondary', _class='ppf_label'),
+                                       ', '.join(tags_secondary)))
                     tags_ahead = [t['tag'] for t in
                                   db(db.tags.id.belongs(islist(c['tags_ahead']))
                                      ).select()]
-                    mystep.append(LI('tags_ahead:', tags_ahead))
-                    mycontent.append(LI(mystep))
-                    npcs = [UP.uprint(t['name']) for t in
+                    mystep.append(LI(SPAN('tags_ahead', _class='ppf_label'),
+                                     ', '.join(tags_ahead)))
+                    npcs = [makeutf8(t['name']) for t in
                             db(db.npcs.id.belongs(islist(c['npcs']))).select()]
-                    mystep.append(LI('npcs:', npcs))
-                    locations = [t['map_location'] for t in
+                    mystep.append(LI(SPAN('npcs', _class='ppf_label'),
+                                     ', '.join(npcs)))
+                    locations = [makeutf8(t['map_location']) for t in
                                  db(db.locations.id.belongs(c['locations'])
                                     ).select()
                                  ]
-                    mystep.append(LI('locations:', UP.uprint(locations)))
+                    mystep.append(LI(SPAN('locations', _class='ppf_label'),
+                                       ', '.join(locations)))
                     lemmas = [t['lemma'] for t in
                               db(db.lemmas.id.belongs(c['lemmas'])).select()] \
-                        if 'lemmas' in c.keys() else None
-                    mystep.append(LI('lemmas:', UP.uprint(lemmas)
-                                     if lemmas else None))
-                    mystep.append(LI('status:',
+                        if 'lemmas' in c.keys() else 'None'
+                    mystep.append(LI(SPAN('lemmas', _class='ppf_label'),
+                                     ', '.join(lemmas)
+                                     if lemmas else 'None'))
+                    mystep.append(LI(SPAN('status', _class='ppf_label'),
                                      db.step_status(c['status']).status_label
-                                     if 'status' in c.keys() else None))
+                                     if 'status' in c.keys() else 'None'))
                     instructions = [t['instruction_label'] for t in
                                     db(db.step_instructions.id.belongs(c['instructions'])
                                        ).select()]
-                    mystep.append(LI('instructions:', instructions))
+                    mystep.append(LI(SPAN('instructions', _class='ppf_label'),
+                                     ', '.join(instructions)
+                                     if instructions else 'None'))
                     hints = [t['hint_label'] for t in
-                             db(db.step_hints.id.belongs(c['hints'])
-                                ).select()]
-                    mystep.append(LI('hints:', hints))
+                             db(db.step_hints.id.belongs(c['hints'])).select()] \
+                        if 'hints' in c.keys() and c['hints'] else 'None'
+                    mystep.append(LI(SPAN('hints', _class='ppf_label'),
+                                     ', '.join(hints)))
+                    mycontent.append(LI(mystep))
+
                 psub.append(mycontent)
                 pout.append(psub)
 
                 outs[opt].append(pout)
 
-        output = CAT(H2('successes'), outs['goodpaths'],
-                     H2('failures'), outs['badpaths'])
+        output = CAT(H3('successes'), outs['goodpaths'],
+                     H3('failures'), outs['badpaths'])
 
-        message1 = 'Created {} new paths.\n'.format(len(outs['goodpaths'])) \
-                   if len(outs['goodpaths']) else 'no'
-        message2 = '{} paths failed\n'.format(len(outs['badpaths'])) \
-                   if len(outs['badpaths']) else 'no'
-        nf = 'new word forms entered in db:\n{}\n'.format(BEAUTIFY(newforms))
-        imgs = 'images needed for db:\n{}\n'.format(BEAUTIFY(images))
-        message = message1 + message2 + nf + imgs
+        message1 = 'Created {} new paths.'.format(len(outs['goodpaths'])) \
+                   if len(outs['goodpaths']) else 'No new paths'
+        message2 = '{} paths failed'.format(len(outs['badpaths'])) \
+                   if len(outs['badpaths']) else 'No paths failed'
+        nf = 'new word forms entered in db:\n{}'.format(BEAUTIFY(newforms))
+        imgs = 'images needed for db:\n{}'.format(BEAUTIFY(images))
+        message = message1 + '\n' + message2 + '\n' + nf + '\n' + imgs
 
         return (message, output)
 
@@ -1591,7 +1620,10 @@ class TranslateWordPathFactory(PathFactory):
                                 'Οὑτος ὁ λογος τί σημαινει? {}',
                                 'Σημαινει τί ὁ λογος οὑτος? {}']
 
-    def get_templates(lemid, cst):
+    def get_templates(self, lemid, cst):
+        """
+        """
+        db = current.db
         cstrow = db.constructions(cst)
         lemrow = db.lemmas(lemid)
         lemma = lemrow.lemma
@@ -1632,13 +1664,13 @@ class TranslateWordPathFactory(PathFactory):
                         'locations': self.pick_locations,
                         'instructions': None,
                         'hints': None}
-            for c in get_constructions(lemid):
+            for c in self.get_constructions(lemid):
                 assert isinstance(c, (int, long))
                 temps = self.get_templates(lemid, c)  # do substitutions already
                 stepdata['prompt_template'] = temps[0]  # do substitutions already
                 stepdata['response_template'] = temps[1]
                 stepdata['readable_template'] = temps[2]
-                paths, result = self.make_path([[lemma]],
+                paths, result = self.make_path([[request.vars.lemma]],
                                                label_template=self.label_template,
                                                stepdata=[stepdata])
             message, output = self.make_output(paths, result)
