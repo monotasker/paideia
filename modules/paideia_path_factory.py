@@ -1553,8 +1553,9 @@ class PathFactory(object):
                             db(db.npcs.id.belongs(islist(c['npcs']))).select()]
                     mystep.append(LI(SPAN('npcs', _class='ppf_label'),
                                      ', '.join(npcs)))
+                    print 'locations:', islist(c['locations'])
                     locations = [makeutf8(t['map_location']) for t in
-                                 db(db.locations.id.belongs(c['locations'])
+                                 db(db.locations.id.belongs(islist(c['locations']))
                                     ).select()
                                  ]
                     mystep.append(LI(SPAN('locations', _class='ppf_label'),
