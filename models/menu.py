@@ -113,7 +113,7 @@ if auth.has_membership('administrators', auth.user_id) or auth.is_impersonating(
               (SPAN(I(_class='fa fa-users fa-fw'), T(' Classes'), _class='icon-group'),
                False, URL('editing', 'listing.html',
                           args=['classes'])),
-              (SPAN(I(_class='fa fa-picture fa-fw'), T(' Images'), _class='icon-picture'),
+              (SPAN(I(_class='fa fa-picture-o fa-fw'), T(' Images'), _class='icon-picture'),
                False, URL('editing', 'listing.html',
                           args=['images'])),
               ]),

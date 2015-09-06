@@ -1,7 +1,7 @@
 #! /usr/bin/python
 # -*- coding: utf-8-*-
 from gluon import current
-from gluon import IMG, URL, SQLFORM, SPAN, UL, LI, A, Field, P, HTML
+from gluon import IMG, URL, SQLFORM, SPAN, UL, LI, Field, P, HTML
 from gluon import IS_NOT_EMPTY, IS_IN_SET
 
 from copy import copy
@@ -108,7 +108,7 @@ class Walk(object):
         """Initialize a Walk object."""
         #set DEBUG_MODE to True to see debugging info on the screen
         #-----------------------------------------------
-        self.DEBUG_MODE = False
+        self.DEBUG_MODE = True
         current.paideia_DEBUG_MODE = self.DEBUG_MODE
         current.paideia_debug = Paideia_Debug()
         current.sequence_counter = 0
@@ -279,6 +279,7 @@ class Walk(object):
 
             p, category, redir, pastquota = user.get_path(loc, pathid=path,
                                                           repeat=repeat)
+            print 'path chosen:', p.get_id()
 
             if (not p): break  # no paths for this location for this category
 
@@ -620,14 +621,15 @@ class Walk(object):
                    'step': step_id,
                    'tag': tag,
                    'name': user_id}
+
         if oldrec:
+            newdata['times_right'] = tright + oldrec['times_right'] \
+                if oldrec['times_right'] else tright
+            newdata['times_wrong'] = twrong + oldrec['times_wrong'] \
+                if oldrec['times_wrong'] else twrong
             if got_right:
-                newdata['times_right'] = tright + oldrec['times_right']
-                newdata['times_wrong'] = twrong + oldrec['times_wrong']
                 newdata['tlast_wrong'] = oldrec['tlast_wrong']
             else:
-                newdata['times_right'] = tright + oldrec['times_right']
-                newdata['times_wrong'] = twrong + oldrec['times_wrong']
                 newdata['tlast_right'] = oldrec['tlast_right']
 
         # write updates to db here
@@ -1815,12 +1817,16 @@ class Path(object):
 
     def _reset_steps(self):
         """
-        Return all completed steps to the self.steps list.
+        Return the last completed step to the self.steps list.
         Intended to prepare for repeating an already-completed step.
         """
         if self.completed_steps:
-            self.steps = copy(self.completed_steps)
-            self.completed_steps = []
+            laststep = self.completed_steps.pop()
+            print 'laststep is', laststep.get_id()
+            self.steps.insert(0, laststep)
+            print 'self.steps is', [s.get_id() for s in self.steps]
+            # self.steps = copy(self.completed_steps)
+            # self.completed_steps = []
         if len(self.steps) == 0:
             self.steps = self.get_steps()
             assert len(self.steps) > 0
