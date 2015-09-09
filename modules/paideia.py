@@ -1,6 +1,6 @@
 #! /usr/bin/python
 # -*- coding: utf-8-*-
-from gluon import current
+from gluon import current, BEAUTIFY
 from gluon import IMG, URL, SQLFORM, SPAN, UL, LI, Field, P, HTML
 from gluon import IS_NOT_EMPTY, IS_IN_SET
 
@@ -1693,10 +1693,14 @@ class StepEvaluator(object):
         # Handle errors if the student's response cannot be evaluated
         except re.error:
             traceback.print_exc()
-            ErrorReport.send_report('StepEvaluator', 'get_eval')
             exception_msg = ['these are the responses for a step having '
                              'errors in evaluation: ' + str(responses) +
                              'user response is:' + user_response][0]
+            ErrorReport.send_report('StepEvaluator', 'get_eval',
+                                    traceback=traceback.format_exc(),
+                                    callingRequest=BEAUTIFY(current.request),
+                                    xtra=exception_msg
+                                    )
             Exception_Bug({'log_id': 0,
                            'path_id': 0,
                            'step_id': 0,
