@@ -402,7 +402,7 @@ class GreekNormalizer(object):
                           ex_period, ex_anotel))
 
             for mystring in substrs:
-                latin_chars = re.compile(r'^[\w\s\.,:;\'\"\?]+$', re.U)
+                latin_chars = re.compile(r'^[a-zA-Z\s\.,:;\'\"\?]+$', re.U)
                 islatin = re.match(latin_chars, mystring)
                 print 'islatin:', islatin
                 if not islatin:
