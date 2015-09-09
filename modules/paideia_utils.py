@@ -225,7 +225,7 @@ class GreekNormalizer(object):
         """
         Initialize new GreekNormalizer instance.
         """
-        pass
+        self.isgreek = True
 
     def normalize(self, strings):
         """
@@ -258,10 +258,10 @@ class GreekNormalizer(object):
         strings = [strings] if not isinstance(strings, list) else strings
         try:
             newstrings = []
+            rgx = ur'(?P<a>[Α-Ωα-ω])?([a-z]|[A-Z]|\d)(?(a).*|[Α-Ωα-ω])'
+            latin = re.compile(rgx, re.U)
             for string in strings:
                 string = unicode(makeutf8(string))
-                rgx = ur'(?P<a>[Α-Ωα-ω])?([a-z]|[A-Z]|\d)(?(a).*|[Α-Ωα-ω])'
-                latin = re.compile(rgx, re.U)
                 mymatch = re.search(latin, string)
                 if not mymatch:
                     newstring = string
@@ -402,37 +402,43 @@ class GreekNormalizer(object):
                           ex_period, ex_anotel))
 
             for mystring in substrs:
-                mystring = unicode(makeutf8(mystring)).strip()
-                mystring = mystring.replace(u'ί', u'ί')  # avoid q-i iota on windows
+                latin_chars = re.compile(r'^[\w\s\.,:;\'\"\?]+$', re.U)
+                islatin = re.match(latin_chars, mystring)
+                print 'islatin:', islatin
+                if not islatin:
+                    mystring = unicode(makeutf8(mystring)).strip()
+                    mystring = mystring.replace(u'ί', u'ί')  # avoid q-i iota on windows
 
-                if mystring not in exempt:
-                    # below print statement causes UnicodeEncodeError on live server
-                    # print mystring, 'not exempt', type(mystring)
-                    matching_letters = re.findall(makeutf8(restr), mystring,
-                                                re.I | re.U)
-                    print 'matching letters:', matching_letters
-                    if matching_letters:
+                    if mystring not in exempt:
+                        # below print statement causes UnicodeEncodeError on live server
+                        # print mystring, 'not exempt', type(mystring)
+                        matching_letters = re.findall(makeutf8(restr), mystring,
+                                                    re.I | re.U)
+                        print 'matching letters:', matching_letters
+                        if matching_letters:
 
-                        edict = {k: v for k, v in equivs.iteritems()
-                                if [m for m in v if m in matching_letters]}
-                        key_vals = {ltr: k
-                                    for ltr in list(chain(*edict.values()))
-                                    for k in edict.keys()
-                                    if ltr in edict[k]}
-                        print key_vals
-                        mystring = multiple_replace(mystring, key_vals)
-                        '''
-                        for k, v in edict.iteritems():
-                            myvals = [l for l in v if makeutf8(l) in matching_letters]
-                            for val in myvals:
-                                mystring = mystring.replace(val, k)
-                        '''
+                            edict = {k: v for k, v in equivs.iteritems()
+                                    if [m for m in v if m in matching_letters]}
+                            key_vals = {ltr: k
+                                        for ltr in list(chain(*edict.values()))
+                                        for k in edict.keys()
+                                        if ltr in edict[k]}
+                            print key_vals
+                            mystring = multiple_replace(mystring, key_vals)
+                            '''
+                            for k, v in edict.iteritems():
+                                myvals = [l for l in v if makeutf8(l) in matching_letters]
+                                for val in myvals:
+                                    mystring = mystring.replace(val, k)
+                            '''
+                        else:
+                            pass
                     else:
+                        # below print statement causes UnicodeEncodeError on live server
+                        # print mystring, 'exempt'
                         pass
                 else:
-                    # below print statement causes UnicodeEncodeError on live server
-                    # print mystring, 'exempt'
-                    pass
+                    print 'no Greek'
                 newstrings.append(mystring)
             newstring = ' '.join(newstrings)
             outstrings.append(newstring)

@@ -12,7 +12,7 @@ from itertools import chain
 #import os
 from paideia_utils import Paideia_Debug, GreekNormalizer
 import pickle
-from plugin_utils import flatten, makeutf8  # , ErrorReport
+from plugin_utils import flatten, makeutf8, ErrorReport
 #from pprint import pprint
 from pytz import timezone
 from random import randint, randrange
@@ -108,7 +108,7 @@ class Walk(object):
         """Initialize a Walk object."""
         #set DEBUG_MODE to True to see debugging info on the screen
         #-----------------------------------------------
-        self.DEBUG_MODE = True
+        self.DEBUG_MODE = False
         current.paideia_DEBUG_MODE = self.DEBUG_MODE
         current.paideia_debug = Paideia_Debug()
         current.sequence_counter = 0
@@ -1692,6 +1692,8 @@ class StepEvaluator(object):
 
         # Handle errors if the student's response cannot be evaluated
         except re.error:
+            traceback.print_exc()
+            ErrorReport.send_report('StepEvaluator', 'get_eval')
             exception_msg = ['these are the responses for a step having '
                              'errors in evaluation: ' + str(responses) +
                              'user response is:' + user_response][0]

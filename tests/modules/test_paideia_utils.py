@@ -177,6 +177,7 @@ class TestGreekNormalizer():
                                  ("Ὥν", u"Ὡν"),
                                  ("Ὣν", u"Ὡν"),
                                  ("Ὧν", u"Ὡν"),
+                                 (u"hi there?", u"hi there?"),  # leave ? alone
                                  ])
     def test_normalize_accents(self, string_in, string_out):
         """
