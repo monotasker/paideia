@@ -1337,7 +1337,7 @@ def make_classlist(member_sel, users, start_date, end_date, target, classrow):
         else:  # after class term
             currset = get_set_at_date(uid, myend)
 
-        myprog = currset - startset
+        myprog = currset - int(startset)
         mygrade = compute_letter_grade(myprog, classrow)
 
         userlist[uid] = {'name': myname,
