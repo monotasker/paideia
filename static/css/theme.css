@@ -8860,6 +8860,9 @@ body.listing #masthead {
 body.user #masthead {
   display: none;
 }
+body.user .table-condensed > tbody tr td {
+  text-align: center;
+}
 body.user .table-condensed > tbody tr td.week-counts-0,
 body.user .table-condensed > tbody tr td.week-counts-1 {
   background-color: #efefef;
