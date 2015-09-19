@@ -1304,6 +1304,8 @@ def compute_letter_grade(uid, myprog, startset, classrow):
     """
     mymem = get_current_class(uid, datetime.datetime.utcnow(),
                               myclass=classrow['id'])
+    print 'mymem'
+    print mymem
     gradedict = {}
     for let in ['a', 'b', 'c', 'd']:
         print 'let is', let
@@ -1312,11 +1314,15 @@ def compute_letter_grade(uid, myprog, startset, classrow):
         if mymem['custom_{}_cap'.format(let)]:
             mylet = mymem['custom_{}_cap'.format(let)]
         else:
-            mylet = classrow[letcap] if (letcap in classrow.keys()) \
-                and (classrow[letcap] < (int(startset) + classrow[lettarget])) \
-                else int(startset) + classrow[lettarget]
+            realtarget = (int(startset) + classrow[lettarget])
+            if classrow[letcap] and (classrow[letcap] < realtarget):
+                mylet = classrow[letcap]
+            else:
+                mylet = int(startset) + classrow[lettarget]
+        print 'mylet', mylet
         gradedict[mylet] = let.upper()
-
+    print 'gradedict'
+    print gradedict
     if myprog in gradedict.keys():
         mygrade = gradedict[myprog]
     elif myprog > [k for k, v in gradedict.items() if v == 'A'][0]:
