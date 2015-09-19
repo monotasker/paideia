@@ -1023,11 +1023,9 @@ class Step(object):
             stepid = self.get_id()
             xtra_msg = 'Step {} has no assigned locations'.format(self.get_id())
             # FIXME: turning off to silence email spam during testing
-            """
             ErrorReport().send_report('Step', 'get_locations',
                                       subtitle='no locations for step',
                                       xtra=xtra_msg)
-            """
         return locs
 
     def is_valid(self):
@@ -2150,15 +2148,23 @@ class PathChooser(object):
                 break
             if p_tried:
                 try:
-                    repeats = [{'id': str(p['id']), 'count':0, 'path': p}
+                    repeats = [{'id': str(p['id']), 'count': 0, 'path': p}
                                    for p in p_tried]
                     # get number of attempts for each path visited
                     for prep in repeats:
                         pid = int(prep['id'])
 
-                        comp_rec = self.completed['paths'][pid]
+                        # FIXME: why is id not in "completed" if repeating?
                         if pid in self.completed['paths'].keys():
+                            comp_rec = self.completed['paths'][pid]
                             prep['count'] = comp_rec['wrong'] + comp_rec['right']
+                        else:
+                            subtitle = 'path id not in completed list when repeating'
+                            ErrorReport().send_report('PathChooser',
+                                                      '_choose_from_cat',
+                                                      subtitle=subtitle,
+                                                      xtra=None)
+                            prep['count'] = 1
 
                     mode = 'repeated'
                     new_loc = None
