@@ -70,25 +70,29 @@ for uid, infodict in userlist.iteritems():
             row.append(TD(_class='week-counts-{}'.format(n)))
         pass
     pass
-    row.append(CAT(TD(DIV(A('remove',
-                            _class='btn btn-warning',
+    row.append(CAT(TD(DIV(A(I(_class='fa fa-trash'),
+                            _class='btn btn-danger',
                             _href=URL('listing', 'remove_user',
                                       vars={'uid': uid, 'classid': classid}),
                             cid=request.cid),
-                          A('back',
-                            _class='btn btn-error',
+                          A(I(_class='fa fa-angle-left'),
+                            _class='btn btn-warning',
                             _href=URL('listing', 'demote_user',
                                       vars={'uid': uid, 'classid': classid,
                                             'rec': infodict['tp_id']}),
                             cid=request.cid),
-                          A('ahead',
+                          A(I(_class='fa fa-angle-right'),
                             _class='btn btn-success',
                             _href=URL('listing', 'promote_user',
                                       vars={'uid': uid, 'classid': classid,
                                             'rec': infodict['tp_id']}),
                             cid=request.cid),
-                          _class='btn-group')
-                        )))
+                          _class='btn-group',
+                          _role='group'),
+                        _class='button_column'
+                        )
+                    )
+                )
 tbl.append(row)
 pass
 }}

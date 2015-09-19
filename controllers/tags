@@ -6,10 +6,6 @@
 !_TAG_PROGRAM_VERSION	5.9~svn20110310	//
 FONT	appadmin.py	/^    def FONT(*args, **kwargs):$/;"	f	function:table_template
 GetInHMS	appadmin.py	/^    def GetInHMS(seconds):$/;"	f	function:ccache
-_get_listitems	plugin_listandedit.py	/^def _get_listitems(rowlist, tablename, orderby, restrictor, collation):$/;"	f
-_get_params	plugin_listandedit.py	/^def _get_params(rargs, rvars):$/;"	f
-_get_rowlist	plugin_listandedit.py	/^def _get_rowlist(tablename, orderby, restrictor, collation):$/;"	f
-action	plugin_utils.py	/^def action():$/;"	f
 add_user	listing.py	/^def add_user():$/;"	f
 add_user_form	listing.py	/^def add_user_form():$/;"	f
 addform	plugin_slider.py	/^def addform():$/;"	f
@@ -29,7 +25,6 @@ bulk_update	util.py	/^def bulk_update():$/;"	f
 calendar	reporting.py	/^def calendar():$/;"	f
 ccache	appadmin.py	/^def ccache():$/;"	f
 chooser	plugin_img_chooser.py	/^def chooser(self):$/;"	f
-collect_step_vocab	util.py	/^def collect_step_vocab():$/;"	f
 crud	creating.py	/^    crud = Crud()$/;"	v
 csv	appadmin.py	/^def csv():$/;"	f
 csv	default.py	/^def csv():$/;"	f
@@ -55,6 +50,7 @@ eval_in_global_env	appadmin.py	/^def eval_in_global_env(text):$/;"	f
 example1	examples.py	/^def example1():$/;"	f
 export_db	util.py	/^def export_db():$/;"	f
 faqs	default.py	/^def faqs():$/;"	f
+gather_word_forms	util.py	/^def gather_word_forms():$/;"	f
 get_database	appadmin.py	/^def get_database(request):$/;"	f
 get_databases	appadmin.py	/^def get_databases(request):$/;"	f
 get_query	appadmin.py	/^def get_query(request):$/;"	f
@@ -115,7 +111,6 @@ send_mail_to_user	default.py	/^def send_mail_to_user():$/;"	f
 session	exploring.py	/^    session = current.session$/;"	v
 session	plugin_img_chooser.py	/^    session = current.session$/;"	v
 session	plugin_listandedit.py	/^    session = current.session$/;"	v
-set_timestamps	util.py	/^def set_timestamps():$/;"	f
 set_widget	plugin_ajaxselect.py	/^def set_widget():$/;"	f
 show_slide	plugin_slider.py	/^def show_slide():$/;"	f
 sil	editing.py	/^def sil():$/;"	f
@@ -123,6 +118,7 @@ slidelist	plugin_slider.py	/^def slidelist():$/;"	f
 slides	listing.py	/^def slides():$/;"	f
 start_deck	plugin_slider.py	/^def start_deck():$/;"	f
 state	appadmin.py	/^def state():$/;"	f
+submit_bug	creating.py	/^def submit_bug():$/;"	f
 table_template	appadmin.py	/^def table_template(table):$/;"	f
 tables	appadmin.py	/^                              tables=[auth.table_user(),$/;"	v
 tag	creating.py	/^def tag():$/;"	f
@@ -140,7 +136,7 @@ user	default.py	/^def user():$/;"	f
 user	listing.py	/^def user():$/;"	f
 user	reporting.py	/^def user():$/;"	f
 userlist	listing.py	/^def userlist():$/;"	f
-util	plugin_utils.py	/^def util():$/;"	f
+validate_records	util.py	/^def validate_records():$/;"	f
 vars	appadmin.py	/^                 vars=dict(send=URL(args=request.args, vars=request.vars))))$/;"	v
 vocabulary	reporting.py	/^def vocabulary():$/;"	f
 walk	exploring.py	/^def walk():$/;"	f

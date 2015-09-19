@@ -1298,21 +1298,50 @@ def get_term_bounds(meminfo, start_date, end_date):
     return mystart, fmt_start, myend, fmt_end
 
 
-def compute_letter_grade(myprog, classrow):
+def compute_letter_grade(uid, myprog, startset, classrow):
     """
     Computes student's letter grade based on his/her progress in badge sets.
     """
-    gradedict = {classrow['a_target']: 'A', classrow['b_target']: 'B',
-                 classrow['c_target']: 'C', classrow['d_target']: 'D'}
+    mymem = get_current_class(uid, datetime.datetime.utcnow(),
+                              myclass=classrow['id'])
+    gradedict = {}
+    for let in ['a', 'b', 'c', 'd']:
+        print 'let is', let
+        letcap = '{}_cap'.format(let)
+        lettarget = '{}_target'.format(let)
+        if mymem['custom_{}_cap'.format(let)]:
+            mylet = mymem['custom_{}_cap'.format(let)]
+        else:
+            mylet = classrow[letcap] if (letcap in classrow.keys()) \
+                and (classrow[letcap] < (int(startset) + classrow[lettarget])) \
+                else int(startset) + classrow[lettarget]
+        gradedict[mylet] = let.upper()
 
     if myprog in gradedict.keys():
         mygrade = gradedict[myprog]
-    elif myprog > classrow['a_target']:
+    elif myprog > [k for k, v in gradedict.items() if v == 'A'][0]:
         mygrade = 'A'
     else:
         mygrade = 'F'
 
     return mygrade
+
+
+def get_current_class(uid, now, myclass=None):
+    db = current.db
+    if myclass:
+        myc = db((db.class_membership.name == uid) &
+                 (db.class_membership.class_section == myclass)
+                 ).select().first()
+    else:
+        myclasses = db((db.class_membership.name == uid) &
+                    (db.class_membership.class_section == db.classes.id)
+                    ).select()
+        myclasses = myclasses.find(lambda row: row.classes.start_date != None)
+        myclasses = myclasses.find(lambda row: (row.classes.start_date < now) and
+                                            (row.classes.end_date > now))
+        myc = myclasses.first()
+    return myc
 
 
 def make_classlist(member_sel, users, start_date, end_date, target, classrow):
@@ -1338,7 +1367,7 @@ def make_classlist(member_sel, users, start_date, end_date, target, classrow):
             currset = get_set_at_date(uid, myend)
 
         myprog = currset - int(startset)
-        mygrade = compute_letter_grade(myprog, classrow)
+        mygrade = compute_letter_grade(uid, myprog, startset, classrow)
 
         userlist[uid] = {'name': myname,
                          'counts': mycounts,

@@ -6214,7 +6214,15 @@ class TestWalk():
         #            #pathid,
         #            #score,
         #            #stepid)
-        bug_reporter = [r'<a class="bug_reporter" '
+        bug_reporter = {'bug_step_id': 19L,
+                        'loc_id': 'domus_A',
+                        'log_id': 462311L,
+                        'path_id': 19L,
+                        'score': 0,
+                        'answer': '\xce\xb2\xce\xbb\xce\xb1'}
+
+        '''
+                        [r'<a class="bug_reporter" '
                         'data-keyboard="data-keyboard" '
                         'data-target="#bug_reporter_modal" '
                         'data-toggle="modal" '
@@ -6245,9 +6253,10 @@ class TestWalk():
                         '<button aria-hidden="true" class="pull-right" '
                         'data-dismiss="modal" type="button">Close</button>'
                         '</div></div></div></div>']
-        #print 'actual ============'
-        #print a['bugreporter'].xml()
-        assert re.match(bug_reporter[0], a['bugreporter'].xml())
+        '''
+        # print 'actual ============'
+        # print a['bugreporter']
+        assert all({k: v for k, v in bug_reporter.items() if a['bugreporter'][k] == v})
         assert not thiswalk.user.path.step_for_reply
         assert not thiswalk.user.path.step_for_prompt
         assert thiswalk.user.path.completed_steps[-1].get_id() == stepid
@@ -7264,54 +7273,19 @@ class TestBugReporter():
         """
         Unit test for BugReporter.get_reporter() method.
         """
-        xpct = ['<a class="bug_reporter" data-keyboard="data-keyboard" '
-                'data-target="#bug_reporter_modal" '
-                'data-toggle="modal" '
-                'href="#bug_reporter_modal" '
-                'id="bug_reporter_modal_trigger">Something wrong?</a>'
-                '<div aria-hidden="true" '
-                'aria-labelledby="bug_reporter_modal_trigger" '
-                'class="modal fade " data-keyboard="true" '
-                'id="bug_reporter_modal" '
-                'role="dialog" tabindex="-1">'
-                '<div class="modal-dialog modal-lg">'
-                '<div class="modal-content">'
-                '<div class="modal-header">'
-                '<h3 class="modal-title" id="myModalLabel">'
-                'Did you run into a problem?</h3>'
-                '</div>'
-                '<div class="modal-body ">'
-                '<p>Think your answer should have been correct? '
-                '<a class="bug_reporter_link btn btn-danger" '
-                'data-w2p_disable_with="default" data-w2p_method="GET" '
-                'data-w2p_target="bug_reporter" href="/paideia/creating/bug.'
-                'load?'
-                'answer={}'
-                '&amp;bug_step_id={}'
-                '&amp;loc_id={}'
-                '&amp;log_id={}'
-                '&amp;path_id={}'
-                '&amp;score={}'
-                '">click here<i class="icon-bug"></i></a> '
-                'to submit a bug report. You can read your instructor&#x27;s '
-                'response later in the &quot;bug reports&quot; tab of your user '
-                'profile.</p>'
-                '</div>'
-                '<div class="modal-footer">'
-                '<button aria-hidden="true" class="pull-right" '
-                'data-dismiss="modal" type="button">Close</button>'
-                '</div>'
-                '</div>'
-                '</div>'
-                '</div>'.format(response_string, step_id, loc_id, record_id,
-                                path_id, score)]
-
+        xpct = {'bug_step_id': step_id,
+                'loc_id': loc_id,
+                'log_id': record_id,
+                'path_id': path_id,
+                'score': score,
+                'answer': response_string}
         actual = BugReporter().get_reporter(record_id, path_id, step_id,
                                             score, response_string, loc_id)
 
-        print 'actual---------------'
-        print actual
-        print 'expected------------------'
-        print xpct[0]
+        # print 'actual---------------'
+        # print actual
+        # print 'expected------------------'
+        # print xpct
 
-        assert actual.xml() == xpct[0]
+        assert all({k: v for k, v in actual.items()
+                    if k in xpct.keys() and xpct[k] == v})

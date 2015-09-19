@@ -1,7 +1,7 @@
 #! /usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
-from paideia_stats import Stats, get_set_at_date, get_term_bounds
+from paideia_stats import Stats, get_set_at_date, get_term_bounds, get_current_class
 from paideia_bugs import Bug
 # import traceback
 # from paideia_utils import send_error
@@ -17,6 +17,8 @@ if 0:
     response, session = current.response, current.session
     T, service = current.T, current.service
     request = current.request
+
+import datetime
 
 mail = current.mail
 
@@ -117,13 +119,7 @@ def info():
     now = datetime.datetime.utcnow()
 
     # get user's current course
-    myclasses = db((db.class_membership.name == user.id) &
-                   (db.class_membership.class_section == db.classes.id)
-                   ).select()
-    myclasses = myclasses.find(lambda row: row.classes.start_date != None)
-    myclasses = myclasses.find(lambda row: (row.classes.start_date < now) and \
-                                         (row.classes.end_date > now))
-    myclass = myclasses.first()
+    myc = get_current_class(user.id, datetime.datetime.utcnow())
 
     # tab1
     name = stats.get_name()
@@ -134,17 +130,30 @@ def info():
     badge_table_data = stats.active_tags()
 
     start_date, fmt_start, end_date, fmt_end = None, None, None, None
-    if myclass:
+    if myc:
         start_date, fmt_start, end_date, fmt_end = get_term_bounds(
-            myclass.class_membership.as_dict(),
-            myclass.classes.start_date,
-            myclass.classes.end_date)
-        starting_set = get_set_at_date(user.id, start_date)
+            myc.class_membership.as_dict(),
+            myc.classes.start_date,
+            myc.classes.end_date)
+        try:
+            starting_set = int(myc.class_membership.starting_set)
+        except ValueError:
+            starting_set = None
+        if not starting_set:
+            starting_set = get_set_at_date(user.id, start_date)
+        goal = myc.classes.a_target
+
+        if myc.class_membership.custom_a_cap:  # allow personal targets
+            target_set = myc.class_membership.custom_a_cap
+        else:  # default to class target/cap
+            cap = myc.classes.a_cap
+            target_set = starting_set + goal
+            if cap and target_set > cap:
+                target_set = cap
     else:
         starting_set = None
-
-    goal = myclass.classes.a_target if myclass else None
-    target_set = starting_set + goal if starting_set else None
+        goal = None
+        target_set = None
 
     # tab2
     mycal = stats.monthcal()

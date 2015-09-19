@@ -207,12 +207,25 @@ body.reporting                      {
 body.listing                        {
     #masthead                       {display: none;
     }
+
 }
 
 
 /*-- user --------------------------------------------------*/
 body.user                           {
     #masthead                       {display: none;
+    }
+    .table-condensed > tbody        {
+        tr                          {
+            td.week-counts-0,
+            td.week-counts-1        {background-color: #efefef;
+            }
+            td.error                {color: red;
+            }
+            td.button_column        {width: 110px;
+                                     min-width: 110px;
+            }
+        }
     }
 }
 /*-- user profile -----------------------------------------------*/
