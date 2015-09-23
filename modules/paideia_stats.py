@@ -90,8 +90,8 @@ class Stats(object):
         self.user_id = user_id
         self.user = db.auth_user(user_id)
         self.name = '{}, {}'.format(self.user.last_name, self.user.first_name)
-        print 'Stats.__init__:: name:', self.name
-        print 'Stats.__init__:: user_id:', self.user_id
+        # print 'Stats.__init__:: name:', self.name
+        # print 'Stats.__init__:: user_id:', self.user_id
 
         # class/group info --------------------------------------------------
         msel = db((db.class_membership.name == user_id) &
@@ -108,7 +108,7 @@ class Stats(object):
                                    ).select().first().as_dict()
         except AttributeError:
             self.tag_progress = {}
-        print 'Stats.__init__:: tag_progress:', self.tag_progress
+        # print 'Stats.__init__:: tag_progress:', self.tag_progress
 
         self.tag_recs = db(db.tag_records.name == self.user_id
                            ).select().as_list()  # cacheable=True
@@ -499,12 +499,12 @@ class Stats(object):
                 tr[idx][i] = (t[i], t[i].strftime(strf))
 
             # add level data
-            print 'badge_levels--------------'
-            print self.badge_levels
-            print 'review_levels--------------'
-            print self.review_levels
-            print 't["tag"]--------------------'
-            print t['tag']
+            # print 'badge_levels--------------'
+            # print self.badge_levels
+            # print 'review_levels--------------'
+            # print self.review_levels
+            # print 't["tag"]--------------------'
+            # print t['tag']
             try:
                 tr[idx]['curlev'] = [l for l, tgs in self.badge_levels.iteritems()
                                     if t['tag'] in [tg[1] for tg in tgs]][0]
@@ -596,11 +596,11 @@ class Stats(object):
                       if k != 'latest_new'}
 
         bls = self.tag_progress
-        print 'Stats._find_badge_levels:: bls:', bls
+        # print 'Stats._find_badge_levels:: bls:', bls
         #bls = db(db.tag_progress.name == self.user_id).select().first().as_dict()
         bl_ids = {k: v for k, v in bls.iteritems()
                   if k[:3] == 'cat' and k != 'cat1_choices'}
-        print 'Stats._find_badge_levels:: bl_ids:', bl_ids
+        # print 'Stats._find_badge_levels:: bl_ids:', bl_ids
         badge_levels = {}
         for k, v in bl_ids.iteritems():
             level = int(k[3:])
@@ -1073,7 +1073,7 @@ class Stats(object):
                 else:
                     stepcounts[stepid] = 1
             repeats = {id: ct for id, ct in stepcounts.iteritems() if ct > 1}
-            print 'date', dayend.date()
+            # print 'date', dayend.date()
             daysdata[dayend.date()] = {'total_attempts': [l.attempt_log['id'] for l in daylogs],
                                        'repeated_steps': repeats,
                                        'tags_attempted': list(set(alltags)),
@@ -1188,12 +1188,9 @@ def get_offset(user):
     except AttributeError:
         today = datetime.datetime.utcnow()
         now = timezone('UTC').localize(today)
-        print user
         tz_name = user.time_zone if user.time_zone \
             else 'America/Toronto'
         offset = timezone(tz_name).localize(today) - now  # when to use "ambiguous"?
-        print 'timezone:', tz_name
-        print 'offset:', offset
     return offset
 
 
@@ -1285,8 +1282,6 @@ def get_term_bounds(meminfo, start_date, end_date):
             for cid, dt in end_dates.iteritems():
                 if cid in custom_ends.keys() and custom_ends[cid] > dt:
                     end_dates[cid] = custom_ends[cid]
-        print 'ends -------------------------------------'
-        print sorted(end_dates.values())
         previous = sorted(end_dates.values())[-2]
         start_date = previous if previous < start_date else start_date
 
@@ -1304,11 +1299,8 @@ def compute_letter_grade(uid, myprog, startset, classrow):
     """
     mymem = get_current_class(uid, datetime.datetime.utcnow(),
                               myclass=classrow['id'])
-    print 'mymem'
-    print mymem
     gradedict = {}
     for let in ['a', 'b', 'c', 'd']:
-        print 'let is', let
         letcap = '{}_cap'.format(let)
         lettarget = '{}_target'.format(let)
         if mymem['custom_{}_cap'.format(let)]:
@@ -1319,10 +1311,7 @@ def compute_letter_grade(uid, myprog, startset, classrow):
                 mylet = classrow[letcap]
             else:
                 mylet = int(startset) + classrow[lettarget]
-        print 'mylet', mylet
         gradedict[mylet] = let.upper()
-    print 'gradedict'
-    print gradedict
     if myprog in gradedict.keys():
         mygrade = gradedict[myprog]
     elif myprog > [k for k, v in gradedict.items() if v == 'A'][0]:

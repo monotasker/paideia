@@ -2116,6 +2116,7 @@ class PathChooser(object):
             # print 'p_tried:', p_tried_ids
             p_tried = [p for p in cpaths if p['id'] in p_tried_ids]
 
+            print 'self.completed:', self.completed['paths']
             # untried path available here
             if p_here_new:
                 path = p_here_new[randrange(0, len(p_here_new))]
@@ -2154,17 +2155,8 @@ class PathChooser(object):
                     for prep in repeats:
                         pid = int(prep['id'])
 
-                        # FIXME: why is id not in "completed" if repeating?
-                        if pid in self.completed['paths'].keys():
-                            comp_rec = self.completed['paths'][pid]
-                            prep['count'] = comp_rec['wrong'] + comp_rec['right']
-                        else:
-                            subtitle = 'path id not in completed list when repeating'
-                            ErrorReport().send_report('PathChooser',
-                                                      '_choose_from_cat',
-                                                      subtitle=subtitle,
-                                                      xtra=None)
-                            prep['count'] = 1
+                        comp_rec = self.completed['paths'][str(pid)]
+                        prep['count'] = comp_rec['wrong'] + comp_rec['right']
 
                     mode = 'repeated'
                     new_loc = None
@@ -2266,7 +2258,7 @@ class User(object):
     data and the paths completed and active in this session.
     """
 
-    def __init__(self, userdata, tag_records, tag_progress, blocks=[]):
+    def __init__(self, userdata, tag_records, tag_progress, db=None, blocks=[]):
         """
         Initialize a paideia.User object.
         ## Argument types and structures
@@ -2274,7 +2266,7 @@ class User(object):
         - tag_progress: rows.as_dict()
         - tag_records: rows.as_dict
         """
-        db = current.db
+        db = db if db else current.db
         # TODO: this 'if' is for testing and not functionally necessary
         if 'sequence_counter' not in dir(current):
             current.sequence_counter = 0
@@ -2944,6 +2936,7 @@ class Categorizer(object):
         Return the user's average score on a given tag over the past N days.
         Always returns a float, since scores are floats between 0 and 1.
         """
+        print 'user', self.user_id
         db = current.db
         startdt = self.utcnow - datetime.timedelta(days=mydays)
         log_query = db((db.attempt_log.name == self.user_id) &
@@ -3244,7 +3237,11 @@ class Block(object):
         """
         self.condition = condition
         self.kwargs = kwargs
-        current.sequence_counter += 1
+        # condition necessary for unit test
+        try:
+            current.sequence_counter += 1
+        except AttributeError:
+            current.sequence_counter = 1
 
     def make_step(self, condition):
         """Create correct Step subclass and store as an instance variable."""

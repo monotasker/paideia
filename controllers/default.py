@@ -27,7 +27,6 @@ def index():
     """    """
     mod_topic = db(db.topics.topic == 'index-modals').select(db.topics.id).first()
     modals = db(db.content_pages.topics.contains([mod_topic.id])).select().as_list()
-    print len(modals)
     hero_topic = db(db.topics.topic == 'hero').select(db.topics.id).first()
     hero = db(db.content_pages.topics.contains([hero_topic.id])).select().as_list()
     return {'modals': modals, 'hero': hero}
@@ -120,6 +119,8 @@ def info():
 
     # get user's current course
     myc = get_current_class(user.id, datetime.datetime.utcnow())
+    print '==================================='
+    print 'myc is', myc
 
     # tab1
     name = stats.get_name()
