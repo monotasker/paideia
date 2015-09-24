@@ -9,6 +9,7 @@
 
 """
 
+from difflib import Differ
 import pytest
 import re
 from pprint import pprint
@@ -333,7 +334,7 @@ class TestInflector():
     """
     """
 
-    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.skipif(True, reason='just because')
     @pytest.mark.parametrize('mod_form,lemma,constraints,out',
         [('ἀρτου',  # mod_form
           'ἀγορα',  # lemma
@@ -401,7 +402,7 @@ class TestWordFactory():
     """
     Class for manipulating inflected Greek word forms.
     """
-    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.skipif(True, reason='just because')
     @pytest.mark.parametrize('fieldstring,combodict,out',
         [('words2-words1',  # fieldstring
           {'words1': 'ἀρτου',  # combodict
@@ -419,12 +420,12 @@ class TestWordFactory():
           ('ἀγορας', {'constructions': [None], 'word_forms': [554L]})  # out
           ),
          ])
-    def test_get_wordform(self, fieldstring, combodict, out):
+    def test_get_wordform(self, fieldstring, combodict, out, db):
         """
         Test method for the WordFactory.get_wordform() method.
         """
         f = WordFactory()
-        wordform = f.get_wordform(fieldstring, combodict)
+        wordform = f.get_wordform(fieldstring, combodict, db=db)
         assert wordform == out[0] or makeutf8(out[0])
 
     @pytest.mark.skipif(False, reason='just because')
@@ -470,15 +471,15 @@ class TestWordFactory():
         # test db row content
         #newrow = db.word_forms(actual[1])
         #myconstructions = db(db.constructions.construction_label ==
-                             #forminfo['construction']).select()
+        #                     forminfo['construction']).select()
         #forminfo['construction'] = myconstructions.first().id
         #forminfo['source_lemma'] = db.lemmas(db.lemmas.lemma ==
-                                             #forminfo['source_lemma']).id
+        #                                     forminfo['source_lemma']).id
         #for k, v in forminfo.iteritems():
             #print 'testing', k
             #assert newrow[k] == v
 
-    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.skipif(True, reason='just because')
     @pytest.mark.parametrize('lemma,constraint,out,leminfo',
             [('ἀρτος',
               'pos@nn_case@nom_g@m_num@s_gl@bread|food_ft@vocabulary#-#food',
@@ -560,7 +561,7 @@ class TestStepFactory():
     """
     Class to create steps for the Paideia web-app. (Unit tests)
     """
-    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.skipif(True, reason='just because')
     @pytest.mark.parametrize('combodict,out',
         [({'words1': 'ἀρτος',  # combodict
            'words2': 'ἀγορα'},
@@ -587,7 +588,7 @@ class TestStepFactory():
         assert title == out[0]
         assert newrow == out[1]
 
-    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.skipif(True, reason='just because')
     @pytest.mark.parametrize('combodict,temp,out',
         [({'words1': 'ἀρτος',  # combodict
            'words2': 'ἀγορα'},
@@ -616,7 +617,7 @@ class TestStepFactory():
         newstring = f._do_substitution(temp, combodict)
         assert newstring == out or makeutf8(out)
 
-    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.skipif(True, reason='just because')
     @pytest.mark.parametrize('combodict,ptemps,xtemps,rtemps,stringsout',
         [({'words1': 'ἀρτος',  # combodict
            'words2': 'ἀγορα'},
@@ -645,7 +646,7 @@ class TestStepFactory():
         assert rxs == stringsout['rxs']
         assert rdbls == [r.encode('utf8') for r in stringsout['rdbls']]
 
-    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.skipif(True, reason='just because')
     @pytest.mark.parametrize('combodict,result,content,newimg',
         [({'words1': 'ἀρτος',  # combodict
            'words2': 'ἀγορα'},
@@ -762,12 +763,12 @@ class TestPathFactory():
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('wordlists,label_template,stepsdata,avoid,testing,'
-                             'aligned,steps',
+                             'aligned,steps,message,output',
         [([(u'ἀνθρωπος', u'Ἰασων'),  # wordlists
            (u'ἀνηρ', u'Σιμων'),
            (u'γυνη', u'Μαρια')
            ],
-         'mypath {}',  # label_template
+         u'mypath {words1}',  # label_template
          [{'id': 4,
            'step_type': 3,         # stepdata
            'prompt_template': [u'Τίς {words1} ἐν τῃ στοᾳ?',
@@ -874,21 +875,609 @@ class TestPathFactory():
                                                                              115L],
                                                          'widget_image': None,
                                                          'widget_type': 1}
-                                                         }
                                             }
-                                    }
+         }
+     },
+     'No new paths\n8 paths failed\nnew word forms entered in db:\n<div><table></table></div>\nimages needed for db:\n<div><table></table></div>',  # message
+     ''  # output
+     '<h3>successes</h3>'
+     '<ul></ul>'
+     '<h3>failures</h3>'
+     '<ul>'
+     '<li>Path: path not written 5'
+     '<ul>'
+     '<li><span class="ppf_label">steps succeeded</span>3</li>'
+     '<li><span class="ppf_label">steps failed</span>0</li>'
+     '<li><span class="ppf_label">steps were duplicates</span>0</li>'
+     '<li>'
+     '<ul>'
+     '<li>testing0</li>'
+     '<li>'
+     '<ul>'
+     '<li><span class="ppf_label">widget_type</span>stub</li>'
+     '<li><span class="ppf_label">prompt</span>\xe1</li>'
+     '<li><span class="ppf_label">readable_response</span></li>'
+     '<li><span class="ppf_label">response1</span></li>'
+     '<li><span class="ppf_label">outcome1</span>1.0</li>'
+     '<li><span class="ppf_label">response2</span>None</li>'
+     '<li><span class="ppf_label">outcome2</span>0.0</li>'
+     '<li><span class="ppf_label">response3</span>None</li>'
+     '<li><span class="ppf_label">outcome3</span>0.0</li>'
+     '<li><span class="ppf_label">tags</span>preposition basics, prepositional phrases</li>'
+     '<li><span><li class="ppf_label">tags_secondary</li>alphabet-basic, noun basics, '
+     'questions1_what-who, personal pronouns - nominative - singular, nominative 3, '
+     'dative 1, asking-names, alphabet-advanced, vocabulary - town places</span></li>'
+     '<li><span class="ppf_label">tags_ahead</span></li>'
+     '<li><span class="ppf_label">npcs</span>\xce\x9c\xce\xb1\xcf\x81\xce\xb9\xce\xb1</li>'
+     '<li><span class="ppf_label">locations</span>\xce\x9f\xe1\xbc\xb0\xce\xba\xce\xbf\xcf\x82 '
+     '`\xce\x91 - \xcf\x80\xce\xb5\xcf\x81\xce\xb9\xcf\x83\xcf\x84\xcf\x85\xce\xbb\xce\xbf\xcf\x82</li>'
+     '<li><span class="ppf_label">lemmas</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">status</span>None</li>'
+     '<li><span class="ppf_label">instructions</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">hints</span>N, o, n, e</li>'
+     '</ul></li><li>testing1</li><li><ul><li>'
+     '<span class="ppf_label">widget_type</span>stub</li>'
+     '<li><span class="ppf_label">prompt</span>\xe1</li>'
+     '<li><span class="ppf_label">readable_response</span></li>'
+     '<li><span class="ppf_label">response1</span></li>'
+     '<li><span class="ppf_label">outcome1</span>1.0</li>'
+     '<li><span class="ppf_label">response2</span>None</li>'
+     '<li><span class="ppf_label">outcome2</span>0.0</li>'
+     '<li><span class="ppf_label">response3</span>None</li>'
+     '<li><span class="ppf_label">outcome3</span>0.0</li>'
+     '<li><span class="ppf_label">tags</span>preposition basics, prepositional phrases</li>'
+     '<li><span><li class="ppf_label">tags_secondary</li>alphabet-basic, noun basics, '
+     'nominative 3, dative 1, alphabet-advanced, vocabulary - town places, vocabulary - '
+     'household roles</span></li>'
+     '<li><span class="ppf_label">tags_ahead</span></li>'
+     '<li><span class="ppf_label">npcs</span>\xce\x94\xce\xb9\xce\xbf\xce\xb4\xcf\x89\xcf\x81\xce\xbf\xcf\x82</li>'
+     '<li><span class="ppf_label">locations</span>\xcf\x83\xcf\x84\xce\xbf\xce\xac</li>'
+     '<li><span class="ppf_label">lemmas</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">status</span>None</li>'
+     '<li><span class="ppf_label">instructions</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">hints</span>N, o, n, e</li>'
+     '</ul>'
+     '</li>'
+     '<li>testing2</li>'
+     '<li>'
+     '<ul>'
+     '<li><span class="ppf_label">widget_type</span>text response</li>'
+     '<li><span class="ppf_label">prompt</span>\xe1</li>'
+     '<li><span class="ppf_label">readable_response</span>\xce\x92\xce\xbb\xce\xb5\xcf\x80\xcf\x89 '
+     '\xe1\xbc\x80\xce\xbd\xce\xb7\xcf\x81.|\xe1\xbc\x88\xce\xbd\xce\xb7\xcf\x81 '
+     '\xce\xb2\xce\xbb\xce\xb5\xcf\x80\xcf\x89.</li>'
+     '<li><span class="ppf_label">response1</span>(?P&lt;a&gt;(\xce\xb2|\xce\x92)'
+     '\xce\xbb\xce\xb5\xcf\x80\xcf\x89\\s)?(\xe1\xbc\x80|\xe1\xbc\x88)\xce\xbd\xce\xb7\xcf\x81'
+     '(?(a)|\\s\xce\xb2\xce\xbb\xce\xb5\xcf\x80\xcf\x89)\\.</li>'
+     '<li><span class="ppf_label">outcome1</span>1.0</li>'
+     '<li><span class="ppf_label">response2</span>None</li>'
+     '<li><span class="ppf_label">outcome2</span>0.0</li>'
+     '<li><span class="ppf_label">response3</span>None</li>'
+     '<li><span class="ppf_label">outcome3</span>0.0</li>'
+     '<li><span class="ppf_label">tags</span>preposition basics, prepositional phrases</li>'
+     '<li><span><li class="ppf_label">tags_secondary</li>alphabet-basic, noun basics, '
+     'questions1_what-who, personal pronouns - nominative - singular, nominative 3, '
+     'dative 1, asking-names, alphabet-advanced, vocabulary - town places</span></li>'
+     '<li><span class="ppf_label">tags_ahead</span></li>'
+     '<li><span class="ppf_label">npcs</span>\xce\x9c\xce\xb1\xcf\x81\xce\xb9\xce\xb1</li>'
+     '<li><span class="ppf_label">locations</span>\xce\x9f\xe1\xbc\xb0\xce\xba\xce\xbf\xcf\x82 '
+     '`\xce\x91 - \xcf\x80\xce\xb5\xcf\x81\xce\xb9\xcf\x83\xcf\x84\xcf\x85\xce\xbb\xce\xbf\xcf\x82</li>'
+     '<li><span class="ppf_label">lemmas</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">status</span>None</li>'
+     '<li><span class="ppf_label">instructions</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">hints</span>N, o, n, e</li>'
+     '</ul>'
+     '</li>'
+     '</ul>'
+     '</li>'
+     '</ul>'
+     '</li>'
+     '<li>Path: path not written 4'
+     '<ul>'
+     '<li><span class="ppf_label">steps succeeded</span>3</li>'
+     '<li><span class="ppf_label">steps failed</span>0</li>'
+     '<li><span class="ppf_label">steps were duplicates</span>0</li>'
+     '<li>'
+     '<ul>'
+     '<li>testing0</li>'
+     '<li>'
+     '<ul>'
+     '<li><span class="ppf_label">widget_type</span>stub</li>'
+     '<li><span class="ppf_label">prompt</span>\xe1</li>'
+     '<li><span class="ppf_label">readable_response</span></li>'
+     '<li><span class="ppf_label">response1</span></li>'
+     '<li><span class="ppf_label">outcome1</span>1.0</li>'
+     '<li><span class="ppf_label">response2</span>None</li>'
+     '<li><span class="ppf_label">outcome2</span>0.0</li>'
+     '<li><span class="ppf_label">response3</span>None</li>'
+     '<li><span class="ppf_label">outcome3</span>0.0</li>'
+     '<li><span class="ppf_label">tags</span>preposition basics, prepositional phrases</li>'
+     '<li><span><li class="ppf_label">tags_secondary</li>'
+     'alphabet-basic, noun basics, questions1_what-who, personal pronouns - nominative - singular, nominative 3, dative 1, asking-names, alphabet-advanced, vocabulary - town places</span></li>'
+     '<li><span class="ppf_label">tags_ahead</span></li>'
+     '<li><span class="ppf_label">npcs</span>\xce\x9c\xce\xb1\xcf\x81\xce\xb9\xce\xb1</li>'
+     '<li><span class="ppf_label">locations</span>\xce\x9f\xe1\xbc\xb0\xce\xba\xce\xbf\xcf\x82 `\xce\x91 - \xcf\x80\xce\xb5\xcf\x81\xce\xb9\xcf\x83\xcf\x84\xcf\x85\xce\xbb\xce\xbf\xcf\x82</li>'
+     '<li><span class="ppf_label">lemmas</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">status</span>None</li>'
+     '<li><span class="ppf_label">instructions</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">hints</span>N, o, n, e</li>'
+     '</ul></li>'
+     '<li>testing1</li>'
+     '<li><ul><li><span class="ppf_label">widget_type</span>stub</li>'
+     '<li><span class="ppf_label">prompt</span>\xe1</li>'
+     '<li><span class="ppf_label">readable_response</span></li>'
+     '<li><span class="ppf_label">response1</span></li>'
+     '<li><span class="ppf_label">outcome1</span>1.0</li>'
+     '<li><span class="ppf_label">response2</span>None</li>'
+     '<li><span class="ppf_label">outcome2</span>0.0</li>'
+     '<li><span class="ppf_label">response3</span>None</li>'
+     '<li><span class="ppf_label">outcome3</span>0.0</li>'
+     '<li><span class="ppf_label">tags</span>preposition basics, prepositional phrases</li>'
+     '<li><span><li class="ppf_label">tags_secondary</li>'
+     'alphabet-basic, noun basics, nominative 3, dative 1, alphabet-advanced, vocabulary - town places, vocabulary - household roles</span></li>'
+     '<li><span class="ppf_label">tags_ahead</span></li>'
+     '<li><span class="ppf_label">npcs</span>\xce\x94\xce\xb9\xce\xbf\xce\xb4\xcf\x89\xcf\x81\xce\xbf\xcf\x82</li>'
+     '<li><span class="ppf_label">locations</span>\xcf\x83\xcf\x84\xce\xbf\xce\xac</li>'
+     '<li><span class="ppf_label">lemmas</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">status</span>None</li>'
+     '<li><span class="ppf_label">instructions</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">hints</span>N, o, n, e</li>'
+     '</ul></li>'
+     '<li>testing2</li>'
+     '<li><ul><li><span class="ppf_label">widget_type</span>text response</li>'
+     '<li><span class="ppf_label">prompt</span>\xe1</li>'
+     '<li><span class="ppf_label">readable_response</span>\xce\x92\xce\xbb\xce\xb5\xcf\x80\xcf\x89 \xe1\xbc\x80\xce\xbd\xce\xb7\xcf\x81.|\xe1\xbc\x88\xce\xbd\xce\xb7\xcf\x81 \xce\xb2\xce\xbb\xce\xb5\xcf\x80\xcf\x89.</li>'
+     '<li><span class="ppf_label">response1</span>(?P&lt;a&gt;(\xce\xb2|\xce\x92)\xce\xbb\xce\xb5\xcf\x80\xcf\x89\\s)?(\xe1\xbc\x80|\xe1\xbc\x88)\xce\xbd\xce\xb7\xcf\x81(?(a)|\\s\xce\xb2\xce\xbb\xce\xb5\xcf\x80\xcf\x89)\\.</li>'
+     '<li><span class="ppf_label">outcome1</span>1.0</li>'
+     '<li><span class="ppf_label">response2</span>None</li>'
+     '<li><span class="ppf_label">outcome2</span>0.0</li>'
+     '<li><span class="ppf_label">response3</span>None</li>'
+     '<li><span class="ppf_label">outcome3</span>0.0</li>'
+     '<li><span class="ppf_label">tags</span>preposition basics, prepositional phrases</li>'
+     '<li><span><li class="ppf_label">tags_secondary</li>'
+     'alphabet-basic, noun basics, questions1_what-who, personal pronouns - nominative - singular, nominative 3, dative 1, asking-names, alphabet-advanced, vocabulary - town places</span></li>'
+     '<li><span class="ppf_label">tags_ahead</span></li>'
+     '<li><span class="ppf_label">npcs</span>\xce\x9c\xce\xb1\xcf\x81\xce\xb9\xce\xb1</li>'
+     '<li><span class="ppf_label">locations</span>\xce\x9f\xe1\xbc\xb0\xce\xba\xce\xbf\xcf\x82 `\xce\x91 - \xcf\x80\xce\xb5\xcf\x81\xce\xb9\xcf\x83\xcf\x84\xcf\x85\xce\xbb\xce\xbf\xcf\x82</li>'
+     '<li><span class="ppf_label">lemmas</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">status</span>None</li>'
+     '<li><span class="ppf_label">instructions</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">hints</span>N, o, n, e</li>'
+     '</ul></li>'
+     '</ul></li></ul></li>'
+     '<li>Path: path not written 7<ul><li><span class="ppf_label">steps succeeded</span>3</li>'
+     '<li><span class="ppf_label">steps failed</span>0</li>'
+     '<li><span class="ppf_label">steps were duplicates</span>0</li>'
+     '<li><ul><li>testing0</li>'
+     '<li><ul><li><span class="ppf_label">widget_type</span>stub</li>'
+     '<li><span class="ppf_label">prompt</span>\xe1</li>'
+     '<li><span class="ppf_label">readable_response</span></li>'
+     '<li><span class="ppf_label">response1</span></li>'
+     '<li><span class="ppf_label">outcome1</span>1.0</li>'
+     '<li><span class="ppf_label">response2</span>None</li>'
+     '<li><span class="ppf_label">outcome2</span>0.0</li>'
+     '<li><span class="ppf_label">response3</span>None</li>'
+     '<li><span class="ppf_label">outcome3</span>0.0</li>'
+     '<li><span class="ppf_label">tags</span>preposition basics, prepositional phrases</li>'
+     '<li><span><li class="ppf_label">tags_secondary</li>'
+     'alphabet-basic, noun basics, questions1_what-who, personal pronouns - nominative - singular, nominative 3, dative 1, asking-names, alphabet-advanced, vocabulary - town places</span></li>'
+     '<li><span class="ppf_label">tags_ahead</span></li>'
+     '<li><span class="ppf_label">npcs</span>\xce\x9c\xce\xb1\xcf\x81\xce\xb9\xce\xb1</li>'
+     '<li><span class="ppf_label">locations</span>\xce\x9f\xe1\xbc\xb0\xce\xba\xce\xbf\xcf\x82 `\xce\x91 - \xcf\x80\xce\xb5\xcf\x81\xce\xb9\xcf\x83\xcf\x84\xcf\x85\xce\xbb\xce\xbf\xcf\x82</li>'
+     '<li><span class="ppf_label">lemmas</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">status</span>None</li>'
+     '<li><span class="ppf_label">instructions</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">hints</span>N, o, n, e</li>'
+     '</ul></li>'
+     '<li>testing1</li>'
+     '<li><ul><li>'
+     '<span class="ppf_label">widget_type</span>stub</li>'
+     '<li><span class="ppf_label">prompt</span>\xe1</li>'
+     '<li><span class="ppf_label">readable_response</span></li>'
+     '<li><span class="ppf_label">response1</span></li><li><span class="ppf_label">outcome1</span>1.0</li>'
+     '<li><span class="ppf_label">response2</span>None</li>'
+     '<li><span class="ppf_label">outcome2</span>0.0</li>'
+     '<li><span class="ppf_label">response3</span>None</li>'
+     '<li><span class="ppf_label">outcome3</span>0.0</li>'
+     '<li><span class="ppf_label">tags</span>preposition basics, prepositional phrases</li>'
+     '<li><span><li class="ppf_label">tags_secondary</li>'
+     'alphabet-basic, noun basics, dative 1, alphabet-advanced, vocabulary - town places</span></li>'
+     '<li><span class="ppf_label">tags_ahead</span></li>'
+     '<li><span class="ppf_label">npcs</span>\xce\x94\xce\xb9\xce\xbf\xce\xb4\xcf\x89\xcf\x81\xce\xbf\xcf\x82</li>'
+     '<li><span class="ppf_label">locations</span>\xcf\x83\xcf\x84\xce\xbf\xce\xac</li>'
+     '<li><span class="ppf_label">lemmas</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">status</span>None</li>'
+     '<li><span class="ppf_label">instructions</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">hints</span>N, o, n, e</li>'
+     '</ul></li>'
+     '<li>testing2</li>'
+     '<li><ul><li><span class="ppf_label">widget_type</span>text response</li>'
+     '<li><span class="ppf_label">prompt</span>\xe1</li>'
+     '<li><span class="ppf_label">readable_response</span>\xce\x92\xce\xbb\xce\xb5\xcf\x80\xcf\x89 \xce\xa3\xce\xb9\xce\xbc\xcf\x89\xce\xbd.|\xce\xa3\xce\xb9\xce\xbc\xcf\x89\xce\xbd \xce\xb2\xce\xbb\xce\xb5\xcf\x80\xcf\x89.</li>'
+     '<li><span class="ppf_label">response1</span>(?P&lt;a&gt;(\xce\xb2|\xce\x92)\xce\xbb\xce\xb5\xcf\x80\xcf\x89\\s)?(\xce\xa3|\xce\xa3)\xce\xb9\xce\xbc\xcf\x89\xce\xbd(?(a)|\\s\xce\xb2\xce\xbb\xce\xb5\xcf\x80\xcf\x89)\\.</li>'
+     '<li><span class="ppf_label">outcome1</span>1.0</li>'
+     '<li><span class="ppf_label">response2</span>None</li>'
+     '<li><span class="ppf_label">outcome2</span>0.0</li>'
+     '<li><span class="ppf_label">response3</span>None</li>'
+     '<li><span class="ppf_label">outcome3</span>0.0</li>'
+     '<li><span class="ppf_label">tags</span>preposition basics, prepositional phrases</li>'
+     '<li><span><li class="ppf_label">tags_secondary</li>'
+     'alphabet-basic, noun basics, questions1_what-who, personal pronouns - nominative - singular, nominative 3, dative 1, asking-names, alphabet-advanced, vocabulary - town places</span></li>'
+     '<li><span class="ppf_label">tags_ahead</span></li>'
+     '<li><span class="ppf_label">npcs</span>\xce\x9c\xce\xb1\xcf\x81\xce\xb9\xce\xb1</li>'
+     '<li><span class="ppf_label">locations</span>\xce\x9f\xe1\xbc\xb0\xce\xba\xce\xbf\xcf\x82 `\xce\x91 - \xcf\x80\xce\xb5\xcf\x81\xce\xb9\xcf\x83\xcf\x84\xcf\x85\xce\xbb\xce\xbf\xcf\x82</li>'
+     '<li><span class="ppf_label">lemmas</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">status</span>None</li>'
+     '<li><span class="ppf_label">instructions</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">hints</span>N, o, n, e</li>'
+     '</ul></li>'
+     '</ul></li>'
+     '</ul></li>'
+     '<li>Path: path not written 6<ul><li><span class="ppf_label">steps succeeded</span>3</li>'
+     '<li><span class="ppf_label">steps failed</span>0</li>'
+     '<li><span class="ppf_label">steps were duplicates</span>0</li>'
+     '<li><ul><li>testing0</li>'
+     '<li><ul><li><span class="ppf_label">widget_type</span>stub</li>'
+     '<li><span class="ppf_label">prompt</span>\xe1</li>'
+     '<li><span class="ppf_label">readable_response</span></li>'
+     '<li><span class="ppf_label">response1</span></li>'
+     '<li><span class="ppf_label">outcome1</span>1.0</li>'
+     '<li><span class="ppf_label">response2</span>None</li><li><span class="ppf_label">outcome2</span>0.0</li>'
+     '<li><span class="ppf_label">response3</span>None</li>'
+     '<li><span class="ppf_label">outcome3</span>0.0</li>'
+     '<li><span class="ppf_label">tags</span>preposition basics, prepositional phrases</li>'
+     '<li><span><li class="ppf_label">tags_secondary</li>'
+     'alphabet-basic, noun basics, questions1_what-who, personal pronouns - nominative - singular, nominative 3, dative 1, asking-names, alphabet-advanced, vocabulary - town places</span></li>'
+     '<li><span class="ppf_label">tags_ahead</span></li>'
+     '<li><span class="ppf_label">npcs</span>\xce\x9c\xce\xb1\xcf\x81\xce\xb9\xce\xb1</li>'
+     '<li><span class="ppf_label">locations</span>\xce\x9f\xe1\xbc\xb0\xce\xba\xce\xbf\xcf\x82 `\xce\x91 - \xcf\x80\xce\xb5\xcf\x81\xce\xb9\xcf\x83\xcf\x84\xcf\x85\xce\xbb\xce\xbf\xcf\x82</li>'
+     '<li><span class="ppf_label">lemmas</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">status</span>None</li>'
+     '<li><span class="ppf_label">instructions</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">hints</span>N, o, n, e</li>'
+     '</ul></li>'
+     '<li>testing1</li>'
+     '<li><ul><li><span class="ppf_label">widget_type</span>stub</li>'
+     '<li><span class="ppf_label">prompt</span>\xce</li>'
+     '<li><span class="ppf_label">readable_response</span></li><li><span class="ppf_label">response1</span></li>'
+     '<li><span class="ppf_label">outcome1</span>1.0</li>'
+     '<li><span class="ppf_label">response2</span>None</li>'
+     '<li><span class="ppf_label">outcome2</span>0.0</li><li><span class="ppf_label">response3</span>None</li>'
+     '<li><span class="ppf_label">outcome3</span>0.0</li>'
+     '<li><span class="ppf_label">tags</span>preposition basics, prepositional phrases</li>'
+     '<li><span><li class="ppf_label">tags_secondary</li>'
+     'alphabet-basic, noun basics, dative 1, alphabet-advanced, vocabulary - town places</span></li>'
+     '<li><span class="ppf_label">tags_ahead</span></li>'
+     '<li><span class="ppf_label">npcs</span>\xce\x94\xce\xb9\xce\xbf\xce\xb4\xcf\x89\xcf\x81\xce\xbf\xcf\x82</li>'
+     '<li><span class="ppf_label">locations</span>\xcf\x83\xcf\x84\xce\xbf\xce\xac</li>'
+     '<li><span class="ppf_label">lemmas</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">status</span>None</li>'
+     '<li><span class="ppf_label">instructions</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">hints</span>N, o, n, e</li>'
+     '</ul></li>'
+     '<li>testing2</li>'
+     '<li><ul><li><span class="ppf_label">widget_type</span>text response</li>'
+     '<li><span class="ppf_label">prompt</span>\xe1</li>'
+     '<li><span class="ppf_label">readable_response</span>\xce\x92\xce\xbb\xce\xb5\xcf\x80\xcf\x89 \xce\xa3\xce\xb9\xce\xbc\xcf\x89\xce\xbd.|\xce\xa3\xce\xb9\xce\xbc\xcf\x89\xce\xbd \xce\xb2\xce\xbb\xce\xb5\xcf\x80\xcf\x89.</li>'
+     '<li><span class="ppf_label">response1</span>(?P&lt;a&gt;(\xce\xb2|\xce\x92)\xce\xbb\xce\xb5\xcf\x80\xcf\x89\\s)?(\xce\xa3|\xce\xa3)\xce\xb9\xce\xbc\xcf\x89\xce\xbd(?(a)|\\s\xce\xb2\xce\xbb\xce\xb5\xcf\x80\xcf\x89)\\.</li>'
+     '<li><span class="ppf_label">outcome1</span>1.0</li>'
+     '<li><span class="ppf_label">response2</span>None</li>'
+     '<li><span class="ppf_label">outcome2</span>0.0</li>'
+     '<li><span class="ppf_label">response3</span>None</li>'
+     '<li><span class="ppf_label">outcome3</span>0.0</li>'
+     '<li><span class="ppf_label">tags</span>preposition basics, prepositional phrases</li>'
+     '<li><span><li class="ppf_label">tags_secondary</li>'
+     'alphabet-basic, noun basics, questions1_what-who, personal pronouns - nominative - singular, nominative 3, dative 1, asking-names, alphabet-advanced, vocabulary - town places</span></li>'
+     '<li><span class="ppf_label">tags_ahead</span></li>'
+     '<li><span class="ppf_label">npcs</span>\xce\x9c\xce\xb1\xcf\x81\xce\xb9\xce\xb1</li>'
+     '<li><span class="ppf_label">locations</span>\xce\x9f\xe1\xbc\xb0\xce\xba\xce\xbf\xcf\x82 `\xce\x91 - \xcf\x80\xce\xb5\xcf\x81'
+     '\xce\xb9\xcf\x83\xcf\x84\xcf\x85\xce\xbb\xce\xbf\xcf\x82</li>'
+     '<li><span class="ppf_label">lemmas</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">status</span>None</li>'
+     '<li><span class="ppf_label">instructions</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">hints</span>N, o, n, e</li>'
+     '</ul></li>'
+     '</ul></li>'
+     '</ul></li>'
+     '<li>Path: path not written 1<ul><li><span class="ppf_label">steps succeeded</span>3</li>'
+     '<li><span class="ppf_label">steps failed</span>0</li>'
+     '<li><span class="ppf_label">steps were duplicates</span>0</li>'
+     '<li><ul><li>testing0</li>'
+     '<li><ul><li><span class="ppf_label">widget_type</span>stub</li>'
+     '<li><span class="ppf_label">prompt</span>\xe1</li>'
+     '<li><span class="ppf_label">readable_response</span></li>'
+     '<li><span class="ppf_label">response1</span></li>'
+     '<li><span class="ppf_label">outcome1</span>1.0</li>'
+     '<li><span class="ppf_label">response2</span>None</li>'
+     '<li><span class="ppf_label">outcome2</span>0.0</li>'
+     '<li><span class="ppf_label">response3</span>None</li>'
+     '<li><span class="ppf_label">outcome3</span>0.0</li>'
+     '<li><span class="ppf_label">tags</span>preposition basics, prepositional phrases</li>'
+     '<li><span><li class="ppf_label">tags_secondary</li>'
+     'alphabet-basic, noun basics, questions1_what-who, personal pronouns - nominative - singular, nominative 3, nominative 2, dative 1, asking-names, alphabet-intermediate, alphabet-advanced, vocabulary - town places, vocabulary - household roles</span></li>'
+     '<li><span class="ppf_label">tags_ahead</span></li>'
+     '<li><span class="ppf_label">npcs</span>\xce\x9c\xce\xb1\xcf\x81\xce\xb9\xce\xb1</li>'
+     '<li><span class="ppf_label">locations</span>\xce\x9f\xe1\xbc\xb0\xce\xba'
+     '\xcf\x82 `\xce\x91 - \xcf\x80\xce\xb5\xcf\x81\xce\xb9\xcf\x83\xcf\x84\xcf\x85\xce\xbb\xce\xbf\xcf\x82</li>'
+     '<li><span class="ppf_label">lemmas</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">status</span>None</li>'
+     '<li><span class="ppf_label">instructions</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">hints</span>N, o, n, e</li>'
+     '</ul></li>'
+     '<li>testing1</li>'
+     '<li><ul><li><span class="ppf_label">widget_type</span>stub</li>'
+     '<li><span class="ppf_label">prompt</span>\xce</li>'
+     '<li><span class="ppf_label">readable_response</span></li>'
+     '<li><span class="ppf_label">response1</span></li>'
+     '<li><span class="ppf_label">outcome1</span>1.0</li>'
+     '<li><span class="ppf_label">response2</span>None</li>'
+     '<li><span class="ppf_label">outcome2</span>0.0</li>'
+     '<li><span class="ppf_label">response3</span>None</li>'
+     '<li><span class="ppf_label">outcome3</span>0.0</li>'
+     '<li><span class="ppf_label">tags</span>preposition basics, prepositional phrases</li>'
+     '<li><span><li class="ppf_label">tags_secondary</li>'
+     'alphabet-basic, noun basics, nominative 3, dati'
+     've 1, alphabet-advanced, vocabulary - town places, vocabulary - household roles</span></li>'
+     '<li><span class="ppf_label">tags_ahead</span></li>'
+     '<li><span class="ppf_label">npcs</span>\xce\x94\xce\xb9\xce\xbf'
+     '\xce\xb4\xcf\x89\xcf\x81\xce\xbf\xcf\x82</li>'
+     '<li><span class="ppf_label">locations</span>\xcf\x83\xcf\x84\xce\xbf\xce\xac</li>'
+     '<li><span class="ppf_label">lemmas</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">status</span>None</li>'
+     '<li><span class="ppf_label">instructions</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">hints</span>N, o, n, e</li>'
+     '</ul></li>'
+     '<li>testing2</li>'
+     '<li><ul><li><span class="ppf_label">widget_type</span>text response</li>'
+     '<li><span class="ppf_label">prompt</span>\xe1</li>'
+     '<li><span class="ppf_label">readable_response</span>\xce\x92\xce\xbb\xce\xb5\xcf\x80\xcf\x89 \xe1\xbc\x80\xce\xbd\xce\xb7\xcf\x81.|\xe1\xbc\x88\xce\xbd\xce\xb7\xcf\x81 \xce\xb2\xce\xbb\xce\xb5\xcf\x80\xcf\x89.</li>'
+     '<li><span class="ppf_label">response1</span>(?P&lt;a&gt;(\xce\xb2|\xce\x92)\xce\xbb\xce\xb5\xcf\x80\xcf\x89\\s)?(\xe1\xbc\x80|\xe1\xbc\x88)\xce\xbd\xce\xb7\xcf\x81(?(a)|\\s\xce\xb2\xce\xbb\xce\xb5\xcf\x80\xcf\x89)\\.</li>'
+     '<li><span class="ppf_label">outcome1</span>1.0</li>'
+     '<li><span class="ppf_label">response2</span>None</li>'
+     '<li><span class="ppf_label">outcome2</span>0.0</li>'
+     '<li><span class="ppf_label">response3</span>None</li>'
+     '<li><span class="ppf_label">outcome3</span>0.0</li>'
+     '<li><span class="ppf_label">tags</span>preposition basics, prepositional phrases</li>'
+     '<li><span><li class="ppf_label">tags_secondary</li>'
+     'alphabet-basic, noun basics, questions1_what-who, personal pronouns - nominative - singular, nominative 3, nominative 2, dative 1, asking-names, alphabet-intermediate, alphabet-advanced, vocabulary - town places, vocabulary - household roles</span></li>'
+     '<li><span class="ppf_label">tags_ahead</span></li>'
+     '<li><span class="ppf_label">npcs</span>\xce\x9c\xce\xb1\xcf\x81\xce\xb9\xce\xb1</li>'
+     '<li><span class="ppf_label">locations</span>\xce\x9f\xe1\xbc\xb0\xce\xba\xce\xbf\xcf\x82 `\xce\x91 - \xcf\x80\xce'
+     '\xb5\xcf\x81\xce\xb9\xcf\x83\xcf\x84\xcf\x85\xce\xbb\xce\xbf\xcf\x82</li>'
+     '<li><span class="ppf_label">lemmas</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">status</span>None</li>'
+     '<li><span class="ppf_l'
+     'abel">instructions</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">hints</span>N, o, n, e</li>'
+     '</ul></li>'
+     '</ul></li>'
+     '</ul></li>'
+     '<li>Path: path not written 0<ul><li><span class="ppf_label">steps succeeded</s'
+     'pan>3</li>'
+     '<li><span class="ppf_label">steps failed</span>0</li>'
+     '<li><span class="ppf_label">steps were duplicates</span>0</li>'
+     '<li><ul><li>testing0</li>'
+     '<li><ul><li><span class="ppf_label">widget_type</span'
+     '>stub</li>'
+     '<li><span class="ppf_label">prompt</span>\xe1</li>'
+     '<li><span class="ppf_label">readable_response</span></li>'
+     '<li><span class="ppf_label">response1</span></li>'
+     '<li><span class="ppf_label">outcome1<'
+     '/span>1.0</li>'
+     '<li><span class="ppf_label">response2</span>None</li>'
+     '<li><span class="ppf_label">outcome2</span>0.0</li>'
+     '<li><span class="ppf_label">response3</span>None</li>'
+     '<li><span class="ppf_label">outc'
+     'ome3</span>0.0</li>'
+     '<li><span class="ppf_label">tags</span>preposition basics, prepositional phrases</li>'
+     '<li><span><li class="ppf_label">tags_secondary</li>'
+     'alphabet-basic, noun basics, questions1_what-who, personal pronouns - nominative - singular, nominative 3, nominative 2, dative 1, asking-names, alphabet-intermediate, alphabet-advanced, vocabulary - town places, vocabulary - household roles</span></li>'
+     '<li><span class="ppf_label">tags_ahead</span></li>'
+     '<li><span class="ppf_label">npcs</span>\xce\x9c\xce\xb1\xcf\x81\xce\xb9\xce\xb1</li>'
+     '<li><span class="ppf_label">locations</span>\xce\x9f\xe1\xbc\xb0\xce\xba\xce\xbf\xcf\x82 `\xce\x91 - \xcf\x80\xce\xb5\xcf\x81\xce\xb9\xcf\x83\xcf\x84\xcf\x85\xce\xbb\xce\xbf\xcf\x82</li>'
+     '<li><span class="ppf_label">lemmas</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">status</span>None</li>'
+     '<li><span class="ppf_label">instructions</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">hints</span>N, o, n, e</li>'
+     '</ul></li>'
+     '<li>testing1</li>'
+     '<li><ul><li><span class="ppf_label">widget_type</span>stub</li>'
+     '<li><span class="ppf_label">prompt</span>\xce</li>'
+     '<li><span class="ppf_label">readable_response</span></li>'
+     '<li><span class="ppf_label">response1</span></li>'
+     '<li><span class="ppf_label">outcome1</span>1.0</li>'
+     '<li><span class="ppf_label">response2</span>None</li>'
+     '<li><span class="ppf_label">outcome2</span>0.0</li>'
+     '<li><span class="ppf_label">response3</span>None</li>'
+     '<li><span class="ppf_label">outcome3</span>0.0</li>'
+     '<li><span class="ppf_label">tags</span>preposition basics, prepositional phrases</li>'
+     '<li><span><li class="ppf_label">tags_secondary</li>'
+     'alphabet-basic, noun basics, nominative 3, dative 1, alphabet-advanced, vocabulary - town places, vocabulary - household roles</span></li>'
+     '<li><span class="ppf_label">tags_ahead</span></li>'
+     '<li><span class="ppf_label">npcs</span>\xce\x94\xce\xb9\xce\xbf\xce\xb4\xcf\x89\xcf\x81\xce\xbf\xcf\x82</li>'
+     '<li><span class="ppf_label">locations</span>\xcf\x83\xcf\x84\xce\xbf\xce\xac</li>'
+     '<li><span class="ppf_label">lemmas</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">status</span>None</li>'
+     '<li><span class="ppf_label">instructions</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">hints</span>N, o, n, e</li>'
+     '</ul></li>'
+     '<li>testing2</li>'
+     '<li><ul><li><span class="ppf_label">widget_type</span>text response</li>'
+     '<li><span class="ppf_label">prompt</span>\xe1</li>'
+     '<li><span class="ppf_label">readable_response</span>\xce\x92\xce\xbb\xce\xb5\xcf\x80\xcf\x89 \xe1\xbc\x80\xce\xbd\xce\xb7\xcf\x81.|\xe1\xbc\x88\xce\xbd\xce\xb7\xcf\x81 \xce\xb2\xce\xbb\xce\xb5\xcf\x80\xcf\x89.</li>'
+     '<li><span class="ppf_label">response1</span>(?P&lt;a&gt;(\xce\xb2|\xce\x92)\xce\xbb\xce\xb5\xcf\x80\xcf\x89\\s)?(\xe1\xbc\x80|\xe1\xbc\x88)\xce\xbd\xce\xb7\xcf\x81(?(a)|\\s\xce\xb2\xce\xbb\xce\xb5\xcf\x80\xcf\x89)\\.</li>'
+     '<li><span class="ppf_label">outcome1</span>1.0</li>'
+     '<li><span class="ppf_label">response2</span>None</li>'
+     '<li><span class="ppf_label">outcome2</span>0.0</li>'
+     '<li><span class="ppf_label">response3</span>None</li>'
+     '<li><span class="ppf_label">outcome3</span>0.0</li>'
+     '<li><span class="ppf_label">tags</span>preposition basics, prepositional phrases</li>'
+     '<li><span><li class="ppf_label">tags_secondary</li>'
+     'alphabet-basic, noun basics, questions1_what-who, personal pronouns - nominative - singular, nominative 3, nominative 2, dative 1, asking-names, alphabet-intermediate, alphabet-advanced, vocabulary - town places, vocabulary - household roles</span></li>'
+     '<li><span class="ppf_label">tags_ahead</span></li>'
+     '<li><span class="ppf_label">npcs</span>\xce\x9c\xce\xb1\xcf\x81\xce\xb9\xce\xb1</li>'
+     '<li><span class="ppf_label">locations</span>\xce\x9f\xe1\xbc\xb0\xce\xba\xce\xbf\xcf\x82 `\xce\x91 - \xcf\x80\xce\xb5\xcf\x81\xce\xb9\xcf\x83\xcf\x84\xcf\x85\xce\xbb\xce\xbf\xcf\x82</li>'
+     '<li><span class="ppf_label">lemmas</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">status</span>None</li>'
+     '<li><span class="ppf_label">instructions</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">hints</span>N, o, n, e</li>'
+     '</ul></li>'
+     '</ul></li>'
+     '</ul></li>'
+     '<li>Path: path not written 3<ul><li><span class="ppf_label">steps succeeded</span>3</li>'
+     '<li><span class="ppf_label">steps failed</span>0</li>'
+     '<li><span class="ppf_label">steps were duplicates</span>0</li>'
+     '<li><ul><li>testing0</li>'
+     '<li><ul><li><span class="ppf_label">widget_type</span>stub</li>'
+     '<li><span class="ppf_label">prompt</span>\xe1</li>'
+     '<li><span class="ppf_label">readable_response</span></li>'
+     '<li><span class="ppf_label">response1</span></li>'
+     '<li><span class="ppf_label">outcome1</span>1.0</li>'
+     '<li><span class="ppf_label">response2</span>None</li>'
+     '<li><span class="ppf_label">outcome2</span>0.0</li>'
+     '<li><span class="ppf_label">response3</span>None</li>'
+     '<li><span class="ppf_label">outcome3</span>0.0</li>'
+     '<li><span class="ppf_label">tags</span>preposition basics, prepositional phrases</li>'
+     '<li><span><li class="ppf_label">tags_secondary</li>'
+     'alphabet-basic, noun basics, questions1_what-who, personal pronouns - nominative - singular, nominative 3, nominative 2, dative 1, asking-names, alphabet-intermediate, alphabet-advanced, vocabulary - town places, vocabulary - household '
+     'roles</span></li>'
+     '<li><span class="ppf_label">tags_ahead</span></li>'
+     '<li><span class="ppf_label">npcs</span>\xce\x9c\xce\xb1\xcf\x81\xce\xb9\xce\xb1</li>'
+     '<li><span class="ppf_label">locations</span>\xce\x9f\xe1\xbc\xb0\xce\xba\xce\xbf\xcf\x82 `\xce\x91 - \xcf\x80\xce\xb5\xcf\x81\xce\xb9\xcf\x83\xcf\x84\xcf\x85\xce\xbb\xce\xbf\xcf\x82</li>'
+     '<li><span class="ppf_label">lemmas</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">status</span>None</li>'
+     '<li><span class="ppf_label">instructions</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">hints</span>N, o, n, e</li>'
+     '</ul></li>'
+     '<li>testing1</li>'
+     '<li><ul><li><span class="ppf_label">widget_type</span>stub</li>'
+     '<li><span class="ppf_label">prompt</span>\xce</li>'
+     '<li><span class="ppf_label">readable_response</span></li>'
+     '<li><span class="ppf_label">response1</span></li>'
+     '<li><span class="ppf_label">outcome1</span>1.0</li>'
+     '<li><span class="ppf_label">response2</span>None</li>'
+     '<li><span class="ppf_label">outcome2</span>0.0</li>'
+     '<li><span class="ppf_label">response3</span>None</li>'
+     '<li><span class="ppf_label">outcome3</span>0.0</li>'
+     '<li><span class="ppf_label">tags</span>preposition basics, prepositional phrases</li>'
+     '<li><span><li class="ppf_label">tags_secondary</li>'
+     'alphabet-basic, noun basics, dative 1, alphabet-advanced, vocabulary - town places</span></li>'
+     '<li><span class="ppf_label">tags_ahead</span></li>'
+     '<li><span class="ppf_label">npcs</span>\xce\x94\xce\xb9\xce\xbf\xce\xb4\xcf\x89\xcf\x81\xce\xbf\xcf\x82</li>'
+     '<li><span class="ppf_label">locations</span>\xcf\x83\xcf\x84\xce\xbf\xce\xac</li>'
+     '<li><span class="ppf_label">lemmas</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">status</span>None</li>'
+     '<li><span class="ppf_label">instructions</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">hints</span>N, o, n, e</li>'
+     '</ul></li>'
+     '<li>testing2</li>'
+     '<li><ul><li><span class="ppf_label">widget_type</span>text response</li>'
+     '<li><span class="ppf_label">prompt</span>\xe1</li>'
+     '<li><span class="ppf_label">readable_response</span>\xce\x92\xce\xbb\xce\xb5\xcf\x80\xcf\x89 \xce\xa3\xce\xb9\xce\xbc\xcf\x89\xce\xbd.|\xce\xa3\xce\xb9\xce\xbc\xcf\x89\xce\xbd \xce\xb2\xce\xbb\xce\xb5\xcf\x80\xcf\x89.</li>'
+     '<li><span class="ppf_label">response1</span>(?P&lt;a&gt;(\xce\xb2|\xce\x92)\xce\xbb\xce\xb5\xcf\x80\xcf\x89\\s)?(\xce\xa3|\xce\xa3)\xce\xb9\xce\xbc\xcf\x89\xce\xbd(?(a)|\\s\xce\xb2\xce\xbb\xce\xb5\xcf\x80\xcf\x89)\\.</li>'
+     '<li><span class="ppf_label">outcome1</span>1.0</li>'
+     '<li><span class="ppf_label">response2</span>None</li>'
+     '<li><span class="ppf_label">outcome2</span>0.0</li>'
+     '<li><span class="ppf_label">response3</span>None</li>'
+     '<li><span class="ppf_label">outcome3</span>0.0</li>'
+     '<li><span class="ppf_label">tags</span>preposition basics, prepositional phrases</li>'
+     '<li><span><li class="ppf_label">tags_secondary</li>'
+     'alphabet-basic, noun basics, questions1_what-who, personal pronouns - nominative - singular, nominative 3, nominative 2, dative 1, asking-names, alphabet-intermediate, alphabet-advanced, vocabulary - town places, vocabulary - household roles</span></li>'
+     '<li><span class="ppf_label">tags_ahead</span></li>'
+     '<li><span class="ppf_label">npcs</span>\xce\x9c\xce\xb1\xcf\x81\xce\xb9\xce\xb1</li>'
+     '<li><span class="ppf_label">locations</span>\xce\x9f\xe1\xbc\xb0\xce\xba\xce\xbf\xcf\x82 `\xce\x91 - \xcf\x80\xce\xb5'
+     '\xcf\x81\xce\xb9\xcf\x83\xcf\x84\xcf\x85\xce\xbb\xce\xbf\xcf\x82</li>'
+     '<li><span class="ppf_label">lemmas</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">status</span>None</li>'
+     '<li><span class="ppf_label">instructions</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">hints</span>N, o, n, e</li>'
+     '</ul></li>'
+     '</ul></li>'
+     '</ul></li>'
+     '<li>Path: path not written 2<ul><li><span class="ppf_label">steps succeeded</span>3</li>'
+     '<li><span class="ppf_label">steps failed</span>0</li>'
+     '<li><span class="ppf_label">steps were duplicates</span>0</li>'
+     '<li><ul><li>testing0</li>'
+     '<li><ul><li><span class="ppf_label">widget_type</span>stub</li>'
+     '<li><span class="ppf_label">prompt</span>\xe1</li>'
+     '<li><span class="ppf_label">readable_response</span></li>'
+     '<li><span class="ppf_label">response1</span></li>'
+     '<li><span class="ppf_label">outcome1</span>1.0</li>'
+     '<li><span class="ppf_label">response2</span>None</li>'
+     '<li><span class="ppf_label">outcome2</span>0.0</li>'
+     '<li><span class="ppf_label">response3</span>None</li>'
+     '<li><span class="ppf_label">outcome3</span>0.0</li>'
+     '<li><span class="ppf_label">tags</span>preposition basics, prepositional phrases</li>'
+     '<li><span><li class="ppf_label">tags_secondary</li>'
+     'alphabet-basic, noun basics, questions1_what-who, personal pronouns - nominative - singular, nominative 3, nominative 2, dative 1, asking-names, alphabet-intermediate, alphabet-advanced, vocabulary - town places, vocabulary - household roles</span></li>'
+     '<li><span class="ppf_label">tags_ahead</span></li>'
+     '<li><span class="ppf_label">npcs</span>\xce\x9c\xce\xb1\xcf\x81\xce\xb9\xce\xb1</li>'
+     '<li><span class="ppf_label">locations</span>\xce\x9f\xe1\xbc\xb0\xce\xba\xce\xbf\xcf\x82 `\xce\x91 - \xcf\x80\xce\xb5\xcf\x81\xce\xb9\xcf\x83\xcf\x84\xcf\x85\xce\xbb\xce\xbf\xcf\x82</li>'
+     '<li><span class="ppf_label">lemmas</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">status</span>None</li>'
+     '<li><span class="ppf_label">instructions</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">hints</span>N, o, n, e</li>'
+     '</ul></li>'
+     '<li>testing1</li>'
+     '<li><ul><li><span class="ppf_label">widget_type</span>stub</li>'
+     '<li><span class="ppf_label">prompt</span>\xce</li>'
+     '<li><span class="ppf_label">readable_response</span></li>'
+     '<li><span class="ppf_label">response1</span></li>'
+     '<li><span class="ppf_label">outcome1</span>1.0</li>'
+     '<li><span class="ppf_label">response2</span>None</li>'
+     '<li><span class="ppf_label">outcome2</span>0.0</li>'
+     '<li><span class="ppf_label">response3</span>None</li>'
+     '<li><span class="ppf_label">outcome3</span>0.0</li>'
+     '<li><span class="ppf_label">tags</span>preposition basics, prepositional phrases</li>'
+     '<li><span><li class="ppf_label">tags_secondary</li>'
+     'alphabet-basic, noun basics, dative 1, alphabet-advanced, vocabulary - town places</span></li>'
+     '<li><span class="ppf_label">tags_ahead</span></li>'
+     '<li><span class="ppf_label">npcs</span>\xce\x94\xce\xb9\xce\xbf\xce\xb4\xcf\x89\xcf\x81\xce\xbf\xcf\x82</li>'
+     '<li><span class="ppf_label">locations</span>\xcf\x83\xcf\x84\xce\xbf\xce\xac</li>'
+     '<li><span class="ppf_label">lemmas</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">status</span>None</li>'
+     '<li><span class="ppf_label">instructions</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">hints</span>N, o, n, e</li>'
+     '</ul></li>'
+     '<li>testing2</li>'
+     '<li><ul><li><span class="ppf_label">widget_type</span>text response</li>'
+     '<li><span class="ppf_label">prompt</span>\xe1</li>'
+     '<li><span class="ppf_label">readable_response</span>\xce\x92\xce\xbb\xce\xb5\xcf\x80\xcf\x89 \xce\xa3\xce\xb9\xce\xbc\xcf\x89\xce\xbd.|\xce\xa3\xce\xb9\xce\xbc\xcf\x89\xce\xbd \xce\xb2\xce\xbb\xce\xb5\xcf\x80\xcf\x89.</li>'
+     '<li><span class="ppf_label">response1</span>(?P&lt;a&gt;(\xce\xb2|\xce\x92)\xce\xbb\xce\xb5\xcf\x80\xcf\x89\\s)?(\xce\xa3|\xce\xa3)\xce\xb9\xce\xbc\xcf\x89\xce\xbd(?(a)|\\s\xce\xb2\xce\xbb\xce\xb5\xcf\x80\xcf\x89)\\.</li>'
+     '<li><span class="ppf_label">outcome1</span>1.0</li>'
+     '<li><span class="ppf_label">response2</span>None</li>'
+     '<li>'
+     '<span class="ppf_label">outcome2</span>0.0</li>'
+     '<li><span class="ppf_label">response3</span>None</li>'
+     '<li><span class="ppf_label">outcome3</span>0.0</li>'
+     '<li><span class="ppf_label">tags</span>preposition basics, prepositional phrases</li>'
+     '<li><span><li class="ppf_label">tags_secondary</li>'
+     'alphabet-basic, noun basics, questions1_what-who, personal pronouns - nominative - singular, nominative 3, nominative 2, dative 1, asking-names, alphabet-intermediate, alphabet-advanced, vocabulary - town places, vocabulary - household roles</span></li>'
+     '<li><span class="ppf_label">tags_ahead</span></li>'
+     '<li><span class="ppf_label">npcs</span>\xce\x9c\xce\xb1\xcf\x81\xce\xb9\xce\xb1</li>'
+     '<li><span class="ppf_label">locations</span>\xce\x9f\xe1\xbc\xb0\xce\xba\xce\xbf\xcf\x82 `\xce\x91 - \xcf\x80\xce\xb5\xcf\x81\xce\xb9\xcf'
+     '\x83\xcf\x84\xcf\x85\xce\xbb\xce\xbf\xcf\x82</li>'
+     '<li><span class="ppf_label">lemmas</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">status</span>None</li>'
+     '<li><span class="ppf_label">instructions</span>N, o, n, e</li>'
+     '<li><span class="ppf_label">hints</span>N, o, n, e</li>'
+     '</ul></li>'
+     '</ul></li>'
+     '</ul></li>'
+     '</ul>'
     )
     ])
     def test_make_path(self, wordlists, label_template, stepsdata, avoid,
-                       testing, aligned, steps):
+                       testing, aligned, steps, message, output):
         """
         """
-        actual = PathFactory().make_path(wordlists,
-                                       label_template=label_template,
-                                       stepsdata=stepsdata,
-                                       avoid=avoid,
-                                       aligned=aligned,
-                                       testing=testing)
+        pf = PathFactory()
+        actual = pf.make_path(wordlists,
+                              label_template=label_template,
+                              stepsdata=stepsdata,
+                              avoid=avoid,
+                              aligned=aligned,
+                              testing=testing)
 
         for k, val in steps['path not written 0'].iteritems():
             if not isinstance(val, dict):
@@ -896,3 +1485,28 @@ class TestPathFactory():
             else:
                 for step, sval in val.iteritems():
                     assert sval == steps['path not written 0'][k][step]
+
+        actual_output = pf.make_output(actual)
+        assert actual_output[0] == message
+
+        aosplit = actual_output[1].xml().split()
+        osplit = output.split()
+        aosubs = []
+        osubs = []
+        n = 20
+        for i in range(0, len(aosplit), n):
+            aosubs.append(" ".join(aosplit[i:i+n]))
+            osubs.append(" ".join(osplit[i:i+n]))
+        count = 0
+        for idx, s in enumerate(aosubs):
+            if s != osubs[idx]:
+                print '\nERROR'
+                print aosubs[idx]
+                print osubs[idx]
+                print 'DIFF'
+                print "".join(list(Differ().compare(s, osubs[idx]))).replace(' ', '')
+                print list(Differ().compare(s, osubs[idx]))
+                count = count + 1
+        print count, 'ERRORS *****************************************'
+        assert actual_output[1].xml() == output
+
