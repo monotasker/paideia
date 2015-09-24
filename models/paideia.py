@@ -807,7 +807,6 @@ def create_or_update_steps_inactive_locations(f, given_step_id):
     local_f = f
     if (dict != type(local_f)):
         local_f = local_f.as_dict()
-    simple_obj_print([local_f, step_id], "troy: local_f,step id")
     # delete everything for this step first
     db((db.steps_inactive_locations.step_id == step_id)).delete()
     if 'locations' in local_f:

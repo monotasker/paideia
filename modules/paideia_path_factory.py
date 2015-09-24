@@ -26,7 +26,7 @@ from itertools import product, chain
 from kitchen.text.converters import to_unicode, to_bytes
 from paideia_utils import check_regex, Uprinter
 from plugin_utils import flatten, makeutf8, islist, capitalize_first
-# from pprint import pprint
+from pprint import pprint
 from random import randrange, shuffle
 import re
 import traceback
@@ -923,7 +923,7 @@ class WordFactory(object):
             traceback.print_exc(5)
             return False
 
-    def get_wordform(self, field, combodict):
+    def get_wordform(self, field, combodict, db=None):
         """
         Get the properly inflected word form for the supplied field.
 
@@ -934,7 +934,7 @@ class WordFactory(object):
         agree with the modform in all relevant aspects.
 
         """
-        db = current.db
+        db = db if db else current.db
         splits = field.split('-')
         lemma = splits[0]
         try:
@@ -1005,9 +1005,9 @@ class StepFactory(object):
         """
         mytype = sdata['step_type']
 
-        ptemp = islist(sdata['prompt_template'])
-        xtemp = islist(sdata['response_template'])
-        rtemp = islist(sdata['readable_template'])
+        ptemp = [to_unicode(pt) for pt in islist(sdata['prompt_template'])]
+        xtemp = [to_unicode(rt) for rt in islist(sdata['response_template'])]
+        rtemp = [to_unicode(dt) for dt in islist(sdata['readable_template'])]
 
         tags1 = sdata['tags'] if 'tags' in sdata.keys() else None
         itemp = sdata['image_template']
@@ -1053,7 +1053,16 @@ class StepFactory(object):
                   'hints': hints}  # [randrange(len(npcs))] if mult
 
         try:
-            matchdicts = [check_regex(x, rdbls) for x in rxs]
+            # test readable responses against regexes
+            matchdicts = []
+            for x in rxs:
+                my_rdbls = rdbls.split('|')
+                results = []
+                for m in my_rdbls:
+                    results.append(check_regex(x, m))
+                resultdict = {x: all(r for r in results)}
+                matchdicts.append(resultdict)
+
             xfail = {}
             for idx, regex in enumerate(rxs):
                 if mytype not in [3]:
@@ -1168,10 +1177,10 @@ class StepFactory(object):
         inflected_fields = [f for f in fields if len(f.split('-')) > 1]
         for f in fields:
             if f in inflected_fields:
-                myform = WordFactory().get_wordform(f, combodict)
+                myform = to_unicode(WordFactory().get_wordform(f, combodict))
             else:
-                myform = combodict[f]
-            subpairs[f] = self._add_caps_option(myform) if regex else myform
+                myform = to_unicode(combodict[f])
+            subpairs[f] = to_unicode(self._add_caps_option(myform) if regex else myform)
         ready_strings = temp.format(**subpairs)
         return ready_strings
 
@@ -1309,9 +1318,9 @@ class PathFactory(object):
                     ndict = {k: vv[k] for k in nkeys}
                     stepsdata.append(ndict)
             if isinstance(vv['words'], list):
-                wordlists = [w.split('|') for w in vv['words']]
+                wordlists = [to_unicode(w).split(u'|') for w in vv['words']]
             else:
-                wordlists = [vv['words'].split('|')]
+                wordlists = [to_unicode(vv['words']).split(u'|')]
             paths = self.make_path(wordlists,
                                    label_template=vv.label_template,
                                    stepsdata=stepsdata,
@@ -1413,8 +1422,8 @@ class PathFactory(object):
         for idx, c in enumerate(combos):  # one path for each combo
             mykeys = ['words{}'.format(n + 1) for n in range(len(c))]
             combodict = dict(zip(mykeys, c))  # keys are template placeholders
-
             label = label_template.format(**combodict)
+            print 'label is', label
 
             pdata = {'steps': {}, 'new_forms': {}, 'images_missing': []}
             for i, s in enumerate(stepsdata):  # each step in path
@@ -1436,6 +1445,7 @@ class PathFactory(object):
                 if imgs:
                     pdata['images_missing'].append(imgs)
             pgood = [isinstance(k, (int, long)) for k in pdata['steps'].keys()]
+            print 'making paths', pdata['steps'].keys()
             pid = self.path_to_db(pdata['steps'].keys(), label) \
                 if all(pgood) and not self.mock else 'path not written {}'.format(idx)
             paths[pid] = pdata
@@ -1510,76 +1520,88 @@ class PathFactory(object):
                 psub.append(LI(SPAN('steps were duplicates', _class='ppf_label'),
                                len(duplicates)))
                 content = pv['steps']
+
                 mycontent = UL()
                 UP = Uprinter()
                 for key, c in content.iteritems():
+
                     mycontent.append(LI(key))
                     mystep = UL()
-                    mystep.append(LI(SPAN('widget_type', _class='ppf_label'),
-                                     db.step_types(c['widget_type']).step_type))
-                    mystep.append(LI(SPAN('prompt', _class='ppf_label'),
-                                     makeutf8(c['prompt'][0])))
-                    mystep.append(LI(SPAN('readable_response', _class='ppf_label'),
-                                     makeutf8(c['readable_response'])))
-                    mystep.append(LI(SPAN('response1', _class='ppf_label'),
-                                     makeutf8(c['response1'])))
-                    mystep.append(LI(SPAN('outcome1', _class='ppf_label'),
-                                     c['outcome1']))
-                    mystep.append(LI(SPAN('response2', _class='ppf_label'),
-                                     makeutf8(c['response2'])
-                                  if c['response2'] else None))
-                    mystep.append(LI(SPAN('outcome2', _class='ppf_label'),
-                                     c['outcome2']))
-                    mystep.append(LI(SPAN('response3', _class='ppf_label'),
-                                     makeutf8(c['response3'])
-                                     if c['response3'] else None))
-                    mystep.append(LI(SPAN('outcome3', _class='ppf_label'),
-                                     c['outcome3']))
-                    tags = [t['tag'] for t in
-                            db(db.tags.id.belongs(c['tags'])).select()]
-                    mystep.append(LI(SPAN('tags', _class='ppf_label'),
-                                     ', '.join(tags)))
-                    tags_secondary = [t['tag'] for t in
-                                      db(db.tags.id.belongs(c['tags_secondary'])
-                                         ).select()]
-                    mystep.append(SPAN(LI('tags_secondary', _class='ppf_label'),
-                                       ', '.join(tags_secondary)))
-                    tags_ahead = [t['tag'] for t in
-                                  db(db.tags.id.belongs(islist(c['tags_ahead']))
-                                     ).select()]
-                    mystep.append(LI(SPAN('tags_ahead', _class='ppf_label'),
-                                     ', '.join(tags_ahead)))
-                    npcs = [makeutf8(t['name']) for t in
-                            db(db.npcs.id.belongs(islist(c['npcs']))).select()]
-                    mystep.append(LI(SPAN('npcs', _class='ppf_label'),
-                                     ', '.join(npcs)))
-                    print 'locations:', islist(c['locations'])
-                    locations = [makeutf8(t['map_location']) for t in
-                                 db(db.locations.id.belongs(islist(c['locations']))
-                                    ).select()
-                                 ]
-                    mystep.append(LI(SPAN('locations', _class='ppf_label'),
-                                       ', '.join(locations)))
-                    lemmas = [t['lemma'] for t in
-                              db(db.lemmas.id.belongs(c['lemmas'])).select()] \
-                        if 'lemmas' in c.keys() else 'None'
-                    mystep.append(LI(SPAN('lemmas', _class='ppf_label'),
-                                     ', '.join(lemmas)
-                                     if lemmas else 'None'))
-                    mystep.append(LI(SPAN('status', _class='ppf_label'),
-                                     db.step_status(c['status']).status_label
-                                     if 'status' in c.keys() else 'None'))
-                    instructions = [t['instruction_label'] for t in
-                                    db(db.step_instructions.id.belongs(c['instructions'])
-                                       ).select()]
-                    mystep.append(LI(SPAN('instructions', _class='ppf_label'),
-                                     ', '.join(instructions)
-                                     if instructions else 'None'))
-                    hints = [t['hint_label'] for t in
-                             db(db.step_hints.id.belongs(c['hints'])).select()] \
-                        if 'hints' in c.keys() and c['hints'] else 'None'
-                    mystep.append(LI(SPAN('hints', _class='ppf_label'),
-                                     ', '.join(hints)))
+
+                    if isinstance(key, (unicode, str)) and re.match(u'regex failure', key):
+                        mystep = UL()
+                        mystep.append(LI(SPAN('regex: ', _class='regex_error'),
+                                         c.keys()[0]))
+                        mystep.append(LI(SPAN('readable: ', _class='regex_error'),
+                                         ' '.join(c.values()[0])))
+                    else:
+                        wt = db.step_types(c['widget_type']).step_type \
+                            if 'widget_type' in c else 'None'
+                        mystep.append(LI(SPAN('widget_type', _class='ppf_label'),
+                                        wt))
+                        mystep.append(LI(SPAN('prompt', _class='ppf_label'),
+                                        makeutf8(c['prompt'])))
+                        mystep.append(LI(SPAN('readable_response', _class='ppf_label'),
+                                        makeutf8(c['readable_response'])))
+                        mystep.append(LI(SPAN('response1', _class='ppf_label'),
+                                        makeutf8(c['response1'])))
+                        mystep.append(LI(SPAN('outcome1', _class='ppf_label'),
+                                        c['outcome1']))
+                        mystep.append(LI(SPAN('response2', _class='ppf_label'),
+                                        makeutf8(c['response2'])
+                                    if c['response2'] else None))
+                        mystep.append(LI(SPAN('outcome2', _class='ppf_label'),
+                                        c['outcome2']))
+                        mystep.append(LI(SPAN('response3', _class='ppf_label'),
+                                        makeutf8(c['response3'])
+                                        if c['response3'] else None))
+                        mystep.append(LI(SPAN('outcome3', _class='ppf_label'),
+                                        c['outcome3']))
+                        tags = [t['tag'] for t in
+                                db(db.tags.id.belongs(c['tags'])).select()]
+                        mystep.append(LI(SPAN('tags', _class='ppf_label'),
+                                        ', '.join(tags)))
+                        tags_secondary = [t['tag'] for t in
+                                        db(db.tags.id.belongs(c['tags_secondary'])
+                                            ).select()]
+                        mystep.append(SPAN(LI('tags_secondary', _class='ppf_label'),
+                                        ', '.join(tags_secondary)))
+                        tags_ahead = [t['tag'] for t in
+                                    db(db.tags.id.belongs(islist(c['tags_ahead']))
+                                        ).select()]
+                        mystep.append(LI(SPAN('tags_ahead', _class='ppf_label'),
+                                        ', '.join(tags_ahead)))
+                        npcs = [makeutf8(t['name']) for t in
+                                db(db.npcs.id.belongs(islist(c['npcs']))).select()]
+                        mystep.append(LI(SPAN('npcs', _class='ppf_label'),
+                                        ', '.join(npcs)))
+                        # print 'locations:', islist(c['locations'])
+                        locations = [makeutf8(t['map_location']) for t in
+                                    db(db.locations.id.belongs(islist(c['locations']))
+                                        ).select()
+                                    ]
+                        mystep.append(LI(SPAN('locations', _class='ppf_label'),
+                                        ', '.join(locations)))
+                        lemmas = [t['lemma'] for t in
+                                db(db.lemmas.id.belongs(c['lemmas'])).select()] \
+                            if 'lemmas' in c.keys() else 'None'
+                        mystep.append(LI(SPAN('lemmas', _class='ppf_label'),
+                                        ', '.join(lemmas)
+                                        if lemmas else 'None'))
+                        mystep.append(LI(SPAN('status', _class='ppf_label'),
+                                        db.step_status(c['status']).status_label
+                                        if 'status' in c.keys() else 'None'))
+                        instructions = [t['instruction_label'] for t in
+                                        db(db.step_instructions.id.belongs(c['instructions'])
+                                        ).select()] if c['instructions'] else 'None'
+                        mystep.append(LI(SPAN('instructions', _class='ppf_label'),
+                                        ', '.join(instructions)
+                                        if instructions else 'None'))
+                        hints = [t['hint_label'] for t in
+                                db(db.step_hints.id.belongs(c['hints'])).select()] \
+                            if 'hints' in c.keys() and c['hints'] else 'None'
+                        mystep.append(LI(SPAN('hints', _class='ppf_label'),
+                                        ', '.join(hints)))
                     mycontent.append(LI(mystep))
 
                 psub.append(mycontent)
@@ -1668,9 +1690,9 @@ class TranslateWordPathFactory(PathFactory):
             for c in self.get_constructions(lemid):
                 assert isinstance(c, (int, long))
                 temps = self.get_templates(lemid, c)  # do substitutions already
-                stepdata['prompt_template'] = temps[0]  # do substitutions already
-                stepdata['response_template'] = temps[1]
-                stepdata['readable_template'] = temps[2]
+                stepdata['prompt_template'] = to_unicode(temps[0])  # do substitutions already
+                stepdata['response_template'] = to_unicode(temps[1])
+                stepdata['readable_template'] = to_unicode(temps[2])
                 paths, result = self.make_path([[request.vars.lemma]],
                                                label_template=self.label_template,
                                                stepdata=[stepdata])

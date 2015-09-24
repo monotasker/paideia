@@ -9,16 +9,17 @@ A collection of miscellaneous utility functions to be used in multiple modules.
 Part of the Paideia platform built with web2py.
 
 """
-import traceback
+from collections import OrderedDict
+import datetime
 from gluon import current, SQLFORM, Field, BEAUTIFY, IS_IN_DB
 from gluon.storage import Storage
 from gluon.storage import StorageList
-import re
 from itertools import chain
-from collections import OrderedDict
-#from pprint import pprint
+from kitchen.text.converters import to_unicode
 from plugin_utils import makeutf8, multiple_replace  # encodeutf8,
-import datetime
+#from pprint import pprint
+import re
+import traceback
 
 
 def simple_obj_print(the_dict, title='No Title', indentation=0):
@@ -455,11 +456,20 @@ def check_regex(rgx, readables):
 
     """
     readables = readables if isinstance(readables, list) else [readables]
-    pattern = re.compile(unicode(makeutf8(rgx)), re.I | re.U)
+    pattern = re.compile(to_unicode(rgx), re.I | re.U)
     rdict = {}
     for rsp in readables:
-        match = re.match(pattern, unicode(makeutf8(rsp)))
+        # print 'pattern --------------------------------'
+        # print rgx
+        # print 'readable'
+        # print rsp
+        match = re.match(pattern, to_unicode(rsp))
         rdict[rsp] = True if match else False
+        # if match:
+        #   print 'they match!'
+        # else:
+        #   print 'no match ***'
+        # print match
     return rdict
 
 
