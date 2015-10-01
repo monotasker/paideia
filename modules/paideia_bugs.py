@@ -55,17 +55,19 @@ class Bug(object):
         """
         """
         db = current.db
-        logids = [b.log_id for b in bugrows]
+        logids = list(set([b.log_id for b in bugrows]))
         logquery = db(db.attempt_log.id.belongs(logids))
+        print 'logids', logids
+        print 'logquery', logquery.count()
         assert logquery.count() == len(logids)
         logrows = logquery.select()
         logquery.update(**{'score': newscore})
-        message += 'Corrected {} attempt_log rows: {}'.format(str(logquery.count()),
+        db.commit()
+        message += '\nCorrected {} attempt_log rows: {}. '.format(str(logquery.count()),
                                                               logids)
         # confirm that scores were changed
         newlogs = db(db.attempt_log.id.belongs(logids)).select()
-        db.commit()
-        badlogscores = [l.score for l in newlogs if l != newscore]
+        badlogscores = [l.score for l in newlogs if l.score != newscore]
         assert not badlogscores, '{} logs have wrong score'.format(len(badlogscores))
 
         return logrows, message
@@ -75,6 +77,7 @@ class Bug(object):
         """
         Fix last_right, last_wrong, times_right, and times_wrong in tag_records
         """
+        print 'logrows is length', len(logrows)
         db = current.db
         right_threshold = 0.999999
         try:
@@ -92,10 +95,10 @@ class Bug(object):
             for myname in bugusers:
                 myrecs = trecords.find(lambda r: r.name == myname)
                 myrecs2 = t2records.find(lambda r: r.name == myname)
-                print '\nuser {} has {} affected tag records'.format(myname,
-                                                                     len(myrecs))
-                print 'and {} affected records for secondary tags'.format(len(myrecs2))
+                # print '\nuser {} has {} affected tag records'.format(myname, len(myrecs))
+                # print 'and {} affected records for secondary tags'.format(len(myrecs2))
                 new_logs_right = logrows.find(lambda r: r.name == myname)
+                # print 'new_logs_right is', logrows
                 if len(new_logs_right):
                     newdates = [r.dt_attempted for r in new_logs_right]
                     new_latest_right = max(newdates)
@@ -110,7 +113,7 @@ class Bug(object):
                         db.commit()
                     for tr in myrecs:
                         if newscore >= right_threshold:
-                            print '\ntrying to update tag_record {}'.format(tr.id)
+                            # print '\ntrying to update tag_record {}'.format(tr.id)
                             updates = {}
 
                             # correct last right and last wrong dates
@@ -132,9 +135,11 @@ class Bug(object):
                                              (db.attempt_log.score
                                               < right_threshold)
                                              ).select()
+                                # print 'oldlogs is', len(oldlogs)
                                 if oldlogs:
                                     odates = [l.dt_attempted for l in oldlogs]
                                     updates['tlast_wrong'] = max(odates)
+                            # print 'done with tag record', tr.id
 
                         # correct counts for times right and wrong
                         rightsum = sum(scoredif for l in new_logs_right)
@@ -142,7 +147,7 @@ class Bug(object):
                         updates['times_wrong'] = tr.times_wrong - rightsum
                         if updates['times_wrong'] < 0:
                             updates['times_wrong'] = 0
-
+                        # print 'updates: ', updates
                         # commit the updates to db
                         updated_list.append(tr.id)
                         tr.update_record(**updates)
@@ -150,11 +155,13 @@ class Bug(object):
 
                 else:  # user has no wrong logs to be changed
                     print 'user has no wrong logs to be changed'
-            message += '\nupdated these tag records rows: {}'.format(updated_list)
+            message += '\nUpdated these tag records rows: {}. '.format(updated_list)
 
         except Exception:
             print traceback.format_exc(5)
-            message += '\nTag_records rows for bug {} could not be reversed.'.format(bug_id)
+            message += '\nTag_records rows for bug {} could not be reversed. '.format(bug_id)
+
+        return updated_list, message
 
     def undo(self, bug_id, log_id, score, bugstatus, user_id, comment,
              user_response, user_comment, adjusted_score):
@@ -184,28 +191,32 @@ class Bug(object):
         thisuser_bug_query = db((db.bugs.step == self.step_id) &
                                 (db.bugs.in_path == self.path_id) &
                                 (db.bugs.user_response == user_response) &
-                                (db.bugs.name == user_id) &
+                                (db.bugs.user_name == int(user_id)) &
                                 (db.bugs.score != newscore))
         general_bug_query = db((db.bugs.step == self.step_id) &
                                (db.bugs.in_path == self.path_id) &
                                (db.bugs.user_response == user_response) &
                                (db.bugs.user_comment == user_comment) &
                                (db.bugs.score != newscore))
-        bug_query = thisuser_bug_query + general_bug_query
-        bugrows = bug_query.select()
+        general_bugrows = general_bug_query.select()
+        user_bugrows = thisuser_bug_query.select()
+        bugrows = general_bugrows & user_bugrows
 
         # Update those bug reports with the new values
-        bug_query.update(**{'adjusted_score': newscore,
-                            'admin_comment': comment,
-                            'bug_status': bugstatus})
+        statusid = db(db.bug_status.status_label == bugstatus).select().first().id
+        newvals = {'adjusted_score': newscore,
+                   'admin_comment': comment,
+                   'bug_status': statusid}
+        thisuser_bug_query.update(**newvals)
+        general_bug_query.update(**newvals)
         bugusers = list(set([b.user_name for b in bugrows]))
-        message += "\nupdated {} bug reports for {} users".format(len(bugrows),
+        message += "\nUpdated {} bug reports for {} users. ".format(len(bugrows),
                                                                   len(bugusers))
         # don't adjust records if no score change
         if score < adjusted_score and abs(score - adjusted_score) > 0.0000009:
             # Find and fix affected attempt log rows
             logrows, message = self._fix_attempt_logs(bugrows, newscore,
-                                                    message, bug_id)
+                                                      message, bug_id)
 
             # Find and fix tag_records for affected users
             scoredif = adjusted_score - score
@@ -213,7 +224,7 @@ class Bug(object):
                                                     message, bug_id, scoredif,
                                                     adjusted_score)
 
-        print message
+        # print message
         return message
 
     def bugresponses(self, user):
@@ -256,7 +267,9 @@ def trigger_bug_undo(*args, **kwargs):
     """
     """
     db = current.db
-    mystatus = db(db.bug_status.id == kwargs['bug_status']).select()
+    mystatus = db(db.bug_status.id == kwargs['bug_status']).select().first()
+    result = "No records reversed."
+
     if mystatus['status_label'] in ['fixed', 'confirmed']:
         print 'undoing bug!'
         print 'args'
@@ -278,3 +291,4 @@ def trigger_bug_undo(*args, **kwargs):
         mybug = Bug(step_id=step_id, path_id=path_id, loc_id=loc_id)
         result = mybug.undo(bug_id, log_id, score, bugstatus, user_id, comment,
                             user_response, user_comment, adjusted_score)
+    return result

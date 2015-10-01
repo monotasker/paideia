@@ -28,12 +28,14 @@ IMG_CHOOSER	plugin_img_chooser.py	/^def IMG_CHOOSER(table=None, downloadfield=No
 IndirObject	greek_parser.py	/^class IndirObject(NounPhrase):$/;"	c
 Inflector	paideia_path_factory.py	/^class Inflector(object):$/;"	c
 JQMODAL	plugin_widgets.py	/^class JQMODAL():$/;"	c
+ListAndEdit	plugin_listandedit.py	/^class ListAndEdit(object):$/;"	c
 Location	paideia.py	/^class Location(object):$/;"	c
 MD	plugin_widgets.py	/^def MD(text):$/;"	f
 MODAL	plugin_widgets.py	/^def MODAL(triggertext, headertext, body,$/;"	f
 Map	paideia.py	/^class Map(object):$/;"	c
 MorphParser	paideia_path_factory.py	/^class MorphParser(object):$/;"	c
 MultipleEvaluator	paideia.py	/^class MultipleEvaluator(StepEvaluator):$/;"	c
+MyPickler	paideia.py	/^class MyPickler (pickle.Pickler):$/;"	c
 Name	paideia_stats.py	/^    Name = "paideia_stats"$/;"	v	class:Stats
 Noun	greek_parser.py	/^class Noun(Parser):$/;"	c
 NounPhrase	greek_parser.py	/^class NounPhrase(Parser):$/;"	c
@@ -75,6 +77,7 @@ __call__	paideia_path_factory.py	/^    def __call__(self, *args, **kwargs):$/;"	
 __enter__	greek_parser.py	/^    def __enter__(self):$/;"	m	class:Parser	file:
 __exit__	greek_parser.py	/^    def __exit__(self, type, value, traceback):$/;"	m	class:Parser	file:
 __get__	paideia_path_factory.py	/^    def __get__(self, obj, objtype):$/;"	m	class:ResultCollector	file:
+__init__	greek_parser.py	/^    def __init__(self, *args):$/;"	m	class:NounPhrase
 __init__	greek_parser.py	/^    def __init__(self, *args):$/;"	m	class:Parser
 __init__	paideia.py	/^    def __init__(self):$/;"	m	class:BugReporter
 __init__	paideia.py	/^    def __init__(self):$/;"	m	class:Map
@@ -90,7 +93,7 @@ __init__	paideia.py	/^    def __init__(self, step, location, prev_npc, prev_loc)
 __init__	paideia.py	/^    def __init__(self, step_id, repeating=False, kwargs=None, stepdata=None):$/;"	m	class:Step
 __init__	paideia.py	/^    def __init__(self, tag_progress, loc_id, paths_completed, db=None):$/;"	m	class:PathChooser
 __init__	paideia.py	/^    def __init__(self, tag_records=None, tag_progress=None,$/;"	m	class:Walk
-__init__	paideia.py	/^    def __init__(self, userdata, tag_records, tag_progress, blocks=[]):$/;"	m	class:User
+__init__	paideia.py	/^    def __init__(self, userdata, tag_records, tag_progress, db=None, blocks=[]):$/;"	m	class:User
 __init__	paideia_bugs.py	/^    def __init__(self, step_id=None, path_id=None, loc_id=None):$/;"	m	class:Bug
 __init__	paideia_path_factory.py	/^    def __init__(self):$/;"	m	class:Inflector
 __init__	paideia_path_factory.py	/^    def __init__(self):$/;"	m	class:MorphParser
@@ -109,7 +112,11 @@ __init__	plugin_utils.py	/^    def __init__(self, mail=None):$/;"	m	class:ErrorR
 __init__	plugin_widgets.py	/^    def __init__(self):$/;"	m	class:POPOVER
 __init__	plugin_widgets.py	/^    def __init__(self, field, value):$/;"	m	class:JQMODAL
 __repr__	paideia_path_factory.py	/^    def __repr__(self):$/;"	m	class:ResultCollector	file:
+__str__	paideia.py	/^    def __str__(self):$/;"	m	class:Location	file:
+__str__	paideia.py	/^    def __str__(self):$/;"	m	class:Npc	file:
 __str__	paideia.py	/^    def __str__(self):$/;"	m	class:Step	file:
+__str__	paideia.py	/^    def __str__(self):$/;"	m	class:User	file:
+_add_caps_option	paideia_path_factory.py	/^    def _add_caps_option(self, myform):$/;"	m	class:StepFactory
 _add_from_logs	paideia.py	/^    def _add_from_logs(self, tag, user_id, newdata, tright, twrong, got_right):$/;"	m	class:Walk
 _add_log_data	paideia_stats.py	/^    def _add_log_data(self, tag_recs):$/;"	m	class:Stats
 _add_new_construction	paideia_path_factory.py	/^    def _add_new_construction(self, pos, const_label, constbits, shortbits):$/;"	m	class:WordFactory
@@ -124,13 +131,14 @@ _check_if_cat1_needed	paideia.py	/^    def _check_if_cat1_needed(self, cats):$/;
 _choose_from_cat	paideia.py	/^    def _choose_from_cat(self, cpaths, category):$/;"	m	class:PathChooser
 _clean_tag_records	paideia.py	/^    def _clean_tag_records(self, record_list=None, db=None):$/;"	m	class:Categorizer
 _core_algorithm	paideia.py	/^    def _core_algorithm(self, tag_records=None):$/;"	m	class:Categorizer
-_do_substitution	paideia_path_factory.py	/^    def _do_substitution(self, temp, combodict):$/;"	m	class:StepFactory
+_do_substitution	paideia_path_factory.py	/^    def _do_substitution(self, temp, combodict, regex=False):$/;"	m	class:StepFactory
 _fill_missing_fields	paideia_path_factory.py	/^    def _fill_missing_fields(self, parsing):$/;"	m	class:Inflector
 _find_badge_levels	paideia_stats.py	/^    def _find_badge_levels(self):$/;"	m	class:Stats
 _find_cat_changes	paideia.py	/^    def _find_cat_changes(self, cats, oldcats, bbrows=None, uid=None):$/;"	m	class:Categorizer
+_fix_attempt_logs	paideia_bugs.py	/^    def _fix_attempt_logs(self, bugrows, newscore, message, bug_id):$/;"	m	class:Bug
 _fix_oldcats	paideia.py	/^    def _fix_oldcats(self, oldcats, uid, bbrows=None):$/;"	m	class:Categorizer
+_fix_tag_records	paideia_bugs.py	/^    def _fix_tag_records(self, bugusers, logrows, message, bug_id, scoredif,$/;"	m	class:Bug
 _format_strings	paideia_path_factory.py	/^    def _format_strings(self, combodict, ptemps, xtemps, rtemps):$/;"	m	class:StepFactory
-_gender_cats	paideia_path_factory.py	/^        def _gender_cats(gender):$/;"	f	function:Inflector.get_db_form
 _get_avg	paideia.py	/^    def _get_avg(self, tag, mydays=7):$/;"	m	class:Categorizer
 _get_avg_score	paideia_stats.py	/^    def _get_avg_score(self, tag, mydays=7):$/;"	m	class:Stats
 _get_construction_label	paideia_path_factory.py	/^        def _get_construction_label(parsing):$/;"	f	function:Inflector.make_form_agree
@@ -139,22 +147,25 @@ _get_daystart	paideia_stats.py	/^    def _get_daystart(self, mydt):$/;"	m	class:
 _get_declension	paideia_path_factory.py	/^        def _get_declension(pos, lemform):$/;"	f	function:Inflector.make_form_agree
 _get_instructions	paideia.py	/^    def _get_instructions(self):$/;"	m	class:Step
 _get_lemma	paideia_path_factory.py	/^        def _get_lemma(mylemma, constraint):$/;"	f	function:Inflector.make_form_agree
+_get_listitems	plugin_listandedit.py	/^    def _get_listitems(self, rowlist, tablename, orderby, restrictor,$/;"	m	class:ListAndEdit
 _get_logs_for_range	paideia_stats.py	/^    def _get_logs_for_range(self, startdate=None, stopdate=None):$/;"	m	class:Stats
 _get_message_frame	plugin_utils.py	/^    def _get_message_frame(self, callingClass, callingMethod, callingUser,$/;"	m	class:ErrorReport
+_get_params	plugin_listandedit.py	/^    def _get_params(self, rargs, rvars):$/;"	m	class:ListAndEdit
 _get_part_of_speech	paideia_path_factory.py	/^        def _get_part_of_speech(cst, lem):$/;"	f	function:Inflector.make_form_agree
 _get_paths_quota	paideia.py	/^    def _get_paths_quota(self, user_id):$/;"	m	class:User
 _get_prompt_audio	paideia.py	/^    def _get_prompt_audio(self):$/;"	m	class:Step
-_get_property	paideia_path_factory.py	/^        def _get_property(cst, lemform, ref, prop):$/;"	f	function:Inflector.make_form_agree
+_get_property	paideia_path_factory.py	/^        def _get_property(cst, lemform, ref, prop, part_of_speech):$/;"	f	function:Inflector.make_form_agree
 _get_ratio	paideia.py	/^    def _get_ratio(self, record):$/;"	m	class:Categorizer
 _get_readable	paideia.py	/^    def _get_readable(self):$/;"	m	class:StepText
 _get_ref	paideia_path_factory.py	/^        def _get_ref(modform, constraint):$/;"	f	function:Inflector.make_form_agree
 _get_response_form	paideia.py	/^    def _get_response_form(self):$/;"	m	class:StepMultiple
 _get_response_form	paideia.py	/^    def _get_response_form(self):$/;"	m	class:StepText
+_get_rowlist	plugin_listandedit.py	/^    def _get_rowlist(self, tablename, orderby, restrictor, collation):$/;"	m	class:ListAndEdit
 _get_slides	paideia.py	/^    def _get_slides(self):$/;"	m	class:Step
 _get_user	paideia.py	/^    def _get_user(self, userdata=None, tag_records=None,$/;"	m	class:Walk
 _get_widget_image	paideia.py	/^    def _get_widget_image(self):$/;"	m	class:Step
 _inner_set_block	paideia.py	/^        def _inner_set_block():$/;"	f	function:User.set_block
-_internal_print	paideia_utils.py	/^    def _internal_print(self, i, lvl):$/;"	m	class:Uprinter
+_internal_print	paideia_utils.py	/^    def _internal_print(self, i, lvl=0):$/;"	m	class:Uprinter
 _introduce_tags	paideia.py	/^    def _introduce_tags(self, rank=None, db=None):$/;"	m	class:Categorizer
 _local	paideia_stats.py	/^    def _local(self, dt, tz=None):$/;"	m	class:Stats
 _make_constraint_string	paideia_path_factory.py	/^        def _make_constraint_string(parsedict):$/;"	f	function:Inflector._wordform_from_parsing
@@ -167,11 +178,13 @@ _make_replacements	paideia.py	/^    def _make_replacements(self, raw_prompt, use
 _make_replacements	paideia.py	/^    def _make_replacements(self, raw_prompt, username):$/;"	m	class:StepViewSlides
 _make_replacements	paideia.py	/^    def _make_replacements(self, raw_prompt, username, reps=None, appds=None):$/;"	m	class:Step
 _monthpicker	paideia_stats.py	/^    def _monthpicker(self, calendar, year, month, monthname):$/;"	m	class:Stats
+_myform	plugin_listandedit.py	/^    def _myform(self, formargs, deletable=True, showid=True, formstyle='ul',$/;"	m	class:ListAndEdit
 _navlinks	paideia_stats.py	/^    def _navlinks(self, year, month):$/;"	m	class:Stats
 _new_user	paideia.py	/^    def _new_user(self, userdata, tag_records, tag_progress):$/;"	m	class:Walk
 _order_cats	paideia.py	/^    def _order_cats(self):$/;"	m	class:PathChooser
 _parse_csv_table	plugin_1way_sync.py	/^    def _parse_csv_table(self, tablename, csvfile):$/;"	m	class:OnewaySyncer
 _paths_by_category	paideia.py	/^    def _paths_by_category(self, cat, rank):$/;"	m	class:PathChooser
+_post_process	plugin_listandedit.py	/^    def _post_process(self, formvars, postprocess):$/;"	m	class:ListAndEdit
 _prepare_for_prompt	paideia.py	/^    def _prepare_for_prompt(self):$/;"	m	class:Path
 _record_cats	paideia.py	/^    def _record_cats(self, tag_progress, promoted, new_tags, demoted, db=None):$/;"	m	class:Walk
 _record_demotions	paideia.py	/^    def _record_demotions(self, demoted, user_id):$/;"	m	class:Walk
@@ -217,6 +230,7 @@ capitalize_first	plugin_utils.py	/^def capitalize_first(mystring):$/;"	f
 categorize_tags	paideia.py	/^    def categorize_tags(self, rank=None, tag_records=None,$/;"	m	class:Categorizer
 check_for_blocks	paideia.py	/^    def check_for_blocks(self):$/;"	m	class:User
 check_for_duplicates	paideia_path_factory.py	/^def check_for_duplicates(step, readables, prompt):$/;"	f
+check_path	plugin_utils.py	/^def check_path(path):$/;"	f
 check_regex	paideia_utils.py	/^def check_regex(rgx, readables):$/;"	f
 choose	paideia.py	/^    def choose(self):$/;"	m	class:NpcChooser
 choose	paideia.py	/^    def choose(self, db=None):$/;"	m	class:PathChooser
@@ -226,7 +240,7 @@ clear_block_records	paideia.py	/^    def clear_block_records(self):$/;"	m	class:
 clr	plugin_utils.py	/^def clr(string, mycol='white'):$/;"	f
 complete_path	paideia.py	/^    def complete_path(self, got_right):$/;"	m	class:User
 complete_step	paideia.py	/^    def complete_step(self):$/;"	m	class:Path
-compute_letter_grade	paideia_stats.py	/^def compute_letter_grade(myprog, classrow):$/;"	f
+compute_letter_grade	paideia_stats.py	/^def compute_letter_grade(uid, myprog, startset, classrow):$/;"	f
 const_abbrevs	paideia_path_factory.py	/^    const_abbrevs = {'3 decl epsilon': '3e',$/;"	v	class:WordFactory
 convert_latin_chars	paideia_utils.py	/^    def convert_latin_chars(self, strings):$/;"	m	class:GreekNormalizer
 copy_db	plugin_sqlite_backup.py	/^def copy_db(mydir=None):$/;"	f
@@ -235,15 +249,18 @@ create_widget	plugin_ajaxselect.py	/^    def create_widget(self):$/;"	m	class:Aj
 create_widget	plugin_ajaxselect.py	/^    def create_widget(self, field, value, clean_val, multi, restricted, rval):$/;"	m	class:FilteredAjaxSelect
 cst_eqs	paideia_path_factory.py	/^    cst_eqs = {'masculine': ['masc', 'm'],$/;"	v	class:WordFactory
 db	plugin_markmin_extras.py	/^db = current.db$/;"	v
-do_backup	plugin_utils.py	/^def do_backup():$/;"	f
 do_print	paideia_utils.py	/^    def do_print(self, the_object, the_title):$/;"	m	class:Paideia_Debug
 do_zip_except_sqlite	plugin_sqlite_backup.py	/^def do_zip_except_sqlite(target_dir, file_name):$/;"	f
 doc_by_title	plugin_markmin_extras.py	/^                 doc_by_title=lambda text: maketag(['docs'], 'label',$/;"	v
 dropbox_connect	plugin_sqlite_backup.py	/^def dropbox_connect(tokenfile, keyfile):$/;"	f
+dupform	plugin_listandedit.py	/^    def dupform(self, rargs=None, rvars=None, copylabel=None,$/;"	m	class:ListAndEdit
+editform	plugin_listandedit.py	/^    def editform(self, rargs=None, rvars=None):$/;"	m	class:ListAndEdit
 encodeutf8	plugin_utils.py	/^def encodeutf8(rawstring):$/;"	f
 end_prompt	paideia.py	/^    def end_prompt(self, stepid):$/;"	m	class:Path
 filelocs	plugin_sqlite_backup.py	/^def filelocs(tokenfile=None, keyfile=None, targetdir=None):$/;"	f
 filter_pos	greek_parser.py	/^    def filter_pos(self, parts, pos):$/;"	m	class:Parser
+find_agree	greek_parser.py	/^    def find_agree(self, refword, pos=None, lemma=None):$/;"	m	class:Parser
+find_child_words	greek_parser.py	/^    def find_child_words(self):$/;"	m	class:Parser
 find_current_parts	greek_parser.py	/^    def find_current_parts(self, leaf):$/;"	m	class:Parser
 finish_setup_dropbox	plugin_sqlite_backup.py	/^def finish_setup_dropbox(tokenfile=None, keyfile=None, targetdir=None):$/;"	f
 firstletter	plugin_utils.py	/^def firstletter(mystring):$/;"	f
@@ -260,6 +277,7 @@ get_classes	plugin_ajaxselect.py	/^    def get_classes(self, linktable, restrict
 get_completed_paths_len	paideia.py	/^    def get_completed_paths_len(self):$/;"	m	class:User
 get_condition	paideia.py	/^    def get_condition(self):$/;"	m	class:Block
 get_constructions	paideia_path_factory.py	/^    def get_constructions(self, lemma):$/;"	m	class:TranslateWordPathFactory
+get_current_class	paideia_stats.py	/^def get_current_class(uid, now, myclass=None):$/;"	f
 get_daycounts	paideia_stats.py	/^def get_daycounts(user, target):$/;"	f
 get_db_form	paideia_path_factory.py	/^    def get_db_form(self, parsing, lemid):$/;"	m	class:Inflector
 get_description	paideia.py	/^    def get_description(self):$/;"	m	class:Npc
@@ -309,13 +327,13 @@ get_steps	paideia.py	/^    def get_steps(self):$/;"	m	class:Path
 get_stepslist	paideia.py	/^            def get_stepslist(taglist):$/;"	f	function:PathChooser._paths_by_category
 get_tag_counts_over_time	paideia_stats.py	/^    def get_tag_counts_over_time(self, start, end, uid=None):$/;"	m	class:Stats
 get_tags	paideia.py	/^    def get_tags(self):$/;"	m	class:Step
-get_templates	paideia_path_factory.py	/^    def get_templates(lemid, cst):$/;"	m	class:TranslateWordPathFactory
+get_templates	paideia_path_factory.py	/^    def get_templates(self, lemid, cst):$/;"	m	class:TranslateWordPathFactory
 get_term_bounds	paideia_stats.py	/^def get_term_bounds(meminfo, start_date, end_date):$/;"	f
 get_weeks	paideia_stats.py	/^def get_weeks(year=None):$/;"	f
 get_widget_index	plugin_ajaxselect.py	/^    def get_widget_index(self):$/;"	m	class:AjaxSelect
-get_wordform	paideia_path_factory.py	/^    def get_wordform(self, field, combodict):$/;"	m	class:WordFactory
+get_wordform	paideia_path_factory.py	/^    def get_wordform(self, field, combodict, db=None):$/;"	m	class:WordFactory
 get_wrappername	plugin_ajaxselect.py	/^    def get_wrappername(self, fieldset):$/;"	m	class:AjaxSelect
-getform	greek_parser.py	/^    def getform(self, lemid, **kwargs):$/;"	m	class:Parser
+getform	greek_parser.py	/^    def getform(self, kwargs, db=None):$/;"	m	class:Parser
 has_locations	paideia.py	/^    def has_locations(self):$/;"	m	class:Step
 imgrows	plugin_markmin_extras.py	/^imgrows = db(imgtable['id'] > 0).select().as_list()$/;"	v
 imgtable	plugin_markmin_extras.py	/^imgtable = [db[t] for t in imgtbls if t in db.tables][0]$/;"	v
@@ -330,9 +348,10 @@ infer_pattern	paideia_path_factory.py	/^    def infer_pattern(self, wordform, le
 is_stale	paideia.py	/^    def is_stale(self, now=None, start=None, time_zone=None, db=None):$/;"	m	class:User
 is_valid	paideia.py	/^    def is_valid(self):$/;"	m	class:Step
 islist	plugin_utils.py	/^def islist(obj):$/;"	f
+itemlist	plugin_listandedit.py	/^    def itemlist(self, rargs=None, rvars=None):$/;"	m	class:ListAndEdit
 listcheck	plugin_ajaxselect.py	/^def listcheck(val):$/;"	f
 load_json	plugin_utils.py	/^def load_json(data):$/;"	f
-log_new	paideia_bugs.py	/^    def log_new(self, answer, log_id, score):$/;"	m	class:Bug
+log_new	paideia_bugs.py	/^    def log_new(self, answer, log_id, score, user_comment):$/;"	m	class:Bug
 lowercase	plugin_utils.py	/^def lowercase(letter):$/;"	f
 make_adder	plugin_ajaxselect.py	/^    def make_adder(self, wrappername, linktable):$/;"	m	class:AjaxSelect
 make_classlist	paideia_stats.py	/^def make_classlist(member_sel, users, start_date, end_date, target, classrow):$/;"	f
@@ -358,6 +377,7 @@ make_step	paideia_path_factory.py	/^    def make_step(self, combodict, sdata, mo
 make_taglist	plugin_ajaxselect.py	/^    def make_taglist(self):$/;"	m	class:AjaxSelect
 maketag	plugin_markmin_extras.py	/^def maketag(tbl, ttf, flf, txt):$/;"	f
 makeutf8	plugin_utils.py	/^def makeutf8(rawstring):$/;"	f
+match_article	greek_parser.py	/^    def match_article(self, artform, leaf):$/;"	m	class:NounPhrase
 match_string	greek_parser.py	/^    def match_string(self, validleaves, failedleaves,$/;"	m	class:Parser
 menu	bootstrap3.py	/^def menu(menu_type=None, add_classes=None, menu_list=None):$/;"	f
 migrate_back	plugin_utils.py	/^def migrate_back():$/;"	f
@@ -392,6 +412,7 @@ restrict	plugin_ajaxselect.py	/^    def restrict(self, restricted):$/;"	m	class:
 restrict	plugin_ajaxselect.py	/^    def restrict(self, restricted):$/;"	m	class:FilteredAjaxSelect
 sanitize_int_list	plugin_ajaxselect.py	/^def sanitize_int_list(val, delimiter='|'):$/;"	f
 sanitize_internal	plugin_ajaxselect.py	/^    def sanitize_internal(val):$/;"	f	function:sanitize_int_list
+save	paideia.py	/^    def save(self, obj):$/;"	m	class:MyPickler
 save_session_data	save_session_data.py	/^def save_session_data(self):$/;"	f
 send_report	plugin_utils.py	/^    def send_report(self, callingClass, callingMethod, callingUser='',$/;"	m	class:ErrorReport
 set_block	paideia.py	/^    def set_block(self, condition, kwargs=None):$/;"	m	class:User
@@ -405,7 +426,6 @@ simple_obj_print	paideia_utils.py	/^def simple_obj_print(the_dict, title='No Tit
 simple_obj_print_str	paideia_utils.py	/^def simple_obj_print_str(output_obj, the_dict, title='No Title', indentation=0, doing_what='S'):$/;"	f
 start	paideia.py	/^    def start(self, localias, response_string=None, path=None, repeat=None,$/;"	m	class:Walk
 store_stats	paideia_stats.py	/^    def store_stats(self, statsdict, lastdt):$/;"	m	class:Stats
-strip_current_flags	greek_parser.py	/^    def strip_current_flags(self, validlfs, failedlfs):$/;"	m	class:Parser
 strip_extra_spaces	paideia_utils.py	/^    def strip_extra_spaces(self, strings):$/;"	m	class:GreekNormalizer
 style	bootstrap3.py	/^    def style(form, fields):$/;"	f	function:form
 sync	plugin_1way_sync.py	/^    def sync(self):$/;"	m	class:OnewaySyncer
@@ -416,11 +436,12 @@ test_order	greek_parser.py	/^    def test_order(self, validlfs, failedlfs):$/;"	
 test_step_regex	paideia_utils.py	/^def test_step_regex():$/;"	f
 textarea	plugin_widgets.py	/^    def textarea(self, label, target, cname, fname, linkargs=None):$/;"	m	class:JQMODAL
 tokenize	greek_parser.py	/^def tokenize(str):$/;"	f
-undo	paideia_bugs.py	/^    def undo(self, bug_id, log_id, score, bugstatus, user_id, comment):$/;"	m	class:Bug
+trigger_bug_undo	paideia_bugs.py	/^def trigger_bug_undo(*args, **kwargs):$/;"	f
+undo	paideia_bugs.py	/^    def undo(self, bug_id, log_id, score, bugstatus, user_id, comment,$/;"	m	class:Bug
 uprint	paideia_utils.py	/^    def uprint(self, myobj):$/;"	m	class:Uprinter
 util_get_args	paideia.py	/^def util_get_args():$/;"	f
 util_interface	plugin_utils.py	/^def util_interface(funcname):$/;"	f
-validate	greek_parser.py	/^    def validate(self, validlfs, failedlfs=[]):$/;"	m	class:Parser
+validate	greek_parser.py	/^    def validate(self, validlfs, failedlfs={}):$/;"	m	class:Parser
 week_bounds	paideia_stats.py	/^def week_bounds(weekday=None):$/;"	f
 widget	plugin_ajaxselect.py	/^    def widget(cls, field, value, restricted=None, rval=None,$/;"	m	class:FilteredOptionsWidget
 widget	plugin_ajaxselect.py	/^    def widget(self):$/;"	m	class:AjaxSelect
