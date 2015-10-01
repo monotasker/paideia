@@ -6,6 +6,12 @@ else:
     vars = None
 pass}}
 
+{{if request.args[0] == 'bugs':
+    vars['postprocess'] = {'module': 'paideia_bugs',
+                           'func': 'trigger_bug_undo'}
+pass}}
+
+
 <div id="plugin_listandedit_wrapper">
 {{=LOAD('plugin_listandedit', 'widget.load', args=request.args, vars=vars, ajax=False, ajax_trap=True)}}
 </div>

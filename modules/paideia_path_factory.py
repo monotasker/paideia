@@ -26,7 +26,7 @@ from itertools import product, chain
 from kitchen.text.converters import to_unicode, to_bytes
 from paideia_utils import check_regex, Uprinter
 from plugin_utils import flatten, makeutf8, islist, capitalize_first
-from pprint import pprint
+# from pprint import pprint
 from random import randrange, shuffle
 import re
 import traceback
@@ -1422,8 +1422,7 @@ class PathFactory(object):
         for idx, c in enumerate(combos):  # one path for each combo
             mykeys = ['words{}'.format(n + 1) for n in range(len(c))]
             combodict = dict(zip(mykeys, c))  # keys are template placeholders
-            label = label_template.format(**combodict)
-            print 'label is', label
+            label = to_unicode(label_template).format(**combodict)
 
             pdata = {'steps': {}, 'new_forms': {}, 'images_missing': []}
             for i, s in enumerate(stepsdata):  # each step in path
@@ -1562,13 +1561,13 @@ class PathFactory(object):
                         mystep.append(LI(SPAN('tags', _class='ppf_label'),
                                         ', '.join(tags)))
                         tags_secondary = [t['tag'] for t in
-                                        db(db.tags.id.belongs(c['tags_secondary'])
-                                            ).select()]
+                                          db(db.tags.id.belongs(c['tags_secondary'])
+                                             ).select()]
                         mystep.append(SPAN(LI('tags_secondary', _class='ppf_label'),
                                         ', '.join(tags_secondary)))
                         tags_ahead = [t['tag'] for t in
-                                    db(db.tags.id.belongs(islist(c['tags_ahead']))
-                                        ).select()]
+                                      db(db.tags.id.belongs(islist(c['tags_ahead']))
+                                         ).select()]
                         mystep.append(LI(SPAN('tags_ahead', _class='ppf_label'),
                                         ', '.join(tags_ahead)))
                         npcs = [makeutf8(t['name']) for t in
@@ -1577,9 +1576,9 @@ class PathFactory(object):
                                         ', '.join(npcs)))
                         # print 'locations:', islist(c['locations'])
                         locations = [makeutf8(t['map_location']) for t in
-                                    db(db.locations.id.belongs(islist(c['locations']))
+                                     db(db.locations.id.belongs(islist(c['locations']))
                                         ).select()
-                                    ]
+                                     ]
                         mystep.append(LI(SPAN('locations', _class='ppf_label'),
                                         ', '.join(locations)))
                         lemmas = [t['lemma'] for t in
@@ -1593,7 +1592,7 @@ class PathFactory(object):
                                         if 'status' in c.keys() else 'None'))
                         instructions = [t['instruction_label'] for t in
                                         db(db.step_instructions.id.belongs(c['instructions'])
-                                        ).select()] if c['instructions'] else 'None'
+                                           ).select()] if c['instructions'] else 'None'
                         mystep.append(LI(SPAN('instructions', _class='ppf_label'),
                                         ', '.join(instructions)
                                         if instructions else 'None'))
