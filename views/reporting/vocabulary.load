@@ -16,12 +16,12 @@ If any of the words look unfamiliar, look again at the slides for the related ba
 <table id="vocab-table" class="vocab-table table table-hover table-condensed">
   <thead>
   <tr>
-    <th>Vocabulary word</th>
-    <th>Typical gloss</th>
+    <th>Word</th>
+    <th>Glosses</th>
     <th>Other forms</th>
     <th>Badge set</th>
-    <th>Associated badges</th>
-    <th>Times in the NT</th>
+    <th>In badge</th>
+    <th>Times in NT</th>
     <th>In paths</th>
     <th>In steps</th>
   </tr>
@@ -50,7 +50,7 @@ If any of the words look unfamiliar, look again at the slides for the related ba
                                                   scrollY: "400px",
                                                   scrollX: true,
                                                   renderer: "bootstrap",
-                                                  order: [ 4, "asc"],
+                                                  order: [ 3, "asc"],
                                                   "columns": [
                                                       null,
                                                       null,
@@ -58,15 +58,20 @@ If any of the words look unfamiliar, look again at the slides for the related ba
                                                       null,
                                                       null,
                                                       { "searchable": false }, // pathcount
-                                                      { "searchable": false }, // stepcount
-                                                      { "searchable": false }, // stepcount
-                                                  ]
-                                                  //colVis: {//exclude: []
-                                                  //         }
+                                                      { "searchable": false,
+                                                        "visible": false }, // stepcount
+                                                      { "searchable": false,
+                                                        "visible": false }, // stepcount
+                                                  ],
                                                   });
-    new $.fn.dataTable.FixedColumns( vocabtable );
-//    var colvis = new $.fn.dataTable.ColVis( vocabtable );
-//    $( colvis.button() ).insertBefore("div.vocab-list");
+//    new $.fn.dataTable.FixedColumns( vocabtable );
+    new $.fn.dataTable.Buttons( vocabtable, {
+        buttons: [
+            'colvis', 'print', 'copy', 'excel', 'pdf', 'csv',
+        ],
+    } );
+    vocabtable.buttons().container()
+        .appendTo( $('.col-sm-6:eq(0)', vocabtable.table().container() ) );
 </script>
 
 </div>
