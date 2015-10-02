@@ -10,8 +10,7 @@ So far you have reached badge set {{=mylevel}} and been introduced to
 {{=len(mylemmas)}} words from the total Paideia vocabulary of {{=len(lemmas)}}
 Greek words.
 
-If any of the words look unfamiliar, look again at the slides for the related badge
-set.
+If any of the words look unfamiliar, look again at the slides for the related badge set.
 
 <div class="vocab-list">
 <table id="vocab-table" class="vocab-table table table-hover table-condensed">
@@ -39,7 +38,6 @@ set.
         <td>{{=word['lemmas']['times_in_nt']}}</td>
         <td>{{=word['lemmas']['pathcount']}}</td>
         <td>{{=word['lemmas']['stepcount']}}</td>
-        <td></td>
     </tr>
   {{pass}}
 </table>
@@ -56,11 +54,12 @@ set.
                                                   "columns": [
                                                       null,
                                                       null,
+                                                      null,
+                                                      null,
+                                                      null,
                                                       { "searchable": false }, // pathcount
                                                       { "searchable": false }, // stepcount
-                                                      null,
-                                                      null,
-                                                      null
+                                                      { "searchable": false }, // stepcount
                                                   ]
                                                   //colVis: {//exclude: []
                                                   //         }
