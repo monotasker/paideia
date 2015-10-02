@@ -19,22 +19,26 @@ set.
   <tr>
     <th>Vocabulary word</th>
     <th>Typical gloss</th>
-    <th>Paths that use it</th>
-    <th>Steps that use it</th>
+    <th>Other forms</th>
     <th>Badge set</th>
-    <th>Associated tags</th>
+    <th>Associated badges</th>
     <th>Times in the NT</th>
+    <th>In paths</th>
+    <th>In steps</th>
   </tr>
   </thead>
   {{for word in lemmas:}}
     {{lemclass = 'reached' if word['tags']['tag_position'] <= mylevel else ''}}
-    <tr class="{{=mylevel}}">
+
+    <tr class="{{=lemclass}}">
         <td>{{=word['lemmas']['lemma']}}</td>
         <td>{{=', '.join(word['lemmas']['glosses'])}}</td>
-        <td>{{=word['lemmas']['pathcount']}}</td>
-        <td>{{=word['lemmas']['stepcount']}}</td>
+        <td>{{=word['lemmas']['myparts']}}</td>
         <td>set {{=word['tags']['tag_position']}}</td>
         <td>{{=word['tags']['tag']}}</td>
+        <td>{{=word['lemmas']['times_in_nt']}}</td>
+        <td>{{=word['lemmas']['pathcount']}}</td>
+        <td>{{=word['lemmas']['stepcount']}}</td>
         <td></td>
     </tr>
   {{pass}}

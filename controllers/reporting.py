@@ -1,16 +1,17 @@
 # coding: utf8
 
 if 0:
-    from gluon import current, Auth, SQLFORM
+    from gluon import current, Auth, SQLFORM, URL, Field, IS_DATE
     from gluon.dal import DAL
     auth = Auth()
     db = DAL()
-    request = current.request
+    request, response = current.request, current.response
 
 from paideia_stats import Stats
-from pprint import pprint
-from plugin_utils import islist
+# from pprint import pprint
+# from plugin_utils import islist
 #from paideia_bugs import Bug
+import datetime
 from dateutil.parser import parse
 
 
@@ -32,12 +33,33 @@ def vocabulary():
 
     for l in lemmas:
         lid = l.lemmas.id
+
+        # Get number of paths and steps using the lemma
         mysteps = db(db.steps.lemmas.contains(lid)).select()
         if mysteps:
             stepids = [s.id for s in mysteps]
             mypaths = db(db.paths.steps.contains(stepids)).select()
         l['lemmas']['stepcount'] = len(mysteps) if mysteps else 0
         l['lemmas']['pathcount'] = len(mypaths) if 'mypaths' in locals() and mypaths else 0
+
+        # Assemble string with principle parts and/or irregular forms
+        myparts = ''
+        if l['lemmas']['future'] and l['lemmas']['future'] not in ['None', 'none']:
+            partnames = [l['lemmas']['future'], l['lemmas']['aorist_active'],
+                         l['lemmas']['perfect_active'], l['lemmas']['perfect_passive'],
+                         l['lemmas']['aorist_passive']]
+            myparts = '{}, {}, {}, {}, {}'.format(*partnames)
+        elif l['lemmas']['genitive_singular'] \
+                and l['lemmas']['genitive_singular'] not in ['None', 'none']:
+            myparts = 'gen. {}'.format(l['lemmas']['genitive_singular'])
+
+        if l['lemmas']['other_irregular'] \
+                and l['lemmas']['other_irregular'] not in ['None', 'none']:
+            if myparts == '':
+                myparts += '{}'.format(l['lemmas']['other_irregular'])
+            else:
+                myparts += ' ({})'.format(l['lemmas']['other_irregular'])
+        l['lemmas']['myparts'] = myparts
 
     mylemmas = [l for l in lemmas if l['tags']['tag_position'] <= mylevel]
 
@@ -140,7 +162,7 @@ def paths_by_tag():
 
     # find any steps not used in a path
     path_steps = [s for p in paths for s in p['steps']]
-    not_in_path = steps.find(lambda row: not row.id in path_steps)
+    not_in_path = steps.find(lambda row: row.id not in path_steps)
 
     # find any steps/paths that have been deactivated
     deactivated = [s for s in steps if s.status == 2]
@@ -225,24 +247,25 @@ def calendar():
 
     return {'cal': cal}
 
+
 def tag_counts():
     '''
     Return a dictionary of data on user activity around tag categories.
 
     '''
     nowdate = datetime.datetime.combine(datetime.date.today(),
-                                        datetime.time(0,0,0,0))
+                                        datetime.time(0, 0, 0, 0))
 
     if 'start_date' in request.vars.keys():
         sdt = parse(request.vars['start_date'])
-        startdate = datetime.datetime.combine(sdt, datetime.time(0,0,0,0))
+        startdate = datetime.datetime.combine(sdt, datetime.time(0, 0, 0, 0))
     else:
         startdate = nowdate - datetime.timedelta(days=2)
     print 'startdate', startdate
 
     if 'end_date' in request.vars.keys():
         edt = parse(request.vars['end_date'])
-        enddate = datetime.datetime.combine(edt, datetime.time(0,0,0,0))
+        enddate = datetime.datetime.combine(edt, datetime.time(0, 0, 0, 0))
     else:
         enddate = nowdate
     print 'enddate', enddate
@@ -264,4 +287,3 @@ def tag_counts():
 
     return {'tagdata': tagdata,
             'form': form}
-
