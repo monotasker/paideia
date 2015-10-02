@@ -2897,16 +2897,14 @@ class Categorizer(object):
             # increment times_right by 1 per CONST_SEC_RIGHT_MOD secondary_right
             # this var is called triplets because CONST_SEC_RIGHT_MOD used to be 3
             triplets2 = rlen / CONST_SEC_RIGHT_MOD
-            if not rec['times_right']:
-                rec['times_right'] = 0
-            rec['times_right'] += triplets2
+            rec['times_right'] = triplets2 if not rec['times_right'] \
+                else rec['times_right'] + triplets2
 
             # move tlast_right forward based on mean of oldest
             # CONST_SEC_RIGHT_MOD secondary_right dates
             early3 = right2[: -(rem2)] if rem2 else right2[:]
-            early3d = [self.utcnow -
-                       datetime.datetime.strptime(s, '%Y-%m-%d %H:%M:%S.%f')
-                       for s in early3]
+            early3d = [self.utcnow - parser.parse(s) for s in early3]
+            #          datetime.datetime.strptime(s, '%Y-%m-%d %H:%M:%S.%f')
             avg_delta = sum(early3d, datetime.timedelta(0)) / len(early3d)
             avg_date = self.utcnow - avg_delta
 
