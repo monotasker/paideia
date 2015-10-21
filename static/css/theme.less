@@ -125,6 +125,7 @@ body.exploring                  {
     }
     main                            {z-index:1;
         #page                       {background-size: auto 100%;
+                                     z-index:100;
             div#loading-mask            {display: none;
                                          position: absolute;
                                          background-color: rgba(0,0,0,0.6);
@@ -135,15 +136,16 @@ body.exploring                  {
                                          margin:0 auto;
             }
             .admin-panel                {position:absolute;
-                                         width:300px;
-                                         height:300px;
+                                         width:20px;
+                                         height:20px;
                                          top:0;
-                                         left: -280px;
+                                         left: 0;
                                          background-color: @black;
                                          color: @white;
                                          z-index:100;
                                          padding-left: @line-height-computed;
-                &:hover                 {left:0;}
+                                         overflow: hidden;
+                &:hover                 {width:300;}
                 h3                      {color: @white;}
                 input[type=text]        {width: 60%;}
             }
@@ -161,7 +163,15 @@ body.exploring                  {
                                          font-family: "SBL Greek";
                                          font-size: @font-size-large;
                                          box-shadow: 0 0 6px rgba(0,0,0,0.5);
-
+                .jp-audio               {width:30px;
+                                         float:right;
+                                         padding: 0;
+                                         text-align: right;
+                                         margin-left: 1em;
+                                         margin-bottom: 1em;
+                    .jp-controls        {width:30px;
+                    }
+                }
                 img                     {max-height: 260px;
                 }
                 #slides_btn,

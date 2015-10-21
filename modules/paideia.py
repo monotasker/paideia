@@ -9,7 +9,7 @@ import datetime
 from dateutil import parser
 from inspect import getargvalues, stack
 from itertools import chain
-#import os
+import os
 from paideia_utils import Paideia_Debug, GreekNormalizer
 import pickle
 from plugin_utils import flatten, makeutf8, ErrorReport
@@ -17,6 +17,7 @@ from plugin_utils import flatten, makeutf8, ErrorReport
 from pytz import timezone
 from random import randint, randrange
 import re
+import sys
 import traceback
 
 """
@@ -156,6 +157,8 @@ class Walk(object):
                 sd = db(db.session_data.name ==
                         auth.user_id).select().first()
                 if sd:
+                    sys.path.append(os.path.dirname(__file__))
+                    print sys.path
                     self.user = pickle.loads(sd['other_data'])
                 else:
                     self.user = None
@@ -405,8 +408,8 @@ class Walk(object):
         loc = user.get_location()
         #print 'loc is', type(loc), loc
         p, cat = user.get_path(loc)[:2]
-        print 'in walk.reply:: path is ------------------------------------'
-        print p
+        # print 'in walk.reply:: path is ------------------------------------'
+        # print p
 
         s = p.get_step_for_reply()
         if (not response_string) or re.match(response_string, r'\s+'):
@@ -2116,7 +2119,7 @@ class PathChooser(object):
             # print 'p_tried:', p_tried_ids
             p_tried = [p for p in cpaths if p['id'] in p_tried_ids]
 
-            print 'self.completed:', self.completed['paths']
+            # print 'self.completed:', self.completed['paths']
             # untried path available here
             if p_here_new:
                 path = p_here_new[randrange(0, len(p_here_new))]
