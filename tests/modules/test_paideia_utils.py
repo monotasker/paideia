@@ -209,7 +209,9 @@ class TestGreekNormalizer():
                                  ('tε', u'τε'),
                                  ('ἐxω', u'ἐχω'),
                                  ('ἘXΩ', u'ἘΧΩ'),
-                                 ('ἐγw', u'ἐγω')
+                                 ('ἐγw', u'ἐγω'),
+                                 (u"ἀγαπη?", u"ἀγαπη;"),
+                                 (u"hi bob?", u"hi bob?")
                                  ])
     def test_convert_latin_chars(self, string_in, string_out):
         """

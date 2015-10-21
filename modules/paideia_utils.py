@@ -259,7 +259,7 @@ class GreekNormalizer(object):
         strings = [strings] if not isinstance(strings, list) else strings
         try:
             newstrings = []
-            rgx = ur'(?P<a>[Α-Ωα-ω])?([a-z]|[A-Z]|\d)(?(a).*|[Α-Ωα-ω])'
+            rgx = ur'(?P<a>[Α-Ωα-ω])?([a-z]|[A-Z]|\d|\?)(?(a).*|[Α-Ωα-ω])'
             latin = re.compile(rgx, re.U)
             for string in strings:
                 string = unicode(makeutf8(string))
@@ -288,7 +288,8 @@ class GreekNormalizer(object):
                             u'T': u'Τ',
                             u'x': u'χ',
                             u'X': u'Χ',
-                            u'w': u'ω'}
+                            u'w': u'ω',
+                            u'?': u';'}
                     print 'Latin character found in Greek string: '
                     print mymatch.group(), 'in', string
                     newstring = multiple_replace(string, subs)
@@ -385,7 +386,6 @@ class GreekNormalizer(object):
                       u'Ῥ': [u'῾Ρ'],  # also handle improperly formed marks (rough)
                       u'"': [u'“', u'”', u'«', u'»'],  # handle curly quotes
                       u"'": [u'‘', u'’'],
-                      u";": [u'\?']
                       }
             accented = chain(*equivs.values())
             restr = '|'.join(accented)
