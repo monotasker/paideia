@@ -40,7 +40,7 @@ global_run_TestStep = True
 global_run_TestStepEvaluator = True
 global_run_TestMultipleEvaluator = True
 global_run_TestPath = True
-global_run_TestUser = False
+global_run_TestUser = True
 global_run_TestCategorizer = True
 global_run_TestMap = True
 global_run_TestWalk = False
@@ -4256,14 +4256,16 @@ class TestUser(object):
         path, it will return a blocking step for each test case (even if that
         case would not normally have a block set.)
         """
+        # three data vars below only dummy data to create User
+        # Its content doesn't affect the method return value
         userdata = {'first_name': 'Homer',
                     'id': 1,
                     'time_zone': 'America/Toronto'}
         tagprog = {'latest_new': 2,
-                 'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
-                 'cat3': [], 'cat4': [],
-                 'rev1': [], 'rev2': [61],
-                 'rev3': [], 'rev4': []}
+                   'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                   'cat3': [], 'cat4': [],
+                   'rev1': [], 'rev2': [61],
+                   'rev3': [], 'rev4': []}
         tagrecs = [{'name': 1,
                     'tag': 1,
                     'tlast_right': dt('2013-01-29'),
@@ -4271,8 +4273,10 @@ class TestUser(object):
                     'times_right': 1,
                     'times_wrong': 1,
                     'secondary_right': None}]
+
         myblocks = [Block(b) for b in theblocks]
-        user = User(userdata, tagrecs, tagprog, myblocks)
+        print 'myblocks:', myblocks
+        user = User(userdata, tagrecs, tagprog, blocks=myblocks)
         startlen = len(theblocks)
 
         actual_return = user.check_for_blocks()
