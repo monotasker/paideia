@@ -2968,7 +2968,7 @@ class Categorizer(object):
                 ratio = 0
         return ratio
 
-    def _core_algorithm(self, tag_records=None):
+    def _core_algorithm(self, tag_records=None, db=None):
         """
         Return dict of the user's active tags categorized by past performance.
         The tag_records argument should be a list of dictionaries, each of
@@ -2988,10 +2988,14 @@ class Categorizer(object):
         TODO: Require that a certain number of successes are recent
         TODO: Look at secondary tags as well
         """
+        db = db if db else current.db
         categories = {'rev1': [], 'rev2': [], 'rev3': [], 'rev4': []}
         tag_records = tag_records if tag_records else self.tag_records
 
         for record in tag_records:
+            if not db.tags[record['tag']]:
+                # TODO: send error email here
+                continue
             lrraw = record['tlast_right']
             lwraw = record['tlast_wrong']
             lr = lrraw if not isinstance(lrraw, str) else parser.parse(lrraw)

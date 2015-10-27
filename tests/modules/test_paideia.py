@@ -122,8 +122,8 @@ def mytagpros():
 @pytest.fixture
 def mycatsout_core_algorithm():
     """A fixture providing mock tag_progress records"""
-    tp = {'Simon Pan 2014-03-21': {'rev1': [1, 2, 5, 6, 9, 10, 16, 17, 24, 30,
-                                            32, 35, 36, 40, 43, 46, 48, 61, 62,
+    tp = {'Simon Pan 2014-03-21': {'rev1': [1, 2, 5, 6, 9, 10, 16, 17, 30, 32,
+                                            36, 40, 43, 46, 48, 61, 62,
                                             63, 66, 67, 69, 71, 72, 73, 74, 76,
                                             77, 82, 83, 84, 85, 86, 87, 88, 90,
                                             91, 93, 94, 95, 115, 117, 118, 121,
@@ -131,6 +131,8 @@ def mycatsout_core_algorithm():
                                             # 55, 96, 102, 103, 104, 131, 135,
                                             # 130, 132, 134 are untried
                                             # FIXME: why is 4 not here?
+                                            # Includes 32 (rank 999) because
+                                            # not yet filtered for rank
                                    'rev2': [],
                                    'rev3': [14],
                                    'rev4': [18, 29, 38, 47, 49, 68, 75, 89, 92,
@@ -142,13 +144,19 @@ def mycatsout_core_algorithm():
 @pytest.fixture
 def mycatsout_add_untried():
     """A fixture providing mock tag_progress records"""
-    tp = {'Simon Pan 2014-03-21': {'rev1': [1, 2, 4, 5, 6, 9, 10, 16, 17, 24, 30,
-                                            32, 35, 36, 40, 43, 46, 48, 55, 61, 62,
-                                            63, 66, 67, 69, 71, 72, 73, 74, 76,
-                                            77, 82, 83, 84, 85, 86, 87, 88, 90,
-                                            91, 93, 94, 95, 96, 102, 115, 117,
-                                            118, 121, 124, 128, 129, 130, 131,
-                                            132, 133, 135],
+    tp = {'Simon Pan 2014-03-21': {'rev1': [1, 2, 4L, 5, 6, 9, 10, 12L, 16, 17,
+                                            30, 32, 36, 40, 41L, 43, 46, 48,
+                                            50L, 51L, 52L, 53L, 55L, 61, 62, 63,
+                                            66, 67, 69, 71, 72, 73, 74, 76, 77,
+                                            82, 83, 84, 85, 86, 87, 88, 90, 91,
+                                            93, 94, 95, 96L, 97L, 102L, 105L,
+                                            106L, 108L, 110L, 115, 117, 118, 121,
+                                            124, 127L, 128, 129, 130L, 131L, 132L,
+                                            133, 134L, 135L, 153L, 154L, 155L,
+                                            156L, 157L, 158L, 159L, 173L, 181L,
+                                            183L, 184L, 187L, 208L, 210L, 216L],
+                                            # Includes 32 (rank 999) because
+                                            # not yet filtered for rank
                                    'rev2': [],
                                    'rev3': [14],
                                    'rev4': [18, 29, 38, 47, 49, 68, 75, 89, 92,
@@ -523,16 +531,6 @@ def mytagrecs():
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 1, 24, 23, 32, 23),
             'tlast_wrong': datetime.datetime(2013, 10, 23, 18, 0, 5)},
-           {'id': 383978L,
-            'tag': 24L,
-            'in_path': None,
-            'name': 109L,
-            'secondary_right': None,
-            'step': None,
-            'times_right': 1.0,
-            'times_wrong': 0.0,
-            'tlast_right': datetime.datetime(2014, 3, 20, 1, 19),
-            'tlast_wrong': datetime.datetime(2014, 2, 11, 2, 50, 54)},
            {'id': 383546L,
             'tag': 29L,
             'in_path': None,
@@ -606,17 +604,6 @@ def mytagrecs():
             'times_wrong': None,
             'tlast_right': datetime.datetime(2013, 10, 2, 20, 38, 45),
             'tlast_wrong': datetime.datetime(2013, 10, 2, 20, 38, 45)},
-           {'id': 384067L,
-            'tag': 35L,
-            'in_path': None,
-            'name': 109L,
-            'secondary_right': ['2014-03-13 20:02:54.213157',
-                                '2014-03-13 20:03:06.719722'],
-            'step': None,
-            'times_right': None,
-            'times_wrong': None,
-            'tlast_right': datetime.datetime(2014, 3, 13, 20, 2, 52),
-            'tlast_wrong': datetime.datetime(2014, 3, 13, 20, 2, 52)},
            {'id': 383232L,
             'tag': 36L,
             'in_path': None,
@@ -1546,16 +1533,6 @@ def mytagrecs_with_secondary():
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 1, 24, 23, 32, 23),
             'tlast_wrong': datetime.datetime(2013, 10, 23, 18, 0, 5)},
-           {'id': 383978L,
-            'tag': 24L,
-            'in_path': None,
-            'name': 109L,
-            'secondary_right': None,
-            'step': None,
-            'times_right': 1.0,
-            'times_wrong': 0.0,
-            'tlast_right': datetime.datetime(2014, 3, 20, 1, 19),
-            'tlast_wrong': datetime.datetime(2014, 2, 11, 2, 50, 54)},
            {'id': 383546L,
             'tag': 29L,
             'in_path': None,
@@ -1590,17 +1567,6 @@ def mytagrecs_with_secondary():
             'times_wrong': None,
             'tlast_right': datetime.datetime(2013, 10, 2, 20, 38, 45),
             'tlast_wrong': datetime.datetime(2013, 10, 2, 20, 38, 45)},
-           {'id': 384067L,
-            'tag': 35L,
-            'in_path': None,
-            'name': 109L,
-            'secondary_right': ['2014-03-13 20:02:54.213157',
-                                '2014-03-13 20:03:06.719722'],
-            'step': None,
-            'times_right': None,
-            'times_wrong': None,
-            'tlast_right': datetime.datetime(2014, 3, 13, 20, 2, 52),
-            'tlast_wrong': datetime.datetime(2014, 3, 13, 20, 2, 52)},
            {'id': 383232L,
             'tag': 36L,
             'in_path': None,
@@ -4857,7 +4823,7 @@ class TestCategorizer():
             print [t for t in tags if t not in expected[cat]]
             print 'diffright:'
             print [t for t in expected[cat] if t not in tags]
-            assert tags == expected[cat]
+            assert [int(t) for t in tags] == expected[cat]
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('casename,rank,catsin,tagrecs,introduced',
@@ -4931,7 +4897,7 @@ class TestCategorizer():
                                ),
                               ])
     def test_categorizer_add_untried_tags(self, casename, rank, catsin,
-                                          tagrecs, catsout):
+                                          tagrecs, catsout, db):
         """
         Unit test for the paideia.Categorizer._add_untried_tags method
 
@@ -4950,10 +4916,15 @@ class TestCategorizer():
         print '\nactual', actual
         expected = catsout
 
+        # checking from static test case
         for cat, lst in actual.iteritems():
             lst.sort()
             print cat
             print 'actual:', lst
+            for a in lst:
+                print 'actual includes tag', a
+                arow = db.tags[a]
+                print arow.tag, arow.tag_position
             print 'expected:', expected[cat]
             print 'diffleft:'
             print [t for t in lst if t not in expected[cat]]
@@ -4961,6 +4932,17 @@ class TestCategorizer():
             print [t for t in expected[cat] if t not in lst]
             assert lst == expected[cat]
             assert len(lst) == len(expected[cat])
+
+        # checking directly with db
+        all_actual = list(chain(*actual.values()))
+        all_actual.sort()
+        ranktags = db(db.tags.tag_position <= rank).select().as_list()
+        # below exclude utility tags for flag messages
+        ranktagids = [int(c['id']) for c in ranktags if c['id'] not in [79, 80, 81]]
+        if casename == 'case9':
+            ranktagids.append(32)  # not yet filtered for tags above current rank
+        ranktagids.sort()
+        assert [int(a) for a in all_actual] == ranktagids
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('casename,rank,catsin,tagrecs,catsout',
@@ -4973,7 +4955,7 @@ class TestCategorizer():
                                  'times_right': 1,
                                  'times_wrong': 1,
                                  'secondary_right': None}],
-                               {'cat1': [61], 'cat2': [],
+                               {'cat1': [1, 61], 'cat2': [],
                                 'cat3': [], 'cat4': []},
                                )
                               ])
@@ -5008,11 +4990,11 @@ class TestCategorizer():
                                 'rev3': [], 'rev4': []},
                                {'cat1': [], 'cat2': [],  # catsin
                                 'cat3': [], 'cat4': [],
-                                'rev1': [61], 'rev2': [],
+                                'rev1': [1, 61], 'rev2': [],
                                 'rev3': [], 'rev4': []},
-                               {'cat1': [61], 'cat2': [],  # catsout
+                               {'cat1': [1, 61], 'cat2': [],  # catsout
                                 'cat3': [], 'cat4': [],
-                                'rev1': [61], 'rev2': [],
+                                'rev1': [1, 61], 'rev2': [],
                                 'rev3': [], 'rev4': []},
                                [{'name': 1,
                                  'tag': 1,
@@ -5137,7 +5119,7 @@ class TestCategorizer():
     @pytest.mark.parametrize('casename,rank,catsin,tagrecsin,'
                              'rankout,catsout,tpout,'
                              'promoted,newtags',
-                             [('case1',  # remove 1 and introduce 61 in rev1
+                             [('case1',  # introduce new tags in rev1
                                1,  # rank
                                {'cat1': [1], 'cat2': [],  # catsin
                                 'cat3': [], 'cat4': [],
@@ -5151,45 +5133,115 @@ class TestCategorizer():
                                  'times_wrong': 1,
                                  'secondary_right': None}],
                                1,  # rank out
-                               {'cat1': [61], 'cat2': [],  # catsout
+                               {'cat1': [1, 6L, 29L, 61L, 62L, 82L, 83L, 208L],
+                                'cat2': [],  # catsout
                                 'cat3': [], 'cat4': [],
-                                'rev1': [61], 'rev2': [],
+                                'rev1': [1, 6L, 29L, 61L, 62L, 82L, 83L, 208L],
+                                'rev2': [],
                                 'rev3': [], 'rev4': []},
                                {'latest_new': 1,  # tag progress out
-                                'cat1': [61], 'cat2': [],
+                                'cat1': [1, 6L, 29L, 61L, 62L, 82L, 83L, 208L],
+                                'cat2': [],
                                 'cat3': [], 'cat4': [],
-                                'rev1': [61], 'rev2': [],
+                                'rev1': [1, 6L, 29L, 61L, 62L, 82L, 83L, 208L],
+                                'rev2': [],
                                 'rev3': [], 'rev4': []},
-                               None,
-                               {'rev1': [61], 'rev2': [],
+                               None,  # promoted
+                               {'rev1': [6L, 29L, 61L, 62L, 82L, 83L, 208L],  # new_tags
+                                'rev2': [],
                                 'rev3': [], 'rev4': []},
                                ),
                               ('case2',  # promote 61, introduce set 2
                                1,  # rank in
-                               {'cat1': [61], 'cat2': [],  # cats in
+                               {'cat1': [1, 6L, 29L, 61L, 62L, 82L, 83L, 208L],
+                                'cat2': [],  # cats in
                                 'cat3': [], 'cat4': [],
-                                'rev1': [61], 'rev2': [],
+                                'rev1': [1, 6L, 29L, 61L, 62L, 82L, 83L, 208L],
+                                'rev2': [],
                                 'rev3': [], 'rev4': []},
                                [{'name': 1,  # tagrecs in
+                                 'tag': 1,
+                                 'tlast_right': dt('2013-01-28'),
+                                 'tlast_wrong': dt('2013-01-27'),
+                                 'times_right': 20,
+                                 'times_wrong': 1,
+                                 'secondary_right': []},
+                                {'name': 1,  # tagrecs in
                                  'tag': 61,
                                  'tlast_right': dt('2013-01-28'),
                                  'tlast_wrong': dt('2013-01-27'),
                                  'times_right': 20,
                                  'times_wrong': 1,
-                                 'secondary_right': []}],
+                                 'secondary_right': []},
+                                {'name': 1,  # tagrecs in
+                                 'tag': 6,
+                                 'tlast_right': dt('2013-01-28'),
+                                 'tlast_wrong': dt('2013-01-27'),
+                                 'times_right': 20,
+                                 'times_wrong': 1,
+                                 'secondary_right': []},
+                                {'name': 1,  # tagrecs in
+                                 'tag': 29,
+                                 'tlast_right': dt('2013-01-28'),
+                                 'tlast_wrong': dt('2013-01-27'),
+                                 'times_right': 20,
+                                 'times_wrong': 1,
+                                 'secondary_right': []},
+                                {'name': 1,  # tagrecs in
+                                 'tag': 61,
+                                 'tlast_right': dt('2013-01-28'),
+                                 'tlast_wrong': dt('2013-01-27'),
+                                 'times_right': 20,
+                                 'times_wrong': 1,
+                                 'secondary_right': []},
+                                {'name': 1,  # tagrecs in
+                                 'tag': 62,
+                                 'tlast_right': dt('2013-01-28'),
+                                 'tlast_wrong': dt('2013-01-27'),
+                                 'times_right': 20,
+                                 'times_wrong': 1,
+                                 'secondary_right': []},
+                                {'name': 1,  # tagrecs in
+                                 'tag': 82,
+                                 'tlast_right': dt('2013-01-28'),
+                                 'tlast_wrong': dt('2013-01-27'),
+                                 'times_right': 20,
+                                 'times_wrong': 1,
+                                 'secondary_right': []},
+                                {'name': 1,  # tagrecs in
+                                 'tag': 83,
+                                 'tlast_right': dt('2013-01-28'),
+                                 'tlast_wrong': dt('2013-01-27'),
+                                 'times_right': 20,
+                                 'times_wrong': 1,
+                                 'secondary_right': []},
+                                {'name': 1,  # tagrecs in
+                                 'tag': 208,
+                                 'tlast_right': dt('2013-01-28'),
+                                 'tlast_wrong': dt('2013-01-27'),
+                                 'times_right': 20,
+                                 'times_wrong': 1,
+                                 'secondary_right': []},
+                                ],
                                2,  # rank out
-                               {'cat1': [6, 29, 62, 82, 83], 'cat2': [61],  # cats out
+                               {'cat1': [9L, 36L, 63L, 66L, 68L, 72L, 89L, 115L],
+                                'cat2': [1, 6, 29, 61, 62, 82, 83, 208],  # cats out
                                 'cat3': [], 'cat4': [],
-                                'rev1': [6, 29, 62, 82, 83], 'rev2': [61],
+                                'rev1': [9L, 36L, 63L, 66L, 68L, 72L, 89L, 115L],
+                                'rev2': [1, 6, 29, 61, 62, 82, 83, 208],
                                 'rev3': [], 'rev4': []},
                                {'latest_new': 2,  # tag progress out
-                                'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                                'cat1': [9L, 36L, 63L, 66L, 68L, 72L, 89L, 115L],
+                                'cat2': [1, 6, 29, 61, 62, 82, 83, 208],
                                 'cat3': [], 'cat4': [],
-                                'rev1': [6, 29, 62, 82, 83], 'rev2': [61],
+                                'rev1': [9L, 36L, 63L, 66L, 68L, 72L, 89L, 115L],
+                                'rev2': [1, 6, 29, 61, 62, 82, 83, 208],
                                 'rev3': [], 'rev4': []},
-                               {'cat1': [], 'cat2': [61],  # promoted
+                               {'cat1': [],
+                                'cat2': [1, 6, 29, 61, 62, 82, 83, 208],  # promoted
                                 'cat3': [], 'cat4': []},
-                               {'rev1': [6, 29, 62, 82, 83], 'rev2': [],
+                               {'rev1': [9L, 36L, 63L, 66L, 68L, 72L, 89L, 115L],
+                                'rev2': [],
                                 'rev3': [], 'rev4': []},  # new tags
                                )
                               ])
@@ -5213,23 +5265,25 @@ class TestCategorizer():
                     'pro': promoted}
 
         for key, act in actual['categories'].iteritems():
-            print key
+            print 'checking actual categories', key
             act.sort()
             assert act == expected['cats'][key]
 
         for key, act in actual['tag_progress'].iteritems():
+            print 'checking actual tag_progress', key
             if isinstance(act, list):
                 act.sort()
             assert act == tpout[key]
 
         if actual['new_tags']:
             for key, act in actual['new_tags'].iteritems():
+                print 'checking actual new_tags', key
                 act.sort()
                 assert actual['new_tags'][key] == expected['nt'][key]
-                assert actual['new_tags'][key] == actual['categories'][key]
 
         if actual['promoted']:
             for key, act in actual['promoted'].iteritems():
+                print 'checking actual promoted', key
                 assert actual['promoted'][key] == expected['pro'][key]
 
 
