@@ -150,7 +150,7 @@ class Walk(object):
         '''
         auth = current.auth
         db = current.db
-        try:  # look for user object already on this Walk
+        try:  # look for user object already on this Walk or new_user flag set
             assert (self.user) and new_user is None
         except (AttributeError, AssertionError):  # because no user yet on this Walk
             try:
@@ -2452,10 +2452,10 @@ class User(object):
                     blockset.append(b)
             self.blocks = blockset
             print 'User::check_for_blocks: blockset', blockset
-            current.sequence_counter += 1
+            current.sequence_counter += 1  # TODO: why increment twice here?
             myblock = self.blocks.pop(0)
             print 'User::check_for_blocks: myblock', blockset
-            current.sequence_counter += 1
+            current.sequence_counter += 1  # TODO: why increment twice here?
             return myblock
         else:
             print 'User::check_for_blocks: no blocks present'
