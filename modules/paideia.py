@@ -2276,6 +2276,7 @@ class User(object):
         try:
             self.time_zone = userdata['time_zone']
             self.blocks = blocks
+            print 'User::init: self.blocks', self.blocks
             # FIXME: somehow pass previous day's blocks in user._is_stale()?
             self.name = userdata['first_name']
             self.user_id = userdata['id']
@@ -2440,20 +2441,24 @@ class User(object):
             StepAwardBadges, or StepViewSlides)
         - also sets self.step_sent_id
         If a block is not found:
-        - Returns False
+        - Returns None
         """
         # TODO make sure that current loc and npc get set for self.prev_loc etc
         if self.blocks:
+            print 'User::check_for_blocks: blocks present'
             blockset = []
             for b in self.blocks:
                 if not b.get_condition() in [c.get_condition() for c in blockset]:
                     blockset.append(b)
             self.blocks = blockset
+            print 'User::check_for_blocks: blockset', blockset
             current.sequence_counter += 1
             myblock = self.blocks.pop(0)
+            print 'User::check_for_blocks: myblock', blockset
             current.sequence_counter += 1
             return myblock
         else:
+            print 'User::check_for_blocks: no blocks present'
             return None
 
     def set_block(self, condition, kwargs=None):
