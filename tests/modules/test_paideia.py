@@ -22,7 +22,7 @@ import datetime
 from pprint import pprint
 import re
 from copy import copy
-from random import randint
+from random import randint, randrange
 #from dateutil import parser
 from difflib import Differ
 from itertools import chain
@@ -6720,37 +6720,8 @@ class TestPathChooser():
         assert actualmode == mode
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('locid,completed,tpout,redirect,mode',
+    @pytest.mark.parametrize('locid,tpout,redirect,mode',
                              [(6,  # shop_of_alexander (only 1 untried here)
-                               {'latest': 2,  # completed
-                                'paths': {2: {'right': 1, 'wrong': 0},
-                                          3: {'right': 1, 'wrong': 0},
-                                          5: {'right': 1, 'wrong': 0},
-                                          8: {'right': 1, 'wrong': 0},
-                                          9: {'right': 1, 'wrong': 0},
-                                          63: {'right': 1, 'wrong': 0},
-                                          95: {'right': 1, 'wrong': 0},
-                                          96: {'right': 1, 'wrong': 0},
-                                          97: {'right': 1, 'wrong': 0},
-                                          99: {'right': 1, 'wrong': 0},
-                                          102: {'right': 1, 'wrong': 0},
-                                          256: {'right': 1, 'wrong': 0},
-                                          409: {'right': 1, 'wrong': 0},
-                                          410: {'right': 1, 'wrong': 0},
-                                          411: {'right': 1, 'wrong': 0},
-                                          412: {'right': 1, 'wrong': 0},
-                                          413: {'right': 1, 'wrong': 0},
-                                          414: {'right': 1, 'wrong': 0},
-                                          415: {'right': 1, 'wrong': 0},
-                                          416: {'right': 1, 'wrong': 0},
-                                          417: {'right': 1, 'wrong': 0},
-                                          418: {'right': 1, 'wrong': 0},
-                                          419: {'right': 1, 'wrong': 0},
-                                          420: {'right': 1, 'wrong': 0},
-                                          421: {'right': 1, 'wrong': 0},
-                                          422: {'right': 1, 'wrong': 0},
-                                          423: {'right': 1, 'wrong': 0}}
-                                },
                                {'latest_new': 1,  # tpout
                                 'cat1': [61], 'cat2': [],
                                 'cat3': [], 'cat4': [],
@@ -6760,17 +6731,6 @@ class TestPathChooser():
                                'here_new'  # mode
                                ),
                               (11,  # synagogue [all in loc 11 completed] -------
-                               {'latest': 1,  # completed
-                                'paths': {1: {'right': 1, 'wrong': 0},
-                                          2: {'right': 1, 'wrong': 0},
-                                          3: {'right': 1, 'wrong': 0},
-                                          8: {'right': 1, 'wrong': 0},
-                                          95: {'right': 1, 'wrong': 0},
-                                          96: {'right': 1, 'wrong': 0},
-                                          97: {'right': 1, 'wrong': 0},
-                                          99: {'right': 1, 'wrong': 0},
-                                          102: {'right': 1, 'wrong': 0}}
-                                },
                                {'latest_new': 1,  # tpout
                                 'cat1': [61], 'cat2': [],
                                 'cat3': [], 'cat4': [],
@@ -6780,20 +6740,6 @@ class TestPathChooser():
                                 'new_elsewhere'  # mode
                                ),
                               (8,  # agora (no redirect, new here) --------------
-                               {'latest': 17,
-                                'paths': {17: {'right': 1, 'wrong': 0},
-                                          98: {'right': 1, 'wrong': 0},
-                                          15: {'right': 1, 'wrong': 0},
-                                          208: {'right': 1, 'wrong': 0},
-                                          12: {'right': 1, 'wrong': 0},
-                                          16: {'right': 1, 'wrong': 0},
-                                          34: {'right': 1, 'wrong': 0},
-                                          11: {'right': 1, 'wrong': 0},
-                                          23: {'right': 1, 'wrong': 0},
-                                          4: {'right': 1, 'wrong': 0},
-                                          9: {'right': 1, 'wrong': 0},
-                                          18: {'right': 1, 'wrong': 0}}
-                                },  # completed
                                {'latest_new': 2,  # tpout
                                 'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
                                 'cat3': [], 'cat4': [],
@@ -6803,477 +6749,97 @@ class TestPathChooser():
                                 'here_new'  # mode
                                ),
                               (8,  # agora (all for tags completed, repeat here) --
-                               {'latest': 4,
-                                'paths': {4: {'right': 1, 'wrong': 0},
-                                          7: {'right': 1, 'wrong': 0},
-                                          9: {'right': 1, 'wrong': 0},
-                                          10: {'right': 1, 'wrong': 0},
-                                          11: {'right': 1, 'wrong': 0},
-                                          12: {'right': 1, 'wrong': 0},
-                                          13: {'right': 1, 'wrong': 0},
-                                          14: {'right': 1, 'wrong': 0},
-                                          15: {'right': 1, 'wrong': 0},
-                                          16: {'right': 1, 'wrong': 0},
-                                          17: {'right': 1, 'wrong': 0},
-                                          18: {'right': 1, 'wrong': 0},
-                                          19: {'right': 1, 'wrong': 0},
-                                          21: {'right': 1, 'wrong': 0},
-                                          22: {'right': 1, 'wrong': 0},
-                                          23: {'right': 1, 'wrong': 0},
-                                          34: {'right': 1, 'wrong': 0},
-                                          35: {'right': 1, 'wrong': 0},
-                                          45: {'right': 1, 'wrong': 0},
-                                          97: {'right': 1, 'wrong': 0},
-                                          98: {'right': 1, 'wrong': 0},
-                                          99: {'right': 1, 'wrong': 0},
-                                          100: {'right': 1, 'wrong': 0},
-                                          101: {'right': 1, 'wrong': 0},
-                                          103: {'right': 1, 'wrong': 0},
-                                          120: {'right': 1, 'wrong': 0},
-                                          129: {'right': 1, 'wrong': 0},
-                                          139: {'right': 1, 'wrong': 0},
-                                          141: {'right': 1, 'wrong': 0},
-                                          149: {'right': 1, 'wrong': 0},
-                                          152: {'right': 1, 'wrong': 0},
-                                          161: {'right': 1, 'wrong': 0},
-                                          167: {'right': 1, 'wrong': 0},
-                                          176: {'right': 1, 'wrong': 0},
-                                          184: {'right': 1, 'wrong': 0},
-                                          190: {'right': 1, 'wrong': 0},
-                                          208: {'right': 1, 'wrong': 0},
-                                          222: {'right': 1, 'wrong': 0},
-                                          225: {'right': 1, 'wrong': 0},
-                                          228: {'right': 1, 'wrong': 0},
-                                          231: {'right': 1, 'wrong': 0},
-                                          236: {'right': 1, 'wrong': 0},
-                                          247: {'right': 1, 'wrong': 0},
-                                          255: {'right': 1, 'wrong': 0},
-                                          257: {'right': 1, 'wrong': 0},
-                                          261: {'right': 1, 'wrong': 0},
-                                          277: {'right': 1, 'wrong': 0},
-                                          333: {'right': 1, 'wrong': 0},
-                                          334: {'right': 1, 'wrong': 0},
-                                          366: {'right': 1, 'wrong': 0},
-                                          409: {'right': 1, 'wrong': 0},
-                                          410: {'right': 1, 'wrong': 0},
-                                          411: {'right': 1, 'wrong': 0},
-                                          412: {'right': 1, 'wrong': 0},
-                                          413: {'right': 1, 'wrong': 0},
-                                          414: {'right': 1, 'wrong': 0},
-                                          415: {'right': 1, 'wrong': 0},
-                                          416: {'right': 1, 'wrong': 0},
-                                          417: {'right': 1, 'wrong': 0},
-                                          418: {'right': 1, 'wrong': 0},
-                                          419: {'right': 1, 'wrong': 0},
-                                          420: {'right': 1, 'wrong': 0},
-                                          421: {'right': 1, 'wrong': 0},
-                                          423: {'right': 1, 'wrong': 0},
-                                          424: {'right': 1, 'wrong': 0},
-                                          425: {'right': 1, 'wrong': 0},
-                                          426: {'right': 1, 'wrong': 0},
-                                          427: {'right': 1, 'wrong': 0},
-                                          428: {'right': 1, 'wrong': 0},
-                                          429: {'right': 1, 'wrong': 0},
-                                          430: {'right': 1, 'wrong': 0},
-                                          431: {'right': 1, 'wrong': 0},
-                                          433: {'right': 1, 'wrong': 0},
-                                          434: {'right': 1, 'wrong': 0},
-                                          435: {'right': 1, 'wrong': 0},
-                                          436: {'right': 1, 'wrong': 0},
-                                          437: {'right': 1, 'wrong': 0},
-                                          439: {'right': 1, 'wrong': 0},
-                                          440: {'right': 1, 'wrong': 0},
-                                          441: {'right': 1, 'wrong': 0},
-                                          444: {'right': 1, 'wrong': 0},
-                                          445: {'right': 1, 'wrong': 0},
-                                          607: {'right': 1, 'wrong': 0},
-                                          608: {'right': 1, 'wrong': 0},
-                                          609: {'right': 1, 'wrong': 0},
-                                          610: {'right': 1, 'wrong': 0},
-                                          611: {'right': 1, 'wrong': 0},
-                                          612: {'right': 1, 'wrong': 0},
-                                          613: {'right': 1, 'wrong': 0},
-                                          614: {'right': 1, 'wrong': 0},
-                                          615: {'right': 1, 'wrong': 0},
-                                          616: {'right': 1, 'wrong': 0},
-                                          617: {'right': 1, 'wrong': 0},
-                                          618: {'right': 1, 'wrong': 0},
-                                          619: {'right': 1, 'wrong': 0},
-                                          620: {'right': 1, 'wrong': 0},
-                                          621: {'right': 1, 'wrong': 0},
-                                          622: {'right': 1, 'wrong': 0},
-                                          623: {'right': 1, 'wrong': 0},
-                                          624: {'right': 1, 'wrong': 0},
-                                          625: {'right': 1, 'wrong': 0},
-                                          626: {'right': 1, 'wrong': 0},
-                                          627: {'right': 1, 'wrong': 0},
-                                          628: {'right': 1, 'wrong': 0},
-                                          629: {'right': 1, 'wrong': 0},
-                                          630: {'right': 1, 'wrong': 0},
-                                          631: {'right': 1, 'wrong': 0},
-                                          632: {'right': 1, 'wrong': 0},
-                                          633: {'right': 1, 'wrong': 0},
-                                          634: {'right': 1, 'wrong': 0},
-                                          635: {'right': 1, 'wrong': 0},
-                                          636: {'right': 1, 'wrong': 0},
-                                          637: {'right': 1, 'wrong': 0},
-                                          638: {'right': 1, 'wrong': 0},
-                                          639: {'right': 1, 'wrong': 0},
-                                          640: {'right': 1, 'wrong': 0},
-                                          641: {'right': 1, 'wrong': 0},
-                                          642: {'right': 1, 'wrong': 0},
-                                          643: {'right': 1, 'wrong': 0},
-                                          644: {'right': 1, 'wrong': 0},
-                                          645: {'right': 1, 'wrong': 0},
-                                          646: {'right': 1, 'wrong': 0},
-                                          647: {'right': 1, 'wrong': 0},
-                                          648: {'right': 1, 'wrong': 0},
-                                          1: {'right': 1, 'wrong': 0},
-                                          2: {'right': 1, 'wrong': 0},
-                                          3: {'right': 1, 'wrong': 0},
-                                          5: {'right': 1, 'wrong': 0},
-                                          8: {'right': 1, 'wrong': 0},
-                                          63: {'right': 1, 'wrong': 0},
-                                          95: {'right': 1, 'wrong': 0},
-                                          96: {'right': 1, 'wrong': 0},
-                                          99: {'right': 1, 'wrong': 0},
-                                          102: {'right': 1, 'wrong': 0},
-                                          256: {'right': 1, 'wrong': 0},
-                                          422: {'right': 1, 'wrong': 0}
-                                          }
-                                },  # last row is cat2 [61]
                                {'latest_new': 2,
                                  'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
                                  'cat3': [], 'cat4': [],
                                  'rev1': [6, 29, 62, 82, 83], 'rev2': [61],
                                  'rev3': [], 'rev4': []},
-                               {1: False, 2: False},
-                               'repeated'
+                               {1: False, 2: False},  # redirect
+                               'repeated'  # mode
                                ),
                               (8,  # agora (all but one repeated 3x) --
-                               {'latest': 4,
-                                'paths': {4: {'right': 1, 'wrong': 0},
-                                          7: {'right': 2, 'wrong': 0},
-                                          9: {'right': 2, 'wrong': 0},
-                                          10: {'right': 2, 'wrong': 0},
-                                          11: {'right': 2, 'wrong': 0},
-                                          12: {'right': 2, 'wrong': 0},
-                                          13: {'right': 2, 'wrong': 0},
-                                          14: {'right': 2, 'wrong': 0},
-                                          15: {'right': 2, 'wrong': 0},
-                                          16: {'right': 2, 'wrong': 0},
-                                          17: {'right': 2, 'wrong': 0},
-                                          18: {'right': 2, 'wrong': 0},
-                                          19: {'right': 2, 'wrong': 0},
-                                          21: {'right': 2, 'wrong': 0},
-                                          22: {'right': 2, 'wrong': 0},
-                                          23: {'right': 2, 'wrong': 0},
-                                          34: {'right': 2, 'wrong': 0},
-                                          35: {'right': 2, 'wrong': 0},
-                                          45: {'right': 2, 'wrong': 0},
-                                          97: {'right': 2, 'wrong': 0},
-                                          98: {'right': 2, 'wrong': 0},
-                                          99: {'right': 2, 'wrong': 0},
-                                          100: {'right': 2, 'wrong': 0},
-                                          101: {'right': 2, 'wrong': 0},
-                                          103: {'right': 2, 'wrong': 0},
-                                          120: {'right': 2, 'wrong': 0},
-                                          129: {'right': 2, 'wrong': 0},
-                                          139: {'right': 2, 'wrong': 0},
-                                          141: {'right': 2, 'wrong': 0},
-                                          149: {'right': 2, 'wrong': 0},
-                                          152: {'right': 2, 'wrong': 0},
-                                          161: {'right': 2, 'wrong': 0},
-                                          167: {'right': 2, 'wrong': 0},
-                                          176: {'right': 2, 'wrong': 0},
-                                          184: {'right': 2, 'wrong': 0},
-                                          190: {'right': 2, 'wrong': 0},
-                                          208: {'right': 2, 'wrong': 0},
-                                          222: {'right': 2, 'wrong': 0},
-                                          225: {'right': 2, 'wrong': 0},
-                                          228: {'right': 2, 'wrong': 0},
-                                          231: {'right': 2, 'wrong': 0},
-                                          236: {'right': 2, 'wrong': 0},
-                                          247: {'right': 2, 'wrong': 0},
-                                          255: {'right': 2, 'wrong': 0},
-                                          257: {'right': 2, 'wrong': 0},
-                                          261: {'right': 2, 'wrong': 0},
-                                          277: {'right': 2, 'wrong': 0},
-                                          333: {'right': 2, 'wrong': 0},
-                                          334: {'right': 2, 'wrong': 0},
-                                          366: {'right': 2, 'wrong': 0},
-                                          409: {'right': 2, 'wrong': 0},
-                                          410: {'right': 2, 'wrong': 0},
-                                          411: {'right': 2, 'wrong': 0},
-                                          412: {'right': 2, 'wrong': 0},
-                                          413: {'right': 2, 'wrong': 0},
-                                          414: {'right': 2, 'wrong': 0},
-                                          415: {'right': 2, 'wrong': 0},
-                                          416: {'right': 2, 'wrong': 0},
-                                          417: {'right': 2, 'wrong': 0},
-                                          418: {'right': 2, 'wrong': 0},
-                                          419: {'right': 2, 'wrong': 0},
-                                          420: {'right': 2, 'wrong': 0},
-                                          421: {'right': 2, 'wrong': 0},
-                                          423: {'right': 2, 'wrong': 0},
-                                          424: {'right': 2, 'wrong': 0},
-                                          425: {'right': 2, 'wrong': 0},
-                                          426: {'right': 2, 'wrong': 0},
-                                          427: {'right': 2, 'wrong': 0},
-                                          428: {'right': 2, 'wrong': 0},
-                                          429: {'right': 2, 'wrong': 0},
-                                          430: {'right': 2, 'wrong': 0},
-                                          431: {'right': 2, 'wrong': 0},
-                                          433: {'right': 2, 'wrong': 0},
-                                          434: {'right': 2, 'wrong': 0},
-                                          435: {'right': 2, 'wrong': 0},
-                                          436: {'right': 2, 'wrong': 0},
-                                          437: {'right': 2, 'wrong': 0},
-                                          439: {'right': 2, 'wrong': 0},
-                                          440: {'right': 2, 'wrong': 0},
-                                          441: {'right': 2, 'wrong': 0},
-                                          444: {'right': 2, 'wrong': 0},
-                                          445: {'right': 2, 'wrong': 0},
-                                          607: {'right': 2, 'wrong': 0},
-                                          608: {'right': 2, 'wrong': 0},
-                                          609: {'right': 2, 'wrong': 0},
-                                          610: {'right': 2, 'wrong': 0},
-                                          611: {'right': 2, 'wrong': 0},
-                                          612: {'right': 2, 'wrong': 0},
-                                          613: {'right': 2, 'wrong': 0},
-                                          614: {'right': 2, 'wrong': 0},
-                                          615: {'right': 2, 'wrong': 0},
-                                          616: {'right': 2, 'wrong': 0},
-                                          617: {'right': 2, 'wrong': 0},
-                                          618: {'right': 2, 'wrong': 0},
-                                          619: {'right': 2, 'wrong': 0},
-                                          620: {'right': 2, 'wrong': 0},
-                                          621: {'right': 2, 'wrong': 0},
-                                          622: {'right': 2, 'wrong': 0},
-                                          623: {'right': 2, 'wrong': 0},
-                                          624: {'right': 2, 'wrong': 0},
-                                          625: {'right': 2, 'wrong': 0},
-                                          626: {'right': 2, 'wrong': 0},
-                                          627: {'right': 2, 'wrong': 0},
-                                          628: {'right': 2, 'wrong': 0},
-                                          629: {'right': 2, 'wrong': 0},
-                                          630: {'right': 2, 'wrong': 0},
-                                          631: {'right': 2, 'wrong': 0},
-                                          632: {'right': 2, 'wrong': 0},
-                                          633: {'right': 2, 'wrong': 0},
-                                          634: {'right': 2, 'wrong': 0},
-                                          635: {'right': 2, 'wrong': 0},
-                                          636: {'right': 2, 'wrong': 0},
-                                          637: {'right': 2, 'wrong': 0},
-                                          638: {'right': 2, 'wrong': 0},
-                                          639: {'right': 2, 'wrong': 0},
-                                          640: {'right': 2, 'wrong': 0},
-                                          641: {'right': 2, 'wrong': 0},
-                                          642: {'right': 2, 'wrong': 0},
-                                          643: {'right': 2, 'wrong': 0},
-                                          644: {'right': 2, 'wrong': 0},
-                                          645: {'right': 2, 'wrong': 0},
-                                          646: {'right': 2, 'wrong': 0},
-                                          647: {'right': 2, 'wrong': 0},
-                                          648: {'right': 2, 'wrong': 0},
-                                          1: {'right': 2, 'wrong': 0},
-                                          2: {'right': 2, 'wrong': 0},
-                                          3: {'right': 2, 'wrong': 0},
-                                          5: {'right': 2, 'wrong': 0},
-                                          8: {'right': 2, 'wrong': 0},
-                                          63: {'right': 1, 'wrong': 0},
-                                          95: {'right': 2, 'wrong': 0},
-                                          96: {'right': 2, 'wrong': 0},
-                                          99: {'right': 2, 'wrong': 0},
-                                          102: {'right': 2, 'wrong': 0},
-                                          256: {'right': 2, 'wrong': 0},
-                                          422: {'right': 1, 'wrong': 0}
-                                          }
-                                },  # last row is cat2 [61]
                                {'latest_new': 2,
                                  'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
                                  'cat3': [], 'cat4': [],
                                  'rev1': [6, 29, 62, 82, 83], 'rev2': [61],
                                  'rev3': [], 'rev4': []},
-                                {1: False, 2: False},
-                                'repeated'
+                                {1: False, 2: False},  # mode
+                                'repeated'  # mode
                                ),
                               (8,  # agora (all but one repeated 2x) --
-                               {'latest': 4,
-                                'paths': {4: {'right': 2, 'wrong': 0},
-                                          7: {'right': 3, 'wrong': 0},
-                                          9: {'right': 3, 'wrong': 0},
-                                          10: {'right': 3, 'wrong': 0},
-                                          11: {'right': 3, 'wrong': 0},
-                                          12: {'right': 3, 'wrong': 0},
-                                          13: {'right': 3, 'wrong': 0},
-                                          14: {'right': 3, 'wrong': 0},
-                                          15: {'right': 3, 'wrong': 0},
-                                          16: {'right': 3, 'wrong': 0},
-                                          17: {'right': 3, 'wrong': 0},
-                                          18: {'right': 3, 'wrong': 0},
-                                          19: {'right': 3, 'wrong': 0},
-                                          21: {'right': 3, 'wrong': 0},
-                                          22: {'right': 3, 'wrong': 0},
-                                          23: {'right': 3, 'wrong': 0},
-                                          34: {'right': 3, 'wrong': 0},
-                                          35: {'right': 3, 'wrong': 0},
-                                          45: {'right': 3, 'wrong': 0},
-                                          97: {'right': 3, 'wrong': 0},
-                                          98: {'right': 3, 'wrong': 0},
-                                          99: {'right': 3, 'wrong': 0},
-                                          100: {'right': 3, 'wrong': 0},
-                                          101: {'right': 3, 'wrong': 0},
-                                          103: {'right': 3, 'wrong': 0},
-                                          120: {'right': 3, 'wrong': 0},
-                                          129: {'right': 3, 'wrong': 0},
-                                          139: {'right': 3, 'wrong': 0},
-                                          141: {'right': 3, 'wrong': 0},
-                                          149: {'right': 3, 'wrong': 0},
-                                          152: {'right': 3, 'wrong': 0},
-                                          161: {'right': 3, 'wrong': 0},
-                                          167: {'right': 3, 'wrong': 0},
-                                          176: {'right': 3, 'wrong': 0},
-                                          184: {'right': 3, 'wrong': 0},
-                                          190: {'right': 3, 'wrong': 0},
-                                          208: {'right': 3, 'wrong': 0},
-                                          222: {'right': 3, 'wrong': 0},
-                                          225: {'right': 3, 'wrong': 0},
-                                          228: {'right': 3, 'wrong': 0},
-                                          231: {'right': 3, 'wrong': 0},
-                                          236: {'right': 3, 'wrong': 0},
-                                          247: {'right': 3, 'wrong': 0},
-                                          255: {'right': 3, 'wrong': 0},
-                                          257: {'right': 3, 'wrong': 0},
-                                          261: {'right': 3, 'wrong': 0},
-                                          277: {'right': 3, 'wrong': 0},
-                                          333: {'right': 3, 'wrong': 0},
-                                          334: {'right': 3, 'wrong': 0},
-                                          366: {'right': 3, 'wrong': 0},
-                                          409: {'right': 3, 'wrong': 0},
-                                          410: {'right': 3, 'wrong': 0},
-                                          411: {'right': 3, 'wrong': 0},
-                                          412: {'right': 3, 'wrong': 0},
-                                          413: {'right': 3, 'wrong': 0},
-                                          414: {'right': 3, 'wrong': 0},
-                                          415: {'right': 3, 'wrong': 0},
-                                          416: {'right': 3, 'wrong': 0},
-                                          417: {'right': 3, 'wrong': 0},
-                                          418: {'right': 3, 'wrong': 0},
-                                          419: {'right': 3, 'wrong': 0},
-                                          420: {'right': 3, 'wrong': 0},
-                                          421: {'right': 3, 'wrong': 0},
-                                          423: {'right': 3, 'wrong': 0},
-                                          424: {'right': 3, 'wrong': 0},
-                                          425: {'right': 3, 'wrong': 0},
-                                          426: {'right': 3, 'wrong': 0},
-                                          427: {'right': 3, 'wrong': 0},
-                                          428: {'right': 3, 'wrong': 0},
-                                          429: {'right': 3, 'wrong': 0},
-                                          430: {'right': 3, 'wrong': 0},
-                                          431: {'right': 3, 'wrong': 0},
-                                          433: {'right': 3, 'wrong': 0},
-                                          434: {'right': 3, 'wrong': 0},
-                                          435: {'right': 3, 'wrong': 0},
-                                          436: {'right': 3, 'wrong': 0},
-                                          437: {'right': 3, 'wrong': 0},
-                                          439: {'right': 3, 'wrong': 0},
-                                          440: {'right': 3, 'wrong': 0},
-                                          441: {'right': 3, 'wrong': 0},
-                                          444: {'right': 3, 'wrong': 0},
-                                          445: {'right': 3, 'wrong': 0},
-                                          607: {'right': 3, 'wrong': 0},
-                                          608: {'right': 3, 'wrong': 0},
-                                          609: {'right': 3, 'wrong': 0},
-                                          610: {'right': 3, 'wrong': 0},
-                                          611: {'right': 3, 'wrong': 0},
-                                          612: {'right': 3, 'wrong': 0},
-                                          613: {'right': 3, 'wrong': 0},
-                                          614: {'right': 3, 'wrong': 0},
-                                          615: {'right': 3, 'wrong': 0},
-                                          616: {'right': 3, 'wrong': 0},
-                                          617: {'right': 3, 'wrong': 0},
-                                          618: {'right': 3, 'wrong': 0},
-                                          619: {'right': 3, 'wrong': 0},
-                                          620: {'right': 3, 'wrong': 0},
-                                          621: {'right': 3, 'wrong': 0},
-                                          622: {'right': 3, 'wrong': 0},
-                                          623: {'right': 3, 'wrong': 0},
-                                          624: {'right': 3, 'wrong': 0},
-                                          625: {'right': 3, 'wrong': 0},
-                                          626: {'right': 3, 'wrong': 0},
-                                          627: {'right': 3, 'wrong': 0},
-                                          628: {'right': 3, 'wrong': 0},
-                                          629: {'right': 3, 'wrong': 0},
-                                          630: {'right': 3, 'wrong': 0},
-                                          631: {'right': 3, 'wrong': 0},
-                                          632: {'right': 3, 'wrong': 0},
-                                          633: {'right': 3, 'wrong': 0},
-                                          634: {'right': 3, 'wrong': 0},
-                                          635: {'right': 3, 'wrong': 0},
-                                          636: {'right': 3, 'wrong': 0},
-                                          637: {'right': 3, 'wrong': 0},
-                                          638: {'right': 3, 'wrong': 0},
-                                          639: {'right': 3, 'wrong': 0},
-                                          640: {'right': 3, 'wrong': 0},
-                                          641: {'right': 3, 'wrong': 0},
-                                          642: {'right': 3, 'wrong': 0},
-                                          643: {'right': 3, 'wrong': 0},
-                                          644: {'right': 3, 'wrong': 0},
-                                          645: {'right': 3, 'wrong': 0},
-                                          646: {'right': 3, 'wrong': 0},
-                                          647: {'right': 3, 'wrong': 0},
-                                          648: {'right': 3, 'wrong': 0},
-                                          1: {'right': 3, 'wrong': 0},
-                                          2: {'right': 3, 'wrong': 0},
-                                          3: {'right': 3, 'wrong': 0},
-                                          5: {'right': 3, 'wrong': 0},
-                                          8: {'right': 3, 'wrong': 0},
-                                          63: {'right': 3, 'wrong': 0},
-                                          95: {'right': 3, 'wrong': 0},
-                                          96: {'right': 3, 'wrong': 0},
-                                          99: {'right': 3, 'wrong': 0},
-                                          102: {'right': 3, 'wrong': 0},
-                                          256: {'right': 3, 'wrong': 0},
-                                          422: {'right': 3, 'wrong': 0}
-                                          }
-                                },  # last row is cat2 [61]
                                {'latest_new': 2,
                                  'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
                                  'cat3': [], 'cat4': [],
                                  'rev1': [6, 29, 62, 82, 83], 'rev2': [61],
                                  'rev3': [], 'rev4': []},
-                                {1: False, 2: False},
-                                'repeated'
+                                {1: False, 2: False},  # redirect
+                                'repeated'  # mode
                                ),
                               ])
-    def test_pathchooser_choose(self, locid, completed, tpout, redirect,
-                                mode, db):
+    def test_pathchooser_choose(self, locid, tpout, redirect, mode, db):
         """
         Unit test for the paideia.Pathchooser.choose() method.
         """
-        chooser = PathChooser(tpout, locid, completed)
-        print 'starting choose'
-        actual, newloc, catnum, actualmode = chooser.choose()
-        print 'ended choose'
+        # assemble completed to suit expected condition
+        completed = {'paths': {}}
+        expected = []
+        for key, val in tpout.iteritems():
+            if key[:3] == 'rev' and val:
+                mytags = val
+                taggedsteps = db(db.steps.tags.contains(val)).select()
+                stepids = [s.id for s in taggedsteps]
+                taggedpaths = db(db.paths.steps.contains(stepids)).select()
+                # start with all tagged paths completed
+                for tp in taggedpaths:
+                    completed['paths'][tp['id']] = {'right': 1, 'wrong': 0}
 
-        # get expected paths from supplied tags
+                first_steps = {row['id']: row.steps[0] for row in taggedpaths}
+                here_steps = db((db.steps.id.belongs(first_steps.values())) &
+                                (db.steps.locations.contains(locid))
+                                ).select()
+                here_step_ids = [r.id for r in here_steps]
+                here_paths = [k for k, v in first_steps.iteritems()
+                              if v in here_step_ids]
+                elsewhere_paths = [k for k, v in first_steps.iteritems()
+                                   if v not in here_step_ids]
+                # reduce attempts of path to be selected
+                if mode == 'repeated':
+                    print 'completed set for "repeated"'
+                    expected.extend([t['id'] for t in taggedpaths])
+                    print 'expected in building completed:', expected
+                    # TODO: test incremental repeating (only once until all once, etc.)
+                elif mode == 'here_new':
+                    print 'completed set for "here_new"'
+                    newpath_id = here_paths[randrange(len(here_paths))]
+                    print 'removed completion record for', newpath_id
+                    expected.append(newpath_id)
+                    del completed['paths'][newpath_id]
+                elif mode == 'new_elsewhere':
+                    print 'completed set for "new_elsewhere"'
+                    newpath_id = elsewhere_paths[randrange(len(elsewhere_paths))]
+                    print 'removed completion record for', newpath_id
+                    expected.append(newpath_id)
+                    del completed['paths'][newpath_id]
+        completed['latest'] = completed.keys()[randrange(len(completed.keys()))]
+        print 'completed ------------------------------------------'
+        pprint(completed)
+        print '----------------------------------------------------'
+        # end assembling completed
+
+        chooser = PathChooser(tpout, locid, completed)
+        actual, newloc, catnum, actualmode = chooser.choose()
+
+        # get paths with supplied tags
         mycat = 'cat{}'.format(catnum)
-        print 'tags to be used used'
-        print tpout[mycat]
-        print 'taggedsteps'
-        taggedsteps = db(db.steps.tags.contains(tpout[mycat])).select()
-        stepids = [s.id for s in taggedsteps]
-        print sorted(stepids)
-        print 'taggedpaths'
-        allpaths = db(db.paths.id > 0).select()
-        taggedpaths = allpaths.find(lambda r: any(i for i in stepids if i in r.steps))
-        #taggedpaths = db(db.paths.steps.contains(stepids)).select()
-        taggedids = [p.id for p in taggedpaths]
-        print sorted(taggedids)
+        catsteps = db(db.steps.tags.contains(tpout[mycat])).select()
+        catstep_ids = [s['id'] for s in catsteps]
+        catpaths = db(db.paths.steps.contains(catstep_ids)).select()
+        taggedids = [p.id for p in catpaths]
+
+        # print sorted(taggedids)
         if any(i for i in taggedids if i not in completed['paths'].keys()):
+            assert actual['id'] not in completed['paths'].keys()
             print 'new path expected'
-            expected = taggedids
         else:  # supposed to choose from paths with fewest repeats
             print 'repeat expected'
             print 'finding expected paths with fewest repeats'
