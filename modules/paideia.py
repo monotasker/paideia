@@ -2022,7 +2022,10 @@ class PathChooser(object):
                 return mylist
 
             taglist = self.categories['rev{}'.format(cat)]
+            print 'PathChooser::_paths_by_category: cat1_choices', self.cat1_choices
+            print 'PathChooser::_paths_by_category: all_choices', self.all_choices
             if self._check_force_new():
+                print 'PathChooser::_paths_by_category: forcing new'
                 cat = 1
                 force_cat1 = True
                 taglist_cat1 = self.categories['cat1']

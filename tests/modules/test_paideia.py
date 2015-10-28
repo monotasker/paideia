@@ -44,7 +44,7 @@ global_run_TestUser = True
 global_run_TestCategorizer = True
 global_run_TestMap = True
 global_run_TestWalk = False
-global_run_TestPathChooser = False
+global_run_TestPathChooser = True
 global_run_TestBugReporter = True
 
 # ===================================================================
@@ -4405,7 +4405,7 @@ class TestUser(object):
             'secondary_right': []}],
           True,  # redirect
           [5, 63, 256, 409, 410, 411, 412, 413, 414, 415, 416, 417, 418, 419,
-           420, 421, 422, 423, 444, 445]  # expected (not in this loc)
+           420, 421, 422, 423, 444, 445, 969]  # expected (not in this loc)
           ),
          #(8,  # agora (no redirect, new here)
           #[17, 98, 15, 208, 12, 16, 34, 11, 23, 4, 9, 18],
@@ -6418,7 +6418,7 @@ class TestPathChooser():
         assert result_count[4] in range(100 - 200, 100 + 200)
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('locid,mycat,completed,tpout,expected,force_cat1',
+    @pytest.mark.parametrize('locid,mycat,completed,tpout,force_cat1',
                              [(6,  # shop_of_alexander (only 1 untried here)
                                1,  # mycat
                                {'latest': None,  # completed
@@ -6434,10 +6434,6 @@ class TestPathChooser():
                                 'cat3': [], 'cat4': [],
                                 'rev1': [61], 'rev2': [],
                                 'rev3': [], 'rev4': []},
-                               [1, 2, 3, 5, 8, 63, 95, 96, 97, 99, 102, 256,
-                                409L, 410L, 411L, 412L, 413L, 414L, 415L,
-                                416L, 417L, 418L, 419L, 420L, 421L, 422L,
-                                423L],  # expected (paths with tag 61)
                                False  # force_cat1
                                ),
                               (6,  # shop_of_alexander (only 1 untried here)
@@ -6453,11 +6449,6 @@ class TestPathChooser():
                                 'cat3': [], 'cat4': [],
                                 'rev1': [62], 'rev2': [61],
                                 'rev3': [], 'rev4': []},
-                               [4, 7, 9, 10, 11, 12, 13, 14, 16, 17, 18,
-                                19, 21, 22, 23, 34, 35, 97, 98, 100, 101, 103,
-                                257, 261, 277, 424, 425, 426, 427, 428, 429,
-                                430, 431, 433, 434, 435, 436, 437, 439, 440,
-                                441],  # expected paths with tag 62 (forced cat1)
                                True  # force_cat1
                                ),
                               (8,  # agora
@@ -6473,9 +6464,6 @@ class TestPathChooser():
                                 'cat3': [], 'cat4': [],
                                 'rev1': [6, 29, 62, 82, 83], 'rev2': [61],
                                 'rev3': [], 'rev4': []},
-                               [1, 2, 3, 5, 8, 63, 95, 96, 97, 99, 102, 256,
-                                409, 410, 411, 412, 413, 414, 415, 416, 417,
-                                418, 419, 420, 421, 422, 423],  # expected (tag 61)
                                False  # force_cat1
                                ),
                               (8,  # agora
@@ -6491,21 +6479,11 @@ class TestPathChooser():
                                 'cat3': [], 'cat4': [],
                                 'rev1': [6, 29, 62, 82, 83], 'rev2': [61],
                                 'rev3': [], 'rev4': []},
-                               [4, 7, 9, 10, 11, 12, 13, 14, 16, 17, 18,
-                                19, 21, 22, 23, 34, 35, 97, 98, 100, 101, 103,
-                                120, 141, 208, 257, 261, 277, 333, 424, 425,
-                                426, 427, 428, 429, 430, 431, 433, 434, 435,
-                                436, 437, 439, 440, 441, 607, 608, 609, 610,
-                                611, 612, 613, 614, 615, 616, 617, 618, 619,
-                                620, 621, 622, 623, 624, 625, 626, 627, 628,
-                                629, 630, 631, 632, 633, 634, 635, 636, 637,
-                                638, 639, 640, 641, 642, 643, 644, 645, 646,
-                                647, 648],  # expected (paths with rev1 tags)
                                False  # force_cat1
                                ),
                               ])
     def test_pathchooser_paths_by_category(self, locid, mycat, completed, tpout,
-                                           expected, force_cat1):
+                                           force_cat1, db):
         """
         Unit test for the paideia.Pathchooser._paths_by_category() method.
         """
@@ -6516,7 +6494,15 @@ class TestPathChooser():
         cpaths, cat, forced = chooser._paths_by_category(mycat,
                                                          tpout['latest_new'])
         print 'cat:', cat
+        # get expected paths from db based on category actually used
+        exp_tags = tpout['cat{}'.format(cat)]
+        exp_steps = db(db.steps.tags.contains(exp_tags)).select()
+        exp_stepids = [s.id for s in exp_steps]
+        exp_paths = db(db.paths.steps.contains(exp_stepids)).select()
+        expected = [r.id for r in exp_paths]
+        print 'expected:', expected
         print 'forced:', forced
+
         cpath_ids = [row['id'] for row in cpaths]
         #print 'actual cpaths:', cpath_ids
         cpath_ids.sort()
