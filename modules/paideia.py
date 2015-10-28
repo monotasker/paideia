@@ -13,7 +13,7 @@ import os
 from paideia_utils import Paideia_Debug, GreekNormalizer
 import pickle
 from plugin_utils import flatten, makeutf8, ErrorReport
-#from pprint import pprint
+from pprint import pprint
 from pytz import timezone
 from random import randint, randrange
 import re
@@ -2115,7 +2115,7 @@ class PathChooser(object):
                       if loc_id in db.steps[int(p['steps'][0])].locations]
             # print 'p_here:', [p['id'] for p in p_here]
             p_here_new = [p for p in p_here if p in p_new]
-            # print 'p_here_new:', [p['id'] for p in p_here_new]
+            print 'p_here_new:', [p['id'] for p in p_here_new]
             p_all = [p for p in cpaths]
             p_tried_ids = list(set([p['id'] for p in cpaths]
                                    ).intersection(completed_list))
@@ -2160,8 +2160,11 @@ class PathChooser(object):
                     # get number of attempts for each path visited
                     for prep in repeats:
                         pid = int(prep['id'])
+                        try:
+                            comp_rec = self.completed['paths'][str(pid)]
+                        except KeyError:
+                            comp_rec = self.completed['paths'][pid]
 
-                        comp_rec = self.completed['paths'][str(pid)]
                         prep['count'] = comp_rec['wrong'] + comp_rec['right']
 
                     mode = 'repeated'
