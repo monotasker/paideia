@@ -1062,14 +1062,19 @@ class Step(object):
         """
         db = current.db
         tags = db(db.tags.id.belongs(self.data['tags'])).select()
+        print 'Step::_get_slides: tags', [t['id'] for t in tags]
         if tags:
+            print 'got some tags'
             try:
                 decks = {d.id: d.deck_name
                         for t in tags
                         for d in t.slides
                         if t.slides}
+                print 'decks:', decks
                 return decks
-            except:
+            except Exception as e:
+                print e
+                print 'failed to return decks'
                 pass
         else:
             return None

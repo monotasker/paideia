@@ -43,7 +43,7 @@ global_run_TestPath = True
 global_run_TestUser = True
 global_run_TestCategorizer = True
 global_run_TestMap = True
-global_run_TestWalk = False
+global_run_TestWalk = True
 global_run_TestPathChooser = True
 global_run_TestBugReporter = True
 
@@ -3455,7 +3455,7 @@ class TestStep():
            'English word. Don\'t look for Greek "equivalents" for each '
            'English letter.'],
           # FIXME: not finding slide decks
-          None, # {3L: 'The Alphabet II', 8L: 'Greek Words II'},  # slide decks
+          {3L: 'The Alphabet II', 8L: 'Greek Words II'},  # slide decks
           None,  # widget image
           [],  # response buttons
           '<form action="#" autocomplete="off" enctype="multipart/form-data" '
@@ -4026,7 +4026,7 @@ class TestPath():
         except TypeError:  # if path.steps is now entry, can't be iterated
             assert path.steps == stepsleft
 
-    @pytest.mark.skipif(True, reason='just because')
+    @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize(
         'casenum,locid,localias,pathid,stepid,stepsleft,locs,mynextloc',
         [('case3', 1, 'synagogue', 19, 19, [], [3, 1, 13, 8, 11], 1),
@@ -4093,7 +4093,7 @@ class TestPath():
         assert nextloc in actual.get_locations()
         assert errstring is None
 
-    @pytest.mark.skipif(True, reason='just because')
+    @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize(
         'pathid,steps',
         [(3, [2]),
@@ -4118,7 +4118,7 @@ class TestPath():
     def test_path_end_prompt(self):
         pass
 
-    @pytest.mark.skipif(True, reason='just because')
+    @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize(
         'pathid,stepid,stepsleft,locs,localias',
         [(3, 2, [], [3, 1, 13, 7, 8, 11], 'domus_A'),
@@ -6121,7 +6121,7 @@ class TestWalk():
           ['Focus on finding Greek letters that make the *sounds* of the '  # -- instructions
            'English word. Don\'t look for Greek "equivalents" for each '
            'English letter.'],
-          {3L: 'The Alphabet II', 8L: 'Greek Words - More Basics'},  # --slide decks
+          {3L: 'The Alphabet II'},  # --slide decks
           [],  # ---------------------------------------------response buttons
           ['πωλ'],  # ----------------------------------------readable short
           [],  # ---------------------------------------------readable long
@@ -6782,6 +6782,7 @@ class TestPathChooser():
         """
         # assemble completed to suit expected condition
         completed = {'paths': {}}
+        deleted = []
         expected = []
         for key, val in tpout.iteritems():
             if key[:3] == 'rev' and val:
@@ -6813,13 +6814,15 @@ class TestPathChooser():
                     newpath_id = here_paths[randrange(len(here_paths))]
                     print 'removed completion record for', newpath_id
                     expected.append(newpath_id)
-                    del completed['paths'][newpath_id]
+                    deleted.append(newpath_id)
                 elif mode == 'new_elsewhere':
                     print 'completed set for "new_elsewhere"'
                     newpath_id = elsewhere_paths[randrange(len(elsewhere_paths))]
                     print 'removed completion record for', newpath_id
                     expected.append(newpath_id)
-                    del completed['paths'][newpath_id]
+                    deleted.append(newpath_id)
+        for d in deleted:
+            del completed['paths'][d]
         completed['latest'] = completed.keys()[randrange(len(completed.keys()))]
         print 'completed ------------------------------------------'
         pprint(completed)
