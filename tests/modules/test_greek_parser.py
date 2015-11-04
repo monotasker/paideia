@@ -52,7 +52,7 @@ class TestParser():
                                 'id': 98L,
                                 'modified_on': datetime.datetime(2014, 6, 17,
                                                                  14, 41, 6),
-                                'part_of_speech': 'particle',
+                                'part_of_speech': 'article',
                                 'tags': [],
                                 'thematic_pattern': '',
                                 'uuid': 'd59c8c40-1d60-4da1-afaf-7f145323d693',
@@ -66,7 +66,8 @@ class TestParser():
         """
         actual = Parser(None).parseform(formin)
         print 'actual output is', actual
-        assert actual == dictout
+        for k, val in actual.iteritems():
+            assert dictout[k] == val
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('formin,pos,formout',
@@ -87,7 +88,7 @@ class TestNoun():
     """
     """
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('nominal,string,expected',
+    @pytest.mark.parametrize('nominal,string,expected,matching',
             [(ur'ἀρτον|λογον',  # nominal
               u'Τον ἀρτον ὁ ἀνηρ πωλει.',  # string
               (False,
@@ -98,17 +99,19 @@ class TestNoun():
                      (u'ἀνηρ', {'index': 3}),
                      (u'πωλει', {'index': 4})]
                 }
-               )
+               ),
+              {0: {'index': 1, 'word': u'ἀρτον'}}  # matching
               ),
              (ur'ἀρτον|λογον',  # nominal
               u'ἀρτον',  # string
               (True,
                {0: [(u'ἀρτον', {'current': 0, 'pos': 'Noun', 'index': 0})]},
                {}
-               )
+               ),
+              {0: {'index': 0, 'word': u'ἀρτον'}}  # matching
               )
              ])
-    def test_validate(self, nominal, string, expected):
+    def test_validate(self, nominal, string, expected, matching):
         """
         """
         tkns = tokenize(string)[0]
@@ -122,9 +125,10 @@ class TestNoun():
             #print Uprinter().uprint(afailed)
             assert avalid == expected[1]
             assert afailed == expected[2]
+            assert myNoun.matching_words == matching
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('nominal,odin,validout,failedout',
+    @pytest.mark.parametrize('nominal,odin,validout,failedout,matching',
             [(ur'ἀρτον|λογον',  # ------------------------------nominal
               {0: [(u'Τον', {'index': 0}),  # -----------------odin
                    (u'ἀρτον', {'index': 1}),
@@ -138,7 +142,8 @@ class TestNoun():
                    (u'ἀνηρ', {'index': 3}),
                    (u'πωλει', {'index': 4})]
                },
-              {}  # --------------------------------------------failedout
+              {},  # --------------------------------------------failedout
+              {0: {'index': 1, 'word': u'ἀρτον'}}  # ------------matching
               ),
              (ur'ἀρτον|ἀνηρ',  # ------------------------------nominal
               {0: [(u'Τον', {'index': 0}),  # -----------------odin
@@ -158,7 +163,9 @@ class TestNoun():
                    (u'ἀνηρ', {'current': 0, 'pos': 'Noun', 'index': 3}),
                    (u'πωλει', {'index': 4})]
                },
-              {}  # --------------------------------------------failedout
+              {},  # --------------------------------------------failedout
+              {0: {'index': 1, 'word': u'ἀρτον'},
+               1: {'index': 3, 'word': u'ἀνηρ'}}  # ------------matching
               ),
              (ur'οἰκος|ἀνδρος',  # ------------------------------nominal
               {0: [(u'Τον', {'index': 0}),  # -----------------odin
@@ -173,7 +180,8 @@ class TestNoun():
                    (u'ὁ', {'index': 2}),
                    (u'ἀνηρ', {'index': 3}),
                    (u'πωλει', {'index': 4})]
-               }
+               },
+              {}  # ---------------------------------------------matching
               ),
              (ur'ἀρτον|ἀνδρος',  # ------------------------------nominal
               {0: [(u'Τον', {'index': 0}),  # -----------------odin
@@ -197,10 +205,11 @@ class TestNoun():
                    (u'ὁ', {'index': 2}),
                    (u'ἀνηρ', {'index': 3}),
                    (u'πωλει', {'index': 4})]
-               }
+               },
+              {1: {'index': 1, 'word': u'ἀρτον'}}  # ------------matching
               ),
              ])
-    def test_match_string(self, nominal, odin, validout, failedout):
+    def test_match_string(self, nominal, odin, validout, failedout, matching):
         """
         """
         with Noun(nominal, 'top') as myNoun:
@@ -211,6 +220,11 @@ class TestNoun():
             print Uprinter().uprint(afailed)
             assert avalid == validout
             assert afailed == failedout
+            if myNoun.matching_words:
+                for k, v in myNoun.matching_words.iteritems():
+                    assert matching[k] == v
+            else:
+                assert myNoun.matching_words == matching
 
 
 class TestNounPhrase():
@@ -218,7 +232,8 @@ class TestNounPhrase():
     """
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('nominal,article,odin,validout,failedout',
+    @pytest.mark.parametrize('nominal,article,odin,validout,failedout,'
+                             'art_matching,noun_matching',
             [('ἀρτον',  # --------------------------------nominal
               'τον',  # ----------------------------------article
               {0: [(u'Τον', {'current': 0, 'pos': 'Art', 'index': 0}),  # -------------odin
@@ -239,13 +254,20 @@ class TestNounPhrase():
                    (u'πωλει', {'index': 4})]
                },
               [],  # -------------------------------------------failedout
+              {0: {'index': 0, 'word': u'Τον'}},  # ------------art_matching
+              {0: {'index': 1, 'word': u'ἀρτον'}} # ------------noun_matching
               ),
              ]
              )
-    def test_test_order(self, nominal, article, odin, validout, failedout):
+    def test_test_order(self, nominal, article, odin, validout, failedout,
+                        art_matching, noun_matching):
         """
         """
-        with NounPhrase(None, Art(article), Noun(nominal), 'def', 'top') as myNP:
+        art = Art(article)
+        art.matching_words == art_matching
+        noun = Noun(nominal)
+        noun.matching_words == noun_matching
+        with NounPhrase(None, art, noun, 'def', 'top') as myNP:
             avalid, afailed = myNP.test_order(odin, [])
             print 'valid leaves --------------------------'
             print Uprinter().uprint(avalid)
