@@ -8766,7 +8766,7 @@ body.exploring main #page #town_map {
 body.exploring main #page .admin-panel {
   position: absolute;
   width: 20px;
-  height: 20px;
+  height: 200px;
   top: 0;
   left: 0;
   background-color: #000;
@@ -8776,13 +8776,14 @@ body.exploring main #page .admin-panel {
   overflow: hidden;
 }
 body.exploring main #page .admin-panel:hover {
-  width: 300;
+  width: 300px;
 }
 body.exploring main #page .admin-panel h3 {
   color: #fff;
 }
 body.exploring main #page .admin-panel input[type=text] {
   width: 60%;
+  color: #666;
 }
 body.exploring main #page .speaker {
   position: absolute;

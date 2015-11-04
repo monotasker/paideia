@@ -130,7 +130,7 @@ _check_force_new	paideia.py	/^    def _check_force_new(self):$/;"	m	class:PathCh
 _check_if_cat1_needed	paideia.py	/^    def _check_if_cat1_needed(self, cats):$/;"	m	class:Categorizer
 _choose_from_cat	paideia.py	/^    def _choose_from_cat(self, cpaths, category):$/;"	m	class:PathChooser
 _clean_tag_records	paideia.py	/^    def _clean_tag_records(self, record_list=None, db=None):$/;"	m	class:Categorizer
-_core_algorithm	paideia.py	/^    def _core_algorithm(self, tag_records=None):$/;"	m	class:Categorizer
+_core_algorithm	paideia.py	/^    def _core_algorithm(self, tag_records=None, db=None):$/;"	m	class:Categorizer
 _do_substitution	paideia_path_factory.py	/^    def _do_substitution(self, temp, combodict, regex=False):$/;"	m	class:StepFactory
 _fill_missing_fields	paideia_path_factory.py	/^    def _fill_missing_fields(self, parsing):$/;"	m	class:Inflector
 _find_badge_levels	paideia_stats.py	/^    def _find_badge_levels(self):$/;"	m	class:Stats
@@ -429,7 +429,7 @@ store_stats	paideia_stats.py	/^    def store_stats(self, statsdict, lastdt):$/;"
 strip_extra_spaces	paideia_utils.py	/^    def strip_extra_spaces(self, strings):$/;"	m	class:GreekNormalizer
 style	bootstrap3.py	/^    def style(form, fields):$/;"	f	function:form
 sync	plugin_1way_sync.py	/^    def sync(self):$/;"	m	class:OnewaySyncer
-tag_token	greek_parser.py	/^        def tag_token(matchstring, leafcopy):$/;"	f	function:Parser.match_string
+tag_token	greek_parser.py	/^        def tag_token(matchstring, leafkey, leafcopy):$/;"	f	function:Parser.match_string
 tagging_conditions	paideia_path_factory.py	/^    tagging_conditions = {'verb basics': (['verb']),$/;"	v	class:WordFactory
 test_order	greek_parser.py	/^    def test_order(self, validleaves, failedleaves):$/;"	m	class:Parser
 test_order	greek_parser.py	/^    def test_order(self, validlfs, failedlfs):$/;"	m	class:NounPhrase

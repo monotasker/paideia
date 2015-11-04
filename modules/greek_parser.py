@@ -2,7 +2,7 @@
 # -*- coding:utf-8 -*-
 
 #import argparse
-from copy import deepcopy
+from copy import deepcopy, copy
 from gluon import current
 #from paideia_utils import Uprinter
 from plugin_utils import clr, makeutf8
@@ -91,7 +91,7 @@ class Parser(object):
             self.top = False
         print 'self.structures', self.structures
         print 'self.top', self.top
-        self.matching_words = []
+        self.matching_words = {}
 
         self.classname = type(self).__name__
 
@@ -138,7 +138,7 @@ class Parser(object):
 
     def validate(self, validlfs, failedlfs={}):
         """
-        compare list of word tokens to definition of valid natural language expressions.
+        compare ordered list of word tokens to definition of valid natural language expressions.
 
         clause should be Clause() object
         """
@@ -153,8 +153,12 @@ class Parser(object):
 
         # find matching string for remaining viable leaves
         if self.restring:
+            old_validlfs = copy(validlfs)  # need to compare with newly parsed to find newly added words
             print 'checking for restring', makeutf8(self.restring)
             validlfs, failedlfs = self.match_string(validlfs, failedlfs)
+            for k, lf in validlfs.iteritems():
+
+                self.matching_words[k]
             if len(validlfs) < 1:  # no valid leaves, validation fails
                 return validlfs, failedlfs
 
@@ -218,6 +222,7 @@ class Parser(object):
         a part of speech) and 'modifies' (int, index of another word modified
         by this one).
         '''
+        matching_words = {}
         restring = unicode(makeutf8(self.restring)) if not restring \
             else unicode(makeutf8(restring))
         classname = self.classname if not classname else classname
@@ -231,11 +236,8 @@ class Parser(object):
             print makeutf8(m)
 
         def tag_token(matchstring, leafcopy):
-            print 'in tag_token---------------------------'
-            print 'matchstring:', matchstring
             matchindex = [l[1]['index'] for l in leafcopy
                           if l[0] == matchstring][0]
-            print 'matchindex:', matchindex
             mydict = leafcopy[matchindex][1]
             if 'pos' not in mydict.keys():  # only tag word if currently untagged
                 mydict['pos'] = classname
@@ -243,24 +245,23 @@ class Parser(object):
                     mydict['current'] += 1
                 else:
                     mydict['current'] = 0
-                print 'tagged as:', classname
-                print leafcopy
             else:
                 print 'already tagged, leaf invalid'
-                return False
+                return False, None
 
-            return leafcopy
+
+            return leafcopy, matchindex
 
         newvalids = {}
         newfaileds = {}
         if mymatch:
             print 'mymatch', mymatch
             for key, leaf in validleaves.iteritems():
-                print 'tagging leaf:', leaf
+                print 'tagging leaf:', key, '============================='
                 for m in mymatch:
                     if m in [w[0] for w in leaf]:  # because findall and case
-                        print 'tagging leaf with', makeutf8(m), '==============='
-                        taggedleaf = tag_token(m, deepcopy(leaf))
+                        print 'tagging leaf with', makeutf8(m)
+                        taggedleaf, matchindex = tag_token(m, deepcopy(leaf))
                         if taggedleaf and taggedleaf not in newvalids.values():
                             if key in newvalids.keys():
                                 newkey = max(newvalids.keys()) + 1
@@ -268,7 +269,10 @@ class Parser(object):
                                 newkey = key
                             print 'appending valid leaf', newkey
                             newvalids[newkey] = taggedleaf
-                            self.matching_words.append([classname, m, key])
+                            # add matching words (with index) directly to instance variable
+                            self.matching_words[newkey] = {'word': m,
+                                                           'index': matchindex}
+                            print 'matching for leaf', newkey
                         elif not taggedleaf and leaf not in newfaileds.values():
                             if key in newfaileds.keys():
                                 newkey = max(newfaileds.keys()) + 1
