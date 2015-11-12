@@ -257,6 +257,10 @@ class Bug(object):
                 display.append(status)
                 display.append(b.bugs.adjusted_score)
                 display.append(b.bugs.admin_comment)
+                if b.bugs.hidden:
+                    display.append('bug-read')
+                else:
+                    display.append('bug-unread')
                 lst.append(display)
             except Exception:
                 print traceback.format_exc(5)

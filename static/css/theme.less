@@ -1,3 +1,5 @@
+// out: ./theme.css, compress: true
+
 @import "../bootstrap_less/bootstrap.less";
 @import "./web2py.css";
 @import "./web2py-bootstrap3.css";
@@ -17,7 +19,7 @@ body                        {margin-top: 0;
     ul                      {list-style-type: None;
                              list-style-position: outside;
     }
-    .modal-backdrop         {display: None; 
+    .modal-backdrop         {display: None;
     }
 }
 
@@ -277,6 +279,15 @@ body.user #page          {
         }
     }
 
+    /* bug reports */
+    #tab_bug_reports table tr {
+      &.bug-read              {color: #aaa;
+          td                  {background-color: #efefef;
+
+          }
+      }
+    }
+
     /* user info */
     ul.profile-user-info   {list-style-type: none;
                             background-color: @pallette1;
@@ -332,7 +343,7 @@ body.user #page          {
                 li         {display: inline-block;
                             margin-right: 0.25em}
             }
-          
+
         }
         td.total_cat1,
         td.total_cat2,
@@ -359,21 +370,21 @@ body.user #page          {
                                 color: @pallette4;
                                 margin-bottom: (@font-size-base/2);}
         table.month            {border: 1px solid @pallette2;
-            tr:first-child     {font-size: @font-size-largest; 
+            tr:first-child     {font-size: @font-size-largest;
                 th             {text-align: center;
                                 padding: (@line-height-computed/2);
                     .monthcal_nav_link.previous,
                     .monthcal_nav_link.next     {font-size: @font-size-large;
                     }
                     .monthcal_nav_link.next     {float: right;}
-                    .monthcal_nav_link.previous {float:left;} 
+                    .monthcal_nav_link.previous {float:left;}
                     #month-label    {font-size: @font-size-large;
                     }
                 }
             }
             th                 {font-family: @sansFonts;
                                 font-weight: normal;
-                                font-size: @font-size-base; 
+                                font-size: @font-size-base;
                                 background-color: @pallette1;
                                 border: 1px solid @pallette1;
                                 color: @navbarLinkColor;

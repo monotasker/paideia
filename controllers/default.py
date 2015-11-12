@@ -81,6 +81,20 @@ def user():
     return dict(form=auth())
 
 
+def mark_bug_read():
+    """
+    Set the 'hidden' field for provided bug report based on boolean provided.
+
+    Expects two request.args
+    0:      The id of the bug (str)
+    1:      A string representing a boolean value (str)
+    """
+    bugid = int(request.args[0])
+    myval = True if request.args[1] == 'true' else False
+    myrow = db(db.bugs.id == bugid)
+    myrow.update(hidden=myval)
+
+
 def info():
     """
     Return data reporting on a user's performance record.
