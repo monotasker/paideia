@@ -50,6 +50,7 @@ def index():
     response.files.append(URL('static', 'js/jquery.jplayer.min.js'))
     response.files.append(URL('static', 'js/play_audio_clip.js'))
     response.files.append(URL('static', 'css/jplayer.pink.flag.css'))
+    response.files.append(URL('static', 'js/svg-pan-zoom.js'))
     return {}
 
 
@@ -79,6 +80,7 @@ def walk():
     """
 
     request = current.request
+
     print "\n\nstarting walk controller========================================"
     rvars = request.vars
     rargs = request.args

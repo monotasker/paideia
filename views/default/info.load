@@ -184,7 +184,8 @@ tab4_content = TABLE(TR(TH('question'),
                         TH('your comments'),
                         TH('evaluation'),
                         TH('adjusted score'),
-                        TH('instructor\'s comments')),
+                        TH('instructor\'s comments'),
+                        TH('mark as read')),
                      _class='table table-condensed')
 status_classes = {'awaiting review': '',
                   'confirmed': 'danger',
@@ -193,12 +194,21 @@ status_classes = {'awaiting review': '',
                   'not_a_bug': 'warning',
                   'allowance_given': 'warning'}
 for bug in blist:
-    row = TR(_class=status_classes[bug[6]])
+    classes = '{} {}'.format(status_classes[bug[6]], bug[-1])
+    row = TR(_class=classes)
     # first position is the id, used in edit link
     for val in bug[1:]:
-        val = val if val != None else ''
-        row.append(TD(val, _class=status_classes[bug[6]]))
+        if val not in ['bug-read', 'bug-unread']:
+            val = val if val != None else ''
+            row.append(TD(val, _class=status_classes[bug[6]]))
+        pass
     pass
+    if bug[-1] == 'bug-read':
+        row.append(TD(INPUT(_type='checkbox', _checked='checked', _name=bug[0], _class='mark_bug_read')))
+    else:
+        row.append(TD(INPUT(_type='checkbox', _name=bug[0], _class='mark_bug_read')))
+    pass
+
     row.append(ROLE(TD(A('edit', _href=URL('editing', 'listing.html',
                                            args=['bugs', bug[0]],
                                            vars=dict(restrictor={'bug_status': '5'}))
@@ -249,6 +259,22 @@ tab5_content = DIV(
     user_stats.answer_counts = JSON.parse('{{=XML(json.dumps(answer_counts))}}');
     user_stats.render_all();
 })();
+
+$(document).on('change',
+               'input.mark_bug_read',
+               function(event){
+                  var bugid = $(this).attr('name');
+                  var myval = $(this).prop('checked');
+                  var $therow = $(this).parents('tr');
+                  ajax('/paideia/default/mark_bug_read/' + bugid + '/' + myval, [], ':eval');
+                  if(myval == true){
+                      $therow.removeClass('bug-unread');
+                      $therow.addClass('bug-read');
+                  } else {
+                      $therow.addClass('bug-unread');
+                      $therow.removeClass('bug-read');
+                  };
+});
 
 $(document).on('click',
                'a.monthpicker, a.monthcal_nav_link_next, a.monthcal_nav_link_previous',
