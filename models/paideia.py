@@ -934,3 +934,21 @@ create_steps_inactive_locations_for_steps()
 
 -----------------  end run once for legacy system -------------
 """
+
+
+# Badges for header ============================================================
+try:
+    db = current.db
+    print auth.user_id
+    bug_rows = db((db.bugs.user_name == auth.user_id) &
+                  (db.bugs.hidden == False) &
+                  (db.bugs.admin_comment != None)).select()
+    bug_count = len(bug_rows)
+    if bug_count > 0:
+        response.badges = SPAN(SPAN(bug_count, _class='badge',
+                                    _id='unread-counter'),
+                               _class='badge-wrapper')
+    else:
+        pass
+except Exception as e:
+    traceback.print_exc()
