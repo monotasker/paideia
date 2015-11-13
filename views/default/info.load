@@ -267,12 +267,18 @@ $(document).on('change',
                   var myval = $(this).prop('checked');
                   var $therow = $(this).parents('tr');
                   ajax('/paideia/default/mark_bug_read/' + bugid + '/' + myval, [], ':eval');
+                  var $counter = $(document).find('#unread-counter');
+                  startCount = parseInt($counter.text());
                   if(myval == true){
                       $therow.removeClass('bug-unread');
                       $therow.addClass('bug-read');
+                      newCount = startCount - 1;
+                      $counter.text(newCount);
                   } else {
                       $therow.addClass('bug-unread');
                       $therow.removeClass('bug-read');
+                      newCount = startCount + 1;
+                      $counter.text(newCount);
                   };
 });
 
@@ -290,6 +296,7 @@ $(document).on('click',
 </div>
 </div>
 </div>
+
 <style>
 /***********************/
 /* USER STATS & CHARTS */
