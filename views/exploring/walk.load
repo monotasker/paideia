@@ -32,7 +32,7 @@ ap.append(form) }}
     <!--# prompt/reply div==================================================-->
     <div class='npc prompt'>
         <p class='prompt-text'>{{=MARKMIN(prompt_text)}}</p>
-        {{if 'readable_long' in globals():
+        {{if 'readable_long' in globals() and [n for n in readable_long if n]:
             rdbl = UL(_class='readable_long')
             for r in readable_long:
                 rdbl.append(LI(r))
