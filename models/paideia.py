@@ -942,7 +942,7 @@ try:
     print auth.user_id
     bug_rows = db((db.bugs.user_name == auth.user_id) &
                   (db.bugs.hidden == False) &
-                  (db.bugs.admin_comment != None)).select()
+                  (db.bugs.admin_comment != '')).select()
     bug_count = len(bug_rows)
     if bug_count > 0:
         response.badges = SPAN(SPAN(bug_count, _class='badge',
