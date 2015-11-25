@@ -26,24 +26,37 @@ if target_set:
 else:
     targetmsg = ''
 pass
-tab1_content = CAT(H4('Set progress'),
-               DIV(P('So far, I have reached badge set {}.'.format(max_set)),
-                     P(targetmsg),
-                       _id='info-tab1-set-progress'),
-                   H4('Badge levels earned'),
-                   DIV(TABLE(TR(TD('level 4'), TD('master'),
+
+set_scale_cells = TR(*[TD(SPAN('badge', BR(), 'set', _class='set-scale-label'),
+                          BR(),
+                          SPAN(n, _class='set-scale-num'), _class='') for n in range(1, 21)])
+for n in range(max_set):
+    print set_scale_cells[n]
+    set_scale_cells[n]['_class'] = 'active'
+pass
+if target_set:
+    set_scale_cells[starting_set - 1].append(SPAN('Term start', _class='set-scale-start'))
+    set_scale_cells[target_set - 1].append(SPAN('A-grade target', _class='set-scale-target'))
+pass
+
+tab1_content = CAT(H4('Progress through the badge sets'),
+                   DIV(P(TABLE(set_scale_cells, _class="set_scale"),
+                         'So far, I have reached badge set {}. {}'.format(max_set, targetmsg[0])),
+                         _id='info-tab1-set-progress'),
+                   H4('Level of mastery in each badge'),
+                   DIV(TABLE(TR(TD('master'),
                                 TD(len(badge_levels[4])),
                                 TD(UL([LI(b[0], _class='label label-success') for b in badge_levels[4]]))
                                 ),
-                             TR(TD('level 3'), TD('journeyman'),
+                             TR(TD('journeyman'),
                                 TD(len(badge_levels[3])),
                                 TD(UL([LI(b[0], _class='label label-info') for b in badge_levels[3]]))
                                 ),
-                             TR(TD('level 2'), TD('apprentice'),
+                             TR(TD('apprentice'),
                                 TD(len(badge_levels[2])),
                                 TD(UL([LI(b[0], _class='label label-primary') for b in badge_levels[2]]))
                                 ),
-                             TR(TD('level 1'), TD('beginner'),
+                             TR(TD('beginner'),
                                 TD(len(badge_levels[1])),
                                 TD(UL([LI(b[0], _class='label label-warning') for b in badge_levels[1]]))
                                 ),
@@ -194,17 +207,23 @@ status_classes = {'awaiting review': '',
                   'not_a_bug': 'warning',
                   'allowance_given': 'warning'}
 for bug in blist:
+    from pprint import pprint
+    pprint(bug)
     classes = '{} {}'.format(status_classes[bug[6]], bug[-1])
     row = TR(_class=classes)
     # first position is the id, used in edit link
     for val in bug[1:]:
         if val not in ['bug-read', 'bug-unread']:
             val = val if val != None else ''
-            row.append(TD(val, _class=status_classes[bug[6]]))
+            row.append(TD(str(val).replace('_', ' '), _class=status_classes[bug[6]]))
         pass
     pass
     if bug[-1] == 'bug-read':
         row.append(TD(INPUT(_type='checkbox', _checked='checked', _name=bug[0], _class='mark_bug_read')))
+    elif bug[-1] == 'bug-unread' and bug[8]:
+        row.append(TD(INPUT(_type='checkbox', _name=bug[0], _class='mark_bug_read')))
+    elif not bug[8]:
+        row.append(TD(INPUT(_type='checkbox', _disabled='true', _name=bug[0], _class='mark_bug_read')))
     else:
         row.append(TD(INPUT(_type='checkbox', _name=bug[0], _class='mark_bug_read')))
     pass
