@@ -945,7 +945,9 @@ try:
                   (db.bugs.admin_comment != '')).select()
     bug_count = len(bug_rows)
     if bug_count > 0:
-        response.badges = SPAN(SPAN(bug_count, _class='badge',
+        response.badges = SPAN(A(I(_class='fa fa-inbox'), "  ", SPAN(bug_count),
+                                    _href='/paideia/default/user/profile#tab_bug_reports',
+                                    _class='badge',
                                     _id='unread-counter'),
                                _class='badge-wrapper')
     else:
