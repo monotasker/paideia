@@ -218,14 +218,14 @@ for bug in blist:
             row.append(TD(str(val).replace('_', ' '), _class=status_classes[bug[6]]))
         pass
     pass
-    if bug[-1] == 'bug-read':
-        row.append(TD(INPUT(_type='checkbox', _checked='checked', _name=bug[0], _class='mark_bug_read')))
+    if bug[-1] == 'bug-read' and bug[8]:
+        row.append(TD(INPUT(_type='checkbox', _checked='checked', _name=bug[0], _class='mark_bug_read read-with-comment')))
     elif bug[-1] == 'bug-unread' and bug[8]:
-        row.append(TD(INPUT(_type='checkbox', _name=bug[0], _class='mark_bug_read')))
+        row.append(TD(INPUT(_type='checkbox', _name=bug[0], _class='mark_bug_read unread-with-comment')))
     elif not bug[8]:
-        row.append(TD(INPUT(_type='checkbox', _disabled='true', _name=bug[0], _class='mark_bug_read')))
+        row.append(TD(INPUT(_type='checkbox', _disabled='true', _name=bug[0], _class='mark_bug_read read-without-comment')))
     else:
-        row.append(TD(INPUT(_type='checkbox', _name=bug[0], _class='mark_bug_read')))
+        row.append(TD(INPUT(_type='checkbox', _name=bug[0], _class='mark_bug_read other')))
     pass
 
     row.append(ROLE(TD(A('edit', _href=URL('editing', 'listing.html',
@@ -258,6 +258,18 @@ tab5_content = DIV(
 
 <!--# LOCAL SCRIPTS ======================================================-->
 <script type="text/javascript" charset="utf-8">
+
+// show tab from hash when first opening page
+var url = document.location.toString();
+if (url.match('#')) {
+    $('.nav-tabs a[href=#'+url.split('#')[1]+']').tab('show') ;
+};
+
+// Change hash for when tab shown
+$('.nav-tabs a').on('shown.bs.tab', function (e) {
+    window.location.hash = e.target.hash;
+});
+
 (function() {
     var badgetable = $('#table-badges').DataTable({
                         paging: false,
@@ -279,14 +291,18 @@ tab5_content = DIV(
     user_stats.render_all();
 })();
 
-$(document).on('change',
-               'input.mark_bug_read',
-               function(event){
+$(document).on('change', 'input.mark_bug_read', function(event){
+                  console.log('clicked me');
                   var bugid = $(this).attr('name');
+                  console.log(bugid);
                   var myval = $(this).prop('checked');
+                  console.log(myval);
                   var $therow = $(this).parents('tr');
+                  console.log($therow);
                   ajax('/paideia/default/mark_bug_read/' + bugid + '/' + myval, [], ':eval');
-                  var $counter = $(document).find('#unread-counter');
+                  var $counter = $(document).find('#unread-counter span');
+                  console.log($counter);
+                  console.log($counter.text());
                   startCount = parseInt($counter.text());
                   if(myval == true){
                       $therow.removeClass('bug-unread');
