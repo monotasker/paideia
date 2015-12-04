@@ -120,6 +120,8 @@ def walk():
         # if condition prevents submission of blank response
         stepargs['response_string'] = rvars['response'] if \
             ('response' in rvars and 'response' not in [' ', None]) else None
+    if session.set_review:
+        stepargs['set_review'] = session.set_review
 
     # pass along test settings to Walk.ask()
     print '----------------args & vars------------'
