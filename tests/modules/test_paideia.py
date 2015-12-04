@@ -6880,6 +6880,41 @@ class TestPathChooser():
                 assert newloc is None
         assert actualmode == mode
 
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('myset,locid,tpout',
+                             [(1,  # myset
+                               6,  # locid
+                               {'latest_new': 1,  # tpout
+                                'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [61], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                               ),
+                              ])
+    def test_pathchooser_choose_from_set(self, myset, locid, tpout, db):
+        """
+        Unit test for the paideia.Pathchooser.choose() method.
+        """
+        chooser = PathChooser(tpout, locid, [])
+        actual, newloc, catnum, actualmode = chooser.choose(set_review=myset)
+        assert actualmode == 'reviewing set {}'.format(myset)
+        a_steps = actual['steps']
+        mytags = []
+        steps = db(db.steps.id.belongs(a_steps)).select()
+        for step in steps:
+            set_tags = [t for t in step['tags']
+                        if db.tags[t]['tag_position'] == myset]
+            mytags.extend(set_tags)
+        assert mytags
+        # test randomness
+        path_ids = []
+        for n in range(0,100):
+            actual, newloc, catnum, actualmode = chooser.choose(set_review=myset)
+            if actual['id'] not in path_ids:
+                path_ids.append(actual['id'])
+        assert len(path_ids) > 50  # testing randomness over 100 iterations
+
+        assert 0
 
 class TestBugReporter():
     '''
