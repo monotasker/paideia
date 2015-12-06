@@ -201,6 +201,15 @@ def info():
             }
 
 
+def set_review_mode():
+    try:
+        myset = int(request.args[0])
+    except TypeError:  # if passed a non-numeric value
+        myset = None
+    session.set_review = myset
+    print 'session.set_review is', session.set_review
+
+
 def oops():
     """A controller to handle rerouted requests that return error codes."""
     code = request.vars.code
