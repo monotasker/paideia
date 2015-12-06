@@ -237,7 +237,20 @@ pass
 
 # TAB 5 - STATS ==============================================================
 
-tab5_content = DIV(
+tab5_content = DIV(H4('Review a badge set'),
+                   SELECT(OPTION('Not reviewing'), _id='set_review_select', _class='form-control'),
+                   P('If you select a badge set from the menu above, you will '
+                     'only be given paths selected (randomly) from that badge '
+                     'set. When you want to return to the normal selection of '
+                     'paths, select \'not reviewing\' again.', _class='text-info')
+                   )
+for n in range(1,21):
+    tab5_content[1].append(OPTION('badge set {}'.format(str(n))))
+pass
+
+# TAB 6 - STATS ==============================================================
+
+tab6_content = DIV(
                CAT(H4('Highest badge set reached to date'),
                    DIV(_id='stats-milestones'),
                    H4('Correct and incorrect answers'),
@@ -253,7 +266,8 @@ tab5_content = DIV(
 {{=TABS([('My Badges', 'web2py_user_form', tab1_content, 'active'),
          ('Calendar', 'tab_calendar', tab3_content),
          ('Bug Reports', 'tab_bug_reports', tab4_content),
-         ('Stats', 'tab_stats', tab5_content)])
+         ('Settings', 'tab_settings', tab5_content),
+         ('Stats', 'tab_stats', tab6_content)])
 }}
 
 <!--# LOCAL SCRIPTS ======================================================-->
@@ -268,6 +282,13 @@ if (url.match('#')) {
 // Change hash for when tab shown
 $('.nav-tabs a').on('shown.bs.tab', function (e) {
     window.location.hash = e.target.hash;
+});
+
+// Change selection type when changing select value
+$(document).on('change', '#set_review_select', function(event){
+    var myset_label = $(this).val();
+    var myset = myset_label.replace('badge set ', '');
+    ajax('/paideia/default/set_review_mode/' + myset, [], ':eval');
 });
 
 (function() {
