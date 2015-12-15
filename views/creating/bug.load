@@ -3,8 +3,8 @@
 # called via ajax from the walk.load view
 from plugin_widgets import MODAL
 
-c = P('Think your answer should have been correct? Click the button ',
-      'below to submit an automated bug report. The details of this step and ',
+c = P('Is there something you don\'t understand? Or do you think your answer should have been correct? Click the button ',
+      'below to submit an automated query to your instructor. The details of this step and ',
       'your response are included automatically. You may provide any other ',
       'information you think may be helpful in the "comments" field, or simply ',
       'leave that field blank. You can read your instructor\'s ',
@@ -21,8 +21,8 @@ c = P('Think your answer should have been correct? Click the button ',
       )
 }}
 
-{{=MODAL('Something wrong?',
-       'Did you run into a problem?',
+{{=MODAL('Have a question or problem?',
+       'Have a question or problem?',
        c,
        trigger_type='link',
        trigger_classes='bug_reporter',

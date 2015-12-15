@@ -270,10 +270,10 @@ tab6_content = DIV(
 
 <!--# ASSEMBLE AND PRINT ==================================================-->
 {{=TABS([('My Badges', 'web2py_user_form', tab1_content, 'active'),
-         ('Calendar', 'tab_calendar', tab3_content),
-         ('Bug Reports', 'tab_bug_reports', tab4_content),
-         ('Settings', 'tab_settings', tab5_content),
-         ('Stats', 'tab_stats', tab6_content)])
+         ('My Calendar', 'tab_calendar', tab3_content),
+         ('My Queries', 'tab_bug_reports', tab4_content),
+         ('My Settings', 'tab_settings', tab5_content),
+         ('My Stats', 'tab_stats', tab6_content)])
 }}
 
 <!--# LOCAL SCRIPTS ======================================================-->
