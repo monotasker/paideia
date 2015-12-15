@@ -55,7 +55,7 @@ response.menu = [(SPAN(I(_class='fa fa-home'), T(' Home')),
                   False, URL('default', 'index'), []),
                  (SPAN(I(_class='fa fa-map-marker'), T(' Map')),
                   False, URL('exploring', 'index'), []),
-                 (SPAN(I(_class='fa fa-film'), T(' Slides')),
+                 (SPAN(I(_class='fa fa-film'), T(' Videos')),
                   False, URL('listing', 'slides'), []),
                  (SPAN(I(_class='fa fa-filter'), T(' Vocabulary')),
                   False, URL('reporting', 'vocabulary.html'), [])

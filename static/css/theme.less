@@ -152,7 +152,7 @@ body.exploring                  {
             }
             .admin-panel                {position:absolute;
                                          width:20px;
-                                         height:200px;
+                                         height:300px;
                                          top:0;
                                          left: 0;
                                          background-color: @black;
@@ -196,16 +196,44 @@ body.exploring                  {
                                          float: left;
                                          display: inline-block;
                                          margin-right: 1em;
-                                         text-transform: capitalize;
                                          font-size: @font-size-small;
+                                         text-transform: capitalize;
                                          font-family: @sansFonts;
-                                         /*cursor: pointer;*/
+                                         cursor: pointer;
                 }
                 a.btn                   {font-family: @sansFonts;
                 }
                 .path-counter,
                 .prompt-editlinks       {font-size: @font-size-small;
                                          font-family: @sansFonts;
+                                         color: darken(@pallette2, 20%);
+                }
+                #bug_reporter_modal_trigger   {font-family: @sansFonts;
+                                               font-size: @font-size-small;
+                }
+                .popover                    {
+                    background-color: @accent2;
+                    color: @white;
+                    border: 1px solid @accent2;
+                    .arrow::after            {border-bottom-color: @accent2;
+                    }
+                    a                        {color: @white;
+                                              text-decoration: none;
+                                              white-space: normal;  // to fix list item wrapping
+                    }
+                    .popover-title           {background-color: transparent;
+                                              color: lighten(@warning, 20%);
+                                              border-bottom: 1px solid transparent;
+                    }
+                    .prompt_instructions,
+                    .prompt_slides,
+                    .prompt_hints          {margin-left: 1.7em;
+                                            font-family: @sansFonts;
+                                            list-style-position: inside;
+                    }
+                    .readable_long         {font-family: "SBL Greek";
+                                            list-style-type: circle;
+                    }
                 }
                 table                   {width: 100%;
                                          margin: 0;
