@@ -2258,7 +2258,10 @@ class PathChooser(object):
             path = set_paths[randrange(0, len(set_paths))]
             first_step = db.steps[path['steps'][0]]
             print 'PathChooser::choose: first_step is', first_step.id
-            new_loc = [l for l in first_step['locations'] if db.locations[l].loc_active][0]
+            if self.loc_id in first_step['locations']:
+                new_loc = None
+            else:
+                new_loc = [l for l in first_step['locations'] if db.locations[l].loc_active][0]
             category = None  # using badge set, not categories
             mode = "reviewing set {}".format(myset)
             return path, new_loc, category, mode
@@ -2605,6 +2608,8 @@ class User(object):
         # FIXME: if no choice, send_error('User', 'get_path', current.request)
         if mode:
             path = Path(path_id=choice['id'])
+            if re.match(r'reviewing', mode, re.I):  # show mode if not regular choice
+                cat = mode
             print 'User::_make_path_choice: num of path.steps is', len(path.steps)
             return path, redir, cat
         else: return None, None, None
@@ -2627,10 +2632,13 @@ class User(object):
         while True:
             if pathid:  # testing specific path
                 self.path = Path(pathid)
+                print 'con 1'
 
             if repeat and not self.path:  # repeating a step, path finished before
                 pathid = self.completed_paths['latest']
                 self.path = Path(pathid)
+            elif self.path and self.path.step_for_prompt:
+                pass
             elif self.path and self.path.step_for_reply:
                 pass
             elif self.path and repeat:  # repeating a step, path wasn't finished
