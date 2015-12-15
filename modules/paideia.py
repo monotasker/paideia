@@ -158,7 +158,6 @@ class Walk(object):
                         auth.user_id).select().first()
                 if sd:
                     sys.path.append(os.path.dirname(__file__))
-                    print sys.path
                     self.user = pickle.loads(sd['other_data'])
                 else:
                     self.user = None
@@ -195,7 +194,8 @@ class Walk(object):
         return self.user
 
     def start(self, localias, response_string=None, path=None, repeat=None,
-              step=None, set_blocks=None, recategorize=None, pre_bug_step_id=None):
+              step=None, set_blocks=None, recategorize=None, pre_bug_step_id=None,
+              set_review=None):
         """
         JOB ... oct 18, 2014 ... added bug_step_id to signature
         Issue the correct method for this interaction and return the result.
@@ -204,7 +204,6 @@ class Walk(object):
         responding to one in-process.
         """
         result = None
-
         try:
             while True:
                 if response_string:
@@ -217,12 +216,13 @@ class Walk(object):
                                 repeat=repeat,
                                 set_blocks=set_blocks,
                                 recategorize=recategorize,
-                                step=step)
+                                step=step,
+                                set_review=set_review)
                 break
         except Exception:
             print traceback.format_exc(5)
             self.clean_user()  # get rid of any problem path data
-            result = self.ask(localias=localias, path=path, step=step)
+            result = self.ask(localias=localias, path=path, step=step, set_review=set_review)
         if self.DEBUG_MODE:
             result['paideia_debug'] = '<div>' + current.paideia_debug.data + '</div>'
         else:
@@ -240,7 +240,7 @@ class Walk(object):
         self._store_user(user)
 
     def ask(self, localias, path=None, repeat=None,
-            step=None, set_blocks=None, recategorize=None):
+            step=None, set_blocks=None, recategorize=None, set_review=None):
         """
         Return the information necessary to initiate a step interaction.
         The "path" argument is used only for dependency injection during
@@ -281,8 +281,10 @@ class Walk(object):
             prev_npc = user.get_prev_npc()
 
             p, category, redir, pastquota = user.get_path(loc, pathid=path,
-                                                          repeat=repeat)
-            print 'path chosen:', p.get_id()
+                                                          repeat=repeat,
+                                                          set_review=set_review)
+            print 'Walk::ask: path chosen is', p.get_id()
+            print 'Walk::ask: redir is', redir
 
             if (not p): break  # no paths for this location for this category
 
@@ -293,8 +295,10 @@ class Walk(object):
             if pastquota:
                 current.sequence_counter += 1
                 user.set_block('quota_reached', kwargs={'quota': user.quota})
+            print 'Walk::ask: user.path.steps num is', len(user.path.steps)
 
             s, newloc_id, error_string = p.get_step_for_prompt(loc, repeat=repeat)
+            print 'Walk::ask: user.path.steps num is', len(user.path.steps)
 
             if newloc_id:
                 current.sequence_counter += 1
@@ -313,6 +317,7 @@ class Walk(object):
                 user.clear_block_records()
             prompt = s.get_prompt(loc, npc, username, user_blocks_left=True if user.blocks else False)
 
+            print 'Walk::ask: user.path.steps num is', len(user.path.steps)
             extra_fields = {'completed_count': user.get_completed_paths_len(),
                             'category': category,
                             'pid': p.get_id()
@@ -1877,6 +1882,7 @@ class Path(object):
                 print traceback.format_exc(5)
         else:
             mystep.loc = loc  # update location on step
+        print 'Path::get_step_for_prompt: mystep is', mystep
 
         return mystep, next_loc, error_string
 
@@ -2227,7 +2233,7 @@ class PathChooser(object):
 
         return (path, new_loc, category, mode)
 
-    def choose(self, db=None):
+    def choose(self, set_review=None, db=None):
         """
         Choose a path for the current user based on performance record.
         The algorithm looks for paths using the following tests, in this order:
@@ -2242,28 +2248,43 @@ class PathChooser(object):
             [2] the category number for this new path (int in range 1-4)
         """
         db = current.db if not db else db
+        if set_review:  # select randomly from the supplied badge set (review and demo)
+            myset = set_review
+            set_tags = db(db.tags.tag_position == myset).select()
+            taglist = [t['id'] for t in set_tags]
+            set_steps = db(db.steps.tags.contains(taglist)).select()
+            steplist = [s['id'] for s in set_steps]
+            set_paths = db(db.paths.steps.contains(steplist)).select()
+            path = set_paths[randrange(0, len(set_paths))]
+            first_step = db.steps[path['steps'][0]]
+            print 'PathChooser::choose: first_step is', first_step.id
+            new_loc = [l for l in first_step['locations'] if db.locations[l].loc_active][0]
+            category = None  # using badge set, not categories
+            mode = "reviewing set {}".format(myset)
+            return path, new_loc, category, mode
 
-        cat_list = [c for c in self._order_cats()
-                    if self.categories['rev{}'.format(c)]]
-        # 'if' guarantees that no categories are attempted for which no tags
-        # due
+        else:  # regular category based selection (default)
+            cat_list = [c for c in self._order_cats()
+                        if self.categories['rev{}'.format(c)]]
+            # 'if' guarantees that no categories are attempted for which no tags
+            # due
 
-        # cycle through categories, prioritised in _order_cats()
-        for cat in cat_list:
-            #print 'checking in cat', cat, '========================================='
-            catpaths, category, use_cat1 = self._paths_by_category(cat, self.rank)
-            #print 'forcing cat1?', use_cat1
-            #print 'catpaths:', [c['id'] for c in catpaths]
-            if catpaths and len(catpaths):
-                path, newloc, category, mode = self._choose_from_cat(catpaths,
-                                                                     category)
-                if mode:
-                    return path, newloc, category, mode
+            # cycle through categories, prioritised in _order_cats()
+            for cat in cat_list:
+                #print 'checking in cat', cat, '========================================='
+                catpaths, category, use_cat1 = self._paths_by_category(cat, self.rank)
+                #print 'forcing cat1?', use_cat1
+                #print 'catpaths:', [c['id'] for c in catpaths]
+                if catpaths and len(catpaths):
+                    path, newloc, category, mode = self._choose_from_cat(catpaths,
+                                                                         category)
+                    if mode:
+                        return path, newloc, category, mode
+                    else:
+                        print 'bad mode trying another category'
                 else:
-                    print 'bad mode trying another category'
-            else:
-                continue
-        return None, None, None, None
+                    continue
+            return None, None, None, None
 
 
 class User(object):
@@ -2552,7 +2573,7 @@ class User(object):
         """
         return self.loc
 
-    def _make_path_choice(self, loc):
+    def _make_path_choice(self, loc, set_review=None):
         """
         Instantiate PathChooser and return the result of its choose() method.
         """
@@ -2569,7 +2590,8 @@ class User(object):
             self.tag_progress['all_choices'] = 0
         choice, redir, cat, mode = PathChooser(self.tag_progress,
                                                 loc.get_id(),
-                                                self.completed_paths).choose()
+                                                self.completed_paths).choose(set_review=set_review)
+        print 'User::_make_path_choice: mode is', mode
         #print 'in _make_path_choice ----------------------------------------'
         #print 'choice:', choice
         #print 'redir:', redir
@@ -2583,19 +2605,25 @@ class User(object):
         # FIXME: if no choice, send_error('User', 'get_path', current.request)
         if mode:
             path = Path(path_id=choice['id'])
+            print 'User::_make_path_choice: num of path.steps is', len(path.steps)
             return path, redir, cat
         else: return None, None, None
 
-    def get_path(self, loc, db=None, pathid=None, repeat=None):
+    def get_path(self, loc, db=None, pathid=None, repeat=None, set_review=None):
         """
         Return the currently active Path object.
         Only the 'loc' argument is strictly necessary. The others are used for
-        dependency injection during testing.
+        dependency injection during testing (db and pathid) or for special
+        selection modes (repeat, set_review).
         """
         db = current.db if not db else db
         redir = None
         cat = None
         pastq = None
+        print 'User::get_path: starting self.path is', self.path
+        if self.path:
+            print 'User::get_path: self.path id is', self.path.get_id()
+            print 'User::get_path:', len(self.path.steps), 'steps left in path'
         while True:
             if pathid:  # testing specific path
                 self.path = Path(pathid)
@@ -2610,7 +2638,8 @@ class User(object):
             elif self.path and len(self.path.steps):  # unfinished step in self.path
                 pass
             else:  # choosing a new path
-                self.path, redir, cat = self._make_path_choice(loc)
+                self.path, redir, cat = self._make_path_choice(loc,
+                                                               set_review=set_review)
                 #print 'path chosen:', self.path.get_id()
                 if (not self.path):
                     break  # and return Nones
@@ -2953,7 +2982,7 @@ class Categorizer(object):
         Return the user's average score on a given tag over the past N days.
         Always returns a float, since scores are floats between 0 and 1.
         """
-        print 'user', self.user_id
+        # print 'user', self.user_id
         db = current.db
         startdt = self.utcnow - datetime.timedelta(days=mydays)
         log_query = db((db.attempt_log.name == self.user_id) &
