@@ -76,9 +76,9 @@ ap.append(form) }}
         <div>
         <!--# hints popup for reply=========================================-->
         {{if 'hints' in globals() and hints:
-            hint_list = UL()
+            hint_list = UL(_class='prompt_hints fa-ul')
             for h in hints:
-                hint_list.append(LI(h))
+                hint_list.append(LI(I(_class='fa-li fa fa-exclamation-circle'), h))
             pass
             hints_args = {'classnames': 'text-warning', 'id': 'instructions_btn'}
             hinter = POPOVER().widget('Hints', hint_list, **hints_args)}}
@@ -87,9 +87,9 @@ ap.append(form) }}
         {{pass}}
         <!--# instructions popup for prompt/reply===========================-->
         {{if 'instructions' in globals() and instructions:
-            ilist = UL(_class='prompt_instructions')
+            ilist = UL(_class='prompt_instructions fa-ul')
             for itext in instructions:
-                ilist.append(LI(itext))
+                ilist.append(LI(I(_class='fa-li fa fa-info-circle'), itext))
             pass
             i_args = {'classnames': 'instructions-popover text-info',
                       'title': 'Instructions for this step',
@@ -100,15 +100,16 @@ ap.append(form) }}
 
         <!--# slides popup for prompt/reply=================================-->
         {{if 'slidedecks' in globals() and slidedecks:
-            decklist = UL(_class='prompt_slides')
+            decklist = UL(_class='prompt_slides fa-ul')
             for did, dname in slidedecks.iteritems():
-                decklist.append(LI(A(dname, _href=URL('listing', 'slides.html',
+                decklist.append(LI(I(_class='fa-li fa fa-video-camera'),
+                                   A(dname, _href=URL('listing', 'slides.html',
                                      args=[did]))))
             pass
             slides_args = {'classnames': 'slides-popover text-warning',
-                           'title': 'Relevant slide decks',
+                           'title': 'Relevant videos',
                            'id': 'slides_btn'}
-            s_pop = POPOVER().widget('slides', decklist, **slides_args)}}
+            s_pop = POPOVER().widget('videos', decklist, **slides_args)}}
             {{=s_pop}}
         {{pass }}
         </div>
