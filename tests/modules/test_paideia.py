@@ -4464,6 +4464,43 @@ class TestUser(object):
             assert apastq is None
 
     @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('myset,localias,tpout,trecs',
+        [(8,
+          'shop_of_alexander',  # loc 6, (only 1 untried here)
+          {'latest_new': 1,  # tpout
+           'cat1': [61], 'cat2': [],
+           'cat3': [], 'cat4': [],
+           'rev1': [61], 'rev2': [],
+           'rev3': [], 'rev4': []},
+          [{'name': 1,  # trecs
+            'tag': 1,
+            'tlast_right': dt('2013-01-29'),
+            'tlast_wrong': dt('2013-01-29'),
+            'times_right': 1,
+            'times_wrong': 1,
+            'secondary_right': None}],
+          ),
+          ])
+    def test_user_get_path_review_set(self, myset, localias, tpout, trecs,
+                                      user_login, db):
+        """
+        Unit testing method for User.get_path().
+        """
+        user = User(user_login, trecs, tpout)
+        user.completed_paths = {'latest': 1, 'paths': []}
+        loc = Location(localias)
+        actual, acat, aredir, apastq = user.get_path(loc, set_review=myset)
+        actual_steps = actual.get_steps()
+        mytags = []
+        for step in actual_steps:
+            steptags = step.get_tags()['primary']
+            print 'steptags', steptags
+            set_tags = [t for t in steptags
+                        if db.tags[t]['tag_position'] == myset]
+            mytags.extend(set_tags)
+        assert mytags  # actual path has steps tagged for this set
+
+    @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('tpin,rankout,tpout,trecs,counter,promoted,'
                              'new_tags,demoted',
         [({'latest_new': 1,  # tpin =========================================
@@ -6913,8 +6950,6 @@ class TestPathChooser():
             if actual['id'] not in path_ids:
                 path_ids.append(actual['id'])
         assert len(path_ids) > 50  # testing randomness over 100 iterations
-
-        assert 0
 
 class TestBugReporter():
     '''

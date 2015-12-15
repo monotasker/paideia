@@ -238,12 +238,18 @@ pass
 # TAB 5 - STATS ==============================================================
 
 tab5_content = DIV(H4('Review a badge set'),
-                   SELECT(OPTION('Not reviewing'), _id='set_review_select', _class='form-control'),
+                   SELECT(_id='set_review_select', _class='form-control'),
                    P('If you select a badge set from the menu above, you will '
                      'only be given paths selected (randomly) from that badge '
                      'set. When you want to return to the normal selection of '
-                     'paths, select \'not reviewing\' again.', _class='text-info')
+                     'paths, select \'Stop reviewing.\'', _class='text-info')
                    )
+if reviewing_set:
+    tab5_content[1].append(OPTION('badge set {}'.format(str(reviewing_set))))
+    tab5_content[1].append(OPTION('Stop reviewing'))
+else:
+    tab5_content[1].append(OPTION('Not reviewing'))
+pass
 for n in range(1,21):
     tab5_content[1].append(OPTION('badge set {}'.format(str(n))))
 pass
@@ -288,6 +294,9 @@ $('.nav-tabs a').on('shown.bs.tab', function (e) {
 $(document).on('change', '#set_review_select', function(event){
     var myset_label = $(this).val();
     var myset = myset_label.replace('badge set ', '');
+    if (isNaN(myset)){
+        myset = 'none';
+    };
     ajax('/paideia/default/set_review_mode/' + myset, [], ':eval');
 });
 

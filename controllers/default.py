@@ -198,13 +198,14 @@ def info():
             'badge_table_data': badge_table_data,
             'badge_set_milestones': badge_set_milestones,
             'answer_counts': answer_counts,
+            'reviewing_set': session.set_review,
             }
 
 
 def set_review_mode():
     try:
         myset = int(request.args[0])
-    except TypeError:  # if passed a non-numeric value
+    except ValueError:  # if passed a non-numeric value
         myset = None
     session.set_review = myset
     print 'session.set_review is', session.set_review
