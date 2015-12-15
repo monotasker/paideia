@@ -158,7 +158,7 @@ ap.append(form) }}
 
         <!--# path counter for prompt/reply=================================-->
         <small class='path-counter progress_text small muted'>
-            'This will make {{=completed_count}} paths so far today.'
+            This will make {{=completed_count}} paths so far today.
         </small>
 
         <!--# debug                       =================================-->
