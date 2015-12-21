@@ -30,8 +30,7 @@ pass
 set_scale_cells = TR(*[TD(SPAN('badge', BR(), 'set', _class='set-scale-label'),
                           BR(),
                           SPAN(n, _class='set-scale-num'), _class='') for n in range(1, 21)])
-for n in range(max_set):
-    print set_scale_cells[n]
+for n in range(int(max_set)):
     set_scale_cells[n]['_class'] = 'active'
 pass
 if target_set:
@@ -41,7 +40,7 @@ pass
 
 tab1_content = CAT(H4('Progress through the badge sets'),
                    DIV(P(TABLE(set_scale_cells, _class="set_scale"),
-                         'So far, I have reached badge set {}. {}'.format(max_set, targetmsg[0])),
+                         'So far, I have reached badge set {}. {}'.format(max_set, targetmsg)),
                          _id='info-tab1-set-progress'),
                    H4('Level of mastery in each badge'),
                    DIV(TABLE(TR(TD('master'),
