@@ -5,7 +5,7 @@ from dateutil.parser import parse
 import traceback
 from copy import copy
 from pytz import timezone, utc
-from gluon import current, DIV, SPAN, A, URL, UL, LI, B
+from gluon import current, DIV, SPAN, A, URL, UL, LI, B, I
 from gluon import TAG
 from plugin_utils import make_json, load_json
 # from paideia import Categorizer
@@ -849,14 +849,15 @@ class Stats(object):
         next_month = (month + 1) if month < 12 else 1
         next_year = year if next_month > 1 else year + 1
         links = {'next': (next_month, next_year, 2,
-                          SPAN(_class='fa fa-chevron-right')),
+                          SPAN(_class='fa fa-chevron-right fa-fw')),
                  'previous': (prev_month, prev_year, 0,
-                              SPAN(_class='fa fa-chevron-left'))}
+                              SPAN(_class='fa fa-chevron-left fa-fw'))}
         linktags = []
         for k, v in links.iteritems():
             mylink = A(v[3], _href=URL('reporting', 'calendar.load',
                                        args=[self.user_id, v[1], v[0]]),
                        _class='monthcal_nav_link {}'.format(k),
+                       _disable_with=I(_class='fa fa-spinner fa-spin fa-fw').xml(),
                        cid='tab_calendar')
             linktags.append(mylink)
         return linktags

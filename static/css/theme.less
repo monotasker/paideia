@@ -433,11 +433,12 @@ body.user #page          {
     }
     /*calendar for monthly user statistics */
     .paideia_monthcal          {position: relative;
-                                width: 430px;
+                                width: 350px;
                                 margin:0 auto;
+                                padding: 0;
                                 text-align: center;
-        .monthcal_intro_line   {//.group
-                                color: @pallette4;
+        .monthcal_intro_line   {width: 100%;
+                                color: @success;
                                 margin-bottom: (@font-size-base/2);}
         table.month            {border: 1px solid @pallette2;
             tr:first-child     {font-size: @font-size-largest;
@@ -465,8 +466,9 @@ body.user #page          {
                                 font-size:@font-size-base;
                                 border: 1px solid @pallette1;
                                 position:relative;
+                                padding: 2px;
                 span.cal_num   {position:relative;
-                                padding:4px, 2px;
+                                padding:4px, 5px;
                                 color: #aaa; //@navbarLinkColor;
                                 font-family: @sansFonts;}
                 span.daycount  {position:relative;
