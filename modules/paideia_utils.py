@@ -267,28 +267,29 @@ class GreekNormalizer(object):
                 if not mymatch:
                     newstring = string
                 else:
-                    subs = {u'a': u'α',
-                            u'A': u'Α',
-                            u'd': u'δ',
-                            u'e': u'ε',
+                    subs = {u'a': u'α',  # y
+                            u'A': u'Α',  # n
+                            u'd': u'δ',  # y
+                            u'e': u'ε',  # y
                             u'E': u'Ε',
                             u'Z': u'Ζ',
                             u'H': u'Η',
-                            u'i': u'ι',
+                            u'i': u'ι',  # y
                             u'I': u'Ι',
                             u'k': u'κ',
-                            u'K': u'Κ',
-                            u'v': u'ν',
+                            u'K': u'Κ',  # y
+                            u'v': u'ν',  # y
                             u'N': u'Ν',
-                            u'o': u'ο',
-                            u'O': u'Ο',
-                            u'p': u'ρ',
+                            u'o': u'ο',  # y
+                            u'O': u'Ο',  # ΝΝΝ
+                            u'p': u'ρ',  # y
                             u'P': u'Ρ',
-                            u't': u'τ',
-                            u'T': u'Τ',
+                            u't': u'τ',  # y
+                            u'T': u'Τ',  # y
+                            u'Y': u'Υ',
                             u'x': u'χ',
-                            u'X': u'Χ',
-                            u'w': u'ω',
+                            u'X': u'Χ',  # y
+                            u'w': u'ω',  # y
                             u'?': u';'}
                     print 'Latin character found in Greek string: '
                     print mymatch.group(), 'in', string

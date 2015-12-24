@@ -6,7 +6,6 @@ import json
 <div class="row">
     <div class="container">
         <div class="col-xs-12">
-
 <!--Above Tabs ================================================================-->
 {{=UL(LI(SPAN('Name', _class='profile-label'), the_name,
                         _class='profile-name'),
@@ -206,8 +205,8 @@ status_classes = {'awaiting review': '',
                   'not_a_bug': 'warning',
                   'allowance_given': 'warning'}
 for bug in blist:
-    from pprint import pprint
-    pprint(bug)
+    # from pprint import pprint
+    # pprint(bug)
     classes = '{} {}'.format(status_classes[bug[6]], bug[-1])
     row = TR(_class=classes)
     # first position is the id, used in edit link
@@ -234,7 +233,7 @@ for bug in blist:
     tab4_content.append(row)
 pass
 
-# TAB 5 - STATS ==============================================================
+# TAB 5 - SETTINGS ==============================================================
 
 tab5_content = DIV(H4('Review a badge set'),
                    SELECT(_id='set_review_select', _class='form-control'),
@@ -256,10 +255,9 @@ pass
 # TAB 6 - STATS ==============================================================
 
 tab6_content = DIV(
-               CAT(H4('Highest badge set reached to date'),
+               CAT(H4('Badge set progress with correct and incorrect answers'),
+                   DIV(_id='milestones_attempts_combo'),
                    DIV(_id='stats-milestones'),
-                   H4('Correct and incorrect answers'),
-                   DIV(_id='stats-answers'),
                    H4('Attempts by Tag Category'),
                    LOAD('reporting', 'tag_counts.load',
                         vars={'user_id': user_id}, ajax=True, target='tag-counts'),
@@ -277,6 +275,159 @@ tab6_content = DIV(
 
 <!--# LOCAL SCRIPTS ======================================================-->
 <script type="text/javascript" charset="utf-8">
+// chart 1
+(function() {
+    function brushmove() {
+      var extent = brush.extent();
+      rects.classed("selected", function(d) {
+        is_brushed = extent[0] <= d.index && d.index <= extent[1];
+        return is_brushed;
+      });
+    }
+
+    function brushend() {
+      get_button = d3.select(".clear-button");
+      if(get_button.empty() === true) {
+        clear_button = svg.append('text')
+          .attr("y", 460)
+          .attr("x", 825)
+          .attr("class", "clear-button")
+          .text("Clear Brush");
+      }
+
+      x.domain(brush.extent());
+
+      transition_data();
+      reset_axis();
+
+      rects.classed("selected", false);
+      d3.select(".brush").call(brush.clear());
+
+      clear_button.on('click', function(){
+        x.domain([0, 50]);
+        transition_data();
+        reset_axis();
+        clear_button.remove();
+      });
+    }
+
+    function transition_data() {
+      svg.selectAll(".rect")
+        .data(data)
+      .transition()
+        .duration(500)
+        .attr("cx", function(d) { return x(d.index); });
+    }
+
+    function reset_axis() {
+      svg.transition().duration(500)
+       .select(".x.axis")
+       .call(x_axis);
+    }
+
+    var data = JSON.parse('{{=XML(json.dumps(chart1_data))}}');
+    // preprocess data to get usable date objects
+    var parse_date = d3.time.format('%Y-%m-%d').parse
+    for (var i in data) {
+        var myObj = data[i]
+        for (var j in myObj) {
+            myObj[j].date = parse_date(myObj[j].date);
+        }
+    }
+    console.log(data);
+
+    // set variables
+    var width = 800,
+        height = 400,
+        margin = { left: 40, right: 40, top: 40, bottom: 40 },
+        inner_margin = { top: 0, right: 0, bottom: 0, left: 0 };
+
+    // scales
+    var y = d3.scale.linear()
+              .domain([0, d3.max(data.answer_counts, function(d) { return d.total; })])
+              .rangeRound([(height - (margin.top + margin.bottom)), 0]);
+
+    var time = d3.time.scale() // used to derive x ordinal scale and for x axis
+                 .domain(d3.extent(data.answer_counts, function(d) { return d.date; }))
+                 .range([0, (width - (margin.left + margin.right))]);
+
+    var x = d3.scale.ordinal() // used to calculate bar widths
+              .domain(d3.time.days(time.domain()[0],
+                                   d3.time.day.offset(time.domain()[1], 1)))
+                                //    d3.max(data.answer_counts, function(d) {return d.date}), 1))
+              .rangeBands([0, (width - (margin.left + margin.right))], 0.1, 0);
+
+    // axes
+    var x_axis = d3.svg.axis()
+                   .scale(time)
+                   .orient('bottom')
+                //    .tickFormat(d3.time.format('%Y-%m-%d'))
+                   .outerTickSize(0);  // at start and end of axis line
+    var y_axis = d3.svg.axis()
+                   .scale(y)
+                   .orient('left')
+                   .tickFormat(d3.format('d'));
+
+    // svg context
+    var svg = d3.select("#milestones_attempts_combo")
+         .append('svg')
+            .attr('class', 'chart')
+            .attr('width', width)
+            .attr('height', height)
+         .append('g')
+            .attr('transform', 'translate(' + margin.left + ','
+                    + margin.top + ')');
+
+    var inner = svg.append('g')
+        .attr('class', 'inner')
+        .attr('transform', 'translate(' + inner_margin.left + ','
+                    + inner_margin.top + ')');
+
+    // add brush layer
+    var brush = d3.svg.brush()
+        .x(x)
+        .on("brush", brushmove)
+        .on("brushend", brushend);
+
+    svg.append("g")
+        .attr("class", "brush")
+        .call(brush)
+    .selectAll('rect')
+        .attr('height', height);
+
+    // Plot the stacked bars
+    var bar = inner.selectAll('.g')
+                 .data(data.answer_counts)
+             .enter().append('g')
+                .attr('class', 'g')
+                .attr('transform', function(d) {
+                                        return "translate(" + x(d.date) + ",0)" });
+
+    var rects = bar.selectAll('rect')
+                    .data(function(d) { return d.ys; })
+                 .enter().append('rect')
+                    .attr('width', x.rangeBand())
+                    .attr('height', function(d) { return y(d.y0) - y(d.y1); })
+                    .attr('y', function(d) { return y(d.y1); })
+                    .attr('class', function(d) { return 'rect ' + d['class']; });
+
+    // Plot axes
+    svg.append('g')
+       .attr('class', 'x axis')
+       .attr('transform', 'translate(' + inner_margin.left + ',' +
+            (height - (margin.bottom + margin.top + inner_margin.top + inner_margin.bottom)) + ')')
+       .call(x_axis)
+       .selectAll('text')
+            .style('text-anchor', 'end')
+            .style('transform', 'rotate(-45deg)')
+            .attr('dx', '-.5em')
+            .attr('dy', '.5em');
+
+    svg.append('g')
+       .attr('class', 'y axis')
+       .attr('transform', 'translate(0,' + inner_margin.top + ')')
+       .call(y_axis);
+})();
 
 // show tab from hash when first opening page
 var url = document.location.toString();
@@ -315,9 +466,9 @@ $(document).on('change', '#set_review_select', function(event){
     $( colvis.button() ).insertBefore('div.badgetable-container');
 
     // below inferface exposed by static/js/user_stats.js
-    user_stats.badge_set_milestones = JSON.parse('{{=XML(json.dumps(badge_set_milestones))}}');
-    user_stats.answer_counts = JSON.parse('{{=XML(json.dumps(answer_counts))}}');
-    user_stats.render_all();
+    // user_stats.badge_set_milestones = JSON.parse('{{=XML(json.dumps(badge_set_milestones))}}');
+    // user_stats.answer_counts = JSON.parse('{{=XML(json.dumps(answer_counts))}}');
+    // user_stats.render_all();
 })();
 
 $(document).on('change', 'input.mark_bug_read', function(event){
@@ -365,6 +516,16 @@ $(document).on('click',
 /***********************/
 /* USER STATS & CHARTS */
 /***********************/
+#milestones_attempts_combo {height: 600px;}
+
+#milestones_attempts_combo .inner .right {
+    fill: #0064cd;
+}
+
+#milestones_attempts_combo .inner .wrong {
+    fill: #cd001d;
+}
+
 .stats-container {
     width: 700px;
     margin: 0 auto;

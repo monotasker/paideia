@@ -1,4 +1,4 @@
-(function() {
+(function () {
     'use strict';
 
     var user_stats = {},
@@ -7,17 +7,16 @@
         answer_counts;
 
     // Custom date formatting -- takes current year into account
-    var format_date = (function() {
+    var format_date = (function () {
         var day       = d3.time.format('%d'),
             month     = d3.time.format('%b'),
-            year      = function(d) { return d3.format('02d')(d.getFullYear() % 100); },
+            year      = function (d) { return d3.format('02d')(d.getFullYear() % 100); },
             this_year = new Date().getFullYear();
-
         return function(d) {
             var output = month(d) + ' ' + (+day(d));
-            if(d.getFullYear() !== this_year)
+            if (d.getFullYear() !== this_year){
                 output += " '" + year(d);
-
+            }
             return output;
         };
     })();
@@ -56,9 +55,9 @@
                             left:   0 }
         };
 
-        var merge_opts = function(defaults, opts) {
+        var merge_opts = function (defaults, opts) {
             var result = defaults;
-            for(var i in result) {
+            for (var i in result) {
                 if(i in opts) {
                     var value = opts[i];
                     if(value instanceof Object)
