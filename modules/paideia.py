@@ -1637,9 +1637,9 @@ class StepEvaluator(object):
         if not user_response:
             request = current.request
             user_response = request.vars['response']
-        user_response = GreekNormalizer().normalize(user_response)
+        clean_user_response = GreekNormalizer().normalize(user_response)
         #print 'in get_eval user_response is', type(user_response)
-        user_response = makeutf8(user_response)
+        clean_user_response = makeutf8(clean_user_response)
         responses = {k: r for k, r in self.responses.iteritems()
                      if r and r != 'null'}
         # Compare the student's response to the regular expressions
@@ -1658,25 +1658,29 @@ class StepEvaluator(object):
             else:
                 regex3 = None
 
-            if re.match(regex1, makeutf8(user_response)):
+            if re.match(regex1, makeutf8(clean_user_response)):
                 score = 1
                 reply = "Right. Κάλον."
-            elif re.match(regex1, makeutf8(user_response + '.')):
+            elif re.match(regex1, makeutf8(clean_user_response + '.')):
                 score = 0.9
                 reply = "Οὐ Κάκον. You're very close. Just remember to put a " \
                         "period on the end of a full clause."
-            elif re.match(regex1, makeutf8(user_response + '?')):
+            elif re.match(regex1, makeutf8(clean_user_response + '?')):
+                score = 0.9
+                reply = "Οὐ Κάκον. You're very close. Just remember to put a " \
+                        "question mark on the end of a question."
+            elif re.match(regex1, makeutf8(clean_user_response + ';')):
                 score = 0.9
                 reply = "Οὐ Κάκον. You're very close. Just remember to put a " \
                         "question mark on the end of a question."
             elif user_response[-1] in ['.', ',', '!', '?', ';'] and \
-                    re.match(regex1, makeutf8(user_response[:-1])):
+                    re.match(regex1, makeutf8(clean_user_response[:-1])):
                 score = 0.9
                 reply = "Ού κάκον. You're very close. Just remember not to put " \
                         "a final punctuation mark on your answer if it's not a " \
                         "complete clause"
             elif 'response2' in responses.keys() and \
-                    re.match(regex2, makeutf8(user_response)):
+                    re.match(regex2, makeutf8(clean_user_response)):
                 score = 0.5
                 #  TODO: Get this score value from the db instead of hard
                 #  coding it here.
@@ -1684,7 +1688,7 @@ class StepEvaluator(object):
                 #  TODO: Vary the replies
 
             elif 'response3' in responses.keys() and \
-                    re.match(regex3, makeutf8(user_response)):
+                    re.match(regex3, makeutf8(clean_user_response)):
                 #  TODO: Get this score value from the db instead of hard
                 #  coding it here.
                 score = 0.3
@@ -1727,7 +1731,7 @@ class StepEvaluator(object):
                 'times_wrong': times_wrong,
                 'times_right': times_right,
                 'reply': reply,
-                'user_response': user_response,
+                'user_response': clean_user_response,
                 'tips': tips}
 
 

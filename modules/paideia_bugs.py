@@ -21,9 +21,6 @@ class Bug(object):
         if isinstance(loc_id, str):
             self.loc_id = db(db.locations.loc_alias == loc_id
                              ).select(db.locations.id).first()
-        print 'bug.init: step_id is', self.step_id
-        print 'bug.init: path_id is', self.path_id
-        print 'bug.init: loc_id is', self.loc_id
 
     def log_new(self, answer, log_id, score, user_comment):
         """
@@ -31,7 +28,6 @@ class Bug(object):
         """
         response = current.response
         db = current.db
-        print 'in bug.log_new:'
         try:
             db.bugs.insert(step=self.step_id,
                            in_path=self.path_id,
@@ -57,8 +53,8 @@ class Bug(object):
         db = current.db
         logids = list(set([b.log_id for b in bugrows]))
         logquery = db(db.attempt_log.id.belongs(logids))
-        print 'logids', logids
-        print 'logquery', logquery.count()
+        # print 'logids', logids
+        # print 'logquery', logquery.count()
         assert logquery.count() == len(logids)
         logrows = logquery.select()
         logquery.update(**{'score': newscore})
@@ -77,7 +73,7 @@ class Bug(object):
         """
         Fix last_right, last_wrong, times_right, and times_wrong in tag_records
         """
-        print 'logrows is length', len(logrows)
+        # print 'logrows is length', len(logrows)
         db = current.db
         right_threshold = 0.999999
         try:
@@ -275,11 +271,11 @@ def trigger_bug_undo(*args, **kwargs):
     result = "No records reversed."
 
     if mystatus['status_label'] in ['fixed', 'confirmed']:
-        print 'undoing bug!'
-        print 'args'
-        pprint(args)
-        print 'kwargs'
-        pprint(kwargs)
+        # print 'undoing bug!'
+        # print 'args'
+        # pprint(args)
+        # print 'kwargs'
+        # pprint(kwargs)
         step_id = kwargs['step']
         path_id = kwargs['in_path']
         loc_id = kwargs['map_location']

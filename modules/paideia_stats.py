@@ -922,7 +922,7 @@ class Stats(object):
         # Force str because of how PostgreSQL returns date column
         # PostgreSQL returns datetime object, sqlite returns string
         # So we have to force type to sting, this won't break backwards compatibility with sqlite
-        data = [{'date': str(row._extra.values()[0]),
+        data = [{'my_date': str(row._extra.values()[0]),
                  'badge_set': row.tags.tag_position}
                 for row in result if row.tags.tag_position < 900]
         data = sorted(data, key=lambda i: i['badge_set'], reverse=True)
@@ -934,7 +934,7 @@ class Stats(object):
         prev = None
         for d in data:
             if prev != None and (d['badge_set'] >= prev['badge_set']
-                                 or d['date'] == prev['date']):  # comparing badge sets
+                                 or d['my_date'] == prev['my_date']):  # comparing badge sets
                 continue
             milestones.append(d)
             prev = d
@@ -943,8 +943,8 @@ class Stats(object):
 
         milestones = sorted(milestones, key=lambda i: i['badge_set'])
         try:
-            if milestones[-1]['date'] != today:
-                milestones.append({'date': today,
+            if milestones[-1]['my_date'] != today:
+                milestones.append({'my_date': today,
                                    'badge_set': milestones[-1]['badge_set']})
         except IndexError:
             pass

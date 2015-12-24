@@ -1,1 +1,3 @@
-{}
+{
+  "test_paideia_utils.py::TestGreekNormalizer::()::test_normalize[O\\xe1\\xbd\\x91\\xcf\\x84\\xce\\xbf\\xcf\\x82-string_out5-regex5]": true
+}

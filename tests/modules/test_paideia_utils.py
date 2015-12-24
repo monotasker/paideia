@@ -11,7 +11,9 @@
 
 import pytest
 from paideia_utils import GreekNormalizer, check_regex
+from plugin_utils import makeutf8
 from pprint import pprint
+import re
 
 
 class TestGreekNormalizer():
@@ -242,11 +244,17 @@ class TestGreekNormalizer():
         assert isinstance(actual, unicode)
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('string_in,string_out',
+    @pytest.mark.parametrize('string_in,string_out,regex',
                                 [('῾Αγaπὴ    Aγaπη, τί ἐστιv “ἀγαπη.”',
-                                  u'Ἁγαπη Αγαπη, τί ἐστιν "ἀγαπη."'),
+                                  u'Ἁγαπη Αγαπη, τί ἐστιν "ἀγαπη."',
+                                  r'Ἁγαπη Αγαπη, τί ἐστιν "ἀγαπη."'),
+                                  ('Pωμαιος', u'Ρωμαιος', r'Ρωμαιος'),
+                                  ('παρά', u'παρα', r'παρα'),
+                                  ('τίς', u'τίς', r'τίς'),  # q iota on windows
+                                  ('πoιει', u'ποιει', r'ποιει'),
+                                  ('Oὑτος', u'Οὑτος', u'Οὑτος'),
                                  ])
-    def test_normalize(self, string_in, string_out):
+    def test_normalize(self, string_in, string_out, regex):
         """
         Unit testing function for paideia_utils.sanitize_greek()
 
@@ -257,6 +265,8 @@ class TestGreekNormalizer():
         print 'actual string out', actual
         assert actual == string_out
         assert isinstance(actual, unicode)
+        regex1 = re.compile(makeutf8(regex), re.I | re.U)
+        assert re.match(regex1, makeutf8(actual))
 
 @pytest.mark.skipif(False, reason='just because')
 @pytest.mark.parametrize('regex,stringdict',
@@ -274,4 +284,3 @@ def test_check_regex(regex, stringdict):
     actual = check_regex(regex, stringdict.keys())
     pprint(actual)
     assert actual == stringdict
-
