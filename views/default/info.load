@@ -277,39 +277,6 @@ tab6_content = DIV(
 <script type="text/javascript" charset="utf-8">
 // chart 1
 (function() {
-    function brushmove() {
-      var extent = brush.extent();
-      rects.classed("selected", function(d) {
-        is_brushed = extent[0] <= d.index && d.index <= extent[1];
-        return is_brushed;
-      });
-    }
-
-    function brushend() {
-      get_button = d3.select(".clear-button");
-      if(get_button.empty() === true) {
-        clear_button = svg.append('text')
-          .attr("y", 460)
-          .attr("x", 825)
-          .attr("class", "clear-button")
-          .text("Clear Brush");
-      }
-
-      x.domain(brush.extent());
-
-      transition_data();
-      reset_axis();
-
-      rects.classed("selected", false);
-      d3.select(".brush").call(brush.clear());
-
-      clear_button.on('click', function(){
-        x.domain([0, 50]);
-        transition_data();
-        reset_axis();
-        clear_button.remove();
-      });
-    }
 
     function transition_data() {
       svg.selectAll(".rect")
@@ -337,73 +304,68 @@ tab6_content = DIV(
     console.log(data);
 
     // set variables
-    var width = 800,
-        height = 400,
-        margin = { left: 40, right: 40, top: 40, bottom: 40 },
-        inner_margin = { top: 0, right: 0, bottom: 0, left: 0 };
+    var margin = { left: 40, right: 60, top: 10, bottom: 140 },
+        navMargin = {top: 300, right: 60, bottom: 40, left: 40},
+        height = 400 - margin.top - margin.bottom,
+        width = 800 - margin.left - margin.right,
+        navWidth = width, // for context band
+        navHeight = 400 - navMargin.top - navMargin.bottom,
+        max_total_counts = d3.max(data.answer_counts, function(d) { return d.total; }),
+        max_extent_dates = d3.extent(data.answer_counts, function(d) { return d.date; });
+        max_extent_in_days = function(timescale) {
+            return d3.time.days(timescale.domain()[0], d3.time.day.offset(timescale.domain()[1], 1))
+            };
 
     // scales
-    var y = d3.scale.linear()
-              .domain([0, d3.max(data.answer_counts, function(d) { return d.total; })])
-              .rangeRound([(height - (margin.top + margin.bottom)), 0]);
-
-    var time = d3.time.scale() // used to derive x ordinal scale and for x axis
-                 .domain(d3.extent(data.answer_counts, function(d) { return d.date; }))
-                 .range([0, (width - (margin.left + margin.right))]);
-
-    var x = d3.scale.ordinal() // used to calculate bar widths
-              .domain(d3.time.days(time.domain()[0],
-                                   d3.time.day.offset(time.domain()[1], 1)))
-                                //    d3.max(data.answer_counts, function(d) {return d.date}), 1))
-              .rangeBands([0, (width - (margin.left + margin.right))], 0.1, 0);
+    var y = d3.scale.linear().domain([0, max_total_counts]).rangeRound([height, 0]),
+        navY = d3.scale.linear().domain([0, max_total_counts]).rangeRound([navHeight, 0]),
+        time = d3.time.scale().domain(max_extent_dates).range([0, width]),
+        navTime = d3.time.scale().domain(max_extent_dates).range([0, width]),
+        x = d3.scale.ordinal().domain(max_extent_in_days(time)).rangeBands([0, width], 0.1, 0), // used to calculate bar widths
+        navX = d3.scale.ordinal().domain(max_extent_in_days(navTime)).rangeBands([0, width], 0.1, 0),
+        y2 = d3.scale.linear().domain([0, d3.max(data.badge_set_reached, function(d) { return d.set})]).rangeRound([height, 0]);
+        navY2 = d3.scale.linear().domain([0, d3.max(data.badge_set_reached, function(d) { return d.set})]).rangeRound([navHeight, 0]);
 
     // axes
-    var x_axis = d3.svg.axis()
-                   .scale(time)
-                   .orient('bottom')
-                //    .tickFormat(d3.time.format('%Y-%m-%d'))
-                   .outerTickSize(0);  // at start and end of axis line
-    var y_axis = d3.svg.axis()
-                   .scale(y)
-                   .orient('left')
-                   .tickFormat(d3.format('d'));
+    var x_axis = d3.svg.axis().scale(time).orient('bottom') //    .tickFormat(d3.time.format('%Y-%m-%d'))
+                   .outerTickSize(0),  // at start and end of axis line
+        nav_x_axis = d3.svg.axis().scale(navTime).orient('bottom') //    .tickFormat(d3.time.format('%Y-%m-%d'))
+                       .outerTickSize(0),  // at start and end of axis line
+        y_axis = d3.svg.axis().scale(y).orient('left').tickFormat(d3.format('d'));
+        y2_axis = d3.svg.axis().scale(y2).orient('right').tickFormat(d3.format('d'));
+
+    // add brush
+    var brush = d3.svg.brush()
+        .x(navTime)
+        .on("brush", brushed);
 
     // svg context
     var svg = d3.select("#milestones_attempts_combo")
          .append('svg')
             .attr('class', 'chart')
-            .attr('width', width)
-            .attr('height', height)
+            .attr('width', width + margin.left + margin.right)
+            .attr('height', height + margin.top + margin.bottom)
          .append('g')
             .attr('transform', 'translate(' + margin.left + ','
                     + margin.top + ')');
 
-    var inner = svg.append('g')
-        .attr('class', 'inner')
-        .attr('transform', 'translate(' + inner_margin.left + ','
-                    + inner_margin.top + ')');
+    var focus = svg.append('g')
+        .attr('class', 'focus')
+        .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-    // add brush layer
-    var brush = d3.svg.brush()
-        .x(x)
-        .on("brush", brushmove)
-        .on("brushend", brushend);
-
-    svg.append("g")
-        .attr("class", "brush")
-        .call(brush)
-    .selectAll('rect')
-        .attr('height', height);
+    var context = svg.append('g')
+        .attr('class', 'context')
+        .attr('transform', 'translate(' + navMargin.left + ',' + navMargin.top + ')');
 
     // Plot the stacked bars
-    var bar = inner.selectAll('.g')
+    var focus_bar = focus.selectAll('.g')
                  .data(data.answer_counts)
              .enter().append('g')
-                .attr('class', 'g')
+                .attr('class', 'g bar stack')
                 .attr('transform', function(d) {
                                         return "translate(" + x(d.date) + ",0)" });
 
-    var rects = bar.selectAll('rect')
+    var focus_rects = focus_bar.selectAll('rect')
                     .data(function(d) { return d.ys; })
                  .enter().append('rect')
                     .attr('width', x.rangeBand())
@@ -411,28 +373,110 @@ tab6_content = DIV(
                     .attr('y', function(d) { return y(d.y1); })
                     .attr('class', function(d) { return 'rect ' + d['class']; });
 
-    // Plot axes
-    svg.append('g')
-       .attr('class', 'x axis')
-       .attr('transform', 'translate(' + inner_margin.left + ',' +
-            (height - (margin.bottom + margin.top + inner_margin.top + inner_margin.bottom)) + ')')
-       .call(x_axis)
-       .selectAll('text')
-            .style('text-anchor', 'end')
-            .style('transform', 'rotate(-45deg)')
-            .attr('dx', '-.5em')
-            .attr('dy', '.5em');
+    var context_bar = context.selectAll('.g')
+                 .data(data.answer_counts)
+             .enter().append('g')
+                .attr('class', 'g')
+                .attr('transform', function(d) {
+                                        return "translate(" + navTime(d.date) + ",0)" });
 
-    svg.append('g')
+    var context_rects = context_bar.selectAll('rect')
+                    .data(function(d) { return d.ys; })
+                 .enter().append('rect')
+                    .attr('width', navX.rangeBand())
+                    .attr('height', function(d) { return navY(d.y0) - navY(d.y1); })
+                    .attr('y', function(d) { return navY(d.y1); })
+                    .attr('class', function(d) { return 'rect ' + d['class']; });
+
+    // Plot lines
+
+    var line = d3.svg.line()
+                .x(function(d) {return time(d.date)})
+                .y(function(d) {return y2(d.set)})
+                .interpolate('step-after');
+    var focus_line = focus.append('path')
+                        .datum(data.badge_set_reached)
+                        .attr('class', 'line focus-line')
+                        .attr('d', line);
+
+    var line2 = d3.svg.line()
+                .x(function(d) {return time(d.date)})
+                .y(function(d) {return navY2(d.set)})
+                .interpolate('step-after');
+    var context_line = context.append('path')
+                        .datum(data.badge_set_reached)
+                        .attr('class', 'line context-line')
+                        .attr('d', line2);
+
+    // Plot axes
+    focus.append('g')
+       .attr('class', 'x axis')
+       .attr('transform', 'translate(0, ' + height + ')')
+       .call(x_axis)
+    //    .selectAll('text')
+    //         .style('text-anchor', 'end')
+    //         .attr('transform', 'rotate(-45deg)')
+    //         .attr('dx', '-.5em')
+    //         .attr('dy', '.5em');
+
+    focus.append('g')
        .attr('class', 'y axis')
-       .attr('transform', 'translate(0,' + inner_margin.top + ')')
+       .attr('transform', 'translate(0, 0)')
        .call(y_axis);
+
+    var y2pos = width;
+    focus.append('g')
+       .attr('class', 'y2 axis')
+       .attr('transform', 'translate(' + y2pos + ', 0)')
+       .call(y2_axis);
+
+    context.append('g')
+       .attr('class', 'navX axis')
+       .attr('transform', 'translate(0, ' + navHeight + ')')
+       .call(nav_x_axis);
+
+    // Label axes
+
+    svg.append('text')
+        .attr('class', 'label y-axis-label')
+        .attr('transform', 'rotate(-90)')
+        .attr('x', 0 - ((height + margin.top) / 2))
+        .attr('y', 0)
+        .style('text-anchor', 'middle')
+        .text('Paths Attempted');
+
+    // Add brush to svg
+    context.append('g')
+        .attr('class', 'x brush')
+        .call(brush)
+    .selectAll("rect")
+      .attr("y", -6)
+      .attr("height", navHeight + 7);
+
+    function brushed() {
+        time.domain(brush.empty() ? navTime.domain() : brush.extent())
+            .range([0, width]);
+        x.domain(max_extent_in_days(time))
+            .rangeBands([0, width], 0.1, 0);
+        console.log(x.rangeBands);
+        focus.selectAll('.bar.stack')
+            .attr('transform', function(d) {return "translate(" + time(d.date) + ",0)"; })
+            .attr('width', x.rangeBand());
+        focus.selectAll('.rect')
+            .attr('width', x.rangeBand());
+        focus.selectAll('.line').attr('d', line);
+        focus.select(".x.axis").call(x_axis);
+        console.log('im brushed');
+        console.log(data);
+    };
 })();
+
 
 // show tab from hash when first opening page
 var url = document.location.toString();
 if (url.match('#')) {
     $('.nav-tabs a[href=#'+url.split('#')[1]+']').tab('show') ;
+    window.scrollTo(0, 0);
 };
 
 // Change hash for when tab shown
@@ -516,14 +560,38 @@ $(document).on('click',
 /***********************/
 /* USER STATS & CHARTS */
 /***********************/
-#milestones_attempts_combo {height: 600px;}
+/*#milestones_attempts_combo {height: 600px;}*/
 
-#milestones_attempts_combo .inner .right {
+#milestones_attempts_combo .context {
+    /*fill: #efefef;    */
+}
+
+#milestones_attempts_combo .focus .right,
+#milestones_attempts_combo .context .right{
     fill: #0064cd;
 }
 
-#milestones_attempts_combo .inner .wrong {
+#milestones_attempts_combo .focus .wrong,
+#milestones_attempts_combo .context .wrong {
     fill: #cd001d;
+}
+#milestones_attempts_combo .y-axis-label {
+    fill: #aaa;
+    font-size: 120%;
+}
+
+#milestones_attempts_combo .focus-line,
+#milestones_attempts_combo .context-line {
+    stroke: orange;
+    stroke-width: 2;
+    fill-opacity: 0;
+}
+
+.brush .extent {
+  stroke: #efefef;
+  fill: #666;
+  fill-opacity: .125;
+  shape-rendering: crispEdges;
 }
 
 .stats-container {
@@ -547,16 +615,16 @@ $(document).on('click',
     font-size: .9em;
 }
 
-#stats-milestones .inner path,
-#stats-answers .inner path {
+#stats-milestones .focus path,
+#stats-answers .focu path {
     stroke: #0064cd;
 }
 
-#stats-answers .inner .right {
+#stats-answers .focus .right {
     fill: #0064cd;
 }
 
-#stats-answers .inner .wrong {
+#stats-answers .focus .wrong {
     fill: #cd001d;
 }
 </style>
