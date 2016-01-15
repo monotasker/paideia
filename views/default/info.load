@@ -357,8 +357,25 @@ tab6_content = DIV(
         .attr('class', 'context')
         .attr('transform', 'translate(' + navMargin.left + ',' + navMargin.top + ')');
 
+    // clipping for content update
+    svg.append("defs").append("clipPath")
+        .attr("id", "clipFocus")
+        .append("rect")
+        .attr("width", width)
+        .attr("height", height);
+
+    svg.append("defs").append("clipPath")
+        .attr("id", "clipNav")
+        .append("rect")
+        .attr("width", navWidth)
+        .attr("height", navHeight);
+
     // Plot the stacked bars
-    var focus_bar = focus.selectAll('.g')
+    var focus_bar = focus
+                        .append("g") //<-- g just for the bars to be clipped
+                        .attr("class","barClipper")
+                        .style('clip-path', 'url(#clipFocus)')
+             .selectAll('.g')
                  .data(data.answer_counts)
              .enter().append('g')
                 .attr('class', 'g bar stack')
@@ -373,7 +390,11 @@ tab6_content = DIV(
                     .attr('y', function(d) { return y(d.y1); })
                     .attr('class', function(d) { return 'rect ' + d['class']; });
 
-    var context_bar = context.selectAll('.g')
+    var context_bar = context
+                        .append("g") //<-- g just for the bars to be clipped
+                        .attr("class","barClipper")
+                        .style('clip-path', 'url(#clipNav)')
+              .selectAll('.g')
                  .data(data.answer_counts)
              .enter().append('g')
                 .attr('class', 'g')
@@ -394,7 +415,11 @@ tab6_content = DIV(
                 .x(function(d) {return time(d.date)})
                 .y(function(d) {return y2(d.set)})
                 .interpolate('step-after');
-    var focus_line = focus.append('path')
+    var focus_line = focus
+                        .append("g") //<-- g just for the bars to be clipped
+                        .attr("class","barClipper")
+                        .style('clip-path', 'url(#clipFocus)')
+                    .append('path')
                         .datum(data.badge_set_reached)
                         .attr('class', 'line focus-line')
                         .attr('d', line);
@@ -403,7 +428,11 @@ tab6_content = DIV(
                 .x(function(d) {return time(d.date)})
                 .y(function(d) {return navY2(d.set)})
                 .interpolate('step-after');
-    var context_line = context.append('path')
+    var context_line = context
+                        .append("g") //<-- g just for the bars to be clipped
+                        .attr("class","barClipper")
+                        .style('clip-path', 'url(#clipNav)')
+                    .append('path')
                         .datum(data.badge_set_reached)
                         .attr('class', 'line context-line')
                         .attr('d', line2);
