@@ -8,10 +8,10 @@ from pytz import timezone, utc
 from gluon import current, DIV, SPAN, A, URL, UL, LI, B, I
 from gluon import TAG
 from plugin_utils import make_json, load_json
+from pprint import pprint
 # from paideia import Categorizer
 # from gluon.sqlhtml import SQLFORM  # , Field
 # from gluon.validators import IS_DATE
-# from pprint import pprint
 from itertools import chain, groupby
 
 
@@ -971,8 +971,8 @@ class Stats(object):
 
             # Force str because of how PostgreSQL returns date column
             # PostgreSQL returns datetime object, sqlite returns string
-            # So we have to force type to sting, this won't break backwards compatibility with sqlite
-            counts.append({'date': str(date),
+            # So we have to force type to string, this won't break backwards compatibility with sqlite
+            counts.append({'my_date': str(date),
                            'right': right,
                            'wrong': total - right
                            })
@@ -1313,13 +1313,19 @@ def compute_letter_grade(uid, myprog, startset, classrow):
             else:
                 mylet = int(startset) + classrow[lettarget]
         gradedict[mylet] = let.upper()
+    pprint(gradedict)
+    print 'myprog', myprog
     if myprog in gradedict.keys():
+
         mygrade = gradedict[myprog]
+    elif any([k for k, v in gradedict.items() if myprog > k]):
+        grade_prog = max([k for k, v in gradedict.items() if myprog > k])
+        mygrade = gradedict[grade_prog]
     elif myprog > [k for k, v in gradedict.items() if v == 'A'][0]:
         mygrade = 'A'
     else:
         mygrade = 'F'
-
+    print 'mygrade', mygrade
     return mygrade
 
 
