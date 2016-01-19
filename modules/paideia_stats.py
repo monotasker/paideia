@@ -951,16 +951,42 @@ class Stats(object):
 
         return milestones
 
-    def get_answer_counts(self):
+    def get_answer_counts(self, set=None, tag=None):
+        '''
+        Return dictionary of right/wrong answer counts for each date.
+
+        :set:       int     Optional number of a badge set. If specified, the
+                            returned counts are for attempts related to that
+                            badge set only.
+
+        :badge:     int     Optional id of a tag. If specified, the returned
+                            counts are for attempts related to that one tag
+                            only.
+
+        '''
         db = current.db
 
         # Retrieve scores reached on given days
-        result = groupby(
-            db(db.attempt_log.name == self.user_id).select(
-                db.attempt_log.score.with_alias('score'),
-                'DATE(dt_attempted)',
-                orderby='2, 1'),
-            lambda r: r._extra['DATE(dt_attempted)'])
+        if set:
+            settags = db(db.tags.tag_position == set).select()
+            settag_ids = [row.id for row in settags]
+            setsteps = db(db.steps.tags.contains(settag_ids)).select()
+            setstep_ids = [row.id for row in setsteps]
+            attempt_query = db((db.attempt_log.name == self.user_id) &
+                               (db.attempt_log.step.belongs(setstep_ids)))
+        elif tag:
+            badgesteps = db(db.steps.tags.contains(tag)).select()
+            badgestep_ids = [row.id for row in badgesteps]
+            attempt_query = db((db.attempt_log.name == self.user_id) &
+                               (db.attempt_log.step.belongs(badgestep_ids)))
+        else:
+            attempt_query = db(db.attempt_log.name == self.user_id)
+
+        result = groupby(attempt_query.select(
+                                db.attempt_log.score.with_alias('score'),
+                                'DATE(dt_attempted)',
+                                orderby='2, 1'),
+                            lambda r: r._extra['DATE(dt_attempted)'])
 
         # Transform to a lightweight form
         counts = []
@@ -971,7 +997,8 @@ class Stats(object):
 
             # Force str because of how PostgreSQL returns date column
             # PostgreSQL returns datetime object, sqlite returns string
-            # So we have to force type to string, this won't break backwards compatibility with sqlite
+            # So we have to force type to string, this won't break backwards
+            # compatibility with sqlite
             counts.append({'my_date': str(date),
                            'right': right,
                            'wrong': total - right

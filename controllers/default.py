@@ -187,28 +187,12 @@ def info():
     b = Bug()
     blist = b.bugresponses(user.id)
 
-    def milliseconds(dt):
-        return (dt-datetime.datetime(1970,1,1)).total_seconds() * 1000
-
     # tab5
     badge_set_milestones = stats.get_badge_set_milestones()
     answer_counts = stats.get_answer_counts()
-    pprint(answer_counts)
-    chart1_data = {'badge_set_reached': [{'date': dict['my_date'],
-                                            'set': dict['badge_set']} for dict
-                                            in badge_set_milestones],
-                      'answer_counts': [{'date': dict['my_date'],
-                                         'total': dict['right'] + dict['wrong'],
-                                         'ys': [{'class': 'right',
-                                                 'y0': 0,
-                                                 'y1': dict['right']},
-                                                {'class': 'wrong',
-                                                 'y0': dict['right'],
-                                                 'y1': dict['right'] + dict['wrong']}
-                                                ]
-                                          } for dict in answer_counts],
-                    # above includes y values for stacked bar graph
-                    }
+    chart1_data = get_chart1_data(milestones=badge_set_milestones,
+                                  answer_counts=answer_counts)
+
     return {'the_name': name,
             'user_id': user.id,
             'tz': tz,
@@ -227,6 +211,40 @@ def info():
             'reviewing_set': session.set_review,
             }
 
+def get_chart1_data(milestones=None, answer_counts=None, user_id=None, set=None,
+                    tag=None):
+    '''
+    Fetch raw data to present in first user profile chart.
+
+    This function is isolated so that it can be called directly from ajax
+    controls on the chart itself, as well as programmatically from info().
+
+    '''
+    # def milliseconds(dt):
+    #     return (dt-datetime.datetime(1970,1,1)).total_seconds() * 1000
+    user_id = auth.user_id if not user_id else user_id
+    stats = Stats(user_id)
+
+    badge_set_milestones = stats.get_badge_set_milestones() if not milestones else milestones
+    answer_counts = stats.get_answer_counts(set=set, tag=tag) if not answer_counts else answer_counts
+
+    chart1_data = {'badge_set_reached': [{'date': dict['my_date'],
+                                            'set': dict['badge_set']} for dict
+                                            in badge_set_milestones],
+                      'answer_counts': [{'date': dict['my_date'],
+                                         'total': dict['right'] + dict['wrong'],
+                                         'ys': [{'class': 'right',
+                                                 'y0': 0,
+                                                 'y1': dict['right']},
+                                                {'class': 'wrong',
+                                                 'y0': dict['right'],
+                                                 'y1': dict['right'] + dict['wrong']}
+                                                ]
+                                          } for dict in answer_counts],
+                    # above includes y values for stacked bar graph
+                    }
+
+    return chart1_data
 
 def set_review_mode():
     try:
