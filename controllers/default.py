@@ -8,7 +8,7 @@ from paideia_bugs import Bug
 # import traceback
 # from paideia_utils import send_error
 from plugin_utils import make_json
-# from pprint import pprint
+from pprint import pprint
 # from gluon.tools import prettydate
 
 if 0:
@@ -193,10 +193,11 @@ def info():
     # tab5
     badge_set_milestones = stats.get_badge_set_milestones()
     answer_counts = stats.get_answer_counts()
+    pprint(answer_counts)
     chart1_data = {'badge_set_reached': [{'date': dict['my_date'],
                                             'set': dict['badge_set']} for dict
                                             in badge_set_milestones],
-                      'answer_counts': [{'date': dict['date'],
+                      'answer_counts': [{'date': dict['my_date'],
                                          'total': dict['right'] + dict['wrong'],
                                          'ys': [{'class': 'right',
                                                  'y0': 0,
