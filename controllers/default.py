@@ -192,6 +192,18 @@ def info():
     answer_counts = stats.get_answer_counts()
     chart1_data = get_chart1_data(milestones=badge_set_milestones,
                                   answer_counts=answer_counts)
+    badge_set_dict = {}
+    set_list_rows = db().select(db.tags.tag_position, distinct=True)
+    set_list = sorted([row.tag_position for row in set_list_rows
+                if row.tag_position < 90])
+    all_tags = db((db.tags.id > 0) &
+                  (db.badges.tag == db.tags.id)
+                  ).select()
+    for set in set_list:
+        set_tags = all_tags.find(lambda r: r.tags.tag_position == set)
+        set_tags_info = [{'tag': r.tags.id, 'badge_title': r.badges.badge_name}
+                         for r in set_tags]
+        badge_set_dict[set] = set_tags_info
 
     return {'the_name': name,
             'user_id': user.id,
@@ -209,6 +221,7 @@ def info():
             'answer_counts': answer_counts,
             'chart1_data': chart1_data,
             'reviewing_set': session.set_review,
+            'badge_set_dict': badge_set_dict
             }
 
 def get_chart1_data(milestones=None, answer_counts=None, user_id=None, set=None,
