@@ -254,15 +254,18 @@ pass
 
 # TAB 6 - STATS ==============================================================
 
-tab6_content = DIV(
-               CAT(H4('Badge set progress with correct and incorrect answers'),
+tab6_content = DIV(H4('Badge set progress with correct and incorrect answers'),
+                   SELECT(OPTION('Attempts for all badge sets'), _id='badge_set_chooser'),
+                   SELECT(_id='badge_chooser'),
                    DIV(_id='milestones_attempts_combo'),
-                   DIV(_id='stats-milestones'),
-                   H4('Attempts by Tag Category'),
-                   LOAD('reporting', 'tag_counts.load',
-                        vars={'user_id': user_id}, ajax=True, target='tag-counts'),
-                _class='stats-container')
-                )
+                   # H4('Attempts by Tag Category'),
+                   # LOAD('reporting', 'tag_counts.load',
+                   #     vars={'user_id': user_id}, ajax=True, target='tag-counts'),
+                   _class='stats-container')
+
+for set in badge_set_dict.keys():
+    tab6_content[1].append(OPTION('Attempts from set {}'.format(set), _value=set))
+pass
 }}
 
 <!--# ASSEMBLE AND PRINT ==================================================-->
@@ -607,6 +610,8 @@ $(document).on('click',
 #milestones_attempts_combo .y-axis-label {
     fill: #aaa;
     font-size: 120%;
+    font-weight: normal;
+    letter-spacing: 0.2;
 }
 
 #milestones_attempts_combo .focus-line,
@@ -632,7 +637,7 @@ $(document).on('click',
 .chart .axis path,
 .chart .tick line {
     fill: none;
-    stroke: black;
+    stroke: #ccc;
 }
 
 .chart .axis line,
