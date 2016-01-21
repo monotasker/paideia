@@ -10,6 +10,7 @@ from paideia_bugs import Bug
 from plugin_utils import make_json
 from pprint import pprint
 # from gluon.tools import prettydate
+from gluon.serializers import json
 
 if 0:
     from gluon import current, cache, URL
@@ -65,11 +66,8 @@ def user():
     """
     # Scripts for charts
     # response.files.append('//cdnjs.cloudflare.com/ajax/libs/d3/3.4.10/d3.min.js')
-    response.files.append(URL('static', 'js/d3_brush_utils.js'))
     response.files.append(URL('static', 'js/d3.min.js'))
-    # response.files.append(URL('static', 'js/nv.d3.min.css'))
-    # response.files.append(URL('static', 'js/nv.d3.min.js'))
-    # response.files.append(URL('static', 'js/user_stats.js'))
+    response.files.append(URL('static', 'js/info_chart1.js'))
 
     # Include files for Datatables jquery plugin and bootstrap css styling
     response.files.append('//cdnjs.cloudflare.com/ajax/libs/datatables/1.10.0/'
@@ -188,10 +186,10 @@ def info():
     blist = b.bugresponses(user.id)
 
     # tab5
-    badge_set_milestones = stats.get_badge_set_milestones()
-    answer_counts = stats.get_answer_counts()
-    chart1_data = get_chart1_data(milestones=badge_set_milestones,
-                                  answer_counts=answer_counts)
+    mydata = get_chart1_data()
+    chart1_data = mydata['chart1_data']
+    badge_set_milestones = mydata['badge_set_milestones']
+    answer_counts = mydata['answer_counts']
     badge_set_dict = {}
     set_list_rows = db().select(db.tags.tag_position, distinct=True)
     set_list = sorted([row.tag_position for row in set_list_rows
@@ -224,8 +222,18 @@ def info():
             'badge_set_dict': badge_set_dict
             }
 
-def get_chart1_data(milestones=None, answer_counts=None, user_id=None, set=None,
-                    tag=None):
+def get_chart1_data_json():
+    '''
+    Wrapper for get_chart1_data() to allow getting a json-formatted return val.
+
+    '''
+    user_id = request.vars['user_id'] if 'user_id' in request.vars else auth.user_id
+    set = request.vars['set'] if 'set' in request.vars else None
+    tag = request.vars['tag'] if 'tag' in request.vars else None
+    chart1_data = get_chart1_data(user_id=user_id, set=set, tag=tag)
+    return json(chart1_data['chart1_data'])
+
+def get_chart1_data(user_id=None, set=None, tag=None):
     '''
     Fetch raw data to present in first user profile chart.
 
@@ -235,11 +243,11 @@ def get_chart1_data(milestones=None, answer_counts=None, user_id=None, set=None,
     '''
     # def milliseconds(dt):
     #     return (dt-datetime.datetime(1970,1,1)).total_seconds() * 1000
-    user_id = auth.user_id if not user_id else user_id
+    user_id = user_id if user_id else auth.user_id
     stats = Stats(user_id)
 
-    badge_set_milestones = stats.get_badge_set_milestones() if not milestones else milestones
-    answer_counts = stats.get_answer_counts(set=set, tag=tag) if not answer_counts else answer_counts
+    badge_set_milestones = stats.get_badge_set_milestones()
+    answer_counts = stats.get_answer_counts(set=set, tag=tag)
 
     chart1_data = {'badge_set_reached': [{'date': dict['my_date'],
                                             'set': dict['badge_set']} for dict
@@ -257,7 +265,9 @@ def get_chart1_data(milestones=None, answer_counts=None, user_id=None, set=None,
                     # above includes y values for stacked bar graph
                     }
 
-    return chart1_data
+    return {'chart1_data': chart1_data,
+            'badge_set_milestones': badge_set_milestones,
+            'answer_counts': answer_counts}
 
 def set_review_mode():
     try:

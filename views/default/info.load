@@ -255,7 +255,10 @@ pass
 # TAB 6 - STATS ==============================================================
 
 tab6_content = DIV(H4('Badge set progress with correct and incorrect answers'),
-                   SELECT(OPTION('Attempts for all badge sets'), _id='badge_set_chooser'),
+                   DIV(SPAN('Show attempts for  ', _id='badge_set_chooser_label', _class='input-group-addon'),
+                       SELECT(OPTION('all badge sets'), _id='badge_set_chooser', _class='form-control'),
+                   _class='input-group'
+                   ),
                    SELECT(_id='badge_chooser'),
                    DIV(_id='milestones_attempts_combo'),
                    # H4('Attempts by Tag Category'),
@@ -264,7 +267,7 @@ tab6_content = DIV(H4('Badge set progress with correct and incorrect answers'),
                    _class='stats-container')
 
 for set in badge_set_dict.keys():
-    tab6_content[1].append(OPTION('Attempts from set {}'.format(set), _value=set))
+    tab6_content[1][1].append(OPTION('set {}'.format(set), _value=set))
 pass
 }}
 
@@ -278,231 +281,12 @@ pass
 
 <!--# LOCAL SCRIPTS ======================================================-->
 <script type="text/javascript" charset="utf-8">
+
+
 // chart 1
-(function() {
-
-    function transition_data() {
-      svg.selectAll(".rect")
-        .data(data)
-      .transition()
-        .duration(500)
-        .attr("cx", function(d) { return x(d.index); });
-    }
-
-    function reset_axis() {
-      svg.transition().duration(500)
-       .select(".x.axis")
-       .call(x_axis);
-    }
-
-    var data = JSON.parse('{{=XML(json.dumps(chart1_data))}}');
-    // preprocess data to get usable date objects
-    var parse_date = d3.time.format('%Y-%m-%d').parse
-    for (var i in data) {
-        var myObj = data[i]
-        for (var j in myObj) {
-            myObj[j].date = parse_date(myObj[j].date);
-        }
-    }
-    console.log(data);
-
-    // set variables
-    var margin = { left: 40, right: 60, top: 10, bottom: 140 },
-        navMargin = {top: 300, right: 60, bottom: 40, left: 40},
-        height = 400 - margin.top - margin.bottom,
-        width = 800 - margin.left - margin.right,
-        navWidth = width, // for context band
-        navHeight = 400 - navMargin.top - navMargin.bottom,
-        max_total_counts = d3.max(data.answer_counts, function(d) { return d.total; }),
-        max_extent_dates = d3.extent(data.answer_counts, function(d) { return d.date; });
-        max_extent_in_days = function(timescale) {
-            return d3.time.days(timescale.domain()[0], d3.time.day.offset(timescale.domain()[1], 1))
-            };
-
-    // scales
-    var y = d3.scale.linear().domain([0, max_total_counts]).rangeRound([height, 0]),
-        navY = d3.scale.linear().domain([0, max_total_counts]).rangeRound([navHeight, 0]),
-        time = d3.time.scale().domain(max_extent_dates).range([0, width]),
-        navTime = d3.time.scale().domain(max_extent_dates).range([0, width]),
-        x = d3.scale.ordinal().domain(max_extent_in_days(time)).rangeBands([0, width], 0.1, 0), // used to calculate bar widths
-        navX = d3.scale.ordinal().domain(max_extent_in_days(navTime)).rangeBands([0, width], 0.1, 0),
-        y2 = d3.scale.linear().domain([0, d3.max(data.badge_set_reached, function(d) { return d.set})]).rangeRound([height, 0]);
-        navY2 = d3.scale.linear().domain([0, d3.max(data.badge_set_reached, function(d) { return d.set})]).rangeRound([navHeight, 0]);
-
-    // axes
-    var x_axis = d3.svg.axis().scale(time).orient('bottom') //    .tickFormat(d3.time.format('%Y-%m-%d'))
-                   .outerTickSize(0),  // at start and end of axis line
-        nav_x_axis = d3.svg.axis().scale(navTime).orient('bottom') //    .tickFormat(d3.time.format('%Y-%m-%d'))
-                       .outerTickSize(0),  // at start and end of axis line
-        y_axis = d3.svg.axis().scale(y).orient('left').tickFormat(d3.format('d'));
-        y2_axis = d3.svg.axis().scale(y2).orient('right').tickFormat(d3.format('d'));
-
-    // add brush
-    var brush = d3.svg.brush()
-        .x(navTime)
-        .on("brush", brushed);
-
-    // svg context
-    var svg = d3.select("#milestones_attempts_combo")
-         .append('svg')
-            .attr('class', 'chart')
-            .attr('width', width + margin.left + margin.right)
-            .attr('height', height + margin.top + margin.bottom)
-         .append('g')
-            .attr('transform', 'translate(' + margin.left + ','
-                    + margin.top + ')');
-
-    var focus = svg.append('g')
-        .attr('class', 'focus')
-        .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
-    var context = svg.append('g')
-        .attr('class', 'context')
-        .attr('transform', 'translate(' + navMargin.left + ',' + navMargin.top + ')');
-
-    // clipping for content update
-    svg.append("defs").append("clipPath")
-        .attr("id", "clipFocus")
-        .append("rect")
-        .attr("width", width)
-        .attr("height", height);
-
-    svg.append("defs").append("clipPath")
-        .attr("id", "clipNav")
-        .append("rect")
-        .attr("width", navWidth)
-        .attr("height", navHeight);
-
-    // Plot the stacked bars
-    var focus_bar = focus
-                        .append("g") //<-- g just for the bars to be clipped
-                        .attr("class","barClipper")
-                        .style('clip-path', 'url(#clipFocus)')
-             .selectAll('.g')
-                 .data(data.answer_counts)
-             .enter().append('g')
-                .attr('class', 'g bar stack')
-                .attr('transform', function(d) {
-                                        return "translate(" + x(d.date) + ",0)" });
-
-    var focus_rects = focus_bar.selectAll('rect')
-                    .data(function(d) { return d.ys; })
-                 .enter().append('rect')
-                    .attr('width', x.rangeBand())
-                    .attr('height', function(d) { return y(d.y0) - y(d.y1); })
-                    .attr('y', function(d) { return y(d.y1); })
-                    .attr('class', function(d) { return 'rect ' + d['class']; });
-
-    var context_bar = context
-                        .append("g") //<-- g just for the bars to be clipped
-                        .attr("class","barClipper")
-                        .style('clip-path', 'url(#clipNav)')
-              .selectAll('.g')
-                 .data(data.answer_counts)
-             .enter().append('g')
-                .attr('class', 'g')
-                .attr('transform', function(d) {
-                                        return "translate(" + navTime(d.date) + ",0)" });
-
-    var context_rects = context_bar.selectAll('rect')
-                    .data(function(d) { return d.ys; })
-                 .enter().append('rect')
-                    .attr('width', navX.rangeBand())
-                    .attr('height', function(d) { return navY(d.y0) - navY(d.y1); })
-                    .attr('y', function(d) { return navY(d.y1); })
-                    .attr('class', function(d) { return 'rect ' + d['class']; });
-
-    // Plot lines
-
-    var line = d3.svg.line()
-                .x(function(d) {return time(d.date)})
-                .y(function(d) {return y2(d.set)})
-                .interpolate('step-after');
-    var focus_line = focus
-                        .append("g") //<-- g just for the bars to be clipped
-                        .attr("class","barClipper")
-                        .style('clip-path', 'url(#clipFocus)')
-                    .append('path')
-                        .datum(data.badge_set_reached)
-                        .attr('class', 'line focus-line')
-                        .attr('d', line);
-
-    var line2 = d3.svg.line()
-                .x(function(d) {return time(d.date)})
-                .y(function(d) {return navY2(d.set)})
-                .interpolate('step-after');
-    var context_line = context
-                        .append("g") //<-- g just for the bars to be clipped
-                        .attr("class","barClipper")
-                        .style('clip-path', 'url(#clipNav)')
-                    .append('path')
-                        .datum(data.badge_set_reached)
-                        .attr('class', 'line context-line')
-                        .attr('d', line2);
-
-    // Plot axes
-    focus.append('g')
-       .attr('class', 'x axis')
-       .attr('transform', 'translate(0, ' + height + ')')
-       .call(x_axis)
-    //    .selectAll('text')
-    //         .style('text-anchor', 'end')
-    //         .attr('transform', 'rotate(-45deg)')
-    //         .attr('dx', '-.5em')
-    //         .attr('dy', '.5em');
-
-    focus.append('g')
-       .attr('class', 'y axis')
-       .attr('transform', 'translate(0, 0)')
-       .call(y_axis);
-
-    var y2pos = width;
-    focus.append('g')
-       .attr('class', 'y2 axis')
-       .attr('transform', 'translate(' + y2pos + ', 0)')
-       .call(y2_axis);
-
-    context.append('g')
-       .attr('class', 'navX axis')
-       .attr('transform', 'translate(0, ' + navHeight + ')')
-       .call(nav_x_axis);
-
-    // Label axes
-
-    svg.append('text')
-        .attr('class', 'label y-axis-label')
-        .attr('transform', 'rotate(-90)')
-        .attr('x', 0 - ((height + margin.top) / 2))
-        .attr('y', 0)
-        .style('text-anchor', 'middle')
-        .text('Paths Attempted');
-
-    // Add brush to svg
-    context.append('g')
-        .attr('class', 'x brush')
-        .call(brush)
-    .selectAll("rect")
-      .attr("y", -6)
-      .attr("height", navHeight + 7);
-
-    function brushed() {
-        time.domain(brush.empty() ? navTime.domain() : brush.extent())
-            .range([0, width]);
-        x.domain(max_extent_in_days(time))
-            .rangeBands([0, width], 0.1, 0);
-        console.log(x.rangeBands);
-        focus.selectAll('.bar.stack')
-            .attr('transform', function(d) {return "translate(" + time(d.date) + ",0)"; })
-            .attr('width', x.rangeBand());
-        focus.selectAll('.rect')
-            .attr('width', x.rangeBand());
-        focus.selectAll('.line').attr('d', line);
-        focus.select(".x.axis").call(x_axis);
-        console.log('im brushed');
-        console.log(data);
-    };
-})();
-
+showChart1('{{=XML(json.dumps(chart1_data))}}',
+           '{{=URL("default", "get_chart1_data_json")}}',
+           '{{=user_id}}');
 
 // show tab from hash when first opening page
 var url = document.location.toString();
@@ -514,6 +298,7 @@ if (url.match('#')) {
 // Change hash for when tab shown
 $('.nav-tabs a').on('shown.bs.tab', function (e) {
     window.location.hash = e.target.hash;
+    window.scrollTo(0, 0);
 });
 
 // Change selection type when changing select value
@@ -540,25 +325,14 @@ $(document).on('change', '#set_review_select', function(event){
     new $.fn.dataTable.FixedColumns( badgetable );
     var colvis = new $.fn.dataTable.ColVis( badgetable );
     $( colvis.button() ).insertBefore('div.badgetable-container');
-
-    // below inferface exposed by static/js/user_stats.js
-    // user_stats.badge_set_milestones = JSON.parse('{{=XML(json.dumps(badge_set_milestones))}}');
-    // user_stats.answer_counts = JSON.parse('{{=XML(json.dumps(answer_counts))}}');
-    // user_stats.render_all();
 })();
 
 $(document).on('change', 'input.mark_bug_read', function(event){
-                  console.log('clicked me');
                   var bugid = $(this).attr('name');
-                  console.log(bugid);
                   var myval = $(this).prop('checked');
-                  console.log(myval);
                   var $therow = $(this).parents('tr');
-                  console.log($therow);
                   ajax('/paideia/default/mark_bug_read/' + bugid + '/' + myval, [], ':eval');
                   var $counter = $(document).find('#unread-counter span');
-                  console.log($counter);
-                  console.log($counter.text());
                   startCount = parseInt($counter.text());
                   if(myval == true){
                       $therow.removeClass('bug-unread');
@@ -592,7 +366,18 @@ $(document).on('click',
 /***********************/
 /* USER STATS & CHARTS */
 /***********************/
-/*#milestones_attempts_combo {height: 600px;}*/
+
+#badge_chooser {
+    display: none;
+}
+
+#badge_set_chooser {
+    width: 10em;
+}
+
+#badge_set_chooser_label {
+    margin-left: 6em;
+}
 
 #milestones_attempts_combo .context {
     /*fill: #efefef;    */
@@ -600,14 +385,37 @@ $(document).on('click',
 
 #milestones_attempts_combo .focus .right,
 #milestones_attempts_combo .context .right{
-    fill: #0064cd;
+    fill: #96BC44;
+    -webkit-transition: fill 300ms;
+    -o-transition: fill 300ms;
+    transition: fill 300ms;
 }
 
+#milestones_attempts_combo .focus .right:hover,
+#milestones_attempts_combo .context .right:hover{
+    fill: #56790B;
+    -webkit-transition: fill 300ms;
+    -o-transition: fill 300ms;
+    transition: fill 300ms;
+}
 #milestones_attempts_combo .focus .wrong,
 #milestones_attempts_combo .context .wrong {
-    fill: #cd001d;
+    fill: #337AB7;
+    -webkit-transition: fill 300ms;
+    -o-transition: fill 300ms;
+    transition: fill 300ms;
 }
-#milestones_attempts_combo .y-axis-label {
+
+#milestones_attempts_combo .focus .wrong:hover,
+#milestones_attempts_combo .context .wrong:hover{
+    fill: #5393CB;
+    -webkit-transition: fill 300ms;
+    -o-transition: fill 300ms;
+    transition: fill 300ms;
+}
+
+#milestones_attempts_combo .y-axis-label,
+#milestones_attempts_combo .y2-axis-label {
     fill: #aaa;
     font-size: 120%;
     font-weight: normal;
@@ -649,16 +457,4 @@ $(document).on('click',
     font-size: .9em;
 }
 
-#stats-milestones .focus path,
-#stats-answers .focu path {
-    stroke: #0064cd;
-}
-
-#stats-answers .focus .right {
-    fill: #0064cd;
-}
-
-#stats-answers .focus .wrong {
-    fill: #cd001d;
-}
 </style>
