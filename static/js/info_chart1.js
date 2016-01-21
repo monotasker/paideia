@@ -2,12 +2,14 @@ function showChart1(my_raw_data, update_url, user_id) {
 
     // set chart1 variables
     var margin = { left: 42, right: 90, top: 10, bottom: 180 },
-        navMargin = {top: 300, right: 90, bottom: 40, left: 42},
+        navMargin = {top: 300, right: 90, bottom: 80, left: 42},
         height = 400 - margin.top - margin.bottom,
         width = 800 - margin.left - margin.right,
         navWidth = width, // for context band
         navHeight = 400 - navMargin.top - navMargin.bottom;
         data = prep_chart_data(my_raw_data);
+
+    var format_time = d3.time.format('%b %e, %Y');
 
     // helper functions
     function prep_chart_data(raw_json) {
@@ -54,9 +56,9 @@ function showChart1(my_raw_data, update_url, user_id) {
                   .selectAll('.g')
                      .data(mydata.answer_counts)
                  .enter().append('g')
-                    .attr('class', 'g')
+                    .attr('class', 'g bar stack')
                     .attr('transform', function(d) {
-                                            return "translate(" + navTime(d.date) + ",0)" });
+                                            return "translate(" + x(d.date) + ",0)" });
 
         var context_rects = context_bar.selectAll('rect')
                         .data(function(d) { return d.ys; })
@@ -66,6 +68,29 @@ function showChart1(my_raw_data, update_url, user_id) {
                         .attr('y', function(d) { return navY(d.y1); })
                         .attr('class', function(d) { return 'rect ' + d['class']; });
     }
+
+    function brushed(my_x, my_x_axis, my_time) {
+        my_x = my_x || x;
+        my_x_axis = my_x_axis || axes.x_axis;
+        my_time = my_time || time;
+        my_time.domain(brush.empty() ? navTime.domain() : brush.extent())
+            .range([0, width]);
+        my_x.domain(max_extent_in_days(my_time))
+            .rangeBands([0, width], 0.1, 0);
+        focus.selectAll('.bar.stack')
+            .attr('transform', function(d) {return "translate(" + my_time(d.date) + ",0)"; })
+            .attr('width', my_x.rangeBand());
+        focus.selectAll('.rect')
+            .attr('width', my_x.rangeBand());
+        focus.selectAll('.line').attr('d', line);
+        svg.select(".x.axis")
+            .call(my_x_axis)
+            .selectAll('text')
+                .style('text-anchor', 'end')
+                .attr('transform', 'rotate(-45)')
+                .attr('dx', '-.5em')
+                .attr('dy', '.5em');
+    };
 
     function updateChart1Data(raw_json) {
         // Get the data again
@@ -212,9 +237,14 @@ function showChart1(my_raw_data, update_url, user_id) {
        .call(axes.y2_axis);
 
     svg.append('g')
-       .attr('class', 'navX axis')
-       .attr('transform', 'translate(' + margin.left + ', ' + (navMargin.top + navHeight) + ')')
-       .call(axes.nav_x_axis);
+        .attr('class', 'navX axis')
+        .attr('transform', 'translate(' + margin.left + ', ' + (navMargin.top + navHeight) + ')')
+        .call(axes.nav_x_axis)
+        .selectAll('text')
+            .style('text-anchor', 'end')
+            .attr('transform', 'rotate(-45)')
+            .attr('dx', '-.5em')
+            .attr('dy', '.5em');
 
     // remove 0 ticks
     svg.selectAll(".tick")
@@ -253,22 +283,29 @@ function showChart1(my_raw_data, update_url, user_id) {
       .attr("y", -6)
       .attr("height", navHeight + 7);
 
-    function brushed(my_x, my_x_axis, my_time) {
-        my_x = my_x || x;
-        my_x_axis = my_x_axis || axes.x_axis;
-        my_time = my_time || time;
-        my_time.domain(brush.empty() ? navTime.domain() : brush.extent())
-            .range([0, width]);
-        my_x.domain(max_extent_in_days(my_time))
-            .rangeBands([0, width], 0.1, 0);
-        focus.selectAll('.bar.stack')
-            .attr('transform', function(d) {return "translate(" + my_time(d.date) + ",0)"; })
-            .attr('width', my_x.rangeBand());
-        focus.selectAll('.rect')
-            .attr('width', my_x.rangeBand());
-        focus.selectAll('.line').attr('d', line);
-        svg.select(".x.axis").call(my_x_axis);
-    };
+    // Add tooltips
+    tooldiv = d3.select('body').append('div')
+                .attr("class", "chart1 tooltip ")
+                .style('opacity', 0);
+
+    focus.selectAll('.g.bar.stack')
+        .on('mouseover', function(d) {
+            var matrix = this.getScreenCTM();
+            var date = format_time(d.date);
+            var rNum = d.ys[0]['y1'];
+            var wNum = parseInt(d.ys[1]['y1']) - parseInt(d.ys[1]['y0']);
+            tooldiv
+                .html(function() {
+                    return date + '<br/>' + rNum + ' right<br/>' + wNum + ' wrong';
+                })
+                .style('left', (window.pageXOffset + matrix.e) + 'px')
+                .style('top', (window.pageYOffset + matrix.f) + 'px')
+                .style('opacity', 1);
+        })
+        .on('mouseout', function(d) {
+            tooldiv
+                .style('opacity', 0);
+        });
 
     // update chart1 data via ajax when set selected
     $('#badge_set_chooser').on('change', function(e) {
