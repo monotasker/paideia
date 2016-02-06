@@ -191,25 +191,44 @@ function fit_to_height() {
     var divheight = window.innerHeight - headroom;  //+ footroom);
     $('#page, .speaker img, #town_map').css('height', divheight);
 }
-fit_to_height()
+fit_to_height();
 
-    //var headroom = $('.navbar').outerHeight();
-    //var footroom = '20px';
-    //var divheight = window.innerHeight - headroom; // + footroom);
-    //$('#page').css('height', divheight);
-    //$('.speaker img').css('height', divheight);
 
 {{if 'bg_image' in globals():}}
 $('#page').css("background-image", "url({{=bg_image}})");
-$('#page').css("background-size", "auto 100%");
+$('#page').css("background-size", "100% auto");
+$('#page').css("background-position", "left center");
 {{else:}}
 $('#page').css("background-image", "none");
 $('#page').css("background-size", "100% auto");
 {{pass}}
 
+function set_page_height() {
+    var $page = $('#page');
+    var width = $page.width();
+    if (width >= 1200) {
+        $('#page').css("background-size", "100% auto");
+        $page.css('height', (width * 0.5));
+    }
+    else if (width >= 992) {
+        $('#page').css("background-size", "100% auto");
+        $page.css('height', (width * 0.55));
+    }
+    else if (width >= 768) {
+        $('#page').css("background-size", "100% auto");
+        $page.css('height', (width * 0.65));
+    }
+    else {
+        console.log(width);
+        $('#page').css("background-size", "auto 100%");
+        $page.css('height', 600);
+    }
+}
+set_page_height();
 
 $(window).resize(function() {
     fit_to_height();
+    set_page_height();
 });
 
 $('.popover-trigger').each(function() {
