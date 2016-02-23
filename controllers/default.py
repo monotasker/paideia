@@ -186,7 +186,7 @@ def info():
     blist = b.bugresponses(user.id)
 
     # tab5
-    mydata = get_chart1_data()
+    mydata = get_chart1_data(user_id=user.id)
     chart1_data = mydata['chart1_data']
     badge_set_milestones = mydata['badge_set_milestones']
     answer_counts = mydata['answer_counts']
