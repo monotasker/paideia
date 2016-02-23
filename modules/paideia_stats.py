@@ -985,20 +985,9 @@ class Stats(object):
 
         pairs = [(self._local(q['dt_attempted']).date(), q['score']) for q in attempt_query]
         sorted_attempts = sorted(pairs, key=itemgetter(0))
-        print 'pairs ==============='
-        print sorted_attempts[1]
         result = defaultdict(list)
         for date, score in sorted_attempts:
             result[date].append(score)
-        print 'result ================'
-        for date, score in result.iteritems():
-            print date, score
-
-        # result = groupby(attempt_query.select(
-        #                         db.attempt_log.score.with_alias('score'),
-        #                         'DATE(dt_attempted)',
-        #                         orderby='2, 1'),
-        #                     lambda r: r._extra['DATE(dt_attempted)'])
 
         # Transform to a lightweight form
         counts = []
@@ -1006,7 +995,6 @@ class Stats(object):
             scores = list(scores)
             total = len(scores)
             right = len(filter(lambda r: r >= 1.0, scores))
-
 
             # Force str because of how PostgreSQL returns date column
             # PostgreSQL returns datetime object, sqlite returns string
@@ -1016,8 +1004,6 @@ class Stats(object):
                            'right': right,
                            'wrong': total - right
                            })
-        print 'counts ================'
-        pprint(counts[1])
 
         return counts
 
