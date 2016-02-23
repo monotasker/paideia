@@ -260,14 +260,30 @@ def get_chart1_data(user_id=None, set=None, tag=None):
                                                 {'class': 'wrong',
                                                  'y0': dict['right'],
                                                  'y1': dict['right'] + dict['wrong']}
-                                                ]
+                                                ],
+                                          'ids': dict['ids']
                                           } for dict in answer_counts],
                     # above includes y values for stacked bar graph
+                    # and 'ids' for modal presentation of daily attempts
                     }
 
     return {'chart1_data': chart1_data,
             'badge_set_milestones': badge_set_milestones,
             'answer_counts': answer_counts}
+
+def get_day_attempts():
+    ids = request.vars['ids']
+    ids = ids.split(',')
+    myrows = db((db.attempt_log.id.belongs(ids)) &
+                (db.attempt_log.step == db.steps.id)).select();
+    attempt_list = TABLE(TR(TH('Prompt'), TH('My Response'), TH('Score')),
+                         _class='table')
+    for row in myrows:
+        myclass = 'success' if row.attempt_log.score > 0.01 else 'warning'
+        attempt_list.append(TR(TD(row.steps.prompt, _class=myclass),
+                               TD(row.attempt_log.user_response, _class=myclass),
+                               TD(row.attempt_log.score, _class=myclass)))
+    return attempt_list
 
 def set_review_mode():
     try:
