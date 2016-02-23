@@ -983,16 +983,17 @@ class Stats(object):
         else:
             attempt_query = db(db.attempt_log.name == self.user_id).select().as_list()
 
-        pairs = [(self._local(q['dt_attempted']).date(), q['score']) for q in attempt_query]
+        pairs = [(self._local(q['dt_attempted']).date(), q['score'], q['id']) for q in attempt_query]
         sorted_attempts = sorted(pairs, key=itemgetter(0))
         result = defaultdict(list)
-        for date, score in sorted_attempts:
-            result[date].append(score)
+        for date, score, myid in sorted_attempts:
+            result[date].append((score, myid))
 
         # Transform to a lightweight form
         counts = []
-        for (date, scores) in result.iteritems():
-            scores = list(scores)
+        for (date, scores_ids) in result.iteritems():
+            scores = [s[0] for s in scores_ids]
+            ids = [s[1] for s in scores_ids]
             total = len(scores)
             right = len(filter(lambda r: r >= 1.0, scores))
 
@@ -1002,7 +1003,8 @@ class Stats(object):
             # compatibility with sqlite
             counts.append({'my_date': str(date),
                            'right': right,
-                           'wrong': total - right
+                           'wrong': total - right,
+                           'ids': ids
                            })
 
         return counts

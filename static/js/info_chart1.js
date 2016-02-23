@@ -1,3 +1,27 @@
+function attempts_modal(ids) {
+    if ( $('#attempts-modal').length == 0 ) {
+        modalframe = '<div class="modal fade" tabindex="-1" role="dialog" id="attempts-modal">';
+        modalframe += '<div class="modal-dialog attempts-modal">';
+        modalframe += '<div class="modal-content">';
+        modalframe += '<div class="modal-header">';
+        modalframe += '<button type="button" class="close" data-dismiss="modal" aria-label="Close">';
+        modalframe += '<span aria-hidden="true">&times;</span></button>';
+        modalframe += '<h4 class="modal-title">Attempts for the day</h4>';
+        modalframe += '</div>';
+        modalframe += '<div class="modal-body attempts-modal" id="attempts-modal-body">';
+        modalframe += '</div>';
+        modalframe += '<div class="modal-footer">';
+        modalframe += '<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>';
+        modalframe += '</div>';
+        modalframe += '</div><!-- /.modal-content -->';
+        modalframe += '</div><!-- /.modal-dialog -->';
+        modalframe += '</div><!-- /.modal -->';
+        $('body').append(modalframe);
+    };
+    $('#attempts-modal').modal('show');
+    ajax('/paideia/default/get_day_attempts?ids=' + ids, [], 'attempts-modal-body');
+}
+
 function showChart1(my_raw_data, update_url, user_id) {
 
     // set chart1 variables
@@ -305,6 +329,9 @@ function showChart1(my_raw_data, update_url, user_id) {
         .on('mouseout', function(d) {
             tooldiv
                 .style('opacity', 0);
+        })
+        .on('click', function(d) {
+            attempts_modal(d.ids);
         });
 
     // update chart1 data via ajax when set selected
