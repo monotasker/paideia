@@ -1,9 +1,10 @@
 import calendar
 import datetime
-# from collections import Counter
+from collections import defaultdict
 from dateutil.parser import parse
 import traceback
 from copy import copy
+from operator import itemgetter
 from pytz import timezone, utc
 from gluon import current, DIV, SPAN, A, URL, UL, LI, B, I
 from gluon import TAG
@@ -973,27 +974,39 @@ class Stats(object):
             setsteps = db(db.steps.tags.contains(settag_ids)).select()
             setstep_ids = [row.id for row in setsteps]
             attempt_query = db((db.attempt_log.name == self.user_id) &
-                               (db.attempt_log.step.belongs(setstep_ids)))
+                               (db.attempt_log.step.belongs(setstep_ids))).select().as_list()
         elif tag:
             badgesteps = db(db.steps.tags.contains(tag)).select()
             badgestep_ids = [row.id for row in badgesteps]
             attempt_query = db((db.attempt_log.name == self.user_id) &
-                               (db.attempt_log.step.belongs(badgestep_ids)))
+                               (db.attempt_log.step.belongs(badgestep_ids))).select().as_list()
         else:
-            attempt_query = db(db.attempt_log.name == self.user_id)
+            attempt_query = db(db.attempt_log.name == self.user_id).select().as_list()
 
-        result = groupby(attempt_query.select(
-                                db.attempt_log.score.with_alias('score'),
-                                'DATE(dt_attempted)',
-                                orderby='2, 1'),
-                            lambda r: r._extra['DATE(dt_attempted)'])
+        pairs = [(self._local(q['dt_attempted']).date(), q['score']) for q in attempt_query]
+        sorted_attempts = sorted(pairs, key=itemgetter(0))
+        print 'pairs ==============='
+        print sorted_attempts[1]
+        result = defaultdict(list)
+        for date, score in sorted_attempts:
+            result[date].append(score)
+        print 'result ================'
+        for date, score in result.iteritems():
+            print date, score
+
+        # result = groupby(attempt_query.select(
+        #                         db.attempt_log.score.with_alias('score'),
+        #                         'DATE(dt_attempted)',
+        #                         orderby='2, 1'),
+        #                     lambda r: r._extra['DATE(dt_attempted)'])
 
         # Transform to a lightweight form
         counts = []
-        for (date, scores) in result:
+        for (date, scores) in result.iteritems():
             scores = list(scores)
             total = len(scores)
-            right = len(filter(lambda r: r.score >= 1.0, scores))
+            right = len(filter(lambda r: r >= 1.0, scores))
+
 
             # Force str because of how PostgreSQL returns date column
             # PostgreSQL returns datetime object, sqlite returns string
@@ -1003,6 +1016,8 @@ class Stats(object):
                            'right': right,
                            'wrong': total - right
                            })
+        print 'counts ================'
+        pprint(counts[1])
 
         return counts
 
