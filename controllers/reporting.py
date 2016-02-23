@@ -207,8 +207,8 @@ def attempts():
 @auth.requires_membership(role='administrators')
 def user():
     # Scripts for charts
-    response.files.append('//cdnjs.cloudflare.com/ajax/libs/d3/3.4.10/d3.min.js')
-    response.files.append(URL('static', 'js/user_stats.js'))
+    response.files.append(URL('static', 'js/d3.min.js'))
+    response.files.append(URL('static', 'js/info_chart1.js'))
 
     # Include files for Datatables jquery plugin and bootstrap css styling
     response.files.append('//cdnjs.cloudflare.com/ajax/libs/datatables/1.10.0/'
