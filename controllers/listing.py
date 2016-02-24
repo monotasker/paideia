@@ -59,7 +59,18 @@ def promote_user():
     classid = request.vars.classid
     tp = db(db.tag_progress.name == uid).select().first()
     oldrank = tp['latest_new']
-    tp.update_record(latest_new=(oldrank + 1))
+    # move remaining cat1 tags forward to cat2
+    old_level1 = tp['cat1']
+    print 'old_level1', old_level1
+    level2 = tp['cat2']
+    print 'level2', level2
+    level2.extend(old_level1)
+    print 'level2', level2
+    tp.update_record(latest_new=(oldrank + 1),
+                     cat1=[],
+                     cat2=level2)
+    for tag in old_level1:
+        db(db.badges_begun.tag == tag).update(cat2=datetime.datetime.now())
     response.flash = 'User moved ahead to set {}'.format(oldrank + 1)
     redirect(URL('userlist.load', vars={'value': classid}))
 
@@ -77,16 +88,35 @@ def demote_user():
 
     tp = db(db.tag_progress.name == uid).select().first()
     oldrank = tp['latest_new']
-    tp.update_record(latest_new=(oldrank - 1))
+    old_ranktags = db(db.tags.tag_position == oldrank).select()
+    old_taglist = [t['id'] for t in old_ranktags]
+    new_ranktags = db(db.tags.tag_position == (oldrank - 1)).select()
+    new_taglist = [t['id'] for t in new_ranktags]
+
+    old_level2 = tp['cat2']
+    old_level3 = tp['cat3']
+    old_level4 = tp['cat4']
+    level1 = tp['cat1']
+    new_level2 = [t for t in old_level2 if t not in new_taglist]
+    new_level3 = [t for t in old_level3 if t not in new_taglist]
+    new_level4 = [t for t in old_level4 if t not in new_taglist]
+    level1.extend(new_taglist)
+    tp.update_record(latest_new=(oldrank - 1),
+                     cat1=level1,
+                     cat2=new_level2,
+                     cat3=new_level3,
+                     cat4=new_level4)
 
     # TODO: do I have to somehow mark the actual log entries somehow as
     # removed? Should they be backed up?
-    tags = db(db.tags.tag_position == oldrank).select()
-    taglist = [t['id'] for t in tags]
-    print 'demoting tags:', taglist
-    trecs = db(db.tag_records.tag.belongs(taglist))
+    print 'demoting tags:', old_taglist
+    trecs = db(db.tag_records.tag.belongs(old_taglist))
     print 'found trecs:', trecs.count()
     trecs.delete()
+
+    for tag in new_ranktags:
+        db(db.badges_begun.tag == tag).update(cat1=datetime.datetime.now(),
+                                              cat2=None)
 
     response.flash = 'User moved back to set {}'.format(oldrank - 1)
     redirect(URL('userlist.load', vars={'value': classid}))
