@@ -1,6 +1,6 @@
 import calendar
 import datetime
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from dateutil.parser import parse
 import traceback
 from copy import copy
@@ -1343,8 +1343,6 @@ def compute_letter_grade(uid, myprog, startset, classrow):
             else:
                 mylet = int(startset) + classrow[lettarget]
         gradedict[mylet] = let.upper()
-    pprint(gradedict)
-    print 'myprog', myprog
     if myprog in gradedict.keys():
 
         mygrade = gradedict[myprog]
@@ -1355,7 +1353,6 @@ def compute_letter_grade(uid, myprog, startset, classrow):
         mygrade = 'A'
     else:
         mygrade = 'F'
-    print 'mygrade', mygrade
     return mygrade
 
 
@@ -1410,5 +1407,30 @@ def make_classlist(member_sel, users, start_date, end_date, target, classrow):
                          'start_date': fmt_start,
                          'end_date': fmt_end,
                          'tp_id': user.tag_progress.id}
+
+    userlist = OrderedDict(sorted(userlist.iteritems(), key=lambda t: t[1]['name']))
+
+    return userlist
+
+def make_unregistered_list(users):
+    """
+    """
+    db = current.db
+    userlist = {}
+    for user in users:
+        tp = db(db.tag_progress.name == user.id).select().first()
+        tp_id = tp.id if tp else None
+        currset = get_set_at_date(user.id, datetime.datetime.now())
+        userlist[user.id] = {'name': '{}, {}'.format(user.last_name, user.first_name),
+                             'counts': None,
+                             'current_set': currset,
+                             'starting_set': None,
+                             'progress': None,
+                             'grade': None,
+                             'start_date': None,
+                             'end_date': None,
+                             'tp_id': tp_id}
+
+    userlist = OrderedDict(sorted(userlist.iteritems(), key=lambda t: t[1]['name']))
 
     return userlist

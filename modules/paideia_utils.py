@@ -446,6 +446,7 @@ class GreekNormalizer(object):
             outstrings.append(newstring)
         if len(outstrings) == 1:
             outstrings = outstrings[0]
+        print 'returning', outstrings
         return outstrings
 
 
