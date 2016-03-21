@@ -14,7 +14,7 @@ if 0:
     request, response = current.request, current.response
 import datetime
 import traceback
-from paideia_stats import make_classlist
+from paideia_stats import make_classlist, make_unregistered_list
 from pprint import pprint
 from dateutil.parser import parse
 from operator import itemgetter
@@ -44,7 +44,9 @@ def user():
                             for m in sorted(myclasses, reverse=True)
                             ]
                           ),
-                    _id='class_chooser' )
+                    _id='class_chooser')
+    chooser[0].append(OPTION('Currently unenrolled but active', _value='unregistered-active'))
+    chooser[0].append(OPTION('All unenrolled users', _value='unregistered-inactive'))
     chooser.append(INPUT(_type='submit', _id='chooser_submit'))
 
     return {'chooser': chooser, 'classid': myclasses[-1]['id']}
@@ -152,25 +154,50 @@ def remove_user():
 
 @auth.requires_membership(role='administrators')
 def userlist():
+    print 'agid', request.vars.agid, type(request.vars.agid)
+    # if isinstance(request.vars.agid, (int, long)):  # selecting class
     try:
-        classrow = db.classes[request.vars.agid].as_dict()
-    except:  # choose a class to display as default
-        print traceback.format_exc(5)
-        classrow = db(db.classes.instructor == auth.user_id
-                        ).select().last().as_dict()
-    target = classrow['paths_per_day']
-    freq = classrow['days_per_week']
-    title = '{} {} {}, {}'.format(classrow['academic_year'], classrow['term'],
-                                  classrow['course_section'],
-                                  classrow['institution'])
-    member_sel = db(db.class_membership.class_section == classrow['id']).select()
-    users = db((db.auth_user.id == db.tag_progress.name) &
-               (db.auth_user.id.belongs([m['name'] for m in member_sel]))
-               ).select(orderby=db.auth_user.last_name)
-    start_date = classrow['start_date']
-    end_date = classrow['end_date']
-    classlist = make_classlist(member_sel, users, start_date,
-                               end_date, target, classrow)
+        int(request.vars.agid)
+        try:
+            classrow = db.classes[request.vars.agid].as_dict()
+        except:  # choose a class to display as default
+            print traceback.format_exc(5)
+            classrow = db(db.classes.instructor == auth.user_id
+                            ).select().last().as_dict()
+        target = classrow['paths_per_day']
+        freq = classrow['days_per_week']
+        title = '{} {} {}, {}'.format(classrow['academic_year'], classrow['term'],
+                                      classrow['course_section'],
+                                      classrow['institution'])
+        member_sel = db(db.class_membership.class_section == classrow['id']).select()
+        users = db((db.auth_user.id == db.tag_progress.name) &
+                   (db.auth_user.id.belongs([m['name'] for m in member_sel]))
+                   ).select(orderby=db.auth_user.last_name)
+        start_date = classrow['start_date']
+        end_date = classrow['end_date']
+        classlist = make_classlist(member_sel, users, start_date,
+                                   end_date, target, classrow)
+    except Exception as e:  # selecting outside of current class registrants
+        print e
+        target = 0
+        freq = 0
+        classrow = {'id': None}
+        all = db(db.auth_user).select()
+        registered_current = db((db.class_membership.class_section == db.classes.id) &
+                                (db.classes.end_date >= datetime.datetime.now())).select()
+        registered_current = list(set([r.class_membership.name for r in registered_current]))
+        unregistered = all.find(lambda row: row.id not in registered_current)
+        if request.vars.agid == 'unregistered-active':
+            title = 'Active (last 90 days) users not currently enrolled in a course.'
+            users = unregistered.find(lambda row: db((db.attempt_log.name == row.id) &
+                                                          (db.attempt_log.dt_attempted >=
+                                                           (datetime.datetime.now() - datetime.timedelta(days=90))
+                                                           )
+                                                          ))
+        elif request.vars.agid == 'unregistered-inactive':
+            title = 'All users not currently enrolled in a course.'
+            users = all
+        classlist = make_unregistered_list(users)
 
     response.js = "jQuery('#chooser_submit').val('View Class')"
 
