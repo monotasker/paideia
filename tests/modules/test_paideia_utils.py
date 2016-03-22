@@ -9,6 +9,7 @@
 
 """
 
+from kitchen.text.converters import to_unicode
 import pytest
 from paideia_utils import GreekNormalizer, check_regex
 from plugin_utils import makeutf8
@@ -252,7 +253,7 @@ class TestGreekNormalizer():
                                   ('παρά', u'παρα', r'παρα'),
                                   ('τίς', u'τίς', r'τίς'),  # q iota on windows
                                   ('πoιει', u'ποιει', r'ποιει'),
-                                  ('Oὑτος', u'Οὑτος', u'Οὑτος'),
+                                  ('Oὑτος', u'Οὑτος', r'Οὑτος'),
                                  ])
     def test_normalize(self, string_in, string_out, regex):
         """
@@ -265,8 +266,8 @@ class TestGreekNormalizer():
         print 'actual string out', actual
         assert actual == string_out
         assert isinstance(actual, unicode)
-        regex1 = re.compile(makeutf8(regex), re.I | re.U)
-        assert re.match(regex1, makeutf8(actual))
+        regex1 = re.compile(to_unicode(regex), re.I | re.U)
+        assert re.match(regex1, to_unicode(actual))
 
 @pytest.mark.skipif(False, reason='just because')
 @pytest.mark.parametrize('regex,stringdict',
