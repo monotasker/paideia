@@ -245,7 +245,9 @@ class GreekNormalizer(object):
         strings = self.convert_latin_chars(strings)
         if debug: print 'about to normalize accents'
         if debug: print 'sending strings ============================\n'
-        if debug: for s in strings: print type(s), to_bytes(s)
+        if debug:
+            for s in strings:
+                print type(s), to_bytes(s)
         strings = self.normalize_accents(strings)
         strings = self.strip_extra_spaces(strings)
 
@@ -259,13 +261,14 @@ class GreekNormalizer(object):
         Greek.
 
         """
+        debug = False
         strings = [strings] if not isinstance(strings, list) else strings
         try:
             newstrings = []
             rgx = ur'(?P<a>[Α-Ωα-ω])?([a-z]|[A-Z]|\d|\?)(?(a).*|[Α-Ωα-ω])'
             latin = re.compile(rgx, re.U)
             for string in strings:
-                string = unicode(makeutf8(string))
+                string = to_unicode(string)
                 mymatch = re.search(latin, string)
                 if not mymatch:
                     newstring = string
@@ -286,7 +289,7 @@ class GreekNormalizer(object):
                             u'o': u'ο',  # y
                             u'O': u'Ο',  # ΝΝΝ
                             u'p': u'ρ',  # y
-                            u'P': u'Ρ',
+                            u'P': u'Ρ',  # y
                             u't': u'τ',  # y
                             u'T': u'Τ',  # y
                             u'Y': u'Υ',
@@ -295,10 +298,10 @@ class GreekNormalizer(object):
                             u'w': u'ω',  # y
                             u'?': u';'}
                     if debug: print 'Latin character found in Greek string: '
-                    if debug: print mymatch.group(), 'in', string
+                    if debug: print mymatch.group(), 'in', to_bytes(string)
                     newstring = multiple_replace(string, subs)
                     if debug: print 'replaced with Greek characters:'
-                    if debug: print newstring
+                    if debug: print to_bytes(newstring)
                 newstrings.append(newstring)
             if len(newstrings) == 1:
                 newstrings = newstrings[0]
