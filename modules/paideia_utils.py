@@ -238,15 +238,14 @@ class GreekNormalizer(object):
         of their encoding or type when they were supplied.
 
         """
-        print 'starting normalize'
+        debug = False
+        if debug: print 'starting normalize'
         strings = [strings] if not isinstance(strings, list) else strings
 
         strings = self.convert_latin_chars(strings)
-        print 'about to normalize accents'
-        print 'sending strings ============================\n'
-        for s in strings:
-            print type(s)
-            print to_bytes(s)
+        if debug: print 'about to normalize accents'
+        if debug: print 'sending strings ============================\n'
+        if debug: for s in strings: print type(s), to_bytes(s)
         strings = self.normalize_accents(strings)
         strings = self.strip_extra_spaces(strings)
 
@@ -295,11 +294,11 @@ class GreekNormalizer(object):
                             u'X': u'Χ',  # y
                             u'w': u'ω',  # y
                             u'?': u';'}
-                    print 'Latin character found in Greek string: '
-                    print mymatch.group(), 'in', string
+                    if debug: print 'Latin character found in Greek string: '
+                    if debug: print mymatch.group(), 'in', string
                     newstring = multiple_replace(string, subs)
-                    print 'replaced with Greek characters:'
-                    print newstring
+                    if debug: print 'replaced with Greek characters:'
+                    if debug: print newstring
                 newstrings.append(newstring)
             if len(newstrings) == 1:
                 newstrings = newstrings[0]
@@ -437,7 +436,6 @@ class GreekNormalizer(object):
                             mystring = multiple_replace(mystring, key_vals)
                         else:
                             if debug: print 'no matching letters'
-                            pass
                     else:
                         if debug: print to_bytes(mystring), 'exempt'
                 else:
