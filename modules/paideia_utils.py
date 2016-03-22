@@ -15,7 +15,7 @@ from gluon import current, SQLFORM, Field, BEAUTIFY, IS_IN_DB
 from gluon.storage import Storage
 from gluon.storage import StorageList
 from itertools import chain
-from kitchen.text.converters import to_unicode
+from kitchen.text.converters import to_unicode, to_bytes
 from plugin_utils import makeutf8, multiple_replace  # encodeutf8,
 #from pprint import pprint
 import re
@@ -243,6 +243,10 @@ class GreekNormalizer(object):
 
         strings = self.convert_latin_chars(strings)
         print 'about to normalize accents'
+        print 'sending strings ============================\n'
+        for s in strings:
+            print type(s)
+            print to_bytes(s)
         strings = self.normalize_accents(strings)
         strings = self.strip_extra_spaces(strings)
 
@@ -328,11 +332,12 @@ class GreekNormalizer(object):
         also handle a single string.
 
         """
+        debug = False
         instrings = [strings] if not isinstance(strings, list) else strings
 
         outstrings = []
         for string in instrings:
-            substrs = unicode(makeutf8(string)).split(' ')
+            substrs = to_unicode(string).split(' ')
 
             equivs = {u'α': [u'ά', u'ὰ', u'ᾶ'],
                       u'Α': [u'Ά', u'Ὰ'],  # caps
@@ -406,17 +411,20 @@ class GreekNormalizer(object):
             for mystring in substrs:
                 latin_chars = re.compile(r'^[a-zA-Z\s\.,:;\'\"\?]+$', re.U)
                 islatin = re.match(latin_chars, mystring)
-                print 'islatin:', islatin
+                if debug: print 'substring:', to_bytes(mystring)
+                if debug: print 'islatin:', islatin
                 if not islatin:
-                    mystring = unicode(makeutf8(mystring)).strip()
+                    mystring = mystring.strip()
+                    if debug: print '1:', to_bytes(mystring)
                     mystring = mystring.replace(u'ί', u'ί')  # avoid q-i iota on windows
+                    if debug: print '2:', to_bytes(mystring)
 
                     if mystring not in exempt:
                         # below print statement causes UnicodeEncodeError on live server
                         # print mystring, 'not exempt', type(mystring)
-                        matching_letters = re.findall(makeutf8(restr), mystring,
+                        matching_letters = re.findall(to_unicode(restr), mystring,
                                                     re.I | re.U)
-                        print 'matching letters:', matching_letters
+                        if debug: print 'matching letters:', to_bytes(matching_letters)
                         if matching_letters:
 
                             edict = {k: v for k, v in equivs.iteritems()
@@ -425,28 +433,24 @@ class GreekNormalizer(object):
                                         for ltr in list(chain(*edict.values()))
                                         for k in edict.keys()
                                         if ltr in edict[k]}
-                            print key_vals
+                            if debug: print key_vals
                             mystring = multiple_replace(mystring, key_vals)
-                            '''
-                            for k, v in edict.iteritems():
-                                myvals = [l for l in v if makeutf8(l) in matching_letters]
-                                for val in myvals:
-                                    mystring = mystring.replace(val, k)
-                            '''
                         else:
+                            if debug: print 'no matching letters'
                             pass
                     else:
-                        # below print statement causes UnicodeEncodeError on live server
-                        # print mystring, 'exempt'
-                        pass
+                        if debug: print to_bytes(mystring), 'exempt'
                 else:
-                    print 'no Greek'
+                    if debug: print 'no Greek'
                 newstrings.append(mystring)
+            if debug: print '3'
             newstring = ' '.join(newstrings)
+            if debug: print '4'
             outstrings.append(newstring)
+            if debug: print '5'
         if len(outstrings) == 1:
             outstrings = outstrings[0]
-        print 'returning', outstrings
+        if debug: print 'returning', to_bytes(outstrings)
         return outstrings
 
 
