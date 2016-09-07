@@ -1,18 +1,20 @@
+#! /usr/bin/python2.7
 # coding: utf8
 
+
+from paideia_stats import Stats
+from paideia_utils import GreekNormalizer
+# from pprint import pprint
+# from plugin_utils import islist
+#from paideia_bugs import Bug
+import datetime
+from dateutil.parser import parse
 if 0:
     from gluon import current, Auth, SQLFORM, URL, Field, IS_DATE
     from gluon.dal import DAL
     auth = Auth()
     db = DAL()
     request, response = current.request, current.response
-
-from paideia_stats import Stats
-# from pprint import pprint
-# from plugin_utils import islist
-#from paideia_bugs import Bug
-import datetime
-from dateutil.parser import parse
 
 
 @auth.requires_membership(role='administrators')
@@ -30,38 +32,46 @@ def vocabulary():
     sets = list(set([s.tags.tag_position for s in lemmas]))
     myprog = db.tag_progress(db.tag_progress.name == auth.user_id)
     mylevel = myprog.latest_new if myprog else 1
+    mynorm = GreekNormalizer()
+    total_count = len(lemmas)
 
+    mylemmas = []
     for l in lemmas:
-        lid = l.lemmas.id
+        if l['tags']['tag_position'] <= mylevel:
+            lid = l.lemmas.id
 
-        # Get number of paths and steps using the lemma
-        mysteps = db(db.steps.lemmas.contains(lid)).select()
-        if mysteps:
-            stepids = [s.id for s in mysteps]
-            mypaths = db(db.paths.steps.contains(stepids)).select()
-        l['lemmas']['stepcount'] = len(mysteps) if mysteps else 0
-        l['lemmas']['pathcount'] = len(mypaths) if 'mypaths' in locals() and mypaths else 0
+            # Get normalized form of lemma (i.e., without caps or accents)
+            accented_form = l['lemmas']['lemma']
+            normalized = mynorm.normalize(accented_form)
+            l['lemmas']['normalized'] = normalized
 
-        # Assemble string with principle parts and/or irregular forms
-        myparts = ''
-        if l['lemmas']['future'] and l['lemmas']['future'] not in ['None', 'none']:
-            partnames = [l['lemmas']['future'], l['lemmas']['aorist_active'],
-                         l['lemmas']['perfect_active'], l['lemmas']['perfect_passive'],
-                         l['lemmas']['aorist_passive']]
-            myparts = '{}, {}, {}, {}, {}'.format(*partnames)
-        elif l['lemmas']['genitive_singular'] \
-                and l['lemmas']['genitive_singular'] not in ['None', 'none']:
-            myparts = 'gen. {}'.format(l['lemmas']['genitive_singular'])
+            # Get number of paths and steps using the lemma
+            mysteps = db(db.steps.lemmas.contains(lid)).select()
+            if mysteps:
+                stepids = [s.id for s in mysteps]
+                mypaths = db(db.paths.steps.contains(stepids)).select()
+            l['lemmas']['stepcount'] = len(mysteps) if mysteps else 0
+            l['lemmas']['pathcount'] = len(mypaths) if 'mypaths' in locals() and mypaths else 0
 
-        if l['lemmas']['other_irregular'] \
-                and l['lemmas']['other_irregular'] not in ['None', 'none']:
-            if myparts == '':
-                myparts += '{}'.format(l['lemmas']['other_irregular'])
-            else:
-                myparts += ' ({})'.format(l['lemmas']['other_irregular'])
-        l['lemmas']['myparts'] = myparts
+            # Assemble string with principle parts and/or irregular forms
+            myparts = ''
+            if l['lemmas']['future'] and l['lemmas']['future'] not in ['None', 'none']:
+                partnames = [l['lemmas']['future'], l['lemmas']['aorist_active'],
+                            l['lemmas']['perfect_active'], l['lemmas']['perfect_passive'],
+                            l['lemmas']['aorist_passive']]
+                myparts = '{}, {}, {}, {}, {}'.format(*partnames)
+            elif l['lemmas']['genitive_singular'] \
+                    and l['lemmas']['genitive_singular'] not in ['None', 'none']:
+                myparts = 'gen. {}'.format(l['lemmas']['genitive_singular'])
 
-    mylemmas = [l for l in lemmas if l['tags']['tag_position'] <= mylevel]
+            if l['lemmas']['other_irregular'] \
+                    and l['lemmas']['other_irregular'] not in ['None', 'none']:
+                if myparts == '':
+                    myparts += '{}'.format(l['lemmas']['other_irregular'])
+                else:
+                    myparts += ' ({})'.format(l['lemmas']['other_irregular'])
+            l['lemmas']['myparts'] = myparts
+            mylemmas.append(l)
 
     # Include files for Datatables jquery plugin and bootstrap css styling
     response.files.append("https://cdn.datatables.net/r/bs/jq-2.1.4,jszip-2.5.0,"
@@ -73,7 +83,7 @@ def vocabulary():
                           "b-html5-1.0.3,b-print-1.0.3,fc-3.1.0,r-1.0.7,sc-1.3.0,"
                           "se-1.0.1/datatables.min.js")
 
-    return {'lemmas': lemmas,
+    return {'total_count': total_count,
             'mylemmas': mylemmas,
             'mylevel': mylevel}
 

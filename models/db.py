@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 # this file is released under public domain and you can use without limitations
 
-if 0:
-    from gluon import DAL, URL, Field, SQLFORM
-
 import logging
 import uuid  # or gluon.utils.web2py_uuid ?
 import datetime
@@ -13,6 +10,8 @@ from gluon.tools import Recaptcha, Auth, Mail, Crud, Service, PluginManager
 from gluon.tools import IS_IN_SET
 from gluon.globals import current
 import bootstrap3 as bs3  # is needed here even though not used
+if 0:
+    from gluon import DAL, URL, Field, SQLFORM
 
 response = current.response
 request = current.request
@@ -210,11 +209,11 @@ auth.settings.registration_requires_verification = False
 auth.settings.registration_requires_approval = False
 auth.messages.verify_email = 'Click on the link http://' \
     + request.env.http_host + URL('default', 'user', args=['verify_email']) \
-    + '/%(key)s to verify your email'
+    + '?key=%(key)s to verify your email'
 auth.settings.reset_password_requires_verification = True
 auth.messages.reset_password = 'Click on the link http://' \
     + request.env.http_host + URL('default', 'user', args=['reset_password'])\
-    + '/%(key)s to reset your password'
+    + '?key=%(key)s to reset your password'
 
 # -------------------------------------------------------------
 # enable recaptcha anti-spam for selected actions
