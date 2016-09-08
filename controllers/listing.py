@@ -13,49 +13,61 @@ from paideia_stats import make_classlist, make_unregistered_list
 # from dateutil.parser import parse
 # from operator import itemgetter
 if 0:
-    from gluon import INPUT, A, URL, SPAN, SELECT, OPTION, FORM
-    from gluon import TABLE, TR, TD
+    from gluon import INPUT, A, URL, SPAN, SELECT, OPTION, FORM, BUTTON
+    from gluon import TABLE, TR, TD, CAT
     from gluon import current, redirect
     db, auth, session = current.db, current.auth, current.session
     request, response = current.request, current.response
 
 
-# @auth.requires_membership(138)
+@auth.requires(auth.has_membership('instructors') |
+               auth.has_membership('administrators'))
 def user():
     # TODO: magic number here -- admin group is 1
-    admins = db(db.auth_membership.group_id == 1
-                ).select(db.auth_membership.user_id).as_list()
-    admins = [a['user_id'] for a in admins]
-    admins.append(auth.user_id)
-    if auth.user_id in admins:
+    # admins = db(db.auth_membership.group_id == 1
+                # ).select(db.auth_membership.user_id).as_list()
+    # admins = [a['user_id'] for a in admins]
+    if auth.has_membership('administrators'):
         myclasses = db(db.classes.instructor != None).select()
     else:
         myclasses = db(db.classes.instructor == auth.user_id
                        ).select()
-    myclasses = myclasses.as_list()
-    print type(myclasses[0]), myclasses[0]
-    myclasses = sorted(myclasses,
-                       key=lambda x: (x['academic_year'], x['term']),
-                       reverse=True)
-    print 'myclasses:', len(myclasses)
 
-    chooser = FORM(SELECT(_name='agid',
-                          _id='class-chooser',
-                          *[OPTION('{} {}, section {}, {}'.format(m['academic_year'],
-                                                         m['term'],
-                                                         m['course_section'],
-                                                         m['institution']),
-                                   _value=m['id'])
-                            for m in myclasses
-                            ],
-                          _class='form-control'
-                          ),
-                    _id='class_chooser')
-    chooser[0].append(OPTION('Currently unenrolled but active', _value='unregistered-active'))
-    chooser[0].append(OPTION('All unenrolled users', _value='unregistered-inactive'))
-    chooser.append(INPUT(_type='submit', _id='chooser_submit'))
+    if len(myclasses):
+        myclasses = myclasses.as_list()
+        print type(myclasses[0]), myclasses[0]
+        myclasses = sorted(myclasses,
+                        key=lambda x: (x['academic_year'], x['term']),
+                        reverse=True)
+        print 'myclasses:', len(myclasses)
 
-    return {'chooser': chooser, 'classid': myclasses[0]['id']}
+        chooser = CAT(SELECT(_name='agid',
+                             _id='class-chooser',
+                             *[OPTION('{} {}, section {}, {}'
+                                      ''.format(m['academic_year'],
+                                                m['term'],
+                                                m['course_section'],
+                                                m['institution']),
+                                      _value=m['id'])
+                               for m in myclasses
+                               ],
+                              _class='form-control'
+                             ),
+                      )
+        if auth.has_membership('administrators'):
+            chooser[0].append(OPTION('Currently unenrolled but active',
+                                     _value='unregistered-active'))
+            chooser[0].append(OPTION('All unenrolled users',
+                                     _value='unregistered-inactive'))
+        mysubmit = BUTTON('Get class list', _type='submit',
+                          _id='chooser_submit',
+                          _class='btn btn-default')
+
+        return {'chooser': chooser,
+                'classid': myclasses[0]['id'],
+                'submit': mysubmit}
+    else:
+        return {'classid': None}
 
 
 @auth.requires_membership(role='administrators')

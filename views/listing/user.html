@@ -2,12 +2,15 @@
 
 <h2>Class Lists</h2>
 
+{{if classid:}}
 <form class='form-inline' id='class-chooser-form'>
     <div class="form-group">
         <label for="class-chooser">Select a class to view</label>
         {{=chooser}}
     </div>
+    {{=submit}}
 </form>
+{{pass}}
 
 <script type="text/javascript">
 var userlist_cid = '';
@@ -25,9 +28,15 @@ var refresh = function(){
  $('#chooser_submit').click(refresh);
 </script>
 
+{{if classid:}}
 <div class='user_list'>
     {{=LOAD('listing', 'userlist.load', vars={'agid': classid}, ajax=False)}}
 </div>
-{{#print 'done rendering view'}}
+{{else:}}
+<div class="user_list">
+    <p>You do not yet have any classes associated with your instructor's
+    account.</p>
+</div>
+{{pass}}
 
 
