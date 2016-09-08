@@ -6,21 +6,21 @@ TODO: rationalize this controller organization
 '''
 #JOB ... this line is not liked by python ... oct 21, 2014
 #from test.pickletester import myclasses
+import datetime
+import traceback
+from paideia_stats import make_classlist, make_unregistered_list
+# from pprint import pprint
+# from dateutil.parser import parse
+# from operator import itemgetter
 if 0:
-    from gluon import INPUT, UL, LI, A, URL, SPAN, SELECT, OPTION, FORM
+    from gluon import INPUT, A, URL, SPAN, SELECT, OPTION, FORM
     from gluon import TABLE, TR, TD
     from gluon import current, redirect
     db, auth, session = current.db, current.auth, current.session
     request, response = current.request, current.response
-import datetime
-import traceback
-from paideia_stats import make_classlist, make_unregistered_list
-from pprint import pprint
-from dateutil.parser import parse
-from operator import itemgetter
 
 
-@auth.requires_membership(role='administrators')
+# @auth.requires_membership(138)
 def user():
     # TODO: magic number here -- admin group is 1
     admins = db(db.auth_membership.group_id == 1
@@ -30,26 +30,32 @@ def user():
     if auth.user_id in admins:
         myclasses = db(db.classes.instructor != None).select()
     else:
-        myclasses = db(db.classes.instructor == auth.user_id).select()
+        myclasses = db(db.classes.instructor == auth.user_id
+                       ).select()
     myclasses = myclasses.as_list()
-    dated_classes = [m for m in myclasses if m['start_date']]
-    dated_classes.sort(key=itemgetter('start_date'))
+    print type(myclasses[0]), myclasses[0]
+    myclasses = sorted(myclasses,
+                       key=lambda x: (x['academic_year'], x['term']),
+                       reverse=True)
+    print 'myclasses:', len(myclasses)
 
     chooser = FORM(SELECT(_name='agid',
-                          *[OPTION('{} {} {}, {}'.format(m['academic_year'],
+                          _id='class-chooser',
+                          *[OPTION('{} {}, section {}, {}'.format(m['academic_year'],
                                                          m['term'],
                                                          m['course_section'],
                                                          m['institution']),
                                    _value=m['id'])
-                            for m in sorted(myclasses, reverse=True)
-                            ]
+                            for m in myclasses
+                            ],
+                          _class='form-control'
                           ),
                     _id='class_chooser')
     chooser[0].append(OPTION('Currently unenrolled but active', _value='unregistered-active'))
     chooser[0].append(OPTION('All unenrolled users', _value='unregistered-inactive'))
     chooser.append(INPUT(_type='submit', _id='chooser_submit'))
 
-    return {'chooser': chooser, 'classid': myclasses[-1]['id']}
+    return {'chooser': chooser, 'classid': myclasses[0]['id']}
 
 
 @auth.requires_membership(role='administrators')
@@ -133,7 +139,7 @@ def add_user():
     print 'add_user: value is', users
 
 
-@auth.requires_membership(role='administrators')
+@auth.requires_membership('instructors', 'administrators')
 def remove_user():
     '''
     Removes a user from membership in a course section and refreshes the list.
@@ -152,7 +158,9 @@ def remove_user():
     q.delete()
     redirect(URL('userlist.load', vars={'value': classid}))
 
-@auth.requires_membership(role='administrators')
+
+@auth.requires(auth.has_membership('instructors') |
+               auth.has_membership('administrators'))
 def userlist():
     print 'agid', request.vars.agid, type(request.vars.agid)
     # if isinstance(request.vars.agid, (int, long)):  # selecting class
@@ -163,7 +171,7 @@ def userlist():
         except:  # choose a class to display as default
             print traceback.format_exc(5)
             classrow = db(db.classes.instructor == auth.user_id
-                            ).select().last().as_dict()
+                          ).select().last().as_dict()
         target = classrow['paths_per_day']
         freq = classrow['days_per_week']
         title = '{} {} {}, {}'.format(classrow['academic_year'], classrow['term'],
@@ -193,7 +201,7 @@ def userlist():
                                                           (db.attempt_log.dt_attempted >=
                                                            (datetime.datetime.now() - datetime.timedelta(days=90))
                                                            )
-                                                          ))
+                                                     ))
         elif request.vars.agid == 'unregistered-inactive':
             title = 'All users not currently enrolled in a course.'
             users = all
@@ -250,6 +258,6 @@ def slides():
     """
     # TODO: re-implement this flag to force users to view new slide decks
     #if auth.is_logged_in():
-        #if session.walk and 'view_slides' in session.walk:
-            #del session.walk['view_slides']
+    #    if session.walk and 'view_slides' in session.walk:
+    #        del session.walk['view_slides']
     return dict()

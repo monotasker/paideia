@@ -96,7 +96,6 @@ for uid, infodict in userlist.iteritems():
 tbl.append(row)
 pass
 }}
-{{=H3(title)}}
 {{=tbl}}
 {{=modal[1]}}
 

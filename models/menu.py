@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
+from datetime import datetime
+# import traceback
 if 0:
     from gluon import current, URL, SPAN, XML, A, I
     response, request, T = current.response, current.request, current.t
     auth = current.auth
-from datetime import datetime
-import traceback
 
 """
 This file includes the menu content along with other meta content and global
@@ -194,4 +194,23 @@ if auth.has_membership('administrators', auth.user_id) or auth.is_impersonating(
             (SPAN(I(_class='fa fa-database fa-fw'), T(' Database'), _class='icon-sitemap'),
              False, URL('appadmin', 'index')),
             ])
+          ]
+
+if auth.has_membership('instructors', auth.user_id) or \
+        auth.has_membership('administrators', auth.user_id) or \
+        auth.is_impersonating():
+    m += [(SPAN(I(_class='fa fa-cog'), T(' Instructors')), False, None,
+            [(SPAN(I(_class='fa fa-users fa-fw'), T(' Class lists'), _class='icon-group'),
+               False, URL('listing', 'user')),
+             (SPAN(I(_class='fa fa-warning fa-fw'), T(' New student queries'), _class='icon-warning-sign'),
+               False, URL('editing', 'listing.html',
+                          args=['bugs'],
+                          vars={'restrictor': {'bug_status': 5}})),
+             (SPAN(I(_class='fa fa-bug fa-fw'), T(' All student queries'), _class='icon-frown'),
+               False, URL('editing', 'listing.html',
+                          args=['bugs'])),
+             (SPAN(I(_class='fa fa-list fa-fw'), T(' All student step attempts'), _class='icon-list-alt'),
+               False, URL('reporting', 'attempts')),
+             ]
+           )
           ]
