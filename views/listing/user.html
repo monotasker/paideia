@@ -1,6 +1,13 @@
 {{extend 'layout.html'}}
 
-{{=chooser}}
+<h2>Class Lists</h2>
+
+<form class='form-inline' id='class-chooser-form'>
+    <div class="form-group">
+        <label for="class-chooser">Select a class to view</label>
+        {{=chooser}}
+    </div>
+</form>
 
 <script type="text/javascript">
 var userlist_cid = '';
@@ -15,7 +22,7 @@ var refresh = function(){
 	}
 	return false;
 }
- $('#chooser_submit').click(refresh);  
+ $('#chooser_submit').click(refresh);
 </script>
 
 <div class='user_list'>

@@ -9,7 +9,7 @@ from pytz import timezone, utc
 from gluon import current, DIV, SPAN, A, URL, UL, LI, B, I
 from gluon import TAG
 from plugin_utils import make_json, load_json
-from pprint import pprint
+# from pprint import pprint
 # from paideia import Categorizer
 # from gluon.sqlhtml import SQLFORM  # , Field
 # from gluon.validators import IS_DATE
@@ -1412,16 +1412,20 @@ def make_classlist(member_sel, users, start_date, end_date, target, classrow):
 
     return userlist
 
+
 def make_unregistered_list(users):
     """
     """
+    print 'make_unregistered_list'
     db = current.db
     userlist = {}
     for user in users:
-        tp = db(db.tag_progress.name == user.id).select().first()
+        print 'user id:', user.auth_user.id
+        tp = db(db.tag_progress.name == user.auth_user.id).select().first()
         tp_id = tp.id if tp else None
-        currset = get_set_at_date(user.id, datetime.datetime.now())
-        userlist[user.id] = {'name': '{}, {}'.format(user.last_name, user.first_name),
+        currset = get_set_at_date(user.auth_user.id, datetime.datetime.now())
+        userlist[user.auth_user.id] = {'name': '{}, {}'.format(user.auth_user.last_name,
+                                                               user.auth_user.first_name),
                              'counts': None,
                              'current_set': currset,
                              'starting_set': None,
