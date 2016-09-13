@@ -9299,6 +9299,11 @@ body.user #page .paideia_monthcal table.month td span.success {
   font-size: 21px;
   color: #96BC44;
 }
+body.profile #page div.attempts-modal div#attempts-modal-body,
+body.user #page div.attempts-modal div#attempts-modal-body {
+  overflow: auto;
+  height: 400px;
+}
 /*-- util -----------------------------------------------*/
 body.util div#masthead {
   display: none;
