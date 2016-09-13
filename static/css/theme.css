@@ -8936,8 +8936,28 @@ body.exploring main #page .responder table td.w2p_fl {
   display: none;
 }
 /*-- reporting --------------------------------------------------*/
+body.reporting {
+  /*h2                              {margin-top: 2em;*/
+  /*}*/
+}
 body.reporting #masthead {
   display: none;
+}
+body.reporting #vocab_scope_form {
+  width: 360px;
+}
+body.reporting #vocab_scope_form .form-group {
+  margin-left: 0;
+}
+body.reporting #search_instructions_btn {
+  position: absolute;
+  right: 1em;
+  top: 10em;
+  z-index: 999;
+  cursor: pointer;
+}
+body.reporting .popover p {
+  text-align: left;
 }
 /*-- listing --------------------------------------------------*/
 body.listing #masthead {

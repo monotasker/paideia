@@ -1,0 +1,120 @@
+{{
+from itertools import chain
+from plugin_widgets import POPOVER
+}}
+
+<p>So far you have reached badge set {{=mylevel}} and been introduced to
+{{=len(mylemmas)}} words from the total Paideia vocabulary of {{=total_count}}
+Greek words. If any of the words look unfamiliar, look again at the slides for the related badge set.</p>
+
+<form class="form-horizontal" id="vocab_scope_form">
+    <div class="form-group">
+        <div class="input-group">
+            <span class="input-group-addon">Viewing</span>
+            <select class="form-control" name="vocab_scope_selector" id="vocab_scope_selector">
+                {{if all_vocab:}}
+                <option value="1">all vocabulary</option>
+                <option value="0">vocabulary I have learned so far</option>
+                {{else:}}
+                <option value="0">vocabulary I have learned so far</option>
+                <option value="1">all vocabulary</option>
+                {{pass}}
+            </select>
+        </div>
+    </div>
+</form>
+
+{{
+p_args = {'classnames': 'search-instructions-popover text-info',
+            'title': 'Searching for vocabulary',
+            'id': 'search_instructions_btn'}
+
+p_text = CAT(P('Note that you don\'t need to include the accent when searching '
+               'for a word.'),
+             P('To browse the list alphabetically, just click on the "Word" '
+               'column heading.'),
+             P('To search for vocab from badge set 2, type "set 2" (including the '
+               'quotation marks) in the search box.'),
+             P('To search for vocab from the "first words" badge, type "first words" '
+               '(including the quotation marks) in the search box.')
+             )
+}}
+{{=POPOVER().widget(CAT(I(_class="fa fa-question-circle"), SPAN('  Search help')),
+                    p_text, **p_args)}}
+
+<div class="vocab-list">
+<table id="vocab-table" class="vocab-table table table-hover table-condensed">
+  <thead>
+  <tr>
+    <th>Word</th>
+    <th>Glosses</th>
+    <th>Other forms</th>
+    <th>Badge set</th>
+    <th>In badge</th>
+    <th>Times in NT</th>
+    <th>In paths</th>
+    <th>In steps</th>
+    <th>Normalized form</th>
+  </tr>
+  </thead>
+  {{for word in mylemmas:}}
+    {{lemclass = 'reached' if word['tags']['tag_position'] <= mylevel else ''}}
+
+    <tr class="{{=lemclass}}">
+        <td>{{=word['lemmas']['lemma']}}</td>
+        <td>{{=', '.join(word['lemmas']['glosses'])}}</td>
+        <td>{{=word['lemmas']['myparts']}}</td>
+        <td>set {{=word['tags']['tag_position']}}</td>
+        <td>{{=word['tags']['tag']}}</td>
+        <td>{{=word['lemmas']['times_in_nt'] or '???'}}</td>
+        <td>{{=word['lemmas']['pathcount']}}</td>
+        <td>{{=word['lemmas']['stepcount']}}</td>
+        <td>{{=word['lemmas']['normalized']}}</td>
+    </tr>
+  {{pass}}
+</table>
+</div>
+
+<!--# local scripts --------------------------------------------------------->
+
+<script type="text/javascript" charset="utf-8">
+
+// ========== handle popover content =============== //
+$('.popover-trigger').each(function() {
+    var $this = $(this);
+    $this.popover({html: true,
+                    animation: true,
+                    content: $this.find('.popover-content').html()});
+});
+
+// =========== handle data table ==================== //
+    var vocabtable = $('#vocab-table').DataTable({paging: false,
+                                                  scrollY: "400px",
+                                                  scrollX: true,
+                                                  renderer: "bootstrap",
+                                                  order: [ 3, "asc"],
+                                                  "columns": [
+                                                      null, // lemma
+                                                      null, // glosses
+                                                      null, // myparts
+                                                      null, // tag_position
+                                                      null, // tag
+                                                      { "searchable": false }, // times_in_nt
+                                                      { "searchable": false,
+                                                        "visible": false }, // pathcount
+                                                      { "searchable": false,
+                                                        "visible": false }, // stepcount
+                                                      { "searchable": true,
+                                                        "visible": false }, // normalized
+                                                  ],
+                                                  });
+//    new $.fn.dataTable.FixedColumns( vocabtable );
+    new $.fn.dataTable.Buttons( vocabtable, {
+        buttons: [
+            'colvis', 'print', 'excel', 'pdf',
+        ],
+    } );
+    vocabtable.buttons().container()
+        .appendTo( $('.col-sm-6:eq(0)', vocabtable.table().container() ) );
+</script>
+

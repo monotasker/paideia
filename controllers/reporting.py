@@ -23,15 +23,23 @@ def index():
     return dict(reports=reports)
 
 
-def vocabulary():
+def vocabulary_list():
     """
     """
     auth = current.auth
 
     lemmas = db(db.lemmas.first_tag == db.tags.id).select(orderby=db.tags.tag_position)
     sets = list(set([s.tags.tag_position for s in lemmas]))
-    myprog = db.tag_progress(db.tag_progress.name == auth.user_id)
-    mylevel = myprog.latest_new if myprog else 1
+    # decide whether to get all vocab or just up to user's badge set
+    if 'vocab_scope_selector' in request.vars.keys() and \
+            request.vars['vocab_scope_selector'] not in ['0', 0]:
+        print 'got', request.vars['vocab_scope_selector']
+        mylevel = 999
+        all_vocab = 1
+    else:
+        myprog = db.tag_progress(db.tag_progress.name == auth.user_id)
+        mylevel = myprog.latest_new if myprog else 1
+        all_vocab = 0
     mynorm = GreekNormalizer()
     total_count = len(lemmas)
 
@@ -73,6 +81,15 @@ def vocabulary():
             l['lemmas']['myparts'] = myparts
             mylemmas.append(l)
 
+    return {'total_count': total_count,
+            'mylemmas': mylemmas,
+            'mylevel': mylevel,
+            'all_vocab': all_vocab}
+
+
+def vocabulary():
+    """
+    """
     # Include files for Datatables jquery plugin and bootstrap css styling
     response.files.append("https://cdn.datatables.net/r/bs/jq-2.1.4,jszip-2.5.0,"
                           "pdfmake-0.1.18,dt-1.10.9,b-1.0.3,b-colvis-1.0.3,b-html5-1.0.3,"
@@ -83,9 +100,7 @@ def vocabulary():
                           "b-html5-1.0.3,b-print-1.0.3,fc-3.1.0,r-1.0.7,sc-1.3.0,"
                           "se-1.0.1/datatables.min.js")
 
-    return {'total_count': total_count,
-            'mylemmas': mylemmas,
-            'mylevel': mylevel}
+    return {'title': 'Vocabulary'}
 
 
 @auth.requires_membership(role='administrators')

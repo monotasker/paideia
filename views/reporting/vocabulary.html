@@ -1,90 +1,28 @@
 {{extend 'layout.html'}}
 
-{{from itertools import chain}}
-
 <div class="row">
     <div class="container">
         <div class="col-xs-12">
 
-<h2>Your Greek Vocabulary</h2>
-
-<p>So far you have reached badge set {{=mylevel}} and been introduced to
-{{=len(mylemmas)}} words from the total Paideia vocabulary of {{=total_count}}
-Greek words.</p>
-
-<p>Note that you don't need to include the accent when searching for
-a word. To browse the list alphabetically, just click on the "Word" column
-heading.</p>
-
-<p>If any of the words look unfamiliar, look again at the slides for the related
-badge set.</p>
-
-<div class="vocab-list">
-<table id="vocab-table" class="vocab-table table table-hover table-condensed">
-  <thead>
-  <tr>
-    <th>Word</th>
-    <th>Glosses</th>
-    <th>Other forms</th>
-    <th>Badge set</th>
-    <th>In badge</th>
-    <th>Times in NT</th>
-    <th>In paths</th>
-    <th>In steps</th>
-    <th>Normalized form</th>
-  </tr>
-  </thead>
-  {{for word in mylemmas:}}
-    {{lemclass = 'reached' if word['tags']['tag_position'] <= mylevel else ''}}
-
-    <tr class="{{=lemclass}}">
-        <td>{{=word['lemmas']['lemma']}}</td>
-        <td>{{=', '.join(word['lemmas']['glosses'])}}</td>
-        <td>{{=word['lemmas']['myparts']}}</td>
-        <td>set {{=word['tags']['tag_position']}}</td>
-        <td>{{=word['tags']['tag']}}</td>
-        <td>{{=word['lemmas']['times_in_nt'] or '???'}}</td>
-        <td>{{=word['lemmas']['pathcount']}}</td>
-        <td>{{=word['lemmas']['stepcount']}}</td>
-        <td>{{=word['lemmas']['normalized']}}</td>
-    </tr>
-  {{pass}}
-</table>
+            <h2>Your Greek Vocabulary</h2>
+                <div id="vocabulary_list_frame">
+                    {{=LOAD('reporting','vocabulary_list.load',ajax=True,
+                            content=I(_class="fa fa-spinner fa-pulse fa-3x fa-fw",
+                            id='vocabulary_list_frame'))}}
+                </div>
+        </div>
+    </div>
 </div>
 
-<!--# local scripts --------------------------------------------------------->
+<script>
+// ========== handle scope selection widget ======== //
 
-<script type="text/javascript" charset="utf-8">
-    var vocabtable = $('#vocab-table').DataTable({paging: false,
-                                                  scrollY: "400px",
-                                                  scrollX: true,
-                                                  renderer: "bootstrap",
-                                                  order: [ 3, "asc"],
-                                                  "columns": [
-                                                      null, // lemma
-                                                      null, // glosses
-                                                      null, // myparts
-                                                      null, // tag_position
-                                                      null, // tag
-                                                      { "searchable": false }, // times_in_nt
-                                                      { "searchable": false,
-                                                        "visible": false }, // pathcount
-                                                      { "searchable": false,
-                                                        "visible": false }, // stepcount
-                                                      { "searchable": true,
-                                                        "visible": false }, // normalized
-                                                  ],
-                                                  });
-//    new $.fn.dataTable.FixedColumns( vocabtable );
-    new $.fn.dataTable.Buttons( vocabtable, {
-        buttons: [
-            'colvis', 'print', 'excel', 'pdf', 
-        ],
-    } );
-    vocabtable.buttons().container()
-        .appendTo( $('.col-sm-6:eq(0)', vocabtable.table().container() ) );
+$(document).on('change', '#vocab_scope_selector', function(){
+    console.log($(this).val());
+    var spinner = '{{=I(_class="fa fa-spinner fa-pulse fa-3x fa-fw")}}';
+    $('#vocab-table_wrapper').html(spinner);
+    var myurl = '{{=URL('reporting', 'vocabulary_list.load')}}';
+    ajax(myurl, ['vocab_scope_selector'], 'vocabulary_list_frame');
+});
+
 </script>
-
-</div>
-</div>
-</div>
