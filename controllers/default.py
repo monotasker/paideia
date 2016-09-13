@@ -1,19 +1,19 @@
 #! /usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
-from dateutil.parser import parse
-import HTMLParser
+import datetime
+# from dateutil.parser import parse
+# import HTMLParser
 from paideia_stats import Stats, get_set_at_date, get_term_bounds, get_current_class
 from paideia_bugs import Bug
 # import traceback
 # from paideia_utils import send_error
-from plugin_utils import make_json
-from pprint import pprint
+# from plugin_utils import make_json
+# from pprint import pprint
 # from gluon.tools import prettydate
 from gluon.serializers import json
-
 if 0:
-    from gluon import current, cache, URL
+    from gluon import current, cache, URL, TABLE, TR, TD, TH
     from gluon.tools import Auth
     from gluon.dal import DAL
     db = DAL()
@@ -21,8 +21,6 @@ if 0:
     response, session = current.response, current.session
     T, service = current.T, current.service
     request = current.request
-
-import datetime
 
 mail = current.mail
 
@@ -109,24 +107,41 @@ def info():
         default/user.html
         reporting/user.html
 
-    Returns a dict with the following keys:
-
-    'the_name':             User's name from auth.user as lastname, firstname (str)
-    'tz':                   User's time zone from auth.user (extended in db.py)
-    'email':                User's email (str)
-    'cal':                  html calendar with user path stats (from stats.monthcal)
-    'blist':                list of User's bug reports
-    'max_set':              Badge set reached by user (int)
-    'goal':
-    'badge_levels':         Dictionary with badle levels (int) as keys and
-                            a list of badge names (or tag: int) as each value.
-    'badge_table_data':
-    'badge_set_milestones': List of 'upgrades' of the highest badge set and
-                            their dates
-    'answer_counts':        List of counts of right and wrong answers for each
-                            active day
-
+    Returns:
+        dict: with the following keys:
+            the_name (str):             User's name from auth.user as lastname,
+                                            firstname
+            user_id(int):               The requested user's id.
+            tz(str??):                  User's time zone from auth.user
+                                            (extended in db.py)
+            email(str):                 User's email
+            starting_set(int):          badge set at which the user began his/her
+                                            current course section
+            end_date(str??):            ending date for user's current course
+                                            section
+            cal(html helper obj):       html calendar with user path stats
+                                            (from Stats.monthcal)
+            blist(list):                list of User's bug reports
+            max_set(int):               Furthest badge set reached to date by
+                                            user (from Stats.max)
+            badge_levels(dict):         Dictionary with badle levels (int) as
+                                            keys and a list of badge names (or
+                                            tag: int) as each value.
+            badge_table_data(list):     A list of dictionaries with info on user
+                                            badge progress (from
+                                            Stats.active_tags)
+            badge_set_milestones(list): List of 'upgrades' of the highest badge
+                                            set and their dates
+            answer_counts(list):        List of counts of right and wrong
+                                            answers for each active day
+            chart1_data(dict):          dictionary of data to build stats chart
+                                            in view (from get_chart1_data)
+            reviewing_set():            session.set_review,
+            badge_set_dict():           badge_set_dict
     """
+    debug = True
+    if debug: print '==================================='
+    if debug: print 'starting controller default.info'
     # Allow passing explicit user but default to current user
     if 'id' in request.vars:
         user = db.auth_user[request.vars['id']]
@@ -135,13 +150,14 @@ def info():
 
     stats = Stats(user.id, cache=cache)
     now = datetime.datetime.utcnow()
+    if debug: print 'now is', now
 
     # get user's current course
     myc = get_current_class(user.id, datetime.datetime.utcnow())
-    print '==================================='
-    print 'myc is', myc
+    if debug: print 'myc is', myc
 
     # tab1
+
     name = stats.get_name()
     tz = user.time_zone
     email = user.email
@@ -222,6 +238,7 @@ def info():
             'badge_set_dict': badge_set_dict
             }
 
+
 def get_chart1_data_json():
     '''
     Wrapper for get_chart1_data() to allow getting a json-formatted return val.
@@ -233,12 +250,16 @@ def get_chart1_data_json():
     chart1_data = get_chart1_data(user_id=user_id, set=set, tag=tag)
     return json(chart1_data['chart1_data'])
 
+
 def get_chart1_data(user_id=None, set=None, tag=None):
     '''
     Fetch raw data to present in first user profile chart.
 
     This function is isolated so that it can be called directly from ajax
     controls on the chart itself, as well as programmatically from info().
+
+    Returns:
+        dict:
 
     '''
     # def milliseconds(dt):
@@ -261,21 +282,22 @@ def get_chart1_data(user_id=None, set=None, tag=None):
                                                  'y0': dict['right'],
                                                  'y1': dict['right'] + dict['wrong']}
                                                 ],
-                                          'ids': dict['ids']
-                                          } for dict in answer_counts],
-                    # above includes y values for stacked bar graph
-                    # and 'ids' for modal presentation of daily attempts
-                    }
+                                         'ids': dict['ids']
+                                         } for dict in answer_counts],
+                   # above includes y values for stacked bar graph
+                   # and 'ids' for modal presentation of daily attempts
+                   }
 
     return {'chart1_data': chart1_data,
             'badge_set_milestones': badge_set_milestones,
             'answer_counts': answer_counts}
 
+
 def get_day_attempts():
     ids = request.vars['ids']
     ids = ids.split(',')
     myrows = db((db.attempt_log.id.belongs(ids)) &
-                (db.attempt_log.step == db.steps.id)).select();
+                (db.attempt_log.step == db.steps.id)).select()
     attempt_list = TABLE(TR(TH('Prompt'), TH('My Response'), TH('Score')),
                          _class='table')
     for row in myrows:
@@ -284,6 +306,7 @@ def get_day_attempts():
                                TD(row.attempt_log.user_response, _class=myclass),
                                TD(row.attempt_log.score, _class=myclass)))
     return attempt_list
+
 
 def set_review_mode():
     try:

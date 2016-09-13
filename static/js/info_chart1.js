@@ -63,7 +63,7 @@ function showChart1(my_raw_data, update_url, user_id) {
                  .enter().append('g')
                     .attr('class', 'g bar stack')
                     .attr('transform', function(d) {
-                                            return "translate(" + x(d.date) + ",0)" });
+                                            return "translate(" + (x(d.date) - x.rangeBand()/2) + ",0)" });
 
         var focus_rects = focus_bar.selectAll('rect')
                         .data(function(d) { return d.ys; })
@@ -82,7 +82,7 @@ function showChart1(my_raw_data, update_url, user_id) {
                  .enter().append('g')
                     .attr('class', 'g bar stack')
                     .attr('transform', function(d) {
-                                            return "translate(" + x(d.date) + ",0)" });
+                                            return "translate(" + (x(d.date) - x.rangeBand()/2) + ",0)" });
 
         var context_rects = context_bar.selectAll('rect')
                         .data(function(d) { return d.ys; })
@@ -102,8 +102,8 @@ function showChart1(my_raw_data, update_url, user_id) {
         my_x.domain(max_extent_in_days(my_time))
             .rangeBands([0, width], 0.1, 0);
         focus.selectAll('.bar.stack')
-            .attr('transform', function(d) {return "translate(" + my_time(d.date) + ",0)"; })
-            .attr('width', my_x.rangeBand());
+            .attr('transform', function(d) {return "translate(" + (my_time(d.date) - (my_x.rangeBand()/2)) + ",0)"; })
+            .attr('width', my_x.rangeBand())
         focus.selectAll('.rect')
             .attr('width', my_x.rangeBand());
         focus.selectAll('.line').attr('d', line);
@@ -160,6 +160,9 @@ function showChart1(my_raw_data, update_url, user_id) {
         navX = d3.scale.ordinal().domain(max_extent_in_days(navTime)).rangeBands([0, width], 0.1, 0),
         y2 = d3.scale.linear().domain([0, d3.max(data.badge_set_reached, function(d) { return d.set})]).rangeRound([height, 0]),
         navY2 = d3.scale.linear().domain([0, d3.max(data.badge_set_reached, function(d) { return d.set})]).rangeRound([navHeight, 0]);
+    //debugging
+    console.log(time);
+    console.log(max_extent_in_days(time));
 
     function setAxes(time, navTime, y, y2) {
         var x_axis = d3.svg.axis().scale(time).orient('bottom') //    .tickFormat(d3.time.format('%Y-%m-%d'))
