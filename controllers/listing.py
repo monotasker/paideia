@@ -88,9 +88,24 @@ def promote_user():
     if debug: print 'level2', level2
     level2.extend(old_level1)
     if debug: print 'level2', level2
+
+    # make sure no tags were missed being activated
+    all_active_tags = level2 + tp['cat3'] + tp['cat4']
+    should_be_active = db(db.tags.tag_position <= (oldrank + 1)).select()
+    missing = [t.id for t in should_be_active if t.id not in all_active_tags]
+    if debug: print 'missed activating tags:', missing
+    if missing:
+        level2.extend(missing)
+        old_level1.extend(missing)  # so badges_begun are updated
+        for tag in missing:  # create level 1 record in badges_begun
+            db(db.badges_begun.tag == tag).update(cat1=datetime.datetime.now())
+        if debug: print 'new level 2 with missed tags:', level2
+
+    # update tag_progress record
     tp.update_record(latest_new=(oldrank + 1),
                      cat1=[],
                      cat2=level2)
+    # update badges_begun records with level 2 record
     for tag in old_level1:
         db(db.badges_begun.tag == tag).update(cat2=datetime.datetime.now())
     response.flash = 'User moved ahead to set {}'.format(oldrank + 1)
