@@ -19,6 +19,11 @@ modal = MODAL('Add members', 'Add new members to this class',
 }}
 {{=modal[0]}}
 {{
+if in_process:
+    set_title = 'Current Set'
+else:
+    set_title = 'Set at course end'
+pass
 tbl = TABLE(TR(TH(),
                TH(),
                TH(),
@@ -32,7 +37,7 @@ tbl = TABLE(TR(TH(),
                TH()
                ),
             TR(TH('Name'),
-               TH('Current Set'),
+               TH(set_title),
                TH('Set at course start'),
                TH('Term Progress'),
                TH('Current Grade'),

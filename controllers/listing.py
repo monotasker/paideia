@@ -75,24 +75,26 @@ def promote_user():
     '''
     Move the specified user ahead one badge set.
     '''
+    debug = True
+    if debug: print 'starting listing/promote_user =========================='
     uid = request.vars.uid
     classid = request.vars.classid
     tp = db(db.tag_progress.name == uid).select().first()
     oldrank = tp['latest_new']
     # move remaining cat1 tags forward to cat2
     old_level1 = tp['cat1']
-    print 'old_level1', old_level1
+    if debug: print 'old_level1', old_level1
     level2 = tp['cat2']
-    print 'level2', level2
+    if debug: print 'level2', level2
     level2.extend(old_level1)
-    print 'level2', level2
+    if debug: print 'level2', level2
     tp.update_record(latest_new=(oldrank + 1),
                      cat1=[],
                      cat2=level2)
     for tag in old_level1:
         db(db.badges_begun.tag == tag).update(cat2=datetime.datetime.now())
     response.flash = 'User moved ahead to set {}'.format(oldrank + 1)
-    redirect(URL('userlist.load', vars={'value': classid}))
+    redirect(URL('userlist.load', vars={'agid': classid}))
 
 
 @auth.requires_membership(role='administrators')
@@ -139,7 +141,7 @@ def demote_user():
                                               cat2=None)
 
     response.flash = 'User moved back to set {}'.format(oldrank - 1)
-    redirect(URL('userlist.load', vars={'value': classid}))
+    redirect(URL('userlist.load', vars={'agid': classid}))
 
 
 @auth.requires_membership(role='administrators')
@@ -168,7 +170,7 @@ def remove_user():
     q = db((db.class_membership.name == uid) &
            (db.class_membership.class_section == classid))
     q.delete()
-    redirect(URL('userlist.load', vars={'value': classid}))
+    redirect(URL('userlist.load', vars={'agid': classid}))
 
 
 @auth.requires(auth.has_membership('instructors') |
@@ -197,6 +199,11 @@ def userlist():
         end_date = classrow['end_date']
         classlist = make_classlist(member_sel, users, start_date,
                                    end_date, target, classrow)
+        if end_date > datetime.datetime.now():
+            in_process = True
+        else:
+            in_process = False
+
     except Exception as e:  # selecting outside of current class registrants
         print e
         target = 0
@@ -218,6 +225,7 @@ def userlist():
             title = 'All users not currently enrolled in a course.'
             users = all
         classlist = make_unregistered_list(users)
+        in_process = True
 
     response.js = "jQuery('#chooser_submit').val('View Class')"
 
@@ -225,7 +233,8 @@ def userlist():
             'target': target,
             'freq': freq,
             'classid': classrow['id'],
-            'title': title}
+            'title': title,
+            'in_process': in_process}
 
 
 def add_user_form():
