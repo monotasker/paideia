@@ -1,5 +1,6 @@
 {{from plugin_widgets import MODAL}}
 {{
+print 'in view, classid =', classid
 submit_args = {'_type': 'submit',
                '_value': 'Add',
                '_data-dismiss': 'modal',
@@ -89,9 +90,10 @@ for uid, infodict in userlist.iteritems():
                           A(I(_class='fa fa-angle-right'),
                             _class='btn btn-success',
                             _href=URL('listing', 'promote_user',
-                                      vars={'uid': uid, 'classid': classid,
+                                      vars={'uid': uid,
+                                            'classid': classid,
                                             'rec': infodict['tp_id']}),
-                            cid=request.cid),
+                            ),
                           _class='btn-group',
                           _role='group'),
                         _class='button_column'

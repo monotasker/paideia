@@ -27,6 +27,7 @@ def user():
     # admins = db(db.auth_membership.group_id == 1
                 # ).select(db.auth_membership.user_id).as_list()
     # admins = [a['user_id'] for a in admins]
+    debug = True
     if auth.has_membership('administrators'):
         myclasses = db(db.classes.instructor != None).select()
     else:
@@ -39,6 +40,16 @@ def user():
         myclasses = sorted(myclasses,
                         key=lambda x: (x['academic_year'], x['term']),
                         reverse=True)
+        if 'classid' in request.vars.keys() and request.vars.classid not in ['none', None]:
+            if debug: print 'found active class', request.vars.classid
+            try:
+                active_class = [m for m in myclasses if m.get('id') ==
+                                int(request.vars.classid)][0]
+                myclasses = [m for m in myclasses if m.get('id') !=
+                                int(request.vars.classid)]
+                myclasses.insert(0, active_class)
+            except IndexError:
+                pass
         print 'myclasses:', len(myclasses)
 
         chooser = CAT(SELECT(_name='agid',
@@ -79,6 +90,7 @@ def promote_user():
     if debug: print 'starting listing/promote_user =========================='
     uid = request.vars.uid
     classid = request.vars.classid
+    if debug: print 'classid:', classid
     tp = db(db.tag_progress.name == uid).select().first()
     oldrank = tp['latest_new']
     # move remaining cat1 tags forward to cat2
@@ -108,7 +120,7 @@ def promote_user():
     # update badges_begun records with level 2 record
     for tag in old_level1:
         db(db.badges_begun.tag == tag).update(cat2=datetime.datetime.now())
-    response.flash = 'User moved ahead to set {}'.format(oldrank + 1)
+
     redirect(URL('user.html', vars={'classid': classid}))
 
 
@@ -191,12 +203,14 @@ def remove_user():
 @auth.requires(auth.has_membership('instructors') |
                auth.has_membership('administrators'))
 def userlist():
-    print 'agid', request.vars.agid, type(request.vars.agid)
+    debug = True
+    if debug: print 'starting listing/userlist ============================='
+    if debug: print 'agid', request.vars.agid, type(request.vars.agid)
     # if isinstance(request.vars.agid, (int, long)):  # selecting class
     try:
         int(request.vars.agid)
         try:
-            classrow = db.classes[request.vars.agid].as_dict()
+            classrow = db.classes[int(request.vars.agid)].as_dict()
         except:  # choose a class to display as default
             print traceback.format_exc(5)
             classrow = db(db.classes.instructor == auth.user_id
