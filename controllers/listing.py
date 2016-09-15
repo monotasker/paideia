@@ -109,7 +109,7 @@ def promote_user():
     for tag in old_level1:
         db(db.badges_begun.tag == tag).update(cat2=datetime.datetime.now())
     response.flash = 'User moved ahead to set {}'.format(oldrank + 1)
-    redirect(URL('userlist.load', vars={'agid': classid}))
+    redirect(URL('user.html', vars={'classid': classid}))
 
 
 @auth.requires_membership(role='administrators')
@@ -156,7 +156,7 @@ def demote_user():
                                               cat2=None)
 
     response.flash = 'User moved back to set {}'.format(oldrank - 1)
-    redirect(URL('userlist.load', vars={'agid': classid}))
+    redirect(URL('user.html', vars={'classid': classid}))
 
 
 @auth.requires_membership(role='administrators')
