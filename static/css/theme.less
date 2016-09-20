@@ -6,7 +6,8 @@
 @import "../fontawesome/less/font-awesome.less";
 @import "./theme_colors.less";
 @import "./framework_typography.less";
-
+@success-bg: #dff0d8;
+@warning-bg: #fcf8e3;
 
 body                        {margin-top: 0;
                              padding-top: 50px !important;
@@ -286,32 +287,54 @@ body.reporting                      {
 body.listing                        {
     #masthead                       {display: none;
     }
+
+}
+
+
+/*-- classlists --------------------------------------------------*/
+body.user                           {
+    #masthead                       {display: none;
+    }
     #class-chooser-form             {margin-top: 1em;
     }
     #add_members_trigger            {position: absolute;
                                      right: 0;
                                      top: 5em;
     }
-
-}
-
-
-/*-- user --------------------------------------------------*/
-body.user                           {
-    #masthead                       {display: none;
-    }
-    .table-condensed > tbody        {
+    .table-condensed                {
+        tbody                       {
         tr                          {
-            td                      {text-align: center;
-            }
-            td.week-counts-0,
-            td.week-counts-1        {background-color: #efefef;
-            }
-            td.error                {color: red;
-            }
-            td.button_column        {width: 110px;
+            td, th                  {text-align: center;
+                                     white-space: pre-wrap; // css3
+                                     white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
+                                     white-space: -pre-wrap; /* Opera 4-6 */
+                                     white-space: -o-pre-wrap; /* Opera 7 */
+                                     word-wrap: break-word; // IE 5.5+
+                                     border-right: 0px transparent;
+                                     vertical-align: middle;
+                &.username          {text-align: left !important;
+                }
+                &.rank              {background-color: @success-bg;
+                }
+                &.term-prog         {background-color: @warning-bg;
+                }
+                &.grade             {background-color: @warning-bg;
+                }
+                &.week-counts-0     {background-color: #efefef;
+                }
+                &.week-counts-1     {background-color: #dedede;
+                                     border-top: 1px solid #ccc;
+                }
+                &.error             {color: red;
+                }
+                &.button_column     {width: 110px;
                                      min-width: 110px;
+                }
             }
+        th                          {vertical-align: top;
+        }
+            
+        }
         }
     }
 }

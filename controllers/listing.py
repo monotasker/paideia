@@ -13,7 +13,7 @@ from paideia_stats import make_classlist, make_unregistered_list
 # from dateutil.parser import parse
 # from operator import itemgetter
 if 0:
-    from gluon import INPUT, A, URL, SPAN, SELECT, OPTION, FORM, BUTTON
+    from gluon import INPUT, A, URL, SPAN, SELECT, OPTION, FORM
     from gluon import TABLE, TR, TD, CAT
     from gluon import current, redirect
     db, auth, session = current.db, current.auth, current.session
@@ -62,21 +62,18 @@ def user():
                                       _value=m['id'])
                                for m in myclasses
                                ],
-                              _class='form-control'
+                             _class='form-control'
                              ),
                       )
+
         if auth.has_membership('administrators'):
             chooser[0].append(OPTION('Currently unenrolled but active',
                                      _value='unregistered-active'))
             chooser[0].append(OPTION('All unenrolled users',
                                      _value='unregistered-inactive'))
-        mysubmit = BUTTON('Get class list', _type='submit',
-                          _id='chooser_submit',
-                          _class='btn btn-default')
-
         return {'chooser': chooser,
                 'classid': myclasses[0]['id'],
-                'submit': mysubmit}
+                }
     else:
         return {'classid': None}
 

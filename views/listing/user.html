@@ -5,10 +5,12 @@
 {{if classid:}}
 <form class='form-inline' id='class-chooser-form'>
     <div class="form-group">
-        <label for="class-chooser">Select a class to view</label>
-        {{=chooser}}
+        <div class='input-group'>
+            <span class='input-group-addon'>Select a class to view</span>
+            {{=chooser}}
+        </div>
+        <button type='submit' id='chooser_submit' class='btn btn-primary'>Get list</button>
     </div>
-    {{=submit}}
 </form>
 {{pass}}
 
