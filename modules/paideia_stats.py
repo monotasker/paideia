@@ -1297,8 +1297,10 @@ def get_term_bounds(meminfo, start_date, end_date):
     in datetime and readable formats.
 
     """
-    debug = False
+    debug = True
+    db = current.db
     if debug: print 'starting paideia_stats/get_term_bounds ================='
+    if debug: print db.auth_user(meminfo['name']).last_name
 
     db = current.db
     now = datetime.datetime.utcnow()
@@ -1315,19 +1317,22 @@ def get_term_bounds(meminfo, start_date, end_date):
     if len(myclasses) > 1:  # get end of previous course
         try:
             end_dates = {c['classes']['id']: c['classes']['end_date'] for c in myclasses}
+            if debug: pprint(end_dates)
             custom_ends = {c['classes']['id']: c['class_membership']['custom_end']
                         for c in myclasses if c['class_membership']['custom_end']}
+            if debug: pprint(custom_ends)
             if custom_ends:
                 for cid, dt in end_dates.iteritems():
                     if cid in custom_ends.keys() and custom_ends[cid] > dt:
                         end_dates[cid] = custom_ends[cid]
             prevend = sorted(end_dates.values())[-2]
             fmt_prevend = make_readable(prevend)
+            if debug: print 'previous end:', pprint(fmt_prevend)
             if prevend in [meminfo['custom_end'], end_date]:
                 prevend = None
                 fmt_prevend = 'none'
         except:
-            print traceback.format_exc(5)
+            if debug: print traceback.format_exc(5)
             prevend = None
             fmt_prevend = 'could not retrieve'
     else:
