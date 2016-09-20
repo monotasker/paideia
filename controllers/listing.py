@@ -27,7 +27,7 @@ def user():
     # admins = db(db.auth_membership.group_id == 1
                 # ).select(db.auth_membership.user_id).as_list()
     # admins = [a['user_id'] for a in admins]
-    debug = True
+    debug = False
     if auth.has_membership('administrators'):
         myclasses = db(db.classes.instructor != None).select()
     else:
@@ -86,7 +86,7 @@ def promote_user():
     '''
     Move the specified user ahead one badge set.
     '''
-    debug = True
+    debug = False
     if debug: print 'starting listing/promote_user =========================='
     uid = request.vars.uid
     classid = request.vars.classid
@@ -221,9 +221,20 @@ def userlist():
                                       classrow['course_section'],
                                       classrow['institution'])
         member_sel = db(db.class_membership.class_section == classrow['id']).select()
+        if debug:
+            print 'in member_sel:'
+            for m in member_sel: print db.auth_user(m['name']).last_name, ', ', db.auth_user(m['name']).first_name
+            print '---------'
+
         users = db((db.auth_user.id == db.tag_progress.name) &
                    (db.auth_user.id.belongs([m['name'] for m in member_sel]))
                    ).select(orderby=db.auth_user.last_name)
+
+        if debug:
+            print 'in users:'
+            for u in users: print u.auth_user.last_name
+            print '---------'
+
         start_date = classrow['start_date']
         end_date = classrow['end_date']
         classlist = make_classlist(member_sel, users, start_date,

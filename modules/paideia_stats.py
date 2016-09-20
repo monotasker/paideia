@@ -9,7 +9,7 @@ from pytz import timezone, utc
 from gluon import current, DIV, SPAN, A, URL, UL, LI, B, I
 from gluon import TAG
 from plugin_utils import make_json, load_json
-# from pprint import pprint
+from pprint import pprint
 # from paideia import Categorizer
 # from gluon.sqlhtml import SQLFORM  # , Field
 # from gluon.validators import IS_DATE
@@ -1294,6 +1294,9 @@ def get_term_bounds(meminfo, start_date, end_date):
     Return start and end dates for the term in datetime and readable formats
 
     """
+    debug = False
+    if debug: print 'starting paideia_stats/get_term_bounds ================='
+
     db = current.db
     now = datetime.datetime.utcnow()
 
@@ -1304,22 +1307,28 @@ def get_term_bounds(meminfo, start_date, end_date):
     myclasses = db((db.class_membership.name == meminfo['name']) &
                    (db.class_membership.class_section == db.classes.id)
                    ).select().as_list()
+    if debug: print 'myclasses', len(myclasses)
 
     if len(myclasses) > 1:  # extend term bounds back to end of prev course
-        end_dates = {c['classes']['id']: c['classes']['end_date'] for c in myclasses}
-        custom_ends = {c['classes']['id']: c['class_membership']['custom_end']
-                       for c in myclasses if c['class_membership']['custom_end']}
-        if custom_ends:
-            for cid, dt in end_dates.iteritems():
-                if cid in custom_ends.keys() and custom_ends[cid] > dt:
-                    end_dates[cid] = custom_ends[cid]
-        previous = sorted(end_dates.values())[-2]
-        start_date = previous if previous < start_date else start_date
+        try:
+            end_dates = {c['classes']['id']: c['classes']['end_date'] for c in myclasses}
+            custom_ends = {c['classes']['id']: c['class_membership']['custom_end']
+                        for c in myclasses if c['class_membership']['custom_end']}
+            if custom_ends:
+                for cid, dt in end_dates.iteritems():
+                    if cid in custom_ends.keys() and custom_ends[cid] > dt:
+                        end_dates[cid] = custom_ends[cid]
+            previous = sorted(end_dates.values())[-2]
+            start_date = previous if previous < start_date else start_date
+        except:
+            print traceback.format_exc(5)
 
     mystart = meminfo['custom_start'] if meminfo['custom_start'] else start_date
     fmt_start = make_readable(mystart)
     myend = meminfo['custom_end'] if meminfo['custom_end'] else end_date
     fmt_end = make_readable(myend)
+    if debug: print 'finished get_term_bounds'
+    if debug: print mystart, fmt_start, myend, fmt_end
 
     return mystart, fmt_start, myend, fmt_end
 
@@ -1377,28 +1386,48 @@ def make_classlist(member_sel, users, start_date, end_date, target, classrow):
     """
     Return a dictionary of information on each student in the class.
     """
-    userlist = {}
-    for user in users:
-        uid = user.auth_user.id
-        myname = '{}, {}'.format(user.auth_user.last_name,
-                                 user.auth_user.first_name)
+    debug = False
+    if debug: print 'starting paideia_status/make_classlist =============='
+    userlist = []
+    for member in member_sel:
+        uid = member.name
+        if debug: print uid
+        try:
+            user = users.find(lambda row: row.auth_user.id == uid)[0]
+        except IndexError:
+            print 'oops!'
+            db = current.db
+            user = {'auth_user': db.auth_user(uid)}
+        myname = '{}, {}'.format(user['auth_user'].last_name,
+                                 user['auth_user'].first_name)
+        if debug: print myname
         meminfo = member_sel.find(lambda row: row.name == uid)[0]
         mystart, fmt_start, myend, fmt_end = get_term_bounds(
             meminfo, start_date, end_date)
 
-        mycounts = get_daycounts(user.auth_user, target)
+        mycounts = get_daycounts(user['auth_user'], target)
         startset = meminfo.starting_set if meminfo.starting_set \
             else get_set_at_date(uid, mystart)
 
-        if datetime.datetime.utcnow() < myend:  # during class term
-            currset = user.tag_progress.latest_new
+        if datetime.datetime.utcnow() < myend and \
+                'tag_progress' in user.keys():  # during class term
+            currset = user['tag_progress'].latest_new
         else:  # after class term
             currset = get_set_at_date(uid, myend)
 
         myprog = currset - int(startset)
         mygrade = compute_letter_grade(uid, myprog, startset, classrow)
+        try:
+            tp_id = user['tag_progress'].id
+        except KeyError:  # if no 'tag_progress' key in user dict
+            try:
+                tp_id = db(db.tag_progress.name == uid).select().first().id
+            except AttributeError:  # if no tag_progress record for user
+                tp_id = None
+        if debug: print 'tp_id', tp_id
 
-        userlist[uid] = {'name': myname,
+        userlist.append({'uid': uid,
+                         'name': myname,
                          'counts': mycounts,
                          'current_set': currset,
                          'starting_set': startset,
@@ -1406,9 +1435,10 @@ def make_classlist(member_sel, users, start_date, end_date, target, classrow):
                          'grade': mygrade,
                          'start_date': fmt_start,
                          'end_date': fmt_end,
-                         'tp_id': user.tag_progress.id}
-
-    userlist = OrderedDict(sorted(userlist.iteritems(), key=lambda t: t[1]['name']))
+                         'tp_id': tp_id})
+    userlist = sorted(userlist, key=lambda t: t['name'].capitalize())
+    if debug: print 'returning userlist --------------------'
+    if debug: pprint(userlist)
 
     return userlist
 

@@ -51,10 +51,14 @@ example1	examples.py	/^def example1():$/;"	f
 export_db	util.py	/^def export_db():$/;"	f
 faqs	default.py	/^def faqs():$/;"	f
 gather_word_forms	util.py	/^def gather_word_forms():$/;"	f
+get_chart1_data	default.py	/^def get_chart1_data(user_id=None, set=None, tag=None):$/;"	f
+get_chart1_data_json	default.py	/^def get_chart1_data_json():$/;"	f
 get_database	appadmin.py	/^def get_database(request):$/;"	f
 get_databases	appadmin.py	/^def get_databases(request):$/;"	f
+get_day_attempts	default.py	/^def get_day_attempts():$/;"	f
 get_query	appadmin.py	/^def get_query(request):$/;"	f
 get_table	appadmin.py	/^def get_table(request):$/;"	f
+get_values	plugin_ajaxselect.py	/^def get_values():$/;"	f
 global_env	appadmin.py	/^global_env = copy.copy(globals())$/;"	v
 graph_model	appadmin.py	/^def graph_model():$/;"	f
 heading	appadmin.py	/^                              heading=T('Manage Access Control'),$/;"	v
@@ -80,6 +84,7 @@ manage	appadmin.py	/^def manage():$/;"	f
 manager_action	appadmin.py	/^        manager_action = dict(role=auth.settings.auth_manager_role,$/;"	v
 manager_action	appadmin.py	/^    manager_action = auth.settings.manager_actions.get(request.args(0), None)$/;"	v
 manager_role	appadmin.py	/^    manager_role = manager_action.get('role', None) if manager_action else None$/;"	v
+mark_bug_read	default.py	/^def mark_bug_read():$/;"	f
 menu	appadmin.py	/^    menu = False$/;"	v
 menu	appadmin.py	/^    menu = True$/;"	v
 migrate_back	util.py	/^def migrate_back():$/;"	f
@@ -101,7 +106,6 @@ request	editing.py	/^    request = current.request$/;"	v
 request	plugin_img_chooser.py	/^    request = current.request$/;"	v
 request	plugin_listandedit.py	/^    request = current.request$/;"	v
 request	plugin_utils.py	/^    request = current.request$/;"	v
-request	reporting.py	/^    request = current.request$/;"	v
 request	util.py	/^    request = current.request$/;"	v
 response	exploring.py	/^    response = current.response$/;"	v
 response	plugin_listandedit.py	/^    response = current.response$/;"	v
@@ -111,7 +115,7 @@ send_mail_to_user	default.py	/^def send_mail_to_user():$/;"	f
 session	exploring.py	/^    session = current.session$/;"	v
 session	plugin_img_chooser.py	/^    session = current.session$/;"	v
 session	plugin_listandedit.py	/^    session = current.session$/;"	v
-set_widget	plugin_ajaxselect.py	/^def set_widget():$/;"	f
+set_review_mode	default.py	/^def set_review_mode():$/;"	f
 show_slide	plugin_slider.py	/^def show_slide():$/;"	f
 sil	editing.py	/^def sil():$/;"	f
 slidelist	plugin_slider.py	/^def slidelist():$/;"	f
@@ -139,5 +143,6 @@ userlist	listing.py	/^def userlist():$/;"	f
 validate_records	util.py	/^def validate_records():$/;"	f
 vars	appadmin.py	/^                 vars=dict(send=URL(args=request.args, vars=request.vars))))$/;"	v
 vocabulary	reporting.py	/^def vocabulary():$/;"	f
+vocabulary_list	reporting.py	/^def vocabulary_list():$/;"	f
 walk	exploring.py	/^def walk():$/;"	f
 widget	plugin_listandedit.py	/^def widget():$/;"	f
