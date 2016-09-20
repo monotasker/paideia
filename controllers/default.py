@@ -167,7 +167,7 @@ def info():
 
     start_date, fmt_start, end_date, fmt_end = None, None, None, None
     if myc:
-        start_date, fmt_start, end_date, fmt_end = get_term_bounds(
+        start_date, fmt_start, end_date, fmt_end, prevend, fmt_prevend = get_term_bounds(
             myc.class_membership.as_dict(),
             myc.classes.start_date,
             myc.classes.end_date)

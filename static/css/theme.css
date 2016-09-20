@@ -8963,31 +8963,68 @@ body.reporting .popover p {
 body.listing #masthead {
   display: none;
 }
-body.listing #class-chooser-form {
+/*-- classlists --------------------------------------------------*/
+body.user #masthead {
+  display: none;
+}
+body.user #class-chooser-form {
   margin-top: 1em;
 }
-body.listing #add_members_trigger {
+body.user #add_members_trigger {
   position: absolute;
   right: 0;
   top: 5em;
 }
-/*-- user --------------------------------------------------*/
-body.user #masthead {
-  display: none;
-}
-body.user .table-condensed > tbody tr td {
+body.user .table-condensed tbody tr td,
+body.user .table-condensed tbody tr th {
   text-align: center;
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;
+  /* Mozilla, since 1999 */
+  white-space: -pre-wrap;
+  /* Opera 4-6 */
+  white-space: -o-pre-wrap;
+  /* Opera 7 */
+  word-wrap: break-word;
+  border-right: 0px transparent;
+  vertical-align: middle;
 }
-body.user .table-condensed > tbody tr td.week-counts-0,
-body.user .table-condensed > tbody tr td.week-counts-1 {
+body.user .table-condensed tbody tr td.username,
+body.user .table-condensed tbody tr th.username {
+  text-align: left !important;
+}
+body.user .table-condensed tbody tr td.rank,
+body.user .table-condensed tbody tr th.rank {
+  background-color: #dff0d8;
+}
+body.user .table-condensed tbody tr td.term-prog,
+body.user .table-condensed tbody tr th.term-prog {
+  background-color: #fcf8e3;
+}
+body.user .table-condensed tbody tr td.grade,
+body.user .table-condensed tbody tr th.grade {
+  background-color: #fcf8e3;
+}
+body.user .table-condensed tbody tr td.week-counts-0,
+body.user .table-condensed tbody tr th.week-counts-0 {
   background-color: #efefef;
 }
-body.user .table-condensed > tbody tr td.error {
+body.user .table-condensed tbody tr td.week-counts-1,
+body.user .table-condensed tbody tr th.week-counts-1 {
+  background-color: #dedede;
+  border-top: 1px solid #ccc;
+}
+body.user .table-condensed tbody tr td.error,
+body.user .table-condensed tbody tr th.error {
   color: red;
 }
-body.user .table-condensed > tbody tr td.button_column {
+body.user .table-condensed tbody tr td.button_column,
+body.user .table-condensed tbody tr th.button_column {
   width: 110px;
   min-width: 110px;
+}
+body.user .table-condensed tbody tr th {
+  vertical-align: top;
 }
 /*-- user profile -----------------------------------------------*/
 body.profile #page,
