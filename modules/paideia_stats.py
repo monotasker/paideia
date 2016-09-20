@@ -1291,7 +1291,10 @@ def get_daycounts(user, target):
 
 def get_term_bounds(meminfo, start_date, end_date):
     """
-    Return start and end dates for the term in datetime and readable formats
+    Return start and end dates for the term in datetime and readable formats.
+
+    Also returns the end date for the user's most recent previous course, also
+    in datetime and readable formats.
 
     """
     debug = False
@@ -1309,7 +1312,7 @@ def get_term_bounds(meminfo, start_date, end_date):
                    ).select().as_list()
     if debug: print 'myclasses', len(myclasses)
 
-    if len(myclasses) > 1:  # extend term bounds back to end of prev course
+    if len(myclasses) > 1:  # get end of previous course
         try:
             end_dates = {c['classes']['id']: c['classes']['end_date'] for c in myclasses}
             custom_ends = {c['classes']['id']: c['class_membership']['custom_end']
@@ -1318,10 +1321,13 @@ def get_term_bounds(meminfo, start_date, end_date):
                 for cid, dt in end_dates.iteritems():
                     if cid in custom_ends.keys() and custom_ends[cid] > dt:
                         end_dates[cid] = custom_ends[cid]
-            previous = sorted(end_dates.values())[-2]
-            start_date = previous if previous < start_date else start_date
+            prevend = sorted(end_dates.values())[-2]
+            fmt_prevend = make_readable(prevend)
         except:
             print traceback.format_exc(5)
+    else:
+        prevend = None
+        fmt_prevend = None
 
     mystart = meminfo['custom_start'] if meminfo['custom_start'] else start_date
     fmt_start = make_readable(mystart)
@@ -1330,7 +1336,7 @@ def get_term_bounds(meminfo, start_date, end_date):
     if debug: print 'finished get_term_bounds'
     if debug: print mystart, fmt_start, myend, fmt_end
 
-    return mystart, fmt_start, myend, fmt_end
+    return mystart, fmt_start, myend, fmt_end, prevend, fmt_prevend
 
 
 def compute_letter_grade(uid, myprog, startset, classrow):
@@ -1402,7 +1408,7 @@ def make_classlist(member_sel, users, start_date, end_date, target, classrow):
                                  user['auth_user'].first_name)
         if debug: print myname
         meminfo = member_sel.find(lambda row: row.name == uid)[0]
-        mystart, fmt_start, myend, fmt_end = get_term_bounds(
+        mystart, fmt_start, myend, fmt_end, prevend, fmt_prevend = get_term_bounds(
             meminfo, start_date, end_date)
 
         mycounts = get_daycounts(user['auth_user'], target)
@@ -1435,6 +1441,7 @@ def make_classlist(member_sel, users, start_date, end_date, target, classrow):
                          'grade': mygrade,
                          'start_date': fmt_start,
                          'end_date': fmt_end,
+                         'previous_end_date': fmt_prevend,
                          'tp_id': tp_id})
     userlist = sorted(userlist, key=lambda t: t['name'].capitalize())
     if debug: print 'returning userlist --------------------'
