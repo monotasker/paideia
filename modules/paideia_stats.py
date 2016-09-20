@@ -461,8 +461,8 @@ class Stats(object):
             taglogs = logs.find(lambda r: any(tag for tag in r.steps.tags
                                               if t['tag'] == tag))
             todaylogs = taglogs.find(lambda r: r.attempt_log.dt_attempted > daystart)
-            yestlogs = taglogs.find(lambda r: (r.attempt_log.dt_attempted <= daystart)
-                                    and (r.attempt_log.dt_attempted > yest_start))
+            yestlogs = taglogs.find(lambda r: (r.attempt_log.dt_attempted <= daystart) and
+                                    (r.attempt_log.dt_attempted > yest_start))
             tr[idx]['todaycount'] = len(todaylogs)
             tr[idx]['yestcount'] = len(yestlogs)
 
@@ -934,8 +934,8 @@ class Stats(object):
         milestones = []
         prev = None
         for d in data:
-            if prev != None and (d['badge_set'] >= prev['badge_set']
-                                 or d['my_date'] == prev['my_date']):  # comparing badge sets
+            if prev != None and (d['badge_set'] >= prev['badge_set'] or
+                                 d['my_date'] == prev['my_date']):  # comparing badge sets
                 continue
             milestones.append(d)
             prev = d
@@ -1323,11 +1323,16 @@ def get_term_bounds(meminfo, start_date, end_date):
                         end_dates[cid] = custom_ends[cid]
             prevend = sorted(end_dates.values())[-2]
             fmt_prevend = make_readable(prevend)
+            if prevend in [meminfo['custom_end'], end_date]:
+                prevend = None
+                fmt_prevend = 'none'
         except:
             print traceback.format_exc(5)
+            prevend = None
+            fmt_prevend = 'could not retrieve'
     else:
         prevend = None
-        fmt_prevend = None
+        fmt_prevend = 'none'
 
     mystart = meminfo['custom_start'] if meminfo['custom_start'] else start_date
     fmt_start = make_readable(mystart)
