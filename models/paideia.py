@@ -12,6 +12,7 @@ from plugin_ajaxselect import AjaxSelect
 # from itertools import chain
 import datetime
 import os
+import traceback
 import uuid
 from applications.paideia.modules.paideia_utils import simple_obj_print
 from plugin_widgets import SortedOptionsWidget
@@ -19,7 +20,7 @@ from plugin_widgets import SortedOptionsWidget
 
 if 0:
     from gluon import URL, current, Field, IS_IN_DB, IS_NOT_IN_DB, SQLFORM
-    from gluon import IS_EMPTY_OR, IS_IN_SET
+    from gluon import IS_EMPTY_OR, IS_IN_SET, SPAN, A, I
     response = current.response
     request = current.request
     auth = current.auth
@@ -512,8 +513,8 @@ db.define_table('paths',
                 # for tag in db.steps[step].tags]),
                 Field('path_active', 'boolean',
                       compute=lambda row: all([s for s in row.paths.steps
-                                               if (db.steps[s].status != 2)
-                                               and db.steps[s].locations])),
+                                               if (db.steps[s].status != 2) and
+                                               db.steps[s].locations])),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(label)s')
@@ -563,6 +564,7 @@ db.define_table('attempt_log',
                 Field('score', 'double'),
                 Field('dt_attempted', 'datetime', default=dtnow),
                 Field('user_response', 'string'),
+                Field('category_for_user', 'int'),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 )
