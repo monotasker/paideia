@@ -13,7 +13,7 @@ import os
 from paideia_utils import Paideia_Debug, GreekNormalizer
 import pickle
 from plugin_utils import flatten, makeutf8, ErrorReport
-from pprint import pprint
+# from pprint import pprint
 from pytz import timezone
 from random import randint, randrange
 import re
@@ -895,8 +895,8 @@ class NpcChooser(object):
         else:
             # TODO: is the list below right???
             available2 = [n for n in available
-                          if n == self.prev_npc.get_id()
-                          and self.location.get_id() in n.get_locations()]
+                          if n == self.prev_npc.get_id() and
+                          self.location.get_id() in n.get_locations()]
             if len(available2) > 1:
                 return Npc(available2[randint(0, len(available2) - 1)])
             else:
@@ -1380,10 +1380,10 @@ class StepAwardBadges(StepContinue, Step):
         reps = {}
         kw = self.kwargs
 
-        new_tags = kw['new_tags'] if ('new_tags' in kw.keys()
-                                      and kw['new_tags']) else None
-        promoted = kw['promoted'] if ('promoted' in kw.keys()
-                                      and kw['promoted']) else None
+        new_tags = kw['new_tags'] if ('new_tags' in kw.keys() and
+                                      kw['new_tags']) else None
+        promoted = kw['promoted'] if ('promoted' in kw.keys() and
+                                      kw['promoted']) else None
 
         conj = " and you're" if promoted else "You are"
         nt_rep = ''
@@ -1957,6 +1957,7 @@ class PathChooser(object):
         beginning with that number.
         Returns a list with four members including the integers one-four.
         """
+        debug = True
         # TODO: Look at replacing this method with scipy.stats.rv_discrete()
 
         switch = randint(1, 100)
@@ -1971,6 +1972,7 @@ class PathChooser(object):
             cat = 4
 
         cat_list = range(1, 5)[(cat - 1):4] + range(1, 5)[0:(cat - 1)]
+        if debug: print "PathChooser::_order_cats: categories prioritized in order:", cat_list
         return cat_list
 
     def _check_force_new(self):
@@ -2114,7 +2116,7 @@ class PathChooser(object):
         all paths that have steps with no locations
 
         """
-
+        debug = True
         path = None
         new_loc = None
         mode = None
@@ -2252,6 +2254,7 @@ class PathChooser(object):
             [2] the category number for this new path (int in range 1-4)
         """
         db = current.db if not db else db
+        debug = True
         if set_review:  # select randomly from the supplied badge set (review and demo)
             myset = set_review
             set_tags = db(db.tags.tag_position == myset).select()
@@ -2278,11 +2281,12 @@ class PathChooser(object):
 
             # cycle through categories, prioritised in _order_cats()
             for cat in cat_list:
-                #print 'checking in cat', cat, '========================================='
+                print 'PathChooser::choose: checking in cat', cat
                 catpaths, category, use_cat1 = self._paths_by_category(cat, self.rank)
                 #print 'forcing cat1?', use_cat1
                 #print 'catpaths:', [c['id'] for c in catpaths]
                 if catpaths and len(catpaths):
+                    print 'PathChooser::choose: using category', category
                     path, newloc, category, mode = self._choose_from_cat(catpaths,
                                                                          category)
                     if mode:
@@ -2928,8 +2932,8 @@ class Categorizer(object):
         db = current.db
         for k, v in categories.iteritems():
             if v:
-                rankv = [t for t in v if db.tags(t)
-                        and (db.tags[t].tag_position <= rank)]
+                rankv = [t for t in v if db.tags(t) and
+                         (db.tags[t].tag_position <= rank)]
                 rankv = list(set(rankv))
                 rankv.sort()
                 categories[k] = rankv
@@ -3076,16 +3080,14 @@ class Categorizer(object):
             # spaced repetition algorithm for promotion to
             # cat2? ======================================================
             if ((record['times_right'] >= 20) and  # at least 20 right
-                (((rdur < rwdur)  # delta right < delta right/wrong
-                  and (rwdur.days > 1)  # not within 1 day
-                  )
-                 or
-                 ((self._get_ratio(record) < 0.2)  # less than 1w to 5r total
-                  and (rdur.days <= 30)  # right in past 30 days
-                  )
-                 or
-                 ((self._get_avg(record['tag']) >= 0.8)  # avg score for week >= 0.8
-                  and (rdur.days <= 30)  # right in past 30 days
+                (((rdur < rwdur) and  # delta right < delta right/wrong
+                  (rwdur.days > 1)  # not within 1 day
+                  ) or
+                 ((self._get_ratio(record) < 0.2) and  # less than 1w to 5r total
+                  (rdur.days <= 30)  # right in past 30 days
+                  ) or
+                 ((self._get_avg(record['tag']) >= 0.8) and  # avg score for week >= 0.8
+                  (rdur.days <= 30)  # right in past 30 days
                   ))):
                 #print'************** got to cat2'
                 # cat3? ==================================================

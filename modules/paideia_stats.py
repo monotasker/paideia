@@ -1,6 +1,6 @@
 import calendar
 import datetime
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
 from dateutil.parser import parse
 import traceback
 from copy import copy
@@ -1465,23 +1465,24 @@ def make_unregistered_list(users):
     """
     print 'make_unregistered_list'
     db = current.db
-    userlist = {}
+    userlist = []
     for user in users:
         print 'user id:', user.auth_user.id
         tp = db(db.tag_progress.name == user.auth_user.id).select().first()
         tp_id = tp.id if tp else None
         currset = get_set_at_date(user.auth_user.id, datetime.datetime.now())
-        userlist[user.auth_user.id] = {'name': '{}, {}'.format(user.auth_user.last_name,
-                                                               user.auth_user.first_name),
-                             'counts': None,
-                             'current_set': currset,
-                             'starting_set': None,
-                             'progress': None,
-                             'grade': None,
-                             'start_date': None,
-                             'end_date': None,
-                             'tp_id': tp_id}
-
-    userlist = OrderedDict(sorted(userlist.iteritems(), key=lambda t: t[1]['name']))
+        userlist.append({'name': '{}, {}'.format(user.auth_user.last_name,
+                                                 user.auth_user.first_name),
+                         'uid': user.auth_user.id,
+                         'counts': None,
+                         'current_set': currset,
+                         'starting_set': None,
+                         'progress': None,
+                         'grade': None,
+                         'start_date': None,
+                         'end_date': None,
+                         'previous_end_date': None,
+                         'tp_id': tp_id})
+    userlist = sorted(userlist, key=lambda t: t['name'].capitalize())
 
     return userlist
