@@ -258,12 +258,12 @@ class Walk(object):
                 key: name of the blocking condition (str)
                 value: dictionary of kwargs to be passed to the Block
         """
+        debug = True
         p = category = redir = pastquota = None
         loc = prev_loc = prev_npc = None
         s = newloc_id = error_string = None
         prompt = None
         while True:
-            #print'STARTING WALK.ASK---------------------------------------'
             user = self.user
             # allow artificial setting of blocks during interface testing
             if set_blocks:
@@ -280,25 +280,27 @@ class Walk(object):
             prev_loc = user.set_location(loc)
             prev_npc = user.get_prev_npc()
 
-            p, category, redir, pastquota = user.get_path(loc, pathid=path,
-                                                          repeat=repeat,
-                                                          set_review=set_review)
-            print 'Walk::ask: path chosen is', p.get_id()
-            print 'Walk::ask: redir is', redir
+            p, category, redir, pastquota, new_content = \
+                user.get_path(loc, pathid=path,
+                              repeat=repeat,
+                              set_review=set_review)
+            if debug: print 'Walk::ask: path chosen is', p.get_id()
+            if debug: print 'Walk::ask: redir is', redir
 
             if (not p): break  # no paths for this location for this category
 
             user.active_cat = category
+            user.new_content = new_content
             if redir:
                 current.sequence_counter += 1
                 user.set_block('redirect', kwargs={'next_loc': redir})
             if pastquota:
                 current.sequence_counter += 1
                 user.set_block('quota_reached', kwargs={'quota': user.quota})
-            print 'Walk::ask: user.path.steps num is', len(user.path.steps)
+            if debug: print 'Walk::ask: user.path.steps num is', len(user.path.steps)
 
             s, newloc_id, error_string = p.get_step_for_prompt(loc, repeat=repeat)
-            print 'Walk::ask: user.path.steps num is', len(user.path.steps)
+            if debug: print 'Walk::ask: user.path.steps num is', len(user.path.steps)
 
             if newloc_id:
                 current.sequence_counter += 1
@@ -317,10 +319,11 @@ class Walk(object):
                 user.clear_block_records()
             prompt = s.get_prompt(loc, npc, username, user_blocks_left=True if user.blocks else False)
 
-            print 'Walk::ask: user.path.steps num is', len(user.path.steps)
+            if debug: print 'Walk::ask: user.path.steps num is', len(user.path.steps)
             extra_fields = {'completed_count': user.get_completed_paths_len(),
                             'category': category,
-                            'pid': p.get_id()
+                            'pid': p.get_id(),
+                            'new_content': new_content
                             }
             prompt.update(extra_fields)
 
@@ -344,7 +347,8 @@ class Walk(object):
                       'bugreporter': None,
                       'completed_count': user.get_completed_paths_len(),
                       'category': 0,
-                      'pid': 0
+                      'pid': 0,
+                      'new_content': new_content
                       }
             return prompt
         if(error_string):
@@ -368,7 +372,8 @@ class Walk(object):
                       'bugreporter': None,
                       'completed_count': 0,
                       'category': 0,
-                      'pid': p.get_id()
+                      'pid': p.get_id(),
+                      'new_content': new_content
                       }
             return prompt
 
@@ -408,13 +413,14 @@ class Walk(object):
             'times_wrong':
             'user_response':
         """
-        #print'\nSTART OF Walk.reply()'
+        debug = True
         user = self._get_user()
         loc = user.get_location()
-        #print 'loc is', type(loc), loc
         p, cat = user.get_path(loc)[:2]
-        # print 'in walk.reply:: path is ------------------------------------'
-        # print p
+        if not cat:
+            cat = user.active_cat
+        if debug: print 'Walk::reply: category is', cat
+        if debug: print 'Walk::reply: path is', p
 
         s = p.get_step_for_reply()
         if (not response_string) or re.match(response_string, r'\s+'):
@@ -435,7 +441,9 @@ class Walk(object):
                                            prompt['times_wrong'],
                                            user.tag_records,
                                            s.get_tags(),
-                                           response_string)
+                                           response_string,
+                                           cat,
+                                           user.new_content)
         prompt['bugreporter'] = BugReporter().get_reporter(self.record_id,
                                                            p.get_id(),
                        pre_bug_step_id if pre_bug_step_id else s.get_id(),
@@ -446,6 +454,7 @@ class Walk(object):
         prompt['pid'] = p.get_id()
         prompt['category'] = cat
         prompt['loc'] = loc.get_alias()
+        prompt['new_content'] = user.new_content
 
         p.complete_step()  # removes path.step_for_reply; cf. (user.get_path)
         user._reset_for_walk()
@@ -654,8 +663,8 @@ class Walk(object):
         return tagrec.id
 
     def _record_step(self, user_id, step_id, path_id, score, raw_tright,
-                     raw_twrong, old_trecs, taglist, response_string,
-                     now=None):
+                     raw_twrong, old_trecs, taglist, response_string, category,
+                     new_content, now=None):
         """
         Record this step attempt and its impact on user's performance record.
         Changes recorded in the following db tables:
@@ -673,6 +682,7 @@ class Walk(object):
         TODO: be sure not to log redirect and utility steps. (filter them out
         before calling _record_step())
         """
+        debug = True
         mynow = datetime.datetime.utcnow() if not now else now
         db = current.db
         # TODO: Store and roll back db changes if impersonating
@@ -681,6 +691,7 @@ class Walk(object):
         # what it should be -sept 21 2014
         # fix: if it is make it slightly higher and change the comparison
         # sign
+        if debug: print 'Walk::_record_step: category is', category
         score_helper = score + 0.1
         got_right = True if ((score_helper - 1.0) > 0.00000001) else False  # float inaccuracy
 
@@ -703,7 +714,9 @@ class Walk(object):
                     'step': step_id,
                     'in_path': path_id,
                     'score': score,
-                    'user_response': makeutf8(response_string)}  # time automatic in db
+                    'user_response': makeutf8(response_string),
+                    'category_for_user': category,
+                    'new_content': 'yes' if new_content else 'no'}  # time automatic in db
         #print 'log args ===================================='
         #print type(log_args['user_response'])
         #print log_args['user_response']  # FIXME: caused unicode error on live
@@ -1065,17 +1078,18 @@ class Step(object):
         The keys are deck ids, while the values are the deck names (as
         strings). If this step has no associated slides, returns None.
         """
+        debug = False
         db = current.db
         tags = db(db.tags.id.belongs(self.data['tags'])).select()
-        print 'Step::_get_slides: tags', [t['id'] for t in tags]
+        if debug: print 'Step::_get_slides: tags', [t['id'] for t in tags]
         if tags:
-            print 'got some tags'
+            if debug: print 'got some tags'
             try:
                 decks = {d.id: d.deck_name
                         for t in tags
                         for d in t.slides
                         if t.slides}
-                print 'decks:', decks
+                if debug: print 'decks:', decks
                 return decks
             except Exception as e:
                 print e
@@ -1841,11 +1855,12 @@ class Path(object):
         Return the last completed step to the self.steps list.
         Intended to prepare for repeating an already-completed step.
         """
+        debug = False
         if self.completed_steps:
             laststep = self.completed_steps.pop()
-            print 'laststep is', laststep.get_id()
+            if debug: print 'laststep is', laststep.get_id()
             self.steps.insert(0, laststep)
-            print 'self.steps is', [s.get_id() for s in self.steps]
+            if debug: print 'self.steps is', [s.get_id() for s in self.steps]
             # self.steps = copy(self.completed_steps)
             # self.completed_steps = []
         if len(self.steps) == 0:
@@ -1859,6 +1874,7 @@ class Path(object):
         If the selected step cannot be performed at this location, return a
         Block object instead.
         """
+        debug = False
         if repeat:
             assert self._reset_steps()
 
@@ -1886,7 +1902,7 @@ class Path(object):
                 print traceback.format_exc(5)
         else:
             mystep.loc = loc  # update location on step
-        print 'Path::get_step_for_prompt: mystep is', mystep
+        if debug: print 'Path::get_step_for_prompt: mystep is', mystep
 
         return mystep, next_loc, error_string
 
@@ -1943,6 +1959,7 @@ class PathChooser(object):
             if 'all_choices' in tag_progress.keys() \
             and tag_progress['all_choices'] else 0  # counts total choices
         self.tag_progress = tag_progress
+        self.force_new = self._check_force_new()
 
     def _set_pathchooser_rank(self, tag_progress=None, given_rank=0):
         if (tag_progress and 'latest_new' in tag_progress and
@@ -1987,6 +2004,7 @@ class PathChooser(object):
         Returns 'True' if we are forcing the choice of new
         material. Otherwise returns False.
         """
+        debug = True
         # reset choice counter at end of each cycle
         self.all_choices = self.all_choices % self.CYCLE_LENGTH
         if self.all_choices == 0:
@@ -2001,6 +2019,7 @@ class PathChooser(object):
         if cat1_deficit:
             self.cat1_choices += 1  # FIXME: what about regular cat1 choices?
             rslt = True
+            if debug: print 'PathChooser::_check_force_new: forcing new'
         else:
             rslt = False
 
@@ -2019,6 +2038,7 @@ class PathChooser(object):
         force_cat1 :: boolean indicating whether or not cat1 selection was forced
 
         """
+        debug = True
         db = current.db
         pathset = None
         force_cat1 = False
@@ -2033,25 +2053,29 @@ class PathChooser(object):
             taglist = []
 
             def get_stepslist(taglist):
+                if debug: print 'PathChooser::_paths_by_cateogry: using taglist', taglist
                 myrows = db(db.steps.tags.contains(taglist)).select()
                 myrows = myrows.find(lambda row: row.status != 2)
                 mylist = [v.id for v in myrows]
                 return mylist
 
             taglist = self.categories['rev{}'.format(cat)]
-            print 'PathChooser::_paths_by_category: cat1_choices', self.cat1_choices
-            print 'PathChooser::_paths_by_category: all_choices', self.all_choices
-            if self._check_force_new():
-                print 'PathChooser::_paths_by_category: forcing new'
+            taglist_cat1 = self.categories['cat1']
+            if debug: print 'PathChooser::_paths_by_category: cat1_choices', self.cat1_choices
+            if debug: print 'PathChooser::_paths_by_category: all_choices', self.all_choices
+            if self.force_new:
+                if debug: print 'PathChooser::_paths_by_category: forcing new'
                 cat = 1
                 force_cat1 = True
-                taglist_cat1 = self.categories['cat1']
                 stepslist = get_stepslist(taglist_cat1)
                 if not stepslist:  # In case no steps in db for cat1 tags
                     # FIXME: send an error report here?
                     stepslist = get_stepslist(taglist)
             else:
                 stepslist = get_stepslist(taglist)
+                # find out whether
+                if cat == 1:
+                    new_stepslist = get_stepslist(taglist_cat1)
 
             if not stepslist:
                 break
@@ -2083,20 +2107,24 @@ class PathChooser(object):
             """
 
             #pathset = db(db.paths.steps.contains(stepslist)).select()
-            pathset = db(db.paths.id > 0).select()
-            pathset = pathset.find(lambda row: any(s for s in row.steps
+            pathset_all = db(db.paths.id > 0).select()
+            pathset = pathset_all.find(lambda row: any(s for s in row.steps
                                                    if s in stepslist))
-            # print 'paths for those steps:'
-            # print [p.id for p in pathset]
 
             # filter out any paths whose steps don't have a location
             pathset = pathset.find(lambda row: all([Step(s).has_locations()
                                                     for s in row.steps]))
-            # print 'paths with valid location:'
-            # print [p.id for p in pathset]
+
+            # figure out whether actually new material
+            pathset_new = []
+            if cat == 1 and not force_cat1:
+                pathset_new = pathset_all.find(lambda row: any(s for s in row.steps
+                                                   if s in new_stepslist))
+                pathset_new = pathset_new.as_list()
+
             pathset = pathset.as_list()
             break
-        return pathset, cat, force_cat1
+        return pathset, cat, force_cat1, pathset_new
 
     def _choose_from_cat(self, cpaths, category):
         """
@@ -2255,6 +2283,7 @@ class PathChooser(object):
         """
         db = current.db if not db else db
         debug = True
+        new_material = False
         if set_review:  # select randomly from the supplied badge set (review and demo)
             myset = set_review
             set_tags = db(db.tags.tag_position == myset).select()
@@ -2264,7 +2293,7 @@ class PathChooser(object):
             set_paths = db(db.paths.steps.contains(steplist)).select()
             path = set_paths[randrange(0, len(set_paths))]
             first_step = db.steps[path['steps'][0]]
-            print 'PathChooser::choose: first_step is', first_step.id
+            if debug: print 'PathChooser::choose: first_step is', first_step.id
             if self.loc_id in first_step['locations']:
                 new_loc = None
             else:
@@ -2281,18 +2310,29 @@ class PathChooser(object):
 
             # cycle through categories, prioritised in _order_cats()
             for cat in cat_list:
-                print 'PathChooser::choose: checking in cat', cat
-                catpaths, category, use_cat1 = self._paths_by_category(cat, self.rank)
+                if debug: print 'PathChooser::choose: checking in cat', cat
+                catpaths, category, use_cat1, pathset_new = \
+                    self._paths_by_category(cat, self.rank)
                 #print 'forcing cat1?', use_cat1
                 #print 'catpaths:', [c['id'] for c in catpaths]
                 if catpaths and len(catpaths):
-                    print 'PathChooser::choose: using category', category
+                    if debug: print 'PathChooser::choose: using category', category
                     path, newloc, category, mode = self._choose_from_cat(catpaths,
                                                                          category)
                     if mode:
-                        return path, newloc, category, mode
+                        # catch unforced choices of new material for this user
+                        # and pass back whether or not the path is new material
+                        if pathset_new:
+                            if path['id'] in [p['id'] for p in pathset_new]:
+                                new_material = True
+                                self.cat1_choices += 1
+                                self.tag_progress['cat1_choices'] = self.cat1_choices
+                        elif self.force_new:
+                            new_material = True
+                        if debug: print 'PathChooser::choose: new_material =', new_material
+                        return path, newloc, category, mode, new_material, self.tag_progress
                     else:
-                        print 'bad mode trying another category'
+                        if debug: print 'bad mode trying another category'
                 else:
                     continue
             return None, None, None, None
@@ -2312,6 +2352,7 @@ class User(object):
         - tag_progress: rows.as_dict()
         - tag_records: rows.as_dict
         """
+        debug = False
         db = db if db else current.db
         # TODO: this 'if' is for testing and not functionally necessary
         if 'sequence_counter' not in dir(current):
@@ -2319,7 +2360,7 @@ class User(object):
         try:
             self.time_zone = userdata['time_zone']
             self.blocks = blocks
-            print 'User::init: self.blocks', self.blocks
+            if debug: print 'User::init: self.blocks', self.blocks
             # FIXME: somehow pass previous day's blocks in user._is_stale()?
             self.name = userdata['first_name']
             self.user_id = userdata['id']
@@ -2487,21 +2528,22 @@ class User(object):
         - Returns None
         """
         # TODO make sure that current loc and npc get set for self.prev_loc etc
+        debug = False
         if self.blocks:
-            print 'User::check_for_blocks: blocks present'
+            if debug: print 'User::check_for_blocks: blocks present'
             blockset = []
             for b in self.blocks:
                 if not b.get_condition() in [c.get_condition() for c in blockset]:
                     blockset.append(b)
             self.blocks = blockset
-            print 'User::check_for_blocks: blockset', blockset
+            if debug: print 'User::check_for_blocks: blockset', blockset
             current.sequence_counter += 1  # TODO: why increment twice here?
             myblock = self.blocks.pop(0)
-            print 'User::check_for_blocks: myblock', blockset
+            if debug: print 'User::check_for_blocks: myblock', blockset
             current.sequence_counter += 1  # TODO: why increment twice here?
             return myblock
         else:
-            print 'User::check_for_blocks: no blocks present'
+            if debug: print 'User::check_for_blocks: no blocks present'
             return None
 
     def set_block(self, condition, kwargs=None):
@@ -2588,6 +2630,7 @@ class User(object):
         """
         Instantiate PathChooser and return the result of its choose() method.
         """
+        debug = True
         choice = None
         if self.path:  # TODO: do I want this catch here?
             self.path = None
@@ -2599,10 +2642,12 @@ class User(object):
             self.tag_progress['cat1_choices'] = 0
         if 'all_choices' not in self.tag_progress:
             self.tag_progress['all_choices'] = 0
-        choice, redir, cat, mode = PathChooser(self.tag_progress,
-                                                loc.get_id(),
-                                                self.completed_paths).choose(set_review=set_review)
-        print 'User::_make_path_choice: mode is', mode
+        choice, redir, cat, mode, new_content, tag_progress = \
+            PathChooser(self.tag_progress,
+                        loc.get_id(),
+                        self.completed_paths).choose(set_review=set_review)
+        self.tag_progress = tag_progress  # to keep counts made in PathChooser
+        if debug: print 'User::_make_path_choice: mode is', mode
         #print 'in _make_path_choice ----------------------------------------'
         #print 'choice:', choice
         #print 'redir:', redir
@@ -2618,8 +2663,8 @@ class User(object):
             path = Path(path_id=choice['id'])
             if re.match(r'reviewing', mode, re.I):  # show mode if not regular choice
                 cat = mode
-            print 'User::_make_path_choice: num of path.steps is', len(path.steps)
-            return path, redir, cat
+            if debug: print 'User::_make_path_choice: num of path.steps is', len(path.steps)
+            return path, redir, cat, new_content
         else: return None, None, None
 
     def get_path(self, loc, db=None, pathid=None, repeat=None, set_review=None):
@@ -2629,18 +2674,20 @@ class User(object):
         dependency injection during testing (db and pathid) or for special
         selection modes (repeat, set_review).
         """
+        debug = False
         db = current.db if not db else db
         redir = None
         cat = None
         pastq = None
-        print 'User::get_path: starting self.path is', self.path
+        new_content = False
+        if debug: print 'User::get_path: starting self.path is', self.path
         if self.path:
-            print 'User::get_path: self.path id is', self.path.get_id()
-            print 'User::get_path:', len(self.path.steps), 'steps left in path'
+            if debug: print 'User::get_path: self.path id is', self.path.get_id()
+            if debug: print 'User::get_path:', len(self.path.steps), 'steps left in path'
         while True:
             if pathid:  # testing specific path
                 self.path = Path(pathid)
-                print 'con 1'
+                if debug: print 'con 1'
 
             if repeat and not self.path:  # repeating a step, path finished before
                 pathid = self.completed_paths['latest']
@@ -2654,8 +2701,8 @@ class User(object):
             elif self.path and len(self.path.steps):  # unfinished step in self.path
                 pass
             else:  # choosing a new path
-                self.path, redir, cat = self._make_path_choice(loc,
-                                                               set_review=set_review)
+                self.path, redir, cat, new_content = \
+                    self._make_path_choice(loc, set_review=set_review)
                 #print 'path chosen:', self.path.get_id()
                 if (not self.path):
                     break  # and return Nones
@@ -2670,7 +2717,7 @@ class User(object):
                 self.blocks = [b for b in self.blocks
                                if not b.get_condition() is 'redirect']
             break
-        return (self.path, cat, redir, pastq)
+        return (self.path, cat, redir, pastq, new_content)
 
     def get_categories(self, user_id=None, rank=None, old_categories=None,
                        tag_records=None, utcnow=None):
