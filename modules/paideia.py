@@ -284,6 +284,8 @@ class Walk(object):
                 user.get_path(loc, pathid=path,
                               repeat=repeat,
                               set_review=set_review)
+            if repeat:
+                user.repeating = True  # so that information available in reply
             if debug: print 'Walk::ask: path chosen is', p.get_id()
             if debug: print 'Walk::ask: redir is', redir
 
@@ -327,6 +329,10 @@ class Walk(object):
                             }
             prompt.update(extra_fields)
 
+            try:
+                if debug: print 'Walk::ask: repeating?', user.repeating
+            except AttributeError:
+                if debug: print 'Walk::ask: user didn\'t have repeating attribute'
             p.end_prompt(s.get_id())  # send id to tell whether its a block step
             self._store_user(user)
             break  # from utility while loop
@@ -415,6 +421,10 @@ class Walk(object):
         """
         debug = True
         user = self._get_user()
+        try:
+            repeat = user.repeating
+        except AttributeError:  # because user was initialized without attr
+            repeat = False
         loc = user.get_location()
         p, cat = user.get_path(loc)[:2]
         if not cat:
@@ -433,17 +443,21 @@ class Walk(object):
                                  user.promoted,
                                  user.new_tags)
         """
-        self.record_id = self._record_step(user.get_id(),
-                                           s.get_id(),
-                                           p.get_id(),
-                                           prompt['score'],
-                                           prompt['times_right'],
-                                           prompt['times_wrong'],
-                                           user.tag_records,
-                                           s.get_tags(),
-                                           response_string,
-                                           cat,
-                                           user.new_content)
+        if repeat:
+            user.repeating = False  # remove repeating flag now that step is over
+            if debug: print 'Walk::reply: user is repeating, not recording step'
+        else:
+            self.record_id = self._record_step(user.get_id(),
+                                               s.get_id(),
+                                               p.get_id(),
+                                               prompt['score'],
+                                               prompt['times_right'],
+                                               prompt['times_wrong'],
+                                               user.tag_records,
+                                               s.get_tags(),
+                                               response_string,
+                                               cat,
+                                               user.new_content)
         prompt['bugreporter'] = BugReporter().get_reporter(self.record_id,
                                                            p.get_id(),
                        pre_bug_step_id if pre_bug_step_id else s.get_id(),
@@ -2393,6 +2407,10 @@ class User(object):
             self.viewed_slides = False
             self.reported_badges = False
             self.reported_promotions = False
+
+            self.repeating = False
+            self.new_content = False
+            self.active_cat = None
         except Exception:
             print traceback.format_exc(5)
 
@@ -2690,6 +2708,7 @@ class User(object):
                 if debug: print 'con 1'
 
             if repeat and not self.path:  # repeating a step, path finished before
+                if debug: print 'User::get_path: repeating a finished path'
                 pathid = self.completed_paths['latest']
                 self.path = Path(pathid)
             elif self.path and self.path.step_for_prompt:

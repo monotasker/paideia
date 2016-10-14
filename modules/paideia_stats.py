@@ -1297,7 +1297,7 @@ def get_term_bounds(meminfo, start_date, end_date):
     in datetime and readable formats.
 
     """
-    debug = True
+    debug = False
     db = current.db
     if debug: print 'starting paideia_stats/get_term_bounds ================='
     if debug: print db.auth_user(meminfo['name']).last_name
