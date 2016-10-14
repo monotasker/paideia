@@ -13,7 +13,7 @@ import os
 from paideia_utils import Paideia_Debug, GreekNormalizer
 import pickle
 from plugin_utils import flatten, makeutf8, ErrorReport
-# from pprint import pprint
+from pprint import pprint
 from pytz import timezone
 from random import randint, randrange
 import re
@@ -446,6 +446,7 @@ class Walk(object):
         if repeat:
             user.repeating = False  # remove repeating flag now that step is over
             if debug: print 'Walk::reply: user is repeating, not recording step'
+            self.record_id = None  # so there's a value to pass to the BugReporter
         else:
             self.record_id = self._record_step(user.get_id(),
                                                s.get_id(),
@@ -949,6 +950,7 @@ class BugReporter(object):
         web2py view template. This is meant to be embedded in the reply UI
         which presents the user with an evaluation of the step input.
         """
+        debug = False
 
         response_string = response_string.decode('utf-8')
         response_string = response_string.encode('utf-8')
@@ -959,6 +961,7 @@ class BugReporter(object):
                    'path_id': path_id,
                    'score': score,
                    'bug_step_id': step_id}
+        if debug: print 'BugReporter::get_reporter: vardict is \n', pprint(vardict)
 
         return vardict
 

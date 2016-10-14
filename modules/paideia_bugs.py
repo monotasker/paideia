@@ -29,13 +29,17 @@ class Bug(object):
         response = current.response
         db = current.db
         try:
-            db.bugs.insert(step=self.step_id,
-                           in_path=self.path_id,
-                           map_location=self.loc_id,
-                           user_response=answer,
-                           user_comment=user_comment,
-                           log_id=log_id,
-                           score=score)
+            argdict = {"step": self.step_id,
+                       "in_path": self.path_id,
+                       "map_location": self.loc_id,
+                       "user_response": answer,
+                       "user_comment": user_comment,
+                       "score": score}
+
+            if log_id not in [None, False, 'None']:  # to allow for queries on repeating (unrecorded) steps
+                argdict['log_id'] = log_id
+
+            db.bugs.insert(**argdict)
             return True
         except Exception:
             print traceback.format_exc(5)
@@ -123,13 +127,13 @@ class Bug(object):
                                 rightids = [r.id for r in new_logs_right]
                                 # find wrong logs during period
                                 oldlogs = db((db.attempt_log.name == myname) &
-                                             (db.attempt_log.dt_attempted
-                                              >= new_earliest_right) &
-                                             (db.attempt_log.dt_attempted
-                                              <= new_latest_right) &
+                                             (db.attempt_log.dt_attempted >=
+                                              new_earliest_right) &
+                                             (db.attempt_log.dt_attempted <=
+                                              new_latest_right) &
                                              (db.attempt_log.step.tags.contains([tr.tag])) &
-                                             (db.attempt_log.score
-                                              < right_threshold)
+                                             (db.attempt_log.score <
+                                              right_threshold)
                                              ).select()
                                 # print 'oldlogs is', len(oldlogs)
                                 if oldlogs:
