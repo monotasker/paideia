@@ -298,13 +298,27 @@ def get_day_attempts():
     ids = ids.split(',')
     myrows = db((db.attempt_log.id.belongs(ids)) &
                 (db.attempt_log.step == db.steps.id)).select()
-    attempt_list = TABLE(TR(TH('Prompt'), TH('My Response'), TH('Score')),
+    attempt_list = TABLE(TR(TH('Prompt'),
+                            TH('My Response'),
+                            TH('Score'),
+                            TH('Review Level'),
+                            TH('New Content'),
+                            TH('Related Badges')
+                            ),
                          _class='table')
     for row in myrows:
+        mytags = db.steps(row['attempt_log']['step']).tags
+        mybadges = [db(db.badges.tag == t).select().first().badge_name
+                    for t in mytags]
+        mybadges_string = ', '.join(mybadges)
         myclass = 'success' if row.attempt_log.score > 0.01 else 'warning'
         attempt_list.append(TR(TD(row.steps.prompt, _class=myclass),
                                TD(row.attempt_log.user_response, _class=myclass),
-                               TD(row.attempt_log.score, _class=myclass)))
+                               TD(row.attempt_log.score, _class=myclass),
+                               TD(row.attempt_log.category_for_user, _class=myclass),
+                               TD(row.attempt_log.new_content, _class=myclass),
+                               TD(mybadges_string, _class=myclass)
+                               ))
     return attempt_list
 
 
