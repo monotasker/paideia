@@ -139,7 +139,7 @@ def info():
             reviewing_set():            session.set_review,
             badge_set_dict():           badge_set_dict
     """
-    debug = True
+    debug = False
     if debug: print '==================================='
     if debug: print 'starting controller default.info'
     # Allow passing explicit user but default to current user
@@ -323,12 +323,13 @@ def get_day_attempts():
 
 
 def set_review_mode():
+    debug = False
     try:
         myset = int(request.args[0])
     except ValueError:  # if passed a non-numeric value
         myset = None
     session.set_review = myset
-    print 'session.set_review is', session.set_review
+    if debug: print 'session.set_review is', session.set_review
 
 
 def oops():
