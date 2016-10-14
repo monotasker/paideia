@@ -15,3 +15,16 @@ pass}}
 <div id="plugin_listandedit_wrapper">
 {{=LOAD('plugin_listandedit', 'widget.load', args=request.args, vars=vars, ajax=False, ajax_trap=True)}}
 </div>
+
+
+<script>
+
+{{if request.args[0] == 'bugs':}}
+  $('#submit_record_row input').on('click', function(){
+    alert('hi');
+  });
+{{pass}}
+
+
+
+</script>
