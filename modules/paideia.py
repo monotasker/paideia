@@ -3155,7 +3155,7 @@ class Categorizer(object):
                  ((self._get_ratio(record) < 0.2) and  # less than 1w to 5r total
                   (rdur.days <= 30)  # right in past 30 days
                   ) or
-                 ((self._get_avg(record['tag']) >= 0.8) and  # avg score for week >= 0.8
+                 ((self._get_avg(record['tag']) >= 0.7) and  # avg score for week >= 0.7
                   (rdur.days <= 30)  # right in past 30 days
                   ))):
                 #print'************** got to cat2'
