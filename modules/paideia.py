@@ -448,6 +448,7 @@ class Walk(object):
             if debug: print 'Walk::reply: user is repeating, not recording step'
             self.record_id = None  # so there's a value to pass to the BugReporter
         else:
+            if debug: print 'Walk::reply: cat being recorded is:', cat
             self.record_id = self._record_step(user.get_id(),
                                                s.get_id(),
                                                p.get_id(),
@@ -730,7 +731,7 @@ class Walk(object):
                     'in_path': path_id,
                     'score': score,
                     'user_response': makeutf8(response_string),
-                    'category_for_user': category,
+                    'selection_category': category,
                     'new_content': 'yes' if new_content else 'no'}  # time automatic in db
         #print 'log args ===================================='
         #print type(log_args['user_response'])
@@ -2317,7 +2318,8 @@ class PathChooser(object):
                 new_loc = [l for l in first_step['locations'] if db.locations[l].loc_active][0]
             category = None  # using badge set, not categories
             mode = "reviewing set {}".format(myset)
-            return path, new_loc, category, mode
+            new_material = False
+            return path, new_loc, category, mode, new_material, self.tag_progress
 
         else:  # regular category based selection (default)
             cat_list = [c for c in self._order_cats()
@@ -2352,7 +2354,7 @@ class PathChooser(object):
                         if debug: print 'bad mode trying another category'
                 else:
                     continue
-            return None, None, None, None
+            return None, None, None, None, None, None
 
 
 class User(object):
@@ -2651,7 +2653,7 @@ class User(object):
         """
         Instantiate PathChooser and return the result of its choose() method.
         """
-        debug = True
+        debug = False
         choice = None
         if self.path:  # TODO: do I want this catch here?
             self.path = None
@@ -2679,14 +2681,16 @@ class User(object):
         current.db.tag_progress.update_or_insert(condition, **self.tag_progress)
         current.db.commit()
 
+        if debug: 'User::_make_path_choice: mode is', mode
         # FIXME: if no choice, send_error('User', 'get_path', current.request)
         if mode:
             path = Path(path_id=choice['id'])
-            if re.match(r'reviewing', mode, re.I):  # show mode if not regular choice
+            if re.match(r'reviewing.*', mode, re.I):  # show mode if not regular choice
                 cat = mode
+                if debug: 'User::_make_path_choice: reviewing, cat is: ', cat
             if debug: print 'User::_make_path_choice: num of path.steps is', len(path.steps)
             return path, redir, cat, new_content
-        else: return None, None, None
+        else: return None, None, None, None
 
     def get_path(self, loc, db=None, pathid=None, repeat=None, set_review=None):
         """
@@ -2698,9 +2702,9 @@ class User(object):
         debug = False
         db = current.db if not db else db
         redir = None
-        cat = None
+        cat = self.active_cat  # preserve previous val in multi-step paths
         pastq = None
-        new_content = False
+        new_content = self.new_content   # preserve previous val in multi-step paths
         if debug: print 'User::get_path: starting self.path is', self.path
         if self.path:
             if debug: print 'User::get_path: self.path id is', self.path.get_id()
@@ -2823,6 +2827,10 @@ class User(object):
         #we now using hash {'path_id':count} to keep track of completed_paths
         # {'latest' : path_id} gives path_id of the latest one
         """
+        # FIXME: I think this is firing for every recorded step, not just at the
+        # end of every path. The current behaviour is right, but the method is
+        # misnamed and I'm not sure the implications for recording completed
+        # paths.
         if (str(self.path.get_id()) not in self.completed_paths['paths']):
             pdict = {'right': 0, 'wrong': 0, 'path_dict': self.path.get_dict()}
             self.completed_paths['paths'][str(self.path.get_id())] = pdict

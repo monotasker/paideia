@@ -146,7 +146,7 @@ ap.append(form) }}
                         _href=URL('editing', 'listing', args=['paths', pid]),
                         _class='prompt-p-editlink'
                         )
-            catnum = ' choosing from category {}'.format(category)}}
+                        catnum = ' choosing from category {}, new content is {}'.format(category, new_content)}}
             <small>
             {{=ROLE(DIV(pathedit, ', ', stepedit, catnum,
                     _class='prompt-editlinks'))}}
