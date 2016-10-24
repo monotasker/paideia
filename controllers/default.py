@@ -315,7 +315,7 @@ def get_day_attempts():
         attempt_list.append(TR(TD(row.steps.prompt, _class=myclass),
                                TD(row.attempt_log.user_response, _class=myclass),
                                TD(row.attempt_log.score, _class=myclass),
-                               TD(row.attempt_log.category_for_user, _class=myclass),
+                               TD(row.attempt_log.selection_category, _class=myclass),
                                TD(row.attempt_log.new_content, _class=myclass),
                                TD(mybadges_string, _class=myclass)
                                ))
