@@ -1357,8 +1357,14 @@ def compute_letter_grade(uid, myprog, startset, classrow):
     """
     Computes student's letter grade based on his/her progress in badge sets.
     """
+    debug = True
     mymem = get_current_class(uid, datetime.datetime.utcnow(),
                               myclass=classrow['id'])
+    if debug: print 'stats::compute_letter_grade: uid = ', uid, ' ============='
+    if debug: db = current.db
+    if debug: print db.auth_user[uid].last_name
+    if debug: print 'stats::compute_letter_grade: start = ', startset, ' ============='
+    if debug: print 'stats::compute_letter_grade: progress = ', myprog, ' ============='
     gradedict = {}
     for let in ['a', 'b', 'c', 'd']:
         letcap = '{}_cap'.format(let)
@@ -1372,6 +1378,7 @@ def compute_letter_grade(uid, myprog, startset, classrow):
             else:
                 mylet = int(startset) + classrow[lettarget]
         gradedict[mylet] = let.upper()
+    if debug: pprint(gradedict)
     if myprog in gradedict.keys():
 
         mygrade = gradedict[myprog]
@@ -1382,6 +1389,9 @@ def compute_letter_grade(uid, myprog, startset, classrow):
         mygrade = 'A'
     else:
         mygrade = 'F'
+    if debug: print 'stats::compute_letter_grade: grade = ', mygrade, ' ============='
+    if debug: print ''
+
     return mygrade
 
 
