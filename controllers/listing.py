@@ -107,7 +107,8 @@ def promote_user():
         level2.extend(missing)
         old_level1.extend(missing)  # so badges_begun are updated
         for tag in missing:  # create level 1 record in badges_begun
-            db(db.badges_begun.tag == tag).update(cat1=datetime.datetime.now())
+            db((db.badges_begun.tag == tag) &
+               (db.badges_begun.name == uid)).update(cat1=datetime.datetime.now())
         if debug: print 'new level 2 with missed tags:', level2
 
     # update tag_progress record
@@ -116,7 +117,8 @@ def promote_user():
                      cat2=level2)
     # update badges_begun records with level 2 record
     for tag in old_level1:
-        db(db.badges_begun.tag == tag).update(cat2=datetime.datetime.now())
+        db((db.badges_begun.tag == tag) &
+           (db.badges_begun.name == uid)).update(cat2=datetime.datetime.now())
 
     redirect(URL('user.html', vars={'classid': classid}))
 
