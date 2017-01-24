@@ -18,6 +18,10 @@ class Bug(object):
         self.step_id = step_id
         self.path_id = path_id
         self.loc_id = loc_id
+        mystep = db.steps[step_id]
+        self.prompt = mystep['prompt'] if mystep else None
+        self.step_options = mystep['step_options'] if mystep else None
+        self.readable_response = mystep['readable_response'] if mystep else None
         if isinstance(loc_id, str):
             self.loc_id = db(db.locations.loc_alias == loc_id
                              ).select(db.locations.id).first()
@@ -32,7 +36,10 @@ class Bug(object):
             argdict = {"step": self.step_id,
                        "in_path": self.path_id,
                        "map_location": self.loc_id,
+                       "prompt": self.prompt,
+                       "step_options": self.step_options,
                        "user_response": answer,
+                       "sample_answers": self.readable_response,
                        "user_comment": user_comment,
                        "score": score}
 
