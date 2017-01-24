@@ -158,13 +158,15 @@ def demote_user():
     # TODO: do I have to somehow mark the actual log entries somehow as
     # removed? Should they be backed up?
     print 'demoting tags:', old_taglist
-    trecs = db(db.tag_records.tag.belongs(old_taglist))
+    trecs = db((db.tag_records.tag.belongs(old_taglist)) &
+               (db.tag_records.name == uid))
     print 'found trecs:', trecs.count()
     trecs.delete()
 
     for tag in new_ranktags:
-        db(db.badges_begun.tag == tag).update(cat1=datetime.datetime.now(),
-                                              cat2=None)
+        db((db.badges_begun.tag == tag) &
+           (db.badges_begun.name == uid)).update(cat1=datetime.datetime.now(),
+                                                cat2=None)
 
     response.flash = 'User moved back to set {}'.format(oldrank - 1)
     redirect(URL('user.html', vars={'classid': classid}))
