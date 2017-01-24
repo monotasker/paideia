@@ -908,6 +908,7 @@ class Stats(object):
         to that date. An extra dict is added to the end of the list with the
         current date and the highest badge_set reached (to pad out graph).
         """
+        debug = False
         db = current.db
         today = datetime.date.today().strftime('%Y-%m-%d')
 
@@ -918,6 +919,8 @@ class Stats(object):
             left=db.tags.on(db.tags.id == db.badges_begun.tag),
             groupby=db.tags.tag_position,
             orderby='2, 1 DESC')
+        if debug: print 'Stats::get_badge_set_milestones: result==============='
+        if debug: pprint(result)
 
         # Transform to a more lightweight form
         # Force str because of how PostgreSQL returns date column
@@ -927,6 +930,7 @@ class Stats(object):
                  'badge_set': row.tags.tag_position}
                 for row in result if row.tags.tag_position < 900]
         data = sorted(data, key=lambda i: i['badge_set'], reverse=True)
+        if debug: pprint(data)
 
         # Make sure that the badge set number is nondecreasing.
         # Order in the SQL query above along with this ensure that there's
@@ -1463,11 +1467,12 @@ def make_classlist(member_sel, users, start_date, end_date, target, classrow):
 def make_unregistered_list(users):
     """
     """
-    print 'make_unregistered_list'
+    debug = False
+    if debug: print 'make_unregistered_list'
     db = current.db
     userlist = []
     for user in users:
-        print 'user id:', user.auth_user.id
+        if debug: print 'user id:', user.auth_user.id
         tp = db(db.tag_progress.name == user.auth_user.id).select().first()
         tp_id = tp.id if tp else None
         currset = get_set_at_date(user.auth_user.id, datetime.datetime.now())
