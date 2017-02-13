@@ -354,7 +354,7 @@ class Stats(object):
                 t['avg_score'] = round(t['avg_score'], 1)
         return tag_recs
 
-    def _get_avg_score(self, tag, mydays=7):
+    def _get_avg_score(self, tag, mydays=5):
         """
         Return the user's average score on a given tag over the past N days.
 

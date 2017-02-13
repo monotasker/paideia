@@ -3070,7 +3070,7 @@ class Categorizer(object):
             pass
         return rec
 
-    def _get_avg(self, tag, mydays=7):
+    def _get_avg(self, tag, mydays=5):
         """
         Return the user's average score on a given tag over the past N days.
         Always returns a float, since scores are floats between 0 and 1.
