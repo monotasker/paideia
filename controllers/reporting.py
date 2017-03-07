@@ -54,12 +54,12 @@ def vocabulary_list():
             l['lemmas']['normalized'] = normalized
 
             # Get number of paths and steps using the lemma
-            mysteps = db(db.steps.lemmas.contains(lid)).select()
-            if mysteps:
-                stepids = [s.id for s in mysteps]
-                mypaths = db(db.paths.steps.contains(stepids)).select()
-            l['lemmas']['stepcount'] = len(mysteps) if mysteps else 0
-            l['lemmas']['pathcount'] = len(mypaths) if 'mypaths' in locals() and mypaths else 0
+            # mysteps = db(db.steps.lemmas.contains(lid)).select()
+            # if mysteps:
+            #    stepids = [s.id for s in mysteps]
+            #    mypaths = db(db.paths.steps.contains(stepids)).select()
+            # l['lemmas']['stepcount'] = len(mysteps) if mysteps else 0
+            # l['lemmas']['pathcount'] = len(mypaths) if 'mypaths' in locals() and mypaths else 0
 
             # Assemble string with principle parts and/or irregular forms
             myparts = ''
@@ -68,16 +68,17 @@ def vocabulary_list():
                             l['lemmas']['perfect_active'], l['lemmas']['perfect_passive'],
                             l['lemmas']['aorist_passive']]
                 myparts = '{}, {}, {}, {}, {}'.format(*partnames)
-            elif l['lemmas']['genitive_singular'] \
+            elif l['lemmas']['real_stem'] \
+                    and l['lemmas']['real_stem'] not in ['None', 'none']:
+                myparts = '(real stem: {}) '.format(l['lemmas']['real_stem'])
+
+            if l['lemmas']['genitive_singular'] \
                     and l['lemmas']['genitive_singular'] not in ['None', 'none']:
-                myparts = 'gen. {}'.format(l['lemmas']['genitive_singular'])
+                myparts += 'gen.: {}; '.format(l['lemmas']['genitive_singular'])
 
             if l['lemmas']['other_irregular'] \
                     and l['lemmas']['other_irregular'] not in ['None', 'none']:
-                if myparts == '':
-                    myparts += '{}'.format(l['lemmas']['other_irregular'])
-                else:
-                    myparts += ' ({})'.format(l['lemmas']['other_irregular'])
+                myparts += '{}'.format(l['lemmas']['other_irregular'])
             l['lemmas']['myparts'] = myparts
             mylemmas.append(l)
 

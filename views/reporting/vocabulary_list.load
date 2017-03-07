@@ -7,6 +7,12 @@ from plugin_widgets import POPOVER
 {{=len(mylemmas)}} words from the total Paideia vocabulary of {{=total_count}}
 Greek words. If any of the words look unfamiliar, look again at the slides for the related badge set.</p>
 
+<p>For verbs, you will find in the "other forms" column a list of several indicative forms (first-person singular): <b>future, aorist active, perfect active, perfect middle/passive, aorist passive</b>.
+</p>
+
+<p>For third-declension nouns, you will find in the "other forms" column the noun's real stem (in brackets), followed by the genitive singular form, and then any other irregular forms that cannot be deduced from the real stem.
+</p>
+
 <form class="form-horizontal" id="vocab_scope_form">
     <div class="form-group">
         <div class="input-group">
@@ -52,8 +58,6 @@ p_text = CAT(P('Note that you don\'t need to include the accent when searching '
     <th>Badge set</th>
     <th>In badge</th>
     <th>Times in NT</th>
-    <th>In paths</th>
-    <th>In steps</th>
     <th>Normalized form</th>
   </tr>
   </thead>
@@ -67,8 +71,8 @@ p_text = CAT(P('Note that you don\'t need to include the accent when searching '
         <td>set {{=word['tags']['tag_position']}}</td>
         <td>{{=word['tags']['tag']}}</td>
         <td>{{=word['lemmas']['times_in_nt'] or '???'}}</td>
-        <td>{{=word['lemmas']['pathcount']}}</td>
-        <td>{{=word['lemmas']['stepcount']}}</td>
+        <!--<td>{{#=word['lemmas']['pathcount']}}</td>-->
+        <!--<td>{{#=word['lemmas']['stepcount']}}</td>-->
         <td>{{=word['lemmas']['normalized']}}</td>
     </tr>
   {{pass}}
@@ -100,10 +104,6 @@ $('.popover-trigger').each(function() {
                                                       null, // tag_position
                                                       null, // tag
                                                       { "searchable": false }, // times_in_nt
-                                                      { "searchable": false,
-                                                        "visible": false }, // pathcount
-                                                      { "searchable": false,
-                                                        "visible": false }, // stepcount
                                                       { "searchable": true,
                                                         "visible": false }, // normalized
                                                   ],
