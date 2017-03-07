@@ -206,8 +206,8 @@ status_classes = {'awaiting review': '',
                   'not_a_bug': 'warning',
                   'allowance_given': 'warning'}
 for bug in blist:
-    # from pprint import pprint
-    # pprint(bug)
+    from pprint import pprint
+    pprint(bug)
     classes = '{} {}'.format(status_classes[bug[7]], bug[-1])
     row = TR(_class=classes)
     # first position is the id, used in edit link
@@ -221,7 +221,7 @@ for bug in blist:
         row.append(TD(INPUT(_type='checkbox', _checked='checked', _name=bug[0], _class='mark_bug_read read-with-comment')))
     elif bug[-1] == 'bug-unread' and bug[9]:
         row.append(TD(INPUT(_type='checkbox', _name=bug[0], _class='mark_bug_read unread-with-comment')))
-    elif not bug[8]:
+    elif not bug[9]:
         row.append(TD(INPUT(_type='checkbox', _disabled='true', _name=bug[0], _class='mark_bug_read read-without-comment')))
     else:
         row.append(TD(INPUT(_type='checkbox', _name=bug[0], _class='mark_bug_read other')))
