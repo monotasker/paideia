@@ -282,7 +282,7 @@ def trigger_bug_undo(*args, **kwargs):
     mystatus = db(db.bug_status.id == kwargs['bug_status']).select().first()
     result = "No records reversed."
 
-    if mystatus['status_label'] in ['fixed', 'confirmed']:
+    if mystatus['status_label'] in ['fixed', 'confirmed', 'allowance_given']:
         # print 'undoing bug!'
         # print 'args'
         # pprint(args)
