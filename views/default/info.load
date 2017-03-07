@@ -190,6 +190,7 @@ tab3_content = XML(cal)
 # TAB 4 - BUGS ===============================================================
 tab4_content = TABLE(TR(TH('question'),
                         TH('your answer'),
+                        TH('sample right answers'),
                         TH('original score'),
                         TH('submitted'),
                         TH('your comments'),
@@ -207,18 +208,18 @@ status_classes = {'awaiting review': '',
 for bug in blist:
     # from pprint import pprint
     # pprint(bug)
-    classes = '{} {}'.format(status_classes[bug[6]], bug[-1])
+    classes = '{} {}'.format(status_classes[bug[7]], bug[-1])
     row = TR(_class=classes)
     # first position is the id, used in edit link
     for val in bug[1:]:
         if val not in ['bug-read', 'bug-unread']:
             val = val if val != None else ''
-            row.append(TD(str(val).replace('_', ' '), _class=status_classes[bug[6]]))
+            row.append(TD(str(val).replace('_', ' '), _class=status_classes[bug[7]]))
         pass
     pass
-    if bug[-1] == 'bug-read' and bug[8]:
+    if bug[-1] == 'bug-read' and bug[9]:
         row.append(TD(INPUT(_type='checkbox', _checked='checked', _name=bug[0], _class='mark_bug_read read-with-comment')))
-    elif bug[-1] == 'bug-unread' and bug[8]:
+    elif bug[-1] == 'bug-unread' and bug[9]:
         row.append(TD(INPUT(_type='checkbox', _name=bug[0], _class='mark_bug_read unread-with-comment')))
     elif not bug[8]:
         row.append(TD(INPUT(_type='checkbox', _disabled='true', _name=bug[0], _class='mark_bug_read read-without-comment')))
