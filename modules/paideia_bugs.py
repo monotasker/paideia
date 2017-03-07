@@ -252,6 +252,7 @@ class Bug(object):
                 display.append(b.bugs.id)
                 display.append(b.steps.prompt)
                 display.append(b.bugs.user_response)
+                display.append(b.bugs.sample_answers)
                 display.append(b.bugs.score)
                 display.append(b.bugs.date_submitted)
                 display.append(b.bugs.user_comment)
