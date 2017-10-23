@@ -8720,6 +8720,8 @@ footer#footer {
   bottom: 0;
   color: #fff;
   margin-top: 0;
+  line-height: 2em;
+  width: 100%;
 }
 footer#footer div.row {
   border-top: 0px solid transparent;
@@ -8738,7 +8740,7 @@ footer#footer div.row p {
 /*-- index --------------------------------------------------*/
 body.default.index div#masthead {
   overflow: hidden;
-  height: 20em;
+  height: 28em;
 }
 body.default.index div#masthead .container {
   position: relative;
@@ -8858,14 +8860,14 @@ body.default.index div.row.paragraphs div.paragraph-comment span.comment-author 
 }
 body.default.index div.row.paragraphs div.index-contentbox {
   background-color: transparent;
+  padding-bottom: 2em;
 }
 body.default.index div.row.paragraphs div.index-contentbox p {
   margin-top: 10px;
 }
 body.default.index div.row.paragraphs div.index-titlebox {
   background-color: transparent;
-  margin-bottom: -99999px;
-  padding-bottom: 99999px;
+  padding-bottom: 2em;
 }
 body.default.index div.modal-set.row {
   color: #efefef;
@@ -8895,8 +8897,8 @@ body.default.index div.modal-set.row .info-illustration-wrapper {
 }
 body.default.index div.modal-set.row .info-illustration-wrapper .info-pane-illustration {
   width: 180px;
-  /*background-color: #efefef;*/
-  /*border-radius: 50%;*/
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
   padding: 12px;
   margin: 0px auto;
   position: relative;
