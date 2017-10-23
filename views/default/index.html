@@ -31,63 +31,63 @@
             free to register and follow the link below to try it out. Bug reports are
             appreciated.
         </div>
-    <div class='info-pane col-sm-4'>
+        <div class='info-pane col-sm-4'>
 
 
-        <div class='info-illustration-wrapper'>
-    {{=IMG(_src=URL('static',
-                    'images/info_{}.svg'.format(modals[0]['title'].replace(' ',
-                    '_')[:-1])),
-               _class='info-pane-illustration'),
-            }}
-    {{modal0 = MODAL(modals[0]['title'], modals[0]['title'],
-                     MARKMIN(modals[0]['content']),
-                     modal_classes='index-modals',
-                     #trigger_type='link',
-                     id=(modals[0]['title'].replace(' ', '_')).replace('?', '')
-                     )}}
-     {{=H4(modal0[0])}}
-     </div>
-     <!--{{#=P(MARKMIN(' '.join(modals[0]['content'].split(' ')[:80]) + '...' ), _class='info-teaser')}}-->
-    </div>
-
-<!--# modal 1-->
-    <div class='info-pane col-sm-4'>
-        <div class='info-illustration-wrapper'>
-    {{=IMG(_src=URL('static',
-                        'images/info_{}.svg'.format(modals[1]['title'].replace(' ',
-                        '_')[:-1])),
-               _class='info-pane-illustration'),
-            }}
-    {{modal1 = MODAL(modals[1]['title'], modals[1]['title'],
-                     MARKMIN(modals[1]['content']),
-                     modal_classes='index-modals',
-                     trigger_type='link',
-                     id=(modals[1]['title'].replace(' ', '_')).replace('?', '')
-                     )}}
-     {{=H4(modal1[0])}}
+            <div class='info-illustration-wrapper'>
+                {{=IMG(_src=URL('static',
+                                'images/info_{}.svg'.format(modals[0]['title'].replace(' ',
+                                '_')[:-1])),
+                           _class='info-pane-illustration'),
+                        }}
+                {{modal0 = MODAL(modals[0]['title'], modals[0]['title'],
+                                 MARKMIN(modals[0]['content']),
+                                 modal_classes='index-modals',
+                                 #trigger_type='link',
+                                 id=(modals[0]['title'].replace(' ', '_')).replace('?', '')
+                                 )}}
+                 {{=H4(modal0[0])}}
+             </div>
+             <!--{{#=P(MARKMIN(' '.join(modals[0]['content'].split(' ')[:80]) + '...' ), _class='info-teaser')}}-->
         </div>
-     <!--{{#=P(MARKMIN(' '.join(modals[1]['content'].split(' ')[:80]) + '...' ), _class='info-teaser')}}-->
-    </div>
 
-<!--# modal 2-->
-    <div class='info-pane col-sm-4'>
-        <div class='info-illustration-wrapper'>
-    {{=IMG(_src=URL('static',
-                        'images/info_{}.svg'.format(modals[2]['title'].replace(' ',
-                        '_')[:-1])),
-               _class='info-pane-illustration'),
-           }}
-    {{modal2 = MODAL(modals[2]['title'], modals[2]['title'],
-                     MARKMIN(modals[2]['content']),
-                     modal_classes='index-modals',
-                     trigger_type='link',
-                     id=(modals[2]['title'].replace(' ', '_')).replace('?', '')
-                     )}}
-     {{=H4(modal2[0])}}
+    <!--# modal 1-->
+        <div class='info-pane col-sm-4'>
+            <div class='info-illustration-wrapper'>
+                {{=IMG(_src=URL('static',
+                                    'images/info_{}.svg'.format(modals[1]['title'].replace(' ',
+                                    '_')[:-1])),
+                           _class='info-pane-illustration'),
+                        }}
+                {{modal1 = MODAL(modals[1]['title'], modals[1]['title'],
+                                 MARKMIN(modals[1]['content']),
+                                 modal_classes='index-modals',
+                                 trigger_type='link',
+                                 id=(modals[1]['title'].replace(' ', '_')).replace('?', '')
+                                 )}}
+                 {{=H4(modal1[0])}}
+            </div>
+             <!--{{#=P(MARKMIN(' '.join(modals[1]['content'].split(' ')[:80]) + '...' ), _class='info-teaser')}}-->
         </div>
-     <!--{{#=P(MARKMIN(' '.join(modals[2]['content'].split(' ')[:80]) + '...' ), _class='info-teaser')}}-->
-    </div>
+
+    <!--# modal 2-->
+        <div class='info-pane col-sm-4'>
+            <div class='info-illustration-wrapper'>
+                {{=IMG(_src=URL('static',
+                                    'images/info_{}.svg'.format(modals[2]['title'].replace(' ',
+                                    '_')[:-1])),
+                           _class='info-pane-illustration'),
+                       }}
+                {{modal2 = MODAL(modals[2]['title'], modals[2]['title'],
+                                 MARKMIN(modals[2]['content']),
+                                 modal_classes='index-modals',
+                                 trigger_type='link',
+                                 id=(modals[2]['title'].replace(' ', '_')).replace('?', '')
+                                 )}}
+                 {{=H4(modal2[0])}}
+            </div>
+                 <!--{{#=P(MARKMIN(' '.join(modals[2]['content'].split(' ')[:80]) + '...' ), _class='info-teaser')}}-->
+        </div>
     </div>
 </div>
 
@@ -99,7 +99,6 @@
             </p>
         </div>
         <div class='col-xs-4 index-contentbox'>
-            img
             <div class="paragraph-comment">
                 <span class='comment-body'>Comment here.<span>
                 <span class='comment-author'>Joe Student</span>
@@ -111,7 +110,6 @@
 <div class='row paragraphs second' >
     <div class='container paragraphs'>
         <div class='col-xs-4 index-titlebox'>
-            img
             <div class="paragraph-comment">
                 <span class='comment-body'>Comment here.<span>
                 <span class='comment-author'>Joe Student</span>
@@ -158,7 +156,6 @@
                 <span class='comment-body'>Comment here.<span>
                 <span class='comment-author'>Joe Student</span>
             </div>
-            img
         </div>
     </div>
 </div>
@@ -170,7 +167,6 @@
                 <span class='comment-body'>Comment here.<span>
                 <span class='comment-author'>Joe Student</span>
             </div>
-            img
         </div>
         <div class='col-xs-8 index-contentbox'>
             <h3>Learn at your own pace</h3>
@@ -201,7 +197,6 @@
                 <span class='comment-body'>Comment here.<span>
                 <span class='comment-author'>Joe Student</span>
             </div>
-            img
         </div>
     </div>
 </div>
