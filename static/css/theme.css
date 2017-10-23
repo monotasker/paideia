@@ -8623,7 +8623,8 @@ body .modal-backdrop {
 nav,
 .navbar {
   background-color: #fff;
-  border-bottom: 1px solid #efefef;
+  border-bottom: 0px;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.2);
 }
 nav a.navbar-brand,
 .navbar a.navbar-brand {
@@ -8644,17 +8645,43 @@ nav small,
 }
 nav a,
 .navbar a {
-  color: #b5ac70;
+  color: #aaa;
 }
 nav .navbar-toggle span,
 .navbar .navbar-toggle span {
-  background-color: #b5ac70;
+  background-color: #5a7129;
 }
-nav ul.navbar-nav li a:hover,
-.navbar ul.navbar-nav li a:hover,
-nav ul.navbar-nav li a:active,
-.navbar ul.navbar-nav li a:active {
-  background-color: #d8d3b3;
+nav ul.navbar-nav li:hover,
+.navbar ul.navbar-nav li:hover,
+nav ul.navbar-nav li:active,
+.navbar ul.navbar-nav li:active {
+  background-color: #3fbbdc;
+}
+nav ul.navbar-nav li:hover > a,
+.navbar ul.navbar-nav li:hover > a,
+nav ul.navbar-nav li:active > a,
+.navbar ul.navbar-nav li:active > a {
+  color: #fff;
+  background-color: #3fbbdc;
+}
+nav ul.navbar-nav li:hover .dropdown-menu,
+.navbar ul.navbar-nav li:hover .dropdown-menu,
+nav ul.navbar-nav li:active .dropdown-menu,
+.navbar ul.navbar-nav li:active .dropdown-menu {
+  top: -2px;
+  background-color: #3fbbdc;
+  border: 1px solid #24a3c4;
+}
+nav ul.navbar-nav li:hover .dropdown-menu li.divider,
+.navbar ul.navbar-nav li:hover .dropdown-menu li.divider,
+nav ul.navbar-nav li:active .dropdown-menu li.divider,
+.navbar ul.navbar-nav li:active .dropdown-menu li.divider {
+  background-color: #24a3c4;
+}
+nav ul.navbar-nav li:hover .dropdown-menu a,
+.navbar ul.navbar-nav li:hover .dropdown-menu a,
+nav ul.navbar-nav li:active .dropdown-menu a,
+.navbar ul.navbar-nav li:active .dropdown-menu a {
   color: #fff;
 }
 nav .badge-wrapper,
@@ -8681,11 +8708,6 @@ div#masthead {
   padding-bottom: 0;
   border: 0px solid transparent;
 }
-div#masthead div.jumbotron {
-  background: transparent;
-  background-color: rgba(255, 255, 255, 0);
-  text-align: center;
-}
 /*-- main --------------------------------------------------*/
 main {
   background-color: #fff;
@@ -8696,13 +8718,14 @@ footer#footer {
   background-color: #bd362f;
   position: fixed;
   bottom: 0;
-  width: 100%;
   color: #fff;
   margin-top: 0;
 }
 footer#footer div.row {
   border-top: 0px solid transparent;
   margin: 0;
+  margin-left: 0;
+  margin-right: 0;
   padding: 0;
 }
 footer#footer div.row a {
@@ -8713,56 +8736,172 @@ footer#footer div.row p {
   margin-bottom: 0;
 }
 /*-- index --------------------------------------------------*/
-body.default.index div.index-openmessage {
-  text-align: center;
-  padding: 3em 0 2em 0;
-}
-body.default.index div.index-openmessage p.index-openmessage {
-  font-size: 18px;
-  padding-top: 20px;
-  text-align: center;
-}
-body.default.index div.container.paragraphs {
+body.default.index div#masthead {
   overflow: hidden;
+  height: 20em;
 }
-body.default.index div.container.paragraphs div.index-contentbox {
+body.default.index div#masthead .container {
+  position: relative;
+}
+body.default.index div#masthead .container img.welcome-maria {
+  position: absolute;
+  left: 0;
+}
+body.default.index div#masthead .container div.maria-bubble {
+  background-color: white;
+  position: absolute;
+  padding: 2em;
+  top: 5em;
+  left: 360px;
+  box-shadow: 2px 4px 0 rgba(0, 0, 0, 0.5);
+  border-radius: 2em;
+  z-index: 10;
+}
+body.default.index div#masthead .container div.maria-bubble:after {
+  border-right: 25px solid #fff;
+  border-top: 25px solid transparent;
+  left: -25px;
+  top: 40%;
+  content: '';
+  position: absolute;
+}
+body.default.index div#masthead .container div.maria-bubble:before {
+  border-right: 23px solid rgba(0, 0, 0, 0.5);
+  border-top: 23px solid transparent;
+  left: -23px;
+  top: 42%;
+  content: '';
+  position: absolute;
+}
+body.default.index div#masthead .container div.maria-bubble a.btn {
+  background-color: #809240;
+  border: 1px solid #fff;
+  margin-top: 0.5em;
+}
+body.default.index div#masthead .container div.maria-bubble p.index-openmessage {
+  font-size: 18px;
+  color: #888;
+}
+body.default.index div.row.paragraphs {
+  padding-top: 1em;
+  padding-bottom: 1em;
+}
+body.default.index div.row.paragraphs.first,
+body.default.index div.row.paragraphs.third,
+body.default.index div.row.paragraphs.fifth {
+  background-color: #f2eed5;
+  color: #5d562f;
+}
+body.default.index div.row.paragraphs.first .paragraph-comment,
+body.default.index div.row.paragraphs.third .paragraph-comment,
+body.default.index div.row.paragraphs.fifth .paragraph-comment {
+  right: 0;
+}
+body.default.index div.row.paragraphs.first .paragraph-comment:after,
+body.default.index div.row.paragraphs.third .paragraph-comment:after,
+body.default.index div.row.paragraphs.fifth .paragraph-comment:after {
+  border-top: 12px solid transparent;
+  border-bottom: 12px solid transparent;
+  border-left: 25px solid #fff;
+  right: -25px;
+  content: '';
+  position: absolute;
+  bottom: 25px;
+}
+body.default.index div.row.paragraphs.first .paragraph-comment:before,
+body.default.index div.row.paragraphs.third .paragraph-comment:before,
+body.default.index div.row.paragraphs.fifth .paragraph-comment:before {
+  border-left: 25px solid rgba(0, 0, 0, 0.2);
+  border-top: 12px solid transparent;
+  border-bottom: 12px solid transparent;
+  right: -26px;
+  content: '';
+  position: absolute;
+  bottom: 23px;
+}
+body.default.index div.row.paragraphs.second,
+body.default.index div.row.paragraphs.fourth {
+  background-color: #1c7f99;
+  color: #ffffff;
+}
+body.default.index div.row.paragraphs div.paragraph-comment {
   background-color: #fff;
+  display: block;
+  position: absolute;
+  top: -2em;
+  color: #888;
+  width: 200px;
+  min-height: 100px;
+  border-radius: 2em;
+  box-shadow: 1px 2px 0 rgba(0, 0, 0, 0.2);
+  padding: 2em 2em 1.5em 1.5em;
+  quotes: "\201C" "\201D" "\2018" "\2019";
 }
-body.default.index div.container.paragraphs div.index-contentbox p {
+body.default.index div.row.paragraphs div.paragraph-comment span.comment-body {
+  margin-left: 1.5em;
+  display: block;
+}
+body.default.index div.row.paragraphs div.paragraph-comment span.comment-body:before {
+  color: #ccc;
+  content: open-quote;
+  font-size: 4em;
+  line-height: 0.1em;
+  position: absolute;
+  left: 0.25em;
+  top: 0.75em;
+}
+body.default.index div.row.paragraphs div.paragraph-comment span.comment-author {
+  float: right;
+  color: #f89406;
+  display: block;
+  position: relative;
+}
+body.default.index div.row.paragraphs div.index-contentbox {
+  background-color: transparent;
+}
+body.default.index div.row.paragraphs div.index-contentbox p {
   margin-top: 10px;
 }
-body.default.index div.container.paragraphs div.index-titlebox {
-  background-color: #efefef;
+body.default.index div.row.paragraphs div.index-titlebox {
+  background-color: transparent;
   margin-bottom: -99999px;
   padding-bottom: 99999px;
 }
-body.default.index div.modal-set.container {
+body.default.index div.modal-set.row {
   color: #efefef;
-  background-color: #1c7f99;
+  background-color: #96BC44;
   text-align: center;
   padding-top: 3em;
   padding-bottom: 3em;
 }
-body.default.index div.modal-set.container h4 a {
+body.default.index div.modal-set.row .warning {
+  position: absolute;
+  right: 0px;
+  top: -120px;
+  color: #f89406;
+  width: 30%;
+  z-index: 100;
+}
+body.default.index div.modal-set.row h4 a {
   color: #fff;
   margin-top: 2em;
 }
-body.default.index div.modal-set.container h4 a:hover {
+body.default.index div.modal-set.row h4 a:hover {
   text-decoration: dotted;
 }
-body.default.index div.modal-set.container .info-illustration-wrapper {
+body.default.index div.modal-set.row .info-illustration-wrapper {
   text-align: center;
   width: 100%;
 }
-body.default.index div.modal-set.container .info-illustration-wrapper .info-pane-illustration {
-  width: 120px;
-  background-color: #efefef;
-  border-radius: 50%;
+body.default.index div.modal-set.row .info-illustration-wrapper .info-pane-illustration {
+  width: 180px;
+  /*background-color: #efefef;*/
+  /*border-radius: 50%;*/
   padding: 12px;
   margin: 0px auto;
   position: relative;
 }
-body.default.index div.modal-set.container p {
+body.default.index div.modal-set.row p {
   hyphens: auto;
   -moz-hyphens: auto;
   -webkit-hyphens: auto;
