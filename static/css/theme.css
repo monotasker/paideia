@@ -8604,13 +8604,7 @@ button.close {
 body {
   margin-top: 0;
   padding-top: 50px !important;
-  font-family: "Fira Sans", "Helvetica Neue", Helvetica, Ubuntu, Arial, sans-serif;
-}
-body h1,
-body h2,
-body h3,
-body h4 {
-  font-family: "Fira Sans", "Helvetica Neue", Helvetica, Ubuntu, Arial, sans-serif;
+  font-family: 'Open Sans', "Fira Sans", "Helvetica Neue", Helvetica, Ubuntu, Arial, sans-serif;
 }
 body ul {
   list-style-type: None;
@@ -8618,6 +8612,9 @@ body ul {
 }
 body .modal-backdrop {
   display: None;
+}
+body i.fa {
+  margin-right: 0.5em;
 }
 /*-- navbar --------------------------------------------------*/
 nav,
@@ -8628,11 +8625,14 @@ nav,
 }
 nav a.navbar-brand,
 .navbar a.navbar-brand {
-  font-size: 21px;
+  font-size: 32px;
   text-transform: uppercase;
   letter-spacing: 2px;
   color: #bd362f;
   transition: 100ms all linear;
+  font-family: 'Amatic SC', cursive;
+  font-weight: normal;
+  font-size: 3em;
 }
 nav a.navbar-brand:hover,
 .navbar a.navbar-brand:hover {
@@ -8649,25 +8649,31 @@ nav a,
 }
 nav .navbar-toggle span,
 .navbar .navbar-toggle span {
-  background-color: #5a7129;
+  background-color: #aaa;
 }
 nav ul.navbar-nav li:hover,
 .navbar ul.navbar-nav li:hover,
 nav ul.navbar-nav li:active,
-.navbar ul.navbar-nav li:active {
+.navbar ul.navbar-nav li:active,
+nav ul.navbar-nav li.open,
+.navbar ul.navbar-nav li.open {
   background-color: #3fbbdc;
 }
 nav ul.navbar-nav li:hover > a,
 .navbar ul.navbar-nav li:hover > a,
 nav ul.navbar-nav li:active > a,
-.navbar ul.navbar-nav li:active > a {
+.navbar ul.navbar-nav li:active > a,
+nav ul.navbar-nav li.open > a,
+.navbar ul.navbar-nav li.open > a {
   color: #fff;
   background-color: #3fbbdc;
 }
 nav ul.navbar-nav li:hover .dropdown-menu,
 .navbar ul.navbar-nav li:hover .dropdown-menu,
 nav ul.navbar-nav li:active .dropdown-menu,
-.navbar ul.navbar-nav li:active .dropdown-menu {
+.navbar ul.navbar-nav li:active .dropdown-menu,
+nav ul.navbar-nav li.open .dropdown-menu,
+.navbar ul.navbar-nav li.open .dropdown-menu {
   top: -2px;
   background-color: #3fbbdc;
   border: 1px solid #24a3c4;
@@ -8675,14 +8681,37 @@ nav ul.navbar-nav li:active .dropdown-menu,
 nav ul.navbar-nav li:hover .dropdown-menu li.divider,
 .navbar ul.navbar-nav li:hover .dropdown-menu li.divider,
 nav ul.navbar-nav li:active .dropdown-menu li.divider,
-.navbar ul.navbar-nav li:active .dropdown-menu li.divider {
+.navbar ul.navbar-nav li:active .dropdown-menu li.divider,
+nav ul.navbar-nav li.open .dropdown-menu li.divider,
+.navbar ul.navbar-nav li.open .dropdown-menu li.divider {
   background-color: #24a3c4;
+  margin: 0;
 }
-nav ul.navbar-nav li:hover .dropdown-menu a,
-.navbar ul.navbar-nav li:hover .dropdown-menu a,
-nav ul.navbar-nav li:active .dropdown-menu a,
-.navbar ul.navbar-nav li:active .dropdown-menu a {
+nav ul.navbar-nav li:hover .dropdown-menu li a,
+.navbar ul.navbar-nav li:hover .dropdown-menu li a,
+nav ul.navbar-nav li:active .dropdown-menu li a,
+.navbar ul.navbar-nav li:active .dropdown-menu li a,
+nav ul.navbar-nav li.open .dropdown-menu li a,
+.navbar ul.navbar-nav li.open .dropdown-menu li a {
   color: #fff;
+  line-height: 3em;
+  height: 3em;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+nav ul.navbar-nav li:hover .dropdown-menu li a:hover,
+.navbar ul.navbar-nav li:hover .dropdown-menu li a:hover,
+nav ul.navbar-nav li:active .dropdown-menu li a:hover,
+.navbar ul.navbar-nav li:active .dropdown-menu li a:hover,
+nav ul.navbar-nav li.open .dropdown-menu li a:hover,
+.navbar ul.navbar-nav li.open .dropdown-menu li a:hover,
+nav ul.navbar-nav li:hover .dropdown-menu li a:active,
+.navbar ul.navbar-nav li:hover .dropdown-menu li a:active,
+nav ul.navbar-nav li:active .dropdown-menu li a:active,
+.navbar ul.navbar-nav li:active .dropdown-menu li a:active,
+nav ul.navbar-nav li.open .dropdown-menu li a:active,
+.navbar ul.navbar-nav li.open .dropdown-menu li a:active {
+  background-color: #24a3c4;
 }
 nav .badge-wrapper,
 .navbar .badge-wrapper {
@@ -8759,6 +8788,12 @@ body.default.index div#masthead .container div.maria-bubble {
   border-radius: 2em;
   z-index: 10;
 }
+body.default.index div#masthead .container div.maria-bubble h1 {
+  font-family: 'Amatic SC', cursive;
+  font-weight: regular;
+  font-size: 3em;
+  color: #cebf60;
+}
 body.default.index div#masthead .container div.maria-bubble:after {
   border-right: 25px solid #fff;
   border-top: 25px solid transparent;
@@ -8787,6 +8822,10 @@ body.default.index div#masthead .container div.maria-bubble p.index-openmessage 
 body.default.index div.row.paragraphs {
   padding-top: 1em;
   padding-bottom: 1em;
+}
+body.default.index div.row.paragraphs h3 {
+  font-family: 'Amatic SC';
+  font-size: 3em;
 }
 body.default.index div.row.paragraphs.first,
 body.default.index div.row.paragraphs.third,
@@ -8878,11 +8917,17 @@ body.default.index div.modal-set.row {
 }
 body.default.index div.modal-set.row .warning {
   position: absolute;
+  background-color: #bd362f;
   right: 0px;
-  top: -120px;
+  top: -40px;
   color: #f89406;
   width: 30%;
+  border-left: 0;
   z-index: 100;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+body.default.index div.modal-set.row .warning i {
+  font-size: 2em;
 }
 body.default.index div.modal-set.row h4 a {
   color: #fff;
