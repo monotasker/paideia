@@ -7,14 +7,11 @@
 <div class='maria-bubble'>
     <h1>Welcome!</h1>
     <p class='index-openmessage'>Paideia is a fun and interactive
-        place to learn New Testament Greek.
-    </p>
-    <p class='index-openmessage'>
-        To get started, register for a free account and then click the
+        place to learn New Testament Greek. To get started, register for a free account and then click the
         green button below to start exploring.
     </p>
 
-    {{=A("Explore",
+    {{=A(CAT(I(_class="fa fa-sign-in"), "Explore"),
         _href=URL('exploring', 'index'),
         _class='btn btn-success btn-lg')}}
 
@@ -26,10 +23,8 @@
 <!--# modal 0-->
 <div class='modal-set row'>
     <div class='modal-set container'>
-        <div class='bs-callout bs-callout-warning warning'>This is an early "alpha" version for
-            use in my courses at Tyndale Seminary. The site is still rough, but feel
-            free to register and follow the link below to try it out. Bug reports are
-            appreciated.
+        <div class='bs-callout warning'><i class='fa fa-exclamation-triangle'></i>This app is a rough "alpha" version.
+            Bug reports are appreciated.
         </div>
         <div class='info-pane col-sm-4'>
 

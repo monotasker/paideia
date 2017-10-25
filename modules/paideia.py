@@ -556,6 +556,7 @@ class Walk(object):
         mynow = datetime.datetime.utcnow() if not now else now
         db = current.db
         sec_right = [mynow]  # default
+        startdt = None
         if oldrec:
             oldrec = oldrec[0] if isinstance(oldrec, list) else oldrec  # FIXME
             sec_right = oldrec['secondary_right']
@@ -563,10 +564,15 @@ class Walk(object):
                 sec_right.append(mynow)
             except AttributeError:  # because secondary_right is None
                 sec_right = [mynow]  # default
+        else:
+            startdt = mynow
+
         condition = {'tag': tag, 'name': user_id}
-        tagrec = db.tag_records.update_or_insert(condition,
-                                                 tag=tag,
-                                                 secondary_right=sec_right)
+        args = {'tag': tag,
+                'secondary_right': sec_right}
+        if startdt:
+            args['first_attempt'] = startdt
+        tagrec = db.tag_records.update_or_insert(condition, **args)
         db.commit()
         return tagrec
 
@@ -664,6 +670,8 @@ class Walk(object):
                 newdata['tlast_wrong'] = oldrec['tlast_wrong']
             else:
                 newdata['tlast_right'] = oldrec['tlast_right']
+        else:
+            newdata['first_attempt'] = datetime.datetime.utcnow()
 
         # write updates to db here
         condition = {'name': user_id, 'tag': tag}
@@ -3136,10 +3144,16 @@ class Categorizer(object):
                 continue
             lrraw = record['tlast_right']
             lwraw = record['tlast_wrong']
+            firstraw = record['first_attempt']
             lr = lrraw if not isinstance(lrraw, str) else parser.parse(lrraw)
             lw = lwraw if not isinstance(lwraw, str) else parser.parse(lwraw)
+            if firstraw:
+                first_attempt = firstraw if not isinstance(lwraw, str) else parser.parse(firstraw)
+            else:
+                first_attempt = None
             rdur = self.utcnow - lr
             rwdur = lr - lw
+            since_started = self.utcnow - first_attempt if first_attempt else datetime.timedelta(days=2)
             #print'cat2 if:'
             #print"record['times_right'] ", record['times_right'], '>= 20 (', record['times_right'] >= 20, ')'
             #print'and'
@@ -3157,9 +3171,8 @@ class Categorizer(object):
             # spaced repetition algorithm for promotion to
             # cat2? ======================================================
             if ((record['times_right'] >= 20) and  # at least 20 right
-                (((rdur < rwdur) and  # delta right < delta right/wrong
-                  (rwdur.days > 1)  # not within 1 day
-                  ) or
+                (((rdur < rwdur) and # delta right < delta right/wrong
+                  since_started.days >= 1) or
                  ((self._get_ratio(record) < 0.2) and  # less than 1w to 5r total
                   (rdur.days <= 30)  # right in past 30 days
                   ) or

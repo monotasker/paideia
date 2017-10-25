@@ -587,6 +587,7 @@ db.define_table('tag_records',
                 Field('secondary_right', 'list:string'),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
+                Field('first_attempt', 'datetime'),
                 )
 #db.executesql('CREATE INDEX IF NOT EXISTS idx_trecs_1 ON tag_records (name, tag);')
 #db.executesql('CREATE INDEX IF NOT EXISTS idx_trecs_2 ON tag_records (tag, name);')
