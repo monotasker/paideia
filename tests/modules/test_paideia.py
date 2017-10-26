@@ -24,7 +24,7 @@ import re
 from copy import copy
 from random import randint, randrange
 #from dateutil import parser
-from difflib import Differ
+# from difflib import Differ
 from itertools import chain
 #from urllib import quote_plus
 import pickle
@@ -33,18 +33,18 @@ import pickle
 # ===================================================================
 # Switches governing which tests to run
 # ===================================================================
-global_runall = False
-global_run_TestNpc = True
-global_run_TestLocation = True
-global_run_TestStep = True
-global_run_TestStepEvaluator = True
-global_run_TestMultipleEvaluator = True
-global_run_TestPath = True
-global_run_TestUser = True
-global_run_TestCategorizer = True
-global_run_TestMap = True
+global_runall = True
+global_run_TestNpc = False
+global_run_TestLocation = False
+global_run_TestStep = False
+global_run_TestStepEvaluator = False
+global_run_TestMultipleEvaluator = False
+global_run_TestPath = False
+global_run_TestUser = False
+global_run_TestCategorizer = False
+global_run_TestMap = False
 global_run_TestWalk = True
-global_run_TestPathChooser = True
+global_run_TestPathChooser = False
 global_run_TestBugReporter = True
 
 # ===================================================================
@@ -52,6 +52,7 @@ global_run_TestBugReporter = True
 # ===================================================================
 
 now = datetime.datetime.utcnow()
+
 
 def log_generator(uid, tag, count, numright, lastright, lastwrong, earliest,
                   db):
@@ -122,7 +123,7 @@ def mytagpros():
 @pytest.fixture
 def mycatsout_core_algorithm():
     """A fixture providing mock tag_progress records"""
-    tp = {'Simon Pan 2014-03-21': {'rev1': [1, 2, 5, 6, 9, 10, 16, 17, 30, 32,
+    tp = {'Simon Pan 2014-03-21': {'rev1': [1, 4, 5, 6, 9, 10, 16, 17, 30, 32,
                                             36, 40, 43, 46, 48, 61, 62,
                                             63, 66, 67, 69, 71, 72, 73, 74, 76,
                                             77, 82, 83, 84, 85, 86, 87, 88, 90,
@@ -130,7 +131,6 @@ def mycatsout_core_algorithm():
                                             124, 128, 129, 133],
                                             # 55, 96, 102, 103, 104, 131, 135,
                                             # 130, 132, 134 are untried
-                                            # FIXME: why is 4 not here?
                                             # Includes 32 (rank 999) because
                                             # not yet filtered for rank
                                    'rev2': [],
@@ -417,7 +417,8 @@ def mytagrecs():
             'times_right': 0.0,
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
-            'tlast_wrong': datetime.datetime(2013, 10, 1, 15, 32, 1)
+            'tlast_wrong': datetime.datetime(2013, 10, 1, 15, 32, 1),
+            'first_attempt': '2014-02-26 19:12:41.851235'
             },
            {'id': 383615L, 'in_path': None,
             'tag': 4L,
@@ -431,11 +432,12 @@ def mytagrecs():
                                 '2014-03-20 00:46:03.191941',
                                 '2014-03-20 01:19:00.049401'],
             'step': None,
-            'tag': 2L,
             'times_right': 0.0,
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
-            'tlast_wrong': datetime.datetime(2013, 10, 5, 3, 6, 26)},
+            'tlast_wrong': datetime.datetime(2013, 10, 5, 3, 6, 26),
+            'first_attempt': '2013-10-05 03:06:26.000000'
+            },
            {'id': 383419L,
             'tag': 5L,
             'in_path': None,
@@ -445,7 +447,9 @@ def mytagrecs():
             'times_right': 0.0,
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 20, 7),
-            'tlast_wrong': datetime.datetime(2013, 10, 1, 23, 45, 25)},
+            'tlast_wrong': datetime.datetime(2013, 10, 1, 23, 45, 25),
+            'first_attempt': '2013-10-01 23:45:25.000000'
+            },
            {'id': 383219L,
             'tag': 6L,
             'in_path': None,
@@ -459,7 +463,9 @@ def mytagrecs():
             'times_right': None,
             'times_wrong': None,
             'tlast_right': datetime.datetime(2013, 9, 27, 14, 8, 27),
-            'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 8, 27)},
+            'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 8, 27),
+            'first_attempt': '2013-09-27 14:08:25.000000'
+            },
            {'id': 383119L,
             'tag': 9L,
             'in_path': None,
@@ -472,7 +478,9 @@ def mytagrecs():
             'times_right': 1.0,
             'times_wrong': 0.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 27, 31),
-            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36)},
+            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36),
+            'first_attempt': '2013-09-26 14:08:25.000000'
+            },
            {'id': 383613L,
             'tag': 10L,
             'in_path': None,
@@ -482,7 +490,9 @@ def mytagrecs():
             'times_right': 0.0,
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
-            'tlast_wrong': datetime.datetime(2013, 10, 5, 3, 6, 26)},
+            'tlast_wrong': datetime.datetime(2013, 10, 5, 3, 6, 26),
+            'first_attempt': '2013-09-26 14:08:25.000000'
+            },
            {'id': 383969L,
             'tag': 14L,
             'in_path': None,
@@ -492,7 +502,9 @@ def mytagrecs():
             'times_right': 93.0,
             'times_wrong': 18.0,
             'tlast_right': datetime.datetime(2014, 3, 17, 22, 29, 3),
-            'tlast_wrong': datetime.datetime(2014, 1, 21, 18, 21, 40)},
+            'tlast_wrong': datetime.datetime(2014, 1, 21, 18, 21, 40),
+            'first_attempt': '2014-01-21 18:21:40.000000'
+            },
            {'id': 383116L,
             'tag': 16L,
             'in_path': None,
@@ -510,7 +522,9 @@ def mytagrecs():
             'times_right': 1.0,
             'times_wrong': 0.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 27, 31),
-            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36)},
+            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36),
+            'first_attempt': '2013-09-26 20:57:36.000000'
+            },
            {'id': 384068L,
             'tag': 17L,
             'in_path': None,
@@ -520,7 +534,9 @@ def mytagrecs():
             'times_right': 0.0,
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 13, 10),
-            'tlast_wrong': datetime.datetime(2014, 3, 20, 1, 13, 10)},
+            'tlast_wrong': datetime.datetime(2014, 3, 20, 1, 13, 10),
+            'first_attempt': '2014-03-20 01:13:10.000000'
+            },
            {'id': 383858L,
             'tag': 18L,
             'in_path': None,
@@ -530,7 +546,9 @@ def mytagrecs():
             'times_right': 95.0,
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 1, 24, 23, 32, 23),
-            'tlast_wrong': datetime.datetime(2013, 10, 23, 18, 0, 5)},
+            'tlast_wrong': datetime.datetime(2013, 10, 23, 18, 0, 5),
+            'first_attempt': '2013-10-23 18:00:05.000000'
+            },
            {'id': 383546L,
             'tag': 29L,
             'in_path': None,
@@ -559,7 +577,9 @@ def mytagrecs():
             'times_right': 28.0,
             'times_wrong': 10.0,
             'tlast_right': datetime.datetime(2014, 2, 11, 2, 53, 27),
-            'tlast_wrong': datetime.datetime(2013, 10, 3, 21, 37, 10)},
+            'tlast_wrong': datetime.datetime(2013, 10, 3, 21, 37, 10),
+            'first_attempt': '2013-10-03 21:37:10.000000'
+            },
            {'id': 383614L,
             'tag': 30L,
             'in_path': None,
@@ -591,7 +611,9 @@ def mytagrecs():
             'times_right': 0.0,
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
-            'tlast_wrong': datetime.datetime(2013, 10, 5, 3, 6, 26)},
+            'tlast_wrong': datetime.datetime(2013, 10, 5, 3, 6, 26),
+            'first_attempt': '2013-10-05 03:06:26.000000'
+            },
            {'id': 383478L,
             'tag': 32L,
             'in_path': None,
@@ -603,7 +625,9 @@ def mytagrecs():
             'times_right': None,
             'times_wrong': None,
             'tlast_right': datetime.datetime(2013, 10, 2, 20, 38, 45),
-            'tlast_wrong': datetime.datetime(2013, 10, 2, 20, 38, 45)},
+            'tlast_wrong': datetime.datetime(2013, 10, 2, 20, 38, 45),
+            'first_attempt': '2013-10-02 20:38:45.000000'
+            },
            {'id': 383232L,
             'tag': 36L,
             'in_path': None,
@@ -637,7 +661,9 @@ def mytagrecs():
             'times_right': 0.0,
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
-            'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 39, 59)},
+            'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 39, 59),
+            'first_attempt': '2013-09-27 14:39:59.000000'
+            },
            {'id': 383916L,
             'tag': 38L,
             'in_path': None,
@@ -647,7 +673,9 @@ def mytagrecs():
             'times_right': 1000.0,
             'times_wrong': 1000.0,
             'tlast_right': datetime.datetime(2014, 3, 13, 20, 16, 32),
-            'tlast_wrong': datetime.datetime(2013, 11, 20, 0, 24, 20)},
+            'tlast_wrong': datetime.datetime(2013, 11, 20, 0, 24, 20),
+            'first_attempt': '2013-11-20 00:24:20.000000'
+            },
            {'id': 383979L,
             'tag': 40L,
             'in_path': None,
@@ -657,7 +685,9 @@ def mytagrecs():
             'times_right': 1.0,
             'times_wrong': 0.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 19),
-            'tlast_wrong': datetime.datetime(2014, 2, 11, 2, 50, 54)},
+            'tlast_wrong': datetime.datetime(2014, 2, 11, 2, 50, 54),
+            'first_attempt': '2013-11-20 00:24:20.000000'
+            },
            {'id': 383980L,
             'tag': 43L,
             'in_path': None,
@@ -667,7 +697,9 @@ def mytagrecs():
             'times_right': 1.0,
             'times_wrong': 0.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 19),
-            'tlast_wrong': datetime.datetime(2014, 2, 11, 2, 50, 54)},
+            'tlast_wrong': datetime.datetime(2014, 2, 11, 2, 50, 54),
+            'first_attempt': '2013-11-20 00:24:20.000000'
+            },
            {'id': 383420L,
             'tag': 46L,
             'in_path': None,
@@ -691,7 +723,9 @@ def mytagrecs():
             'times_right': 0.0,
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 20, 7),
-            'tlast_wrong': datetime.datetime(2013, 10, 1, 23, 45, 25)},
+            'tlast_wrong': datetime.datetime(2013, 10, 1, 23, 45, 25),
+            'first_attempt': '2013-10-01 00:24:20.000000'
+            },
            {'id': 383421L,
             'tag': 47L,
             'in_path': None,
@@ -701,7 +735,9 @@ def mytagrecs():
             'times_right': 1000.0,
             'times_wrong': 1000.0,
             'tlast_right': datetime.datetime(2014, 2, 18, 1, 32, 22),
-            'tlast_wrong': datetime.datetime(2013, 10, 1, 23, 45, 25)},
+            'tlast_wrong': datetime.datetime(2013, 10, 1, 23, 45, 25),
+            'first_attempt': '2013-10-01 00:24:20.000000'
+            },
            {'id': 383222L,
             'tag': 48L,
             'in_path': None,
@@ -725,7 +761,9 @@ def mytagrecs():
             'times_right': 1.0,
             'times_wrong': 0.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 11, 17),
-            'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 18, 2)},
+            'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 18, 2),
+            'first_attempt': '2013-09-27 14:18:02.000000'
+            },
            {'id': 383890L,
             'tag': 49L,
             'in_path': None,
@@ -735,7 +773,9 @@ def mytagrecs():
             'times_right': 1000.0,
             'times_wrong': 1000.0,
             'tlast_right': datetime.datetime(2014, 3, 7, 19, 22, 42),
-            'tlast_wrong': datetime.datetime(2013, 11, 2, 2, 13, 11)},
+            'tlast_wrong': datetime.datetime(2013, 11, 2, 2, 13, 11),
+            'first_attempt': '2013-09-27 14:18:02.000000'
+            },
            {'id': 383111L,
             'tag': 61L,
             'in_path': None,
@@ -765,7 +805,9 @@ def mytagrecs():
             'times_right': 0.0,
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 26),
-            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 48, 55)},
+            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 48, 55),
+            'first_attempt': '2013-09-26 20:48:55.000000'
+            },
            {'id': 383217L,
             'tag': 62L,
             'in_path': None,
@@ -792,7 +834,9 @@ def mytagrecs():
             'times_right': 1.0,
             'times_wrong': 0.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 26, 42),
-            'tlast_wrong': datetime.datetime(2013, 9, 27, 13, 58, 40)},
+            'tlast_wrong': datetime.datetime(2013, 9, 27, 13, 58, 40),
+            'first_attempt': '2013-09-26 20:48:55.000000'
+            },
            {'id': 383109L,
             'tag': 63L,
             'in_path': None,
@@ -816,7 +860,9 @@ def mytagrecs():
             'times_right': 1.0,
             'times_wrong': 0.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 26, 21),
-            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 45, 36)},
+            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 45, 36),
+            'first_attempt': '2013-09-26 20:45:36.000000'
+            },
            {'id': 383234L,
             'tag': 66L,
             'in_path': None,
@@ -833,7 +879,9 @@ def mytagrecs():
             'times_right': 0.0,
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 26),
-            'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 43, 27)},
+            'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 43, 27),
+            'first_attempt': '2013-09-26 20:45:36.000000'
+            },
            {'id': 383117L,
             'tag': 67L,
             'in_path': None,
@@ -846,7 +894,9 @@ def mytagrecs():
             'times_right': 1.0,
             'times_wrong': 0.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 27, 31),
-            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36)},
+            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36),
+            'first_attempt': '2013-09-26 20:57:36.000000'
+            },
            {'id': 383108L,
             'tag': 68L,
             'in_path': None,
@@ -859,7 +909,9 @@ def mytagrecs():
             'times_right': 77.0,
             'times_wrong': 30.0,
             'tlast_right': datetime.datetime(2014, 3, 5, 22, 39, 53),
-            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 45, 15)},
+            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 45, 15),
+            'first_attempt': '2013-09-26 20:45:15.000000'
+            },
            {'id': 383543L,
             'tag': 69L,
             'in_path': None,
@@ -873,7 +925,9 @@ def mytagrecs():
             'times_right': 0.0,
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 20, 7),
-            'tlast_wrong': datetime.datetime(2013, 10, 3, 21, 19, 34)},
+            'tlast_wrong': datetime.datetime(2013, 10, 3, 21, 19, 34),
+            'first_attempt': '2013-10-03 21:19:34.000000'
+            },
            {'id': 384040L,
             'tag': 71L,
             'in_path': None,
@@ -883,7 +937,9 @@ def mytagrecs():
             'times_right': 1.0,
             'times_wrong': 0.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 16, 1),
-            'tlast_wrong': datetime.datetime(2014, 2, 12, 4, 3, 50)},
+            'tlast_wrong': datetime.datetime(2014, 2, 12, 4, 3, 50),
+            'first_attempt': '2014-02-12 04:03:50.000000'
+            },
            {'id': 383112L,
             'tag': 72L,
             'in_path': None,
@@ -903,7 +959,9 @@ def mytagrecs():
             'times_right': 1.0,
             'times_wrong': 0.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 28, 36),
-            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 53, 45)},
+            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 53, 45),
+            'first_attempt': '2013-09-26 20:53:45.000000'
+            },
            {'id': 383114L,
             'tag': 73L,
             'in_path': None,
@@ -917,7 +975,9 @@ def mytagrecs():
             'times_right': 1.0,
             'times_wrong': 0.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 27, 31),
-            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36)},
+            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36),
+            'first_attempt': '2013-09-26 20:57:36.000000'
+            },
            {'id': 383414L,
             'tag': 74L,
             'in_path': None,
@@ -928,7 +988,9 @@ def mytagrecs():
             'times_right': 0.0,
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 17, 32),
-            'tlast_wrong': datetime.datetime(2013, 10, 1, 21, 10, 31)},
+            'tlast_wrong': datetime.datetime(2013, 10, 1, 21, 10, 31),
+            'first_attempt': '2013-10-01 21:10:31.000000'
+            },
            {'id': 383411L,
             'tag': 75L,
             'in_path': None,
@@ -945,7 +1007,9 @@ def mytagrecs():
             'times_right': 1000.0,
             'times_wrong': 1000.0,
             'tlast_right': datetime.datetime(2014, 3, 13, 20, 3, 6),
-            'tlast_wrong': datetime.datetime(2013, 10, 1, 21, 8, 41)},
+            'tlast_wrong': datetime.datetime(2013, 10, 1, 21, 8, 41),
+            'first_attempt': '2013-10-01 21:08:41.000000'
+            },
            {'id': 383347L,
             'tag': 76L,
             'in_path': None,
@@ -955,7 +1019,9 @@ def mytagrecs():
             'times_right': 0.0,
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 22, 45),
-            'tlast_wrong': datetime.datetime(2013, 9, 30, 13, 52, 55)},
+            'tlast_wrong': datetime.datetime(2013, 9, 30, 13, 52, 55),
+            'first_attempt': '2013-09-30 13:52:55.000000'
+            },
            {'id': 383115L,
             'tag': 77L,
             'in_path': None,
@@ -980,7 +1046,9 @@ def mytagrecs():
             'times_right': 1.0,
             'times_wrong': 0.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 27, 31),
-            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36)},
+            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36),
+            'first_attempt': '2013-09-26 20:57:36.000000'
+            },
            {'id': 383220L,
             'tag': 82L,
             'in_path': None,
@@ -995,7 +1063,9 @@ def mytagrecs():
             'times_right': 0.0,
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 26),
-            'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 8, 27)},
+            'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 8, 27),
+            'first_attempt': '2013-09-27 14:08:27.000000'
+            },
            {'id': 383221L,
             'tag': 83L,
             'in_path': None,
@@ -1022,7 +1092,9 @@ def mytagrecs():
             'times_right': None,
             'times_wrong': None,
             'tlast_right': datetime.datetime(2013, 9, 27, 14, 8, 27),
-            'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 8, 27)},
+            'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 8, 27),
+            'first_attempt': '2013-09-27 14:08:27.000000'
+            },
            {'id': 384069L,
             'tag': 84L,
             'in_path': None,
@@ -1032,7 +1104,9 @@ def mytagrecs():
             'times_right': 0.0,
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 13, 10),
-            'tlast_wrong': datetime.datetime(2014, 3, 20, 1, 13, 10)},
+            'tlast_wrong': datetime.datetime(2014, 3, 20, 1, 13, 10),
+            'first_attempt': '2014-03-20 01:13:10.000000'
+            },
            {'id': 384070L,
             'tag': 85L,
             'in_path': None,
@@ -1042,7 +1116,9 @@ def mytagrecs():
             'times_right': 0.0,
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 13, 10),
-            'tlast_wrong': datetime.datetime(2014, 3, 20, 1, 13, 10)},
+            'tlast_wrong': datetime.datetime(2014, 3, 20, 1, 13, 10),
+            'first_attempt': '2014-03-20 01:13:10.000000'
+            },
            {'id': 383612L,
             'tag': 86L,
             'in_path': None,
@@ -1057,7 +1133,9 @@ def mytagrecs():
             'times_right': 0.0,
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
-            'tlast_wrong': datetime.datetime(2013, 10, 5, 3, 6, 26)},
+            'tlast_wrong': datetime.datetime(2013, 10, 5, 3, 6, 26),
+            'first_attempt': '2013-10-05 03:06:26.000000'
+            },
            {'id': 383637L,
             'tag': 87L,
             'in_path': None,
@@ -1089,7 +1167,9 @@ def mytagrecs():
             'times_right': 0.0,
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 26),
-            'tlast_wrong': datetime.datetime(2013, 10, 5, 20, 12, 17)},
+            'tlast_wrong': datetime.datetime(2013, 10, 5, 20, 12, 17),
+            'first_attempt': '2013-10-05 20:12:17.000000'
+            },
            {'id': 383118L,
             'tag': 88L,
             'in_path': None,
@@ -1108,7 +1188,9 @@ def mytagrecs():
             'times_right': 1.0,
             'times_wrong': 0.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 27, 31),
-            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36)},
+            'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36),
+            'first_attempt': '2013-09-26 20:57:36.000000'
+            },
            {'id': 383233L,
             'tag': 89L,
             'in_path': None,
@@ -1118,7 +1200,9 @@ def mytagrecs():
             'times_right': 1000.0,
             'times_wrong': 1000.0,
             'tlast_right': datetime.datetime(2014, 2, 13, 22, 36, 47),
-            'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 41, 6)},
+            'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 41, 6),
+            'first_attempt': '2013-09-26 20:57:36.000000'
+            },
            {'id': 383113L,
             'tag': 90L,
             'times_right': 1.0,
@@ -1130,7 +1214,9 @@ def mytagrecs():
             'name': 109L,
             'secondary_right': ['2014-02-14 22:33:12.662352',
                                 '2014-02-22 02:14:57.149550',
-                                '2014-03-20 01:20:07.220079']},
+                                '2014-03-20 01:20:07.220079'],
+            'first_attempt': '2013-09-26 20:57:36.000000'
+            },
            {'name': 109L,
             'tag': 91L,
             'times_right': 1.0,
@@ -1152,7 +1238,9 @@ def mytagrecs():
                                 '2014-02-25 01:11:45.086382',
                                 '2014-02-28 17:39:34.566118',
                                 '2014-02-28 17:39:49.479375',
-                                '2014-03-13 19:52:16.747902']},
+                                '2014-03-13 19:52:16.747902'],
+            'first_attempt': '2013-09-27 14:05:35.000000'
+            },
            {'name': 109L,
             'tag': 92L,
             'times_right': 1000.0,
@@ -1165,7 +1253,9 @@ def mytagrecs():
             'secondary_right': ['2014-02-14 22:33:12.662352',
                                 '2014-02-22 02:14:57.149550',
                                 '2014-03-10 19:14:52.759060',
-                                '2014-03-10 19:14:58.914173']},
+                                '2014-03-10 19:14:58.914173'],
+            'first_attempt': '2013-09-27 14:50:13.000000'
+            },
            {'name': 109L,
             'tag': 93L,
             'times_right': 0.0,
@@ -1180,7 +1270,9 @@ def mytagrecs():
                                 '2014-02-25 01:13:14.462175',
                                 '2014-02-25 01:13:42.069870',
                                 '2014-03-06 23:04:06.151430',
-                                '2014-03-06 23:04:35.494832']},
+                                '2014-03-06 23:04:35.494832'],
+            'first_attempt': '2013-09-30 13:39:50.000000'
+            },
            {'name': 109L,
             'tag': 94L,
             'times_right': 0.0,
@@ -1190,7 +1282,9 @@ def mytagrecs():
             'step': None,
             'in_path': None,
             'id': 383976L,
-            'secondary_right': None},
+            'secondary_right': None,
+            'first_attempt': '2014-02-11 02:41:56.000000'
+            },
            {'name': 109L,
             'tag': 95L,
             'times_right': 0.0,
@@ -1212,7 +1306,9 @@ def mytagrecs():
                                 '2013-11-21 22:29:04.960673',
                                 '2013-11-30 02:58:13.544984',
                                 '2013-12-03 21:54:52.981560',
-                                '2014-01-20 14:29:24.439739']},
+                                '2014-01-20 14:29:24.439739'],
+            'first_attempt': '2013-10-03 21:34:49.000000'
+            },
            {'name': 109L,
             'tag': 115L,
             'times_right': 1.0,
@@ -1240,7 +1336,9 @@ def mytagrecs():
                                 '2014-03-07 19:31:03.859650',
                                 '2014-03-10 18:58:12.704988',
                                 '2014-03-10 18:58:17.102850',
-                                '2014-03-20 01:20:07.248791']},
+                                '2014-03-20 01:20:07.248791'],
+            'first_attempt': '2013-09-26 20:57:36.000000'
+            },
            {'name': 109L,
             'tag': 116L,
             'times_right': 1000.0,
@@ -1252,7 +1350,9 @@ def mytagrecs():
             'id': 383412L,
             'secondary_right': ['2014-02-10 02:31:21.978049',
                                 '2014-02-12 03:55:11.346488',
-                                '2014-02-12 03:55:49.469451']},
+                                '2014-02-12 03:55:49.469451'],
+            'first_attempt': '2013-09-26 20:57:36.000000'
+            },
            {'name': 109L,
             'tag': 117L,
             'times_right': 0.0,
@@ -1271,7 +1371,9 @@ def mytagrecs():
                                 '2014-03-13 19:51:27.333192',
                                 '2014-03-14 20:31:20.800429',
                                 '2014-03-17 22:13:59.395609',
-                                '2014-03-20 00:45:07.186095']},
+                                '2014-03-20 00:45:07.186095'],
+            'first_attempt': '2013-10-01 21:08:41.000000'
+            },
            {'name': 109L,
             'tag': 118L,
             'times_right': 0.0,
@@ -1286,7 +1388,9 @@ def mytagrecs():
                                 '2014-02-12 21:18:52.149758',
                                 '2014-02-15 03:04:08.599316',
                                 '2014-02-17 01:01:49.514350',
-                                '2014-02-18 01:32:22.890120']},
+                                '2014-02-18 01:32:22.890120'],
+            'first_attempt': '2013-10-03 21:19:34.000000'
+            },
            {'name': 109L,
             'tag': 119L,
             'times_right': 1000.0,
@@ -1317,7 +1421,9 @@ def mytagrecs():
                                 '2014-02-13 20:45:46.761445',
                                 '2014-02-17 01:45:13.412419',
                                 '2014-02-19 20:47:20.599505',
-                                '2014-03-20 01:15:26.017334']},
+                                '2014-03-20 01:15:26.017334'],
+            'first_attempt': '2013-10-03 21:13:00.000000'
+            },
            {'name': 109L,
             'tag': 120L,
             'times_right': 1000.0,
@@ -1333,7 +1439,9 @@ def mytagrecs():
                                 '2013-11-21 22:29:04.960673',
                                 '2013-11-30 02:58:13.544984',
                                 '2013-12-03 21:54:52.981560',
-                                '2014-01-20 14:29:24.439739']},
+                                '2014-01-20 14:29:24.439739'],
+            'first_attempt': '2013-10-01 21:11:43.000000'
+            },
            {'name': 109L,
             'tag': 121L,
             'times_right': 0.0,
@@ -1343,7 +1451,9 @@ def mytagrecs():
             'step': None,
             'in_path': None,
             'id': 383616L,
-            'secondary_right': None},
+            'secondary_right': None,
+            'first_attempt': '2013-10-05 03:06:26.000000'
+            },
            {'name': 109L,
             'tag': 122L,
             'times_right': 1000.0,
@@ -1355,7 +1465,9 @@ def mytagrecs():
             'id': 383636L,
             'secondary_right': ['2013-11-04 13:40:30.224814',
                                 '2013-11-06 16:16:51.210929',
-                                '2014-02-03 15:11:04.685410']},
+                                '2014-02-03 15:11:04.685410'],
+            'first_attempt': '2013-10-05 20:07:46.000000'
+            },
            {'name': 109L,
             'times_right': 0.0,
             'tlast_wrong': datetime.datetime(2014, 2, 11, 2, 47, 9),
@@ -1365,7 +1477,9 @@ def mytagrecs():
             'tag': 124L,
             'in_path': None,
             'id': 383977L,
-            'secondary_right': None},
+            'secondary_right': None,
+            'first_attempt': '2014-02-11 02:47:09.000000'
+            },
            {'name': 109L,
             'times_right': 0.0,
             'tlast_wrong': datetime.datetime(2013, 10, 5, 20, 17, 29),
@@ -1375,7 +1489,9 @@ def mytagrecs():
             'tag': 128L,
             'in_path': None,
             'id': 383639L,
-            'secondary_right': None},
+            'secondary_right': None,
+            'first_attempt': '2013-10-05 20:17:29.000000'
+            },
            {'name': 109L,
             'times_right': 0.0,
             'tlast_wrong': datetime.datetime(2013, 10, 22, 21, 33),
@@ -1385,8 +1501,10 @@ def mytagrecs():
             'tag': 129L,
             'in_path': None,
             'id': 383852L,
-            'secondary_right': ['2014-03-20 01:13:10.828327']},
-            {'name': 109L,
+            'secondary_right': ['2014-03-20 01:13:10.828327'],
+            'first_attempt': '2013-10-22 21:33:00.000000'
+            },
+           {'name': 109L,
             'times_right': 0.0,
             'tlast_wrong': datetime.datetime(2014, 3, 20, 1, 13, 10),
             'times_wrong': 1.0,
@@ -1395,7 +1513,9 @@ def mytagrecs():
             'tag': 133L,
             'in_path': None,
             'id': 384071L,
-            'secondary_right': None}
+            'secondary_right': None,
+            'first_attempt': '2014-03-20 01:13:10.000000'
+            }
            ]
           }
 
@@ -1433,7 +1553,7 @@ def mytagrecs_with_secondary():
                                 '2014-03-20 00:46:03.191941',
                                 '2014-03-20 01:19:00.049401'],
             'step': None,
-            'tag': 2L,
+            # 'tag': 2L,
             'times_right': 0.0,
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
@@ -3347,8 +3467,8 @@ class TestLocation():
     def test_location_get_bg(self, myloc):
         """Test for method Location.get_bg"""
         actual = myloc.get_bg()
-        expected = '/paideia/static/images/images.image.b9c9c11590e5511a.' \
-                   '706c616365735f616c6578616e646572732d73686f702e706e67.png'
+        expected = '/paideia/static/images/images.image.8c8545dd2dac6485.' \
+                   '46696c6520323031362d30322d30362c20313220323920353920504d2e706e67.png'
         assert actual == expected
 
     def test_location_get_id(self, myloc):
@@ -3409,7 +3529,7 @@ class TestStep():
           [],  # response buttons
           '<form action="#" autocomplete="off" enctype="multipart/form-data" '
           'method="post"><table><tr id="no_table_response__row">'
-          '<td class="w2p_fl"><label for="no_table_response" id="no_table_'
+          '<td class="w2p_fl"><label class="" for="no_table_response" id="no_table_'
           'response__label">Response: </label></td><td class="w2p_fw">'
           '<input class="string" id="no_table_response" name="response" '
           'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
@@ -3433,7 +3553,7 @@ class TestStep():
           [],  # response buttons
           '<form action="#" autocomplete="off" enctype="multipart/form-data" '
           'method="post"><table><tr id="no_table_response__row">'
-          '<td class="w2p_fl"><label for="no_table_response" id="no_table_'
+          '<td class="w2p_fl"><label class="" for="no_table_response" id="no_table_'
           'response__label">Response: </label></td><td class="w2p_fw">'
           '<input class="string" id="no_table_response" name="response" '
           'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
@@ -3460,7 +3580,7 @@ class TestStep():
           [],  # response buttons
           '<form action="#" autocomplete="off" enctype="multipart/form-data" '
           'method="post"><table><tr id="no_table_response__row">'
-          '<td class="w2p_fl"><label for="no_table_response" id="no_table_'
+          '<td class="w2p_fl"><label class="" for="no_table_response" id="no_table_'
           'response__label">Response: </label></td><td class="w2p_fw">'
           '<input class="string" id="no_table_response" name="response" '
           'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
@@ -3496,7 +3616,7 @@ class TestStep():
           None,  # widget image
           [],  # response buttons
           r'<form action="#" enctype="multipart/form-data" method="post"><table>'
-          '<tr id="no_table_response__row"><td class="w2p_fl"><label '
+          '<tr id="no_table_response__row"><td class="w2p_fl"><label class="" '
           'for="no_table_response" id="no_table_response__label">Response: '
           '</label></td><td class="w2p_fw"><table class="generic-widget web2py_radiowidget" '
           'id="no_table_response" name="response"><tr><td><input '
@@ -4449,11 +4569,12 @@ class TestUser(object):
             user.past_quota = None
         print localias
         loc = Location(localias)
-        actual, acat, aredir, apastq = user.get_path(loc)
+        actual, acat, aredir, apastq, anew_content = user.get_path(loc)
         assert actual.get_id() in expected
         assert isinstance(actual, Path)
         assert isinstance(actual.steps[0], Step)
         assert acat in range(1, 5)
+        assert anew_content is True if acat == 1 else False
         if redirect:
             assert isinstance(aredir, (int, long))
         else:
@@ -4480,7 +4601,7 @@ class TestUser(object):
             'times_wrong': 1,
             'secondary_right': None}],
           ),
-          ])
+         ])
     def test_user_get_path_review_set(self, myset, localias, tpout, trecs,
                                       user_login, db):
         """
@@ -4489,7 +4610,7 @@ class TestUser(object):
         user = User(user_login, trecs, tpout)
         user.completed_paths = {'latest': 1, 'paths': []}
         loc = Location(localias)
-        actual, acat, aredir, apastq = user.get_path(loc, set_review=myset)
+        actual, acat, aredir, apastq, anew_content = user.get_path(loc, set_review=myset)
         actual_steps = actual.get_steps()
         mytags = []
         for step in actual_steps:
@@ -4499,6 +4620,7 @@ class TestUser(object):
                         if db.tags[t]['tag_position'] == myset]
             mytags.extend(set_tags)
         assert mytags  # actual path has steps tagged for this set
+        assert anew_content is False
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('tpin,rankout,tpout,trecs,counter,promoted,'
@@ -4520,7 +4642,8 @@ class TestUser(object):
             'tlast_wrong': dt('2013-01-29'),
             'times_right': 1,
             'times_wrong': 1,
-            'secondary_right': []}],
+            'secondary_right': [],
+            'first_attempt': dt('2013-01-29')}],
           4,  # counter
           None,  # promoted
           {'rev1': [6L, 29L, 61L, 62L, 82L, 83L, 208L], 'rev2': [],
@@ -4544,7 +4667,8 @@ class TestUser(object):
             'tlast_wrong': dt('2013-01-29'),
             'times_right': 1,
             'times_wrong': 1,
-            'secondary_right': []}],
+            'secondary_right': [],
+            'first_attempt': dt('2013-01-29')}],
           3,  # counter
           None,  # promoted
           None,  # new tags
@@ -4739,7 +4863,7 @@ class TestCategorizer():
                 print 'esr -----------------'
                 print esr
                 assert a['secondary_right'] == esr
-            except:
+            except Exception:
                 assert not esr
                 assert a['secondary_right'] == []
 
@@ -4761,7 +4885,8 @@ class TestCategorizer():
                                  'tlast_wrong': now - datetime.timedelta(hours=12),
                                  'times_right': 20,
                                  'times_wrong': 20,
-                                 'secondary_right': None}]
+                                 'secondary_right': None,
+                                 'first_attempt': None}]
                                ),
                               ('case2', 1,  # 61 F: not enough times_right
                                {'cat1': [61], 'cat2': [],
@@ -4778,7 +4903,8 @@ class TestCategorizer():
                                  'tlast_wrong': dt('2013-01-27'),
                                  'times_right': 10,
                                  'times_wrong': 1,
-                                 'secondary_right': []}],
+                                 'secondary_right': [],
+                                 'first_attempt': dt('2013-01-27')}],
                                ),
                               ('case2', 1,
                                # 61: T (avg>=8, rightdur<=2 days, right>=20)
@@ -4797,7 +4923,29 @@ class TestCategorizer():
                                  'tlast_wrong': dt('2013-01-28'),
                                  'times_right': 20,
                                  'times_wrong': 1,
-                                 'secondary_right': []}],
+                                 'secondary_right': [],
+                                 'first_attempt': None}],
+                               ),
+                              ('case2', 1,
+                               # 61: F (avg>=8, rightdur<=2 days, right>=20)
+                               #        despite right/wrong duration
+                               #        but less than 1 day since started
+                               {'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                               {'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [61], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                               [{'name': 1,
+                                 'tag': 61,
+                                 'tlast_right': dt('2013-01-28 01:00:00'),
+                                 'tlast_wrong': dt('2013-01-28 01:00:00'),
+                                 'times_right': 20,
+                                 'times_wrong': 1,
+                                 'secondary_right': [],
+                                 'first_attempt': '2013-01-28 01:00:00'}],
                                ),
                               ('case2', 1,
                                # 61: T (duration, started > 1day, right >= 20)
@@ -4816,7 +4964,8 @@ class TestCategorizer():
                                  'tlast_wrong': dt('2013-01-27'),
                                  'times_right': 20,
                                  'times_wrong': 10,
-                                 'secondary_right': []}],
+                                 'secondary_right': [],
+                                 'first_attempt': '2013-01-27 00:00:00.000000'}],
                                ),
                               ('case2', 1,
                                # 61: T (avg > 0.8, right >= 20*)
@@ -4836,7 +4985,8 @@ class TestCategorizer():
                                  'tlast_wrong': dt('2013-01-27'),
                                  'times_right': 20,
                                  'times_wrong': 10,
-                                 'secondary_right': []}],
+                                 'secondary_right': [],
+                                 'first_attempt': dt('2013-01-27')}],
                                ),
                                ('case9',
                                 10,
@@ -5179,7 +5329,8 @@ class TestCategorizer():
                                  'tlast_wrong': dt('2013-01-29'),
                                  'times_right': 1,
                                  'times_wrong': 1,
-                                 'secondary_right': None}],
+                                 'secondary_right': None,
+                                 'first_attempt': dt('2013-01-27')}],
                                1,  # rank out
                                {'cat1': [1, 6L, 29L, 61L, 62L, 82L, 83L, 208L],
                                 'cat2': [],  # catsout
@@ -5213,63 +5364,72 @@ class TestCategorizer():
                                  'tlast_wrong': dt('2013-01-27'),
                                  'times_right': 20,
                                  'times_wrong': 1,
-                                 'secondary_right': []},
+                                 'secondary_right': [],
+                                 'first_attempt': dt('2013-01-27')},
                                 {'name': 1,  # tagrecs in
                                  'tag': 61,
                                  'tlast_right': dt('2013-01-28'),
                                  'tlast_wrong': dt('2013-01-27'),
                                  'times_right': 20,
                                  'times_wrong': 1,
-                                 'secondary_right': []},
+                                 'secondary_right': [],
+                                 'first_attempt': dt('2013-01-27')},
                                 {'name': 1,  # tagrecs in
                                  'tag': 6,
                                  'tlast_right': dt('2013-01-28'),
                                  'tlast_wrong': dt('2013-01-27'),
                                  'times_right': 20,
                                  'times_wrong': 1,
-                                 'secondary_right': []},
+                                 'secondary_right': [],
+                                 'first_attempt': dt('2013-01-27')},
                                 {'name': 1,  # tagrecs in
                                  'tag': 29,
                                  'tlast_right': dt('2013-01-28'),
                                  'tlast_wrong': dt('2013-01-27'),
                                  'times_right': 20,
                                  'times_wrong': 1,
-                                 'secondary_right': []},
+                                 'secondary_right': [],
+                                 'first_attempt': dt('2013-01-27')},
                                 {'name': 1,  # tagrecs in
                                  'tag': 61,
                                  'tlast_right': dt('2013-01-28'),
                                  'tlast_wrong': dt('2013-01-27'),
                                  'times_right': 20,
                                  'times_wrong': 1,
-                                 'secondary_right': []},
+                                 'secondary_right': [],
+                                 'first_attempt': dt('2013-01-27')},
                                 {'name': 1,  # tagrecs in
                                  'tag': 62,
                                  'tlast_right': dt('2013-01-28'),
                                  'tlast_wrong': dt('2013-01-27'),
                                  'times_right': 20,
                                  'times_wrong': 1,
-                                 'secondary_right': []},
+                                 'secondary_right': [],
+                                 'first_attempt': dt('2013-01-27')},
                                 {'name': 1,  # tagrecs in
                                  'tag': 82,
                                  'tlast_right': dt('2013-01-28'),
                                  'tlast_wrong': dt('2013-01-27'),
                                  'times_right': 20,
                                  'times_wrong': 1,
-                                 'secondary_right': []},
+                                 'secondary_right': [],
+                                 'first_attempt': dt('2013-01-27')},
                                 {'name': 1,  # tagrecs in
                                  'tag': 83,
                                  'tlast_right': dt('2013-01-28'),
                                  'tlast_wrong': dt('2013-01-27'),
                                  'times_right': 20,
                                  'times_wrong': 1,
-                                 'secondary_right': []},
+                                 'secondary_right': [],
+                                 'first_attempt': dt('2013-01-27')},
                                 {'name': 1,  # tagrecs in
                                  'tag': 208,
                                  'tlast_right': dt('2013-01-28'),
                                  'tlast_wrong': dt('2013-01-27'),
                                  'times_right': 20,
                                  'times_wrong': 1,
-                                 'secondary_right': []},
+                                 'secondary_right': [],
+                                 'first_attempt': dt('2013-01-27')},
                                 ],
                                2,  # rank out
                                {'cat1': [9L, 36L, 63L, 66L, 68L, 72L, 89L, 115L],
@@ -5643,7 +5803,9 @@ class TestWalk():
                                 'step': 1,
                                 'user_response': 'blabla',
                                 'dt_attempted': datetime.datetime(2014, 3, 24,
-                                                                  0, 0, 0)},
+                                                                  0, 0, 0),
+                                'new_content': 'yes',
+                                'selection_category': '1'},
                                mytagpros()['Simon Pan 2014-03-21'],  # tpout
                                mytagrecs()['Simon Pan 2014-03-21'],  # tag recs out
                                )
@@ -5662,10 +5824,13 @@ class TestWalk():
         walk.user.path = Path(path_id=path_id, db=db)
         raw_tright = tright
         raw_twrong = twrong
+        cat = 1
+        new_material = True
         starting_loglength = len(db(db.attempt_log.name == user_login['id']).select())
         actual_log_id = walk._record_step(user_login['id'], step_id, path_id, score,
                                           raw_tright, raw_twrong, oldrecs,
-                                          steptags, rstring, now=now)
+                                          steptags, rstring, cat,
+                                          new_material, now=now)
 
         # test writing to attempt_log
         logs_out = db(db.attempt_log.name == user_login['id']).select()
@@ -5679,7 +5844,7 @@ class TestWalk():
             else:
                 #print field, '=========='
                 #pprint(val)
-                if field not in ['modified_on', 'uuid']:
+                if field not in ['modified_on', 'uuid', 'category_for_user']:
                     assert val == newlog[field]
 
         # test writing to tag_records
@@ -5822,7 +5987,7 @@ class TestWalk():
           [],  # response buttons
           '<form action="#" autocomplete="off" enctype="multipart/form-data" '
           'method="post"><table><tr id="no_table_response__row">'
-          '<td class="w2p_fl"><label for="no_table_response" id="no_table_'
+          '<td class="w2p_fl"><label class="" for="no_table_response" id="no_table_'
           'response__label">Response: </label></td><td class="w2p_fw">'
           '<input class="string" id="no_table_response" name="response" '
           'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
@@ -5868,7 +6033,7 @@ class TestWalk():
           [],  # response buttons
           '<form action="#" autocomplete="off" enctype="multipart/form-data" '
           'method="post"><table><tr id="no_table_response__row">'
-          '<td class="w2p_fl"><label for="no_table_response" id="no_table_'
+          '<td class="w2p_fl"><label class="" for="no_table_response" id="no_table_'
           'response__label">Response: </label></td><td class="w2p_fw">'
           '<input class="string" id="no_table_response" name="response" '
           'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
@@ -5935,7 +6100,7 @@ class TestWalk():
           [],  # response buttons
           '<form action="#" autocomplete="off" enctype="multipart/form-data" '
           'method="post"><table><tr id="no_table_response__row"><td '
-          'class="w2p_fl"><label for="no_table_response" '
+          'class="w2p_fl"><label class="" for="no_table_response" '
           'id="no_table_response__label">Response: </label></td><td '
           'class="w2p_fw"><input class="string" id="no_table_response" '
           'name="response" type="text" value="" /></td><td class="w2p_fc"></td>'
@@ -6087,8 +6252,8 @@ class TestWalk():
         assert actual['bg_image'] == bg_imgs[loc.get_id()]
         #assert actual['npc_image']['_src'] == npc_data[npc.get_id()]['image']
         if actual['response_form']:
-            #print 'actual["response_form"]:\n', actual['response_form']
-            #print 'rform:\n', rform
+            print 'actual["response_form"]:\n', actual['response_form']
+            print 'rform:\n', rform
             assert re.match(rform, actual['response_form'].xml())
         elif rform:
             #pprint(actual['response_form'])
@@ -6418,9 +6583,8 @@ class TestPathChooser():
         completed = {'latest': None,
                      'paths': {102: {'right': 1, 'wrong': 0}}
                      },
-        chooser = PathChooser(tp, locid, completed)
-        chooser.CYCLE_LENGTH = 20
-        actual = chooser._check_force_new()
+        chooser = PathChooser(tp, locid, completed)  # runs _check_force_new()
+        actual = chooser.force_new
         expected = force_cat1
         assert actual == expected
 
@@ -6470,7 +6634,9 @@ class TestPathChooser():
                                 'cat1': [61], 'cat2': [],
                                 'cat3': [], 'cat4': [],
                                 'rev1': [61], 'rev2': [],
-                                'rev3': [], 'rev4': []},
+                                'rev3': [], 'rev4': [],
+                                'cat1_choices': 6,
+                                'all_choices': 8},
                                False  # force_cat1
                                ),
                               (6,  # shop_of_alexander (only 1 untried here)
@@ -6485,7 +6651,9 @@ class TestPathChooser():
                                 'cat1': [62], 'cat2': [61],
                                 'cat3': [], 'cat4': [],
                                 'rev1': [62], 'rev2': [61],
-                                'rev3': [], 'rev4': []},
+                                'rev3': [], 'rev4': [],
+                                'cat1_choices': 5,
+                                'all_choices': 15},
                                True  # force_cat1
                                ),
                               (8,  # agora
@@ -6500,7 +6668,9 @@ class TestPathChooser():
                                 'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
                                 'cat3': [], 'cat4': [],
                                 'rev1': [6, 29, 62, 82, 83], 'rev2': [61],
-                                'rev3': [], 'rev4': []},
+                                'rev3': [], 'rev4': [],
+                                'cat1_choices': 9,
+                                'all_choices': 15},
                                False  # force_cat1
                                ),
                               (8,  # agora
@@ -6515,7 +6685,9 @@ class TestPathChooser():
                                 'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
                                 'cat3': [], 'cat4': [],
                                 'rev1': [6, 29, 62, 82, 83], 'rev2': [61],
-                                'rev3': [], 'rev4': []},
+                                'rev3': [], 'rev4': [],
+                                'cat1_choices': 7,
+                                'all_choices': 16},
                                False  # force_cat1
                                ),
                               ])
@@ -6525,14 +6697,28 @@ class TestPathChooser():
         Unit test for the paideia.Pathchooser._paths_by_category() method.
         """
         chooser = PathChooser(tpout, locid, completed)
+        cpaths, cat, forced, newcpaths = chooser._paths_by_category(mycat,
+                                                                    tpout['latest_new'])
+
+        exp_newpaths = []
         if force_cat1:
-            chooser.cat1_choices = 0
-            chooser.all_choices = 10
-        cpaths, cat, forced = chooser._paths_by_category(mycat,
-                                                         tpout['latest_new'])
+            assert forced is True
+            assert cat == 1
+            exp_tags = tpout['cat{}'.format(cat)]
+            print 'cat:', cat, 'forced:', forced
+        else:
+            assert forced is False
+            assert cat == mycat
+            exp_tags = tpout['rev{}'.format(cat)]
+            print 'cat:', cat, 'forced:', forced
+            if cat == 1:
+                exp_newtags = tpout['rev{}'.format(cat)]
+                exp_newsteps = db(db.steps.tags.contains(exp_newtags)).select()
+                exp_newstepids = [s.id for s in exp_newsteps]
+                exp_newpaths = db(db.paths.steps.contains(exp_newstepids)).select().as_list()
+
         print 'cat:', cat
         # get expected paths from db based on category actually used
-        exp_tags = tpout['cat{}'.format(cat)]
         exp_steps = db(db.steps.tags.contains(exp_tags)).select()
         exp_stepids = [s.id for s in exp_steps]
         exp_paths = db(db.paths.steps.contains(exp_stepids)).select()
@@ -6549,15 +6735,8 @@ class TestPathChooser():
         print 'extra expected:', [row for row in expected
                                   if row not in cpath_ids]
         assert cpath_ids == expected
+        assert newcpaths == exp_newpaths
 
-        if force_cat1:
-            assert cat == 1
-            forced is True
-            print 'cat:', cat, 'forced:', forced
-        else:
-            assert cat == mycat
-            assert forced is False
-            print 'cat:', cat, 'forced:', forced
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('locid,completed,tpout,expected,mode',
@@ -6800,7 +6979,7 @@ class TestPathChooser():
                                  'cat3': [], 'cat4': [],
                                  'rev1': [6, 29, 62, 82, 83], 'rev2': [61],
                                  'rev3': [], 'rev4': []},
-                                {1: False, 2: False},  # mode
+                                {1: False, 2: False},  # redirect
                                 'repeated'  # mode
                                ),
                               (8,  # agora (all but one repeated 2x) --
@@ -6867,7 +7046,7 @@ class TestPathChooser():
         # end assembling completed
 
         chooser = PathChooser(tpout, locid, completed)
-        actual, newloc, catnum, actualmode = chooser.choose()
+        actual, newloc, catnum, actualmode, new_material, tag_progress = chooser.choose()
 
         # get paths with supplied tags
         mycat = 'cat{}'.format(catnum)
@@ -6917,6 +7096,19 @@ class TestPathChooser():
                 assert newloc is None
         assert actualmode == mode
 
+        if new_material:
+            print 'new_material:', new_material
+            assert catnum == 1
+            pathtags = [t for s in actual['steps'] for t in db['steps'](s).tags]
+            print 'path:', actual['id']
+            print 'steps:', actual['steps']
+            print 'pathtags:', pathtags
+            print 'cat1:', tag_progress['cat1']
+            assert [t for t in pathtags if t in tag_progress['cat1']]
+
+        assert tpout == tag_progress
+
+
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('myset,locid,tpout',
                              [(1,  # myset
@@ -6933,8 +7125,10 @@ class TestPathChooser():
         Unit test for the paideia.Pathchooser.choose() method.
         """
         chooser = PathChooser(tpout, locid, [])
-        actual, newloc, catnum, actualmode = chooser.choose(set_review=myset)
+        actual, newloc, catnum, actualmode, new_material, tag_progress = chooser.choose(set_review=myset)
         assert actualmode == 'reviewing set {}'.format(myset)
+        assert new_material is False
+        assert tag_progress == tpout
         a_steps = actual['steps']
         mytags = []
         steps = db(db.steps.id.belongs(a_steps)).select()
@@ -6945,11 +7139,13 @@ class TestPathChooser():
         assert mytags
         # test randomness
         path_ids = []
-        for n in range(0,100):
-            actual, newloc, catnum, actualmode = chooser.choose(set_review=myset)
+        for n in range(0, 100):
+            actual, newloc, catnum, actualmode, new_material, tag_progress = chooser.choose(set_review=myset)
             if actual['id'] not in path_ids:
                 path_ids.append(actual['id'])
         assert len(path_ids) > 50  # testing randomness over 100 iterations
+
+
 
 class TestBugReporter():
     '''

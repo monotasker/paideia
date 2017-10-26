@@ -173,13 +173,19 @@ body.default.index                      {
     }
     div.row.paragraphs                 {padding-top: 1em;
                                         padding-bottom: 1em;
+                                        background-repeat: no-repeat;
+        .index-contentbox              {height: 100%;
+        }
         h3                             {font-family: 'Amatic SC';
                                         font-size: 3em;
+        }
+        &.third .index-contentbox      {background-image: url('../images/images.image.ac5111cddd8a81e5.44726177696e672035302e706e67.png')
         }
         &.first, 
         &.third,
         &.fifth                        {background-color: @pallette1;
                                         color: darken(@pallette2, 50%);
+                                        background-position: right middle;
             .paragraph-comment         {right: 0;
                 &:after                {border-top: 12px solid transparent;
                                         border-bottom:  12px solid transparent;
@@ -488,23 +494,25 @@ body.user #page          {
     /* common styles for reporting tables */
     table                  {text-align:left;}
 
-    ul.nav-tabs            {padding-left: 1em;
-                            background-color: @pallette1;
-                            border-bottom: 1px solid @pallette2;
-                            font-size: @font-size-large;
-                            font-family: @sansFonts;
-        li                 {top: 1px;
-            a              {border: 1px solid transparent;
-                &:hover    {background-color: @pallette2;}
-            }
-            &.active       {border: 1px solid transparent;
-                            background-color: transparent;
-                a          {background-color: @palletteBG;
-                            border-top: 1px solid @pallette2;
-                            border-left: 1px solid @pallette2;
-                            border-right: 1px solid @pallette2;
-                            border-bottom: 1px solid transparent;
-                    &:hover    {background-color: @palletteBG;}
+    div.row.tabrow         {background-color: @pallette1; 
+        ul.nav-tabs            {padding-left: 1em;
+                                background-color: @pallette1;
+                                border-bottom: 1px solid @pallette2;
+                                font-size: @font-size-large;
+                                font-family: @sansFonts;
+            li                 {top: 1px;
+                a              {border: 1px solid transparent;
+                    &:hover    {background-color: @pallette2;}
+                }
+                &.active       {border: 1px solid transparent;
+                                background-color: transparent;
+                    a          {background-color: @palletteBG;
+                                border-top: 1px solid @pallette2;
+                                border-left: 1px solid @pallette2;
+                                border-right: 1px solid @pallette2;
+                                border-bottom: 1px solid transparent;
+                        &:hover    {background-color: @palletteBG;}
+                    }
                 }
             }
         }
@@ -520,20 +528,22 @@ body.user #page          {
     }
 
     /* user info */
-    ul.profile-user-info   {list-style-type: none;
-                            background-color: @pallette1;
-                            display:block;
-                            padding:(@line-height-computed / 2);
-                            margin: 0;
-        li                 {display: inline-block;
-                            margin-right: @line-height-computed;
-                            font-size: @font-size-small;
-                            color: @warning;
-            .profile-label {display: none;}
-            &:first-child  {font-size:@font-size-large;
-                            color:@textColor;
+    div.row.profile-user-info   {background-color: @pallette1;
+        ul.profile-user-info   {list-style-type: none;
+                                background-color: @pallette1;
+                                display:block;
+                                padding:(@line-height-computed / 2);
+                                margin: 0;
+            li                 {display: inline-block;
+                                margin-right: @line-height-computed;
+                                /*font-size: @font-size-small;*/
+                                color: darken(@pallette1, 50%);
+                .profile-label {display: none;}
+                &:first-child  {font-size: 3em;
+                                color:@textColor;
+                }
+                &:nth-child(2) {color: darken(@pallette1, 50%);}
             }
-            &:nth-child(2) {color: @success;}
         }
     }
 
@@ -542,48 +552,42 @@ body.user #page          {
                                      margin-bottom: 3em;
     }
 
+    div.profile-overall-progress    {
+        ul                          {width: 3em;
+                                     margin-left: 0;
+                                     margin-top: 1em;
+                                     line-height: 1.5em;
+                                     position: relative;
+            li                      {border-top: 1px solid #ccc;
+                                     margin-bottom: 0;
+                &.active            {background-color: @pallette3;
+                    &.current .set-scale-num   {display:block;
+                                                background-color: @accent2;
+                    }
+                }
+                span.set-scale-num  {position: relative;
+                                     left: 3.5em;
+                                     top: -0.8em;
+                                     color: #aaa;
+                }
+            }
+        } 
+        p.progress-message          {position: relative;
+                                     float: right;
+                                     width: 50%;
+                                     box-shadow: 0 3px 0 rgba(0, 0, 0, 0.2);
+                                     font-size: @font-size-large;
+                                     color: #aaa;
+                                     padding: 1em;
+                                     border: 1px solid #efefef;
+                                     border-radius: 2em;
+        }
+    }
+
     table              {
         &.dc-table-label    {color: @accent3;
                              font-size: @font-size-large;
                              font-weight: bold;
-        }
-        &.set_scale         {border-collapse: separate;
-                             border-spacing: 1px;
-                             width: 100%;
-                             margin-top: 3em;
-            td              {position: relative;
-                             width: 5%;
-                             height: 3.5em;
-                             text-align: center;
-                             vertical-align: middle;
-                             background-color: #efefef;
-                span.set-scale-label    {font-size: 0.8em;
-                                         line-height: 0.8em;
-                }
-                span.set-scale-num      {font-size: 2em;
-                }
-                span.set-scale-start,
-                span.set-scale-target   {position: absolute;
-                                         top: -2em;
-                                         width: 8em;
-                                         background-color: @info;
-                    // create triangle
-                    &:before {
-                        top: 100%;
-                        left: 0;
-                        content: " ";
-                        height: 0;
-                        width: 0;
-                        position: absolute;
-                        border-top: 12px solid @info;
-                        border-right: 12px solid transparent;
-                        pointer-events: none;
-                    }
-                }
-                &.active    {background-color: @success;
-                             color: #fff;
-                }
-            }
         }
     }
 

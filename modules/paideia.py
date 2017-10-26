@@ -258,7 +258,7 @@ class Walk(object):
                 key: name of the blocking condition (str)
                 value: dictionary of kwargs to be passed to the Block
         """
-        debug = True
+        debug = False
         p = category = redir = pastquota = None
         loc = prev_loc = prev_npc = None
         s = newloc_id = error_string = None
@@ -419,7 +419,7 @@ class Walk(object):
             'times_wrong':
             'user_response':
         """
-        debug = True
+        debug = False
         user = self._get_user()
         try:
             repeat = user.repeating
@@ -649,7 +649,7 @@ class Walk(object):
                 oldrec = db((db.tag_records.tag == tag) &
                             (db.tag_records.name == user_id)
                             ).select().first().as_dict()
-            except:
+            except Exception:
                 #print traceback.format_exc()
                 oldrec = None
 
@@ -706,7 +706,7 @@ class Walk(object):
         TODO: be sure not to log redirect and utility steps. (filter them out
         before calling _record_step())
         """
-        debug = True
+        debug = False
         mynow = datetime.datetime.utcnow() if not now else now
         db = current.db
         # TODO: Store and roll back db changes if impersonating
@@ -1845,7 +1845,7 @@ class Path(object):
                 next_step = self.steps.pop(0)
                 self.step_for_prompt = next_step
                 return True
-        except:
+        except Exception:
             print traceback.format_exc(5)
             return False
 
@@ -2000,7 +2000,7 @@ class PathChooser(object):
         beginning with that number.
         Returns a list with four members including the integers one-four.
         """
-        debug = True
+        debug = False
         # TODO: Look at replacing this method with scipy.stats.rv_discrete()
 
         switch = randint(1, 100)
@@ -2030,11 +2030,12 @@ class PathChooser(object):
         Returns 'True' if we are forcing the choice of new
         material. Otherwise returns False.
         """
-        debug = True
+        debug = False
         # reset choice counter at end of each cycle
         self.all_choices = self.all_choices % self.CYCLE_LENGTH
         if self.all_choices == 0:
             self.cat1_choices = 0
+        print 'self.all_choices', self.all_choices
 
         # cat1 choices still needed this cycle to make up quota
         cat1_still_needed = (self.CYCLE_LENGTH/2) - self.cat1_choices
@@ -2064,7 +2065,7 @@ class PathChooser(object):
         force_cat1 :: boolean indicating whether or not cat1 selection was forced
 
         """
-        debug = True
+        debug = False
         db = current.db
         pathset = None
         force_cat1 = False
@@ -2150,6 +2151,8 @@ class PathChooser(object):
 
             pathset = pathset.as_list()
             break
+        if debug: print 'PathChooser::_paths_by_cateogry: returning pathset', [p['id'] for p in pathset]
+
         return pathset, cat, force_cat1, pathset_new
 
     def _choose_from_cat(self, cpaths, category):
@@ -2170,7 +2173,7 @@ class PathChooser(object):
         all paths that have steps with no locations
 
         """
-        debug = True
+        debug = False
         path = None
         new_loc = None
         mode = None
@@ -2308,7 +2311,7 @@ class PathChooser(object):
             [2] the category number for this new path (int in range 1-4)
         """
         db = current.db if not db else db
-        debug = True
+        debug = False
         new_material = False
         if set_review:  # select randomly from the supplied badge set (review and demo)
             myset = set_review
@@ -3134,6 +3137,7 @@ class Categorizer(object):
         TODO: Require that a certain number of successes are recent
         TODO: Look at secondary tags as well
         """
+        debug = False
         db = db if db else current.db
         categories = {'rev1': [], 'rev2': [], 'rev3': [], 'rev4': []}
         tag_records = tag_records if tag_records else self.tag_records
@@ -3148,34 +3152,40 @@ class Categorizer(object):
             lr = lrraw if not isinstance(lrraw, str) else parser.parse(lrraw)
             lw = lwraw if not isinstance(lwraw, str) else parser.parse(lwraw)
             if firstraw:
-                first_attempt = firstraw if not isinstance(lwraw, str) else parser.parse(firstraw)
+                first_attempt = firstraw if not isinstance(firstraw, str) else parser.parse(firstraw)
             else:
                 first_attempt = None
             rdur = self.utcnow - lr
             rwdur = lr - lw
             since_started = self.utcnow - first_attempt if first_attempt else datetime.timedelta(days=2)
-            #print'cat2 if:'
-            #print"record['times_right'] ", record['times_right'], '>= 20 (', record['times_right'] >= 20, ')'
-            #print'and'
-            #print'-------------------------------------------------------'
-            #print'rdur.days ', rdur.days, '<', 'rwdur.days', rwdur.days, '> 1 (', rdur.days < rwdur.days > 1, ')'
-            #print'or-----------------------------------------------------'
-            #print'ratio ', self._get_ratio(record), '< 0.2 (', self._get_ratio(record) < 0.2, ')'
-            #print'and'
-            #printrdur.days, '<= 30 days (', rdur.days <= 30, ')'
-            #print'or-----------------------------------------------------'
-            #printself._get_avg(record['tag']), '>= 0.8 (', self._get_avg(record['tag']) >= 0.8, ')'
-            #print'and'
-            #print'rdur.days', rdur.days, '<= 30 days (', rdur.days <= 30, ')'
+            if debug:
+                print '-------------------------------------------------------'
+                print 'tag:', record['tag']
+                print 'times right:', record['times_right']
+                print 'times wrong:', record['times_wrong']
+                tr = record['times_right'] if record['times_right'] else 0
+                tw = record['times_wrong'] if record['times_wrong'] else 0
+                print 'total attempts', tr + tw, '>= 20 (', tr + tw >= 20, ')'
+                print since_started, 'since started >= 1 day (', since_started >= datetime.timedelta(days=1), ')'
+                print 'and'
+                print 'rdur.days:', rdur.days, '<', 'rwdur.days', rwdur.days, '> 1 (', rdur.days < rwdur.days > 1, ')'
+                print 'or'
+                print 'ratio ', self._get_ratio(record), '< 0.2 (', self._get_ratio(record) < 0.2, ')'
+                print rdur.days, '<= 30 days (', rdur.days <= 30, ')'
+                print 'or'
+                print self._get_avg(record['tag']), '>= 0.7 (', self._get_avg(record['tag']) >= 0.7, ')'
+                print rdur.days, '<= 30 days (', rdur.days <= 30, ')'
 
             # spaced repetition algorithm for promotion to
             # cat2? ======================================================
             if ((record['times_right'] >= 20) and  # at least 20 right
-                (((rdur < rwdur) and # delta right < delta right/wrong
-                  since_started.days >= 1) or
+                (since_started.days >= 1) and  # not within the first day
+                ((rdur < rwdur)  # delta right < delta right/wrong
+                 or
                  ((self._get_ratio(record) < 0.2) and  # less than 1w to 5r total
                   (rdur.days <= 30)  # right in past 30 days
-                  ) or
+                  )
+                 or
                  ((self._get_avg(record['tag']) >= 0.7) and  # avg score for week >= 0.7
                   (rdur.days <= 30)  # right in past 30 days
                   ))):

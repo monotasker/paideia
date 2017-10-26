@@ -1,116 +1,264 @@
 {{
-from plugin_widgets import TOOLTIP, TABS, ROLE
+from plugin_widgets import TOOLTIP, ROLE
 import json
 }}
 
-<div class="row">
+<div class="row profile-user-info">
     <div class="container">
-        <div class="col-xs-12">
-<!--Above Tabs ================================================================-->
-{{=UL(LI(SPAN('Name', _class='profile-label'), the_name,
-                        _class='profile-name'),
-      LI(SPAN('Email', _class='profile-label'), email,
-          _class='profile-email'),
-      LI(SPAN('Time Zone', _class='profile-label'), tz,
-          _class='profile-name'),
-      _class='profile-user-info')
-}}
+      <!--Above Tabs ================================================================-->
+      <ul class='profile-user-info'>
+        <li class'profile-name'>
+          <span  class='profile-label'>Name</span>{{=the_name}}
+        </li>
+        <li class'profile-email'>
+          <i class='fa fa-envelope-o'></i>
+          <span  class='profile-label'>Email</span>{{=email}}
+        </li>
+        <li class'profile-tz'><span  class='profile-label'>Time Zone</span>
+          <i class='fa fa-clock-o'></i>
+          {{=tz}}
+        </li>
+      </ul>
+    </div>
+</div>
+
+<div class="row tabrow">
+  <div class='container'>
+    <!-- Nav tabs -->
+    <ul class="nav nav-tabs" role="tablist">
+      <li role="presentation" class="active"><a href="#web2py_user_form" aria-controls="web2py_user_form" role="tab" data-toggle="tab">Badges</a></li>
+      <li role="presentation"><a href="#tab_calendar" aria-controls="tab_calendar" role="tab" data-toggle="tab">Calendar</a></li>
+      <li role="presentation"><a href="#tab_bug_reports" aria-controls="tab_bug_reports" role="tab" data-toggle="tab">Queries</a></li>
+      <li role="presentation"><a href="#tab_settings" aria-controls="tab_settings" role="tab" data-toggle="tab">Settings</a></li>
+      <li role="presentation"><a href="#tab_stats" aria-controls="tab_stats" role="tab" data-toggle="tab">Stats</a></li>
+    </ul>
+  </div>  <!-- close container -->
+</div>
+
+<div class="row">
+  <!-- Tab panes -->
+  <div class="tab-content">
+    <div role="tabpanel" class="tab-pane active" id="web2py_user_form">
+    <!-- TAB 1 - BADGE INFO ==========================================================-->
+      <div class="container">
+        <div class="row">
+          <div class="col-xs-4 profile-overall-progress">
+            <h3>Overall Progress</h3>
+            <p class="progress-message">
+              So far, I have reached badge set {{=max_set}}.
+              {{if target_set:}}
+                I began this term at badge set {{=starting_set}} and my goal to
+                earn an A is to reach set {{=target_set}} by {{=end_date}}.'
+              {{else:}}
+                I am not currently enrolled in a course, so I have no term
+                target.
+              {{pass}}
+            </p>
+            <ul class='set_scale'>
+              {{for n in reversed(range(1, 21)):
+                  current_state = 'current' if n == max_set else ''
+                  active_state = 'active' if n<= max_set else ''
+                  }}
+                  <li class='{{=active_state}} {{=current_state}}'>
+                    <span class='set-scale-num'>{{=n}}</span>
+                    {{if starting_set and n == starting_set:}}
+                      <span class='set-scale-start'>Term start</span>
+                    {{pass}}
+                    {{if target_set and n == target_set:}}
+                      <span class='set-scale-target'>A-grade target</span>
+                    {{pass}}
+                  </li>
+              {{pass}}
+            </ul>
+
+          </div> <!-- close overall progress column -->
+          <div class="col-xs-8">
+            <h3>Progress in each badge</h3>
+            <div id='info-tab1-badge-levels'>
+              <table class='table table-bordered summary_stats'>
+                <tr>
+                  <td>master</td>
+                  <td>{{=len(badge_levels[4])}}</td>
+                  <td>
+                    {{=UL([LI(b[0], _class='label label-success') for b in badge_levels[4]])}}
+                  </td>
+                </tr>
+                <tr>
+                  <td>journeyman</td>
+                  <td>{{=len(badge_levels[3])}}</td>
+                  <td>
+                    {{=UL([LI(b[0], _class='label label-info') for b in badge_levels[3]])}}
+                  </td>
+                </tr>
+                <tr>
+                  <td>apprentice</td>
+                  <td>{{=len(badge_levels[2])}}</td>
+                  <td>
+                    {{=UL([LI(b[0], _class='label label-primary') for b in badge_levels[2]])}}
+                  </td>
+                </tr>
+                <tr>
+                  <td>beginner</td>
+                  <td>{{=len(badge_levels[1])}}</td>
+                  <td>
+                    {{=UL([LI(b[0], _class='label label-warning') for b in badge_levels[1]])}}
+                  </td>
+                </tr>
+              </table>
+            </div>
+          </div>  <!--close badge progress column -->
+        </div> <!--close row-->
+        <div class='row'>
+          <h3 >Details for each badge</h3>
+          <div class='dc_container badgetable-container'>
+            <table class='table table-hover' id='table-badges'>
+              <thead>
+                <tr class='header'>
+                  <th>Badge</th>
+                  <th>Set</th>
+                  <th>Level</th>
+                  <th>Right per 1 wrong</th>
+                  <th>Avg score (5 days)</th>
+                  <th>Times Right</th>
+                  <th>Times Wrong</th>
+                  <th>Between right and wrong</th>
+                  <th>Since last right</th>
+                  <th>Last Right</th>
+                  <th>Last Wrong</th>
+                  <th>Since last wrong</th>
+                  <th>Attempts today</th>
+                  <th>Attempts yesterday</th>
+                </tr>
+              </thead>
+              <tbody>
+
+                {{for trow in badge_table_data:}}
+                  <tr>
+                    <td>{{=trow['bname']}}</td>
+                    <td>{{=trow['set']}}</td>
+                    <td>{{=trow['curlev']}}</td>
+                    <td>{{=trow['rw_ratio']}}</td>
+                    <td>{{=trow['avg_score']}}</td>
+                    <td>{{=trow['tright']}}</td>
+                    <td>{{=trow['twrong']}}</td>
+                    <td>{{=trow['delta_rw'].days}}</td>
+                    <td>{{=trow['delta_r'].days}}</td>
+                    <td data-order='{{=trow['tlr'][0]}}'>{{=trow['tlr'][1]}}</td>
+                    <td data-order='{{=trow['tlw'][0]}}'>{{=trow['tlw'][1]}}</td>
+                    <td>{{=trow['delta_w'].days}}</td>
+                    <td>{{=trow['todaycount']}}</td>
+                    <td>{{=trow['yestcount']}}</td>
+                  </tr>
+                {{pass}}
+              </tbody>
+            </table>
+          </div>
+        </div>  <!--close row-->
+      </div>  <!-- close container-->
+    </div>  <!--close Badges tab pane -->
+    <div role="tabpanel" class="tab-pane" id="tab_calendar">
+    <!-- TAB 2 - CALENDAR ===============================================================-->
+      {{=XML(cal)}}
+    </div>  <!-- close Calendar tab pane -->
+    <div role="tabpanel" class="tab-pane" id="tab_bug_reports">
+    <!-- TAB 3 - BUGS ===============================================================-->
+      <table class='table table-condensed'>
+        <thead>
+          <tr>
+            <th>question</th>
+            <th>your answer</th>
+            <th>sample right answers</th>
+            <th>original score</th>
+            <th>submitted</th>
+            <th>your comments</th>
+            <th>evaluation</th>
+            <th>adjusted score</th>
+            <th>instructor\'s comments</th>
+            <th>mark as read</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{status_classes = {'awaiting review': '',
+                              'confirmed': 'danger',
+                              'duplicate': '',
+                              'fixed': 'success',
+                              'not_a_bug': 'warning',
+                              'allowance_given': 'warning'}
+            for bug in blist:
+                classes = '{} {}'.format(status_classes[bug[7]], bug[-1])
+                row = TR(_class=classes)
+                # first position is the id, used in edit link
+                for val in bug[1:]:
+                    if val not in ['bug-read', 'bug-unread']:
+                        val = val if val != None else ''
+                        row.append(TD(str(val).replace('_', ' '), _class=status_classes[bug[7]]))
+                    pass
+                pass
+                if bug[-1] == 'bug-read' and bug[9]:
+                    row.append(TD(INPUT(_type='checkbox', _checked='checked', _name=bug[0], _class='mark_bug_read read-with-comment')))
+                elif bug[-1] == 'bug-unread' and bug[9]:
+                    row.append(TD(INPUT(_type='checkbox', _name=bug[0], _class='mark_bug_read unread-with-comment')))
+                elif not bug[9]:
+                    row.append(TD(INPUT(_type='checkbox', _disabled='true', _name=bug[0], _class='mark_bug_read read-without-comment')))
+                else:
+                    row.append(TD(INPUT(_type='checkbox', _name=bug[0], _class='mark_bug_read other')))
+                pass
+
+                row.append(ROLE(TD(A('edit', _href=URL('editing', 'listing.html',
+                                                      args=['bugs', bug[0]],
+                                                      vars=dict(restrictor={'bug_status': '5'}))
+                                ))))
+                }}
+                {{=row}}
+            {{pass}}
+        </tbody>
+      </table>
+    </div>  <!-- close queries tab pane -->
+    <div role="tabpanel" class="tab-pane" id="tab_settings">
+    <!-- TAB 4 - SETTINGS ==============================================================-->
+      <h4>Review a badge set</h4>
+      <select id='set_review_select' class='form-control'>
+        {{if reviewing_set:}}
+          {{=OPTION('badge set {}'.format(str(reviewing_set)))}}
+          {{=OPTION('Stop reviewing')}}
+        {{else:}}
+          {{=OPTION('Not reviewing')}}
+        {{pass}}
+        {{for n in [num for num in range(1,21) if num != int(max_set)]:}}
+          {{=OPTION('badge set {}'.format(str(n)))}}
+        {{pass}}
+      </select>
+      <p class='text-info'>If you select a badge set from the menu above, you will
+          only be given paths selected (randomly) from that badge
+          set. When you want to return to the normal selection of
+          paths, select \'Stop reviewing.\'
+      </p>
+
+    </div>  <!-- close Settings tab pane -->
+    <div role="tabpanel" class="tab-pane" id="tab_stats">
+    <!-- TAB 5 - STATS ==============================================================-->
+
+      <div class='stats-container'>
+        <h3>Badge set progress with correct and incorrect answers</h3>
+        <div class='input-group'>
+          <span id='badge_set_chooser_label' class='input-group-addon'>Show attempts for  </span>
+          <select id='badge_set_chooser' class='form-control'>
+            <option>all badge sets</option>
+            {{for set in badge_set_dict.keys():}}
+              <option value='{{=set}}'>set {{=set}}</option>
+            {{pass}}
+          </select>
+          <select id='badge_chooser'>
+          </select>
+        </div>  <!-- close input group-->
+        <div id='milestones_attempts_combo'></div>
+      </div>
+    </div>  <!-- close Stats tab panel -->
+  </div>  <!-- close tab content -->
+
+</div>  <!-- close tabs row -->
+
 {{
-# TAB 1 - BADGE INFO ==========================================================
-if target_set:
-    targetmsg = 'I began this term at badge set {} and my goal to earn an ' \
-                'A is to reach set {} by {}'.format(starting_set,
-                                                      target_set,
-                                                      end_date),
-else:
-    targetmsg = ''
-pass
-
-set_scale_cells = TR(*[TD(SPAN('badge', BR(), 'set', _class='set-scale-label'),
-                          BR(),
-                          SPAN(n, _class='set-scale-num'), _class='') for n in range(1, 21)])
-for n in range(int(max_set)):
-    set_scale_cells[n]['_class'] = 'active'
-pass
-if target_set:
-    set_scale_cells[starting_set - 1].append(SPAN('Term start', _class='set-scale-start'))
-    set_scale_cells[target_set - 1].append(SPAN('A-grade target', _class='set-scale-target'))
-pass
-
-tab1_content = CAT(H4('Progress through the badge sets'),
-                   DIV(P(TABLE(set_scale_cells, _class="set_scale"),
-                         'So far, I have reached badge set {}. {}'.format(max_set, targetmsg)),
-                         _id='info-tab1-set-progress'),
-                   H4('Level of mastery in each badge'),
-                   DIV(TABLE(TR(TD('master'),
-                                TD(len(badge_levels[4])),
-                                TD(UL([LI(b[0], _class='label label-success') for b in badge_levels[4]]))
-                                ),
-                             TR(TD('journeyman'),
-                                TD(len(badge_levels[3])),
-                                TD(UL([LI(b[0], _class='label label-info') for b in badge_levels[3]]))
-                                ),
-                             TR(TD('apprentice'),
-                                TD(len(badge_levels[2])),
-                                TD(UL([LI(b[0], _class='label label-primary') for b in badge_levels[2]]))
-                                ),
-                             TR(TD('beginner'),
-                                TD(len(badge_levels[1])),
-                                TD(UL([LI(b[0], _class='label label-warning') for b in badge_levels[1]]))
-                                ),
-                             _class='table table-bordered summary_stats'
-                             ),
-                       _id='info-tab1-badge-levels'),
-                   H4('Detailed badge record'),
-                   DIV(TABLE(THEAD(TR(TH('Badge'),
-                                      TH('Set'),
-                                      TH('Level'),
-                                      TH('Right per 1 wrong'),
-                                      TH('Avg score (5 days)'),
-                                      TH('Times Right'),
-                                      TH('Times Wrong'),
-                                      TH('Between right and wrong'),
-                                      TH('Since last right'),
-                                      TH('Last Right'),
-                                      TH('Last Wrong'),
-                                      TH('Since last wrong'),
-                                      TH('Attempts today'),
-                                      TH('Attempts yesterday')
-                                      ),
-                                    _class='header'
-                                    ),
-                              _class='table table-hover table-condensed',
-                              _id='table-badges'
-                              ),
-                        _class='dc_container badgetable-container',
-                        _style='font: 12px sans-serif;'
-                        )
-                    )
-}}
-{{for trow in badge_table_data:
-badgerow = TR(TD(trow['bname']),
-              TD(trow['set']),
-              TD(trow['curlev']),
-              TD(trow['rw_ratio']),
-              TD(trow['avg_score']),
-              TD(trow['tright']),
-              TD(trow['twrong']),
-              TD(trow['delta_rw'].days),
-              TD(trow['delta_r'].days),
-              TD(trow['tlr'][1]),
-              TD(trow['tlw'][1]),
-              TD(trow['delta_w'].days),
-              TD(trow['todaycount']),
-              TD(trow['yestcount']),
-              )
-badgerow[8]['_data-order'] = trow['tlr'][0]  # sort column by raw date
-badgerow[9]['_data-order'] = trow['tlw'][0]  # sort column by raw date
-tab1_content[5][0].append(badgerow)
-
-pass
-
-# TAB 2 - BADGES =============================================================
-
 tab2_content = CAT(P('Sorry, something went wrong retrieving your badges.'))
 
 tab2_content.append(CAT(H3('What do these levels mean?'),
@@ -183,102 +331,8 @@ tab2_content.append(CAT(H3('What do these levels mean?'),
       'more mistakes, you will quickly find the badge\'s review level is back '
       'up to the "badge level" you have attained.')
 ))
-
-# TAB 3 - CALENDAR ===========================================================
-tab3_content = XML(cal)
-
-# TAB 4 - BUGS ===============================================================
-tab4_content = TABLE(TR(TH('question'),
-                        TH('your answer'),
-                        TH('sample right answers'),
-                        TH('original score'),
-                        TH('submitted'),
-                        TH('your comments'),
-                        TH('evaluation'),
-                        TH('adjusted score'),
-                        TH('instructor\'s comments'),
-                        TH('mark as read')),
-                     _class='table table-condensed')
-status_classes = {'awaiting review': '',
-                  'confirmed': 'danger',
-                  'duplicate': '',
-                  'fixed': 'success',
-                  'not_a_bug': 'warning',
-                  'allowance_given': 'warning'}
-for bug in blist:
-    from pprint import pprint
-    pprint(bug)
-    classes = '{} {}'.format(status_classes[bug[7]], bug[-1])
-    row = TR(_class=classes)
-    # first position is the id, used in edit link
-    for val in bug[1:]:
-        if val not in ['bug-read', 'bug-unread']:
-            val = val if val != None else ''
-            row.append(TD(str(val).replace('_', ' '), _class=status_classes[bug[7]]))
-        pass
-    pass
-    if bug[-1] == 'bug-read' and bug[9]:
-        row.append(TD(INPUT(_type='checkbox', _checked='checked', _name=bug[0], _class='mark_bug_read read-with-comment')))
-    elif bug[-1] == 'bug-unread' and bug[9]:
-        row.append(TD(INPUT(_type='checkbox', _name=bug[0], _class='mark_bug_read unread-with-comment')))
-    elif not bug[9]:
-        row.append(TD(INPUT(_type='checkbox', _disabled='true', _name=bug[0], _class='mark_bug_read read-without-comment')))
-    else:
-        row.append(TD(INPUT(_type='checkbox', _name=bug[0], _class='mark_bug_read other')))
-    pass
-
-    row.append(ROLE(TD(A('edit', _href=URL('editing', 'listing.html',
-                                           args=['bugs', bug[0]],
-                                           vars=dict(restrictor={'bug_status': '5'}))
-                    ))))
-    tab4_content.append(row)
-pass
-
-# TAB 5 - SETTINGS ==============================================================
-
-tab5_content = DIV(H4('Review a badge set'),
-                   SELECT(_id='set_review_select', _class='form-control'),
-                   P('If you select a badge set from the menu above, you will '
-                     'only be given paths selected (randomly) from that badge '
-                     'set. When you want to return to the normal selection of '
-                     'paths, select \'Stop reviewing.\'', _class='text-info')
-                   )
-if reviewing_set:
-    tab5_content[1].append(OPTION('badge set {}'.format(str(reviewing_set))))
-    tab5_content[1].append(OPTION('Stop reviewing'))
-else:
-    tab5_content[1].append(OPTION('Not reviewing'))
-pass
-for n in range(1,21):
-    tab5_content[1].append(OPTION('badge set {}'.format(str(n))))
-pass
-
-# TAB 6 - STATS ==============================================================
-
-tab6_content = DIV(H4('Badge set progress with correct and incorrect answers'),
-                   DIV(SPAN('Show attempts for  ', _id='badge_set_chooser_label', _class='input-group-addon'),
-                       SELECT(OPTION('all badge sets'), _id='badge_set_chooser', _class='form-control'),
-                   _class='input-group'
-                   ),
-                   SELECT(_id='badge_chooser'),
-                   DIV(_id='milestones_attempts_combo'),
-                   # H4('Attempts by Tag Category'),
-                   # LOAD('reporting', 'tag_counts.load',
-                   #     vars={'user_id': user_id}, ajax=True, target='tag-counts'),
-                   _class='stats-container')
-
-for set in badge_set_dict.keys():
-    tab6_content[1][1].append(OPTION('set {}'.format(set), _value=set))
-pass
 }}
 
-<!--# ASSEMBLE AND PRINT ==================================================-->
-{{=TABS([('Badges', 'web2py_user_form', tab1_content, 'active'),
-         ('Calendar', 'tab_calendar', tab3_content),
-         ('Queries', 'tab_bug_reports', tab4_content),
-         ('Settings', 'tab_settings', tab5_content),
-         ('Stats', 'tab_stats', tab6_content)])
-}}
 
 <!--# LOCAL SCRIPTS ======================================================-->
 <script type="text/javascript" charset="utf-8">
