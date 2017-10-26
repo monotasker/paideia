@@ -8822,16 +8822,24 @@ body.default.index div#masthead .container div.maria-bubble p.index-openmessage 
 body.default.index div.row.paragraphs {
   padding-top: 1em;
   padding-bottom: 1em;
+  background-repeat: no-repeat;
+}
+body.default.index div.row.paragraphs .index-contentbox {
+  height: 100%;
 }
 body.default.index div.row.paragraphs h3 {
   font-family: 'Amatic SC';
   font-size: 3em;
+}
+body.default.index div.row.paragraphs.third .index-contentbox {
+  background-image: url('../images/images.image.ac5111cddd8a81e5.44726177696e672035302e706e67.png');
 }
 body.default.index div.row.paragraphs.first,
 body.default.index div.row.paragraphs.third,
 body.default.index div.row.paragraphs.fifth {
   background-color: #f2eed5;
   color: #5d562f;
+  background-position: right middle;
 }
 body.default.index div.row.paragraphs.first .paragraph-comment,
 body.default.index div.row.paragraphs.third .paragraph-comment,
@@ -9236,41 +9244,45 @@ body.profile #page table,
 body.user #page table {
   text-align: left;
 }
-body.profile #page ul.nav-tabs,
-body.user #page ul.nav-tabs {
+body.profile #page div.row.tabrow,
+body.user #page div.row.tabrow {
+  background-color: #f2eed5;
+}
+body.profile #page div.row.tabrow ul.nav-tabs,
+body.user #page div.row.tabrow ul.nav-tabs {
   padding-left: 1em;
   background-color: #f2eed5;
   border-bottom: 1px solid #d8d3b3;
   font-size: 18px;
   font-family: "Fira Sans", "Helvetica Neue", Helvetica, Ubuntu, Arial, sans-serif;
 }
-body.profile #page ul.nav-tabs li,
-body.user #page ul.nav-tabs li {
+body.profile #page div.row.tabrow ul.nav-tabs li,
+body.user #page div.row.tabrow ul.nav-tabs li {
   top: 1px;
 }
-body.profile #page ul.nav-tabs li a,
-body.user #page ul.nav-tabs li a {
+body.profile #page div.row.tabrow ul.nav-tabs li a,
+body.user #page div.row.tabrow ul.nav-tabs li a {
   border: 1px solid transparent;
 }
-body.profile #page ul.nav-tabs li a:hover,
-body.user #page ul.nav-tabs li a:hover {
+body.profile #page div.row.tabrow ul.nav-tabs li a:hover,
+body.user #page div.row.tabrow ul.nav-tabs li a:hover {
   background-color: #d8d3b3;
 }
-body.profile #page ul.nav-tabs li.active,
-body.user #page ul.nav-tabs li.active {
+body.profile #page div.row.tabrow ul.nav-tabs li.active,
+body.user #page div.row.tabrow ul.nav-tabs li.active {
   border: 1px solid transparent;
   background-color: transparent;
 }
-body.profile #page ul.nav-tabs li.active a,
-body.user #page ul.nav-tabs li.active a {
+body.profile #page div.row.tabrow ul.nav-tabs li.active a,
+body.user #page div.row.tabrow ul.nav-tabs li.active a {
   background-color: #fff;
   border-top: 1px solid #d8d3b3;
   border-left: 1px solid #d8d3b3;
   border-right: 1px solid #d8d3b3;
   border-bottom: 1px solid transparent;
 }
-body.profile #page ul.nav-tabs li.active a:hover,
-body.user #page ul.nav-tabs li.active a:hover {
+body.profile #page div.row.tabrow ul.nav-tabs li.active a:hover,
+body.user #page div.row.tabrow ul.nav-tabs li.active a:hover {
   background-color: #fff;
 }
 body.profile #page #tab_bug_reports table tr.bug-read,
@@ -9281,97 +9293,89 @@ body.profile #page #tab_bug_reports table tr.bug-read td,
 body.user #page #tab_bug_reports table tr.bug-read td {
   background-color: #efefef;
 }
-body.profile #page ul.profile-user-info,
-body.user #page ul.profile-user-info {
+body.profile #page div.row.profile-user-info,
+body.user #page div.row.profile-user-info {
+  background-color: #f2eed5;
+}
+body.profile #page div.row.profile-user-info ul.profile-user-info,
+body.user #page div.row.profile-user-info ul.profile-user-info {
   list-style-type: none;
   background-color: #f2eed5;
   display: block;
   padding: 10px;
   margin: 0;
 }
-body.profile #page ul.profile-user-info li,
-body.user #page ul.profile-user-info li {
+body.profile #page div.row.profile-user-info ul.profile-user-info li,
+body.user #page div.row.profile-user-info ul.profile-user-info li {
   display: inline-block;
   margin-right: 20px;
-  font-size: 12px;
-  color: #f89406;
+  /*font-size: @font-size-small;*/
+  color: #998a2f;
 }
-body.profile #page ul.profile-user-info li .profile-label,
-body.user #page ul.profile-user-info li .profile-label {
+body.profile #page div.row.profile-user-info ul.profile-user-info li .profile-label,
+body.user #page div.row.profile-user-info ul.profile-user-info li .profile-label {
   display: none;
 }
-body.profile #page ul.profile-user-info li:first-child,
-body.user #page ul.profile-user-info li:first-child {
-  font-size: 18px;
+body.profile #page div.row.profile-user-info ul.profile-user-info li:first-child,
+body.user #page div.row.profile-user-info ul.profile-user-info li:first-child {
+  font-size: 3em;
   color: #333;
 }
-body.profile #page ul.profile-user-info li:nth-child(2),
-body.user #page ul.profile-user-info li:nth-child(2) {
-  color: #96BC44;
+body.profile #page div.row.profile-user-info ul.profile-user-info li:nth-child(2),
+body.user #page div.row.profile-user-info ul.profile-user-info li:nth-child(2) {
+  color: #998a2f;
 }
 body.profile #page div#info-tab1-set-progress,
 body.user #page div#info-tab1-set-progress {
   margin-top: 3em;
   margin-bottom: 3em;
 }
+body.profile #page div.profile-overall-progress ul,
+body.user #page div.profile-overall-progress ul {
+  width: 3em;
+  margin-left: 0;
+  margin-top: 1em;
+  line-height: 1.5em;
+  position: relative;
+}
+body.profile #page div.profile-overall-progress ul li,
+body.user #page div.profile-overall-progress ul li {
+  border-top: 1px solid #ccc;
+  margin-bottom: 0;
+}
+body.profile #page div.profile-overall-progress ul li.active,
+body.user #page div.profile-overall-progress ul li.active {
+  background-color: #96BC44;
+}
+body.profile #page div.profile-overall-progress ul li.active.current .set-scale-num,
+body.user #page div.profile-overall-progress ul li.active.current .set-scale-num {
+  display: block;
+  background-color: #1c7f99;
+}
+body.profile #page div.profile-overall-progress ul li span.set-scale-num,
+body.user #page div.profile-overall-progress ul li span.set-scale-num {
+  position: relative;
+  left: 3.5em;
+  top: -0.8em;
+  color: #aaa;
+}
+body.profile #page div.profile-overall-progress p.progress-message,
+body.user #page div.profile-overall-progress p.progress-message {
+  position: relative;
+  float: right;
+  width: 50%;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.2);
+  font-size: 18px;
+  color: #aaa;
+  padding: 1em;
+  border: 1px solid #efefef;
+  border-radius: 2em;
+}
 body.profile #page table.dc-table-label,
 body.user #page table.dc-table-label {
   color: #f89406;
   font-size: 18px;
   font-weight: bold;
-}
-body.profile #page table.set_scale,
-body.user #page table.set_scale {
-  border-collapse: separate;
-  border-spacing: 1px;
-  width: 100%;
-  margin-top: 3em;
-}
-body.profile #page table.set_scale td,
-body.user #page table.set_scale td {
-  position: relative;
-  width: 5%;
-  height: 3.5em;
-  text-align: center;
-  vertical-align: middle;
-  background-color: #efefef;
-}
-body.profile #page table.set_scale td span.set-scale-label,
-body.user #page table.set_scale td span.set-scale-label {
-  font-size: 0.8em;
-  line-height: 0.8em;
-}
-body.profile #page table.set_scale td span.set-scale-num,
-body.user #page table.set_scale td span.set-scale-num {
-  font-size: 2em;
-}
-body.profile #page table.set_scale td span.set-scale-start,
-body.user #page table.set_scale td span.set-scale-start,
-body.profile #page table.set_scale td span.set-scale-target,
-body.user #page table.set_scale td span.set-scale-target {
-  position: absolute;
-  top: -2em;
-  width: 8em;
-  background-color: #5bc0de;
-}
-body.profile #page table.set_scale td span.set-scale-start:before,
-body.user #page table.set_scale td span.set-scale-start:before,
-body.profile #page table.set_scale td span.set-scale-target:before,
-body.user #page table.set_scale td span.set-scale-target:before {
-  top: 100%;
-  left: 0;
-  content: " ";
-  height: 0;
-  width: 0;
-  position: absolute;
-  border-top: 12px solid #5bc0de;
-  border-right: 12px solid transparent;
-  pointer-events: none;
-}
-body.profile #page table.set_scale td.active,
-body.user #page table.set_scale td.active {
-  background-color: #96BC44;
-  color: #fff;
 }
 body.profile #page table.summary_stats td,
 body.user #page table.summary_stats td {
