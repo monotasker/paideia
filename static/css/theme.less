@@ -26,6 +26,113 @@ body                        {margin-top: 0;
     }
 }
 
+/* custom inclusion of right, left and below tabs */
+
+.tabs-below > .nav-tabs,
+.tabs-right > .nav-tabs,
+.tabs-left > .nav-tabs {
+  border-bottom: 0;
+}
+
+.tab-content > .tab-pane,
+.pill-content > .pill-pane {
+  display: none;
+}
+
+.tab-content > .active,
+.pill-content > .active {
+  display: block;
+}
+
+.tabs-below > .nav-tabs {
+  border-top: 1px solid #ddd;
+}
+
+.tabs-below > .nav-tabs > li {
+  margin-top: -1px;
+  margin-bottom: 0;
+}
+
+.tabs-below > .nav-tabs > li > a {
+  -webkit-border-radius: 0 0 4px 4px;
+     -moz-border-radius: 0 0 4px 4px;
+          border-radius: 0 0 4px 4px;
+}
+
+.tabs-below > .nav-tabs > li > a:hover,
+.tabs-below > .nav-tabs > li > a:focus {
+  border-top-color: #ddd;
+  border-bottom-color: transparent;
+}
+
+.tabs-below > .nav-tabs > .active > a,
+.tabs-below > .nav-tabs > .active > a:hover,
+.tabs-below > .nav-tabs > .active > a:focus {
+  border-color: transparent #ddd #ddd #ddd;
+}
+
+.tabs-left > .nav-tabs > li,
+.tabs-right > .nav-tabs > li {
+  float: none;
+}
+
+.tabs-left > .nav-tabs > li > a,
+.tabs-right > .nav-tabs > li > a {
+  min-width: 74px;
+  margin-right: 0;
+  margin-bottom: 3px;
+}
+
+.tabs-left > .nav-tabs {
+  float: left;
+  margin-right: 19px;
+  border-right: 1px solid #ddd;
+}
+
+.tabs-left > .nav-tabs > li > a {
+  margin-right: -1px;
+  -webkit-border-radius: 4px 0 0 4px;
+     -moz-border-radius: 4px 0 0 4px;
+          border-radius: 4px 0 0 4px;
+}
+
+.tabs-left > .nav-tabs > li > a:hover,
+.tabs-left > .nav-tabs > li > a:focus {
+  border-color: #eeeeee #dddddd #eeeeee #eeeeee;
+}
+
+.tabs-left > .nav-tabs .active > a,
+.tabs-left > .nav-tabs .active > a:hover,
+.tabs-left > .nav-tabs .active > a:focus {
+  border-color: #ddd transparent #ddd #ddd;
+  *border-right-color: #ffffff;
+}
+
+.tabs-right > .nav-tabs {
+  float: right;
+  margin-left: 19px;
+  border-left: 1px solid #ddd;
+}
+
+.tabs-right > .nav-tabs > li > a {
+  margin-left: -1px;
+  -webkit-border-radius: 0 4px 4px 0;
+     -moz-border-radius: 0 4px 4px 0;
+          border-radius: 0 4px 4px 0;
+}
+
+.tabs-right > .nav-tabs > li > a:hover,
+.tabs-right > .nav-tabs > li > a:focus {
+  border-color: #eeeeee #eeeeee #eeeeee #dddddd;
+}
+
+.tabs-right > .nav-tabs .active > a,
+.tabs-right > .nav-tabs .active > a:hover,
+.tabs-right > .nav-tabs .active > a:focus {
+  border-color: #ddd #ddd #ddd transparent;
+  *border-left-color: #ffffff;
+}
+
 /*-- navbar --------------------------------------------------*/
 nav,
 .navbar                    {background-color: #fff;
@@ -208,6 +315,24 @@ body.default.index                      {
         &.second,
         &.fourth                       {background-color: darken(@accent2, 0%);
                                         color: lighten(@pallette2, 50%);
+            .paragraph-comment         {left: 0;
+                &:after                {border-top: 12px solid transparent;
+                                        border-bottom:  12px solid transparent;
+                                        border-right: 25px solid #fff;
+                                        left: -25px;
+                                        content: '';
+                                        position: absolute;
+                                        bottom: 25px;
+                }
+                &:before               {border-right: 25px solid rgba(0,0,0,0.2);
+                                        border-top: 12px solid transparent;
+                                        border-bottom:  12px solid transparent;
+                                        left: -26px;
+                                        content: '';
+                                        position: absolute;
+                                        bottom: 23px;
+                }
+            }
         }
         div.paragraph-comment          {background-color: #fff;
                                         display: block;
@@ -483,8 +608,34 @@ body.user                           {
 /*-- user profile -----------------------------------------------*/
 body.profile #page,
 body.user #page          {
+
+    /*utility forms*/
+    div.registerform,
+    div.getpasswordform,
+    div.resetpasswordform,
+    div.requestresetpasswordform,
+    div.changepasswordform,
+    div.loginform              {border: 1px solid #ddd;
+                                border-radius: 2px;
+                                margin: 2em auto;
+                                display: block;
+                                width: fit-content;
+                                padding: 2em;
+        h3                     {font-family: 'Amatic SC', 'Open Sans';
+                                font-size: 2.5em;
+                                color: darken(@pallette1, 50%);
+                                margin-bottom: 21px;
+        }
+    }
+    
     /*tab content */
     .tab-pane                  {padding: @line-height-computed;
+                                padding-bottom: 0;
+        h3                     {font-family: 'Amatic SC', 'Open Sans';
+                                font-size: 2.5em;
+                                color: darken(@pallette1, 50%);
+                                margin-bottom: 21px;
+        }
         h4                     {color: @accent2;
                                 font-size: @font-size-large;
                                 margin-bottom: 2em;}
@@ -499,10 +650,11 @@ body.user #page          {
                                 background-color: @pallette1;
                                 border-bottom: 1px solid @pallette2;
                                 font-size: @font-size-large;
-                                font-family: @sansFonts;
+                                font-family: 'Open Sans', @sansFonts;
             li                 {top: 1px;
                 a              {border: 1px solid transparent;
-                    &:hover    {background-color: @pallette2;}
+                    &:hover    {background-color: @pallette2;
+                                color: #fff;}
                 }
                 &.active       {border: 1px solid transparent;
                                 background-color: transparent;
@@ -533,7 +685,7 @@ body.user #page          {
                                 background-color: @pallette1;
                                 display:block;
                                 padding:(@line-height-computed / 2);
-                                margin: 0;
+                                margin: 1em 0 0 0;
             li                 {display: inline-block;
                                 margin-right: @line-height-computed;
                                 /*font-size: @font-size-small;*/
@@ -541,6 +693,7 @@ body.user #page          {
                 .profile-label {display: none;}
                 &:first-child  {font-size: 3em;
                                 color:@textColor;
+                                margin-bottom: 0em;
                 }
                 &:nth-child(2) {color: darken(@pallette1, 50%);}
             }
@@ -548,42 +701,159 @@ body.user #page          {
     }
 
     /*summary stats (badges) tab*/
-    div#info-tab1-set-progress      {margin-top: 3em;
-                                     margin-bottom: 3em;
-    }
 
-    div.profile-overall-progress    {
+    div.profile-overall-progress    {margin-bottom: 2em;
         ul                          {width: 3em;
-                                     margin-left: 0;
-                                     margin-top: 1em;
+                                     margin-left: 4em;
+                                     margin-top: 0.5em;
                                      line-height: 1.5em;
                                      position: relative;
+                                     float: left;
+                                     margin-right: 4em;
             li                      {border-top: 1px solid #ccc;
                                      margin-bottom: 0;
+                                     line-height: 1.5em;
+                                     line-height: 21px;
+                                     max-height: 21px;
                 &.active            {background-color: @pallette3;
-                    &.current .set-scale-num   {display:block;
+                                     line-height: 21px;
+                                     max-height: 21px;
+                                     border-top: 1px solid lighten(@pallette3, 30%);
+                    &.current .set-scale-num   {display: inline-block;
                                                 background-color: @accent2;
+                                                font-size: 5em;
+                                                line-height: 1em;
+                                                left: 1.1em;
+                                                padding: 0.15em 0.25em;
+                                                border-radius: 2px;
+                                                color: #fff;
+
+                        &:after                {border-right: 14px solid @accent2;
+                                                border-top: 14px solid transparent;
+                                                border-bottom: 14px solid transparent;
+                                                left: -14px;
+                                                top: 40%;
+                                                content: '';
+                                                position: absolute;
+                        }
                     }
                 }
                 span.set-scale-num  {position: relative;
                                      left: 3.5em;
                                      top: -0.8em;
                                      color: #aaa;
+
+                }
+                span.set-scale-start,
+                span.set-scale-target      {position: relative;
+                                            left: -3.75em;
+                                            background-color: @info;
+                                            display: inline-block;
+                                            color: #fff;
+                                            padding: 0.5em;
+                                            border-radius: 2em;
+                                            margin: 0;
+                                            text-align: center;
+                                            line-height: 2em;
+                                            width: 3em;
+                    i                      {text-align: center; 
+                                            left: 1em;
+                    }
+                    &:after                {border-left: 16px solid @info;
+                                            border-top: 16px solid transparent;
+                                            border-bottom: 16px solid transparent;
+                                            right: -9px;
+                                            content: '';
+                                            position: absolute;
+                                            top: 5px;
+                    }
+                    span                   {display: none;
+                    }
                 }
             }
         } 
-        p.progress-message          {position: relative;
-                                     float: right;
-                                     width: 50%;
-                                     box-shadow: 0 3px 0 rgba(0, 0, 0, 0.2);
-                                     font-size: @font-size-large;
+        p.progress-message          {position: static;
                                      color: #aaa;
-                                     padding: 1em;
-                                     border: 1px solid #efefef;
-                                     border-radius: 2em;
         }
     }
 
+    div.profile-badge-progress     {padding-left: 3em;
+        .tabbable                  {height: 30em;
+        }
+        .nav-tabs                  {height: 100%;
+                                    margin-right: 0px;
+            li                     {
+                a                  {line-height: 4em;
+                                    color: #aaa;
+                }
+                span.badge-level-count {position: relative;
+                                        float: right;
+                                        display: inline-block;
+                                        background-color: #efefef;
+                                        border-radius: 1.5em;
+                                        margin-left: 1em;
+                                        height: 3em;
+                                        width: 3em;
+                                        line-height: 3em;
+                                        text-align: center;
+                                        font-size: @font-size-large;
+                                        color: @success;
+                                        border: 1px solid #ccc;
+                }
+                &:nth-child(2) .badge-level-count   {color: @info;}
+                &:nth-child(3) .badge-level-count   {color: @accent2;}
+                &:nth-child(4) .badge-level-count   {color: @warning;}
+            }
+        }
+        .tab-content                {height: 100%;
+            .tab-pane               {border: 1px solid #ddd;
+                                     border-left: 0;
+                                     margin-left: 11em;
+                                     margin-right: 0;
+                                     height: 100%;
+                                     overflow: auto;
+                span.label          {white-space: normal;
+                                     display: inline-block;
+                                     font-size: @font-size-base;
+                                     margin: 0.25em;
+                                     padding: 0.5em 1em;
+                }
+            }
+        }
+    }
+
+    .row.profile-badge-details         {background-color: @accent2;
+                                        padding-top: 1.5em;
+                                        font-family: 'Open Sans', @sansFonts;
+                                        padding-bottom: 1.5em;
+        h3                             {color: lighten(@pallette1, 30%);
+        }
+        .badgetable-container          {color: lighten(@accent2, 50%);
+            table                      {
+                thead                  {
+                    tr                 {background-color: @pallette1;
+                                        color: darken(@pallette1, 50%);
+                    }
+                }
+                tbody                  {
+                    tr.even,
+                    tr.odd             {
+                        td             {border-top: 1px solid lighten(@accent2, 5%);
+                                        background-color: @accent2;
+                            &:first-child  {color: #fff;
+                            }
+                        }
+                        &:hover        {
+                            td         {background-color: lighten(@accent2, 5%);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /* TODO: What is this for? */
     table              {
         &.dc-table-label    {color: @accent3;
                              font-size: @font-size-large;
@@ -591,37 +861,6 @@ body.user #page          {
         }
     }
 
-    table.summary_stats    {
-        td                 {vertical-align:top;
-                            /*background: @pallette1;*/
-                            /*padding: (@line-height-computed/2) @line-height-computed;*/
-            &:nth-child(1) {width: 7em;
-            }
-            &:nth-child(3) {color: #fff;
-            }
-            ul             {max-height: @line-height-computed * 6;
-                            overflow: auto;
-                li         {display: inline-block;
-                            margin-right: 0.25em}
-            }
-
-        }
-        td.total_cat1,
-        td.total_cat2,
-        td.total_cat3,
-        td.total_cat4      {height:40px;
-                            width:40px;
-                            color:#fff;
-                            height:40px;
-                            text-align:center;
-                            font-size:20px;
-                            padding:0;
-                            text-shadow:0px 1px 3px rgba(0,0,0,0.3);}
-        td.total_cat4      {background-color:@accent3;}
-        td.total_cat3      {background-color:@pallette3;}
-        td.total_cat2      {background-color:@accent2;}
-        td.total_cat1      {background-color:@accent3;}
-    }
     /*calendar for monthly user statistics */
     .paideia_monthcal          {position: relative;
                                 width: 350px;

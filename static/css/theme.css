@@ -8616,6 +8616,94 @@ body .modal-backdrop {
 body i.fa {
   margin-right: 0.5em;
 }
+/* custom inclusion of right, left and below tabs */
+.tabs-below > .nav-tabs,
+.tabs-right > .nav-tabs,
+.tabs-left > .nav-tabs {
+  border-bottom: 0;
+}
+.tab-content > .tab-pane,
+.pill-content > .pill-pane {
+  display: none;
+}
+.tab-content > .active,
+.pill-content > .active {
+  display: block;
+}
+.tabs-below > .nav-tabs {
+  border-top: 1px solid #ddd;
+}
+.tabs-below > .nav-tabs > li {
+  margin-top: -1px;
+  margin-bottom: 0;
+}
+.tabs-below > .nav-tabs > li > a {
+  -webkit-border-radius: 0 0 4px 4px;
+  -moz-border-radius: 0 0 4px 4px;
+  border-radius: 0 0 4px 4px;
+}
+.tabs-below > .nav-tabs > li > a:hover,
+.tabs-below > .nav-tabs > li > a:focus {
+  border-top-color: #ddd;
+  border-bottom-color: transparent;
+}
+.tabs-below > .nav-tabs > .active > a,
+.tabs-below > .nav-tabs > .active > a:hover,
+.tabs-below > .nav-tabs > .active > a:focus {
+  border-color: transparent #ddd #ddd #ddd;
+}
+.tabs-left > .nav-tabs > li,
+.tabs-right > .nav-tabs > li {
+  float: none;
+}
+.tabs-left > .nav-tabs > li > a,
+.tabs-right > .nav-tabs > li > a {
+  min-width: 74px;
+  margin-right: 0;
+  margin-bottom: 3px;
+}
+.tabs-left > .nav-tabs {
+  float: left;
+  margin-right: 19px;
+  border-right: 1px solid #ddd;
+}
+.tabs-left > .nav-tabs > li > a {
+  margin-right: -1px;
+  -webkit-border-radius: 4px 0 0 4px;
+  -moz-border-radius: 4px 0 0 4px;
+  border-radius: 4px 0 0 4px;
+}
+.tabs-left > .nav-tabs > li > a:hover,
+.tabs-left > .nav-tabs > li > a:focus {
+  border-color: #eeeeee #dddddd #eeeeee #eeeeee;
+}
+.tabs-left > .nav-tabs .active > a,
+.tabs-left > .nav-tabs .active > a:hover,
+.tabs-left > .nav-tabs .active > a:focus {
+  border-color: #ddd transparent #ddd #ddd;
+  *border-right-color: #ffffff;
+}
+.tabs-right > .nav-tabs {
+  float: right;
+  margin-left: 19px;
+  border-left: 1px solid #ddd;
+}
+.tabs-right > .nav-tabs > li > a {
+  margin-left: -1px;
+  -webkit-border-radius: 0 4px 4px 0;
+  -moz-border-radius: 0 4px 4px 0;
+  border-radius: 0 4px 4px 0;
+}
+.tabs-right > .nav-tabs > li > a:hover,
+.tabs-right > .nav-tabs > li > a:focus {
+  border-color: #eeeeee #eeeeee #eeeeee #dddddd;
+}
+.tabs-right > .nav-tabs .active > a,
+.tabs-right > .nav-tabs .active > a:hover,
+.tabs-right > .nav-tabs .active > a:focus {
+  border-color: #ddd #ddd #ddd transparent;
+  *border-left-color: #ffffff;
+}
 /*-- navbar --------------------------------------------------*/
 nav,
 .navbar {
@@ -8872,6 +8960,30 @@ body.default.index div.row.paragraphs.second,
 body.default.index div.row.paragraphs.fourth {
   background-color: #1c7f99;
   color: #ffffff;
+}
+body.default.index div.row.paragraphs.second .paragraph-comment,
+body.default.index div.row.paragraphs.fourth .paragraph-comment {
+  left: 0;
+}
+body.default.index div.row.paragraphs.second .paragraph-comment:after,
+body.default.index div.row.paragraphs.fourth .paragraph-comment:after {
+  border-top: 12px solid transparent;
+  border-bottom: 12px solid transparent;
+  border-right: 25px solid #fff;
+  left: -25px;
+  content: '';
+  position: absolute;
+  bottom: 25px;
+}
+body.default.index div.row.paragraphs.second .paragraph-comment:before,
+body.default.index div.row.paragraphs.fourth .paragraph-comment:before {
+  border-right: 25px solid rgba(0, 0, 0, 0.2);
+  border-top: 12px solid transparent;
+  border-bottom: 12px solid transparent;
+  left: -26px;
+  content: '';
+  position: absolute;
+  bottom: 23px;
 }
 body.default.index div.row.paragraphs div.paragraph-comment {
   background-color: #fff;
@@ -9223,16 +9335,62 @@ body.user .table-condensed tbody tr th {
 /*-- user profile -----------------------------------------------*/
 body.profile #page,
 body.user #page {
+  /*utility forms*/
   /*tab content */
   /* common styles for reporting tables */
   /* bug reports */
   /* user info */
   /*summary stats (badges) tab*/
+  /* TODO: What is this for? */
   /*calendar for monthly user statistics */
+}
+body.profile #page div.registerform,
+body.user #page div.registerform,
+body.profile #page div.getpasswordform,
+body.user #page div.getpasswordform,
+body.profile #page div.resetpasswordform,
+body.user #page div.resetpasswordform,
+body.profile #page div.requestresetpasswordform,
+body.user #page div.requestresetpasswordform,
+body.profile #page div.changepasswordform,
+body.user #page div.changepasswordform,
+body.profile #page div.loginform,
+body.user #page div.loginform {
+  border: 1px solid #ddd;
+  border-radius: 2px;
+  margin: 2em auto;
+  display: block;
+  width: fit-content;
+  padding: 2em;
+}
+body.profile #page div.registerform h3,
+body.user #page div.registerform h3,
+body.profile #page div.getpasswordform h3,
+body.user #page div.getpasswordform h3,
+body.profile #page div.resetpasswordform h3,
+body.user #page div.resetpasswordform h3,
+body.profile #page div.requestresetpasswordform h3,
+body.user #page div.requestresetpasswordform h3,
+body.profile #page div.changepasswordform h3,
+body.user #page div.changepasswordform h3,
+body.profile #page div.loginform h3,
+body.user #page div.loginform h3 {
+  font-family: 'Amatic SC', 'Open Sans';
+  font-size: 2.5em;
+  color: #998a2f;
+  margin-bottom: 21px;
 }
 body.profile #page .tab-pane,
 body.user #page .tab-pane {
   padding: 20px;
+  padding-bottom: 0;
+}
+body.profile #page .tab-pane h3,
+body.user #page .tab-pane h3 {
+  font-family: 'Amatic SC', 'Open Sans';
+  font-size: 2.5em;
+  color: #998a2f;
+  margin-bottom: 21px;
 }
 body.profile #page .tab-pane h4,
 body.user #page .tab-pane h4 {
@@ -9254,7 +9412,7 @@ body.user #page div.row.tabrow ul.nav-tabs {
   background-color: #f2eed5;
   border-bottom: 1px solid #d8d3b3;
   font-size: 18px;
-  font-family: "Fira Sans", "Helvetica Neue", Helvetica, Ubuntu, Arial, sans-serif;
+  font-family: 'Open Sans', "Fira Sans", "Helvetica Neue", Helvetica, Ubuntu, Arial, sans-serif;
 }
 body.profile #page div.row.tabrow ul.nav-tabs li,
 body.user #page div.row.tabrow ul.nav-tabs li {
@@ -9267,6 +9425,7 @@ body.user #page div.row.tabrow ul.nav-tabs li a {
 body.profile #page div.row.tabrow ul.nav-tabs li a:hover,
 body.user #page div.row.tabrow ul.nav-tabs li a:hover {
   background-color: #d8d3b3;
+  color: #fff;
 }
 body.profile #page div.row.tabrow ul.nav-tabs li.active,
 body.user #page div.row.tabrow ul.nav-tabs li.active {
@@ -9303,7 +9462,7 @@ body.user #page div.row.profile-user-info ul.profile-user-info {
   background-color: #f2eed5;
   display: block;
   padding: 10px;
-  margin: 0;
+  margin: 1em 0 0 0;
 }
 body.profile #page div.row.profile-user-info ul.profile-user-info li,
 body.user #page div.row.profile-user-info ul.profile-user-info li {
@@ -9320,37 +9479,61 @@ body.profile #page div.row.profile-user-info ul.profile-user-info li:first-child
 body.user #page div.row.profile-user-info ul.profile-user-info li:first-child {
   font-size: 3em;
   color: #333;
+  margin-bottom: 0em;
 }
 body.profile #page div.row.profile-user-info ul.profile-user-info li:nth-child(2),
 body.user #page div.row.profile-user-info ul.profile-user-info li:nth-child(2) {
   color: #998a2f;
 }
-body.profile #page div#info-tab1-set-progress,
-body.user #page div#info-tab1-set-progress {
-  margin-top: 3em;
-  margin-bottom: 3em;
+body.profile #page div.profile-overall-progress,
+body.user #page div.profile-overall-progress {
+  margin-bottom: 2em;
 }
 body.profile #page div.profile-overall-progress ul,
 body.user #page div.profile-overall-progress ul {
   width: 3em;
-  margin-left: 0;
-  margin-top: 1em;
+  margin-left: 4em;
+  margin-top: 0.5em;
   line-height: 1.5em;
   position: relative;
+  float: left;
+  margin-right: 4em;
 }
 body.profile #page div.profile-overall-progress ul li,
 body.user #page div.profile-overall-progress ul li {
   border-top: 1px solid #ccc;
   margin-bottom: 0;
+  line-height: 1.5em;
+  line-height: 21px;
+  max-height: 21px;
 }
 body.profile #page div.profile-overall-progress ul li.active,
 body.user #page div.profile-overall-progress ul li.active {
   background-color: #96BC44;
+  line-height: 21px;
+  max-height: 21px;
+  border-top: 1px solid #d5e4b5;
 }
 body.profile #page div.profile-overall-progress ul li.active.current .set-scale-num,
 body.user #page div.profile-overall-progress ul li.active.current .set-scale-num {
-  display: block;
+  display: inline-block;
   background-color: #1c7f99;
+  font-size: 5em;
+  line-height: 1em;
+  left: 1.1em;
+  padding: 0.15em 0.25em;
+  border-radius: 2px;
+  color: #fff;
+}
+body.profile #page div.profile-overall-progress ul li.active.current .set-scale-num:after,
+body.user #page div.profile-overall-progress ul li.active.current .set-scale-num:after {
+  border-right: 14px solid #1c7f99;
+  border-top: 14px solid transparent;
+  border-bottom: 14px solid transparent;
+  left: -14px;
+  top: 40%;
+  content: '';
+  position: absolute;
 }
 body.profile #page div.profile-overall-progress ul li span.set-scale-num,
 body.user #page div.profile-overall-progress ul li span.set-scale-num {
@@ -9359,79 +9542,163 @@ body.user #page div.profile-overall-progress ul li span.set-scale-num {
   top: -0.8em;
   color: #aaa;
 }
+body.profile #page div.profile-overall-progress ul li span.set-scale-start,
+body.user #page div.profile-overall-progress ul li span.set-scale-start,
+body.profile #page div.profile-overall-progress ul li span.set-scale-target,
+body.user #page div.profile-overall-progress ul li span.set-scale-target {
+  position: relative;
+  left: -3.75em;
+  background-color: #5bc0de;
+  display: inline-block;
+  color: #fff;
+  padding: 0.5em;
+  border-radius: 2em;
+  margin: 0;
+  text-align: center;
+  line-height: 2em;
+  width: 3em;
+}
+body.profile #page div.profile-overall-progress ul li span.set-scale-start i,
+body.user #page div.profile-overall-progress ul li span.set-scale-start i,
+body.profile #page div.profile-overall-progress ul li span.set-scale-target i,
+body.user #page div.profile-overall-progress ul li span.set-scale-target i {
+  text-align: center;
+  left: 1em;
+}
+body.profile #page div.profile-overall-progress ul li span.set-scale-start:after,
+body.user #page div.profile-overall-progress ul li span.set-scale-start:after,
+body.profile #page div.profile-overall-progress ul li span.set-scale-target:after,
+body.user #page div.profile-overall-progress ul li span.set-scale-target:after {
+  border-left: 16px solid #5bc0de;
+  border-top: 16px solid transparent;
+  border-bottom: 16px solid transparent;
+  right: -9px;
+  content: '';
+  position: absolute;
+  top: 5px;
+}
+body.profile #page div.profile-overall-progress ul li span.set-scale-start span,
+body.user #page div.profile-overall-progress ul li span.set-scale-start span,
+body.profile #page div.profile-overall-progress ul li span.set-scale-target span,
+body.user #page div.profile-overall-progress ul li span.set-scale-target span {
+  display: none;
+}
 body.profile #page div.profile-overall-progress p.progress-message,
 body.user #page div.profile-overall-progress p.progress-message {
+  position: static;
+  color: #aaa;
+}
+body.profile #page div.profile-badge-progress,
+body.user #page div.profile-badge-progress {
+  padding-left: 3em;
+}
+body.profile #page div.profile-badge-progress .tabbable,
+body.user #page div.profile-badge-progress .tabbable {
+  height: 30em;
+}
+body.profile #page div.profile-badge-progress .nav-tabs,
+body.user #page div.profile-badge-progress .nav-tabs {
+  height: 100%;
+  margin-right: 0px;
+}
+body.profile #page div.profile-badge-progress .nav-tabs li a,
+body.user #page div.profile-badge-progress .nav-tabs li a {
+  line-height: 4em;
+  color: #aaa;
+}
+body.profile #page div.profile-badge-progress .nav-tabs li span.badge-level-count,
+body.user #page div.profile-badge-progress .nav-tabs li span.badge-level-count {
   position: relative;
   float: right;
-  width: 50%;
-  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.2);
+  display: inline-block;
+  background-color: #efefef;
+  border-radius: 1.5em;
+  margin-left: 1em;
+  height: 3em;
+  width: 3em;
+  line-height: 3em;
+  text-align: center;
   font-size: 18px;
-  color: #aaa;
-  padding: 1em;
-  border: 1px solid #efefef;
-  border-radius: 2em;
+  color: #96BC44;
+  border: 1px solid #ccc;
+}
+body.profile #page div.profile-badge-progress .nav-tabs li:nth-child(2) .badge-level-count,
+body.user #page div.profile-badge-progress .nav-tabs li:nth-child(2) .badge-level-count {
+  color: #5bc0de;
+}
+body.profile #page div.profile-badge-progress .nav-tabs li:nth-child(3) .badge-level-count,
+body.user #page div.profile-badge-progress .nav-tabs li:nth-child(3) .badge-level-count {
+  color: #1c7f99;
+}
+body.profile #page div.profile-badge-progress .nav-tabs li:nth-child(4) .badge-level-count,
+body.user #page div.profile-badge-progress .nav-tabs li:nth-child(4) .badge-level-count {
+  color: #f89406;
+}
+body.profile #page div.profile-badge-progress .tab-content,
+body.user #page div.profile-badge-progress .tab-content {
+  height: 100%;
+}
+body.profile #page div.profile-badge-progress .tab-content .tab-pane,
+body.user #page div.profile-badge-progress .tab-content .tab-pane {
+  border: 1px solid #ddd;
+  border-left: 0;
+  margin-left: 11em;
+  margin-right: 0;
+  height: 100%;
+  overflow: auto;
+}
+body.profile #page div.profile-badge-progress .tab-content .tab-pane span.label,
+body.user #page div.profile-badge-progress .tab-content .tab-pane span.label {
+  white-space: normal;
+  display: inline-block;
+  font-size: 14px;
+  margin: 0.25em;
+  padding: 0.5em 1em;
+}
+body.profile #page .row.profile-badge-details,
+body.user #page .row.profile-badge-details {
+  background-color: #1c7f99;
+  padding-top: 1.5em;
+  font-family: 'Open Sans', "Fira Sans", "Helvetica Neue", Helvetica, Ubuntu, Arial, sans-serif;
+  padding-bottom: 1.5em;
+}
+body.profile #page .row.profile-badge-details h3,
+body.user #page .row.profile-badge-details h3 {
+  color: #ffffff;
+}
+body.profile #page .row.profile-badge-details .badgetable-container,
+body.user #page .row.profile-badge-details .badgetable-container {
+  color: #c0e9f4;
+}
+body.profile #page .row.profile-badge-details .badgetable-container table thead tr,
+body.user #page .row.profile-badge-details .badgetable-container table thead tr {
+  background-color: #f2eed5;
+  color: #998a2f;
+}
+body.profile #page .row.profile-badge-details .badgetable-container table tbody tr.even td,
+body.user #page .row.profile-badge-details .badgetable-container table tbody tr.even td,
+body.profile #page .row.profile-badge-details .badgetable-container table tbody tr.odd td,
+body.user #page .row.profile-badge-details .badgetable-container table tbody tr.odd td {
+  border-top: 1px solid #2091af;
+  background-color: #1c7f99;
+}
+body.profile #page .row.profile-badge-details .badgetable-container table tbody tr.even td:first-child,
+body.user #page .row.profile-badge-details .badgetable-container table tbody tr.even td:first-child,
+body.profile #page .row.profile-badge-details .badgetable-container table tbody tr.odd td:first-child,
+body.user #page .row.profile-badge-details .badgetable-container table tbody tr.odd td:first-child {
+  color: #fff;
+}
+body.profile #page .row.profile-badge-details .badgetable-container table tbody tr.even:hover td,
+body.user #page .row.profile-badge-details .badgetable-container table tbody tr.even:hover td,
+body.profile #page .row.profile-badge-details .badgetable-container table tbody tr.odd:hover td,
+body.user #page .row.profile-badge-details .badgetable-container table tbody tr.odd:hover td {
+  background-color: #2091af;
 }
 body.profile #page table.dc-table-label,
 body.user #page table.dc-table-label {
   color: #f89406;
   font-size: 18px;
   font-weight: bold;
-}
-body.profile #page table.summary_stats td,
-body.user #page table.summary_stats td {
-  vertical-align: top;
-  /*background: @pallette1;*/
-  /*padding: (@line-height-computed/2) @line-height-computed;*/
-}
-body.profile #page table.summary_stats td:nth-child(1),
-body.user #page table.summary_stats td:nth-child(1) {
-  width: 7em;
-}
-body.profile #page table.summary_stats td:nth-child(3),
-body.user #page table.summary_stats td:nth-child(3) {
-  color: #fff;
-}
-body.profile #page table.summary_stats td ul,
-body.user #page table.summary_stats td ul {
-  max-height: 120px;
-  overflow: auto;
-}
-body.profile #page table.summary_stats td ul li,
-body.user #page table.summary_stats td ul li {
-  display: inline-block;
-  margin-right: 0.25em;
-}
-body.profile #page table.summary_stats td.total_cat1,
-body.user #page table.summary_stats td.total_cat1,
-body.profile #page table.summary_stats td.total_cat2,
-body.user #page table.summary_stats td.total_cat2,
-body.profile #page table.summary_stats td.total_cat3,
-body.user #page table.summary_stats td.total_cat3,
-body.profile #page table.summary_stats td.total_cat4,
-body.user #page table.summary_stats td.total_cat4 {
-  width: 40px;
-  color: #fff;
-  height: 40px;
-  text-align: center;
-  font-size: 20px;
-  padding: 0;
-  text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.3);
-}
-body.profile #page table.summary_stats td.total_cat4,
-body.user #page table.summary_stats td.total_cat4 {
-  background-color: #f89406;
-}
-body.profile #page table.summary_stats td.total_cat3,
-body.user #page table.summary_stats td.total_cat3 {
-  background-color: #96BC44;
-}
-body.profile #page table.summary_stats td.total_cat2,
-body.user #page table.summary_stats td.total_cat2 {
-  background-color: #1c7f99;
-}
-body.profile #page table.summary_stats td.total_cat1,
-body.user #page table.summary_stats td.total_cat1 {
-  background-color: #f89406;
 }
 body.profile #page .paideia_monthcal,
 body.user #page .paideia_monthcal {
