@@ -7,5 +7,7 @@
 private/*
 errors/*
 sessions/*
+databases/migration_to_postgresql/*
 -MiniBufExplorer-
 .ropeproject/*
+__Tagbar__.*

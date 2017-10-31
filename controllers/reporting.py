@@ -237,18 +237,14 @@ def user():
     response.files.append(URL('static', 'js/info_chart1.js'))
 
     # Include files for Datatables jquery plugin and bootstrap css styling
-    response.files.append('//cdnjs.cloudflare.com/ajax/libs/datatables/1.10.0/'
-                          'js/jquery.dataTables.min.js')
-    response.files.append('//cdnjs.cloudflare.com/ajax/libs/datatables-colvis/1.1.0/'
-                          'js/datatables.colvis.min.js')
-    response.files.append('//cdnjs.cloudflare.com/ajax/libs/datatables-colvis/1.1.0/'
-                          'css/datatables.colvis.min.css')
-    response.files.append("https://cdn.datatables.net/fixedcolumns/3.0.1/js/"
-                          "dataTables.fixedColumns.min.js")  # fixedColumns plugin
-    response.files.append("https://cdn.datatables.net/fixedcolumns/3.0.1/css/"
-                          "dataTables.fixedColumns.css")  # fixedColumns plugin css
-    response.files.append("https://cdn.datatables.net/plug-ins/28e7751dbec/"
-                          "integration/bootstrap/3/dataTables.bootstrap.css")  # bootstrap css
+    response.files.append("https://cdn.datatables.net/r/bs/jq-2.1.4,jszip-2.5.0,"
+                          "pdfmake-0.1.18,dt-1.10.9,b-1.0.3,b-colvis-1.0.3,b-html5-1.0.3,"
+                          "b-print-1.0.3,fc-3.1.0,r-1.0.7,sc-1.3.0,se-1.0.1/"
+                          "datatables.min.css")
+    response.files.append("https://cdn.datatables.net/r/bs/jq-2.1.4,jszip-2.5.0,"
+                          "pdfmake-0.1.18,dt-1.10.9,b-1.0.3,b-colvis-1.0.3,"
+                          "b-html5-1.0.3,b-print-1.0.3,fc-3.1.0,r-1.0.7,sc-1.3.0,"
+                          "se-1.0.1/datatables.min.js")
 
     user = request.args[0]
     return {'id': user}
