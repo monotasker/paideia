@@ -69,7 +69,7 @@ import json
                     {{if starting_set and n == starting_set:}}
                       <span class='set-scale-start'><i class="fa fa-road"></i><span>Term start</span></span>
                     {{pass}}
-                    {{if target_set and n == target_set:}}
+                    {{if target_set and n == target_set and target_set != max_set:}}
                       <span class='set-scale-target'><i class="fa fa-crosshairs"></i><span>A-grade target</span></span>
                     {{pass}}
                   </li>
@@ -449,6 +449,47 @@ $(document).on('click',
         ajax(myurl, [], 'paideia_monthcal');
 });
 
+
+// Prevent overlaps in overall progress widget
+
+function getPositions(box) {
+  var pos = $(box).position();
+  var height = $(box).outerHeight();
+  return [ pos.top, pos.top + height ];
+}
+
+function comparePositions(p1, p2) {
+  var x1 = p1[0] < p2[0] ? p1 : p2;
+  var x2 = p1[0] < p2[0] ? p2 : p1;
+  if (x1[1] > x2[0] || x1[0] === x2[0]) {
+      return [true, x1[1]]
+  } else {
+      return [false, 0]
+  }
+}
+
+function checkCollisions(elem1, elem2){
+  var pos1 = getPositions(elem1);
+  var pos2 = getPositions(elem2);
+  var verticalMatch = comparePositions(pos1, pos2);
+  var verticalChange = verticalMatch[1] + 21;
+  if (verticalMatch[0]) {
+      $(elem2).css({'transform': 'translate(0px, ' + verticalChange + 'px)'});
+  }
+}
+
+function keepInBounds(elem){
+  var mytop = $(elem).position().top;
+  if ( mytop < 0 ) {
+      $(elem).css({'transform': 'translate(0px, ' + -(mytop) + 'px)'});
+  }
+};
+
+keepInBounds($('.current .set-scale-num')[0]);
+checkCollisions($('.current .set-scale-num')[0], $('.progress-message')[0]);
+$(window).resize(function(){
+    checkCollisions($('.current .set-scale-num')[0], $('.progress-message')[0]);
+});
 
 </script>
 
