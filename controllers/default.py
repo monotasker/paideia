@@ -68,18 +68,10 @@ def user():
     response.files.append(URL('static', 'js/info_chart1.js'))
 
     # Include files for Datatables jquery plugin and bootstrap css styling
-    response.files.append('//cdnjs.cloudflare.com/ajax/libs/datatables/1.10.0/'
-                          'js/jquery.dataTables.min.js')
-    response.files.append('//cdnjs.cloudflare.com/ajax/libs/datatables-colvis/1.1.0/'
-                          'js/datatables.colvis.min.js')
-    response.files.append('//cdnjs.cloudflare.com/ajax/libs/datatables-colvis/1.1.0/'
-                          'css/datatables.colvis.min.css')
-    response.files.append("https://cdn.datatables.net/fixedcolumns/3.0.1/js/"
-                          "dataTables.fixedColumns.min.js")  # fixedColumns plugin
-    response.files.append("https://cdn.datatables.net/fixedcolumns/3.0.1/css/"
-                          "dataTables.fixedColumns.css")  # fixedColumns plugin css
-    response.files.append("https://cdn.datatables.net/plug-ins/28e7751dbec/"
-                          "integration/bootstrap/3/dataTables.bootstrap.css")  # bootstrap css
+    response.files.append('https://cdn.datatables.net/v/bs/jszip-2.5.0/dt-1.10.16/b-1.4.2/b-colvis-1.4.2/b-html5-1.4.2/b-print-1.4.2/fc-3.2.3/fh-3.1.3/r-2.2.0/datatables.min.css')
+    response.files.append('https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/pdfmake.min.js')
+    response.files.append('https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js')
+    response.files.append("https://cdn.datatables.net/v/bs/jszip-2.5.0/dt-1.10.16/b-1.4.2/b-colvis-1.4.2/b-html5-1.4.2/b-print-1.4.2/fc-3.2.3/fh-3.1.3/r-2.2.0/datatables.min.js")
 
     return dict(form=auth())
 
@@ -376,6 +368,7 @@ def download():
     http://..../[app]/default/download/[filename]
     """
     return response.download(request, db)
+
 
 """
 def call():
