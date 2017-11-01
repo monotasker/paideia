@@ -8704,6 +8704,36 @@ body i.fa {
   border-color: #ddd #ddd #ddd transparent;
   *border-left-color: #ffffff;
 }
+/*-- mixins --------------------------------------------------*/
+.bluetable table {
+  width: 100%;
+}
+.bluetable table td,
+.bluetable table th {
+  height: 3em;
+  line-height: 3em;
+}
+.bluetable table thead tr {
+  background-color: #f2eed5;
+  color: #998a2f;
+}
+.bluetable table thead tr th {
+  border-bottom: 0px;
+  border-right: 0px;
+}
+.bluetable table tbody tr.even td,
+.bluetable table tbody tr.odd td {
+  border-top: 1px solid #2091af;
+  background-color: #1c7f99;
+}
+.bluetable table tbody tr.even td:first-child,
+.bluetable table tbody tr.odd td:first-child {
+  color: #fff;
+}
+.bluetable table tbody tr.even:hover td,
+.bluetable table tbody tr.odd:hover td {
+  background-color: #2091af;
+}
 /*-- navbar --------------------------------------------------*/
 nav,
 .navbar {
@@ -9274,6 +9304,35 @@ body.reporting #content.vocabulary .row.vocab-list {
   padding-top: 2em;
   padding-bottom: 3em;
 }
+body.reporting #content.vocabulary .row.vocab-list table {
+  width: 100%;
+}
+body.reporting #content.vocabulary .row.vocab-list table td,
+body.reporting #content.vocabulary .row.vocab-list table th {
+  height: 3em;
+  line-height: 3em;
+}
+body.reporting #content.vocabulary .row.vocab-list table thead tr {
+  background-color: #f2eed5;
+  color: #998a2f;
+}
+body.reporting #content.vocabulary .row.vocab-list table thead tr th {
+  border-bottom: 0px;
+  border-right: 0px;
+}
+body.reporting #content.vocabulary .row.vocab-list table tbody tr.even td,
+body.reporting #content.vocabulary .row.vocab-list table tbody tr.odd td {
+  border-top: 1px solid #2091af;
+  background-color: #1c7f99;
+}
+body.reporting #content.vocabulary .row.vocab-list table tbody tr.even td:first-child,
+body.reporting #content.vocabulary .row.vocab-list table tbody tr.odd td:first-child {
+  color: #fff;
+}
+body.reporting #content.vocabulary .row.vocab-list table tbody tr.even:hover td,
+body.reporting #content.vocabulary .row.vocab-list table tbody tr.odd:hover td {
+  background-color: #2091af;
+}
 body.reporting #content.vocabulary .row.vocab-list #search_instructions_btn {
   position: absolute;
   right: 1em;
@@ -9305,7 +9364,6 @@ body.user #add_members_trigger {
 }
 body.user .table-condensed tbody tr td,
 body.user .table-condensed tbody tr th {
-  text-align: center;
   white-space: pre-wrap;
   white-space: -moz-pre-wrap;
   /* Mozilla, since 1999 */
@@ -9316,10 +9374,6 @@ body.user .table-condensed tbody tr th {
   word-wrap: break-word;
   border-right: 0px transparent;
   vertical-align: middle;
-}
-body.user .table-condensed tbody tr td.username,
-body.user .table-condensed tbody tr th.username {
-  text-align: left !important;
 }
 body.user .table-condensed tbody tr td.rank,
 body.user .table-condensed tbody tr th.rank {
@@ -9432,7 +9486,7 @@ body.profile #page div.row.tabrow ul.nav-tabs,
 body.user #page div.row.tabrow ul.nav-tabs {
   padding-left: 1em;
   background-color: #f2eed5;
-  border-bottom: 1px solid #d8d3b3;
+  border-bottom: 1px solid transparent;
   font-size: 18px;
   font-family: 'Open Sans', "Fira Sans", "Helvetica Neue", Helvetica, Ubuntu, Arial, sans-serif;
 }
@@ -9443,11 +9497,14 @@ body.user #page div.row.tabrow ul.nav-tabs li {
 body.profile #page div.row.tabrow ul.nav-tabs li a,
 body.user #page div.row.tabrow ul.nav-tabs li a {
   border: 1px solid transparent;
+  padding-right: 1em;
+  padding-left: 1em;
 }
 body.profile #page div.row.tabrow ul.nav-tabs li a:hover,
 body.user #page div.row.tabrow ul.nav-tabs li a:hover {
   background-color: #d8d3b3;
   color: #fff;
+  border: 1px solid transparent;
 }
 body.profile #page div.row.tabrow ul.nav-tabs li.active,
 body.user #page div.row.tabrow ul.nav-tabs li.active {
@@ -9457,14 +9514,17 @@ body.user #page div.row.tabrow ul.nav-tabs li.active {
 body.profile #page div.row.tabrow ul.nav-tabs li.active a,
 body.user #page div.row.tabrow ul.nav-tabs li.active a {
   background-color: #fff;
-  border-top: 1px solid #d8d3b3;
-  border-left: 1px solid #d8d3b3;
-  border-right: 1px solid #d8d3b3;
-  border-bottom: 1px solid transparent;
+  border: 1px solid transparent;
+  /*border-top: 1px solid @pallette2;*/
+  /*border-left: 1px solid @pallette2;*/
+  /*border-right: 1px solid @pallette2;*/
+  /*border-bottom: 1px solid transparent;*/
+  color: #000;
 }
 body.profile #page div.row.tabrow ul.nav-tabs li.active a:hover,
 body.user #page div.row.tabrow ul.nav-tabs li.active a:hover {
   background-color: #fff;
+  color: #000;
 }
 body.profile #page #tab_bug_reports table tr.bug-read,
 body.user #page #tab_bug_reports table tr.bug-read {
@@ -9473,6 +9533,7 @@ body.user #page #tab_bug_reports table tr.bug-read {
 body.profile #page #tab_bug_reports table tr.bug-read td,
 body.user #page #tab_bug_reports table tr.bug-read td {
   background-color: #efefef;
+  text-align: left;
 }
 body.profile #page div.row.profile-user-info,
 body.user #page div.row.profile-user-info {
@@ -9688,14 +9749,38 @@ body.profile #page .row.profile-badge-details h3,
 body.user #page .row.profile-badge-details h3 {
   color: #ffffff;
 }
+body.profile #page .row.profile-badge-details .dt-buttons,
+body.user #page .row.profile-badge-details .dt-buttons {
+  top: -5px;
+}
+body.profile #page .row.profile-badge-details #table-badges_filter,
+body.user #page .row.profile-badge-details #table-badges_filter {
+  float: right;
+}
 body.profile #page .row.profile-badge-details .badgetable-container,
 body.user #page .row.profile-badge-details .badgetable-container {
   color: #c0e9f4;
+}
+body.profile #page .row.profile-badge-details .badgetable-container table,
+body.user #page .row.profile-badge-details .badgetable-container table {
+  width: 100%;
+}
+body.profile #page .row.profile-badge-details .badgetable-container table td,
+body.user #page .row.profile-badge-details .badgetable-container table td,
+body.profile #page .row.profile-badge-details .badgetable-container table th,
+body.user #page .row.profile-badge-details .badgetable-container table th {
+  height: 3em;
+  line-height: 3em;
 }
 body.profile #page .row.profile-badge-details .badgetable-container table thead tr,
 body.user #page .row.profile-badge-details .badgetable-container table thead tr {
   background-color: #f2eed5;
   color: #998a2f;
+}
+body.profile #page .row.profile-badge-details .badgetable-container table thead tr th,
+body.user #page .row.profile-badge-details .badgetable-container table thead tr th {
+  border-bottom: 0px;
+  border-right: 0px;
 }
 body.profile #page .row.profile-badge-details .badgetable-container table tbody tr.even td,
 body.user #page .row.profile-badge-details .badgetable-container table tbody tr.even td,

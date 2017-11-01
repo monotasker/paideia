@@ -131,7 +131,7 @@ import json
         <div class='container'>
           <h3 >Details for each badge</h3>
           <div class='dc_container badgetable-container'>
-            <table class='table table-hover' id='table-badges'>
+            <table class='table table-hover' id='table-badges' style="width: 100%">
               <thead>
                 <tr class='header'>
                   <th>Badge</th>
@@ -390,36 +390,55 @@ $(document).on('change', '#set_review_select', function(event){
 });
 
     var badgetable = $('#table-badges').DataTable({
+                        dom: 'fBti',
                         paging: false,
                         scrollY: '400px',
                         scrollX: true,
                         renderer: 'bootstrap',
                         order: [2, 'asc'],
+                        buttons: [
+                            'colvis'
+                        ],
+                        fixedColumns: {
+                            leftColumns: 1
+                        },
+                        fixedHeader: true,
+                        responsive: false,
                         "columns": [
-                          null,
-                          null,
-                          null,
-                          null,
-                          null,
-                          null,
-                          null,
-                          {"visible": false},
-                          {"visible": false},
-                          {"visible": false},
-                          {"visible": false},
-                          {"visible": false},
-                          {"visible": false},
-                          {"visible": false}
-                        ]
+                          {"className": "badge-name"},
+                          {"className": "set"},
+                          {"className": "level"},
+                          {"className": "right-per-wrong",
+                           "orderable": false},
+                          {"className": "avg",
+                           "orderable": false},
+                          {"className": "times-right",
+                           "orderable": false},
+                          {"className": "times-wrong",
+                           "orderable": false},
+                          {"visible": false,
+                           "orderable": false,
+                           "className": "between"},
+                          {"visible": false,
+                           "orderable": false,
+                           "className": "since-right"},
+                          {"visible": false,
+                           "orderable": false,
+                           "className": "last-right"},
+                          {"visible": false,
+                           "orderable": false,
+                           "className": "last-wrong"},
+                          {"visible": false,
+                           "orderable": false,
+                           "className": "since-wrong"},
+                          {"visible": false,
+                           "orderable": false,
+                           "className": "today"},
+                          {"visible": false,
+                           "orderable": false,
+                           "className": "yesterday"},
+                        ],
                      });
-    new $.fn.dataTable.FixedColumns( badgetable );
-    new $.fn.dataTable.Buttons( badgetable, {
-        buttons: [
-            'colvis',
-        ],
-    } );
-    badgetable.buttons().container()
-        .appendTo( $('#table-badges_wrapper', badgetable.table().container() ) );
 
 $(document).on('change', 'input.mark_bug_read', function(event){
                   var bugid = $(this).attr('name');
