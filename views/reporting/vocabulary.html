@@ -1,18 +1,11 @@
 {{extend 'layout.html'}}
 
-<div class="row">
-    <div class="container">
-        <div class="col-xs-12">
 
-            <h2>Your Greek Vocabulary</h2>
                 <div id="vocabulary_list_frame">
                     {{=LOAD('reporting','vocabulary_list.load',ajax=True,
                             content=I(_class="fa fa-spinner fa-pulse fa-3x fa-fw",
                             id='vocabulary_list_frame'))}}
                 </div>
-        </div>
-    </div>
-</div>
 
 <script>
 // ========== handle scope selection widget ======== //

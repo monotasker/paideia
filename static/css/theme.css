@@ -9242,25 +9242,47 @@ body.exploring main #page .responder table td.w2p_fl {
   display: none;
 }
 /*-- reporting --------------------------------------------------*/
-body.reporting {
-  /*h2                              {margin-top: 2em;*/
-  /*}*/
-}
 body.reporting #masthead {
   display: none;
 }
-body.reporting #vocab_scope_form {
+body.reporting #content.vocabulary {
+  background-color: #f2eed5;
+}
+body.reporting #content.vocabulary h2 {
+  font-family: 'Amatic SC';
+  font-size: 2.5em;
+  color: #998a2f;
+  margin-bottom: 21px;
+  margin-top: 21px;
+}
+body.reporting #content.vocabulary .row.vocab-instructions {
+  padding-top: 1em;
+  padding-bottom: 1em;
+}
+body.reporting #content.vocabulary .row.vocab-controls {
+  background-color: #96BC44;
+  padding-top: 1em;
+}
+body.reporting #content.vocabulary .row.vocab-controls #vocab_scope_form {
   width: 360px;
 }
-body.reporting #vocab_scope_form .form-group {
+body.reporting #content.vocabulary .row.vocab-controls #vocab_scope_form .form-group {
   margin-left: 0;
 }
-body.reporting #search_instructions_btn {
+body.reporting #content.vocabulary .row.vocab-list {
+  background-color: #1c7f99;
+  padding-top: 2em;
+  padding-bottom: 3em;
+}
+body.reporting #content.vocabulary .row.vocab-list #search_instructions_btn {
   position: absolute;
   right: 1em;
-  top: 16em;
   z-index: 999;
   cursor: pointer;
+  color: #fff;
+}
+body.reporting #content.vocabulary .row.vocab-list #vocab-table_wrapper .row:first-child {
+  padding-bottom: 1em;
 }
 body.reporting .popover p {
   text-align: left;

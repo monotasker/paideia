@@ -531,22 +531,46 @@ body.exploring                  {
 }
 
 /*-- reporting --------------------------------------------------*/
-body.reporting                      {
-    #masthead                       {display: none;
+body.reporting                               {
+    #masthead                                {display: none;
     }
-    /*h2                              {margin-top: 2em;*/
-    /*}*/
-    #vocab_scope_form               {width: 360px;
-        .form-group                 {margin-left:0;
+
+    #content.vocabulary                      {background-color: @pallette1;
+
+
+
+      h2                                     {font-family: 'Amatic SC';
+                                              font-size: 2.5em;
+                                              color: darken(@pallette1, 50%);
+                                              margin-bottom: 21px;
+                                              margin-top: 21px;
+      }
+      .row.vocab-instructions                {padding-top: 1em;
+                                              padding-bottom: 1em;
+      }
+      .row.vocab-controls                    {background-color: @pallette3;
+                                              padding-top: 1em;
+        #vocab_scope_form                    {width: 360px;
+            .form-group                      {margin-left:0;
+            }
         }
+      }
+      .row.vocab-list                        {background-color: @accent2;
+                                              padding-top: 2em;
+                                              padding-bottom: 3em;
+        #search_instructions_btn             {position:absolute;
+                                              right:1em;
+                                              z-index: 999;
+                                              cursor: pointer;
+                                              color: #fff;
+        }
+        #vocab-table_wrapper                 {
+          .row:first-child                   {padding-bottom: 1em;
+          }
+        }
+      }
     }
-    #search_instructions_btn        {position:absolute;
-                                     right:1em;
-                                     top: 16em;
-                                     z-index: 999;
-                                     cursor: pointer;
-    }
-    .popover p                      {text-align: left;
+    .popover p                       {text-align: left;
     }            
 }
 
