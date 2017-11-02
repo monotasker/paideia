@@ -65,7 +65,7 @@ import json
                   active_state = 'active' if n<= max_set else ''
                   }}
                   <li class='{{=active_state}} {{=current_state}}'>
-                    <span class='set-scale-num'>{{=n}}</span>
+                    <span class='set-scale-num set{{=n}}'>{{=n}}</span>
                     {{if starting_set and n == starting_set:}}
                       <span class='set-scale-start'><i class="fa fa-road"></i><span>Term start</span></span>
                     {{pass}}
@@ -78,8 +78,12 @@ import json
             <p class="progress-message">
               So far, I have reached badge set {{=max_set}}.
               {{if target_set:}}
-                I began this term at badge set {{=starting_set}} and my goal to
-                earn an A is to reach set {{=target_set}} by {{=end_date}}.'
+                I began this term at badge set {{=starting_set}} and
+                {{if max_set >= target_set:}}
+                  I have already reached the target of set {{=target_set}} to earn an A.
+                {{else:}}
+                  my goal to earn an A is to reach set {{=target_set}} by {{=end_date}}.
+                {{pass}}
               {{else:}}
                 I am not currently enrolled in a course, so I have no term
                 target.

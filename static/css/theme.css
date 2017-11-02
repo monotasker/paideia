@@ -9623,9 +9623,22 @@ body.user #page div.profile-overall-progress ul li.active.current .set-scale-num
   border-top: 14px solid transparent;
   border-bottom: 14px solid transparent;
   left: -14px;
-  top: 40%;
+  top: 45%;
   content: '';
   position: absolute;
+}
+body.profile #page div.profile-overall-progress ul li.active.current .set-scale-num.set20:after,
+body.user #page div.profile-overall-progress ul li.active.current .set-scale-num.set20:after {
+  top: 0 !important;
+  border-top: 0px solid transparent;
+}
+body.profile #page div.profile-overall-progress ul li.active.current .set-scale-num.set19:after,
+body.user #page div.profile-overall-progress ul li.active.current .set-scale-num.set19:after {
+  top: 8px !important;
+}
+body.profile #page div.profile-overall-progress ul li.active.current .set-scale-num.set18:after,
+body.user #page div.profile-overall-progress ul li.active.current .set-scale-num.set18:after {
+  top: 30px !important;
 }
 body.profile #page div.profile-overall-progress ul li span.set-scale-num,
 body.user #page div.profile-overall-progress ul li span.set-scale-num {
@@ -9639,6 +9652,7 @@ body.user #page div.profile-overall-progress ul li span.set-scale-start,
 body.profile #page div.profile-overall-progress ul li span.set-scale-target,
 body.user #page div.profile-overall-progress ul li span.set-scale-target {
   position: relative;
+  top: -42px;
   left: -3.75em;
   background-color: #5bc0de;
   display: inline-block;
