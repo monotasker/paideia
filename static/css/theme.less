@@ -792,9 +792,17 @@ body.user #page          {
                                                 border-top: 14px solid transparent;
                                                 border-bottom: 14px solid transparent;
                                                 left: -14px;
-                                                top: 40%;
+                                                top: 45%;
                                                 content: '';
                                                 position: absolute;
+                        }
+
+                        &.set20:after             {top: 0 !important;
+                                                   border-top: 0px solid transparent;
+                        }
+                        &.set19:after             {top: 8px !important;
+                        }
+                        &.set18:after             {top: 30px !important;
                         }
                     }
                 }
@@ -806,6 +814,7 @@ body.user #page          {
                 }
                 span.set-scale-start,
                 span.set-scale-target      {position: relative;
+                                            top: -42px;
                                             left: -3.75em;
                                             background-color: @info;
                                             display: inline-block;
