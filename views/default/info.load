@@ -478,6 +478,10 @@ var querytable = $('#table-queries').DataTable({dom: 'fBti',
                            "className": "yesterday"},
                         ],
                      });
+$('a[data-toggle="tab"]').on('shown.bs.tab', function(e){
+   querytable.columns.adjust();
+   badgetable.columns.adjust();
+});
 
 $(document).on('change', 'input.mark_bug_read', function(event){
                   var bugid = $(this).attr('name');
