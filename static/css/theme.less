@@ -136,15 +136,21 @@ body                        {margin-top: 0;
 /*-- mixins --------------------------------------------------*/
 
 .bluetable                      {
+
+    .dataTables_scrollHeadInner    {background-color: @pallette1;
+    }
     table                      {width: 100%;
-        td, th                     {height: 3em;
-                                    line-height: 3em;
+                                color: lighten(@accent2, 50%);
+        th                     {padding-top: 0.75em;
+                                padding-bottom: 0.75em;
+                                padding-left: 1em;
         }
         thead                  {
             tr                 {background-color: @pallette1;
                                 color: darken(@pallette1, 50%);
-              th               {border-bottom: 0px;
-                                border-right: 0px;
+              th               {border-bottom: 1px solid @pallette1;
+                                border-right: 1px solid darken(@pallette1, 10%);
+                                vertical-align: middle;
               }
             }
         }
@@ -153,6 +159,9 @@ body                        {margin-top: 0;
             tr.odd             {
                 td             {border-top: 1px solid lighten(@accent2, 5%);
                                 background-color: @accent2;
+                                color: lighten(@accent2, 50%);
+                                vertical-align: middle;
+                                padding-left: 1em;
                     &:first-child  {color: #fff;
                     }
                 }
@@ -569,8 +578,6 @@ body.reporting                               {
 
     #content.vocabulary                      {background-color: @pallette1;
 
-
-
       h2                                     {font-family: 'Amatic SC';
                                               font-size: 2.5em;
                                               color: darken(@pallette1, 50%);
@@ -590,6 +597,7 @@ body.reporting                               {
       .row.vocab-list                        {background-color: @accent2;
                                               padding-top: 2em;
                                               padding-bottom: 3em;
+                                              color: lighten(@accent2, 50%);
                                               .bluetable;
         #search_instructions_btn             {position:absolute;
                                               right:1em;
@@ -600,6 +608,7 @@ body.reporting                               {
         #vocab-table_wrapper                 {
           .row:first-child                   {padding-bottom: 1em;
           }
+
         }
       }
     }
@@ -703,7 +712,6 @@ body.user #page          {
         ul.nav-tabs            {padding-left: 1em;
                                 background-color: @pallette1;
                                 border-bottom: 1px solid transparent;
-                                font-size: @font-size-large;
                                 font-family: 'Open Sans', @sansFonts;
             li                 {top: 1px;
                 a              {border: 1px solid transparent;
@@ -729,19 +737,6 @@ body.user #page          {
                 }
             }
         }
-    }
-
-    /* bug reports */
-    #tab_bug_reports         {
-      table                  {
-        tr                   {
-          &.bug-read             {color: #aaa;
-              td                 {background-color: #efefef;
-                                  text-align: left;
-              }
-          }
-        }
-      }
     }
 
     /* user info */
@@ -969,8 +964,46 @@ body.user #page          {
         }
 
     }
+
+    /* tab pane for queris */
+    #tab_bug_reports                               {
+        #table-queries_filter                      {float: right;
+        }
+        table                                      {
+            th                                     {color: #aaa;
+                                                    border-bottom: 1px solid #ddd;
+            }
+            .answer                                {background-color: @pallette1;
+                                                    color: darken(@pallette1, 50%);
+                                                    border-bottom: 1px solid darken(@pallette1, 10%);
+            }
+            .student-comments                      {background-color: lighten(@accent2, 60%);
+                                                    color: @accent2;
+                                                    border-bottom: 1px solid lighten(@accent2, 50%);
+            }
+            .instructor-comments                   {background-color: lighten(@pallette3, 40%);
+                                                    color: darken(@pallette3, 20%);
+                                                    border-bottom: 1px solid lighten(@pallette3, 30%);
+
+            }
+        }
+    }
+
+    /* tab pane for stats */
+
     div.attempts-modal div#attempts-modal-body     {overflow: auto;
                                  height: 400px;
+    }
+
+    /* tab pane for settings */
+    #tab_settings                          {
+        #set_review_select                 {width: 20em;        
+                                            float: left;
+                                            margin-right: 2em;
+                                            margin-bottom: 10em;
+        }
+        .review-instructions               {color: #aaa;
+        }
     }
 }
 

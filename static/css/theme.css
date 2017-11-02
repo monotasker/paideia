@@ -8705,26 +8705,34 @@ body i.fa {
   *border-left-color: #ffffff;
 }
 /*-- mixins --------------------------------------------------*/
+.bluetable .dataTables_scrollHeadInner {
+  background-color: #f2eed5;
+}
 .bluetable table {
   width: 100%;
+  color: #c0e9f4;
 }
-.bluetable table td,
 .bluetable table th {
-  height: 3em;
-  line-height: 3em;
+  padding-top: 0.75em;
+  padding-bottom: 0.75em;
+  padding-left: 1em;
 }
 .bluetable table thead tr {
   background-color: #f2eed5;
   color: #998a2f;
 }
 .bluetable table thead tr th {
-  border-bottom: 0px;
-  border-right: 0px;
+  border-bottom: 1px solid #f2eed5;
+  border-right: 1px solid #e6deae;
+  vertical-align: middle;
 }
 .bluetable table tbody tr.even td,
 .bluetable table tbody tr.odd td {
   border-top: 1px solid #2091af;
   background-color: #1c7f99;
+  color: #c0e9f4;
+  vertical-align: middle;
+  padding-left: 1em;
 }
 .bluetable table tbody tr.even td:first-child,
 .bluetable table tbody tr.odd td:first-child {
@@ -9303,27 +9311,36 @@ body.reporting #content.vocabulary .row.vocab-list {
   background-color: #1c7f99;
   padding-top: 2em;
   padding-bottom: 3em;
+  color: #c0e9f4;
+}
+body.reporting #content.vocabulary .row.vocab-list .dataTables_scrollHeadInner {
+  background-color: #f2eed5;
 }
 body.reporting #content.vocabulary .row.vocab-list table {
   width: 100%;
+  color: #c0e9f4;
 }
-body.reporting #content.vocabulary .row.vocab-list table td,
 body.reporting #content.vocabulary .row.vocab-list table th {
-  height: 3em;
-  line-height: 3em;
+  padding-top: 0.75em;
+  padding-bottom: 0.75em;
+  padding-left: 1em;
 }
 body.reporting #content.vocabulary .row.vocab-list table thead tr {
   background-color: #f2eed5;
   color: #998a2f;
 }
 body.reporting #content.vocabulary .row.vocab-list table thead tr th {
-  border-bottom: 0px;
-  border-right: 0px;
+  border-bottom: 1px solid #f2eed5;
+  border-right: 1px solid #e6deae;
+  vertical-align: middle;
 }
 body.reporting #content.vocabulary .row.vocab-list table tbody tr.even td,
 body.reporting #content.vocabulary .row.vocab-list table tbody tr.odd td {
   border-top: 1px solid #2091af;
   background-color: #1c7f99;
+  color: #c0e9f4;
+  vertical-align: middle;
+  padding-left: 1em;
 }
 body.reporting #content.vocabulary .row.vocab-list table tbody tr.even td:first-child,
 body.reporting #content.vocabulary .row.vocab-list table tbody tr.odd td:first-child {
@@ -9414,11 +9431,13 @@ body.user #page {
   /*utility forms*/
   /*tab content */
   /* common styles for reporting tables */
-  /* bug reports */
   /* user info */
   /*summary stats (badges) tab*/
   /* TODO: What is this for? */
   /*calendar for monthly user statistics */
+  /* tab pane for queris */
+  /* tab pane for stats */
+  /* tab pane for settings */
 }
 body.profile #page div.registerform,
 body.user #page div.registerform,
@@ -9487,7 +9506,6 @@ body.user #page div.row.tabrow ul.nav-tabs {
   padding-left: 1em;
   background-color: #f2eed5;
   border-bottom: 1px solid transparent;
-  font-size: 18px;
   font-family: 'Open Sans', "Fira Sans", "Helvetica Neue", Helvetica, Ubuntu, Arial, sans-serif;
 }
 body.profile #page div.row.tabrow ul.nav-tabs li,
@@ -9525,15 +9543,6 @@ body.profile #page div.row.tabrow ul.nav-tabs li.active a:hover,
 body.user #page div.row.tabrow ul.nav-tabs li.active a:hover {
   background-color: #fff;
   color: #000;
-}
-body.profile #page #tab_bug_reports table tr.bug-read,
-body.user #page #tab_bug_reports table tr.bug-read {
-  color: #aaa;
-}
-body.profile #page #tab_bug_reports table tr.bug-read td,
-body.user #page #tab_bug_reports table tr.bug-read td {
-  background-color: #efefef;
-  text-align: left;
 }
 body.profile #page div.row.profile-user-info,
 body.user #page div.row.profile-user-info {
@@ -9761,16 +9770,20 @@ body.profile #page .row.profile-badge-details .badgetable-container,
 body.user #page .row.profile-badge-details .badgetable-container {
   color: #c0e9f4;
 }
+body.profile #page .row.profile-badge-details .badgetable-container .dataTables_scrollHeadInner,
+body.user #page .row.profile-badge-details .badgetable-container .dataTables_scrollHeadInner {
+  background-color: #f2eed5;
+}
 body.profile #page .row.profile-badge-details .badgetable-container table,
 body.user #page .row.profile-badge-details .badgetable-container table {
   width: 100%;
+  color: #c0e9f4;
 }
-body.profile #page .row.profile-badge-details .badgetable-container table td,
-body.user #page .row.profile-badge-details .badgetable-container table td,
 body.profile #page .row.profile-badge-details .badgetable-container table th,
 body.user #page .row.profile-badge-details .badgetable-container table th {
-  height: 3em;
-  line-height: 3em;
+  padding-top: 0.75em;
+  padding-bottom: 0.75em;
+  padding-left: 1em;
 }
 body.profile #page .row.profile-badge-details .badgetable-container table thead tr,
 body.user #page .row.profile-badge-details .badgetable-container table thead tr {
@@ -9779,8 +9792,9 @@ body.user #page .row.profile-badge-details .badgetable-container table thead tr 
 }
 body.profile #page .row.profile-badge-details .badgetable-container table thead tr th,
 body.user #page .row.profile-badge-details .badgetable-container table thead tr th {
-  border-bottom: 0px;
-  border-right: 0px;
+  border-bottom: 1px solid #f2eed5;
+  border-right: 1px solid #e6deae;
+  vertical-align: middle;
 }
 body.profile #page .row.profile-badge-details .badgetable-container table tbody tr.even td,
 body.user #page .row.profile-badge-details .badgetable-container table tbody tr.even td,
@@ -9788,6 +9802,9 @@ body.profile #page .row.profile-badge-details .badgetable-container table tbody 
 body.user #page .row.profile-badge-details .badgetable-container table tbody tr.odd td {
   border-top: 1px solid #2091af;
   background-color: #1c7f99;
+  color: #c0e9f4;
+  vertical-align: middle;
+  padding-left: 1em;
 }
 body.profile #page .row.profile-badge-details .badgetable-container table tbody tr.even td:first-child,
 body.user #page .row.profile-badge-details .badgetable-container table tbody tr.even td:first-child,
@@ -9900,10 +9917,48 @@ body.user #page .paideia_monthcal table.month td span.success {
   font-size: 21px;
   color: #96BC44;
 }
+body.profile #page #tab_bug_reports #table-queries_filter,
+body.user #page #tab_bug_reports #table-queries_filter {
+  float: right;
+}
+body.profile #page #tab_bug_reports table th,
+body.user #page #tab_bug_reports table th {
+  color: #aaa;
+  border-bottom: 1px solid #ddd;
+}
+body.profile #page #tab_bug_reports table .answer,
+body.user #page #tab_bug_reports table .answer {
+  background-color: #f2eed5;
+  color: #998a2f;
+  border-bottom: 1px solid #e6deae;
+}
+body.profile #page #tab_bug_reports table .student-comments,
+body.user #page #tab_bug_reports table .student-comments {
+  background-color: #ecf8fb;
+  color: #1c7f99;
+  border-bottom: 1px solid #c0e9f4;
+}
+body.profile #page #tab_bug_reports table .instructor-comments,
+body.user #page #tab_bug_reports table .instructor-comments {
+  background-color: #eaf2da;
+  color: #5a7129;
+  border-bottom: 1px solid #d5e4b5;
+}
 body.profile #page div.attempts-modal div#attempts-modal-body,
 body.user #page div.attempts-modal div#attempts-modal-body {
   overflow: auto;
   height: 400px;
+}
+body.profile #page #tab_settings #set_review_select,
+body.user #page #tab_settings #set_review_select {
+  width: 20em;
+  float: left;
+  margin-right: 2em;
+  margin-bottom: 10em;
+}
+body.profile #page #tab_settings .review-instructions,
+body.user #page #tab_settings .review-instructions {
+  color: #aaa;
 }
 /*-- util -----------------------------------------------*/
 body.util div#masthead {
