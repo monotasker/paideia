@@ -246,8 +246,12 @@ $('#responder submit').click(function(event){
     window.parent.web2py_component("/paideia/exploring/walk.load/reply","page");
     event.preventDefault();
 });
+
+svgPanZoom('#town_map', {zoomEnabled: true});
+
 </script>
 
+<!--handle audio clips-->
 {{if 'audio' in globals() and audio:}}
 	<script type="text/javascript">
 	//<![CDATA[

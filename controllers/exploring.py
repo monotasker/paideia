@@ -44,13 +44,14 @@ def index():
     :Permissions: user must be logged in.
     """
     request = current.request
-    print 'getting index'
-    print 'vars', request.vars
-    print 'args', request.args
+    debug = 0
+    if debug: print 'getting index'
+    if debug: print 'vars', request.vars
+    if debug: print 'args', request.args
     response.files.append(URL('static', 'js/jquery.jplayer.min.js'))
     response.files.append(URL('static', 'js/play_audio_clip.js'))
     response.files.append(URL('static', 'css/jplayer.pink.flag.css'))
-    response.files.append(URL('static', 'js/svg-pan-zoom.js'))
+    response.files.append(URL('static', 'js/svg-pan-zoom-min.js'))
     return {}
 
 
