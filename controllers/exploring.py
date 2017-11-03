@@ -51,7 +51,7 @@ def index():
     response.files.append(URL('static', 'js/jquery.jplayer.min.js'))
     response.files.append(URL('static', 'js/play_audio_clip.js'))
     response.files.append(URL('static', 'css/jplayer.pink.flag.css'))
-    response.files.append(URL('static', 'js/svg-pan-zoom-min.js'))
+    response.files.append(URL('static', 'js/svg-pan-zoom.min.js'))
     return {}
 
 
