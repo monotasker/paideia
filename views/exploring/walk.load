@@ -248,9 +248,33 @@ $(document).ready(function(){
         event.preventDefault();
     });
 
+    // ========== handle pan and zoom for svg map =============== //
+    var mymap = null
+    const beforePan = (oldPan, newPan) => {
+        const sizes = mymap.getSizes();
+
+        // Multiply viewbox width of SVG by current zoom and subtract
+        // viewport width to get amount of overflown SVG.
+        const x = -((sizes.viewBox.width * sizes.realZoom) - sizes.width);
+
+        // Multiply viewbox height of SVG by current zoom and subtract
+        // viewport height to get amount of overflown SVG.
+        const y = -((sizes.viewBox.height * sizes.realZoom) - sizes.height);
+
+        // Determine what’s lower, the current drag x/y coords or zero
+        const minx = Math.min(0, newPan.x);
+        const miny = Math.min(0, newPan.y);
+
+        return {
+            x: Math.max(x, minx),
+            y: Math.max(y, miny)
+        };
+    };
     mapInit = function(){
-        var mymap = svgPanZoom('#town_map', {zoomEnabled: true,
-                                 controlIconsEnabled: true,
+        mymap = svgPanZoom('#town_map', {
+                                 beforePan,
+                                 zoomEnabled: true,
+                                 controlIconsEnabled: false,
                     });
         fit_to_height();
         mymap.contain();

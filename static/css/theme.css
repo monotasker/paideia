@@ -8877,6 +8877,7 @@ footer#footer {
   margin-top: 0;
   line-height: 2em;
   width: 100%;
+  z-index: 102;
 }
 footer#footer div.row {
   border-top: 0px solid transparent;
@@ -9122,6 +9123,7 @@ body.exploring main {
 body.exploring main #page {
   background-size: auto 100%;
   z-index: 100;
+  padding-right: 0;
 }
 body.exploring main #page div#loading-mask {
   display: none;
