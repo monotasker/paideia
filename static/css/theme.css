@@ -9130,8 +9130,8 @@ body.exploring main #page div#loading-mask {
   width: 100%;
   height: 100%;
 }
-body.exploring main #page #town_map {
-  height: 500px;
+body.exploring main #page embed#town_map {
+  width: 100%;
   margin: 0 auto;
 }
 body.exploring main #page .admin-panel {
