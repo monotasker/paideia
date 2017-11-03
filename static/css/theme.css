@@ -9958,6 +9958,14 @@ body.user #page #tab_bug_reports table .instructor-comments {
   color: #5a7129;
   border-bottom: 1px solid #d5e4b5;
 }
+body.profile #page #tab_bug_reports table .read a.delete,
+body.user #page #tab_bug_reports table .read a.delete {
+  color: red;
+}
+body.profile #page #tab_bug_reports table .read a.edit,
+body.user #page #tab_bug_reports table .read a.edit {
+  color: #bd362f;
+}
 body.profile #page div.attempts-modal div#attempts-modal-body,
 body.user #page div.attempts-modal div#attempts-modal-body {
   overflow: auto;

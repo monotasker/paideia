@@ -201,36 +201,40 @@ import json
             <th>New score</th>
             <th>Instructor's comments</th>
             <th></th>
-            <th></th>
           </tr>
         </thead>
         <tbody>
-          {{for bug in blist:
-                classes = '{} {}'.format(bug[7], bug[-1])
-                row = TR(_class=classes)
-                # first position is the id, used in edit link
-                for val in bug[1:]:
-                    if val not in ['bug-read', 'bug-unread']:
-                        val = val if val != None else ''
-                        row.append(TD(str(val).replace('_', ' ')))
-                    pass
-                pass
-                if bug[-1] == 'bug-read' and bug[9]:
-                    row.append(TD(INPUT(_type='checkbox', _checked='checked', _name=bug[0], _class='mark_bug_read read-with-comment')))
-                elif bug[-1] == 'bug-unread' and bug[9]:
-                    row.append(TD(INPUT(_type='checkbox', _name=bug[0], _class='mark_bug_read unread-with-comment')))
-                elif not bug[9]:
-                    row.append(TD(INPUT(_type='checkbox', _disabled='true', _name=bug[0], _class='mark_bug_read read-without-comment')))
-                else:
-                    row.append(TD(INPUT(_type='checkbox', _name=bug[0], _class='mark_bug_read other')))
-                pass
+            {{for bug in blist:}}
+            <tr class="{{='{} {}'.format(bug[7], bug[-1])}}">
+                <td class='question'>{{=bug[1]}}</td>
+                <td class='answer'>{{=bug[2]}}</td>
+                <td class='good-answers'>{{=bug[3]}}</td>
+                <td class='score'>{{=bug[4]}}</td>
+                <td class='submitted'>{{=bug[5]}}</td>
+                <td class='student-comment'>{{=bug[6] if bug[6] != None else ''}}</td>
+                <td class='evaluation'>{{=str(bug[7]).replace('_', ' ')}}</td>
+                <td class='new-score'>{{=bug[8]}}</td>
+                <td class='instructor-comment'>{{=bug[9] if bug[9] != None else ''}}</td>
+                <td class='read'>
+                    <label for='response-read'>
+                        {{if bug[-1] == 'bug-read' and bug[9]:}}
+                            <i class='fa fa-envelope-open-o'></i></label>
+                            <input type='checkbox' checked='checked' id='response-read' class='read-with-comment' />
+                        {{elif bug[-1] == 'bug-unread' and bug[9]:}}
+                            <i class='fa fa-envelope-o'></i></label>
+                            <input type='checkbox' id='response-read' class='unread-with-comment' />
+                        {{else:}}
+                        {{pass}}
+                        </br>
 
-                row.append(TD(ROLE(A('edit', _href=URL('editing', 'listing.html',
+                    <a href="" class='delete'><i class='fa fa-trash-o'></i></a></br>
+
+                    {{=ROLE(A(I(_class='fa fa-edit'), _href=URL('editing', 'listing.html',
                                                       args=['bugs', bug[0]],
-                                                      vars=dict(restrictor={'bug_status': '5'}))
-                                ))))
-                }}
-                {{=row}}
+                                                      vars=dict(restrictor={'bug_status': '5'})),
+                                                      _class='edit'))}}
+                </td>
+            </tr>
             {{pass}}
         </tbody>
       </table>
@@ -420,11 +424,8 @@ var querytable = $('#table-queries').DataTable({dom: 'fBti',
                                                      "className": "instructor-comments",
                                                      "width": "30%"},
                                                     {"orderable": false,
-                                                     "className": "read"},
-                                                    {"visible": false,
-                                                     "orderable": false,
-                                                     "className": "edit",
-                                                     "width": "80px"},
+                                                     "className": "read",
+                                                     "width": "14px"},
                                                 ],
     });
 
