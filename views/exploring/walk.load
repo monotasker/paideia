@@ -283,7 +283,14 @@ $(document).ready(function(){
     window.setTimeout(mapInit, 1000);
     //$map.ready(mapInit);
 
+    // ========== prevent cutting and pasting from responder input =============== //
+    $('div.responder input').bind("cut copy paste",function(e) {
+          e.preventDefault();
+    });
+
 });
+
+
 
 </script>
 
