@@ -139,6 +139,10 @@ body                        {margin-top: 0;
 
     .dataTables_scrollHeadInner    {background-color: @pallette1;
     }
+    .dataTables_scrollBody         {
+        &::scrollbar {background-color: transparent !important;
+        }
+    }
     table                      {width: 100%;
                                 color: lighten(@accent2, 50%);
         th                     {padding-top: 0.75em;

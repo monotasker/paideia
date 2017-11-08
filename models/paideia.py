@@ -615,6 +615,7 @@ db.define_table('bugs',
                 Field('bug_status', 'reference bug_status', default=5),
                 Field('admin_comment', 'text'),
                 Field('hidden', 'boolean'),
+                Field('deleted', 'boolean'),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(step)s')
@@ -863,6 +864,7 @@ def get_steps_inactive_locations_fields(id_data):
                                  ).select(db.path2steps.path_id).as_list()]
     return True
 
+
 #no need for delete ... will be taken care of by foreign key
 db.steps._after_insert.append(
     lambda f, given_id: insert_trigger_for_steps(f, given_id))
@@ -949,7 +951,8 @@ try:
     db = current.db
     print auth.user_id
     bug_rows = db((db.bugs.user_name == auth.user_id) &
-                  (db.bugs.hidden == False) &
+                  (db.bugs.hidden is False) &
+                  (db.bugs.deleted is False) &
                   (db.bugs.admin_comment != '')).select()
     bug_count = len(bug_rows)
     if bug_count > 0:
