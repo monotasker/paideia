@@ -1,5 +1,5 @@
+import datetime
 from gluon import current
-#from datetime import timedelta
 import traceback
 from pprint import pprint
 
@@ -242,9 +242,12 @@ class Bug(object):
         report.
         '''
         db = current.db
-
-        bugs_q = ((db.steps.id == db.bugs.step) & (db.bugs.user_name == user))
+        print 'possible vals:'
+        print list(set([v.deleted for v in db(db.bugs.id > 0).select()]))
+        bugs_q = ((db.steps.id == db.bugs.step) &
+                  (db.bugs.user_name == user))
         bugs = db(bugs_q).select(orderby=~db.bugs.date_submitted)
+        bugs.exclude(lambda r: r.bugs.deleted is True)
         lst = []
         for b in bugs:
             try:
@@ -274,6 +277,30 @@ class Bug(object):
                 print traceback.format_exc(5)
         return lst
 
+    @staticmethod
+    def delete_bug(log_id):
+        '''
+        Static method to set bug record as "deleted." This will prevent it
+        from appearing in ordinary lists of bug reports. The record is not
+        actually removed from the database, so that it may be examined if
+        necessary later on.
+        '''
+        db = current.db
+        myargs = {'deleted': True,
+                  'modified_on': datetime.datetime.utcnow()}
+        try:
+            myrow = db.bugs(log_id)
+            print myrow
+            myrow.update_record(**myargs)
+            db.commit()
+            print 'committed'
+            print myrow.deleted is True
+            return myrow.id
+        except Exception, e:
+            print 'Error'
+            print e
+            return 'false'
+
 
 def trigger_bug_undo(*args, **kwargs):
     """
@@ -282,6 +309,8 @@ def trigger_bug_undo(*args, **kwargs):
     mystatus = db(db.bug_status.id == kwargs['bug_status']).select().first()
     result = "No records reversed."
 
+    pprint(kwargs)
+    pprint(args)
     if mystatus['status_label'] in ['fixed', 'confirmed', 'allowance_given']:
         # print 'undoing bug!'
         # print 'args'
@@ -294,7 +323,8 @@ def trigger_bug_undo(*args, **kwargs):
         bug_id = kwargs['id']
         log_id = kwargs['log_id']
         score = kwargs['score']
-        adjusted_score = kwargs['adjusted_score']
+        # below needed to avoid error updating non-existent log entry
+        adjusted_score = kwargs['adjusted_score'] if kwargs['log_id'] else 0
         bugstatus = mystatus['status_label']
         user_id = kwargs['user_name']
         comment = kwargs['admin_comment']

@@ -227,7 +227,7 @@ import json
                         {{pass}}
                         </br>
 
-                    <a href="" class='delete'><i class='fa fa-trash-o'></i></a></br>
+                    <a href="{{=bug[0]}}" class='delete'><i class='fa fa-trash-o'></i></a></br>
 
                     {{=ROLE(A(I(_class='fa fa-edit'), _href=URL('editing', 'listing.html',
                                                       args=['bugs', bug[0]],
@@ -561,8 +561,22 @@ $('td.read a.delete').confirm({
     title: 'Really delete your query?',
     content: 'Please only delete this query if you submitted it by mistake or you have figured out the answer on your own. Old queries should be set to "read" rather than being deleted.',
     buttons: {
-        delete: function () {
-            $.alert('Query deleted');
+      delete: {
+        text: 'delete',
+        keys: ['enter'],
+        action: function () {
+                var log_id = this.$target.attr('href');
+                var my_resp = ajax('/paideia/default/mark_bug_deleted/' + log_id , [], ':eval');
+                var $my_row = this.$target.closest('tr');
+                $my_row.find('td').each(function(){
+                    $(this)
+                        .velocity({backgroundColor: "#ff0000"}, {duration: 300, easing: "easeIn"})
+                        .velocity({color: "#fff",
+                            backgroundColor: "#fff"}, {duration: 300, easing: "easeOut"})
+                });
+                $my_row.html('');
+                $my_row.velocity({height: "0px"}, 500);
+            },
         },
         cancel: function () {
         },

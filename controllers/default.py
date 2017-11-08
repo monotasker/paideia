@@ -90,6 +90,19 @@ def mark_bug_read():
     myrow.update(hidden=myval)
 
 
+def mark_bug_deleted():
+    """
+    Set the 'hidden' field for provided bug report based on boolean provided.
+
+    Expects two request.args
+    0:      The id of the bug (str)
+    1:      A string representing a boolean value (str)
+    """
+    bugid = int(request.args[0])
+    print 'controller deleting bug', bugid
+    return Bug.delete_bug(bugid)
+
+
 def info():
     """
     Return data reporting on a user's performance record.

@@ -8708,6 +8708,9 @@ body i.fa {
 .bluetable .dataTables_scrollHeadInner {
   background-color: #f2eed5;
 }
+.bluetable .dataTables_scrollBody::scrollbar {
+  background-color: transparent !important;
+}
 .bluetable table {
   width: 100%;
   color: #c0e9f4;
@@ -9318,6 +9321,9 @@ body.reporting #content.vocabulary .row.vocab-list {
 body.reporting #content.vocabulary .row.vocab-list .dataTables_scrollHeadInner {
   background-color: #f2eed5;
 }
+body.reporting #content.vocabulary .row.vocab-list .dataTables_scrollBody::scrollbar {
+  background-color: transparent !important;
+}
 body.reporting #content.vocabulary .row.vocab-list table {
   width: 100%;
   color: #c0e9f4;
@@ -9789,6 +9795,10 @@ body.user #page .row.profile-badge-details .badgetable-container {
 body.profile #page .row.profile-badge-details .badgetable-container .dataTables_scrollHeadInner,
 body.user #page .row.profile-badge-details .badgetable-container .dataTables_scrollHeadInner {
   background-color: #f2eed5;
+}
+body.profile #page .row.profile-badge-details .badgetable-container .dataTables_scrollBody::scrollbar,
+body.user #page .row.profile-badge-details .badgetable-container .dataTables_scrollBody::scrollbar {
+  background-color: transparent !important;
 }
 body.profile #page .row.profile-badge-details .badgetable-container table,
 body.user #page .row.profile-badge-details .badgetable-container table {
