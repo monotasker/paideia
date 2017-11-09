@@ -569,13 +569,20 @@ $('td.read a.delete').confirm({
                 var my_resp = ajax('/paideia/default/mark_bug_deleted/' + log_id , [], ':eval');
                 var $my_row = this.$target.closest('tr');
                 $my_row.find('td').each(function(){
-                    $(this)
-                        .velocity({backgroundColor: "#ff0000"}, {duration: 300, easing: "easeIn"})
-                        .velocity({color: "#fff",
-                            backgroundColor: "#fff"}, {duration: 300, easing: "easeOut"})
+                    $(this).wrapInner('<div style="display:block;" />');  // to allow animation of height
+                    $innerDiv = $(this).find('div');
+                    var mySequence = [
+                        { e: $(this), p: {backgroundColor: "#ffaaaa"}, o: {duration: 300, easing: "easeInCubic"} },
+                        { e: $(this), p: {opacity: "0",
+                                          backgroundColor: "#fff"}, o: {duration: 300, easing: "easeOutCubic"} },
+                        { e: $(this), p: {paddingTop: "0px",
+                                          paddingBottom: "0px",
+                                          border: "0px",
+                                          maxHeight: "0px"}, o: {duration: 300} },
+                        { e: $innerDiv, p: "slideUp", o: {easing: "easeOutCubic", duration: 300, sequenceQueue: false} }
+                    ];
+                    $.Velocity.RunSequence(mySequence);
                 });
-                $my_row.html('');
-                $my_row.velocity({height: "0px"}, 500);
             },
         },
         cancel: function () {
