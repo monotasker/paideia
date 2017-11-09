@@ -111,7 +111,7 @@ def update_bug_user_comment():
     1:      A string containing the updated user comment text.
     """
     bugid = int(request.args[0])
-    new_comment = {'user_comment': request.args[1]}
+    new_comment = {'user_comment': request.vars['mytext']}
     result = Bug.update_bug(bugid, new_comment)
     return 'false' if result is False else result
 

@@ -205,13 +205,16 @@ import json
         </thead>
         <tbody>
             {{for bug in blist:}}
-            <tr class="{{='{} {}'.format(bug[7], bug[-1])}}">
+            <tr id='{{=bug[0]}}' class="{{='{} {}'.format(bug[7], bug[-1])}}">
                 <td class='question'>{{=bug[1]}}</td>
                 <td class='answer'>{{=bug[2]}}</td>
                 <td class='good-answers'>{{=bug[3]}}</td>
                 <td class='score'>{{=bug[4]}}</td>
                 <td class='submitted'>{{=bug[5]}}</td>
-                <td class='student-comment'>{{=bug[6] if bug[6] != None else ''}}</td>
+                <td class='student-comment'>
+                    <span>{{=bug[6] if bug[6] != None else ''}}</span>
+                    <a href="{{=bug[0]}}" class='edit-user-comment' data-toggle='tooltip' data-placement='left' title='Click to edit.'><i class='fa fa-pencil'></i></a>
+                </td>
                 <td class='evaluation'>{{=str(bug[7]).replace('_', ' ')}}</td>
                 <td class='new-score'>{{=bug[8]}}</td>
                 <td class='instructor-comment'>{{=bug[9] if bug[9] != None else ''}}</td>
@@ -227,7 +230,7 @@ import json
                         {{pass}}
                         </br>
 
-                    <a href="{{=bug[0]}}" class='delete'><i class='fa fa-trash-o'></i></a></br>
+                    <a href="{{=bug[0]}}" class='delete' data-toggle='tooltip' data-placement='left' title='Permanently delete this query.'><i class='fa fa-trash-o'></i></a></br>
 
                     {{=ROLE(A(I(_class='fa fa-edit'), _href=URL('editing', 'listing.html',
                                                       args=['bugs', bug[0]],
@@ -556,7 +559,6 @@ $(window).resize(function(){
 
 // handle delete links in queries view
 
-
 $('td.read a.delete').confirm({
     title: 'Really delete your query?',
     content: 'Please only delete this query if you submitted it by mistake or you have figured out the answer on your own. Old queries should be set to "read" rather than being deleted.',
@@ -589,6 +591,28 @@ $('td.read a.delete').confirm({
         },
     }
 });
+
+// handle edit links in queries view
+$('td.student-comments').click(function(e){
+    $(this).attr('contenteditable', 'true');
+});
+$('td.student-comments').on('blur', function(e){
+    $(this).attr('contenteditable', 'false');
+    var new_text = this.innerText;
+    var log_id = $(this).closest('tr').attr('id');
+    var my_url = '/paideia/default/update_bug_user_comment/' + log_id;
+    $.post(my_url, function({mytext: new_text}){
+        console.log(new_text);
+    });
+
+    var my_resp = ajax(my_url, [], ':eval');
+    $.alert({content: 'Updated your comment.'});
+});
+
+// initialize all bootstrap tooltips on page
+$(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+})
 
 </script>
 
