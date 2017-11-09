@@ -8708,7 +8708,7 @@ body i.fa {
 .bluetable .dataTables_scrollHeadInner {
   background-color: #f2eed5;
 }
-.bluetable .dataTables_scrollBody::scrollbar {
+.bluetable .dataTables_scrollBody::-webkit-scrollbar {
   background-color: transparent !important;
 }
 .bluetable table {
@@ -9321,7 +9321,7 @@ body.reporting #content.vocabulary .row.vocab-list {
 body.reporting #content.vocabulary .row.vocab-list .dataTables_scrollHeadInner {
   background-color: #f2eed5;
 }
-body.reporting #content.vocabulary .row.vocab-list .dataTables_scrollBody::scrollbar {
+body.reporting #content.vocabulary .row.vocab-list .dataTables_scrollBody::-webkit-scrollbar {
   background-color: transparent !important;
 }
 body.reporting #content.vocabulary .row.vocab-list table {
@@ -9443,7 +9443,7 @@ body.user #page {
   /*summary stats (badges) tab*/
   /* TODO: What is this for? */
   /*calendar for monthly user statistics */
-  /* tab pane for queris */
+  /* tab pane for queries */
   /* tab pane for stats */
   /* tab pane for settings */
 }
@@ -9796,8 +9796,8 @@ body.profile #page .row.profile-badge-details .badgetable-container .dataTables_
 body.user #page .row.profile-badge-details .badgetable-container .dataTables_scrollHeadInner {
   background-color: #f2eed5;
 }
-body.profile #page .row.profile-badge-details .badgetable-container .dataTables_scrollBody::scrollbar,
-body.user #page .row.profile-badge-details .badgetable-container .dataTables_scrollBody::scrollbar {
+body.profile #page .row.profile-badge-details .badgetable-container .dataTables_scrollBody::-webkit-scrollbar,
+body.user #page .row.profile-badge-details .badgetable-container .dataTables_scrollBody::-webkit-scrollbar {
   background-color: transparent !important;
 }
 body.profile #page .row.profile-badge-details .badgetable-container table,
@@ -9972,11 +9972,11 @@ body.user #page #tab_bug_reports table .instructor-comments {
 }
 body.profile #page #tab_bug_reports table .read a.delete,
 body.user #page #tab_bug_reports table .read a.delete {
-  color: red;
+  color: #bd362f;
 }
 body.profile #page #tab_bug_reports table .read a.edit,
 body.user #page #tab_bug_reports table .read a.edit {
-  color: #bd362f;
+  color: #1c7f99;
 }
 body.profile #page div.attempts-modal div#attempts-modal-body,
 body.user #page div.attempts-modal div#attempts-modal-body {
