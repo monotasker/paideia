@@ -280,24 +280,53 @@ class Bug(object):
     @staticmethod
     def delete_bug(log_id):
         '''
-        Static method to set bug record as "deleted." This will prevent it
-        from appearing in ordinary lists of bug reports. The record is not
-        actually removed from the database, so that it may be examined if
-        necessary later on.
+        Static method to set bug record as "deleted."
+
+        Returns the record id if successful, and the string 'false' if it fails.
+
+        This will prevent the record from appearing in ordinary lists of
+        queries. The record is not actually removed from the database, so that
+        it may be examined if necessary later on.
         '''
         db = current.db
         myargs = {'deleted': True,
                   'modified_on': datetime.datetime.utcnow()}
         try:
             myrow = db.bugs(log_id)
-            print myrow
             myrow.update_record(**myargs)
             db.commit()
-            print 'committed'
-            print myrow.deleted is True
+            assert myrow.deleted is True
             return myrow.id
         except Exception, e:
             print 'Error'
+            print e
+            return 'false'
+
+    @staticmethod
+    def update_bug(log_id, new_content):
+        '''
+        Update one bugs record.
+
+        Args:
+            log_id (int): The id of the bugs record to be updated.
+            new_content (Dict): A dictionary containing the information to be
+                updated in the record. The keys are field names and the values
+                are the updated content to be placed in those fields.
+
+        Returns:
+            If successful, returns the id of the updated row (int).
+            If unsuccessful, returns False.
+
+        '''
+        db = current.db
+        new_content['modified_on'] = datetime.datetime.utcnow()
+        try:
+            myrow = db.bugs(log_id)
+            myrow.update_record(**new_content)
+            db.commit()
+            return myrow.id
+        except Exception, e:
+            print 'Error in Bug::update_bug()'
             print e
             return 'false'
 

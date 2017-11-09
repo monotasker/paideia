@@ -92,15 +92,28 @@ def mark_bug_read():
 
 def mark_bug_deleted():
     """
-    Set the 'hidden' field for provided bug report based on boolean provided.
+    Set the 'deleted' field for provided bug report based on boolean provided.
 
-    Expects two request.args
+    Expects one value in request.args
     0:      The id of the bug (str)
-    1:      A string representing a boolean value (str)
     """
     bugid = int(request.args[0])
     print 'controller deleting bug', bugid
     return Bug.delete_bug(bugid)
+
+
+def update_bug_user_comment():
+    """
+    Update the user_comment field of the specified bugs record.
+
+    Expects two request.args
+    0:      The id of the bug (str)
+    1:      A string containing the updated user comment text.
+    """
+    bugid = int(request.args[0])
+    new_comment = {'user_comment': request.args[1]}
+    result = Bug.update_bug(bugid, new_comment)
+    return 'false' if result is False else result
 
 
 def info():
