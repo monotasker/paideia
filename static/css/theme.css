@@ -9943,39 +9943,138 @@ body.user #page .paideia_monthcal table.month td span.success {
   font-size: 21px;
   color: #96BC44;
 }
+body.profile #page #tab_bug_reports #queries-vis-toggle,
+body.user #page #tab_bug_reports #queries-vis-toggle {
+  float: right;
+  margin-right: 4em;
+  line-height: 2.5em;
+  height: 2.5em;
+  top: -0.5em;
+  position: relative;
+}
+body.profile #page #tab_bug_reports #queries-vis-toggle label,
+body.user #page #tab_bug_reports #queries-vis-toggle label {
+  font-weight: normal;
+  cursor: pointer;
+}
+body.profile #page #tab_bug_reports #queries-vis-toggle label input[type="checkbox"],
+body.user #page #tab_bug_reports #queries-vis-toggle label input[type="checkbox"] {
+  display: none;
+}
+body.profile #page #tab_bug_reports #queries-vis-toggle label:after,
+body.user #page #tab_bug_reports #queries-vis-toggle label:after {
+  content: '';
+  display: table;
+  clear: both;
+}
+body.profile #page #tab_bug_reports #queries-vis-toggle label input[type="checkbox"] + .cr > .cr-icon,
+body.user #page #tab_bug_reports #queries-vis-toggle label input[type="checkbox"] + .cr > .cr-icon {
+  transform: scale(3) rotateZ(-20deg);
+  opacity: 0;
+  transition: all 0.3s ease-in;
+}
+body.profile #page #tab_bug_reports #queries-vis-toggle label input[type="checkbox"]:checked + .cr > .cr-icon,
+body.user #page #tab_bug_reports #queries-vis-toggle label input[type="checkbox"]:checked + .cr > .cr-icon {
+  transform: scale(1) rotateZ(0deg);
+  opacity: 1;
+}
+body.profile #page #tab_bug_reports #queries-vis-toggle label input[type="checkbox"]:disabled + .cr,
+body.user #page #tab_bug_reports #queries-vis-toggle label input[type="checkbox"]:disabled + .cr {
+  opacity: .5;
+}
+body.profile #page #tab_bug_reports #queries-vis-toggle .cr,
+body.user #page #tab_bug_reports #queries-vis-toggle .cr {
+  position: relative;
+  display: inline-block;
+  border: 1px solid #a9a9a9;
+  border-radius: .25em;
+  width: 1.3em;
+  height: 1.3em;
+  margin-top: 0.6em;
+  margin-bottom: 0.6em;
+  float: left;
+  margin-right: .5em;
+}
+body.profile #page #tab_bug_reports #queries-vis-toggle .cr .cr-icon,
+body.user #page #tab_bug_reports #queries-vis-toggle .cr .cr-icon {
+  position: absolute;
+  font-size: .8em;
+  line-height: 0;
+  top: 50%;
+  left: 20%;
+}
 body.profile #page #tab_bug_reports #table-queries_filter,
 body.user #page #tab_bug_reports #table-queries_filter {
   float: right;
+  line-height: 2.5em;
+  height: 2.5em;
+  top: -0.5em;
+  position: relative;
 }
-body.profile #page #tab_bug_reports table th,
-body.user #page #tab_bug_reports table th {
+body.profile #page #tab_bug_reports #table-queries_info,
+body.user #page #tab_bug_reports #table-queries_info {
+  color: #998a2f;
+  margin-top: 0.5em;
+  margin-left: 0.5em;
+}
+body.profile #page #tab_bug_reports table tr,
+body.user #page #tab_bug_reports table tr {
+  border: 0px;
+}
+body.profile #page #tab_bug_reports table tr.bug-read,
+body.user #page #tab_bug_reports table tr.bug-read {
+  opacity: 0.5;
+}
+body.profile #page #tab_bug_reports table tr.bug-read .read label i,
+body.user #page #tab_bug_reports table tr.bug-read .read label i {
+  color: #96BC44;
+}
+body.profile #page #tab_bug_reports table tr th,
+body.user #page #tab_bug_reports table tr th {
   color: #aaa;
   border-bottom: 1px solid #ddd;
 }
-body.profile #page #tab_bug_reports table .answer,
-body.user #page #tab_bug_reports table .answer {
+body.profile #page #tab_bug_reports table tr td,
+body.user #page #tab_bug_reports table tr td {
+  border-top: 0px;
+  border-bottom: 1px solid #ddd;
+}
+body.profile #page #tab_bug_reports table tr .answer,
+body.user #page #tab_bug_reports table tr .answer {
   background-color: #f2eed5;
   color: #998a2f;
   border-bottom: 1px solid #e6deae;
 }
-body.profile #page #tab_bug_reports table .student-comments,
-body.user #page #tab_bug_reports table .student-comments {
+body.profile #page #tab_bug_reports table tr .student-comments,
+body.user #page #tab_bug_reports table tr .student-comments {
   background-color: #ecf8fb;
   color: #1c7f99;
   border-bottom: 1px solid #c0e9f4;
+  cursor: pointer;
 }
-body.profile #page #tab_bug_reports table .instructor-comments,
-body.user #page #tab_bug_reports table .instructor-comments {
+body.profile #page #tab_bug_reports table tr .instructor-comments,
+body.user #page #tab_bug_reports table tr .instructor-comments {
   background-color: #eaf2da;
   color: #5a7129;
   border-bottom: 1px solid #d5e4b5;
 }
-body.profile #page #tab_bug_reports table .read a.delete,
-body.user #page #tab_bug_reports table .read a.delete {
+body.profile #page #tab_bug_reports table tr .read label i,
+body.user #page #tab_bug_reports table tr .read label i {
+  color: #f89406;
+  cursor: pointer;
+}
+body.profile #page #tab_bug_reports table tr .read input.read-with-comment,
+body.user #page #tab_bug_reports table tr .read input.read-with-comment,
+body.profile #page #tab_bug_reports table tr .read input.unread-with-comment,
+body.user #page #tab_bug_reports table tr .read input.unread-with-comment {
+  display: none;
+}
+body.profile #page #tab_bug_reports table tr .read a.delete,
+body.user #page #tab_bug_reports table tr .read a.delete {
   color: #bd362f;
 }
-body.profile #page #tab_bug_reports table .read a.edit,
-body.user #page #tab_bug_reports table .read a.edit {
+body.profile #page #tab_bug_reports table tr .read a.edit,
+body.user #page #tab_bug_reports table tr .read a.edit {
   color: #1c7f99;
 }
 body.profile #page div.attempts-modal div#attempts-modal-body,

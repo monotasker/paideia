@@ -56,6 +56,7 @@ def _i_am_running_under_test():
 
     return test_running
 
+
 # -------------------------------------------------------------
 # define database storage
 # -------------------------------------------------------------
@@ -151,7 +152,8 @@ auth.settings.extra_fields['auth_user'] = [
                               else 'America/Toronto'
                   ),
     Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
-    Field('modified_on', 'datetime', default=request.now)
+    Field('modified_on', 'datetime', default=request.now),
+    Field('hide_read_queries', 'boolean', default=False)
 ]
 
 # adding custom field for class info in groups
