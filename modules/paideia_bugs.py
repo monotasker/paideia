@@ -242,8 +242,6 @@ class Bug(object):
         report.
         '''
         db = current.db
-        print 'possible vals:'
-        print list(set([v.deleted for v in db(db.bugs.id > 0).select()]))
         bugs_q = ((db.steps.id == db.bugs.step) &
                   (db.bugs.user_name == user))
         bugs = db(bugs_q).select(orderby=~db.bugs.date_submitted)

@@ -982,31 +982,103 @@ body.user #page          {
 
     /* tab pane for queries */
     #tab_bug_reports                               {
+        #queries-vis-toggle                        {float: right;
+                                                    margin-right: 4em;
+                                                    line-height: 2.5em;
+                                                    height: 2.5em;
+                                                    top: -0.5em;
+                                                    position: relative;
+            label                              {font-weight: normal;
+                                                cursor: pointer;
+                input[type="checkbox"]           {display: none;
+                }
+                &:after                          {content: '';
+                                                  display: table;
+                                                  clear: both;
+                }
+                input[type="checkbox"] + .cr > .cr-icon {
+                    transform: scale(3) rotateZ(-20deg);
+                    opacity: 0;
+                    transition: all .3s ease-in;
+                }
+                input[type="checkbox"]:checked + .cr > .cr-icon {
+                    transform: scale(1) rotateZ(0deg);
+                    opacity: 1;
+                }
+                input[type="checkbox"]:disabled + .cr {
+                    opacity: .5;
+                }
+            }
+            .cr                                  {position: relative;
+                                                  display: inline-block;
+                                                  border: 1px solid #a9a9a9;
+                                                  border-radius: .25em;
+                                                  width: 1.3em;
+                                                  height: 1.3em;
+                                                  margin-top: 0.6em;
+                                                  margin-bottom: 0.6em;
+                                                  float: left;
+                                                  margin-right: .5em;
+
+                .cr-icon                         {position: absolute;
+                                                  font-size: .8em;
+                                                  line-height: 0;
+                                                  top: 50%;
+                                                  left: 20%;
+                }
+            }
+        }
         #table-queries_filter                      {float: right;
+                                                    line-height: 2.5em;
+                                                    height: 2.5em;
+                                                    top: -0.5em;
+                                                    position: relative;
+        }
+        #table-queries_info                        {color: darken(@pallette1, 50%);
+                                                    margin-top: 0.5em;
+                                                    margin-left: 0.5em;
         }
         table                                      {
-            th                                     {color: #aaa;
-                                                    border-bottom: 1px solid #ddd;
-            }
-            .answer                                {background-color: @pallette1;
-                                                    color: darken(@pallette1, 50%);
-                                                    border-bottom: 1px solid darken(@pallette1, 10%);
-            }
-            .student-comments                      {background-color: lighten(@accent2, 60%);
-                                                    color: @accent2;
-                                                    border-bottom: 1px solid lighten(@accent2, 50%);
-                a.edit-user-comment                {
+            tr                                         {border: 0px;
+                &.bug-read                             {opacity: 0.5;
+                  .read                                  {
+                      label i                            {color: @pallette3;
+                      }
+                  }
                 }
-            }
-            .instructor-comments                   {background-color: lighten(@pallette3, 40%);
-                                                    color: darken(@pallette3, 20%);
-                                                    border-bottom: 1px solid lighten(@pallette3, 30%);
+                th                                     {color: #aaa;
+                                                        border-bottom: 1px solid #ddd;
+                }
+                td                                     {border-top: 0px;
+                                                        border-bottom: 1px solid #ddd;
+                }
+                .answer                                {background-color: @pallette1;
+                                                        color: darken(@pallette1, 50%);
+                                                        border-bottom: 1px solid darken(@pallette1, 10%);
+                }
+                .student-comments                      {background-color: lighten(@accent2, 60%);
+                                                        color: @accent2;
+                                                        border-bottom: 1px solid lighten(@accent2, 50%);
+                                                        cursor: pointer;
+                    a.edit-user-comment                {
+                    }
+                }
+                .instructor-comments                   {background-color: lighten(@pallette3, 40%);
+                                                        color: darken(@pallette3, 20%);
+                                                        border-bottom: 1px solid lighten(@pallette3, 30%);
 
-            }
-            .read                                  {
-                a.delete                           {color: @danger;
                 }
-                a.edit                             {color: @accent2;
+                .read                                  {
+                    label i                            {color: @warning;
+                                                        cursor: pointer;
+                    }
+                    input.read-with-comment,
+                    input.unread-with-comment          {display: none; 
+                    }
+                    a.delete                           {color: @danger;
+                    }
+                    a.edit                             {color: @accent2;
+                    }
                 }
             }
         }

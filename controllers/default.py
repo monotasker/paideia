@@ -76,6 +76,25 @@ def user():
     return dict(form=auth())
 
 
+def set_query_visibility():
+    """
+    Set the hide_read_queries field of an auth_user record to the supplied value.
+
+    Returns:
+        Nothing.
+
+    Expects two request.args:
+        0:      The id of the user (str)
+        1:      A string representing the boolean value (str)
+    """
+    uid = int(request.args[0])
+    myval = True if request.args[1] == 'true' else False
+    myrow = db.auth_user(uid)
+    myrow.update_record(hide_read_queries=myval)
+    db.commit()
+    print db.auth_user(uid).hide_read_queries
+
+
 def mark_bug_read():
     """
     Set the 'hidden' field for provided bug report based on boolean provided.
@@ -86,8 +105,9 @@ def mark_bug_read():
     """
     bugid = int(request.args[0])
     myval = True if request.args[1] == 'true' else False
-    myrow = db(db.bugs.id == bugid)
-    myrow.update(hidden=myval)
+    new_status = {'hidden': myval}
+    result = Bug.update_bug(bugid, new_status)
+    return 'false' if result is False else result
 
 
 def mark_bug_deleted():
@@ -98,7 +118,6 @@ def mark_bug_deleted():
     0:      The id of the bug (str)
     """
     bugid = int(request.args[0])
-    print 'controller deleting bug', bugid
     return Bug.delete_bug(bugid)
 
 
@@ -237,6 +256,9 @@ def info():
                          for r in set_tags]
         badge_set_dict[set] = set_tags_info
 
+    query_visibility = user['hide_read_queries']
+    print 'QV is', query_visibility
+
     return {'the_name': name,
             'user_id': user.id,
             'tz': tz,
@@ -253,7 +275,8 @@ def info():
             'answer_counts': answer_counts,
             'chart1_data': chart1_data,
             'reviewing_set': session.set_review,
-            'badge_set_dict': badge_set_dict
+            'badge_set_dict': badge_set_dict,
+            'query_visibility': query_visibility
             }
 
 

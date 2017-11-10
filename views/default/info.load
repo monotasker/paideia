@@ -212,20 +212,21 @@ import json
                 <td class='score'>{{=bug[4]}}</td>
                 <td class='submitted'>{{=bug[5]}}</td>
                 <td class='student-comment'>
-                    <span>{{=bug[6] if bug[6] != None else ''}}</span>
+                    <span>{{=bug[6] if bug[6] != None else ''}}&nbsp;</span>
                     <a href="{{=bug[0]}}" class='edit-user-comment' data-toggle='tooltip' data-placement='left' title='Click to edit.'><i class='fa fa-pencil'></i></a>
                 </td>
                 <td class='evaluation'>{{=str(bug[7]).replace('_', ' ')}}</td>
                 <td class='new-score'>{{=bug[8]}}</td>
                 <td class='instructor-comment'>{{=bug[9] if bug[9] != None else ''}}</td>
                 <td class='read'>
-                    <label for='response-read'>
                         {{if bug[-1] == 'bug-read' and bug[9]:}}
+                            <label for='response-read-{{=bug[0]}}' data-toggle='tooltip' data-placement='left' title='Click to mark this as unread.'>
                             <i class='fa fa-envelope-open-o'></i></label>
-                            <input type='checkbox' checked='checked' id='response-read' class='read-with-comment' />
+                            <input type='checkbox' checked='checked' id='response-read-{{=bug[0]}}' class='read-with-comment' />
                         {{elif bug[-1] == 'bug-unread' and bug[9]:}}
-                            <i class='fa fa-envelope-o'></i></label>
-                            <input type='checkbox' id='response-read' class='unread-with-comment' />
+                            <label for='response-read-{{=bug[0]}}'>
+                            <i class='fa fa-envelope-o'  data-toggle='tooltip' data-placement='left' title='Click to mark this as read.'></i></label>
+                            <input type='checkbox' id='response-read-{{=bug[0]}}' class='unread-with-comment' />
                         {{else:}}
                         {{pass}}
                         </br>
@@ -397,7 +398,7 @@ $(document).on('change', '#set_review_select', function(event){
     ajax('/paideia/default/set_review_mode/' + myset, [], ':eval');
 });
 
-var querytable = $('#table-queries').DataTable({dom: 'fBti',
+var querytable = $('#table-queries').DataTable({dom: 'f<"#queries-vis-toggle.form-group">Bti',
                                                 paging: false,
                                                 scrollY: '400px',
                                                 scrollX: true,
@@ -407,6 +408,9 @@ var querytable = $('#table-queries').DataTable({dom: 'fBti',
                                                     'colvis', 'pdf'
                                                 ],
                                                 fixedHeader: true,
+                                                "language": {
+                                                    "search": "Filter list"
+                                                },
                                                 "columns": [
                                                     {"className": "question",
                                                      "orderable": false},
@@ -415,14 +419,16 @@ var querytable = $('#table-queries').DataTable({dom: 'fBti',
                                                     {"className": "good-answers",
                                                      "orderable": false},
                                                     {"className": "score",
-                                                     "width": "80px"},
+                                                     "width": "60px",
+                                                     "orderable": false},
                                                     {"className": "submitted",
                                                      "visible": false},
                                                     {"className": "student-comments",
                                                      "orderable": false},
                                                     {"className": "evaluation",
                                                      "visible": false},
-                                                    {"className": "adjusted-score"},
+                                                    {"className": "adjusted-score",
+                                                     "orderable": false},
                                                     {"orderable": false,
                                                      "className": "instructor-comments",
                                                      "width": "30%"},
@@ -485,26 +491,6 @@ var querytable = $('#table-queries').DataTable({dom: 'fBti',
 $('a[data-toggle="tab"]').on('shown.bs.tab', function(e){
    querytable.columns.adjust();
    badgetable.columns.adjust();
-});
-
-$(document).on('change', 'input.mark_bug_read', function(event){
-                  var bugid = $(this).attr('name');
-                  var myval = $(this).prop('checked');
-                  var $therow = $(this).parents('tr');
-                  ajax('/paideia/default/mark_bug_read/' + bugid + '/' + myval, [], ':eval');
-                  var $counter = $(document).find('#unread-counter span');
-                  startCount = parseInt($counter.text());
-                  if(myval == true){
-                      $therow.removeClass('bug-unread');
-                      $therow.addClass('bug-read');
-                      newCount = startCount - 1;
-                      $counter.text(newCount);
-                  } else {
-                      $therow.addClass('bug-unread');
-                      $therow.removeClass('bug-read');
-                      newCount = startCount + 1;
-                      $counter.text(newCount);
-                  };
 });
 
 $(document).on('click',
@@ -592,22 +578,81 @@ $('td.read a.delete').confirm({
     }
 });
 
-// handle edit links in queries view
+// handle comment edit links in queries view
 $('td.student-comments').click(function(e){
-    $(this).attr('contenteditable', 'true');
+    $(this).attr('contenteditable', 'true').focus();
 });
 $('td.student-comments').on('blur', function(e){
     $(this).attr('contenteditable', 'false');
     var new_text = this.innerText;
     var log_id = $(this).closest('tr').attr('id');
     var my_url = '/paideia/default/update_bug_user_comment/' + log_id;
-    $.post(my_url, function({mytext: new_text}){
-        console.log(new_text);
+    $.ajax({url: my_url,
+            type: 'POST',
+            data: {mytext: new_text},
+            success: function(result){
+            },
+            error: function(result){
+                $.alert({title: 'Error updating comment', content: result});
+            }
     });
 
-    var my_resp = ajax(my_url, [], ':eval');
-    $.alert({content: 'Updated your comment.'});
 });
+
+// handle read links in queries view
+
+$('td.read input.read-with-comment, td.read input.unread-with-comment').on('change', function(){
+    var $label = $(this).closest('td').find("label[for='"+$(this).attr('id')+"']");
+    var $row = $(this).closest('tr');
+    var bugid = $row.attr('id');
+    var $counter = $(document).find('#unread-counter span');
+    startCount = parseInt($counter.text());
+    if (this.checked) {
+        $label.html('<i class="fa fa-envelope-open-o"></i>');
+        $row.removeClass('bug-unread');
+        $row.addClass('bug-read');
+        console.log($row);
+        if ( $('#queries-vis-toggle input').prop('checked') ) {
+            $row.velocity("fadeOut", 300);
+        } else {
+            $row.velocity({opacity: '0.5'}, 300);
+        }
+        newCount = startCount - 1;
+        $counter.text(newCount);
+    }
+    else {
+        $label.html('<i class="fa fa-envelope-o"></i>');
+        $row.removeClass('bug-read');
+        $row.addClass('bug-unread');
+        $row.velocity({opacity: '1'}, 300);
+        newCount = startCount + 1;
+        $counter.text(newCount);
+    }
+    var result = ajax('/paideia/default/mark_bug_read/' + bugid + '/' + this.checked, [], ':eval');
+});
+
+// handle "hide read" toggle in queries view
+$('#queries-vis-toggle').html('<label for="queries-vis-toggle-input"><input id="queries-vis-toggle-input" type="checkbox" class="form-control input-sm" aria-controls="table-queries" />Hide read queries<span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span></label>');
+$('#queries-vis-toggle input').on('change', function(){
+    if ( this.checked ){
+        $('tr.bug-read').each(function(){
+            $(this).velocity("fadeOut", 300);
+        });
+    } else {
+        $('tr.bug-read').each(function(){
+            $(this).css('display', 'table-row');
+            $(this).velocity({opacity: "0.5"}, 300);
+        });
+    }
+    ajax('/paideia/default/set_query_visibility/{{=user_id}}/' + this.checked, [], ':eval');
+});
+//
+{{if query_visibility:}}
+    $('#queries-vis-toggle input').prop('checked');
+    $('tr.bug-read').each(function(){
+        $(this).css('display', 'none');
+    });
+{{pass}}
 
 // initialize all bootstrap tooltips on page
 $(function () {
