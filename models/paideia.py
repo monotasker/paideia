@@ -30,7 +30,8 @@ if 0:
 # TODO: move these to an AjaxSelect model file
 response.files.insert(5, URL('static',
                       'plugin_ajaxselect/plugin_ajaxselect.js'))
-#response.files.append(URL('static', 'plugin_ajaxselect/plugin_ajaxselect.css'))
+# response.files.append(URL('static',
+# 'plugin_ajaxselect/plugin_ajaxselect.css'))
 response.files.append(URL('static', 'css/plugin_listandedit.css'))
 response.files.append(URL('static', 'css/plugin_slider.css'))
 
@@ -82,15 +83,18 @@ db.define_table('class_membership',
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(name)s, %(class_section)s'
                 )
-db.class_membership.final_grade.requires = IS_EMPTY_OR(IS_IN_SET(('A+', 'A', 'A-',
-                                                                  'B+', 'B', 'B-',
-                                                                  'C+', 'C', 'C-',
-                                                                  'D+', 'D', 'D-',
+db.class_membership.final_grade.requires = IS_EMPTY_OR(IS_IN_SET(('A+', 'A',
+                                                                  'A-', 'B+',
+                                                                  'B', 'B-',
+                                                                  'C+', 'C',
+                                                                  'C-', 'D+',
+                                                                  'D', 'D-',
                                                                   'F')))
 
 db.define_table('images',
                 Field('image', 'upload', length=128,
-                    uploadfolder=os.path.join(request.folder, "static/images")),
+                      uploadfolder=os.path.join(request.folder,
+                                                "static/images")),
                 Field('title', 'string', length=256),
                 Field('description', 'string', length=256),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
@@ -99,11 +103,14 @@ db.define_table('images',
 
 db.define_table('audio',
                 Field('clip', 'upload', length=128,
-                    uploadfolder=os.path.join(request.folder, "static/audio")),
+                      uploadfolder=os.path.join(request.folder,
+                                                "static/audio")),
                 Field('clip_ogg', 'upload', length=128,
-                    uploadfolder=os.path.join(request.folder, "static/audio")),
+                      uploadfolder=os.path.join(request.folder,
+                                                "static/audio")),
                 Field('clip_m4a', 'upload', length=128,
-                    uploadfolder=os.path.join(request.folder, "static/audio")),
+                      uploadfolder=os.path.join(request.folder,
+                                                "static/audio")),
                 Field('title', 'string', length=256),
                 Field('description', 'string', length=256),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
@@ -112,7 +119,7 @@ db.define_table('audio',
 
 db.define_table('journals',
                 Field('name', db.auth_user, default=auth.user_id),
-                Field('journal_pages', 'list:reference journal_pages'),  # was pages
+                Field('journal_pages', 'list:reference journal_pages'),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(name)s')
@@ -138,8 +145,9 @@ db.define_table('tags',
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format=lambda row: row['tag'])
-#db.executesql('CREATE INDEX IF NOT EXISTS idx_tags1 ON tags (tag, tag_position);')
-#db.executesql('CREATE INDEX IF NOT EXISTS idx_tags2 ON tags (tag_position);')
+# db.executesql('CREATE INDEX IF NOT EXISTS idx_tags1 ON tags (tag,
+# tag_position);')
+# db.executesql('CREATE INDEX IF NOT EXISTS idx_tags2 ON tags (tag_position);')
 
 db.tags.tag.requires = IS_NOT_IN_DB(db, 'tags.tag')
 
@@ -148,12 +156,12 @@ db.tags.slides.requires = IS_IN_DB(db,
                                    '%(deck_name)s',
                                    multiple=True)
 db.tags.slides.widget = lambda field, value: \
-                                    AjaxSelect(field, value,
-                                               indx=1,
-                                               refresher=True,
-                                               multi='basic',
-                                               lister='simple',
-                                               orderby='deck_name').widget()
+    AjaxSelect(field, value,
+               indx=1,
+               refresher=True,
+               multi='basic',
+               lister='simple',
+               orderby='deck_name').widget()
 
 # don't force uniqueness on lemma field to allow for homographs
 db.define_table('lemmas',
@@ -560,7 +568,7 @@ db.paths.steps.widget = lambda field, value: AjaxSelect(field, value,
 db.define_table('attempt_log',
                 Field('name', 'reference auth_user', default=auth.user_id),
                 Field('step', 'reference steps'),
-                Field('in_path', 'reference paths'),  # was path (reserved term)
+                Field('in_path', 'reference paths'),  # was path (reserved)
                 Field('score', 'double'),
                 Field('dt_attempted', 'datetime', default=dtnow),
                 Field('user_response', 'string'),
@@ -570,10 +578,13 @@ db.define_table('attempt_log',
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 )
-#db.executesql('CREATE INDEX IF NOT EXISTS idx_alog_1 ON attempt_log (name);')
-#db.executesql('CREATE INDEX IF NOT EXISTS idx_alog_2 ON attempt_log (name, dt_attempted);')
-#db.executesql('CREATE INDEX IF NOT EXISTS idx_alog_3 ON attempt_log (dt_attempted);')
-#db.executesql('CREATE INDEX IF NOT EXISTS idx_alog_3 ON attempt_log (in_path);')
+# db.executesql('CREATE INDEX IF NOT EXISTS idx_alog_1 ON attempt_log (name);')
+# db.executesql('CREATE INDEX IF NOT EXISTS idx_alog_2 ON attempt_log (name,
+# dt_attempted);')
+# db.executesql('CREATE INDEX IF NOT EXISTS idx_alog_3 ON attempt_log
+# (dt_attempted);')
+# db.executesql('CREATE INDEX IF NOT EXISTS idx_alog_3 ON attempt_log
+# (in_path);')
 
 db.define_table('tag_records',
                 Field('name', 'reference auth_user', default=auth.user_id),
@@ -582,15 +593,17 @@ db.define_table('tag_records',
                 Field('times_wrong', 'double'),
                 Field('tlast_wrong', 'datetime', default=dtnow),
                 Field('tlast_right', 'datetime', default=dtnow),
-                Field('in_path', 'reference paths'),  # was path (reserved term)
+                Field('in_path', 'reference paths'),  # was path (reserved)
                 Field('step', 'reference steps'),
                 Field('secondary_right', 'list:string'),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 Field('first_attempt', 'datetime'),
                 )
-#db.executesql('CREATE INDEX IF NOT EXISTS idx_trecs_1 ON tag_records (name, tag);')
-#db.executesql('CREATE INDEX IF NOT EXISTS idx_trecs_2 ON tag_records (tag, name);')
+# db.executesql('CREATE INDEX IF NOT EXISTS idx_trecs_1 ON tag_records (name,
+# tag);')
+# db.executesql('CREATE INDEX IF NOT EXISTS idx_trecs_2 ON tag_records (tag,
+# name);')
 
 db.define_table('bug_status',
                 Field('status_label'),
@@ -609,7 +622,8 @@ db.define_table('bugs',
                 Field('score', 'double'),
                 Field('adjusted_score', 'double'),
                 Field('log_id', 'reference attempt_log'),
-                Field('user_name', 'reference auth_user', default=auth.user_id),
+                Field('user_name', 'reference auth_user',
+                      default=auth.user_id),
                 Field('user_comment', 'text'),
                 Field('date_submitted', 'datetime', default=dtnow),
                 Field('bug_status', 'reference bug_status', default=5),
@@ -619,7 +633,8 @@ db.define_table('bugs',
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(step)s')
-#db.executesql('CREATE INDEX IF NOT EXISTS idx_bugs_1 ON bugs (user_name, bug_status);')
+# db.executesql('CREATE INDEX IF NOT EXISTS idx_bugs_1 ON bugs (user_name,
+# bug_status);')
 
 db.define_table('session_data',
                 Field('name', 'reference auth_user'),  # default=auth.user_id
@@ -657,11 +672,11 @@ db.define_table('user_stats',
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(name)s, %(year)s, %(month)s, %(week)s')
-#db.executesql('CREATE INDEX IF NOT EXISTS idx_userstats_1 '
+# db.executesql('CREATE INDEX IF NOT EXISTS idx_userstats_1 '
 #              'ON user_stats (week, year, name);')
-#db.executesql('CREATE INDEX IF NOT EXISTS idx_userstats_1 '
+# db.executesql('CREATE INDEX IF NOT EXISTS idx_userstats_1 '
 #              'ON user_stats (name, week, year);')
-#db.executesql('CREATE INDEX IF NOT EXISTS idx_userstats_1 '
+# db.executesql('CREATE INDEX IF NOT EXISTS idx_userstats_1 '
 #              'ON user_stats (year, week, name);')
 
 db.define_table('topics',
@@ -701,7 +716,7 @@ db.define_table('path2steps',
 
 
 def insert_trigger_for_steps(f, given_step_id):
-    #given_step_id is of <class 'gluon.dal.Reference'>
+    # given_step_id is of <class 'gluon.dal.Reference'>
     step_id = int(given_step_id)
     local_f = f
     if (dict != type(local_f)):
@@ -783,7 +798,7 @@ def after_delete_trigger_for_paths(s):
                                                   step_id)
 
 
-#take care off steps_inactive_locations
+# take care off steps_inactive_locations
 def after_update_trigger_for_locations(s, f):
     local_f = f
     if (dict != type(local_f)):
@@ -793,9 +808,9 @@ def after_update_trigger_for_locations(s, f):
         for r in s.select():
             db(db.steps_inactive_locations.loc_id == r.id).delete()
         db.commit()
-    #just set to inactive
+    # just set to inactive
     if (('loc_active' in local_f) and (not local_f['loc_active'])):
-        #get all steps
+        # get all steps
         steps = db(db.steps.id > 0
                    ).select(db.steps.id, db.steps.locations).as_list()
         for r in s.select():
@@ -806,7 +821,8 @@ def after_update_trigger_for_locations(s, f):
                         break
                     if not(r.id in locs):
                         break
-                    create_or_update_steps_inactive_locations({'locations': locs},
+                    create_or_update_steps_inactive_locations({'locations':
+                                                               locs},
                                                               step['id'])
                     break
 
@@ -844,11 +860,12 @@ def create_or_update_steps_inactive_locations(f, given_step_id):
                 loc_data['loc_id'] = loc_id
                 get_steps_inactive_locations_fields(loc_data)
                 simple_obj_print(loc_data, "troy: loc data")
-                db.steps_inactive_locations.insert(loc_id=loc_data['loc_id'],
-                                                   step_id=loc_data['step_id'],
-                                                   step_desc=loc_data['step_desc'],
-                                                   loc_desc=loc_data['loc_desc'],
-                                                   in_paths=loc_data['in_paths'])
+                db.steps_inactive_locations.insert(
+                    loc_id=loc_data['loc_id'],
+                    step_id=loc_data['step_id'],
+                    step_desc=loc_data['step_desc'],
+                    loc_desc=loc_data['loc_desc'],
+                    in_paths=loc_data['in_paths'])
             break  # from while true
     db.commit()
 
@@ -858,14 +875,15 @@ def get_steps_inactive_locations_fields(id_data):
     input: {step_id: xx, loc_id: xxx}
     """
     id_data['step_desc'] = (db.steps[id_data['step_id']]).as_dict()['prompt']
-    id_data['loc_desc'] = (db.locations[id_data['loc_id']]).as_dict()['map_location']
+    id_data['loc_desc'] = (
+        db.locations[id_data['loc_id']]).as_dict()['map_location']
     id_data['in_paths'] = [p['path_id'] for p
                            in db(db.path2steps.step_id == id_data['step_id']
                                  ).select(db.path2steps.path_id).as_list()]
     return True
 
 
-#no need for delete ... will be taken care of by foreign key
+# no need for delete ... will be taken care of by foreign key
 db.steps._after_insert.append(
     lambda f, given_id: insert_trigger_for_steps(f, given_id))
 db.steps._after_update.append(
@@ -933,12 +951,14 @@ def create_steps_inactive_locations_for_steps():
     print "---called martha---"
     db(db.steps_inactive_locations.id > 0).delete()
     print "---called martha 2---"
-    steps = db(db.steps.id > 0).select(db.steps.id,db.steps.locations).as_list()
+    steps = db(
+        db.steps.id > 0).select(db.steps.id,db.steps.locations).as_list()
     print "---called martha 3---"
     for step in steps:
         print "---called martha 4---"
         locs = step['locations']
-        create_or_update_steps_inactive_locations({'locations': locs},step['id'])
+        create_or_update_steps_inactive_locations({'locations':
+            locs},step['id'])
     db.commit()
 create_steps_inactive_locations_for_steps()
 
@@ -946,7 +966,7 @@ create_steps_inactive_locations_for_steps()
 """
 
 
-# Badges for header ============================================================
+# Badges for header ===========================================================
 try:
     db = current.db
     print auth.user_id
@@ -956,10 +976,12 @@ try:
                   (db.bugs.admin_comment != '')).select()
     bug_count = len(bug_rows)
     if bug_count > 0:
-        response.badges = SPAN(A(I(_class='fa fa-inbox'), "  ", SPAN(bug_count),
-                                    _href='/paideia/default/user/profile#tab_bug_reports',
-                                    _class='badge',
-                                    _id='unread-counter'),
+        response.badges = SPAN(A(I(_class='fa fa-inbox'), "  ",
+                                 SPAN(bug_count),
+                                 _href='/paideia/default/user/profile'
+                                 '#tab_bug_reports',
+                               _class='badge',
+                               _id='unread-counter'),
                                _class='badge-wrapper')
     else:
         pass

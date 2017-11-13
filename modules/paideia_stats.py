@@ -96,7 +96,8 @@ class Stats(object):
 
         # class/group info --------------------------------------------------
         msel = db((db.class_membership.name == user_id) &
-                  (db.class_membership.class_section == db.classes.id)).select()
+                  (db.class_membership.class_section == db.classes.id)
+                  ).select()
         try:
             self.targetcount = [m.classes.paths_per_day for m in msel
                                 if m.classes.paths_per_day][0]
@@ -121,8 +122,8 @@ class Stats(object):
         # date of each tag promotion
         self.badges_begun = db(db.badges_begun.name == self.user_id).select()
         if len(self.badges_begun) > 1:
-            self.alerts['duplicate badges_begun records'] = [bb.id for bb
-                                                        in self.badges_begun]
+            self.alerts['duplicate badges_begun records'] = [bb.id for bb in
+                                                             self.badges_begun]
 
     def get_name(self):
         """
@@ -154,8 +155,9 @@ class Stats(object):
                             'day1': dts[0], 'day2': dts[1], 'day3': dts[2],
                             'day4': dts[3], 'day5': dts[4], 'day6': dts[5],
                             'day7': dts[6],
-                            'count1': dts[0], 'count2': dts[1], 'count3': dts[2],
-                            'count4': dts[3], 'count5': dts[4], 'count6': dts[5],
+                            'count1': dts[0], 'count2': dts[1],
+                            'count3': dts[2], 'count4': dts[3],
+                            'count5': dts[4], 'count6': dts[5],
                             'count7': dts[6],
                             'logs_by_tag': make_json(weekstuff[1]),
                             'logs_right': weekstuff[2],
@@ -188,7 +190,8 @@ class Stats(object):
         '''
         Get record of a user's steps attempted in the last seven days.
 
-        TODO: move this aggregate data to a db table "user_stats" on calculation.
+        TODO: move this aggregate data to a db table "user_stats"
+        on calculation.
         '''
         db = current.db
         # now = self.utcnow
@@ -303,7 +306,8 @@ class Stats(object):
 
             for k in range(1, 5):
                 cat = 'cat{}'.format(k)
-                dt = self._local(bbrows[cat]) if bbrows and bbrows[cat] else None
+                dt = self._local(bbrows[cat]) if bbrows and bbrows[cat] \
+                    else None
                 prettydate = dt.strftime('%b %e, %Y') \
                     if isinstance(dt, datetime.datetime) else None
                 tag_recs[idx]['{}_reached'.format(cat)] = (dt, prettydate)
@@ -314,8 +318,8 @@ class Stats(object):
         """
         Add a key-value pair giving log counts to each tag record.
 
-        logs_by_week:   dict of {weeknumber: {date: [list of log ids]} including only
-                        those attempts for steps tagged with this tag.
+        logs_by_week:   dict of {weeknumber: {date: [list of log ids]}
+        including only those attempts for steps tagged with this tag.
 
         logs_right:     list of log ids for correct attempts with this tag.
 
@@ -336,18 +340,23 @@ class Stats(object):
                         weeklogs = {}
                         for day, count in yrdata[0].iteritems():
                             try:
-                                weeklogs[parse(day)] = [c for c in count if c in bytag]
+                                weeklogs[parse(day)] = [c for c in count
+                                                        if c in bytag]
                             except (AttributeError, TypeError):
-                                weeklogs[day] = [c for c in count if c in bytag]
+                                weeklogs[day] = [c for c in count
+                                                 if c in bytag]
                         t['logs_by_week'][year][weeknum] = weeklogs
-                        t['logs_right'].extend([l for l in yrdata[2] if l in bytag])
-                        t['logs_wrong'].extend([l for l in yrdata[3] if l in bytag])
+                        t['logs_right'].extend([l for l in yrdata[2]
+                                                if l in bytag])
+                        t['logs_wrong'].extend([l for l in yrdata[3]
+                                                if l in bytag])
                     except KeyError:  # no logs for this tag that week
                         pass
                     except IndexError:
                         print 'malformed usrows for ', tag, 'in week', weeknum
             all_logs = t['logs_right'] + t['logs_wrong']
-            all_rows = db(db.attempt_log.id.belongs(all_logs)).select(db.attempt_log.score)
+            all_rows = db(db.attempt_log.id.belongs(all_logs)
+                          ).select(db.attempt_log.score)
             t['avg_score'] = sum([r.score for r in all_rows]) / len(all_rows) \
                 if all_rows else None
             if isinstance(t['avg_score'], float):
@@ -387,7 +396,8 @@ class Stats(object):
             [tlr]               datetime
 
         ------calculated here -------------------------------------------------
-            [rw_ratio]          ratio of times_right to times_wrong as a double.
+            [rw_ratio]          ratio of times_right to times_wrong as a
+                                double.
             [delta_w]           length of time since last wrong answer
             [delta_r]           length of time since last right answer
             [delta_rw]          length of time between last right answer
@@ -435,7 +445,7 @@ class Stats(object):
         yest_start = (daystart - datetime.timedelta(days=1))
 
         # collect recent attempt logs
-        alltags = [r['tag'] for r in tr]
+        # FIXME: unused: alltags = [r['tag'] for r in tr]
         logs = db((db.attempt_log.name == self.user_id) &
                   (db.attempt_log.step == db.steps.id) &
                   (db.attempt_log.dt_attempted > yest_start)).select()
@@ -454,15 +464,17 @@ class Stats(object):
         for idx, t in enumerate(tr):
             # remove unnecessary keys
             tr[idx] = {k: v for k, v in t.iteritems()
-                    if k not in ['id', 'name', 'in_path', 'step',
-                                 'secondary_right']}
+                       if k not in ['id', 'name', 'in_path', 'step',
+                       'secondary_right']}
 
             # count logs for this tag (today and yesterday)
             taglogs = logs.find(lambda r: any(tag for tag in r.steps.tags
                                               if t['tag'] == tag))
-            todaylogs = taglogs.find(lambda r: r.attempt_log.dt_attempted > daystart)
-            yestlogs = taglogs.find(lambda r: (r.attempt_log.dt_attempted <= daystart) and
-                                    (r.attempt_log.dt_attempted > yest_start))
+            todaylogs = taglogs.find(lambda r: r.attempt_log.dt_attempted >
+                                     daystart)
+            yestlogs = taglogs.find(lambda r: (r.attempt_log.dt_attempted <=
+                                    daystart) and (r.attempt_log.dt_attempted >
+                                    yest_start))
             tr[idx]['todaycount'] = len(todaylogs)
             tr[idx]['yestcount'] = len(yestlogs)
 
@@ -509,13 +521,17 @@ class Stats(object):
             # print 't["tag"]--------------------'
             # print t['tag']
             try:
-                tr[idx]['curlev'] = [l for l, tgs in self.badge_levels.iteritems()
-                                    if t['tag'] in [tg[1] for tg in tgs]][0]
+                tr[idx]['curlev'] = [l for l, tgs in
+                                     self.badge_levels.iteritems()
+                                     if t['tag'] in [tg[1] for tg in tgs]
+                                     ][0]
             except IndexError:
                 tr[idx]['curlev'] = 0
             try:
-                tr[idx]['revlev'] = [l for l, tgs in self.review_levels.iteritems()
-                                    if t['tag'] in [tg[1] for tg in tgs]][0]
+                tr[idx]['revlev'] = [l for l, tgs in
+                                     self.review_levels.iteritems()
+                                     if t['tag'] in [tg[1] for tg in tgs]
+                                     ][0]
             except IndexError:
                 tr[idx]['revlev'] = 0
 
@@ -525,14 +541,16 @@ class Stats(object):
                     t['tright'] = 0
                 if not t['twrong']:
                     t['twrong'] = 0
-                tr[idx]['rw_ratio'] = round((float(t['tright']) / float(t['twrong'])), 1)
+                tr[idx]['rw_ratio'] = round(
+                    (float(t['tright']) / float(t['twrong'])), 1)
             except (ZeroDivisionError, TypeError):
                 tr[idx]['rw_ratio'] = round(float(t['tright']), 1)
 
             # round tright and twrong to closest int for readability
             for i in ['right', 'wrong']:
                 try:
-                    tr[idx]['t' + i] = remove_trailing_0s(t['t' + i], fmt='num')
+                    tr[idx]['t' + i] = remove_trailing_0s(t['t' + i],
+                                                          fmt='num')
                 except TypeError:  # because value is None
                     tr[idx]['t' + i] = 0
 
@@ -591,16 +609,17 @@ class Stats(object):
         Return a dictionary listing the user's badges in levels 1-4.
         """
         db = current.db
-        try:
-            rank = self.tag_progress['latest_new']
-        except KeyError:
-            rank = 1
-        categories = {k: v for k, v in self.tag_progress.iteritems()
-                      if k != 'latest_new'}
+        # try:
+        #   rank = self.tag_progress['latest_new']
+        # except KeyError:
+        #    rank = 1
+        # FIXME: unused: categories = {k: v for k, v
+        # in self.tag_progress.iteritems() if k != 'latest_new'}
 
         bls = self.tag_progress
         # print 'Stats._find_badge_levels:: bls:', bls
-        #bls = db(db.tag_progress.name == self.user_id).select().first().as_dict()
+        # bls = db(db.tag_progress.name ==
+        # self.user_id).select().first().as_dict()
         bl_ids = {k: v for k, v in bls.iteritems()
                   if k[:3] == 'cat' and k != 'cat1_choices'}
         # print 'Stats._find_badge_levels:: bl_ids:', bl_ids
@@ -633,7 +652,8 @@ class Stats(object):
 
     def _make_logs_into_weekstats(self, logs):
         """
-        Return a dictionary of the provided log data structured as in db.user_stats.
+        Return a dictionary of the provided log data structured as in
+        db.user_stats.
 
         NB: datetime.isocalendar is weird at the beginning and end of a year.
         The first week of a year is the first in which there is a Thursday. So
@@ -651,8 +671,7 @@ class Stats(object):
         years_iter = groupby(logs, key=lambda log: log['isocal'][0])
         weekstats = {}
         for yr, yearlogs in years_iter:
-            weeks_iter = groupby(yearlogs,
-                                           key=lambda log: log['isocal'][1])
+            weeks_iter = groupby(yearlogs, key=lambda log: log['isocal'][1])
             weeksdict = {}
             for weeknum, weeklogs in weeks_iter:
                 weeklogs = [l for l in weeklogs]
@@ -663,11 +682,12 @@ class Stats(object):
                               if abs(l['score'] - 1) >= 0.001]
                 logs_by_tag = {}
                 for log in weeklogs:
-                    tags = db.steps(log['step']).tags
+                    mystep = db.steps(log['step'])
+                    tags = mystep.tags if mystep else []
                     for t in tags:
                         logs_by_tag.setdefault(t, []).append(log['id'])
-                days_iter = groupby(weeklogs,
-                                              key=lambda d: self._local(d['dt_attempted']).date())
+                days_iter = groupby(weeklogs, key=lambda d:
+                                    self._local(d['dt_attempted']).date())
                 for day, daylogs in days_iter:
                     daylogs = [d['id'] for d in daylogs]
                     counts[day] = daylogs
@@ -698,7 +718,8 @@ class Stats(object):
         db = current.db
         # get utc equivalents of start and stop in user's time zone
         naivestop = stopdate if stopdate else self.utcnow
-        naivestart = startdate if startdate else datetime.datetime(2012, 1, 1, 0, 0)
+        naivestart = startdate if startdate \
+            else datetime.datetime(2012, 1, 1, 0, 0)
         tz_name = self.user.time_zone if self.user.time_zone \
             else 'America/Toronto'
         tz = timezone(tz_name)
@@ -797,8 +818,11 @@ class Stats(object):
         year = datetime.date.today().year if not year else int(year)
         monthend = calendar.monthrange(year, month)[1]
         monthname = calendar.month_name[month]
-        rangelogs = self._get_logs_for_range(datetime.datetime(year, month, 1, 0, 0),
-                                             datetime.datetime(year, month, monthend, 23, 59))
+        rangelogs = self._get_logs_for_range(datetime.datetime(year, month, 1,
+                                                               0, 0),
+                                             datetime.datetime(year, month,
+                                                               monthend, 23,
+                                                               59))
         newmcal = calendar.HTMLCalendar(6).formatmonth(year, month)
         mycal = TAG(newmcal)
         try:
@@ -860,7 +884,8 @@ class Stats(object):
             mylink = A(v[3], _href=URL('reporting', 'calendar.load',
                                        args=[self.user_id, v[1], v[0]]),
                        _class='monthcal_nav_link {}'.format(k),
-                       _disable_with=I(_class='fa fa-spinner fa-spin fa-fw').xml(),
+                       _disable_with=I(_class='fa fa-spinner fa-spin fa-fw'
+                                       ).xml(),
                        cid='tab_calendar')
             linktags.append(mylink)
         return linktags
@@ -880,11 +905,12 @@ class Stats(object):
         for y in years:
             for m in range(12, 1, -1):
                 if not (m > nowmonth and y == nowyear):
-                    picker.append(LI(A('{} {}'.format(calendar.month_name[m], y),
-                                    _href=URL('reporting', 'calendar.load',
-                                              args=[self.user_id, y, m]),
-                                    _class='monthpicker',
-                                    _tabindex='-1')))
+                    picker.append(LI(A('{} {}'.format(calendar.month_name[m],
+                                                      y),
+                                       _href=URL('reporting', 'calendar.load',
+                                                 args=[self.user_id, y, m]),
+                                       _class='monthpicker',
+                                       _tabindex='-1')))
             picker.append(LI(_class='divider'))
 
         label_args = {'_id': 'month-label',
@@ -894,16 +920,17 @@ class Stats(object):
                       '_data-target': '#',
                       '_href': '#'}
         dropdown = SPAN(A('{} {} '.format(monthname, year),
-                         B(_class='caret'),
-                         **label_args),
-                       picker,
-                       _class='dropdown')
+                          B(_class='caret'),
+                          **label_args),
+                        picker,
+                        _class='dropdown')
 
         return dropdown
 
     def get_badge_set_milestones(self):
         """
-        Return a list of 2-member dictionaries giving the date each set was started.
+        Return a list of 2-member dictionaries giving the date each set was
+        started.
 
         The keys for each dict are 'date' and 'badge_set'. If multiple sets
         were started on the same day, only the highest of the sets is accorded
@@ -921,13 +948,14 @@ class Stats(object):
             left=db.tags.on(db.tags.id == db.badges_begun.tag),
             groupby=db.tags.tag_position,
             orderby='2, 1 DESC')
-        if debug: print 'Stats::get_badge_set_milestones: result==============='
+        if debug: print 'Stats::get_badge_set_milestones: result=============='
         if debug: pprint(result)
 
         # Transform to a more lightweight form
         # Force str because of how PostgreSQL returns date column
         # PostgreSQL returns datetime object, sqlite returns string
-        # So we have to force type to sting, this won't break backwards compatibility with sqlite
+        # So we have to force type to sting, this won't break backwards
+        # compatibility with sqlite
         data = [{'my_date': str(row._extra.values()[0]),
                  'badge_set': row.tags.tag_position}
                 for row in result if row.tags.tag_position < 900]
@@ -940,8 +968,9 @@ class Stats(object):
         milestones = []
         prev = None
         for d in data:
-            if prev != None and (d['badge_set'] >= prev['badge_set'] or
-                                 d['my_date'] == prev['my_date']):  # comparing badge sets
+            if prev is not None and (d['badge_set'] >= prev['badge_set'] or
+                                     d['my_date'] == prev['my_date']):
+                                    # comparing badge sets
                 continue
             milestones.append(d)
             prev = d
@@ -980,16 +1009,20 @@ class Stats(object):
             setsteps = db(db.steps.tags.contains(settag_ids)).select()
             setstep_ids = [row.id for row in setsteps]
             attempt_query = db((db.attempt_log.name == self.user_id) &
-                               (db.attempt_log.step.belongs(setstep_ids))).select().as_list()
+                               (db.attempt_log.step.belongs(setstep_ids))
+                               ).select().as_list()
         elif tag:
             badgesteps = db(db.steps.tags.contains(tag)).select()
             badgestep_ids = [row.id for row in badgesteps]
             attempt_query = db((db.attempt_log.name == self.user_id) &
-                               (db.attempt_log.step.belongs(badgestep_ids))).select().as_list()
+                               (db.attempt_log.step.belongs(badgestep_ids))
+                               ).select().as_list()
         else:
-            attempt_query = db(db.attempt_log.name == self.user_id).select().as_list()
+            attempt_query = db(db.attempt_log.name == self.user_id
+                               ).select().as_list()
 
-        pairs = [(self._local(q['dt_attempted']).date(), q['score'], q['id']) for q in attempt_query]
+        pairs = [(self._local(q['dt_attempted']).date(), q['score'], q['id'])
+                 for q in attempt_query]
         sorted_attempts = sorted(pairs, key=itemgetter(0))
         result = defaultdict(list)
         for date, score, myid in sorted_attempts:
@@ -1017,30 +1050,32 @@ class Stats(object):
 
     def get_tag_counts_over_time(self, start, end, uid=None):
         """
-        Return a dictionary of stats on tag and step attempts over given period.
+        Return a dictionary of stats on tag and step attempts over given
+        period.
 
         daysdata = {date: {'total_attempts': [id, id, ..],
                            'repeated_steps': {id: int, id: int, ..}
                            'tags_attempted': list,
                            'cat_data': {'cat1': {'cat_attempts': [id, id, ..],
-                                                 'cat_tags_attempted': {id: int, id: int, ..}
+                                                 'cat_tags_attempted':
+                                                     {id: int, id: int, ..},
                                                  'cat_tags_missed': list},
                                         'rev1': ..
                                         }
 
         """
         db = current.db
-        auth = current.auth
+        # FIXME: unused: auth = current.auth
 
         # get time bounds and dates for each day within those bounds
         offset = get_offset(self.user)
         end -= offset  # beginning of last day
-        #print 'end', end
+        # print 'end', end
         start -= offset
-        #print 'start', start
+        # print 'start', start
         period = (end - start) if end != start else datetime.timedelta(days=1)
         daysnum = abs(period.days)
-        #print 'daysnum', daysnum
+        # print 'daysnum', daysnum
         datelist = []
         daycounter = daysnum + 1 if daysnum > 1 else daysnum
         for d in range(daycounter):
@@ -1050,7 +1085,8 @@ class Stats(object):
 
         # gather common data to later filter for each day
         uid = self.user_id
-        final_dt = end + datetime.timedelta(days=1)  # to get end of last day
+        # FIXME: unused: final_dt = end + datetime.timedelta(days=1)
+        # # to get end of last day
         logs = db((db.attempt_log.name == uid) &
                   (db.attempt_log.dt_attempted <= end) &
                   (db.attempt_log.dt_attempted > start) &
@@ -1060,11 +1096,13 @@ class Stats(object):
         for daystart in datelist:
             # collect logs within day bounds
             dayend = daystart + datetime.timedelta(days=1)
-            #print 'daystart', daystart
-            #print 'dayend', dayend
+            # print 'daystart', daystart
+            # print 'dayend', dayend
 
-            daylogs = logs.find(lambda l: (l.attempt_log['dt_attempted'] >= daystart) and
-                                          (l.attempt_log['dt_attempted'] < dayend))
+            daylogs = logs.find(lambda l: (l.attempt_log['dt_attempted'] >=
+                                           daystart) and
+                                          (l.attempt_log['dt_attempted'] <
+                                           dayend))
 
             # get all tags and total attempts for each
             alltags = [t for row in daylogs for t in row.steps.tags]
@@ -1076,7 +1114,8 @@ class Stats(object):
                     tagcounts[t] = 1
 
             # reconstruct cats for this day
-            nowcats = db(db.tag_progress.name == uid).select().first()
+            # FIXME: unused: nowcats = db(db.tag_progress.name ==
+            #  uid).select().first()
             proms = db(db.badges_begun.name == uid).select()
             usercats = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
             for row in proms:
@@ -1092,13 +1131,14 @@ class Stats(object):
             catdata = {}
             for cat in usercats.keys():
                 catlogs = daylogs.find(lambda l: any(t for t in l.steps.tags
-                                                if t in usercats[cat]))
+                                       if t in usercats[cat]))
                 cattags = list(set([t for l in catlogs for t in l.steps.tags if
                                     t in usercats[cat]]))
                 cattag_counts = {t: tagcounts[t] for t in cattags}
                 tagsmissed = [t for t in usercats[cat] if t not in cattags]
 
-                catdata[cat] = {'cat_attempts': [l.attempt_log['id'] for l in catlogs],
+                catdata[cat] = {'cat_attempts': [l.attempt_log['id']
+                                for l in catlogs],
                                 'cat_tags_attempted': cattag_counts,
                                 'cat_tags_missed': tagsmissed}
 
@@ -1111,7 +1151,8 @@ class Stats(object):
                     stepcounts[stepid] = 1
             repeats = {id: ct for id, ct in stepcounts.iteritems() if ct > 1}
             # print 'date', dayend.date()
-            daysdata[dayend.date()] = {'total_attempts': [l.attempt_log['id'] for l in daylogs],
+            daysdata[dayend.date()] = {'total_attempts': [l.attempt_log['id']
+                                       for l in daylogs],
                                        'repeated_steps': repeats,
                                        'tags_attempted': list(set(alltags)),
                                        'cat_data': catdata
@@ -1120,7 +1161,8 @@ class Stats(object):
 
     def _get_daystart(self, mydt):
         """
-        Return a datetime object for the beginning of the day of supplied datetime.
+        Return a datetime object for the beginning of the day of supplied
+        datetime.
 
         """
         daystart = datetime.datetime(year=mydt.year,
@@ -1133,7 +1175,8 @@ class Stats(object):
 
     def _get_dayend(self, mydt):
         """
-        Return a datetime object for the beginning of the day of supplied datetime.
+        Return a datetime object for the beginning of the day of supplied
+        datetime.
 
         """
         daystart = datetime.datetime(year=mydt.year,
@@ -1148,7 +1191,8 @@ class Stats(object):
 
 def week_bounds(weekday=None):
     '''
-    Return datetime objects representing the last day of this week and previous.
+    Return datetime objects representing the last day of this week and
+    previous.
 
     alternate version:
 
@@ -1227,7 +1271,8 @@ def get_offset(user):
         now = timezone('UTC').localize(today)
         tz_name = user.time_zone if user.time_zone \
             else 'America/Toronto'
-        offset = timezone(tz_name).localize(today) - now  # when to use "ambiguous"?
+        offset = timezone(tz_name).localize(today) - now
+        # TODO: when to use "ambiguous"?
     return offset
 
 
@@ -1268,7 +1313,8 @@ def get_set_at_date(user_id, mydt):
 
 def get_daycounts(user, target):
     """
-    Return a 4-member tuple giving the number of active days in the past 2 weeks.
+    Return a 4-member tuple giving the number of active days in the past 2
+    weeks.
     """
     db = current.db
     offset = get_offset(user)
@@ -1283,8 +1329,10 @@ def get_daycounts(user, target):
     mylogs = logs.find(lambda row: row.name == user.id)
     for span in spans:
         for day in span['days']:
-            daycount = len([l for l in mylogs if (l['dt_attempted'] - offset).day == day])
-            #count = len(logs.find(lambda row: tz.fromutc(row.dt_attempted).day == day))
+            daycount = len([l for l in mylogs
+                            if (l['dt_attempted'] - offset).day == day])
+            # count = len(logs.find(lambda row:
+            # tz.fromutc(row.dt_attempted).day == day))
 
             if daycount > 0:
                 span['count'] += 1
@@ -1322,10 +1370,12 @@ def get_term_bounds(meminfo, start_date, end_date):
 
     if len(myclasses) > 1:  # get end of previous course
         try:
-            end_dates = {c['classes']['id']: c['classes']['end_date'] for c in myclasses}
+            end_dates = {c['classes']['id']: c['classes']['end_date']
+                         for c in myclasses}
             if debug: pprint(end_dates)
-            custom_ends = {c['classes']['id']: c['class_membership']['custom_end']
-                        for c in myclasses if c['class_membership']['custom_end']}
+            custom_ends = {c['classes']['id']:
+                           c['class_membership']['custom_end'] for c
+                           in myclasses if c['class_membership']['custom_end']}
             if debug: pprint(custom_ends)
             if custom_ends:
                 for cid, dt in end_dates.iteritems():
@@ -1337,7 +1387,7 @@ def get_term_bounds(meminfo, start_date, end_date):
             if prevend in [meminfo['custom_end'], end_date]:
                 prevend = None
                 fmt_prevend = 'none'
-        except:
+        except Exception:
             if debug: print traceback.format_exc(5)
             prevend = None
             fmt_prevend = 'could not retrieve'
@@ -1345,7 +1395,8 @@ def get_term_bounds(meminfo, start_date, end_date):
         prevend = None
         fmt_prevend = 'none'
 
-    mystart = meminfo['custom_start'] if meminfo['custom_start'] else start_date
+    mystart = meminfo['custom_start'] if meminfo['custom_start'] \
+        else start_date
     fmt_start = make_readable(mystart)
     myend = meminfo['custom_end'] if meminfo['custom_end'] else end_date
     fmt_end = make_readable(myend)
@@ -1362,11 +1413,11 @@ def compute_letter_grade(uid, myprog, startset, classrow):
     debug = True
     mymem = get_current_class(uid, datetime.datetime.utcnow(),
                               myclass=classrow['id'])
-    if debug: print 'stats::compute_letter_grade: uid = ', uid, ' ============='
+    if debug: print 'stats::compute_letter_grade: uid = ', uid
     if debug: db = current.db
     if debug: print db.auth_user[uid].last_name
-    if debug: print 'stats::compute_letter_grade: start = ', startset, ' ============='
-    if debug: print 'stats::compute_letter_grade: progress = ', myprog, ' ============='
+    if debug: print 'stats::compute_letter_grade: start = ', startset
+    if debug: print 'stats::compute_letter_grade: progress = ', myprog
     gradedict = {}
     for let in ['a', 'b', 'c', 'd']:
         letcap = '{}_cap'.format(let)
@@ -1391,7 +1442,7 @@ def compute_letter_grade(uid, myprog, startset, classrow):
         mygrade = 'A'
     else:
         mygrade = 'F'
-    if debug: print 'stats::compute_letter_grade: grade = ', mygrade, ' ============='
+    if debug: print 'stats::compute_letter_grade: grade = ', mygrade
     if debug: print ''
 
     return mygrade
@@ -1405,11 +1456,12 @@ def get_current_class(uid, now, myclass=None):
                  ).select().first()
     else:
         myclasses = db((db.class_membership.name == uid) &
-                    (db.class_membership.class_section == db.classes.id)
-                    ).select()
-        myclasses = myclasses.find(lambda row: row.classes.start_date != None)
-        myclasses = myclasses.find(lambda row: (row.classes.start_date < now) and
-                                            (row.classes.end_date > now))
+                       (db.class_membership.class_section == db.classes.id)
+                       ).select()
+        myclasses = myclasses.find(lambda row:
+                                   row.classes.start_date is not None)
+        myclasses = myclasses.find(lambda row: (row.classes.start_date < now)
+                                   and (row.classes.end_date > now))
         myc = myclasses.first()
     return myc
 
@@ -1434,8 +1486,8 @@ def make_classlist(member_sel, users, start_date, end_date, target, classrow):
                                  user['auth_user'].first_name)
         if debug: print myname
         meminfo = member_sel.find(lambda row: row.name == uid)[0]
-        mystart, fmt_start, myend, fmt_end, prevend, fmt_prevend = get_term_bounds(
-            meminfo, start_date, end_date)
+        mystart, fmt_start, myend, fmt_end, prevend, fmt_prevend = \
+            get_term_bounds(meminfo, start_date, end_date)
 
         mycounts = get_daycounts(user['auth_user'], target)
         startset = meminfo.starting_set if meminfo.starting_set \
