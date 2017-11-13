@@ -477,8 +477,10 @@ class Stats(object):
 
             # parse last_right and last_wrong into readable form
             try:
-                t['tlw'] = tr[idx]['tlw'] = parse(t['tlw'])
-                t['tlw'] = tr[idx]['tlw'] = parse(t['tlr'])
+                t['tlw'] = tr[idx]['tlw'] = parse(t['tlw']) if not \
+                    isinstance(t['tlw'], datetime.datetime) else t['tlw']
+                t['tlr'] = tr[idx]['tlr'] = parse(t['tlr']) if not \
+                    isinstance(t['tlr'], datetime.datetime) else t['tlr']
             except AttributeError:
                 pass
 
