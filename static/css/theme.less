@@ -231,7 +231,6 @@ nav,
     }
     .badge-wrapper         {height: 100%;
                             line-height: 100%;
-                            display:inline-block;
                             float: right;
                             padding-top: 15px;
                             padding-bottom: 15px;
@@ -293,7 +292,7 @@ body.default.index                      {
                                             left:360px;
                                             box-shadow: 2px 4px 0 rgba(0,0,0,0.5);
                                             border-radius:2em;
-                                            z-index: 10; 
+                                            z-index: 10;
                 h1                         {font-family: 'Amatic SC', cursive;
                                             font-weight: regular;
                                             font-size: 3em;
@@ -334,7 +333,7 @@ body.default.index                      {
         }
         &.third .index-contentbox      {background-image: url('../images/images.image.ac5111cddd8a81e5.44726177696e672035302e706e67.png')
         }
-        &.first, 
+        &.first,
         &.third,
         &.fifth                        {background-color: @pallette1;
                                         color: darken(@pallette2, 50%);
@@ -406,7 +405,7 @@ body.default.index                      {
                                         color: @accent3;
                                         display:block;
                                         position:relative;
-            }                                        
+            }
         }
         div.index-contentbox            {background-color: transparent;
             p                           {margin-top: 10px;
@@ -433,7 +432,7 @@ body.default.index                      {
                                      z-index: 100;
                                      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
             i                       {font-size: 2em;
-                                     
+
             }
         }
         h4 a                        {color: @white;
@@ -472,8 +471,10 @@ body.exploring                  {
                                          background-color: rgba(0,0,0,0.6);
                                          width: 100%;
                                          height: 100%;
+                                         text-align: center;
+                img                    {position: absolute;}
             }
-            embed#town_map                   {width: 100%; 
+            embed#town_map                   {width: 100%;
                                          margin:0 auto;
             }
             .admin-panel                {position:absolute;
@@ -520,7 +521,6 @@ body.exploring                  {
                 #instructions_btn,
                 #readable_btn           {position: relative;
                                          float: left;
-                                         display: inline-block;
                                          margin-right: 1em;
                                          font-size: @font-size-small;
                                          text-transform: capitalize;
@@ -619,7 +619,7 @@ body.reporting                               {
       }
     }
     .popover p                       {text-align: left;
-    }            
+    }
 }
 
 /*-- listing --------------------------------------------------*/
@@ -669,7 +669,7 @@ body.user                           {
             }
         th                          {vertical-align: top;
         }
-            
+
         }
         }
     }
@@ -696,7 +696,7 @@ body.user #page          {
                                 margin-bottom: 21px;
         }
     }
-    
+
     /*tab content */
     .tab-pane                  {padding: @line-height-computed;
                                 padding-bottom: 0;
@@ -714,7 +714,7 @@ body.user #page          {
     /* common styles for reporting tables */
     table                  {text-align:left;}
 
-    div.row.tabrow         {background-color: @pallette1; 
+    div.row.tabrow         {background-color: @pallette1;
         ul.nav-tabs            {padding-left: 1em;
                                 background-color: @pallette1;
                                 border-bottom: 1px solid transparent;
@@ -831,7 +831,7 @@ body.user #page          {
                                             text-align: center;
                                             line-height: 2em;
                                             width: 3em;
-                    i                      {text-align: center; 
+                    i                      {text-align: center;
                                             left: 1em;
                     }
                     &:after                {border-left: 16px solid @info;
@@ -846,7 +846,7 @@ body.user #page          {
                     }
                 }
             }
-        } 
+        }
         p.progress-message          {position: static;
                                      color: #aaa;
         }
@@ -863,7 +863,6 @@ body.user #page          {
                 }
                 span.badge-level-count {position: relative;
                                         float: right;
-                                        display: inline-block;
                                         background-color: #efefef;
                                         border-radius: 1.5em;
                                         margin-left: 1em;
@@ -1010,7 +1009,6 @@ body.user #page          {
                 }
             }
             .cr                                  {position: relative;
-                                                  display: inline-block;
                                                   border: 1px solid #a9a9a9;
                                                   border-radius: .25em;
                                                   width: 1.3em;
@@ -1073,7 +1071,7 @@ body.user #page          {
                                                         cursor: pointer;
                     }
                     input.read-with-comment,
-                    input.unread-with-comment          {display: none; 
+                    input.unread-with-comment          {display: none;
                     }
                     a.delete                           {color: @danger;
                     }
@@ -1092,7 +1090,7 @@ body.user #page          {
 
     /* tab pane for settings */
     #tab_settings                          {
-        #set_review_select                 {width: 20em;        
+        #set_review_select                 {width: 20em;
                                             float: left;
                                             margin-right: 2em;
                                             margin-bottom: 10em;
