@@ -2,8 +2,7 @@
 
 <!--# LOADING MASK ========================================================-->
 <div id='loading-mask'>
-    <img src={{=URL('static', 'images/ajax-loader.gif')}}
-        style="margin:40%;" alt='loading' />
+    <img src={{=URL('static', 'images/ajax-loader.gif')}} alt='loading' />
 </div>
 
 <!--# ADMIN PANEL ========================================================-->
@@ -185,7 +184,7 @@ $(document).ready(function(){
 
     // ========== handle bg image dimensions =============== //
     function fit_to_height() {
-        var headroom = $('.navbar').outerHeight();
+        var headroom = $('.navbar').innerHeight();
         var footroom = $('#footer').outerHeight();
         var divheight = window.innerHeight - (headroom  + footroom);
         $('#page, .speaker img, #town_map').each(function(){
@@ -194,6 +193,8 @@ $(document).ready(function(){
             console.log('set height to:' + divheight);
         });
         $('#town_map').width('100%');
+        $spinner = $('#loading-mask img')
+        $spinner.css('top', (divheight / 2) - ($spinner.outerHeight() / 2) );
     }
     fit_to_height();
 
