@@ -495,6 +495,28 @@ body.exploring                  {
             .speaker                    {position: absolute;
                 img                     {}
             }
+            .prompt                     {
+                li                      {color: @pallette4;
+
+                }
+            }
+            .responder                  {
+                table.web2py_radiowidget      {
+                    td                         {text-indent: -1.2em;
+                                                padding-left: 1.2em;
+                                                padding-bottom: 0.25em;
+                        input                      {vertical-align: middle;
+                                                    margin-top: 0;
+                        }
+                        label                      {margin-left: 0.5em;
+                                                    font-size: @font-size-largest;
+                                                    font-weight: normal;
+                                                    white-space: normal;
+                                                    display: inline;
+                        }
+                    }
+                }
+            }
             .prompt,
             .responder                  {background-color: #fff;
                                          position: relative;
@@ -502,10 +524,12 @@ body.exploring                  {
                                          width: 50%;
                                          margin: 1em 1em 0 0;
                                          margin-left: 40%;
-                                         padding: 1em;
+                                         padding: 1.5em;
+                                         padding-bottom: 1em;
                                          font-family: "SBL Greek";
-                                         font-size: @font-size-large;
+                                         font-size: @font-size-largest;
                                          box-shadow: 0 0 6px rgba(0,0,0,0.5);
+                                         border-radius: 2px;
                 .jp-audio               {width:30px;
                                          float:right;
                                          padding: 0;
@@ -857,12 +881,12 @@ body.user #page          {
         }
         .nav-tabs                  {height: 100%;
                                     margin-right: 0px;
-            li                     {
+            li                     {text-align: right;
                 a                  {line-height: 4em;
                                     color: #aaa;
                 }
                 span.badge-level-count {position: relative;
-                                        float: right;
+                                        display: inline-block;
                                         background-color: #efefef;
                                         border-radius: 1.5em;
                                         margin-left: 1em;
@@ -1015,8 +1039,9 @@ body.user #page          {
                                                   height: 1.3em;
                                                   margin-top: 0.6em;
                                                   margin-bottom: 0.6em;
-                                                  float: left;
-                                                  margin-right: .5em;
+                                                  margin-left: .5em;
+                                                  vertical-align: middle;
+                                                  display: inline-block;
 
                 .cr-icon                         {position: absolute;
                                                   font-size: .8em;
