@@ -52,6 +52,11 @@ def index():
     response.files.append(URL('static', 'js/play_audio_clip.js'))
     response.files.append(URL('static', 'css/jplayer.pink.flag.css'))
     response.files.append(URL('static', 'js/svg-pan-zoom.min.js'))
+    # to add panning and zooming to svg map
+    response.files.append(URL('static', 'js/insQ.min.js'))
+    # to detect element insertion for svg
+    response.files.append(URL('static', version_file('js/exploring.js')))
+    response.files.append(URL('static', version_file('js/svg_interactions.js')))
     return {}
 
 

@@ -30,7 +30,7 @@
   </metadata>
   <style
      id="style29011">
-        #domus_A_mask, #domus_A_tip, 
+        #domus_A_mask, #domus_A_tip,
         #bath_mask, #bath_tip,
         #agora_mask, #agora_tip,
         #synagogue_mask, #synagogue_tip,
@@ -44,15 +44,15 @@
         #hotspot_guide_trigger {
             display:inline;
         }
-        #domus_A, #bath, #gymnasion, #agora, #synagogue, 
+        #domus_A, #bath, #gymnasion, #agora, #synagogue,
         #ne_stoa, #nymphaeum, #temple_A, #hotspot_guide_trigger {
             cursor:pointer;
         }
   </style>
-  <script
+  <!-- <script
      type="text/javascript"
      xlink:href="/paideia/static/js/svg_interactions.js"
-     id="script4122" />
+     id="script4122" /> -->
   <sodipodi:namedview
      pagecolor="#ffffff"
      bordercolor="#666666"
