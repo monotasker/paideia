@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime
+import os
 # import traceback
 if 0:
     from gluon import current, URL, SPAN, XML, A, I
@@ -11,6 +12,40 @@ if 0:
 This file includes the menu content along with other meta content and global
 layout settings
 """
+
+# Versioning for updated static files ======================================
+
+
+def version_file(filestring):
+    '''
+    Return a file path with an added version number in the file name.
+
+    This is to help force browsers to re-download new versions of cached static
+    files. It does not actually change the name of the referenced file. It
+    simply returns a path with an alias for the filename. This must be paired
+    with a rewriting script that serves the real file instead of the
+    (non-existent) aliased file.
+    '''
+    am_on = False
+    if am_on:
+        filepath = os.path.join(request.env.web2py_path,
+                                'applications/',
+                                request.application,
+                                'static/',
+                                filestring)
+        try:
+            mtime = str(int(os.path.getmtime(filepath)))
+            mypath, myname = filestring.split('/')
+            namebase, namext = myname.split('.')
+            newpath = os.path.join(mypath,
+                                   '{}.{}.{}'.format(namebase, mtime, namext))
+        except OSError, e:
+            print e
+            newpath = 'none'
+    else:
+        newpath = filestring
+    return newpath
+
 
 # Meta =====================================================================
 

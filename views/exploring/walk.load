@@ -2,7 +2,7 @@
 
 <!--# LOADING MASK ========================================================-->
 <div id='loading-mask'>
-    <img src={{=URL('static', 'images/ajax-loader.gif')}} alt='loading' />
+    <img src={{=URL('static', version_file('images/ajax-loader.gif'))}} alt='loading' />
 </div>
 
 <!--# ADMIN PANEL ========================================================-->
@@ -15,9 +15,8 @@ ap.append(form) }}
 <!--# ======================================================================-->
 
 {{if request.args(0) == 'map' or not request.args:}}
-        <!--<object id='town_map' data='../static/images/mosaic_texture.svg' type='image/svg+xml'></object>-->
-        <!--<object id='town_map' data='{{=map["map_image"]}}' type='image/svg+xml'></object>-->
-        <embed id='town_map' src='{{=map["map_image"]}}' type='image/svg+xml' />
+        <object id='town_map' data='{{=map["map_image"]}}' type='image/svg+xml'></object>
+        <!-- <embed id='town_map' src='{{=map["map_image"]}}' type='image/svg+xml' /> -->
 <!--# ======================================================================-->
 <!--# STEP INTERFACE =======================================================-->
 <!--# ======================================================================-->
@@ -177,26 +176,11 @@ ap.append(form) }}
 <script>
 $(document).ready(function(){
 
-    // ========== focus input when bug reporter appears =============== //
-    $('.bug_reporter_modal').on('show.bs.modal', function(event){
-        $('#bug_reporter_comment').focus();
-    });
-
     // ========== handle bg image dimensions =============== //
-    function fit_to_height() {
-        var headroom = $('.navbar').innerHeight();
-        var footroom = $('#footer').outerHeight();
-        var divheight = window.innerHeight - (headroom  + footroom);
-        $('#page, .speaker img, #town_map').each(function(){
-            console.log($(this));
-            $(this).height(divheight);
-            console.log('set height to:' + divheight);
-        });
-        $('#town_map').width('100%');
-        $spinner = $('#loading-mask img')
-        $spinner.css('top', (divheight / 2) - ($spinner.outerHeight() / 2) );
-    }
     fit_to_height();
+    $(window).resize(function() {
+        fit_to_height();
+    });
 
     {{if 'bg_image' in globals():}}
         $('#page').css("background-image", "url({{=bg_image}})");
@@ -206,34 +190,6 @@ $(document).ready(function(){
         $('#page').css("background-image", "none");
         $('#page').css("background-size", "100% auto");
     {{pass}}
-
-    // function set_page_height() {
-    //     var $page = $('#page');
-    //     var width = $page.width();
-    //     if (width >= 1200) {
-    //         $('#page').css("background-size", "100% auto");
-    //         $page.css('height', (width * 0.5));
-    //     }
-    //     else if (width >= 992) {
-    //         $('#page').css("background-size", "100% auto");
-    //         $page.css('height', (width * 0.55));
-    //     }
-    //     else if (width >= 768) {
-    //         $('#page').css("background-size", "100% auto");
-    //         $page.css('height', (width * 0.65));
-    //     }
-    //     else {
-    //         console.log(width);
-    //         $('#page').css("background-size", "auto 100%");
-    //         $page.css('height', 600);
-    //     }
-    // }
-    // set_page_height();
-
-    $(window).resize(function() {
-        fit_to_height();
-    //     set_page_height();
-    });
 
     // ========== handle popover content =============== //
     $('.popover-trigger').each(function() {
@@ -250,44 +206,18 @@ $(document).ready(function(){
     });
 
     // ========== handle pan and zoom for svg map =============== //
-    var mymap = null
-    const beforePan = (oldPan, newPan) => {
-        const sizes = mymap.getSizes();
-
-        // Multiply viewbox width of SVG by current zoom and subtract
-        // viewport width to get amount of overflown SVG.
-        const x = -((sizes.viewBox.width * sizes.realZoom) - sizes.width);
-
-        // Multiply viewbox height of SVG by current zoom and subtract
-        // viewport height to get amount of overflown SVG.
-        const y = -((sizes.viewBox.height * sizes.realZoom) - sizes.height);
-
-        // Determine what’s lower, the current drag x/y coords or zero
-        const minx = Math.min(0, newPan.x);
-        const miny = Math.min(0, newPan.y);
-
-        return {
-            x: Math.max(x, minx),
-            y: Math.max(y, miny)
-        };
-    };
-    mapInit = function(){
-        mymap = svgPanZoom('#town_map', {
-                                 beforePan,
-                                 zoomEnabled: true,
-                                 controlIconsEnabled: false,
-                    });
-        fit_to_height();
-        mymap.contain();
-        mymap.pan({x: 0, y: 0});
-    }
-    window.setTimeout(mapInit, 1000);
-    //$map.ready(mapInit);
+    {{if request.args(0) == 'map' or not request.args:}}
+        make_map_pan('town_map');
+    {{pass}}
 
     // ========== prevent cutting and pasting from responder input =============== //
-    $('div.responder input').bind("cut copy paste",function(e) {
-          e.preventDefault();
+    console.log('preventing paste');
+    $('div.responder input').bind("cut copy paste", function(e) {
+        console.log($(this));
+        e.preventDefault();
     });
+
+    $('.responder .back-to-map').on('click', show_mask);
 
 });
 

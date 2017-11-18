@@ -5,5 +5,8 @@
     {{v = ''}}
 {{pass}}
 
-{{=LOAD('exploring','walk.load', vars=v, ajax=True)}}
+<div id="exploring-mask">
+    <img src={{=URL('static', version_file('images/ajax-loader.gif'))}} alt='loading' />
+</div>
 
+{{=LOAD('exploring','walk.load', vars=v, ajax=True)}}
