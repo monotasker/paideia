@@ -248,24 +248,32 @@ import json
     <!-- TAB 4 - SETTINGS ==============================================================-->
       <div class='container'>
           <h3>Review a badge set</h3>
-          <select id='set_review_select' class='form-control'>
-            {{if reviewing_set:}}
-              {{=OPTION('badge set {}'.format(str(reviewing_set)))}}
-              {{=OPTION('Stop reviewing')}}
-            {{else:}}
-              {{=OPTION('Not reviewing')}}
-            {{pass}}
-            {{for n in [num for num in range(1,21) if num != int(max_set)]:}}
-              {{=OPTION('badge set {}'.format(str(n)))}}
-            {{pass}}
-          </select>
-          <p class='review-instructions'>If you select a badge set from the menu above, you will
-              only be given paths selected (randomly) from that badge
-              set. When you want to return to the normal selection of
-              paths, select 'Stop reviewing.'
-          </p>
+          <div class="row">
+              <div class="col-sm-3">
+                  <select id='set_review_select' class='form-control'>
+                    {{if reviewing_set:}}
+                      {{=OPTION('badge set {}'.format(str(reviewing_set)))}}
+                      {{=OPTION('Stop reviewing')}}
+                    {{else:}}
+                      {{=OPTION('Not reviewing')}}
+                    {{pass}}
+                    {{for n in [num for num in range(1,21) if num != int(max_set)]:}}
+                      {{=OPTION('badge set {}'.format(str(n)))}}
+                    {{pass}}
+                  </select>
+              </div> <!-- close col div -->
+              <div class="col-sm-9">
+                  <p class='review-instructions'>If you select a badge set from the menu above, you will
+                      only be given paths selected (randomly) from that badge
+                      set. When you want to return to the normal selection of
+                      paths, select 'Stop reviewing.'
+                  </p>
+                  <p class="bg-info text-info">Reviewing is automatically turned off at the beginning of each day, so you will need to select a review set again on each day that you want to continue reviewing.</p>
+                  <p class="bg-danger text-danger">Keep in mind that while you are reviewing you are not making progress with your newest badge set.</p>
+                  <p class='review-instructions'>Note that because review mode selects paths randomly you may experience more repetition than usual. You are also not allowed to review your current badge set. This is because the review function does not focus on any particular badges within a set. Regular mode, though, focuses at least half of your paths each day on the specific badges that remain at "beginner" level. So regular mode is actually better for progressing through your newest material.</p>
+              </div> <!-- close col div -->
+          </div> <!-- close row div -->
       </div> <!-- close container div -->
-
     </div>  <!-- close Settings tab pane -->
 
     <div role="tabpanel" class="tab-pane" id="tab_stats">

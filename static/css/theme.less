@@ -26,6 +26,10 @@ body                        {margin-top: 0;
     }
 }
 
+.bg-info,
+.bg-danger                  {padding: 0.5em 1em;
+}
+
 /* custom inclusion of right, left and below tabs */
 
 .tabs-below > .nav-tabs,
@@ -880,7 +884,7 @@ body.user #page          {
             }
         }
         p.progress-message          {position: static;
-                                     color: #aaa;
+                                     color: #888;
         }
     }
 
@@ -891,7 +895,7 @@ body.user #page          {
                                     margin-right: 0px;
             li                     {text-align: right;
                 a                  {line-height: 4em;
-                                    color: #aaa;
+                                    color: #888;
                 }
                 span.badge-level-count {position: relative;
                                         display: inline-block;
@@ -1123,12 +1127,9 @@ body.user #page          {
 
     /* tab pane for settings */
     #tab_settings                          {
-        #set_review_select                 {width: 20em;
-                                            float: left;
-                                            margin-right: 2em;
-                                            margin-bottom: 10em;
-        }
-        .review-instructions               {color: #aaa;
+        #set_review_select                 {margin-bottom: 1em;}
+        .review-instructions               {color: #888;
+                                            border-radius: 2px;
         }
     }
 }
