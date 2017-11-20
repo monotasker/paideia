@@ -1846,7 +1846,6 @@ class User(object):
     data and the paths completed and active in this session.
 
     """
-
     def __init__(self, userdata, tag_records, tag_progress, blocks=[],
                  test_db=None, cur_time=None):
         """
@@ -1896,7 +1895,8 @@ class User(object):
                                   if c.classes.start_date <= mynow)
                 target = [m.classes.paths_per_day for m in msel
                           if m.classes.paths_per_day and
-                          m.classes.start_date == most_recent][0]
+                          m.classes.start_date == most_recent and
+                          m.classes.end_date >= mynow][0]
             except IndexError:
                 print 'User had no class quota.'
                 print traceback.format_exc(5)
@@ -2391,7 +2391,8 @@ class Categorizer(object):
         categories = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
         tag_records = tag_records if tag_records else self.tag_records
         for record in tag_records:
-            if debug: print 'tag', record['tag'], '========================'
+            if debug:
+                print 'tag', record['tag'], '========================'
             lrraw = record['tlast_right']
             lwraw = record['tlast_wrong']
             lr = lrraw if not isinstance(lrraw, str) else parser.parse(lrraw)
