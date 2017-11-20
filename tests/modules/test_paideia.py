@@ -4359,34 +4359,41 @@ class TestUser(object):
                     'secondary_right': None}]
         if ismember:
             mystartA = datetime.datetime(2016, 1, 15)
+            myendA = datetime.datetime(2016, 6, 15)
             mystartB = datetime.datetime(2017, 1, 15)
+            myendB = datetime.datetime(2017, 6, 15)
             mystartC = datetime.datetime(2040, 1, 15)
+            myendC = datetime.datetime(2040, 6, 15)
             classAid = db.classes.insert(institution='Tyndale Seminary',
                                          academic_year='2016',
                                          start_date=mystartA,
+                                         end_date=myendA,
                                          paths_per_day=5)
             classBid = db.classes.insert(institution='Tyndale Seminary',
                                          academic_year='2017',
                                          start_date=mystartB,
+                                         end_date=myendB,
                                          paths_per_day=25)
             classCid = db.classes.insert(institution='Tyndale Seminary',
                                          academic_year='2040',
                                          start_date=mystartC,
+                                         end_date=myendC,
                                          paths_per_day=7)
             memAid = db.class_membership.insert(name=1,
-                                                 class_section=classAid)
+                                                class_section=classAid)
             memBid = db.class_membership.insert(name=1,
-                                                 class_section=classBid)
+                                                class_section=classBid)
             memCid = db.class_membership.insert(name=1,
-                                                 class_section=classCid)
-        actual = User(userdata, tagrecs, tagprog, blocks=None,
-                      test_db=db, cur_time=nowtime)
+                                                class_section=classCid)
+            db.commit()
+        actual = User(userdata, tagrecs, tagprog, test_db=db, cur_time=nowtime)
         actual.quota = result
         # clean up DB
         if ismember:
             db(db.classes.id.belongs([classAid, classBid, classCid])).delete()
             db(db.class_membership.id.belongs([memAid, memBid, memCid])
                ).delete()
+            db.commit()
 
     @pytest.mark.skipif(False, reason='just because')
     def test_user_get_id(self, db):
