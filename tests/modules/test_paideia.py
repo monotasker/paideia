@@ -23,10 +23,10 @@ from pprint import pprint
 import re
 from copy import copy
 from random import randint, randrange
-#from dateutil import parser
+# from dateutil import parser
 # from difflib import Differ
 from itertools import chain
-#from urllib import quote_plus
+# from urllib import quote_plus
 import pickle
 
 
@@ -62,7 +62,8 @@ def log_generator(uid, tag, count, numright, lastright, lastwrong, earliest,
     stepids = [t['id'] for t in tagsteps]
     steppaths = db(db.paths.steps.contains(stepids)
                    ).select(db.paths.id, db.paths.steps).as_list()
-    pathids = {s: p['id'] for s in stepids for p in steppaths if s in p['steps']}
+    pathids = {s: p['id'] for s in stepids for p in steppaths
+               if s in p['steps']}
     if len(pathids.keys()) > 0:
         for n in range(count):
             mystep = pathids.keys()[randint(0, len(pathids.keys()) - 1)]
@@ -74,13 +75,14 @@ def log_generator(uid, tag, count, numright, lastright, lastwrong, earliest,
                 mydt = lastwrong
             else:
                 mydt = earliest + datetime.timedelta(
-                    seconds=randint(0, int((latest - earliest).total_seconds())))
+                    seconds=randint(0, int((latest - earliest).total_seconds())
+                                    ))
             rowdict = {'name': uid,
-                    'step': mystep,
-                    'in_path': pathids[int(mystep)],
-                    'score': score,
-                    'dt_attempted': mydt,
-                    'user_response': 'norwiegian blue'}
+                       'step': mystep,
+                       'in_path': pathids[int(mystep)],
+                       'score': score,
+                       'dt_attempted': mydt,
+                       'user_response': 'norwiegian blue'}
             datalist.append(rowdict)
     loglist = db.attempt_log.bulk_insert(datalist)
     db.commit()
@@ -2803,7 +2805,8 @@ def mysteps():
                    'locations': [3, 1, 2, 4, 12, 13, 6, 7, 8, 11, 5, 9, 10],
                    'npc_list': [14, 8, 2, 40, 31, 32, 41, 1, 17, 42],
                    'raw_prompt': prompts['quota'],
-                   'final_prompt': prompts['quota'].replace('[[user]]', 'Homer'),
+                   'final_prompt': prompts['quota'].replace('[[user]]',
+                                                            'Homer'),
                    'instructions': None,
                    'slidedecks': None,
                    'tags': [79],
@@ -2897,7 +2900,8 @@ def mycases(casenum, user_login, db):
                                           'cat3': [], 'cat4': [],
                                           'rev1': [], 'rev2': [],
                                           'rev3': [], 'rev4': []},
-                       'paths': {'cat1': [p.id for p in allpaths if 61 in p.tags],  # [1, 2, 3, 5, 8, 63, 95, 96, 99, 102, 256],  # removed 64, 70, 97, 104, 277
+                       'paths': {'cat1': [p.id for p in allpaths
+                                          if 61 in p.tags],
                                  'cat2': [],
                                  'cat3': [],
                                  'cat4': []},
@@ -2950,8 +2954,10 @@ def mycases(casenum, user_login, db):
                                           'cat3': [], 'cat4': [],
                                           'rev1': [], 'rev2': [],
                                           'rev3': [], 'rev4': []},
-                       'paths': {'cat1': [p.id for p in allpaths if 62 in p.tags],  # [4, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 34, 35, 97, 98, 100, 101, 257, 261],
-                                 'cat2': [p.id for p in allpaths if 61 in p.tags],  # [1, 2, 3, 5, 8, 63, 95, 96, 97, 99, 102, 256],
+                       'paths': {'cat1': [p.id for p in allpaths
+                                          if 62 in p.tags],
+                                 'cat2': [p.id for p in allpaths
+                                          if 61 in p.tags],
                                  'cat3': [],
                                  'cat4': []},
                        'steps_here': [1, 2, 30, 125, 126, 127],
@@ -3020,7 +3026,8 @@ def mycases(casenum, user_login, db):
                                         'rev3': [], 'rev4': []},
                        'introduced': [9, 16, 48, 76, 93],
                        'tag_progress_out': {'latest_new': 4,
-                                            'cat1': [62, 63, 68, 115, 72, 89, 36],
+                                            'cat1': [62, 63, 68, 115, 72, 89,
+                                                     36],
                                             'cat2': [61, 66],
                                             'cat3': [], 'cat4': [],
                                             'rev1': [], 'rev2': [],
@@ -3031,15 +3038,17 @@ def mycases(casenum, user_login, db):
                                             'cat3': [], 'cat4': [],
                                             'rev1': [], 'rev2': [],
                                             'rev3': [], 'rev4': []},
-                       'categories_out': {'cat1': [68, 115, 72, 89, 36, 62, 63],
+                       'categories_out': {'cat1': [68, 115, 72, 89, 36, 62,
+                                                   63],
                                           'cat2': [61, 66],
                                           'cat3': [], 'cat4': [],
                                           'rev1': [], 'rev2': [],
                                           'rev3': [], 'rev4': []},
-                       'paths': {'cat1': [p.id for t in [68, 115, 72, 89, 36, 62, 63]
-                                          for p in allpaths if t in p.tags],  # [4, 6, 7, 9, 10, 11, 12, 13, 14,
+                       'paths': {'cat1': [p.id for t in [68, 115, 72, 89, 36,
+                                                         62, 63]
+                                          for p in allpaths if t in p.tags],
                                  'cat2': [p.id for t in [61, 66]
-                                          for p in allpaths if t in p.tags],  # [1, 2, 3, 5, 8, 26, 36, 63, 64,
+                                          for p in allpaths if t in p.tags],
                                  'cat3': [],
                                  'cat4': []},
                        'steps_here': [1, 2, 30, 125, 126, 127],
@@ -3082,17 +3091,19 @@ def mycases(casenum, user_login, db):
                                         'times_wrong': 2,
                                         'secondary_right': [dt('2013-01-28'),
                                                             dt('2013-01-28'),
-                                                            dt('2013-01-28')]}],
+                                                            dt('2013-01-28')]}
+                                       ],
                        'tag_records_out': [{'name': 1,
                                             'tag': 61,  # 2ndary overrides time
                                             'tlast_right': dt('2013-01-28'),
                                             'tlast_wrong': dt('2013-01-21'),
                                             'times_right': 10,
                                             'times_wrong': 10,
-                                            'secondary_right': [dt('2013-01-29')]
+                                            'secondary_right':
+                                            [dt('2013-01-29')]
                                             },
                                            {'name': 1,
-                                            'tag': 62,  # 2ndary overrides ratio
+                                            'tag': 62,  # 2ary overrides ratio
                                             'tlast_right': dt('2013-01-29'),
                                             'tlast_wrong': dt('2013-01-28'),
                                             'times_right': 10,
@@ -3124,9 +3135,9 @@ def mycases(casenum, user_login, db):
                                           'rev1': [], 'rev2': [],
                                           'rev3': [], 'rev4': []},
                        'paths': {'cat1': [p.id for t in [63, 72, 115]
-                                          for p in allpaths if t in p.tags],  # [6, 20, 24, 25, 27, 28, 33, 37,
+                                          for p in allpaths if t in p.tags],
                                  'cat2': [p.id for t in [61, 62]
-                                          for p in allpaths if t in p.tags],  # [1, 2, 3, 5, 8, 63, 64, 70, 95, 96,
+                                          for p in allpaths if t in p.tags],
                                  'cat3': [],
                                  'cat4': []},
                        'steps_here': [1, 2, 30, 125, 126, 127],
@@ -3178,9 +3189,9 @@ def mycases(casenum, user_login, db):
                                           'rev1': [], 'rev2': [],
                                           'rev3': [], 'rev4': []},
                        'paths': {'cat1': [p.id for t in [62]
-                                          for p in allpaths if t in p.tags],  # [4, 7, 9, 10, 11, 12, 13, 14, 15,
+                                          for p in allpaths if t in p.tags],
                                  'cat2': [p.id for t in [61]
-                                          for p in allpaths if t in p.tags],  # [1, 2, 3, 5, 8, 63, 95, 96, 97, 99,
+                                          for p in allpaths if t in p.tags],
                                  'cat3': [],
                                  'cat4': []},
                        'new_badges': [62],
@@ -3411,7 +3422,7 @@ def myStepEvaluator(stepid, mysteps):
         responses = ['incorrect', 'correct']
         user_responses = ['bla', mysteps[stepid]['responses']['response1']]
         kwargs = {'responses': mysteps[stepid]['responses'],
-                    'tips': mysteps[stepid]['tips']}
+                  'tips': mysteps[stepid]['tips']}
         return {'eval': StepEvaluator(**kwargs),
                 'tips': mysteps[stepid]['tips'],
                 'reply_text': mysteps[stepid]['reply_text'][responses[n]],
@@ -3430,7 +3441,7 @@ def myMultipleEvaluator(mysteps):
         responses = ['incorrect', 'correct']
         user_responses = ['bla', mysteps['responses']['response1']]
         kwargs = {'responses': mysteps['responses'],
-                    'tips': mysteps['tips']}
+                  'tips': mysteps['tips']}
         return {'eval': MultipleEvaluator(**kwargs),
                 'tips': mysteps['tips'],
                 'reply_text': mysteps['reply_text'][responses[n]],
@@ -3469,7 +3480,9 @@ class TestNpc():
 
     def test_npc_get_image(self, mynpc):
         """Test for method Npc.get_image()"""
-        expected = '<img src="/paideia/static/images/images.image.a23c309d310405ba.70656f706c655f616c6578616e6465722e737667.svg" />'
+        expected = '<img src="/paideia/static/images/' \
+            'images.image.a23c309d310405ba.' \
+            '70656f706c655f616c6578616e6465722e737667.svg" />'
         actual = mynpc.get_image().xml()
         assert actual == expected
 
@@ -3481,7 +3494,8 @@ class TestNpc():
 
     def test_npc_get_description(self, mynpc):
         """Test for method Npc.get_description()"""
-        assert mynpc.get_description() == "Ἀλεξανδρος is a shop owner and good friend of Simon's household. His shop is in the agora."
+        assert mynpc.get_description() == "Ἀλεξανδρος is a shop owner and " \
+            "good friend of Simon's household. His shop is in the agora."
 
 
 @pytest.mark.skipif(not global_runall and not global_run_TestLocation,
@@ -3508,7 +3522,8 @@ class TestLocation():
         """Test for method Location.get_bg"""
         actual = myloc.get_bg()
         expected = '/paideia/static/images/images.image.8c8545dd2dac6485.' \
-                   '46696c6520323031362d30322d30362c20313220323920353920504d2e706e67.png'
+                   '46696c6520323031362d30322d30362c20313220323' \
+                   '920353920504d2e706e67.png'
         assert actual == expected
 
     def test_location_get_id(self, myloc):
@@ -3564,21 +3579,26 @@ class TestStep():
           ['Focus on finding Greek letters that make the *sounds* of the '
            'English word. Don\'t look for Greek "equivalents" for each '
            'English letter.'],  # instructions
-          {1: 'Introduction', 2: 'The Alphabet', 6: 'Noun Basics', 7: 'Greek Words I'},
+          {1: 'Introduction', 2: 'The Alphabet', 6: 'Noun Basics',
+           7: 'Greek Words I'},
           None,  # widget image
           [],  # response buttons
           '<form action="#" autocomplete="off" enctype="multipart/form-data" '
           'method="post"><table><tr id="no_table_response__row">'
-          '<td class="w2p_fl"><label class="" for="no_table_response" id="no_table_'
+          '<td class="w2p_fl"><label class="" for="no_table_response" '
+          'id="no_table_'
           'response__label">Response: </label></td><td class="w2p_fw">'
           '<input class="string" id="no_table_response" name="response" '
           'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
           'id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw">'
           '<input type="submit" value="Submit" /></td><td class="w2p_fc"></td>'
-          '</tr></table><div style="display:none;"><input name="pre_bug_step_id" '
+          '</tr></table><div style="display:none;">'
+          '<input name="pre_bug_step_id" '
           'type="hidden" value="1" /></div></form>',
           None,  # kwargs
-          {'audio_args_for_js': "{'m4a': '/paideia/default/download.load/audio.clip_m4a.b6e1beb8683180e8.53746570303030312e6d3461.m4a', 'title': ''}",
+          {'audio_args_for_js': "{'m4a': '/paideia/default/download.load/"
+           "audio.clip_m4a.b6e1beb8683180e8.53746570303030312e6d3461.m4a', "
+           "'title': ''}",
            'ogg': None,
            'media_supplied': 'm4a',
            'mp3': '', 'title': 'StepPrompt0001'},  # audio
@@ -3588,21 +3608,26 @@ class TestStep():
           [1],  # npcs here (for step)
           'How could you write the word "bought" using Greek letters?',  # text
           None,  # instructions
-          {1: 'Introduction', 2: 'The Alphabet', 6: 'Noun Basics', 7: 'Greek Words I'},
+          {1: 'Introduction', 2: 'The Alphabet', 6: 'Noun Basics',
+           7: 'Greek Words I'},
           None,  # widget image
           [],  # response buttons
           '<form action="#" autocomplete="off" enctype="multipart/form-data" '
           'method="post"><table><tr id="no_table_response__row">'
-          '<td class="w2p_fl"><label class="" for="no_table_response" id="no_table_'
+          '<td class="w2p_fl"><label class="" for="no_table_response" '
+          'id="no_table_'
           'response__label">Response: </label></td><td class="w2p_fw">'
           '<input class="string" id="no_table_response" name="response" '
           'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
           'id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw">'
           '<input type="submit" value="Submit" /></td><td class="w2p_fc"></td>'
-          '</tr></table><div style="display:none;"><input name="pre_bug_step_id" '
+          '</tr></table><div style="display:none;">'
+          '<input name="pre_bug_step_id" '
           'type="hidden" value="2" /></div></form>',
           None,  # kwargs
-          {'audio_args_for_js': "{'m4a': '/paideia/default/download.load/audio.clip_m4a.abef698d8dae36e3.53746570303030322e6d3461.m4a', 'title': ''}",
+          {'audio_args_for_js': "{'m4a': '/paideia/default/download.load/"
+           "audio.clip_m4a.abef698d8dae36e3.53746570303030322e6d3461.m4a', "
+           "'title': ''}",
            'ogg': None, 'media_supplied': 'm4a',
            'mp3': '',
            'title': 'StepPrompt0002'},  # audio
@@ -3610,7 +3635,7 @@ class TestStep():
          ('case2', 19,  # StepText ------------------------------
           'agora',
           [1],  # npcs here
-          'How could you spell the word "pole" with Greek letters?',  # prompt text
+          'How could you spell the word "pole" with Greek letters?',  # prompt
           ['Focus on finding Greek letters that make the *sounds* of the '
            'English word. Don\'t look for Greek "equivalents" for each '
            'English letter.'],
@@ -3620,16 +3645,20 @@ class TestStep():
           [],  # response buttons
           '<form action="#" autocomplete="off" enctype="multipart/form-data" '
           'method="post"><table><tr id="no_table_response__row">'
-          '<td class="w2p_fl"><label class="" for="no_table_response" id="no_table_'
+          '<td class="w2p_fl"><label class="" for="no_table_response" '
+          'id="no_table_'
           'response__label">Response: </label></td><td class="w2p_fw">'
           '<input class="string" id="no_table_response" name="response" '
           'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
           'id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw">'
           '<input type="submit" value="Submit" /></td><td class="w2p_fc"></td>'
-          '</tr></table><div style="display:none;"><input name="pre_bug_step_id" '
+          '</tr></table><div style="display:none;">'
+          '<input name="pre_bug_step_id" '
           'type="hidden" value=".*" /></div></form>',
           None,  # kwargs
-          {'audio_args_for_js': "{'m4a': '/paideia/default/download.load/audio.clip_m4a.857ac2a83978839d.53746570303031392e6d3461.m4a', 'title': ''}",
+          {'audio_args_for_js': "{'m4a': '/paideia/default/download.load/"
+           "audio.clip_m4a.857ac2a83978839d.53746570303031392e6d3461.m4a', "
+           "'title': ''}",
            'ogg': None, 'media_supplied': 'm4a',
            'mp3': '', 'title': 'StepPrompt0019'},  # audio
           ),  # will redirect (currently no case works for step 19)
@@ -3655,17 +3684,20 @@ class TestStep():
           {14: 'Clause Basics'},
           None,  # widget image
           [],  # response buttons
-          r'<form action="#" enctype="multipart/form-data" method="post"><table>'
+          r'<form action="#" enctype="multipart/form-data" '
+          'method="post"><table>'
           '<tr id="no_table_response__row"><td class="w2p_fl"><label class="" '
           'for="no_table_response" id="no_table_response__label">Response: '
-          '</label></td><td class="w2p_fw"><table class="generic-widget web2py_radiowidget" '
+          '</label></td><td class="w2p_fw"><table '
+          'class="generic-widget web2py_radiowidget" '
           'id="no_table_response" name="response"><tr><td><input '
           'id="response\xce\xbd\xce\xb1\xce\xb9" name="response" type="radio" '
           'value="\xce\xbd\xce\xb1\xce\xb9" /><label for="response\xce\xbd\xce'
           '\xb1\xce\xb9">\xce\xbd\xce\xb1\xce\xb9</label></td></tr><tr><td>'
           '<input id="response\xce\xbf\xe1\xbd\x90" name="response" '
           'type="radio" value="\xce\xbf\xe1\xbd\x90" /><label for="response'
-          '\xce\xbf\xe1\xbd\x90">\xce\xbf\xe1\xbd\x90</label></td></tr></table>'
+          '\xce\xbf\xe1\xbd\x90">\xce\xbf\xe1\xbd\x90</label></td></tr>'
+          '</table>'
           '</td><td class="w2p_fc"></td></tr><tr id="submit_record__row"><td '
           'class="w2p_fl"></td><td class="w2p_fw"><input type="submit" '
           'value="Submit" /></td><td class="w2p_fc"></td></tr></table>'
@@ -3693,7 +3725,7 @@ class TestStep():
           [1, 14, 17, 40, 41, 42],  # npcs here
           'Congratulations, Homer! \r\n'  # prompt text
           'You have been promoted to these new badge levels:\r\n'
-          '- apprentice alphabet basics\r\n'  # FIXME: order is wrong in message
+          '- apprentice alphabet basics\r\n'  # FIXME: message order is wrong
           '\r\n'
           ' and you\'re ready to start working on some new badges:\r\n'
           '- beginner alphabet (intermediate)\r\n'
@@ -3730,7 +3762,8 @@ class TestStep():
           [1, 14, 17, 21, 40, 41, 42],  # npcs here
           'Take some time now to review these new slide '
           'sets. They will help with work on your new badges:\n'
-          '- [The Alphabet II http://ianwscott.webfactional.com/paideia/listing/slides.html/3]',
+          '- [The Alphabet II http://ianwscott.webfactional.com/paideia/'
+          'listing/slides.html/3]',
           # removed data-w2p_disable_with="default" from <a>
           None,  # instructions
           None,  # slide decks
@@ -3791,11 +3824,12 @@ class TestStep():
         elif rform:
             pprint(actual['response_form'])
             assert actual['response_form']
-        assert actual['bugreporter'] == None
+        assert actual['bugreporter'] is None
         assert actual['response_buttons'] == rbuttons
         # print 'audio'
         # print actual['audio']
-        assert actual['audio'] == audio  # FIXME: add case with audio (path 380, step 445)
+        assert actual['audio'] == audio
+        # FIXME: add case with audio (path 380, step 445)
         assert actual['loc'] == alias
 
     @pytest.mark.skipif(False, reason='just because')
@@ -3806,16 +3840,19 @@ class TestStep():
           None,  # promoted
           None,  # nextloc
           20,  # quota
-          'How could you write the word "meet" using Greek letters?',  # promptin
-          {'newstr': 'How could you write the word "meet" using Greek letters?'},  # promptout
+          'How could you write the word "meet" using Greek letters?',  # pmptin
+          {'newstr': 'How could you write the word "meet" using Greek '
+           'letters?'},  # promptout
           ),
          (2,  # step
           [62],  # newbadges
           {'cat1': [], 'cat2': [61], 'cat3': [], 'cat4': []},  # promoted
           None,  # nextloc
           20,  # quota
-          'How could you write the word "bought" using Greek letters?',  # promptin
-          {'newstr': 'How could you write the word "bought" using Greek letters?'},  # promptout
+          'How could you write the word "bought" using Greek '
+          'letters?',  # promptin
+          {'newstr': 'How could you write the word "bought" using Greek '
+           'letters?'},  # promptout
           ),
          (101,  # step
           [62],  # newbadges
@@ -3823,7 +3860,8 @@ class TestStep():
           None,  # nextloc
           20,  # quota
           'Is this an English clause?\r\n\r\n"The cat sat."',  # promptin
-          {'newstr': 'Is this an English clause?\r\n\r\n"The cat sat."'},  # promptout
+          {'newstr': 'Is this an English clause?\r\n\r\n"The cat '
+           'sat."'},  # promptout
           )
          ])  # don't use steps 30, 125, 126, 127 (block)
     def test_step_make_replacements(self, stepid, newbadges, promoted,
@@ -4042,7 +4080,8 @@ class TestStepEvaluator():
     """Class for evaluating the submitted response string for a Step"""
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('stepid,regex,uresp,rtext,score,tright,twrong,tips',
+    @pytest.mark.parametrize('stepid,regex,uresp,rtext,score,tright,twrong,'
+                             'tips',
         [(1,
           {'response1': '^μιτ$'},
           'μιτ',
@@ -4110,15 +4149,17 @@ class TestStepEvaluator():
         assert actual['tips'] == tips
 
 
-@pytest.mark.skipif('global_runall is False and global_run_TestMultipleEvaluator '
-                    'is False', reason='Global skip settings')
+@pytest.mark.skipif('global_runall is False and '
+                    'global_run_TestMultipleEvaluator is False',
+                    reason='Global skip settings')
 class TestMultipleEvaluator():
     """
     Unit testing class for paideia.MultipleEvaluator class.
     """
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('stepid,regex,uresp,rtext,score,tright,twrong,tips',
+    @pytest.mark.parametrize('stepid,regex,uresp,rtext,score,tright,twrong,'
+                             'tips',
         [(101,
           {'response1': 'ναι'},
           'ναι',
@@ -4337,7 +4378,6 @@ class TestUser(object):
                                datetime.datetime(2017, 8, 30),  # nowtime
                                20),
                               ])
-
     def test_user_init(self, ismember, nowtime, result, db):
         """
         Unit test for initializing values in User object.
@@ -4346,10 +4386,10 @@ class TestUser(object):
                     'id': 1,
                     'time_zone': 'America/Toronto'}
         tagprog = {'latest_new': 2,
-                 'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
-                 'cat3': [], 'cat4': [],
-                 'rev1': [], 'rev2': [61],
-                 'rev3': [], 'rev4': []}
+                   'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                   'cat3': [], 'cat4': [],
+                   'rev1': [], 'rev2': [61],
+                   'rev3': [], 'rev4': []}
         tagrecs = [{'name': 1,
                     'tag': 1,
                     'tlast_right': dt('2013-01-29'),
@@ -6213,54 +6253,61 @@ class TestWalk():
           'class="w2p_fl"><label class="" for="no_table_response" '
           'id="no_table_response__label">Response: </label></td><td '
           'class="w2p_fw"><input class="string" id="no_table_response" '
-          'name="response" type="text" value="" /></td><td class="w2p_fc"></td>'
+          'name="response" type="text" value="" /></td><td class="w2p_fc">'
+          '</td>'
           '</tr><tr id="submit_record__row"><td class="w2p_fl"></td><td '
           'class="w2p_fw"><input type="submit" value="Submit" /></td><td '
           'class="w2p_fc"></td></tr></table><div style="display:none;">'
           '<input name="pre_bug_step_id" type="hidden" value="1" /></div>'
           '</form>',
           True,  # replystep
-          {'audio_args_for_js': "{'m4a': '/paideia/default/download.load/audio.clip_m4a.b6e1beb8683180e8.53746570303030312e6d3461.m4a', 'title': ''}",
+          {'audio_args_for_js': "{'m4a': '/paideia/default/download.load/"
+           "audio.clip_m4a.b6e1beb8683180e8.53746570303030312e6d3461.m4a', "
+           "'title': ''}",
            'media_supplied': 'm4a',
            'mp3': '',
            'ogg': None,
            'title': 'StepPrompt0001'}  # audio
           ),
-         #(3,  # path # case1======================================================
-          #2,  # step
-          #'agora',
-          #[2, 8, 17],  # npcs here FIXME
-          #[{'tag': 1,  # trecs
-            #'tlast_right': dt('2013-01-29'),
-            #'tlast_wrong': dt('2013-01-29'),
-            #'times_right': 1,
-            #'times_wrong': 1,
-            #'secondary_right': None}],
-          #{'latest_new': 1,  # tpout
-           #'cat1': [61], 'cat2': [],
-           #'cat3': [], 'cat4': [],
-           #'rev1': [], 'rev2': [],
-           #'rev3': [], 'rev4': []},
-          #False,  # redirect?
-          #'How could you write the word "bought" using Greek letters?',  # text
-          #None,  # instructions
-          #{1: 'Introduction', 2: 'The Alphabet', 6: 'Noun Basics', 7: 'Greek Words I'},
-          #None,  # widget image
-          #[],  # response buttons
-          #'<form action="#" autocomplete="off" enctype="multipart/form-data" '
-          #'method="post"><table><tr id="no_table_response__row">'
-          #'<td class="w2p_fl"><label for="no_table_response" id="no_table_'
-          #'response__label">Response: </label></td><td class="w2p_fw">'
-          #'<input class="string" id="no_table_response" name="response" '
-          #'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
-          #'id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw">'
-          #'<input type="submit" value="Submit" /></td><td class="w2p_fc"></td>'
-          #'</tr></table><div style="display:none;"><input name="pre_bug_step_id" '
-          #'type="hidden" value="2" /></div></form>',
-          #True,  # replystep
-          #None,  # audio
-          #),
-         (89,  # path # case1======================================================
+         # (3,  # path # case1=================================================
+         #  2,  # step
+         #  'agora',
+         #  [2, 8, 17],  # npcs here FIXME
+         #  [{'tag': 1,  # trecs
+         #    'tlast_right': dt('2013-01-29'),
+         #    'tlast_wrong': dt('2013-01-29'),
+         #    'times_right': 1,
+         #    'times_wrong': 1,
+         #    'secondary_right': None}],
+         #   {'latest_new': 1,  # tpout
+         #    'cat1': [61], 'cat2': [],
+         #    'cat3': [], 'cat4': [],
+         #    'rev1': [], 'rev2': [],
+         #    'rev3': [], 'rev4': []},
+         #   False,  # redirect?
+         #  'How could you write the word "bought" using Greek letters?',
+         #  None,  # instructions
+         #  {1: 'Introduction', 2: 'The Alphabet', 6: 'Noun Basics',
+         #   7: 'Greek Words I'},
+         #  None,  # widget image
+         #  [],  # response buttons
+         #  '<form action="#" autocomplete="off" enctype="multipart/form-data" '
+         #  'method="post"><table><tr id="no_table_response__row">'
+         #  '<td class="w2p_fl"><label for="no_table_response" id="no_table_'
+         #  'response__label">Response: </label></td><td class="w2p_fw">'
+         #  '<input class="string" id="no_table_response" name="response" '
+         #  'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
+         #  'id="submit_record__row"><td class="w2p_fl"></td>'
+         #  '<td class="w2p_fw">'
+         #  '<input type="submit" value="Submit" /></td>'
+         #  '<td class="w2p_fc"></td>'
+         #  '</tr></table><div style="display:none;">'
+         #  '<input name="pre_bug_step_id" '
+         #  'type="hidden" value="2" /></div></form>',
+         #  True,  # replystep
+         #  None,  # audio
+         # ),
+         (89,  # path # case1================================================
           101,  # step
           'agora',
           [2, 8, 14, 17, 31, 40, 41, 42],  # npcs here
@@ -6288,8 +6335,8 @@ class TestWalk():
           None,  # audio
           )
          ])
-    def test_walk_ask(self, pathid, stepid, alias, npcshere, trecs, tpout, redir,
-                      promptext, instrs, slidedecks, widgimg, rbuttons,
+    def test_walk_ask(self, pathid, stepid, alias, npcshere, trecs, tpout,
+                      redir, promptext, instrs, slidedecks, widgimg, rbuttons,
                       rform, replystep, audio, npc_data, bg_imgs, db,
                       user_login):
         """
@@ -6303,7 +6350,8 @@ class TestWalk():
                                      if k in ['cat1', 'cat2', 'cat3', 'cat4']])
         for t in atags:
             thisrec = [r for r in trecs if r['tag'] == t]
-            s = thisrec[0] if thisrec else trecs[0]  # if no trec for tag, use first rec for data
+            s = thisrec[0] if thisrec else trecs[0]
+            # if no trec for tag, use first rec for data
             s['tag'] = t
             mycount = s['times_wrong'] + s['times_right']
             if mycount > 0:
@@ -6347,7 +6395,7 @@ class TestWalk():
             assert actual['pid'] == pathid
             assert thiswalk.user.path.get_id() == pathid
         assert actual['completed_count'] == 0  # since reply not yet sent
-        assert actual['category'] == None
+        assert actual['category'] is None
         if not isinstance(actual['prompt_text'], str):
             assert re.match(promptext, actual['prompt_text'].xml())
         else:
@@ -6360,15 +6408,15 @@ class TestWalk():
             assert actual['slidedecks']
         assert actual['widget_img'] == widgimg  # FIXME: add case with image
         assert actual['bg_image'] == bg_imgs[loc.get_id()]
-        #assert actual['npc_image']['_src'] == npc_data[npc.get_id()]['image']
+        # assert actual['npc_image']['_src'] == npc_data[npc.get_id()]['image']
         if actual['response_form']:
             print 'actual["response_form"]:\n', actual['response_form']
             print 'rform:\n', rform
             assert re.match(rform, actual['response_form'].xml())
         elif rform:
-            #pprint(actual['response_form'])
+            # pprint(actual['response_form'])
             assert actual['response_form']
-        assert actual['bugreporter'] == None
+        assert actual['bugreporter'] is None
         assert actual['response_buttons'] == rbuttons
         assert actual['audio'] == audio
         assert actual['loc'] == alias
@@ -6392,7 +6440,7 @@ class TestWalk():
                              'creply,wreply,instrs,slidedecks,rbuttons,'
                              'readable_short,readable_long,tips,cresponse,'
                              'wresponse',
-        [(19,  # path # case3 ======================================================
+        [(19,  # path # case3 ================================================
           19,  # step
           'domus_A',  # alias
           [1],  # npcs here FIXME
@@ -6427,11 +6475,11 @@ class TestWalk():
            'cat3': [], 'cat4': [],
            'rev1': [62, 63, 68, 115, 72, 89, 36], 'rev2': [61, 66],
            'rev3': [], 'rev4': []},
-          'Right. Κάλον.\nYou said\n- πωλ\n',  # ---------------------correct reply
-          'Incorrect. Try again!\nYou said\n- βλα\nThe correct '  # --wrong reply
+          'Right. Κάλον.\nYou said\n- πωλ\n',  # -----------------correct reply
+          'Incorrect. Try again!\nYou said\n- βλα\nThe correct '  # --wrong
             'response is\n- πωλ',
-          ['Focus on finding Greek letters that make the *sounds* of the '  # -- instructions
-           'English word. Don\'t look for Greek "equivalents" for each '
+          ['Focus on finding Greek letters that make the *sounds* '  # instr
+           'of the English word. Don\'t look for Greek "equivalents" for each '
            'English letter.'],
           {3L: 'The Alphabet II'},  # --slide decks
           [],  # ---------------------------------------------response buttons
@@ -6441,71 +6489,71 @@ class TestWalk():
           'πωλ',  # response correct ------------------------------------------
           'βλα',  # response wrong --------------------------------------------
           ),
-         #(19,  # path # case2 ======================================================
-          #19,  # ------------------------------------------------------step
-          #'agora',  # -------------------------------------------------alias
-          #[1],  # -----------------------------------------------------npcs here
-          #[{'name': 141,  # -------------------------------------------trecs
-            #'tag': 61,
-            #'tlast_right': dt('2013-01-29'),
-            #'tlast_wrong': dt('2013-01-28'),
-            #'times_right': 20,
-            #'times_wrong': 2,
-            #'secondary_right': []},
-           #{'name': 141,
-            #'tag': 62,
-            #'tlast_right': dt('2013-03-20'),
-            #'tlast_wrong': dt('2013-03-20'),
-            #'times_right': 1,
-            #'times_wrong': 1,
-            #'secondary_right': []}],
-          #{'latest_new': 2,  # -------------------------------------------tpout
-           #'cat1': [62], 'cat2': [61],
-           #'cat3': [], 'cat4': [],
-           #'rev1': [62], 'rev2': [61],
-           #'rev3': [], 'rev4': []},
-          #'Right. Κάλον.\nYou said\n- πωλ\n',  # ---------------------correct reply
-          #'Incorrect. Try again!\nYou said\n- βλα\nThe correct '  # --wrong reply
-            #'response is\n- πωλ',
-          #['Focus on finding Greek letters that make the *sounds* of the '
-           #'English word. Don\'t look for Greek "equivalents" for each '
-           #'English letter.'],  # instructions
-          #{3L: 'The Alphabet II', 8L: 'Greek Words II'},  # ---------slide decks
-          #[],  # response buttons
-          #['πωλ'],  # ---------------------------------------------readable short
-          #[],  # --------------------------------------------------readable long
-          #None,  # ------------------------------------------------tips
-          #'πωλ',  # response correct ------------------------------------------
-          #'βλα',  # response wrong --------------------------------------------
-          #),
-         #(89,  # path # case2======================================================
-          #101,  # ---------------------------------------------------------step
-          #'agora',  # ----------------------------------------------------alias
-          #[2, 8, 14, 17, 31, 40, 41, 42],  # -------------------------npcs here
-          #[{'name': 1,  # ------------------------------------------------trecs
-            #'tag': 61,
-            #'tlast_right': dt('2013-01-29'),
-            #'tlast_wrong': dt('2013-01-28'),
-            #'times_right': 10,
-            #'times_wrong': 2,
-            #'secondary_right': []}],
-          #{'latest_new': 2,  # -------------------------------------------tpout
-           #'cat1': [62], 'cat2': [61],
-           #'cat3': [], 'cat4': [],
-           #'rev1': [], 'rev2': [],
-           #'rev3': [], 'rev4': []},
-          #'Right. Κάλον.\nYou said\n- πωλ\n',  # ----------------correct reply
-          #'Incorrect. Try again!\nYou said\n- βλα\nThe correct '  # wrong reply
-          #'response is\n- πωλ',
-          #None,  # instructions
-          #None,  # slide decks
-          #['map', 'continue'],  # response buttons
-          #['πωλ'],  # ---------------------------------------------readable short
-          #[],  # --------------------------------------------------readable long
-          #None,  # ------------------------------------------------tips
-          #'πωλ',  # response correct ------------------------------------------
-          #'βλα',  # response wrong --------------------------------------------
-          #),
+         # (19,  # path # case2 =====================================
+         #  19,  # ------------------------------------------------------step
+         #  'agora',  # -------------------------------------------------alias
+         #  [1],  # -------------------------------------------------npcs here
+         #  [{'name': 141,  # -------------------------------------------trecs
+         #    'tag': 61,
+         #    'tlast_right': dt('2013-01-29'),
+         #    'tlast_wrong': dt('2013-01-28'),
+         #    'times_right': 20,
+         #    'times_wrong': 2,
+         #    'secondary_right': []},
+         #  {'name': 141,
+         #   'tag': 62,
+         #   'tlast_right': dt('2013-03-20'),
+         #   'tlast_wrong': dt('2013-03-20'),
+         #   'times_right': 1,
+         #   'times_wrong': 1,
+         #   'secondary_right': []}],
+         #  {'latest_new': 2,  # ----------------------------------------tpout
+         #   'cat1': [62], 'cat2': [61],
+         #   'cat3': [], 'cat4': [],
+         #   'rev1': [62], 'rev2': [61],
+         #   'rev3': [], 'rev4': []},
+         #  'Right. Κάλον.\nYou said\n- πωλ\n',  # ---------------correct reply
+         #  'Incorrect. Try again!\nYou said\n- βλα\nThe correct '  # wrong
+         #  'response is\n- πωλ',
+         #  ['Focus on finding Greek letters that make the *sounds* of the '
+         #   'English word. Don\'t look for Greek "equivalents" for each '
+         #   'English letter.'],  # instructions
+         #  {3L: 'The Alphabet II', 8L: 'Greek Words II'},  # ----slide decks
+         #  [],  # response buttons
+         #  ['πωλ'],  # ----------------------------------------readable short
+         #  [],  # ---------------------------------------------readable long
+         #  None,  # ------------------------------------------------tips
+         #  'πωλ',  # response correct ---------------------------------------
+         #  'βλα',  # response wrong -----------------------------------------
+         # ),
+         # (89,  # path # case2===============================================
+         #  101,  # ------------------------------------------------------step
+         #  'agora',  # --------------------------------------------------alias
+         #  [2, 8, 14, 17, 31, 40, 41, 42],  # ---------------------npcs here
+         #  [{'name': 1,  # ---------------------------------------------trecs
+         #    'tag': 61,
+         #    'tlast_right': dt('2013-01-29'),
+         #    'tlast_wrong': dt('2013-01-28'),
+         #    'times_right': 10,
+         #    'times_wrong': 2,
+         #    'secondary_right': []}],
+         #  {'latest_new': 2,  # ----------------------------------------tpout
+         #   'cat1': [62], 'cat2': [61],
+         #   'cat3': [], 'cat4': [],
+         #   'rev1': [], 'rev2': [],
+         #   'rev3': [], 'rev4': []},
+         #  'Right. Κάλον.\nYou said\n- πωλ\n',  # --------------correct reply
+         #  'Incorrect. Try again!\nYou said\n- βλα\nThe correct '  # wrong
+         #  'response is\n- πωλ',
+         #  None,  # instructions
+         #  None,  # slide decks
+         #  ['map', 'continue'],  # response buttons
+         #  ['πωλ'],  # -----------------------------------------readable short
+         #  [],  # ----------------------------------------------readable long
+         #  None,  # ------------------------------------------------tips
+         #  'πωλ',  # response correct -------------------------------------
+         #  'βλα',  # response wrong -----------------------------------------
+         # ),
          ])
     def test_walk_reply(self, pathid, stepid, alias, npcshere, trecs, tpout,
                         creply, wreply, instrs, slidedecks, rbuttons,
@@ -6526,11 +6574,13 @@ class TestWalk():
         # set up attempt_log records ---------------------------------------
         for t in atags:
             thisrec = [r for r in trecs if r['tag'] == t]
-            s = thisrec[0] if thisrec else trecs[0]  # if no trec for tag, use first rec for data
+            s = thisrec[0] if thisrec else trecs[0]
+            # if no trec for tag, use first rec for data
             s['tag'] = t
             mycount = s['times_wrong'] + s['times_right']
-            log_generator(user_login['id'], s['tag'], mycount, s['times_right'],
-                        s['tlast_right'], s['tlast_wrong'], dt('2013-01-01'), db)
+            log_generator(user_login['id'], s['tag'], mycount,
+                          s['times_right'], s['tlast_right'], s['tlast_wrong'],
+                          dt('2013-01-01'), db)
         # set up tag_progress and tag_records ------------------------------
         db.tag_progress.insert(**tpout)
         db(db.tag_records.name == user_login['id']).delete()
@@ -6569,9 +6619,9 @@ class TestWalk():
                 reply_text = creply
 
         thiswalk.start(alias, path=pathid)
-        print 'test_walk_reply:: execute ==================================================='
+        print 'test_walk_reply:: execute ====================================='
         a = thiswalk.start(alias, response_string=response_string)
-        print 'etest_walk_reply:: valuating test output ===================================='
+        print 'etest_walk_reply:: valuating test output ======================'
 
         assert a['sid'] == stepid
         assert a['pid'] == pathid
@@ -6580,20 +6630,20 @@ class TestWalk():
         assert a['times_right'] == times_right
         assert a['times_wrong'] == times_wrong
         assert a['readable_long'] == readable_long
-        #assert a['bg_image'] == bg_imgs
-        #assert a['npc_image'] == npc_data
-        assert a['audio'] == None
-        assert a['widget_img'] == None
+        # assert a['bg_image'] == bg_imgs
+        # assert a['npc_image'] == npc_data
+        assert a['audio'] is None
+        assert a['widget_img'] is None
         assert a['instructions'] == instrs
         assert a['slidedecks'] == slidedecks
         assert a['hints'] == tips
         assert a['response_buttons'] == ['map', 'retry', 'continue']
 
-        #lastlog = db(db.attempt_log.id > 0).select().last()
-        #rs = makeutf8(response_string)
-        #print 'rs is', type(rs)
+        # lastlog = db(db.attempt_log.id > 0).select().last()
+        # rs = makeutf8(response_string)
+        # print 'rs is', type(rs)
 
-        #bug_info = (quote_plus(rs.encode('utf8')),
+        # bug_info = (quote_plus(rs.encode('utf8')),
         #            #alias,
         #            #lastlog.id,
         #            #pathid,
@@ -6614,7 +6664,8 @@ class TestWalk():
                         'href="#bug_reporter_modal" '
                         'id="bug_reporter_modal_trigger">'
                         'Something wrong\?</a>'
-                        '<div aria-hidden="true" aria-labelledby="bug_reporter_modal_trigger" '
+                        '<div aria-hidden="true" '
+                        'aria-labelledby="bug_reporter_modal_trigger" '
                         'class="modal fade " '
                         'data-keyboard="true" '
                         'id="bug_reporter_modal" '
@@ -6622,7 +6673,8 @@ class TestWalk():
                         '<div class="modal-dialog modal-lg">'
                         '<div class="modal-content">'
                         '<div class="modal-header">'
-                        '<h3 class="modal-title" id="myModalLabel">Did you run into a problem\?</h3>'
+                        '<h3 class="modal-title" id="myModalLabel">'
+                        'Did you run into a problem\?</h3>'
                         '</div>'
                         '<div class="modal-body ">'
                         '<p>Think your answer should have been correct\? '
@@ -6641,7 +6693,8 @@ class TestWalk():
         '''
         # print 'actual ============'
         # print a['bugreporter']
-        assert all({k: v for k, v in bug_reporter.items() if a['bugreporter'][k] == v})
+        assert all({k: v for k, v in bug_reporter.items()
+                    if a['bugreporter'][k] == v})
         assert not thiswalk.user.path.step_for_reply
         assert not thiswalk.user.path.step_for_prompt
         assert thiswalk.user.path.completed_steps[-1].get_id() == stepid
@@ -6739,7 +6792,7 @@ class TestPathChooser():
                                           9: {'right': 1, 'wrong': 0},
                                           410: {'right': 1, 'wrong': 0},
                                           411: {'right': 1, 'wrong': 0},
-                                          412: {'right': 1, 'wrong': 0}}},  # completed
+                                          412: {'right': 1, 'wrong': 0}}},
                                {'latest_new': 1,  # tpout
                                 'cat1': [61], 'cat2': [],
                                 'cat3': [], 'cat4': [],
@@ -6801,14 +6854,14 @@ class TestPathChooser():
                                False  # force_cat1
                                ),
                               ])
-    def test_pathchooser_paths_by_category(self, locid, mycat, completed, tpout,
-                                           force_cat1, db):
+    def test_pathchooser_paths_by_category(self, locid, mycat, completed,
+                                           tpout, force_cat1, db):
         """
         Unit test for the paideia.Pathchooser._paths_by_category() method.
         """
         chooser = PathChooser(tpout, locid, completed)
-        cpaths, cat, forced, newcpaths = chooser._paths_by_category(mycat,
-                                                                    tpout['latest_new'])
+        cpaths, cat, forced, newcpaths = \
+            chooser._paths_by_category(mycat, tpout['latest_new'])
 
         exp_newpaths = []
         if force_cat1:
@@ -6825,7 +6878,8 @@ class TestPathChooser():
                 exp_newtags = tpout['rev{}'.format(cat)]
                 exp_newsteps = db(db.steps.tags.contains(exp_newtags)).select()
                 exp_newstepids = [s.id for s in exp_newsteps]
-                exp_newpaths = db(db.paths.steps.contains(exp_newstepids)).select().as_list()
+                exp_newpaths = db(db.paths.steps.contains(exp_newstepids)
+                                  ).select().as_list()
 
         print 'cat:', cat
         # get expected paths from db based on category actually used
@@ -6837,7 +6891,7 @@ class TestPathChooser():
         print 'forced:', forced
 
         cpath_ids = [row['id'] for row in cpaths]
-        #print 'actual cpaths:', cpath_ids
+        # print 'actual cpaths:', cpath_ids
         cpath_ids.sort()
         extra_actual = [row['id'] for row in cpaths
                         if row['id'] not in expected]
@@ -6846,7 +6900,6 @@ class TestPathChooser():
                                   if row not in cpath_ids]
         assert cpath_ids == expected
         assert newcpaths == exp_newpaths
-
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('locid,completed,tpout,expected,mode',
@@ -6909,7 +6962,7 @@ class TestPathChooser():
                                 'rev3': [], 'rev4': []},
                                [5, 63, 256, 409, 410, 411, 412, 413, 414, 415,
                                 416, 417, 418, 419, 420, 421, 422, 423, 444,
-                                445],  # expected: tag 61, not loc 11, not completed
+                                445],  # expected: tag 61, !loc 11, !completed
                                'new_elsewhere'  # mode
                                ),  # ========================================
                               (8,  # agora (no redirect, new here)
