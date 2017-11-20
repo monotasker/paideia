@@ -45,9 +45,10 @@ def index():
     """
     request = current.request
     debug = 0
-    if debug: print 'getting index'
-    if debug: print 'vars', request.vars
-    if debug: print 'args', request.args
+    if debug:
+        print 'getting index'
+        print 'vars', request.vars
+        print 'args', request.args
     response.files.append(URL('static', 'js/jquery.jplayer.min.js'))
     response.files.append(URL('static', 'js/play_audio_clip.js'))
     response.files.append(URL('static', 'css/jplayer.pink.flag.css'))
@@ -56,7 +57,8 @@ def index():
     response.files.append(URL('static', 'js/insQ.min.js'))
     # to detect element insertion for svg
     response.files.append(URL('static', version_file('js/exploring.js')))
-    response.files.append(URL('static', version_file('js/svg_interactions.js')))
+    response.files.append(URL('static',
+                              version_file('js/svg_interactions.js')))
     return {}
 
 
@@ -87,16 +89,16 @@ def walk():
 
     request = current.request
 
-    print "\n\nstarting walk controller========================================"
+    print "\n\nstarting walk controller======================================="
     rvars = request.vars
     rargs = request.args
-    #print "in controller.walk:"
-    #print "args:", request.args
-    #print "vars:", request.vars
-    #simple_obj_print(request.body.read(), "request body:")
-    #simple_obj_print(request, "request:")
-    #simple_obj_print(request.vars, "request.vars:")
-    #simple_obj_print(request.args, "request.args:")
+    # print "in controller.walk:"
+    # print "args:", request.args
+    # print "vars:", request.vars
+    # simple_obj_print(request.body.read(), "request body:")
+    # simple_obj_print(request, "request:")
+    # simple_obj_print(request.vars, "request.vars:")
+    # simple_obj_print(request.args, "request.args:")
 
     # form for testing paths; returned and embedded in view
     testform = SQLFORM.factory(Field('path', 'integer'),
@@ -105,13 +107,16 @@ def walk():
                                Field('new_user', 'boolean'),
                                )
     if testform.process().accepted:
-        redirect(URL('exploring', 'walk.load', args=['ask'], vars=request.vars))
+        redirect(URL('exploring', 'walk.load', args=['ask'],
+                     vars=request.vars))
     elif testform.errors:
         response.flash = 'Form had errors'
         print testform.errors
 
-    print "controller.walk: Auth.user_id is", auth.user_id
-    print "controller.walk: first_name is", db.auth_user(auth.user_id).first_name
+    if debug:
+        print "controller.walk: Auth.user_id is", auth.user_id
+        print "controller.walk: first_name is", \
+            db.auth_user(auth.user_id).first_name
     # When user begins exploring (also default) present map
     if (not rargs) or (rargs[0] == 'map'):
         print "controller.walk: getting map"
@@ -130,22 +135,27 @@ def walk():
         stepargs['set_review'] = session.set_review
 
     # pass along test settings to Walk.ask()
-    print '----------------args & vars------------'
-    print 'vars:'
-    for x in rvars: print {x: rvars[x]}
-    print 'args:'
-    for x in rargs: print x
-    # print 'cookies'
-    # for x in request.cookies: print {x : request.cookies[x].value}
-    print '------------end args & vars------------'
-    if ('blocks' in rvars) and not (rvars['blocks'] in ['', None, 'undefined']):
+    if debug:
+        print '----------------args & vars------------'
+        print 'vars:'
+        for x in rvars:
+            print {x: rvars[x]}
+        print 'args:'
+        for x in rargs:
+            print x
+        # print 'cookies'
+        # for x in request.cookies: print {x : request.cookies[x].value}
+        print '------------end args & vars------------'
+    if ('blocks' in rvars) and \
+            not (rvars['blocks'] in ['', None, 'undefined']):
         stepargs['set_blocks'] = literal_eval(rvars['blocks'])
-        #debug
-        print {'----------blocks passed------------': rvars['blocks']}
+        if debug:
+            print {'----------blocks passed------------': rvars['blocks']}
     if 'path' in rvars and not (rvars['path'] in ['', None, 'undefined']):
         stepargs['path'] = rvars['path']
-    #JOB ... oct 18, 2014 ... bug step id
-    if 'pre_bug_step_id' in rvars and not (rvars['pre_bug_step_id'] in ['', None, 'undefined']):
+    # JOB ... oct 18, 2014 ... bug step id
+    if 'pre_bug_step_id' in rvars and \
+            not (rvars['pre_bug_step_id'] in ['', None, 'undefined']):
         stepargs['pre_bug_step_id'] = rvars['pre_bug_step_id']
 
     if not request.vars.loc:  # TODO: Does this do anything?
