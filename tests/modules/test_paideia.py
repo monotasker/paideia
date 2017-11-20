@@ -107,11 +107,11 @@ def mytagpros():
                                             69, 71, 72, 73, 74, 76, 77, 82, 83,
                                             84, 85, 86, 87, 88, 90, 91, 93, 94,
                                             95, 115, 117, 118, 121, 124, 129,
-                                            133],  # removed 128 to test demotion
-                                   'cat2': [14],  # was [], moved to test promotion
-                                   'cat3': [],  # was [14]
+                                            133],
+                                   'cat2': [14],
+                                   'cat3': [],
                                    'cat4': [18, 29, 38, 47, 49, 68, 75, 89, 92,
-                                            116, 119, 120, 122, 128],  # added 128
+                                            116, 119, 120, 122, 128],
                                    'rev1': [],
                                    'rev3': [],
                                    'rev2': [],
@@ -128,11 +128,12 @@ def mycatsout_core_algorithm():
                                             63, 66, 67, 69, 71, 72, 73, 74, 76,
                                             77, 82, 83, 84, 85, 86, 87, 88, 90,
                                             91, 93, 94, 95, 115, 117, 118, 121,
-                                            124, 128, 129, 133],
+                                            124, 128, 129, 133
                                             # 55, 96, 102, 103, 104, 131, 135,
                                             # 130, 132, 134 are untried
                                             # Includes 32 (rank 999) because
                                             # not yet filtered for rank
+                                            ],
                                    'rev2': [],
                                    'rev3': [14],
                                    'rev4': [18, 29, 38, 47, 49, 68, 75, 89, 92,
@@ -146,17 +147,19 @@ def mycatsout_add_untried():
     """A fixture providing mock tag_progress records"""
     tp = {'Simon Pan 2014-03-21': {'rev1': [1, 2, 4L, 5, 6, 9, 10, 12L, 16, 17,
                                             30, 32, 36, 40, 41L, 43, 46, 48,
-                                            50L, 51L, 52L, 53L, 55L, 61, 62, 63,
-                                            66, 67, 69, 71, 72, 73, 74, 76, 77,
-                                            82, 83, 84, 85, 86, 87, 88, 90, 91,
-                                            93, 94, 95, 96L, 97L, 102L, 105L,
-                                            106L, 108L, 110L, 115, 117, 118, 121,
-                                            124, 127L, 128, 129, 130L, 131L, 132L,
-                                            133, 134L, 135L, 153L, 154L, 155L,
-                                            156L, 157L, 158L, 159L, 173L, 181L,
-                                            183L, 184L, 187L, 208L, 210L, 216L],
+                                            50L, 51L, 52L, 53L, 55L, 61, 62,
+                                            63, 66, 67, 69, 71, 72, 73, 74, 76,
+                                            77, 82, 83, 84, 85, 86, 87, 88, 90,
+                                            91, 93, 94, 95, 96L, 97L, 102L,
+                                            105L, 106L, 108L, 110L, 115, 117,
+                                            118, 121, 124, 127L, 128, 129,
+                                            130L, 131L, 132L, 133, 134L, 135L,
+                                            153L, 154L, 155L, 156L, 157L, 158L,
+                                            159L, 173L, 181L, 183L, 184L, 187L,
+                                            208L, 210L, 216L
                                             # Includes 32 (rank 999) because
                                             # not yet filtered for rank
+                                            ],
                                    'rev2': [],
                                    'rev3': [14],
                                    'rev4': [18, 29, 38, 47, 49, 68, 75, 89, 92,
@@ -192,8 +195,10 @@ def mycatsout_find_changes():
                                             77, 82, 83, 84, 85, 86, 87, 88, 90,
                                             91, 93, 94, 95, 96, 102, 115, 117,
                                             118, 121, 124, 129, 130, 131, 132,
-                                            133, 135],
-                                    # 4, 55, 96, 102, 130, 131, 132, 135 are new
+                                            133, 135
+                                            # 4, 55, 96, 102, 130, 131,
+                                            # 132, 135 are new
+                                            ],
                                    'cat2': [],
                                    'cat3': [14],
                                    'cat4': [18, 29, 38, 47, 49, 68, 75, 89, 92,
@@ -203,8 +208,8 @@ def mycatsout_find_changes():
                                             63, 66, 67, 69, 71, 72, 73, 74, 76,
                                             77, 82, 83, 84, 85, 86, 87, 88, 90,
                                             91, 93, 94, 95, 96, 102, 115, 117,
-                                            118, 121, 124, 128, 129, 130, 131, 132,
-                                            133, 135],
+                                            118, 121, 124, 128, 129, 130, 131,
+                                            132, 133, 135],
                                    'rev2': [],
                                    'rev3': [14],
                                    'rev4': [18, 29, 38, 47, 49, 68, 75, 89, 92,
@@ -2429,17 +2434,28 @@ def npc_imgs(db):
     """
     Pytest fixture to provide image info for each test npc.
     """
-    images = {'npc1_img': '/paideia/static/images/{}'.format(db.images[1].image),
-              'npc2_img': '/paideia/static/images/{}'.format(db.images[4].image),
-              'npc8_img': '/paideia/static/images/{}'.format(db.images[5].image),
-              'npc14_img': '/paideia/static/images/{}'.format(db.images[2].image),
-              'npc17_img': '/paideia/static/images/{}'.format(db.images[7].image),
-              'npc21_img': '/paideia/static/images/{}'.format(db.images[7].image),
-              'npc31_img': '/paideia/static/images/{}'.format(db.images[3].image),
-              'npc32_img': '/paideia/static/images/{}'.format(db.images[10].image),
-              'npc40_img': '/paideia/static/images/{}'.format(db.images[6].image),
-              'npc41_img': '/paideia/static/images/{}'.format(db.images[11].image),
-              'npc42_img': '/paideia/static/images/{}'.format(db.images[9].image)
+    images = {'npc1_img':
+              '/paideia/static/images/{}'.format(db.images[1].image),
+              'npc2_img':
+              '/paideia/static/images/{}'.format(db.images[4].image),
+              'npc8_img':
+              '/paideia/static/images/{}'.format(db.images[5].image),
+              'npc14_img':
+              '/paideia/static/images/{}'.format(db.images[2].image),
+              'npc17_img':
+              '/paideia/static/images/{}'.format(db.images[7].image),
+              'npc21_img':
+              '/paideia/static/images/{}'.format(db.images[7].image),
+              'npc31_img':
+              '/paideia/static/images/{}'.format(db.images[3].image),
+              'npc32_img':
+              '/paideia/static/images/{}'.format(db.images[10].image),
+              'npc40_img':
+              '/paideia/static/images/{}'.format(db.images[6].image),
+              'npc41_img':
+              '/paideia/static/images/{}'.format(db.images[11].image),
+              'npc42_img':
+              '/paideia/static/images/{}'.format(db.images[9].image)
               }
     return images
 
@@ -2506,20 +2522,22 @@ def myblocks(request):
 def mysteps():
     """
         Test fixture providing step information for unit tests.
-        This fixture is parameterized, so that tests can be run with each of the
-        steps or with any sub-section (defined by a filtering expression in the
-        test). This step fixture is also used in the mycases fixture.
+        This fixture is parameterized, so that tests can be run with each of
+        the steps or with any sub-section (defined by a filtering expression
+        in the test). This step fixture is also used in the mycases fixture.
     """
     responders = {'text': '<form action="#" autocomplete="off" '
                           'enctype="multipart/form-data" method="post">'
                           '<table>'
                           '<tr id="no_table_response__row">'
                           '<td class="w2p_fl">'
-                          '<label for="no_table_response" id="no_table_response__label">'
+                          '<label for="no_table_response" '
+                          'id="no_table_response__label">'
                           'Response: </label>'
                           '</td>'
                           '<td class="w2p_fw">'
-                          '<input class="string" id="no_table_response" name="response" '
+                          '<input class="string" id="no_table_response" '
+                          'name="response" '
                           'type="text" value="" />'
                           '</td>'
                           '<td class="w2p_fc"></td>'
@@ -2538,11 +2556,13 @@ def mysteps():
                            '<table>'
                            '<tr id="no_table_response__row">'
                            '<td class="w2p_fl">'
-                           '<label for="no_table_response" id="no_table_response__label">'
+                           '<label for="no_table_response" '
+                           'id="no_table_response__label">'
                            'Response: </label>'
                            '</td>'
                            '<td class="w2p_fw">'
-                           '<input class="string" id="no_table_response" name="response" '
+                           '<input class="string" id="no_table_response" '
+                           'name="response" '
                            'type="text" value="" />'
                            '</td>'
                            '<td class="w2p_fc"></td>'
@@ -2557,7 +2577,8 @@ def mysteps():
                            '</table>'
                            '</form>',
                   'stub': '<div>'
-                          '<a class="back_to_map" data-w2p_disable_with="default" '
+                          '<a class="back_to_map" '
+                          'data-w2p_disable_with="default" '
                           'data-w2p_method="GET" data-w2p_target="page" '
                           'href="/paideia/default/walk">Map</a>'
                           '</div>',
@@ -2565,46 +2586,61 @@ def mysteps():
                               'data-w2p_disable_with="default" '
                               'data-w2p_method="GET" data-w2p_target="page" '
                               'href="/paideia/default/walk">Map</a>'
-                              '<a class="continue" data-w2p_disable_with="default" '
+                              '<a class="continue" '
+                              'data-w2p_disable_with="default" '
                               'data-w2p_method="GET" data-w2p_target="page" '
                               'href="/paideia/default/walk/ask?loc=[[loc]]">'
                               'Continue</a></div>'}
-    prompts = {'redirect': 'Hi there. Sorry, I don\'t have anything for you to '
-                           'do here at the moment. I think someone was looking '
-                           'for you at somewhere else in town.',
+    prompts = {'redirect': 'Hi there. Sorry, I don\'t have anything for you '
+                           'to do here at the moment. I think someone was '
+                           'looking for you at somewhere else in town.',
                'new_badges': {3: '<div>Congratulations, Homer! \n\n'
-                                 'You have been promoted to these new badge levels:\r\n'
+                                 'You have been promoted to these new badge '
+                                 'levels:\r\n'
                                  '- apprentice alphabet basics\r\n'
-                                 '- apprentice alphabet (diphthongs and capitals)\r\n'
-                                 'You can click on your name above to see details '
+                                 '- apprentice alphabet (diphthongs and '
+                                 'capitals)\r\n'
+                                 'You can click on your name above to see '
+                                 'details '
                                  'of your progress so far.</div>',
                               2: '<div>Congratulations, Homer! \n\n'
-                                 'You have been promoted to these new badge levels:\r\n'
+                                 'You have been promoted to these new badge '
+                                 'levels:\r\n'
                                  '- apprentice alphabet basics\r\n'
-                                 'and you&#x27;re ready to start working on some new badges:\r\n'
+                                 'and you&#x27;re ready to start working on '
+                                 'some new badges:\r\n'
                                  '- beginner alphabet (intermediate)\r\n'
-                                 'You can click on your name above to see details '
+                                 'You can click on your name above to see '
+                                 'details '
                                  'of your progress so far.</div>'},
                'quota': 'Well done, [[user]]. You\'ve finished '
                         'enough paths for today. But if you would '
                         'like to keep going, you\'re welcome to '
                         'continue.',
                # numbers indicate prompts for corresponding cases
-               'slides': {2: '<div>Take some time now to review these new slide '
-                             'sets. They will help with work on your new badges:\n'
+               'slides': {2: '<div>Take some time now to review these new '
+                             'slide sets. They will help with work on your '
+                             'new badges:\n'
                              '<ul class="slide_list">'
-                             '<li><a data-w2p_disable_with="default" href="/paideia/'
+                             '<li><a data-w2p_disable_with="default" '
+                             'href="/paideia/'
                              'listing/slides.html/3">The Alphabet II</a></li>'
-                             '<li><a data-w2p_disable_with="default" href="/paideia/'
-                             'listing/slides.html/8">Greek Words II</a></li></ul>'
+                             '<li><a data-w2p_disable_with="default" '
+                             'href="/paideia/'
+                             'listing/slides.html/8">Greek Words '
+                             'II</a></li></ul>'
                              '</div>',
-                          3: '<div>Take some time now to review these new slide '
-                             'sets. They will help with work on your new badges:\n'
+                          3: '<div>Take some time now to review these new '
+                             'slide sets. They will help with work on your '
+                             'new badges:\n'
                              '<ul class="slide_list">'
-                             '<li><a data-w2p_disable_with="default" href="/paideia/'
+                             '<li><a data-w2p_disable_with="default" '
+                             'href="/paideia/'
                              'listing/slides.html/3">The Alphabet II</a></li>'
-                             '<li><a data-w2p_disable_with="default" href="/paideia/'
-                             'listing/slides.html/8">Greek Words II</a></li></ul>'
+                             '<li><a data-w2p_disable_with="default" '
+                             'href="/paideia/'
+                             'listing/slides.html/8">Greek Words '
+                             'II</a></li></ul>'
                              '</div>'}
                }
 
@@ -2635,7 +2671,8 @@ def mysteps():
                  'responses': {'response1': '^μιτ$'},
                  'readable': {'readable_short': ['μιτ'],
                               'readable_long': []},
-                 'reply_text': {'correct': 'Right. Κάλον.\nYou said\n- [[resp]]',
+                 'reply_text': {'correct': 'Right. Κάλον.\nYou said\n'
+                                           '- [[resp]]',
                                 'incorrect': 'Incorrect. Try again!\nYou '
                                              'said\n- [[resp]]\nThe correct '
                                              'response is[[rdbl]]'},
@@ -2670,7 +2707,8 @@ def mysteps():
                                            '[[resp]]\nCorrect responses '
                                            'would include[[rdbl]]',
                                 'incorrect': 'Incorrect. Try again!\nYou '
-                                             'said\n- [[resp]]\nCorrect responses '
+                                             'said\n- [[resp]]\nCorrect '
+                                             'responses '
                                              'would include[[rdbl]]'},
                  'tips': None,  # why is this None, but elsewhere it's []?
                  'user_responses': {'correct': 'βοτ',
@@ -2678,36 +2716,37 @@ def mysteps():
                  'widget_image': None
                  },
              19: {'id': 19,
-                 'paths': [19],
-                 'step_type': StepText,
-                 'widget_type': 1,
-                 'npc_list': [8, 2, 32, 1],
-                 'locations': [3, 1, 13, 8, 11],
-                 'raw_prompt': 'How could you spell the word "pole" with '
-                               'Greek letters?',
-                 'final_prompt': 'How could you spell the word "pole" with '
-                                 'Greek letters?',
-                 'redirect_prompt': prompts['redirect'],
-                 'instructions': ['Focus on finding Greek letters that make '
-                                  'the *sounds* of the English word. Don\'t '
-                                  'look for Greek "equivalents" for each '
-                                  'English letter.'],
-                 'slidedecks': None,
-                 'tags': [62],
-                 'tags_secondary': [61],
-                 'responses': {'response1': '^πωλ$'},
-                 'responder': responders['text'],
-                 'redirect_responder': responders['stub'],
-                 'readable': {'readable_short': ['πωλ'],
-                              'readable_long': []},
-                 'reply_text': {'correct': 'Right. Κάλον.\nYou said\n- [[resp]]\n',
-                                'incorrect': 'Incorrect. Try again!\nYou '
-                                             'said\n- [[resp]]\nThe correct '
-                                             'response is[[rdbl]]'},
-                 'tips': [],
-                 'user_responses': {'correct': 'πωλ',
-                                    'incorrect': 'βλα'},
-                 'widget_image': None
+                  'paths': [19],
+                  'step_type': StepText,
+                  'widget_type': 1,
+                  'npc_list': [8, 2, 32, 1],
+                  'locations': [3, 1, 13, 8, 11],
+                  'raw_prompt': 'How could you spell the word "pole" with '
+                                'Greek letters?',
+                  'final_prompt': 'How could you spell the word "pole" with '
+                                  'Greek letters?',
+                  'redirect_prompt': prompts['redirect'],
+                  'instructions': ['Focus on finding Greek letters that make '
+                                   'the *sounds* of the English word. Don\'t '
+                                   'look for Greek "equivalents" for each '
+                                   'English letter.'],
+                  'slidedecks': None,
+                  'tags': [62],
+                  'tags_secondary': [61],
+                  'responses': {'response1': '^πωλ$'},
+                  'responder': responders['text'],
+                  'redirect_responder': responders['stub'],
+                  'readable': {'readable_short': ['πωλ'],
+                               'readable_long': []},
+                  'reply_text': {'correct': 'Right. Κάλον.\nYou said\n'
+                                 '- [[resp]]\n',
+                                 'incorrect': 'Incorrect. Try again!\nYou '
+                                              'said\n- [[resp]]\nThe correct '
+                                              'response is[[rdbl]]'},
+                  'tips': [],
+                  'user_responses': {'correct': 'πωλ',
+                                     'incorrect': 'βλα'},
+                  'widget_image': None
                   },
              30: {'id': 30,
                   'paths': [None],
@@ -2749,7 +2788,8 @@ def mysteps():
                                 'readable_long': []},
                    'user_responses': {'correct': 'ναι',
                                       'incorrect': 'οὐ'},
-                   'reply_text': {'correct': 'Right. Κάλον.\nYou said\n- [[resp]]',
+                   'reply_text': {'correct': 'Right. Κάλον.\nYou said\n'
+                                  '- [[resp]]',
                                   'incorrect': 'Incorrect. Try again!\nYou '
                                                'said\n- [[resp]]\nThe correct '
                                                'response is[[rdbl]]'},
@@ -4284,6 +4324,69 @@ class TestPath():
                     'and global_run_TestUser is False')
 class TestUser(object):
     """unit testing class for the paideia.User class"""
+
+    @pytest.mark.skipif(False, reason='just because')
+    @pytest.mark.parametrize('ismember,nowtime,result',
+                             [(True,  # ismember
+                               datetime.datetime(2017, 5, 30),  # nowtime
+                               25),  # result
+                              (False,  # ismember
+                               datetime.datetime(2017, 5, 30),  # nowtime
+                               20),  # result
+                              (False,  # ismember
+                               datetime.datetime(2017, 8, 30),  # nowtime
+                               20),
+                              ])
+
+    def test_user_init(self, ismember, nowtime, result, db):
+        """
+        Unit test for initializing values in User object.
+        """
+        userdata = {'first_name': 'Homer',
+                    'id': 1,
+                    'time_zone': 'America/Toronto'}
+        tagprog = {'latest_new': 2,
+                 'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                 'cat3': [], 'cat4': [],
+                 'rev1': [], 'rev2': [61],
+                 'rev3': [], 'rev4': []}
+        tagrecs = [{'name': 1,
+                    'tag': 1,
+                    'tlast_right': dt('2013-01-29'),
+                    'tlast_wrong': dt('2013-01-29'),
+                    'times_right': 1,
+                    'times_wrong': 1,
+                    'secondary_right': None}]
+        if ismember:
+            mystartA = datetime.datetime(2016, 1, 15)
+            mystartB = datetime.datetime(2017, 1, 15)
+            mystartC = datetime.datetime(2040, 1, 15)
+            classAid = db.classes.insert(institution='Tyndale Seminary',
+                                         academic_year='2016',
+                                         start_date=mystartA,
+                                         paths_per_day=5)
+            classBid = db.classes.insert(institution='Tyndale Seminary',
+                                         academic_year='2017',
+                                         start_date=mystartB,
+                                         paths_per_day=25)
+            classCid = db.classes.insert(institution='Tyndale Seminary',
+                                         academic_year='2040',
+                                         start_date=mystartC,
+                                         paths_per_day=7)
+            memAid = db.class_membership.insert(name=1,
+                                                 class_section=classAid)
+            memBid = db.class_membership.insert(name=1,
+                                                 class_section=classBid)
+            memCid = db.class_membership.insert(name=1,
+                                                 class_section=classCid)
+        actual = User(userdata, tagrecs, tagprog, blocks=None,
+                      test_db=db, cur_time=nowtime)
+        actual.quota = result
+        # clean up DB
+        if ismember:
+            db(db.classes.id.belongs([classAid, classBid, classCid])).delete()
+            db(db.class_membership.id.belongs([memAid, memBid, memCid])
+               ).delete()
 
     @pytest.mark.skipif(False, reason='just because')
     def test_user_get_id(self, db):
@@ -6826,7 +6929,7 @@ class TestPathChooser():
                                 101],  # expected
                                'here_new'  # mode
                                ),  # ========================================
-                              (8,  # agora (all for tags completed, repeat here)
+                              (8,  # agora (all for tags complete, repeat here)
                                {'latest': 4,  # completed
                                 'paths': {4: {'right': 1, 'wrong': 0},
                                           7: {'right': 1, 'wrong': 0},
@@ -6914,8 +7017,10 @@ class TestPathChooser():
                                [101, 35, 34, 23, 16, 261, 15, 21, 208, 100,
                                 17, 14, 9, 7, 18, 11, 98, 12, 4, 19, 103, 13,
                                 97, 1, 2, 3, 5, 8, 95, 96, 99, 102,
-                                256],  # expected: tags already completed here (repeat)
-                               'repeated'  # FIXME: is this right? not repeat_here?
+                                256
+                                # expected: tags already complete here (repeat)
+                                ],
+                               'repeated'  # FIXME: not repeat_here?
                                ),
                               ])
     def test_pathchooser_choose_from_cat(self, locid, completed, tpout,
@@ -6926,7 +7031,8 @@ class TestPathChooser():
         chooser = PathChooser(tpout, locid, completed)
         catnum = 1
         expected_rows = db(db.paths.id.belongs(expected)).select()
-        path, newloc, cat, actualmode = chooser._choose_from_cat(expected_rows, catnum)
+        path, newloc, cat, actualmode = \
+            chooser._choose_from_cat(expected_rows, catnum)
         assert path['id'] in expected
         if newloc:
             assert newloc in [l for l in db.steps(path['steps'][0]).locations]
@@ -6946,50 +7052,50 @@ class TestPathChooser():
                                {1: False},  # redirect
                                'here_new'  # mode
                                ),
-                              (11,  # synagogue [all in loc 11 completed] -------
+                              (11,  # synagogue [all in loc 11 completed]
                                {'latest_new': 1,  # tpout
                                 'cat1': [61], 'cat2': [],
                                 'cat3': [], 'cat4': [],
                                 'rev1': [61], 'rev2': [],
                                 'rev3': [], 'rev4': []},
-                                {1: True},  # redirect
-                                'new_elsewhere'  # mode
+                               {1: True},  # redirect
+                               'new_elsewhere'  # mode
                                ),
-                              (8,  # agora (no redirect, new here) --------------
+                              (8,  # agora (no redirect, new here)
                                {'latest_new': 2,  # tpout
                                 'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
                                 'cat3': [], 'cat4': [],
                                 'rev1': [6, 29, 62, 82, 83], 'rev2': [61],
                                 'rev3': [], 'rev4': []},
-                                {1: False, 2: False},  # redirect
-                                'here_new'  # mode
+                               {1: False, 2: False},  # redirect
+                               'here_new'  # mode
                                ),
-                              (8,  # agora (all for tags completed, repeat here) --
+                              (8,  # agora (all for tags completed,repeat here)
                                {'latest_new': 2,
-                                 'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
-                                 'cat3': [], 'cat4': [],
-                                 'rev1': [6, 29, 62, 82, 83], 'rev2': [61],
-                                 'rev3': [], 'rev4': []},
+                                'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [6, 29, 62, 82, 83], 'rev2': [61],
+                                'rev3': [], 'rev4': []},
                                {1: False, 2: False},  # redirect
                                'repeated'  # mode
                                ),
                               (8,  # agora (all but one repeated 3x) --
-                               {'latest_new': 2,
-                                 'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
-                                 'cat3': [], 'cat4': [],
-                                 'rev1': [6, 29, 62, 82, 83], 'rev2': [61],
-                                 'rev3': [], 'rev4': []},
-                                {1: False, 2: False},  # redirect
-                                'repeated'  # mode
+                              {'latest_new': 2,
+                               'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                               'cat3': [], 'cat4': [],
+                               'rev1': [6, 29, 62, 82, 83], 'rev2': [61],
+                               'rev3': [], 'rev4': []},
+                              {1: False, 2: False},  # redirect
+                               'repeated'  # mode
                                ),
                               (8,  # agora (all but one repeated 2x) --
                                {'latest_new': 2,
-                                 'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
-                                 'cat3': [], 'cat4': [],
-                                 'rev1': [6, 29, 62, 82, 83], 'rev2': [61],
-                                 'rev3': [], 'rev4': []},
-                                {1: False, 2: False},  # redirect
-                                'repeated'  # mode
+                                'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [6, 29, 62, 82, 83], 'rev2': [61],
+                                'rev3': [], 'rev4': []},
+                               {1: False, 2: False},  # redirect
+                               'repeated'  # mode
                                ),
                               ])
     def test_pathchooser_choose(self, locid, tpout, redirect, mode, db):
@@ -7024,7 +7130,8 @@ class TestPathChooser():
                     print 'completed set for "repeated"'
                     expected.extend([t['id'] for t in taggedpaths])
                     print 'expected in building completed:', expected
-                    # TODO: test incremental repeating (only once until all once, etc.)
+                    # TODO: test incremental repeating (only once until all
+                    # once, etc.)
                 elif mode == 'here_new':
                     print 'completed set for "here_new"'
                     newpath_id = here_paths[randrange(len(here_paths))]
@@ -7033,20 +7140,23 @@ class TestPathChooser():
                     deleted.append(newpath_id)
                 elif mode == 'new_elsewhere':
                     print 'completed set for "new_elsewhere"'
-                    newpath_id = elsewhere_paths[randrange(len(elsewhere_paths))]
+                    newpath_id = elsewhere_paths[
+                        randrange(len(elsewhere_paths))]
                     print 'removed completion record for', newpath_id
                     expected.append(newpath_id)
                     deleted.append(newpath_id)
         for d in deleted:
             del completed['paths'][d]
-        completed['latest'] = completed.keys()[randrange(len(completed.keys()))]
+        completed['latest'] = completed.keys()[randrange(len(completed.keys())
+                                                         )]
         print 'completed ------------------------------------------'
         pprint(completed)
         print '----------------------------------------------------'
         # end assembling completed
 
         chooser = PathChooser(tpout, locid, completed)
-        actual, newloc, catnum, actualmode, new_material, tag_progress = chooser.choose()
+        actual, newloc, catnum, actualmode, new_material, \
+            tag_progress = chooser.choose()
 
         # get paths with supplied tags
         mycat = 'cat{}'.format(catnum)
@@ -7063,7 +7173,7 @@ class TestPathChooser():
             print 'repeat expected'
             print 'finding expected paths with fewest repeats'
             completed_freq = {i: (f['right'] + f['wrong'])
-                            for i, f in completed['paths'].iteritems()}
+                              for i, f in completed['paths'].iteritems()}
             completed_freq_cat = {i: f for i, f in completed_freq.iteritems()
                                   if i in taggedids}
             print 'path repeats for category'
@@ -7076,7 +7186,8 @@ class TestPathChooser():
         print 'EXPECTED PATHS', expected
 
         assert catnum in range(1, 5)
-        if catnum in redirect.keys() and redirect[catnum]:  # since different cats will yield different redirect results
+        if catnum in redirect.keys() and redirect[catnum]:
+            # since different cats will yield different redirect results
             assert newloc
             firststep = actual['steps'][0]
             steplocs = db.steps(firststep).locations
@@ -7088,18 +7199,21 @@ class TestPathChooser():
             print 'currently in loc', locid
             pathsteps = [p.steps[0] for p in taggedpaths]
             steplocs = [db.steps(s).locations for s in pathsteps]
-            steplocs_chain = list(chain.from_iterable([s for s in steplocs if s]))
+            steplocs_chain = list(chain.from_iterable([s for s
+                                                       in steplocs if s]))
             locset = list(set(steplocs_chain))
             print 'path can be begun in locs:', locset
             assert locid in locset
-            if mode != 'repeated':  # TODO: when repeating choice doesn't prioritise current loc
+            if mode != 'repeated':
+                # TODO: when repeating choice doesn't prioritise current loc
                 assert newloc is None
         assert actualmode == mode
 
         if new_material:
             print 'new_material:', new_material
             assert catnum == 1
-            pathtags = [t for s in actual['steps'] for t in db['steps'](s).tags]
+            pathtags = [t for s in actual['steps']
+                        for t in db['steps'](s).tags]
             print 'path:', actual['id']
             print 'steps:', actual['steps']
             print 'pathtags:', pathtags
@@ -7107,7 +7221,6 @@ class TestPathChooser():
             assert [t for t in pathtags if t in tag_progress['cat1']]
 
         assert tpout == tag_progress
-
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('myset,locid,tpout',
@@ -7125,7 +7238,8 @@ class TestPathChooser():
         Unit test for the paideia.Pathchooser.choose() method.
         """
         chooser = PathChooser(tpout, locid, [])
-        actual, newloc, catnum, actualmode, new_material, tag_progress = chooser.choose(set_review=myset)
+        actual, newloc, catnum, actualmode, new_material, \
+            tag_progress = chooser.choose(set_review=myset)
         assert actualmode == 'reviewing set {}'.format(myset)
         assert new_material is False
         assert tag_progress == tpout
@@ -7140,11 +7254,11 @@ class TestPathChooser():
         # test randomness
         path_ids = []
         for n in range(0, 100):
-            actual, newloc, catnum, actualmode, new_material, tag_progress = chooser.choose(set_review=myset)
+            actual, newloc, catnum, actualmode, new_material, \
+                tag_progress = chooser.choose(set_review=myset)
             if actual['id'] not in path_ids:
                 path_ids.append(actual['id'])
         assert len(path_ids) > 50  # testing randomness over 100 iterations
-
 
 
 class TestBugReporter():

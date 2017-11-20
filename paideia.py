@@ -1847,7 +1847,8 @@ class User(object):
 
     """
 
-    def __init__(self, userdata, tag_records, tag_progress, blocks=[]):
+    def __init__(self, userdata, tag_records, tag_progress, blocks=[],
+                 test_db=None, cur_time=None):
         """
         Initialize a paideia.User object.
 
@@ -1856,7 +1857,8 @@ class User(object):
         - tag_progress: rows.as_dict()
         - tag_records: rows.as_dict
         """
-        db = current.db
+        db = test_db if test_db else current.db
+        mynow = cur_time if cur_time else datetime.datetime.utcnow()
         try:
             self.time_zone = userdata['time_zone']
             self.blocks = blocks  # FIXME: somehow pass previous day's blocks
@@ -1883,16 +1885,20 @@ class User(object):
             self.prev_loc = None
             self.npc = None
             self.prev_npc = None
-            msel = db((db.auth_membership.user_id == self.user_id) &
-                      (db.auth_membership.group_id == db.auth_group.id)
+            msel = db((db.class_membership.user_id == self.user_id) &
+                      (db.class_membership.class_section == db.classes.id)
                       ).select()
             # FIXME: Handle registered users without a class assignment
             # put everyone either in a class at registration or in (by default)
             # a generic 'class' with generic presets
             try:
-                target = [m.auth_group.paths_per_day for m in msel
-                          if m.auth_group.paths_per_day][0]
+                most_recent = max(c.classes.start_date for c in msel
+                                  if c.classes.start_date <= mynow)
+                target = [m.classes.paths_per_day for m in msel
+                          if m.classes.paths_per_day and
+                          m.classes.start_date == most_recent][0]
             except IndexError:
+                print 'User had no class quota.'
                 print traceback.format_exc(5)
                 target = 20
             self.quota = target
