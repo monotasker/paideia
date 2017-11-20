@@ -4,7 +4,8 @@
 import datetime
 # from dateutil.parser import parse
 # import HTMLParser
-from paideia_stats import Stats, get_set_at_date, get_term_bounds, get_current_class
+from paideia_stats import Stats, get_set_at_date, get_term_bounds
+from paideia_stats import get_current_class
 from paideia_bugs import Bug
 # import traceback
 # from paideia_utils import send_error
@@ -27,17 +28,21 @@ mail = current.mail
 
 def index():
     """    """
-    mod_topic = db(db.topics.topic == 'index-modals').select(db.topics.id).first()
-    modals = db(db.content_pages.topics.contains([mod_topic.id])).select().as_list()
+    mod_topic = db(db.topics.topic == 'index-modals'
+                   ).select(db.topics.id).first()
+    modals = db(db.content_pages.topics.contains([mod_topic.id])
+                ).select().as_list()
     hero_topic = db(db.topics.topic == 'hero').select(db.topics.id).first()
-    hero = db(db.content_pages.topics.contains([hero_topic.id])).select().as_list()
+    hero = db(db.content_pages.topics.contains([hero_topic.id])
+              ).select().as_list()
     return {'modals': modals, 'hero': hero}
 
 
 def faqs():
     """ """
     faqs_topic = db(db.topics.topic == 'faqs').select(db.topics.id).first()
-    faqs = db(db.content_pages.topics.contains([faqs_topic.id])).select().as_list()
+    faqs = db(db.content_pages.topics.contains([faqs_topic.id])
+              ).select().as_list()
     return {'faqs': faqs}
 
 
@@ -54,8 +59,9 @@ def user():
     http://..../[app]/default/user/request_reset_password
     http://..../[app]/default/user/reset_password
     http://..../[app]/default/user/impersonate  # user is request.args[0]
-        auth.is_impersonating() checks whether current user is shadowing another
-        only allowed if has_permission('impersonate', db.auth_user, user_id)
+        auth.is_impersonating() checks whether current user is shadowing
+        another only allowed if has_permission('impersonate', db.auth_user,
+        user_id)
     http://..../[app]/default/user/groups
         lists user's group memberships
     http://..../[app]/default/user/not_authorized
@@ -68,17 +74,25 @@ def user():
     response.files.append(URL('static', 'js/info_chart1.js'))
 
     # Include files for Datatables jquery plugin and bootstrap css styling
-    response.files.append('https://cdn.datatables.net/v/bs/jszip-2.5.0/dt-1.10.16/b-1.4.2/b-colvis-1.4.2/b-html5-1.4.2/b-print-1.4.2/fc-3.2.3/fh-3.1.3/r-2.2.0/datatables.min.css')
-    response.files.append('https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/pdfmake.min.js')
-    response.files.append('https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js')
-    response.files.append("https://cdn.datatables.net/v/bs/jszip-2.5.0/dt-1.10.16/b-1.4.2/b-colvis-1.4.2/b-html5-1.4.2/b-print-1.4.2/fc-3.2.3/fh-3.1.3/r-2.2.0/datatables.min.js")
+    response.files.append('https://cdn.datatables.net/v/bs/jszip-2.5.0/'
+                          'dt-1.10.16/b-1.4.2/b-colvis-1.4.2/b-html5-1.4.2/'
+                          'b-print-1.4.2/fc-3.2.3/fh-3.1.3/r-2.2.0/'
+                          'datatables.min.css')
+    response.files.append('https://cdnjs.cloudflare.com/ajax/libs/pdfmake/'
+                          '0.1.32/pdfmake.min.js')
+    response.files.append('https://cdnjs.cloudflare.com/ajax/libs/pdfmake/'
+                          '0.1.32/vfs_fonts.js')
+    response.files.append('https://cdn.datatables.net/v/bs/jszip-2.5.0/'
+                          'dt-1.10.16/b-1.4.2/b-colvis-1.4.2/b-html5-1.4.2/'
+                          'b-print-1.4.2/fc-3.2.3/fh-3.1.3/r-2.2.0/'
+                          'datatables.min.js')
 
     return dict(form=auth())
 
 
 def set_query_visibility():
     """
-    Set the hide_read_queries field of an auth_user record to the supplied value.
+    Set hide_read_queries field of an auth_user record to the supplied value.
 
     Returns:
         Nothing.
@@ -152,8 +166,8 @@ def info():
             tz(str??):                  User's time zone from auth.user
                                             (extended in db.py)
             email(str):                 User's email
-            starting_set(int):          badge set at which the user began his/her
-                                            current course section
+            starting_set(int):          badge set at which the user began
+                                            his/her current course section
             end_date(str??):            ending date for user's current course
                                             section
             cal(html helper obj):       html calendar with user path stats
@@ -164,8 +178,8 @@ def info():
             badge_levels(dict):         Dictionary with badle levels (int) as
                                             keys and a list of badge names (or
                                             tag: int) as each value.
-            badge_table_data(list):     A list of dictionaries with info on user
-                                            badge progress (from
+            badge_table_data(list):     A list of dictionaries with info on
+                                            user badge progress (from
                                             Stats.active_tags)
             badge_set_milestones(list): List of 'upgrades' of the highest badge
                                             set and their dates
@@ -177,8 +191,9 @@ def info():
             badge_set_dict():           badge_set_dict
     """
     debug = False
-    if debug: print '==================================='
-    if debug: print 'starting controller default.info'
+    if debug:
+        print '==================================='
+        print 'starting controller default.info'
     # Allow passing explicit user but default to current user
     if 'id' in request.vars:
         user = db.auth_user[request.vars['id']]
@@ -187,11 +202,13 @@ def info():
 
     stats = Stats(user.id, cache=cache)
     now = datetime.datetime.utcnow()
-    if debug: print 'now is', now
+    if debug:
+        print 'now is', now
 
     # get user's current course
     myc = get_current_class(user.id, datetime.datetime.utcnow())
-    if debug: print 'myc is', myc
+    if debug:
+        print 'myc is', myc
 
     # tab1
 
@@ -204,10 +221,11 @@ def info():
 
     start_date, fmt_start, end_date, fmt_end = None, None, None, None
     if myc:
-        start_date, fmt_start, end_date, fmt_end, prevend, fmt_prevend = get_term_bounds(
-            myc.class_membership.as_dict(),
-            myc.classes.start_date,
-            myc.classes.end_date)
+        start_date, fmt_start, end_date, fmt_end, \
+            prevend, fmt_prevend = get_term_bounds(
+                myc.class_membership.as_dict(),
+                myc.classes.start_date,
+                myc.classes.end_date)
         try:
             starting_set = int(myc.class_membership.starting_set)
         except ValueError:
@@ -246,7 +264,7 @@ def info():
     badge_set_dict = {}
     set_list_rows = db().select(db.tags.tag_position, distinct=True)
     set_list = sorted([row.tag_position for row in set_list_rows
-                if row.tag_position < 90])
+                       if row.tag_position < 90])
     all_tags = db((db.tags.id > 0) &
                   (db.badges.tag == db.tags.id)
                   ).select()
@@ -285,7 +303,8 @@ def get_chart1_data_json():
     Wrapper for get_chart1_data() to allow getting a json-formatted return val.
 
     '''
-    user_id = request.vars['user_id'] if 'user_id' in request.vars else auth.user_id
+    user_id = request.vars['user_id'] if 'user_id' in request.vars \
+        else auth.user_id
     set = request.vars['set'] if 'set' in request.vars else None
     tag = request.vars['tag'] if 'tag' in request.vars else None
     chart1_data = get_chart1_data(user_id=user_id, set=set, tag=tag)
@@ -312,19 +331,20 @@ def get_chart1_data(user_id=None, set=None, tag=None):
     answer_counts = stats.get_answer_counts(set=set, tag=tag)
 
     chart1_data = {'badge_set_reached': [{'date': dict['my_date'],
-                                            'set': dict['badge_set']} for dict
-                                            in badge_set_milestones],
-                      'answer_counts': [{'date': dict['my_date'],
-                                         'total': dict['right'] + dict['wrong'],
-                                         'ys': [{'class': 'right',
-                                                 'y0': 0,
-                                                 'y1': dict['right']},
-                                                {'class': 'wrong',
-                                                 'y0': dict['right'],
-                                                 'y1': dict['right'] + dict['wrong']}
-                                                ],
-                                         'ids': dict['ids']
-                                         } for dict in answer_counts],
+                                          'set': dict['badge_set']} for dict
+                                         in badge_set_milestones],
+                   'answer_counts': [{'date': dict['my_date'],
+                                      'total': dict['right'] + dict['wrong'],
+                                      'ys': [{'class': 'right',
+                                              'y0': 0,
+                                              'y1': dict['right']},
+                                             {'class': 'wrong',
+                                              'y0': dict['right'],
+                                              'y1': dict['right'] +
+                                              dict['wrong']}
+                                             ],
+                                      'ids': dict['ids']
+                                      } for dict in answer_counts],
                    # above includes y values for stacked bar graph
                    # and 'ids' for modal presentation of daily attempts
                    }
@@ -354,9 +374,11 @@ def get_day_attempts():
         mybadges_string = ', '.join(mybadges)
         myclass = 'success' if row.attempt_log.score > 0.01 else 'warning'
         attempt_list.append(TR(TD(row.steps.prompt, _class=myclass),
-                               TD(row.attempt_log.user_response, _class=myclass),
+                               TD(row.attempt_log.user_response,
+                                  _class=myclass),
                                TD(row.attempt_log.score, _class=myclass),
-                               TD(row.attempt_log.selection_category, _class=myclass),
+                               TD(row.attempt_log.selection_category,
+                                  _class=myclass),
                                TD(row.attempt_log.new_content, _class=myclass),
                                TD(mybadges_string, _class=myclass)
                                ))
@@ -370,7 +392,8 @@ def set_review_mode():
     except ValueError:  # if passed a non-numeric value
         myset = None
     session.set_review = myset
-    if debug: print 'session.set_review is', session.set_review
+    if debug:
+        print 'session.set_review is', session.set_review
 
 
 def oops():
@@ -389,9 +412,11 @@ def oops():
           'request url:<br /><br />{url}' \
           '<br /><br />' \
           'Here is the ticket:<br /><br />' \
-          'local: <a href="http://127.0.0.1:8000/admin/default/ticket/{t}" target="_blank">{t}</a>' \
+          'local: <a href="http://127.0.0.1:8000/admin/default/ticket/{t}" ' \
+          ' target="_blank">{t}</a>' \
           '<br /><br />' \
-          'remote: <a href="https://ianwscott.webfactional.com/admin/default/ticket/{t}" target="_blank">{t}</a>' \
+          'remote: <a href="https://ianwscott.webfactional.com/' \
+          'admin/default/ticket/{t}" target="_blank">{t}</a>' \
           '</body></html>'.format(url=request_url, t=ticket)
 
     mail.send(mail.settings.sender, title, msg)
@@ -452,7 +477,8 @@ def data():
 # TODO: does the mail function below make sense?
 @auth.requires_membership(role='administrators')
 def send_mail_to_user():
-    addr = db(db.auth_user.id == session.the_student).select(db.auth_user.email)
+    addr = db(db.auth_user.id == session.the_student
+              ).select(db.auth_user.email)
     subj = session.mail_subject
     msg = session.mail_message
 
