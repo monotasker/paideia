@@ -3569,9 +3569,10 @@ class TestStep():
                           'secondary': expected['tags_secondary']}
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('caseid,stepid,alias,npcshere,promptext,instrs,'
-                             'slidedecks,widgimg,rbuttons,rform,kwargs,'
-                             'audio',
+    @pytest.mark.parametrize(
+        'caseid,stepid,alias,npcshere,promptext,instrs,'
+        'slidedecks,widgimg,rbuttons,rform,kwargs,'
+        'audio',
         [('case1', 1,  # StepText ------------------------------
           'shop_of_alexander',
           [2, 8, 17],  # npcs here (for step)
@@ -3833,8 +3834,9 @@ class TestStep():
         assert actual['loc'] == alias
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('stepid,newbadges,promoted,nextloc,quota,'
-                             'promptin,promptout',
+    @pytest.mark.parametrize(
+        'stepid,newbadges,promoted,nextloc,quota,'
+        'promptin,promptout',
         [(1,  # step
           None,  # newbadges  FIXME: doesn't test block step replacements
           None,  # promoted
@@ -3906,16 +3908,17 @@ class TestStep():
             assert l in npcindb.map_location
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('stepid,instructions',
-          [(1,
-            ['Focus on finding Greek letters that make the *sounds* of the '
-             'English word. Don\'t look for Greek "equivalents" for each '
-             'English letter.']
-            ),
-           (2,
-            None
-            )
-           ])
+    @pytest.mark.parametrize(
+        'stepid,instructions',
+        [(1,
+         ['Focus on finding Greek letters that make the *sounds* of the '
+          'English word. Don\'t look for Greek "equivalents" for each '
+          'English letter.']
+          ),
+         (2,
+          None
+          )
+         ])
     def test_step_get_instructions(self, stepid, instructions):
         """Test for method Step._get_instructions"""
         step = mystep(stepid)
@@ -3923,123 +3926,125 @@ class TestStep():
         assert actual == instructions
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('stepid, readable',
-            [(1,
-             {'readable_short': ['μιτ'],
-              'readable_long': []},
-              ),
-             (2,
-              {'readable_short': ['βατ', 'βοτ'],
-               'readable_long': []},
-              ),
-             (19,
-              {'readable_short': ['πωλ'],
-              'readable_long': []},
-              )
-             ])  # only StepText type
+    @pytest.mark.parametrize(
+        'stepid, readable',
+        [(1,
+         {'readable_short': ['μιτ'],
+          'readable_long': []},
+          ),
+         (2,
+          {'readable_short': ['βατ', 'βοτ'],
+           'readable_long': []},
+          ),
+         (19,
+          {'readable_short': ['πωλ'],
+           'readable_long': []},
+          )
+         ])  # only StepText type
     def test_step_get_readable(self, stepid, readable):
         """Unit tests for StepText._get_readable() method"""
         step = mystep(stepid)
         assert step._get_readable() == readable
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('stepid,score,localias,npcshere,resptext,'
-                             'rdblshort,rdbllong,replytext,instrs,slides,tips',
-         [(1,  # step1, correct
-           1.0,  # score
-           'shop_of_alexander',  # loc 8
-           [2, 8, 17],  # npcs here (for step)
-           'μιτ',
-           ['μιτ'],
-           [],
-           'Right. Κάλον.\nYou said\n- [[resp]]',
-           ['Focus on finding Greek letters that make '  # instrs
-            'the *sounds* of the English word. Don\'t '
-            'look for Greek "equivalents" for each '
-            'English letter.'],
-           {1: 'Introduction',  # slides
-            2: 'The Alphabet',
-            6: 'Noun Basics'},
-           None,  # tips
-           ),
-          (1,  # step1, incorrect
-           0,  # score
-           'shop_of_alexander',  # loc 8
-           [2, 8, 17],  # npcs here (for step)
-           'βλα',
-           ['μιτ'],
-           [],
-           'Incorrect. Try again!\nYou '
-           'said\n- [[resp]]\nThe correct '
-           'response is[[rdbl]]',
-           ['Focus on finding Greek letters that make '  # instrs
-            'the *sounds* of the English word. Don\'t '
-            'look for Greek "equivalents" for each '
-            'English letter.'],
-           {1: 'Introduction',  # slides
-            2: 'The Alphabet',
-            6: 'Noun Basics'},
-           None,  # tips
-           ),
-          (2,  # step2, correct
-           1.0,  # score
-           'agora',
-           [1],  # npcs here (for step)
-           'βοτ',
-           ['βατ', 'βοτ'],
-           [],
-           'Right. Κάλον.\nYou said\n- '
-           '[[resp]]\nCorrect responses '
-           'would include[[rdbl]]',
-           None,  # instrs
-           {1: 'Introduction',  # slides
-            2: 'The Alphabet',
-            6: 'Noun Basics'},
-           None,  # tips
-           ),
-          (2,  # step2, incorrect
-           0,  # score
-           'agora',
-           [1],  # npcs here (for step)
-           'βλα',
-           ['βατ', 'βοτ'],
-           [],
-           'Incorrect. Try again!\nYou '
-           'said\n- [[resp]]\nCorrect responses '
-           'would include[[rdbl]]',
-           None,  # instrs
-           {1: 'Introduction',  # slides
-            2: 'The Alphabet',
-            6: 'Noun Basics'},
-           None,  # tips
-           ),
-          (101,  # step 101, correct
-           1.0,  # score
-           'shop_of_alexander',
-           [14],  # npcs here
-           'ναι',
-           ['ναι'],
-           [],
-           'Right. Κάλον.\nYou said\n- [[resp]]',
-           None,  # instrs
-           {14: 'Clause Basics'},  # slides
-           None,  # tips
-           ),
-          (101,  # step 101, incorrect
-           0,  # score
-           'shop_of_alexander',
-           [14],  # npcs here
-           'οὐ',
-           ['ναι'],
-           [],
-           'Incorrect. Try again!\nYou '
-           'said\n- [[resp]]\nThe correct '
-           'response is[[rdbl]]',
-           None,  # instrs
-           {14: 'Clause Basics'},  # slides
-           None,  # tips
-           ),
-          ])  # only StepText and StepMultiple types
+    @pytest.mark.parametrize(
+        'stepid,score,localias,npcshere,resptext,'
+        'rdblshort,rdbllong,replytext,instrs,slides,tips',
+        [(1,  # step1, correct
+          1.0,  # score
+          'shop_of_alexander',  # loc 8
+          [2, 8, 17],  # npcs here (for step)
+          'μιτ',
+          ['μιτ'],
+          [],
+          'Right. Κάλον.\nYou said\n- [[resp]]',
+          ['Focus on finding Greek letters that make '  # instrs
+           'the *sounds* of the English word. Don\'t '
+           'look for Greek "equivalents" for each '
+           'English letter.'],
+          {1: 'Introduction',  # slides
+           2: 'The Alphabet',
+           6: 'Noun Basics'},
+          None,  # tips
+          ),
+         (1,  # step1, incorrect
+          0,  # score
+          'shop_of_alexander',  # loc 8
+          [2, 8, 17],  # npcs here (for step)
+          'βλα',
+          ['μιτ'],
+          [],
+          'Incorrect. Try again!\nYou '
+          'said\n- [[resp]]\nThe correct '
+          'response is[[rdbl]]',
+          ['Focus on finding Greek letters that make '  # instrs
+           'the *sounds* of the English word. Don\'t '
+           'look for Greek "equivalents" for each '
+           'English letter.'],
+          {1: 'Introduction',  # slides
+           2: 'The Alphabet',
+           6: 'Noun Basics'},
+          None,  # tips
+          ),
+         (2,  # step2, correct
+          1.0,  # score
+          'agora',
+          [1],  # npcs here (for step)
+          'βοτ',
+          ['βατ', 'βοτ'],
+          [],
+          'Right. Κάλον.\nYou said\n- '
+          '[[resp]]\nCorrect responses '
+          'would include[[rdbl]]',
+          None,  # instrs
+          {1: 'Introduction',  # slides
+           2: 'The Alphabet',
+           6: 'Noun Basics'},
+          None,  # tips
+          ),
+         (2,  # step2, incorrect
+          0,  # score
+          'agora',
+          [1],  # npcs here (for step)
+          'βλα',
+          ['βατ', 'βοτ'],
+          [],
+          'Incorrect. Try again!\nYou '
+          'said\n- [[resp]]\nCorrect responses '
+          'would include[[rdbl]]',
+          None,  # instrs
+          {1: 'Introduction',  # slides
+           2: 'The Alphabet',
+           6: 'Noun Basics'},
+          None,  # tips
+          ),
+         (101,  # step 101, correct
+          1.0,  # score
+          'shop_of_alexander',
+          [14],  # npcs here
+          'ναι',
+          ['ναι'],
+          [],
+          'Right. Κάλον.\nYou said\n- [[resp]]',
+          None,  # instrs
+          {14: 'Clause Basics'},  # slides
+          None,  # tips
+          ),
+         (101,  # step 101, incorrect
+          0,  # score
+          'shop_of_alexander',
+          [14],  # npcs here
+          'οὐ',
+          ['ναι'],
+          [],
+          'Incorrect. Try again!\nYou '
+          'said\n- [[resp]]\nThe correct '
+          'response is[[rdbl]]',
+          None,  # instrs
+          {14: 'Clause Basics'},  # slides
+          None,  # tips
+          ),
+         ])  # only StepText and StepMultiple types
     def test_step_get_reply(self, stepid, score, localias, npcshere, resptext,
                             rdblshort, rdbllong, replytext, instrs, slides,
                             tips, db, npc_data):
@@ -4080,8 +4085,9 @@ class TestStepEvaluator():
     """Class for evaluating the submitted response string for a Step"""
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('stepid,regex,uresp,rtext,score,tright,twrong,'
-                             'tips',
+    @pytest.mark.parametrize(
+        'stepid,regex,uresp,rtext,score,tright,twrong,'
+        'tips',
         [(1,
           {'response1': '^μιτ$'},
           'μιτ',
@@ -4158,8 +4164,9 @@ class TestMultipleEvaluator():
     """
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('stepid,regex,uresp,rtext,score,tright,twrong,'
-                             'tips',
+    @pytest.mark.parametrize(
+        'stepid,regex,uresp,rtext,score,tright,twrong,'
+        'tips',
         [(101,
           {'response1': 'ναι'},
           'ναι',
@@ -4191,7 +4198,8 @@ class TestMultipleEvaluator():
         assert actual['tips'] == tips
 
 
-@pytest.mark.skipif('global_runall is False and global_run_TestMultipleEvaluator '
+@pytest.mark.skipif('global_runall is False and '
+                    'global_run_TestMultipleEvaluator '
                     'is False', reason='Global skip settings')
 class TestPath():
     """Unit testing class for the paideia.Path object"""
@@ -4244,10 +4252,11 @@ class TestPath():
         # TODO: test edge cases with, e.g., repeat set
         # TODO: test middle of multi-step path
         path, pathsteps = mypath(pathid, db)
-        actual, nextloc, errstring = path.get_step_for_prompt(Location(localias))
+        actual, nextloc, errstring = \
+            path.get_step_for_prompt(Location(localias))
 
         assert path.step_for_prompt.get_id() == stepid
-        assert path.step_for_reply == None
+        assert path.step_for_reply is None
         print 'actual step:', stepid
         assert actual.get_id() == stepid
         print 'actual path:', pathid
@@ -4273,12 +4282,14 @@ class TestPath():
                                                pathid, stepid, stepsleft, locs,
                                                db, user_login, mysteps):
         """
-        Unit test for Path.get_step_for_prompt() in a case that prompts redirect.
+        Unit test for Path.get_step_for_prompt() in a case that prompts
+        redirect.
         """
         # TODO: redirect can be caused by 2 situations: bad loc or wrong npcs
         # here
         path, pathsteps = mypath(pathid, db)
-        actual, nextloc, errstring = path.get_step_for_prompt(Location(localias))
+        actual, nextloc, errstring = \
+            path.get_step_for_prompt(Location(localias))
 
         assert path.step_for_reply is None  # step isn't activated
         assert path.step_for_prompt.get_id() == stepid  # step isn't activated
@@ -4327,7 +4338,8 @@ class TestPath():
          (19, 19, [], [3, 1, 13, 8, 11], 'domus_A'),
          (1, 71, [], [3, 1, 6, 7, 8, 11], 'domus_A'),
          (1, 71, [], [3, 1, 6, 7, 8, 11], 'domus_A'),
-         # (63, 66, [67, 68], [3, 1], 'domus_A')  # first step doesn't take reply
+         # (63, 66, [67, 68], [3, 1], 'domus_A')  # first step doesn't take
+         # reply
          ])
     def test_path_get_step_for_reply(self, pathid, stepid, stepsleft, locs,
                                      localias, user_login, db):
@@ -4444,10 +4456,10 @@ class TestUser(object):
                     'id': 1,
                     'time_zone': 'America/Toronto'}
         tagprog = {'latest_new': 2,
-                 'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
-                 'cat3': [], 'cat4': [],
-                 'rev1': [], 'rev2': [61],
-                 'rev3': [], 'rev4': []}
+                   'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                   'cat3': [], 'cat4': [],
+                   'rev1': [], 'rev2': [61],
+                   'rev3': [], 'rev4': []}
         tagrecs = [{'name': 1,
                     'tag': 1,
                     'tlast_right': dt('2013-01-29'),
@@ -4484,10 +4496,10 @@ class TestUser(object):
                     'id': 1,
                     'time_zone': 'America/Toronto'}
         tagprog = {'latest_new': 2,
-                 'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
-                 'cat3': [], 'cat4': [],
-                 'rev1': [], 'rev2': [61],
-                 'rev3': [], 'rev4': []}
+                   'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                   'cat3': [], 'cat4': [],
+                   'rev1': [], 'rev2': [61],
+                   'rev3': [], 'rev4': []}
         tagrecs = [{'name': 1,
                     'tag': 1,
                     'tlast_right': dt('2013-01-29'),
@@ -4568,10 +4580,14 @@ class TestUser(object):
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('start,expected',
-                             [(datetime.datetime(2013, 01, 02, 9, 0, 0), False),
-                              (datetime.datetime(2013, 01, 02, 9, 0, 0), False),
-                              (datetime.datetime(2013, 01, 02, 3, 0, 0), True),
-                              (datetime.datetime(2012, 12, 29, 14, 0, 0), True)
+                             [(datetime.datetime(2013, 01, 02, 9, 0, 0),
+                               False),
+                              (datetime.datetime(2013, 01, 02, 9, 0, 0),
+                               False),
+                              (datetime.datetime(2013, 01, 02, 3, 0, 0),
+                               True),
+                              (datetime.datetime(2012, 12, 29, 14, 0, 0),
+                               True)
                               ])
     def test_user_is_stale(self, start, expected, db):
         """
@@ -4582,10 +4598,10 @@ class TestUser(object):
                     'id': 1,
                     'time_zone': 'America/Toronto'}
         tagprog = {'latest_new': 2,
-                 'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
-                 'cat3': [], 'cat4': [],
-                 'rev1': [], 'rev2': [61],
-                 'rev3': [], 'rev4': []}
+                   'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                   'cat3': [], 'cat4': [],
+                   'rev1': [], 'rev2': [61],
+                   'rev3': [], 'rev4': []}
         tagrecs = [{'name': 1,
                     'tag': 1,
                     'tlast_right': dt('2013-01-29'),
@@ -4599,7 +4615,8 @@ class TestUser(object):
         assert actual == expected
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('localias,completed,tpout,trecs,redirect,expected',
+    @pytest.mark.parametrize(
+        'localias,completed,tpout,trecs,redirect,expected',
         [('shop_of_alexander',  # loc 6, (only 1 untried here)
           {'latest': 2,  # completed
            'paths': {2: {'right': 1, 'wrong': 0},
@@ -4677,34 +4694,34 @@ class TestUser(object):
           [5, 63, 256, 409, 410, 411, 412, 413, 414, 415, 416, 417, 418, 419,
            420, 421, 422, 423, 444, 445, 969]  # expected (not in this loc)
           ),
-         #(8,  # agora (no redirect, new here)
-          #[17, 98, 15, 208, 12, 16, 34, 11, 23, 4, 9, 18],
-          #{'latest_new': 2,  #
-          #'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
-          #'cat3': [], 'cat4': [],
-          #'rev1': [], 'rev2': [61],
-          #'rev3': [], 'rev4': []},
-          #None,  # redirect
-          #[7, 14, 100, 35, 19, 103, 21, 97, 13, 261, 101]  # expected
-          #),
-        #(8,  # agora (all for tags completed, repeat here)
-        #[4, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
-        #19, 21, 22, 23, 34, 35, 45, 97, 98, 100, 101,
-        #103, 120, 129, 139, 141, 149, 152, 161, 167,
-        #176, 184, 190, 208, 222, 225, 228, 231, 236,
-        #247, 255, 257, 261, 277, 333, 334, 366, 424,
-        #425, 426, 427, 428, 429, 430, 431, 433, 434,
-        #435, 436, 437, 439, 440, 441, 444, 445],
-        #{'latest_new': 2,
-        #'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
-        #'cat3': [], 'cat4': [],
-        #'rev1': [], 'rev2': [61],
-        #'rev3': [], 'rev4': []},
-        #False,
-        #[101, 35, 34, 23, 16, 261, 15, 21, 208, 100,
-        #17, 14, 9, 7, 18, 11, 98, 12, 4, 19, 103, 13,
-        #97]  # with tags already completed here (repeat)
-        #),
+         # (8,  # agora (no redirect, new here)
+         #  [17, 98, 15, 208, 12, 16, 34, 11, 23, 4, 9, 18],
+         #  {'latest_new': 2,  #
+         #   'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+         #   'cat3': [], 'cat4': [],
+         #   'rev1': [], 'rev2': [61],
+         #   'rev3': [], 'rev4': []},
+         #  None,  # redirect
+         #  [7, 14, 100, 35, 19, 103, 21, 97, 13, 261, 101]  # expected
+         #  ),
+         # (8,  # agora (all for tags completed, repeat here)
+         #  [4, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
+         #   19, 21, 22, 23, 34, 35, 45, 97, 98, 100, 101,
+         #   103, 120, 129, 139, 141, 149, 152, 161, 167,
+         #   176, 184, 190, 208, 222, 225, 228, 231, 236,
+         #   247, 255, 257, 261, 277, 333, 334, 366, 424,
+         #   425, 426, 427, 428, 429, 430, 431, 433, 434,
+         #   435, 436, 437, 439, 440, 441, 444, 445],
+         #  {'latest_new': 2,
+         #   'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+         #   'cat3': [], 'cat4': [],
+         #   'rev1': [], 'rev2': [61],
+         #   'rev3': [], 'rev4': []},
+         #  False,
+         #  [101, 35, 34, 23, 16, 261, 15, 21, 208, 100,
+         #   17, 14, 9, 7, 18, 11, 98, 12, 4, 19, 103, 13,
+         #   97]  # with tags already completed here (repeat)
+         # ),
          ])
     def test_user_get_path(self, localias, completed, tpout, trecs,
                            redirect, expected, user_login, db):
@@ -4735,7 +4752,8 @@ class TestUser(object):
             assert apastq is None
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('myset,localias,tpout,trecs',
+    @pytest.mark.parametrize(
+        'myset,localias,tpout,trecs',
         [(8,
           'shop_of_alexander',  # loc 6, (only 1 untried here)
           {'latest_new': 1,  # tpout
@@ -4760,7 +4778,8 @@ class TestUser(object):
         user = User(user_login, trecs, tpout)
         user.completed_paths = {'latest': 1, 'paths': []}
         loc = Location(localias)
-        actual, acat, aredir, apastq, anew_content = user.get_path(loc, set_review=myset)
+        actual, acat, aredir, apastq, \
+            anew_content = user.get_path(loc, set_review=myset)
         actual_steps = actual.get_steps()
         mytags = []
         for step in actual_steps:
@@ -4773,8 +4792,9 @@ class TestUser(object):
         assert anew_content is False
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('tpin,rankout,tpout,trecs,counter,promoted,'
-                             'new_tags,demoted',
+    @pytest.mark.parametrize(
+        'tpin,rankout,tpout,trecs,counter,promoted,'
+        'new_tags,demoted',
         [({'latest_new': 1,  # tpin =========================================
            'cat1': [1], 'cat2': [],
            'cat3': [], 'cat4': [],
@@ -4862,23 +4882,30 @@ class TestUser(object):
         newcounter = counter + 1 if counter < 4 else 0
         assert user.cats_counter == newcounter
         for c, l in tpout.iteritems():
-            if isinstance(l, list): l.sort()
-            if isinstance(atp[c], list): atp[c].sort()
+            if isinstance(l, list):
+                l.sort()
+            if isinstance(atp[c], list):
+                atp[c].sort()
             assert atp[c] == l
             assert user.tag_progress[c] == l
             if c in ['cat1', 'cat2', 'cat3', 'cat4']:
                 user.categories[c].sort()
                 assert user.categories[c] == l
         assert user.rank == tpout['latest_new']
-        #print 'promoted -----------------\nactual:', apromoted, '\nexpected:', promoted
+        # print 'promoted -----------------'
+        # print '\nactual:', apromoted, '\nexpected:', promoted
         assert apromoted == user.promoted == promoted
-        #print 'new_tags -----------------\nactual:', anew_tags, '\nexpected:', new_tags
+        # print 'new_tags -----------------
+        # print '\nactual:', anew_tags, '\nexpected:', new_tags
         if anew_tags:
-            for c, l in anew_tags.iteritems():
-                if isinstance(l, list): l.sort()
-                if isinstance(user.new_tags[c], list): user.new_tags[c].sort()
-                assert l == user.new_tags[c] == new_tags[c]
-        #print 'demoted -----------------\nactual:', ademoted, '\nexpected:', demoted
+            for c, lst in anew_tags.iteritems():
+                if isinstance(lst, list):
+                    lst.sort()
+                if isinstance(user.new_tags[c], list):
+                    user.new_tags[c].sort()
+                assert lst == user.new_tags[c] == new_tags[c]
+        # print 'demoted -----------------'
+        # print '\nactual:', ademoted, '\nexpected:', demoted
         assert ademoted == user.demoted == demoted
 
         for k, v in user.tag_progress.iteritems():
@@ -4890,29 +4917,30 @@ class TestUser(object):
             for field, content in tr.iteritems():
                 print field
                 print content
-                if field not in ['id', 'step', 'in_path', 'modified_on', 'uuid']:
+                if field not in ['id', 'step', 'in_path', 'modified_on',
+                                 'uuid']:
                     assert content == trecs[idx][field]
 
-    #@pytest.mark.skipif(False, reason='just because')
-    #def test_user_get_old_categories(self, myuser):
-        #"""
-        #TODO: at the moment this is only testing initial state in which there
-        #are no old categories yet.
-        #"""
-        ##case = myuser['casedata']
-        #user = myuser['user']
-        #expected = None
-        ##expected = case['tag_progress']
-        ##del expected['latest_new']
+    # @pytest.mark.skipif(False, reason='just because')
+    # def test_user_get_old_categories(self, myuser):
+    #     """
+    #     TODO: at the moment this is only testing initial state in which there
+    #     are no old categories yet.
+    #     """
+    #     #case = myuser['casedata']
+    #     user = myuser['user']
+    #     expected = None
+    #     #expected = case['tag_progress']
+    #     #del expected['latest_new']
+    #     actual = user._get_old_categories()
+    #     assert actual == expected
+    #     #for c, l in actual.iteritems():
+    #         #assert len([i for i in l if i in expected[c]]
+    #                     ) == len(expected[c])
+    #         #assert len(l) == len(expected[c])
 
-        #actual = user._get_old_categories()
-
-        #assert actual == expected
-        ##for c, l in actual.iteritems():
-            ##assert len([i for i in l if i in expected[c]]) == len(expected[c])
-            ##assert len(l) == len(expected[c])
-
-    @pytest.mark.parametrize('pathid,psteps,alias',
+    @pytest.mark.parametrize(
+        'pathid,psteps,alias',
         [(2, [1], 'agora')
          ])
     @pytest.mark.skipif(False, reason='just because')
@@ -4929,7 +4957,8 @@ class TestUser(object):
                   'times_right': 1,
                   'times_wrong': 1,
                   'secondary_right': None}]
-        userdata = {'first_name': 'Homer', 'id': 1, 'time_zone': 'America/Toronto'}
+        userdata = {'first_name': 'Homer', 'id': 1,
+                    'time_zone': 'America/Toronto'}
         user = User(userdata, trecs, tpout)
         # simulate being at end of active path
         user.path = Path(path_id=pathid)
@@ -4940,7 +4969,8 @@ class TestUser(object):
         assert user.completed_paths['latest'] == pathid
         assert user.completed_paths['paths'][str(pathid)]['right'] == 1
         assert user.completed_paths['paths'][str(pathid)]['wrong'] == 0
-        assert user.completed_paths['paths'][str(pathid)]['path_dict']['id'] == pathid
+        assert user.completed_paths['paths'][str(pathid)]['path_dict']['id'] \
+            == pathid
 
 
 @pytest.mark.skipif('global_runall is False '
@@ -4974,13 +5004,16 @@ class TestCategorizer():
                                ),
                               ('case9', 10,
                                mytagpros()['Simon Pan 2014-03-21'],  # catsin
-                               mytagrecs()['Simon Pan 2014-03-21'],  # tagrecsin
-                               mytagrecs_with_secondary()['Simon Pan 2014-03-21'])  # tagrecsout
+                               mytagrecs()['Simon Pan 2014-03-21'],  # trsin
+                               mytagrecs_with_secondary()['Simon Pan '
+                                                          '2014-03-21'])  # out
                               ])
     def test_categorizer_add_secondary_right(self, casename, rank, catsin,
                                              tagrecsin, tagrecsout, mytagpros,
                                              mytagrecs, db):
-        """Unit test for the paideia.Categorizer._add_secondary_right method."""
+        """
+        Unit test for the paideia.Categorizer._add_secondary_right method.
+        """
         now = dt('2013-01-29')
         # 150 is random user id
         catzr = Categorizer(rank, catsin, tagrecsin, 150, utcnow=now, db=db)
@@ -5000,7 +5033,7 @@ class TestCategorizer():
         for idx, a in enumerate(actual):
             e = expected[idx]
             esr = [d for d in e['secondary_right']] \
-                   if e['secondary_right'] else None
+                if e['secondary_right'] else None
             print 'trying tag', a['tag']
             assert a['tag'] == e['tag']
             assert a['tlast_right'] == e['tlast_right']
@@ -5027,12 +5060,16 @@ class TestCategorizer():
                                 'rev3': [], 'rev4': []},
                                {'cat1': [], 'cat2': [1],
                                 'cat3': [], 'cat4': [],
-                                'rev1': [], 'rev2': [1],  # FIXME: in core require min number of attempts in week's avg
+                                'rev1': [], 'rev2': [1],
+                                # FIXME: in core require min number of
+                                # attempts in week's avg
                                 'rev3': [], 'rev4': []},
                                [{'name': 1,
                                  'tag': 1,
-                                 'tlast_right': now - datetime.timedelta(hours=12),
-                                 'tlast_wrong': now - datetime.timedelta(hours=12),
+                                 'tlast_right': now - \
+                                 datetime.timedelta(hours=12),
+                                 'tlast_wrong': now - \
+                                 datetime.timedelta(hours=12),
                                  'times_right': 20,
                                  'times_wrong': 20,
                                  'secondary_right': None,
@@ -5115,7 +5152,8 @@ class TestCategorizer():
                                  'times_right': 20,
                                  'times_wrong': 10,
                                  'secondary_right': [],
-                                 'first_attempt': '2013-01-27 00:00:00.000000'}],
+                                 'first_attempt': '2013-01-27 '
+                                 '00:00:00.000000'}],
                                ),
                               ('case2', 1,
                                # 61: T (avg > 0.8, right >= 20*)
@@ -5138,12 +5176,13 @@ class TestCategorizer():
                                  'secondary_right': [],
                                  'first_attempt': dt('2013-01-27')}],
                                ),
-                               ('case9',
-                                10,
-                                mytagpros()['Simon Pan 2014-03-21'],
-                                mycatsout_core_algorithm()['Simon Pan 2014-03-21'],
-                                mytagrecs()['Simon Pan 2014-03-21']
-                                ),
+                              ('case9',
+                               10,
+                               mytagpros()['Simon Pan 2014-03-21'],
+                               mycatsout_core_algorithm()['Simon Pan '
+                                                          '2014-03-21'],
+                               mytagrecs()['Simon Pan 2014-03-21']
+                               ),
                               ])
     def test_categorizer_core_algorithm(self, casename, rank, catsin, catsout,
                                         tagrecs, db):
@@ -5239,9 +5278,12 @@ class TestCategorizer():
                                ),
                               ('case9',
                                10,  # rank
-                               mycatsout_core_algorithm()['Simon Pan 2014-03-21'],  # catsin
-                               mytagrecs_with_secondary()['Simon Pan 2014-03-21'],  # tagrecs
-                               mycatsout_add_untried()['Simon Pan 2014-03-21'],  # catout
+                               mycatsout_core_algorithm()['Simon Pan '
+                                                          '2014-03-21'],  # in
+                               mytagrecs_with_secondary()['Simon Pan '
+                                                          '2014-03-21'],  # trs
+                               mycatsout_add_untried()['Simon Pan '
+                                                       '2014-03-21'],  # catout
                                ),
                               ])
     def test_categorizer_add_untried_tags(self, casename, rank, catsin,
@@ -5257,7 +5299,7 @@ class TestCategorizer():
         now = dt('2013-01-29')
         if casename == 'case9':
             now = dt('2014-03-21')
-        #catsin = {k: v for k, v in catsin.iteritems() if k[:3] == 'cat'}
+        # catsin = {k: v for k, v in catsin.iteritems() if k[:3] == 'cat'}
         catzr = Categorizer(rank, catsin, tagrecs, 150, utcnow=now)
 
         actual = catzr._add_untried_tags(catsin)
@@ -5286,9 +5328,10 @@ class TestCategorizer():
         all_actual.sort()
         ranktags = db(db.tags.tag_position <= rank).select().as_list()
         # below exclude utility tags for flag messages
-        ranktagids = [int(c['id']) for c in ranktags if c['id'] not in [79, 80, 81]]
+        ranktagids = [int(c['id']) for c in ranktags
+                      if c['id'] not in [79, 80, 81]]
         if casename == 'case9':
-            ranktagids.append(32)  # not yet filtered for tags above current rank
+            ranktagids.append(32)  # not yet filtered for tags above current
         ranktagids.sort()
         assert [int(a) for a in all_actual] == ranktagids
 
@@ -5388,19 +5431,21 @@ class TestCategorizer():
                               ('case9',
                                10,  # rank
                                mytagpros()['Simon Pan 2014-03-21'],  # oldcats
-                               mycatsout_remove_dups()['Simon Pan 2014-03-21'],  # catsin
-                               mycatsout_find_changes()['Simon Pan 2014-03-21'],  # catsout
+                               mycatsout_remove_dups()['Simon Pan '
+                                                       '2014-03-21'],  # catsin
+                               mycatsout_find_changes()['Simon Pan '
+                                                        '2014-03-21'],  # out
                                mytagrecs()['Simon Pan 2014-03-21'],  # tagrecs
                                mydemoted()['Simon Pan 2014-03-21'],  # demoted
-                               mypromoted()['Simon Pan 2014-03-21'],  # promoted
-                               mypromotions()['Simon Pan 2014-03-21'],  # bbrows
+                               mypromoted()['Simon Pan 2014-03-21'],  # prom
+                               mypromotions()['Simon Pan 2014-03-21'],  # bbrs
                                {'rev1': [4, 55, 96, 102, 130, 131, 132, 135],
-                                'rev2': [], 'rev3': [], 'rev4': []},  # new tags
+                                'rev2': [], 'rev3': [], 'rev4': []},  # new ts
                                )
                               ])
-    def test_categorizer_find_cat_changes(self, casename, rank, oldcats, catsin,
-                                          catsout, tagrecs, demoted, promoted,
-                                          bbrows, newtags):
+    def test_categorizer_find_cat_changes(self, casename, rank, oldcats,
+                                          catsin, catsout, tagrecs, demoted,
+                                          promoted, bbrows, newtags):
         """
         Unit test for the paideia.Categorizer._find_cat_changes method.
         """
@@ -5496,7 +5541,8 @@ class TestCategorizer():
                                 'rev2': [],
                                 'rev3': [], 'rev4': []},
                                None,  # promoted
-                               {'rev1': [6L, 29L, 61L, 62L, 82L, 83L, 208L],  # new_tags
+                               {'rev1': [6L, 29L, 61L, 62L, 82L, 83L,
+                                         208L],  # new_tags
                                 'rev2': [],
                                 'rev3': [], 'rev4': []},
                                ),
@@ -5582,23 +5628,28 @@ class TestCategorizer():
                                  'first_attempt': dt('2013-01-27')},
                                 ],
                                2,  # rank out
-                               {'cat1': [9L, 36L, 63L, 66L, 68L, 72L, 89L, 115L],
-                                'cat2': [1, 6, 29, 61, 62, 82, 83, 208],  # cats out
+                               {'cat1': [9L, 36L, 63L, 66L, 68L, 72L, 89L,
+                                         115L],
+                                'cat2': [1, 6, 29, 61, 62, 82, 83, 208],  # out
                                 'cat3': [], 'cat4': [],
-                                'rev1': [9L, 36L, 63L, 66L, 68L, 72L, 89L, 115L],
+                                'rev1': [9L, 36L, 63L, 66L, 68L, 72L, 89L,
+                                         115L],
                                 'rev2': [1, 6, 29, 61, 62, 82, 83, 208],
                                 'rev3': [], 'rev4': []},
                                {'latest_new': 2,  # tag progress out
-                                'cat1': [9L, 36L, 63L, 66L, 68L, 72L, 89L, 115L],
+                                'cat1': [9L, 36L, 63L, 66L, 68L, 72L, 89L,
+                                         115L],
                                 'cat2': [1, 6, 29, 61, 62, 82, 83, 208],
                                 'cat3': [], 'cat4': [],
-                                'rev1': [9L, 36L, 63L, 66L, 68L, 72L, 89L, 115L],
+                                'rev1': [9L, 36L, 63L, 66L, 68L, 72L, 89L,
+                                         115L],
                                 'rev2': [1, 6, 29, 61, 62, 82, 83, 208],
                                 'rev3': [], 'rev4': []},
-                               {'cat1': [],
-                                'cat2': [1, 6, 29, 61, 62, 82, 83, 208],  # promoted
+                               {'cat1': [],  # promoted
+                                'cat2': [1, 6, 29, 61, 62, 82, 83, 208],
                                 'cat3': [], 'cat4': []},
-                               {'rev1': [9L, 36L, 63L, 66L, 68L, 72L, 89L, 115L],
+                               {'rev1': [9L, 36L, 63L, 66L, 68L, 72L, 89L,
+                                         115L],
                                 'rev2': [],
                                 'rev3': [], 'rev4': []},  # new tags
                                )
@@ -5655,48 +5706,48 @@ class TestMap():
         """Unit test for paideia.Walk._get_user()"""
         expected = {'map_image': '/paideia/static/images/town_map.svg',
                     'locations': [{'loc_alias': 'None',
-                                'bg_image': 8,
-                                'id': 3},
-                                {'loc_alias': 'domus_A',
-                                'bg_image': 8,
-                                'id': 1},
-                                {'loc_alias': '',
-                                'bg_image': 8,
-                                'id': 2},
-                                {'loc_alias': None,
-                                'bg_image': None,
-                                'id': 4},
-                                {'loc_alias': None,
-                                'bg_image': None,
-                                'id': 12},
-                                {'loc_alias': 'bath',
-                                'bg_image': 17,
-                                'id': 13},
-                                {'loc_alias': 'gymnasion',
-                                'bg_image': 113,
-                                'id': 14},
-                                {'loc_alias': 'shop_of_alexander',
-                                'bg_image': 16,
-                                'id': 6},
-                                {'loc_alias': 'ne_stoa',
-                                'bg_image': 18,
-                                'id': 7},
-                                {'loc_alias': 'agora',
-                                'bg_image': 16,
-                                'id': 8},
-                                {'loc_alias': 'synagogue',
-                                'bg_image': 15,
-                                'id': 11},
-                                {'loc_alias': None,
-                                'bg_image': None,
-                                'id': 5},
-                                {'loc_alias': None,
-                                'bg_image': None,
-                                'id': 9},
-                                {'loc_alias': None,
-                                'bg_image': None,
-                                'id': 10}
-                                ]}
+                                   'bg_image': 8,
+                                   'id': 3},
+                                  {'loc_alias': 'domus_A',
+                                   'bg_image': 8,
+                                   'id': 1},
+                                  {'loc_alias': '',
+                                   'bg_image': 8,
+                                   'id': 2},
+                                  {'loc_alias': None,
+                                   'bg_image': None,
+                                   'id': 4},
+                                  {'loc_alias': None,
+                                   'bg_image': None,
+                                   'id': 12},
+                                  {'loc_alias': 'bath',
+                                   'bg_image': 17,
+                                   'id': 13},
+                                  {'loc_alias': 'gymnasion',
+                                   'bg_image': 113,
+                                   'id': 14},
+                                  {'loc_alias': 'shop_of_alexander',
+                                   'bg_image': 16,
+                                   'id': 6},
+                                  {'loc_alias': 'ne_stoa',
+                                   'bg_image': 18,
+                                   'id': 7},
+                                  {'loc_alias': 'agora',
+                                   'bg_image': 16,
+                                   'id': 8},
+                                  {'loc_alias': 'synagogue',
+                                   'bg_image': 15,
+                                   'id': 11},
+                                  {'loc_alias': None,
+                                   'bg_image': None,
+                                   'id': 5},
+                                  {'loc_alias': None,
+                                   'bg_image': None,
+                                   'id': 9},
+                                  {'loc_alias': None,
+                                   'bg_image': None,
+                                   'id': 10}
+                                  ]}
         actual = Map().show(db=db)
         for m in expected['locations']:
             act = [a for a in actual['locations'] if a['id'] == m['id']][0]
@@ -5712,7 +5763,8 @@ class TestWalk():
     A unit testing class for the paideia.Walk class.
     """
 
-    @pytest.mark.parametrize('alias,trecs,tpout',
+    @pytest.mark.parametrize(
+        'alias,trecs,tpout',
         [('domus_A',
           [{'name': 1,
             'tag': 1,
@@ -5803,11 +5855,12 @@ class TestWalk():
                     print 'bb for tag', t
                     thisbb = sel_bb.find(lambda row: row.tag == t)
                     assert len(thisbb) == 1
-                    assert now - thisbb.first()[v] < datetime.timedelta(hours=1)
+                    assert now - thisbb.first()[v] < \
+                        datetime.timedelta(hours=1)
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('tag,step_id,path_id,oldrecs,firstname,tright,twrong,'
-                             'got_right,score,tpout',
+    @pytest.mark.parametrize('tag,step_id,path_id,oldrecs,firstname,tright,'
+                             'twrong,got_right,score,tpout',
                              [(1,  # tag
                                174,  # step_id
                                155,  # path_id
@@ -5937,8 +5990,9 @@ class TestWalk():
         assert dt(actual['secondary_right'][-1]) == now
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('path_id,step_id,steptags,oldrecs,got_right,score,'
-                             'tright,twrong,rstring,newlog,tpout,trecsout',
+    @pytest.mark.parametrize('path_id,step_id,steptags,oldrecs,got_right,'
+                             'score,tright,twrong,rstring,newlog,tpout,'
+                             'trecsout',
                              [(3,  # path
                                1,  # step
                                {'primary': [61], 'secondary': []},  # step tags
@@ -5957,7 +6011,7 @@ class TestWalk():
                                 'new_content': 'yes',
                                 'selection_category': '1'},
                                mytagpros()['Simon Pan 2014-03-21'],  # tpout
-                               mytagrecs()['Simon Pan 2014-03-21'],  # tag recs out
+                               mytagrecs()['Simon Pan 2014-03-21'],  # recs out
                                )
                               ])
     def test_walk_record_step(self, path_id, step_id, steptags, oldrecs,
@@ -5976,10 +6030,11 @@ class TestWalk():
         raw_twrong = twrong
         cat = 1
         new_material = True
-        starting_loglength = len(db(db.attempt_log.name == user_login['id']).select())
-        actual_log_id = walk._record_step(user_login['id'], step_id, path_id, score,
-                                          raw_tright, raw_twrong, oldrecs,
-                                          steptags, rstring, cat,
+        starting_loglength = len(db(db.attempt_log.name == user_login['id']
+                                    ).select())
+        actual_log_id = walk._record_step(user_login['id'], step_id, path_id,
+                                          score, raw_tright, raw_twrong,
+                                          oldrecs, steptags, rstring, cat,
                                           new_material, now=now)
 
         # test writing to attempt_log
@@ -5992,13 +6047,14 @@ class TestWalk():
             if field == 'dt_attempted':  # FIXME
                 pass
             else:
-                #print field, '=========='
-                #pprint(val)
+                # print field, '=========='
+                # pprint(val)
                 if field not in ['modified_on', 'uuid', 'category_for_user']:
                     assert val == newlog[field]
 
         # test writing to tag_records
-        expected_trecs = [t for t in trecsout if t['tag'] in steptags['primary']]
+        expected_trecs = [t for t in trecsout
+                          if t['tag'] in steptags['primary']]
         actual_trecs = db((db.tag_records.name == user_login['id']) &
                           (db.tag_records.tag.belongs(steptags['primary']))
                           ).select()
@@ -6063,12 +6119,14 @@ class TestWalk():
         if existing_row:  # whether db row for session_data exists for user
             newrec = db.session_data.insert(name=user_login['id'])
             db.commit()
-            print 'test_walk_store_user:: newrec inserted for later update:', newrec
+            print 'test_walk_store_user:: newrec inserted for later update:'
+            print newrec
         else:
-            print 'test_walk_store_user:: newrec not inserted, creating new row for user'
+            print 'test_walk_store_user:: newrec not inserted, creating new ' \
+                  'row for user'
 
         # store the user instance in db =======================================
-        rowid = walk._store_user(user, db=db)  # returns id of row if successful
+        rowid = walk._store_user(user, db=db)  # returns row id if successful
         print 'test_walk_store_user:: id of inserted row:', rowid
         if existing_row:
             assert rowid is None
@@ -6086,10 +6144,11 @@ class TestWalk():
         assert dbuser.get_id() == user_login['id']
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('pathid,stepid,alias,npcshere,trecs,tpout,redir,'
-                             'promptext,instrs,slidedecks,widgimg,rbuttons,'
-                             'rform,replystep,audio',
-        [(19,  # path # case3 ======================================================
+    @pytest.mark.parametrize(
+        'pathid,stepid,alias,npcshere,trecs,tpout,redir,'
+        'promptext,instrs,slidedecks,widgimg,rbuttons,'
+        'rform,replystep,audio',
+        [(19,  # path # case3 ================================================
           19,  # step
           'domus_A',  # alias
           [1],  # npcs here FIXME
@@ -6128,7 +6187,7 @@ class TestWalk():
            'rev2': [61, 66],
            'rev3': [], 'rev4': []},
           False,  # redir
-          'How could you spell the word "pole" with Greek letters?',  # prompt text
+          'How could you spell the word "pole" with Greek letters?',  # prompt
           ['Focus on finding Greek letters that make the *sounds* of the '
            'English word. Don\'t look for Greek "equivalents" for each '
            'English letter.'],  # instructions
@@ -6137,22 +6196,26 @@ class TestWalk():
           [],  # response buttons
           '<form action="#" autocomplete="off" enctype="multipart/form-data" '
           'method="post"><table><tr id="no_table_response__row">'
-          '<td class="w2p_fl"><label class="" for="no_table_response" id="no_table_'
+          '<td class="w2p_fl"><label class="" for="no_table_response" '
+          'id="no_table_'
           'response__label">Response: </label></td><td class="w2p_fw">'
           '<input class="string" id="no_table_response" name="response" '
           'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
           'id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw">'
           '<input type="submit" value="Submit" /></td><td class="w2p_fc"></td>'
-          '</tr></table><div style="display:none;"><input name="pre_bug_step_id" '
+          '</tr></table><div style="display:none;">'
+          '<input name="pre_bug_step_id" '
           'type="hidden" value="19" /></div></form>',
           True,  # replystep
-          {'audio_args_for_js': "{'m4a': '/paideia/default/download.load/audio.clip_m4a.857ac2a83978839d.53746570303031392e6d3461.m4a', 'title': ''}",
+          {'audio_args_for_js': "{'m4a': '/paideia/default/download.load/"
+           "audio.clip_m4a.857ac2a83978839d.53746570303031392e6d3461.m4a', "
+           "'title': ''}",
            'media_supplied': 'm4a',
            'mp3': '',
            'ogg': None,
            'title': 'StepPrompt0019'}  # audio
           ),
-         (19,  # path # case2 ======================================================
+         (19,  # path # case2 ===============================================
           19,  # step
           'domus_A',  # alias
           [1],  # npcs here
@@ -6174,7 +6237,7 @@ class TestWalk():
            'rev1': [6, 29, 62, 82, 83], 'rev2': [61],
            'rev3': [], 'rev4': []},
           False,  # redir?
-          'How could you spell the word "pole" with Greek letters?',  # prompt text
+          'How could you spell the word "pole" with Greek letters?',  # prompt
           ['Focus on finding Greek letters that make the *sounds* of the '
            'English word. Don\'t look for Greek "equivalents" for each '
            'English letter.'],  # instructions
@@ -6183,22 +6246,26 @@ class TestWalk():
           [],  # response buttons
           '<form action="#" autocomplete="off" enctype="multipart/form-data" '
           'method="post"><table><tr id="no_table_response__row">'
-          '<td class="w2p_fl"><label class="" for="no_table_response" id="no_table_'
+          '<td class="w2p_fl"><label class="" for="no_table_response" '
+          'id="no_table_'
           'response__label">Response: </label></td><td class="w2p_fw">'
           '<input class="string" id="no_table_response" name="response" '
           'type="text" value="" /></td><td class="w2p_fc"></td></tr><tr '
           'id="submit_record__row"><td class="w2p_fl"></td><td class="w2p_fw">'
           '<input type="submit" value="Submit" /></td><td class="w2p_fc"></td>'
-          '</tr></table><div style="display:none;"><input name="pre_bug_step_id" '
+          '</tr></table><div style="display:none;">'
+          '<input name="pre_bug_step_id" '
           'type="hidden" value="19" /></div></form>',
           True,  # replystep
-          {'audio_args_for_js': "{'m4a': '/paideia/default/download.load/audio.clip_m4a.857ac2a83978839d.53746570303031392e6d3461.m4a', 'title': ''}",
+          {'audio_args_for_js': "{'m4a': '/paideia/default/download.load/"
+           "audio.clip_m4a.857ac2a83978839d.53746570303031392e6d3461.m4a', "
+           "'title': ''}",
            'media_supplied': 'm4a',
            'mp3': '',
            'ogg': None,
            'title': 'StepPrompt0019'}  # audio
           ),
-         (89,  # path # case2======================================================
+         (89,  # path # case2=================================================
           101,  # step
           'agora',  # alias
           [2, 8, 14, 17, 31, 40, 41, 42],  # npcs here
@@ -6225,7 +6292,7 @@ class TestWalk():
           False,  # replystep
           None,  # audio
           ),
-         (2,  # path # case1======================================================
+         (2,  # path # case1==================================================
           1,  # step
           'domus_A',
           [2, 8, 17],  # npcs here (for step)
@@ -6245,7 +6312,8 @@ class TestWalk():
           ['Focus on finding Greek letters that make the *sounds* of the '
            'English word. Don\'t look for Greek "equivalents" for each '
            'English letter.'],  # instructions
-          {1: 'Introduction', 2: 'The Alphabet', 6: 'Noun Basics', 7: 'Greek Words I'},
+          {1: 'Introduction', 2: 'The Alphabet', 6: 'Noun Basics',
+           7: 'Greek Words I'},
           None,  # widget image
           [],  # response buttons
           '<form action="#" autocomplete="off" enctype="multipart/form-data" '
@@ -6291,7 +6359,8 @@ class TestWalk():
          #   7: 'Greek Words I'},
          #  None,  # widget image
          #  [],  # response buttons
-         #  '<form action="#" autocomplete="off" enctype="multipart/form-data" '
+         #  '<form action="#" autocomplete="off" '
+         #  'enctype="multipart/form-data" '
          #  'method="post"><table><tr id="no_table_response__row">'
          #  '<td class="w2p_fl"><label for="no_table_response" id="no_table_'
          #  'response__label">Response: </label></td><td class="w2p_fw">'
@@ -6436,10 +6505,11 @@ class TestWalk():
         db.commit()
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('pathid,stepid,alias,npcshere,trecs,tpout,'
-                             'creply,wreply,instrs,slidedecks,rbuttons,'
-                             'readable_short,readable_long,tips,cresponse,'
-                             'wresponse',
+    @pytest.mark.parametrize(
+        'pathid,stepid,alias,npcshere,trecs,tpout,'
+        'creply,wreply,instrs,slidedecks,rbuttons,'
+        'readable_short,readable_long,tips,cresponse,'
+        'wresponse',
         [(19,  # path # case3 ================================================
           19,  # step
           'domus_A',  # alias
