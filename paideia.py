@@ -51,34 +51,35 @@ def util_get_args():
     args.update(args.pop(kwname, []))
     return args, posargs
 
+
 def simple_obj_print(the_dict, title='No Title', indentation=0):
     """
     Prints a simple thing
     Joseph Boakye jboakye@bwachi.com
     """
-    indentation_string = ' '*indentation
-    if (None == the_dict):
-        print indentation_string  + '{' + str(title) + ': '  + '-None-' +  '}'
+    indentation_string = ' ' * indentation
+    if (the_dict is None):
+        print indentation_string + '{' + str(title) + ': ' + '-None-' + '}'
         return
     while True:
-        #dictionaries
-        if type(the_dict) == type({}):
-            print indentation_string  + str(title) + '(dict):'
+        # dictionaries
+        if isinstance(the_dict, dict):
+            print indentation_string + str(title) + '(dict):'
             for key in the_dict:
-                simple_obj_print(the_dict[key],key,indentation+1)
+                simple_obj_print(the_dict[key], key, indentation + 1)
             break
-        #lists
+        # lists
         if hasattr(the_dict, '__iter__'):
-            print indentation_string  + str(title) + '(list):'
-            count = 0         
+            print indentation_string + str(title) + '(list):'
+            count = 0
             for value in the_dict:
-                simple_obj_print(value, count,indentation+1)
-                count +=1
+                simple_obj_print(value, count, indentation + 1)
+                count += 1
             break
-        #simple item
-        print indentation_string  + '{' + str(title) + ': '  +  str(the_dict) +  '}'
+        # simple item
+        print '{}{{{}: {}}}'.format(indentation_string,
+                                    str(title), str(the_dict))
         break
-
 
 
 class Map(object):
@@ -153,7 +154,7 @@ class Walk(object):
         db = current.db
         try:  # look for user object already on this Walk
             assert (self.user) and new_user is None
-        except (AttributeError, AssertionError):  # because no user yet on this Walk
+        except (AttributeError, AssertionError):  # no user yet on this Walk
             try:
                 sd = db(db.session_data.name ==
                         auth.user_id).select().first()
@@ -182,23 +183,23 @@ class Walk(object):
         responding to one in-process.
         """
         print '\nIN START'
-        #debug
-        #simple_obj_print(localias,"localias")
-        #simple_obj_print(response_string,"response_string")
-        #simple_obj_print(path,"path")
-        #simple_obj_print(repeat,"repeat")
-        #simple_obj_print(set_blocks,"set_blocks")
-        #simple_obj_print(recategorize,"recategorize")
+        # debug
+        # simple_obj_print(localias,"localias")
+        # simple_obj_print(response_string,"response_string")
+        # simple_obj_print(path,"path")
+        # simple_obj_print(repeat,"repeat")
+        # simple_obj_print(set_blocks,"set_blocks")
+        # simple_obj_print(recategorize,"recategorize")
 
         try:
             if response_string:
-                #debug
-                #simple_obj_print("response string is good","message")
+                # debug
+                # simple_obj_print("response string is good","message")
                 return self.reply(localias=localias,
                                   response_string=response_string)
             else:
-                #debug
-                #simple_obj_print("ask 1","message")
+                # debug
+                # simple_obj_print("ask 1","message")
                 return self.ask(localias=localias,
                                 path=path,
                                 repeat=repeat,
@@ -208,10 +209,10 @@ class Walk(object):
         except Exception:
             print traceback.format_exc(5)
             self.clean_user()  # get rid of any problem path data
-            #debug
-            #simple_obj_print("ask 2","message")
-            excp_ask =  self.ask(localias=localias, path=path, step=step)
-            #simple_obj_print("ask 2 finished","message")
+            # debug
+            # simple_obj_print("ask 2","message")
+            excp_ask = self.ask(localias=localias, path=path, step=step)
+            # simple_obj_print("ask 2 finished","message")
             return excp_ask
 
     def clean_user(self):
@@ -249,8 +250,8 @@ class Walk(object):
 
         print 'STARTING WALK.ASK---------------------------------------'
         user = self.user
-        #print 'Tag progress is------------------'
-        #pprint(user.tag_progress)
+        # print 'Tag progress is------------------'
+        # pprint(user.tag_progress)
         # allow artificial setting of blocks during interface testing
         if set_blocks:
             for c, v in set_blocks.iteritems():
@@ -285,21 +286,21 @@ class Walk(object):
 
         prompt = s.get_prompt(loc, npc, username)
         print 'before sending to view------------------------'
-        
-        #debug
-        #simple_obj_print(user.completed_paths,'user.completed_paths')
+
+        # debug
+        # simple_obj_print(user.completed_paths,'user.completed_paths')
         extra_fields = {'completed_count': len(user.completed_paths),
                         'category': category,
                         'pid': p.get_id()}
-        #debug
-        #simple_obj_print(extra_fields,'extra_fields')
+        # debug
+        # simple_obj_print(extra_fields,'extra_fields')
 
         prompt.update(extra_fields)
 
         p.end_prompt(s.get_id())  # send id to tell whether its a block step
         self._store_user(user)
-        #debug
-        #simple_obj_print('returning from ask','msg')
+        # debug
+        # simple_obj_print('returning from ask','msg')
         return prompt
 
     def _set_blocks(self, user=None):
@@ -344,9 +345,9 @@ class Walk(object):
         s = p.get_step_for_reply()
         print '\n 00000001'
         if (not response_string) or re.match(response_string, r'\s+'):
-            #debug
-            #simple_obj_print("ask 3","message")
-            return self.ask()  # TODO: will this actually re-prompt the same step?
+            # debug
+            # simple_obj_print("ask 3","message")
+            return self.ask()  # TODO: will this re-prompt the same step?
         prompt = s.get_reply(response_string)  # loc and npc stored on step
 
         assert self._record_cats(user.tag_progress,
@@ -366,7 +367,8 @@ class Walk(object):
                                                            s.get_id(),
                                                            prompt['score'],
                                                            response_string,
-                                                           user.loc.get_alias())
+                                                           user.loc.get_alias()
+                                                           )
         prompt['completed_count'] = len(user.completed_paths)
         prompt['pid'] = p.get_id()
         prompt['category'] = cat
@@ -396,8 +398,8 @@ class Walk(object):
                                 'tag': tag,
                                 cat: now}
                         db.badges_begun.update_or_insert(
-                                (db.badges_begun.name == user_id) &
-                                (db.badges_begun.tag == tag), **data)
+                            (db.badges_begun.name == user_id) &
+                            (db.badges_begun.tag == tag), **data)
             return True
         except Exception:
             print traceback.format_exc(5)
@@ -497,37 +499,40 @@ class Walk(object):
                            got_right, score, now=None):
         """
         """
+        debug = 0
         now = datetime.datetime.utcnow() if not now else now
-        simple_obj_print(oldrec,"oldrec d---------------------------")
+        if debug:
+            simple_obj_print(oldrec, "oldrec d----------------------")
         oldrec = oldrec if not isinstance(oldrec, list) else oldrec[0]  # FIXME
-        #debug ... JOB
-        print 'oldrec new ---------------------------'
-        simple_obj_print(oldrec,"oldrec new---------------------------")
-        print type(oldrec)
-        simple_obj_print(got_right,"gotright")
-        simple_obj_print(tright,"tright")
-        simple_obj_print(twrong,"twrong")
-        simple_obj_print(score,"score")
-        simple_obj_print(tag,"tag")
-        simple_obj_print(user_id,"user_id")
+        # debug ... JOB
+        if debug:
+            print 'oldrec new ---------------------------'
+            simple_obj_print(oldrec, "oldrec new----------------------")
+            print type(oldrec)
+            simple_obj_print(got_right, "gotright")
+            simple_obj_print(tright, "tright")
+            simple_obj_print(twrong, "twrong")
+            simple_obj_print(score, "score")
+            simple_obj_print(tag, "tag")
+            simple_obj_print(user_id, "user_id")
 
         tlright = now
         tlwrong = now
         db = current.db
 
-        #we are going to grab the old rec from the dbase until we find out
-        #why it is not present here sometimes
+        # we are going to grab the old rec from the dbase until we find out
+        # why it is not present here sometimes
         use_this_oldrec = oldrec
         use_this_oldrec = None
         try:
             if not use_this_oldrec:
                 use_this_oldrec = db((db.tag_records.tag == tag) &
-                            (db.tag_records.name == user_id)
-                            ).select().first().as_dict()
+                                     (db.tag_records.name == user_id)
+                                     ).select().first().as_dict()
         except Exception:
             pass
-        simple_obj_print(use_this_oldrec,"use this oldrec beta")
-        
+        simple_obj_print(use_this_oldrec, "use this oldrec beta")
+
         newdata = {'name': user_id,
                    'tag': tag,
                    'times_right': tright,
@@ -536,23 +541,24 @@ class Walk(object):
                    'tlast_wrong': tlwrong}
         try:
             if use_this_oldrec:
-                #copy everything first, invalidating what we did for newdata above
+                # copy everything first, invalidating what we did for
+                # newdata above
                 for key in use_this_oldrec:
                     newdata[key] = use_this_oldrec[key]
-                #now fix newdata
+                # now fix newdata
                 newdata['times_wrong'] = twrong
                 newdata['times_right'] = tright
                 if oldrec['times_wrong']:
-                    newdata['times_wrong'] +=  use_this_oldrec['times_wrong']
+                    newdata['times_wrong'] += use_this_oldrec['times_wrong']
                 if oldrec['times_right']:
-                    newdata['times_right'] +=  use_this_oldrec['times_right']
+                    newdata['times_right'] += use_this_oldrec['times_right']
             if got_right:
                 newdata['tlast_right'] = now
             else:
                 newdata['tlast_wrong'] = now
             #  FIXME: temporary fix for bad tright/twrong data
-            # commented out by joseph boakye .. 21 sept 2014 ... fixed wrong right
-            #newdata = self._add_from_logs(tag, user_id, newdata, tright,
+            # commented out by j. boakye .. 21 sept 2014 ... fixed wrong right
+            # newdata = self._add_from_logs(tag, user_id, newdata, tright,
             #                              twrong, got_right)
         except TypeError:  # because no oldrec
             pass
@@ -593,10 +599,11 @@ class Walk(object):
         db = current.db
         # TODO: Store and roll back db changes if impersonating
         # TODO: should the threshold here be less than 1 for 'right'?
-        # made change JOB ... got_right seems to be sending the opposite of what it should be -sept 21 2014
-        #fix: if it is make it slightly higher and change the comparison sign
+        # made change JOB ... got_right seems to be sending the opposite of
+        # what it should be -sept 21 2014
+        # fix: if it is make it slightly higher and change the comparison sign
         score_helper = score + 0.1
-        got_right = True if ((score_helper - 1.0) > 0.00000001) else False  # float inaccuracy
+        got_right = True if ((score_helper - 1.0) > 0.00000001) else False
 
         for t in taglist['primary']:
             oldrec = [r for r in old_trecs
@@ -636,9 +643,10 @@ class Walk(object):
         #  else:
         try:
             myuser = pickle.dumps(user)
-            rownum = db.session_data.update_or_insert(db.session_data.name == user.get_id(),
-                                                      name=user.get_id(),
-                                                      other_data=myuser)
+            rownum = db.session_data.update_or_insert(
+                db.session_data.name == user.get_id(),
+                name=user.get_id(),
+                other_data=myuser)
             return rownum
         except Exception:
             print traceback.format_exc(5)
@@ -724,7 +732,8 @@ class Npc(object):
         Return a web2py IMG helper object with the image for the current
         npc character.
         """
-        img = IMG(_src=URL('paideia', 'static', 'images/{}'.format(self.image)))
+        img = IMG(_src=URL('paideia', 'static',
+                           'images/{}'.format(self.image)))
         return img
 
     def get_locations(self):
@@ -938,11 +947,11 @@ class Step(object):
         if tags:
             try:
                 decks = {d.id: d.deck_name
-                        for t in tags
-                        for d in t.slides
-                        if t.slides}
+                         for t in tags
+                         for d in t.slides
+                         if t.slides}
                 return decks
-            except:
+            except Exception:
                 pass
         else:
             return None
@@ -953,7 +962,7 @@ class Step(object):
 
         If this step requires no such image, return None
         """
-        if not self.data['widget_image'] in [9, None]:  # TODO: magic number here:
+        if not self.data['widget_image'] in [9, None]:  # TODO: magic number
             db = current.db
             img_row = db.images[self.data['widget_image']]
             img = {'file': img_row.image,
@@ -974,7 +983,8 @@ class Step(object):
             aud_row = db.audio(self.data['prompt_audio'])
             audio = {'title': aud_row['title'],
                      'mp3': aud_row['clip'],
-                     'ogg': aud_row['clip_ogg'] if aud_row['clip_ogg'] else None}
+                     'ogg': aud_row['clip_ogg'] if aud_row['clip_ogg']
+                     else None}
             return audio
         else:
             return None
@@ -1026,18 +1036,18 @@ class Step(object):
         new_string = raw_prompt
         # FIXME: this is a bit of a hack to handle embedded html better
         if appds:
-            #new_string = DIV(new_string)
-            #for k, v in appds.iteritems():
-                #if not v:
-                    #v = ''
-                #new_string[0] = new_string[0].replace(k, '')
-                #new_string.append(v)
+            # new_string = DIV(new_string)
+            # for k, v in appds.iteritems():
+            #   if not v:
+            #       v = ''
+            #   new_string[0] = new_string[0].replace(k, '')
+            #   new_string.append(v)
             for k, v in appds.iteritems():
                 if v:
                     new_string = new_string.replace(k, v)
                 else:
                     new_string = new_string.replace(k, '')
-                    #new_string += v
+                    # new_string += v
         for k, v in reps.iteritems():
             if not v:
                 v = ''
@@ -1062,8 +1072,8 @@ class Step(object):
         the Step has no access, the actual block is set by the Walk object
         after this method's value is returned.
 
-        This method is also where all checking is done for compatibility between
-        the chosen step, location, and npc.
+        This method is also where all checking is done for compatibility
+        between the chosen step, location, and npc.
         """
         loc_id = loc.get_id()
         db = current.db
@@ -1080,15 +1090,16 @@ class Step(object):
                 # previous npc was in this loc and is valid for this step
                 self.npc = copy(prev_npc)
             else:
-                npc_here_list = [n for n in npc_list if loc_id in db.npcs[n]['map_location']]
+                npc_here_list = [n for n in npc_list
+                                 if loc_id in db.npcs[n]['map_location']]
 
                 try:
                     pick = npc_here_list[randrange(len(npc_here_list))]
-                except ValueError:  # "empty range for randrange()" if no npcs here
+                except ValueError:  # "empty range for randrange()" if no npcs
                     print traceback.format_exc(5)
                     mail = current.mail
-                    msg = HTML(P('In selecting an npc there were none found for'
-                                 'the combination:',
+                    msg = HTML(P('In selecting an npc there were none found '
+                                 'for the combination:',
                                  UL(LI('step =', self.get_id()),
                                     LI('location =', loc_id)),
                                  'The full list of npcs for the step is',
@@ -1123,7 +1134,7 @@ class Step(object):
 
 class StepContinue(Step):
     """
-    An abstract subclass of Step that adds a 'continue' button to the responder.
+    Abstract subclass of Step that adds a 'continue' button to the responder.
     """
     def get_prompt(self, loc, npc, username):
         """
@@ -1217,7 +1228,8 @@ class StepAwardBadges(StepContinue, Step):
         if new_tags:
             conj = 'and you'
             nt_records = db(db.badges.tag.belongs(new_tags)
-                            ).select(db.badges.tag, db.badges.badge_name).as_list()
+                            ).select(db.badges.tag,
+                                     db.badges.badge_name).as_list()
             if nt_records:
                 nt_rep = '{}\'re ready to start working on some new ' \
                          'badges:\r\n'.format(conj)
@@ -1232,12 +1244,14 @@ class StepAwardBadges(StepContinue, Step):
 
         prom_rep = ' '
         if promoted:
-            flat_proms = [i for cat, lst in promoted.iteritems() for i in lst if lst]
+            flat_proms = [i for cat, lst in promoted.iteritems()
+                          for i in lst if lst]
             prom_records = db(db.badges.tag.belongs(flat_proms)
                               ).select(db.badges.tag,
                                        db.badges.badge_name).as_list()
             if prom_records:
-                prom_rep = 'You have been promoted to these new badge levels:\r\n'
+                prom_rep = 'You have been promoted to these new badge ' \
+                           'levels:\r\n'
                 ranks = ['beginner', 'apprentice', 'journeyman', 'master']
                 prom_clean = {k: v for k, v in promoted.iteritems() if v}
                 for rank, lst in prom_clean.iteritems():
@@ -1245,11 +1259,10 @@ class StepAwardBadges(StepContinue, Step):
                     label = ranks[ranknum - 1]
                     for l in lst:
                         bname = [row['badge_name'] for row in prom_records
-                                if row['tag'] == l][0]
+                                 if row['tag'] == l][0]
                         line = '- {} {}\r\n'.format(label, bname)
                         prom_rep += line
         appds['[[promoted_list]]'] = prom_rep
-
 
         print 'reps are ==================================================='
         pprint(reps)
@@ -1274,7 +1287,7 @@ class StepViewSlides(Step):
         db = current.db
         new_tags = self.kwargs['new_tags']
         tags = db((db.tags.id == db.badges.tag) &
-                (db.tags.id.belongs(new_tags))).select().as_list()
+                  (db.tags.id.belongs(new_tags))).select().as_list()
 
         # get the relevant slide sets (id and name)
         decks = [row['tags']['slides'] for row in tags]
@@ -1340,7 +1353,8 @@ class StepText(Step):
                      if k and (k in ['response1', 'response2', 'response3'])}
         #  except TypeError:
         #  tips = self.data['step'].data['hints']
-        #  responses = {k: v for k, v in self.data['step'].data.iteritems() if k and (k in rkeys)}
+        #  responses = {k: v for k, v in self.data['step'].data.iteritems()
+        #               if k and (k in rkeys)}
 
         if tips:
             tips_lst = db(db.step_hints.id.belongs(tips)
@@ -1351,7 +1365,8 @@ class StepText(Step):
 
         result = StepEvaluator(responses, tips_lst).get_eval(user_response)
 
-        reply_text = '{}\nYou said\n- {}'.format(result['reply'], user_response)
+        reply_text = '{}\nYou said\n- {}'.format(result['reply'],
+                                                 user_response)
         if len(readable['readable_short']) > 1:
             reply_text += '\nCorrect responses would include'
             for r in readable['readable_short']:
@@ -1540,21 +1555,26 @@ class Path(object):
             if stepcount < 1:  # to bounce back after cleaning User
                 # TODO: Does this cause problems?
                 self._reset_steps()
-               
-                #added by JOB ... sept 22, 2014, step_for_prompt needs to be set after reset
+
+                # added by JOB ... sept 22, 2014, step_for_prompt needs to be
+                # set after reset
                 if self.steps:
                     next_step = self.steps.pop(0)
                     self.step_for_prompt = next_step
-                #simple_obj_print("_prepare_for_prompt:stepcount < 1","message")
-                #simple_obj_print(self.step_for_prompt, "step_for_promt in _prepare_for_prompt:stepcount < 1")
+                # simple_obj_print("_prepare_for_prompt:stepcount <
+                # 1","message")
+                # simple_obj_print(self.step_for_prompt, "step_for_promt in
+                # _prepare_for_prompt:stepcount < 1")
                 return True
             else:
-                #simple_obj_print(len(self.steps),"in _prepare_for_prompt: ', len(self.steps), 'steps remain'")
-                #print 'in _prepare_for_prompt: ', len(self.steps), 'steps remain'
+                # simple_obj_print(len(self.steps),"in _prepare_for_prompt: ',
+                # len(self.steps), 'steps remain'")
+                # print 'in _prepare_for_prompt: ', len(self.steps), 'steps
+                # remain'
                 next_step = self.steps.pop(0)
                 self.step_for_prompt = next_step
                 return True
-        except:
+        except Exception:
             print traceback.format_exc(5)
             return False
 
@@ -1567,7 +1587,8 @@ class Path(object):
         """
         step = self.step_for_prompt
         # check if id is same so that block steps don't remove step_for_prompt
-        if stepid == step.get_id():  # and isinstance(step, (StepText, StepMultiple)):
+        if stepid == step.get_id():  # and isinstance(step, (StepText,
+            # StepMultiple)):
             self.step_for_reply = copy(self.step_for_prompt)
             self.step_for_prompt = None
         return True
@@ -1596,11 +1617,11 @@ class Path(object):
             self.steps = copy(self.completed_steps)
             self.completed_steps = []
         if len(self.steps) == 0:
-            #changed by JOB ... sept 22, 2014 ... get_steps takes no args 
-            #self.steps = self.get_steps(self.username)
+            # changed by JOB ... sept 22, 2014 ... get_steps takes no args
+            # self.steps = self.get_steps(self.username)
             self.steps = self.get_steps()
             assert len(self.steps) > 0
-        #simple_obj_print(self.steps,"in _reset_steps, this is self.steps")
+        # simple_obj_print(self.steps,"in _reset_steps, this is self.steps")
         return True
 
     def get_step_for_prompt(self, loc, repeat=None):
@@ -1612,7 +1633,7 @@ class Path(object):
         if repeat:
             assert self._reset_steps()
 
-        # make sure controller hasn't skipped processing an earlier step's reply
+        # ensure controller hasn't skipped processing an earlier step's reply
         # if self.step_for_reply:
         # self.step_for_prompt = copy(self.step_for_reply)
         # self.step_for_reply = None
@@ -1621,8 +1642,8 @@ class Path(object):
         if not self.step_for_prompt:
             assert self._prepare_for_prompt()
         mystep = self.step_for_prompt
-        #debug
-        #simple_obj_print(mystep, "mystep")
+        # debug
+        # simple_obj_print(mystep, "mystep")
 
         next_loc = None
         goodlocs = mystep.get_locations()
@@ -1637,9 +1658,10 @@ class Path(object):
         """
         Return the Step object that is currently active for this path.
 
-        This should be the path whose prompt has already been viewed by the user
-        and to which the user has submitted a response. This method should only
-        be called for steps which allow a user response, i.e. not for:
+        This should be the path whose prompt has already been viewed by the
+        user and to which the user has submitted a response. This method
+        should only be called for steps which allow a user response, i.e. not
+        for:
             StepRedirect
             StepQuotaReached
             StepViewSlides
@@ -1717,8 +1739,9 @@ class PathChooser(object):
         # for t in db.steps[s].tags
         # if db.tags[t].tag_position > rank]))
         pathset = pathset.find(lambda row: len(row.steps) > 0 and
-                                           all([s for s in row.steps
-                                                if (db.steps[s].status != 2)]))
+                               all([s for s in row.steps
+                                   if (db.steps[s].status != 2)])
+                               )
         pathset = pathset.find(lambda row: all([db.steps[s].locations for s
                                                 in row.steps]))
         pathset = pathset.as_list()
@@ -1836,14 +1859,15 @@ class User(object):
         db = current.db
         try:
             self.time_zone = userdata['time_zone']
-            self.blocks = blocks  # FIXME: somehow pass previous day's blocks in user._is_stale()?
+            self.blocks = blocks  # FIXME: somehow pass previous day's blocks
+            # in user._is_stale()?
             self.name = userdata['first_name']
             self.user_id = userdata['id']
 
             self.path = None
             self.completed_paths = []
 
-            self.cats_counter = 0  # timing re-categorization in get_categories()
+            self.cats_counter = 0  # timing re-cat. in get_categories()
 
             self.old_categories = {}
             self.tag_records = tag_records
@@ -1860,7 +1884,8 @@ class User(object):
             self.npc = None
             self.prev_npc = None
             msel = db((db.auth_membership.user_id == self.user_id) &
-                      (db.auth_membership.group_id == db.auth_group.id)).select()
+                      (db.auth_membership.group_id == db.auth_group.id)
+                      ).select()
             # FIXME: Handle registered users without a class assignment
             # put everyone either in a class at registration or in (by default)
             # a generic 'class' with generic presets
@@ -1906,7 +1931,8 @@ class User(object):
         if self.blocks:
             blockset = []
             for b in self.blocks:
-                if not b.get_condition() in [c.get_condition() for c in blockset]:
+                if not b.get_condition() in [c.get_condition()
+                                             for c in blockset]:
                     blockset.append(b)
             self.blocks = blockset
             myblock = self.blocks.pop(0)
@@ -2000,9 +2026,10 @@ class User(object):
         if not self.tag_progress:  # in case User was badly initialized
             self.get_categories()
         choice, redir, cat, mode = PathChooser(self.tag_progress,
-												loc.get_id(),
-												self.completed_paths).choose()
-            # FIXME: if no choice, send_error('User', 'get_path', current.request)
+                                               loc.get_id(),
+                                               self.completed_paths).choose()
+        # FIXME: if no choice, send_error('User', 'get_path',
+        # current.request)
         path = Path(path_id=choice['id'])
         return path, redir, cat
 
@@ -2029,12 +2056,13 @@ class User(object):
             pass
         elif self.path and repeat:  # repeating a step, path wasn't finished
             pass
-        elif self.path and len(self.path.steps):  # unfinished step in self.path
+        elif self.path and len(self.path.steps):  # unfin. step in self.path
             pass
         else:  # choosing a new path
             self.path, redir, cat = self._make_path_choice(loc)
 
-        if len(self.completed_paths) >= self.quota and self.past_quota is False:
+        if len(self.completed_paths) >= self.quota and \
+                self.past_quota is False:
             pastq = True
             self.past_quota = True
         if len(self.blocks) > 0:
@@ -2086,7 +2114,7 @@ class User(object):
                             utcnow=utcnow)
             cat_result = c.categorize_tags()
             self.rank = cat_result['tag_progress']['latest_new']
-            self.tag_records = cat_result['tag_records']  # FIXME: do changes get recorded?
+            self.tag_records = cat_result['tag_records']  # FIXME: recorded?
             self.tag_progress = cat_result['tag_progress']
             self.categories = cat_result['categories']
             self.promoted = cat_result['promoted']
@@ -2127,8 +2155,8 @@ class Categorizer(object):
         self.rank = rank
         self.tag_records = tag_records
         self.old_categories = tag_progress
-        #print 'Categorizer __init__: categories ------------------'
-        #pprint(tag_progress)
+        # print 'Categorizer __init__: categories ------------------'
+        # pprint(tag_progress)
         self.utcnow = utcnow if utcnow else datetime.datetime.utcnow()
         self.secondary_right = secondary_right
 
@@ -2160,7 +2188,7 @@ class Categorizer(object):
         if not rank:
             rank = 1
         old_categories = self.old_categories if not old_categories \
-                         else old_categories
+            else old_categories
         tag_records = self.tag_records if not tag_records else tag_records
         tag_records = self._sanitize_recs(tag_records)
         db = current.db if not db else db
@@ -2185,23 +2213,24 @@ class Categorizer(object):
             # otherwise, categorize tags that have been tried
             for idx, t in enumerate([t for t in tag_records
                                      if tag_records and t['secondary_right']]):
-                #print 'tag', t['tag']
-                #pprint(t)
+                # print 'tag', t['tag']
+                # pprint(t)
                 tag_records[idx] = self._add_secondary_right(t)
             self.tag_records = tag_records
             categories = self._core_algorithm()
-            #print 'after core algorithm---------------------'
-            #pprint(categories)
+            # print 'after core algorithm---------------------'
+            # pprint(categories)
             categories = self._add_untried_tags(categories)
-            #print 'after add untried-------------------------'
-            #pprint(categories)
+            # print 'after add untried-------------------------'
+            # pprint(categories)
             categories = self._remove_dups(categories, rank)
-            #print 'after remove dups------------------------'
-            #pprint(categories)
-            categories.update((c, []) for c in ['rev1', 'rev2', 'rev3', 'rev4'])
+            # print 'after remove dups------------------------'
+            # pprint(categories)
+            categories.update((c, []) for c in ['rev1', 'rev2',
+                                                'rev3', 'rev4'])
             cat_changes = self._find_cat_changes(categories, old_categories)
-            #print 'after find cat changes------------------------'
-            #pprint(cat_changes)
+            # print 'after find cat changes------------------------'
+            # pprint(cat_changes)
             promoted = cat_changes['promoted']
             demoted = cat_changes['demoted']
             new_tags = cat_changes['new_tags']
@@ -2212,16 +2241,17 @@ class Categorizer(object):
                 newlist = self._introduce_tags()
                 categories['cat1'] = categories['rev1'] = newlist
                 tag_progress['cat1'] = tag_progress['rev1'] = newlist
-                new_tags = newlist if not new_tags else new_tags.extend(newlist)
+                new_tags = newlist if not new_tags \
+                    else new_tags.extend(newlist)
 
             # Re-insert 'latest new' to match tag_progress table in db
             tag_progress['latest_new'] = self.rank
 
-            #print 'final tag_progress------------------------'
-            #pprint(cat_changes)
+            # print 'final tag_progress------------------------'
+            # pprint(cat_changes)
 
-            #print 'final categories------------------------'
-            #pprint(cat_changes)
+            # print 'final categories------------------------'
+            # pprint(cat_changes)
 
             return {'tag_progress': tag_progress,
                     'tag_records': self.tag_records,
@@ -2238,7 +2268,7 @@ class Categorizer(object):
         for k, v in categories.iteritems():
             if v:
                 rankv = [t for t in v if db.tags(t)
-                        and (db.tags[t].tag_position <= rank)]
+                         and (db.tags[t].tag_position <= rank)]
                 categories[k] = list(set(rankv))
         return categories
 
@@ -2257,7 +2287,7 @@ class Categorizer(object):
                 right2[right2.index(t)] = parser.parse(t)
             except TypeError:
                 pass
-        if right2 != rec['secondary_right']:  # FIXME: can remove when data clean
+        if right2 != rec['secondary_right']:  # FIXME: remove when data clean
             right2.sort()
             db.tag_records[rec['id']].update(secondary_right=right2)
 
@@ -2271,13 +2301,13 @@ class Categorizer(object):
                 rec['times_right'] = 0
             rec['times_right'] += triplets2
 
-            # move tlast_right forward based on mean of oldest 3 secondary_right
+            # move tlast_right ahead based on mean of oldest 3 secondary_right
             early3 = right2[: -(rem2)] if rem2 else right2[:]
             early3d = [self.utcnow - s for s in early3]
             avg_delta = sum(early3d, datetime.timedelta(0)) / len(early3d)
             avg_date = self.utcnow - avg_delta
 
-            #print 'type is', type(rec['tlast_right'])
+            # print 'type is', type(rec['tlast_right'])
             # sanitize tlast_right in case db value is string
             if not isinstance(rec['tlast_right'], (datetime.datetime, tuple)):
                 rec['tlast_right'] = parser.parse(rec['tlast_right'])
@@ -2351,29 +2381,36 @@ class Categorizer(object):
         TODO: Require that a certain number of successes are recent
         TODO: Look at secondary tags as well
         """
+        debug = 0
         categories = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
         tag_records = tag_records if tag_records else self.tag_records
         for record in tag_records:
-            print 'tag', record['tag'], '================================='
+            if debug: print 'tag', record['tag'], '========================'
             lrraw = record['tlast_right']
             lwraw = record['tlast_wrong']
             lr = lrraw if not isinstance(lrraw, str) else parser.parse(lrraw)
             lw = lwraw if not isinstance(lwraw, str) else parser.parse(lwraw)
             rdur = self.utcnow - lr
             rwdur = lr - lw
-            print 'cat2 if:'
-            print record['times_right'], '>= 20 (', record['times_right'] >= 20, ')'
-            print 'and'
-            print '-------------------------------------------------------'
-            print rdur.days, '<', rwdur.days, '> 1 (', rdur.days < rwdur.days > 1, ')'
-            print 'or-----------------------------------------------------'
-            print self._get_ratio(record), '< 0.2 (', self._get_ratio(record) < 0.2, ')'
-            print 'and'
-            print rdur.days, '<= 30 days (', rdur.days <= 30, ')'
-            print 'or-----------------------------------------------------'
-            print self._get_avg(record['tag']), '>= 0.8 (', self._get_avg(record['tag']) >= 0.8, ')'
-            print 'and'
-            print rdur.days, '<= 30 days (', rdur.days <= 30, ')'
+            if debug:
+                print 'cat2 if:'
+                print record['times_right'], '>= 20'
+                print '    (', record['times_right'] >= 20, ')'
+                print 'and'
+                print '-------------------------------------------------------'
+                print rdur.days, '<', rwdur.days, '> 1 '
+                print '    (', rdur.days < rwdur.days > 1, ')'
+                print 'or-----------------------------------------------------'
+                print self._get_ratio(record), '< 0.2 '
+                print '    (', self._get_ratio(record) < 0.2, ')'
+                print 'and'
+                print rdur.days, '<= 30 days '
+                print '    (', rdur.days <= 30, ')'
+                print 'or-----------------------------------------------------'
+                print self._get_avg(record['tag']), '>= 0.8 '
+                print '    (', self._get_avg(record['tag']) >= 0.8, ')'
+                print 'and'
+                print rdur.days, '<= 30 days (', rdur.days <= 30, ')'
 
             # spaced repetition algorithm for promotion to
             # cat2? ======================================================
@@ -2386,7 +2423,7 @@ class Categorizer(object):
                   and (rdur.days <= 30)  # right in past 30 days
                   )
                  or
-                 ((self._get_avg(record['tag']) >= 0.8)  # avg score for week >= 0.8
+                 ((self._get_avg(record['tag']) >= 0.8)  # avg for week >= 0.8
                   and (rdur.days <= 30)  # right in past 30 days
                   ))):
                 print '************** got to cat2'
@@ -2494,7 +2531,8 @@ class Categorizer(object):
                     oldvals = [v for v in oldcats.values() if v]
                     print 'oldcats.values()', oldvals
                     all_old_tags = list(chain.from_iterable(oldvals))
-                    new_tags.extend([t for t in taglist if t not in all_old_tags])
+                    new_tags.extend([t for t in taglist
+                                     if t not in all_old_tags])
 
                     # was tag in a lower category before?
                     idx = cnms.index(cat)
@@ -2510,11 +2548,12 @@ class Categorizer(object):
                     demoted[cat] = [t for t in taglist if t in was_higher]
 
             if any([k for k, v in demoted.iteritems() if v]):
-                for tag in list(chain.from_iterable(demoted.values())):  # then restore old max in cats
+                for tag in list(chain.from_iterable(demoted.values())):
+                    # then restore old max in cats
                     current = [k for k, v in demoted.iteritems()
-                                if v and tag in v and k in cnms][0]
+                               if v and tag in v and k in cnms][0]
                     oldmax = [k for k, v in oldcats.iteritems()
-                                if v and tag in v][0]
+                              if v and tag in v][0]
                     try:
                         cats[current].remove(tag)
                         cats[oldmax].append(tag)
@@ -2522,9 +2561,9 @@ class Categorizer(object):
                         pass
             return {'categories': cats,
                     'demoted': demoted if any([d for d in demoted.values()])
-                               else None,
+                    else None,
                     'promoted': promoted if any([p for p in promoted.values()])
-                               else None,
+                    else None,
                     'new_tags': new_tags}
         else:
             cats['rev1'] = cats['cat1'][:]
@@ -2534,8 +2573,8 @@ class Categorizer(object):
                     'promoted': None,
                     'new_tags': new_tags}
 
-    #added self as first argument ... JOB ... sept 21 2013
-    def _clean_tag_records(self,record_list=None, db=None):
+    # added self as first argument ... JOB ... sept 21 2013
+    def _clean_tag_records(self, record_list=None, db=None):
         """
         Find and remove any duplicate entries in record_list.
 
@@ -2567,8 +2606,8 @@ class Block(object):
         'new_tags'
         'slides'
         'quota_reached'
-    The second category requires that the Block object be returned to Walk.ask()
-    or Walk.reply() for a more involved response:
+    The second category requires that the Block object be returned to
+    Walk.ask() or Walk.reply() for a more involved response:
         'need to reply'
         'empty response'
     """
@@ -2602,4 +2641,3 @@ class Block(object):
         """Return the appropriate step for the current blocking condition"""
         step = self.make_step(self.get_condition())
         return step
-
