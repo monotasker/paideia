@@ -2506,16 +2506,21 @@ class User(object):
                                 reported_badges=self.reported_badges,
                                 reported_promotions=self.reported_promotions)
 
-    def _get_paths_quota(self, user_id):
+    def _get_paths_quota(self, user_id, test_db=None, cur_time=None):
         """Return the daily path quota (int) for the user's class section."""
-        db = current.db
+        db = test_db if test_db else current.db
+        mynow = cur_time if cur_time else datetime.datetime.utcnow()
         msel = db((db.class_membership.name == self.user_id) &
                   (db.class_membership.class_section == db.classes.id)
                   ).select()
         try:
+            most_recent = max(c.classes.start_date for c in msel
+                              if c.classes.start_date <= mynow
+                              and c.classes.end_date >= mynow)
             target = [m.classes.paths_per_day for m in msel
-                      if m.classes.paths_per_day][0]
-        except IndexError:
+                      if m.classes.paths_per_day and
+                      m.classes.start_date == most_recent][0]
+        except (IndexError, ValueError) as e:
             print 'user not a member of any class, defaulting to 20 quota'
             target = 20
         return target
