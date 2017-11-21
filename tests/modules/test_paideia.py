@@ -4386,11 +4386,11 @@ class TestUser(object):
                               (False,  # ismember
                                datetime.datetime(2017, 5, 30),  # nowtime
                                20),  # result
-                              (False,  # ismember
+                              (True,  # ismember
                                datetime.datetime(2017, 8, 30),  # nowtime
                                20),
                               ])
-    def test_user_init(self, ismember, nowtime, result, db):
+    def test_user_get_paths_quota(self, ismember, nowtime, result, db):
         """
         Unit test for initializing values in User object.
         """
@@ -4410,27 +4410,24 @@ class TestUser(object):
                     'times_wrong': 1,
                     'secondary_right': None}]
         if ismember:
-            mystartA = datetime.datetime(2016, 1, 15)
-            myendA = datetime.datetime(2016, 6, 15)
-            mystartB = datetime.datetime(2017, 1, 15)
-            myendB = datetime.datetime(2017, 6, 15)
-            mystartC = datetime.datetime(2040, 1, 15)
-            myendC = datetime.datetime(2040, 6, 15)
-            classAid = db.classes.insert(institution='Tyndale Seminary',
-                                         academic_year='2016',
-                                         start_date=mystartA,
-                                         end_date=myendA,
-                                         paths_per_day=5)
-            classBid = db.classes.insert(institution='Tyndale Seminary',
-                                         academic_year='2017',
-                                         start_date=mystartB,
-                                         end_date=myendB,
-                                         paths_per_day=25)
-            classCid = db.classes.insert(institution='Tyndale Seminary',
-                                         academic_year='2040',
-                                         start_date=mystartC,
-                                         end_date=myendC,
-                                         paths_per_day=7)
+            classAid = db.classes.insert(
+                institution='Tyndale Seminary',
+                academic_year='2016',
+                start_date=datetime.datetime(2016, 1, 15),
+                end_date=datetime.datetime(2016, 6, 15),
+                paths_per_day=5)
+            classBid = db.classes.insert(
+                institution='Tyndale Seminary',
+                academic_year='2017',
+                start_date=datetime.datetime(2017, 1, 15),
+                end_date=datetime.datetime(2017, 6, 15),
+                paths_per_day=25)
+            classCid = db.classes.insert(
+                institution='Tyndale Seminary',
+                academic_year='2040',
+                start_date=datetime.datetime(2040, 1, 15),
+                end_date=datetime.datetime(2040, 6, 15),
+                paths_per_day=7)
             memAid = db.class_membership.insert(name=1,
                                                 class_section=classAid)
             memBid = db.class_membership.insert(name=1,
@@ -4438,13 +4435,15 @@ class TestUser(object):
             memCid = db.class_membership.insert(name=1,
                                                 class_section=classCid)
             db.commit()
-        actual = User(userdata, tagrecs, tagprog, test_db=db, cur_time=nowtime)
-        actual.quota = result
+        actual = User(userdata, tagrecs, tagprog, db=db
+                      )._get_paths_quota(userdata['id'],
+                                         test_db=db,
+                                         cur_time=nowtime)
+        assert actual == result
         # clean up DB
         if ismember:
             db(db.classes.id.belongs([classAid, classBid, classCid])).delete()
-            db(db.class_membership.id.belongs([memAid, memBid, memCid])
-               ).delete()
+            db(db.class_membership.name == userdata['id']).delete()
             db.commit()
 
     @pytest.mark.skipif(False, reason='just because')
