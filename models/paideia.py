@@ -510,13 +510,13 @@ db.define_table('path_styles',
 
 db.define_table('paths',
                 Field('label'),
-                #JOB ... turning steps into a list of  integers as it seems to have issues
+                # JOB ... turning steps into a list of  integers as it seems to
+                #  have issues
                 # FIXME: turn back into list:reference
-                #Field('steps', 'list:reference steps'),
+                # Field('steps', 'list:reference steps'),
                 Field('steps', 'list:integer'),
                 Field('path_style', 'reference path_styles'),
-                Field('path_tags',
-                    compute=lambda row: row.steps),
+                Field('path_tags', compute=lambda row: row.steps),
                 # compute=lambda row: [tag for step in row.paths.steps
                 # for tag in db.steps[step].tags]),
                 Field('path_active', 'boolean',
@@ -528,7 +528,7 @@ db.define_table('paths',
                 format='%(label)s')
 
 # FIXME
-#db.paths.tags_for_steps = Field.Virtual('tags_for_steps',
+# db.paths.tags_for_steps = Field.Virtual('tags_for_steps',
 #                              lambda row: [tag for step in row.paths.steps
 #                                           for tag in db.steps[step].tags])
 db.paths.steps.requires = IS_IN_DB(db, 'steps.id',
