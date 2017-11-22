@@ -1,13 +1,15 @@
 'use strict';
 
-function show_mask(select_string) {
+function show_mask() {
     // ========= hide white mask when map is loaded ========== //
-  $('div#' + select_string).velocity({opacity: "1"}, {display: "block"}, 200);
+  console.log('showing mask');
+  $('div#exploring-mask').velocity({opacity: "1"}, {display: "block"}, 200);
 }
 
-function hide_mask(select_string) {
+function hide_mask() {
     // ========= hide white mask when map is loaded ========== //
-  $('div#' + select_string).velocity({opacity: "0"}, {display: "none"}, 700);
+  console.log('hiding mask');
+  $('div#exploring-mask').velocity({opacity: "0"}, {display: "none"}, 700);
 }
 
 function fit_to_height() {
@@ -26,11 +28,14 @@ function fit_to_height() {
 }
 
 function svg_go_there(evt){
-    show_mask('exploring-mask');
+    // show_mask();
+    var p = $(window.parent.document);
+    console.log(p);
     $(window.parent.document).find('#exploring-mask')
-        .css({'display': 'block'});
+        .css({'display': 'block', 'opacity': '0'})
+        .velocity({opacity: '1'});
     var oname = $(evt.currentTarget).attr('id');
-    window.parent.web2py_component("/paideia/exploring/walk.load/step?loc=" + oname, "page");
+    window.parent.web2py_component("/paideia/exploring/walk.load/step?loc=" + oname, "walk_frame");
 }
 
 function svg_mask_other(evt){
@@ -117,7 +122,7 @@ function make_map_pan(select_string) {
             mymap.pan({x: 0, y: 0});
         }
         mapInit();
-        hide_mask('exploring-mask');
+        hide_mask();
         set_svg_interactions('town_map');
     }
 }
@@ -152,6 +157,8 @@ $(document).ready(function(){
     $('.bug_reporter_modal').on('show.bs.modal', function(event){
         $('#bug_reporter_comment').focus();
     });
+
+    $(document).on('.responder .back_to_map', 'click', show_mask);
 
 // ========== end document.ready ===========================//
 });

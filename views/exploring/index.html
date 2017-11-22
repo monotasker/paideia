@@ -9,4 +9,6 @@
     <img src={{=URL('static', version_file('images/Rolling.gif'))}} alt='loading' />
 </div>
 
-{{=LOAD('exploring','walk.load', vars=v, ajax=True)}}
+<div id="walk_frame">
+    {{=LOAD('exploring','walk.load', vars=v, ajax=True, target='walk_frame')}}
+</div>
