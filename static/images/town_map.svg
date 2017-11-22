@@ -30,6 +30,10 @@
   </metadata>
   <style
      id="style29011">
+        #top_group {
+            cursor: move;
+        }
+
         #domus_A_mask, #domus_A_tip,
         #bath_mask, #bath_tip,
         #agora_mask, #agora_tip,
