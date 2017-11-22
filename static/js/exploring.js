@@ -154,11 +154,17 @@ $(document).ready(function(){
 
     // ========== focus input when bug reporter appears =============== //
     // FIXME: Not working.
-    $('.bug_reporter_modal').on('show.bs.modal', function(event){
+    $(document).on('show.bs.modal', '.bug_reporter_modal', function(event){
         $('#bug_reporter_comment').focus();
     });
 
-    $(document).on('.responder .back_to_map', 'click', show_mask);
+    // ========== handle pushing back_to_map button =============== //
+    $(document).on('click', '.responder .back_to_map', function(event){
+        show_mask();
+        window.parent.web2py_component("/paideia/exploring/walk.load/map?loc=None", "walk_frame");
+        event.preventDefault();
+    });
+
 
 // ========== end document.ready ===========================//
 });

@@ -464,6 +464,7 @@ body.exploring                  {
         #page                       {background-size: auto 100%;
                                      z-index:100;
                                      padding-right:0;
+                                     background-attachment: fixed;
             div#exploring-mask          {display: block;
                                          position: absolute;
                                          background-color: rgba(255,255,255,1.0);
@@ -501,7 +502,7 @@ body.exploring                  {
                 input[type=text]        {width: 60%;
                                          color: #666;}
             }
-            .speaker                    {position: absolute;
+            .speaker                    {position: fixed;
             }
             .prompt                     {
                 li                      {color: @pallette4;
