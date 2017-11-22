@@ -1,10 +1,5 @@
 {{from plugin_widgets import TOOLTIP, ROLE, POPOVER}}
 
-<!--# LOADING MASK ========================================================-->
-<div id='loading-mask'>
-    <img src={{=URL('static', version_file('images/Rolling.gif'))}} alt='loading' />
-</div>
-
 <!--# ADMIN PANEL ========================================================-->
 {{ap = DIV(H3('Admin Panel'), _class='admin-panel')
 ap.append(form) }}
@@ -118,8 +113,6 @@ ap.append(form) }}
     <div class='responder'>
         {{if 'response_form' in locals() and response_form:}}
             {{=response_form}}
-            {{#print 'in view about to show response_form'}}
-            {{#print 'pre_bug_step_id: ', response_form['pre_bug_step_id']}}
         {{pass
 
         if 'continue' in response_buttons:}}
@@ -133,8 +126,7 @@ ap.append(form) }}
         {{pass}}
 
         {{if 'map' in response_buttons:}}
-            {{=A("Back to map", _href=URL('walk', args=['map'], vars={'loc': None}),
-                 cid='walk_frame', _class='btn btn-success back_to_map')}}
+            <a href="#" class="btn btn-success back_to_map">Back to map</a>
         {{pass}}
         {{if sid and pid:}}
             {{stepedit = A('step {}'.format(sid),
@@ -197,13 +189,6 @@ $(document).ready(function(){
         $this.popover({html: true,
                         animation: true,
                         content: $this.find('.popover-content').html()});
-    });
-
-    // ========== handle pushing submit button =============== //
-    $('#responder submit').click(function(event){
-        window.parent.web2py_component("/paideia/exploring/walk.load/reply",
-        "walk_frame");
-        event.preventDefault();
     });
 
     // ========== handle pan and zoom for svg map =============== //
