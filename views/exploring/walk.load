@@ -124,17 +124,17 @@ ap.append(form) }}
 
         if 'continue' in response_buttons:}}
             {{=A("Continue", _href=URL('walk', args=['ask'], vars={'loc': loc}),
-            cid='page', _class='continue btn btn-success next_q')}}
+            cid='walk_frame', _class='continue btn btn-success next_q')}}
         {{pass}}
 
         {{if 'retry' in response_buttons:}}
             {{=A("Try again", _href=URL('walk', args=['repeat'], vars={'loc': loc}),
-                 cid='page', _class='btn btn-warning retry')}}
+                 cid='walk_frame', _class='btn btn-warning retry')}}
         {{pass}}
 
         {{if 'map' in response_buttons:}}
             {{=A("Back to map", _href=URL('walk', args=['map'], vars={'loc': None}),
-                 cid='page', _class='btn btn-success back_to_map')}}
+                 cid='walk_frame', _class='btn btn-success back_to_map')}}
         {{pass}}
         {{if sid and pid:}}
             {{stepedit = A('step {}'.format(sid),
@@ -201,7 +201,8 @@ $(document).ready(function(){
 
     // ========== handle pushing submit button =============== //
     $('#responder submit').click(function(event){
-        window.parent.web2py_component("/paideia/exploring/walk.load/reply","page");
+        window.parent.web2py_component("/paideia/exploring/walk.load/reply",
+        "walk_frame");
         event.preventDefault();
     });
 
@@ -211,13 +212,13 @@ $(document).ready(function(){
     {{pass}}
 
     // ========== prevent cutting and pasting from responder input =============== //
-    console.log('preventing paste');
     $('div.responder input').bind("cut copy paste", function(e) {
-        console.log($(this));
         e.preventDefault();
     });
 
-    $('.responder .back-to-map').on('click', show_mask);
+    {{if request.args(0) != 'map' and request.args:}}
+        hide_mask();  // hide mask once page is ready
+    {{pass}}
 
 });
 
