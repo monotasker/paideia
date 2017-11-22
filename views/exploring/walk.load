@@ -2,7 +2,7 @@
 
 <!--# LOADING MASK ========================================================-->
 <div id='loading-mask'>
-    <img src={{=URL('static', version_file('images/ajax-loader.gif'))}} alt='loading' />
+    <img src={{=URL('static', version_file('images/Rolling.gif'))}} alt='loading' />
 </div>
 
 <!--# ADMIN PANEL ========================================================-->
