@@ -6,7 +6,7 @@ import uuid  # or gluon.utils.web2py_uuid ?
 import datetime
 from pytz import common_timezones
 from pytz import timezone
-from gluon.tools import Recaptcha, Auth, Mail, Crud, Service, PluginManager
+from gluon.tools import Recaptcha2, Auth, Mail, Crud, Service, PluginManager
 from gluon.tools import IS_IN_SET
 from gluon.globals import current
 import bootstrap3 as bs3  # is needed here even though not used
