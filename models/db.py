@@ -222,11 +222,11 @@ auth.messages.reset_password = 'Click on the link http://' \
 # -------------------------------------------------------------
 
 auth.settings.login_captcha = None
-auth.settings.register_captcha = Recaptcha(request,
+auth.settings.register_captcha = Recaptcha2(request,
     keydata['captcha_public_key'], keydata['captcha_private_key'])
-auth.settings.retrieve_username_captcha = Recaptcha(request,
+auth.settings.retrieve_username_captcha = Recaptcha2(request,
     keydata['captcha_public_key'], keydata['captcha_private_key'])
-auth.settings.retrieve_password_captcha = Recaptcha(request,
+auth.settings.retrieve_password_captcha = Recaptcha2(request,
     keydata['captcha_public_key'], keydata['captcha_private_key'])
 
 # -------------------------------------------------------------
