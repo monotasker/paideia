@@ -79,9 +79,9 @@ if _i_am_running_under_test():
 print '--- using dbase: ', postgre['db_name'], ' ---'
 # check_reserved makes sure no column names conflict with back-end db's
 connect_string = 'postgres:psycopg2://%s:%s@%s/%s' % (postgre['username'],
-                                             postgre['password'],
-                                             postgre['host'],
-                                             postgre['db_name'])
+                                                      postgre['password'],
+                                                      postgre['host'],
+                                                      postgre['db_name'])
 # make sure migrate is false during tests
 if _i_am_running_under_test():
     db = DAL(connect_string, pool_size=1,
@@ -146,10 +146,11 @@ auth.settings.extra_fields['auth_user'] = [
           widget=SQLFORM.widgets.options.widget
           ),
     Field.Virtual('tz_obj',
-                  lambda row: timezone(row.auth_user.time_zone.replace('|', ''))
-                              if (hasattr(row.auth_user, 'time_zone') and
-                                  row.auth_user.time_zone)
-                              else 'America/Toronto'
+                  lambda row:
+                  timezone(row.auth_user.time_zone.replace('|', ''))
+                  if (hasattr(row.auth_user, 'time_zone') and
+                      row.auth_user.time_zone)
+                  else 'America/Toronto'
                   ),
     Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
     Field('modified_on', 'datetime', default=request.now),
@@ -202,7 +203,8 @@ db.auth_user._format = lambda row: '{}, {}: {}'.format(row.last_name,
 mail = Mail()
 mail.settings.server = keydata['email_server']  # 'logging' # SMTP server
 mail.settings.sender = keydata['email_address']  # email
-mail.settings.login = '{}:{}'.format(keydata['email_user'], keydata['email_pass'])  # credentials or None
+mail.settings.login = '{}:{}'.format(keydata['email_user'],
+                                     keydata['email_pass'])
 mail.settings.tls = True
 current.mail = mail
 
@@ -221,13 +223,12 @@ auth.messages.reset_password = 'Click on the link http://' \
 # enable recaptcha anti-spam for selected actions
 # -------------------------------------------------------------
 
+mycaptcha = Recaptcha2(request, keydata['captcha_public_key'],
+                       keydata['captcha_private_key'])
 auth.settings.login_captcha = None
-auth.settings.register_captcha = Recaptcha2(request,
-    keydata['captcha_public_key'], keydata['captcha_private_key'])
-auth.settings.retrieve_username_captcha = Recaptcha2(request,
-    keydata['captcha_public_key'], keydata['captcha_private_key'])
-auth.settings.retrieve_password_captcha = Recaptcha2(request,
-    keydata['captcha_public_key'], keydata['captcha_private_key'])
+auth.settings.register_captcha = mycaptcha
+auth.settings.retrieve_username_captcha = mycaptcha
+auth.settings.retrieve_password_captcha = mycaptcha
 
 # -------------------------------------------------------------
 # crud settings
