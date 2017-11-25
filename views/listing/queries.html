@@ -1,0 +1,75 @@
+{{extend 'layout.html'}}
+
+<h2>Student Queries</h2>
+
+{{if classid:}}
+<form class='form-inline' id='class-chooser-form'>
+    <div class="form-group">
+        <div class='input-group'>
+            <span class='input-group-addon'>Select a class to view</span>
+            <select name='agid' id='class-chooser' class='form-control'>
+                {{for m in myclasses:}}
+                {{=OPTION('{} {}, section {}, {}'
+                          ''.format(m['academic_year'],
+                                    m['term'],
+                                    m['course_section'],
+                                    m['institution']),
+                           _value=m['id'])}}
+                {{pass}}
+                {{if admin is True:}}
+                    <option class='unregistered-active' value='unregistered-active'>
+                        Currently unenrolled but active
+                    </option>
+                    <option class='unregistered-inactive' value='unregistered-inactive'>
+                        All unenrolled users
+                    </option>
+                    <option class='all' value='all'>
+                        All users
+                    </option>
+                {{pass}}
+            </select>
+        </div>
+        <div class='input-group'>
+            <span class='input-group-addon'>Filter</span>
+            <select name='filter' id='query-filter' class='form-control'>
+                    <option class='unanswered' value='unanswered'>
+                        unanswered
+                    </option>
+                    <option class='answered' value='answered'>
+                        answered
+                    </option>
+                    <option class='confirmed' value='confirmed'>
+                        confirmed as bugs
+                    </option>
+                    <option class='fixed' value='fixed'>
+                        resolved bugs
+                    </option>
+                    <option class='all' value='all'>
+                        all queries
+                    </option>
+                {{pass}}
+            </select>
+        </div>
+    </div>
+</form>
+{{pass}}
+
+{{if classid:}}
+<div class='query_list'>
+    {{=LOAD('listing', 'querylist.load', vars={'agid': classid}, ajax=False,
+             target='query_list')}}
+</div>
+{{else:}}
+<div class="query_list">
+    <p>You do not yet have any classes associated with your instructor's
+    account.</p>
+</div>
+{{pass}}
+
+<script type="text/javascript">
+ $(document).on('change', '#class-chooser, #query-filter', function(event){
+	ajax("{{=URL('listing', 'querylist.load')}}", ['agid', 'filter'], 'query_list');
+    event.preventDefault();
+	}
+);
+</script>

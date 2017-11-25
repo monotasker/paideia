@@ -7,32 +7,33 @@
     <div class="form-group">
         <div class='input-group'>
             <span class='input-group-addon'>Select a class to view</span>
-            {{=chooser}}
+            <select name='agid' id='class-chooser' class='form-control'>
+                {{for m in myclasses:}}
+                {{=OPTION('{} {}, section {}, {}'
+                          ''.format(m['academic_year'],
+                                    m['term'],
+                                    m['course_section'],
+                                    m['institution']),
+                           _value=m['id'])}}
+                {{pass}}
+                {{if admin is True:}}
+                    <option value='unregistered-active'>
+                        Currently unenrolled but active
+                    </option>
+                    <option value='unregistered-inactive'>
+                        All unenrolled users
+                    </option>
+                {{pass}}
+            </select>
         </div>
-        <button type='submit' id='chooser_submit' class='btn btn-primary'>Get list</button>
     </div>
 </form>
 {{pass}}
 
-<script type="text/javascript">
-var userlist_cid = '';
-var refresh = function(){
-	//this needs to be here instead of in userlist.load otherwise you define multiple
-	//copies of the trigger
-	 //look for userlist_cid  to be set in userlist.load
-	if (userlist_cid){
-		//console.log('userlist_cid: ' + userlist_cid )
-		$('#chooser_submit').val('Working ...')
-		ajax("{{=URL('listing', 'userlist.load')}}", ['agid'], userlist_cid);
-	}
-	return false;
-}
- $('#chooser_submit').click(refresh);
-</script>
-
 {{if classid:}}
 <div class='user_list'>
-    {{=LOAD('listing', 'userlist.load', vars={'agid': classid}, ajax=False)}}
+    {{=LOAD('listing', 'userlist.load', vars={'agid': classid}, ajax=False,
+            target='user_list')}}
 </div>
 {{else:}}
 <div class="user_list">
@@ -41,4 +42,11 @@ var refresh = function(){
 </div>
 {{pass}}
 
-
+<script type="text/javascript">
+ $(document).on('change', '#class-chooser', function(event){
+	ajax("{{=URL('listing', 'userlist.load')}}", ['agid'], 'user_list');
+    event.preventDefault();
+	// $(this).attr('disabled', 'true');
+	}
+);
+</script>

@@ -65,7 +65,12 @@ db.define_table('classes',
 db.classes.term.requires = IS_EMPTY_OR(IS_IN_SET(('fall',
                                                   'winter intersession',
                                                   'winter',
-                                                  'spring/summer')))
+                                                  'spring/summer',
+                                                  'january', 'february',
+                                                  'march', 'april', 'may',
+                                                  'june', 'july', 'august',
+                                                  'september', 'october',
+                                                  'november', 'december')))
 
 db.define_table('class_membership',
                 Field('name', 'reference auth_user'),
