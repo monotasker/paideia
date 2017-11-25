@@ -14,7 +14,7 @@ from paideia_bugs import Bug
 # from gluon.tools import prettydate
 from gluon.serializers import json
 if 0:
-    from gluon import current, cache, URL, TABLE, TR, TD, TH
+    from gluon import current, URL, TABLE, TR, TD, TH
     from gluon.tools import Auth
     from gluon.dal import DAL
     db = DAL()
@@ -200,7 +200,7 @@ def info():
     else:
         user = db.auth_user[auth.user_id]
 
-    stats = Stats(user.id, cache=cache)
+    stats = Stats(user.id)
     now = datetime.datetime.utcnow()
     if debug:
         print 'now is', now
