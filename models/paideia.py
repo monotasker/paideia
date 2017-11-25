@@ -273,10 +273,12 @@ db.word_forms.voice.requires = IS_IN_SET(('active', 'middle', 'passive',
 db.word_forms.mood.requires = IS_IN_SET(('indicative', 'imperative',
                                          'infinitive', 'subjunctive',
                                          'optative', 'participle', 'none'))
-db.word_forms.grammatical_case.requires = IS_IN_SET(('nominative', 'accusative',
+db.word_forms.grammatical_case.requires = IS_IN_SET(('nominative',
+                                                     'accusative',
                                                      'genitive', 'dative',
                                                      'vocative',
-                                                     'nominative or accusative',
+                                                     'nominative or '
+                                                     'accusative',
                                                      'undetermined',
                                                      'none'))
 db.word_forms.person.requires = IS_IN_SET(('first', 'second', 'third', 'none'))
@@ -494,8 +496,8 @@ db.define_table('tag_progress',
                 Field('rev2', 'list:integer'),
                 Field('rev3', 'list:integer'),
                 Field('rev4', 'list:integer'),
-                Field('all_choices', 'integer', default=0),   # used to help choose from cat1
-                Field('cat1_choices', 'integer', default=0),  # used to help choose from cat1
+                Field('all_choices', 'integer', default=0),
+                Field('cat1_choices', 'integer', default=0),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(name)s, %(latest_new)s')
