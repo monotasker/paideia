@@ -1,0 +1,37 @@
+
+<table class='query_list_table table'>
+<thead>
+    <tr>
+        <th class="name">Student</th>
+        <th class="date">Date</th>
+        <th class="step">Step</th>
+        <th class="path">Path</th>
+        <th class="prompt">Prompt</th>
+        <th class="response">Student Response</th>
+        <th class="good-answers">Good Answers</th>
+        <th class="score">Score</th>
+        <th class="new-score">New Score</th>
+        <th class="user-comment">User Comment</th>
+        <th class="admin-comment">My Comment</th>
+        <th class="status">Status</th>
+    </tr>
+</thead>
+<tbody>
+{{for q in querylist:}}
+    <tr>
+        <td class="name">{{=querylist['user_name']}}</td>
+        <td class="date">{{=querylist['date_submitted']}}</td>
+        <td class="step">{{=querylist['step']}}</td>
+        <td class="path">{{=querylist['in_path']}}</td>
+        <td class="prompt">{{=querylist['prompt']}}</td>
+        <td class="response">{{=querylist['user_response']}}</td>
+        <td class="good-answers">{{=querylist['sample_answers']}}</td>
+        <td class="score">{{=querylist['score']}}</td>
+        <td class="new-score">{{=querylist['adjusted_score']}}</td>
+        <td class="user-comment">{{=querylist['user_comment']}}</td>
+        <td class="admin-comment">{{=querylist['admin_comment']}}</td>
+        <td class="status">{{=querylist['bug_status']}}</td>
+    </tr>
+{{pass}}
+<tbody>
+</table>

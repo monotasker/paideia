@@ -22,58 +22,81 @@ if 0:
 
 @auth.requires(auth.has_membership('instructors') |
                auth.has_membership('administrators'))
-def user():
-    # TODO: magic number here -- admin group is 1
-    # admins = db(db.auth_membership.group_id == 1
-                # ).select(db.auth_membership.user_id).as_list()
-    # admins = [a['user_id'] for a in admins]
-    debug = False
+def get_my_classes(classid=None):
+    """
+    Return user's classes as a list of dicts
+
+    The list will be sorted by date according to the year and term, then
+    alphanumberically by section label. If a classid argument is supplied, that
+    item will be moved to the top of the list and will also be provided as a
+    separate return value
+
+    """
+    classid = None if classid == 'none' else classid
     if auth.has_membership('administrators'):
         myclasses = db(db.classes.instructor != None).select()
     else:
         myclasses = db(db.classes.instructor == auth.user_id
-                       ).select()
+                       ).select(db.classes.id,
+                                db.classes.academic_year,
+                                db.classes.term,
+                                db.classes.course_section,
+                                db.classes.institution)
 
+    active_class = None
     if len(myclasses):
         myclasses = myclasses.as_list()
-        print type(myclasses[0]), myclasses[0]
+        terms = ('fall', 'september', 'october', 'november', 'december'
+                 'winter intersession', 'january',
+                 'winter', 'february', 'march',
+                 'spring/summer', 'april', 'may', 'june', 'july', 'august')
+        term_order = lambda t: terms.index(t)
         myclasses = sorted(myclasses,
-                        key=lambda x: (x['academic_year'], x['term']),
-                        reverse=True)
-        if 'classid' in request.vars.keys() and request.vars.classid not in ['none', None]:
+                           key=lambda x: (x['academic_year'],
+                               term_order(x['term']),
+                               x['course_section']),
+                           reverse=True)
+        try:
+            active_class = [m for m in myclasses if m.get('id') ==
+                            int(request.vars.classid)][0]
             if debug: print 'found active class', request.vars.classid
-            try:
-                active_class = [m for m in myclasses if m.get('id') ==
-                                int(request.vars.classid)][0]
-                myclasses = [m for m in myclasses if m.get('id') !=
-                                int(request.vars.classid)]
-                myclasses.insert(0, active_class)
-            except IndexError:
-                pass
-        print 'myclasses:', len(myclasses)
+            myclasses = [m for m in myclasses if m.get('id') !=
+                            int(request.vars.classid)]
+            myclasses.insert(0, active_class)
+        except (IndexError, TypeError):
+            pass
 
-        chooser = CAT(SELECT(_name='agid',
-                             _id='class-chooser',
-                             *[OPTION('{} {}, section {}, {}'
-                                      ''.format(m['academic_year'],
-                                                m['term'],
-                                                m['course_section'],
-                                                m['institution']),
-                                      _value=m['id'])
-                               for m in myclasses
-                               ],
-                             _class='form-control'
-                             ),
-                      )
+    return myclasses
 
-        if auth.has_membership('administrators'):
-            chooser[0].append(OPTION('Currently unenrolled but active',
-                                     _value='unregistered-active'))
-            chooser[0].append(OPTION('All unenrolled users',
-                                     _value='unregistered-inactive'))
-        return {'chooser': chooser,
+
+@auth.requires(auth.has_membership('instructors') |
+               auth.has_membership('administrators'))
+def queries():
+    debug = False
+    classid = request.vars.classid if 'classid' in request.vars.keys() \
+        else None
+    myclasses = get_my_classes(classid=classid)
+
+    if myclasses:
+        admin = True if auth.has_membership('administrators') else False
+        return {'myclasses': myclasses,
                 'classid': myclasses[0]['id'],
-                }
+                'admin': admin}
+    else:
+        return {'classid': None}
+
+
+@auth.requires(auth.has_membership('instructors') |
+               auth.has_membership('administrators'))
+def user():
+    debug = False
+    myclasses = get_my_classes()
+
+    if myclasses:
+        admin = True if auth.has_membership('administrators') else False
+        return {'myclasses': myclasses,
+                'classid': myclasses[0]['id'],
+                'admin': admin}
     else:
         return {'classid': None}
 
@@ -203,6 +226,41 @@ def remove_user():
 
 @auth.requires(auth.has_membership('instructors') |
                auth.has_membership('administrators'))
+def querylist():
+    debug = True
+    try:
+        if request.vars.agid == 'all':
+            members = [m for m in
+                       db().iterselect(db.auth_user.id)]
+        elif request.vars.agid in ['unregistered-active',
+                                   'unregistered-inactive']:
+            pass
+        else:
+            classid = int(request.vars.agid)
+            members = list(set([m.name for m in
+                       db(db.class_membership.class_section == classid).iterselect()]
+                       ))
+        filtervals = {'unanswered': [5],
+                      'answered': (7, 6, 4, 3, 2),
+                      'confirmed': [1],
+                      'fixed': [2],
+                      'all': None}
+        my_filter = filtervals[request.vars.filter]
+        if my_filter:
+            queries = db((db.bugs.user_name.belongs(members)) &
+                         (db.bugs.bug_status.belongs(my_filter))
+                         ).select().as_list()
+        else:
+            queries = db(db.bugs.user_name.belongs(members)).select().as_list()
+    except Exception, e:
+        print e
+        queries = None
+
+    return {'querylist': queries}
+
+
+@auth.requires(auth.has_membership('instructors') |
+               auth.has_membership('administrators'))
 def userlist():
     debug = True
     if debug: print 'starting listing/userlist ============================='
@@ -245,8 +303,7 @@ def userlist():
         else:
             in_process = False
 
-    except Exception as e:  # selecting outside of current class registrants
-        print e
+    except Exception:  # selecting outside of current class registrants
         target = 0
         freq = 0
         classrow = {'id': None}
