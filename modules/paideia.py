@@ -87,13 +87,10 @@ class Map(object):
         levels of the map.
         """
         db = current.db if not db else db
-        cache = current.cache
 
         map_image = '/paideia/static/images/town_map.svg'
-        # TODO: Review cache time
         locations = db().select(db.locations.ALL,
-                                orderby=db.locations.map_location,
-                                cache=(cache.ram, 60 * 60)).as_list()
+                                orderby=db.locations.map_location).as_list()
         return {'map_image': map_image, 'locations': locations}
 
 

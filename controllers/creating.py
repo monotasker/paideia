@@ -6,7 +6,7 @@ if 0:
     from gluon.dal import DAL
     from gluon.tools import Auth, Crud
     request, session = current.request, current.session
-    response, T, cache = current.response, current.t, current.cache
+    response, T = current.response, current.t
     crud = Crud()
     db = DAL()
     auth = Auth()
