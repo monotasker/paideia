@@ -1,37 +1,130 @@
-
-<table class='query_list_table table'>
+<table id='query_list_table' class='query_list_table table'>
 <thead>
     <tr>
         <th class="name">Student</th>
+        <th class="user-id">User id</th>
         <th class="date">Date</th>
-        <th class="step">Step</th>
-        <th class="path">Path</th>
         <th class="prompt">Prompt</th>
         <th class="response">Student Response</th>
         <th class="good-answers">Good Answers</th>
         <th class="score">Score</th>
         <th class="new-score">New Score</th>
+        <th class="step">Step</th>
+        <th class="path">Path</th>
         <th class="user-comment">User Comment</th>
         <th class="admin-comment">My Comment</th>
         <th class="status">Status</th>
+        <th class="map-location">Location</th>
+        <th class="log-id">Log id</th>
     </tr>
 </thead>
 <tbody>
-{{for q in querylist:}}
-    <tr>
-        <td class="name">{{=querylist['user_name']}}</td>
-        <td class="date">{{=querylist['date_submitted']}}</td>
-        <td class="step">{{=querylist['step']}}</td>
-        <td class="path">{{=querylist['in_path']}}</td>
-        <td class="prompt">{{=querylist['prompt']}}</td>
-        <td class="response">{{=querylist['user_response']}}</td>
-        <td class="good-answers">{{=querylist['sample_answers']}}</td>
-        <td class="score">{{=querylist['score']}}</td>
-        <td class="new-score">{{=querylist['adjusted_score']}}</td>
-        <td class="user-comment">{{=querylist['user_comment']}}</td>
-        <td class="admin-comment">{{=querylist['admin_comment']}}</td>
-        <td class="status">{{=querylist['bug_status']}}</td>
-    </tr>
+{{if queries:}}
+    {{for q in queries:}}
+        {{sample_answers = UL()
+          if q['sample_answers']:
+              for li in q['sample_answers'].split('|'):
+                  sample_answers.append(LI(li))
+              pass
+          else:
+              sample_answers = 'None'
+          pass}}
+        <tr id="{{=q['id']}}" class="primary-row">
+            <td class="name">{{=q['user_name']}}</td>
+            <td class="user-id">{{=q['user_id']}}</td>
+            <td class="date">{{=q['date_submitted']}}</td>
+            <td class="prompt">{{=q['prompt']}}</td>
+            <td class="response">{{=q['user_response']}}</td>
+            <td class="good-answers">{{=sample_answers}}</td>
+            <td class="score">{{=q['score']}}</td>
+            <td class="new-score">{{=q['adjusted_score']}}</td>
+            <td class="step">{{=q['step']}}</td>
+            <td class="path">{{=q['in_path']}}</td>
+            <td class="user-comment">{{=q['user_comment']}}</td>
+            <td class="my-comment">{{=q['admin_comment']}}</td>
+            <td class="status">
+                <select name="status_selector" id="{{=q['id']}}">
+                    {{for val in q['bug_status']:}}
+                        <option value="{{=val[0]}}">{{=val[1]}}</option>
+                    {{pass}}
+                </select>
+            </td>
+            <td class="map-location">{{=q['map_location']}}</td>
+            <td class="log-id">{{=q['log_id']}}</td>
+        </tr>
+    {{pass}}
 {{pass}}
 <tbody>
 </table>
+
+<script>
+
+var querytable = $('#query_list_table').DataTable({
+    dom: 'Bti',
+    paging: false,
+    scrollY: '500px',
+    scrollX: false,
+    renderer: 'bootstrap',
+    order: [2, 'desc'],
+    buttons: [
+        'colvis'
+    ],
+    fixedHeader: true,
+    responsive: {
+        details: {
+            renderer: function ( api, rowIdx, columns ) {
+                var data = $.map( columns, function ( col, i ) {
+                    return col.hidden ?
+                        '<tr data-dt-row="'+col.rowIndex+'" data-dt-column="'+col.columnIndex+'">'+
+                            '<td>'+col.title+'</td> '+
+                            '<td class="'+col.title+'">'+col.data+'</td>'+
+                        '</tr>' :
+                        '';
+                } ).join('');
+                return data ?
+                    $('<table class="table" />').append( data ) :
+                    false;
+            }
+        }
+    },
+    "language": {
+        "search": "Filter list"
+    },
+    "columns": [
+        {"className": "student",
+         "orderable": true},
+        {"className": "user-id",
+         "visible": false,
+         "orderable": true},
+        {"className": "date",
+         "orderable": true},
+        {"className": "prompt",
+         "orderable": false},
+        {"className": "response",
+         "orderable": false},
+        {"className": "good-answers",
+         "orderable": false},
+        {"className": "score",
+         "orderable": false},
+        {"className": "new-score",
+         "orderable": false},
+        {"className": "step",
+         "orderable": true},
+        {"className": "path",
+         "orderable": true},
+        {"className": "user-comment",
+         "orderable": false},
+        {"className": "my-comment",
+         "orderable": false},
+        {"className": "status",
+         "orderable": false},
+        {"className": "map-location",
+         "visible": false,
+         "orderable": false},
+        {"className": "log-id",
+         "visible": false,
+         "orderable": false},
+    ],
+    });
+
+</script>

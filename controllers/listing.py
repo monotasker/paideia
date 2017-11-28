@@ -1,11 +1,12 @@
 # coding: utf8
 '''
-Controller supplying data for views that list users (for admin) and list slides.
+Controller supplying data for views that list things in admin interfaces.
 
 TODO: rationalize this controller organization
 '''
-#JOB ... this line is not liked by python ... oct 21, 2014
-#from test.pickletester import myclasses
+# JOB ... this line is not liked by python ... oct 21, 2014
+# from test.pickletester import myclasses
+from copy import copy
 import datetime
 import traceback
 from paideia_stats import make_classlist, make_unregistered_list
@@ -73,6 +74,13 @@ def get_my_classes(classid=None):
                auth.has_membership('administrators'))
 def queries():
     debug = False
+
+    # Include files for Datatables jquery plugin and bootstrap css styling
+    response.files.append(imports['datatables_css'])
+    response.files.append(imports['pdfmake'])
+    response.files.append(imports['pdfmake_vfsfonts'])
+    response.files.append(imports['datatables'])
+
     classid = request.vars.classid if 'classid' in request.vars.keys() \
         else None
     myclasses = get_my_classes(classid=classid)
@@ -238,8 +246,9 @@ def querylist():
         else:
             classid = int(request.vars.agid)
             members = list(set([m.name for m in
-                       db(db.class_membership.class_section == classid).iterselect()]
-                       ))
+                               db(db.class_membership.class_section ==
+                                  classid).iterselect()]
+                               ))
         filtervals = {'unanswered': [5],
                       'answered': (7, 6, 4, 3, 2),
                       'confirmed': [1],
@@ -252,37 +261,61 @@ def querylist():
                          ).select().as_list()
         else:
             queries = db(db.bugs.user_name.belongs(members)).select().as_list()
+        status_rows = db(db.bug_status.id > 0).select()
+        for q in queries:
+            # provide readable student name
+            q['user_id'] = copy(q['user_name'])
+            mystudent = db.auth_user(q['user_name'])
+            q['user_name'] = '{}, {}'.format(mystudent['last_name'],
+                                             mystudent['first_name']
+                                             )
+            # order vals with the record's current status at the top
+            vals = [num for num in range(1, len(status_rows) + 1)
+                    if num != q['bug_status']]
+            if isinstance(q['bug_status'], (int, long)):
+                vals.insert(0, q['bug_status'])
+            print vals
+            statuses = ((r['id'], r['status_label']) for v in vals
+                        for r in status_rows
+                        if r['id'] == v)
+            q['bug_status'] = statuses
+
     except Exception, e:
         print e
         queries = None
 
-    return {'querylist': queries}
+    return {'queries': queries}
 
 
 @auth.requires(auth.has_membership('instructors') |
                auth.has_membership('administrators'))
 def userlist():
-    debug = True
-    if debug: print 'starting listing/userlist ============================='
-    if debug: print 'agid', request.vars.agid, type(request.vars.agid)
+    debug = False
+    if debug:
+        print 'starting listing/userlist ============================='
+        print 'agid', request.vars.agid, type(request.vars.agid)
     # if isinstance(request.vars.agid, (int, long)):  # selecting class
     try:
         int(request.vars.agid)
         try:
             classrow = db.classes[int(request.vars.agid)].as_dict()
-        except:  # choose a class to display as default
+        except Exception:  # choose a class to display as default
             print traceback.format_exc(5)
             classrow = db(db.classes.instructor == auth.user_id
                           ).select().last().as_dict()
         target = classrow['paths_per_day']
         freq = classrow['days_per_week']
-        title = '{} {} {}, {}'.format(classrow['academic_year'], classrow['term'],
+        title = '{} {} {}, {}'.format(classrow['academic_year'],
+                                      classrow['term'],
                                       classrow['course_section'],
                                       classrow['institution'])
-        member_sel = db(db.class_membership.class_section == classrow['id']).select()
+        member_sel = db(db.class_membership.class_section ==
+                        classrow['id']).select()
         if debug:
             print 'in member_sel:'
-            for m in member_sel: print db.auth_user(m['name']).last_name, ', ', db.auth_user(m['name']).first_name
+            for m in member_sel:
+                print db.auth_user(m['name']).last_name, ', ', \
+                    db.auth_user(m['name']).first_name
             print '---------'
 
         users = db((db.auth_user.id == db.tag_progress.name) &
@@ -291,8 +324,9 @@ def userlist():
 
         if debug:
             print 'in users:'
-            for u in users: print u.auth_user.last_name
-            print '---------'
+            for u in users:
+                print u.auth_user.last_name
+                print '---------'
 
         start_date = classrow['start_date']
         end_date = classrow['end_date']
@@ -308,24 +342,28 @@ def userlist():
         freq = 0
         classrow = {'id': None}
         all = db(db.auth_user).select()
-        registered_current = db((db.class_membership.class_section == db.classes.id) &
-                                (db.classes.end_date >= datetime.datetime.now())).select()
-        registered_current = list(set([r.class_membership.name for r in registered_current]))
+        registered_current = db((db.class_membership.class_section ==
+                                 db.classes.id) &
+                                (db.classes.end_date >=
+                                 datetime.datetime.now())).select()
+        registered_current = list(set([r.class_membership.name for r
+                                       in registered_current]))
         unregistered = all.find(lambda row: row.id not in registered_current)
         if request.vars.agid == 'unregistered-active':
-            title = 'Active (last 90 days) users not currently enrolled in a course.'
-            users = unregistered.find(lambda row: db((db.attempt_log.name == row.id) &
-                                                          (db.attempt_log.dt_attempted >=
-                                                           (datetime.datetime.now() - datetime.timedelta(days=90))
-                                                           )
-                                                     ))
+            title = 'Active (last 90 days) users not currently enrolled in ' \
+                    'a course.'
+            users = unregistered.find(
+                lambda row: db((db.attempt_log.name == row.id) &
+                               (db.attempt_log.dt_attempted >=
+                                (datetime.datetime.now() -
+                                 datetime.timedelta(days=90))
+                                )
+                               ))
         elif request.vars.agid == 'unregistered-inactive':
             title = 'All users not currently enrolled in a course.'
             users = all
         classlist = make_unregistered_list(users)
         in_process = True
-
-    response.js = "jQuery('#chooser_submit').val('View Class')"
 
     return {'userlist': classlist,
             'target': target,
@@ -342,17 +380,17 @@ def add_user_form():
     print 'starting add user form()'
     users = db(db.auth_user.id > 0).select()
     form = FORM(TABLE(_id='user_add_form'),
-                _action=URL('add_user', vars={'classid': request.vars.classid}),
+                _action=URL('add_user',
+                            vars={'classid': request.vars.classid}),
                 _method='POST')
     for u in users:
         form[0].append(TR(TD(INPUT(_type='checkbox', _name='user_to_add',
-                                _value=u['id'])),
+                                   _value=u['id'])),
                        TD(SPAN(u['last_name'], u['first_name']))))
     # submit button added to footer in view when modal assembled
     return form
 
 
-# TODO: rework using plugin_bloglet
 def news():
     """
     Display site news stories in a view.
