@@ -6,7 +6,7 @@
 <form class='form-inline' id='class-chooser-form'>
     <div class="form-group">
         <div class='input-group'>
-            <span class='input-group-addon'>Select a class to view</span>
+            <span class='input-group-addon'><i class='fa fa-group'></i>Select a class</span>
             <select name='agid' id='class-chooser' class='form-control'>
                 {{for m in myclasses:}}
                 {{=OPTION('{} {}, section {}, {}'
@@ -30,7 +30,7 @@
             </select>
         </div>
         <div class='input-group'>
-            <span class='input-group-addon'>Filter</span>
+            <span class='input-group-addon'><i class='fa fa-filter'></i>Filter</span>
             <select name='filter' id='query-filter' class='form-control'>
                     <option class='unanswered' value='unanswered'>
                         unanswered
@@ -67,9 +67,69 @@
 {{pass}}
 
 <script type="text/javascript">
+
+// handle select boxes that change classes and filters
  $(document).on('change', '#class-chooser, #query-filter', function(event){
 	ajax("{{=URL('listing', 'querylist.load')}}", ['agid', 'filter'], 'query_list');
     event.preventDefault();
 	}
 );
+
+// handle dynamic editing of query records
+function update_row(myid){
+    var $myrow = $('#query_list_table tr#' + myid);
+    console.log($myrow.next('tr').find('td.My.Comment').html());
+    var $accell = $myrow.find('td.my-comment').is(':hidden') ?
+        $myrow.next('tr').find('td.My.Comment') :
+        $myrow.find('td.my-comment');
+    var $ascell = $myrow.find('td.new-score').is(':hidden') ?
+        $myrow.next('tr').find('td.New.Score') :
+        $myrow.find('td.new-score');
+    var $bscell = $myrow.find('td.status').is(':hidden') ?
+        $myrow.next('tr').find('td.Status') :
+        $myrow.find('td.status');
+    myvals = {admin_comment: $accell.innerText,
+              adjusted_score: $ascell.innerText,
+              bug_status: $bscell.val()
+              }
+    console.log(myvals);
+    var my_url = '/paideia/default/update_bug/' + myid;
+    // $.ajax({url: my_url,
+    //         type: 'POST',
+    //         data: {mytext: new_text},
+    //         success: function(result){
+    //         },
+    //         error: function(result){
+    //             $.alert({title: 'Error updating query', content: result});
+    //         }
+    // });
+    // var newscore = $myrow.find('td.score').innerText;
+    // if ( myvals['adjusted_score'] != 'None' &&
+    //      newscore != myvals['adjusted_score'] ){
+    //     myvals['step'] = $myrow.find('td.step').innerText;
+    //     myvals['in_path'] = $myrow.find('td.path').innerText;
+    //     myvals['map_location'] = $myrow.find('td.map-location').innerText;
+    //     myvals['id'] = myid
+    //     myvals['log_id'] = $myrow.find('td.log-id').innerText;
+    //     myvals['score'] = newscore;
+    //     myvals['user_id'] = $myrow.find().innerText;
+    //     myvals['user_comment'] = $myrow.find().innerText;
+    //     myvals['user_response'] = $myrow.find().innerText;
+    // }
+}
+
+$(document).on('click', 'td.my-comment, td.My.Comment, td.new-score, td.New.Score', function(){
+    $(this).attr('contenteditable', 'true').focus();
+});
+$(document).on('blur', 'td.my-comment, td.My.Comment, td.new-score, td.New.Score', function(){
+    $(this).attr('contenteditable', 'false');
+    if ( $(this).closest('tr').hasClass('primary-row') ){
+        var myid = $(this).closest('tr').attr('id');
+    } else {
+        var myid = $(this).closest('tr.child').prev('tr').attr('id');
+    }
+    console.log(myid);
+    update_row(myid);
+});
+
 </script>

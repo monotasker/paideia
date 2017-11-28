@@ -6,7 +6,7 @@ import datetime
 # import HTMLParser
 from paideia_stats import Stats, get_set_at_date, get_term_bounds
 from paideia_stats import get_current_class
-from paideia_bugs import Bug
+from paideia_bugs import Bug, trigger_bug_undo
 # import traceback
 # from paideia_utils import send_error
 # from plugin_utils import make_json
@@ -70,22 +70,14 @@ def user():
     """
     # Scripts for charts
     # response.files.append('//cdnjs.cloudflare.com/ajax/libs/d3/3.4.10/d3.min.js')
-    response.files.append(URL('static', 'js/d3.min.js'))
-    response.files.append(URL('static', 'js/info_chart1.js'))
+    response.files.append(imports['d3'])
+    response.files.append(imports['d3_infocharts'])
 
     # Include files for Datatables jquery plugin and bootstrap css styling
-    response.files.append('https://cdn.datatables.net/v/bs/jszip-2.5.0/'
-                          'dt-1.10.16/b-1.4.2/b-colvis-1.4.2/b-html5-1.4.2/'
-                          'b-print-1.4.2/fc-3.2.3/fh-3.1.3/r-2.2.0/'
-                          'datatables.min.css')
-    response.files.append('https://cdnjs.cloudflare.com/ajax/libs/pdfmake/'
-                          '0.1.32/pdfmake.min.js')
-    response.files.append('https://cdnjs.cloudflare.com/ajax/libs/pdfmake/'
-                          '0.1.32/vfs_fonts.js')
-    response.files.append('https://cdn.datatables.net/v/bs/jszip-2.5.0/'
-                          'dt-1.10.16/b-1.4.2/b-colvis-1.4.2/b-html5-1.4.2/'
-                          'b-print-1.4.2/fc-3.2.3/fh-3.1.3/r-2.2.0/'
-                          'datatables.min.js')
+    response.files.append(imports['datatables_css'])
+    response.files.append(imports['pdfmake'])
+    response.files.append(imports['pdfmake_vfsfonts'])
+    response.files.append(imports['datatables'])
 
     return dict(form=auth())
 
@@ -146,6 +138,42 @@ def update_bug_user_comment():
     bugid = int(request.args[0])
     new_comment = {'user_comment': request.vars['mytext']}
     result = Bug.update_bug(bugid, new_comment)
+    return 'false' if result is False else result
+
+
+def update_bug():
+    """
+    Update any field(s) of the specified bugs record.
+
+    Expects one request.args
+    0:      The id of the bug (str)
+
+    Excpects one request.vars value for each field to be updated. The key for
+    each value must be identical to the desired field in db.bugs.
+    """
+    bugid = int(request.args[0])
+    new_vals = {'bug_status': int(request.vars['bug_status']),
+                'admin_comment': request.vars['admin_comment']
+                }
+    if 'adjusted_score' in request.args.keys():
+        new_vals['adjusted_score'] = float(request['adjusted_score'])
+
+        undo_vals = copy(new_vals)
+        extra_vals = {'step': int(request.vars['step']),
+                      'in_path': int(request.vars['in_path']),
+                      'map_location': int(request.vars['map_location']),
+                      'id': int(bugid),
+                      'log_id': int(request.vars['log_id']),
+                      'score': float(request.vars['score']),
+                      'user_id': int(request.vars['user_name']),
+                      'user_comment': request.vars['user_comment'],
+                      'user_response': request.vars['user_response']
+                      }
+        undo_vals.update(extra_vals)
+        trigger_bug_undo(undo_vals)
+
+    result = Bug.update_bug(bugid, new_vals)
+
     return 'false' if result is False else result
 
 
