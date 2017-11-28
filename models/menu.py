@@ -282,12 +282,12 @@ if auth.has_membership('administrators', auth.user_id) or \
 if auth.has_membership('instructors', auth.user_id) or \
         auth.has_membership('administrators', auth.user_id) or \
         auth.is_impersonating():
-    m += [(SPAN(I(_class='fa fa-cog'),
+    m += [(SPAN(I(_class='fa fa-university'),
                 SPAN('Instructors', _class='hidden-sm')), False, None,
           [(SPAN(I(_class='fa fa-users fa-fw'), T('Class lists'),
                  _class='icon-group'),
             False, URL('listing', 'user')),
-           (SPAN(I(_class='fa fa-warning fa-fw'), T('Student queries'),
+           (SPAN(I(_class='fa fa-question-circle fa-fw'), T('Student queries'),
             _class='icon-warning-sign'),
             False, URL('listing', 'queries')),
            (SPAN(I(_class='fa fa-list fa-fw'), T('All student step attempts'),
