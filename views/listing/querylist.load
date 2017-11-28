@@ -2,20 +2,20 @@
 <thead>
     <tr>
         <th class="name">Student</th>
-        <th class="user-id">User id</th>
         <th class="date">Date</th>
         <th class="prompt">Prompt</th>
         <th class="response">Student Response</th>
         <th class="good-answers">Good Answers</th>
         <th class="score">Score</th>
-        <th class="new-score">New Score</th>
-        <th class="step">Step</th>
-        <th class="path">Path</th>
         <th class="user-comment">User Comment</th>
         <th class="admin-comment">My Comment</th>
+        <th class="new-score">New Score</th>
         <th class="status">Status</th>
         <th class="map-location">Location</th>
         <th class="log-id">Log id</th>
+        <th class="user-id">User id</th>
+        <th class="step">Step</th>
+        <th class="path">Path</th>
     </tr>
 </thead>
 <tbody>
@@ -31,17 +31,14 @@
           pass}}
         <tr id="{{=q['id']}}" class="primary-row">
             <td class="name">{{=q['user_name']}}</td>
-            <td class="user-id">{{=q['user_id']}}</td>
             <td class="date">{{=q['date_submitted']}}</td>
             <td class="prompt">{{=q['prompt']}}</td>
             <td class="response">{{=q['user_response']}}</td>
             <td class="good-answers">{{=sample_answers}}</td>
             <td class="score">{{=q['score']}}</td>
-            <td class="new-score">{{=q['adjusted_score']}}</td>
-            <td class="step">{{=q['step']}}</td>
-            <td class="path">{{=q['in_path']}}</td>
             <td class="user-comment">{{=q['user_comment']}}</td>
             <td class="my-comment">{{=q['admin_comment']}}</td>
+            <td class="new-score">{{=q['adjusted_score']}}</td>
             <td class="status">
                 <select name="status_selector" id="{{=q['id']}}">
                     {{for val in q['bug_status']:}}
@@ -51,6 +48,9 @@
             </td>
             <td class="map-location">{{=q['map_location']}}</td>
             <td class="log-id">{{=q['log_id']}}</td>
+            <td class="user-id">{{=q['user_id']}}</td>
+            <td class="step">{{=q['step']}}</td>
+            <td class="path">{{=q['in_path']}}</td>
         </tr>
     {{pass}}
 {{pass}}
@@ -93,9 +93,6 @@ var querytable = $('#query_list_table').DataTable({
     "columns": [
         {"className": "student",
          "orderable": true},
-        {"className": "user-id",
-         "visible": false,
-         "orderable": true},
         {"className": "date",
          "orderable": true},
         {"className": "prompt",
@@ -106,24 +103,27 @@ var querytable = $('#query_list_table').DataTable({
          "orderable": false},
         {"className": "score",
          "orderable": false},
-        {"className": "new-score",
-         "orderable": false},
-        {"className": "step",
-         "orderable": true},
-        {"className": "path",
-         "orderable": true},
         {"className": "user-comment",
          "orderable": false},
-        {"className": "my-comment",
+        {"className": "my-comment none",
          "orderable": false},
-        {"className": "status",
+        {"className": "new-score none",
          "orderable": false},
-        {"className": "map-location",
-         "visible": false,
+        {"className": "status none",
          "orderable": false},
-        {"className": "log-id",
-         "visible": false,
+        {"className": "map-location none",
+         "visible": true,
          "orderable": false},
+        {"className": "log-id none",
+         "visible": true,
+         "orderable": false},
+        {"className": "user-id none",
+         "visible": true,
+         "orderable": true},
+        {"className": "step none",
+         "orderable": true},
+        {"className": "path none",
+         "orderable": true},
     ],
     });
 

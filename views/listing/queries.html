@@ -78,7 +78,6 @@
 // handle dynamic editing of query records
 function update_row(myid){
     var $myrow = $('#query_list_table tr#' + myid);
-    console.log($myrow.next('tr').find('td.My.Comment').html());
     var $accell = $myrow.find('td.my-comment').is(':hidden') ?
         $myrow.next('tr').find('td.My.Comment') :
         $myrow.find('td.my-comment');
@@ -88,34 +87,33 @@ function update_row(myid){
     var $bscell = $myrow.find('td.status').is(':hidden') ?
         $myrow.next('tr').find('td.Status') :
         $myrow.find('td.status');
-    myvals = {admin_comment: $accell.innerText,
-              adjusted_score: $ascell.innerText,
-              bug_status: $bscell.val()
+    myvals = {admin_comment: $accell.html(),
+              adjusted_score: $ascell.text(),
+              bug_status: $bscell.find('select').val()
               }
+    var newscore = myvals['adjusted_score'];
+    if ( newscore != 'None' && newscore >= $myrow.find('td.score').text() ){
+        myvals['step'] = $myrow.find('td.step').text();
+        myvals['in_path'] = $myrow.find('td.path').text();
+        myvals['map_location'] = $myrow.find('td.map-location').text();
+        myvals['id'] = myid
+        myvals['log_id'] = $myrow.find('td.log-id').text();
+        myvals['score'] = $myrow.find('td.score').text();
+        myvals['user_name'] = $myrow.find('td.user-id').text();
+        myvals['user_comment'] = $myrow.find('td.user-comment').html();
+        myvals['user_response'] = $myrow.find('td.response').text();
+    }
     console.log(myvals);
     var my_url = '/paideia/default/update_bug/' + myid;
-    // $.ajax({url: my_url,
-    //         type: 'POST',
-    //         data: {mytext: new_text},
-    //         success: function(result){
-    //         },
-    //         error: function(result){
-    //             $.alert({title: 'Error updating query', content: result});
-    //         }
-    // });
-    // var newscore = $myrow.find('td.score').innerText;
-    // if ( myvals['adjusted_score'] != 'None' &&
-    //      newscore != myvals['adjusted_score'] ){
-    //     myvals['step'] = $myrow.find('td.step').innerText;
-    //     myvals['in_path'] = $myrow.find('td.path').innerText;
-    //     myvals['map_location'] = $myrow.find('td.map-location').innerText;
-    //     myvals['id'] = myid
-    //     myvals['log_id'] = $myrow.find('td.log-id').innerText;
-    //     myvals['score'] = newscore;
-    //     myvals['user_id'] = $myrow.find().innerText;
-    //     myvals['user_comment'] = $myrow.find().innerText;
-    //     myvals['user_response'] = $myrow.find().innerText;
-    // }
+    $.ajax({url: my_url,
+            type: 'POST',
+            data: myvals,
+            success: function(result){
+            },
+            error: function(result){
+                $.alert({title: 'Error updating query', content: result});
+            }
+    });
 }
 
 $(document).on('click', 'td.my-comment, td.My.Comment, td.new-score, td.New.Score', function(){
@@ -126,7 +124,17 @@ $(document).on('blur', 'td.my-comment, td.My.Comment, td.new-score, td.New.Score
     if ( $(this).closest('tr').hasClass('primary-row') ){
         var myid = $(this).closest('tr').attr('id');
     } else {
-        var myid = $(this).closest('tr.child').prev('tr').attr('id');
+        $parent_row = $(this).closest('tr.child').prev('tr');
+        var myid = $parent_row.attr('id');
+        if ( $(this).hasClass('My') ) {
+            myval = $(this).html();
+            $target = $parent_row.find('td.my-comment');
+            $target.html(myval);
+        } else if ( $(this).hasClass('New') ){
+            myval = $(this).html();
+            $target = $parent_row.find('td.new-score');
+            $target.html(myval);
+        }
     }
     console.log(myid);
     update_row(myid);

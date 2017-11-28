@@ -1,6 +1,7 @@
 #! /usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
+from copy import copy
 import datetime
 # from dateutil.parser import parse
 # import HTMLParser
@@ -153,24 +154,27 @@ def update_bug():
     """
     bugid = int(request.args[0])
     new_vals = {'bug_status': int(request.vars['bug_status']),
-                'admin_comment': request.vars['admin_comment']
+                'admin_comment': request.vars['admin_comment'],
+                'adjusted_score': float(request.vars['adjusted_score']) if
+                request.vars['adjusted_score'] not in
+                ['none', 'None'] else None
                 }
-    if 'adjusted_score' in request.args.keys():
-        new_vals['adjusted_score'] = float(request['adjusted_score'])
-
-        undo_vals = copy(new_vals)
-        extra_vals = {'step': int(request.vars['step']),
-                      'in_path': int(request.vars['in_path']),
-                      'map_location': int(request.vars['map_location']),
-                      'id': int(bugid),
-                      'log_id': int(request.vars['log_id']),
-                      'score': float(request.vars['score']),
-                      'user_id': int(request.vars['user_name']),
-                      'user_comment': request.vars['user_comment'],
-                      'user_response': request.vars['user_response']
-                      }
-        undo_vals.update(extra_vals)
-        trigger_bug_undo(undo_vals)
+    if 'score' in request.vars.keys():
+        logrow = db.attempt_log(int(request.vars['log_id']))
+        if logrow and logrow.score <= new_vals['adjusted_score']:
+            undo_vals = copy(new_vals)
+            extra_vals = {'step': int(request.vars['step']),
+                          'in_path': int(request.vars['in_path']),
+                          'map_location': int(request.vars['map_location']),
+                          'id': int(bugid),
+                          'log_id': int(request.vars['log_id']),
+                          'score': float(request.vars['score']),
+                          'user_name': int(request.vars['user_name']),
+                          'user_comment': request.vars['user_comment'],
+                          'user_response': request.vars['user_response']
+                          }
+            undo_vals.update(extra_vals)
+            trigger_bug_undo(**undo_vals)
 
     result = Bug.update_bug(bugid, new_vals)
 
