@@ -159,7 +159,8 @@ def update_bug():
                 request.vars['adjusted_score'] not in
                 ['none', 'None'] else None
                 }
-    if 'score' in request.vars.keys():
+    if 'score' in request.vars.keys() and \
+            request.vars['log_id'] not in ['None', 'none', None]:
         logrow = db.attempt_log(int(request.vars['log_id']))
         if logrow and logrow.score <= new_vals['adjusted_score']:
             undo_vals = copy(new_vals)
