@@ -597,6 +597,7 @@ body.exploring                  {
                 table                   {width: 100%;
                                          margin: 0;
                     input[type=text]    {width: 100%;
+                                         padding: 0.25em 0.5em;
                     }
                     input[type=submit]  {font-family: @sansFonts;
                     }
@@ -1092,6 +1093,8 @@ body.user #page          {
                 td                                     {border-top: 0px;
                                                         border-bottom: 1px solid #ddd;
                 }
+                .question                              {white-space: pre-wrap;
+                }
                 .answer                                {background-color: @pallette1;
                                                         color: darken(@pallette1, 50%);
                                                         border-bottom: 1px solid darken(@pallette1, 10%);
@@ -1100,11 +1103,12 @@ body.user #page          {
                                                         color: @accent2;
                                                         border-bottom: 1px solid lighten(@accent2, 50%);
                                                         cursor: pointer;
+                                                        white-space: pre-wrap;
                 }
                 .instructor-comments                   {background-color: lighten(@pallette3, 40%);
                                                         color: darken(@pallette3, 20%);
                                                         border-bottom: 1px solid lighten(@pallette3, 30%);
-
+                                                        white-space: pre-wrap;
                 }
                 .read                                  {
                     label i                            {color: @warning;
