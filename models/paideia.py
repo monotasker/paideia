@@ -978,10 +978,11 @@ try:
     db = current.db
     print auth.user_id
     bug_rows = db((db.bugs.user_name == auth.user_id) &
-                  (db.bugs.hidden is False) &
-                  (db.bugs.deleted is False) &
+                  (db.bugs.hidden == False) &
+                  (db.bugs.deleted == False) &
                   (db.bugs.admin_comment != '')).select()
     bug_count = len(bug_rows)
+    print bug_count, "bugs"
     if bug_count > 0:
         response.badges = SPAN(A(I(_class='fa fa-inbox'), "  ",
                                  SPAN(bug_count),
