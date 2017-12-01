@@ -109,35 +109,43 @@ function update_row(myid){
             type: 'POST',
             data: myvals,
             success: function(result){
+                $.alert(result);
             },
             error: function(result){
                 $.alert({title: 'Error updating query', content: result});
             }
     });
 }
-
+// handle change in query status select
+$(document).on('change', 'td.status select, td.Status select', function(){
+    var myid = $(this).attr('id');
+    update_row(myid);
+});
+// handle editing directly in comment and new score fields
 $(document).on('click', 'td.my-comment, td.My.Comment, td.new-score, td.New.Score', function(){
     $(this).attr('contenteditable', 'true').focus();
 });
 $(document).on('blur', 'td.my-comment, td.My.Comment, td.new-score, td.New.Score', function(){
-    $(this).attr('contenteditable', 'false');
-    if ( $(this).closest('tr').hasClass('primary-row') ){
-        var myid = $(this).closest('tr').attr('id');
-    } else {
-        $parent_row = $(this).closest('tr.child').prev('tr');
-        var myid = $parent_row.attr('id');
-        if ( $(this).hasClass('My') ) {
-            myval = $(this).html();
-            $target = $parent_row.find('td.my-comment');
-            $target.html(myval);
-        } else if ( $(this).hasClass('New') ){
-            myval = $(this).html();
-            $target = $parent_row.find('td.new-score');
-            $target.html(myval);
+    // make sure doesn't fire if browser just loses focus
+    if ( document.activeElement !== this ){
+        $(this).attr('contenteditable', 'false');
+        if ( $(this).closest('tr').hasClass('primary-row') ){
+            var myid = $(this).closest('tr').attr('id');
+        } else {
+            $parent_row = $(this).closest('tr.child').prev('tr');
+            var myid = $parent_row.attr('id');
+            if ( $(this).hasClass('My') ) {
+                myval = $(this).html();
+                $target = $parent_row.find('td.my-comment');
+                $target.html(myval);
+            } else if ( $(this).hasClass('New') ){
+                myval = $(this).html();
+                $target = $parent_row.find('td.new-score');
+                $target.html(myval);
+            }
         }
+        update_row(myid);
     }
-    console.log(myid);
-    update_row(myid);
 });
 
 </script>
