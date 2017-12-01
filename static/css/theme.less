@@ -230,11 +230,19 @@ nav,
     .badge-wrapper         {height: 100%;
                             line-height: 100%;
                             float: right;
-                            padding-top: 15px;
-                            padding-bottom: 15px;
-        #unread-counter    {border-radius: 1em;
-                            color: #fff;
-                            background-color: @success;
+                            position: relative;
+                            display: block;
+        #unread-counter    {border-radius: 0;
+                            color: @pallette3;
+                            height: 100%;
+                            line-height: 100%;
+                            padding: 19px;
+                            background-color: lighten(@pallette3, 40%);
+                            transition: all .3s ease-in-out;
+            &:hover        {background-color: lighten(@pallette3, 45%);
+                            columns: darken(@pallette3, 10%);
+                            transition: all .5s ease-in-out;
+            }
         }
     }
 }
