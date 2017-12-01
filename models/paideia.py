@@ -193,14 +193,15 @@ db.lemmas.part_of_speech.requires = IS_IN_SET(('verb', 'adverb', 'noun',
                                                'conjunction', 'preposition',
                                                'particle', 'adjective',
                                                'interjection', 'article'))
-db.lemmas.thematic_pattern.requires = IS_EMPTY_OR(IS_IN_SET(('alpha thematic',
-                                                             'alpha contract',
-                                                             'epsilon contract1',
-                                                             'epsilon contract2',
-                                                             'omicron contract',
-                                                             '3rd decl upsilon',
-                                                             '3rd decl epsilon',
-                                                             'liquid verb')))
+db.lemmas.thematic_pattern.requires = IS_EMPTY_OR(IS_IN_SET(
+    ('alpha thematic',
+     'alpha contract',
+     'epsilon contract1',
+     'epsilon contract2',
+     'omicron contract',
+     '3rd decl upsilon',
+     '3rd decl epsilon',
+     'liquid verb')))
 db.lemmas.extra_tags.requires = IS_IN_DB(db, 'tags.id',
                                          db.tags._format,
                                          multiple=True)
@@ -233,22 +234,22 @@ db.constructions.instructions.requires = IS_IN_DB(db, 'step_instructions.id',
                                                   db.step_instructions._format,
                                                   multiple=True)
 db.constructions.instructions.widget = lambda field, value: \
-                                        AjaxSelect(field, value,
-                                                   indx=1,
-                                                   multi='basic',
-                                                   lister='simple',
-                                                   orderby='instruction_label'
-                                                   ).widget()
+    AjaxSelect(field, value,
+               indx=1,
+               multi='basic',
+               lister='simple',
+               orderby='instruction_label'
+               ).widget()
 db.constructions.tags.requires = IS_IN_DB(db, 'tags.id',
                                           db.tags._format,
                                           multiple=True)
 db.constructions.tags.widget = lambda field, value: \
-                                        AjaxSelect(field, value,
-                                                   indx=1,
-                                                   multi='basic',
-                                                   lister='simple',
-                                                   orderby='tag'
-                                                   ).widget()
+    AjaxSelect(field, value,
+               indx=1,
+               multi='basic',
+               lister='simple',
+               orderby='tag'
+               ).widget()
 
 # don't force uniqueness on word_form field to allow for homographs
 db.define_table('word_forms',
@@ -310,7 +311,7 @@ db.define_table('badges',
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(badge_name)s')
 db.badges.badge_name.requires = IS_NOT_IN_DB(db, 'badges.badge_name')
-#db.executesql('CREATE INDEX IF NOT EXISTS idx_badges1 ON badges (tag);')
+# db.executesql('CREATE INDEX IF NOT EXISTS idx_badges1 ON badges (tag);')
 
 db.define_table('locations',
                 Field('map_location'),  # was location (reserved term)
@@ -336,7 +337,7 @@ db.define_table('npcs',
                 format='%(name)s')
 db.npcs.name.requires = IS_NOT_IN_DB(db, 'npcs.name')
 db.npcs.map_location.requires = IS_IN_DB(db, 'locations.id',
-                                db.locations._format, multiple=True)
+                                         db.locations._format, multiple=True)
 db.npcs.map_location.widget = lambda field, value: AjaxSelect(field, value,
                                                               indx=1,
                                                               multi='basic',
@@ -404,7 +405,8 @@ db.steps.npcs.widget = lambda field, value: AjaxSelect(field, value,
                                                        refresher=True,
                                                        orderby='name'
                                                        ).widget()
-db.steps.tags.requires = IS_IN_DB(db, 'tags.id', db.tags._format, multiple=True)
+db.steps.tags.requires = IS_IN_DB(db, 'tags.id',
+                                  db.tags._format, multiple=True)
 db.steps.tags.widget = lambda field, value: AjaxSelect(field, value,
                                                        indx=2,
                                                        refresher=True,
@@ -412,17 +414,19 @@ db.steps.tags.widget = lambda field, value: AjaxSelect(field, value,
                                                        lister='simple',
                                                        orderby='tag_position'
                                                        ).widget()
-db.steps.tags_secondary.requires = IS_EMPTY_OR(IS_IN_DB(db, 'tags.id', db.tags._format,
-                                               multiple=True))
-db.steps.tags_secondary.widget = lambda field, value: AjaxSelect(field, value,
-                                                                 indx=3,
-                                                                 refresher=True,
-                                                                 multi='basic',
-                                                                 lister='simple',
-                                                                 orderby='tag'
-                                                                 ).widget()
-db.steps.tags_ahead.requires = IS_EMPTY_OR(IS_IN_DB(db, 'tags.id', db.tags._format,
-                                           multiple=True))
+db.steps.tags_secondary.requires = IS_EMPTY_OR(IS_IN_DB(db, 'tags.id',
+                                               db.tags._format, multiple=True))
+db.steps.tags_secondary.widget = lambda field, value: AjaxSelect(
+    field, value,
+    indx=3,
+    refresher=True,
+    multi='basic',
+    lister='simple',
+    orderby='tag'
+).widget()
+db.steps.tags_ahead.requires = IS_EMPTY_OR(IS_IN_DB(db, 'tags.id',
+                                                    db.tags._format,
+                                                    multiple=True))
 db.steps.tags_ahead.widget = lambda field, value: AjaxSelect(field, value,
                                                              indx=4,
                                                              refresher=True,
@@ -449,30 +453,31 @@ db.steps.hints.widget = lambda field, value: AjaxSelect(field, value,
                                                         lister='simple',
                                                         orderby='hint_label'
                                                         ).widget()
-db.steps.instructions.requires = IS_EMPTY_OR(IS_IN_DB(db, 'step_instructions.id',
-                                                      db.step_instructions._format,
-                                                      multiple=True))
+db.steps.instructions.requires = IS_EMPTY_OR(IS_IN_DB(
+    db, 'step_instructions.id',
+    db.step_instructions._format,
+    multiple=True))
 db.steps.instructions.widget = lambda field, value: \
-                                            AjaxSelect(field, value,
-                                                       indx=7,
-                                                       refresher=True,
-                                                       multi='basic',
-                                                       lister='simple',
-                                                       orderby='instruction_label'
-                                                       ).widget()
+    AjaxSelect(field, value,
+               indx=7,
+               refresher=True,
+               multi='basic',
+               lister='simple',
+               orderby='instruction_label'
+               ).widget()
 
 
 db.steps.lemmas.requires = IS_EMPTY_OR(IS_IN_DB(db, 'lemmas.id',
-                                                      db.lemmas._format,
-                                                      multiple=True))
+                                                db.lemmas._format,
+                                                multiple=True))
 db.steps.lemmas.widget = lambda field, value: \
-                                            AjaxSelect(field, value,
-                                                       indx=7,
-                                                       refresher=True,
-                                                       multi='basic',
-                                                       lister='simple',
-                                                       orderby='lemma'
-                                                       ).widget()
+    AjaxSelect(field, value,
+               indx=7,
+               refresher=True,
+               multi='basic',
+               lister='simple',
+               orderby='lemma'
+               ).widget()
 
 db.define_table('badges_begun',
                 Field('name', 'reference auth_user', default=auth.user_id),
@@ -484,8 +489,10 @@ db.define_table('badges_begun',
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(name)s, %(tag)s')
-#db.executesql('CREATE INDEX IF NOT EXISTS idx_bdgs_begun1 ON badges_begun (name)')
-#db.executesql('CREATE INDEX IF NOT EXISTS idx_bdgs_begun2 ON badges_begun (tag)')
+# db.executesql('CREATE INDEX IF NOT EXISTS idx_bdgs_begun1
+#   ON badges_begun (name)')
+# db.executesql('CREATE INDEX IF NOT EXISTS idx_bdgs_begun2
+#   ON badges_begun (tag)')
 
 db.define_table('tag_progress',
                 Field('name', 'reference auth_user', default=auth.user_id,
