@@ -7171,7 +7171,7 @@ class TestPathChooser():
         assert actualmode == mode
 
     @pytest.mark.skipif(False, reason='just because')
-    @pytest.mark.parametrize('locid,tpout,redirect,mode',
+    @pytest.mark.parametrize('locid,tpout,redirect,mode,review',
                              [(6,  # shop_of_alexander (only 1 untried here)
                                {'latest_new': 1,  # tpout
                                 'cat1': [61], 'cat2': [],
@@ -7179,7 +7179,18 @@ class TestPathChooser():
                                 'rev1': [61], 'rev2': [],
                                 'rev3': [], 'rev4': []},
                                {1: False},  # redirect
-                               'here_new'  # mode
+                               'here_new',  # mode
+                               None  # review
+                               ),
+                              (6,  # shop_of_alexander (only 1 untried here)
+                               {'latest_new': 1,  # tpout
+                                'cat1': [61], 'cat2': [],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [61], 'rev2': [],
+                                'rev3': [], 'rev4': []},
+                               {1: False},  # redirect
+                               'here_new',  # mode
+                               7  # review
                                ),
                               (11,  # synagogue [all in loc 11 completed]
                                {'latest_new': 1,  # tpout
@@ -7188,7 +7199,8 @@ class TestPathChooser():
                                 'rev1': [61], 'rev2': [],
                                 'rev3': [], 'rev4': []},
                                {1: True},  # redirect
-                               'new_elsewhere'  # mode
+                               'new_elsewhere',  # mode
+                               None  # review
                                ),
                               (8,  # agora (no redirect, new here)
                                {'latest_new': 2,  # tpout
@@ -7197,7 +7209,8 @@ class TestPathChooser():
                                 'rev1': [6, 29, 62, 82, 83], 'rev2': [61],
                                 'rev3': [], 'rev4': []},
                                {1: False, 2: False},  # redirect
-                               'here_new'  # mode
+                               'here_new',  # mode
+                               None  # review
                                ),
                               (8,  # agora (all for tags completed,repeat here)
                                {'latest_new': 2,
@@ -7206,7 +7219,8 @@ class TestPathChooser():
                                 'rev1': [6, 29, 62, 82, 83], 'rev2': [61],
                                 'rev3': [], 'rev4': []},
                                {1: False, 2: False},  # redirect
-                               'repeated'  # mode
+                               'repeated',  # mode
+                               None  # review
                                ),
                               (8,  # agora (all but one repeated 3x) --
                               {'latest_new': 2,
@@ -7215,7 +7229,8 @@ class TestPathChooser():
                                'rev1': [6, 29, 62, 82, 83], 'rev2': [61],
                                'rev3': [], 'rev4': []},
                               {1: False, 2: False},  # redirect
-                               'repeated'  # mode
+                               'repeated',  # mode
+                               None  # review
                                ),
                               (8,  # agora (all but one repeated 2x) --
                                {'latest_new': 2,
@@ -7224,10 +7239,12 @@ class TestPathChooser():
                                 'rev1': [6, 29, 62, 82, 83], 'rev2': [61],
                                 'rev3': [], 'rev4': []},
                                {1: False, 2: False},  # redirect
-                               'repeated'  # mode
+                               'repeated',  # mode
+                               None  # review
                                ),
                               ])
-    def test_pathchooser_choose(self, locid, tpout, redirect, mode, db):
+    def test_pathchooser_choose(self, locid, tpout, redirect, mode,
+                                review, db):
         """
         Unit test for the paideia.Pathchooser.choose() method.
         """
@@ -7235,121 +7252,146 @@ class TestPathChooser():
         completed = {'paths': {}}
         deleted = []
         expected = []
-        for key, val in tpout.iteritems():
-            if key[:3] == 'rev' and val:
-                mytags = val
-                taggedsteps = db(db.steps.tags.contains(val)).select()
-                stepids = [s.id for s in taggedsteps]
-                taggedpaths = db(db.paths.steps.contains(stepids)).select()
-                # start with all tagged paths completed
-                for tp in taggedpaths:
-                    completed['paths'][tp['id']] = {'right': 1, 'wrong': 0}
+        if review:
+            chooser = PathChooser(tpout, locid, completed)
+            actual, newloc, catnum, actualmode, new_material, \
+                tag_progress = chooser.choose(set_review=review)
+            print 'actual', actual
+            print 'newloc', newloc
+            print 'catnum', catnum
+            print 'actualmode', actualmode
+            print 'new_material', new_material
 
-                first_steps = {row['id']: row.steps[0] for row in taggedpaths}
-                here_steps = db((db.steps.id.belongs(first_steps.values())) &
-                                (db.steps.locations.contains(locid))
-                                ).select()
-                here_step_ids = [r.id for r in here_steps]
-                here_paths = [k for k, v in first_steps.iteritems()
-                              if v in here_step_ids]
-                elsewhere_paths = [k for k, v in first_steps.iteritems()
-                                   if v not in here_step_ids]
-                # reduce attempts of path to be selected
-                if mode == 'repeated':
-                    print 'completed set for "repeated"'
-                    expected.extend([t['id'] for t in taggedpaths])
-                    print 'expected in building completed:', expected
-                    # TODO: test incremental repeating (only once until all
-                    # once, etc.)
-                elif mode == 'here_new':
-                    print 'completed set for "here_new"'
-                    newpath_id = here_paths[randrange(len(here_paths))]
-                    print 'removed completion record for', newpath_id
-                    expected.append(newpath_id)
-                    deleted.append(newpath_id)
-                elif mode == 'new_elsewhere':
-                    print 'completed set for "new_elsewhere"'
-                    newpath_id = elsewhere_paths[
-                        randrange(len(elsewhere_paths))]
-                    print 'removed completion record for', newpath_id
-                    expected.append(newpath_id)
-                    deleted.append(newpath_id)
-        for d in deleted:
-            del completed['paths'][d]
-        completed['latest'] = completed.keys()[randrange(len(completed.keys())
-                                                         )]
-        print 'completed ------------------------------------------'
-        pprint(completed)
-        print '----------------------------------------------------'
-        # end assembling completed
+            set_tags = [t.id for t in
+                        db(db.tags.tag_position == review).iterselect()]
+            stepids = [r.id for r in
+                       db(db.steps.tags.contains(set_tags)).iterselect()]
+            pathids = [p.id for p in
+                       db(db.paths.steps.contains(stepids)).iterselect()]
+            assert actual in pathids
 
-        chooser = PathChooser(tpout, locid, completed)
-        actual, newloc, catnum, actualmode, new_material, \
-            tag_progress = chooser.choose()
-
-        # get paths with supplied tags
-        mycat = 'cat{}'.format(catnum)
-        catsteps = db(db.steps.tags.contains(tpout[mycat])).select()
-        catstep_ids = [s['id'] for s in catsteps]
-        catpaths = db(db.paths.steps.contains(catstep_ids)).select()
-        taggedids = [p.id for p in catpaths]
-
-        # print sorted(taggedids)
-        if any(i for i in taggedids if i not in completed['paths'].keys()):
-            assert actual['id'] not in completed['paths'].keys()
-            print 'new path expected'
-        else:  # supposed to choose from paths with fewest repeats
-            print 'repeat expected'
-            print 'finding expected paths with fewest repeats'
-            completed_freq = {i: (f['right'] + f['wrong'])
-                              for i, f in completed['paths'].iteritems()}
-            completed_freq_cat = {i: f for i, f in completed_freq.iteritems()
-                                  if i in taggedids}
-            print 'path repeats for category'
-            print pprint(completed_freq_cat)
-            min_freq = min(set(f for f in completed_freq_cat.values()))
-            print 'min_freq', min_freq
-            expected = [i for i in taggedids if completed_freq[i] == min_freq]
-        print 'CHOSEN PATH', actual['id']
-        print 'using category', catnum
-        print 'EXPECTED PATHS', expected
-
-        assert catnum in range(1, 5)
-        if catnum in redirect.keys() and redirect[catnum]:
-            # since different cats will yield different redirect results
-            assert newloc
-            firststep = actual['steps'][0]
-            steplocs = db.steps(firststep).locations
-            assert newloc in steplocs
-            assert locid not in steplocs
-            assert actualmode == 'new_elsewhere'
+            assert new_material is False
         else:
-            assert actual['id'] in expected
-            print 'currently in loc', locid
-            pathsteps = [p.steps[0] for p in taggedpaths]
-            steplocs = [db.steps(s).locations for s in pathsteps]
-            steplocs_chain = list(chain.from_iterable([s for s
-                                                       in steplocs if s]))
-            locset = list(set(steplocs_chain))
-            print 'path can be begun in locs:', locset
-            assert locid in locset
-            if mode != 'repeated':
-                # TODO: when repeating choice doesn't prioritise current loc
-                assert newloc is None
-        assert actualmode == mode
+            for key, val in tpout.iteritems():
+                if key[:3] == 'rev' and val:
+                    mytags = val
+                    taggedsteps = db(db.steps.tags.contains(val)).select()
+                    stepids = [s.id for s in taggedsteps]
+                    taggedpaths = db(db.paths.steps.contains(stepids)).select()
+                    # start with all tagged paths completed
+                    for tp in taggedpaths:
+                        completed['paths'][tp['id']] = {'right': 1, 'wrong': 0}
 
-        if new_material:
-            print 'new_material:', new_material
-            assert catnum == 1
-            pathtags = [t for s in actual['steps']
-                        for t in db['steps'](s).tags]
-            print 'path:', actual['id']
-            print 'steps:', actual['steps']
-            print 'pathtags:', pathtags
-            print 'cat1:', tag_progress['cat1']
-            assert [t for t in pathtags if t in tag_progress['cat1']]
+                    first_steps = {row['id']: row.steps[0] for row
+                                   in taggedpaths}
+                    here_steps = db((db.steps.id.belongs(first_steps.values()))
+                                    &
+                                    (db.steps.locations.contains(locid))
+                                    ).select()
+                    here_step_ids = [r.id for r in here_steps]
+                    here_paths = [k for k, v in first_steps.iteritems()
+                                  if v in here_step_ids]
+                    elsewhere_paths = [k for k, v in first_steps.iteritems()
+                                       if v not in here_step_ids]
+                    # reduce attempts of path to be selected
+                    if mode == 'repeated':
+                        print 'completed set for "repeated"'
+                        expected.extend([t['id'] for t in taggedpaths])
+                        print 'expected in building completed:', expected
+                        # TODO: test incremental repeating (only once until all
+                        # once, etc.)
+                    elif mode == 'here_new':
+                        print 'completed set for "here_new"'
+                        newpath_id = here_paths[randrange(len(here_paths))]
+                        print 'removed completion record for', newpath_id
+                        expected.append(newpath_id)
+                        deleted.append(newpath_id)
+                    elif mode == 'new_elsewhere':
+                        print 'completed set for "new_elsewhere"'
+                        newpath_id = elsewhere_paths[
+                            randrange(len(elsewhere_paths))]
+                        print 'removed completion record for', newpath_id
+                        expected.append(newpath_id)
+                        deleted.append(newpath_id)
+            for d in deleted:
+                del completed['paths'][d]
+            completed['latest'] = completed.keys()[
+                randrange(len(completed.keys()))]
+            print 'completed ------------------------------------------'
+            pprint(completed)
+            print '----------------------------------------------------'
+            # end assembling completed
 
-        assert tpout == tag_progress
+            chooser = PathChooser(tpout, locid, completed)
+            actual, newloc, catnum, actualmode, new_material, \
+                tag_progress = chooser.choose()
+
+            # get paths with supplied tags
+            mycat = 'cat{}'.format(catnum)
+            catsteps = db(db.steps.tags.contains(tpout[mycat])).select()
+            catstep_ids = [s['id'] for s in catsteps]
+            catpaths = db(db.paths.steps.contains(catstep_ids)).select()
+            taggedids = [p.id for p in catpaths]
+
+            # print sorted(taggedids)
+            if any(i for i in taggedids if i not in completed['paths'].keys()):
+                assert actual['id'] not in completed['paths'].keys()
+                print 'new path expected'
+            else:  # supposed to choose from paths with fewest repeats
+                print 'repeat expected'
+                print 'finding expected paths with fewest repeats'
+                completed_freq = {i: (f['right'] + f['wrong'])
+                                  for i, f in completed['paths'].iteritems()}
+                completed_freq_cat = {i: f for i, f in
+                                      completed_freq.iteritems()
+                                      if i in taggedids}
+                print 'path repeats for category'
+                print pprint(completed_freq_cat)
+                min_freq = min(set(f for f in completed_freq_cat.values()))
+                print 'min_freq', min_freq
+                expected = [i for i in taggedids
+                            if completed_freq[i] == min_freq]
+            print 'CHOSEN PATH', actual['id']
+            print 'using category', catnum
+            print 'EXPECTED PATHS', expected
+
+            assert catnum in range(1, 5)
+            if catnum in redirect.keys() and redirect[catnum]:
+                # since different cats will yield different redirect results
+                assert newloc
+                firststep = actual['steps'][0]
+                steplocs = db.steps(firststep).locations
+                assert newloc in steplocs
+                assert locid not in steplocs
+                assert actualmode == 'new_elsewhere'
+            else:
+                assert actual['id'] in expected
+                print 'currently in loc', locid
+                pathsteps = [p.steps[0] for p in taggedpaths]
+                steplocs = [db.steps(s).locations for s in pathsteps]
+                steplocs_chain = list(chain.from_iterable([s for s
+                                                           in steplocs if s]))
+                locset = list(set(steplocs_chain))
+                print 'path can be begun in locs:', locset
+                assert locid in locset
+                if mode != 'repeated':
+                    # TODO: when repeating choice doesn't prioritise
+                    # current loc
+                    assert newloc is None
+            assert actualmode == mode
+
+            if new_material:
+                print 'new_material:', new_material
+                assert catnum == 1
+                pathtags = [t for s in actual['steps']
+                            for t in db['steps'](s).tags]
+                print 'path:', actual['id']
+                print 'steps:', actual['steps']
+                print 'pathtags:', pathtags
+                print 'cat1:', tag_progress['cat1']
+                assert [t for t in pathtags if t in tag_progress['cat1']]
+
+            assert tpout == tag_progress
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('myset,locid,tpout',
