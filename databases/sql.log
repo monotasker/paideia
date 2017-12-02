@@ -587,3 +587,4 @@ CREATE TABLE "plugin_slider_decks"(
     "modified_on" TIMESTAMP
 );
 success!
+success!
