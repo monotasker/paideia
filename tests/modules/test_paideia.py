@@ -7261,14 +7261,24 @@ class TestPathChooser():
             print 'catnum', catnum
             print 'actualmode', actualmode
             print 'new_material', new_material
+            expected = [1538L, 1537L, 1542L, 1539L, 886L, 971L, 1011L,
+                        1535L, 463L, 465L, 480L, 491L, 503L, 509L, 1503L,
+                        1536L, 248L, 1504L, 451L, 657L, 659L, 662L, 968L,
+                        972L, 975L, 989L, 1502L, 444L, 445L, 490L, 501L,
+                        474L, 650L, 652L, 655L, 656L, 508L, 510L, 651L,
+                        1534L, 497L, 498L, 499L, 500L, 502L, 505L, 506L,
+                        507L, 468L, 470L, 472L, 481L, 492L, 493L, 494L,
+                        495L, 154L, 653L, 464L, 887L, 888L, 788L, 446L,
+                        973L, 462L, 408L, 466L, 469L, 889L, 885L, 153L,
+                        406L, 488L, 379L, 483L, 174L, 453L, 487L, 169L,
+                        136L, 890L, 893L, 891L, 448L, 456L, 452L, 450L,
+                        660L, 661L, 649L, 489L, 504L, 496L, 457L, 407L,
+                        404L, 378L, 254L, 210L, 477L, 475L, 654L, 459L,
+                        458L, 473L, 486L, 449L, 454L, 970L, 892L, 658L,
+                        482L, 471L, 484L, 485L, 478L, 1541L, 1540L, 461L,
+                        479L, 460L, 455L, 467L]
 
-            set_tags = [t.id for t in
-                        db(db.tags.tag_position == review).iterselect()]
-            stepids = [r.id for r in
-                       db(db.steps.tags.contains(set_tags)).iterselect()]
-            pathids = [p.id for p in
-                       db(db.paths.steps.contains(stepids)).iterselect()]
-            assert actual in pathids
+            assert actual.id in expected
 
             assert new_material is False
         else:
