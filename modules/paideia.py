@@ -3,6 +3,7 @@
 from gluon import current, BEAUTIFY
 from gluon import IMG, URL, SQLFORM, SPAN, UL, LI, Field, P, HTML
 from gluon import IS_NOT_EMPTY, IS_IN_SET
+from pydal.objects import Rows
 
 from copy import copy
 import datetime
@@ -2384,15 +2385,36 @@ class PathChooser(object):
             [2] the category number for this new path (int in range 1-4)
         """
         db = current.db if not db else db
-        debug = False
+        debug = True
         new_material = False
         if set_review:  # select randomly from the supplied set
             myset = set_review
+            if debug:
+                print 'myset', myset
             set_tags = db(db.tags.tag_position == myset).select()
-            taglist = [t['id'] for t in set_tags]
-            set_steps = db(db.steps.tags.contains(taglist)).select()
-            steplist = [s['id'] for s in set_steps]
-            set_paths = db(db.paths.steps.contains(steplist)).select()
+            taglist = [int(t['id']) for t in set_tags]
+            if debug:
+                print 'taglist', taglist
+            set_steps = [s.id for s in
+                         db(db.steps.tags.contains(taglist)).iterselect()]
+            if debug:
+                print 'set_steps', set_steps
+
+            def chunks(l, n):
+                '''
+                Divides a list into new lists of a given length.
+                '''
+                # For item i in a range that is a length of l,
+                for i in range(0, len(l), n):
+                    # Create an index range for l of n items:
+                    yield l[i:i+n]
+
+            set_paths = db(db.paths.steps.contains(set_steps[:20])).select()
+            for steps_chunk in chunks(set_steps, 20):
+                set_paths |= db(db.paths.steps.contains(steps_chunk)).select()
+            if debug:
+                print 'got set_paths'
+                print [p['id'] for p in sorted(set_paths)]
             path = set_paths[randrange(0, len(set_paths))]
             first_step = db.steps[path['steps'][0]]
             if debug:
