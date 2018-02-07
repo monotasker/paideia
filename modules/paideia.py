@@ -2034,7 +2034,8 @@ class PathChooser(object):
         db = current.db if not db else db
         self.loc_id = loc_id
         self.completed = paths_completed
-        self.CYCLE_LENGTH = 20  # number of path selections per cycle
+        self.CYCLE_LENGTH = 18  # number of path selections per cycle
+        self.GUARANTEED_NEW = 6
         self.CONSTANT_USE_CAT = 'cat1'
         self.CONSTANT_USE_REV = 'rev1'
         self.cat1_choices = tag_progress['cat1_choices'] \
@@ -2099,7 +2100,7 @@ class PathChooser(object):
         print 'self.all_choices', self.all_choices
 
         # cat1 choices still needed this cycle to make up quota
-        cat1_still_needed = (self.CYCLE_LENGTH / 2) - self.cat1_choices
+        cat1_still_needed = self.GUARANTEED_NEW - self.cat1_choices
         left_in_cycle = self.CYCLE_LENGTH - self.all_choices
 
         # do we need all remaining choices in this cycle to make up cat1 quota?
