@@ -95,12 +95,9 @@ class Stats(object):
         # print 'Stats.__init__:: user_id:', self.user_id
 
         # class/group info --------------------------------------------------
-        msel = db((db.class_membership.name == user_id) &
-                  (db.class_membership.class_section == db.classes.id)
-                  ).select()
         try:
-            self.targetcount = [m.classes.paths_per_day for m in msel
-                                if m.classes.paths_per_day][0]
+            msel = get_current_class(user_id, self.utcnow)
+            self.targetcount = msel.classes.paths_per_day
         except IndexError:  # no group target for user
             self.targetcount = 20
 
