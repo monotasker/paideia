@@ -6791,14 +6791,14 @@ class TestPathChooser():
                               ({'all_choices': 0, 'cat1_choices': 0},
                                False  # force_cat1
                                ),
-                              ({'all_choices': 10, 'cat1_choices': 0},
+                              ({'all_choices': 6, 'cat1_choices': 0},
                                True  # force_cat1
                                ),
-                              ({'all_choices': 15, 'cat1_choices': 6},
+                              ({'all_choices': 15, 'cat1_choices': 9},
+                               True  # force_cat1,
+                               ),
+                              ({'all_choices': 15, 'cat1_choices': 10},
                                False  # force_cat1
-                               ),
-                              ({'all_choices': 15, 'cat1_choices': 5},
-                               True  # force_cat1
                                ),
                               ])
     def test_pathchooser_check_force_new(self, tp_extra, force_cat1):
@@ -6884,7 +6884,7 @@ class TestPathChooser():
                                 'cat3': [], 'cat4': [],
                                 'rev1': [62], 'rev2': [61],
                                 'rev3': [], 'rev4': [],
-                                'cat1_choices': 5,
+                                'cat1_choices': 9,
                                 'all_choices': 15},
                                True  # force_cat1
                                ),
@@ -6902,7 +6902,7 @@ class TestPathChooser():
                                 'rev1': [6, 29, 62, 82, 83], 'rev2': [61],
                                 'rev3': [], 'rev4': [],
                                 'cat1_choices': 9,
-                                'all_choices': 15},
+                                'all_choices': 14},
                                False  # force_cat1
                                ),
                               (8,  # agora
@@ -6918,8 +6918,8 @@ class TestPathChooser():
                                 'cat3': [], 'cat4': [],
                                 'rev1': [6, 29, 62, 82, 83], 'rev2': [61],
                                 'rev3': [], 'rev4': [],
-                                'cat1_choices': 7,
-                                'all_choices': 16},
+                                'cat1_choices': 12,
+                                'all_choices': 18},
                                False  # force_cat1
                                ),
                               ])

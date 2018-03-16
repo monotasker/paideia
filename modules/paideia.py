@@ -2035,7 +2035,7 @@ class PathChooser(object):
         self.loc_id = loc_id
         self.completed = paths_completed
         self.CYCLE_LENGTH = 18  # number of path selections per cycle
-        self.GUARANTEED_NEW = 6
+        self.GUARANTEED_NEW = 12
         self.CONSTANT_USE_CAT = 'cat1'
         self.CONSTANT_USE_REV = 'rev1'
         self.cat1_choices = tag_progress['cat1_choices'] \
