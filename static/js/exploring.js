@@ -71,19 +71,38 @@ function svg_hide_guide(evt){
         });
 }
 
+function svg_check_guide_vis(evt){
+    var myguide = $(evt.currentTarget).parents('svg').find('#hotspot_guide');
+    if ( myguide.css('opacity') == '0' ) {
+        return false;
+    } else {
+        return true;
+    }
+}
+
 function set_svg_interactions(select_string) {
     var mysvg = $('#' + select_string)[0].contentDocument;
     var $mysvg = $(mysvg);
     var locs = '#domus_A, #bath, #ne_stoa, #agora, #gymnasion, #synagogue';
     $mysvg.find(locs).each(function(){
-        $(this).on('mouseenter', svg_mask_other)
+        $(this).on('mouseenter touchstart', svg_mask_other)
             .on('mouseleave', svg_show_other)
-            .on('click', svg_go_there);
+            .on('click touchstart', svg_go_there);
+            // .on('mousedown touchstart', function( e ) {
+            //   e.stopImmediatePropagation();
+            // });
     });
     //set up revealing of hotspot guide
     $mysvg.find('#hotspot_guide_trigger')
         .on('mouseenter', svg_show_guide)
-        .on('mouseleave', svg_hide_guide);
+        .on('mouseleave', svg_hide_guide)
+        .on('touchstart', function(e) {
+            if ( svg_check_guide_vis(e) === false ) {
+                svg_show_guide(e);
+            } else {
+                svg_hide_guide(e);
+            }
+        });
 }
 
 function make_map_pan(select_string) {
