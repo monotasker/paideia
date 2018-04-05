@@ -2408,7 +2408,7 @@ class PathChooser(object):
                 # For item i in a range that is a length of l,
                 for i in range(0, len(l), n):
                     # Create an index range for l of n items:
-                    yield l[i:i+n]
+                    yield l[i:i + n]
 
             set_paths = db(db.paths.steps.contains(set_steps[:20])).select()
             for steps_chunk in chunks(set_steps, 20):
