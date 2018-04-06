@@ -31,12 +31,33 @@ def index():
     """    """
     mod_topic = db(db.topics.topic == 'index-modals'
                    ).select(db.topics.id).first()
+    typing_topic = db(db.topics.topic == 'typing greek'
+                      ).select(db.topics.id).first()
+    comment_topic = db(db.topics.topic == 'student comment'
+                       ).select(db.topics.id).first()
     modals = db(db.content_pages.topics.contains([mod_topic.id])
                 ).select().as_list()
+    typing = db(db.content_pages.topics.contains([typing_topic.id])
+                ).select().as_list()
+    typing_text = '### {}  \n\n{}\n\n### {}  \n\n{}' \
+                  ''.format(typing[1]['title'],
+                            typing[1]['content'],
+                            typing[0]['title'],
+                            typing[0]['content'])
+    modals.append({'title': 'How Do I Type Greek?',
+                   'content': typing_text})
     hero_topic = db(db.topics.topic == 'hero').select(db.topics.id).first()
     hero = db(db.content_pages.topics.contains([hero_topic.id])
               ).select().as_list()
-    return {'modals': modals, 'hero': hero}
+
+    comments = db(db.content_pages.topics.contains([comment_topic.id])
+                  ).select(db.content_pages.title,
+                           db.content_pages.content,
+                           orderby='<random>').as_list()
+    from pprint import pprint
+    pprint(comments)
+
+    return {'modals': modals, 'hero': hero, 'comments': comments}
 
 
 def faqs():

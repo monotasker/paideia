@@ -285,52 +285,57 @@ footer#footer               {background-color: @danger;
 
 /*-- index --------------------------------------------------*/
 body.default.index                      {
+
+    div.maria-bubble               {position:absolute;
+                                    top:5em;
+                                    left:360px;
+                                    box-shadow: 2px 4px 0 rgba(0,0,0,0.5);
+                                    border-radius:2em;
+                                    z-index: 10;
+        &:after {                   border-right: 25px solid #fff;
+                                    border-top: 25px solid transparent;
+                                    left: -25px;
+                                    top: 40%;
+                                    content: '';
+                                    position: absolute;
+        }
+        &:before {
+            border-right: 23px solid rgba(0,0,0,0.5);
+            border-top: 23px solid transparent;
+            left: -23px;
+            top: 42%;
+            content: '';
+            position: absolute;
+        }
+    }
+    div.maria-bubble,
+    div.maria-bubble-mobile        {background-color: white;
+                                    padding:2em;
+        h1                         {font-family: 'Amatic SC', cursive;
+                                    font-weight: regular;
+                                    font-size: 3em;
+                                    color: darken(@pallette1, 30%);
+        }
+        a.btn                   {background-color: @pallette4;
+                                 border: 1px solid @palletteBG;
+                                 margin-top: 0.5em;
+        }
+        p.index-openmessage         {font-size: @font-size-large;
+                                    color: #888;
+        }
+    }
     div#masthead                        {overflow: hidden;
                                          height: 28em;
         .container                      {position:relative;
             img.welcome-maria               {position: absolute;
                                             left:0;
             }
-            div.maria-bubble                {background-color: white;
-                                            position:absolute;
-                                            padding:2em;
-                                            top:5em;
-                                            left:360px;
-                                            box-shadow: 2px 4px 0 rgba(0,0,0,0.5);
-                                            border-radius:2em;
-                                            z-index: 10;
-                h1                         {font-family: 'Amatic SC', cursive;
-                                            font-weight: regular;
-                                            font-size: 3em;
-                                            color: darken(@pallette1, 30%);
-                }
-                &:after {                    border-right: 25px solid #fff;
-                                            border-top: 25px solid transparent;
-                                            left: -25px;
-                                            top: 40%;
-                                            content: '';
-                                            position: absolute;
-                }
-                &:before {
-                    border-right: 23px solid rgba(0,0,0,0.5);
-                    border-top: 23px solid transparent;
-                    left: -23px;
-                    top: 42%;
-                    content: '';
-                    position: absolute;
-                }
-                a.btn                   {background-color: @pallette4;
-                                         border: 1px solid @palletteBG;
-                                         margin-top: 0.5em;
-                }
-                p.index-openmessage         {font-size: @font-size-large;
-                                            color: #888;
-                }
-            }
         }
     }
     div.row.paragraphs                 {padding-top: 1em;
                                         padding-bottom: 1em;
+                                        padding-left: 2em;
+                                        padding-right: 2em;
                                         background-repeat: no-repeat;
         .index-contentbox              {height: 100%;
         }
@@ -402,15 +407,19 @@ body.default.index                      {
                                         content:open-quote;
                                         font-size: 4em;
                                         line-height: 0.1em;
-                                        position: absolute;
+                                        position: relative;
                                         left: 0.25em;
                                         top: 0.75em;
                 }
             }
-            span.comment-author        {float:right;
-                                        color: @accent3;
+            span.comment-author        {color: @accent3;
                                         display:block;
                                         position:relative;
+                                        font-size: 1.5em;
+            }
+            &.visible-xs                {position: relative;
+                                         width: 80%;
+                                         top: 1em;
             }
         }
         div.index-contentbox            {background-color: transparent;
