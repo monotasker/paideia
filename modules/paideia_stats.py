@@ -98,7 +98,7 @@ class Stats(object):
         try:
             msel = get_current_class(user_id, self.utcnow)
             self.targetcount = msel.classes.paths_per_day
-        except IndexError, AttributeError:  # no group target for user
+        except (IndexError, AttributeError):  # no group target for user
             self.targetcount = 20
 
         # progress through tag sets and levels ---------------------
