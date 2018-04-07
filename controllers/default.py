@@ -54,8 +54,6 @@ def index():
                   ).select(db.content_pages.title,
                            db.content_pages.content,
                            orderby='<random>').as_list()
-    from pprint import pprint
-    pprint(comments)
 
     return {'modals': modals, 'hero': hero, 'comments': comments}
 
