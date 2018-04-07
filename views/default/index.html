@@ -30,7 +30,7 @@
     </div>
 </div>
 
-<div class='bs-callout warning row'>
+<div class='warning row'>
     <div class='container'>
         <p class='warning'>
             <i class='fa fa-exclamation-triangle'></i>This app is a rough "alpha" version. Bug reports are appreciated.
@@ -48,7 +48,7 @@
                 {{=IMG(_src=URL('static',
                                 'images/info_{}.svg'.format(modals[0]['title'].replace(' ',
                                 '_')[:-1])),
-                           _class='info-pane-illustration hidden-xs'),
+                           _class='info-pane-illustration'),
                         }}
                 {{modal0 = MODAL(modals[0]['title'], modals[0]['title'],
                                  MARKMIN(modals[0]['content']),
@@ -67,7 +67,7 @@
                 {{=IMG(_src=URL('static',
                                     'images/info_{}.svg'.format(modals[-1]['title'].replace(' ',
                                     '_')[:-1])),
-                           _class='info-pane-illustration hidden-xs'),
+                           _class='info-pane-illustration'),
                         }}
                 {{modal1 = MODAL(modals[-1]['title'], modals[-1]['title'],
                                  MARKMIN(modals[-1]['content']),
@@ -86,7 +86,7 @@
                 {{=IMG(_src=URL('static',
                                     'images/info_{}.svg'.format(modals[2]['title'].replace(' ',
                                     '_')[:-1])),
-                           _class='info-pane-illustration hidden-xs'),
+                           _class='info-pane-illustration'),
                        }}
                 {{modal2 = MODAL(modals[2]['title'], modals[2]['title'],
                                  MARKMIN(modals[2]['content']),
@@ -110,14 +110,14 @@
             </p>
 
             <div class="paragraph-comment visible-xs">
-                <span class='comment-body'>{{=comments[0]['content']}}<span>
-                <span class='comment-author'>{{=comments[0]['title']}}</span>
+                <span class='comment-body'>{{=comments[0]['content']}}"</span>
+                <span class='comment-author'>— {{=comments[0]['title']}}</span>
             </div>
         </div>
         <div class='col-sm-4 hidden-xs index-contentbox'>
             <div class="paragraph-comment">
-                <span class='comment-body'>{{=comments[0]['content']}}<span>
-                <span class='comment-author'>{{=comments[0]['title']}}</span>
+                <span class='comment-body'>{{=comments[0]['content']}}</span>
+                <span class='comment-author'>— {{=comments[0]['title']}}</span>
             </div>
         </div>
     </div>
@@ -127,8 +127,8 @@
     <div class='container paragraphs'>
         <div class='col-sm-4 hidden-xs index-titlebox'>
             <div class="paragraph-comment">
-                <span class='comment-body'>{{=comments[1]['content']}}<span>
-                <span class='comment-author'>{{=comments[1]['title']}}</span>
+                <span class='comment-body'>{{=comments[1]['content']}}</span>
+                <span class='comment-author'>— {{=comments[1]['title']}}</span>
             </div>
         </div>
         <div class='col-xs-12 col-sm-8 index-contentbox'>
@@ -144,8 +144,8 @@
             </p>
 
             <div class="paragraph-comment visible-xs">
-                <span class='comment-body'>{{=comments[1]['content']}}<span>
-                <span class='comment-author'>{{=comments[1]['title']}}</span>
+                <span class='comment-body'>{{=comments[1]['content']}}</span>
+                <span class='comment-author'>— {{=comments[1]['title']}}</span>
             </div>
         </div>
     </div>
@@ -173,14 +173,14 @@
             </p>
 
             <div class="paragraph-comment visible-xs">
-                <span class='comment-body'>{{=comments[2]['content']}}<span>
-                <span class='comment-author'>{{=comments[2]['title']}}</span>
+                <span class='comment-body'>{{=comments[2]['content']}}</span>
+                <span class='comment-author'>— {{=comments[2]['title']}}</span>
             </div>
         </div>
         <div class='col-sm-4 hidden-xs index-contentbox'>
             <div class="paragraph-comment">
-                <span class='comment-body'>{{=comments[2]['content']}}<span>
-                <span class='comment-author'>{{=comments[2]['title']}}</span>
+                <span class='comment-body'>{{=comments[2]['content']}}</span>
+                <span class='comment-author'>— {{=comments[2]['title']}}</span>
             </div>
         </div>
     </div>
@@ -190,8 +190,8 @@
     <div class='container paragraphs'>
         <div class='col-sm-4 hidden-xs index-titlebox'>
             <div class="paragraph-comment">
-                <span class='comment-body'>{{=comments[3]['content']}}<span>
-                <span class='comment-author'>{{=comments[3]['title']}}</span>
+                <span class='comment-body'>{{=comments[3]['content']}}</span>
+                <span class='comment-author'>— {{=comments[3]['title']}}</span>
             </div>
         </div>
         <div class='col-xs-12 col-sm-8  index-contentbox'>
@@ -209,8 +209,8 @@
             </p>
 
             <div class="paragraph-comment visible-xs">
-                <span class='comment-body'>{{=comments[3]['content']}}<span>
-                <span class='comment-author'>{{=comments[3]['title']}}</span>
+                <span class='comment-body'>{{=comments[3]['content']}}</span>
+                <span class='comment-author'>— {{=comments[3]['title']}}</span>
             </div>
         </div>
     </div>
@@ -224,14 +224,14 @@
             </p>
 
             <div class="paragraph-comment visible-xs">
-                <span class='comment-body'>{{=comments[4]['content']}}<span>
-                <span class='comment-author'>{{=comments[4]['title']}}</span>
+                <span class='comment-body'>{{=comments[4]['content']}}</span>
+                <span class='comment-author'>— {{=comments[4]['title']}}</span>
             </div>
         </div>
         <div class='col-sm-4 hidden-xs index-contentbox'>
             <div class="paragraph-comment">
-                <span class='comment-body'>{{=comments[4]['content']}}<span>
-                <span class='comment-author'>{{=comments[4]['title']}}</span>
+                <span class='comment-body'>{{=comments[4]['content']}}</span>
+                <span class='comment-author'>— {{=comments[4]['title']}}</span>
             </div>
         </div>
     </div>
