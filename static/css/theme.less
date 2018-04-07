@@ -16,6 +16,22 @@ body                        {margin-top: 0;
     }
     .modal-backdrop         {display: None;
     }
+    .modal-dialog           {
+        @media (max-width: 767px) {width:85%;
+        }
+        .modal-header       {background: @pallette3;
+                             color: @white;
+                             font-family: 'Amatic SC', cursive;
+                             font-weight: regular;
+                             font-size: 4em;
+        }
+        .modal-body         {
+
+        }
+        .modal-footer       {
+
+        }
+    }
     i.fa                    {margin-right: 0.5em;
     }
 }
@@ -344,12 +360,15 @@ body.default.index                      {
         }
         &.third .index-contentbox      {background-image: url('../images/images.image.ac5111cddd8a81e5.44726177696e672035302e706e67.png')
         }
+        &:last-child                   {padding-bottom: 2em;
+
+        }
         &.first,
         &.third,
         &.fifth                        {background-color: @pallette1;
                                         color: darken(@pallette2, 50%);
                                         background-position: right middle;
-            .paragraph-comment         {right: 0;
+            .paragraph-comment         {float: right;
                 &:after                {border-top: 12px solid transparent;
                                         border-bottom:  12px solid transparent;
                                         border-left: 25px solid #fff;
@@ -371,7 +390,7 @@ body.default.index                      {
         &.second,
         &.fourth                       {background-color: darken(@accent2, 0%);
                                         color: lighten(@pallette2, 50%);
-            .paragraph-comment         {left: 0;
+            .paragraph-comment         {float: left;
                 &:after                {border-top: 12px solid transparent;
                                         border-bottom:  12px solid transparent;
                                         border-right: 25px solid #fff;
@@ -392,33 +411,35 @@ body.default.index                      {
         }
         div.paragraph-comment          {background-color: #fff;
                                         display: block;
-                                        position: absolute;
+                                        position: relative;
                                         top: -2em;
                                         color: #888;
-                                        width: 200px;
                                         min-height: 100px;
                                         border-radius: 2em;
                                         box-shadow: 1px 2px 0 rgba(0, 0, 0, 0.2);
-                                        padding: 2em 2em 1.5em 1.5em;
-                                        quotes: "\201C""\201D""\2018""\2019";
-            span.comment-body          {margin-left: 1.5em;
+                                        padding: 2em 1.5em 1em 1.5em;
+            span.comment-body          {margin-left: 2em;
                                         display:block;
-                &:before               {color:#ccc;
-                                        content:open-quote;
-                                        font-size: 4em;
+                &:before               {color:#ddd;
+                                        content:'“';
+                                        font-family: Georgia, Times, 'Times New Roman', serif;
+                                        font-size: 6em;
                                         line-height: 0.1em;
-                                        position: relative;
-                                        left: 0.25em;
-                                        top: 0.75em;
+                                        position: absolute;
+                                        left: 0.1em;
+                                        top: 0.65em;
                 }
             }
             span.comment-author        {color: @accent3;
                                         display:block;
                                         position:relative;
                                         font-size: 1.5em;
+                                        float: right;
+                                        clear:both;
+                                        font-family:cursive;
+                                        margin-top: 0.25em;
             }
-            &.visible-xs                {position: relative;
-                                         width: 80%;
+            &.visible-xs                {width: 90%;
                                          top: 1em;
             }
         }
@@ -432,37 +453,52 @@ body.default.index                      {
                                          padding-bottom: 2em;
         }
     }
+    .warning.row                {background-color: @danger;
+                                 color: @warning;
+                                 margin-top: 0;
+                                 margin-bottom: 0;
+                                 padding: 1.25em 3em;
+        p                       {text-align: center;
+        }
+        i                       {font-size: 2em;
+                                 position: relative;
+                                 top: 0.25em;
+
+        }
+    }
     div.modal-set.row                   {color: #efefef;
                                                 background-color: @pallette3;
                                      text-align: center;
                                      padding-top: 3em;
                                      padding-bottom: 3em;
-        .warning                    {position: absolute;
-                                     background-color: @danger;
-                                     right: 0px;
-                                     top: -40px;
-                                     color: @warning;
-                                     width: 30%;
-                                     border-left: 0;
-                                     z-index: 100;
-                                     box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-            i                       {font-size: 2em;
-
-            }
-        }
-        h4 a                        {color: @white;
-                                     margin-top: 2em;
-            &:hover                 {text-decoration: dotted;
-            }
+        @media (max-width: 767px)   {padding: 0;
+                                     text-align: left;
+                                     padding-left: 2em;
+                                     padding-right: 2em;
         }
         .info-illustration-wrapper  {text-align: center;
                                      width:100%;
+            @media (max-width: 767px)   {text-align: left;
+            }
             .info-pane-illustration {width:180px;
                                      background-color: rgba(255, 255, 255, 0.3);
                                      border-radius: 50%;
                                      padding:12px;
                                      margin: 0px auto;
                                      position: relative;
+                @media (max-width: 767px)  {float: right;
+                                            width: 50px;
+                                            padding: 6px;
+                }
+            }
+            h4 a                        {color: @white;
+                                         margin-top: 2em;
+                @media (max-width: 767px)  {
+                    line-height: 3em;
+                    height: 3em;
+                }
+                &:hover                 {text-decoration: dotted;
+                }
             }
         }
         p                       {hyphens: auto;
