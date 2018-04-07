@@ -16,7 +16,7 @@ body                        {margin-top: 0;
     }
     .modal-backdrop         {display: None;
     }
-    .modal-dialog           {
+    .modal-dialog           {color: #666;
         @media (max-width: 767px) {width:85%;
         }
         .modal-header       {background: @pallette3;
@@ -26,7 +26,18 @@ body                        {margin-top: 0;
                              font-size: 4em;
         }
         .modal-body         {
-
+            ul              {list-style-type:circle;
+            }
+            &.index-modals  {
+                h3          {font-family: 'Amatic SC', cursive;
+                             font-weight: regular;
+                             font-size: 2em;
+                             color: darken(@pallette1, 50%);
+                }
+                h4          {color: #aaa;
+                             font-size: 1.25em;
+                }
+            }
         }
         .modal-footer       {
 
@@ -342,9 +353,13 @@ body.default.index                      {
     }
     div#masthead                        {overflow: hidden;
                                          height: 28em;
+        @media (max-width: 767px)       {height: 10em;
+        }
         .container                      {position:relative;
             img.welcome-maria               {position: absolute;
-                                            left:0;
+                                             left:0;
+                @media (max-width: 767px)   {height:36em;
+                }
             }
         }
     }
