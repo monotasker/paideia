@@ -533,6 +533,11 @@ body.exploring                  {
                                      z-index:100;
                                      padding-right:0;
                                      background-attachment: fixed;
+                                     background-repeat: no-repeat;
+                                     background-position: left top;
+            @media (max-width: 767px)   {background-attachment: inherit;
+                                     background-position: left top;
+            }
             div#exploring-mask          {display: block;
                                          position: absolute;
                                          background-color: rgba(255,255,255,1.0);
@@ -607,6 +612,12 @@ body.exploring                  {
                                          font-size: @font-size-largest;
                                          box-shadow: 0 0 6px rgba(0,0,0,0.5);
                                          border-radius: 2px;
+                @media (max-width: 767px)       {float: none;
+                                                 margin-left: 0;
+                                                 width: 100%;
+                                                 top: 8em;
+                                                 padding: 0.5em;
+                }
                 .jp-audio               {width:30px;
                                          float:right;
                                          padding: 0;
