@@ -1,0 +1,39 @@
+/*
+A css framework for web2py
+based on Bootstrap, FontAwesome, and the web2py "welcome" application
+and modularized using LESS css. 
+
+by Ian W Scott
+(this file is in the public domain)
+
+This is a hub file which aggregates the various reusable class files. This file
+should then be imported into a my-theme.less file, which will provide 
+specific details and overrides for the project at hand.
+
+That my-theme.less file should then be imported into a file called
+myapp/static/css/theme.less. If that file is pre-compiled into css, the 
+resulting theme.css file can serve as the only css import listed in the head 
+of framework.html. If you are going to use dynamic compiling via javascript,
+just list the myapp/static/css/theme.less itself in the page head.
+*/
+
+/*less files relative to framework.less, but css imports relative to final processed file (theme.css)*/
+@import "./web2py/calendar.less";
+@import "./web2py/web2py.less";
+@import "./web2py/web2py_bootstrap.less";
+@import "./bootstrap/bootstrap.less";
+@import "./bootstrap/responsive.less";
+@import "./font-awesome/font-awesome.less";
+/*@import "./colours.less";*/
+@import "./transitions.less";
+@import "./fonts.less";
+@import "./icon-fonts.less";
+@import "./corners-gradients.less";
+/*@import "./buttons.less";*/
+@import "./drawing.less";
+@import "./layouts.less";
+/*@import "./lists.less";*/
+/*@import "./tables.less";*/
+/*@import "./forms.less";*/
+/*@import "./tooltips.less";*/
+/*@import "./jquery-ui-custom.less";*/

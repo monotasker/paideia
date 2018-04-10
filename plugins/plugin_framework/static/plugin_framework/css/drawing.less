@@ -1,0 +1,116 @@
+/* css drawing helper classes */
+/* Ian W Scott */
+/* public domain */
+
+.rotate(@angle, @origin_v:0, @origin_h:0){
+                    -webkit-transform: rotate(@angle);
+                    -webkit-transform-origin: @origin_h @origin_v;
+                    -o-transform: rotate(@angle);
+                    -o-transform-origin: @origin_h @origin_v;
+                    -moz-transform: rotate(@angle);
+                    -moz-transform-origin: @origin_h @origin_v;
+                    -ms-transform: rotate(@angle);
+                    -ms-transform-origin: @origin_h @origin_v;
+                    transform: rotate(@angle);
+                    transform-origin: @origin_h @origin_v;}
+
+.translatex(@x, @origin_v:0, @origin_h:0)   
+                   {-webkit-transform: translatex(@x);
+                    -webkit-transform-origin: @origin_h @origin_v;
+                    -o-transform: translatex(@x);
+                    -o-transform-origin: @origin_h @origin_v;
+                    -moz-transform: translatex(@x);
+                    -moz-transform-origin: @origin_h @origin_v;
+                    -ms-transform: translatex(@x);
+                    -ms-transform-origin: @origin_h @origin_v;
+                    transform: translatex(@x);
+                    transform-origin: @origin_h @origin_v;}
+
+/*[> css lines <]*/
+
+.line(@thickness:2px, @length:100px, @color:@sol_grey3, @angle, @origin_v:50%, @origin_h:0)    {
+                    content: ' ';
+                    height: @thickness;
+                    width: @length;
+                    background-color: @color;
+                    .rotate(@angle, @origin_v, @origin_h);}
+
+/*[> css triangles <]*/
+.arrow(@width:@baseFontSize) {width: 0;
+                            height: 0;
+                            border-left: @width solid transparent;
+                            border-right: @width solid transparent;
+                            border-top: @width solid transparent;
+                            border-bottom: @width solid transparent;}
+
+.arrow-up(@width:@baseFontSize, @color:grey)
+                           {.arrow(@width);
+                            border-top: none;
+                            border-bottom: @width solid @color;}
+
+.arrow-down(@width:@baseFontSize, @color:grey)
+                           {.arrow(@width);
+                            border-bottom: none;
+                            border-top: @width solid @color;}
+
+.arrow-right(@width:@baseFontSize, @color:grey)
+                           {.arrow(@width);
+                            border-right: none;
+                            border-left: @width solid @color;}
+
+.arrow-left(@width:@baseFontSize, @color:grey)
+                           {.arrow(@width);
+                            border-left: none;
+                            border-right: @width solid @color;}
+
+/*[> css speech bubbles <]*/
+.speech-bubble(@br:@baseLineHeight * 1.5, @bgcolor:@white, @color:grey)
+                           {position:relative;
+                            border-radius:@br;
+                            padding:@br;
+                            .box-shadow();
+                            background:@bgcolor;
+                            min-height:@baseLineHeight * 1.5;}
+
+.speech-bubble-left(@br:@baseLineHeight * 1.5, @width:@baseFontSize, @bgcolor:@white, @color:grey)
+                   {.speech-bubble(@br, @bgcolor, @color);
+
+    &:after        {content:"";
+                    position:absolute;
+                    left: -@width + 1;
+                    top:60%;
+                    .arrow-left(@width, @bgcolor);
+                    background:transparent;}
+    }
+
+.speech-bubble-down(@br:@baseLineHeight * 1.5, @width:@baseFontSize, @bgcolor:@white, @color:grey)
+                   {.speech-bubble(@br, @bgcolor, @color);
+
+    &:after        {content:" ";
+                    position:absolute;
+                    bottom: -@width + 2;
+                    left:30%;
+                    .arrow-down(@width, @bgcolor);
+                    background:transparent;}
+    }
+.speech-bubble-right(@br:@baseLineHeight * 1.5, @width:@baseFontSize, @bgcolor:@white, @color:grey)
+                   {.speech-bubble(@br, @bgcolor, @color);
+
+    &:after        {content:" ";
+                    position:absolute;
+                    right: -(@width - 1);
+                    top:60%;
+                    .arrow-right(@width, @bgcolor);
+                    background:transparent;}
+    }
+ .speech-bubble-up(@br:@baseLineHeight * 1.5, @width:@baseFontSize, @bgcolor:@white, @color:grey)
+                   {.speech-bubble(@br, @bgcolor, @color);
+
+    &:after        {content:" ";
+                    position:absolute;
+                    top: -@width + 2;
+                    left:30%;
+                    .arrow-up(@width, @bgcolor);
+                    background:transparent;}
+    }
+

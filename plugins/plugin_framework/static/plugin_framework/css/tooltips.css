@@ -1,0 +1,41 @@
+/* custom tooltips ******************************************************/
+/* deprecated in favour of Bootstrap tooltips */
+/* Ian W Scott */
+/*.tip(@max:300px, @min:100px)   {background: #eee;*/
+/*border: 1px solid #ccc;*/
+/*padding: @baseLineHeight;*/
+/*border-radius: @baseFontSize;*/
+/*position: absolute;*/
+/*max-width: @max;*/
+/*min-width: @min;*/
+/*display:none;*/
+/*z-index:99;*/
+/*.transition();*/
+/*&.tip-visible,*/
+/*&:target                   {display:block;*/
+/*.transition();} */
+/*}*/
+/*.tip-top(@max:300px, @min:100px)*/
+/*{.speech-bubble-down();*/
+/*.tip(@max, @min);*/
+/*&.tip-visible,*/
+/*&:target                   {display:block;*/
+/*.transition();} */
+/*}*/
+/*.tip-left(@bgcolor:@white, @color:grey, @br:@baseLineHeight * 1.5, @width:@baseFontSize, @max:300px, @min:100px)*/
+/*{.speech-bubble-right(@br, @width, @bgcolor, @color);*/
+/*.tip(@max, @min);}*/
+/*.tip-right(@max:300px, @min:100px)*/
+/*{.speech-bubble-left();*/
+/*.tip(@max, @min);}*/
+/*.tip-bottom(@max:300px, @min:100px)*/
+/*{.speech-bubble-up();*/
+/*.tip(@max, @min);}*/
+/*.tip_wrapper                       {display: inline-block;*/
+/*position: relative;*/
+/*overflow: visible;*/
+/*.tooltip-left              {.tip-left();}                                */
+/*.tooltip-right             {.tip-right();}                                */
+/*.tooltip-top               {.tip-top();}                                */
+/*.tooltip-bottom            {.tip-bottom();}                                */
+/*}*/

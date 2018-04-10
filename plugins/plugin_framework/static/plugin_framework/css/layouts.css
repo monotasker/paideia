@@ -1,0 +1,31 @@
+/* Standard layouts for my reusable UI framework */
+/* Ian W Scott */
+/* public domain */
+/* natural-box-layout********************/
+/* * { -moz-box-sizing: border-box;*/
+/*-webkit-box-sizing: border-box;*/
+/*box-sizing: border-box; }*/
+/* flow****************************************************************/
+/* clearfix class; see http://css-tricks.com/snippets/css/clear-fix/ */
+/*.clear         {clear: both; padding: 0;}*/
+/* centering *****************************************************/
+/*.centered-horizontalA(@vmargin:0)      {margin: @vmargin auto;}*/
+/*.centered-horizontalB(@width:200px)    {position: relative;*/
+/*left: 50%;*/
+/*margin-left: -(@width/2);}*/
+/*.centered-vertical-block(@height:200px){position: relative;*/
+/*top: 25%;}*/
+/*.centered-vertical-text(@parent-height: @baseLineHeight * 2) */
+/*{height: @parent-height;*/
+/*line-height: @parent-height;*/
+/*vertical-align: middle}                */
+/* collapsible divs or panels using :target ****************************/
+/*.collapsible_parent                {*/
+/*.collapsible_child             {height:0;*/
+/*overflow: hidden;*/
+/*.transition();}*/
+/*&:target .collapsible_child    {height:auto;*/
+/*.transition();}*/
+/*}*/
+/* page layout ***********************************************************/
+/*#page                  {min-height: 480px;}*/
