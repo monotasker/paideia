@@ -1,0 +1,12 @@
+/* tables **************************************************/
+/*td                     {vertical-align:top;}*/
+/*//tables in forms*/
+/*form table             {padding: @baseFontSize;*/
+/*tr                 {*/
+/*&:first-child  {padding-top: @baseFontSize;}*/
+/*td              {min-height:@baseLineHeight * 1.5;*/
+/*&:first-child  {text-align: left;*/
+/*padding-right:@baseFontSize;}*/
+/*}*/
+/*}*/
+/*}*/

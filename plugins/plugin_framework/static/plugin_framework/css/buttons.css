@@ -1,0 +1,29 @@
+/* buttons */
+/*.button        {display:inline-block;*/
+/*line-height:@baseLineHeight * 1.5;*/
+/*height:@baseLineHeight * 1.5;*/
+/*margin-left:@baseFontSize;*/
+/*padding:0 @baseFontSize;*/
+/*color:#fff;*/
+/*.transition();*/
+/*&:hover    {.box-shadow(0, 2px, 6px, rgba(0,0,0,0.4));*/
+/*.transition();}*/
+/*}*/
+/*.button-green-grad     {.button; .linear-gradient(#84C63C, #489615);}*/
+/*.button-yellow-grad    {.button; .linear-gradient(#FFD272, #EFAD1F);}*/
+/*[> a circular button with white border <]*/
+/*.sticker(@diam:@baseLineHeight, @rad:@baseFontSize)*/
+/*{display:inline-block;*/
+/*width:@diam;*/
+/*height:@diam;*/
+/*line-height:@diam;*/
+/*padding:0;*/
+/*text-align:center;*/
+/*.border-radius(@rad,@rad,@rad,@rad);*/
+/*font-weight:bold;*/
+/*.border-radius(@rad,@rad,@rad,@rad);*/
+/*.transition();*/
+/*&:hover    {.box-shadow(0, 2px, 4px);*/
+/*.transition(); }*/
+/*}*/
+/*.red-sticker   {background-color:@red; color:#fff; .sticker; }*/

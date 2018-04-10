@@ -1,0 +1,43 @@
+/* corners, gradients, and shadows for my reusable UI framework */
+/* Ian W Scott */
+/* public domain */
+
+.box-shadow(@x: 0, @y:2px, @blur:6px, @color:rgba(0,0,0,0.3))
+               {-moz-box-shadow: @arguments;
+                -webkit-box-shadow: @arguments;
+                -o-box-shadow: @arguments;
+                -ms-box-shadow: @arguments;
+                box-shadow: @arguments;}
+
+.box-shadow-inset(@x:0, @y:1px, @blur:4px, @color:rgba(0,0,0,0.2))
+                   {-moz-box-shadow:@arguments inset;
+                    -webkit-box-shadow: @arguments inset;
+                    -o-box-shadow: @arguments inset;
+                    -ms-box-shadow: @arguments inset;
+                    box-shadow: @arguments inset;}
+
+.tapered-shadow()  {position:absolute;
+                    display:block;
+                    width:100%;
+                    height:14px;
+                    top:0px;
+                    overflow:hidden;
+                    .radial-gradient;
+                    background-position:0 -10px;
+                    background-repeat:no-repeat;}
+
+.linear-gradient(@col1:#fff, @col2:#fff){
+                    background-color:@col2;
+                    background-image:-moz-linear-gradient(@col1, @col2);
+                    background-image:-webkit-gradient(linear, 0 0, 0 100%, from(@col1), to(@col2));
+                    background-image:-o-linear-gradient(@col1, @col2);
+                    background-image:-ms-linear-gradient(@col1, @col2);}
+
+.radial-gradient(@h:50%, @v:53%, @hue1:rgba(0,0,0,0.3), @hue2:rgba(0,0,0,0)) {
+                    background-image: -moz-radial-gradient(@h @v, ellipse closest-side, @hue1, @hue2 100%);
+                    background-image: -webkit-radial-gradient(@h @v, ellipse closest-side, @hue1, @hue2 100%);
+                    background-image: -o-radial-gradient(@h @v, ellipse closest-side, @hue1, @hue2 100%);
+                    background-image: -ms-radial-gradient(@h @v, ellipse closest-side, @hue1, @hue2 100%);
+                    background-image: radial-gradient(@h @v, ellipse closest-side, @hue1, @hue2 100%); }
+
+

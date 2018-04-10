@@ -1,0 +1,147 @@
+/* Bloglet theme */
+/* a sub-theme for the "framework" layout plugin for web2py */
+/* copyright Ian W. Scott, 2011-2014 */
+/* licensed under GPL 3.0 as a free, open-source resource */
+
+@import "../../framework.less";
+/*@import "../../../../../plugin_ajaxselect/static/plugin_ajaxselect/plugin_ajaxselect.less";*/
+/*@import "../../../../../../plugin_listandedit/static/plugin_listandedit/plugin_listandedit.less";*/
+@import "../plugin_ajaxselect/plugin_ajaxselect.css";
+@import "../plugin_listandedit/plugin_listandedit.css";
+
+#page                   {
+  article               {
+    h2  a               {color: @pallette3;}
+  }
+}
+
+#right_sidebar          {
+  .nav-collapse.in      {background-color: @palletteBG;
+  }
+  .accordion-group      {border: 0 solid transparent;
+                         border-left: 1px solid @pallette2;
+    .accordion-heading  {border: 0 solid transparent;
+      a                 {font-family: @headingsFontFamily;
+                         font-weight: @headingsFontWeight;
+                         color: @accent1;
+      }
+    }
+    .accordion-inner    {padding: 0;
+                         border: 0 solid transparent;
+      ul                {list-style-type: none;
+                         list-style-position: outside;
+                         padding-left:0; 
+      }
+    }
+  }
+}
+
+a:hover                 {text-decoration: dotted;}
+h2                      {color: darken(@pallette2, 30%);
+                         font-size: @fontSizeLargest;
+}
+h3                      {color: @accent3;
+                         font-size: @fontSizeLarge;
+                         line-height: (@baseLineHeight * 1.5);}
+.woh-par-num    {color: @pallette2;
+                 margin-bottom: @baseLineHeight;
+                 .transition();
+    &:hover     {color: darken(@pallette2, 30%);
+                 .transition();
+    } 
+}
+audio           {width: (@baseLineHeight * 2);
+                 clear:left;
+                 .transition();
+    &:hover     {width: (@baseLineHeight * 10);
+                 .transition();}
+}
+
+.nav-pills li a {line-height: @baseLineHeight;}
+
+form                            {
+    select.generic-widget,
+    input.string                {width: 90%;}
+    textarea#articles_body      {width: 90%;
+                                 min-height: 700px;}
+    div.w2p_fw                  {width: 100%;}
+}
+
+/*[> ================= iPad in portrait ================= <]*/
+@media all and (orientation:portrait){
+}
+
+/*[> ================= iPad in landscape ================= <]*/
+@media all and (orientation:landscape){
+}
+
+/*[> ================= iPhone4 (retina screen) ================= <]*/
+@media only screen
+and (-webkit-min-device-pixel-ratio: 2)
+and (max-device-width: 480px)          {
+
+}
+
+/*[>========== small tablet browser viewing area (480px+)================= <]*/
+@media screen 
+and (max-width: 480px)                 {
+
+}
+
+/*[>============= medium browser viewing area (768px +) ==================== <]*/
+@media only screen 
+and (max-width: 767px)                 {
+    body                               {
+        #navbar                        {top:0;
+        }
+        .navbar.top                    {margin: 0;
+                                        height: (@baseLineHeight * 2);
+        }
+        .container-fluid               {
+            .main                      {padding-top:0;
+            }
+        }
+    }
+}
+
+/*[>==========medium desktop/laptop viewing area (768px +) ================ <]*/
+
+@media only screen 
+and (max-width: 979px)             {
+    body                           {
+        #navbar                    {top:0;
+        }
+        .navbar-fixed-top,          
+        .navbar.top                {margin: 0;
+                                    height: (@baseLineHeight * 2);
+            .navbar-inner          {padding: 0;}
+            .container,
+            .container-fluid       {height: (@baseLineHeight * 2);}
+        }
+        .container, 
+        .container-fluid           {
+            .main                  {padding-top: 0;
+                                    margin-top: 0;
+            }
+        }
+    }
+} 
+
+/*[> ================= widest viewing area (980px +) =============== <]*/
+@media only screen 
+and (min-width: 980px)             {
+    body                           {
+        .container,
+        .container-fluid           {
+            #main                  {margin-top: (@baseLineHeight * 2);
+                &.exploring #page  {
+                  .prompt,
+                  .responder       {max-width: 480px;
+                                    margin-left:480px;}
+                }
+            }
+        }
+    }
+}
+
+
