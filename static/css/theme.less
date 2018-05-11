@@ -528,22 +528,21 @@ body.default.index                      {
 body.exploring                  {
     div#masthead                {display: none;
     }
+    p                           {text-align: left;
+    }
     main                            {z-index:1;
-        #page                       {background-size: auto 100%;
-                                     z-index:100;
-                                     padding-right:0;
-                                     background-attachment: fixed;
-                                     background-repeat: no-repeat;
-                                     background-position: left top;
-            @media (max-width: 767px)   {background-attachment: inherit;
-                                     background-position: left top;
-            }
+        @media (max-width: 767px)   {margin-right:0px;
+        }
+        #page                       {z-index:100;
+                                     padding-right: 0px;
+                                     background-color: @pallette3;
             div#exploring-mask          {display: block;
                                          position: absolute;
                                          background-color: rgba(255,255,255,1.0);
                                          width: 100%;
                                          height: 100%;
                                          text-align: center;
+                                         z-index: 999;
                 img                    {position: absolute;}
             }
             div#loading-mask            {display: none;
@@ -575,28 +574,14 @@ body.exploring                  {
                 input[type=text]        {width: 60%;
                                          color: #666;}
             }
-            .speaker                    {position: fixed;
-            }
-            .prompt                     {
-                li                      {color: @pallette4;
-
-                }
-            }
-            .responder                  {
-                table.web2py_radiowidget      {
-                    td                         {text-indent: -1.2em;
-                                                padding-left: 1.2em;
-                                                padding-bottom: 0.25em;
-                        input                      {vertical-align: middle;
-                                                    margin-top: 0;
-                        }
-                        label                      {margin-left: 0.5em;
-                                                    font-size: @font-size-largest;
-                                                    font-weight: normal;
-                                                    white-space: normal;
-                                                    display: inline;
-                        }
-                    }
+            div#background-image        {height: 100%;
+                                         width: 100%;
+                                         display: block;
+                                         position: fixed;
+                                         background-position: left center;
+                                         background-size: 100% auto;
+                                         overflow: hidden;
+                @media (max-width: 767px) {height: 30%;
                 }
             }
             .prompt,
@@ -604,7 +589,7 @@ body.exploring                  {
                                          position: relative;
                                          float: left;
                                          width: 50%;
-                                         margin: 1em 1em 0 0;
+                                         margin: 1em 0 0;
                                          margin-left: 40%;
                                          padding: 1.5em;
                                          padding-bottom: 1em;
@@ -614,9 +599,11 @@ body.exploring                  {
                                          border-radius: 2px;
                 @media (max-width: 767px)       {float: none;
                                                  margin-left: 0;
+                                                 margin-top: 0;
                                                  width: 100%;
                                                  top: 8em;
                                                  padding: 0.5em;
+                                                 box-shadow: none;
                 }
                 .jp-audio               {width:30px;
                                          float:right;
@@ -627,12 +614,14 @@ body.exploring                  {
                     .jp-controls        {width:30px;
                     }
                 }
+                ul                      {list-style-type: circle;
+                }
                 img                     {max-height: 260px;
                 }
                 #slides_btn,
                 #instructions_btn,
                 #readable_btn           {position: relative;
-                                         float: left;
+                                         float: right;
                                          margin-right: 1em;
                                          font-size: @font-size-small;
                                          text-transform: capitalize;
@@ -644,7 +633,7 @@ body.exploring                  {
                 .path-counter,
                 .prompt-editlinks       {font-size: @font-size-small;
                                          font-family: @sansFonts;
-                                         color: darken(@pallette2, 20%);
+                                         color: @white;
                 }
                 #bug_reporter_modal_trigger   {font-family: @sansFonts;
                                                font-size: @font-size-small;
@@ -659,15 +648,18 @@ body.exploring                  {
                                               text-decoration: none;
                                               white-space: normal;  // to fix list item wrapping
                     }
-                    .popover-title           {background-color: transparent;
-                                              color: lighten(@warning, 20%);
-                                              border-bottom: 1px solid transparent;
+                    ul                       {margin-bottom: 0;
+                        li                   {color: @white;
+                        }
+                    }
+                    .popover-title           {display: none;
                     }
                     .prompt_instructions,
                     .prompt_slides,
-                    .prompt_hints          {margin-left: 1.7em;
+                    .prompt_hints          {margin-left: 1.5em;
                                             font-family: @sansFonts;
                                             list-style-position: inside;
+                                            color: @white;
                     }
                     .readable_long         {font-family: "SBL Greek";
                                             list-style-type: circle;
@@ -681,8 +673,40 @@ body.exploring                  {
                     input[type=submit]  {font-family: @sansFonts;
                     }
                     td.w2p_fw           {padding-left: 0;
+                                         padding-right: 0;
                     }
                     td.w2p_fl           {display: none;
+                    }
+                }
+            }
+            .prompt                     {padding-bottom: 1em;
+                li                      {color: @pallette4;
+
+                }
+            }
+            .responder                  {
+                background-color: @pallette3;
+                .btn                    {background-color: @info-dark;
+                                         border-color: darken(@info-dark, 5%);
+                                         color: @white;
+                    &.retry              {background-color: darken(@pallette2, 10%);
+                                         border-color: darken(@pallette2, 15%);
+                                         color: darken(@pallette2, 50%)
+                    }
+                }
+                table.web2py_radiowidget      {
+                    td                         {text-indent: -1.2em;
+                                                padding-left: 1.2em;
+                                                padding-bottom: 0.25em;
+                        input                      {vertical-align: middle;
+                                                    margin-top: 0;
+                        }
+                        label                      {margin-left: 0.5em;
+                                                    font-size: @font-size-largest;
+                                                    font-weight: normal;
+                                                    white-space: normal;
+                                                    display: inline;
+                        }
                     }
                 }
             }

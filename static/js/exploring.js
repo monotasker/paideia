@@ -17,9 +17,23 @@ function fit_to_height() {
     var headroom = $('.navbar').innerHeight();
     var footroom = $('#footer').outerHeight();
     var divheight = window.innerHeight - (headroom + footroom);
-    $('#page, .speaker img, #town_map').each(function () {
+    var pagewidth = $('#page').outerWidth();
+    $('#page, #town_map').each(function () {
         $(this).height(divheight);
     });
+    if ( pagewidth <= 767 ) {
+        $('#background-image').height('30%');
+    } else {
+        $('#background-image').height('100%');
+    }
+    console.log(pagewidth);
+    console.log($('#background-image').outerHeight());
+    console.log(pagewidth/$('#background-image').outerHeight());
+    if ( (pagewidth/$('#background-image').outerHeight()) < 1.333 ){
+        $('#background-image').css('background-size', 'auto 100%');
+    } else {
+        $('#background-image').css('background-size', '100% auto');
+    }
     $('#town_map').width('100%');
     var $spinner = $('#loading-mask img, #exploring-mask img');
     $spinner.each(function(){

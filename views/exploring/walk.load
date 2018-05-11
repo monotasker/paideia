@@ -20,8 +20,11 @@ ap.append(form) }}
     <!--# PROMPT / REPLY ===================================================-->
     <!--# ==================================================================-->
 
-    <!--# npc image on left ================================================-->
-    {{=DIV(npc_image, _class='speaker')}}
+    <!--# background image -->
+    <div id="background-image">
+        <!--# npc image on left ===========================================-->
+        <div class='speaker'>{{=npc_image}}</div>
+    </div>
 
     <!--# prompt/reply div==================================================-->
     <div class='npc prompt'>
@@ -88,7 +91,7 @@ ap.append(form) }}
             i_args = {'classnames': 'instructions-popover text-info',
                       'title': 'Instructions for this step',
                       'id': 'instructions_btn'}
-            i_pop = POPOVER().widget('Instructions', ilist, **i_args)}}
+            i_pop = POPOVER().widget(I(_class="fa fa-film"), ilist, **i_args)}}
             {{=i_pop}}
         {{pass}}
 
@@ -103,7 +106,7 @@ ap.append(form) }}
             slides_args = {'classnames': 'slides-popover text-warning',
                            'title': 'Relevant videos',
                            'id': 'slides_btn'}
-            s_pop = POPOVER().widget('videos', decklist, **slides_args)}}
+            s_pop = POPOVER().widget(I(_class="fa fa-film"), decklist, **slides_args)}}
             {{=s_pop}}
         {{pass }}
         </div>
@@ -116,17 +119,19 @@ ap.append(form) }}
         {{pass
 
         if 'continue' in response_buttons:}}
-            {{=A("Continue", _href=URL('walk', args=['ask'], vars={'loc': loc}),
+            {{=A(I(_class="fa fa-chevron-right"), "Continue", _href=URL('walk', args=['ask'], vars={'loc': loc}),
             cid='walk_frame', _class='continue btn btn-success next_q')}}
         {{pass}}
 
         {{if 'retry' in response_buttons:}}
-            {{=A("Try again", _href=URL('walk', args=['repeat'], vars={'loc': loc}),
+            {{=A(I(_class="fa fa-repeat"), "Try again", _href=URL('walk', args=['repeat'], vars={'loc': loc}),
                  cid='walk_frame', _class='btn btn-warning retry')}}
         {{pass}}
 
         {{if 'map' in response_buttons:}}
-            <a href="#" class="btn btn-success back_to_map">Back to map</a>
+            <a href="#" class="btn btn-success back_to_map">
+                <i class="fa fa-map-marker"></i>Back to map
+            </a>
         {{pass}}
         {{if sid and pid:}}
             {{stepedit = A('step {}'.format(sid),
@@ -138,10 +143,10 @@ ap.append(form) }}
                         _class='prompt-p-editlink'
                         )
                         catnum = ' choosing from category {}, new content is {}'.format(category, new_content)}}
-            <small>
+            <!-- <small>
             {{=ROLE(DIV(pathedit, ', ', stepedit, catnum,
                     _class='prompt-editlinks'))}}
-            </small>
+            </small> -->
         {{pass
 
         if 'bugreporter' in globals() and bugreporter:}}
@@ -175,12 +180,7 @@ $(document).ready(function(){
     });
 
     {{if 'bg_image' in globals():}}
-        $('#page').css("background-image", "url({{=bg_image}})");
-        $('#page').css("background-size", "100% auto");
-        $('#page').css("background-position", "left center");
-    {{else:}}
-        $('#page').css("background-image", "none");
-        $('#page').css("background-size", "100% auto");
+        $('#background-image').css("background-image", "url({{=bg_image}})");
     {{pass}}
 
     // ========== handle popover content =============== //
