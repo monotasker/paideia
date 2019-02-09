@@ -46,9 +46,9 @@ def index():
     request = current.request
     debug = 0
     if debug:
-        print 'getting index'
-        print 'vars', request.vars
-        print 'args', request.args
+        print('getting index')
+        print('vars', request.vars)
+        print('args', request.args)
     response.files.append(URL('static', 'js/jquery.jplayer.min.js'))
     response.files.append(URL('static', 'js/play_audio_clip.js'))
     response.files.append(URL('static', 'css/jplayer.pink.flag.css'))
@@ -86,7 +86,7 @@ def walk():
     request = current.request
 
     if debug:
-        print "\n\nstarting walk controller================================"
+        print("\n\nstarting walk controller================================")
     rvars = request.vars
     rargs = request.args
     # print "in controller.walk:"
@@ -108,22 +108,22 @@ def walk():
                      vars=request.vars))
     elif testform.errors:
         response.flash = 'Form had errors'
-        print testform.errors
+        print(testform.errors)
 
     if debug:
-        print "controller.walk: Auth.user_id is", auth.user_id
-        print "controller.walk: first_name is", \
-            db.auth_user(auth.user_id).first_name
+        print("controller.walk: Auth.user_id is", auth.user_id)
+        print("controller.walk: first_name is", \
+            db.auth_user(auth.user_id).first_name)
     # When user begins exploring (also default) present map
     if (not rargs) or (rargs[0] == 'map'):
-        print "controller.walk: getting map"
+        print("controller.walk: getting map")
         return {'map': Map().show(),
                 'form': testform}
-    elif rargs[0] == 'repeat' and 'response' not in rvars.keys():
-        print "controller.walk: setting repeat signal"
+    elif rargs[0] == 'repeat' and 'response' not in list(rvars.keys()):
+        print("controller.walk: setting repeat signal")
         stepargs = {'repeat': True}
     else:
-        print "controller.walk: setting response string", rvars['response']
+        print("controller.walk: setting response string", rvars['response'])
         stepargs = {}
         # if condition prevents submission of blank response
         stepargs['response_string'] = rvars['response'] if \
@@ -133,21 +133,21 @@ def walk():
 
     # pass along test settings to Walk.ask()
     if debug:
-        print '----------------args & vars------------'
-        print 'vars:'
+        print('----------------args & vars------------')
+        print('vars:')
         for x in rvars:
-            print {x: rvars[x]}
-        print 'args:'
+            print({x: rvars[x]})
+        print('args:')
         for x in rargs:
-            print x
+            print(x)
         # print 'cookies'
         # for x in request.cookies: print {x : request.cookies[x].value}
-        print '------------end args & vars------------'
+        print('------------end args & vars------------')
     if ('blocks' in rvars) and \
             not (rvars['blocks'] in ['', None, 'undefined']):
         stepargs['set_blocks'] = literal_eval(rvars['blocks'])
         if debug:
-            print {'----------blocks passed------------': rvars['blocks']}
+            print({'----------blocks passed------------': rvars['blocks']})
     if 'path' in rvars and not (rvars['path'] in ['', None, 'undefined']):
         stepargs['path'] = rvars['path']
     # JOB ... oct 18, 2014 ... bug step id
@@ -161,12 +161,12 @@ def walk():
     # variables for Walk init
     new_user = False
     if 'new_user' in request.vars and request.vars.new_user == 'on':
-        print 'forcing new user'
+        print('forcing new user')
         new_user is True
 
     resp = Walk(new_user=new_user).start(request.vars.loc,
                                          **stepargs)
-    if 'bmodal' not in resp.keys():
+    if 'bmodal' not in list(resp.keys()):
         resp['bmodal'] = ''
     resp['form'] = testform
 

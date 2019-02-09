@@ -87,8 +87,8 @@ def tnb():
     if tag_no_badge_ids:
         tag_no_badge_ids_data = db(db.tags.id.belongs(tag_no_badge_ids)).select(db.tags.id,db.tags.tag,db.tags.tag_position,db.tags.modified_on, orderby=db.tags.id).as_list()
 
-    print {'tag_no_badge_ids': tag_no_badge_ids}
-    print {'tag_no_badge_ids_data': tag_no_badge_ids_data}
+    print({'tag_no_badge_ids': tag_no_badge_ids})
+    print({'tag_no_badge_ids_data': tag_no_badge_ids_data})
     return {'tag_no_badge_ids_data': tag_no_badge_ids_data}
 
 
@@ -126,11 +126,11 @@ def pregex():
             if step['response1']:
                 #print {'testing id': s, 'response1' : step['response1']}
                 if re.match(step['response1'], "dummy", re.I | re.U):
-                    print {'passed id': s, 'response1' : step['response1']}
+                    print({'passed id': s, 'response1' : step['response1']})
                     pass
         except re.error:
             x['1'] = step['response1']
-            print {'failed id': s, 'response1' : step['response1']}
+            print({'failed id': s, 'response1' : step['response1']})
         try:
             if step['response2']:
                 if re.match(step['response2'], "dummy", re.I | re.U):
