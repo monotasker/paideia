@@ -118,7 +118,7 @@ def set_query_visibility():
     myrow = db.auth_user(uid)
     myrow.update_record(hide_read_queries=myval)
     db.commit()
-    print db.auth_user(uid).hide_read_queries
+    print(db.auth_user(uid).hide_read_queries)
 
 
 def mark_bug_read():
@@ -178,7 +178,7 @@ def update_bug():
                 request.vars['adjusted_score'] not in
                 ['none', 'None'] else None
                 }
-    if 'score' in request.vars.keys() and \
+    if 'score' in list(request.vars.keys()) and \
             request.vars['log_id'] not in ['None', 'none', None]:
         logrow = db.attempt_log(int(request.vars['log_id']))
         if logrow and logrow.score <= new_vals['adjusted_score']:
@@ -244,8 +244,8 @@ def info():
     """
     debug = False
     if debug:
-        print '==================================='
-        print 'starting controller default.info'
+        print('===================================')
+        print('starting controller default.info')
     # Allow passing explicit user but default to current user
     if 'id' in request.vars:
         user = db.auth_user[request.vars['id']]
@@ -255,12 +255,12 @@ def info():
     stats = Stats(user.id)
     now = datetime.datetime.utcnow()
     if debug:
-        print 'now is', now
+        print('now is', now)
 
     # get user's current course
     myc = get_current_class(user.id, datetime.datetime.utcnow())
     if debug:
-        print 'myc is', myc
+        print('myc is', myc)
 
     # tab1
 
@@ -327,7 +327,7 @@ def info():
         badge_set_dict[set] = set_tags_info
 
     query_visibility = user['hide_read_queries']
-    print 'QV is', query_visibility
+    print('QV is', query_visibility)
 
     return {'the_name': name,
             'user_id': user.id,
@@ -445,7 +445,7 @@ def set_review_mode():
         myset = None
     session.set_review = myset
     if debug:
-        print 'session.set_review is', session.set_review
+        print('session.set_review is', session.set_review)
 
 
 def oops():

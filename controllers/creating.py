@@ -38,15 +38,15 @@ def submit_bug():
     """
     vbs = True
     rvars = request.vars
-    if vbs: print 'creating::submit_bug: vars are', rvars
+    if vbs: print('creating::submit_bug: vars are', rvars)
     b = Bug(step_id=rvars.bug_step_id,
             path_id=rvars.path_id,
             loc_id=rvars.loc_id)
-    if vbs: print 'creating::submit_bug: created bug object successfully'
+    if vbs: print('creating::submit_bug: created bug object successfully')
     # if vbs: print 'creating::submit_bug: bug is', b
     logged = b.log_new(rvars.answer,
                        rvars.log_id,
                        rvars.score,
                        rvars.bug_reporter_comment)
-    if vbs: print 'creating::submit_bug: logged bug - response is', logged
+    if vbs: print('creating::submit_bug: logged bug - response is', logged)
     return {'success': logged}

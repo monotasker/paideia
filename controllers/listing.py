@@ -60,7 +60,7 @@ def get_my_classes(classid=None):
         try:
             active_class = [m for m in myclasses if m.get('id') ==
                             int(request.vars.classid)][0]
-            if debug: print 'found active class', request.vars.classid
+            if debug: print('found active class', request.vars.classid)
             myclasses = [m for m in myclasses if m.get('id') !=
                             int(request.vars.classid)]
             myclasses.insert(0, active_class)
@@ -81,7 +81,7 @@ def queries():
     response.files.append(imports['pdfmake_vfsfonts'])
     response.files.append(imports['datatables'])
 
-    classid = request.vars.classid if 'classid' in request.vars.keys() \
+    classid = request.vars.classid if 'classid' in list(request.vars.keys()) \
         else None
     myclasses = get_my_classes(classid=classid)
 
@@ -115,32 +115,32 @@ def promote_user():
     Move the specified user ahead one badge set.
     '''
     debug = False
-    if debug: print 'starting listing/promote_user =========================='
+    if debug: print('starting listing/promote_user ==========================')
     uid = request.vars.uid
     classid = request.vars.classid
-    if debug: print 'classid:', classid
+    if debug: print('classid:', classid)
     tp = db(db.tag_progress.name == uid).select().first()
     oldrank = tp['latest_new']
     # move remaining cat1 tags forward to cat2
     old_level1 = tp['cat1']
-    if debug: print 'old_level1', old_level1
+    if debug: print('old_level1', old_level1)
     level2 = tp['cat2']
-    if debug: print 'level2', level2
+    if debug: print('level2', level2)
     level2.extend(old_level1)
-    if debug: print 'level2', level2
+    if debug: print('level2', level2)
 
     # make sure no tags were missed being activated
     all_active_tags = level2 + tp['cat3'] + tp['cat4']
     should_be_active = db(db.tags.tag_position <= (oldrank + 1)).select()
     missing = [t.id for t in should_be_active if t.id not in all_active_tags]
-    if debug: print 'missed activating tags:', missing
+    if debug: print('missed activating tags:', missing)
     if missing:
         level2.extend(missing)
         old_level1.extend(missing)  # so badges_begun are updated
         for tag in missing:  # create level 1 record in badges_begun
             db((db.badges_begun.tag == tag) &
                (db.badges_begun.name == uid)).update(cat1=datetime.datetime.now())
-        if debug: print 'new level 2 with missed tags:', level2
+        if debug: print('new level 2 with missed tags:', level2)
 
     # update tag_progress record
     tp.update_record(latest_new=(oldrank + 1),
@@ -188,10 +188,10 @@ def demote_user():
 
     # TODO: do I have to somehow mark the actual log entries somehow as
     # removed? Should they be backed up?
-    print 'demoting tags:', old_taglist
+    print('demoting tags:', old_taglist)
     trecs = db((db.tag_records.tag.belongs(old_taglist)) &
                (db.tag_records.name == uid))
-    print 'found trecs:', trecs.count()
+    print('found trecs:', trecs.count())
     trecs.delete()
 
     for tag in new_ranktags:
@@ -209,7 +209,7 @@ def add_user():
     Adds one or more users to the specified course section.
     '''
     users = request.vars.value
-    print 'add_user: value is', users
+    print('add_user: value is', users)
 
 
 @auth.requires_membership('instructors', 'administrators')
@@ -272,16 +272,16 @@ def querylist():
             # order vals with the record's current status at the top
             vals = [num for num in range(1, len(status_rows) + 1)
                     if num != q['bug_status']]
-            if isinstance(q['bug_status'], (int, long)):
+            if isinstance(q['bug_status'], int):
                 vals.insert(0, q['bug_status'])
-            print vals
+            print(vals)
             statuses = ((r['id'], r['status_label']) for v in vals
                         for r in status_rows
                         if r['id'] == v)
             q['bug_status'] = statuses
 
-    except Exception, e:
-        print e
+    except Exception as e:
+        print(e)
         queries = None
 
     return {'queries': queries}
@@ -292,15 +292,15 @@ def querylist():
 def userlist():
     debug = False
     if debug:
-        print 'starting listing/userlist ============================='
-        print 'agid', request.vars.agid, type(request.vars.agid)
+        print('starting listing/userlist =============================')
+        print('agid', request.vars.agid, type(request.vars.agid))
     # if isinstance(request.vars.agid, (int, long)):  # selecting class
     try:
         int(request.vars.agid)
         try:
             classrow = db.classes[int(request.vars.agid)].as_dict()
         except Exception:  # choose a class to display as default
-            print traceback.format_exc(5)
+            print(traceback.format_exc(5))
             classrow = db(db.classes.instructor == auth.user_id
                           ).select().last().as_dict()
         target = classrow['paths_per_day']
@@ -312,21 +312,21 @@ def userlist():
         member_sel = db(db.class_membership.class_section ==
                         classrow['id']).select()
         if debug:
-            print 'in member_sel:'
+            print('in member_sel:')
             for m in member_sel:
-                print db.auth_user(m['name']).last_name, ', ', \
-                    db.auth_user(m['name']).first_name
-            print '---------'
+                print(db.auth_user(m['name']).last_name, ', ', \
+                    db.auth_user(m['name']).first_name)
+            print('---------')
 
         users = db((db.auth_user.id == db.tag_progress.name) &
                    (db.auth_user.id.belongs([m['name'] for m in member_sel]))
                    ).select(orderby=db.auth_user.last_name)
 
         if debug:
-            print 'in users:'
+            print('in users:')
             for u in users:
-                print u.auth_user.last_name
-                print '---------'
+                print(u.auth_user.last_name)
+                print('---------')
 
         start_date = classrow['start_date']
         end_date = classrow['end_date']
@@ -377,7 +377,7 @@ def add_user_form():
     '''
     Return a checklist form for adding members to the current course section.
     '''
-    print 'starting add user form()'
+    print('starting add user form()')
     users = db(db.auth_user.id > 0).select()
     form = FORM(TABLE(_id='user_add_form'),
                 _action=URL('add_user',
