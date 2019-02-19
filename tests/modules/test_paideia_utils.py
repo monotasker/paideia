@@ -22,250 +22,250 @@ class TestGreekNormalizer():
     """
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('string_in,string_out',
-                                [('ἄγαπὴ', u'ἀγαπη'),  # handle multiple accents
-                                 ('“ἀγαπη”', u'"ἀγαπη"'),  # handle curly quotes
-                                 ('‘ἀγαπη’', u"'ἀγαπη'"),
-                                 (u'ἀγάπη', u'ἀγαπη'),  # handle unicode input
-                                 ('τίνος', u'τίνος'),  # words to be *kept* accented
-                                 ('τί ἐστῖν', u'τί ἐστιν'),
-                                 ('τίς', u'τίς'),
-                                 ('τίνα', u'τίνα'),
-                                 ('τίνας', u'τίνας'),
-                                 ('τίνι', u'τίνι'),
-                                 ('Τίνος', u'Τίνος'),
-                                 ('Τί', u'Τί'),
-                                 ('Τίς', u'Τίς'),
-                                 ('Τίνα', u'Τίνα'),
-                                 ('Τίνας', u'Τίνας'),
-                                 ('Τίνι', u'Τίνι'),
-                                 ('τίς', u'τίς'),  # handle q-iota on windows
-                                 ('ἀγάπη', u'ἀγαπη'),  # alpha
-                                 ('ἀγὰπη', u'ἀγαπη'),
-                                 ('ἀγᾶπη', u'ἀγαπη'),
-                                 ('ἄν', u'ἀν'),  # alpha with smooth breathing
-                                 ('ἂν', u'ἀν'),
-                                 ('ἆν', u'ἀν'),
-                                 ('ἅν', u'ἁν'),  # alpha with rough breathing
-                                 ('ἃν', u'ἁν'),
-                                 ('ἇν', u'ἁν'),
-                                 ('πᾷν', u'πᾳν'),  # alpha with iota subscript
-                                 ('πᾲν', u'πᾳν'),
-                                 ('πᾴν', u'πᾳν'),
-                                 ('ᾄν', u'ᾀν'),  # alpha with iota subscript & smooth
-                                 ('ᾂν', u'ᾀν'),
-                                 ('ᾆν', u'ᾀν'),
-                                 ('ᾅν', u'ᾁν'),  # alpha with iota subscript & rough
-                                 ('ᾃν', u'ᾁν'),
-                                 ('ᾇν', u'ᾁν'),
-                                 ('πέν', u'πεν'),  # epsilon
-                                 ('πὲν', u'πεν'),
-                                 ('ἒν', u'ἐν'),  # epsilon with smooth
-                                 ('ἔν', u'ἐν'),
-                                 ('ἕν', u'ἑν'),  # epsilon with rough
-                                 ('ἓν', u'ἑν'),
-                                 ('πῆν', u'πην'),  # eta
-                                 ('πήν', u'πην'),
-                                 ('πὴν', u'πην'),
-                                 ('ἤν', u'ἠν'),  # eta with smooth
-                                 ('ἢν', u'ἠν'),
-                                 ('ἦν', u'ἠν'),
-                                 ('ἥν', u'ἡν'),  # eta with rough
-                                 ('ἣν', u'ἡν'),
-                                 ('ἧν', u'ἡν'),
-                                 ('πῇν', u'πῃν'),  # eta with iota subscript
-                                 ('πῄν', u'πῃν'),
-                                 ('πῂν', u'πῃν'),
-                                 ("ᾕν", u"ᾑν"),  # eta with subsc and rough
-                                 ("ᾓν", u"ᾑν"),
-                                 ("ᾗν", u"ᾑν"),
-                                 ("ᾔν", u"ᾐν"),  # eta with subsc and smooth
-                                 ("ᾒν", u"ᾐν"),
-                                 ("ᾖν", u"ᾐν"),
-                                 ("όν", u"ον"),  # omicron
-                                 ("ὸν", u"ον"),
-                                 ("ὅν", u"ὁν"),  # omicron with rough
-                                 ("ὃν", u"ὁν"),
-                                 ("ὄν", u"ὀν"),  # omicron with smooth
-                                 ("ὂν", u"ὀν"),
-                                 ("ῖν", u"ιν"),  # iota
-                                 ("ϊν", u"ιν"),
-                                 ("ίν", u"ιν"),
-                                 ("ὶν", u"ιν"),
-                                 ("ίν", u"ιν"),
-                                 ("ἵν", u"ἱν"),  # iota with rough
-                                 ("ἳν", u"ἱν"),
-                                 ("ἷν", u"ἱν"),
-                                 ("ἴν", u"ἰν"),  # iota with smooth
-                                 ("ἲν", u"ἰν"),
-                                 ("ἶν", u"ἰν"),
-                                 ("ῦν", u"υν"),  # upsilon
-                                 ("ϋν", u"υν"),
-                                 ("ύν", u"υν"),
-                                 ("ὺν", u"υν"),
-                                 ("ὕν", u"ὑν"),  # upsilon with rough
-                                 ("ὓν", u"ὑν"),
-                                 ("ὗν", u"ὑν"),
-                                 ("ὔν", u"ὐν"),  # upsilon with smooth
-                                 ("ὒν", u"ὐν"),
-                                 ("ὖν", u"ὐν"),
-                                 ("ῶν", u"ων"),  # omega
-                                 ("ών", u"ων"),
-                                 ("ὼν", u"ων"),
-                                 ("ὥν", u"ὡν"),  # omega with rough
-                                 ("ὣν", u"ὡν"),
-                                 ("ὧν", u"ὡν"),
-                                 ("ὤν", u"ὠν"),  # omega with smooth
-                                 ("ὢν", u"ὠν"),
-                                 ("ὦν", u"ὠν"),
-                                 ("ῷν", u"ῳν"),  # omega with subsc
-                                 ("ῴν", u"ῳν"),
-                                 ("ῲν", u"ῳν"),
-                                 ("ᾥν", u"ᾡν"),  # omega with subsc and rough
-                                 ("ᾣν", u"ᾡν"),
-                                 ("ᾧν", u"ᾡν"),
-                                 ("ᾤν", u"ᾠν"),  # omega with subsc and smooth
-                                 ("ᾢν", u"ᾠν"),
-                                 ("ᾦν", u"ᾠν"),
-                                 ("῾Ων", u"Ὡν"),  # improperly formed rough with caps
-                                 ("῾Ρν", u"Ῥν"),
-                                 ("῾Υν", u"Ὑν"),
-                                 ("῾Αν", u"Ἁν"),
-                                 ("῾Ον", u"Ὁν"),
-                                 ("῾Εν", u"Ἑν"),
-                                 ("῾Ιν", u"Ἱν"),
-                                 ("᾿Αν", u"Ἀν"),  # improperly formed smooth with caps
-                                 ("᾿Ον", u"Ὀν"),
-                                 ("᾿Ων", u"Ὠν"),
-                                 ("᾿Ιν", u"Ἰν"),
-                                 ("᾿Εν", u"Ἐν"),
-                                 ('Άπη', u'Απη'),  # alpha caps
-                                 ('Ὰπη', u'Απη'),
-                                 ('Ἄπη', u'Ἀπη'),
-                                 ('Ἂπη', u'Ἀπη'),
-                                 ('Ἅπη', u'Ἁπη'),
-                                 ('Ἃπη', u'Ἁπη'),
-                                 ("Έν", u"Εν"),  # epsilon caps
-                                 ("Ὲν", u"Εν"),
-                                 ("Ἕν", u"Ἑν"),
-                                 ("Ἓν", u"Ἑν"),
-                                 ("Ἔν", u"Ἐν"),
-                                 ("Ἒν", u"Ἐν"),
-                                 ("Ἥν", u"Ἡν"),  # eta caps
-                                 ("Ἣν", u"Ἡν"),
-                                 ("Ἧν", u"Ἡν"),
-                                 ("Ἤν", u"Ἠν"),
-                                 ("Ἢν", u"Ἠν"),
-                                 ("Ἦν", u"Ἠν"),
-                                 ("Ήν", u"Ην"),
-                                 ("Ὴν", u"Ην"),
-                                 ("Ἵν", u"Ἱν"),  # iota caps
-                                 ("Ἳν", u"Ἱν"),
-                                 ("Ἷν", u"Ἱν"),
-                                 ("Ϊν", u"Ιν"),
-                                 ("Ίν", u"Ιν"),
-                                 ("Ὶν", u"Ιν"),
-                                 ("Ίν", u"Ιν"),
-                                 ("Ὅν", u"Ὁν"),  # omicron caps
-                                 ("Ὃν", u"Ὁν"),
-                                 ("Όν", u"Ον"),
-                                 ("Ὸν", u"Ον"),
-                                 ("Ὕν", u"Ὑν"),  # upsilon caps
-                                 ("Ὓν", u"Ὑν"),
-                                 ("Ὗν", u"Ὑν"),
-                                 ("Ϋν", u"Υν"),
-                                 ("Ύν", u"Υν"),
-                                 ("Ὺν", u"Υν"),
-                                 ("Ών", u"Ων"),  # omega caps
-                                 ("Ὼν", u"Ων"),
-                                 ("Ὥν", u"Ὡν"),
-                                 ("Ὣν", u"Ὡν"),
-                                 ("Ὧν", u"Ὡν"),
-                                 (u"hi there?", u"hi there?"),  # leave ? alone
+                                [('ἄγαπὴ', 'ἀγαπη'),  # handle multiple accents
+                                 ('“ἀγαπη”', '"ἀγαπη"'),  # handle curly quotes
+                                 ('‘ἀγαπη’', "'ἀγαπη'"),
+                                 ('ἀγάπη', 'ἀγαπη'),  # handle unicode input
+                                 ('τίνος', 'τίνος'),  # words to be *kept* accented
+                                 ('τί ἐστῖν', 'τί ἐστιν'),
+                                 ('τίς', 'τίς'),
+                                 ('τίνα', 'τίνα'),
+                                 ('τίνας', 'τίνας'),
+                                 ('τίνι', 'τίνι'),
+                                 ('Τίνος', 'Τίνος'),
+                                 ('Τί', 'Τί'),
+                                 ('Τίς', 'Τίς'),
+                                 ('Τίνα', 'Τίνα'),
+                                 ('Τίνας', 'Τίνας'),
+                                 ('Τίνι', 'Τίνι'),
+                                 ('τίς', 'τίς'),  # handle q-iota on windows
+                                 ('ἀγάπη', 'ἀγαπη'),  # alpha
+                                 ('ἀγὰπη', 'ἀγαπη'),
+                                 ('ἀγᾶπη', 'ἀγαπη'),
+                                 ('ἄν', 'ἀν'),  # alpha with smooth breathing
+                                 ('ἂν', 'ἀν'),
+                                 ('ἆν', 'ἀν'),
+                                 ('ἅν', 'ἁν'),  # alpha with rough breathing
+                                 ('ἃν', 'ἁν'),
+                                 ('ἇν', 'ἁν'),
+                                 ('πᾷν', 'πᾳν'),  # alpha with iota subscript
+                                 ('πᾲν', 'πᾳν'),
+                                 ('πᾴν', 'πᾳν'),
+                                 ('ᾄν', 'ᾀν'),  # alpha with iota subscript & smooth
+                                 ('ᾂν', 'ᾀν'),
+                                 ('ᾆν', 'ᾀν'),
+                                 ('ᾅν', 'ᾁν'),  # alpha with iota subscript & rough
+                                 ('ᾃν', 'ᾁν'),
+                                 ('ᾇν', 'ᾁν'),
+                                 ('πέν', 'πεν'),  # epsilon
+                                 ('πὲν', 'πεν'),
+                                 ('ἒν', 'ἐν'),  # epsilon with smooth
+                                 ('ἔν', 'ἐν'),
+                                 ('ἕν', 'ἑν'),  # epsilon with rough
+                                 ('ἓν', 'ἑν'),
+                                 ('πῆν', 'πην'),  # eta
+                                 ('πήν', 'πην'),
+                                 ('πὴν', 'πην'),
+                                 ('ἤν', 'ἠν'),  # eta with smooth
+                                 ('ἢν', 'ἠν'),
+                                 ('ἦν', 'ἠν'),
+                                 ('ἥν', 'ἡν'),  # eta with rough
+                                 ('ἣν', 'ἡν'),
+                                 ('ἧν', 'ἡν'),
+                                 ('πῇν', 'πῃν'),  # eta with iota subscript
+                                 ('πῄν', 'πῃν'),
+                                 ('πῂν', 'πῃν'),
+                                 ("ᾕν", "ᾑν"),  # eta with subsc and rough
+                                 ("ᾓν", "ᾑν"),
+                                 ("ᾗν", "ᾑν"),
+                                 ("ᾔν", "ᾐν"),  # eta with subsc and smooth
+                                 ("ᾒν", "ᾐν"),
+                                 ("ᾖν", "ᾐν"),
+                                 ("όν", "ον"),  # omicron
+                                 ("ὸν", "ον"),
+                                 ("ὅν", "ὁν"),  # omicron with rough
+                                 ("ὃν", "ὁν"),
+                                 ("ὄν", "ὀν"),  # omicron with smooth
+                                 ("ὂν", "ὀν"),
+                                 ("ῖν", "ιν"),  # iota
+                                 ("ϊν", "ιν"),
+                                 ("ίν", "ιν"),
+                                 ("ὶν", "ιν"),
+                                 ("ίν", "ιν"),
+                                 ("ἵν", "ἱν"),  # iota with rough
+                                 ("ἳν", "ἱν"),
+                                 ("ἷν", "ἱν"),
+                                 ("ἴν", "ἰν"),  # iota with smooth
+                                 ("ἲν", "ἰν"),
+                                 ("ἶν", "ἰν"),
+                                 ("ῦν", "υν"),  # upsilon
+                                 ("ϋν", "υν"),
+                                 ("ύν", "υν"),
+                                 ("ὺν", "υν"),
+                                 ("ὕν", "ὑν"),  # upsilon with rough
+                                 ("ὓν", "ὑν"),
+                                 ("ὗν", "ὑν"),
+                                 ("ὔν", "ὐν"),  # upsilon with smooth
+                                 ("ὒν", "ὐν"),
+                                 ("ὖν", "ὐν"),
+                                 ("ῶν", "ων"),  # omega
+                                 ("ών", "ων"),
+                                 ("ὼν", "ων"),
+                                 ("ὥν", "ὡν"),  # omega with rough
+                                 ("ὣν", "ὡν"),
+                                 ("ὧν", "ὡν"),
+                                 ("ὤν", "ὠν"),  # omega with smooth
+                                 ("ὢν", "ὠν"),
+                                 ("ὦν", "ὠν"),
+                                 ("ῷν", "ῳν"),  # omega with subsc
+                                 ("ῴν", "ῳν"),
+                                 ("ῲν", "ῳν"),
+                                 ("ᾥν", "ᾡν"),  # omega with subsc and rough
+                                 ("ᾣν", "ᾡν"),
+                                 ("ᾧν", "ᾡν"),
+                                 ("ᾤν", "ᾠν"),  # omega with subsc and smooth
+                                 ("ᾢν", "ᾠν"),
+                                 ("ᾦν", "ᾠν"),
+                                 ("῾Ων", "Ὡν"),  # improperly formed rough with caps
+                                 ("῾Ρν", "Ῥν"),
+                                 ("῾Υν", "Ὑν"),
+                                 ("῾Αν", "Ἁν"),
+                                 ("῾Ον", "Ὁν"),
+                                 ("῾Εν", "Ἑν"),
+                                 ("῾Ιν", "Ἱν"),
+                                 ("᾿Αν", "Ἀν"),  # improperly formed smooth with caps
+                                 ("᾿Ον", "Ὀν"),
+                                 ("᾿Ων", "Ὠν"),
+                                 ("᾿Ιν", "Ἰν"),
+                                 ("᾿Εν", "Ἐν"),
+                                 ('Άπη', 'Απη'),  # alpha caps
+                                 ('Ὰπη', 'Απη'),
+                                 ('Ἄπη', 'Ἀπη'),
+                                 ('Ἂπη', 'Ἀπη'),
+                                 ('Ἅπη', 'Ἁπη'),
+                                 ('Ἃπη', 'Ἁπη'),
+                                 ("Έν", "Εν"),  # epsilon caps
+                                 ("Ὲν", "Εν"),
+                                 ("Ἕν", "Ἑν"),
+                                 ("Ἓν", "Ἑν"),
+                                 ("Ἔν", "Ἐν"),
+                                 ("Ἒν", "Ἐν"),
+                                 ("Ἥν", "Ἡν"),  # eta caps
+                                 ("Ἣν", "Ἡν"),
+                                 ("Ἧν", "Ἡν"),
+                                 ("Ἤν", "Ἠν"),
+                                 ("Ἢν", "Ἠν"),
+                                 ("Ἦν", "Ἠν"),
+                                 ("Ήν", "Ην"),
+                                 ("Ὴν", "Ην"),
+                                 ("Ἵν", "Ἱν"),  # iota caps
+                                 ("Ἳν", "Ἱν"),
+                                 ("Ἷν", "Ἱν"),
+                                 ("Ϊν", "Ιν"),
+                                 ("Ίν", "Ιν"),
+                                 ("Ὶν", "Ιν"),
+                                 ("Ίν", "Ιν"),
+                                 ("Ὅν", "Ὁν"),  # omicron caps
+                                 ("Ὃν", "Ὁν"),
+                                 ("Όν", "Ον"),
+                                 ("Ὸν", "Ον"),
+                                 ("Ὕν", "Ὑν"),  # upsilon caps
+                                 ("Ὓν", "Ὑν"),
+                                 ("Ὗν", "Ὑν"),
+                                 ("Ϋν", "Υν"),
+                                 ("Ύν", "Υν"),
+                                 ("Ὺν", "Υν"),
+                                 ("Ών", "Ων"),  # omega caps
+                                 ("Ὼν", "Ων"),
+                                 ("Ὥν", "Ὡν"),
+                                 ("Ὣν", "Ὡν"),
+                                 ("Ὧν", "Ὡν"),
+                                 ("hi there?", "hi there?"),  # leave ? alone
                                  ])
     def test_normalize_accents(self, string_in, string_out):
         """
         Unit testing function for paideia_utils.normalize_accents()
 
         """
-        print 'string in', string_in
-        print 'expected string out', string_out
+        print('string in', string_in)
+        print('expected string out', string_out)
         actual = GreekNormalizer().normalize_accents(string_in)
-        print 'actual string out', actual
+        print('actual string out', actual)
         assert actual == string_out
-        assert isinstance(actual, unicode)
+        assert isinstance(actual, str)
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('string_in,string_out',
-                                [('Aγaπη', u'Αγαπη'),
-                                 ('deλτα', u'δελτα'),
-                                 ('ZEΔ', u'ΖΕΔ'),
-                                 ('ΔH', u'ΔΗ'),
-                                 ('τivα', u'τινα'),
-                                 ('TIΣ', u'ΤΙΣ'),
-                                 ('kαππα', u'καππα'),
-                                 ('KΑΠΠΑ', u'ΚΑΠΠΑ'),
-                                 ('ΑN', u'ΑΝ'),  # TODO: Why does ἘΝ fail here?
-                                 ('ἀπo', u'ἀπο'),
-                                 ('ἈΠO', u'ἈΠΟ'),
-                                 ('ὡpα', u'ὡρα'),
-                                 ('ὩPΑ', u'ὩΡΑ'),
-                                 ('tε', u'τε'),
-                                 ('ἐxω', u'ἐχω'),
-                                 ('ἘXΩ', u'ἘΧΩ'),
-                                 ('ἐγw', u'ἐγω'),
-                                 (u"ἀγαπη?", u"ἀγαπη;"),
-                                 (u"hi bob?", u"hi bob?")
+                                [('Aγaπη', 'Αγαπη'),
+                                 ('deλτα', 'δελτα'),
+                                 ('ZEΔ', 'ΖΕΔ'),
+                                 ('ΔH', 'ΔΗ'),
+                                 ('τivα', 'τινα'),
+                                 ('TIΣ', 'ΤΙΣ'),
+                                 ('kαππα', 'καππα'),
+                                 ('KΑΠΠΑ', 'ΚΑΠΠΑ'),
+                                 ('ΑN', 'ΑΝ'),  # TODO: Why does ἘΝ fail here?
+                                 ('ἀπo', 'ἀπο'),
+                                 ('ἈΠO', 'ἈΠΟ'),
+                                 ('ὡpα', 'ὡρα'),
+                                 ('ὩPΑ', 'ὩΡΑ'),
+                                 ('tε', 'τε'),
+                                 ('ἐxω', 'ἐχω'),
+                                 ('ἘXΩ', 'ἘΧΩ'),
+                                 ('ἐγw', 'ἐγω'),
+                                 ("ἀγαπη?", "ἀγαπη;"),
+                                 ("hi bob?", "hi bob?")
                                  ])
     def test_convert_latin_chars(self, string_in, string_out):
         """
         Unit testing function for paideia_utils.sanitize_greek()
 
         """
-        print 'string in', string_in
-        print 'expected string out', string_out
+        print('string in', string_in)
+        print('expected string out', string_out)
         actual = GreekNormalizer().convert_latin_chars(string_in)
-        print 'actual string out', actual
+        print('actual string out', actual)
         assert actual == string_out
-        assert isinstance(actual, unicode)
+        assert isinstance(actual, str)
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('string_in,string_out',
-                                [('Aγaπη    Aγaπη ', u'Aγaπη Aγaπη'),
+                                [('Aγaπη    Aγaπη ', 'Aγaπη Aγaπη'),
                                  ])
     def test_strip_extra_spaces(self, string_in, string_out):
         """
         Unit testing function for paideia_utils.sanitize_greek()
 
         """
-        print 'string in', string_in
-        print 'expected string out', string_out
+        print('string in', string_in)
+        print('expected string out', string_out)
         actual = GreekNormalizer().strip_extra_spaces(string_in)
-        print 'actual string out', actual
+        print('actual string out', actual)
         assert actual == string_out
-        assert isinstance(actual, unicode)
+        assert isinstance(actual, str)
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('string_in,string_out,regex',
                                 [('῾Αγaπὴ    Aγaπη, τί ἐστιv “ἀγαπη.”',
-                                  u'Ἁγαπη Αγαπη, τί ἐστιν "ἀγαπη."',
+                                  'Ἁγαπη Αγαπη, τί ἐστιν "ἀγαπη."',
                                   r'Ἁγαπη Αγαπη, τί ἐστιν "ἀγαπη."'),
-                                  ('Pωμαιος', u'Ρωμαιος', r'Ρωμαιος'),
-                                  ('παρά', u'παρα', r'παρα'),
-                                  ('τίς', u'τίς', r'τίς'),  # q iota on windows
-                                  ('πoιει', u'ποιει', r'ποιει'),
-                                  ('Oὑτος', u'Οὑτος', r'Οὑτος'),
+                                  ('Pωμαιος', 'Ρωμαιος', r'Ρωμαιος'),
+                                  ('παρά', 'παρα', r'παρα'),
+                                  ('τίς', 'τίς', r'τίς'),  # q iota on windows
+                                  ('πoιει', 'ποιει', r'ποιει'),
+                                  ('Oὑτος', 'Οὑτος', r'Οὑτος'),
                                  ])
     def test_normalize(self, string_in, string_out, regex):
         """
         Unit testing function for paideia_utils.sanitize_greek()
 
         """
-        print 'string in', string_in
-        print 'expected string out', string_out
+        print('string in', string_in)
+        print('expected string out', string_out)
         actual = GreekNormalizer().normalize(string_in)
-        print 'actual string out', actual
+        print('actual string out', actual)
         assert actual == string_out
-        assert isinstance(actual, unicode)
+        assert isinstance(actual, str)
         regex1 = re.compile(to_unicode(regex), re.I | re.U)
         assert re.match(regex1, to_unicode(actual))
 
@@ -282,6 +282,6 @@ class TestGreekNormalizer():
 def test_check_regex(regex, stringdict):
     """
     """
-    actual = check_regex(regex, stringdict.keys())
+    actual = check_regex(regex, list(stringdict.keys()))
     pprint(actual)
     assert actual == stringdict

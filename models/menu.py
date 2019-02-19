@@ -38,8 +38,8 @@ def version_file(filestring):
             namebase, namext = myname.split('.')
             newpath = os.path.join(mypath,
                                    '{}.{}.{}'.format(namebase, mtime, namext))
-        except OSError, e:
-            print e
+        except OSError as e:
+            print(e)
             newpath = 'none'
     else:
         newpath = filestring

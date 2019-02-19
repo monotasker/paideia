@@ -35,7 +35,7 @@ Moreover, bootstrap3 to work in IE8 requires the use of 'respond.js'.
 In the example layout this file is linked to a CDN repository but if you
 have to use the web2py app offline and your browser is IE8, please download
 it from https://github.com/scottjehl/Respond and put it in
-"static/js" folder of your application and follow the comment you find in the 
+"static/js" folder of your application and follow the comment you find in the
 head section of the 'layout.html' example.
 For more details on bootstrap3 browsers support you should check
 http://getbootstrap.com/getting-started/#browsers
@@ -129,7 +129,7 @@ The function has a second argument for styling checkboxes and radio widgets
 (default is 'inline'):
 
                   bs3.form(rc_mode='inline')
-                 
+
            checkbox 1 | checkbox 2 | checkbox 3
 
                   bs3.form(rc_mode='stacked')
@@ -142,7 +142,7 @@ for example:
 
                 bs3.form('horizontal','stacked')
 
-returns a form where the labels are inline with their control and 
+returns a form where the labels are inline with their control and
 checkboxex/radioboxes widget has inputs stacked.
 
 To add buttons to the form in runtime, you should use the function:
@@ -158,8 +158,8 @@ The last argument is optional. Set it if you need a different class
 than 'btn btn-default' one.
 
 If you need to insert dynamically into the form an extra row, you should use:
-                
-      bs3.build_row(id, label, control, comment, form, layout, rc_mode) 
+
+      bs3.build_row(id, label, control, comment, form, layout, rc_mode)
 
 The mandatory arguments of the above function are:
     - id (the row id)
@@ -189,7 +189,7 @@ by modifying the values of:
 
 License
 -------
-bootstrap3.py is released under web2py license 
+bootstrap3.py is released under web2py license
 (http://www.web2py.com/init/default/license), while
 web2py-bootstrap3.css and web2py-bootstrap3.js are released under the MIT
 license (a copy is included in the package).
@@ -209,12 +209,12 @@ FH_CONTROL_COLW = '8'  # 12 - FH_LABEL_COLW
 
 def navbar():
     ''' full customizable auth navbar
-    
+
     '''
 
     bar = current.auth.navbar(mode='bare')
     [li_login, li_register, li_request_reset_password, li_retrieve_username,
-     li_logout, li_profile, li_change_password] = [None for n in xrange(7)]
+     li_logout, li_profile, li_change_password] = [None for n in range(7)]
 
     # text and icons for auth items in the drop-down
     ## text for dropdown toggle
@@ -257,7 +257,7 @@ def navbar():
     li_help = LI(A(I(_class=ico1), ' ', txt1, _href=href1, _rel='nofollow'))
 
     # auth items builder
-    for k, v in bar.iteritems():
+    for k, v in list(bar.items()):
         if k == 'user':
             welcome_text = '%s %s' % (bar['prefix'], bar['user'])
             toggletext = default_text if v is None else welcome_text
@@ -347,9 +347,9 @@ def menu(menu_type=None, add_classes=None, menu_list=None):
     menu_class = ('nav-%s' % menu_type if menu_type in ('pills', 'tabs')
                   else 'navbar-nav')
 
-    if add_classes and isinstance(add_classes, basestring):
+    if add_classes and isinstance(add_classes, str):
         menu_class += ' %s' % add_classes
-    
+
     current_menu = current.response.menu if not menu_list else menu_list
 
     menu = MENU(current_menu,
@@ -377,7 +377,7 @@ def add_button(form, value, url, _class='btn btn-default'):
 def build_row(id, label, control, comment, form,
               layout=None, rc_mode='inline'):
     ''' form row builder
-    
+
     '''
 
     fh_label_class = '%s%s' % (FH_CL_PREFIX, FH_LABEL_COLW)
@@ -386,7 +386,7 @@ def build_row(id, label, control, comment, form,
 
     if not id.startswith('submit_record'):
         # form controls
-        if isinstance(label, (basestring, lazyT)):
+        if isinstance(label, (str, lazyT)):
             clabel = LABEL(label)
             if not label and layout != 'horizontal':
                 clabel = CAT('')
@@ -396,7 +396,7 @@ def build_row(id, label, control, comment, form,
             # make the control as an empty string
             control = ''
 
-        if isinstance(control, (basestring, lazyT)):
+        if isinstance(control, (str, lazyT)):
             # string
             control = P(control, _class='form-control-static')
         elif isinstance(control, Number):
@@ -541,7 +541,7 @@ def build_row(id, label, control, comment, form,
                               _class='w2p-uploaded-file'))
         else:
             # widget not implemented
-            print "row '%s': widget not implemented" % id
+            print(("row '%s': widget not implemented" % id))
 
         if layout == 'horizontal':
             label_bs3_class = '%s control-label' % fh_label_class

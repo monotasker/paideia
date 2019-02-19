@@ -17,7 +17,7 @@ from plugin_utils import flatten, makeutf8
 import paideia_path_factory
 import re
 import traceback
-import StringIO
+import io
 import uuid
 from pprint import pprint
 import datetime
@@ -38,18 +38,18 @@ def validate_records():
         myout['requires'] = myf.requires
         tparts = myf.type.split(' ')
         typetbl = {'list:reference': list,
-                   'id': (int, long),
+                   'id': (int, int),
                    'text': str,
                    'string': str,
-                   'reference': (int, long),
+                   'reference': (int, int),
                    'list:integer': list,
                    'list:string': list,
                    'datetime': datetime.datetime,
                    'date': datetime.date,
                    'double': float,
                    'boolean': bool}
-        mytype = tparts[0] if tparts[0] not in typetbl.keys() else typetbl[tparts[0]]
-        if mytype in [str, int, long, float, bool]:
+        mytype = tparts[0] if tparts[0] not in list(typetbl.keys()) else typetbl[tparts[0]]
+        if mytype in [str, int, int, float, bool]:
             allow_none = True
         elif isinstance(myf.requires, validators.IS_EMPTY_OR):
             allow_none = True
@@ -156,7 +156,7 @@ def gather_word_forms():
         for r in rows:
             items.append(r[vv['search_field']])
 
-        ptrn = re.compile(u'[\u0370-\u03FF\u1F00-\u1FFF]+', flags=re.U)
+        ptrn = re.compile('[\u0370-\u03FF\u1F00-\u1FFF]+', flags=re.U)
         items = flatten([re.findall(ptrn, makeutf8(i)) for i in items])
         normalizer = GreekNormalizer()
         items = [normalizer.normalize(i) for i in items]
@@ -198,17 +198,17 @@ def make_path():
     """
     Uses paideia_utils.PathFactory classes to programmatically create paths.
     """
-    print "Got controller==========================================="
+    print("Got controller===========================================")
     path_type = request.args[0] if request.args else 'default'
     factories = {'default': paideia_path_factory.PathFactory,
                  'translate_word': paideia_path_factory.TranslateWordPathFactory}
     message = ''
     output = ''
     form, message, output = factories[path_type]().make_create_form()
-    print "Returning initial form"
+    print("Returning initial form")
 
-    print 'returning result:'
-    print 'message'
+    print('returning result:')
+    print('message')
 
     return {'form': form, 'message': message, 'output': output}
 
@@ -232,7 +232,7 @@ def bulk_update():
             myrecs = recs.select()
             response.flash = 'update succeeded'
         except Exception:
-            print traceback.format_exc(5)
+            print(traceback.format_exc(5))
     elif form.errors:
         response.flash = 'form has errors'
 
@@ -246,7 +246,7 @@ def migrate_field():
     """
     fields = {'plugin_slider_slides': ('content', 'slide_content')}
 
-    for t, f in fields.iteritems():
+    for t, f in fields.items():
         table = t
         source_field = f[0]
         target_field = f[1]
@@ -291,7 +291,7 @@ def to_migrate_table():
             cls = db((db.auth_group.id == i.group_id) &
                      (db.auth_group.end_date == db.classes.end_date)
                      ).select().first()
-            print i.user_id, ':', cls.classes.id
+            print(i.user_id, ':', cls.classes.id)
             db.class_membership.update_or_insert(**{'name': i.user_id,
                                                     'class_section': cls.classes.id})
     cc = db(db.class_membership.id > 0).select().as_dict()
@@ -311,7 +311,7 @@ def migrate_back():
 
 @auth.requires_membership('administrators')
 def export_db():
-    s = StringIO.StringIO()
+    s = io.StringIO()
     db.export_to_csv_file(s)
     response.headers['Content-Type'] = 'text/csv'
     return s.getvalue()
@@ -324,9 +324,9 @@ def update_uuids():
     """
     retval = {}
     for t in db.tables:
-        print 'start table', t
+        print('start table', t)
         recs = db(db[t].id > 0).select()
-        print 'found', len(recs), 'records'
+        print('found', len(recs), 'records')
         changed = 0
         dated = 0
         try:
@@ -337,7 +337,7 @@ def update_uuids():
                 if r.modified_on is None:
                     r.update_record(modified_on=request.now)
                     dated += 1
-            print 'changed', changed
+            print('changed', changed)
         except:
             traceback.print_exc(5)
         retval[t] = ('changed {}'.format(changed),
