@@ -34,7 +34,7 @@ class TestParser():
         """
         """
         actual = Parser(None).getform(dictin)
-        print 'actual form is', actual
+        print('actual form is', actual)
         assert actual == formout
 
     @pytest.mark.skipif(False, reason='just because')
@@ -48,8 +48,8 @@ class TestParser():
                                 'voice': 'none',
                                 'mood': 'none',
                                 'declension': '1',
-                                'construction': 153L,
-                                'id': 98L,
+                                'construction': 153,
+                                'id': 98,
                                 'modified_on': datetime.datetime(2014, 6, 17,
                                                                  14, 41, 6),
                                 'part_of_speech': 'article',
@@ -65,8 +65,8 @@ class TestParser():
         """
         """
         actual = Parser(None).parseform(formin)
-        print 'actual output is', actual
-        for k, val in actual.iteritems():
+        print('actual output is', actual)
+        for k, val in actual.items():
             assert dictout[k] == val
 
     @pytest.mark.skipif(False, reason='just because')
@@ -80,7 +80,7 @@ class TestParser():
         """
         """
         actual = Parser(None).find_agree(formin, pos)
-        print 'actual form is', actual
+        print('actual form is', actual)
         assert actual == formout
 
 
@@ -89,34 +89,34 @@ class TestNoun():
     """
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('nominal,string,expected,matching',
-            [(ur'ἀρτον|λογον',  # nominal
-              u'Τον ἀρτον ὁ ἀνηρ πωλει.',  # string
+            [(r'ἀρτον|λογον',  # nominal
+              'Τον ἀρτον ὁ ἀνηρ πωλει.',  # string
               (False,
                {},
-               {0: [(u'Τον', {'index': 0}),
-                     (u'ἀρτον', {'current': 0, 'pos': 'Noun', 'index': 1}),
-                     (u'ὁ', {'index': 2}),
-                     (u'ἀνηρ', {'index': 3}),
-                     (u'πωλει', {'index': 4})]
+               {0: [('Τον', {'index': 0}),
+                     ('ἀρτον', {'current': 0, 'pos': 'Noun', 'index': 1}),
+                     ('ὁ', {'index': 2}),
+                     ('ἀνηρ', {'index': 3}),
+                     ('πωλει', {'index': 4})]
                 }
                ),
-              {0: {'index': 1, 'word': u'ἀρτον'}}  # matching
+              {0: {'index': 1, 'word': 'ἀρτον'}}  # matching
               ),
-             (ur'ἀρτον|λογον',  # nominal
-              u'ἀρτον',  # string
+             (r'ἀρτον|λογον',  # nominal
+              'ἀρτον',  # string
               (True,
-               {0: [(u'ἀρτον', {'current': 0, 'pos': 'Noun', 'index': 0})]},
+               {0: [('ἀρτον', {'current': 0, 'pos': 'Noun', 'index': 0})]},
                {}
                ),
-              {0: {'index': 0, 'word': u'ἀρτον'}}  # matching
+              {0: {'index': 0, 'word': 'ἀρτον'}}  # matching
               )
              ])
     def test_validate(self, nominal, string, expected, matching):
         """
         """
         tkns = tokenize(string)[0]
-        print 'tokens ------------------------------------'
-        print tkns
+        print('tokens ------------------------------------')
+        print(tkns)
         with Noun(nominal, 'top') as myNoun:
             avalid, afailed = myNoun.validate(tkns, [])
             #print 'valid leaves --------------------------'
@@ -129,84 +129,84 @@ class TestNoun():
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('nominal,odin,validout,failedout,matching',
-            [(ur'ἀρτον|λογον',  # ------------------------------nominal
-              {0: [(u'Τον', {'index': 0}),  # -----------------odin
-                   (u'ἀρτον', {'index': 1}),
-                   (u'ὁ', {'index': 2}),
-                   (u'ἀνηρ', {'index': 3}),
-                   (u'πωλει', {'index': 4})]
+            [(r'ἀρτον|λογον',  # ------------------------------nominal
+              {0: [('Τον', {'index': 0}),  # -----------------odin
+                   ('ἀρτον', {'index': 1}),
+                   ('ὁ', {'index': 2}),
+                   ('ἀνηρ', {'index': 3}),
+                   ('πωλει', {'index': 4})]
                },
-              {0: [(u'Τον', {'index': 0}),  # -----------------validout
-                   (u'ἀρτον', {'current': 0, 'pos': 'Noun', 'index': 1}),
-                   (u'ὁ', {'index': 2}),
-                   (u'ἀνηρ', {'index': 3}),
-                   (u'πωλει', {'index': 4})]
-               },
-              {},  # --------------------------------------------failedout
-              {0: {'index': 1, 'word': u'ἀρτον'}}  # ------------matching
-              ),
-             (ur'ἀρτον|ἀνηρ',  # ------------------------------nominal
-              {0: [(u'Τον', {'index': 0}),  # -----------------odin
-                   (u'ἀρτον', {'index': 1}),
-                   (u'ὁ', {'index': 2}),
-                   (u'ἀνηρ', {'index': 3}),
-                   (u'πωλει', {'index': 4})]
-               },
-              {0: [(u'Τον', {'index': 0}),  # -----------------validout
-                   (u'ἀρτον', {'current': 0, 'pos': 'Noun', 'index': 1}),
-                   (u'ὁ', {'index': 2}),
-                   (u'ἀνηρ', {'index': 3}),
-                   (u'πωλει', {'index': 4})],
-               1: [(u'Τον', {'index': 0}),
-                   (u'ἀρτον', {'index': 1}),
-                   (u'ὁ', {'index': 2}),
-                   (u'ἀνηρ', {'current': 0, 'pos': 'Noun', 'index': 3}),
-                   (u'πωλει', {'index': 4})]
+              {0: [('Τον', {'index': 0}),  # -----------------validout
+                   ('ἀρτον', {'current': 0, 'pos': 'Noun', 'index': 1}),
+                   ('ὁ', {'index': 2}),
+                   ('ἀνηρ', {'index': 3}),
+                   ('πωλει', {'index': 4})]
                },
               {},  # --------------------------------------------failedout
-              {0: {'index': 1, 'word': u'ἀρτον'},
-               1: {'index': 3, 'word': u'ἀνηρ'}}  # ------------matching
+              {0: {'index': 1, 'word': 'ἀρτον'}}  # ------------matching
               ),
-             (ur'οἰκος|ἀνδρος',  # ------------------------------nominal
-              {0: [(u'Τον', {'index': 0}),  # -----------------odin
-                   (u'ἀρτον', {'index': 1}),
-                   (u'ὁ', {'index': 2}),
-                   (u'ἀνηρ', {'index': 3}),
-                   (u'πωλει', {'index': 4})]
+             (r'ἀρτον|ἀνηρ',  # ------------------------------nominal
+              {0: [('Τον', {'index': 0}),  # -----------------odin
+                   ('ἀρτον', {'index': 1}),
+                   ('ὁ', {'index': 2}),
+                   ('ἀνηρ', {'index': 3}),
+                   ('πωλει', {'index': 4})]
+               },
+              {0: [('Τον', {'index': 0}),  # -----------------validout
+                   ('ἀρτον', {'current': 0, 'pos': 'Noun', 'index': 1}),
+                   ('ὁ', {'index': 2}),
+                   ('ἀνηρ', {'index': 3}),
+                   ('πωλει', {'index': 4})],
+               1: [('Τον', {'index': 0}),
+                   ('ἀρτον', {'index': 1}),
+                   ('ὁ', {'index': 2}),
+                   ('ἀνηρ', {'current': 0, 'pos': 'Noun', 'index': 3}),
+                   ('πωλει', {'index': 4})]
+               },
+              {},  # --------------------------------------------failedout
+              {0: {'index': 1, 'word': 'ἀρτον'},
+               1: {'index': 3, 'word': 'ἀνηρ'}}  # ------------matching
+              ),
+             (r'οἰκος|ἀνδρος',  # ------------------------------nominal
+              {0: [('Τον', {'index': 0}),  # -----------------odin
+                   ('ἀρτον', {'index': 1}),
+                   ('ὁ', {'index': 2}),
+                   ('ἀνηρ', {'index': 3}),
+                   ('πωλει', {'index': 4})]
                },
               {},  # ---------------------------------------------validout
-              {0: [(u'Τον', {'index': 0}),  # -------------------failedout
-                   (u'ἀρτον', {'index': 1}),
-                   (u'ὁ', {'index': 2}),
-                   (u'ἀνηρ', {'index': 3}),
-                   (u'πωλει', {'index': 4})]
+              {0: [('Τον', {'index': 0}),  # -------------------failedout
+                   ('ἀρτον', {'index': 1}),
+                   ('ὁ', {'index': 2}),
+                   ('ἀνηρ', {'index': 3}),
+                   ('πωλει', {'index': 4})]
                },
               {}  # ---------------------------------------------matching
               ),
-             (ur'ἀρτον|ἀνδρος',  # ------------------------------nominal
-              {0: [(u'Τον', {'index': 0}),  # -----------------odin
-                   (u'ἀρτον', {'pos': 'Noun', 'index': 1}),
-                   (u'ὁ', {'index': 2}),
-                   (u'ἀνηρ', {'index': 3}),
-                   (u'πωλει', {'index': 4})],
-               1: [(u'Τον', {'pos': 'Art', 'index': 0}),
-                   (u'ἀρτον', {'index': 1}),
-                   (u'ὁ', {'index': 2}),
-                   (u'ἀνηρ', {'index': 3}),
-                   (u'πωλει', {'index': 4})]
+             (r'ἀρτον|ἀνδρος',  # ------------------------------nominal
+              {0: [('Τον', {'index': 0}),  # -----------------odin
+                   ('ἀρτον', {'pos': 'Noun', 'index': 1}),
+                   ('ὁ', {'index': 2}),
+                   ('ἀνηρ', {'index': 3}),
+                   ('πωλει', {'index': 4})],
+               1: [('Τον', {'pos': 'Art', 'index': 0}),
+                   ('ἀρτον', {'index': 1}),
+                   ('ὁ', {'index': 2}),
+                   ('ἀνηρ', {'index': 3}),
+                   ('πωλει', {'index': 4})]
                },
-              {1: [(u'Τον', {'pos': 'Art', 'index': 0}),  # ------------------validout
-                   (u'ἀρτον', {'current': 0, 'pos': 'Noun', 'index': 1}),
-                   (u'ὁ', {'index': 2}),
-                   (u'ἀνηρ', {'index': 3}),
-                   (u'πωλει', {'index': 4})]},
-              {0: [(u'Τον', {'index': 0}),  # -------------------failedout
-                   (u'ἀρτον', {'pos': 'Noun', 'index': 1}),
-                   (u'ὁ', {'index': 2}),
-                   (u'ἀνηρ', {'index': 3}),
-                   (u'πωλει', {'index': 4})]
+              {1: [('Τον', {'pos': 'Art', 'index': 0}),  # ------------------validout
+                   ('ἀρτον', {'current': 0, 'pos': 'Noun', 'index': 1}),
+                   ('ὁ', {'index': 2}),
+                   ('ἀνηρ', {'index': 3}),
+                   ('πωλει', {'index': 4})]},
+              {0: [('Τον', {'index': 0}),  # -------------------failedout
+                   ('ἀρτον', {'pos': 'Noun', 'index': 1}),
+                   ('ὁ', {'index': 2}),
+                   ('ἀνηρ', {'index': 3}),
+                   ('πωλει', {'index': 4})]
                },
-              {1: {'index': 1, 'word': u'ἀρτον'}}  # ------------matching
+              {1: {'index': 1, 'word': 'ἀρτον'}}  # ------------matching
               ),
              ])
     def test_match_string(self, nominal, odin, validout, failedout, matching):
@@ -214,14 +214,14 @@ class TestNoun():
         """
         with Noun(nominal, 'top') as myNoun:
             avalid, afailed = myNoun.match_string(odin, [])
-            print 'valid leaves --------------------------'
-            print Uprinter().uprint(avalid)
-            print 'failed leaves -------------------------'
-            print Uprinter().uprint(afailed)
+            print('valid leaves --------------------------')
+            print(Uprinter().uprint(avalid))
+            print('failed leaves -------------------------')
+            print(Uprinter().uprint(afailed))
             assert avalid == validout
             assert afailed == failedout
             if myNoun.matching_words:
-                for k, v in myNoun.matching_words.iteritems():
+                for k, v in myNoun.matching_words.items():
                     assert matching[k] == v
             else:
                 assert myNoun.matching_words == matching
@@ -236,26 +236,26 @@ class TestNounPhrase():
                              'art_matching,noun_matching',
             [('ἀρτον',  # --------------------------------nominal
               'τον',  # ----------------------------------article
-              {0: [(u'Τον', {'current': 0, 'pos': 'Art', 'index': 0}),  # -------------odin
-                   (u'ἀρτον', {'current': 0, 'pos': 'Noun', 'index': 1}),
-                   (u'ὁ', {'index': 2}),
-                   (u'ἀνηρ', {'index': 3}),
-                   (u'πωλει', {'index': 4})]
+              {0: [('Τον', {'current': 0, 'pos': 'Art', 'index': 0}),  # -------------odin
+                   ('ἀρτον', {'current': 0, 'pos': 'Noun', 'index': 1}),
+                   ('ὁ', {'index': 2}),
+                   ('ἀνηρ', {'index': 3}),
+                   ('πωλει', {'index': 4})]
                },
-              {0: [(u'Τον', {'current': 0,  # ---------validout
+              {0: [('Τον', {'current': 0,  # ---------validout
                              'pos': 'Art',
                              'index': 0,
                              'modifies': 1}),
-                   (u'ἀρτον', {'current': 0,
+                   ('ἀρτον', {'current': 0,
                                'pos': 'Noun',
                                'index': 1}),
-                   (u'ὁ', {'index': 2}),
-                   (u'ἀνηρ', {'index': 3}),
-                   (u'πωλει', {'index': 4})]
+                   ('ὁ', {'index': 2}),
+                   ('ἀνηρ', {'index': 3}),
+                   ('πωλει', {'index': 4})]
                },
               [],  # -------------------------------------------failedout
-              {0: {'index': 0, 'word': u'Τον'}},  # ------------art_matching
-              {0: {'index': 1, 'word': u'ἀρτον'}} # ------------noun_matching
+              {0: {'index': 0, 'word': 'Τον'}},  # ------------art_matching
+              {0: {'index': 1, 'word': 'ἀρτον'}} # ------------noun_matching
               ),
              ]
              )
@@ -269,39 +269,39 @@ class TestNounPhrase():
         noun.matching_words == noun_matching
         with NounPhrase(None, art, noun, 'def', 'top') as myNP:
             avalid, afailed = myNP.test_order(odin, [])
-            print 'valid leaves --------------------------'
-            print Uprinter().uprint(avalid)
-            print 'failed leaves -------------------------'
-            print Uprinter().uprint(afailed)
+            print('valid leaves --------------------------')
+            print(Uprinter().uprint(avalid))
+            print('failed leaves -------------------------')
+            print(Uprinter().uprint(afailed))
             assert avalid == validout
             assert afailed == failedout
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('nominal,article,string,expected',
-            [(u'ἀρτον',  # --------------------------------nominal
-              u'τον',  # ----------------------------------article
-              u'Τον ἀρτον ὁ ἀνηρ πωλει.',  # -------------string
+            [('ἀρτον',  # --------------------------------nominal
+              'τον',  # ----------------------------------article
+              'Τον ἀρτον ὁ ἀνηρ πωλει.',  # -------------string
               (False,
                [],
-               [[(u'Τον', {'pos': 'Art',  # -------------------failedout
+               [[('Τον', {'pos': 'Art',  # -------------------failedout
                            'modifies': 1,
                            'index': 0,
                            'current': 0}),
-                 (u'ἀρτον', {'current': 0, 'pos': 'Noun', 'index': 1}),
-                 (u'ὁ', {'index': 2}),
-                 (u'ἀνηρ', {'index': 3}),
-                 (u'πωλει', {'index': 4})]]
+                 ('ἀρτον', {'current': 0, 'pos': 'Noun', 'index': 1}),
+                 ('ὁ', {'index': 2}),
+                 ('ἀνηρ', {'index': 3}),
+                 ('πωλει', {'index': 4})]]
                )
               ),
              ('ἀρτον',  # --------------------------------nominal
               'Τον',  # ----------------------------------article
               'Τον ἀρτον.',  # -------------string
               (True,
-               [[(u'Τον', {'pos': 'Art',  # -------------------validout
+               [[('Τον', {'pos': 'Art',  # -------------------validout
                            'modifies': 1,
                            'index': 0,
                            'current': 0}),
-                 (u'ἀρτον', {'current': 0, 'pos': 'Noun', 'index': 1})]
+                 ('ἀρτον', {'current': 0, 'pos': 'Noun', 'index': 1})]
                 ],
                []  # -------------------failedout
                )
@@ -311,11 +311,11 @@ class TestNounPhrase():
               'Ἀρτον τον ὁ ἀνηρ πωλει.',  # -------------string
               (False,
                [],  # -------------------validout
-               [[(u'Ἀρτον', {'current': 0, 'pos': 'Noun', 'index': 0}),  # --------failedout
-                 (u'τον', {'current': 0, 'pos': 'Art', 'index': 1}),
-                 (u'ὁ', {'index': 2}),
-                 (u'ἀνηρ', {'index': 3}),
-                 (u'πωλει', {'index': 4})]]
+               [[('Ἀρτον', {'current': 0, 'pos': 'Noun', 'index': 0}),  # --------failedout
+                 ('τον', {'current': 0, 'pos': 'Art', 'index': 1}),
+                 ('ὁ', {'index': 2}),
+                 ('ἀνηρ', {'index': 3}),
+                 ('πωλει', {'index': 4})]]
                )
               ),
              ])

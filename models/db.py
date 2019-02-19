@@ -9,7 +9,7 @@ from pytz import timezone
 from gluon.tools import Recaptcha2, Auth, Mail, Crud, Service, PluginManager
 from gluon.tools import IS_IN_SET
 from gluon.globals import current
-import bootstrap3 as bs3  # is needed here even though not used
+import bootstrap3 as bs3  # needed here even though not used
 if 0:
     from gluon import DAL, URL, Field, SQLFORM
 
@@ -48,7 +48,7 @@ def _i_am_running_under_test():
     if request.is_local:
         # IMPORTANT: the temp_filename variable must be the same as the one set
         # on your tests/conftest.py file.
-        temp_filename = '%s/tests_%s.tmp' % (temp_dir, request.application)
+        temp_filename = '{}/tests_{}.tmp'.format(temp_dir, request.application)
 
         import glob
         if glob.glob(temp_filename):
@@ -76,24 +76,24 @@ postgre['db_name'] = keydata['postgre_dbname']
 # set the postgres dbase to the test dbase instead of using sqllite
 if _i_am_running_under_test():
     postgre['db_name'] = keydata['postgre_testdbname']
-print '--- using dbase: ', postgre['db_name'], ' ---'
+print(('--- using dbase: ', postgre['db_name'], ' ---'))
 # check_reserved makes sure no column names conflict with back-end db's
-connect_string = 'postgres:psycopg2://%s:%s@%s/%s' % (postgre['username'],
-                                                      postgre['password'],
-                                                      postgre['host'],
-                                                      postgre['db_name'])
+connect_string = 'postgres:psycopg2://{}:{}@{}/{}'.format(postgre['username'],
+                                                          postgre['password'],
+                                                          postgre['host'],
+                                                          postgre['db_name'])
 # make sure migrate is false during tests
 if _i_am_running_under_test():
     db = DAL(connect_string, pool_size=1,
              check_reserved=['sqlite', 'postgres'],
              migrate=False, fake_migrate_all=False)
-    print '--- adapter: ', db._adapter.driver.__name__
-    print '--- TEST DATABASE ---'
+    print(('--- adapter: ', db._adapter.driver.__name__))
+    print('--- TEST DATABASE ---')
 else:
     db = DAL(connect_string, pool_size=1,
              check_reserved=['sqlite', 'postgres'],
              migrate=True, fake_migrate_all=False)
-    print '--- adapter: ', db._adapter.driver.__name__
+    print(('--- adapter: ', db._adapter.driver.__name__))
 
 # -------------------------------------------------------------
 # Set up logging

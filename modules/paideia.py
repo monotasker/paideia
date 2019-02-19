@@ -52,12 +52,12 @@ class MyPickler (pickle.Pickler):
     def save(self, obj):
         try:
             pickle.Pickler.save(self, obj)
-        except Exception, e:
-            print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
-            print 'pickling object of type', type(obj)
-            print obj
-            print 'error ================'
-            print e
+        except Exception as e:
+            print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
+            print('pickling object of type', type(obj))
+            print(obj)
+            print('error ================')
+            print(e)
 
 
 def util_get_args():
@@ -167,9 +167,9 @@ class Walk(object):
                 # FIXME: temporary sanitization of pickled session data
                 # adjusting to new db field names - Apr 28, 2015
                 tp = self.user.tag_progress
-                tpkeys = tp.keys()
-                for oldkey, newkey in {'just_cats': 'cat1_choices',
-                                       'all_cats': 'all_choices'}.iteritems():
+                tpkeys = list(tp.keys())
+                for oldkey, newkey in list({'just_cats': 'cat1_choices',
+                                       'all_cats': 'all_choices'}.items()):
                     if oldkey in tpkeys:
                         current.paideia_debug.do_print('removing {} from '
                                                        'stored tag_progress'
@@ -183,7 +183,7 @@ class Walk(object):
                                                'Walk.get_user')
 
             except (KeyError, TypeError):  # Problem with session data
-                print traceback.format_exc(5)
+                print(traceback.format_exc(5))
                 self.user = self._new_user(userdata, tag_records, tag_progress)
             except (AssertionError, AttributeError):  # user stale or block
                 self.user = self._new_user(userdata, tag_records, tag_progress)
@@ -222,7 +222,7 @@ class Walk(object):
                                   set_review=set_review)
                 break
         except Exception:
-            print traceback.format_exc(5)
+            print(traceback.format_exc(5))
             self.clean_user()  # get rid of any problem path data
             result = self.ask(localias=localias, path=path, step=step,
                               set_review=set_review)
@@ -271,8 +271,8 @@ class Walk(object):
             user = self.user
             # allow artificial setting of blocks during interface testing
             if set_blocks:
-                for c, v in set_blocks.iteritems():
-                    myargs = {n: a for n, a in v.iteritems()}
+                for c, v in list(set_blocks.items()):
+                    myargs = {n: a for n, a in list(v.items())}
                     current.sequence_counter += 1
                     user.set_block(c, kwargs=myargs)
             username = user.get_name()
@@ -291,8 +291,8 @@ class Walk(object):
             if repeat:
                 user.repeating = True  # so that information available in reply
             if debug:
-                print 'Walk::ask: path chosen is', p.get_id()
-                print 'Walk::ask: redir is', redir
+                print('Walk::ask: path chosen is', p.get_id())
+                print('Walk::ask: redir is', redir)
 
             if (not p):
                 break  # no paths for this location for this category
@@ -306,12 +306,12 @@ class Walk(object):
                 current.sequence_counter += 1
                 user.set_block('quota_reached', kwargs={'quota': user.quota})
             if debug:
-                print 'Walk::ask: user.path.steps num is', len(user.path.steps)
+                print('Walk::ask: user.path.steps num is', len(user.path.steps))
 
             s, newloc_id, error_string = p.get_step_for_prompt(loc,
                                                                repeat=repeat)
             if debug:
-                print 'Walk::ask: user.path.steps num is', len(user.path.steps)
+                print('Walk::ask: user.path.steps num is', len(user.path.steps))
 
             if newloc_id:
                 current.sequence_counter += 1
@@ -332,7 +332,7 @@ class Walk(object):
                                   if user.blocks else False)
 
             if debug:
-                print 'Walk::ask: user.path.steps num is', len(user.path.steps)
+                print('Walk::ask: user.path.steps num is', len(user.path.steps))
             extra_fields = {'completed_count': user.get_completed_paths_len(),
                             'category': category,
                             'pid': p.get_id(),
@@ -342,10 +342,10 @@ class Walk(object):
 
             try:
                 if debug:
-                    print 'Walk::ask: repeating?', user.repeating
+                    print('Walk::ask: repeating?', user.repeating)
             except AttributeError:
                 if debug:
-                    print 'Walk::ask: user didn\'t have repeating attribute'
+                    print('Walk::ask: user didn\'t have repeating attribute')
             p.end_prompt(s.get_id())  # send id to tell whether a block step
             self._store_user(user)
             break  # from utility while loop
@@ -446,8 +446,8 @@ class Walk(object):
         if not cat:
             cat = user.active_cat
         if debug:
-            print 'Walk::reply: category is', cat
-            print 'Walk::reply: path is', p
+            print('Walk::reply: category is', cat)
+            print('Walk::reply: path is', p)
 
         s = p.get_step_for_reply()
         if (not response_string) or re.match(response_string, r'\s+'):
@@ -463,11 +463,11 @@ class Walk(object):
         if repeat:
             user.repeating = False  # remove repeating flag when step is over
             if debug:
-                print 'Walk::reply: user is repeating, not recording step'
+                print('Walk::reply: user is repeating, not recording step')
             self.record_id = None  # value to pass to the BugReporter
         else:
             if debug:
-                print 'Walk::reply: cat being recorded is:', cat
+                print('Walk::reply: cat being recorded is:', cat)
             self.record_id = self._record_step(user.get_id(),
                                                s.get_id(),
                                                p.get_id(),
@@ -509,7 +509,7 @@ class Walk(object):
         db = current.db
         now = datetime.datetime.utcnow()
         try:
-            for cat, lst in promoted.iteritems():
+            for cat, lst in list(promoted.items()):
                 if lst:
                     for tag in lst:
                         data = {'name': user_id,
@@ -521,7 +521,7 @@ class Walk(object):
                         db.commit()
             return True
         except Exception:
-            print traceback.format_exc(5)
+            print(traceback.format_exc(5))
             return False
 
     def _record_demotions(self, demoted, user_id):
@@ -563,7 +563,7 @@ class Walk(object):
                 assert mycount == 1  # ensure there's never a duplicate
                 # TODO: eliminate check by making name field unique
             except Exception:
-                print traceback.format_exc(5)
+                print(traceback.format_exc(5))
                 return False
             return True
         else:  # auth.user_id != uid because shadowing another user
@@ -736,7 +736,7 @@ class Walk(object):
         # fix: if it is make it slightly higher and change the comparison
         # sign
         if debug:
-            print 'Walk::_record_step: category is', category
+            print('Walk::_record_step: category is', category)
         score_helper = score + 0.1
         got_right = True if ((score_helper - 1.0) > 0.00000001) else False
 
@@ -747,7 +747,7 @@ class Walk(object):
                 oldrec = None
             self._update_tag_record(t, oldrec, user_id, raw_tright, raw_twrong,
                                     got_right, score, step_id, now=mynow)
-        if got_right and ('secondary' in taglist.keys()):
+        if got_right and ('secondary' in list(taglist.keys())):
             for t in taglist['secondary']:
                 oldrec = [r for r in old_trecs
                           if r['tag'] == t] if old_trecs else None
@@ -789,7 +789,7 @@ class Walk(object):
             db.commit()
             return rownum
         except Exception:
-            print traceback.format_exc(5)
+            print(traceback.format_exc(5))
             # try:
             #    #with open('tempfile.txt', 'wb') as tempfile:
             #        #myuser = MyPickler(tempfile).dump(user)
@@ -841,7 +841,7 @@ class Location(object):
         try:
             bg = URL('static/images', db.images[self.data['bg_image']].image)
         except Exception:
-            print traceback.format_exc(5)
+            print(traceback.format_exc(5))
             bg = SPAN('no image in db for location {}'.format(self.data['id']))
         return bg
 
@@ -996,7 +996,7 @@ class BugReporter(object):
                    'score': score,
                    'bug_step_id': step_id}
         if debug:
-            print 'BugReporter::get_reporter: vardict is \n', pprint(vardict)
+            print('BugReporter::get_reporter: vardict is \n', pprint(vardict))
 
         return vardict
 
@@ -1136,19 +1136,19 @@ class Step(object):
         db = current.db
         tags = db(db.tags.id.belongs(self.data['tags'])).select()
         if debug:
-            print 'Step::_get_slides: tags', [t['id'] for t in tags]
+            print('Step::_get_slides: tags', [t['id'] for t in tags])
         if tags:
             if debug:
-                print 'got some tags'
+                print('got some tags')
             try:
                 decks = {d.id: d.deck_name for t in tags for d in t.slides
                          if t.slides}
                 if debug:
-                    print 'decks:', decks
+                    print('decks:', decks)
                 return decks
             except Exception as e:
-                print e
-                print 'failed to return decks'
+                print(e)
+                print('failed to return decks')
                 pass
         else:
             return None
@@ -1267,13 +1267,13 @@ class Step(object):
             #        v = ''
             #    new_string[0] = new_string[0].replace(k, '')
             #    new_string.append(v)
-            for k, v in appds.iteritems():
+            for k, v in list(appds.items()):
                 if v:
                     newstr = newstr.replace(k, v)
                 else:
                     newstr = newstr.replace(k, '')
                     # new_string += v
-        for k, v in reps.iteritems():
+        for k, v in list(reps.items()):
             if not v:
                 v = ''
             newstr = newstr.replace(k, v)
@@ -1337,7 +1337,7 @@ class Step(object):
                         current.paideia_debug.do_print("randrange error NOT "
                                                        "permitted",
                                                        'Step.get_npc')
-                        print traceback.format_exc(5)
+                        print(traceback.format_exc(5))
                 assert pick
                 self.npc = Npc(pick)
         return self.npc
@@ -1461,15 +1461,15 @@ class StepAwardBadges(StepContinue, Step):
         reps = {}
         kw = self.kwargs
 
-        new_tags = kw['new_tags'] if ('new_tags' in kw.keys() and
+        new_tags = kw['new_tags'] if ('new_tags' in list(kw.keys()) and
                                       kw['new_tags']) else None
-        promoted = kw['promoted'] if ('promoted' in kw.keys() and
+        promoted = kw['promoted'] if ('promoted' in list(kw.keys()) and
                                       kw['promoted']) else None
 
         conj = " and you're" if promoted else "You are"
         nt_rep = ''
         if new_tags:
-            flat_nts = [i for cat, lst in new_tags.iteritems()
+            flat_nts = [i for cat, lst in list(new_tags.items())
                         for i in lst if lst]
             nt_records = db(db.badges.tag.belongs(flat_nts)
                             ).select(db.badges.tag,
@@ -1478,8 +1478,8 @@ class StepAwardBadges(StepContinue, Step):
                 nt_rep = '{} ready to start working on some new ' \
                          'badges:\r\n'.format(conj)
                 ranks = ['beginner', 'apprentice', 'journeyman', 'master']
-                nt_clean = {k: v for k, v in new_tags.iteritems() if v}
-                for rank, lst in nt_clean.iteritems():
+                nt_clean = {k: v for k, v in list(new_tags.items()) if v}
+                for rank, lst in list(nt_clean.items()):
                     ranknum = int(rank.replace('rev', ''))
                     label = ranks[ranknum - 1]
                     for l in lst:
@@ -1497,7 +1497,7 @@ class StepAwardBadges(StepContinue, Step):
 
         prom_rep = ' '
         if promoted:
-            flat_proms = [i for cat, lst in promoted.iteritems()
+            flat_proms = [i for cat, lst in list(promoted.items())
                           for i in lst if lst]
             prom_records = db(db.badges.tag.belongs(flat_proms)
                               ).select(db.badges.tag,
@@ -1506,8 +1506,8 @@ class StepAwardBadges(StepContinue, Step):
                 prom_rep = 'You have been promoted to these new ' \
                     'badge levels:\r\n'
                 ranks = ['beginner', 'apprentice', 'journeyman', 'master']
-                prom_clean = {k: v for k, v in promoted.iteritems() if v}
-                for rank, lst in prom_clean.iteritems():
+                prom_clean = {k: v for k, v in list(promoted.items()) if v}
+                for rank, lst in list(prom_clean.items()):
                     # FIXME: why is this sometimes getting 'cat' instead of
                     # 'rev'?  Apr 28, 2015
                     try:
@@ -1550,7 +1550,7 @@ class StepViewSlides(Step):
         """
         db = current.db
         new_tags = self.kwargs['new_tags']
-        flat_nts = [i for cat, lst in new_tags.iteritems() for i in lst if lst]
+        flat_nts = [i for cat, lst in list(new_tags.items()) for i in lst if lst]
         tags = db((db.tags.id == db.badges.tag) &
                   (db.tags.id.belongs(flat_nts))).select().as_list()
 
@@ -1622,7 +1622,7 @@ class StepText(Step):
         db = current.db
         readable = self._get_readable()
         tips = self.data['hints']
-        responses = {k: v for k, v in self.data.iteritems()
+        responses = {k: v for k, v in list(self.data.items())
                      if k and (k in ['response1', 'response2', 'response3'])}
         #  except TypeError:
         #  tips = self.data['step'].data['hints']
@@ -1632,7 +1632,7 @@ class StepText(Step):
         if tips:
             tips_lst = db(db.step_hints.id.belongs(tips)
                           ).select(db.step_hints.hint_text).as_list()
-            tips_lst = [v for t in tips_lst for k, v in t.iteritems()]
+            tips_lst = [v for t in tips_lst for k, v in list(t.items())]
         else:
             tips_lst = None
 
@@ -1731,7 +1731,7 @@ class StepEvaluator(object):
         clean_user_response = GreekNormalizer().normalize(user_response)
         # print 'in get_eval user_response is', type(user_response)
         clean_user_response = makeutf8(clean_user_response)
-        responses = {k: r for k, r in self.responses.iteritems()
+        responses = {k: r for k, r in list(self.responses.items())
                      if r and r != 'null'}
         # Compare the student's response to the regular expressions
         times_wrong = 1
@@ -1740,12 +1740,12 @@ class StepEvaluator(object):
 
         try:
             regex1 = re.compile(makeutf8(responses['response1']), re.I | re.U)
-            if 'response2' in responses.keys():
+            if 'response2' in list(responses.keys()):
                 regex2 = re.compile(makeutf8(responses['response2']),
                                     re.I | re.U)
             else:
                 regex2 = None
-            if 'response3' in responses.keys():
+            if 'response3' in list(responses.keys()):
                 regex3 = re.compile(makeutf8(responses['response3']),
                                     re.I | re.U)
             else:
@@ -1772,7 +1772,7 @@ class StepEvaluator(object):
                 reply = "Ού κάκον. You're very close. Just remember not to " \
                         "put a final punctuation mark on your answer if " \
                         "it's not a complete clause"
-            elif 'response2' in responses.keys() and \
+            elif 'response2' in list(responses.keys()) and \
                     re.match(regex2, makeutf8(clean_user_response)):
                 score = 0.5
                 #  TODO: Get this score value from the db instead of hard
@@ -1780,7 +1780,7 @@ class StepEvaluator(object):
                 reply = "Οὐ κάκον. You're close."
                 #  TODO: Vary the replies
 
-            elif 'response3' in responses.keys() and \
+            elif 'response3' in list(responses.keys()) and \
                     re.match(regex3, makeutf8(clean_user_response)):
                 #  TODO: Get this score value from the db instead of hard
                 #  coding it here.
@@ -1899,7 +1899,7 @@ class Path(object):
                 self.step_for_prompt = next_step
                 return True
         except Exception:
-            print traceback.format_exc(5)
+            print(traceback.format_exc(5))
             return False
 
     def end_prompt(self, stepid):
@@ -1939,10 +1939,10 @@ class Path(object):
         if self.completed_steps:
             laststep = self.completed_steps.pop()
             if debug:
-                print 'laststep is', laststep.get_id()
+                print('laststep is', laststep.get_id())
             self.steps.insert(0, laststep)
             if debug:
-                print 'self.steps is', [s.get_id() for s in self.steps]
+                print('self.steps is', [s.get_id() for s in self.steps])
             # self.steps = copy(self.completed_steps)
             # self.completed_steps = []
         if len(self.steps) == 0:
@@ -1982,11 +1982,11 @@ class Path(object):
                 current.paideia_debug.do_print(error_string + "randrange "
                                                "error NOT permitted",
                                                'Path.get_step_for_prompt')
-                print traceback.format_exc(5)
+                print(traceback.format_exc(5))
         else:
             mystep.loc = loc  # update location on step
         if debug:
-            print 'Path::get_step_for_prompt: mystep is', mystep
+            print('Path::get_step_for_prompt: mystep is', mystep)
 
         return mystep, next_loc, error_string
 
@@ -2028,7 +2028,7 @@ class PathChooser(object):
 
     def __init__(self, tag_progress, loc_id, paths_completed, db=None):
         """Initialize a PathChooser object to select the user's next path."""
-        self.categories = {k: v for k, v in tag_progress.iteritems()
+        self.categories = {k: v for k, v in list(tag_progress.items())
                            if k not in ['name', 'latest_new']}
         self.rank = tag_progress['latest_new']
         db = current.db if not db else db
@@ -2039,10 +2039,10 @@ class PathChooser(object):
         self.CONSTANT_USE_CAT = 'cat1'
         self.CONSTANT_USE_REV = 'rev1'
         self.cat1_choices = tag_progress['cat1_choices'] \
-            if 'cat1_choices' in tag_progress.keys() \
+            if 'cat1_choices' in list(tag_progress.keys()) \
             and tag_progress['cat1_choices'] else 0  # counts cat1 choices
         self.all_choices = tag_progress['all_choices'] \
-            if 'all_choices' in tag_progress.keys() \
+            if 'all_choices' in list(tag_progress.keys()) \
             and tag_progress['all_choices'] else 0  # counts total choices
         self.tag_progress = tag_progress
         self.force_new = self._check_force_new()
@@ -2074,10 +2074,10 @@ class PathChooser(object):
         else:
             cat = 4
 
-        cat_list = range(1, 5)[(cat - 1):4] + range(1, 5)[0:(cat - 1)]
+        cat_list = list(range(1, 5))[(cat - 1):4] + list(range(1, 5))[0:(cat - 1)]
         if debug:
-            print "PathChooser::_order_cats: categories prioritized in " \
-                "order:", cat_list
+            print("PathChooser::_order_cats: categories prioritized in " \
+                "order:", cat_list)
         return cat_list
 
     def _check_force_new(self):
@@ -2097,7 +2097,7 @@ class PathChooser(object):
         self.all_choices = self.all_choices % self.CYCLE_LENGTH
         if self.all_choices == 0:
             self.cat1_choices = 0
-        print 'self.all_choices', self.all_choices
+        print('self.all_choices', self.all_choices)
 
         # cat1 choices still needed this cycle to make up quota
         cat1_still_needed = self.GUARANTEED_NEW - self.cat1_choices
@@ -2109,7 +2109,7 @@ class PathChooser(object):
             self.cat1_choices += 1  # FIXME: what about regular cat1 choices?
             rslt = True
             if debug:
-                print 'PathChooser::_check_force_new: forcing new'
+                print('PathChooser::_check_force_new: forcing new')
         else:
             rslt = False
 
@@ -2145,8 +2145,8 @@ class PathChooser(object):
 
             def get_stepslist(taglist):
                 if debug:
-                    print 'PathChooser::_paths_by_cateogry: using taglist', \
-                        taglist
+                    print('PathChooser::_paths_by_cateogry: using taglist', \
+                        taglist)
                 myrows = db(db.steps.tags.contains(taglist)).select()
                 myrows = myrows.find(lambda row: row.status != 2)
                 mylist = [v.id for v in myrows]
@@ -2155,13 +2155,13 @@ class PathChooser(object):
             taglist = self.categories['rev{}'.format(cat)]
             taglist_cat1 = self.categories['cat1']
             if debug:
-                print 'PathChooser::_paths_by_category: cat1_choices', \
-                    self.cat1_choices
-                print 'PathChooser::_paths_by_category: all_choices', \
-                    self.all_choices
+                print('PathChooser::_paths_by_category: cat1_choices', \
+                    self.cat1_choices)
+                print('PathChooser::_paths_by_category: all_choices', \
+                    self.all_choices)
             if self.force_new:
                 if debug:
-                    print 'PathChooser::_paths_by_category: forcing new'
+                    print('PathChooser::_paths_by_category: forcing new')
                 cat = 1
                 force_cat1 = True
                 stepslist = get_stepslist(taglist_cat1)
@@ -2223,8 +2223,8 @@ class PathChooser(object):
             pathset = pathset.as_list()
             break
         if debug:
-            print 'PathChooser::_paths_by_cateogry: returning pathset',  \
-                [p['id'] for p in pathset]
+            print('PathChooser::_paths_by_cateogry: returning pathset',  \
+                [p['id'] for p in pathset])
 
         return pathset, cat, force_cat1, pathset_new
 
@@ -2250,7 +2250,7 @@ class PathChooser(object):
         path = None
         new_loc = None
         mode = None
-        completed_list = [int(k) for k in self.completed['paths'].keys()]
+        completed_list = [int(k) for k in list(self.completed['paths'].keys())]
 
         # print 'in _choose_from_cat ---------------------------------'
         while True:
@@ -2262,7 +2262,7 @@ class PathChooser(object):
                       if loc_id in db.steps[int(p['steps'][0])].locations]
             # print 'p_here:', [p['id'] for p in p_here]
             p_here_new = [p for p in p_here if p in p_new]
-            print 'p_here_new:', [p['id'] for p in p_here_new]
+            print('p_here_new:', [p['id'] for p in p_here_new])
             p_all = [p for p in cpaths]
             p_tried_ids = list(set([p['id'] for p in cpaths]
                                    ).intersection(completed_list))
@@ -2298,7 +2298,7 @@ class PathChooser(object):
                     except TypeError:
                         path = None
                     except ValueError:
-                        print traceback.format_exc(5)
+                        print(traceback.format_exc(5))
                 break
             if p_tried:
                 try:
@@ -2341,7 +2341,7 @@ class PathChooser(object):
                             break
                         repeats.pop(0)  # if no viable loc for path, try again
                 except ValueError:
-                    print traceback.format_exc(5)
+                    print(traceback.format_exc(5))
             if new_loc:
                 if self.loc_id == new_loc:
                     new_loc = None  # new_loc = None means keep curr_loc
@@ -2365,7 +2365,7 @@ class PathChooser(object):
                     except TypeError:
                         path = None
                     except ValueError:
-                        print traceback.format_exc(5)
+                        print(traceback.format_exc(5))
                 break  # redundant at the moment
             break  # from main while True
 
@@ -2391,15 +2391,15 @@ class PathChooser(object):
         if set_review:  # select randomly from the supplied set
             myset = set_review
             if debug:
-                print 'myset', myset
+                print('myset', myset)
             set_tags = db(db.tags.tag_position == myset).select()
             taglist = [int(t['id']) for t in set_tags]
             if debug:
-                print 'taglist', taglist
+                print('taglist', taglist)
             set_steps = [s.id for s in
                          db(db.steps.tags.contains(taglist)).iterselect()]
             if debug:
-                print 'set_steps', set_steps
+                print('set_steps', set_steps)
 
             def chunks(l, n):
                 '''
@@ -2414,12 +2414,12 @@ class PathChooser(object):
             for steps_chunk in chunks(set_steps, 20):
                 set_paths |= db(db.paths.steps.contains(steps_chunk)).select()
             if debug:
-                print 'got set_paths'
-                print [p['id'] for p in sorted(set_paths)]
+                print('got set_paths')
+                print([p['id'] for p in sorted(set_paths)])
             path = set_paths[randrange(0, len(set_paths))]
             first_step = db.steps[path['steps'][0]]
             if debug:
-                print 'PathChooser::choose: first_step is', first_step.id
+                print('PathChooser::choose: first_step is', first_step.id)
             if self.loc_id in first_step['locations']:
                 new_loc = None
             else:
@@ -2440,14 +2440,14 @@ class PathChooser(object):
             # cycle through categories, prioritised in _order_cats()
             for cat in cat_list:
                 if debug:
-                    print 'PathChooser::choose: checking in cat', cat
+                    print('PathChooser::choose: checking in cat', cat)
                 catpaths, category, use_cat1, pathset_new = \
                     self._paths_by_category(cat, self.rank)
                 # print 'forcing cat1?', use_cat1
                 # print 'catpaths:', [c['id'] for c in catpaths]
                 if catpaths and len(catpaths):
                     if debug:
-                        print 'PathChooser::choose: using category', category
+                        print('PathChooser::choose: using category', category)
                     path, newloc, category, mode = self._choose_from_cat(
                         catpaths, category)
                     if mode:
@@ -2462,13 +2462,13 @@ class PathChooser(object):
                         elif self.force_new:
                             new_material = True
                         if debug:
-                            print 'PathChooser::choose: new_material =', \
-                                new_material
+                            print('PathChooser::choose: new_material =', \
+                                new_material)
                         return path, newloc, category, mode, new_material, \
                             self.tag_progress
                     else:
                         if debug:
-                            print 'bad mode trying another category'
+                            print('bad mode trying another category')
                 else:
                     continue
             return None, None, None, None, None, None
@@ -2498,7 +2498,7 @@ class User(object):
             self.time_zone = userdata['time_zone']
             self.blocks = blocks
             if debug:
-                print 'User::init: self.blocks', self.blocks
+                print('User::init: self.blocks', self.blocks)
             # FIXME: somehow pass previous day's blocks in user._is_stale()?
             self.name = userdata['first_name']
             self.user_id = userdata['id']
@@ -2538,7 +2538,7 @@ class User(object):
             self.new_content = False
             self.active_cat = None
         except Exception:
-            print traceback.format_exc(5)
+            print(traceback.format_exc(5))
 
     def __str__(self):
         strout = ['---------------------------------\n'
@@ -2631,7 +2631,7 @@ class User(object):
                       if m.classes.paths_per_day and
                       m.classes.start_date == most_recent][0]
         except (IndexError, ValueError) as e:
-            print 'user not a member of any class, defaulting to 20 quota'
+            print('user not a member of any class, defaulting to 20 quota')
             target = 20
         return target
 
@@ -2681,7 +2681,7 @@ class User(object):
         debug = False
         if self.blocks:
             if debug:
-                print 'User::check_for_blocks: blocks present'
+                print('User::check_for_blocks: blocks present')
             blockset = []
             for b in self.blocks:
                 if not b.get_condition() in [c.get_condition()
@@ -2689,16 +2689,16 @@ class User(object):
                     blockset.append(b)
             self.blocks = blockset
             if debug:
-                print 'User::check_for_blocks: blockset', blockset
+                print('User::check_for_blocks: blockset', blockset)
             current.sequence_counter += 1  # TODO: why increment twice here?
             myblock = self.blocks.pop(0)
             if debug:
-                print 'User::check_for_blocks: myblock', blockset
+                print('User::check_for_blocks: myblock', blockset)
             current.sequence_counter += 1  # TODO: why increment twice here?
             return myblock
         else:
             if debug:
-                print 'User::check_for_blocks: no blocks present'
+                print('User::check_for_blocks: no blocks present')
             return None
 
     def set_block(self, condition, kwargs=None):
@@ -2803,7 +2803,7 @@ class User(object):
                         self.completed_paths).choose(set_review=set_review)
         self.tag_progress = tag_progress  # to keep counts made in PathChooser
         if debug:
-            print 'User::_make_path_choice: mode is', mode
+            print('User::_make_path_choice: mode is', mode)
         # print 'in _make_path_choice ----------------------------------------'
         # print 'choice:', choice
         # print 'redir:', redir
@@ -2825,8 +2825,8 @@ class User(object):
                 if debug:
                     'User::_make_path_choice: reviewing, cat is: ', cat
             if debug:
-                print 'User::_make_path_choice: num of path.steps is', \
-                    len(path.steps)
+                print('User::_make_path_choice: num of path.steps is', \
+                    len(path.steps))
             return path, redir, cat, new_content
         else:
             return None, None, None, None
@@ -2846,21 +2846,21 @@ class User(object):
         pastq = None
         new_content = self.new_content   # preserve previous val in multi-step
         if debug:
-            print 'User::get_path: starting self.path is', self.path
+            print('User::get_path: starting self.path is', self.path)
         if self.path:
             if debug:
-                print 'User::get_path: self.path id is', self.path.get_id()
-                print 'User::get_path:', len(self.path.steps), \
-                    'steps left in path'
+                print('User::get_path: self.path id is', self.path.get_id())
+                print('User::get_path:', len(self.path.steps), \
+                    'steps left in path')
         while True:
             if pathid:  # testing specific path
                 self.path = Path(pathid)
                 if debug:
-                    print 'con 1'
+                    print('con 1')
 
             if repeat and not self.path:  # repeating a step, path finished
                 if debug:
-                    print 'User::get_path: repeating a finished path'
+                    print('User::get_path: repeating a finished path')
                 pathid = self.completed_paths['latest']
                 self.path = Path(pathid)
             elif self.path and self.path.step_for_prompt:
@@ -2927,14 +2927,14 @@ class User(object):
                 self.tag_progress = tpdict
                 rank = tpdict['latest_new']
                 cat1_choices = tpdict['cat1_choices'] \
-                    if 'cat1_choices' in tpdict.keys() else 0
+                    if 'cat1_choices' in list(tpdict.keys()) else 0
                 all_choices = tpdict['all_choices'] \
-                    if 'all_choices' in tpdict.keys() else 0
+                    if 'all_choices' in list(tpdict.keys()) else 0
                 # TODO: below is 'magic' hack based on specific db field names
-                categories = {k: v for k, v in tpdict.iteritems()
+                categories = {k: v for k, v in list(tpdict.items())
                               if k[:3] in ['cat', 'rev']}
             except (AttributeError, AssertionError):
-                print traceback.format_exc()
+                print(traceback.format_exc())
                 categories = None
             self.old_categories = copy(categories)
 
@@ -3177,7 +3177,7 @@ class Categorizer(object):
         Remove any duplicate tags and any tags beyond user's current rank.
         """
         db = current.db
-        for k, v in categories.iteritems():
+        for k, v in list(categories.items()):
             if v:
                 rankv = [t for t in v if db.tags(t) and
                          (db.tags[t].tag_position <= rank)]
@@ -3321,26 +3321,26 @@ class Categorizer(object):
             since_started = self.utcnow - first_attempt if first_attempt \
                 else datetime.timedelta(days=2)
             if debug:
-                print '-------------------------------------------------------'
-                print 'tag:', record['tag']
-                print 'times right:', record['times_right']
-                print 'times wrong:', record['times_wrong']
+                print('-------------------------------------------------------')
+                print('tag:', record['tag'])
+                print('times right:', record['times_right'])
+                print('times wrong:', record['times_wrong'])
                 tr = record['times_right'] if record['times_right'] else 0
                 tw = record['times_wrong'] if record['times_wrong'] else 0
-                print 'total attempts', tr + tw, '>= 20 (', tr + tw >= 20, ')'
-                print since_started, 'since started >= 1 day '
-                print '(', since_started >= datetime.timedelta(days=1), ')'
-                print 'and'
-                print 'rdur.days:', rdur.days, '<', 'rwdur.days', rwdur.days
-                print '> 1 (', rdur.days < rwdur.days > 1, ')'
-                print 'or'
-                print 'ratio ', self._get_ratio(record), '< 0.2 '
-                print '(', self._get_ratio(record) < 0.2, ')'
-                print rdur.days, '<= 30 days (', rdur.days <= 30, ')'
-                print 'or'
-                print self._get_avg(record['tag']), '>= 0.7 '
-                print '(', self._get_avg(record['tag']) >= 0.7, ')'
-                print rdur.days, '<= 30 days (', rdur.days <= 30, ')'
+                print('total attempts', tr + tw, '>= 20 (', tr + tw >= 20, ')')
+                print(since_started, 'since started >= 1 day ')
+                print('(', since_started >= datetime.timedelta(days=1), ')')
+                print('and')
+                print('rdur.days:', rdur.days, '<', 'rwdur.days', rwdur.days)
+                print('> 1 (', rdur.days < rwdur.days > 1, ')')
+                print('or')
+                print('ratio ', self._get_ratio(record), '< 0.2 ')
+                print('(', self._get_ratio(record) < 0.2, ')')
+                print(rdur.days, '<= 30 days (', rdur.days <= 30, ')')
+                print('or')
+                print((self._get_avg(record['tag']), '>= 0.7 '))
+                print('(', self._get_avg(record['tag']) >= 0.7, ')')
+                print(rdur.days, '<= 30 days (', rdur.days <= 30, ')')
 
             # spaced repetition algorithm for promotion to
             # cat2? ======================================================
@@ -3409,7 +3409,7 @@ class Categorizer(object):
         for r in range(1, rank + 1):
             newtags = [t['id'] for t in
                        db(db.tags.tag_position == r).select().as_list()]
-            alltags = list(chain(*categories.values()))
+            alltags = list(chain(*list(categories.values())))
             left_out.extend([t for t in newtags if t not in alltags])
         if left_out:
             categories['rev1'].extend(left_out)
@@ -3427,13 +3427,13 @@ class Categorizer(object):
                                           ).select().as_list()
         bmax = {}
         for b in bbrows:
-            mymax = len([k for k, v in b.iteritems() if k in cnms and v])
+            mymax = len([k for k, v in list(b.items()) if k in cnms and v])
             bmax[b['tag']] = mymax
-        for c, l in oldcats.iteritems():
+        for c, l in list(oldcats.items()):
             try:
                 for tag in l:
                     if c in cnms and \
-                            l in bmax.keys() and \
+                            l in list(bmax.keys()) and \
                             c[-1] != bmax[tag]:
                         oldcats[c].pop(l.index(tag))
                         oldcats['cat'.format(bmax[tag])].append(tag)
@@ -3449,7 +3449,7 @@ class Categorizer(object):
         if oldcats:
             demoted = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
             promoted = {'cat1': [], 'cat2': [], 'cat3': [], 'cat4': []}
-            oldcats = {k: v for k, v in oldcats.iteritems()
+            oldcats = {k: v for k, v in list(oldcats.items())
                        if k[:3] == 'cat' and k != 'cat1_choices'}
             # facilitates demotion tasks
             oldcats = self._remove_dups(oldcats, self.rank)
@@ -3469,11 +3469,11 @@ class Categorizer(object):
             # TODO: cleaning up bad data; deprecate after finished
             oldcats = self._fix_oldcats(oldcats, uid, bbrows=bbrows)
 
-            for cat, taglist in cats.iteritems():
+            for cat, taglist in list(cats.items()):
                 oldkey = 'cat{}'.format(cat[-1:])
                 if taglist and (cat in cnms):
                     # Is tag completely new to this user?
-                    oldvals = [v for v in oldcats.values() if v]
+                    oldvals = [v for v in list(oldcats.values()) if v]
                     all_old_tags = list(chain.from_iterable(oldvals))
                     new_tags[cat] = [t for t in cats[cat]
                                      if t not in all_old_tags]
@@ -3492,32 +3492,32 @@ class Categorizer(object):
                     demoted[oldkey] = [t for t in taglist if t in was_higher]
 
             # remove promoted from old cat list and insert into higher cat list
-            if any([k for k, v in promoted.iteritems() if v]):
-                for tag in list(chain.from_iterable(promoted.values())):
-                    catidx = [k for k, v in oldcats.iteritems()
+            if any([k for k, v in list(promoted.items()) if v]):
+                for tag in list(chain.from_iterable(list(promoted.values()))):
+                    catidx = [k for k, v in list(oldcats.items())
                               if v and tag in v][0]
                     revidx = [k.replace('rev', 'cat') for k, v
-                              in cats.iteritems()
+                              in list(cats.items())
                               if v and tag in v and k in cnms][0]
                     try:
                         if tag in cats[catidx]:
                             cats[catidx].remove(tag)
                             cats[revidx].append(tag)
                     except ValueError:
-                        print traceback.format_exc()
+                        print(traceback.format_exc())
 
             # add cats for new tags
-            for k, v in new_tags.iteritems():
+            for k, v in list(new_tags.items()):
                 if v and k in cnms:
                     catidx = k.replace('rev', 'cat')
                     cats[catidx].extend(v)
 
             return {'categories': cats,
-                    'demoted': demoted if any([d for d in demoted.values()])
+                    'demoted': demoted if any([d for d in list(demoted.values())])
                     else None,
-                    'promoted': promoted if any([p for p in promoted.values()])
+                    'promoted': promoted if any([p for p in list(promoted.values())])
                     else None,
-                    'new_tags': new_tags if any([n for n in new_tags.values()])
+                    'new_tags': new_tags if any([n for n in list(new_tags.values())])
                     else None}
         else:
             cats['cat1'] = cats['rev1'][:]
@@ -3623,4 +3623,4 @@ class Exception_Bug(object):
                                  score=exception_data['score'])
             db.commit()
         except Exception:
-            print traceback.format_exc(5)
+            print(traceback.format_exc(5))

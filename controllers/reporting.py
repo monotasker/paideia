@@ -31,9 +31,9 @@ def vocabulary_list():
     lemmas = db(db.lemmas.first_tag == db.tags.id).select(orderby=db.tags.tag_position)
     sets = list(set([s.tags.tag_position for s in lemmas]))
     # decide whether to get all vocab or just up to user's badge set
-    if 'vocab_scope_selector' in request.vars.keys() and \
+    if 'vocab_scope_selector' in list(request.vars.keys()) and \
             request.vars['vocab_scope_selector'] not in ['0', 0]:
-        print 'got', request.vars['vocab_scope_selector']
+        print('got', request.vars['vocab_scope_selector'])
         mylevel = 999
         all_vocab = 1
     else:
@@ -172,11 +172,11 @@ def paths_by_tag():
                    'pathsdict': pathsdict,
                    'tag_slides': tag_slides,
                    }
-        print tagdict['position']
+        print(tagdict['position'])
         taglist.append(tagdict)
 
     taglist = sorted(taglist, key=lambda k: k['position'])
-    print [t['position'] for t in taglist]
+    print([t['position'] for t in taglist])
     pset = set([t['position'] for t in taglist])
     positions = {}
     for p in pset:
@@ -274,21 +274,21 @@ def tag_counts():
     nowdate = datetime.datetime.combine(datetime.date.today(),
                                         datetime.time(0, 0, 0, 0))
 
-    if 'start_date' in request.vars.keys():
+    if 'start_date' in list(request.vars.keys()):
         sdt = parse(request.vars['start_date'])
         startdate = datetime.datetime.combine(sdt, datetime.time(0, 0, 0, 0))
     else:
         startdate = nowdate - datetime.timedelta(days=2)
-    print 'startdate', startdate
+    print('startdate', startdate)
 
-    if 'end_date' in request.vars.keys():
+    if 'end_date' in list(request.vars.keys()):
         edt = parse(request.vars['end_date'])
         enddate = datetime.datetime.combine(edt, datetime.time(0, 0, 0, 0))
     else:
         enddate = nowdate
-    print 'enddate', enddate
+    print('enddate', enddate)
 
-    uid = request.vars['user_id'] if 'user_id' in request.vars.keys() else None
+    uid = request.vars['user_id'] if 'user_id' in list(request.vars.keys()) else None
 
     tagdata = Stats(uid).get_tag_counts_over_time(start=startdate,
                                                   end=enddate,

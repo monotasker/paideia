@@ -123,7 +123,7 @@ def fixture_cleanup_db(web2py):
     # for tab in web2py.db.tables:
     #     web2py.db[tab].truncate()
     # web2py.db.commit()
-    print '\nran fixture cleanup !!!!!!!!!!!!!!!!!!!!!!!!!\n'
+    print('\nran fixture cleanup !!!!!!!!!!!!!!!!!!!!!!!!!\n')
     pass
 
 
@@ -239,11 +239,11 @@ def db(web2py, request):
         """
         Delete any newly inserted rows in the test database.
         """
-        print 'checking for inserted rows to remove**********'
+        print('checking for inserted rows to remove**********')
         #pprint(newrows)
         if newrows:
-            print 'removing'
-            for tbl, rowids in newrows.iteritems():
+            print('removing')
+            for tbl, rowids in newrows.items():
                 mydb(mydb[tbl].id.belongs(rowids)).delete()
                 for i in rowids:
                     assert not mydb[mydb[tbl]](i)

@@ -17,7 +17,7 @@ class TestExploring(object):
         '''
         assert db
         client.get('/exploring/index')
-        print client.status
+        print(client.status)
         assert 2
 
     def test_exploring_step(self):

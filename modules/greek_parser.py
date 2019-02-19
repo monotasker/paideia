@@ -1,14 +1,14 @@
-#! /usr/bin/python
+#! /usr/bin/python3.6
 # -*- coding:utf-8 -*-
 
-#import argparse
+# import argparse
 from copy import deepcopy, copy
 from gluon import current
-#from paideia_utils import Uprinter
+# from paideia_utils import Uprinter
 from plugin_utils import clr, makeutf8
-#from pprint import pprint
+# from pprint import pprint
 import re
-#import traceback
+# import traceback
 
 """
 
@@ -56,7 +56,7 @@ def tokenize(str):
     tokenized = []
     for c in clauses:
         words = c.split(' ')
-        token_list = [(unicode(makeutf8(t)), {'index': words.index(t)})
+        token_list = [(str(makeutf8(t)), {'index': words.index(t)})
                       for t in words]
         tokenized.append({0: token_list})
     return tokenized
@@ -89,15 +89,15 @@ class Parser(object):
         except IndexError:  # because no substructures
             self.structures = None
             self.top = False
-        print 'self.structures', self.structures
-        print 'self.top', self.top
+        print('self.structures', self.structures)
+        print('self.top', self.top)
         self.matching_words = {}
 
         self.classname = type(self).__name__
 
     def filter_pos(self, parts, pos):
         """
-        Return a list of leaf tuples filtered based on the desired part of speech.
+        Return a list of leaf tuples filtered based on the part of speech.
         """
         mytuples = [p for p in parts if p[1]['pos'] == pos]
         return mytuples
@@ -122,8 +122,8 @@ class Parser(object):
                 myname = type(s).__name__
                 struct_words = s.matching_words
                 mywords.append([myname, struct_words])
-            print 'finding child words'
-            print mywords
+            print('finding child words')
+            print(mywords)
             return mywords
         else:
             return None
@@ -133,30 +133,32 @@ class Parser(object):
         Return a list of the leaf tuples belonging to the current construction.
         """
         parts = [p for p in leaf
-                 if 'current' in p[1].keys() and p[1]['current'] == 0]
+                 if 'current' in list(p[1].keys()) and p[1]['current'] == 0]
         return parts
 
     def validate(self, validlfs, failedlfs={}):
         """
-        compare ordered list of word tokens to definition of valid natural language expressions.
+        compare ordered list of word tokens to definition of valid natural
+        language expressions.
 
         clause should be Clause() object
         """
         # validate constituent structures recursively
         if self.structures:
             for s in self.structures:
-                print 'validating', s
+                print('validating', s)
                 validlfs, failedlfs = s.validate(validlfs, failedlfs)
                 if len(validlfs) < 1:
-                    print 'failed while validating', s
+                    print('failed while validating', s)
                     return validlfs, failedlfs
 
         # find matching string for remaining viable leaves
         if self.restring:
-            old_validlfs = copy(validlfs)  # need to compare with newly parsed to find newly added words
-            print 'checking for restring', makeutf8(self.restring)
+            # need to compare with newly parsed to find newly added words
+            old_validlfs = copy(validlfs)
+            print('checking for restring', makeutf8(self.restring))
             validlfs, failedlfs = self.match_string(validlfs, failedlfs)
-            for k, lf in validlfs.iteritems():
+            for k, lf in validlfs.items():
 
                 self.matching_words[k]
             if len(validlfs) < 1:  # no valid leaves, validation fails
@@ -171,16 +173,16 @@ class Parser(object):
         # find any untagged words if this structure is top level
         # if found, validation fails
         if self.top:
-            for v in validlfs.values():
-                for w in v: print w,
-                print ''
-            for idx, leaf in validlfs.iteritems():
-                untagged = [t for t in leaf if 'pos' not in t[1].keys()]
+            for v in list(validlfs.values()):
+                for w in v: print(w, end=' ')
+                print('')
+            for idx, leaf in validlfs.items():
+                untagged = [t for t in leaf if 'pos' not in list(t[1].keys())]
                 if untagged:
                     failedlfs[idx] = validlfs[idx]
-                    validlfs = {k: v for k, v in validlfs.iteritems() if k != idx}
-                    print clr(['some extra words left over'], self.myc)
-                    for w in untagged: print w
+                    validlfs = {k: v for k, v in validlfs.items() if k != idx}
+                    print(clr(['some extra words left over'], self.myc))
+                    for w in untagged: print(w)
             if not validlfs:
                 return validlfs, failedlfs
             else:
@@ -223,30 +225,30 @@ class Parser(object):
         by this one).
         '''
         matching_words = {}
-        restring = unicode(makeutf8(self.restring)) if not restring \
-            else unicode(makeutf8(restring))
+        restring = str(makeutf8(self.restring)) if not restring \
+            else str(makeutf8(restring))
         classname = self.classname if not classname else classname
 
         test = re.compile(restring, re.U | re.I)
 
         validstring = ' '.join([i[0] for i in validleaves[0]])
         mymatch = test.findall(validstring)
-        print 'mymatch is'
+        print('mymatch is')
         for m in mymatch:
-            print makeutf8(m)
+            print(makeutf8(m))
 
         def tag_token(matchstring, leafcopy):
             matchindex = [l[1]['index'] for l in leafcopy
                           if l[0] == matchstring][0]
             mydict = leafcopy[matchindex][1]
-            if 'pos' not in mydict.keys():  # only tag word if currently untagged
+            if 'pos' not in list(mydict.keys()):  # only tag word if currently untagged
                 mydict['pos'] = classname
-                if 'current' in mydict.keys():
+                if 'current' in list(mydict.keys()):
                     mydict['current'] += 1
                 else:
                     mydict['current'] = 0
             else:
-                print 'already tagged, leaf invalid'
+                print('already tagged, leaf invalid')
                 return False, None
 
 
@@ -255,38 +257,38 @@ class Parser(object):
         newvalids = {}
         newfaileds = {}
         if mymatch:
-            print 'mymatch', mymatch
-            for key, leaf in validleaves.iteritems():
-                print 'tagging leaf:', key, '============================='
+            print('mymatch', mymatch)
+            for key, leaf in validleaves.items():
+                print('tagging leaf:', key, '=============================')
                 for m in mymatch:
                     if m in [w[0] for w in leaf]:  # because findall and case
-                        print 'tagging leaf with', makeutf8(m)
+                        print('tagging leaf with', makeutf8(m))
                         taggedleaf, matchindex = tag_token(m, deepcopy(leaf))
-                        if taggedleaf and taggedleaf not in newvalids.values():
-                            if key in newvalids.keys():
+                        if taggedleaf and taggedleaf not in list(newvalids.values()):
+                            if key in list(newvalids.keys()):
                                 newkey = max(newvalids.keys()) + 1
                             else:
                                 newkey = key
-                            print 'appending valid leaf', newkey
+                            print('appending valid leaf', newkey)
                             newvalids[newkey] = taggedleaf
                             # add matching words (with index) directly to instance variable
                             self.matching_words[newkey] = {'word': m,
                                                            'index': matchindex}
-                            print 'matching for leaf', newkey
-                        elif not taggedleaf and leaf not in newfaileds.values():
-                            if key in newfaileds.keys():
+                            print('matching for leaf', newkey)
+                        elif not taggedleaf and leaf not in list(newfaileds.values()):
+                            if key in list(newfaileds.keys()):
                                 newkey = max(newfaileds.keys()) + 1
                             else:
                                 newkey = key
-                            print 'appending failed leaf', newkey
+                            print('appending failed leaf', newkey)
                             newfaileds[newkey] = leaf
                         else:
-                            print 'leaf is duplicate'
+                            print('leaf is duplicate')
                     else:
-                        print 'match', m, 'is not in string'
+                        print('match', m, 'is not in string')
                         pass
         else:
-            print 'no match'
+            print('no match')
             newfaileds = deepcopy(validleaves)
             newvalids = {}
 
@@ -318,7 +320,7 @@ class Parser(object):
         """
         Test whether any intervening structures are appropriate.
         """
-        between = [s for s, v in self.structs.iteritems()
+        between = [s for s, v in self.structs.items()
                    if v in range(p1 + 1, p2 - 1)]
         disallowed = [s for s in between
                       if (s not in allow) or (s in exclude)]
@@ -333,7 +335,7 @@ class Parser(object):
 
         words is a list of the keys from one leaf of validleaves
         """
-        print 'Do {} and {} agree?'.format(words[p1], words[p2]),
+        print('Do {} and {} agree?'.format(words[p1], words[p2]), end=' ')
         parsed = [self.parseform(words[p1]),
                   self.parseform(words[p2])]
         categories = ['gender', 'number', 'case']
@@ -347,16 +349,16 @@ class Parser(object):
         db = current.db
         if pos == 'article':
             parsing = self.parseform(refword)
-            print 'parsing'
-            print parsing
+            print('parsing')
+            print(parsing)
             artlemid = db(db.lemmas.lemma == 'ὁ').select(db.lemmas.id).first().id
-            print 'artlemid', artlemid
+            print('artlemid', artlemid)
             argdict = {'source_lemma': artlemid,
                        'grammatical_case': parsing['grammatical_case'],
                        'gender': parsing['gender'],
                        'number': parsing['number']}
-            print 'argdict'
-            print argdict
+            print('argdict')
+            print(argdict)
             myword = self.getform(argdict)
         return myword
 
@@ -381,24 +383,24 @@ class Parser(object):
         db = current.db if not db else db
         tbl = db['word_forms']
         query = tbl.id > 0
-        for k, v in kwargs.iteritems():
+        for k, v in kwargs.items():
             query &= tbl[k] == v
-        print 'query in getform'
-        print query
+        print('query in getform')
+        print(query)
         myforms = db(query).select()
         forms = [row['word_form'] for row in myforms]
         if len(forms) == 1:
             forms = forms[0]
         elif not forms:
             forms = None
-        print forms
+        print(forms)
         return forms
 
     def __exit__(self, type, value, traceback):
         """
         Necessary for use in 'with' condition.
         """
-        print 'destroying instance'
+        print('destroying instance')
 
 
 class Clause(Parser):
@@ -453,11 +455,11 @@ class NounPhrase(Parser):
         if self.definite:
             child_words = self.find_child_words()
             # find and tag article in valid leaves
-            print 'phrase is definite, checking order'
-            for key, leaf in validlfs.iteritems():
+            print('phrase is definite, checking order')
+            for key, leaf in validlfs.items():
                 mynouns = [c for c in child_words if c[0] == 'Noun'][0]
-                print 'mynouns'
-                print mynouns
+                print('mynouns')
+                print(mynouns)
                 mynoun = mynouns[0][1][key]
                 artform = self.find_agree(mynoun, 'article')
                 myarts = self.match_article(artform, leaf)
@@ -469,18 +471,18 @@ class NounPhrase(Parser):
                                                                 restring=art)
             # FIXME: what about optional article?
             # now check article-noun order in successful leaves
-            for key, leaf in validlfs.iteritems():
+            for key, leaf in validlfs.items():
                 newleaf = deepcopy(leaf)
                 if self.before(art, mynoun):
                     # record modification link
                     newleaf = self.modifies(newleaf, art, mynoun)
                     if newleaf not in newvalids:
                         newkey = max(newvalids.keys()) + 1 \
-                            if newvalids.keys() else 0
+                            if list(newvalids.keys()) else 0
                         newvalids[key] = newleaf
                 elif newleaf not in newfaileds:
                     newkey = max(newfaileds.keys()) + 1 \
-                        if newfaileds.keys() else 0
+                        if list(newfaileds.keys()) else 0
                     newfaileds[key] = newleaf
 
         return newvalids, newfaileds

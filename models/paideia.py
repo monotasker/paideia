@@ -29,7 +29,7 @@ if 0:
 # js file necessary for AjaxSelect widget
 # TODO: move these to an AjaxSelect model file
 response.files.insert(5, URL('static',
-                      'plugin_ajaxselect/plugin_ajaxselect.js'))
+                             'plugin_ajaxselect/plugin_ajaxselect.js'))
 # response.files.append(URL('static',
 # 'plugin_ajaxselect/plugin_ajaxselect.css'))
 response.files.append(URL('static', 'css/plugin_listandedit.css'))
@@ -983,20 +983,20 @@ create_steps_inactive_locations_for_steps()
 # Badges for header ===========================================================
 try:
     db = current.db
-    print auth.user_id
+    print(auth.user_id)
     bug_rows = db((db.bugs.user_name == auth.user_id) &
                   (db.bugs.hidden == False) &
                   (db.bugs.deleted == False) &
                   (db.bugs.admin_comment != '')).select()
     bug_count = len(bug_rows)
-    print bug_count, "bugs"
+    print(bug_count, "bugs")
     if bug_count > 0:
         response.badges = SPAN(A(I(_class='fa fa-inbox'), "  ",
                                  SPAN(bug_count),
                                  _href='/paideia/default/user/profile'
                                  '#tab_bug_reports',
-                               _class='badge',
-                               _id='unread-counter'),
+                                 _class='badge',
+                                 _id='unread-counter'),
                                _class='badge-wrapper')
     else:
         pass

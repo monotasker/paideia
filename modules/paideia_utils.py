@@ -29,7 +29,7 @@ def simple_obj_print(the_dict, title='No Title', indentation=0):
     """
     output_obj = {'data': ''}
     simple_obj_print_str(output_obj, the_dict, title, indentation)
-    print output_obj['data']
+    print(output_obj['data'])
 
 
 def simple_obj_print_str(output_obj, the_dict, title='No Title', indentation=0, doing_what='S'):
@@ -70,7 +70,7 @@ def simple_obj_print_str(output_obj, the_dict, title='No Title', indentation=0, 
                     simple_obj_print_str(output_obj, value, count,
                                          indentation + 1, 'L')
                     count += 1
-            except TypeError, te:
+            except TypeError as te:
                 simple_obj_print_str(output_obj, "list is not iterable",
                                      count, indentation + 1)
                 output_obj['data'] += (indentation_string + '</li>')
@@ -131,14 +131,14 @@ class Uprinter(object):
 
         """
         if type(myobj) == None:
-            print 'None'
+            print('None')
         calls = {OrderedDict: self._uprint_ordered_dict,
                  dict: self._uprint_dict,
                  list: self._uprint_list,
                  tuple: self._uprint_tuple,
-                 unicode: self._internal_print,
+                 str: self._internal_print,
                  int: self._internal_print,
-                 long: self._internal_print,
+                 int: self._internal_print,
                  float: self._internal_print,
                  complex: self._internal_print,
                  str: self._internal_print}
@@ -157,7 +157,7 @@ class Uprinter(object):
             i = self._uprint_list(i, lvl=lvl + 1)
         elif isinstance(i, tuple):
             i = self._uprint_tuple(i, lvl=lvl + 1)
-        elif isinstance(i, (int, long, float, complex)):
+        elif isinstance(i, (int, float, complex)):
             i = makeutf8(str(i))
         else:
             i = "'" + makeutf8(i) + "'"
@@ -171,7 +171,7 @@ class Uprinter(object):
         assert isinstance(myod, OrderedDict)
         indent = '    ' * lvl if lvl > 0 else ''
         newod = '\n' + indent + 'OrderedDict([\n'
-        for k, i in myod.iteritems():
+        for k, i in list(myod.items()):
             i, lvl = self._internal_print(i, lvl)
             newod += indent + " ('" + makeutf8(k) + "', " + i + '),\n'
         newod += '\n' + indent + ' ])'
@@ -185,7 +185,7 @@ class Uprinter(object):
         assert isinstance(mydict, dict)
         indent = '    ' * lvl if lvl > 0 else ''
         newdict = '\n' + indent + '{\n'
-        for k, i in mydict.iteritems():
+        for k, i in list(mydict.items()):
             i, lvl = self._internal_print(i, lvl)
             newdict += indent + ' ' + makeutf8(k) + ': ' + i + ',\n'
         newdict += '\n' + indent + ' }'
@@ -239,15 +239,15 @@ class GreekNormalizer(object):
 
         """
         debug = False
-        if debug: print 'starting normalize'
+        if debug: print('starting normalize')
         strings = [strings] if not isinstance(strings, list) else strings
 
         strings = self.convert_latin_chars(strings)
-        if debug: print 'about to normalize accents'
-        if debug: print 'sending strings ============================\n'
+        if debug: print('about to normalize accents')
+        if debug: print('sending strings ============================\n')
         if debug:
             for s in strings:
-                print type(s), to_bytes(s)
+                print(type(s), to_bytes(s))
         strings = self.normalize_accents(strings)
         strings = self.strip_extra_spaces(strings)
 
@@ -265,7 +265,7 @@ class GreekNormalizer(object):
         strings = [strings] if not isinstance(strings, list) else strings
         try:
             newstrings = []
-            rgx = ur'(?P<a>[Α-Ωα-ω])?([a-z]|[A-Z]|\d|\?)(?(a).*|[Α-Ωα-ω])'
+            rgx = r'(?P<a>[Α-Ωα-ω])?([a-z]|[A-Z]|\d|\?)(?(a).*|[Α-Ωα-ω])'
             latin = re.compile(rgx, re.U)
             for string in strings:
                 string = to_unicode(string)
@@ -273,41 +273,41 @@ class GreekNormalizer(object):
                 if not mymatch:
                     newstring = string
                 else:
-                    subs = {u'a': u'α',  # y
-                            u'A': u'Α',  # n
-                            u'd': u'δ',  # y
-                            u'e': u'ε',  # y
-                            u'E': u'Ε',
-                            u'Z': u'Ζ',
-                            u'H': u'Η',
-                            u'i': u'ι',  # y
-                            u'I': u'Ι',
-                            u'k': u'κ',
-                            u'K': u'Κ',  # y
-                            u'v': u'ν',  # y
-                            u'N': u'Ν',
-                            u'o': u'ο',  # y
-                            u'O': u'Ο',  # ΝΝΝ
-                            u'p': u'ρ',  # y
-                            u'P': u'Ρ',  # y
-                            u't': u'τ',  # y
-                            u'T': u'Τ',  # y
-                            u'Y': u'Υ',
-                            u'x': u'χ',
-                            u'X': u'Χ',  # y
-                            u'w': u'ω',  # y
-                            u'?': u';'}
-                    if debug: print 'Latin character found in Greek string: '
-                    if debug: print mymatch.group(), 'in', to_bytes(string)
+                    subs = {'a': 'α',  # y
+                            'A': 'Α',  # n
+                            'd': 'δ',  # y
+                            'e': 'ε',  # y
+                            'E': 'Ε',
+                            'Z': 'Ζ',
+                            'H': 'Η',
+                            'i': 'ι',  # y
+                            'I': 'Ι',
+                            'k': 'κ',
+                            'K': 'Κ',  # y
+                            'v': 'ν',  # y
+                            'N': 'Ν',
+                            'o': 'ο',  # y
+                            'O': 'Ο',  # ΝΝΝ
+                            'p': 'ρ',  # y
+                            'P': 'Ρ',  # y
+                            't': 'τ',  # y
+                            'T': 'Τ',  # y
+                            'Y': 'Υ',
+                            'x': 'χ',
+                            'X': 'Χ',  # y
+                            'w': 'ω',  # y
+                            '?': ';'}
+                    if debug: print('Latin character found in Greek string: ')
+                    if debug: print(mymatch.group(), 'in', to_bytes(string))
                     newstring = multiple_replace(string, subs)
-                    if debug: print 'replaced with Greek characters:'
-                    if debug: print to_bytes(newstring)
+                    if debug: print('replaced with Greek characters:')
+                    if debug: print(to_bytes(newstring))
                 newstrings.append(newstring)
             if len(newstrings) == 1:
                 newstrings = newstrings[0]
             return newstrings
         except Exception:
-            print traceback.format_exc(12)
+            print(traceback.format_exc(12))
             return False
 
     def strip_extra_spaces(self, strings):
@@ -317,7 +317,7 @@ class GreekNormalizer(object):
         strings = [strings] if not isinstance(strings, list) else strings
         newstrings = []
         for string in strings:
-            user_response = unicode(makeutf8(string))
+            user_response = str(makeutf8(string))
             while '  ' in user_response:  # remove multiple inner spaces
                 user_response = user_response.replace('  ', ' ')
             user_response = user_response.strip()  # remove leading and trailing spaces
@@ -341,117 +341,117 @@ class GreekNormalizer(object):
         for string in instrings:
             substrs = to_unicode(string).split(' ')
 
-            equivs = {u'α': [u'ά', u'ὰ', u'ᾶ'],
-                      u'Α': [u'Ά', u'Ὰ'],  # caps
-                      u'ἀ': [u'ἄ', u'ἂ', u'ἆ'],
-                      u'Ἀ': [u'Ἄ', u'Ἂ', u'Ἆ', u'᾿Α'],  # caps (including combining )
-                      u'ἁ': [u'ἅ', u'ἃ', u'ἇ'],
-                      u'Ἁ': [u'Ἅ', u'Ἃ', u'Ἇ', u'῾Α'],  # caps (including combining)
-                      u'ᾳ': [u'ᾷ', u'ᾲ', u'ᾴ'],
-                      u'ᾀ': [u'ᾄ', u'ᾂ', u'ᾆ'],
-                      u'ᾁ': [u'ᾅ', u'ᾃ', u'ᾇ'],
-                      u'ε': [u'έ', u'ὲ'],
-                      u'Ε': [u'Έ', u'Ὲ'],  # caps
-                      u'ἐ': [u'ἔ', u'ἒ'],
-                      u'Ἐ': [u'Ἔ', u'Ἒ', u'᾿Ε'],  # caps (including combining)
-                      u'ἑ': [u'ἕ', u'ἓ'],
-                      u'Ἑ': [u'Ἕ', u'Ἓ', u'῾Ε'],  # caps (including combining)
-                      u'η': [u'ῆ', u'ή', u'ὴ'],
-                      u'Η': [u'Ή', u'Ὴ'],  # caps
-                      u'ἠ': [u'ἤ', u'ἢ', u'ἦ'],
-                      u'Ἠ': [u'Ἤ', u'Ἢ', u'Ἦ', u'᾿Η'],  # caps (including combining)
-                      u'ἡ': [u'ἥ', u'ἣ', u'ἧ'],
-                      u'Ἡ': [u'Ἥ', u'Ἣ', u'Ἧ', u'῾Η'],  # caps (including combining)
-                      u'ῃ': [u'ῇ', u'ῄ', u'ῂ'],
-                      u'ᾐ': [u'ᾔ', u'ᾒ', u'ᾖ'],
-                      u'ᾑ': [u'ᾕ', u'ᾓ', u'ᾗ'],
-                      u'ι': [u'ῖ', u'ϊ', u'ί', u'ὶ', u'ί'],
-                      u'ἰ': [u'ἴ', u'ἲ', u'ἶ'],
-                      u'ἱ': [u'ἵ', u'ἳ', u'ἷ'],
-                      u'Ι': [u'Ϊ', u'Ί', u'Ὶ', u'Ί'],  # caps
-                      u'Ἰ': [u'Ἴ', u'Ἲ', u'Ἶ', u'᾿Ι'],  # caps (including combining)
-                      u'Ἱ': [u'Ἵ', u'Ἳ', u'Ἷ', u'῾Ι'],  # caps (including combining)
-                      u'ο': [u'ό', u'ὸ'],
-                      u'ὀ': [u'ὄ', u'ὂ'],
-                      u'ὁ': [u'ὅ', u'ὃ'],
-                      u'Ο': [u'Ό', u'Ὸ'],  # caps
-                      u'Ὀ': [u'Ὄ', u'Ὂ', u'᾿Ο'],  # caps (including combining)
-                      u'Ὁ': [u'Ὅ', u'Ὃ', u'῾Ο'],  # caps (including combining)
-                      u'υ': [u'ῦ', u'ϋ', u'ύ', u'ὺ'],
-                      u'ὐ': [u'ὔ', u'ὒ', u'ὖ'],
-                      u'ὑ': [u'ὕ', u'ὓ', u'ὗ'],
-                      u'Υ': [u'Ϋ', u'Ύ', u'Ὺ'],  # caps TODO: no capital U with smooth?
-                      u'Ὑ': [u'Ὕ', u'Ὓ', u'Ὗ', u'῾Υ'],  # caps (including combining)
-                      u'ω': [u'ῶ', u'ώ', u'ὼ'],
-                      u'ὠ': [u'ὤ', u'ὢ', u'ὦ'],
-                      u'ὡ': [u'ὥ', u'ὣ', u'ὧ'],
-                      u'Ω': [u'Ώ', u'Ὼ'],  # caps
-                      u'Ὠ': [u'Ὤ', u'Ὢ', u'Ὦ', u'᾿Ω'],  # caps (including combining)
-                      u'Ὡ': [u'Ὥ', u'Ὣ', u'Ὧ', u'῾Ω'],  # caps (including combining)
-                      u'ῳ': [u'ῷ', u'ῴ', u'ῲ'],
-                      u'ᾠ': [u'ᾤ', u'ᾢ', u'ᾦ'],
-                      u'ᾡ': [u'ᾥ', u'ᾣ', u'ᾧ'],
-                      u'Ῥ': [u'῾Ρ'],  # also handle improperly formed marks (rough)
-                      u'"': [u'“', u'”', u'«', u'»'],  # handle curly quotes
-                      u"'": [u'‘', u'’'],
+            equivs = {'α': ['ά', 'ὰ', 'ᾶ'],
+                      'Α': ['Ά', 'Ὰ'],  # caps
+                      'ἀ': ['ἄ', 'ἂ', 'ἆ'],
+                      'Ἀ': ['Ἄ', 'Ἂ', 'Ἆ', '᾿Α'],  # caps (including combining )
+                      'ἁ': ['ἅ', 'ἃ', 'ἇ'],
+                      'Ἁ': ['Ἅ', 'Ἃ', 'Ἇ', '῾Α'],  # caps (including combining)
+                      'ᾳ': ['ᾷ', 'ᾲ', 'ᾴ'],
+                      'ᾀ': ['ᾄ', 'ᾂ', 'ᾆ'],
+                      'ᾁ': ['ᾅ', 'ᾃ', 'ᾇ'],
+                      'ε': ['έ', 'ὲ'],
+                      'Ε': ['Έ', 'Ὲ'],  # caps
+                      'ἐ': ['ἔ', 'ἒ'],
+                      'Ἐ': ['Ἔ', 'Ἒ', '᾿Ε'],  # caps (including combining)
+                      'ἑ': ['ἕ', 'ἓ'],
+                      'Ἑ': ['Ἕ', 'Ἓ', '῾Ε'],  # caps (including combining)
+                      'η': ['ῆ', 'ή', 'ὴ'],
+                      'Η': ['Ή', 'Ὴ'],  # caps
+                      'ἠ': ['ἤ', 'ἢ', 'ἦ'],
+                      'Ἠ': ['Ἤ', 'Ἢ', 'Ἦ', '᾿Η'],  # caps (including combining)
+                      'ἡ': ['ἥ', 'ἣ', 'ἧ'],
+                      'Ἡ': ['Ἥ', 'Ἣ', 'Ἧ', '῾Η'],  # caps (including combining)
+                      'ῃ': ['ῇ', 'ῄ', 'ῂ'],
+                      'ᾐ': ['ᾔ', 'ᾒ', 'ᾖ'],
+                      'ᾑ': ['ᾕ', 'ᾓ', 'ᾗ'],
+                      'ι': ['ῖ', 'ϊ', 'ί', 'ὶ', 'ί'],
+                      'ἰ': ['ἴ', 'ἲ', 'ἶ'],
+                      'ἱ': ['ἵ', 'ἳ', 'ἷ'],
+                      'Ι': ['Ϊ', 'Ί', 'Ὶ', 'Ί'],  # caps
+                      'Ἰ': ['Ἴ', 'Ἲ', 'Ἶ', '᾿Ι'],  # caps (including combining)
+                      'Ἱ': ['Ἵ', 'Ἳ', 'Ἷ', '῾Ι'],  # caps (including combining)
+                      'ο': ['ό', 'ὸ'],
+                      'ὀ': ['ὄ', 'ὂ'],
+                      'ὁ': ['ὅ', 'ὃ'],
+                      'Ο': ['Ό', 'Ὸ'],  # caps
+                      'Ὀ': ['Ὄ', 'Ὂ', '᾿Ο'],  # caps (including combining)
+                      'Ὁ': ['Ὅ', 'Ὃ', '῾Ο'],  # caps (including combining)
+                      'υ': ['ῦ', 'ϋ', 'ύ', 'ὺ'],
+                      'ὐ': ['ὔ', 'ὒ', 'ὖ'],
+                      'ὑ': ['ὕ', 'ὓ', 'ὗ'],
+                      'Υ': ['Ϋ', 'Ύ', 'Ὺ'],  # caps TODO: no capital U with smooth?
+                      'Ὑ': ['Ὕ', 'Ὓ', 'Ὗ', '῾Υ'],  # caps (including combining)
+                      'ω': ['ῶ', 'ώ', 'ὼ'],
+                      'ὠ': ['ὤ', 'ὢ', 'ὦ'],
+                      'ὡ': ['ὥ', 'ὣ', 'ὧ'],
+                      'Ω': ['Ώ', 'Ὼ'],  # caps
+                      'Ὠ': ['Ὤ', 'Ὢ', 'Ὦ', '᾿Ω'],  # caps (including combining)
+                      'Ὡ': ['Ὥ', 'Ὣ', 'Ὧ', '῾Ω'],  # caps (including combining)
+                      'ῳ': ['ῷ', 'ῴ', 'ῲ'],
+                      'ᾠ': ['ᾤ', 'ᾢ', 'ᾦ'],
+                      'ᾡ': ['ᾥ', 'ᾣ', 'ᾧ'],
+                      'Ῥ': ['῾Ρ'],  # also handle improperly formed marks (rough)
+                      '"': ['“', '”', '«', '»'],  # handle curly quotes
+                      "'": ['‘', '’'],
                       }
-            accented = chain(*equivs.values())
+            accented = chain(*list(equivs.values()))
             restr = '|'.join(accented)
             newstrings = []
             # FIXME: this is ugly and conflicts with question mark conversion
-            exempt = [u'τίνος', u'τί', u'τίς', u'τίνα', u'τίνας', u'τίνι',
-                      u'Τίνος', u'Τί', u'Τίς', u'Τίνα', u'Τίνας', u'Τίνι']
-            ex_period = [x + u'.' for x in exempt]
-            ex_scolon = [x + u';' for x in exempt]
-            ex_anotel = [x + u'·' for x in exempt]
-            ex_comma = [x + u',' for x in exempt]
-            ex_qmark = [x + u'\?' for x in exempt]
-            ex_colon = [x + u':' for x in exempt]
+            exempt = ['τίνος', 'τί', 'τίς', 'τίνα', 'τίνας', 'τίνι',
+                      'Τίνος', 'Τί', 'Τίς', 'Τίνα', 'Τίνας', 'Τίνι']
+            ex_period = [x + '.' for x in exempt]
+            ex_scolon = [x + ';' for x in exempt]
+            ex_anotel = [x + '·' for x in exempt]
+            ex_comma = [x + ',' for x in exempt]
+            ex_qmark = [x + '\?' for x in exempt]
+            ex_colon = [x + ':' for x in exempt]
             exempt = list(chain(exempt, ex_colon, ex_comma, ex_qmark, ex_scolon,
                           ex_period, ex_anotel))
 
             for mystring in substrs:
                 latin_chars = re.compile(r'^[a-zA-Z\s\.,:;\'\"\?]+$', re.U)
                 islatin = re.match(latin_chars, mystring)
-                if debug: print 'substring:', to_bytes(mystring)
-                if debug: print 'islatin:', islatin
+                if debug: print('substring:', to_bytes(mystring))
+                if debug: print('islatin:', islatin)
                 if not islatin:
                     mystring = mystring.strip()
-                    if debug: print '1:', to_bytes(mystring)
-                    mystring = mystring.replace(u'ί', u'ί')  # avoid q-i iota on windows
-                    if debug: print '2:', to_bytes(mystring)
+                    if debug: print('1:', to_bytes(mystring))
+                    mystring = mystring.replace('ί', 'ί')  # avoid q-i iota on windows
+                    if debug: print('2:', to_bytes(mystring))
 
                     if mystring not in exempt:
                         # below print statement causes UnicodeEncodeError on live server
                         # print mystring, 'not exempt', type(mystring)
                         matching_letters = re.findall(to_unicode(restr), mystring,
                                                     re.I | re.U)
-                        if debug: print 'matching letters:', to_bytes(matching_letters)
+                        if debug: print('matching letters:', to_bytes(matching_letters))
                         if matching_letters:
 
-                            edict = {k: v for k, v in equivs.iteritems()
+                            edict = {k: v for k, v in list(equivs.items())
                                     if [m for m in v if m in matching_letters]}
                             key_vals = {ltr: k
-                                        for ltr in list(chain(*edict.values()))
-                                        for k in edict.keys()
+                                        for ltr in list(chain(*list(edict.values())))
+                                        for k in list(edict.keys())
                                         if ltr in edict[k]}
-                            if debug: print key_vals
+                            if debug: print(key_vals)
                             mystring = multiple_replace(mystring, key_vals)
                         else:
-                            if debug: print 'no matching letters'
+                            if debug: print('no matching letters')
                     else:
-                        if debug: print to_bytes(mystring), 'exempt'
+                        if debug: print(to_bytes(mystring), 'exempt')
                 else:
-                    if debug: print 'no Greek'
+                    if debug: print('no Greek')
                 newstrings.append(mystring)
-            if debug: print '3'
+            if debug: print('3')
             newstring = ' '.join(newstrings)
-            if debug: print '4'
+            if debug: print('4')
             outstrings.append(newstring)
-            if debug: print '5'
+            if debug: print('5')
         if len(outstrings) == 1:
             outstrings = outstrings[0]
-        if debug: print 'returning', to_bytes(outstrings)
+        if debug: print('returning', to_bytes(outstrings))
         return outstrings
 
 

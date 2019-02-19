@@ -27,8 +27,8 @@ def myStats(user_login, web2py, db):  # request
     user_login fixture from conftest.py
     """
     alrows = db(db.attempt_log.name == user_login['id'])
-    print '============================================================='
-    print 'found', alrows.count(), 'attempt_log rows'
+    print('=============================================================')
+    print('found', alrows.count(), 'attempt_log rows')
     if not alrows.isempty():
         alrows.delete()
     tagsteps = db(db.steps.tags.contains(72)).select()
@@ -153,7 +153,7 @@ class TestStats():
         """
         """
         stats = myStats[0]
-        expected = ({1: [('the definite article', 72L)],
+        expected = ({1: [('the definite article', 72)],
                      2: [],
                      3: [],
                      4: []
@@ -198,13 +198,13 @@ class TestStats():
         tr = db(db.tag_records.name == user_login['id']).select().as_list()
         toronto = timezone('America/Toronto')
         for idx, t in enumerate(tr):
-            tr[idx] = {k: v for k, v in t.iteritems()
+            tr[idx] = {k: v for k, v in t.items()
                     if k not in ['id', 'name', 'in_path', 'step']}
             tr[idx]['tlast_right'] = t['tlast_right']
             tr[idx]['tlast_wrong'] = t['tlast_wrong']
 
         expected = [{'secondary_right': [],
-                     'tag': 72L,
+                     'tag': 72,
                      'times_right': 3.5,
                      'times_wrong': 2.0,
                      'tlast_right': datetime.datetime(2014, 2, 1, 20, 0),
@@ -218,10 +218,10 @@ class TestStats():
 
         actual = myStats[0]._add_promotion_data(tr)
         assert len(actual) == len(expected)
-        for k in expected[0].keys():
-            print k
-            print 'actual:', actual[0][k]
-            print 'expected:', expected[0][k]
+        for k in list(expected[0].keys()):
+            print(k)
+            print('actual:', actual[0][k])
+            print('expected:', expected[0][k])
             assert actual[0][k] == expected[0][k]
 
     def test_add_tag_data(self, myStats, web2py, user_login):
@@ -229,10 +229,10 @@ class TestStats():
         db = web2py.db
         tr = db(db.tag_records.name == user_login['id']).select().as_list()
         for idx, t in enumerate(tr):
-            tr[idx] = {k: v for k, v in t.iteritems()
+            tr[idx] = {k: v for k, v in t.items()
                     if k not in ['id', 'name', 'in_path', 'step']}
         expected = [{'secondary_right': [],
-                     'tag': 72L,
+                     'tag': 72,
                      'times_right': 3.5,
                      'times_wrong': 2.0,
                      'tlast_right': datetime.datetime(2014, 2, 1, 20, 0),
@@ -245,7 +245,7 @@ class TestStats():
         actual = myStats[0]._add_tag_data(tr)
         pprint(actual)
         assert len(actual) == len(expected)
-        for k in [i for i in actual[0].keys() if i not in ['uuid',
+        for k in [i for i in list(actual[0].keys()) if i not in ['uuid',
                                                            'modified_on']]:
             assert actual[0][k] == expected[0][k]
 
@@ -254,23 +254,23 @@ class TestStats():
         db = web2py.db
         logs = myStats[1]
         expected = {2014: {4: ({datetime.date(2014, 1, 26): [logs[0]]},
-                               {72L: [logs[0]]},
+                               {72: [logs[0]]},
                                [logs[0]],
                                []),
                            5: ({datetime.date(2014, 1, 28): logs[1:4],
                                datetime.date(2014, 1, 30): [logs[4]],
                                datetime.date(2014, 1, 31): [logs[5]]},
-                               {72L: logs[1:6]},
+                               {72: logs[1:6]},
                                [logs[1], logs[5]],
                                logs[2:5])}}
         logs = db(db.attempt_log.id.belongs(myStats[1])).select()
         actual = myStats[0]._make_logs_into_weekstats(logs)
         pprint(actual)
-        for year, weeks in actual.iteritems():
-            for weeknum, tup in weeks.iteritems():
-                for dt, count in tup[0].iteritems():
+        for year, weeks in actual.items():
+            for weeknum, tup in weeks.items():
+                for dt, count in tup[0].items():
                     assert count == expected[year][weeknum][0][dt]
-                for tag, lst in tup[1].iteritems():
+                for tag, lst in tup[1].items():
                     assert lst == expected[year][weeknum][1][tag]
                 assert tup[2:] == expected[year][weeknum][2:]
 
@@ -280,11 +280,11 @@ class TestStats():
         logs = myStats[1]
         tr = db(db.tag_records.name == user_login['id']).select().as_list()
         for idx, t in enumerate(tr):
-            tr[idx] = {k: v for k, v in t.iteritems()
+            tr[idx] = {k: v for k, v in t.items()
                     if k not in ['id', 'name', 'in_path', 'step']}
         expected = [{'secondary_right': [],
                      'avg_score': 0.6,
-                     'tag': 72L,
+                     'tag': 72,
                      'times_right': 3.5,
                      'times_wrong': 2.0,
                      'tlast_right': datetime.datetime(2014, 2, 1, 20, 0),
@@ -292,7 +292,7 @@ class TestStats():
                      # below is added by this method
                      'logs_by_week': {2012: {},
                                       2013: {},
-                                      2014: {5L: {datetime.datetime(2014, 1, 26, 0, 0): [],
+                                      2014: {5: {datetime.datetime(2014, 1, 26, 0, 0): [],
                                                   datetime.datetime(2014, 1, 27, 0, 0): [logs[0]],
                                                   datetime.datetime(2014, 1, 28, 0, 0): [],
                                                   datetime.datetime(2014, 1, 29, 0, 0): [logs[1],
@@ -309,13 +309,13 @@ class TestStats():
         actual = myStats[0]._add_log_data(tr)
         pprint(actual)
         assert len(actual) == len(expected)
-        assert len(actual[0].keys()) == len(actual[0].keys())
-        for k in [i for i in actual[0].keys() if i not in ['uuid',
+        assert len(list(actual[0].keys())) == len(list(actual[0].keys()))
+        for k in [i for i in list(actual[0].keys()) if i not in ['uuid',
                                                            'modified_on']]:
             if isinstance(actual[0][k], dict):
-                for sk in actual[0][k].keys():
+                for sk in list(actual[0][k].keys()):
                     if isinstance(actual[0][k][sk], dict):
-                        for ssk in actual[0][k][sk].keys():
+                        for ssk in list(actual[0][k][sk].keys()):
                             assert actual[0][k][sk][ssk] == expected[0][k][sk][ssk]
                     else:
                         assert actual[0][k][sk] == expected[0][k][sk]
@@ -335,7 +335,7 @@ class TestStats():
         now = datetime.datetime(2014, 2, 2, 2, 0)
         dtw = datetime.datetime(2014, 1, 31, 10, 0)
         dtr = datetime.datetime(2014, 2, 1, 20, 0)
-        dtw_local = toronto.localize(datetime.datetime(2014, 1, 31, 05, 0))
+        dtw_local = toronto.localize(datetime.datetime(2014, 1, 31, 0o5, 0))
         dtr_local = toronto.localize(datetime.datetime(2014, 2, 1, 15, 0))
         #print 'delta_right:', now - dtr
         #print 'delta_wrong:', now - dtw
@@ -369,7 +369,7 @@ class TestStats():
                      'cat4_reached':  (None, None),
                      'logs_by_week': {2012: {},
                                       2013: {},
-                                      2014: {5L: {datetime.datetime(2014, 1, 26, 0, 0): [],
+                                      2014: {5: {datetime.datetime(2014, 1, 26, 0, 0): [],
                                                   datetime.datetime(2014, 1, 27, 0, 0): [logs[0]],
                                                   datetime.datetime(2014, 1, 28, 0, 0): [],
                                                   datetime.datetime(2014, 1, 29, 0, 0): [logs[1],
@@ -393,17 +393,17 @@ class TestStats():
                      }]
 
         actual = myStats[0].active_tags(now=now)
-        print 'test_active_tags:: actual -----------------------------'
+        print('test_active_tags:: actual -----------------------------')
         pprint(actual)
         # make sure no differences between actual and expected dict structures
         assert len(actual) == len(expected)
-        assert not [k for k in actual[0].keys()
+        assert not [k for k in list(actual[0].keys())
                     if k not in expected[0]
                     and k not in ['uuid', 'modified_on']]
-        for k in actual[0].keys():
-            print k
-            print 'actual:', actual[0][k]
-            print 'expected:', expected[0][k]
+        for k in list(actual[0].keys()):
+            print(k)
+            print('actual:', actual[0][k])
+            print('expected:', expected[0][k])
             assert actual[0][k] == expected[0][k]
 
     def test_monthcal(self, myStats):
