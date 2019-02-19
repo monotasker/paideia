@@ -49,7 +49,7 @@ class Bug(object):
             db.bugs.insert(**argdict)
             return True
         except Exception:
-            print traceback.format_exc(5)
+            print(traceback.format_exc(5))
             mail = current.mail
             msg = '<html>A user tried to submit a step bug report, but the' \
                   'report failed. Traceback: {} \n\n' \
@@ -161,11 +161,11 @@ class Bug(object):
                         db.commit()
 
                 else:  # user has no wrong logs to be changed
-                    print 'user has no wrong logs to be changed'
+                    print('user has no wrong logs to be changed')
             message += '\nUpdated these tag records rows: {}. '.format(updated_list)
 
         except Exception:
-            print traceback.format_exc(5)
+            print(traceback.format_exc(5))
             message += '\nTag_records rows for bug {} could not be reversed. '.format(bug_id)
 
         return updated_list, message
@@ -272,7 +272,7 @@ class Bug(object):
                     display.append('bug-unread')
                 lst.append(display)
             except Exception:
-                print traceback.format_exc(5)
+                print(traceback.format_exc(5))
         return lst
 
     @staticmethod
@@ -295,9 +295,9 @@ class Bug(object):
             db.commit()
             assert myrow.deleted is True
             return myrow.id
-        except Exception, e:
-            print 'Error'
-            print e
+        except Exception as e:
+            print('Error')
+            print(e)
             return 'false'
 
     @staticmethod
@@ -323,9 +323,9 @@ class Bug(object):
             myrow.update_record(**new_content)
             db.commit()
             return myrow.id
-        except Exception, e:
-            print 'Error in Bug::update_bug()'
-            print e
+        except Exception as e:
+            print('Error in Bug::update_bug()')
+            print(e)
             return 'false'
 
 

@@ -8,7 +8,7 @@ from operator import itemgetter
 from pytz import timezone, utc
 from gluon import current, DIV, SPAN, A, URL, UL, LI, B, I
 from gluon import TAG
-from plugin_utils import make_json, load_json
+from .plugin_utils import make_json, load_json
 from pprint import pprint
 # from paideia import Categorizer
 # from gluon.sqlhtml import SQLFORM  # , Field
@@ -114,7 +114,7 @@ class Stats(object):
         # TODO: find and notify re. duplicate tag_records rows
         self.badge_levels, self.review_levels = self._find_badge_levels()
         self.tags = list(set([tup[1] for v
-                              in self.badge_levels.values() for tup in v]))
+                              in list(self.badge_levels.values()) for tup in v]))
 
         # date of each tag promotion
         self.badges_begun = db(db.badges_begun.name == self.user_id).select()
@@ -140,10 +140,10 @@ class Stats(object):
         # TODO: Should there also be an annual aggregate?
         db = current.db
         data = {}
-        for year, weeks in statsdict.iteritems():
-            for weeknum, weekstuff in weeks.iteritems():
+        for year, weeks in list(statsdict.items()):
+            for weeknum, weekstuff in list(weeks.items()):
                 dts = sorted(weekstuff[0].keys())
-                done = 1 if not weeknum == weeks.keys()[-1] else 0
+                done = 1 if not weeknum == list(weeks.keys())[-1] else 0
 
                 weekdata = {'name': self.user_id,
                             'year': year,
@@ -162,9 +162,9 @@ class Stats(object):
                             'done': done
                             }
                 # finish any unfinished week
-                if year == statsdict.keys()[0] and \
-                        weeknum == weeks.keys()[0] and \
-                        lastdt.isocalendar()[1] == weeks.keys()[0] and \
+                if year == list(statsdict.keys())[0] and \
+                        weeknum == list(weeks.keys())[0] and \
+                        lastdt.isocalendar()[1] == list(weeks.keys())[0] and \
                         lastdt.isocalendar()[0] == year:
                     openrow = db(db.user_stats.name == self.user_id
                                  ).select().last()
@@ -330,12 +330,12 @@ class Stats(object):
             t['logs_by_week'] = copy(usrows)
             t['logs_right'] = []
             t['logs_wrong'] = []
-            for year, yeardata in usrows.iteritems():
-                for weeknum, yrdata in yeardata.iteritems():
+            for year, yeardata in list(usrows.items()):
+                for weeknum, yrdata in list(yeardata.items()):
                     try:
                         bytag = yrdata[1][str(tag)]
                         weeklogs = {}
-                        for day, count in yrdata[0].iteritems():
+                        for day, count in list(yrdata[0].items()):
                             try:
                                 weeklogs[parse(day)] = [c for c in count
                                                         if c in bytag]
@@ -350,7 +350,7 @@ class Stats(object):
                     except KeyError:  # no logs for this tag that week
                         pass
                     except IndexError:
-                        print 'malformed usrows for ', tag, 'in week', weeknum
+                        print('malformed usrows for ', tag, 'in week', weeknum)
             all_logs = t['logs_right'] + t['logs_wrong']
             all_rows = db(db.attempt_log.id.belongs(all_logs)
                           ).select(db.attempt_log.score)
@@ -452,15 +452,15 @@ class Stats(object):
                       'tlast_wrong': 'tlw',
                       'times_right': 'tright',
                       'times_wrong': 'twrong'}
-        for k, alt in shortforms.iteritems():
+        for k, alt in list(shortforms.items()):
             for idx, row in enumerate(tr):
-                if k in row.keys():
+                if k in list(row.keys()):
                     tr[idx][alt] = row[k]
                     del tr[idx][k]
         now = self.utcnow if not now else now
         for idx, t in enumerate(tr):
             # remove unnecessary keys
-            tr[idx] = {k: v for k, v in t.iteritems()
+            tr[idx] = {k: v for k, v in list(t.items())
                        if k not in ['id', 'name', 'in_path', 'step',
                        'secondary_right']}
 
@@ -519,14 +519,14 @@ class Stats(object):
             # print t['tag']
             try:
                 tr[idx]['curlev'] = [l for l, tgs in
-                                     self.badge_levels.iteritems()
+                                     list(self.badge_levels.items())
                                      if t['tag'] in [tg[1] for tg in tgs]
                                      ][0]
             except IndexError:
                 tr[idx]['curlev'] = 0
             try:
                 tr[idx]['revlev'] = [l for l, tgs in
-                                     self.review_levels.iteritems()
+                                     list(self.review_levels.items())
                                      if t['tag'] in [tg[1] for tg in tgs]
                                      ][0]
             except IndexError:
@@ -617,11 +617,11 @@ class Stats(object):
         # print 'Stats._find_badge_levels:: bls:', bls
         # bls = db(db.tag_progress.name ==
         # self.user_id).select().first().as_dict()
-        bl_ids = {k: v for k, v in bls.iteritems()
+        bl_ids = {k: v for k, v in list(bls.items())
                   if k[:3] == 'cat' and k != 'cat1_choices'}
         # print 'Stats._find_badge_levels:: bl_ids:', bl_ids
         badge_levels = {}
-        for k, v in bl_ids.iteritems():
+        for k, v in list(bl_ids.items()):
             level = int(k[3:])
             badgelist = []
             if v:
@@ -632,9 +632,9 @@ class Stats(object):
                     badgelist.append((badge_name, tag))
             badge_levels[level] = badgelist
 
-        rl_ids = {k: v for k, v in bls.iteritems() if k[:3] == 'rev'}
+        rl_ids = {k: v for k, v in list(bls.items()) if k[:3] == 'rev'}
         review_levels = {}
-        for k, v in rl_ids.iteritems():
+        for k, v in list(rl_ids.items()):
             level = int(k[3:])
             badgelist = []
             if v:
@@ -733,7 +733,7 @@ class Stats(object):
         if usrows:
             # weeks and days organized by user's local time
             # but datetimes themselves are still utc
-            years = range(ustart.year, ustop.year + 1)
+            years = list(range(ustart.year, ustop.year + 1))
             usdict = {}
             for year in years:
                 myrows = [r for r in usrows if r['year'] == year]
@@ -825,18 +825,18 @@ class Stats(object):
         try:
             try:
                 daycounts = {parse(k): len(v)
-                             for week in rangelogs[year].values()
-                             for k, v in week[0].iteritems()}
+                             for week in list(rangelogs[year].values())
+                             for k, v in list(week[0].items())}
             except (TypeError, AttributeError):
                 daycounts = {k: len(v)
-                             for week in rangelogs[year].values()
-                             for k, v in week[0].iteritems()}
+                             for week in list(rangelogs[year].values())
+                             for k, v in list(week[0].items())}
             # Create html calendar and add daily count numbers
             for week in mycal.elements('tr'):
                 weekcount = 0
                 for day in week.elements('td[class!="noday"]'):
                     try:
-                        mycount = [v for k, v in daycounts.iteritems()
+                        mycount = [v for k, v in list(daycounts.items())
                                    if k.day == int(day[0])][0]
                         countspan = SPAN(mycount, _class='daycount')
                         if mycount >= self.targetcount:
@@ -877,7 +877,7 @@ class Stats(object):
                  'previous': (prev_month, prev_year, 0,
                               SPAN(_class='fa fa-chevron-left fa-fw'))}
         linktags = []
-        for k, v in links.iteritems():
+        for k, v in list(links.items()):
             mylink = A(v[3], _href=URL('reporting', 'calendar.load',
                                        args=[self.user_id, v[1], v[0]]),
                        _class='monthcal_nav_link {}'.format(k),
@@ -894,7 +894,7 @@ class Stats(object):
         nowdate = datetime.date.today()
         nowmonth = nowdate.month
         nowyear = nowdate.year
-        years = range(nowyear, 2011, -1)
+        years = list(range(nowyear, 2011, -1))
         picker_args = {'_class': 'dropdown-menu',
                        '_role': 'menu',
                        '_aria-labelledby': 'month-label'}
@@ -945,7 +945,7 @@ class Stats(object):
             left=db.tags.on(db.tags.id == db.badges_begun.tag),
             groupby=db.tags.tag_position,
             orderby='2, 1 DESC')
-        if debug: print 'Stats::get_badge_set_milestones: result=============='
+        if debug: print('Stats::get_badge_set_milestones: result==============')
         if debug: pprint(result)
 
         # Transform to a more lightweight form
@@ -953,7 +953,7 @@ class Stats(object):
         # PostgreSQL returns datetime object, sqlite returns string
         # So we have to force type to sting, this won't break backwards
         # compatibility with sqlite
-        data = [{'my_date': str(row._extra.values()[0]),
+        data = [{'my_date': str(list(row._extra.values())[0]),
                  'badge_set': row.tags.tag_position}
                 for row in result if row.tags.tag_position < 900]
         data = sorted(data, key=lambda i: i['badge_set'], reverse=True)
@@ -1027,11 +1027,11 @@ class Stats(object):
 
         # Transform to a lightweight form
         counts = []
-        for (date, scores_ids) in result.iteritems():
+        for (date, scores_ids) in list(result.items()):
             scores = [s[0] for s in scores_ids]
             ids = [s[1] for s in scores_ids]
             total = len(scores)
-            right = len(filter(lambda r: r >= 1.0, scores))
+            right = len([r for r in scores if r >= 1.0])
 
             # Force str because of how PostgreSQL returns date column
             # PostgreSQL returns datetime object, sqlite returns string
@@ -1105,7 +1105,7 @@ class Stats(object):
             alltags = [t for row in daylogs for t in row.steps.tags]
             tagcounts = {}
             for t in alltags:
-                if t in tagcounts.keys():
+                if t in list(tagcounts.keys()):
                     tagcounts[t] += 1
                 else:
                     tagcounts[t] = 1
@@ -1126,7 +1126,7 @@ class Stats(object):
 
             # find attempts for each category
             catdata = {}
-            for cat in usercats.keys():
+            for cat in list(usercats.keys()):
                 catlogs = daylogs.find(lambda l: any(t for t in l.steps.tags
                                        if t in usercats[cat]))
                 cattags = list(set([t for l in catlogs for t in l.steps.tags if
@@ -1142,11 +1142,11 @@ class Stats(object):
             stepcounts = {}
             for log in daylogs:
                 stepid = log.attempt_log['step']
-                if stepid in stepcounts.keys():
+                if stepid in list(stepcounts.keys()):
                     stepcounts[stepid] += 1
                 else:
                     stepcounts[stepid] = 1
-            repeats = {id: ct for id, ct in stepcounts.iteritems() if ct > 1}
+            repeats = {id: ct for id, ct in list(stepcounts.items()) if ct > 1}
             # print 'date', dayend.date()
             daysdata[dayend.date()] = {'total_attempts': [l.attempt_log['id']
                                        for l in daylogs],
@@ -1350,8 +1350,8 @@ def get_term_bounds(meminfo, start_date, end_date):
     """
     debug = False
     db = current.db
-    if debug: print 'starting paideia_stats/get_term_bounds ================='
-    if debug: print db.auth_user(meminfo['name']).last_name
+    if debug: print('starting paideia_stats/get_term_bounds =================')
+    if debug: print(db.auth_user(meminfo['name']).last_name)
 
     db = current.db
     now = datetime.datetime.utcnow()
@@ -1363,7 +1363,7 @@ def get_term_bounds(meminfo, start_date, end_date):
     myclasses = db((db.class_membership.name == meminfo['name']) &
                    (db.class_membership.class_section == db.classes.id)
                    ).select().as_list()
-    if debug: print 'myclasses', len(myclasses)
+    if debug: print('myclasses', len(myclasses))
 
     if len(myclasses) > 1:  # get end of previous course
         try:
@@ -1375,17 +1375,17 @@ def get_term_bounds(meminfo, start_date, end_date):
                            in myclasses if c['class_membership']['custom_end']}
             if debug: pprint(custom_ends)
             if custom_ends:
-                for cid, dt in end_dates.iteritems():
-                    if cid in custom_ends.keys() and custom_ends[cid] > dt:
+                for cid, dt in list(end_dates.items()):
+                    if cid in list(custom_ends.keys()) and custom_ends[cid] > dt:
                         end_dates[cid] = custom_ends[cid]
             prevend = sorted(end_dates.values())[-2]
             fmt_prevend = make_readable(prevend)
-            if debug: print 'previous end:', pprint(fmt_prevend)
+            if debug: print('previous end:', pprint(fmt_prevend))
             if prevend in [meminfo['custom_end'], end_date]:
                 prevend = None
                 fmt_prevend = 'none'
         except Exception:
-            if debug: print traceback.format_exc(5)
+            if debug: print(traceback.format_exc(5))
             prevend = None
             fmt_prevend = 'could not retrieve'
     else:
@@ -1397,8 +1397,8 @@ def get_term_bounds(meminfo, start_date, end_date):
     fmt_start = make_readable(mystart)
     myend = meminfo['custom_end'] if meminfo['custom_end'] else end_date
     fmt_end = make_readable(myend)
-    if debug: print 'finished get_term_bounds'
-    if debug: print mystart, fmt_start, myend, fmt_end
+    if debug: print('finished get_term_bounds')
+    if debug: print(mystart, fmt_start, myend, fmt_end)
 
     return mystart, fmt_start, myend, fmt_end, prevend, fmt_prevend
 
@@ -1410,11 +1410,11 @@ def compute_letter_grade(uid, myprog, startset, classrow):
     debug = True
     mymem = get_current_class(uid, datetime.datetime.utcnow(),
                               myclass=classrow['id'])
-    if debug: print 'stats::compute_letter_grade: uid = ', uid
+    if debug: print('stats::compute_letter_grade: uid = ', uid)
     if debug: db = current.db
-    if debug: print db.auth_user[uid].last_name
-    if debug: print 'stats::compute_letter_grade: start = ', startset
-    if debug: print 'stats::compute_letter_grade: progress = ', myprog
+    if debug: print(db.auth_user[uid].last_name)
+    if debug: print('stats::compute_letter_grade: start = ', startset)
+    if debug: print('stats::compute_letter_grade: progress = ', myprog)
     gradedict = {}
     for let in ['a', 'b', 'c', 'd']:
         letcap = '{}_cap'.format(let)
@@ -1429,18 +1429,18 @@ def compute_letter_grade(uid, myprog, startset, classrow):
                 mylet = int(startset) + classrow[lettarget]
         gradedict[mylet] = let.upper()
     if debug: pprint(gradedict)
-    if myprog in gradedict.keys():
+    if myprog in list(gradedict.keys()):
 
         mygrade = gradedict[myprog]
-    elif any([k for k, v in gradedict.items() if myprog > k]):
-        grade_prog = max([k for k, v in gradedict.items() if myprog > k])
+    elif any([k for k, v in list(gradedict.items()) if myprog > k]):
+        grade_prog = max([k for k, v in list(gradedict.items()) if myprog > k])
         mygrade = gradedict[grade_prog]
-    elif myprog > [k for k, v in gradedict.items() if v == 'A'][0]:
+    elif myprog > [k for k, v in list(gradedict.items()) if v == 'A'][0]:
         mygrade = 'A'
     else:
         mygrade = 'F'
-    if debug: print 'stats::compute_letter_grade: grade = ', mygrade
-    if debug: print ''
+    if debug: print('stats::compute_letter_grade: grade = ', mygrade)
+    if debug: print('')
 
     return mygrade
 
@@ -1468,20 +1468,20 @@ def make_classlist(member_sel, users, start_date, end_date, target, classrow):
     Return a dictionary of information on each student in the class.
     """
     debug = False
-    if debug: print 'starting paideia_status/make_classlist =============='
+    if debug: print('starting paideia_status/make_classlist ==============')
     userlist = []
     for member in member_sel:
         uid = member.name
-        if debug: print uid
+        if debug: print(uid)
         try:
             user = users.find(lambda row: row.auth_user.id == uid)[0]
         except IndexError:
-            print 'oops!'
+            print('oops!')
             db = current.db
             user = {'auth_user': db.auth_user(uid)}
         myname = '{}, {}'.format(user['auth_user'].last_name,
                                  user['auth_user'].first_name)
-        if debug: print myname
+        if debug: print(myname)
         meminfo = member_sel.find(lambda row: row.name == uid)[0]
         mystart, fmt_start, myend, fmt_end, prevend, fmt_prevend = \
             get_term_bounds(meminfo, start_date, end_date)
@@ -1491,7 +1491,7 @@ def make_classlist(member_sel, users, start_date, end_date, target, classrow):
             else get_set_at_date(uid, mystart)
 
         if datetime.datetime.utcnow() < myend and \
-                'tag_progress' in user.keys():  # during class term
+                'tag_progress' in list(user.keys()):  # during class term
             currset = user['tag_progress'].latest_new
         else:  # after class term
             currset = get_set_at_date(uid, myend)
@@ -1505,7 +1505,7 @@ def make_classlist(member_sel, users, start_date, end_date, target, classrow):
                 tp_id = db(db.tag_progress.name == uid).select().first().id
             except AttributeError:  # if no tag_progress record for user
                 tp_id = None
-        if debug: print 'tp_id', tp_id
+        if debug: print('tp_id', tp_id)
 
         userlist.append({'uid': uid,
                          'name': myname,
@@ -1519,7 +1519,7 @@ def make_classlist(member_sel, users, start_date, end_date, target, classrow):
                          'previous_end_date': fmt_prevend,
                          'tp_id': tp_id})
     userlist = sorted(userlist, key=lambda t: t['name'].capitalize())
-    if debug: print 'returning userlist --------------------'
+    if debug: print('returning userlist --------------------')
     if debug: pprint(userlist)
 
     return userlist
@@ -1529,11 +1529,11 @@ def make_unregistered_list(users):
     """
     """
     debug = False
-    if debug: print 'make_unregistered_list'
+    if debug: print('make_unregistered_list')
     db = current.db
     userlist = []
     for user in users:
-        if debug: print 'user id:', user.auth_user.id
+        if debug: print('user id:', user.auth_user.id)
         tp = db(db.tag_progress.name == user.auth_user.id).select().first()
         tp_id = tp.id if tp else None
         currset = get_set_at_date(user.auth_user.id, datetime.datetime.now())

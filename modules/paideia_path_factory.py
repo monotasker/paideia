@@ -1,7 +1,7 @@
 #! /etc/bin/python
 # -*- coding:utf-8 -*-
 
-u"""
+"""
 Paideia Path Factory.
 
 Copyright 2013—2014, Ian W. Scott
@@ -48,8 +48,8 @@ class ResultCollector(object):
 
     def __call__(self, *args, **kwargs):
         """docstring for __call__"""
-        session = locals()['session'] if 'session' in locals().keys() else current.session
-        if 'results' not in session.keys():
+        session = locals()['session'] if 'session' in list(locals().keys()) else current.session
+        if 'results' not in list(session.keys()):
             session.results = []
         retvals = self.func(*args, **kwargs)
         myval = retvals
@@ -90,7 +90,7 @@ class Inflector(object):
             """
             Return a constraint string matching the provided parsing dict.
             """
-            cst_pairs = ['{}@{}'.format(k, v) for k, v in parsedict.iteritems()]
+            cst_pairs = ['{}@{}'.format(k, v) for k, v in list(parsedict.items())]
             constraint = '_'.join(cst_pairs)
             return constraint
 
@@ -159,7 +159,7 @@ class Inflector(object):
         def _get_part_of_speech(cst, lem):
             """
             """
-            pos = cst['part_of_speech'] if cst and 'part_of_speech' in cst.keys() \
+            pos = cst['part_of_speech'] if cst and 'part_of_speech' in list(cst.keys()) \
                 else lem.part_of_speech
             return pos
 
@@ -178,16 +178,16 @@ class Inflector(object):
                         'voice': 'active',
                         'person': '3',
                         'mood': 'indicative'}
-            if cst and prop in cst.keys():
+            if cst and prop in list(cst.keys()):
                 propval = cst[prop]
-            elif ref and (prop in ref.keys()) and \
+            elif ref and (prop in list(ref.keys())) and \
                     ref[prop] not in ['none', None] and \
                     ((prop != 'gender') or
                      (part_of_speech in ['adjective', 'article', 'pronoun'])):
                 propval = ref[prop]
             elif prop == 'gender':
                 propval = lemform[prop]
-            elif prop in defaults.keys():
+            elif prop in list(defaults.keys()):
                 propval = defaults[prop]
             else:
                 propval = None
@@ -213,10 +213,10 @@ class Inflector(object):
         parsing['part_of_speech'] = _get_part_of_speech(cst, lem)
         if parsing['part_of_speech'] == 'verb':
             mykeys.extend(['mood', 'tense', 'voice', 'person', 'number'])
-            if 'mood' in parsing.keys() and parsing['mood'] == 'participle':
+            if 'mood' in list(parsing.keys()) and parsing['mood'] == 'participle':
                 mykeys.extend(['gender', 'grammatical_case'])
                 mykeys.pop(mykeys.index('person'))
-            if 'mood' in parsing.keys() and parsing['mood'] != 'infinitive':
+            if 'mood' in list(parsing.keys()) and parsing['mood'] != 'infinitive':
                 mykeys.pop(mykeys.index('number'))
                 mykeys.pop(mykeys.index('person'))
         elif parsing['part_of_speech'] in ['noun', 'pronoun',
@@ -257,7 +257,7 @@ class Inflector(object):
         # now fill missing fields with None
         extra_fields = [f for f in db.word_forms.fields
                         if f not in reqs
-                        and f not in parsing.keys()]
+                        and f not in list(parsing.keys())]
         for f in extra_fields:
             parsing[f] = 'none'
         return parsing
@@ -280,7 +280,7 @@ class Inflector(object):
                 genders.append('masculine or neuter')
             return genders
         '''
-        if 'construction' in parsing.keys() and parsing['construction']:
+        if 'construction' in list(parsing.keys()) and parsing['construction']:
             myrow = db((db.word_forms.source_lemma == lemid) &
                        (db.word_forms.construction == parsing['construction'])
                        ).select().first()
@@ -301,29 +301,29 @@ class Inflector(object):
 class MorphParser(object):
     """
     """
-    nom_endings = {u'ος': {'sfx': [u'ος', u'ου', u'ῳ', u'ον', u'ε',
-                                   u'οι', u'ων', u'οις', u'ους', u'--'],
+    nom_endings = {'ος': {'sfx': ['ος', 'ου', 'ῳ', 'ον', 'ε',
+                                   'οι', 'ων', 'οις', 'ους', '--'],
                            'declension': '2',
                            'gender': 'masculine'},
-                   u'ον': {'sfx': [u'ον', u'ου', u'ῳ', u'ον', u'ε',
-                                   u'α', u'ων', u'οις', u'α', u'--'],
+                   'ον': {'sfx': ['ον', 'ου', 'ῳ', 'ον', 'ε',
+                                   'α', 'ων', 'οις', 'α', '--'],
                            'declension': '2',
                            'gender': 'neuter'},
-                   u'(η|α)': {'sfx': [u'(η|α)', u'[ηα]ς', u'(ῃ|ᾳ)', u'[ηα]ν', u'ε',
-                                  u'αι', u'ων', u'αις', u'ας', u'--'],
+                   '(η|α)': {'sfx': ['(η|α)', '[ηα]ς', '(ῃ|ᾳ)', '[ηα]ν', 'ε',
+                                  'αι', 'ων', 'αις', 'ας', '--'],
                           'declension': '1',
                           'gender': 'feminine'},
-                   u'ρ': {'sfx': [u'ρ', u'ρος', u'ρι', u'ρα', u'--',
-                                  u'ρες', u'ρων', u'ρι.ι', u'ρας', u'--'],
+                   'ρ': {'sfx': ['ρ', 'ρος', 'ρι', 'ρα', '--',
+                                  'ρες', 'ρων', 'ρι.ι', 'ρας', '--'],
                           'declension': '3',
                           'gender': None},
-                   u'ις': {'sfx': [u'[^ε]ις', u'(εως|ος)', u'ι', u'(ιν|α)',
-                                   u'--', u'ε[ι]?ς', u'ων', u'[ιε].ι',
-                                   u'(εις|ας)', u'ε[ι]?ς'],
+                   'ις': {'sfx': ['[^ε]ις', '(εως|ος)', 'ι', '(ιν|α)',
+                                   '--', 'ε[ι]?ς', 'ων', '[ιε].ι',
+                                   '(εις|ας)', 'ε[ι]?ς'],
                           'declension': '3',
                           'gender': None},
-                   u'υς': {'sfx': [u'υς', u'υως', u'υι', u'υν', u'υ',
-                                   u'υες', u'υων', u'--', u'υας', u'υες'],
+                   'υς': {'sfx': ['υς', 'υως', 'υι', 'υν', 'υ',
+                                   'υες', 'υων', '--', 'υας', 'υες'],
                           'declension': '3',
                           'gender': None},
                    }
@@ -338,12 +338,12 @@ class MorphParser(object):
         """
 
         word_form = makeutf8(word_form)
-        if (word_form[-1] == u'ω') or (word_form[-2:] == u'μι'):
+        if (word_form[-1] == 'ω') or (word_form[-2:] == 'μι'):
             ps = 'verb'
-        elif (word_form[-2:] in [u'ος', u'υς', u'ης', u'ον']) or \
-             (word_form[-1] in [u'η', u'α']):
+        elif (word_form[-2:] in ['ος', 'υς', 'ης', 'ον']) or \
+             (word_form[-1] in ['η', 'α']):
             ps = 'noun'
-        elif word_form[-2:] == u'ως':
+        elif word_form[-2:] == 'ως':
             ps = 'adverb'
         else:
             ps = None
@@ -355,14 +355,14 @@ class MorphParser(object):
         Return a string giving the declension of the supplied nom. sing. noun.
         """
         wordform = to_unicode(wordform, encoding='utf8')
-        end = [e for e in self.nom_endings.keys()
-               if re.match(u'.*{}$'.format(e), wordform)]
+        end = [e for e in list(self.nom_endings.keys())
+               if re.match('.*{}$'.format(e), wordform)]
         if end:
             declension = self.nom_endings[end[0]]['declension']
         else:
-            if wordform in [u'ὁ', u'το']:
+            if wordform in ['ὁ', 'το']:
                 declension = '2'
-            elif wordform in [u'ἡ']:
+            elif wordform in ['ἡ']:
                 declension = '2'
             else:
                 declension = '3'
@@ -395,10 +395,10 @@ class MorphParser(object):
         number = None
         cases = ['nominative', 'genitive', 'dative', 'accusative', 'vocative',
                  'nominative', 'genitive', 'dative', 'accusative', 'vocative']
-        for k, v in self.nom_endings.iteritems():
-            if re.match(u'.*{}$'.format(k), lemma):
+        for k, v in list(self.nom_endings.items()):
+            if re.match('.*{}$'.format(k), lemma):
                 ends = [i for i in v['sfx']
-                        if re.match(u'.*{}$'.format(i), word_form)]
+                        if re.match('.*{}$'.format(i), word_form)]
                 if ends:
                     if len(ends) == 1:
                         idx = v['sfx'].index(ends[0])
@@ -695,7 +695,7 @@ class WordFactory(object):
         rdbl = rdbl.replace(' 1decl', ', 1st declension ')
         rdbl = rdbl.replace(' 2decl', ', 2nd declension ')
         rdbl = rdbl.replace(' 3decl', ', 3rd declension ')
-        mytags = [k for k, v in self.tagging_conditions.iteritems()
+        mytags = [k for k, v in list(self.tagging_conditions.items())
                     for lst in v if all(l in shortbits for l in lst)]
         mytags = [t.id for t in db(db.tags.tag.belongs(mytags)).select()]
         try:
@@ -741,7 +741,7 @@ class WordFactory(object):
             reqs = self.wordform_reqs['verb-{}'.format(parsing['mood'])]
         modrow = db.word_forms(db.word_forms.word_form == modform)
         guesses = self.parser.infer_parsing(word_form, lemma)
-        for r in [i for i in reqs if i not in parsing.keys() or not parsing[i]]:
+        for r in [i for i in reqs if i not in list(parsing.keys()) or not parsing[i]]:
             try:
                 parsing[r] = modrow[r]
                 assert parsing[r]
@@ -774,7 +774,7 @@ class WordFactory(object):
         parsing['word_form'] = word_form
 
         try:
-            if 'on' in parsing.keys():
+            if 'on' in list(parsing.keys()):
                 del(parsing['on'])  # FIXME: where does this come from?
                 del(parsing['part_of_speech'])  # FIXME: where does this come from?
                 del(parsing['id'])  # FIXME: where does this come from?
@@ -800,28 +800,28 @@ class WordFactory(object):
         cd = self.parse_constraint(constraint)
         lemma_reqs = ['lemma', 'glosses', 'part_of_speech', 'first_tag',
                       'extra_tags', 'first_tag']
-        lemdata = {k: i for k, i in cd.iteritems() if k in lemma_reqs}
+        lemdata = {k: i for k, i in list(cd.items()) if k in lemma_reqs}
         lemma = makeutf8(lemma)
 
         # get lemma field
         lemdata['lemma'] = lemma
         # get part_of_speech field
-        if 'part_of_speech' not in lemdata.keys():
+        if 'part_of_speech' not in list(lemdata.keys()):
             lemdata['part_of_speech'] = self.parser.infer_part_of_speech(lemma)
 
         # add tags based on part of speech and ending
         tags = []
         if lemdata['part_of_speech'] == 'verb':
             tags.append('verb basics')
-            if lemma[-2:] == u'μι':
+            if lemma[-2:] == 'μι':
                 tags.append('μι verbs')
         elif lemdata['part_of_speech'] == 'noun':
             tags.append('noun basics')
-            if lemma[-2:] in [u'ος', u'ης', u'ον']:
+            if lemma[-2:] in ['ος', 'ης', 'ον']:
                 tags.append('nominative 2')
-            elif lemma[-2:] in [u'υς', u'ις', u'ων', u'ηρ']:
+            elif lemma[-2:] in ['υς', 'ις', 'ων', 'ηρ']:
                 tags.append('nominative 3')
-            elif lemma[-1] in [u'η', u'α']:
+            elif lemma[-1] in ['η', 'α']:
                 tags.append('nominative 1')
         elif lemdata['part_of_speech'] in ['adjective', 'pronoun', 'adverb',
                                            'particle', 'conjunction']:
@@ -837,7 +837,7 @@ class WordFactory(object):
         lemdata['extra_tags'] = tagids
 
         # get 'glosses' field
-        if 'glosses' in lemdata.keys():
+        if 'glosses' in list(lemdata.keys()):
             lemdata['glosses'] = lemdata['glosses'].split('|')
             lemdata['glosses'] = [g.replace('#', ' ') for g in lemdata['glosses']]
 
@@ -882,7 +882,7 @@ class WordFactory(object):
                      ('grammatical', 'case')]
             for e in expts:
                 for ex in e[:-1]:
-                    if ex in cdict.keys():
+                    if ex in list(cdict.keys()):
                         del(cdict[ex])
                 full_label = '_'.join(e)
                 try:
@@ -909,13 +909,13 @@ class WordFactory(object):
                        'gl': 'glosses',
                        'ft': 'first_tag',
                        'first': 'first_tag'}
-            for k, v in cdict.iteritems():  # handle key short forms
-                if k in key_eqs.keys():
+            for k, v in list(cdict.items()):  # handle key short forms
+                if k in list(key_eqs.keys()):
                     cdict[key_eqs[k]] = v
                     del cdict[k]
-            for k, v in cdict.iteritems():  # handle value short forms
-                if v in list(chain.from_iterable(self.cst_eqs.values())):
-                    expandedv = [kk for kk, vv in self.cst_eqs.iteritems()
+            for k, v in list(cdict.items()):  # handle value short forms
+                if v in list(chain.from_iterable(list(self.cst_eqs.values()))):
+                    expandedv = [kk for kk, vv in list(self.cst_eqs.items())
                                  if v in vv][0]
                     cdict[k] = expandedv
             return cdict
@@ -947,7 +947,7 @@ class WordFactory(object):
             constraints = None
 
         # if lemma is pointer to a word list
-        lemma = combodict[lemma] if lemma in combodict.keys() else lemma
+        lemma = combodict[lemma] if lemma in list(combodict.keys()) else lemma
 
         # allow for passing inflected form instead of lemma
         if not db.lemmas(db.lemmas.lemma == lemma):
@@ -1009,25 +1009,25 @@ class StepFactory(object):
         xtemp = [to_unicode(rt) for rt in islist(sdata['response_template'])]
         rtemp = [to_unicode(dt) for dt in islist(sdata['readable_template'])]
 
-        tags1 = sdata['tags'] if 'tags' in sdata.keys() else None
+        tags1 = sdata['tags'] if 'tags' in list(sdata.keys()) else None
         itemp = sdata['image_template']
-        tags2 = sdata['tags_secondary'] if 'tags_secondary' in sdata.keys() \
+        tags2 = sdata['tags_secondary'] if 'tags_secondary' in list(sdata.keys()) \
             else None
-        tags3 = sdata['tags_ahead'] if 'tags_ahead' in sdata.keys() else None
+        tags3 = sdata['tags_ahead'] if 'tags_ahead' in list(sdata.keys()) else None
         npcs = sdata['npcs']
         locs = sdata['locations']
-        points = sdata['points'] if 'points' in sdata.keys() and sdata['points'] \
+        points = sdata['points'] if 'points' in list(sdata.keys()) and sdata['points'] \
             else 1.0, 0.0, 0.0
-        instrs = sdata['instructions'] if 'instructions' in sdata.keys() \
+        instrs = sdata['instructions'] if 'instructions' in list(sdata.keys()) \
             else None
-        hints = sdata['hints'] if 'hints' in sdata.keys() else None
+        hints = sdata['hints'] if 'hints' in list(sdata.keys()) else None
         img = self._make_image(combodict, itemp) if itemp else None
         imgid = img[0] if img else None
         # ititle = img[1] if img else None
         images_missing = img[2] if img else None
 
         pros, rxs, rdbls = self._format_strings(combodict, ptemp, xtemp, rtemp)
-        rdbls = [r for r in islist(rdbls) if isinstance(r, (str, unicode))]
+        rdbls = [r for r in islist(rdbls) if isinstance(r, str)]
         if len(rdbls) >= 1:
             rdbls = '|'.join(rdbls)
         else:
@@ -1070,7 +1070,7 @@ class StepFactory(object):
                 else:
                     mtch = True  # not expecting response to test
                 if not mtch:
-                    problems = [k for k, v in matchdicts[idx].iteritems()
+                    problems = [k for k, v in list(matchdicts[idx].items())
                                 if not v]
                     xfail[regex] = problems
             dups = check_for_duplicates(kwargs, rdbls, pros)
@@ -1110,7 +1110,7 @@ class StepFactory(object):
         return myid, mytitle, image_missing
 
     def _format_strings(self, combodict, ptemps, xtemps, rtemps):
-        u"""
+        """
         Return a list of the template formatted with each of the words.
 
         The substitution format in each string looks like:
@@ -1157,7 +1157,7 @@ class StepFactory(object):
         first = myform[:1]
         cap = first.upper()
         rest = myform[1:]
-        myform = u'({}|{}){}'.format(first, cap, rest)
+        myform = '({}|{}){}'.format(first, cap, rest)
         myform = to_bytes(myform, encoding='utf8')
         return myform
 
@@ -1312,15 +1312,15 @@ class PathFactory(object):
             vv = request.vars
             stepsdata = []
             for n in ['one', 'two', 'three', 'four', 'five']:
-                nkeys = [k for k in vv.keys() if re.match('{}.*'.format(n), k)]
+                nkeys = [k for k in list(vv.keys()) if re.match('{}.*'.format(n), k)]
                 filledfields = [k for k in nkeys if vv[k] not in ['', None]]
                 if filledfields:
                     ndict = {k: vv[k] for k in nkeys}
                     stepsdata.append(ndict)
             if isinstance(vv['words'], list):
-                wordlists = [to_unicode(w).split(u'|') for w in vv['words']]
+                wordlists = [to_unicode(w).split('|') for w in vv['words']]
             else:
-                wordlists = [to_unicode(vv['words']).split(u'|')]
+                wordlists = [to_unicode(vv['words']).split('|')]
             paths = self.make_path(wordlists,
                                    label_template=vv.label_template,
                                    stepsdata=stepsdata,
@@ -1421,14 +1421,14 @@ class PathFactory(object):
         paths = {}
         for idx, c in enumerate(combos):  # one path for each combo
             mykeys = ['words{}'.format(n + 1) for n in range(len(c))]
-            combodict = dict(zip(mykeys, c))  # keys are template placeholders
+            combodict = dict(list(zip(mykeys, c)))  # keys are template placeholders
             label = to_unicode(label_template).format(**combodict)
 
             pdata = {'steps': {}, 'new_forms': {}, 'images_missing': []}
             for i, s in enumerate(stepsdata):  # each step in path
                 # sanitize form response =============================="
                 numstrings = ['one_', 'two_', 'three_', 'four_', 'five_']
-                sdata = {k.replace(numstrings[i], ''): v for k, v in s.iteritems()}
+                sdata = {k.replace(numstrings[i], ''): v for k, v in list(s.items())}
                 # create steps ========================================"
                 stepdata, imgs = StepFactory().make_step(combodict,
                                                          sdata,
@@ -1436,16 +1436,16 @@ class PathFactory(object):
                                                          i)
                 # collect result ======================================"
                 pdata['steps'][stepdata[0]] = stepdata[1]
-                newforms = session.newforms if 'newforms' in session.keys() \
+                newforms = session.newforms if 'newforms' in list(session.keys()) \
                     else None
                 if newforms:
-                    for k, f in newforms.iteritems():
+                    for k, f in list(newforms.items()):
                         pdata['new_forms'].setdefault(k, []).append(f)
                 if imgs:
                     pdata['images_missing'].append(imgs)
-            pgood = [isinstance(k, (int, long)) for k in pdata['steps'].keys()]
-            print 'making paths', pdata['steps'].keys()
-            pid = self.path_to_db(pdata['steps'].keys(), label) \
+            pgood = [isinstance(k, int) for k in list(pdata['steps'].keys())]
+            print('making paths', list(pdata['steps'].keys()))
+            pid = self.path_to_db(list(pdata['steps'].keys()), label) \
                 if all(pgood) and not self.mock else 'path not written {}'.format(idx)
             paths[pid] = pdata
         return paths
@@ -1460,7 +1460,7 @@ class PathFactory(object):
 
         """
         if len(wordlists) > 1 and aligned:
-            combos = zip(*wordlists)
+            combos = list(zip(*wordlists))
         elif len(wordlists) > 1:
             combos = list(product(*wordlists))
         else:
@@ -1488,9 +1488,9 @@ class PathFactory(object):
 
         """
         db = current.db
-        opts = {'goodpaths': {p: v for p, v in paths.iteritems()
+        opts = {'goodpaths': {p: v for p, v in list(paths.items())
                               if isinstance(p, int)},
-                'badpaths': {p: v for p, v in paths.iteritems()
+                'badpaths': {p: v for p, v in list(paths.items())
                              if not isinstance(p, int)}}
         outs = {'goodpaths': UL(),
                 'badpaths': UL()}
@@ -1500,14 +1500,14 @@ class PathFactory(object):
         for opt in ['goodpaths', 'badpaths']:
             badcount = 0
 
-            for pk, pv in opts[opt].iteritems():
+            for pk, pv in list(opts[opt].items()):
                 if opt == 'badpaths':
                     badcount += 1
 
-                successes = [s for s in pv['steps'].keys()
+                successes = [s for s in list(pv['steps'].keys())
                              if s not in ['failure', 'duplicate step']]
-                failures = [s for s in pv['steps'].keys() if s == 'failure']
-                duplicates = [s for s in pv['steps'].keys() if s == 'duplicate step']
+                failures = [s for s in list(pv['steps'].keys()) if s == 'failure']
+                duplicates = [s for s in list(pv['steps'].keys()) if s == 'duplicate step']
 
                 pout = LI('Path: {}'.format(pk))
 
@@ -1522,17 +1522,17 @@ class PathFactory(object):
 
                 mycontent = UL()
                 UP = Uprinter()
-                for key, c in content.iteritems():
+                for key, c in list(content.items()):
 
                     mycontent.append(LI(key))
                     mystep = UL()
 
-                    if isinstance(key, (unicode, str)) and re.match(u'regex failure', key):
+                    if isinstance(key, str) and re.match('regex failure', key):
                         mystep = UL()
                         mystep.append(LI(SPAN('regex: ', _class='regex_error'),
-                                         c.keys()[0]))
+                                         list(c.keys())[0]))
                         mystep.append(LI(SPAN('readable: ', _class='regex_error'),
-                                         ' '.join(c.values()[0])))
+                                         ' '.join(list(c.values())[0])))
                     else:
                         wt = db.step_types(c['widget_type']).step_type \
                             if 'widget_type' in c else 'None'
@@ -1583,13 +1583,13 @@ class PathFactory(object):
                                         ', '.join(locations)))
                         lemmas = [t['lemma'] for t in
                                 db(db.lemmas.id.belongs(c['lemmas'])).select()] \
-                            if 'lemmas' in c.keys() else 'None'
+                            if 'lemmas' in list(c.keys()) else 'None'
                         mystep.append(LI(SPAN('lemmas', _class='ppf_label'),
                                         ', '.join(lemmas)
                                         if lemmas else 'None'))
                         mystep.append(LI(SPAN('status', _class='ppf_label'),
                                         db.step_status(c['status']).status_label
-                                        if 'status' in c.keys() else 'None'))
+                                        if 'status' in list(c.keys()) else 'None'))
                         instructions = [t['instruction_label'] for t in
                                         db(db.step_instructions.id.belongs(c['instructions'])
                                            ).select()] if c['instructions'] else 'None'
@@ -1598,7 +1598,7 @@ class PathFactory(object):
                                         if instructions else 'None'))
                         hints = [t['hint_label'] for t in
                                 db(db.step_hints.id.belongs(c['hints'])).select()] \
-                            if 'hints' in c.keys() and c['hints'] else 'None'
+                            if 'hints' in list(c.keys()) and c['hints'] else 'None'
                         mystep.append(LI(SPAN('hints', _class='ppf_label'),
                                         ', '.join(hints)))
                     mycontent.append(LI(mystep))
@@ -1677,7 +1677,7 @@ class TranslateWordPathFactory(PathFactory):
                                Field('testing', type='boolean'))
         if form.process(keepvalues=True).accepted:
             lemid = request.vars.lemma
-            assert isinstance(lemid, (int, long))
+            assert isinstance(lemid, int)
             irregs = request.vars.irregular_forms
             self.irregular_forms = {f.split('|')[0]: f.split('|')[1]
                                     for f in irregs}  # TODO: activate these
@@ -1687,7 +1687,7 @@ class TranslateWordPathFactory(PathFactory):
                         'instructions': None,
                         'hints': None}
             for c in self.get_constructions(lemid):
-                assert isinstance(c, (int, long))
+                assert isinstance(c, int)
                 temps = self.get_templates(lemid, c)  # do substitutions already
                 stepdata['prompt_template'] = to_unicode(temps[0])  # do substitutions already
                 stepdata['response_template'] = to_unicode(temps[1])
