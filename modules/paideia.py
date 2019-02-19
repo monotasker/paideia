@@ -1330,7 +1330,7 @@ class Step(object):
                                )
                     mail.send(mail.settings.sender,
                               'No valid npc was available',
-                              msg.xml())
+                              msg.xml().decode('utf8'))
                     try:
                         pick = npc_list[randrange(len(npc_list))]
                     except ValueError:
