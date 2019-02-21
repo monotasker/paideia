@@ -405,7 +405,7 @@ class GreekNormalizer(object):
             ex_scolon = [x + ';' for x in exempt]
             ex_anotel = [x + '·' for x in exempt]
             ex_comma = [x + ',' for x in exempt]
-            ex_qmark = [x + '\?' for x in exempt]
+            ex_qmark = [x + '?' for x in exempt]
             ex_colon = [x + ':' for x in exempt]
             exempt = list(chain(exempt, ex_colon, ex_comma, ex_qmark, ex_scolon,
                           ex_period, ex_anotel))
