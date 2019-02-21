@@ -158,9 +158,9 @@ class Uprinter(object):
         elif isinstance(i, tuple):
             i = self._uprint_tuple(i, lvl=lvl + 1)
         elif isinstance(i, (int, float, complex)):
-            i = makeutf8(str(i))
+            i = str(i)
         else:
-            i = "'" + makeutf8(i) + "'"
+            i = "'" + i + "'"
         return i, lvl
 
     def _uprint_ordered_dict(self, myod, lvl=0, html=False):
@@ -173,7 +173,7 @@ class Uprinter(object):
         newod = '\n' + indent + 'OrderedDict([\n'
         for k, i in list(myod.items()):
             i, lvl = self._internal_print(i, lvl)
-            newod += indent + " ('" + makeutf8(k) + "', " + i + '),\n'
+            newod += indent + " ('" + k + "', " + i + '),\n'
         newod += '\n' + indent + ' ])'
         return newod
 
@@ -187,7 +187,7 @@ class Uprinter(object):
         newdict = '\n' + indent + '{\n'
         for k, i in list(mydict.items()):
             i, lvl = self._internal_print(i, lvl)
-            newdict += indent + ' ' + makeutf8(k) + ': ' + i + ',\n'
+            newdict += indent + ' ' + k + ': ' + i + ',\n'
         newdict += '\n' + indent + ' }'
         return newdict
 
@@ -238,10 +238,12 @@ class GreekNormalizer(object):
         of their encoding or type when they were supplied.
 
         """
-        debug = False
+        debug = True
         if debug: print('starting normalize')
-        strings = [strings] if not isinstance(strings, list) else strings
+        strings = [strings] if not isinstance(strings, list) \
+            else strings
 
+        if debug: print('about to convert latin')
         strings = self.convert_latin_chars(strings)
         if debug: print('about to normalize accents')
         if debug: print('sending strings ============================\n')
@@ -261,20 +263,22 @@ class GreekNormalizer(object):
         Greek.
 
         """
-        debug = False
+        debug = True
         strings = [strings] if not isinstance(strings, list) else strings
+        if debug: print(strings)
         try:
             newstrings = []
-            rgx = r'(?P<a>[Α-Ωα-ω])?([a-z]|[A-Z]|\d|\?)(?(a).*|[Α-Ωα-ω])'
-            latin = re.compile(rgx, re.U)
+            rgx = r'(?P<a>[Α-Ωα-ω\u1F00-\u1FFF])?([a-z]|[A-Z]|\d|\?)+(?(a).*|[Α-Ωα-ω\u1F00-\u1FFF])'
+            latin = re.compile(rgx)
             for string in strings:
-                string = to_unicode(string)
+                if debug: print('trying', string)
                 mymatch = re.search(latin, string)
+                if debug: print('match result:', mymatch)
                 if not mymatch:
                     newstring = string
                 else:
                     subs = {'a': 'α',  # y
-                            'A': 'Α',  # n
+                            'A': 'Α',  # y
                             'd': 'δ',  # y
                             'e': 'ε',  # y
                             'E': 'Ε',
@@ -287,7 +291,7 @@ class GreekNormalizer(object):
                             'v': 'ν',  # y
                             'N': 'Ν',
                             'o': 'ο',  # y
-                            'O': 'Ο',  # ΝΝΝ
+                            'O': 'Ο',  # y
                             'p': 'ρ',  # y
                             'P': 'Ρ',  # y
                             't': 'τ',  # y
@@ -298,10 +302,12 @@ class GreekNormalizer(object):
                             'w': 'ω',  # y
                             '?': ';'}
                     if debug: print('Latin character found in Greek string: ')
-                    if debug: print(mymatch.group(), 'in', to_bytes(string))
+                    if debug: print(mymatch.group(), 'in', string)
+                    if debug: print(bytes(mymatch.group(), 'utf8'), 'in', bytes(string, 'utf8'))
                     newstring = multiple_replace(string, subs)
                     if debug: print('replaced with Greek characters:')
-                    if debug: print(to_bytes(newstring))
+                    if debug: print(newstring)
+                    if debug: print(bytes(newstring, 'utf8'))
                 newstrings.append(newstring)
             if len(newstrings) == 1:
                 newstrings = newstrings[0]
@@ -317,7 +323,7 @@ class GreekNormalizer(object):
         strings = [strings] if not isinstance(strings, list) else strings
         newstrings = []
         for string in strings:
-            user_response = str(makeutf8(string))
+            user_response = string
             while '  ' in user_response:  # remove multiple inner spaces
                 user_response = user_response.replace('  ', ' ')
             user_response = user_response.strip()  # remove leading and trailing spaces
@@ -385,7 +391,7 @@ class GreekNormalizer(object):
                       'ω': ['ῶ', 'ώ', 'ὼ'],
                       'ὠ': ['ὤ', 'ὢ', 'ὦ'],
                       'ὡ': ['ὥ', 'ὣ', 'ὧ'],
-                      'Ω': ['Ώ', 'Ὼ'],  # caps
+                      'Ω': ['Ώ', 'Ὼ'],  # caps (including combining)
                       'Ὠ': ['Ὤ', 'Ὢ', 'Ὦ', '᾿Ω'],  # caps (including combining)
                       'Ὡ': ['Ὥ', 'Ὣ', 'Ὧ', '῾Ω'],  # caps (including combining)
                       'ῳ': ['ῷ', 'ῴ', 'ῲ'],
@@ -411,7 +417,7 @@ class GreekNormalizer(object):
                           ex_period, ex_anotel))
 
             for mystring in substrs:
-                latin_chars = re.compile(r'^[a-zA-Z\s\.,:;\'\"\?]+$', re.U)
+                latin_chars = re.compile(r'^[a-zA-Z\s\.,:;\'\"\?]+$')
                 islatin = re.match(latin_chars, mystring)
                 if debug: print('substring:', mystring)
                 if debug: print('islatin:', islatin)
