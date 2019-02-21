@@ -204,6 +204,7 @@ class TestGreekNormalizer():
                                  ('kαππα', 'καππα'),
                                  ('KΑΠΠΑ', 'ΚΑΠΠΑ'),
                                  ('ΑN', 'ΑΝ'),  # TODO: Why does ἘΝ fail here?
+                                 ('AΝ', 'ΑΝ'),  # TODO: Why does ἘΝ fail here?
                                  ('ἀπo', 'ἀπο'),
                                  ('ἈΠO', 'ἈΠΟ'),
                                  ('ὡpα', 'ὡρα'),
@@ -260,13 +261,16 @@ class TestGreekNormalizer():
 
         """
         print('string in', string_in)
+        print(bytes(string_in, 'utf8'))
         print('expected string out', string_out)
+        print(bytes(string_out, 'utf8'))
         actual = GreekNormalizer().normalize(string_in)
         print('actual string out', actual)
+        print(bytes(actual, 'utf8'))
         assert actual == string_out
         assert isinstance(actual, str)
-        regex1 = re.compile(to_unicode(regex), re.I | re.U)
-        assert re.match(regex1, to_unicode(actual))
+        regex1 = re.compile(regex, re.I)
+        assert re.match(regex1, actual)
 
 @pytest.mark.skipif(False, reason='just because')
 @pytest.mark.parametrize('regex,stringdict',
