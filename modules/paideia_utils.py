@@ -238,7 +238,7 @@ class GreekNormalizer(object):
         of their encoding or type when they were supplied.
 
         """
-        debug = True
+        debug = False
         if debug: print('starting normalize')
         strings = [strings] if not isinstance(strings, list) \
             else strings
@@ -263,7 +263,7 @@ class GreekNormalizer(object):
         Greek.
 
         """
-        debug = True
+        debug = False
         strings = [strings] if not isinstance(strings, list) else strings
         if debug: print(strings)
         try:
@@ -340,7 +340,9 @@ class GreekNormalizer(object):
         also handle a single string.
 
         """
-        debug = True
+        # TODO: use normalization library as described here:
+        # https://stackoverflow.com/questions/23346506/javascript-normalize-accented-greek-characters
+        debug = False
         instrings = [strings] if not isinstance(strings, list) else strings
 
         outstrings = []
