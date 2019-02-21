@@ -309,15 +309,15 @@ class TestMorphParser():
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('wordform,lemma,out',
-            [(u'ἀρτοις', u'ἀρτος',
+            [('ἀρτοις', 'ἀρτος',
               {'grammatical_case': 'dative', 'gender': 'masculine',
                'number': 'plural', 'declension': '2decl'}
               ),
-             (u'ἀληθειας', u'ἀληθεια',
+             ('ἀληθειας', 'ἀληθεια',
               {'grammatical_case': None, 'gender': 'feminine',
                'number': None, 'declension': '1decl'}
               ),
-             (u'ἰχθυας', u'ἰχθυς',
+             ('ἰχθυας', 'ἰχθυς',
               {'grammatical_case': 'accusative', 'gender': None,
                'number': 'plural', 'declension': '3decl'}
               ),
@@ -340,31 +340,31 @@ class TestInflector():
           'ἀγορα',  # lemma
           'g@f_pattern@atheme',  # constraints
           ('ἀγορας',  # FIXME: thematic alpha not caught here
-           [('word_forms', 'ἀγορας', 549L, None)])  # out
+           [('word_forms', 'ἀγορας', 549, None)])  # out
           ),
          ('ἀρτοι',  # mod_form
           'ἀγορα',  # lemma
           'case@gen',  # constraints
           ('ἀγορων',
-           [('word_forms', 'ἀγορων', 550L, None)])  # out
+           [('word_forms', 'ἀγορων', 550, None)])  # out
           ),
          (None,  # modform
           'ἀγορα',  # lemma
           'case@gen_num@pl',  # constraints
           ('ἀγορων',
-           [('word_forms', 'ἀγορων', 551L, None)])  # out
+           [('word_forms', 'ἀγορων', 551, None)])  # out
           ),
          ('γυναικες',  # modform
           'βαινω',  # lemma
           'pers@3',  # constraints
           ('βαινουσι',
-           [('word_forms', 'βαινουσι', 552L, None)])  # out
+           [('word_forms', 'βαινουσι', 552, None)])  # out
           ),
          (None,  # modform
           'βαινω',  # lemma
           'pers@1_num@pl_ts@pres_v@act_m@ind',  # constraints
           ('βαινομεν',
-           [('word_forms', 'βαινομεν', 553L, None)])  # out
+           [('word_forms', 'βαινομεν', 553, None)])  # out
           ),
          ])
     def test_make_form_agree(self, mod_form, lemma, constraints, out, web2py):
@@ -376,12 +376,12 @@ class TestInflector():
         i = Inflector()
         newform = i.make_form_agree(mod_form, lemma, constraint=constraints,
                                     session=session)
-        print 'newform', newform
+        print('newform', newform)
         assert newform == out[0] or newform == makeutf8(out[0])
         for idx, r in enumerate(session.results):
             for idx2, i in enumerate(r):
-                print r, i
-                print idx, idx2
+                print(r, i)
+                print(idx, idx2)
                 myi = out[1][idx][idx2]
                 assert i == myi or i == makeutf8(myi)
         # TODO: are forms being re-created when in db? why can some not be
@@ -407,17 +407,17 @@ class TestWordFactory():
         [('words2-words1',  # fieldstring
           {'words1': 'ἀρτου',  # combodict
            'words2': 'ἀγορα'},
-          ('ἀγορας', {'constructions': [None], 'word_forms': [552L]})  # out
+          ('ἀγορας', {'constructions': [None], 'word_forms': [552]})  # out
           ),
          ('words2-words1-case@gen',
           {'words1': 'ἀρτοι',  # combodict
            'words2': 'ἀγορα'},
-          ('ἀγορων', {'constructions': [None], 'word_forms': [553L]})  # out
+          ('ἀγορων', {'constructions': [None], 'word_forms': [553]})  # out
           ),
          ('ἀγορα-none-case@g_num@s',  # fieldstring
           {'words1': 'ἀρτος',  # combodict
            'words2': 'ἀγορα'},
-          ('ἀγορας', {'constructions': [None], 'word_forms': [554L]})  # out
+          ('ἀγορας', {'constructions': [None], 'word_forms': [554]})  # out
           ),
          ])
     def test_get_wordform(self, fieldstring, combodict, out, db):
@@ -466,7 +466,7 @@ class TestWordFactory():
             if idx != 2:  # don't try to predict new db row ids
                 assert a == out[idx]
             else:
-                assert isinstance(actual[0][2], (long, int))
+                assert isinstance(actual[0][2], int)
         # TODO: re-introduce tests for db io
         # test db row content
         #newrow = db.word_forms(actual[1])
@@ -510,14 +510,14 @@ class TestWordFactory():
             if idx not in [1, 3, 5]:  # don't try to predict new db row ids
                 assert a == out[idx]
             else:
-                assert isinstance(actual[1], (long, int))
+                assert isinstance(actual[1], int)
         self.newrows = {'word_forms': actual[1]}  # for db teardown
         newrow = db.lemmas(actual[1])
         leminfo['first_tag'] = db.tags(db.tags.tag == leminfo['first_tag']).id
         leminfo['extra_tags'] = [db.tags(db.tags.tag == t).id
                                  for t in leminfo['extra_tags']]
-        for k, v in leminfo.iteritems():
-            print 'testing', k
+        for k, v in leminfo.items():
+            print('testing', k)
             assert newrow[k] == v
 
     @pytest.mark.skipif(False, reason='just because')
@@ -552,9 +552,9 @@ class TestWordFactory():
         """
         f = WordFactory()
         actual = f.parse_constraint(constraint)
-        for k, v in actual.iteritems():
+        for k, v in actual.items():
             assert v == out[k]
-        assert not [k for k in out.keys() if k not in actual.keys()]
+        assert not [k for k in list(out.keys()) if k not in list(actual.keys())]
 
 
 class TestStepFactory():
@@ -584,7 +584,7 @@ class TestStepFactory():
         # clean up db
         if newrow:
             db(db.images.id == rowid).delete()
-        assert isinstance(rowid, (long, int))
+        assert isinstance(rowid, int)
         assert title == out[0]
         assert newrow == out[1]
 
@@ -650,7 +650,7 @@ class TestStepFactory():
     @pytest.mark.parametrize('combodict,result,content,newimg',
         [({'words1': 'ἀρτος',  # combodict
            'words2': 'ἀγορα'},
-          612L,  # result
+          612,  # result
           {'hints': [],  # stepout
            'instructions': [],
            'locations': [1],
@@ -658,7 +658,7 @@ class TestStepFactory():
            'outcome1': 1.0,
            'outcome2': 0.0,
            'outcome3': 0.0,
-           'prompt': u'Can you get some ἀρτος from the ἀγορα.',
+           'prompt': 'Can you get some ἀρτος from the ἀγορα.',
            'readable_response': 'Yes, I can get some ἀρτος from the ἀγορα.|'
                                 'Yes, we can get some ἀρτος from the '
                                 'ἀγορα.'.decode('utf8'),
@@ -666,10 +666,10 @@ class TestStepFactory():
                         'ἀρτος\\sfrom\\sthe\\sἀγορα.',
            'response2': None,
            'response3': None,
-           'tags': [2L],
-           'tags_ahead': [1L],
-           'tags_secondary': [4L, 36L, 48L, 82L, 117L],
-           'widget_image': 124L,
+           'tags': [2],
+           'tags_ahead': [1],
+           'tags_secondary': [4, 36, 48, 82, 117],
+           'widget_image': 124,
            'widget_type': 4},
           True),
          # ({'words1': 'καρπος',  # combodict
@@ -696,7 +696,7 @@ class TestStepFactory():
         f = StepFactory()
         actual = f.make_step(combodict, mystepinfo[0], False, 0)  # third arg is 'mock'
         assert actual[0][0] == result
-        for k, v in actual[0][1].iteritems():
+        for k, v in actual[0][1].items():
             assert v == content[k] or makeutf8(v) == content[k]
         assert actual[1] == newimg
 
@@ -764,15 +764,15 @@ class TestPathFactory():
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('wordlists,label_template,stepsdata,avoid,testing,'
                              'aligned,steps,message,output',
-        [([(u'ἀνθρωπος', u'Ἰασων'),  # wordlists
-           (u'ἀνηρ', u'Σιμων'),
-           (u'γυνη', u'Μαρια')
+        [([('ἀνθρωπος', 'Ἰασων'),  # wordlists
+           ('ἀνηρ', 'Σιμων'),
+           ('γυνη', 'Μαρια')
            ],
-         u'mypath {words1}',  # label_template
+         'mypath {words1}',  # label_template
          [{'id': 4,
            'step_type': 3,         # stepdata
-           'prompt_template': [u'Τίς {words1} ἐν τῃ στοᾳ?',
-                               u'Ἐν τῃ στοᾳ τίς {words1}?'
+           'prompt_template': ['Τίς {words1} ἐν τῃ στοᾳ?',
+                               'Ἐν τῃ στοᾳ τίς {words1}?'
                                ],
            'response_template': '',
            'readable_template': '',
@@ -784,8 +784,8 @@ class TestPathFactory():
            'tags_ahead': []},
           {'id': 5,
            'step_type': 3,         # stepdata
-           'prompt_template': [u'Βλεπεις {words2} ἐν τῃ στοᾳ.',
-                               u'Ἐν τῃ στοᾳ βλεπεις {words2}.'],
+           'prompt_template': ['Βλεπεις {words2} ἐν τῃ στοᾳ.',
+                               'Ἐν τῃ στοᾳ βλεπεις {words2}.'],
            'response_template': '',
            'readable_template': '',
            'npcs': [8],
@@ -796,12 +796,12 @@ class TestPathFactory():
            'tags_ahead': []},
           {'id': 6,
            'step_type': 1,         # stepdata
-           'prompt_template': [u'Τίς οὐν {words1} ἐν τῃ στοᾳ?',
-                               u'Ἐν τῃ στοᾳ οὐν τίς {words1}?'
+           'prompt_template': ['Τίς οὐν {words1} ἐν τῃ στοᾳ?',
+                               'Ἐν τῃ στοᾳ οὐν τίς {words1}?'
                                ],
-           'response_template': u'(?P<a>(β|Β)λεπω\s)?{words2}(?(a)|\sβλεπω)\.',
-           'readable_template': [u'Βλεπω {words2}.',
-                                 u'{words2} βλεπω.'
+           'response_template': '(?P<a>(β|Β)λεπω\s)?{words2}(?(a)|\sβλεπω)\.',
+           'readable_template': ['Βλεπω {words2}.',
+                                 '{words2} βλεπω.'
                                  ],
            'npcs': [2],
            'locations': [1],
@@ -821,19 +821,19 @@ class TestPathFactory():
                                                          'outcome1': 1.0,
                                                          'outcome2': 0.0,
                                                          'outcome3': 0.0,
-                                                         'prompt': u'\u03a4\u03af\u03c2 \u1f00\u03bd\u03b8\u03c1\u03c9\u03c0\u03bf\u03c2 \u1f10\u03bd \u03c4\u1fc3 \u03c3\u03c4\u03bf\u1fb3?',
+                                                         'prompt': '\u03a4\u03af\u03c2 \u1f00\u03bd\u03b8\u03c1\u03c9\u03c0\u03bf\u03c2 \u1f10\u03bd \u03c4\u1fc3 \u03c3\u03c4\u03bf\u1fb3?',
                                                          'readable_response': '',
                                                          'response1': '',
                                                          'response2': None,
                                                          'response3': None,
-                                                         'tags': [17L],
-                                                         'tags_ahead': [1L],
-                                                         'tags_secondary': [61L,
-                                                                             62L,
-                                                                             63L,
-                                                                             82L,
-                                                                             89L,
-                                                                             115L],
+                                                         'tags': [17],
+                                                         'tags_ahead': [1],
+                                                         'tags_secondary': [61,
+                                                                             62,
+                                                                             63,
+                                                                             82,
+                                                                             89,
+                                                                             115],
                                                          'widget_image': None,
                                                          'widget_type': 3},
                                             'testing1': {'hints': None,
@@ -843,14 +843,14 @@ class TestPathFactory():
                                                          'outcome1': 1.0,
                                                          'outcome2': 0.0,
                                                          'outcome3': 0.0,
-                                                         'prompt': u'\u1f18\u03bd \u03c4\u1fc3 \u03c3\u03c4\u03bf\u1fb3 \u03b2\u03bb\u03b5\u03c0\u03b5\u03b9\u03c2 \u1f00\u03bd\u03b7\u03c1.',
+                                                         'prompt': '\u1f18\u03bd \u03c4\u1fc3 \u03c3\u03c4\u03bf\u1fb3 \u03b2\u03bb\u03b5\u03c0\u03b5\u03b9\u03c2 \u1f00\u03bd\u03b7\u03c1.',
                                                          'readable_response': '',
                                                          'response1': '',
                                                          'response2': None,
                                                          'response3': None,
-                                                         'tags': [17L],
-                                                         'tags_ahead': [1L],
-                                                         'tags_secondary': [89L],
+                                                         'tags': [17],
+                                                         'tags_ahead': [1],
+                                                         'tags_secondary': [89],
                                                          'widget_image': None,
                                                          'widget_type': 3},
                                             'testing2': {'hints': None,
@@ -860,19 +860,19 @@ class TestPathFactory():
                                                          'outcome1': 1.0,
                                                          'outcome2': 0.0,
                                                          'outcome3': 0.0,
-                                                         'prompt': u'\u1f18\u03bd \u03c4\u1fc3 \u03c3\u03c4\u03bf\u1fb3 \u03bf\u1f50\u03bd \u03c4\u03af\u03c2 \u1f00\u03bd\u03b8\u03c1\u03c9\u03c0\u03bf\u03c2?',
-                                                         'readable_response': u'\u0392\u03bb\u03b5\u03c0\u03c9 \u1f00\u03bd\u03b7\u03c1.|\u1f00\u03bd\u03b7\u03c1 \u03b2\u03bb\u03b5\u03c0\u03c9.',
-                                                         'response1': u'(?P<a>(\u03b2|\u0392)\u03bb\u03b5\u03c0\u03c9\\s)?\u1f00\u03bd\u03b7\u03c1(?(a)|\\s\u03b2\u03bb\u03b5\u03c0\u03c9)\\.',
+                                                         'prompt': '\u1f18\u03bd \u03c4\u1fc3 \u03c3\u03c4\u03bf\u1fb3 \u03bf\u1f50\u03bd \u03c4\u03af\u03c2 \u1f00\u03bd\u03b8\u03c1\u03c9\u03c0\u03bf\u03c2?',
+                                                         'readable_response': '\u0392\u03bb\u03b5\u03c0\u03c9 \u1f00\u03bd\u03b7\u03c1.|\u1f00\u03bd\u03b7\u03c1 \u03b2\u03bb\u03b5\u03c0\u03c9.',
+                                                         'response1': '(?P<a>(\u03b2|\u0392)\u03bb\u03b5\u03c0\u03c9\\s)?\u1f00\u03bd\u03b7\u03c1(?(a)|\\s\u03b2\u03bb\u03b5\u03c0\u03c9)\\.',
                                                          'response2': None,
                                                          'response3': None,
-                                                         'tags': [17L],
-                                                         'tags_ahead': [1L],
-                                                         'tags_secondary': [61L,
-                                                                             62L,
-                                                                             63L,
-                                                                             82L,
-                                                                             89L,
-                                                                             115L],
+                                                         'tags': [17],
+                                                         'tags_ahead': [1],
+                                                         'tags_secondary': [61,
+                                                                             62,
+                                                                             63,
+                                                                             82,
+                                                                             89,
+                                                                             115],
                                                          'widget_image': None,
                                                          'widget_type': 1}
                                             }
@@ -1479,11 +1479,11 @@ class TestPathFactory():
                               aligned=aligned,
                               testing=testing)
 
-        for k, val in steps['path not written 0'].iteritems():
+        for k, val in steps['path not written 0'].items():
             if not isinstance(val, dict):
                 assert val == steps['path not written 0'][k]
             else:
-                for step, sval in val.iteritems():
+                for step, sval in val.items():
                     assert sval == steps['path not written 0'][k][step]
 
         actual_output = pf.make_output(actual)
@@ -1500,13 +1500,13 @@ class TestPathFactory():
         count = 0
         for idx, s in enumerate(aosubs):
             if s != osubs[idx]:
-                print '\nERROR'
-                print aosubs[idx]
-                print osubs[idx]
-                print 'DIFF'
-                print "".join(list(Differ().compare(s, osubs[idx]))).replace(' ', '')
-                print list(Differ().compare(s, osubs[idx]))
+                print('\nERROR')
+                print(aosubs[idx])
+                print(osubs[idx])
+                print('DIFF')
+                print("".join(list(Differ().compare(s, osubs[idx]))).replace(' ', ''))
+                print(list(Differ().compare(s, osubs[idx])))
                 count = count + 1
-        print count, 'ERRORS *****************************************'
+        print(count, 'ERRORS *****************************************')
         assert actual_output[1].xml() == output
 

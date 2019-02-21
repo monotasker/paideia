@@ -7,7 +7,7 @@ Part of the plugin plugin_1way_sync for the web2py framework.
 
 import csv
 from gluon import FORM, INPUT, current
-from plugin_sqlite_backup import copy_db
+from .plugin_sqlite_backup import copy_db
 from pprint import pprint
 
 
@@ -93,7 +93,7 @@ class OnewaySyncer(object):
                                            % (lineno+1,field,line[i]))
 
                 if not (id_map or cid is None or id_offset is None or unique_idx):
-                    csv_id = long(line[cid])
+                    csv_id = int(line[cid])
                     curr_id = self.insert(**dict(items))
                     if first:
                         first = False
@@ -120,7 +120,7 @@ class OnewaySyncer(object):
                     else:
                         new_id = self.insert(**dict(items))
                 if id_map and cid is not None:
-                    id_map_self[long(line[cid])] = new_id
+                    id_map_self[int(line[cid])] = new_id
 
     def parse_csv(self, csvfile):
         """

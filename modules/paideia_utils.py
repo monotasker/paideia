@@ -16,7 +16,7 @@ from gluon.storage import Storage
 from gluon.storage import StorageList
 from itertools import chain
 from kitchen.text.converters import to_unicode, to_bytes
-from plugin_utils import makeutf8, multiple_replace  # encodeutf8,
+from plugin_utils import multiple_replace
 #from pprint import pprint
 import re
 import traceback
@@ -334,12 +334,12 @@ class GreekNormalizer(object):
         also handle a single string.
 
         """
-        debug = False
+        debug = True
         instrings = [strings] if not isinstance(strings, list) else strings
 
         outstrings = []
         for string in instrings:
-            substrs = to_unicode(string).split(' ')
+            substrs = string.split(' ')
 
             equivs = {'α': ['ά', 'ὰ', 'ᾶ'],
                       'Α': ['Ά', 'Ὰ'],  # caps
@@ -413,22 +413,21 @@ class GreekNormalizer(object):
             for mystring in substrs:
                 latin_chars = re.compile(r'^[a-zA-Z\s\.,:;\'\"\?]+$', re.U)
                 islatin = re.match(latin_chars, mystring)
-                if debug: print('substring:', to_bytes(mystring))
+                if debug: print('substring:', mystring)
                 if debug: print('islatin:', islatin)
                 if not islatin:
                     mystring = mystring.strip()
-                    if debug: print('1:', to_bytes(mystring))
+                    if debug: print('1:', mystring)
                     mystring = mystring.replace('ί', 'ί')  # avoid q-i iota on windows
-                    if debug: print('2:', to_bytes(mystring))
+                    if debug: print('2:', mystring)
 
                     if mystring not in exempt:
                         # below print statement causes UnicodeEncodeError on live server
                         # print mystring, 'not exempt', type(mystring)
-                        matching_letters = re.findall(to_unicode(restr), mystring,
-                                                    re.I | re.U)
-                        if debug: print('matching letters:', to_bytes(matching_letters))
+                        matching_letters = re.findall(restr, mystring,
+                                                      re.I)
+                        if debug: print('matching letters:', matching_letters)
                         if matching_letters:
-
                             edict = {k: v for k, v in list(equivs.items())
                                     if [m for m in v if m in matching_letters]}
                             key_vals = {ltr: k
@@ -437,21 +436,22 @@ class GreekNormalizer(object):
                                         if ltr in edict[k]}
                             if debug: print(key_vals)
                             mystring = multiple_replace(mystring, key_vals)
+                            if debug: print('after replacing:' + mystring)
                         else:
                             if debug: print('no matching letters')
                     else:
-                        if debug: print(to_bytes(mystring), 'exempt')
+                        if debug: print(mystring, 'exempt')
                 else:
                     if debug: print('no Greek')
                 newstrings.append(mystring)
-            if debug: print('3')
+            if debug: print('3' + str(newstrings))
             newstring = ' '.join(newstrings)
-            if debug: print('4')
+            if debug: print('4' + newstring)
             outstrings.append(newstring)
-            if debug: print('5')
+            if debug: print('5' + str(outstrings))
         if len(outstrings) == 1:
             outstrings = outstrings[0]
-        if debug: print('returning', to_bytes(outstrings))
+        if debug: print('returning', outstrings)
         return outstrings
 
 

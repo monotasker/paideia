@@ -12,7 +12,6 @@
 from kitchen.text.converters import to_unicode
 import pytest
 from paideia_utils import GreekNormalizer, check_regex
-from plugin_utils import makeutf8
 from pprint import pprint
 import re
 

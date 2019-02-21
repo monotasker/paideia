@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#! /usr/bin/python3
 # -*- coding: UTF-8 -*-
 
 """
@@ -24,7 +24,7 @@ import re
 from copy import copy
 from random import randint, randrange
 # from dateutil import parser
-# from difflib import Differ
+from difflib import Differ
 from itertools import chain
 # from urllib import quote_plus
 import pickle
@@ -64,9 +64,9 @@ def log_generator(uid, tag, count, numright, lastright, lastwrong, earliest,
                    ).select(db.paths.id, db.paths.steps).as_list()
     pathids = {s: p['id'] for s in stepids for p in steppaths
                if s in p['steps']}
-    if len(pathids.keys()) > 0:
+    if len(list(pathids.keys())) > 0:
         for n in range(count):
-            mystep = pathids.keys()[randint(0, len(pathids.keys()) - 1)]
+            mystep = list(pathids.keys())[randint(0, len(list(pathids.keys())) - 1)]
             score = 1.0 if n < numright else 0.0
             latest = lastright if (abs(score - 1) <= 0.001) else lastwrong
             if n == (numright - 1):
@@ -99,7 +99,8 @@ def dt(string):
         return datetime.datetime.strptime(string, format)
 
 
-@pytest.fixture
+#  @pytest.fixture
+#  FIXME: not a fixture so that I can call in parametrize decorators
 def mytagpros():
     """A fixture providing mock tag_progress records"""
     tp = {'Simon Pan 2014-03-21': {'latest_new': 10,
@@ -122,7 +123,8 @@ def mytagpros():
     return tp
 
 
-@pytest.fixture
+# @pytest.fixture
+# FIXME: not fixture to avoid problem calling in parametrize decorator
 def mycatsout_core_algorithm():
     """A fixture providing mock tag_progress records"""
     tp = {'Simon Pan 2014-03-21': {'rev1': [1, 4, 5, 6, 9, 10, 16, 17, 30, 32,
@@ -144,21 +146,22 @@ def mycatsout_core_algorithm():
     return tp
 
 
-@pytest.fixture
+# @pytest.fixture
+# FIXME: not fixture to avoid problem calling in parametrize decorator
 def mycatsout_add_untried():
     """A fixture providing mock tag_progress records"""
-    tp = {'Simon Pan 2014-03-21': {'rev1': [1, 2, 4L, 5, 6, 9, 10, 12L, 16, 17,
-                                            30, 32, 36, 40, 41L, 43, 46, 48,
-                                            50L, 51L, 52L, 53L, 55L, 61, 62,
+    tp = {'Simon Pan 2014-03-21': {'rev1': [1, 2, 4, 5, 6, 9, 10, 12, 16, 17,
+                                            30, 32, 36, 40, 41, 43, 46, 48,
+                                            50, 51, 52, 53, 55, 61, 62,
                                             63, 66, 67, 69, 71, 72, 73, 74, 76,
                                             77, 82, 83, 84, 85, 86, 87, 88, 90,
-                                            91, 93, 94, 95, 96L, 97L, 102L,
-                                            105L, 106L, 108L, 110L, 115, 117,
-                                            118, 121, 124, 127L, 128, 129,
-                                            130L, 131L, 132L, 133, 134L, 135L,
-                                            153L, 154L, 155L, 156L, 157L, 158L,
-                                            159L, 173L, 181L, 183L, 184L, 187L,
-                                            208L, 210L, 216L
+                                            91, 93, 94, 95, 96, 97, 102,
+                                            105, 106, 108, 110, 115, 117,
+                                            118, 121, 124, 127, 128, 129,
+                                            130, 131, 132, 133, 134, 135,
+                                            153, 154, 155, 156, 157, 158,
+                                            159, 173, 181, 183, 184, 187,
+                                            208, 210, 216
                                             # Includes 32 (rank 999) because
                                             # not yet filtered for rank
                                             ],
@@ -170,7 +173,8 @@ def mycatsout_add_untried():
     return tp
 
 
-@pytest.fixture
+# @pytest.fixture
+# FIXME: not fixture to avoid problem calling in parametrize decorator
 def mycatsout_remove_dups():
     """A fixture providing mock tag_progress records"""
     tp = {'Simon Pan 2014-03-21': {'rev1': [2, 4, 5, 6, 9, 10, 16, 17, 30,
@@ -188,7 +192,8 @@ def mycatsout_remove_dups():
     return tp
 
 
-@pytest.fixture
+# @pytest.fixture
+# FIXME: not fixture to avoid problem calling in parametrize decorator
 def mycatsout_find_changes():
     """A fixture providing mock tag_progress records"""
     tp = {'Simon Pan 2014-03-21': {'cat1': [2, 4, 5, 6, 9, 10, 16, 17, 30,
@@ -220,7 +225,8 @@ def mycatsout_find_changes():
     return tp
 
 
-@pytest.fixture
+# @pytest.fixture
+# FIXME: not fixture to avoid problem calling in parametrize decorator
 def mydemoted():
     """A fixture providing mock tag_progress records"""
     tp = {'Simon Pan 2014-03-21': {'cat1': [128],
@@ -231,7 +237,8 @@ def mydemoted():
     return tp
 
 
-@pytest.fixture
+# @pytest.fixture
+# FIXME: not fixture to avoid problem calling in parametrize decorator
 def mypromoted():
     """A fixture providing mock 'promoted' values"""
     tp = {'Simon Pan 2014-03-21': {'cat1': [],
@@ -246,138 +253,139 @@ def mypromoted():
     return tp
 
 
-@pytest.fixture
+# @pytest.fixture
+# FIXME: not fixture to avoid problem calling in parametrize decorator
 def mypromotions():
     """Test fixture providing badges_begun rescoreds"""
     prom = {'Simon Pan 2014-03-21':
-            [{'name': 109L,
-              'tag': 14L,
+            [{'name': 109,
+              'tag': 14,
               'cat1': datetime.datetime(2013, 10, 3, 21, 16, 29),
               'cat2': datetime.datetime(2014, 1, 3, 21, 0, 0),
               'cat3': None,
               'cat4': None},
-             {'name': 109L,
-              'tag': 4L,
+             {'name': 109,
+              'tag': 4,
               'cat1': datetime.datetime(2013, 10, 3, 21, 16, 29),
               'cat2': None,
               'cat4': None,
               'cat3': None},
-             {'name': 109L,
-              'tag': 46L,
+             {'name': 109,
+              'tag': 46,
               'cat1': datetime.datetime(2013, 10, 3, 21, 16, 29),
               'cat2': None,
               'cat4': None,
               'cat3': None},
-             {'name': 109L,
-              'tag': 47L,
+             {'name': 109,
+              'tag': 47,
               'cat1': datetime.datetime(2013, 10, 3, 21, 16, 29),
               'cat2': None,
               'cat4': None,
               'cat3': None},
-             {'name': 109L,
-              'tag': 69L,
+             {'name': 109,
+              'tag': 69,
               'cat1': datetime.datetime(2013, 10, 3, 21, 16, 29),
               'cat2': None,
               'cat4': None,
               'cat3': None},
-             {'name': 109L,
-              'tag': 95L,
+             {'name': 109,
+              'tag': 95,
               'cat1': datetime.datetime(2013, 10, 3, 21, 16, 29),
               'cat2': None,
               'cat4': None,
               'cat3': None},
-             {'name': 109L,
-              'tag': 117L,
+             {'name': 109,
+              'tag': 117,
               'cat1': datetime.datetime(2013, 10, 3, 21, 16, 29),
               'cat2': None,
               'cat4': None,
               'cat3': None},
-             {'name': 109L,
-              'tag': 118L,
+             {'name': 109,
+              'tag': 118,
               'cat1': datetime.datetime(2013, 10, 3, 21, 16, 29),
               'cat2': None,
               'cat4': None,
               'cat3': None},
-             {'name': 109L,
-              'tag': 119L,
+             {'name': 109,
+              'tag': 119,
               'cat1': datetime.datetime(2013, 10, 3, 21, 16, 29),
               'cat2': None,
               'cat4': None,
               'cat3': None},
-             {'name': 109L,
+             {'name': 109,
               'cat1': datetime.datetime(2013, 10, 3, 21, 16, 29),
               'cat2': None,
-              'tag': 120L,
+              'tag': 120,
               'cat4': None,
               'cat3': None},
-             {'name': 109L,
-              'tag': 2L,
+             {'name': 109,
+              'tag': 2,
               'cat1': datetime.datetime(2013, 10, 5, 3, 6, 25),
               'cat2': None,
               'cat4': None,
               'cat3': None},
-             {'name': 109L,
-              'tag': 10L,
+             {'name': 109,
+              'tag': 10,
               'cat1': datetime.datetime(2013, 10, 5, 3, 6, 25),
               'cat2': None,
               'cat4': None,
               'cat3': None},
-             {'name': 109L,
-              'tag': 18L,
+             {'name': 109,
+              'tag': 18,
               'cat1': datetime.datetime(2013, 10, 5, 3, 6, 25),
               'cat2': None,
               'cat4': None,
               'cat3': None},
-             {'name': 109L,
+             {'name': 109,
               'cat1': datetime.datetime(2013, 10, 5, 3, 6, 25),
               'cat2': None,
-              'tag': 30L,
+              'tag': 30,
               'cat4': None,
               'cat3': None},
-             {'name': 109L,
-              'tag': 38L,
-              'cat1': datetime.datetime(2013, 10, 5, 3, 6, 25),
-              'cat2': None,
-              'cat4': None,
-              'cat3': None},
-             {'name': 109L,
-              'tag': 49L,
+             {'name': 109,
+              'tag': 38,
               'cat1': datetime.datetime(2013, 10, 5, 3, 6, 25),
               'cat2': None,
               'cat4': None,
               'cat3': None},
-             {'name': 109L,
-              'tag': 55L,
+             {'name': 109,
+              'tag': 49,
               'cat1': datetime.datetime(2013, 10, 5, 3, 6, 25),
               'cat2': None,
               'cat4': None,
               'cat3': None},
-             {'name': 109L,
-              'tag': 86L,
+             {'name': 109,
+              'tag': 55,
               'cat1': datetime.datetime(2013, 10, 5, 3, 6, 25),
               'cat2': None,
               'cat4': None,
               'cat3': None},
-             {'name': 109L,
-              'tag': 87L,
+             {'name': 109,
+              'tag': 86,
               'cat1': datetime.datetime(2013, 10, 5, 3, 6, 25),
               'cat2': None,
               'cat4': None,
               'cat3': None},
-             {'name': 109L,
-              'tag': 121L,
+             {'name': 109,
+              'tag': 87,
               'cat1': datetime.datetime(2013, 10, 5, 3, 6, 25),
               'cat2': None,
               'cat4': None,
               'cat3': None},
-             {'name': 109L,
-              'tag': 122L,
+             {'name': 109,
+              'tag': 121,
               'cat1': datetime.datetime(2013, 10, 5, 3, 6, 25),
               'cat2': None,
               'cat4': None,
               'cat3': None},
-             {'name': 109L,
-              'tag': 128L,
+             {'name': 109,
+              'tag': 122,
+              'cat1': datetime.datetime(2013, 10, 5, 3, 6, 25),
+              'cat2': None,
+              'cat4': None,
+              'cat3': None},
+             {'name': 109,
+              'tag': 128,
               'cat1': datetime.datetime(2013, 10, 5, 3, 6, 25),
               'cat2': None,
               'cat4': None,
@@ -387,14 +395,15 @@ def mypromotions():
     return prom
 
 
-@pytest.fixture
+# @pytest.fixture
+# FIXME: not fixture to avoid problem importing in parametrize decorator
 def mytagrecs():
     """A fixture providing mock tag_records data."""
     tr = {'Simon Pan 2014-03-21':
-          [{'id': 383380L,
-            'tag': 1L,
+          [{'id': 383380,
+            'tag': 1,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-02-26 19:12:41.851235',
                                 '2014-02-26 21:11:21.449747',
                                 '2014-02-27 22:28:50.991776',
@@ -427,9 +436,9 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2013, 10, 1, 15, 32, 1),
             'first_attempt': '2014-02-26 19:12:41.851235'
             },
-           {'id': 383615L, 'in_path': None,
-            'tag': 4L,
-            'name': 109L,
+           {'id': 383615, 'in_path': None,
+            'tag': 4,
+            'name': 109,
             'secondary_right': ['2014-03-17 22:21:48.396981',
                                 '2014-03-17 22:26:16.421367',
                                 '2014-03-17 22:26:34.296588',
@@ -445,10 +454,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2013, 10, 5, 3, 6, 26),
             'first_attempt': '2013-10-05 03:06:26.000000'
             },
-           {'id': 383419L,
-            'tag': 5L,
+           {'id': 383419,
+            'tag': 5,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': None,
             'step': None,
             'times_right': 0.0,
@@ -457,10 +466,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2013, 10, 1, 23, 45, 25),
             'first_attempt': '2013-10-01 23:45:25.000000'
             },
-           {'id': 383219L,
-            'tag': 6L,
+           {'id': 383219,
+            'tag': 6,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-03-05 04:23:40.815243',
                                 '2014-03-05 04:24:02.586695',
                                 '2014-03-05 04:24:12.043533',
@@ -473,10 +482,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 8, 27),
             'first_attempt': '2013-09-27 14:08:25.000000'
             },
-           {'id': 383119L,
-            'tag': 9L,
+           {'id': 383119,
+            'tag': 9,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-03-20 01:13:10.771437',
                                 '2014-03-20 01:18:26.331487',
                                 '2014-03-20 01:20:07.245236',
@@ -488,10 +497,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36),
             'first_attempt': '2013-09-26 14:08:25.000000'
             },
-           {'id': 383613L,
-            'tag': 10L,
+           {'id': 383613,
+            'tag': 10,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2013-10-07 22:48:58.563124'],
             'step': None,
             'times_right': 0.0,
@@ -500,10 +509,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2013, 10, 5, 3, 6, 26),
             'first_attempt': '2013-09-26 14:08:25.000000'
             },
-           {'id': 383969L,
-            'tag': 14L,
+           {'id': 383969,
+            'tag': 14,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': None,
             'step': None,
             'times_right': 93.0,
@@ -512,10 +521,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2014, 1, 21, 18, 21, 40),
             'first_attempt': '2014-01-21 18:21:40.000000'
             },
-           {'id': 383116L,
-            'tag': 16L,
+           {'id': 383116,
+            'tag': 16,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-02-18 19:17:02.407886',
                                 '2014-02-18 19:17:25.063330',
                                 '2014-02-19 20:36:42.985334',
@@ -532,10 +541,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36),
             'first_attempt': '2013-09-26 20:57:36.000000'
             },
-           {'id': 384068L,
-            'tag': 17L,
+           {'id': 384068,
+            'tag': 17,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': None,
             'step': None,
             'times_right': 0.0,
@@ -544,10 +553,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2014, 3, 20, 1, 13, 10),
             'first_attempt': '2014-03-20 01:13:10.000000'
             },
-           {'id': 383858L,
-            'tag': 18L,
+           {'id': 383858,
+            'tag': 18,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': None,
             'step': None,
             'times_right': 95.0,
@@ -556,10 +565,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2013, 10, 23, 18, 0, 5),
             'first_attempt': '2013-10-23 18:00:05.000000'
             },
-           {'id': 383546L,
-            'tag': 29L,
+           {'id': 383546,
+            'tag': 29,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2013-10-03 21:37:10.915378',
                                 '2013-10-03 21:38:26.430271',
                                 '2013-10-03 21:38:38.754177',
@@ -587,10 +596,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2013, 10, 3, 21, 37, 10),
             'first_attempt': '2013-10-03 21:37:10.000000'
             },
-           {'id': 383614L,
-            'tag': 30L,
+           {'id': 383614,
+            'tag': 30,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2013-11-04 14:09:58.699103',
                                 '2013-11-04 14:10:11.676329',
                                 '2013-11-06 16:05:00.762640',
@@ -621,10 +630,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2013, 10, 5, 3, 6, 26),
             'first_attempt': '2013-10-05 03:06:26.000000'
             },
-           {'id': 383478L,
-            'tag': 32L,
+           {'id': 383478,
+            'tag': 32,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2013-11-17 22:23:35.574534',
                                 '2013-12-03 21:52:42.483799',
                                 '2014-01-31 22:25:20.777146'],
@@ -635,10 +644,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2013, 10, 2, 20, 38, 45),
             'first_attempt': '2013-10-02 20:38:45.000000'
             },
-           {'id': 383232L,
-            'tag': 36L,
+           {'id': 383232,
+            'tag': 36,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-02-26 19:12:41.851235',
                                 '2014-02-26 21:11:21.449747',
                                 '2014-02-27 22:28:50.991776',
@@ -671,10 +680,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 39, 59),
             'first_attempt': '2013-09-27 14:39:59.000000'
             },
-           {'id': 383916L,
-            'tag': 38L,
+           {'id': 383916,
+            'tag': 38,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': None,
             'step': None,
             'times_right': 1000.0,
@@ -683,10 +692,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2013, 11, 20, 0, 24, 20),
             'first_attempt': '2013-11-20 00:24:20.000000'
             },
-           {'id': 383979L,
-            'tag': 40L,
+           {'id': 383979,
+            'tag': 40,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': None,
             'step': None,
             'times_right': 1.0,
@@ -695,10 +704,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2014, 2, 11, 2, 50, 54),
             'first_attempt': '2013-11-20 00:24:20.000000'
             },
-           {'id': 383980L,
-            'tag': 43L,
+           {'id': 383980,
+            'tag': 43,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': None,
             'step': None,
             'times_right': 1.0,
@@ -707,10 +716,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2014, 2, 11, 2, 50, 54),
             'first_attempt': '2013-11-20 00:24:20.000000'
             },
-           {'id': 383420L,
-            'tag': 46L,
+           {'id': 383420,
+            'tag': 46,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2013-10-03 21:38:26.430271',
                                 '2013-10-03 21:38:38.754177',
                                 '2013-10-04 19:48:45.218412',
@@ -733,10 +742,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2013, 10, 1, 23, 45, 25),
             'first_attempt': '2013-10-01 00:24:20.000000'
             },
-           {'id': 383421L,
-            'tag': 47L,
+           {'id': 383421,
+            'tag': 47,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': None,
             'step': None,
             'times_right': 1000.0,
@@ -745,10 +754,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2013, 10, 1, 23, 45, 25),
             'first_attempt': '2013-10-01 00:24:20.000000'
             },
-           {'id': 383222L,
-            'tag': 48L,
+           {'id': 383222,
+            'tag': 48,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-01-13 15:17:38.961998',
                                 '2014-01-13 23:00:05.839312',
                                 '2014-01-20 14:23:30.474737',
@@ -771,10 +780,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 18, 2),
             'first_attempt': '2013-09-27 14:18:02.000000'
             },
-           {'id': 383890L,
-            'tag': 49L,
+           {'id': 383890,
+            'tag': 49,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': None,
             'step': None,
             'times_right': 1000.0,
@@ -783,10 +792,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2013, 11, 2, 2, 13, 11),
             'first_attempt': '2013-09-27 14:18:02.000000'
             },
-           {'id': 383111L,
-            'tag': 61L,
+           {'id': 383111,
+            'tag': 61,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-03-17 22:26:16.421367',
                                 '2014-03-17 22:26:34.296588',
                                 '2014-03-17 22:26:47.680713',
@@ -815,10 +824,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 48, 55),
             'first_attempt': '2013-09-26 20:48:55.000000'
             },
-           {'id': 383217L,
-            'tag': 62L,
+           {'id': 383217,
+            'tag': 62,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-03-17 22:25:44.135166',
                                 '2014-03-17 22:26:16.421367',
                                 '2014-03-17 22:26:34.296588',
@@ -844,10 +853,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2013, 9, 27, 13, 58, 40),
             'first_attempt': '2013-09-26 20:48:55.000000'
             },
-           {'id': 383109L,
-            'tag': 63L,
+           {'id': 383109,
+            'tag': 63,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-03-17 22:26:16.421367',
                                 '2014-03-17 22:26:34.296588',
                                 '2014-03-17 22:27:30.389687',
@@ -870,10 +879,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 45, 36),
             'first_attempt': '2013-09-26 20:45:36.000000'
             },
-           {'id': 383234L,
-            'tag': 66L,
+           {'id': 383234,
+            'tag': 66,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-03-17 22:28:33.835836',
                                 '2014-03-17 22:29:25.135365',
                                 '2014-03-17 22:29:32.526147',
@@ -889,10 +898,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 43, 27),
             'first_attempt': '2013-09-26 20:45:36.000000'
             },
-           {'id': 383117L,
-            'tag': 67L,
+           {'id': 383117,
+            'tag': 67,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-03-20 01:20:07.241677',
                                 '2014-03-20 01:21:42.742329',
                                 '2014-03-20 01:22:46.003765',
@@ -904,10 +913,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36),
             'first_attempt': '2013-09-26 20:57:36.000000'
             },
-           {'id': 383108L,
-            'tag': 68L,
+           {'id': 383108,
+            'tag': 68,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-03-12 20:52:04.164228',
                                 '2014-03-13 19:51:41.766472',
                                 '2014-03-14 20:31:38.950469',
@@ -919,10 +928,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 45, 15),
             'first_attempt': '2013-09-26 20:45:15.000000'
             },
-           {'id': 383543L,
-            'tag': 69L,
+           {'id': 383543,
+            'tag': 69,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-03-17 22:25:44.135166',
                                 '2014-03-17 22:26:47.680713',
                                 '2014-03-17 22:28:26.372733',
@@ -935,10 +944,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2013, 10, 3, 21, 19, 34),
             'first_attempt': '2013-10-03 21:19:34.000000'
             },
-           {'id': 384040L,
-            'tag': 71L,
+           {'id': 384040,
+            'tag': 71,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': None,
             'step': None,
             'times_right': 1.0,
@@ -947,10 +956,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2014, 2, 12, 4, 3, 50),
             'first_attempt': '2014-02-12 04:03:50.000000'
             },
-           {'id': 383112L,
-            'tag': 72L,
+           {'id': 383112,
+            'tag': 72,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-02-22 02:21:46.197632',
                                 '2014-02-22 02:43:30.852941',
                                 '2014-02-27 22:43:40.639117',
@@ -969,10 +978,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 53, 45),
             'first_attempt': '2013-09-26 20:53:45.000000'
             },
-           {'id': 383114L,
-            'tag': 73L,
+           {'id': 383114,
+            'tag': 73,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-02-19 20:36:42.985334',
                                 '2014-02-19 20:37:08.797027',
                                 '2014-02-20 22:59:13.563362',
@@ -985,10 +994,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36),
             'first_attempt': '2013-09-26 20:57:36.000000'
             },
-           {'id': 383414L,
-            'tag': 74L,
+           {'id': 383414,
+            'tag': 74,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-03-20 01:20:07.223668',
                                 '2014-03-20 01:22:45.994129'],
             'step': None,
@@ -998,10 +1007,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2013, 10, 1, 21, 10, 31),
             'first_attempt': '2013-10-01 21:10:31.000000'
             },
-           {'id': 383411L,
-            'tag': 75L,
+           {'id': 383411,
+            'tag': 75,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2013-12-03 21:54:52.981560',
                                 '2014-01-20 14:29:24.439739',
                                 '2014-02-25 01:05:57.858092',
@@ -1017,10 +1026,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2013, 10, 1, 21, 8, 41),
             'first_attempt': '2013-10-01 21:08:41.000000'
             },
-           {'id': 383347L,
-            'tag': 76L,
+           {'id': 383347,
+            'tag': 76,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-03-20 01:13:10.808508'],
             'step': None,
             'times_right': 0.0,
@@ -1029,10 +1038,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2013, 9, 30, 13, 52, 55),
             'first_attempt': '2013-09-30 13:52:55.000000'
             },
-           {'id': 383115L,
-            'tag': 77L,
+           {'id': 383115,
+            'tag': 77,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-02-25 01:11:45.086382',
                                 '2014-02-25 01:13:14.462175',
                                 '2014-02-25 01:13:42.069870',
@@ -1056,10 +1065,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36),
             'first_attempt': '2013-09-26 20:57:36.000000'
             },
-           {'id': 383220L,
-            'tag': 82L,
+           {'id': 383220,
+            'tag': 82,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-03-17 22:25:44.135166',
                                 '2014-03-17 22:26:47.680713',
                                 '2014-03-17 22:28:26.372733',
@@ -1073,10 +1082,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 8, 27),
             'first_attempt': '2013-09-27 14:08:27.000000'
             },
-           {'id': 383221L,
-            'tag': 83L,
+           {'id': 383221,
+            'tag': 83,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-02-22 02:41:48.717205',
                                 '2014-02-22 02:48:06.942953',
                                 '2014-02-22 02:48:31.979752',
@@ -1102,10 +1111,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 8, 27),
             'first_attempt': '2013-09-27 14:08:27.000000'
             },
-           {'id': 384069L,
-            'tag': 84L,
+           {'id': 384069,
+            'tag': 84,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': None,
             'step': None,
             'times_right': 0.0,
@@ -1114,10 +1123,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2014, 3, 20, 1, 13, 10),
             'first_attempt': '2014-03-20 01:13:10.000000'
             },
-           {'id': 384070L,
-            'tag': 85L,
+           {'id': 384070,
+            'tag': 85,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': None,
             'step': None,
             'times_right': 0.0,
@@ -1126,10 +1135,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2014, 3, 20, 1, 13, 10),
             'first_attempt': '2014-03-20 01:13:10.000000'
             },
-           {'id': 383612L,
-            'tag': 86L,
+           {'id': 383612,
+            'tag': 86,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-03-17 22:26:47.680713',
                                 '2014-03-17 22:28:26.372733',
                                 '2014-03-17 22:28:33.835836',
@@ -1143,10 +1152,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2013, 10, 5, 3, 6, 26),
             'first_attempt': '2013-10-05 03:06:26.000000'
             },
-           {'id': 383637L,
-            'tag': 87L,
+           {'id': 383637,
+            'tag': 87,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2013-11-04 14:09:58.699103',
                                 '2013-11-04 14:10:11.676329',
                                 '2013-11-06 16:05:00.762640',
@@ -1177,10 +1186,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2013, 10, 5, 20, 12, 17),
             'first_attempt': '2013-10-05 20:12:17.000000'
             },
-           {'id': 383118L,
-            'tag': 88L,
+           {'id': 383118,
+            'tag': 88,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-02-22 02:21:24.974752',
                                 '2014-02-22 02:21:46.197632',
                                 '2014-02-22 02:43:30.852941',
@@ -1198,10 +1207,10 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36),
             'first_attempt': '2013-09-26 20:57:36.000000'
             },
-           {'id': 383233L,
-            'tag': 89L,
+           {'id': 383233,
+            'tag': 89,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': None,
             'step': None,
             'times_right': 1000.0,
@@ -1210,29 +1219,29 @@ def mytagrecs():
             'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 41, 6),
             'first_attempt': '2013-09-26 20:57:36.000000'
             },
-           {'id': 383113L,
-            'tag': 90L,
+           {'id': 383113,
+            'tag': 90,
             'times_right': 1.0,
             'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36),
             'times_wrong': 0.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 27, 31),
             'step': None,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-02-14 22:33:12.662352',
                                 '2014-02-22 02:14:57.149550',
                                 '2014-03-20 01:20:07.220079'],
             'first_attempt': '2013-09-26 20:57:36.000000'
             },
-           {'name': 109L,
-            'tag': 91L,
+           {'name': 109,
+            'tag': 91,
             'times_right': 1.0,
             'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 5, 35),
             'times_wrong': 0.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 18, 26),
             'step': None,
             'in_path': None,
-            'id': 383218L,
+            'id': 383218,
             'secondary_right': ['2014-02-20 22:59:13.563362',
                                 '2014-02-20 23:00:34.203297',
                                 '2014-02-20 23:00:49.080672',
@@ -1248,30 +1257,30 @@ def mytagrecs():
                                 '2014-03-13 19:52:16.747902'],
             'first_attempt': '2013-09-27 14:05:35.000000'
             },
-           {'name': 109L,
-            'tag': 92L,
+           {'name': 109,
+            'tag': 92,
             'times_right': 1000.0,
             'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 50, 13),
             'times_wrong': 1000.0,
             'tlast_right': datetime.datetime(2014, 3, 5, 4, 24, 12),
             'step': None,
             'in_path': None,
-            'id': 383237L,
+            'id': 383237,
             'secondary_right': ['2014-02-14 22:33:12.662352',
                                 '2014-02-22 02:14:57.149550',
                                 '2014-03-10 19:14:52.759060',
                                 '2014-03-10 19:14:58.914173'],
             'first_attempt': '2013-09-27 14:50:13.000000'
             },
-           {'name': 109L,
-            'tag': 93L,
+           {'name': 109,
+            'tag': 93,
             'times_right': 0.0,
             'tlast_wrong': datetime.datetime(2013, 9, 30, 13, 39, 50),
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 24, 41),
             'step': None,
             'in_path': None,
-            'id': 383346L,
+            'id': 383346,
             'secondary_right': ['2014-02-24 00:54:44.343751',
                                 '2014-02-24 00:56:13.859405',
                                 '2014-02-25 01:13:14.462175',
@@ -1280,27 +1289,27 @@ def mytagrecs():
                                 '2014-03-06 23:04:35.494832'],
             'first_attempt': '2013-09-30 13:39:50.000000'
             },
-           {'name': 109L,
-            'tag': 94L,
+           {'name': 109,
+            'tag': 94,
             'times_right': 0.0,
             'tlast_wrong': datetime.datetime(2014, 2, 11, 2, 41, 56),
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 0, 41, 36),
             'step': None,
             'in_path': None,
-            'id': 383976L,
+            'id': 383976,
             'secondary_right': None,
             'first_attempt': '2014-02-11 02:41:56.000000'
             },
-           {'name': 109L,
-            'tag': 95L,
+           {'name': 109,
+            'tag': 95,
             'times_right': 0.0,
             'tlast_wrong': datetime.datetime(2013, 10, 3, 21, 34, 49),
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 20, 7),
             'step': None,
             'in_path': None,
-            'id': 383545L,
+            'id': 383545,
             'secondary_right': ['2013-10-03 21:38:26.430271',
                                 '2013-10-03 21:38:38.754177',
                                 '2013-10-04 02:49:27.280458',
@@ -1316,15 +1325,15 @@ def mytagrecs():
                                 '2014-01-20 14:29:24.439739'],
             'first_attempt': '2013-10-03 21:34:49.000000'
             },
-           {'name': 109L,
-            'tag': 115L,
+           {'name': 109,
+            'tag': 115,
             'times_right': 1.0,
             'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36),
             'times_wrong': 0.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 27, 31),
             'step': None,
             'in_path': None,
-            'id': 383120L,
+            'id': 383120,
             'secondary_right': ['2014-02-18 19:43:17.771731',
                                 '2014-02-25 01:05:57.858092',
                                 '2014-02-25 01:07:59.061393',
@@ -1346,29 +1355,29 @@ def mytagrecs():
                                 '2014-03-20 01:20:07.248791'],
             'first_attempt': '2013-09-26 20:57:36.000000'
             },
-           {'name': 109L,
-            'tag': 116L,
+           {'name': 109,
+            'tag': 116,
             'times_right': 1000.0,
             'tlast_wrong': datetime.datetime(2013, 10, 1, 21, 8, 41),
             'times_wrong': 1000.0,
             'tlast_right': datetime.datetime(2014, 3, 10, 18, 58, 17),
             'step': None,
             'in_path': None,
-            'id': 383412L,
+            'id': 383412,
             'secondary_right': ['2014-02-10 02:31:21.978049',
                                 '2014-02-12 03:55:11.346488',
                                 '2014-02-12 03:55:49.469451'],
             'first_attempt': '2013-09-26 20:57:36.000000'
             },
-           {'name': 109L,
-            'tag': 117L,
+           {'name': 109,
+            'tag': 117,
             'times_right': 0.0,
             'tlast_wrong': datetime.datetime(2013, 10, 1, 21, 8, 41),
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
             'step': None,
             'in_path': None,
-            'id': 383413L,
+            'id': 383413,
             'secondary_right': ['2014-03-06 22:58:36.468321',
                                 '2014-03-07 19:13:40.727329',
                                 '2014-03-10 18:56:02.777857',
@@ -1381,15 +1390,15 @@ def mytagrecs():
                                 '2014-03-20 00:45:07.186095'],
             'first_attempt': '2013-10-01 21:08:41.000000'
             },
-           {'name': 109L,
-            'tag': 118L,
+           {'name': 109,
+            'tag': 118,
             'times_right': 0.0,
             'tlast_wrong': datetime.datetime(2013, 10, 3, 21, 19, 34),
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 20, 7),
             'step': None,
             'in_path': None,
-            'id': 383544L,
+            'id': 383544,
             'secondary_right': ['2013-10-09 19:46:49.950370',
                                 '2013-10-09 19:47:14.835834',
                                 '2014-02-12 21:18:52.149758',
@@ -1398,15 +1407,15 @@ def mytagrecs():
                                 '2014-02-18 01:32:22.890120'],
             'first_attempt': '2013-10-03 21:19:34.000000'
             },
-           {'name': 109L,
-            'tag': 119L,
+           {'name': 109,
+            'tag': 119,
             'times_right': 1000.0,
             'tlast_wrong': datetime.datetime(2013, 10, 3, 21, 13),
             'times_wrong': 1000.0,
             'tlast_right': datetime.datetime(2014, 2, 25, 21, 51, 13),
             'step': None,
             'in_path': None,
-            'id': 383541L,
+            'id': 383541,
             'secondary_right': ['2013-11-02 02:15:58.052970',
                                 '2013-11-04 13:05:27.666637',
                                 '2013-11-05 22:23:39.144027',
@@ -1431,15 +1440,15 @@ def mytagrecs():
                                 '2014-03-20 01:15:26.017334'],
             'first_attempt': '2013-10-03 21:13:00.000000'
             },
-           {'name': 109L,
-            'tag': 120L,
+           {'name': 109,
+            'tag': 120,
             'times_right': 1000.0,
             'tlast_wrong': datetime.datetime(2013, 10, 1, 21, 11, 43),
             'times_wrong': 1000.0,
             'tlast_right': datetime.datetime(2014, 3, 7, 19, 29, 37),
             'step': None,
             'in_path': None,
-            'id': 383415L,
+            'id': 383415,
             'secondary_right': ['2013-10-04 19:50:29.608630',
                                 '2013-10-07 03:11:12.707955',
                                 '2013-10-18 17:39:46.227522',
@@ -1449,77 +1458,77 @@ def mytagrecs():
                                 '2014-01-20 14:29:24.439739'],
             'first_attempt': '2013-10-01 21:11:43.000000'
             },
-           {'name': 109L,
-            'tag': 121L,
+           {'name': 109,
+            'tag': 121,
             'times_right': 0.0,
             'tlast_wrong': datetime.datetime(2013, 10, 5, 3, 6, 26),
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
             'step': None,
             'in_path': None,
-            'id': 383616L,
+            'id': 383616,
             'secondary_right': None,
             'first_attempt': '2013-10-05 03:06:26.000000'
             },
-           {'name': 109L,
-            'tag': 122L,
+           {'name': 109,
+            'tag': 122,
             'times_right': 1000.0,
             'tlast_wrong': datetime.datetime(2013, 10, 5, 20, 7, 46),
             'times_wrong': 1000.0,
             'tlast_right': datetime.datetime(2014, 3, 17, 22, 29, 3),
             'step': None,
             'in_path': None,
-            'id': 383636L,
+            'id': 383636,
             'secondary_right': ['2013-11-04 13:40:30.224814',
                                 '2013-11-06 16:16:51.210929',
                                 '2014-02-03 15:11:04.685410'],
             'first_attempt': '2013-10-05 20:07:46.000000'
             },
-           {'name': 109L,
+           {'name': 109,
             'times_right': 0.0,
             'tlast_wrong': datetime.datetime(2014, 2, 11, 2, 47, 9),
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 13, 10),
             'step': None,
-            'tag': 124L,
+            'tag': 124,
             'in_path': None,
-            'id': 383977L,
+            'id': 383977,
             'secondary_right': None,
             'first_attempt': '2014-02-11 02:47:09.000000'
             },
-           {'name': 109L,
+           {'name': 109,
             'times_right': 0.0,
             'tlast_wrong': datetime.datetime(2013, 10, 5, 20, 17, 29),
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
             'step': None,
-            'tag': 128L,
+            'tag': 128,
             'in_path': None,
-            'id': 383639L,
+            'id': 383639,
             'secondary_right': None,
             'first_attempt': '2013-10-05 20:17:29.000000'
             },
-           {'name': 109L,
+           {'name': 109,
             'times_right': 0.0,
             'tlast_wrong': datetime.datetime(2013, 10, 22, 21, 33),
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
             'step': None,
-            'tag': 129L,
+            'tag': 129,
             'in_path': None,
-            'id': 383852L,
+            'id': 383852,
             'secondary_right': ['2014-03-20 01:13:10.828327'],
             'first_attempt': '2013-10-22 21:33:00.000000'
             },
-           {'name': 109L,
+           {'name': 109,
             'times_right': 0.0,
             'tlast_wrong': datetime.datetime(2014, 3, 20, 1, 13, 10),
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 13, 10),
             'step': None,
-            'tag': 133L,
+            'tag': 133,
             'in_path': None,
-            'id': 384071L,
+            'id': 384071,
             'secondary_right': None,
             'first_attempt': '2014-03-20 01:13:10.000000'
             }
@@ -1529,14 +1538,15 @@ def mytagrecs():
     return tr
 
 
-@pytest.fixture
+# @pytest.fixture
+# FIXME: not fixture to avoid problem calling in parametrize decorator
 def mytagrecs_with_secondary():
     """A fixture providing mock tag_records data."""
     tr = {'Simon Pan 2014-03-21':
-          [{'id': 383380L,
-            'tag': 1L,
+          [{'id': 383380,
+            'tag': 1,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-03-17 22:13:59.395609',
                                 '2014-03-20 00:45:07.189652',
                                 '2014-03-20 01:13:10.767671',
@@ -1548,9 +1558,9 @@ def mytagrecs_with_secondary():
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
             'tlast_wrong': datetime.datetime(2013, 10, 1, 15, 32, 1)
             },
-           {'id': 383615L, 'in_path': None,
-            'tag': 4L,
-            'name': 109L,
+           {'id': 383615, 'in_path': None,
+            'tag': 4,
+            'name': 109,
             'secondary_right': ['2014-03-17 22:21:48.396981',
                                 '2014-03-17 22:26:16.421367',
                                 '2014-03-17 22:26:34.296588',
@@ -1565,20 +1575,20 @@ def mytagrecs_with_secondary():
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
             'tlast_wrong': datetime.datetime(2013, 10, 5, 3, 6, 26)},
-           {'id': 383419L,
-            'tag': 5L,
+           {'id': 383419,
+            'tag': 5,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': None,
             'step': None,
             'times_right': 0.0,
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 20, 7),
             'tlast_wrong': datetime.datetime(2013, 10, 1, 23, 45, 25)},
-           {'id': 383219L,
-            'tag': 6L,
+           {'id': 383219,
+            'tag': 6,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-03-05 04:23:40.815243',
                                 '2014-03-05 04:24:02.586695',
                                 '2014-03-05 04:24:12.043533',
@@ -1589,10 +1599,10 @@ def mytagrecs_with_secondary():
             'times_wrong': None,
             'tlast_right': datetime.datetime(2013, 9, 27, 14, 8, 27),
             'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 8, 27)},
-           {'id': 383119L,
-            'tag': 9L,
+           {'id': 383119,
+            'tag': 9,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-03-20 01:13:10.771437',
                                 '2014-03-20 01:18:26.331487',
                                 '2014-03-20 01:20:07.245236',
@@ -1602,30 +1612,30 @@ def mytagrecs_with_secondary():
             'times_wrong': 0.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 27, 31),
             'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36)},
-           {'id': 383613L,
-            'tag': 10L,
+           {'id': 383613,
+            'tag': 10,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2013-10-07 22:48:58.563124'],
             'step': None,
             'times_right': 0.0,
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
             'tlast_wrong': datetime.datetime(2013, 10, 5, 3, 6, 26)},
-           {'id': 383969L,
-            'tag': 14L,
+           {'id': 383969,
+            'tag': 14,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': None,
             'step': None,
             'times_right': 93.0,
             'times_wrong': 18.0,
             'tlast_right': datetime.datetime(2014, 3, 17, 22, 29, 3),
             'tlast_wrong': datetime.datetime(2014, 1, 21, 18, 21, 40)},
-           {'id': 383116L,
-            'tag': 16L,
+           {'id': 383116,
+            'tag': 16,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-02-18 19:17:02.407886',
                                 '2014-02-18 19:17:25.063330',
                                 '2014-02-19 20:36:42.985334',
@@ -1640,40 +1650,40 @@ def mytagrecs_with_secondary():
             'times_wrong': 0.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 27, 31),
             'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36)},
-           {'id': 384068L,
-            'tag': 17L,
+           {'id': 384068,
+            'tag': 17,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': None,
             'step': None,
             'times_right': 0.0,
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 13, 10),
             'tlast_wrong': datetime.datetime(2014, 3, 20, 1, 13, 10)},
-           {'id': 383858L,
-            'tag': 18L,
+           {'id': 383858,
+            'tag': 18,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': None,
             'step': None,
             'times_right': 95.0,
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 1, 24, 23, 32, 23),
             'tlast_wrong': datetime.datetime(2013, 10, 23, 18, 0, 5)},
-           {'id': 383546L,
-            'tag': 29L,
+           {'id': 383546,
+            'tag': 29,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': [],
             'step': None,
             'times_right': 29.0,
             'times_wrong': 10.0,
             'tlast_right': datetime.datetime(2014, 2, 11, 2, 53, 27),
             'tlast_wrong': datetime.datetime(2013, 10, 3, 21, 37, 10)},
-           {'id': 383614L,
-            'tag': 30L,
+           {'id': 383614,
+            'tag': 30,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-02-04 15:02:12.448057',
                                 '2014-02-04 15:02:23.598612',
                                 '2014-02-07 18:34:16.086847'],
@@ -1682,10 +1692,10 @@ def mytagrecs_with_secondary():
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
             'tlast_wrong': datetime.datetime(2013, 10, 5, 3, 6, 26)},
-           {'id': 383478L,
-            'tag': 32L,
+           {'id': 383478,
+            'tag': 32,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2013-11-17 22:23:35.574534',
                                 '2013-12-03 21:52:42.483799',
                                 '2014-01-31 22:25:20.777146'],
@@ -1694,10 +1704,10 @@ def mytagrecs_with_secondary():
             'times_wrong': None,
             'tlast_right': datetime.datetime(2013, 10, 2, 20, 38, 45),
             'tlast_wrong': datetime.datetime(2013, 10, 2, 20, 38, 45)},
-           {'id': 383232L,
-            'tag': 36L,
+           {'id': 383232,
+            'tag': 36,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-03-13 20:03:06.719722',
                                 '2014-03-14 20:31:20.800429',
                                 '2014-03-17 22:13:59.395609',
@@ -1708,40 +1718,40 @@ def mytagrecs_with_secondary():
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
             'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 39, 59)},
-           {'id': 383916L,
-            'tag': 38L,
+           {'id': 383916,
+            'tag': 38,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': None,
             'step': None,
             'times_right': 1000.0,
             'times_wrong': 1000.0,
             'tlast_right': datetime.datetime(2014, 3, 13, 20, 16, 32),
             'tlast_wrong': datetime.datetime(2013, 11, 20, 0, 24, 20)},
-           {'id': 383979L,
-            'tag': 40L,
+           {'id': 383979,
+            'tag': 40,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': None,
             'step': None,
             'times_right': 1.0,
             'times_wrong': 0.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 19),
             'tlast_wrong': datetime.datetime(2014, 2, 11, 2, 50, 54)},
-           {'id': 383980L,
-            'tag': 43L,
+           {'id': 383980,
+            'tag': 43,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': None,
             'step': None,
             'times_right': 1.0,
             'times_wrong': 0.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 19),
             'tlast_wrong': datetime.datetime(2014, 2, 11, 2, 50, 54)},
-           {'id': 383420L,
-            'tag': 46L,
+           {'id': 383420,
+            'tag': 46,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2013-10-03 21:38:26.430271',
                                 '2013-10-03 21:38:38.754177',
                                 '2013-10-04 19:48:45.218412',
@@ -1762,20 +1772,20 @@ def mytagrecs_with_secondary():
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 20, 7),
             'tlast_wrong': datetime.datetime(2013, 10, 1, 23, 45, 25)},
-           {'id': 383421L,
-            'tag': 47L,
+           {'id': 383421,
+            'tag': 47,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': None,
             'step': None,
             'times_right': 1000.0,
             'times_wrong': 1000.0,
             'tlast_right': datetime.datetime(2014, 2, 18, 1, 32, 22),
             'tlast_wrong': datetime.datetime(2013, 10, 1, 23, 45, 25)},
-           {'id': 383222L,
-            'tag': 48L,
+           {'id': 383222,
+            'tag': 48,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-01-13 15:17:38.961998',
                                 '2014-01-13 23:00:05.839312',
                                 '2014-01-20 14:23:30.474737',
@@ -1796,30 +1806,30 @@ def mytagrecs_with_secondary():
             'times_wrong': 0.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 11, 17),
             'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 18, 2)},
-           {'id': 383890L,
-            'tag': 49L,
+           {'id': 383890,
+            'tag': 49,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': None,
             'step': None,
             'times_right': 1000.0,
             'times_wrong': 1000.0,
             'tlast_right': datetime.datetime(2014, 3, 7, 19, 22, 42),
             'tlast_wrong': datetime.datetime(2013, 11, 2, 2, 13, 11)},
-           {'id': 383111L,
-            'tag': 61L,
+           {'id': 383111,
+            'tag': 61,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-03-20 01:26:42.183147'],
             'step': None,
             'times_right': 1.0,
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 26),
             'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 48, 55)},
-           {'id': 383217L,
-            'tag': 62L,
+           {'id': 383217,
+            'tag': 62,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-03-17 22:25:44.135166',
                                 '2014-03-17 22:26:16.421367',
                                 '2014-03-17 22:26:34.296588',
@@ -1843,10 +1853,10 @@ def mytagrecs_with_secondary():
             'times_wrong': 0.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 26, 42),
             'tlast_wrong': datetime.datetime(2013, 9, 27, 13, 58, 40)},
-           {'id': 383109L,
-            'tag': 63L,
+           {'id': 383109,
+            'tag': 63,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-03-17 22:26:16.421367',
                                 '2014-03-17 22:26:34.296588',
                                 '2014-03-17 22:27:30.389687',
@@ -1867,10 +1877,10 @@ def mytagrecs_with_secondary():
             'times_wrong': 0.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 26, 21),
             'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 45, 36)},
-           {'id': 383234L,
-            'tag': 66L,
+           {'id': 383234,
+            'tag': 66,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-03-17 22:28:33.835836',
                                 '2014-03-17 22:29:25.135365',
                                 '2014-03-17 22:29:32.526147',
@@ -1884,10 +1894,10 @@ def mytagrecs_with_secondary():
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 26),
             'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 43, 27)},
-           {'id': 383117L,
-            'tag': 67L,
+           {'id': 383117,
+            'tag': 67,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-03-20 01:20:07.241677',
                                 '2014-03-20 01:21:42.742329',
                                 '2014-03-20 01:22:46.003765',
@@ -1897,10 +1907,10 @@ def mytagrecs_with_secondary():
             'times_wrong': 0.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 27, 31),
             'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36)},
-           {'id': 383108L,
-            'tag': 68L,
+           {'id': 383108,
+            'tag': 68,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-03-12 20:52:04.164228',
                                 '2014-03-13 19:51:41.766472',
                                 '2014-03-14 20:31:38.950469',
@@ -1910,10 +1920,10 @@ def mytagrecs_with_secondary():
             'times_wrong': 30.0,
             'tlast_right': datetime.datetime(2014, 3, 5, 22, 39, 53),
             'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 45, 15)},
-           {'id': 383543L,
-            'tag': 69L,
+           {'id': 383543,
+            'tag': 69,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-03-17 22:25:44.135166',
                                 '2014-03-17 22:26:47.680713',
                                 '2014-03-17 22:28:26.372733',
@@ -1924,20 +1934,20 @@ def mytagrecs_with_secondary():
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 20, 7),
             'tlast_wrong': datetime.datetime(2013, 10, 3, 21, 19, 34)},
-           {'id': 384040L,
-            'tag': 71L,
+           {'id': 384040,
+            'tag': 71,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': None,
             'step': None,
             'times_right': 1.0,
             'times_wrong': 0.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 16, 1),
             'tlast_wrong': datetime.datetime(2014, 2, 12, 4, 3, 50)},
-           {'id': 383112L,
-            'tag': 72L,
+           {'id': 383112,
+            'tag': 72,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-02-22 02:21:46.197632',
                                 '2014-02-22 02:43:30.852941',
                                 '2014-02-27 22:43:40.639117',
@@ -1954,10 +1964,10 @@ def mytagrecs_with_secondary():
             'times_wrong': 0.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 28, 36),
             'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 53, 45)},
-           {'id': 383114L,
-            'tag': 73L,
+           {'id': 383114,
+            'tag': 73,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-02-19 20:36:42.985334',
                                 '2014-02-19 20:37:08.797027',
                                 '2014-02-20 22:59:13.563362',
@@ -1968,10 +1978,10 @@ def mytagrecs_with_secondary():
             'times_wrong': 0.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 27, 31),
             'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36)},
-           {'id': 383414L,
-            'tag': 74L,
+           {'id': 383414,
+            'tag': 74,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-03-20 01:20:07.223668',
                                 '2014-03-20 01:22:45.994129'],
             'step': None,
@@ -1979,10 +1989,10 @@ def mytagrecs_with_secondary():
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 17, 32),
             'tlast_wrong': datetime.datetime(2013, 10, 1, 21, 10, 31)},
-           {'id': 383411L,
-            'tag': 75L,
+           {'id': 383411,
+            'tag': 75,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2013-12-03 21:54:52.981560',
                                 '2014-01-20 14:29:24.439739',
                                 '2014-02-25 01:05:57.858092',
@@ -1996,20 +2006,20 @@ def mytagrecs_with_secondary():
             'times_wrong': 1000.0,
             'tlast_right': datetime.datetime(2014, 3, 13, 20, 3, 6),
             'tlast_wrong': datetime.datetime(2013, 10, 1, 21, 8, 41)},
-           {'id': 383347L,
-            'tag': 76L,
+           {'id': 383347,
+            'tag': 76,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-03-20 01:13:10.808508'],
             'step': None,
             'times_right': 0.0,
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 22, 45),
             'tlast_wrong': datetime.datetime(2013, 9, 30, 13, 52, 55)},
-           {'id': 383115L,
-            'tag': 77L,
+           {'id': 383115,
+            'tag': 77,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-02-25 01:11:45.086382',
                                 '2014-02-25 01:13:14.462175',
                                 '2014-02-25 01:13:42.069870',
@@ -2031,10 +2041,10 @@ def mytagrecs_with_secondary():
             'times_wrong': 0.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 27, 31),
             'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36)},
-           {'id': 383220L,
-            'tag': 82L,
+           {'id': 383220,
+            'tag': 82,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-03-17 22:25:44.135166',
                                 '2014-03-17 22:26:47.680713',
                                 '2014-03-17 22:28:26.372733',
@@ -2046,10 +2056,10 @@ def mytagrecs_with_secondary():
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 26),
             'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 8, 27)},
-           {'id': 383221L,
-            'tag': 83L,
+           {'id': 383221,
+            'tag': 83,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-02-22 02:41:48.717205',
                                 '2014-02-22 02:48:06.942953',
                                 '2014-02-22 02:48:31.979752',
@@ -2073,30 +2083,30 @@ def mytagrecs_with_secondary():
             'times_wrong': None,
             'tlast_right': datetime.datetime(2013, 9, 27, 14, 8, 27),
             'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 8, 27)},
-           {'id': 384069L,
-            'tag': 84L,
+           {'id': 384069,
+            'tag': 84,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': None,
             'step': None,
             'times_right': 0.0,
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 13, 10),
             'tlast_wrong': datetime.datetime(2014, 3, 20, 1, 13, 10)},
-           {'id': 384070L,
-            'tag': 85L,
+           {'id': 384070,
+            'tag': 85,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': None,
             'step': None,
             'times_right': 0.0,
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 13, 10),
             'tlast_wrong': datetime.datetime(2014, 3, 20, 1, 13, 10)},
-           {'id': 383612L,
-            'tag': 86L,
+           {'id': 383612,
+            'tag': 86,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-03-17 22:26:47.680713',
                                 '2014-03-17 22:28:26.372733',
                                 '2014-03-17 22:28:33.835836',
@@ -2108,10 +2118,10 @@ def mytagrecs_with_secondary():
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
             'tlast_wrong': datetime.datetime(2013, 10, 5, 3, 6, 26)},
-           {'id': 383637L,
-            'tag': 87L,
+           {'id': 383637,
+            'tag': 87,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-02-04 15:02:12.448057',
                                 '2014-02-04 15:02:23.598612',
                                 '2014-02-07 18:34:16.086847'],
@@ -2120,10 +2130,10 @@ def mytagrecs_with_secondary():
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 26),
             'tlast_wrong': datetime.datetime(2013, 10, 5, 20, 12, 17)},
-           {'id': 383118L,
-            'tag': 88L,
+           {'id': 383118,
+            'tag': 88,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-02-22 02:21:24.974752',
                                 '2014-02-22 02:21:46.197632',
                                 '2014-02-22 02:43:30.852941',
@@ -2139,37 +2149,37 @@ def mytagrecs_with_secondary():
             'times_wrong': 0.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 27, 31),
             'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36)},
-           {'id': 383233L,
-            'tag': 89L,
+           {'id': 383233,
+            'tag': 89,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': None,
             'step': None,
             'times_right': 1000.0,
             'times_wrong': 1000.0,
             'tlast_right': datetime.datetime(2014, 2, 13, 22, 36, 47),
             'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 41, 6)},
-           {'id': 383113L,
-            'tag': 90L,
+           {'id': 383113,
+            'tag': 90,
             'times_right': 1.0,
             'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36),
             'times_wrong': 0.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 27, 31),
             'step': None,
             'in_path': None,
-            'name': 109L,
+            'name': 109,
             'secondary_right': ['2014-02-14 22:33:12.662352',
                                 '2014-02-22 02:14:57.149550',
                                 '2014-03-20 01:20:07.220079']},
-           {'name': 109L,
-            'tag': 91L,
+           {'name': 109,
+            'tag': 91,
             'times_right': 1.0,
             'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 5, 35),
             'times_wrong': 0.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 18, 26),
             'step': None,
             'in_path': None,
-            'id': 383218L,
+            'id': 383218,
             'secondary_right': ['2014-02-20 22:59:13.563362',
                                 '2014-02-20 23:00:34.203297',
                                 '2014-02-20 23:00:49.080672',
@@ -2183,53 +2193,53 @@ def mytagrecs_with_secondary():
                                 '2014-02-28 17:39:34.566118',
                                 '2014-02-28 17:39:49.479375',
                                 '2014-03-13 19:52:16.747902']},
-           {'name': 109L,
-            'tag': 92L,
+           {'name': 109,
+            'tag': 92,
             'times_right': 1000.0,
             'tlast_wrong': datetime.datetime(2013, 9, 27, 14, 50, 13),
             'times_wrong': 1000.0,
             'tlast_right': datetime.datetime(2014, 3, 5, 4, 24, 12),
             'step': None,
             'in_path': None,
-            'id': 383237L,
+            'id': 383237,
             'secondary_right': ['2014-02-14 22:33:12.662352',
                                 '2014-02-22 02:14:57.149550',
                                 '2014-03-10 19:14:52.759060',
                                 '2014-03-10 19:14:58.914173']},
-           {'name': 109L,
-            'tag': 93L,
+           {'name': 109,
+            'tag': 93,
             'times_right': 0.0,
             'tlast_wrong': datetime.datetime(2013, 9, 30, 13, 39, 50),
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 24, 41),
             'step': None,
             'in_path': None,
-            'id': 383346L,
+            'id': 383346,
             'secondary_right': ['2014-02-24 00:54:44.343751',
                                 '2014-02-24 00:56:13.859405',
                                 '2014-02-25 01:13:14.462175',
                                 '2014-02-25 01:13:42.069870',
                                 '2014-03-06 23:04:06.151430',
                                 '2014-03-06 23:04:35.494832']},
-           {'name': 109L,
-            'tag': 94L,
+           {'name': 109,
+            'tag': 94,
             'times_right': 0.0,
             'tlast_wrong': datetime.datetime(2014, 2, 11, 2, 41, 56),
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 0, 41, 36),
             'step': None,
             'in_path': None,
-            'id': 383976L,
+            'id': 383976,
             'secondary_right': None},
-           {'name': 109L,
-            'tag': 95L,
+           {'name': 109,
+            'tag': 95,
             'times_right': 0.0,
             'tlast_wrong': datetime.datetime(2013, 10, 3, 21, 34, 49),
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 20, 7),
             'step': None,
             'in_path': None,
-            'id': 383545L,
+            'id': 383545,
             'secondary_right': ['2013-10-03 21:38:26.430271',
                                 '2013-10-03 21:38:38.754177',
                                 '2013-10-04 02:49:27.280458',
@@ -2243,15 +2253,15 @@ def mytagrecs_with_secondary():
                                 '2013-11-30 02:58:13.544984',
                                 '2013-12-03 21:54:52.981560',
                                 '2014-01-20 14:29:24.439739']},
-           {'name': 109L,
-            'tag': 115L,
+           {'name': 109,
+            'tag': 115,
             'times_right': 1.0,
             'tlast_wrong': datetime.datetime(2013, 9, 26, 20, 57, 36),
             'times_wrong': 0.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 27, 31),
             'step': None,
             'in_path': None,
-            'id': 383120L,
+            'id': 383120,
             'secondary_right': ['2014-02-18 19:43:17.771731',
                                 '2014-02-25 01:05:57.858092',
                                 '2014-02-25 01:07:59.061393',
@@ -2271,27 +2281,27 @@ def mytagrecs_with_secondary():
                                 '2014-03-10 18:58:12.704988',
                                 '2014-03-10 18:58:17.102850',
                                 '2014-03-20 01:20:07.248791']},
-           {'name': 109L,
-            'tag': 116L,
+           {'name': 109,
+            'tag': 116,
             'times_right': 1000.0,
             'tlast_wrong': datetime.datetime(2013, 10, 1, 21, 8, 41),
             'times_wrong': 1000.0,
             'tlast_right': datetime.datetime(2014, 3, 10, 18, 58, 17),
             'step': None,
             'in_path': None,
-            'id': 383412L,
+            'id': 383412,
             'secondary_right': ['2014-02-10 02:31:21.978049',
                                 '2014-02-12 03:55:11.346488',
                                 '2014-02-12 03:55:49.469451']},
-           {'name': 109L,
-            'tag': 117L,
+           {'name': 109,
+            'tag': 117,
             'times_right': 0.0,
             'tlast_wrong': datetime.datetime(2013, 10, 1, 21, 8, 41),
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
             'step': None,
             'in_path': None,
-            'id': 383413L,
+            'id': 383413,
             'secondary_right': ['2014-03-06 22:58:36.468321',
                                 '2014-03-07 19:13:40.727329',
                                 '2014-03-10 18:56:02.777857',
@@ -2302,41 +2312,41 @@ def mytagrecs_with_secondary():
                                 '2014-03-14 20:31:20.800429',
                                 '2014-03-17 22:13:59.395609',
                                 '2014-03-20 00:45:07.186095']},
-           {'name': 109L,
-            'tag': 118L,
+           {'name': 109,
+            'tag': 118,
             'times_right': 0.0,
             'tlast_wrong': datetime.datetime(2013, 10, 3, 21, 19, 34),
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 20, 7),
             'step': None,
             'in_path': None,
-            'id': 383544L,
+            'id': 383544,
             'secondary_right': ['2013-10-09 19:46:49.950370',
                                 '2013-10-09 19:47:14.835834',
                                 '2014-02-12 21:18:52.149758',
                                 '2014-02-15 03:04:08.599316',
                                 '2014-02-17 01:01:49.514350',
                                 '2014-02-18 01:32:22.890120']},
-           {'name': 109L,
-            'tag': 119L,
+           {'name': 109,
+            'tag': 119,
             'times_right': 1001.0,
             'tlast_wrong': datetime.datetime(2013, 10, 3, 21, 13),
             'times_wrong': 1000.0,
             'tlast_right': datetime.datetime(2014, 2, 25, 21, 51, 13),
             'step': None,
             'in_path': None,
-            'id': 383541L,
+            'id': 383541,
             'secondary_right': ['2014-02-19 20:47:20.599505',
                                 '2014-03-20 01:15:26.017334']},
-           {'name': 109L,
-            'tag': 120L,
+           {'name': 109,
+            'tag': 120,
             'times_right': 1000.0,
             'tlast_wrong': datetime.datetime(2013, 10, 1, 21, 11, 43),
             'times_wrong': 1000.0,
             'tlast_right': datetime.datetime(2014, 3, 7, 19, 29, 37),
             'step': None,
             'in_path': None,
-            'id': 383415L,
+            'id': 383415,
             'secondary_right': ['2013-10-04 19:50:29.608630',
                                 '2013-10-07 03:11:12.707955',
                                 '2013-10-18 17:39:46.227522',
@@ -2344,67 +2354,67 @@ def mytagrecs_with_secondary():
                                 '2013-11-30 02:58:13.544984',
                                 '2013-12-03 21:54:52.981560',
                                 '2014-01-20 14:29:24.439739']},
-           {'name': 109L,
-            'tag': 121L,
+           {'name': 109,
+            'tag': 121,
             'times_right': 0.0,
             'tlast_wrong': datetime.datetime(2013, 10, 5, 3, 6, 26),
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
             'step': None,
             'in_path': None,
-            'id': 383616L,
+            'id': 383616,
             'secondary_right': None},
-           {'name': 109L,
-            'tag': 122L,
+           {'name': 109,
+            'tag': 122,
             'times_right': 1000.0,
             'tlast_wrong': datetime.datetime(2013, 10, 5, 20, 7, 46),
             'times_wrong': 1000.0,
             'tlast_right': datetime.datetime(2014, 3, 17, 22, 29, 3),
             'step': None,
             'in_path': None,
-            'id': 383636L,
+            'id': 383636,
             'secondary_right': ['2013-11-04 13:40:30.224814',
                                 '2013-11-06 16:16:51.210929',
                                 '2014-02-03 15:11:04.685410']},
-           {'name': 109L,
+           {'name': 109,
             'times_right': 0.0,
             'tlast_wrong': datetime.datetime(2014, 2, 11, 2, 47, 9),
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 13, 10),
             'step': None,
-            'tag': 124L,
+            'tag': 124,
             'in_path': None,
-            'id': 383977L,
+            'id': 383977,
             'secondary_right': None},
-           {'name': 109L,
+           {'name': 109,
             'times_right': 0.0,
             'tlast_wrong': datetime.datetime(2013, 10, 5, 20, 17, 29),
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
             'step': None,
-            'tag': 128L,
+            'tag': 128,
             'in_path': None,
-            'id': 383639L,
+            'id': 383639,
             'secondary_right': None},
-           {'name': 109L,
+           {'name': 109,
             'times_right': 0.0,
             'tlast_wrong': datetime.datetime(2013, 10, 22, 21, 33),
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 25, 25),
             'step': None,
-            'tag': 129L,
+            'tag': 129,
             'in_path': None,
-            'id': 383852L,
+            'id': 383852,
             'secondary_right': ['2014-03-20 01:13:10.828327']},
-           {'name': 109L,
+           {'name': 109,
             'times_right': 0.0,
             'tlast_wrong': datetime.datetime(2014, 3, 20, 1, 13, 10),
             'times_wrong': 1.0,
             'tlast_right': datetime.datetime(2014, 3, 20, 1, 13, 10),
             'step': None,
-            'tag': 133L,
+            'tag': 133,
             'in_path': None,
-            'id': 384071L,
+            'id': 384071,
             'secondary_right': None}
            ]
           }
@@ -2426,7 +2436,7 @@ def bg_imgs(db):
             11: 15,
             13: 17}
     imgs = {l: '/paideia/static/images/{}'.format(db.images[i].image)
-            for l, i in locs.iteritems()}
+            for l, i in locs.items()}
     return imgs
 
 
@@ -3247,9 +3257,9 @@ def mycategorizer(mycases):
     case = mycases['casedata']
     step = mycases['stepdata']
     rank = case['tag_progress']['latest_new']
-    cats_in = {k: v for k, v in case['tag_progress'].iteritems()
+    cats_in = {k: v for k, v in case['tag_progress'].items()
                if not k == 'latest_new'}
-    cats_out = {k: v for k, v in case['tag_progress_out'].iteritems()
+    cats_out = {k: v for k, v in case['tag_progress_out'].items()
                 if not k == 'latest_new'}
     tag_rs = case['tag_records']
     now = case['mynow']
@@ -3266,7 +3276,7 @@ def mycategorizer(mycases):
            'untried_out': case['untried_out'],
            'tag_records': tag_rs,
            'stepdata': step}
-    if 'tag_records_out' in case.keys():
+    if 'tag_records_out' in list(case.keys()):
         out['tag_records_out'] = case['tag_records_out']
     else:
         out['tag_records_out'] = case['tag_records']
@@ -3425,7 +3435,7 @@ def myStepEvaluator(stepid, mysteps):
                   'tips': mysteps[stepid]['tips']}
         return {'eval': StepEvaluator(**kwargs),
                 'tips': mysteps[stepid]['tips'],
-                'reply_text': mysteps[stepid]['reply_text'][responses[n]],
+                 'reply_text': mysteps[stepid]['reply_text'][responses[n]],
                 'score': n,
                 'times_right': n,
                 'times_wrong': [1, 0][n],
@@ -3480,16 +3490,16 @@ class TestNpc():
 
     def test_npc_get_image(self, mynpc):
         """Test for method Npc.get_image()"""
-        expected = '<img src="/paideia/static/images/' \
-            'images.image.a23c309d310405ba.' \
-            '70656f706c655f616c6578616e6465722e737667.svg" />'
+        expected = b'<img src="/paideia/static/images/' \
+            b'images.image.a23c309d310405ba.' \
+            b'70656f706c655f616c6578616e6465722e737667.svg" />'
         actual = mynpc.get_image().xml()
         assert actual == expected
 
     def test_npc_get_locations(self, mynpc):
         """Test for method Npc.get_locations()"""
         locs = mynpc.get_locations()
-        assert isinstance(locs[0], (int, long))
+        assert isinstance(locs[0], int)
         assert locs[0] in [13, 8]  # 6 also in db but not yet active
 
     def test_npc_get_description(self, mynpc):
@@ -3597,9 +3607,10 @@ class TestStep():
           '<input name="pre_bug_step_id" '
           'type="hidden" value="1" /></div></form>',
           None,  # kwargs
-          {'audio_args_for_js': "{'m4a': '/paideia/default/download.load/"
-           "audio.clip_m4a.b6e1beb8683180e8.53746570303030312e6d3461.m4a', "
-           "'title': ''}",
+          {'audio_args_for_js': "{'title': '', "
+           "'m4a': '/paideia/default/download.load/"
+           "audio.clip_m4a.b6e1beb8683180e8.53746570303030312e6d3461.m4a'"
+           "}",
            'ogg': None,
            'media_supplied': 'm4a',
            'mp3': '', 'title': 'StepPrompt0001'},  # audio
@@ -3626,9 +3637,10 @@ class TestStep():
           '<input name="pre_bug_step_id" '
           'type="hidden" value="2" /></div></form>',
           None,  # kwargs
-          {'audio_args_for_js': "{'m4a': '/paideia/default/download.load/"
-           "audio.clip_m4a.abef698d8dae36e3.53746570303030322e6d3461.m4a', "
-           "'title': ''}",
+          {'audio_args_for_js': "{'title': '',"
+           " 'm4a': '/paideia/default/download.load/"
+           "audio.clip_m4a.abef698d8dae36e3.53746570303030322e6d3461.m4a'"
+           "}",
            'ogg': None, 'media_supplied': 'm4a',
            'mp3': '',
            'title': 'StepPrompt0002'},  # audio
@@ -3641,7 +3653,7 @@ class TestStep():
            'English word. Don\'t look for Greek "equivalents" for each '
            'English letter.'],
           # FIXME: not finding slide decks
-          {3L: 'The Alphabet II', 8L: 'Greek Words II'},  # slide decks
+          {3: 'The Alphabet II', 8: 'Greek Words II'},  # slide decks
           None,  # widget image
           [],  # response buttons
           '<form action="#" autocomplete="off" enctype="multipart/form-data" '
@@ -3657,9 +3669,10 @@ class TestStep():
           '<input name="pre_bug_step_id" '
           'type="hidden" value=".*" /></div></form>',
           None,  # kwargs
-          {'audio_args_for_js': "{'m4a': '/paideia/default/download.load/"
-           "audio.clip_m4a.857ac2a83978839d.53746570303031392e6d3461.m4a', "
-           "'title': ''}",
+          {'audio_args_for_js': "{'title': '', "
+           "'m4a': '/paideia/default/download.load/"
+           "audio.clip_m4a.857ac2a83978839d.53746570303031392e6d3461.m4a'"
+           "}",
            'ogg': None, 'media_supplied': 'm4a',
            'mp3': '', 'title': 'StepPrompt0019'},  # audio
           ),  # will redirect (currently no case works for step 19)
@@ -3692,12 +3705,11 @@ class TestStep():
           '</label></td><td class="w2p_fw"><table '
           'class="generic-widget web2py_radiowidget" '
           'id="no_table_response" name="response"><tr><td><input '
-          'id="response\xce\xbd\xce\xb1\xce\xb9" name="response" type="radio" '
-          'value="\xce\xbd\xce\xb1\xce\xb9" /><label for="response\xce\xbd\xce'
-          '\xb1\xce\xb9">\xce\xbd\xce\xb1\xce\xb9</label></td></tr><tr><td>'
-          '<input id="response\xce\xbf\xe1\xbd\x90" name="response" '
-          'type="radio" value="\xce\xbf\xe1\xbd\x90" /><label for="response'
-          '\xce\xbf\xe1\xbd\x90">\xce\xbf\xe1\xbd\x90</label></td></tr>'
+          'id="responseναι" name="response" type="radio" '
+          'value="ναι" /><label for="responseναι">ναι</label></td></tr><tr>'
+          '<td><input id="responseοὐ" name="response" '
+          'type="radio" value="οὐ" /><label for="responseοὐ'
+          '">οὐ</label></td></tr>'
           '</table>'
           '</td><td class="w2p_fc"></td></tr><tr id="submit_record__row"><td '
           'class="w2p_fl"></td><td class="w2p_fw"><input type="submit" '
@@ -3804,31 +3816,33 @@ class TestStep():
             assert actual['prompt_text'] == promptext
         assert actual['instructions'] == instrs
         if actual['slidedecks']:
-            assert all([d for d in actual['slidedecks'].values()
-                        if d in slidedecks.values()])
+            assert all([d for d in list(actual['slidedecks'].values())
+                        if d in list(slidedecks.values())])
         elif slidedecks:
-            print '\nexpected', slidedecks
+            print('\nexpected', slidedecks)
             pprint(actual['slidedecks'])
             assert actual['slidedecks']
         assert actual['widget_img'] == widgimg  # FIXME: add case with image
         assert actual['bg_image'] == bg_imgs[loc.get_id()]
         assert actual['npc_image']['_src'] == npc_data[npc.get_id()]['image']
         if actual['response_form']:
-            # print 'ACTUAL'
-            # print actual['response_form']
-            # print 'EXPECTED'
-            # print rform
-            # print 'DIFF'
-            # act = actual['response_form'].xml().splitlines(1)
-            # pprint(list(Differ().compare(act, rform.splitlines(1))))
-            assert re.match(rform, actual['response_form'].xml())
+            print('ACTUAL')
+            print(actual['response_form'])
+            print('EXPECTED')
+            print(rform)
+            print('DIFF')
+            act = actual['response_form'].xml().splitlines(1)
+            pprint(list(Differ().compare(act, rform.splitlines(1))))
+            assert re.match(rform,
+                            actual['response_form'
+                                   ].xml().decode('utf8'))
         elif rform:
             pprint(actual['response_form'])
             assert actual['response_form']
         assert actual['bugreporter'] is None
         assert actual['response_buttons'] == rbuttons
-        # print 'audio'
-        # print actual['audio']
+        pprint('audio')
+        pprint(actual['audio'])
         assert actual['audio'] == audio
         # FIXME: add case with audio (path 380, step 445)
         assert actual['loc'] == alias
@@ -4065,6 +4079,10 @@ class TestStep():
 
         assert actual['sid'] == stepid
         assert actual['bg_image'] == loc.get_bg()
+        print('EXPECTED\n')
+        pprint(replytext)
+        print('ACTUAL\n')
+        pprint(actual['prompt_text'])
         assert actual['prompt_text'] == replytext
         assert actual['readable_long'] == rdbllong
         assert actual['npc_image']['_src'] == npc_data[npc.get_id()]['image']
@@ -4073,7 +4091,7 @@ class TestStep():
         assert actual['instructions'] == instrs
         assert actual['slidedecks'] == slides
         assert actual['hints'] == tips
-        assert actual['user_response'] == unicode(makeutf8(resptext))
+        assert actual['user_response'] == str(makeutf8(resptext))
         assert actual['score'] == score
         assert actual['times_right'] == int(score)
         assert actual['times_wrong'] == abs(int(score) - 1)
@@ -4151,7 +4169,7 @@ class TestStepEvaluator():
         assert actual['reply'] == rtext
         assert actual['times_wrong'] == twrong
         assert actual['times_right'] == tright
-        assert actual['user_response'] == unicode(makeutf8(uresp))
+        assert actual['user_response'] == str(makeutf8(uresp))
         assert actual['tips'] == tips
 
 
@@ -4194,7 +4212,7 @@ class TestMultipleEvaluator():
         assert actual['reply'] == rtext
         assert actual['times_wrong'] == twrong
         assert actual['times_right'] == tright
-        assert actual['user_response'] == unicode(makeutf8(uresp))
+        assert actual['user_response'] == str(makeutf8(uresp))
         assert actual['tips'] == tips
 
 
@@ -4211,8 +4229,8 @@ class TestPath():
     def test_path_get_id(self, pathid, db, user_login):
         """unit test for Path.get_id()"""
         path, pathsteps = mypath(pathid, db)
-        print path
-        print pathsteps
+        print(path)
+        print(pathsteps)
         assert path.get_id() == int(pathid)
 
     @pytest.mark.skipif(False, reason='just because')
@@ -4257,11 +4275,11 @@ class TestPath():
 
         assert path.step_for_prompt.get_id() == stepid
         assert path.step_for_reply is None
-        print 'actual step:', stepid
+        print('actual step:', stepid)
         assert actual.get_id() == stepid
-        print 'actual path:', pathid
+        print('actual path:', pathid)
         assert path.get_id() == pathid
-        print 'actual locs:', actual.get_locations()
+        print('actual locs:', actual.get_locations())
         assert locid in locs
         assert locid in actual.get_locations()
         assert isinstance(actual, Step)
@@ -4514,10 +4532,10 @@ class TestUser(object):
         user.reported_badges = reportedbadges
         user.quota_reached = False  # TODO
 
-        print 'starting blocks:', [u.get_condition() for u in user.blocks]
+        print('starting blocks:', [u.get_condition() for u in user.blocks])
         assert user.set_block(condition)
         endconditions = [u.get_condition() for u in user.blocks]
-        print 'endconditions:', endconditions
+        print('endconditions:', endconditions)
 
         assert endconditions == expected
         assert len(user.blocks) == len(expected)
@@ -4556,7 +4574,7 @@ class TestUser(object):
                     'secondary_right': None}]
 
         myblocks = [Block(b) for b in theblocks]
-        print 'myblocks:', myblocks
+        print('myblocks:', myblocks)
         user = User(userdata, tagrecs, tagprog, blocks=myblocks)
         startlen = len(theblocks)
 
@@ -4579,11 +4597,11 @@ class TestUser(object):
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('start,expected',
-                             [(datetime.datetime(2013, 01, 02, 9, 0, 0),
+                             [(datetime.datetime(2013, 0o1, 0o2, 9, 0, 0),
                                False),
-                              (datetime.datetime(2013, 01, 02, 9, 0, 0),
+                              (datetime.datetime(2013, 0o1, 0o2, 9, 0, 0),
                                False),
-                              (datetime.datetime(2013, 01, 02, 3, 0, 0),
+                              (datetime.datetime(2013, 0o1, 0o2, 3, 0, 0),
                                True),
                               (datetime.datetime(2012, 12, 29, 14, 0, 0),
                                True)
@@ -4592,7 +4610,7 @@ class TestUser(object):
         """
         Unit test for User.is_stale() method.
         """
-        now = datetime.datetime(2013, 01, 02, 14, 0, 0)
+        now = datetime.datetime(2013, 0o1, 0o2, 14, 0, 0)
         userdata = {'first_name': 'Homer',
                     'id': 1,
                     'time_zone': 'America/Toronto'}
@@ -4733,7 +4751,7 @@ class TestUser(object):
             user.past_quota = True
         else:
             user.past_quota = None
-        print localias
+        print(localias)
         loc = Location(localias)
         actual, acat, aredir, apastq, anew_content = user.get_path(loc)
         assert actual.get_id() in expected
@@ -4742,7 +4760,7 @@ class TestUser(object):
         assert acat in range(1, 5)
         assert anew_content is True if acat == 1 else False
         if redirect:
-            assert isinstance(aredir, (int, long))
+            assert isinstance(aredir, int)
         else:
             assert aredir is None
         if len(completed) == 20:
@@ -4783,7 +4801,7 @@ class TestUser(object):
         mytags = []
         for step in actual_steps:
             steptags = step.get_tags()['primary']
-            print 'steptags', steptags
+            print('steptags', steptags)
             set_tags = [t for t in steptags
                         if db.tags[t]['tag_position'] == myset]
             mytags.extend(set_tags)
@@ -4801,9 +4819,9 @@ class TestUser(object):
            'rev3': [], 'rev4': []},
           1,  # rank out
           {'latest_new': 1,  # tpout
-           'cat1': [1L, 6L, 29L, 61L, 62L, 82L, 83L, 208L], 'cat2': [],
+           'cat1': [1, 6, 29, 61, 62, 82, 83, 208], 'cat2': [],
            'cat3': [], 'cat4': [],
-           'rev1': [1L, 6L, 29L, 61L, 62L, 82L, 83L, 208L], 'rev2': [],
+           'rev1': [1, 6, 29, 61, 62, 82, 83, 208], 'rev2': [],
            'rev3': [], 'rev4': []},
           [{'name': 1,  # trecs
             'tag': 1,
@@ -4815,7 +4833,7 @@ class TestUser(object):
             'first_attempt': dt('2013-01-29')}],
           4,  # counter
           None,  # promoted
-          {'rev1': [6L, 29L, 61L, 62L, 82L, 83L, 208L], 'rev2': [],
+          {'rev1': [6, 29, 61, 62, 82, 83, 208], 'rev2': [],
            'rev3': [], 'rev4': []},  # new tags
           None  # demoted
           ),
@@ -4865,22 +4883,22 @@ class TestUser(object):
 
         # set these to allow for retrieval if counter < 5
         user.tag_progress = tpin
-        user.categories = {c: l for c, l in tpin.iteritems()
+        user.categories = {c: l for c, l in tpin.items()
                            if c[:3] in ['cat', 'rev']}
 
         atp, apromoted, anew_tags, ademoted = user.get_categories()
-        print 'atp --------------'
+        print('atp --------------')
         pprint(atp)
-        print 'apromoted -------------'
+        print('apromoted -------------')
         pprint(apromoted)
-        print 'anew_tags --------------'
+        print('anew_tags --------------')
         pprint(anew_tags)
-        print 'ademoted -------------'
+        print('ademoted -------------')
         pprint(ademoted)
 
         newcounter = counter + 1 if counter < 4 else 0
         assert user.cats_counter == newcounter
-        for c, l in tpout.iteritems():
+        for c, l in tpout.items():
             if isinstance(l, list):
                 l.sort()
             if isinstance(atp[c], list):
@@ -4897,7 +4915,7 @@ class TestUser(object):
         # print 'new_tags -----------------
         # print '\nactual:', anew_tags, '\nexpected:', new_tags
         if anew_tags:
-            for c, lst in anew_tags.iteritems():
+            for c, lst in anew_tags.items():
                 if isinstance(lst, list):
                     lst.sort()
                 if isinstance(user.new_tags[c], list):
@@ -4907,15 +4925,15 @@ class TestUser(object):
         # print '\nactual:', ademoted, '\nexpected:', demoted
         assert ademoted == user.demoted == demoted
 
-        for k, v in user.tag_progress.iteritems():
-            print k
-            print v
+        for k, v in user.tag_progress.items():
+            print(k)
+            print(v)
             assert v == atp[k]
 
         for idx, tr in enumerate(user.tag_records):
-            for field, content in tr.iteritems():
-                print field
-                print content
+            for field, content in tr.items():
+                print(field)
+                print(content)
                 if field not in ['id', 'step', 'in_path', 'modified_on',
                                  'uuid']:
                     assert content == trecs[idx][field]
@@ -5023,27 +5041,27 @@ class TestCategorizer():
             else:
                 pass
         actual = tagrecsin  # now that it has been run through the method
-        print 'tagrecsin are', [t['tag'] for t in actual]
+        print('tagrecsin are', [t['tag'] for t in actual])
         pprint([t for t in actual if t['tag'] == 5])
         expected = tagrecsout
-        print 'expected are', [t['tag'] for t in expected]
+        print('expected are', [t['tag'] for t in expected])
         pprint([t for t in actual if t['tag'] == 5])
 
         for idx, a in enumerate(actual):
             e = expected[idx]
             esr = [d for d in e['secondary_right']] \
                 if e['secondary_right'] else None
-            print 'trying tag', a['tag']
+            print('trying tag', a['tag'])
             assert a['tag'] == e['tag']
             assert a['tlast_right'] == e['tlast_right']
             assert a['tlast_wrong'] == e['tlast_wrong']
             assert a['times_right'] == e['times_right']
             assert a['tlast_wrong'] == e['tlast_wrong']
             try:
-                print 'a -------------------'
-                print a['secondary_right']
-                print 'esr -----------------'
-                print esr
+                print('a -------------------')
+                print(a['secondary_right'])
+                print('esr -----------------')
+                print(esr)
                 assert a['secondary_right'] == esr
             except Exception:
                 assert not esr
@@ -5200,15 +5218,15 @@ class TestCategorizer():
         actual = catzr._core_algorithm()
         pprint(actual)
         expected = catsout
-        for cat, tags in actual.iteritems():
-            print '\n', cat
-            print tags
-            print 'expected:'
-            print expected[cat]
-            print 'diffleft:'
-            print [t for t in tags if t not in expected[cat]]
-            print 'diffright:'
-            print [t for t in expected[cat] if t not in tags]
+        for cat, tags in actual.items():
+            print('\n', cat)
+            print(tags)
+            print('expected:')
+            print(expected[cat])
+            print('diffleft:')
+            print([t for t in tags if t not in expected[cat]])
+            print('diffright:')
+            print([t for t in expected[cat] if t not in tags])
             assert [int(t) for t in tags] == expected[cat]
 
     @pytest.mark.skipif(False, reason='just because')
@@ -5251,7 +5269,7 @@ class TestCategorizer():
         catzr = Categorizer(rank, catsin, tagrecs, 150, utcnow=now)
 
         actual = catzr._introduce_tags()
-        print 'actual', actual
+        print('actual', actual)
         expected = introduced
 
         actual.sort()
@@ -5272,7 +5290,7 @@ class TestCategorizer():
                                  'times_right': 1,
                                  'times_wrong': 1,
                                  'secondary_right': None}],
-                               {'rev1': [1, 6L, 29L, 61L, 62L, 82L, 83L, 208L],
+                               {'rev1': [1, 6, 29, 61, 62, 82, 83, 208],
                                 'rev2': [], 'rev3': [], 'rev4': []}
                                ),
                               ('case9',
@@ -5302,28 +5320,28 @@ class TestCategorizer():
         catzr = Categorizer(rank, catsin, tagrecs, 150, utcnow=now)
 
         actual = catzr._add_untried_tags(catsin)
-        print '\nactual', actual
+        print('\nactual', actual)
         expected = catsout
 
         # checking from static test case
-        for cat, lst in actual.iteritems():
+        for cat, lst in actual.items():
             lst.sort()
-            print cat
-            print 'actual:', lst
+            print(cat)
+            print('actual:', lst)
             for a in lst:
-                print 'actual includes tag', a
+                print('actual includes tag', a)
                 arow = db.tags[a]
-                print arow.tag, arow.tag_position
-            print 'expected:', expected[cat]
-            print 'diffleft:'
-            print [t for t in lst if t not in expected[cat]]
-            print 'diffright:'
-            print [t for t in expected[cat] if t not in lst]
+                print(arow.tag, arow.tag_position)
+            print('expected:', expected[cat])
+            print('diffleft:')
+            print([t for t in lst if t not in expected[cat]])
+            print('diffright:')
+            print([t for t in expected[cat] if t not in lst])
             assert lst == expected[cat]
             assert len(lst) == len(expected[cat])
 
         # checking directly with db
-        all_actual = list(chain(*actual.values()))
+        all_actual = list(chain(*list(actual.values())))
         all_actual.sort()
         ranktags = db(db.tags.tag_position <= rank).select().as_list()
         # below exclude utility tags for flag messages
@@ -5365,7 +5383,7 @@ class TestCategorizer():
         actual = catzr._remove_dups(catsin, rank)
         expected = catsout
 
-        for cat, lst in actual.iteritems():
+        for cat, lst in actual.items():
             assert lst == expected[cat]
             assert len(lst) == len(expected[cat])
 
@@ -5459,52 +5477,52 @@ class TestCategorizer():
                     'promoted': promoted}
 
         # FIXME: also tag progress?
-        print 'categories ================================'
-        for cat, lst in actual['categories'].iteritems():
+        print('categories ================================')
+        for cat, lst in actual['categories'].items():
             lst.sort()
-            print cat
-            print 'actual:', lst
-            print 'expected:', expected['categories'][cat]
-            print 'diffleft:'
-            print [t for t in lst if t not in expected['categories'][cat]]
-            print 'diffright:'
-            print [t for t in expected['categories'][cat] if t not in lst]
+            print(cat)
+            print('actual:', lst)
+            print('expected:', expected['categories'][cat])
+            print('diffleft:')
+            print([t for t in lst if t not in expected['categories'][cat]])
+            print('diffright:')
+            print([t for t in expected['categories'][cat] if t not in lst])
             assert lst == expected['categories'][cat]
 
-        print 'demoted ================================'
+        print('demoted ================================')
         if actual['demoted']:
-            for cat, lst in actual['demoted'].iteritems():
-                print cat
-                print 'actual:'
-                print lst
-                print 'expected:'
-                print expected['demoted'][cat]
-                print 'diffleft:'
-                print [t for t in lst if t not in expected['demoted'][cat]]
-                print 'diffright:'
-                print [t for t in expected['demoted'][cat] if t not in lst]
+            for cat, lst in actual['demoted'].items():
+                print(cat)
+                print('actual:')
+                print(lst)
+                print('expected:')
+                print(expected['demoted'][cat])
+                print('diffleft:')
+                print([t for t in lst if t not in expected['demoted'][cat]])
+                print('diffright:')
+                print([t for t in expected['demoted'][cat] if t not in lst])
                 assert lst == expected['demoted'][cat]
         else:
             assert actual['demoted'] is None
 
-        print 'promoted ================================'
+        print('promoted ================================')
         if actual['promoted']:
-            for cat, lst in actual['promoted'].iteritems():
-                print cat
-                print 'actual:'
-                print lst
-                print 'expected:'
-                print expected['promoted'][cat]
-                print 'diffleft:'
-                print [t for t in lst if t not in expected['promoted'][cat]]
-                print 'diffright:'
-                print [t for t in expected['promoted'][cat] if t not in lst]
+            for cat, lst in actual['promoted'].items():
+                print(cat)
+                print('actual:')
+                print(lst)
+                print('expected:')
+                print(expected['promoted'][cat])
+                print('diffleft:')
+                print([t for t in lst if t not in expected['promoted'][cat]])
+                print('diffright:')
+                print([t for t in expected['promoted'][cat] if t not in lst])
                 assert lst == expected['promoted'][cat]
         else:
             assert actual['promoted'] is None
 
-        print 'new tags ====================================='
-        print newtags
+        print('new tags =====================================')
+        print(newtags)
         assert actual['new_tags'] == newtags
 
     @pytest.mark.skipif(False, reason='just because')
@@ -5526,31 +5544,31 @@ class TestCategorizer():
                                  'secondary_right': None,
                                  'first_attempt': dt('2013-01-27')}],
                                1,  # rank out
-                               {'cat1': [1, 6L, 29L, 61L, 62L, 82L, 83L, 208L],
+                               {'cat1': [1, 6, 29, 61, 62, 82, 83, 208],
                                 'cat2': [],  # catsout
                                 'cat3': [], 'cat4': [],
-                                'rev1': [1, 6L, 29L, 61L, 62L, 82L, 83L, 208L],
+                                'rev1': [1, 6, 29, 61, 62, 82, 83, 208],
                                 'rev2': [],
                                 'rev3': [], 'rev4': []},
                                {'latest_new': 1,  # tag progress out
-                                'cat1': [1, 6L, 29L, 61L, 62L, 82L, 83L, 208L],
+                                'cat1': [1, 6, 29, 61, 62, 82, 83, 208],
                                 'cat2': [],
                                 'cat3': [], 'cat4': [],
-                                'rev1': [1, 6L, 29L, 61L, 62L, 82L, 83L, 208L],
+                                'rev1': [1, 6, 29, 61, 62, 82, 83, 208],
                                 'rev2': [],
                                 'rev3': [], 'rev4': []},
                                None,  # promoted
-                               {'rev1': [6L, 29L, 61L, 62L, 82L, 83L,
-                                         208L],  # new_tags
+                               {'rev1': [6, 29, 61, 62, 82, 83,
+                                         208],  # new_tags
                                 'rev2': [],
                                 'rev3': [], 'rev4': []},
                                ),
                               ('case2',  # promote 61, introduce set 2
                                1,  # rank in
-                               {'cat1': [1, 6L, 29L, 61L, 62L, 82L, 83L, 208L],
+                               {'cat1': [1, 6, 29, 61, 62, 82, 83, 208],
                                 'cat2': [],  # cats in
                                 'cat3': [], 'cat4': [],
-                                'rev1': [1, 6L, 29L, 61L, 62L, 82L, 83L, 208L],
+                                'rev1': [1, 6, 29, 61, 62, 82, 83, 208],
                                 'rev2': [],
                                 'rev3': [], 'rev4': []},
                                [{'name': 1,  # tagrecs in
@@ -5627,28 +5645,28 @@ class TestCategorizer():
                                  'first_attempt': dt('2013-01-27')},
                                 ],
                                2,  # rank out
-                               {'cat1': [9L, 36L, 63L, 66L, 68L, 72L, 89L,
-                                         115L],
+                               {'cat1': [9, 36, 63, 66, 68, 72, 89,
+                                         115],
                                 'cat2': [1, 6, 29, 61, 62, 82, 83, 208],  # out
                                 'cat3': [], 'cat4': [],
-                                'rev1': [9L, 36L, 63L, 66L, 68L, 72L, 89L,
-                                         115L],
+                                'rev1': [9, 36, 63, 66, 68, 72, 89,
+                                         115],
                                 'rev2': [1, 6, 29, 61, 62, 82, 83, 208],
                                 'rev3': [], 'rev4': []},
                                {'latest_new': 2,  # tag progress out
-                                'cat1': [9L, 36L, 63L, 66L, 68L, 72L, 89L,
-                                         115L],
+                                'cat1': [9, 36, 63, 66, 68, 72, 89,
+                                         115],
                                 'cat2': [1, 6, 29, 61, 62, 82, 83, 208],
                                 'cat3': [], 'cat4': [],
-                                'rev1': [9L, 36L, 63L, 66L, 68L, 72L, 89L,
-                                         115L],
+                                'rev1': [9, 36, 63, 66, 68, 72, 89,
+                                         115],
                                 'rev2': [1, 6, 29, 61, 62, 82, 83, 208],
                                 'rev3': [], 'rev4': []},
                                {'cat1': [],  # promoted
                                 'cat2': [1, 6, 29, 61, 62, 82, 83, 208],
                                 'cat3': [], 'cat4': []},
-                               {'rev1': [9L, 36L, 63L, 66L, 68L, 72L, 89L,
-                                         115L],
+                               {'rev1': [9, 36, 63, 66, 68, 72, 89,
+                                         115],
                                 'rev2': [],
                                 'rev3': [], 'rev4': []},  # new tags
                                )
@@ -5672,26 +5690,26 @@ class TestCategorizer():
                     'nt': newtags,
                     'pro': promoted}
 
-        for key, act in actual['categories'].iteritems():
-            print 'checking actual categories', key
+        for key, act in actual['categories'].items():
+            print('checking actual categories', key)
             act.sort()
             assert act == expected['cats'][key]
 
-        for key, act in actual['tag_progress'].iteritems():
-            print 'checking actual tag_progress', key
+        for key, act in actual['tag_progress'].items():
+            print('checking actual tag_progress', key)
             if isinstance(act, list):
                 act.sort()
             assert act == tpout[key]
 
         if actual['new_tags']:
-            for key, act in actual['new_tags'].iteritems():
-                print 'checking actual new_tags', key
+            for key, act in actual['new_tags'].items():
+                print('checking actual new_tags', key)
                 act.sort()
                 assert actual['new_tags'][key] == expected['nt'][key]
 
         if actual['promoted']:
-            for key, act in actual['promoted'].iteritems():
-                print 'checking actual promoted', key
+            for key, act in actual['promoted'].items():
+                print('checking actual promoted', key)
                 assert actual['promoted'][key] == expected['pro'][key]
 
 
@@ -5823,7 +5841,7 @@ class TestWalk():
         tpin['name'] = user_login['id']
         db.tag_progress.insert(**tpin)
         tpout = copy(tpin)
-        for cat, lst in prom.iteritems():
+        for cat, lst in prom.items():
             for t in lst:
                 oldcat = cat[:3] + str(int(cat[3:]) - 1)
                 tpout[oldcat] = [i for i in tpout[cat] if i != t]
@@ -5837,7 +5855,7 @@ class TestWalk():
         sel_tp = db(db.tag_progress.name == user_login['id']).select()
         assert len(sel_tp) == 1  # no extra db rows were created
         actual_tp = sel_tp.first().as_dict()
-        for k, v in actual_tp.iteritems():
+        for k, v in actual_tp.items():
             tpout['name'] = user_login['id']
             if k not in ['id', 'modified_on', 'uuid', 'cat1_choices',
                          'all_choices']:
@@ -5847,11 +5865,11 @@ class TestWalk():
         sel_bb = db(db.badges_begun.name == user_login['id']).select()
 
         if prom_and_new:
-            expected_bb = {tag: cat for cat, lst in prom_and_new.iteritems()
+            expected_bb = {tag: cat for cat, lst in prom_and_new.items()
                            for tag in lst if lst}
             if expected_bb:
-                for t, v in expected_bb.iteritems():
-                    print 'bb for tag', t
+                for t, v in expected_bb.items():
+                    print('bb for tag', t)
                     thisbb = sel_bb.find(lambda row: row.tag == t)
                     assert len(thisbb) == 1
                     assert now - thisbb.first()[v] < \
@@ -5939,7 +5957,7 @@ class TestWalk():
         arec = walk._update_tag_record(tag, oldrec, user_login['id'], tright,
                                        twrong, got_right, score,
                                        step_id=step_id, now=now)
-        print 'arec:', arec
+        print('arec:', arec)
         arec_row = db.tag_records(arec)
 
         assert arec_row
@@ -6042,7 +6060,7 @@ class TestWalk():
         assert actual_log_id == logs_out.last().id
         newlog['name'] = user_login['id']
         newlog['id'] = actual_log_id
-        for field, val in db.attempt_log(actual_log_id).as_dict().iteritems():
+        for field, val in db.attempt_log(actual_log_id).as_dict().items():
             if field == 'dt_attempted':  # FIXME
                 pass
             else:
@@ -6061,11 +6079,11 @@ class TestWalk():
         assert len(actual_trecs) == len(expected_trecs)
         for tagrec in expected_trecs:
             tagrec['name'] = user_login['id']
-            for key, val in tagrec.iteritems():
+            for key, val in tagrec.items():
                 if key in ['tlast_right', 'tlast_wrong']:  # FIXME
                     pass
                 else:
-                    print key, '=========='
+                    print(key, '==========')
                     pprint(val)
                     assert val == tagrec[key]
 
@@ -6109,24 +6127,24 @@ class TestWalk():
         assert isinstance(user, User)
         assert user.get_id() == user_login['id']
 
-        print '====================================================='
-        print 'in test_walk_store_user, user object is'
-        print '====================================================='
-        print user
-        print '=================================================END\n'
+        print('=====================================================')
+        print('in test_walk_store_user, user object is')
+        print('=====================================================')
+        print(user)
+        print('=================================================END\n')
 
         if existing_row:  # whether db row for session_data exists for user
             newrec = db.session_data.insert(name=user_login['id'])
             db.commit()
-            print 'test_walk_store_user:: newrec inserted for later update:'
-            print newrec
+            print('test_walk_store_user:: newrec inserted for later update:')
+            print(newrec)
         else:
-            print 'test_walk_store_user:: newrec not inserted, creating new ' \
-                  'row for user'
+            print('test_walk_store_user:: newrec not inserted, creating new ' \
+                  'row for user')
 
         # store the user instance in db =======================================
         rowid = walk._store_user(user, db=db)  # returns row id if successful
-        print 'test_walk_store_user:: id of inserted row:', rowid
+        print('test_walk_store_user:: id of inserted row:', rowid)
         if existing_row:
             assert rowid is None
             storedrow = db(db.session_data.name == user_login['id']
@@ -6190,7 +6208,7 @@ class TestWalk():
           ['Focus on finding Greek letters that make the *sounds* of the '
            'English word. Don\'t look for Greek "equivalents" for each '
            'English letter.'],  # instructions
-          {3L: 'The Alphabet II', 8L: 'Greek Words II'},  # slide decks
+          {3: 'The Alphabet II', 8: 'Greek Words II'},  # slide decks
           None,  # widget image
           [],  # response buttons
           '<form action="#" autocomplete="off" enctype="multipart/form-data" '
@@ -6240,7 +6258,7 @@ class TestWalk():
           ['Focus on finding Greek letters that make the *sounds* of the '
            'English word. Don\'t look for Greek "equivalents" for each '
            'English letter.'],  # instructions
-          {3L: 'The Alphabet II', 8L: 'Greek Words II'},  # slide decks
+          {3: 'The Alphabet II', 8: 'Greek Words II'},  # slide decks
           None,  # widget image
           [],  # response buttons
           '<form action="#" autocomplete="off" enctype="multipart/form-data" '
@@ -6414,7 +6432,7 @@ class TestWalk():
 
         # set up attempt_log rows --------------------------------------
         db(db.attempt_log.name == user_login['id']).delete()
-        atags = chain.from_iterable([v for k, v in tpout.iteritems()
+        atags = chain.from_iterable([v for k, v in tpout.items()
                                      if k in ['cat1', 'cat2', 'cat3', 'cat4']])
         for t in atags:
             thisrec = [r for r in trecs if r['tag'] == t]
@@ -6423,7 +6441,7 @@ class TestWalk():
             s['tag'] = t
             mycount = s['times_wrong'] + s['times_right']
             if mycount > 0:
-                print 'test_walk_ask:: inserting', mycount, 'logs for tag', t
+                print('test_walk_ask:: inserting', mycount, 'logs for tag', t)
                 log_generator(user_login['id'], s['tag'], mycount,
                               s['times_right'], s['tlast_right'],
                               s['tlast_wrong'], dt('2013-01-01'), db)
@@ -6434,7 +6452,7 @@ class TestWalk():
         # set up tag_records --------------------------------------------
         db(db.tag_records.name == user_login['id']).delete()
         for tr in trecs:
-            print 'test_walk_ask:: inserting tag record for tag:', tr['tag']
+            print('test_walk_ask:: inserting tag record for tag:', tr['tag'])
             db.tag_records.insert(**tr)
         db.commit()
 
@@ -6446,13 +6464,13 @@ class TestWalk():
                         tag_progress=tpout,
                         db=db)
         thiswalk.user.path = Path(path_id=pathid, db=db)
-        thiswalk.user.categories = {k: v for k, v in tpout.iteritems()
+        thiswalk.user.categories = {k: v for k, v in tpout.items()
                                     if k[:3] in ['cat', 'rev']}
         loc = Location(alias)
         # setup done =============================================
 
         actual = thiswalk.ask(alias)
-        print 'test_walk_ask:: Actual result ------------------'
+        print('test_walk_ask:: Actual result ------------------')
         pprint(actual)
 
         if redir:
@@ -6470,16 +6488,16 @@ class TestWalk():
             assert re.match(promptext, actual['prompt_text'])
         assert actual['instructions'] == instrs
         if actual['slidedecks']:
-            assert all([d for d in actual['slidedecks'].values()
-                        if d in slidedecks.values()])
+            assert all([d for d in list(actual['slidedecks'].values())
+                        if d in list(slidedecks.values())])
         elif slidedecks:
             assert actual['slidedecks']
         assert actual['widget_img'] == widgimg  # FIXME: add case with image
         assert actual['bg_image'] == bg_imgs[loc.get_id()]
         # assert actual['npc_image']['_src'] == npc_data[npc.get_id()]['image']
         if actual['response_form']:
-            print 'actual["response_form"]:\n', actual['response_form']
-            print 'rform:\n', rform
+            print('actual["response_form"]:\n', actual['response_form'])
+            print('rform:\n', rform)
             assert re.match(rform, actual['response_form'].xml())
         elif rform:
             # pprint(actual['response_form'])
@@ -6550,7 +6568,7 @@ class TestWalk():
           ['Focus on finding Greek letters that make the *sounds* '  # instr
            'of the English word. Don\'t look for Greek "equivalents" for each '
            'English letter.'],
-          {3L: 'The Alphabet II'},  # --slide decks
+          {3: 'The Alphabet II'},  # --slide decks
           [],  # ---------------------------------------------response buttons
           ['πωλ'],  # ----------------------------------------readable short
           [],  # ---------------------------------------------readable long
@@ -6638,7 +6656,7 @@ class TestWalk():
 
         # setting up test objects and db test data ==========================
         tpout['name'] = user_login['id']
-        atags = chain.from_iterable([v for k, v in tpout.iteritems()
+        atags = chain.from_iterable([v for k, v in tpout.items()
                                      if k in ['cat1', 'cat2', 'cat3', 'cat4']])
         # set up attempt_log records ---------------------------------------
         for t in atags:
@@ -6654,7 +6672,7 @@ class TestWalk():
         db.tag_progress.insert(**tpout)
         db(db.tag_records.name == user_login['id']).delete()
         for tr in trecs:
-            print 'test_walk_ask:: inserting tag record for tag:', tr['tag']
+            print('test_walk_ask:: inserting tag record for tag:', tr['tag'])
             db.tag_records.insert(**tr)
             # FIXME: duplicate index key error here on second case run
         db.commit()
@@ -6666,7 +6684,7 @@ class TestWalk():
                         db=db)
         thiswalk.user.path = Path(path_id=pathid, db=db)
         thiswalk.user.path.step_for_reply = mystep(stepid)
-        thiswalk.user.categories = {k: v for k, v in tpout.iteritems()
+        thiswalk.user.categories = {k: v for k, v in tpout.items()
                                     if k[:3] in ['cat', 'rev']}
         assert thiswalk.user.path.get_id() == pathid
         assert thiswalk.user.path.step_for_reply.get_id() == stepid
@@ -6688,9 +6706,9 @@ class TestWalk():
                 reply_text = creply
 
         thiswalk.start(alias, path=pathid)
-        print 'test_walk_reply:: execute ====================================='
+        print('test_walk_reply:: execute =====================================')
         a = thiswalk.start(alias, response_string=response_string)
-        print 'etest_walk_reply:: valuating test output ======================'
+        print('etest_walk_reply:: valuating test output ======================')
 
         assert a['sid'] == stepid
         assert a['pid'] == pathid
@@ -6718,10 +6736,10 @@ class TestWalk():
         #            #pathid,
         #            #score,
         #            #stepid)
-        bug_reporter = {'bug_step_id': 19L,
+        bug_reporter = {'bug_step_id': 19,
                         'loc_id': 'domus_A',
-                        'log_id': 462311L,
-                        'path_id': 19L,
+                        'log_id': 462311,
+                        'path_id': 19,
                         'score': 0,
                         'answer': '\xce\xb2\xce\xbb\xce\xb1'}
 
@@ -6762,7 +6780,7 @@ class TestWalk():
         '''
         # print 'actual ============'
         # print a['bugreporter']
-        assert all({k: v for k, v in bug_reporter.items()
+        assert all({k: v for k, v in list(bug_reporter.items())
                     if a['bugreporter'][k] == v})
         assert not thiswalk.user.path.step_for_reply
         assert not thiswalk.user.path.step_for_prompt
@@ -6937,12 +6955,12 @@ class TestPathChooser():
             assert forced is True
             assert cat == 1
             exp_tags = tpout['cat{}'.format(cat)]
-            print 'cat:', cat, 'forced:', forced
+            print('cat:', cat, 'forced:', forced)
         else:
             assert forced is False
             assert cat == mycat
             exp_tags = tpout['rev{}'.format(cat)]
-            print 'cat:', cat, 'forced:', forced
+            print('cat:', cat, 'forced:', forced)
             if cat == 1:
                 exp_newtags = tpout['rev{}'.format(cat)]
                 exp_newsteps = db(db.steps.tags.contains(exp_newtags)).select()
@@ -6950,23 +6968,23 @@ class TestPathChooser():
                 exp_newpaths = db(db.paths.steps.contains(exp_newstepids)
                                   ).select().as_list()
 
-        print 'cat:', cat
+        print('cat:', cat)
         # get expected paths from db based on category actually used
         exp_steps = db(db.steps.tags.contains(exp_tags)).select()
         exp_stepids = [s.id for s in exp_steps]
         exp_paths = db(db.paths.steps.contains(exp_stepids)).select()
         expected = [r.id for r in exp_paths]
-        print 'expected:', expected
-        print 'forced:', forced
+        print('expected:', expected)
+        print('forced:', forced)
 
         cpath_ids = [row['id'] for row in cpaths]
         # print 'actual cpaths:', cpath_ids
         cpath_ids.sort()
         extra_actual = [row['id'] for row in cpaths
                         if row['id'] not in expected]
-        print 'extra actual cpaths:', extra_actual
-        print 'extra expected:', [row for row in expected
-                                  if row not in cpath_ids]
+        print('extra actual cpaths:', extra_actual)
+        print('extra expected:', [row for row in expected
+                                  if row not in cpath_ids])
         assert cpath_ids == expected
         assert newcpaths == exp_newpaths
 
@@ -7256,33 +7274,33 @@ class TestPathChooser():
             chooser = PathChooser(tpout, locid, completed)
             actual, newloc, catnum, actualmode, new_material, \
                 tag_progress = chooser.choose(set_review=review)
-            print 'actual', actual
-            print 'newloc', newloc
-            print 'catnum', catnum
-            print 'actualmode', actualmode
-            print 'new_material', new_material
-            expected = [1538L, 1537L, 1542L, 1539L, 886L, 971L, 1011L,
-                        1535L, 463L, 465L, 480L, 491L, 503L, 509L, 1503L,
-                        1536L, 248L, 1504L, 451L, 657L, 659L, 662L, 968L,
-                        972L, 975L, 989L, 1502L, 444L, 445L, 490L, 501L,
-                        474L, 650L, 652L, 655L, 656L, 508L, 510L, 651L,
-                        1534L, 497L, 498L, 499L, 500L, 502L, 505L, 506L,
-                        507L, 468L, 470L, 472L, 481L, 492L, 493L, 494L,
-                        495L, 154L, 653L, 464L, 887L, 888L, 788L, 446L,
-                        973L, 462L, 408L, 466L, 469L, 889L, 885L, 153L,
-                        406L, 488L, 379L, 483L, 174L, 453L, 487L, 169L,
-                        136L, 890L, 893L, 891L, 448L, 456L, 452L, 450L,
-                        660L, 661L, 649L, 489L, 504L, 496L, 457L, 407L,
-                        404L, 378L, 254L, 210L, 477L, 475L, 654L, 459L,
-                        458L, 473L, 486L, 449L, 454L, 970L, 892L, 658L,
-                        482L, 471L, 484L, 485L, 478L, 1541L, 1540L, 461L,
-                        479L, 460L, 455L, 467L]
+            print('actual', actual)
+            print('newloc', newloc)
+            print('catnum', catnum)
+            print('actualmode', actualmode)
+            print('new_material', new_material)
+            expected = [1538, 1537, 1542, 1539, 886, 971, 1011,
+                        1535, 463, 465, 480, 491, 503, 509, 1503,
+                        1536, 248, 1504, 451, 657, 659, 662, 968,
+                        972, 975, 989, 1502, 444, 445, 490, 501,
+                        474, 650, 652, 655, 656, 508, 510, 651,
+                        1534, 497, 498, 499, 500, 502, 505, 506,
+                        507, 468, 470, 472, 481, 492, 493, 494,
+                        495, 154, 653, 464, 887, 888, 788, 446,
+                        973, 462, 408, 466, 469, 889, 885, 153,
+                        406, 488, 379, 483, 174, 453, 487, 169,
+                        136, 890, 893, 891, 448, 456, 452, 450,
+                        660, 661, 649, 489, 504, 496, 457, 407,
+                        404, 378, 254, 210, 477, 475, 654, 459,
+                        458, 473, 486, 449, 454, 970, 892, 658,
+                        482, 471, 484, 485, 478, 1541, 1540, 461,
+                        479, 460, 455, 467]
 
             assert actual.id in expected
 
             assert new_material is False
         else:
-            for key, val in tpout.iteritems():
+            for key, val in tpout.items():
                 if key[:3] == 'rev' and val:
                     mytags = val
                     taggedsteps = db(db.steps.tags.contains(val)).select()
@@ -7294,42 +7312,42 @@ class TestPathChooser():
 
                     first_steps = {row['id']: row.steps[0] for row
                                    in taggedpaths}
-                    here_steps = db((db.steps.id.belongs(first_steps.values()))
+                    here_steps = db((db.steps.id.belongs(list(first_steps.values())))
                                     &
                                     (db.steps.locations.contains(locid))
                                     ).select()
                     here_step_ids = [r.id for r in here_steps]
-                    here_paths = [k for k, v in first_steps.iteritems()
+                    here_paths = [k for k, v in first_steps.items()
                                   if v in here_step_ids]
-                    elsewhere_paths = [k for k, v in first_steps.iteritems()
+                    elsewhere_paths = [k for k, v in first_steps.items()
                                        if v not in here_step_ids]
                     # reduce attempts of path to be selected
                     if mode == 'repeated':
-                        print 'completed set for "repeated"'
+                        print('completed set for "repeated"')
                         expected.extend([t['id'] for t in taggedpaths])
-                        print 'expected in building completed:', expected
+                        print('expected in building completed:', expected)
                         # TODO: test incremental repeating (only once until all
                         # once, etc.)
                     elif mode == 'here_new':
-                        print 'completed set for "here_new"'
+                        print('completed set for "here_new"')
                         newpath_id = here_paths[randrange(len(here_paths))]
-                        print 'removed completion record for', newpath_id
+                        print('removed completion record for', newpath_id)
                         expected.append(newpath_id)
                         deleted.append(newpath_id)
                     elif mode == 'new_elsewhere':
-                        print 'completed set for "new_elsewhere"'
+                        print('completed set for "new_elsewhere"')
                         newpath_id = elsewhere_paths[
                             randrange(len(elsewhere_paths))]
-                        print 'removed completion record for', newpath_id
+                        print('removed completion record for', newpath_id)
                         expected.append(newpath_id)
                         deleted.append(newpath_id)
             for d in deleted:
                 del completed['paths'][d]
-            completed['latest'] = completed.keys()[
-                randrange(len(completed.keys()))]
-            print 'completed ------------------------------------------'
+            completed['latest'] = list(completed.keys())[
+                randrange(len(list(completed.keys())))]
+            print('completed ------------------------------------------')
             pprint(completed)
-            print '----------------------------------------------------'
+            print('----------------------------------------------------')
             # end assembling completed
 
             chooser = PathChooser(tpout, locid, completed)
@@ -7344,29 +7362,29 @@ class TestPathChooser():
             taggedids = [p.id for p in catpaths]
 
             # print sorted(taggedids)
-            if any(i for i in taggedids if i not in completed['paths'].keys()):
-                assert actual['id'] not in completed['paths'].keys()
-                print 'new path expected'
+            if any(i for i in taggedids if i not in list(completed['paths'].keys())):
+                assert actual['id'] not in list(completed['paths'].keys())
+                print('new path expected')
             else:  # supposed to choose from paths with fewest repeats
-                print 'repeat expected'
-                print 'finding expected paths with fewest repeats'
+                print('repeat expected')
+                print('finding expected paths with fewest repeats')
                 completed_freq = {i: (f['right'] + f['wrong'])
-                                  for i, f in completed['paths'].iteritems()}
+                                  for i, f in completed['paths'].items()}
                 completed_freq_cat = {i: f for i, f in
-                                      completed_freq.iteritems()
+                                      completed_freq.items()
                                       if i in taggedids}
-                print 'path repeats for category'
-                print pprint(completed_freq_cat)
-                min_freq = min(set(f for f in completed_freq_cat.values()))
-                print 'min_freq', min_freq
+                print('path repeats for category')
+                print(pprint(completed_freq_cat))
+                min_freq = min(set(f for f in list(completed_freq_cat.values())))
+                print('min_freq', min_freq)
                 expected = [i for i in taggedids
                             if completed_freq[i] == min_freq]
-            print 'CHOSEN PATH', actual['id']
-            print 'using category', catnum
-            print 'EXPECTED PATHS', expected
+            print('CHOSEN PATH', actual['id'])
+            print('using category', catnum)
+            print('EXPECTED PATHS', expected)
 
             assert catnum in range(1, 5)
-            if catnum in redirect.keys() and redirect[catnum]:
+            if catnum in list(redirect.keys()) and redirect[catnum]:
                 # since different cats will yield different redirect results
                 assert newloc
                 firststep = actual['steps'][0]
@@ -7376,13 +7394,13 @@ class TestPathChooser():
                 assert actualmode == 'new_elsewhere'
             else:
                 assert actual['id'] in expected
-                print 'currently in loc', locid
+                print('currently in loc', locid)
                 pathsteps = [p.steps[0] for p in taggedpaths]
                 steplocs = [db.steps(s).locations for s in pathsteps]
                 steplocs_chain = list(chain.from_iterable([s for s
                                                            in steplocs if s]))
                 locset = list(set(steplocs_chain))
-                print 'path can be begun in locs:', locset
+                print('path can be begun in locs:', locset)
                 assert locid in locset
                 if mode != 'repeated':
                     # TODO: when repeating choice doesn't prioritise
@@ -7391,14 +7409,14 @@ class TestPathChooser():
             assert actualmode == mode
 
             if new_material:
-                print 'new_material:', new_material
+                print('new_material:', new_material)
                 assert catnum == 1
                 pathtags = [t for s in actual['steps']
                             for t in db['steps'](s).tags]
-                print 'path:', actual['id']
-                print 'steps:', actual['steps']
-                print 'pathtags:', pathtags
-                print 'cat1:', tag_progress['cat1']
+                print('path:', actual['id'])
+                print('steps:', actual['steps'])
+                print('pathtags:', pathtags)
+                print('cat1:', tag_progress['cat1'])
                 assert [t for t in pathtags if t in tag_progress['cat1']]
 
             assert tpout == tag_progress
@@ -7476,5 +7494,5 @@ class TestBugReporter():
         # print 'expected------------------'
         # print xpct
 
-        assert all({k: v for k, v in actual.items()
-                    if k in xpct.keys() and xpct[k] == v})
+        assert all({k: v for k, v in list(actual.items())
+                    if k in list(xpct.keys()) and xpct[k] == v})
