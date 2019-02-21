@@ -1710,6 +1710,7 @@ class StepEvaluator(object):
     This class evaluates the user's response to a single step interaction and
     handles the data that results.
     '''
+
     def __init__(self, responses, tips):
         """Initializes a StepEvaluator object"""
         self.responses = responses
@@ -1728,9 +1729,9 @@ class StepEvaluator(object):
         if not user_response:
             request = current.request
             user_response = request.vars['response']
+        print('\n\nin get_eval user_response is', user_response)
         clean_user_response = GreekNormalizer().normalize(user_response)
-        # print 'in get_eval user_response is', type(user_response)
-        clean_user_response = makeutf8(clean_user_response)
+        print('\n\nin get_eval user_response is', clean_user_response)
         responses = {k: r for k, r in list(self.responses.items())
                      if r and r != 'null'}
         # Compare the student's response to the regular expressions
@@ -1739,41 +1740,39 @@ class StepEvaluator(object):
         score = 0
 
         try:
-            regex1 = re.compile(makeutf8(responses['response1']), re.I | re.U)
+            regex1 = re.compile(responses['response1'], re.I | re.U)
             if 'response2' in list(responses.keys()):
-                regex2 = re.compile(makeutf8(responses['response2']),
-                                    re.I | re.U)
+                regex2 = re.compile(responses['response2'], re.I | re.U)
             else:
                 regex2 = None
             if 'response3' in list(responses.keys()):
-                regex3 = re.compile(makeutf8(responses['response3']),
-                                    re.I | re.U)
+                regex3 = re.compile(responses['response3'], re.I | re.U)
             else:
                 regex3 = None
 
-            if re.match(regex1, makeutf8(clean_user_response)):
+            if re.match(regex1, clean_user_response):
                 score = 1
                 reply = "Right. Κάλον."
-            elif re.match(regex1, makeutf8(clean_user_response + '.')):
+            elif re.match(regex1, clean_user_response + '.'):
                 score = 0.9
                 reply = "Οὐ Κάκον. You're very close. Just remember to put " \
                         "a period on the end of a full clause."
-            elif re.match(regex1, makeutf8(clean_user_response + '?')):
+            elif re.match(regex1, clean_user_response + '?'):
                 score = 0.9
                 reply = "Οὐ Κάκον. You're very close. Just remember to put " \
                         "a question mark on the end of a question."
-            elif re.match(regex1, makeutf8(clean_user_response + ';')):
+            elif re.match(regex1, clean_user_response + ';'):
                 score = 0.9
                 reply = "Οὐ Κάκον. You're very close. Just remember to put " \
                         "a question mark on the end of a question."
             elif user_response[-1] in ['.', ',', '!', '?', ';'] and \
-                    re.match(regex1, makeutf8(clean_user_response[:-1])):
+                    re.match(regex1, clean_user_response[:-1]):
                 score = 0.9
                 reply = "Ού κάκον. You're very close. Just remember not to " \
                         "put a final punctuation mark on your answer if " \
                         "it's not a complete clause"
             elif 'response2' in list(responses.keys()) and \
-                    re.match(regex2, makeutf8(clean_user_response)):
+                    re.match(regex2, clean_user_response):
                 score = 0.5
                 #  TODO: Get this score value from the db instead of hard
                 #  coding it here.
@@ -1781,7 +1780,7 @@ class StepEvaluator(object):
                 #  TODO: Vary the replies
 
             elif 'response3' in list(responses.keys()) and \
-                    re.match(regex3, makeutf8(clean_user_response)):
+                    re.match(regex3, clean_user_response):
                 #  TODO: Get this score value from the db instead of hard
                 #  coding it here.
                 score = 0.3
@@ -1797,6 +1796,7 @@ class StepEvaluator(object):
             else:
                 times_wrong = 0
                 times_right = 1
+            print('score: {}'.format(score))
 
         # Handle errors if the student's response cannot be evaluated
         except re.error:
