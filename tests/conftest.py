@@ -34,8 +34,8 @@ but no longer necessary.)
 import os
 import pytest
 import sys
-#from pprint import pprint
-#sys.path.insert(0, '')
+# from pprint import pprint
+# sys.path.insert(0, '')
 
 # allow imports from modules and site-packages
 dirs = os.path.split(__file__)[0]
@@ -46,8 +46,8 @@ if modules_path not in sys.path:
 if 'site-packages' not in sys.path:
     sys.path.append('site-packages')  # imports from site-packages
 
-#from gluon.shell import env
-#web2py_env = env(appname, import_models=True,
+# from gluon.shell import env
+# web2py_env = env(appname, import_models=True,
 #                 extra_request=dict(is_local=True))
 
 
@@ -105,7 +105,7 @@ def fixture_create_testfile_for_application(request, appname):
     request.addfinalizer(_remove_temp_file_after_tests)
 
 
-#@pytest.fixture(autouse=True)
+# @pytest.fixture(autouse=True)
 def fixture_cleanup_db(web2py):
     '''Truncate all database tables before every single test case.
 
@@ -183,7 +183,7 @@ def user_login(request, web2py, client, db):
         # user_record.delete_record()
         # db.commit()
         # TODO: remove test user's performance record
-        #assert user_query.count() == 0
+        # assert user_query.count() == 0
 
     request.addfinalizer(fin)
     return user_record.as_dict()
@@ -240,7 +240,7 @@ def db(web2py, request):
         Delete any newly inserted rows in the test database.
         """
         print('checking for inserted rows to remove**********')
-        #pprint(newrows)
+        # pprint(newrows)
         if newrows:
             print('removing')
             for tbl, rowids in newrows.items():
