@@ -3,7 +3,7 @@
 from gluon import current, BEAUTIFY
 from gluon import IMG, URL, SQLFORM, SPAN, UL, LI, Field, P, HTML
 from gluon import IS_NOT_EMPTY, IS_IN_SET
-from pydal.objects import Rows
+# from pydal.objects import Rows
 
 from copy import copy
 import datetime
@@ -49,6 +49,7 @@ watched when upgrading web2py:
 
 class MyPickler (pickle.Pickler):
     """Pickler subclass for debugging pickling problems."""
+
     def save(self, obj):
         try:
             pickle.Pickler.save(self, obj)
@@ -169,7 +170,7 @@ class Walk(object):
                 tp = self.user.tag_progress
                 tpkeys = list(tp.keys())
                 for oldkey, newkey in list({'just_cats': 'cat1_choices',
-                                       'all_cats': 'all_choices'}.items()):
+                        'all_cats': 'all_choices'}.items()):
                     if oldkey in tpkeys:
                         current.paideia_debug.do_print('removing {} from '
                                                        'stored tag_progress'
@@ -306,12 +307,14 @@ class Walk(object):
                 current.sequence_counter += 1
                 user.set_block('quota_reached', kwargs={'quota': user.quota})
             if debug:
-                print('Walk::ask: user.path.steps num is', len(user.path.steps))
+                print('Walk::ask: user.path.steps num is',
+                      len(user.path.steps))
 
             s, newloc_id, error_string = p.get_step_for_prompt(loc,
                                                                repeat=repeat)
             if debug:
-                print('Walk::ask: user.path.steps num is', len(user.path.steps))
+                print('Walk::ask: user.path.steps num is',
+                      len(user.path.steps))
 
             if newloc_id:
                 current.sequence_counter += 1
@@ -332,7 +335,8 @@ class Walk(object):
                                   if user.blocks else False)
 
             if debug:
-                print('Walk::ask: user.path.steps num is', len(user.path.steps))
+                print('Walk::ask: user.path.steps num is',
+                      len(user.path.steps))
             extra_fields = {'completed_count': user.get_completed_paths_len(),
                             'category': category,
                             'pid': p.get_id(),
@@ -694,8 +698,8 @@ class Walk(object):
             newdata['first_attempt'] = datetime.datetime.utcnow()
 
         # write updates to db here
-        condition = {'name': user_id, 'tag': tag}
-        myrec = db.tag_records.update_or_insert(condition, **newdata)
+        # condition = {'name': user_id, 'tag': tag}
+        # myrec = db.tag_records.update_or_insert(condition, **newdata)
         db.commit()
 
         # double check insertion/update
@@ -930,6 +934,7 @@ class NpcChooser(object):
     Choose an npc to engage the user in the current step, based on the current
     location and the parameters of the step itself.
     """
+
     def __init__(self, step, location, prev_npc, prev_loc):
         """
         Initialize an NpcChooser object.
@@ -972,6 +977,7 @@ class BugReporter(object):
     Class representing a bug-reporting widget to be presented along with the
     evaluation of the current step.
     """
+
     def __init__(self):
         """Initialize a BugReporter object"""
         pass
@@ -1009,6 +1015,7 @@ class StepFactory(object):
     based on the "widget_type" field supplied in db.steps. But there is not a
     1:1 relationship between widget type and Step subclass.
     """
+
     def get_instance(self, step_id, repeating=None, kwargs=None, db=None):
         """
         Return the correct subclass of Step based on record's 'widget_type'.
@@ -1093,7 +1100,6 @@ class Step(object):
                     if db.locations[l].loc_active is True]
         else:
             locs = None
-            stepid = self.get_id()
             xtra_msg = 'Step {} has no assigned locations'.format(
                 self.get_id())
             # FIXME: turning off to silence email spam during testing
@@ -1374,6 +1380,7 @@ class StepContinue(Step):
     """
     An abstract subclass of Step that adds a 'continue' button to responder.
     """
+
     def get_prompt(self, loc, npc, username, raw_prompt=None,
                    user_blocks_left=True):
         """
@@ -1394,6 +1401,7 @@ class StepRedirect(Step):
     specific location. Otherwise, the user receives a generic instruction to
     try "another location in town".
     '''
+
     def get_prompt(self, loc, npc, username, raw_prompt=None,
                    user_blocks_left=True):
         """
@@ -1431,6 +1439,7 @@ class StepQuotaReached(StepContinue, Step):
     '''
     A Step that tells the user s/he has completed the daily minimum # of steps.
     '''
+
     def _make_replacements(self, raw_prompt, username):
         """
         Return the string for the step prompt with context-based information
@@ -1550,7 +1559,8 @@ class StepViewSlides(Step):
         """
         db = current.db
         new_tags = self.kwargs['new_tags']
-        flat_nts = [i for cat, lst in list(new_tags.items()) for i in lst if lst]
+        flat_nts = [i for cat, lst in list(new_tags.items()) for i in lst
+                    if lst]
         tags = db((db.tags.id == db.badges.tag) &
                   (db.tags.id.belongs(flat_nts))).select().as_list()
 
@@ -2074,10 +2084,11 @@ class PathChooser(object):
         else:
             cat = 4
 
-        cat_list = list(range(1, 5))[(cat - 1):4] + list(range(1, 5))[0:(cat - 1)]
+        cat_list = list(range(1, 5))[(cat - 1):4] + \
+            list(range(1, 5))[0:(cat - 1)]
         if debug:
-            print("PathChooser::_order_cats: categories prioritized in " \
-                "order:", cat_list)
+            print("PathChooser::_order_cats: categories prioritized in "
+                  "order:", cat_list)
         return cat_list
 
     def _check_force_new(self):
@@ -2145,8 +2156,8 @@ class PathChooser(object):
 
             def get_stepslist(taglist):
                 if debug:
-                    print('PathChooser::_paths_by_cateogry: using taglist', \
-                        taglist)
+                    print('PathChooser::_paths_by_cateogry: using taglist',
+                          taglist)
                 myrows = db(db.steps.tags.contains(taglist)).select()
                 myrows = myrows.find(lambda row: row.status != 2)
                 mylist = [v.id for v in myrows]
@@ -2155,10 +2166,10 @@ class PathChooser(object):
             taglist = self.categories['rev{}'.format(cat)]
             taglist_cat1 = self.categories['cat1']
             if debug:
-                print('PathChooser::_paths_by_category: cat1_choices', \
-                    self.cat1_choices)
-                print('PathChooser::_paths_by_category: all_choices', \
-                    self.all_choices)
+                print('PathChooser::_paths_by_category: cat1_choices',
+                      self.cat1_choices)
+                print('PathChooser::_paths_by_category: all_choices',
+                      self.all_choices)
             if self.force_new:
                 if debug:
                     print('PathChooser::_paths_by_category: forcing new')
@@ -2223,8 +2234,8 @@ class PathChooser(object):
             pathset = pathset.as_list()
             break
         if debug:
-            print('PathChooser::_paths_by_cateogry: returning pathset',  \
-                [p['id'] for p in pathset])
+            print('PathChooser::_paths_by_cateogry: returning pathset',
+                  [p['id'] for p in pathset])
 
         return pathset, cat, force_cat1, pathset_new
 
@@ -2246,7 +2257,6 @@ class PathChooser(object):
         all paths that have steps with no locations
 
         """
-        debug = False
         path = None
         new_loc = None
         mode = None
@@ -2415,7 +2425,7 @@ class PathChooser(object):
                 set_paths |= db(db.paths.steps.contains(steps_chunk)).select()
             if debug:
                 print('got set_paths')
-                print([p['id'] for p in sorted(set_paths)])
+                print(sorted([p['id'] for p in set_paths]))
             path = set_paths[randrange(0, len(set_paths))]
             first_step = db.steps[path['steps'][0]]
             if debug:
@@ -2462,8 +2472,8 @@ class PathChooser(object):
                         elif self.force_new:
                             new_material = True
                         if debug:
-                            print('PathChooser::choose: new_material =', \
-                                new_material)
+                            print('PathChooser::choose: new_material =',
+                                  new_material)
                         return path, newloc, category, mode, new_material, \
                             self.tag_progress
                     else:
@@ -2630,7 +2640,7 @@ class User(object):
             target = [m.classes.paths_per_day for m in msel
                       if m.classes.paths_per_day and
                       m.classes.start_date == most_recent][0]
-        except (IndexError, ValueError) as e:
+        except (IndexError, ValueError):
             print('user not a member of any class, defaulting to 20 quota')
             target = 20
         return target
@@ -2825,8 +2835,8 @@ class User(object):
                 if debug:
                     'User::_make_path_choice: reviewing, cat is: ', cat
             if debug:
-                print('User::_make_path_choice: num of path.steps is', \
-                    len(path.steps))
+                print('User::_make_path_choice: num of path.steps is',
+                      len(path.steps))
             return path, redir, cat, new_content
         else:
             return None, None, None, None
@@ -2850,8 +2860,8 @@ class User(object):
         if self.path:
             if debug:
                 print('User::get_path: self.path id is', self.path.get_id())
-                print('User::get_path:', len(self.path.steps), \
-                    'steps left in path')
+                print('User::get_path:', len(self.path.steps),
+                      'steps left in path')
         while True:
             if pathid:  # testing specific path
                 self.path = Path(pathid)
@@ -3321,7 +3331,7 @@ class Categorizer(object):
             since_started = self.utcnow - first_attempt if first_attempt \
                 else datetime.timedelta(days=2)
             if debug:
-                print('-------------------------------------------------------')
+                print('-----------------------------------------------------')
                 print('tag:', record['tag'])
                 print('times right:', record['times_right'])
                 print('times wrong:', record['times_wrong'])
@@ -3349,12 +3359,12 @@ class Categorizer(object):
                 ((rdur < rwdur)  # delta right < delta right/wrong
                  or
                  ((self._get_ratio(record) < 0.2) and
-                 # less than 1w to 5r total
+                  # less than 1w to 5r total
                   (rdur.days <= 30)  # right in past 30 days
                   )
                  or
                  ((self._get_avg(record['tag']) >= 0.7) and
-                 # avg score for week >= 0.7
+                  # avg score for week >= 0.7
                   (rdur.days <= 30)  # right in past 30 days
                   ))):
                 # print'************** got to cat2'
@@ -3513,11 +3523,14 @@ class Categorizer(object):
                     cats[catidx].extend(v)
 
             return {'categories': cats,
-                    'demoted': demoted if any([d for d in list(demoted.values())])
+                    'demoted': demoted if any([d for d in
+                                               list(demoted.values())])
                     else None,
-                    'promoted': promoted if any([p for p in list(promoted.values())])
+                    'promoted': promoted if any([p for p in
+                                                 list(promoted.values())])
                     else None,
-                    'new_tags': new_tags if any([n for n in list(new_tags.values())])
+                    'new_tags': new_tags if any([n for n in
+                                                 list(new_tags.values())])
                     else None}
         else:
             cats['cat1'] = cats['rev1'][:]
@@ -3608,6 +3621,7 @@ class Exception_Bug(object):
     reports for paideia.
     Joseph Boakye <jboakye@bwachi.com> Oct 12, 2014
     """
+
     def __init__(self, exception_data):
         """
         Initialize a Bug object for generating bug reports on specific user

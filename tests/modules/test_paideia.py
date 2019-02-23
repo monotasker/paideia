@@ -65,8 +65,8 @@ def log_generator(uid, tag, count, numright, lastright, lastwrong, earliest,
                if s in p['steps']}
     if len(list(pathids.keys())) > 0:
         for n in range(count):
-            mystep = list(pathids.keys())[randint(0,
-                                          len(list(pathids.keys())) - 1)]
+            mystep = list(pathids.keys()
+                          )[randint(0, len(list(pathids.keys())) - 1)]
             score = 1.0 if n < numright else 0.0
             latest = lastright if (abs(score - 1) <= 0.001) else lastwrong
             if n == (numright - 1):
@@ -99,11 +99,11 @@ def dt(string):
         return datetime.datetime.strptime(string, format)
 
 
-#  @pytest.fixture
+# @pytest.fixture
 #  FIXME: not a fixture so that I can call in parametrize decorators
-def mytagpros():
-    """A fixture providing mock tag_progress records"""
-    tp = {'Simon Pan 2014-03-21': {'latest_new': 10,
+"""A fixture providing mock tag_progress records"""
+mytagpros = \
+         {'Simon Pan 2014-03-21': {'latest_new': 10,
                                    'name': 109,
                                    'cat1': [2, 5, 6, 9, 10, 16, 17, 30, 36,
                                             46, 48, 61, 62, 63, 66, 67,
@@ -120,7 +120,6 @@ def mytagpros():
                                    'rev2': [],
                                    'rev4': []},
           }
-    return tp
 
 
 # @pytest.fixture
@@ -3023,51 +3022,51 @@ def mycases(casenum, user_login, db):
                                          'times_wrong': 0,
                                          'secondary_right': None}
                                         ],
-                       'core_out': {'cat1': [62, 63], 'cat2': [61, 66],
-                                    'cat3': [], 'cat4': []},
-                       'untried_out': {'cat1': [62, 63, 68, 115, 72, 89, 36],
-                                       'cat2': [61, 66],
-                                       'cat3': [], 'cat4': []},
-                       'tag_progress': {'latest_new': 4,
-                                        'cat1': [61, 62, 63, 66],
-                                        'cat2': [],
-                                        'cat3': [], 'cat4': [],
-                                        'rev1': [], 'rev2': [],
-                                        'rev3': [], 'rev4': []},
-                       'introduced': [9, 16, 48, 76, 93],
-                       'tag_progress_out': {'latest_new': 4,
-                                            'cat1': [62, 63, 68, 115, 72, 89,
-                                                     36],
-                                            'cat2': [61, 66],
-                                            'cat3': [], 'cat4': [],
-                                            'rev1': [], 'rev2': [],
-                                            'rev3': [], 'rev4': []},
-                       'categories_start': {'cat1': [66, 68, 115, 72, 89, 36,
-                                                     61, 62, 63],
-                                            'cat2': [],
-                                            'cat3': [], 'cat4': [],
-                                            'rev1': [], 'rev2': [],
-                                            'rev3': [], 'rev4': []},
-                       'categories_out': {'cat1': [68, 115, 72, 89, 36, 62,
-                                                   63],
-                                          'cat2': [61, 66],
-                                          'cat3': [], 'cat4': [],
-                                          'rev1': [], 'rev2': [],
-                                          'rev3': [], 'rev4': []},
-                       'paths': {'cat1': [p.id for t in [68, 115, 72, 89, 36,
-                                                         62, 63]
-                                          for p in allpaths if t in p.tags],
-                                 'cat2': [p.id for t in [61, 66]
-                                          for p in allpaths if t in p.tags],
-                                 'cat3': [],
-                                 'cat4': []},
-                       'steps_here': [1, 2, 30, 125, 126, 127],
-                       'completed': [],
-                       'untried': [68, 89, 72, 36, 115],
-                       'new_badges': None,
-                       'promoted': {'cat2': [61, 66]},
-                       'demoted': {},
-                       'next_loc': None},
+                        'core_out': {'cat1': [62, 63], 'cat2': [61, 66],
+                                     'cat3': [], 'cat4': []},
+                        'untried_out': {'cat1': [62, 63, 68, 115, 72, 89, 36],
+                                        'cat2': [61, 66],
+                                        'cat3': [], 'cat4': []},
+                        'tag_progress': {'latest_new': 4,
+                                         'cat1': [61, 62, 63, 66],
+                                         'cat2': [],
+                                         'cat3': [], 'cat4': [],
+                                         'rev1': [], 'rev2': [],
+                                         'rev3': [], 'rev4': []},
+                        'introduced': [9, 16, 48, 76, 93],
+                        'tag_progress_out': {'latest_new': 4,
+                                             'cat1': [62, 63, 68, 115, 72, 89,
+                                                      36],
+                                             'cat2': [61, 66],
+                                             'cat3': [], 'cat4': [],
+                                             'rev1': [], 'rev2': [],
+                                             'rev3': [], 'rev4': []},
+                        'categories_start': {'cat1': [66, 68, 115, 72, 89, 36,
+                                                      61, 62, 63],
+                                             'cat2': [],
+                                             'cat3': [], 'cat4': [],
+                                             'rev1': [], 'rev2': [],
+                                             'rev3': [], 'rev4': []},
+                        'categories_out': {'cat1': [68, 115, 72, 89, 36, 62,
+                                                    63],
+                                           'cat2': [61, 66],
+                                           'cat3': [], 'cat4': [],
+                                           'rev1': [], 'rev2': [],
+                                           'rev3': [], 'rev4': []},
+                        'paths': {'cat1': [p.id for t in [68, 115, 72, 89, 36,
+                                                          62, 63]
+                                           for p in allpaths if t in p.tags],
+                                  'cat2': [p.id for t in [61, 66]
+                                           for p in allpaths if t in p.tags],
+                                  'cat3': [],
+                                  'cat4': []},
+                        'steps_here': [1, 2, 30, 125, 126, 127],
+                        'completed': [],
+                        'untried': [68, 89, 72, 36, 115],
+                        'new_badges': None,
+                        'promoted': {'cat2': [61, 66]},
+                        'demoted': {},
+                        'next_loc': None},
              'case4':  # different location than previous step
              # secondary_right records override date and ratio to allow promot.
              # secondary_right list sliced accordingly
@@ -5017,10 +5016,10 @@ class TestCategorizer():
                                  'secondary_right': None}]
                                ),
                               ('case9', 10,
-                               mytagpros()['Simon Pan 2014-03-21'],  # catsin
-                               mytagrecs()['Simon Pan 2014-03-21'],  # trsin
-                               mytagrecs_with_secondary()['Simon Pan '
-                                                          '2014-03-21'])  # out
+                               mytagpros['Simon Pan 2014-03-21'],  # catsin
+                               mytagrecs['Simon Pan 2014-03-21'],  # trsin
+                               mytagrecs_with_secondary['Simon Pan '
+                                                        '2014-03-21'])  # out
                               ])
     def test_categorizer_add_secondary_right(self, casename, rank, catsin,
                                              tagrecsin, tagrecsout, mytagpros,
@@ -6131,11 +6130,12 @@ class TestWalk():
         if existing_row:  # whether db row for session_data exists for user
             newrec = db.session_data.insert(name=user_login['id'])
             db.commit()
-            print('test_walk_store_user:: newrec inserted for later update:')
+            print('test_walk_store_user:: newrec inserted for later '
+                  'update:')
             print(newrec)
         else:
-            print('test_walk_store_user:: newrec not inserted, creating new ' \
-                  'row for user')
+            print('test_walk_store_user:: newrec not inserted, creating '
+                  'new row for user')
 
         # store the user instance in db =======================================
         rowid = walk._store_user(user, db=db)  # returns row id if successful
@@ -6294,8 +6294,8 @@ class TestWalk():
            'rev3': [], 'rev4': []},
           True,  # redirect?
           r'Hi there. Sorry, I don\'t have anything for you to '  # prompt text
-          'do here at the moment. I think someone was looking '
-          'for you at .*\.',
+          r'do here at the moment. I think someone was looking '
+          r'for you at .*\.',
           None,  # instructions
           None,  # slide decks
           None,  # widget image
@@ -6738,7 +6738,7 @@ class TestWalk():
                         'score': 0,
                         'answer': '\xce\xb2\xce\xbb\xce\xb1'}
 
-        '''
+        r'''
                         [r'<a class="bug_reporter" '
                         'data-keyboard="data-keyboard" '
                         'data-target="#bug_reporter_modal" '
