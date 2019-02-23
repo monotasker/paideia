@@ -15,7 +15,6 @@ from paideia import StepFactory, StepText, StepMultiple, NpcChooser, Step
 from paideia import StepRedirect, StepViewSlides, StepAwardBadges
 from paideia import StepEvaluator, MultipleEvaluator, StepQuotaReached
 from paideia import Block, BugReporter, Map
-from plugin_utils import makeutf8
 from gluon import current, IMG
 
 import datetime
@@ -66,7 +65,8 @@ def log_generator(uid, tag, count, numright, lastright, lastwrong, earliest,
                if s in p['steps']}
     if len(list(pathids.keys())) > 0:
         for n in range(count):
-            mystep = list(pathids.keys())[randint(0, len(list(pathids.keys())) - 1)]
+            mystep = list(pathids.keys())[randint(0,
+                                          len(list(pathids.keys())) - 1)]
             score = 1.0 if n < numright else 0.0
             latest = lastright if (abs(score - 1) <= 0.001) else lastwrong
             if n == (numright - 1):
@@ -2923,106 +2923,106 @@ def mycases(casenum, user_login, db):
              'case2':  # same location, last npc 2,
              # promote tag based on ratio and min time
              # both new tags and promoted
-                      {'casenum': 2,
-                       'mynow': dt('2013-01-29'),
-                       'loc': Location('agora', db),  # loc 8
-                       'name': user_login['first_name'],
-                       'uid': user_login['id'],
-                       'prev_loc': Location('agora', db),
-                       'prev_npc': Npc(1, db),
-                       'npcs_here': [1, 14, 17, 21, 40, 41, 42],
-                       'pathid': 89,
-                       'blocks_in': None,
-                       'blocks_out': None,
-                       'tag_records': [{'name': 1,
-                                        'tag': 61,
-                                        'tlast_right': dt('2013-01-29'),
-                                        'tlast_wrong': dt('2013-01-28'),
-                                        'times_right': 10,
-                                        'times_wrong': 2,
-                                        'secondary_right': []}],
-                       'core_out': {'cat1': [], 'cat2': [61],
-                                    'cat3': [], 'cat4': []},
-                       'untried_out': {'cat1': [], 'cat2': [61],
-                                       'cat3': [], 'cat4': []},
-                       'tag_progress': {'latest_new': 1,
-                                        'cat1': [61], 'cat2': [],
-                                        'cat3': [], 'cat4': [],
-                                        'rev1': [], 'rev2': [],
-                                        'rev3': [], 'rev4': []},
-                       'introduced': [62],
-                       'tag_progress_out': {'latest_new': 2,
-                                            'cat1': [62], 'cat2': [61],
-                                            'cat3': [], 'cat4': [],
-                                            'rev1': [], 'rev2': [],
-                                            'rev3': [], 'rev4': []},
-                       'categories_start': {'cat1': [61], 'cat2': [],
-                                            'cat3': [], 'cat4': [],
-                                            'rev1': [], 'rev2': [],
-                                            'rev3': [], 'rev4': []},
-                       'categories_out': {'cat1': [62], 'cat2': [61],
-                                          'cat3': [], 'cat4': [],
-                                          'rev1': [], 'rev2': [],
-                                          'rev3': [], 'rev4': []},
-                       'paths': {'cat1': [p.id for p in allpaths
-                                          if 62 in p.tags],
-                                 'cat2': [p.id for p in allpaths
-                                          if 61 in p.tags],
-                                 'cat3': [],
-                                 'cat4': []},
-                       'steps_here': [1, 2, 30, 125, 126, 127],
-                       'completed': [],
-                       'new_badges': [62],
-                       'promoted': {'cat2': [61]},
-                       'next_loc': None,
-                       'demoted': {}},
+                       {'casenum': 2,
+                        'mynow': dt('2013-01-29'),
+                        'loc': Location('agora', db),  # loc 8
+                        'name': user_login['first_name'],
+                        'uid': user_login['id'],
+                        'prev_loc': Location('agora', db),
+                        'prev_npc': Npc(1, db),
+                        'npcs_here': [1, 14, 17, 21, 40, 41, 42],
+                        'pathid': 89,
+                        'blocks_in': None,
+                        'blocks_out': None,
+                        'tag_records': [{'name': 1,
+                                         'tag': 61,
+                                         'tlast_right': dt('2013-01-29'),
+                                         'tlast_wrong': dt('2013-01-28'),
+                                         'times_right': 10,
+                                         'times_wrong': 2,
+                                         'secondary_right': []}],
+                        'core_out': {'cat1': [], 'cat2': [61],
+                                     'cat3': [], 'cat4': []},
+                        'untried_out': {'cat1': [], 'cat2': [61],
+                                        'cat3': [], 'cat4': []},
+                        'tag_progress': {'latest_new': 1,
+                                         'cat1': [61], 'cat2': [],
+                                         'cat3': [], 'cat4': [],
+                                         'rev1': [], 'rev2': [],
+                                         'rev3': [], 'rev4': []},
+                        'introduced': [62],
+                        'tag_progress_out': {'latest_new': 2,
+                                             'cat1': [62], 'cat2': [61],
+                                             'cat3': [], 'cat4': [],
+                                             'rev1': [], 'rev2': [],
+                                             'rev3': [], 'rev4': []},
+                        'categories_start': {'cat1': [61], 'cat2': [],
+                                             'cat3': [], 'cat4': [],
+                                             'rev1': [], 'rev2': [],
+                                             'rev3': [], 'rev4': []},
+                        'categories_out': {'cat1': [62], 'cat2': [61],
+                                           'cat3': [], 'cat4': [],
+                                           'rev1': [], 'rev2': [],
+                                           'rev3': [], 'rev4': []},
+                        'paths': {'cat1': [p.id for p in allpaths
+                                           if 62 in p.tags],
+                                  'cat2': [p.id for p in allpaths
+                                           if 61 in p.tags],
+                                  'cat3': [],
+                                  'cat4': []},
+                        'steps_here': [1, 2, 30, 125, 126, 127],
+                        'completed': [],
+                        'new_badges': [62],
+                        'promoted': {'cat2': [61]},
+                        'next_loc': None,
+                        'demoted': {}},
              'case3':  # same location as previous step, last npc stephanos
              # promote tag based on time (without ratio)
              # add several untried tags for current rank
              # promoted but no new tags
-                      {'casenum': 3,
-                       'mynow': dt('2013-01-29'),
-                       'name': user_login['first_name'],
-                       'uid': user_login['id'],
-                       'loc': Location('synagogue', db),  # loc 11
-                       'prev_loc': Location('synagogue', db),
-                       'prev_npc': Npc(31, db),  # stephanos
-                       'npcs_here': [31, 32],
-                       'pathid': 19,
-                       'blocks_in': None,
-                       'blocks_out': None,
-                       'tag_records': [{'name': 1,
-                                        'tag': 61,  # promote to 2 for time
-                                        'tlast_right': dt('2013-01-27'),
-                                        'tlast_wrong': dt('2013-01-21'),
-                                        'times_right': 10,
-                                        'times_wrong': 10,
-                                        'secondary_right': None},
-                                       # don't promote for time bc dw > dr
-                                       {'name': 1,
-                                        'tag': 62,
-                                        'tlast_right': dt('2013-01-10'),
-                                        'tlast_wrong': dt('2013-01-1'),
-                                        'times_right': 10,
-                                        'times_wrong': 0,
-                                        'secondary_right': None},
-                                       # don't promote for time bc t_r < 10
-                                       {'name': 1,
-                                        'tag': 63,
-                                        'tlast_right': dt('2013-01-27'),
-                                        'tlast_wrong': dt('2013-01-21'),
-                                        'times_right': 9,
-                                        'times_wrong': 0,
-                                        'secondary_right': None},
-                                       # promote for time bc t_r >= 10
-                                       {'name': 1,
-                                        'tag': 66,
-                                        'tlast_right': dt('2013-01-27'),
-                                        'tlast_wrong': dt('2013-01-21'),
-                                        'times_right': 10,
-                                        'times_wrong': 0,
-                                        'secondary_right': None}
-                                       ],
+                       {'casenum': 3,
+                        'mynow': dt('2013-01-29'),
+                        'name': user_login['first_name'],
+                        'uid': user_login['id'],
+                        'loc': Location('synagogue', db),  # loc 11
+                        'prev_loc': Location('synagogue', db),
+                        'prev_npc': Npc(31, db),  # stephanos
+                        'npcs_here': [31, 32],
+                        'pathid': 19,
+                        'blocks_in': None,
+                        'blocks_out': None,
+                        'tag_records': [{'name': 1,
+                                         'tag': 61,  # promote to 2 for time
+                                         'tlast_right': dt('2013-01-27'),
+                                         'tlast_wrong': dt('2013-01-21'),
+                                         'times_right': 10,
+                                         'times_wrong': 10,
+                                         'secondary_right': None},
+                                        # don't promote for time bc dw > dr
+                                        {'name': 1,
+                                         'tag': 62,
+                                         'tlast_right': dt('2013-01-10'),
+                                         'tlast_wrong': dt('2013-01-1'),
+                                         'times_right': 10,
+                                         'times_wrong': 0,
+                                         'secondary_right': None},
+                                        # don't promote for time bc t_r < 10
+                                        {'name': 1,
+                                         'tag': 63,
+                                         'tlast_right': dt('2013-01-27'),
+                                         'tlast_wrong': dt('2013-01-21'),
+                                         'times_right': 9,
+                                         'times_wrong': 0,
+                                         'secondary_right': None},
+                                        # promote for time bc t_r >= 10
+                                        {'name': 1,
+                                         'tag': 66,
+                                         'tlast_right': dt('2013-01-27'),
+                                         'tlast_wrong': dt('2013-01-21'),
+                                         'times_right': 10,
+                                         'times_wrong': 0,
+                                         'secondary_right': None}
+                                        ],
                        'core_out': {'cat1': [62, 63], 'cat2': [61, 66],
                                     'cat3': [], 'cat4': []},
                        'untried_out': {'cat1': [62, 63, 68, 115, 72, 89, 36],
@@ -3435,7 +3435,7 @@ def myStepEvaluator(stepid, mysteps):
                   'tips': mysteps[stepid]['tips']}
         return {'eval': StepEvaluator(**kwargs),
                 'tips': mysteps[stepid]['tips'],
-                 'reply_text': mysteps[stepid]['reply_text'][responses[n]],
+                'reply_text': mysteps[stepid]['reply_text'][responses[n]],
                 'score': n,
                 'times_right': n,
                 'times_wrong': [1, 0][n],
@@ -3925,9 +3925,9 @@ class TestStep():
     @pytest.mark.parametrize(
         'stepid,instructions',
         [(1,
-         ['Focus on finding Greek letters that make the *sounds* of the '
-          'English word. Don\'t look for Greek "equivalents" for each '
-          'English letter.']
+          ['Focus on finding Greek letters that make the *sounds* of the '
+           'English word. Don\'t look for Greek "equivalents" for each '
+           'English letter.']
           ),
          (2,
           None
@@ -3943,8 +3943,8 @@ class TestStep():
     @pytest.mark.parametrize(
         'stepid, readable',
         [(1,
-         {'readable_short': ['μιτ'],
-          'readable_long': []},
+          {'readable_short': ['μιτ'],
+           'readable_long': []},
           ),
          (2,
           {'readable_short': ['βατ', 'βοτ'],
@@ -4091,7 +4091,7 @@ class TestStep():
         assert actual['instructions'] == instrs
         assert actual['slidedecks'] == slides
         assert actual['hints'] == tips
-        assert actual['user_response'] == str(makeutf8(resptext))
+        assert actual['user_response'] == resptext
         assert actual['score'] == score
         assert actual['times_right'] == int(score)
         assert actual['times_wrong'] == abs(int(score) - 1)
@@ -4169,7 +4169,7 @@ class TestStepEvaluator():
         assert actual['reply'] == rtext
         assert actual['times_wrong'] == twrong
         assert actual['times_right'] == tright
-        assert actual['user_response'] == str(makeutf8(uresp))
+        assert actual['user_response'] == uresp
         assert actual['tips'] == tips
 
 
@@ -4212,7 +4212,7 @@ class TestMultipleEvaluator():
         assert actual['reply'] == rtext
         assert actual['times_wrong'] == twrong
         assert actual['times_right'] == tright
-        assert actual['user_response'] == str(makeutf8(uresp))
+        assert actual['user_response'] == uresp
         assert actual['tips'] == tips
 
 
@@ -4446,12 +4446,9 @@ class TestUser(object):
                 start_date=datetime.datetime(2040, 1, 15),
                 end_date=datetime.datetime(2040, 6, 15),
                 paths_per_day=7)
-            memAid = db.class_membership.insert(name=1,
-                                                class_section=classAid)
-            memBid = db.class_membership.insert(name=1,
-                                                class_section=classBid)
-            memCid = db.class_membership.insert(name=1,
-                                                class_section=classCid)
+            db.class_membership.insert(name=1, class_section=classAid)
+            db.class_membership.insert(name=1, class_section=classBid)
+            db.class_membership.insert(name=1, class_section=classCid)
             db.commit()
         actual = User(userdata, tagrecs, tagprog, db=db
                       )._get_paths_quota(userdata['id'],
@@ -5719,6 +5716,7 @@ class TestMap():
     """
     A unit testing class for the paideia.Map class.
     """
+
     def test_map_show(self, db):
         """Unit test for paideia.Walk._get_user()"""
         expected = {'map_image': '/paideia/static/images/town_map.svg',
@@ -5946,9 +5944,6 @@ class TestWalk():
                       #earliest,  # earliest attempt
                       #db)
         """
-
-        rightlogs = 0
-        wronglogs = 1
 
         walk = Walk(userdata=user_login,
                     tag_records=oldrecs,
@@ -6706,9 +6701,9 @@ class TestWalk():
                 reply_text = creply
 
         thiswalk.start(alias, path=pathid)
-        print('test_walk_reply:: execute =====================================')
+        print('test_walk_reply:: execute ===================================')
         a = thiswalk.start(alias, response_string=response_string)
-        print('etest_walk_reply:: valuating test output ======================')
+        print('etest_walk_reply:: valuating test output ====================')
 
         assert a['sid'] == stepid
         assert a['pid'] == pathid
@@ -7241,12 +7236,12 @@ class TestPathChooser():
                                None  # review
                                ),
                               (8,  # agora (all but one repeated 3x) --
-                              {'latest_new': 2,
-                               'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
-                               'cat3': [], 'cat4': [],
-                               'rev1': [6, 29, 62, 82, 83], 'rev2': [61],
-                               'rev3': [], 'rev4': []},
-                              {1: False, 2: False},  # redirect
+                               {'latest_new': 2,
+                                'cat1': [6, 29, 62, 82, 83], 'cat2': [61],
+                                'cat3': [], 'cat4': [],
+                                'rev1': [6, 29, 62, 82, 83], 'rev2': [61],
+                                'rev3': [], 'rev4': []},
+                               {1: False, 2: False},  # redirect
                                'repeated',  # mode
                                None  # review
                                ),
@@ -7302,7 +7297,6 @@ class TestPathChooser():
         else:
             for key, val in tpout.items():
                 if key[:3] == 'rev' and val:
-                    mytags = val
                     taggedsteps = db(db.steps.tags.contains(val)).select()
                     stepids = [s.id for s in taggedsteps]
                     taggedpaths = db(db.paths.steps.contains(stepids)).select()
@@ -7312,7 +7306,8 @@ class TestPathChooser():
 
                     first_steps = {row['id']: row.steps[0] for row
                                    in taggedpaths}
-                    here_steps = db((db.steps.id.belongs(list(first_steps.values())))
+                    here_steps = db((db.steps.id.belongs(
+                        list(first_steps.values())))
                                     &
                                     (db.steps.locations.contains(locid))
                                     ).select()
@@ -7362,7 +7357,8 @@ class TestPathChooser():
             taggedids = [p.id for p in catpaths]
 
             # print sorted(taggedids)
-            if any(i for i in taggedids if i not in list(completed['paths'].keys())):
+            if any(i for i in taggedids
+                   if i not in list(completed['paths'].keys())):
                 assert actual['id'] not in list(completed['paths'].keys())
                 print('new path expected')
             else:  # supposed to choose from paths with fewest repeats
@@ -7375,7 +7371,8 @@ class TestPathChooser():
                                       if i in taggedids}
                 print('path repeats for category')
                 print(pprint(completed_freq_cat))
-                min_freq = min(set(f for f in list(completed_freq_cat.values())))
+                min_freq = min(set(f for f
+                                   in list(completed_freq_cat.values())))
                 print('min_freq', min_freq)
                 expected = [i for i in taggedids
                             if completed_freq[i] == min_freq]
