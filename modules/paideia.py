@@ -3217,7 +3217,7 @@ class Categorizer(object):
         if rlen >= CONST_SEC_RIGHT_MOD:
             # increment times_right by 1 / CONST_SEC_RIGHT_MOD secondary_right
             # this var called triplets because CONST_SEC_RIGHT_MOD used to be 3
-            triplets2 = rlen / CONST_SEC_RIGHT_MOD
+            triplets2 = rlen // CONST_SEC_RIGHT_MOD  # must be integer div
             rec['times_right'] = triplets2 if not rec['times_right'] \
                 else rec['times_right'] + triplets2
 
