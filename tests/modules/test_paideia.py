@@ -124,9 +124,9 @@ mytagpros = \
 
 # @pytest.fixture
 # FIXME: not fixture to avoid problem calling in parametrize decorator
-def mycatsout_core_algorithm():
-    """A fixture providing mock tag_progress records"""
-    tp = {'Simon Pan 2014-03-21': {'rev1': [1, 4, 5, 6, 9, 10, 16, 17, 30, 32,
+"""A fixture providing mock tag_progress records"""
+mycatsout_core_algorithm = \
+         {'Simon Pan 2014-03-21': {'rev1': [1, 4, 5, 6, 9, 10, 16, 17, 30, 32,
                                             36, 40, 43, 46, 48, 61, 62,
                                             63, 66, 67, 69, 71, 72, 73, 74, 76,
                                             77, 82, 83, 84, 85, 86, 87, 88, 90,
@@ -140,16 +140,15 @@ def mycatsout_core_algorithm():
                                    'rev2': [],
                                    'rev3': [14],
                                    'rev4': [18, 29, 38, 47, 49, 68, 75, 89, 92,
-                                            116, 119, 120, 122]},
-          }
-    return tp
+                                            116, 119, 120, 122]}
+            }
 
 
 # @pytest.fixture
 # FIXME: not fixture to avoid problem calling in parametrize decorator
-def mycatsout_add_untried():
-    """A fixture providing mock tag_progress records"""
-    tp = {'Simon Pan 2014-03-21': {'rev1': [1, 2, 4, 5, 6, 9, 10, 12, 16, 17,
+"""A fixture providing mock tag_progress records"""
+mycatsout_add_untried = \
+         {'Simon Pan 2014-03-21': {'rev1': [1, 2, 4, 5, 6, 9, 10, 12, 16, 17,
                                             30, 32, 36, 40, 41, 43, 46, 48,
                                             50, 51, 52, 53, 55, 61, 62,
                                             63, 66, 67, 69, 71, 72, 73, 74, 76,
@@ -169,14 +168,12 @@ def mycatsout_add_untried():
                                    'rev4': [18, 29, 38, 47, 49, 68, 75, 89, 92,
                                             116, 119, 120, 122]},
           }
-    return tp
-
 
 # @pytest.fixture
 # FIXME: not fixture to avoid problem calling in parametrize decorator
-def mycatsout_remove_dups():
-    """A fixture providing mock tag_progress records"""
-    tp = {'Simon Pan 2014-03-21': {'rev1': [2, 4, 5, 6, 9, 10, 16, 17, 30,
+"""A fixture providing mock tag_progress records"""
+mycatsout_remove_dups = \
+         {'Simon Pan 2014-03-21': {'rev1': [2, 4, 5, 6, 9, 10, 16, 17, 30,
                                             36, 46, 48, 55, 61, 62,
                                             63, 66, 67, 69, 71, 72, 73, 74, 76,
                                             77, 82, 83, 84, 85, 86, 87, 88, 90,
@@ -188,14 +185,12 @@ def mycatsout_remove_dups():
                                    'rev4': [18, 29, 38, 47, 49, 68, 75, 89, 92,
                                             116, 119, 120, 122]},
           }
-    return tp
-
 
 # @pytest.fixture
 # FIXME: not fixture to avoid problem calling in parametrize decorator
-def mycatsout_find_changes():
-    """A fixture providing mock tag_progress records"""
-    tp = {'Simon Pan 2014-03-21': {'cat1': [2, 4, 5, 6, 9, 10, 16, 17, 30,
+"""A fixture providing mock tag_progress records"""
+mycatsout_find_changes = \
+         {'Simon Pan 2014-03-21': {'cat1': [2, 4, 5, 6, 9, 10, 16, 17, 30,
                                             36, 46, 48, 55, 61, 62,
                                             63, 66, 67, 69, 71, 72, 73, 74, 76,
                                             77, 82, 83, 84, 85, 86, 87, 88, 90,
@@ -221,42 +216,36 @@ def mycatsout_find_changes():
                                    'rev4': [18, 29, 38, 47, 49, 68, 75, 89, 92,
                                             116, 119, 120, 122]},
           }
-    return tp
-
 
 # @pytest.fixture
 # FIXME: not fixture to avoid problem calling in parametrize decorator
-def mydemoted():
-    """A fixture providing mock tag_progress records"""
-    tp = {'Simon Pan 2014-03-21': {'cat1': [128],
-                                   'cat2': [],
-                                   'cat3': [],
-                                   'cat4': []},
-          }
-    return tp
-
+"""A fixture providing mock tag_progress records"""
+mydemoted = \
+    {'Simon Pan 2014-03-21': {'cat1': [128],
+                              'cat2': [],
+                              'cat3': [],
+                              'cat4': []},
+     }
 
 # @pytest.fixture
 # FIXME: not fixture to avoid problem calling in parametrize decorator
-def mypromoted():
-    """A fixture providing mock 'promoted' values"""
-    tp = {'Simon Pan 2014-03-21': {'cat1': [],
-                                   'cat2': [],
-                                   'cat3': [14],
-                                   'cat4': [],
-                                   'rev1': [],
-                                   'rev3': [],
-                                   'rev2': [],
-                                   'rev4': []},
-          }
-    return tp
-
+"""A fixture providing mock 'promoted' values"""
+mypromoted = \
+    {'Simon Pan 2014-03-21': {'cat1': [],
+                              'cat2': [],
+                              'cat3': [14],
+                              'cat4': [],
+                              'rev1': [],
+                              'rev3': [],
+                              'rev2': [],
+                              'rev4': []},
+     }
 
 # @pytest.fixture
 # FIXME: not fixture to avoid problem calling in parametrize decorator
-def mypromotions():
-    """Test fixture providing badges_begun rescoreds"""
-    prom = {'Simon Pan 2014-03-21':
+"""Test fixture providing badges_begun rescoreds"""
+mypromotions = \
+           {'Simon Pan 2014-03-21':
             [{'name': 109,
               'tag': 14,
               'cat1': datetime.datetime(2013, 10, 3, 21, 16, 29),
@@ -391,14 +380,13 @@ def mypromotions():
               'cat3': None}
              ]
             }
-    return prom
 
 
 # @pytest.fixture
 # FIXME: not fixture to avoid problem importing in parametrize decorator
-def mytagrecs():
-    """A fixture providing mock tag_records data."""
-    tr = {'Simon Pan 2014-03-21':
+"""A fixture providing mock tag_records data."""
+mytagrecs = \
+         {'Simon Pan 2014-03-21':
           [{'id': 383380,
             'tag': 1,
             'in_path': None,
@@ -1534,14 +1522,12 @@ def mytagrecs():
            ]
           }
 
-    return tr
-
 
 # @pytest.fixture
 # FIXME: not fixture to avoid problem calling in parametrize decorator
-def mytagrecs_with_secondary():
-    """A fixture providing mock tag_records data."""
-    tr = {'Simon Pan 2014-03-21':
+"""A fixture providing mock tag_records data."""
+mytagrecs_with_secondary = \
+         {'Simon Pan 2014-03-21':
           [{'id': 383380,
             'tag': 1,
             'in_path': None,
@@ -2417,8 +2403,6 @@ def mytagrecs_with_secondary():
             'secondary_right': None}
            ]
           }
-
-    return tr
 
 
 @pytest.fixture
@@ -5022,8 +5006,7 @@ class TestCategorizer():
                                                         '2014-03-21'])  # out
                               ])
     def test_categorizer_add_secondary_right(self, casename, rank, catsin,
-                                             tagrecsin, tagrecsout, mytagpros,
-                                             mytagrecs, db):
+                                             tagrecsin, tagrecsout, db):
         """
         Unit test for the paideia.Categorizer._add_secondary_right method.
         """
@@ -5191,10 +5174,10 @@ class TestCategorizer():
                                ),
                               ('case9',
                                10,
-                               mytagpros()['Simon Pan 2014-03-21'],
-                               mycatsout_core_algorithm()['Simon Pan '
-                                                          '2014-03-21'],
-                               mytagrecs()['Simon Pan 2014-03-21']
+                               mytagpros['Simon Pan 2014-03-21'],
+                               mycatsout_core_algorithm['Simon Pan '
+                                                        '2014-03-21'],
+                               mytagrecs['Simon Pan 2014-03-21']
                                ),
                               ])
     def test_categorizer_core_algorithm(self, casename, rank, catsin, catsout,
@@ -5291,12 +5274,12 @@ class TestCategorizer():
                                ),
                               ('case9',
                                10,  # rank
-                               mycatsout_core_algorithm()['Simon Pan '
-                                                          '2014-03-21'],  # in
-                               mytagrecs_with_secondary()['Simon Pan '
-                                                          '2014-03-21'],  # trs
-                               mycatsout_add_untried()['Simon Pan '
-                                                       '2014-03-21'],  # catout
+                               mycatsout_core_algorithm['Simon Pan '
+                                                        '2014-03-21'],  # in
+                               mytagrecs_with_secondary['Simon Pan '
+                                                        '2014-03-21'],  # trs
+                               mycatsout_add_untried['Simon Pan '
+                                                     '2014-03-21'],  # catout
                                ),
                               ])
     def test_categorizer_add_untried_tags(self, casename, rank, catsin,
@@ -5443,15 +5426,15 @@ class TestCategorizer():
                                ),
                               ('case9',
                                10,  # rank
-                               mytagpros()['Simon Pan 2014-03-21'],  # oldcats
-                               mycatsout_remove_dups()['Simon Pan '
-                                                       '2014-03-21'],  # catsin
-                               mycatsout_find_changes()['Simon Pan '
-                                                        '2014-03-21'],  # out
-                               mytagrecs()['Simon Pan 2014-03-21'],  # tagrecs
-                               mydemoted()['Simon Pan 2014-03-21'],  # demoted
-                               mypromoted()['Simon Pan 2014-03-21'],  # prom
-                               mypromotions()['Simon Pan 2014-03-21'],  # bbrs
+                               mytagpros['Simon Pan 2014-03-21'],  # oldcats
+                               mycatsout_remove_dups['Simon Pan '
+                                                     '2014-03-21'],  # catsin
+                               mycatsout_find_changes['Simon Pan '
+                                                      '2014-03-21'],  # out
+                               mytagrecs['Simon Pan 2014-03-21'],  # tagrecs
+                               mydemoted['Simon Pan 2014-03-21'],  # demoted
+                               mypromoted['Simon Pan 2014-03-21'],  # prom
+                               mypromotions['Simon Pan 2014-03-21'],  # bbrs
                                {'rev1': [4, 55, 96, 102, 130, 131, 132, 135],
                                 'rev2': [], 'rev3': [], 'rev4': []},  # new ts
                                )
@@ -5809,11 +5792,11 @@ class TestWalk():
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('tpin,trecs,prom,newtags,bbin',
-                             [(mytagpros()['Simon Pan 2014-03-21'],  # tpin
-                               mytagrecs()['Simon Pan 2014-03-21'],  # trecs
-                               mypromoted()['Simon Pan 2014-03-21'],  # prom
+                             [(mytagpros['Simon Pan 2014-03-21'],  # tpin
+                               mytagrecs['Simon Pan 2014-03-21'],  # trecs
+                               mypromoted['Simon Pan 2014-03-21'],  # prom
                                [],
-                               mypromotions()['Simon Pan 2014-03-21']  # bb
+                               mypromotions['Simon Pan 2014-03-21']  # bb
                                )
                               ])
     def test_walk_record_cats(self, tpin, trecs, prom, bbin, newtags,
@@ -5878,35 +5861,35 @@ class TestWalk():
                              [(1,  # tag
                                174,  # step_id
                                155,  # path_id
-                               mytagrecs()['Simon Pan 2014-03-21'],  # oldrecs
+                               mytagrecs['Simon Pan 2014-03-21'],  # oldrecs
                                'Simon',  # firstname
                                1,  # times right
                                0,  # times wrong
                                True,  # got right
                                1.0,  # score
-                               mytagpros()['Simon Pan 2014-03-21'],  # tpout
+                               mytagpros['Simon Pan 2014-03-21'],  # tpout
                                ),
                               (1,  # tag
                                174,  # step_id
                                155,  # path_id
-                               mytagrecs()['Simon Pan 2014-03-21'],  # oldrecs
+                               mytagrecs['Simon Pan 2014-03-21'],  # oldrecs
                                'Simon',  # firstname
                                0,  # times right
                                1,  # times wrong
                                False,  # got right
                                0.0,  # score
-                               mytagpros()['Simon Pan 2014-03-21'],  # tpout
+                               mytagpros['Simon Pan 2014-03-21'],  # tpout
                                ),
                               (1,  # tag
                                174,  # step_id
                                155,  # path_id
-                               mytagrecs()['Simon Pan 2014-03-21'],  # oldrecs
+                               mytagrecs['Simon Pan 2014-03-21'],  # oldrecs
                                'Simon',  # firstname
                                0,  # times right
                                1,  # times wrong
                                False,  # got right
                                0.5,  # score
-                               mytagpros()['Simon Pan 2014-03-21'],  # tpout
+                               mytagpros['Simon Pan 2014-03-21'],  # tpout
                                )
                               ])
     def test_walk_update_tag_record(self, tag, step_id, path_id, oldrecs,
@@ -5976,9 +5959,9 @@ class TestWalk():
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('tag,oldrecs,firstname,tpout',
                              [(1,  # tag
-                               mytagrecs()['Simon Pan 2014-03-21'],  # tag recs
+                               mytagrecs['Simon Pan 2014-03-21'],  # tag recs
                                'Simon',  # firstname
-                               mytagpros()['Simon Pan 2014-03-21'],  # tpout
+                               mytagpros['Simon Pan 2014-03-21'],  # tpout
                                )
                               ])
     def test_walk_update_tag_secondary(self, tag, oldrecs, firstname, tpout,
@@ -6007,7 +5990,7 @@ class TestWalk():
                              [(3,  # path
                                1,  # step
                                {'primary': [61], 'secondary': []},  # step tags
-                               mytagrecs()['Simon Pan 2014-03-21'],  # tag recs
+                               mytagrecs['Simon Pan 2014-03-21'],  # tag recs
                                True,  # got right
                                1.0,  # score
                                1,  # raw tright
@@ -6021,8 +6004,8 @@ class TestWalk():
                                                                   0, 0, 0),
                                 'new_content': 'yes',
                                 'selection_category': '1'},
-                               mytagpros()['Simon Pan 2014-03-21'],  # tpout
-                               mytagrecs()['Simon Pan 2014-03-21'],  # recs out
+                               mytagpros['Simon Pan 2014-03-21'],  # tpout
+                               mytagrecs['Simon Pan 2014-03-21'],  # recs out
                                )
                               ])
     def test_walk_record_step(self, path_id, step_id, steptags, oldrecs,
@@ -6087,18 +6070,18 @@ class TestWalk():
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('tpin,tagrecs,existing_row,active_path',
-                             [(mytagpros()['Simon Pan 2014-03-21'],  # tpin
-                               mytagrecs()['Simon Pan 2014-03-21'],  # tagrecs
+                             [(mytagpros['Simon Pan 2014-03-21'],  # tpin
+                               mytagrecs['Simon Pan 2014-03-21'],  # tagrecs
                                True,  # existing_row
                                None   # active_path
                                ),
-                              (mytagpros()['Simon Pan 2014-03-21'],  # tpin
-                               mytagrecs()['Simon Pan 2014-03-21'],  # tagrecs
+                              (mytagpros['Simon Pan 2014-03-21'],  # tpin
+                               mytagrecs['Simon Pan 2014-03-21'],  # tagrecs
                                False,  # existing_row
                                None   # active_path
                                ),
-                              (mytagpros()['Simon Pan 2014-03-21'],  # tpin
-                               mytagrecs()['Simon Pan 2014-03-21'],  # tagrecs
+                              (mytagpros['Simon Pan 2014-03-21'],  # tpin
+                               mytagrecs['Simon Pan 2014-03-21'],  # tagrecs
                                False,  # existing_row
                                3  # active_path
                                )
