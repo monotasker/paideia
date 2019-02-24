@@ -13,7 +13,7 @@ from itertools import chain
 import os
 from paideia_utils import Paideia_Debug, GreekNormalizer
 import pickle
-from plugin_utils import flatten, makeutf8, ErrorReport
+from plugin_utils import flatten, ErrorReport
 from pprint import pprint
 from pytz import timezone
 from random import randint, randrange
@@ -188,9 +188,8 @@ class Walk(object):
                 self.user = self._new_user(userdata, tag_records, tag_progress)
             except (AssertionError, AttributeError):  # user stale or block
                 self.user = self._new_user(userdata, tag_records, tag_progress)
-                current.paideia_debug.do_print('creating new user from data '
-                                               '------------',
-                                               'Walk._get_user')
+                print('creating new user from data '
+                      '------------Walk._get_user')
         if isinstance(self.user.quota, list):
             self.user.quota = self.user.quota[0]
         return self.user
@@ -698,13 +697,14 @@ class Walk(object):
             newdata['first_attempt'] = datetime.datetime.utcnow()
 
         # write updates to db here
-        # condition = {'name': user_id, 'tag': tag}
-        # myrec = db.tag_records.update_or_insert(condition, **newdata)
+        condition = {'name': user_id, 'tag': tag}
+        myrec = db.tag_records.update_or_insert(condition, **newdata)
         db.commit()
 
         # double check insertion/update
         tagrecs = db((db.tag_records.tag == tag) &
                      (db.tag_records.name == user_id)).select()
+        print(len(tagrecs))
         assert len(tagrecs) == 1
         tagrec = tagrecs.first()
 
@@ -730,7 +730,7 @@ class Walk(object):
         TODO: be sure not to log redirect and utility steps. (filter them out
         before calling _record_step())
         """
-        debug = False
+        debug = True
         mynow = datetime.datetime.utcnow() if not now else now
         db = current.db
         # TODO: Store and roll back db changes if impersonating
@@ -763,7 +763,7 @@ class Walk(object):
                     'step': step_id,
                     'in_path': path_id,
                     'score': score,
-                    'user_response': makeutf8(response_string),
+                    'user_response': response_string,
                     'selection_category': category,
                     'new_content': 'yes' if new_content else 'no'
                     # time automatic in db
@@ -771,8 +771,11 @@ class Walk(object):
         # print 'log args ===================================='
         # print type(log_args['user_response'])
         # print log_args['user_response']  # FIXME: caused unicode error live
+        # lastlog = db(db.attempt_log.name == user_id).select().last().id
+        # print('last log:', lastlog)
         log_record_id = db.attempt_log.insert(**log_args)
         db.commit()
+        # print('new log:', log_record_id)
         self.user.complete_path(got_right)
         return log_record_id
 
@@ -3307,7 +3310,7 @@ class Categorizer(object):
         TODO: Require that a certain number of successes are recent
         TODO: Look at secondary tags as well
         """
-        debug = False
+        debug = True
         db = db if db else current.db
         categories = {'rev1': [], 'rev2': [], 'rev3': [], 'rev4': []}
         tag_records = tag_records if tag_records else self.tag_records
@@ -3315,7 +3318,10 @@ class Categorizer(object):
         for record in tag_records:
             if not db.tags[record['tag']]:
                 # TODO: send error email here
+                print('NO TAG RECORD!!!!!!')
                 continue
+            tr = record['times_right'] if record['times_right'] else 0
+            tw = record['times_wrong'] if record['times_wrong'] else 0
             lrraw = record['tlast_right']
             lwraw = record['tlast_wrong']
             firstraw = record['first_attempt']
@@ -3335,8 +3341,6 @@ class Categorizer(object):
                 print('tag:', record['tag'])
                 print('times right:', record['times_right'])
                 print('times wrong:', record['times_wrong'])
-                tr = record['times_right'] if record['times_right'] else 0
-                tw = record['times_wrong'] if record['times_wrong'] else 0
                 print('total attempts', tr + tw, '>= 20 (', tr + tw >= 20, ')')
                 print(since_started, 'since started >= 1 day ')
                 print('(', since_started >= datetime.timedelta(days=1), ')')
@@ -3354,7 +3358,7 @@ class Categorizer(object):
 
             # spaced repetition algorithm for promotion to
             # cat2? ======================================================
-            if ((record['times_right'] >= 20) and  # at least 20 right
+            if ((tr >= 20) and  # at least 20 right
                 (since_started.days >= 1) and  # not within the first day
                 ((rdur < rwdur)  # delta right < delta right/wrong
                  or
