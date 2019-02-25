@@ -788,12 +788,17 @@ class Walk(object):
         db = current.db if not db else db
 
         try:
-            myuser = pickle.dumps(user)
+            myuser = str(pickle.dumps(user))
+            print('MYUSER=======')
+            print(type(myuser))
             condition = {'name': user.get_id()}
+            print('user.get_id()=======')
+            print(user.get_id())
             rownum = db.session_data.update_or_insert(condition,
                                                       name=user.get_id(),
                                                       other_data=myuser)
             db.commit()
+            print('rownum:', rownum)
             return rownum
         except Exception:
             print(traceback.format_exc(5))
