@@ -9,7 +9,6 @@
 # run with py.test -xvs applications/paideia/tests/modules/
 """
 
-import pytest
 from paideia import Npc, Location, User, PathChooser, Path, Categorizer, Walk
 from paideia import StepFactory, StepText, StepMultiple, NpcChooser, Step
 from paideia import StepRedirect, StepViewSlides, StepAwardBadges
@@ -17,16 +16,18 @@ from paideia import StepEvaluator, MultipleEvaluator, StepQuotaReached
 from paideia import Block, BugReporter, Map
 from gluon import current, IMG
 
-import datetime
-from pprint import pprint
-import re
+from ast import literal_eval
 from copy import copy
-from random import randint, randrange
+import datetime
 # from dateutil import parser
 from difflib import Differ
 from itertools import chain
-# from urllib import quote_plus
 import pickle
+from pprint import pprint
+import pytest
+import re
+from random import randint, randrange
+# from urllib import quote_plus
 
 
 # ===================================================================
@@ -6125,20 +6126,19 @@ class TestWalk():
         # store the user instance in db =======================================
         rowid = walk._store_user(user, db=db)  # returns row id if successful
         print('test_walk_store_user:: id of inserted row:', rowid)
+        storedrows = db(db.session_data.name == user_login['id']).select()
+        assert len(storedrows) == 1
+        storedrow = storedrows.first()
+        # below: update_or_insert returns None if no new row inserted
         if existing_row:
-            assert rowid is None
-            storedrow = db(db.session_data.name == user_login['id']
-                           ).select().first()
-            assert storedrow
+            assert rowid == None
         else:
-            assert rowid
-            storedrow = db(db.session_data.id == rowid).select().first()
-            assert storedrow
+            assert rowid == storedrow.id
 
         # check data stored in db =============================================
-        sd = db(db.session_data.name == user_login['id']).select().first()
-        dbuser = pickle.loads(sd['other_data'])
+        dbuser = pickle.loads(literal_eval(storedrow['other_data']))
         assert dbuser.get_id() == user_login['id']
+        # TODO: Make sure string data gets restored as strings, not bytes
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize(
@@ -6478,7 +6478,7 @@ class TestWalk():
         if actual['response_form']:
             print('actual["response_form"]:\n', actual['response_form'])
             print('rform:\n', rform)
-            assert re.match(rform, actual['response_form'].xml())
+            assert re.match(rform, str(actual['response_form'].xml()))
         elif rform:
             # pprint(actual['response_form'])
             assert actual['response_form']
