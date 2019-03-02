@@ -1000,9 +1000,6 @@ class BugReporter(object):
         """
         debug = False
 
-        response_string = response_string.decode('utf-8')
-        response_string = response_string.encode('utf-8')
-
         vardict = {'answer': response_string,
                    'loc_id': loc_id,
                    'log_id': record_id,
