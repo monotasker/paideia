@@ -6204,9 +6204,10 @@ class TestWalk():
           '<input name="pre_bug_step_id" '
           'type="hidden" value="19" /></div></form>',
           True,  # replystep
-          {'audio_args_for_js': "{'m4a': '/paideia/default/download.load/"
-           "audio.clip_m4a.857ac2a83978839d.53746570303031392e6d3461.m4a', "
-           "'title': ''}",
+          {'audio_args_for_js': "{'title': '', "
+           "'m4a': '/paideia/default/download.load/"
+           "audio.clip_m4a.857ac2a83978839d.53746570303031392e6d3461.m4a'"
+           "}",
            'media_supplied': 'm4a',
            'mp3': '',
            'ogg': None,
@@ -6254,9 +6255,10 @@ class TestWalk():
           '<input name="pre_bug_step_id" '
           'type="hidden" value="19" /></div></form>',
           True,  # replystep
-          {'audio_args_for_js': "{'m4a': '/paideia/default/download.load/"
-           "audio.clip_m4a.857ac2a83978839d.53746570303031392e6d3461.m4a', "
-           "'title': ''}",
+          {'audio_args_for_js': "{'title': '', "
+           "'m4a': '/paideia/default/download.load/"
+           "audio.clip_m4a.857ac2a83978839d.53746570303031392e6d3461.m4a'"
+           "}",
            'media_supplied': 'm4a',
            'mp3': '',
            'ogg': None,
@@ -6326,9 +6328,10 @@ class TestWalk():
           '<input name="pre_bug_step_id" type="hidden" value="1" /></div>'
           '</form>',
           True,  # replystep
-          {'audio_args_for_js': "{'m4a': '/paideia/default/download.load/"
-           "audio.clip_m4a.b6e1beb8683180e8.53746570303030312e6d3461.m4a', "
-           "'title': ''}",
+          {'audio_args_for_js': "{'title': '', "
+           "'m4a': '/paideia/default/download.load/"
+           "audio.clip_m4a.b6e1beb8683180e8.53746570303030312e6d3461.m4a'"
+           "}",
            'media_supplied': 'm4a',
            'mp3': '',
            'ogg': None,
@@ -6391,7 +6394,7 @@ class TestWalk():
           True,  # redirect?
           'Hi there. Sorry, I don\'t have anything for you to '  # prompt text
           'do here at the moment. I think someone was looking '
-          'for you at \xe1\xbc\xa1 \xcf\x83\xcf\x84\xce\xbf\xce\xac.',
+          'for you at ἡ στοά.',
           None,  # instructions
           None,  # slide decks
           None,  # widget image
@@ -6476,9 +6479,10 @@ class TestWalk():
         assert actual['bg_image'] == bg_imgs[loc.get_id()]
         # assert actual['npc_image']['_src'] == npc_data[npc.get_id()]['image']
         if actual['response_form']:
-            print('actual["response_form"]:\n', actual['response_form'])
+            print('actual["response_form"]:\n',
+                  str(actual['response_form'].xml().decode('utf8')))
             print('rform:\n', rform)
-            assert re.match(rform, str(actual['response_form'].xml()))
+            assert re.match(rform, actual['response_form'].xml().decode('utf8'))
         elif rform:
             # pprint(actual['response_form'])
             assert actual['response_form']
@@ -6799,7 +6803,7 @@ class TestPathChooser():
                                False  # force_cat1
                                ),
                               ])
-    def test_pathchooser_check_force_new(self, tp_extra, force_cat1):
+    def test_pathchooser_check_force_new(self, tp_extra, force_cat1, db):
         """
         Unit test for the paideia.Pathchooser._check_force_new() method.
         """
@@ -6813,7 +6817,7 @@ class TestPathChooser():
         completed = {'latest': None,
                      'paths': {102: {'right': 1, 'wrong': 0}}
                      },
-        chooser = PathChooser(tp, locid, completed)  # runs _check_force_new()
+        chooser = PathChooser(tp, locid, completed, db=db)  # runs _check_force_new()
         actual = chooser.force_new
         expected = force_cat1
         assert actual == expected
