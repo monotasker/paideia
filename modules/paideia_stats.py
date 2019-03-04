@@ -8,7 +8,7 @@ from operator import itemgetter
 from pytz import timezone, utc
 from gluon import current, DIV, SPAN, A, URL, UL, LI, B, I
 from gluon import TAG
-from .plugin_utils import make_json, load_json
+from plugin_utils import make_json, load_json
 from pprint import pprint
 # from paideia import Categorizer
 # from gluon.sqlhtml import SQLFORM  # , Field
@@ -360,28 +360,26 @@ class Stats(object):
                 t['avg_score'] = round(t['avg_score'], 1)
         return tag_recs
 
-    def _get_avg_score(self, tag, mydays=5):
+    def _get_avg_score(self, tag, logs=None):
         """
         Return the user's average score on a given tag over the past N days.
 
         Always returns a float, since scores are floats between 0 and 1.
         """
-        db = current.db
-        startdt = self.utcnow - datetime.timedelta(days=mydays)
-        logs = db((db.attempt_log.name == self.user_id) &
-                  (db.attempt_log.dt_attempted >= startdt) &
-                  (db.attempt_log.step == db.steps.id) &
-                  (db.steps.tags.contains(tag))).select(db.attempt_log.score)
+        print('in _get_avg_score')
+        print(len(logs))
         try:
-            avg_score = sum([l.score for l in logs]) / float(len(logs))
+            avg_score = sum([l.attempt_log.score for l in logs]) / len(logs)
         except ZeroDivisionError:  # if tag not tried at all since startdt
             avg_score = 0
             # FIXME: Will this not bring tags up too early?
         return avg_score
 
-    def active_tags(self, now=None):
+    def active_tags(self, now=None, db=None):
         '''
         Find the tags that are currently active for this user, categorized 1-4.
+
+        arguments "now" and "db" are for dependency injection during testing
 
         Returns a list of dictionaries, one per active tag for this user. Each
         dictionary includes the following keys:
@@ -431,21 +429,22 @@ class Stats(object):
                                         tags_ahead
 
         '''
-        db = current.db
+        db = current.db if not db else db
+        start_date = self.utcnow.date() if not now else now.date()
         tr = [r for r in self.tag_recs if r['tag'] in self.tags]
 
         # get bounds for today and yesterday
         offset = get_offset(self.user)
-        daystart = datetime.datetime.combine(self.utcnow.date(),
+        daystart = datetime.datetime.combine(start_date,
                                              datetime.time(0, 0, 0, 0))
         daystart = daystart - offset
+        recent_start = (daystart - datetime.timedelta(days=5))
         yest_start = (daystart - datetime.timedelta(days=1))
 
         # collect recent attempt logs
         # FIXME: unused: alltags = [r['tag'] for r in tr]
         logs = db((db.attempt_log.name == self.user_id) &
-                  (db.attempt_log.step == db.steps.id) &
-                  (db.attempt_log.dt_attempted > yest_start)).select()
+                  (db.attempt_log.step == db.steps.id)).select()
 
         # shorten keys for readability
         shortforms = {'tlast_right': 'tlr',
@@ -472,17 +471,23 @@ class Stats(object):
             yestlogs = taglogs.find(lambda r: (r.attempt_log.dt_attempted <=
                                     daystart) and (r.attempt_log.dt_attempted >
                                     yest_start))
+            reclogs = taglogs.find(lambda r: r.attempt_log.dt_attempted >
+                                   recent_start)
             tr[idx]['todaycount'] = len(todaylogs)
             tr[idx]['yestcount'] = len(yestlogs)
 
-            # get average score over past week
-            tr[idx]['avg_score'] = self._get_avg_score(t['tag'])
+            # get average score over recent period
+            tr[idx]['avg_score'] = self._get_avg_score(t['tag'], logs=reclogs)
 
             # get right/wrong ratio
             try:
-                tr[idx]['rw_ratio'] = t['tright'] / t['twrong']
+                if not t['tright']:  # TODO: tests to sanitize bad data (None)
+                    t['tright'] = 0
+                if not t['twrong']:
+                    t['twrong'] = 0
+                tr[idx]['rw_ratio'] = round(t['tright'] / t['twrong'], 2)
             except (ZeroDivisionError, TypeError):
-                tr[idx]['rw_ratio'] = t['tright']
+                tr[idx]['rw_ratio'] = round(t['tright'], 2)
 
             # parse last_right and last_wrong into readable form
             try:
@@ -511,18 +516,19 @@ class Stats(object):
                 tr[idx][i] = (t[i], t[i].strftime(strf))
 
             # add level data
-            # print 'badge_levels--------------'
-            # print self.badge_levels
-            # print 'review_levels--------------'
-            # print self.review_levels
-            # print 't["tag"]--------------------'
-            # print t['tag']
+            print('badge_levels--------------')
+            print(self.badge_levels)
+            print('review_levels--------------')
+            print(self.review_levels)
+            print('t["tag"]--------------------')
+            print(t['tag'])
             try:
                 tr[idx]['curlev'] = [l for l, tgs in
                                      list(self.badge_levels.items())
                                      if t['tag'] in [tg[1] for tg in tgs]
                                      ][0]
             except IndexError:
+                traceback.print_exc(5)
                 tr[idx]['curlev'] = 0
             try:
                 tr[idx]['revlev'] = [l for l, tgs in
@@ -530,18 +536,8 @@ class Stats(object):
                                      if t['tag'] in [tg[1] for tg in tgs]
                                      ][0]
             except IndexError:
+                traceback.print_exc(5)
                 tr[idx]['revlev'] = 0
-
-            # add rw_ratio
-            try:
-                if not t['tright']:  # TODO: tests to sanitize bad data (None)
-                    t['tright'] = 0
-                if not t['twrong']:
-                    t['twrong'] = 0
-                tr[idx]['rw_ratio'] = round(
-                    (float(t['tright']) / float(t['twrong'])), 1)
-            except (ZeroDivisionError, TypeError):
-                tr[idx]['rw_ratio'] = round(float(t['tright']), 1)
 
             # round tright and twrong to closest int for readability
             for i in ['right', 'wrong']:
