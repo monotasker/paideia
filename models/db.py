@@ -17,7 +17,6 @@ response = current.response
 request = current.request
 now = datetime.datetime.utcnow()
 
-
 if request.is_local:  # disable in production enviroment
     from gluon.custom_import import track_changes
     track_changes(True)
