@@ -17,6 +17,7 @@ class Home extends Component {
     return (
       <Container fluid>
       <Row>
+        <Col className="masthead">
         <h2>Welcome to Paideia!</h2>
 
         <img className="welcome-maria" src={ imgMaria } />
@@ -28,7 +29,7 @@ class Home extends Component {
             Explore
           </Button>
         </div>
-
+        </Col>
       </Row>
       <Row>
         <Col>
