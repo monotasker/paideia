@@ -1,0 +1,129 @@
+// @import "~bootstrap/scss/_variables.scss";
+
+// basic colors
+// -----------------------------
+$red:                   #B10808;
+$warning:               #a40000;
+$wine:                  #701;
+$cranberry:             #852625;
+$cinnamon:              #845852;
+$cream:                 #F8F0E5;
+$tapioca:               #F2E5D4;
+$white:                 #fff;
+$green:                 #5BA917;
+$neutralLight:          #f2eed5;
+$putty:                 #d8d3b3;
+$green:                 #96BC44;
+$greenDark:             #809240;
+// $red:                   #9d261d;
+$blueDark:              #1c7f99; // #006699;
+$blue:                  #049cdb;
+$yellow:                #ffc40d;
+$orange:                #f89406;
+
+// Applied Pallette (modded)
+// -------------------------
+$palletteBG: $white;
+$pallette1: $neutralLight;
+$pallette2: $putty;
+$pallette3: $green;
+$pallette4: $greenDark;
+$accent1: $red;
+$accent2: $blueDark;
+$accent3: $orange;
+
+$textColor: #333;
+$linkColor: $pallette2;
+$navbarLinkColor: $pallette2;
+
+// semantic colors (modded)
+// -------------------------
+$danger-bg: #fcf2f2;
+$danger: #bd362f; // #a84f4c; // default #dFb5b4;
+$info-bg: #f0f7fd; //#d0e3f0;
+$info: #5bc0de;
+$info-dark: #2f96b4; // #5387B2;
+$warning-bg: #fefbed;
+$warning: $orange; // #f1e7bc;
+$error: $red;
+$success-bg: #dff0d8;
+$success: $pallette3;  // #d6e9c6;
+$successDark: $pallette4; // #d6e9c6;
+
+//---------------------------------------------------
+// typography
+
+@font-face {
+    font-family: 'Glyphicons Halflings';
+    src: url('../Fonts/glyphicons-halflings-regular.eot');
+    src: url('../Fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'), url('../Fonts/glyphicons-halflings-regular.woff') format('woff'), url('../Fonts/glyphicons-halflings-regular.ttf') format('truetype'), url('../Fonts/glyphicons-halflings-regular.svg#glyphicons_halflingsregular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SBLGreekRegular';
+    src: url('../Fonts/sbl_grk-webfont.eot');
+    src: local('☺'),
+    url('../Fonts/sbl_grk-webfont.woff') format('woff'),
+    url('../Fonts/sbl_grk-webfont.ttf') format('truetype'),
+    url('../Fonts/sbl_grk-webfont.svg#webfontRelj09Wi') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+$font-size-base:               1rem;
+$font-size-lg:                 $font-size-base * 1.25;
+
+// main----------------------------------------------
+
+div.maria-bubble               {position:absolute;
+                                top:5em;
+                                left:360px;
+                                box-shadow: 2px 4px 0 rgba(0,0,0,0.5);
+                                border-radius:2em;
+                                z-index: 10;
+    &:after {                   border-right: 25px solid #fff;
+                                border-top: 25px solid transparent;
+                                left: -25px;
+                                top: 40%;
+                                content: '';
+                                position: absolute;
+    }
+    &:before {
+        border-right: 23px solid rgba(0,0,0,0.5);
+        border-top: 23px solid transparent;
+        left: -23px;
+        top: 42%;
+        content: '';
+        position: absolute;
+    }
+}
+div.maria-bubble,
+div.maria-bubble-mobile        {background-color: white;
+                                padding:2em;
+    h1                         {font-family: 'Amatic SC', cursive;
+                                font-weight: regular;
+                                font-size: 3em;
+                                color: darken($pallette1, 30%);
+    }
+    a.btn                   {background-color: $pallette4;
+                             border: 1px solid $palletteBG;
+                             margin-top: 0.5em;
+    }
+    p.index-openmessage         {font-size: $font-size-lg;
+                                color: #888;
+    }
+}
+div#masthead                        {overflow: hidden;
+                                     height: 28em;
+    @media (max-width: 767px)       {height: 10em;
+    }
+    .container                      {position:relative;
+        img.welcome-maria               {position: absolute;
+                                         left:0;
+            @media (max-width: 767px)   {height:36em;
+            }
+        }
+    }
+}

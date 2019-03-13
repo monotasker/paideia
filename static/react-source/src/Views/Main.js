@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import './Main.css';
+import './Main.scss';
 import {
   Container,
   Row,
