@@ -13,12 +13,23 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.(png|jpg|gif)$/,
+        test: /\.(png|jpg|gif|svg)$/,
         use: [
           {
             loader: 'file-loader',
             options: {
               outputPath: 'images',
+            },
+          },
+        ],
+      },
+      {
+        test: /\.(eot|ttf|woff)$/,
+        use: [
+          {
+            loader: 'file-loader',
+            options: {
+              outputPath: 'fonts',
             },
           },
         ],
@@ -53,7 +64,10 @@ module.exports = {
     ]
   },
   plugins: [
-    new HTMLWebpackPlugin(),
+    new HTMLWebpackPlugin({
+        template: "./src/index.html",
+        filename: "./index.html"
+    }),
     // new NpmInstallPlugin()
   ]
 }
