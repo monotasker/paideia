@@ -6,7 +6,8 @@ module.exports = {
   entry: './src/index.js',
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'app.js'
+    filename: 'app.js',
+    publicPath: '/'
   },
   mode: 'development',
   devtool: 'inline-source-map',
@@ -62,6 +63,9 @@ module.exports = {
       '.js',
       '.jsx'
     ]
+  },
+  devServer: {
+    historyApiFallback: true
   },
   plugins: [
     new HTMLWebpackPlugin({
