@@ -13,44 +13,16 @@ module.exports = {
   devtool: 'inline-source-map',
   module: {
     rules: [
-      {
-        test: /\.(png|jpg|gif|svg)$/,
-        use: [
-          {
-            loader: 'file-loader',
-            options: {
-              outputPath: 'images',
-            },
-          },
-        ],
+      {test: /\.(png|jpg|gif|svg)$/,
+       use: [{loader: 'file-loader', options: {outputPath: 'images'}}],
       },
-      {
-        test: /\.(eot|ttf|woff)$/,
-        use: [
-          {
-            loader: 'file-loader',
-            options: {
-              outputPath: 'fonts',
-            },
-          },
-        ],
+      {test: /\.(eot|ttf|woff)$/,
+       use: [{loader: 'file-loader', options: {outputPath: 'fonts'}}],
       },
-      {
-        test: /\.(js|jsx)$/,
-        exclude: /node_modules/,
-        use: 'babel-loader'
-      },
-      {
-        test: /\.css$/,
-        use:
-          [
-            'style-loader',
-            'css-loader',
-          ]
-      },
-      {
-        test: /\.scss$/,
-        use: [
+      {test: /\.(js|jsx)$/, exclude: /node_modules/, use: 'babel-loader'},
+      {test: /\.css$/, use: ['style-loader', 'css-loader']},
+      {test: /\.scss$/,
+       use: [
           'style-loader',
           'css-loader',
           'sass-loader'
@@ -58,12 +30,7 @@ module.exports = {
       }
     ]
   },
-  resolve: {
-    extensions: [
-      '.js',
-      '.jsx'
-    ]
-  },
+  resolve: {extensions: ['.js', '.jsx']},
   devServer: {
     historyApiFallback: true
   },
@@ -72,6 +39,5 @@ module.exports = {
         template: "./src/index.html",
         filename: "./index.html"
     }),
-    // new NpmInstallPlugin()
   ]
 }
