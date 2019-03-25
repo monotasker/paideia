@@ -105,7 +105,7 @@ class Main extends Component {
                     >
                       <Switch location={location.location}>
                         <Route exact path="/" component={Home}/>
-                        <Route path="/walk" component={Walk}/>
+                        <Route path="/walk/:walkPage" component={Walk}/>
                         <Route path="/videos" component={Videos}/>
                         <Route path="/profile" component={Profile}/>
                         <Route path="/info/:infoPage" component={Info}/>

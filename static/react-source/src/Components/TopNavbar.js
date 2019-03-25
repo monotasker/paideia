@@ -24,7 +24,7 @@ import {
 
 const navData = [
   {title: "Home", path: "/", icon: faHome},
-  {title: "Map", path: "/walk", icon: faMap},
+  {title: "Map", path: "/walk/map", icon: faMap},
   {title: "Lessons", path: "/videos", icon: faVideo},
   {title: "Profile", path: "/profile", icon: faUser}
 ]
