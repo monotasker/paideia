@@ -4,7 +4,7 @@ import {
 } from "react-bootstrap";
 import { LinkContainer } from "react-router-bootstrap";
 
-import { svg_go_there } from "../Services/mapNavService";
+import { make_map_pan } from "../Services/mapNavService";
 import mapImageSvg from "../Images/town_map.svg";
 
 class Walk extends Component {
@@ -16,6 +16,7 @@ class Walk extends Component {
   }
 
   componentDidMount() {
+    make_map_pan("town_map");
   }
 
   render() {

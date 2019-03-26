@@ -27,10 +27,17 @@ module.exports = {
           'css-loader',
           'sass-loader'
         ]
-      }
+      },
+      { test: /\.json$/, loader: 'json-loader' }
     ]
   },
   resolve: {extensions: ['.js', '.jsx']},
+  // node: {
+  //   fs: 'empty',
+  //   console: true,
+  //   net: 'empty',
+  //   tls: 'empty'
+  // },
   devServer: {
     historyApiFallback: true
   },
