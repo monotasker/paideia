@@ -4,6 +4,7 @@ import {
 } from "react-bootstrap";
 import { LinkContainer } from "react-router-bootstrap";
 
+import { svg_go_there } from "../Services/mapNavService";
 import mapImageSvg from "../Images/town_map.svg";
 
 class Walk extends Component {
@@ -14,9 +15,13 @@ class Walk extends Component {
     }
   }
 
+  componentDidMount() {
+  }
+
   render() {
     return (
-      <Container fluid>
+      <Container fluid className="walk-container">
+        <div id="exploring-mask"></div>
         <object id='town_map' data={mapImageSvg} type='image/svg+xml'></object>
       </Container>
     );

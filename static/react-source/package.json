@@ -17,7 +17,9 @@
     "react-router-dom": "^4.3.1",
     "react-scripts": "2.1.5",
     "react-transition-group": "^2.6.1",
-    "typescript": "^3.3.3333"
+    "svg-pan-zoom": "^3.6.0",
+    "typescript": "^3.3.3333",
+    "velocity": "^0.7.2"
   },
   "scripts": {
     "start": "webpack-dev-server --open --mode development",
@@ -57,8 +59,13 @@
     "webpack-dev-server": "^3.2.1"
   },
   "jest": {
-    "moduleFileExtensions": ["js", "jsx"],
-    "moduleDirectories": ["node_modules"],
+    "moduleFileExtensions": [
+      "js",
+      "jsx"
+    ],
+    "moduleDirectories": [
+      "node_modules"
+    ],
     "moduleNameMapper": {
       "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/__mocks__/fileMock.js",
       "\\.(gif|ttf|eot|svg)$": "<rootDir>/__mocks__/fileMock.js"
