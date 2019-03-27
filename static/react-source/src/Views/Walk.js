@@ -5,25 +5,35 @@ import {
 import { LinkContainer } from "react-router-bootstrap";
 
 import { make_map_pan } from "../Services/mapNavService";
-import mapImageSvg from "../Images/town_map.svg";
+import SvgMap from "./SvgMap.js";
+import Step from "./Step.js";
 
 class Walk extends Component {
   constructor(props) {
     super(props);
+    this.activeRoutes = ["path5424", "path5418"];
     this.state = {
-      currentPage: (props.match.params.walkPage || null)
+      currentPage: (props.match.params.walkPage || "map")
     }
+    this.goToLocation = this.goToLocation.bind(this);
   }
 
-  componentDidMount() {
-    make_map_pan("town_map");
+  goToLocation(newLoc) {
+    this.setState({currentPage: newLoc});
   }
 
   render() {
     return (
       <Container fluid className="walk-container">
-        <div id="exploring-mask"></div>
-        <object id='town_map' data={mapImageSvg} type='image/svg+xml'></object>
+        <SvgMap
+          myRoute={this.state.currentPage}
+          navFunction={this.goToLocation}
+        />
+        <Step
+          myRoute={this.state.currentPage}
+          activeRoutes={this.activeRoutes}
+          navFunction={this.goToLocation}
+        />
       </Container>
     );
   }
