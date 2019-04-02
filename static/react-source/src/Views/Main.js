@@ -9,11 +9,12 @@ import {
   Route,
   BrowserRouter
 } from "react-router-dom";
+import styled, { ThemeProvider } from "styled-components";
 import { TransitionGroup, Transition } from "react-transition-group";
 import { TimelineLite, CSSPlugin } from "gsap";
 
-import './Main.css';
-import './Main.scss';
+// import './Main.css';
+// import './Main.scss';
 
 import TopNavbar from "../Components/TopNavbar"
 import Home from "./Home";
@@ -25,6 +26,17 @@ import Info from "./Info";
 import Admin from "./Admin";
 import Instructors from "./Instructors";
 import UserProvider from "../UserContext/UserProvider";
+import Theme from "../variables.js";
+
+const theme = Theme;
+
+const Div = styled.div`
+  font-family: $sans-fonts;
+
+  .content > div {position: relative;
+                  left: -100vw;
+  }
+`;
 
 function FirstChild(props) {
   const childrenArray = React.Children.toArray(props.children);
@@ -87,9 +99,10 @@ class Main extends Component {
 
   render() {
     return (
+      <ThemeProvider theme={theme}>
       <UserProvider>
       <BrowserRouter>
-        <div className="Main">
+        <Div className="Main">
           <TopNavbar />
           <Row>
             <Col className="content">
@@ -120,9 +133,10 @@ class Main extends Component {
               }} />
             </Col>
           </Row>
-        </div>
+        </Div>
       </BrowserRouter>
       </UserProvider>
+      </ThemeProvider>
     );
   }
 }

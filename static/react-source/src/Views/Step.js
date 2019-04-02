@@ -8,8 +8,7 @@ import { LinkContainer } from "react-router-bootstrap";
 class Step extends Component {
   render() {
     return(
-      this.props.activeRoutes.includes(this.props.myRoute) &&
-      <Row>
+      <Row id="step_row" className="{ this.props.myRoute }">
         <Col>
         { this.props.myRoute }
         </Col>

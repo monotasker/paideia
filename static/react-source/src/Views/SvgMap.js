@@ -16,9 +16,10 @@ class SvgMap extends Component {
     const headroom = document.querySelector('.navbar').offsetHeight;
     let divheight = window.innerHeight - headroom;
     this.setState({
-      objectStyles: {height: divheight}
+      objectStyles: {height: divheight, width: "100%"}
     })
   }
+
 
   componentDidMount() {
     this.setHeight();
@@ -28,7 +29,6 @@ class SvgMap extends Component {
 
   render() {
     return(
-      this.props.myRoute == "map" &&
       <object id='town_map'
         data={mapImageSvg}
         type='image/svg+xml'

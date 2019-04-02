@@ -6,6 +6,7 @@ import {
   Button,
   Card
 } from "react-bootstrap";
+import styled from "styled-components";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faExclamationTriangle,
@@ -17,6 +18,52 @@ import imgKnownBugs from "../Images/info_Known_Bugs_and_Issue.svg";
 import imgHowDoIType from "../Images/info_How_Do_I_Type_Greek.svg";
 import imgWhatDoINeed from "../Images/info_What_Do_I_Need.svg";
 
+
+const Masthead = styled.Col`
+  background-image: url({props => props.theme.images.$mapPng});
+  min-height: 360px;
+  margin-top: 0;
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border: 0px solid transparent;
+  overflow: hidden;
+  height: 28rem;
+  @media (max-width: {props => props.theme.breakpoints.$md}) {
+    height: 10rem;
+  }
+  img.welcome-maria  {position: absolute;
+                      left:0;
+      @media (max-width: {props => props.theme.breakpoints.$md}) {
+        height:36rem;
+      }
+  }
+}
+`;
+
+const MariaBubble = styled.div`
+  position:absolute;
+  top:5rem;
+  left:360px;
+  box-shadow: 2px 4px 0 rgba(0,0,0,0.5);
+  border-radius:2rem;
+  z-index: 10;
+  display: none;
+  overflow-y: hidden;
+  :after {                    border-right: 25px solid #fff;
+                              border-top: 25px solid transparent;
+                              left: -25px;
+                              top: 40%;
+                              content: '';
+                              position: absolute;
+  }
+  :before {                   border-right: 23px solid rgba(0,0,0,0.5);
+                              border-top: 23px solid transparent;
+                              left: -23px;
+                              top: 42%;
+                              content: '';
+                              position: absolute;
+    }
+`;
 
 const modalContent = [
   {img: imgWhatDoINeed,
@@ -53,19 +100,19 @@ class Home extends Component {
 
       {/* Masthead row --------------------------------------------------*/}
       <Row>
-        <Col className="masthead">
+        <Masthead className="masthead">
 
-        <img className="welcome-maria" src={ imgMaria } />
+          <img className="welcome-maria" src={ imgMaria } />
 
-        <div className="maria-bubble d-md-block">
-          <h1>Welcome to Paideia!</h1>
-          <p className="index-openmessage">Paideia is a fun and interactive place to learn New Testament Greek. To get started, register for a free account and then click the green button below to start exploring.</p>
-          <Button variant="success">
-            <FontAwesomeIcon icon={ faSignInAlt } />
-            Explore
-          </Button>
-        </div>
-        </Col>
+          <MariaBubble className="maria-bubble d-md-block">
+            <h1>Welcome to Paideia!</h1>
+            <p className="index-openmessage">Paideia is a fun and interactive place to learn New Testament Greek. To get started, register for a free account and then click the green button below to start exploring.</p>
+            <Button variant="success">
+              <FontAwesomeIcon icon={ faSignInAlt } />
+              Explore
+            </Button>
+          </MariaBubble>
+        </Masthead>
       </Row>
 
       {/*Maria's message on narrow screens -------------------------------*/}
