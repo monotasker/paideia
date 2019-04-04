@@ -26,12 +26,13 @@ import Info from "./Info";
 import Admin from "./Admin";
 import Instructors from "./Instructors";
 import UserProvider from "../UserContext/UserProvider";
-import Theme from "../variables.js";
-
-const theme = Theme;
+import {
+  GlobalStyle,
+  Theme
+} from "../variables.js";
 
 const Div = styled.div`
-  font-family: $sans-fonts;
+  fontFamily: {props => props.theme.typography.$sansFonts};
 
   .content > div {position: relative;
                   left: -100vw;
@@ -99,9 +100,11 @@ class Main extends Component {
 
   render() {
     return (
-      <ThemeProvider theme={theme}>
+      <ThemeProvider theme={Theme}>
       <UserProvider>
       <BrowserRouter>
+        <React.Fragment>
+        <GlobalStyle />
         <Div className="Main">
           <TopNavbar />
           <Row>
@@ -134,6 +137,7 @@ class Main extends Component {
             </Col>
           </Row>
         </Div>
+      </React.Fragment>
       </BrowserRouter>
       </UserProvider>
       </ThemeProvider>

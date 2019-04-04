@@ -8,11 +8,24 @@ import {
   Transition,
   TransitionGroup
 } from "react-transition-group";
+import styled from "styled-components";
 import Velocity from "velocity-animate";
 
 import { make_map_pan } from "../Services/mapNavService";
 import SvgMap from "./SvgMap.js";
 import Step from "./Step.js";
+
+const WalkGroup = styled(TransitionGroup)`
+  div#exploring-mask                          {display: block;
+                                               position: absolute;
+                                               background-color: rgba(255,255,255,1.0);
+                                               width: 100%;
+                                               height: 100%;
+                                               text-align: center;
+      img                                     {position: absolute;
+      }
+  }
+`;
 
 class Walk extends Component {
   constructor(props) {

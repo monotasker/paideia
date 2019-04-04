@@ -1,4 +1,5 @@
-import createGlobalStyle from "styled-components";
+import { createGlobalStyle } from "styled-components";
+import TownMapPng from "./Images/town_map.png";
 
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css?family=Amatic+SC|Open+Sans');
@@ -27,7 +28,7 @@ const GlobalStyle = createGlobalStyle`
 `;
 
 const images = {
-  $mapPng: "../Images/town_map.png",
+  $mapPng: TownMapPng,
 }
 
 const breakpoints = {
@@ -88,91 +89,47 @@ const typography = {
   $sansFonts:                   '"Open Sans", sans-serif',
 }
 
-div.maria-bubble,
-div.maria-bubble-mobile        {background-color: white;
-                                padding:2rem;
-    h1                         {font-family: 'Amatic SC', cursive;
-                                font-weight: regular;
-                                font-size: 3rem;
-                                color: darken($pallette1, 30%);
-    }
-    button                     {background-color: $pallette4;
-                                border: 1px solid $palletteBG;
-                                margin-top: 0.5rem;
-    }
-    p.index-openmessage         {font-size: $font-size-base;
-                                color: #888;
-    }
-}
-
-div.warning.row                {background-color: $danger;
-                                color: $warning;
-                                padding: 1.25rem 0;
-    p                          {text-align: center;
-    }
+const Theme = {
+  images: images,
+  breakpoints: breakpoints,
+  colors: colors,
+  palleteColors: palleteColors,
+  semanticColors: semanticColors,
+  typography: typography
 }
 
 
-div.modal-set.row              {color: #efefef;
-                                background-color: $pallette3;
-                                text-align: center;
-                                padding-top: 3rem;
-                                padding-bottom: 3rem;
-    @media (max-width: map-get($grid-breakpoints, md))  {padding: 0;
-                                         text-align: left;
-                                         padding-left: 2rem;
-                                         padding-right: 2rem;
-    }
-    .info-pane                 {
-      .info-illustration-wrapper          {//text-align: center;
-                                           // width:100%;
-          @media (max-width: map-get($grid-breakpoints, md)) {text-align: left;
-          }
-          .info-pane-illustration {width:12rem;
-                                   background-color: rgba(255, 255, 255, 0.3);
-                                   border-radius: 50%;
-                                   padding: 0.5rem;
-                                   // margin: 0px auto;
-              @media (max-width: $breakpoint-sm) {float: right;
-                                                  width: 3rem;
-                                                  padding: 1rem;
-              }
-          }
-          h4 a                                   {color: $white;
-                                                  margin-top: 2rem;
-                                                  font-size: $font-size-base;
-              @media (max-width: $breakpoint-sm) {line-height: 3em;
-                                                  height: 3em;
-              }
-              &:hover                            {text-decoration: dotted;
-              }
-          }
-      }
-    }
-    p                       {hyphens: auto;
-                            -moz-hyphens: auto;
-                            -webkit-hyphens: auto;
-                            -ms-hyphens: auto;
-    }
-}
+const saturate = x => ({saturation, ...rest}) => ({
+  ...rest,
+  saturation: Math.min(1, saturation + x),
+});
 
-// walk interface---------------------------------------
+const desaturate = x => ({saturation, ...rest}) => ({
+  ...rest,
+  saturation: Math.max(0, saturation - x),
+});
 
-div.content > .walk-container                 {
-  div#exploring-mask                          {display: block;
-                                               position: absolute;
-                                               background-color: rgba(255,255,255,1.0);
-                                               width: 100%;
-                                               height: 100%;
-                                               text-align: center;
-      img                                     {position: absolute;
-      }
-  }
-  object#town_map                             {width: 100%;
-                                               margin:0 auto;
-                                               cursor: move;
-                                               opacity: 0;
-    svg                                       {cursor: move;
-    }
-  }
-}
+const lighten = x => ({lightness, ...rest}) => ({
+  ...rest,
+  lightness: Math.min(1, lightness + x)
+});
+
+const darken = x => ({lightness, ...rest}) => ({
+  ...rest,
+  lightness: Math.max(0, lightness - x)
+});
+
+export {
+  images,
+  breakpoints,
+  colors,
+  palleteColors,
+  semanticColors,
+  typography,
+  saturate,
+  desaturate,
+  lighten,
+  darken,
+  Theme,
+  GlobalStyle
+};

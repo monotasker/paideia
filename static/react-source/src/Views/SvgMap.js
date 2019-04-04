@@ -1,7 +1,20 @@
 import React, { Component } from "react";
+import styled from "styled-components";
 
 import { make_map_pan } from "../Services/mapNavService";
 import mapImageSvg from "../Images/town_map.svg";
+
+
+const MapObject = styled.object`
+  width: 100%;
+  margin:0 auto;
+  cursor: move;
+  opacity: 0;
+  svg {
+    cursor: move;
+  }
+`;
+
 
 class SvgMap extends Component {
   constructor(props) {
@@ -29,12 +42,12 @@ class SvgMap extends Component {
 
   render() {
     return(
-      <object id='town_map'
+      <MapObject id='town_map'
         data={mapImageSvg}
         type='image/svg+xml'
         style={this.state.objectStyles}
       >
-      </object>
+    </MapObject>
   )}
 }
 
