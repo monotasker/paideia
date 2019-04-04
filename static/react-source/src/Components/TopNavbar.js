@@ -23,20 +23,24 @@ import {
   faBug
 } from '@fortawesome/free-solid-svg-icons';
 
+import { lighten } from "../variables";
+
 const TopNav = styled(Navbar)`
   background-color: #fff;
   box-shadow: 0 3px 0 rgba(0, 0, 0, 0.2);
   line-height: 1;
-  a.navbar-brand         {text-transform: uppercase;
-                          letter-spacing: 2px;
-                          color: $danger;
-                          transition: 100ms all linear;
-                          font-family: 'Amatic SC', cursive;
-                          font-weight: normal;
-                          font-size: 3rem;
-      &:hover            {color: lighten($danger, 10%);
-                          transition: 100ms all linear;
-      }
+  a.navbar-brand {
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: ${props => props.theme.semanticColors.$danger};
+    transition: 100ms all linear;
+    font-family: 'Amatic SC', cursive;
+    font-weight: normal;
+    font-size: 3rem;
+    &:hover {
+      color: lighten(${props => props.theme.semanticColors.$danger}, 10%);
+      transition: 100ms all linear;
+    }
   }
   small                  {display: none;
   }
@@ -45,27 +49,28 @@ const TopNav = styled(Navbar)`
   .navbar-toggle span    {background-color: #aaa;
   }
   .navbar-nav            {
-      >a                 {
-          &:hover,
-          &:active,
-          &.open        {color: $white;
-                         background-color: lighten($accent2, 20%);
+    >a                 {
+      &:hover,
+      &:active,
+      &.open        {
+        color: ${props => props.theme.colors.$white};
+        background-color: lighten(${props => props.theme.palleteColors.$accent2}, 20%);
       }
-        .dropdown-menu {
-            top: -2px;
-            background-color: lighten($accent2, 20%);
-            border: 1px solid lighten($accent2, 10%);
-            li            {
-                &.divider {background-color: lighten($accent2, 10%);
+      .dropdown-menu {
+        top: -2px;
+        background-color: lighten(${props => props.theme.palleteColors.$accent2}, 20%);
+        border: 1px solid lighten(${props => props.theme.palleteColors.$accent2}, 10%);
+        li            {
+                &.divider {background-color: lighten(${props => props.theme.palleteColors.$accent2}, 10%);
                              margin: 0;
                   }
-                  a         {color: $white;
+                  a         {color: ${props => props.theme.colors.$white};
                              line-height: 3em;
                              height: 3em;
                              padding-top: 0;
                              padding-bottom: 0;
                       &:hover,
-                      &:active    {background-color: lighten($accent2, 10%);
+                      &:active    {background-color: lighten(${props => props.theme.palleteColors.$accent2}, 10%);
                       }
                   }
               }
@@ -78,14 +83,14 @@ const TopNav = styled(Navbar)`
                           position: relative;
                           display: block;
       #unread-counter    {border-radius: 0;
-                          color: $pallette3;
+                          color: ${props => props.theme.palleteColors.$pallette3};
                           height: 100%;
                           line-height: 100%;
                           padding: 19px;
-                          background-color: lighten($pallette3, 40%);
+                          background-color: lighten(${props => props.theme.palleteColors.$pallette3}, 40%);
                           transition: all .3s ease-in-out;
-          &:hover        {background-color: lighten($pallette3, 45%);
-                          columns: darken($pallette3, 10%);
+          &:hover        {background-color: lighten(${props => props.theme.palleteColors.$pallette3}, 45%);
+                          columns: darken(${props => props.theme.palleteColors.$pallette3}, 10%);
                           transition: all .5s ease-in-out;
           }
       }
