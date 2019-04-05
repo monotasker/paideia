@@ -5,7 +5,7 @@ import {
 } from "react-bootstrap";
 import { LinkContainer } from "react-router-bootstrap";
 import {
-  Transition,
+  CSSTransition,
   TransitionGroup
 } from "react-transition-group";
 import styled from "styled-components";
@@ -24,6 +24,23 @@ const WalkGroup = styled(TransitionGroup)`
                                                text-align: center;
       img                                     {position: absolute;
       }
+  }
+  .svgMapPane-enter {
+    opacity: 0;
+  }
+
+  .svgMapPane-enter-active {
+    opacity: 1;
+    transition: opacity 2000ms;
+  }
+
+  .svgMapPane-exit {
+    opacity: 1;
+  }
+
+  .svgMapPane-exit-active {
+    opacity: 1;
+    transition: opacity 2000ms;
   }
 `;
 
@@ -67,32 +84,30 @@ class Walk extends Component {
   }
 
   render() {
-    console.log(this.state.mapIn);
     return (
       <TransitionGroup className="walk-container" >
-        <Transition
+        <CSSTransition
           in={ this.state.mapIn }
-          onEnter={ node => this.showMe(node) }
-          onExit={ node => this.hideMe(node) }
-          timeout={300}
+          classNames="svgMapPane"
+          timeout={2000}
         >
           <SvgMap navFunction={this.goToLocation} />
-        </Transition>
-        <Transition
-          in={ this.state.stepIn }
-          onEnter={ node => this.showMe(node) }
-          onExit={ node => this.hideMe(node) }
+        </CSSTransition>
+        <CSSTransition
+          in={ this.state.stepin }
+          classNames="stepPane"
           timeout={300}
-          mountOnEnter
         >
           <Step
-            myRoute={this.state.currentPage}
-            navFunction={this.goToLocation}
+            myroute={this.state.currentpage}
+            navfunction={this.gotolocation}
           />
-        </Transition>
+        </CSSTransition>
       </TransitionGroup>
     );
   }
 }
+
+
 
 export default Walk;
