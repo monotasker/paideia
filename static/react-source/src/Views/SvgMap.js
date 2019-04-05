@@ -9,7 +9,6 @@ const MapObject = styled.object`
   width: 100%;
   margin:0 auto;
   cursor: move;
-  opacity: 0;
   svg {
     cursor: move;
   }

@@ -62,7 +62,7 @@ const MariaRowH1 = styled.h1`
   font-family: 'Amatic SC', cursive;
   font-weight: regular;
   font-size: 3rem;
-  color: darken(${props => props.theme.palleteColors.$pallette1}, 30%);
+  color: darken(${props => props.theme.palleteColors.$pallette1}, 30);
 `;
 
 const MariaBubble = styled(MariaRow)`
