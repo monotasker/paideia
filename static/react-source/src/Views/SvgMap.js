@@ -1,9 +1,12 @@
 import React, { Component } from "react";
 import styled from "styled-components";
+import { Row } from "react-bootstrap";
 
 import { make_map_pan } from "../Services/mapNavService";
 import mapImageSvg from "../Images/town_map.svg";
 
+const MapRow = styled(Row)`
+`;
 
 const MapObject = styled.object`
   width: 100%;
@@ -39,14 +42,20 @@ class SvgMap extends Component {
     make_map_pan("town_map", this.props.navFunction);
   }
 
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.setHeight);
+  }
+
   render() {
     return(
-      <MapObject id='town_map'
-        data={mapImageSvg}
-        type='image/svg+xml'
-        style={this.state.objectStyles}
-      >
-    </MapObject>
+      <MapRow className="svgMapPane">
+        <MapObject id={this.props.id}
+          data={mapImageSvg}
+          type='image/svg+xml'
+          style={this.state.objectStyles}
+        >
+        </MapObject>
+      </MapRow>
   )}
 }
 
