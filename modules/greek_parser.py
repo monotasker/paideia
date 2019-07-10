@@ -241,7 +241,7 @@ class Parser(object):
             matchindex = [l[1]['index'] for l in leafcopy
                           if l[0] == matchstring][0]
             mydict = leafcopy[matchindex][1]
-            if 'pos' not in list(mydict.keys()):  # only tag word if currently untagged
+            if 'pos' not in list(mydict.keys()):  # only tag word if untagged
                 mydict['pos'] = classname
                 if 'current' in list(mydict.keys()):
                     mydict['current'] += 1
@@ -250,7 +250,6 @@ class Parser(object):
             else:
                 print('already tagged, leaf invalid')
                 return False, None
-
 
             return leafcopy, matchindex
 
@@ -264,18 +263,21 @@ class Parser(object):
                     if m in [w[0] for w in leaf]:  # because findall and case
                         print('tagging leaf with', makeutf8(m))
                         taggedleaf, matchindex = tag_token(m, deepcopy(leaf))
-                        if taggedleaf and taggedleaf not in list(newvalids.values()):
+                        if taggedleaf and taggedleaf not in \
+                                list(newvalids.values()):
                             if key in list(newvalids.keys()):
                                 newkey = max(newvalids.keys()) + 1
                             else:
                                 newkey = key
                             print('appending valid leaf', newkey)
                             newvalids[newkey] = taggedleaf
-                            # add matching words (with index) directly to instance variable
+                            # add matching words (with index) directly to
+                            # instance variable
                             self.matching_words[newkey] = {'word': m,
                                                            'index': matchindex}
                             print('matching for leaf', newkey)
-                        elif not taggedleaf and leaf not in list(newfaileds.values()):
+                        elif not taggedleaf and leaf not in \
+                                list(newfaileds.values()):
                             if key in list(newfaileds.keys()):
                                 newkey = max(newfaileds.keys()) + 1
                             else:
@@ -351,7 +353,8 @@ class Parser(object):
             parsing = self.parseform(refword)
             print('parsing')
             print(parsing)
-            artlemid = db(db.lemmas.lemma == 'ὁ').select(db.lemmas.id).first().id
+            artlemid = db(db.lemmas.lemma == 'ὁ'
+                          ).select(db.lemmas.id).first().id
             print('artlemid', artlemid)
             argdict = {'source_lemma': artlemid,
                        'grammatical_case': parsing['grammatical_case'],
@@ -370,8 +373,8 @@ class Parser(object):
         try:
             formrow = db.word_forms(db.word_forms.word_form == token).as_dict()
         except AttributeError:
-            formrow = db.word_forms(db.word_forms.word_form == token.lower()).as_dict()
-
+            formrow = db.word_forms(db.word_forms.word_form == token.lower()
+                                    ).as_dict()
         lemmarow = db.lemmas(formrow['source_lemma'])
         formrow['part_of_speech'] = lemmarow['part_of_speech']
         return formrow
@@ -528,6 +531,7 @@ class Art(Parser):
 class Adjective(Parser):
     pass
 
+
 '''
 def main(string, pattern):
     """Take the  strings in 'strings' variable and validate them."""
@@ -554,7 +558,8 @@ def main(string, pattern):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('string', help='the string to be evaluated')
-    parser.add_argument('pattern', help='the pattern against which to evaluate the string')
+    parser.add_argument('pattern', help='the pattern against which to '
+        'evaluate the string')
     args = parser.parse_args()
     main(args.string, args.pattern)
 '''
