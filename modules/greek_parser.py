@@ -39,6 +39,8 @@ wordforms = {'ἀνηρ': {'gender': 'masc',
                      'case': 'accusative'}
              }
 
+LEAFINDEX = 0
+
 
 def tokenize(str):
     """
@@ -56,8 +58,7 @@ def tokenize(str):
     tokenized = []
     for c in clauses:
         words = c.split(' ')
-        token_list = [(str(makeutf8(t)), {'index': words.index(t)})
-                      for t in words]
+        token_list = [(t, {'index': words.index(t)}) for t in words]
         tokenized.append({0: token_list})
     return tokenized
 
@@ -80,7 +81,7 @@ class Parser(object):
         : A list of Parser sub-class objects representing the grammatical
         constructions expected as constituents of this parent construction.
         """
-        self.restring = args[0].strip() if args[0] else None
+        self.restring = args[0] if args[0] else None
         self.structures = args[1:]
         try:
             self.top = True if self.structures[-1] == 'top' else False
@@ -95,46 +96,9 @@ class Parser(object):
 
         self.classname = type(self).__name__
 
-    def filter_pos(self, parts, pos):
-        """
-        Return a list of leaf tuples filtered based on the part of speech.
-        """
-        mytuples = [p for p in parts if p[1]['pos'] == pos]
-        return mytuples
-
-    def modifies(self, leaf, modifier, modified):
-        """
-        """
-        modindex = modifier[1]['index']
-        leaf[modindex][1]['modifies'] = modified[1]['index']
-        return leaf
-
     def __enter__(self):
         """ Necessary to use in 'with' condition."""
         return self
-
-    def find_child_words(self):
-        """
-        """
-        if self.structures:
-            mywords = []
-            for s in self.structures:
-                myname = type(s).__name__
-                struct_words = s.matching_words
-                mywords.append([myname, struct_words])
-            print('finding child words')
-            print(mywords)
-            return mywords
-        else:
-            return None
-
-    def find_current_parts(self, leaf):
-        """
-        Return a list of the leaf tuples belonging to the current construction.
-        """
-        parts = [p for p in leaf
-                 if 'current' in list(p[1].keys()) and p[1]['current'] == 0]
-        return parts
 
     def validate(self, validlfs, failedlfs={}):
         """
@@ -143,32 +107,48 @@ class Parser(object):
 
         clause should be Clause() object
         """
+        matching_words = self.matching_words if self.matching_words else {}
+
+        print('restring is', self.restring)
         # validate constituent structures recursively
         if self.structures:
             for s in self.structures:
                 print('validating', s)
-                validlfs, failedlfs = s.validate(validlfs, failedlfs)
+                validlfs, failedlfs, mw = s.validate(validlfs,
+                                                     failedlfs=failedlfs)
                 if len(validlfs) < 1:
                     print('failed while validating', s)
-                    return validlfs, failedlfs
+                    return validlfs, failedlfs, matching_words
+                for k, wrd in mw.items():
+                    if k in matching_words.keys():
+                        matching_words[k].extend(wrd)
+                    else:
+                        matching_words[k] = wrd
 
         # find matching string for remaining viable leaves
         if self.restring:
             # need to compare with newly parsed to find newly added words
             old_validlfs = copy(validlfs)
-            print('checking for restring', makeutf8(self.restring))
-            validlfs, failedlfs = self.match_string(validlfs, failedlfs)
-            for k, lf in validlfs.items():
-
-                self.matching_words[k]
+            print('checking for restring', self.restring)
+            validlfs, failedlfs, mw = self.match_string(validlfs, failedlfs)
+            for k, wrd in mw.items():
+                if k in matching_words.keys():
+                    matching_words[k].extend(wrd)
+                else:
+                    matching_words[k] = wrd
             if len(validlfs) < 1:  # no valid leaves, validation fails
-                return validlfs, failedlfs
+                return validlfs, failedlfs, matching_words
 
         # test sub-structure order for any viable leaves
         if self.structures:
-            validlfs, failedlfs = self.test_order(validlfs, failedlfs)
+            validlfs, failedlfs = self.test_agreement(validlfs,
+                                                      failedlfs,
+                                                      matching_words)
+            validlfs, failedlfs = self.test_order(validlfs,
+                                                  failedlfs,
+                                                  matching_words)
             if len(validlfs) < 1:  # no valid leaves, validation fails
-                return validlfs, failedlfs
+                return validlfs, failedlfs, matching_words
 
         # find any untagged words if this structure is top level
         # if found, validation fails
@@ -184,11 +164,13 @@ class Parser(object):
                     print(clr(['some extra words left over'], self.myc))
                     for w in untagged: print(w)
             if not validlfs:
-                return validlfs, failedlfs
+                return validlfs, failedlfs, matching_words
             else:
                 pass
 
-        return validlfs, failedlfs
+        self.matching_words = matching_words
+
+        return validlfs, failedlfs, matching_words
 
     '''
     def strip_current_flags(self, validlfs, failedlfs):
@@ -213,45 +195,67 @@ class Parser(object):
         return newvalids, newfaileds
     '''
 
+    def tag_token(self, matchindex, key, value, leafcopy):
+        '''
+        Returns false if the value to be tagged for has already been tagged
+        '''
+        mydict = leafcopy[matchindex][1]
+        if key not in list(mydict.keys()):  # only tag word if untagged
+            mydict[key] = value
+        else:
+            print('already tagged, leaf invalid')
+            return False
+
+        return leafcopy
+
     def match_string(self, validleaves, failedleaves,
                      restring=None, classname=None):
         '''
         Identify token strings that match the current construction.
 
+        This method finds matching tokens in the provided string and adds the
+        suitable grammatical information to the analysis if a match is found.
+        If more than one match is available in the string, the method creates
+        separate "leaves" to pursue the analysis assuming each possibility in
+        parallel. If multiple "leaves" are supplied, each is tagged in this
+        way. If no matches are available in the string, all valid leaves are
+        moved to the dictionary of failed leaves in the return value.
+
         validleaves
-        : An OrderedDict with the words as keys and dictionaries (or None) for
-        values. The dictionaries may have the keys 'pos' (str, classname for
-        a part of speech) and 'modifies' (int, index of another word modified
-        by this one).
+        : A dictionary with indices as keys and OrderedDict objects as values.
+        Each OrderedDict represents one construal of the string being
+        evaluated. Each one employs the words of the string as keys and
+        dictionaries (or None) for values. The dictionaries may have the keys
+        'pos' (str, classname for a part of speech) and 'modifies' (int, index
+        of another word modified by this one).
+
+        failedleaves
+        : A dictionary with the same structure as `validleaves`. This one
+        represents the construals of the string that do *not* satisfy the test.
+
+        restring
+        : An optional keyword argument allowing direct injection of the regular
+        expression to be used for matching.
+
+        classname
+        : An optional keyword argument allowing direct injection of the
+        classname to be used in tagging matched tokens.
         '''
+        global LEAFINDEX
         matching_words = {}
-        restring = str(makeutf8(self.restring)) if not restring \
-            else str(makeutf8(restring))
+        restring = self.restring if not restring else restring
         classname = self.classname if not classname else classname
 
-        test = re.compile(restring, re.U | re.I)
+        test = re.compile(restring, re.I)
 
         validstring = ' '.join([i[0] for i in validleaves[0]])
+        print('validstring is')
+        print(validstring)
         mymatch = test.findall(validstring)
         print('mymatch is')
+        print(mymatch)
         for m in mymatch:
-            print(makeutf8(m))
-
-        def tag_token(matchstring, leafcopy):
-            matchindex = [l[1]['index'] for l in leafcopy
-                          if l[0] == matchstring][0]
-            mydict = leafcopy[matchindex][1]
-            if 'pos' not in list(mydict.keys()):  # only tag word if untagged
-                mydict['pos'] = classname
-                if 'current' in list(mydict.keys()):
-                    mydict['current'] += 1
-                else:
-                    mydict['current'] = 0
-            else:
-                print('already tagged, leaf invalid')
-                return False, None
-
-            return leafcopy, matchindex
+            print(m)
 
         newvalids = {}
         newfaileds = {}
@@ -261,29 +265,33 @@ class Parser(object):
                 print('tagging leaf:', key, '=============================')
                 for m in mymatch:
                     if m in [w[0] for w in leaf]:  # because findall and case
-                        print('tagging leaf with', makeutf8(m))
-                        taggedleaf, matchindex = tag_token(m, deepcopy(leaf))
-                        if taggedleaf and taggedleaf not in \
-                                list(newvalids.values()):
+                        print('tagging leaf with', m)
+                        matchindex = [l[1]['index'] for l in leaf
+                                      if l[0] == m][0]
+                        taggedleaf = self.tag_token(matchindex, 'pos',
+                                                    classname,
+                                                    deepcopy(leaf))
+                        if taggedleaf:
                             if key in list(newvalids.keys()):
-                                newkey = max(newvalids.keys()) + 1
-                            else:
-                                newkey = key
-                            print('appending valid leaf', newkey)
-                            newvalids[newkey] = taggedleaf
+                                LEAFINDEX += 1
+                                key = copy(LEAFINDEX)
+                            print('appending valid leaf', key)
+                            newvalids[key] = taggedleaf
                             # add matching words (with index) directly to
                             # instance variable
-                            self.matching_words[newkey] = {'word': m,
-                                                           'index': matchindex}
-                            print('matching for leaf', newkey)
-                        elif not taggedleaf and leaf not in \
-                                list(newfaileds.values()):
-                            if key in list(newfaileds.keys()):
-                                newkey = max(newfaileds.keys()) + 1
+                            new_word = (m, {'pos': classname,
+                                            'index': matchindex})
+                            if key in matching_words.keys():
+                                matching_words[key].append(new_word)
                             else:
-                                newkey = key
-                            print('appending failed leaf', newkey)
-                            newfaileds[newkey] = leaf
+                                matching_words[key] = [new_word]
+                            print('matching for leaf', key)
+                        elif not taggedleaf:
+                            if key in list(newfaileds.keys()):
+                                LEAFINDEX += 1
+                                key = copy(LEAFINDEX)
+                            print('appending failed leaf', key)
+                            newfaileds[key] = leaf
                         else:
                             print('leaf is duplicate')
                     else:
@@ -291,12 +299,26 @@ class Parser(object):
                         pass
         else:
             print('no match')
-            newfaileds = deepcopy(validleaves)
+            print(validleaves)
+            print(failedleaves)
+            if validleaves:
+                if failedleaves:
+                    newfaileds = validleaves.update(failedleaves)
+                else:
+                    newfaileds = validleaves
+            else:
+                newfaileds = failedleaves
             newvalids = {}
 
-        return newvalids, newfaileds
+        self.matching_words = matching_words
 
-    def test_order(self, validleaves, failedleaves):
+        return newvalids, newfaileds, matching_words
+
+    def test_agreement(self, validleaves, failedleaves, matching_words):
+        """ """
+        return validleaves, failedleaves
+
+    def test_order(self, validleaves, failedleaves, matching_words):
         """ """
         return validleaves, failedleaves
 
@@ -331,18 +353,33 @@ class Parser(object):
 
         return fit
 
-    def agree(self, p1, p2, words):
+    def agree(self, w1, w2, criteria):
         """
         Return True if the words at the listed indexes in leaf agree.
 
         words is a list of the keys from one leaf of validleaves
         """
-        print('Do {} and {} agree?'.format(words[p1], words[p2]), end=' ')
-        parsed = [self.parseform(words[p1]),
-                  self.parseform(words[p2])]
-        categories = ['gender', 'number', 'case']
-        conflicts = [c for c in categories if parsed[0][c] != parsed[1][c]]
-        agreement = False if conflicts else True
+        print('Do {} and {} agree?'.format(w1, w2, end=' '))
+        # FIXME: This is going to allow cases where they can agree but the
+        # parsing is wrong for this context.
+        parsed = [(f, s) for f in self.parseform(w1.lower())
+                  for s in self.parseform(w2.lower())]
+        conflicts = []
+        for p in parsed:
+            try:
+                myconf = [c for c in criteria if p[0][c] != p[1][c]]
+                if myconf:
+                    conflicts.append(myconf)
+            except KeyError:
+                conflicts.append(['incompatible'])
+
+        if len(conflicts) == len(parsed):
+            agreement = False
+        else:
+            agreement = True
+            conflicts = []
+
+        return agreement, conflicts
 
     def find_agree(self, refword, pos=None, lemma=None):
         """
@@ -350,7 +387,7 @@ class Parser(object):
         """
         db = current.db
         if pos == 'article':
-            parsing = self.parseform(refword)
+            parsing = self.parseform(refword)[0]
             print('parsing')
             print(parsing)
             artlemid = db(db.lemmas.lemma == 'ὁ'
@@ -371,13 +408,15 @@ class Parser(object):
         """
         db = current.db
         try:
-            formrow = db.word_forms(db.word_forms.word_form == token).as_dict()
+            formrows = db(db.word_forms.word_form == token
+                          ).select().as_list()
         except AttributeError:
-            formrow = db.word_forms(db.word_forms.word_form == token.lower()
-                                    ).as_dict()
-        lemmarow = db.lemmas(formrow['source_lemma'])
-        formrow['part_of_speech'] = lemmarow['part_of_speech']
-        return formrow
+            formrows = db(db.word_forms.word_form == token.lower()
+                          ).select().as_list()
+        for row in formrows:
+            lemmarow = db.lemmas(row['source_lemma'])
+            row['part_of_speech'] = lemmarow['part_of_speech']
+        return formrows
 
     def getform(self, kwargs, db=None):
         """
@@ -440,15 +479,73 @@ class NounPhrase(Parser):
 
         super(NounPhrase, self).__init__(*args)
 
-    def match_article(self, artform, leaf):
+    def test_agreement(self, validlfs, failedlfs, matching_words):
         """
         """
-        tokenstring = ' '.join([w[0] for w in leaf])
-        pattern = re.compile(artform, re.I | re.U)
-        arts = pattern.findall(tokenstring)
-        return arts
+        newvalids = {}
+        newfaileds = failedlfs
+        conflict_list = {}
 
-    def test_order(self, validlfs, failedlfs):
+        for key, leaf in validlfs.items():
+            nouns = [m for m in matching_words[key]
+                     if m[1]['pos'] == 'Noun']
+            arts = [m for m in matching_words[key] if m[1]['pos'] == 'Art']
+            adjs = [m for m in matching_words[key] if m[1]['pos'] == 'Adj']
+
+            leaf_conflicts = []
+
+            if len(nouns) > 1:
+                print('phrase includes multiple nouns, checking agreement')
+                for noun in nouns[1:]:
+                    agree, conf = self.agree(nouns[0][0], noun[0],
+                                             ['grammatical_case',
+                                              'gender', 'number'])
+                    if agree:
+                        leaf = self.tag_token(noun[1]['index'],
+                                              'modifies',
+                                              nouns[0][1]['index'],
+                                              leaf)
+                    else:
+                        leaf_conflicts.append(('no agreement', conf,
+                                               noun, nouns[0]))
+            if adjs:
+                print('phrase includes adjective, checking agreement')
+                for adj in adjs:
+                    agree, conf = self.agree(nouns[0][0], adj[0],
+                                             ['grammatical_case',
+                                              'gender', 'number'])
+                    if agree:
+                        print(adj[1])
+                        leaf = self.tag_token(adj[1]['index'],
+                                              'modifies',
+                                              nouns[0][1]['index'],
+                                              leaf)
+                    else:
+                        leaf_conflicts.append(('no agreement', conf,
+                                               nouns[0]))
+            if arts:
+                print('phrase is definite, checking article agreement')
+                for art in arts:
+                    agree, conf = self.agree(nouns[0][0], art[0],
+                                             ['grammatical_case',
+                                              'gender', 'number'])
+                    if agree:
+                        leaf = self.tag_token(art[1]['index'],
+                                              'modifies',
+                                              nouns[0][1]['index'],
+                                              leaf)
+                    else:
+                        leaf_conflicts.append(('no agreement', conf,
+                                               art, nouns[0]))
+            if leaf_conflicts:
+                newfaileds[key] = leaf
+                conflict_list[key] = leaf_conflicts
+            else:
+                newvalids[key] = leaf
+
+        return newvalids, newfaileds, conflict_list
+
+    def test_order(self, validlfs, failedlfs, matching_words):
         """
         """
         newvalids = {}
@@ -456,37 +553,26 @@ class NounPhrase(Parser):
 
         # Does article precede its noun? If so mark as modifying that noun
         if self.definite:
-            child_words = self.find_child_words()
-            # find and tag article in valid leaves
-            print('phrase is definite, checking order')
-            for key, leaf in validlfs.items():
-                mynouns = [c for c in child_words if c[0] == 'Noun'][0]
-                print('mynouns')
-                print(mynouns)
-                mynoun = mynouns[0][1][key]
-                artform = self.find_agree(mynoun, 'article')
-                myarts = self.match_article(artform, leaf)
-                # tag any valid articles
-                if myarts:
-                    for art in myarts:
-                        validlfs, failedlfs = self.match_string(validlfs,
-                                                                failedlfs,
-                                                                restring=art)
+            def fail_leaf(key, leaf):
+                if leaf not in newfaileds:
+                    newfaileds[key] = leaf
+
+            def pass_leaf(key, leaf):
+                if leaf not in newvalids:
+                    newvalids[key] = leaf
+
             # FIXME: what about optional article?
             # now check article-noun order in successful leaves
             for key, leaf in validlfs.items():
-                newleaf = deepcopy(leaf)
-                if self.before(art, mynoun):
-                    # record modification link
-                    newleaf = self.modifies(newleaf, art, mynoun)
+                if self.before(art, mynoun, matching_words):
                     if newleaf not in newvalids:
-                        newkey = max(newvalids.keys()) + 1 \
-                            if list(newvalids.keys()) else 0
                         newvalids[key] = newleaf
-                elif newleaf not in newfaileds:
-                    newkey = max(newfaileds.keys()) + 1 \
-                        if list(newfaileds.keys()) else 0
-                    newfaileds[key] = newleaf
+
+        # No other article intervening between matching article and noun?
+
+        # Adjective in attributive position?
+
+        # Adjectives agree with nominal? If so mark as modifying nominal
 
         return newvalids, newfaileds
 
@@ -528,7 +614,7 @@ class Art(Parser):
     pass
 
 
-class Adjective(Parser):
+class Adj(Parser):
     pass
 
 
