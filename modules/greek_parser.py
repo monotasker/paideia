@@ -154,7 +154,8 @@ class Parser(object):
         # if found, validation fails
         if self.top:
             for v in list(validlfs.values()):
-                for w in v: print(w, end=' ')
+                for w in v:
+                    print(w)
                 print('')
             for idx, leaf in validlfs.items():
                 untagged = [t for t in leaf if 'pos' not in list(t[1].keys())]
@@ -195,18 +196,24 @@ class Parser(object):
         return newvalids, newfaileds
     '''
 
-    def tag_token(self, matchindex, key, value, leafcopy):
+    def tag_token(self, matchindex, key, value, leafcopy, matching):
         '''
         Returns false if the value to be tagged for has already been tagged
         '''
         mydict = leafcopy[matchindex][1]
         if key not in list(mydict.keys()):  # only tag word if untagged
             mydict[key] = value
+
+            if matching:
+                myword = leafcopy[matchindex][0]
+                for m in matching:
+                    if m[0] == myword:
+                        m[1][key] = value
         else:
             print('already tagged, leaf invalid')
-            return False
+            return False, None
 
-        return leafcopy
+        return leafcopy, matching
 
     def match_string(self, validleaves, failedleaves,
                      restring=None, classname=None):
@@ -268,9 +275,10 @@ class Parser(object):
                         print('tagging leaf with', m)
                         matchindex = [l[1]['index'] for l in leaf
                                       if l[0] == m][0]
-                        taggedleaf = self.tag_token(matchindex, 'pos',
-                                                    classname,
-                                                    deepcopy(leaf))
+                        taggedleaf, match = self.tag_token(matchindex, 'pos',
+                                                           classname,
+                                                           deepcopy(leaf),
+                                                           None)
                         if taggedleaf:
                             if key in list(newvalids.keys()):
                                 LEAFINDEX += 1
@@ -362,16 +370,21 @@ class Parser(object):
         print('Do {} and {} agree?'.format(w1, w2, end=' '))
         # FIXME: This is going to allow cases where they can agree but the
         # parsing is wrong for this context.
+        # print(self.parseform(w1.lower()))
+        # print(self.parseform(w2.lower()))
         parsed = [(f, s) for f in self.parseform(w1.lower())
                   for s in self.parseform(w2.lower())]
         conflicts = []
         for p in parsed:
+            # for myp in p:
+            #     print({i: v for i, v in myp.items() if i in ['grammatical_case', 'gender', 'number']})
             try:
                 myconf = [c for c in criteria if p[0][c] != p[1][c]]
                 if myconf:
                     conflicts.append(myconf)
+                    print('conflict:', myconf)
             except KeyError:
-                conflicts.append(['incompatible'])
+                conflicts.append('incompatible')
 
         if len(conflicts) == len(parsed):
             agreement = False
@@ -442,7 +455,7 @@ class Parser(object):
         """
         Necessary for use in 'with' condition.
         """
-        print('destroying instance')
+        print('destroying Parser instance')
 
 
 class Clause(Parser):
@@ -479,7 +492,7 @@ class NounPhrase(Parser):
 
         super(NounPhrase, self).__init__(*args)
 
-    def test_agreement(self, validlfs, failedlfs, matching_words):
+    def test_agreement(self, validlfs, failedlfs, mw):
         """
         """
         newvalids = {}
@@ -487,12 +500,12 @@ class NounPhrase(Parser):
         conflict_list = {}
 
         for key, leaf in validlfs.items():
-            nouns = [m for m in matching_words[key]
-                     if m[1]['pos'] == 'Noun']
-            arts = [m for m in matching_words[key] if m[1]['pos'] == 'Art']
-            adjs = [m for m in matching_words[key] if m[1]['pos'] == 'Adj']
+            match = mw[key]
+            nouns = [m for m in match if m[1]['pos'] == 'Noun']
+            arts = [m for m in match if m[1]['pos'] == 'Art']
+            adjs = [m for m in match if m[1]['pos'] == 'Adj']
 
-            leaf_conflicts = []
+            leaf_conflicts = {}
 
             if len(nouns) > 1:
                 print('phrase includes multiple nouns, checking agreement')
@@ -501,13 +514,15 @@ class NounPhrase(Parser):
                                              ['grammatical_case',
                                               'gender', 'number'])
                     if agree:
-                        leaf = self.tag_token(noun[1]['index'],
-                                              'modifies',
-                                              nouns[0][1]['index'],
-                                              leaf)
+                        leaf, match = self.tag_token(noun[1]['index'],
+                                                     'modifies',
+                                                     nouns[0][1]['index'],
+                                                     leaf, match)
                     else:
-                        leaf_conflicts.append(('no agreement', conf,
-                                               noun, nouns[0]))
+                        mykey = '{}_{}_{}'.format(noun[0], noun[1]['index'],
+                                                  noun[1]['pos'])
+                        leaf_conflicts[mykey] = ('no agreement', conf, noun,
+                                                 nouns[0])
             if adjs:
                 print('phrase includes adjective, checking agreement')
                 for adj in adjs:
@@ -516,13 +531,15 @@ class NounPhrase(Parser):
                                               'gender', 'number'])
                     if agree:
                         print(adj[1])
-                        leaf = self.tag_token(adj[1]['index'],
-                                              'modifies',
-                                              nouns[0][1]['index'],
-                                              leaf)
+                        leaf, match = self.tag_token(adj[1]['index'],
+                                                     'modifies',
+                                                     nouns[0][1]['index'],
+                                                     leaf, match)
                     else:
-                        leaf_conflicts.append(('no agreement', conf,
-                                               nouns[0]))
+                        mykey = '{}_{}_{}'.format(adj[0], adj[1]['index'],
+                                                  adj[1]['pos'])
+                        leaf_conflicts[mykey] = ('no agreement', conf, adj,
+                                                 nouns[0])
             if arts:
                 print('phrase is definite, checking article agreement')
                 for art in arts:
@@ -530,20 +547,25 @@ class NounPhrase(Parser):
                                              ['grammatical_case',
                                               'gender', 'number'])
                     if agree:
-                        leaf = self.tag_token(art[1]['index'],
-                                              'modifies',
-                                              nouns[0][1]['index'],
-                                              leaf)
+                        leaf, match = self.tag_token(art[1]['index'],
+                                                     'modifies',
+                                                     nouns[0][1]['index'],
+                                                     leaf, match)
                     else:
-                        leaf_conflicts.append(('no agreement', conf,
-                                               art, nouns[0]))
+                        mykey = '{}_{}_{}'.format(art[0], art[1]['index'],
+                                                  art[1]['pos'])
+                        leaf_conflicts[mykey] = ('no agreement', conf, art,
+                                                 nouns[0])
+            mw[key] = match
             if leaf_conflicts:
                 newfaileds[key] = leaf
                 conflict_list[key] = leaf_conflicts
             else:
                 newvalids[key] = leaf
 
-        return newvalids, newfaileds, conflict_list
+        self.matching_words = mw
+
+        return newvalids, newfaileds, mw, conflict_list
 
     def test_order(self, validlfs, failedlfs, matching_words):
         """
