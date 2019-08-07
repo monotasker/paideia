@@ -348,12 +348,42 @@ class Parser(object):
         else:
             return True
 
-    def between(self, p1, p2, allow=[], exclude=[], require=[]):
+    def find_modified(self, modifier, mw):
+        """
+        Return the tuple for the word modified by the supplied modifier.
+        """
+        try:
+            modindex = modifier[1]['modifies']
+            modified = [w for w in mw if w[1]['index'] == modindex]
+            if modified:
+                return modified[0]
+            else:
+                return False
+        except KeyError:
+            return False
+
+    def find_nonmod_between(self, modifier, modified, mw):
+        """
+        Return any extraneous words between modifier and modified.
+
+        These are judged to be extraneous if they are not tagged as also
+        modifying the modified word.
+        """
+        moder_idx = modifier[1]['index']
+        moded_idx = modified[1]['index']
+        nonmod_between = [w for w in mw if w[1]['index'] > moder_idx 
+                          and w[1]['index'] < moded_idx
+                          and ('modifies' not in w[1].keys()
+                          or w[1]['modifies'] != moded_idx)]
+        return nonmod_between
+
+    def between(self, p1, p2, match, allow=[], exclude=[], require=[]):
         """
         Test whether any intervening structures are appropriate.
         """
-        between = [s for s, v in self.structs.items()
-                   if v in range(p1 + 1, p2 - 1)]
+        between = [m for m in match 
+                   if m[1]['index'] in range(p1[1]['index'] + 1,
+                                             p2[1]['index'] - 1)]
         disallowed = [s for s in between
                       if (s not in allow) or (s in exclude)]
         missing = [s for s in require if s not in between]
@@ -567,36 +597,89 @@ class NounPhrase(Parser):
 
         return newvalids, newfaileds, mw, conflict_list
 
-    def test_order(self, validlfs, failedlfs, matching_words):
+    def test_order(self, validlfs, failedlfs, mw):
         """
         """
         newvalids = {}
-        newfaileds = {}
+        newfaileds = failedlfs
+        conflict_list = {}
 
-        # Does article precede its noun? If so mark as modifying that noun
-        if self.definite:
-            def fail_leaf(key, leaf):
-                if leaf not in newfaileds:
-                    newfaileds[key] = leaf
+        def format_confkey(myterm):
+            if isinstance(myterm, list):
+                if len(myterm) > 1:
+                    return '{}-{}_{}-{}'.format(myterm[0][0], myterm[-1][0],
+                                                myterm[0][1]['index'],
+                                                myterm[-1][1]['index'])
+                else:
+                    myterm = myterm[0]
+            return '{}_{}_{}'.format(myterm[0], myterm[1]['index'],
+                                     myterm[1]['pos'])
 
-            def pass_leaf(key, leaf):
-                if leaf not in newvalids:
-                    newvalids[key] = leaf
+        for key, leaf in validlfs.items():
+            match = mw[key]
+            nouns = [m for m in match if m[1]['pos'] == 'Noun']
+            arts = [m for m in match if m[1]['pos'] == 'Art']
+            adjs = [m for m in match if m[1]['pos'] == 'Adj']
+
+            leaf_conflicts = {}
 
             # FIXME: what about optional article?
-            # now check article-noun order in successful leaves
-            for key, leaf in validlfs.items():
-                if self.before(art, mynoun, matching_words):
-                    if newleaf not in newvalids:
-                        newvalids[key] = newleaf
+            for art in arts:
+                # Does each article have a unique substantive or adjective?
+                mymod = self.find_modified(art, match)
+                modpos = mymod[1]['pos'] if mymod else None
+                if not mymod:
+                    leaf_conflicts[format_confkey(art)] = ('out of order',
+                        [['dangling article']], art, None) 
 
-        # No other article intervening between matching article and noun?
+                # Does each article precede its substantive or adjective? 
+                if not self.before(art, mymod):
+                    confstring = 'article follows its modified {}'.format(
+                        mymod[1]['pos'])
+                    leaf_conflicts[format_confkey(art)] = ('out of order',
+                        [[confstring]], art, mymod)
 
-        # Adjective in attributive position?
+                # No extraneous words intervening between article and modified
+                # nominal/adj?
+                extrawords = self.find_nonmod_between(art, mymod, match)
+                if extrawords:
+                    leaf_conflicts[format_confkey(extrawords)] = (
+                        'out of order',
+                        [['extra words between article and modified']],
+                        extrawords, [art, mymod])
 
-        # Adjectives agree with nominal? If so mark as modifying nominal
+                # definite adjective in attributive position?
+                for adj in adjs:
+                    amoded = self.find_modified(adj, match)
+                    modedart = self.find_article(amoded, match)
+                    if self.before(adj, amoded):
+                        if not self.between(amoded, modedart, match,
+                                            exclude=[Art], require=[adj]):
+                            leaf_conflicts[format_confkey(adj)] = (
+                                'out of order',
+                                [['adjective not in attributive position 1']],
+                                adj, [modedart, amoded])
+                    else:
+                        adjart = self.find_article(adj)
+                        if not self.before(adjart, adj) and self.after(adjart,
+                                                                       amoded):
+                            leaf_conflicts[format_confkey(adj)] = (
+                                'out of order',
+                                [['adjective not in attributive position 2']],
+                                adj, [modedart, amoded, adjart])
 
-        return newvalids, newfaileds
+                # definite attributive adjective follows nominal
+
+            mw[key] = match
+            if leaf_conflicts:
+                newfaileds[key] = leaf
+                conflict_list[key] = leaf_conflicts
+            else:
+                newvalids[key] = leaf
+
+        self.matching_words = mw
+
+        return newvalids, newfaileds, mw, conflict_list
 
 
 class DirObject(NounPhrase):
