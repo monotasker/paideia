@@ -5,7 +5,7 @@
 from copy import deepcopy, copy
 from gluon import current
 # from paideia_utils import Uprinter
-from plugin_utils import clr, makeutf8
+from plugin_utils import clr
 # from pprint import pprint
 import re
 # import traceback
@@ -107,48 +107,65 @@ class Parser(object):
 
         clause should be Clause() object
         """
-        matching_words = self.matching_words if self.matching_words else {}
+        mw = {}
+        conf = {}
+        print('starting mw:', mw)
 
         print('restring is', self.restring)
         # validate constituent structures recursively
         if self.structures:
+            # insert article if necessary
+            if self.definite and not [s for s in self.structures
+                                      if isinstance(s, Art)]:
+                self.structures = (Art('?'), *self.structures)
             for s in self.structures:
                 print('validating', s)
-                validlfs, failedlfs, mw = s.validate(validlfs,
-                                                     failedlfs=failedlfs)
+                validlfs, failedlfs, match, conf = s.validate(
+                    validlfs, failedlfs=failedlfs)
                 if len(validlfs) < 1:
                     print('failed while validating', s)
-                    return validlfs, failedlfs, matching_words
-                for k, wrd in mw.items():
-                    if k in matching_words.keys():
-                        matching_words[k].extend(wrd)
+                    return validlfs, failedlfs, mw, conf
+                # add this substructure's matching words to the parent
+                # object's total matching words
+                for k, wrd in match.items():
+                    if k in mw.keys():
+                        mw[k].extend(wrd)
                     else:
-                        matching_words[k] = wrd
+                        mw[k] = wrd
+            print('after matching substructures, mw is:', mw)
 
         # find matching string for remaining viable leaves
         if self.restring:
             # need to compare with newly parsed to find newly added words
             old_validlfs = copy(validlfs)
             print('checking for restring', self.restring)
-            validlfs, failedlfs, mw = self.match_string(validlfs, failedlfs)
-            for k, wrd in mw.items():
-                if k in matching_words.keys():
-                    matching_words[k].extend(wrd)
+            validlfs, failedlfs, match, conf = self.match_string(validlfs,
+                                                                 failedlfs)
+            print('newly found match is:', match)
+            # add parent's matching words to its total matching words
+            for k, wrd in match.items():
+                if k in mw.keys():
+                    mw[k].extend(wrd)
                 else:
-                    matching_words[k] = wrd
-            if len(validlfs) < 1:  # no valid leaves, validation fails
-                return validlfs, failedlfs, matching_words
+                    mw[k] = wrd
+            print('total', type(self).__name__, ' mw is now:', mw)
 
-        # test sub-structure order for any viable leaves
-        if self.structures:
-            validlfs, failedlfs = self.test_agreement(validlfs,
-                                                      failedlfs,
-                                                      matching_words)
-            validlfs, failedlfs = self.test_order(validlfs,
-                                                  failedlfs,
-                                                  matching_words)
             if len(validlfs) < 1:  # no valid leaves, validation fails
-                return validlfs, failedlfs, matching_words
+                print('no valid leaves after matching!!!!!')
+                return validlfs, failedlfs, mw, conf
+
+        # test sub-structure agreements and order for any viable leaves
+        if self.structures:
+            validlfs, failedlfs, mw, conf = self.test_agreement(validlfs,
+                                                                failedlfs,
+                                                                mw,
+                                                                conf)
+            validlfs, failedlfs, mw, conf = self.test_order(validlfs,
+                                                            failedlfs,
+                                                            mw,
+                                                            conf)
+            if len(validlfs) < 1:  # no valid leaves, validation fails
+                return validlfs, failedlfs, mw, conf
 
         # find any untagged words if this structure is top level
         # if found, validation fails
@@ -158,20 +175,26 @@ class Parser(object):
                     print(w)
                 print('')
             for idx, leaf in validlfs.items():
-                untagged = [t for t in leaf if 'pos' not in list(t[1].keys())]
+                untagged = [t for t in leaf if 'pos' not in t[1].keys()]
                 if untagged:
                     failedlfs[idx] = validlfs[idx]
                     validlfs = {k: v for k, v in validlfs.items() if k != idx}
                     print(clr(['some extra words left over'], self.myc))
                     for w in untagged: print(w)
+                    confkey = '_'.join([w[0] for w in untagged])
+                    conf[idx] = {confkey: ('extra words present',
+                                           [['extra words present']],
+                                           untagged,
+                                           failedlfs[idx])
+                                 }
             if not validlfs:
-                return validlfs, failedlfs, matching_words
+                return validlfs, failedlfs, mw, conf
             else:
                 pass
 
-        self.matching_words = matching_words
+        self.matching_words = mw
 
-        return validlfs, failedlfs, matching_words
+        return validlfs, failedlfs, mw, conf
 
     '''
     def strip_current_flags(self, validlfs, failedlfs):
@@ -201,6 +224,7 @@ class Parser(object):
         Returns false if the value to be tagged for has already been tagged
         '''
         mydict = leafcopy[matchindex][1]
+        print('mydict:', mydict)
         if key not in list(mydict.keys()):  # only tag word if untagged
             mydict[key] = value
 
@@ -210,12 +234,12 @@ class Parser(object):
                     if m[0] == myword:
                         m[1][key] = value
         else:
-            print('already tagged, leaf invalid')
+            print(key, 'already tagged, leaf invalid')
             return False, None
 
         return leafcopy, matching
 
-    def match_string(self, validleaves, failedleaves,
+    def match_string(self, validleaves, failedleaves, 
                      restring=None, classname=None):
         '''
         Identify token strings that match the current construction.
@@ -252,6 +276,8 @@ class Parser(object):
         matching_words = {}
         restring = self.restring if not restring else restring
         classname = self.classname if not classname else classname
+        if classname == 'Art' and restring == '?':
+            restring = r'ὁ|του|τῳ|τον|το|ἡ|της|τῃ|την|οἱ|των|τοις|τους|τα|αἱ|ταις|τας'
 
         test = re.compile(restring, re.I)
 
@@ -266,20 +292,22 @@ class Parser(object):
 
         newvalids = {}
         newfaileds = {}
+        conflicts = {}
         if mymatch:
             print('mymatch', mymatch)
+            print('matching_words:', matching_words)
             for key, leaf in validleaves.items():
                 print('tagging leaf:', key, '=============================')
                 for m in mymatch:
                     if m in [w[0] for w in leaf]:  # because findall and case
-                        print('tagging leaf with', m)
+                        print('tagging leaf with', classname)
                         matchindex = [l[1]['index'] for l in leaf
                                       if l[0] == m][0]
                         taggedleaf, match = self.tag_token(matchindex, 'pos',
                                                            classname,
                                                            deepcopy(leaf),
                                                            None)
-                        if taggedleaf:
+                        if taggedleaf and taggedleaf not in newvalids.values():
                             if key in list(newvalids.keys()):
                                 LEAFINDEX += 1
                                 key = copy(LEAFINDEX)
@@ -294,6 +322,7 @@ class Parser(object):
                             else:
                                 matching_words[key] = [new_word]
                             print('matching for leaf', key)
+                            print(matching_words)
                         elif not taggedleaf:
                             if key in list(newfaileds.keys()):
                                 LEAFINDEX += 1
@@ -320,21 +349,35 @@ class Parser(object):
 
         self.matching_words = matching_words
 
-        return newvalids, newfaileds, matching_words
+        for idx, leaf in newfaileds.items():
+            confkey = "{}_{}".format(restring, classname)
+            conflicts[idx] = {confkey: ('no match found',
+                                        [['no match found']],
+                                        restring,
+                                        validstring
+                                        )}
+        print(matching_words)
 
-    def test_agreement(self, validleaves, failedleaves, matching_words):
-        """ """
-        return validleaves, failedleaves
+        return newvalids, newfaileds, matching_words, conflicts
 
-    def test_order(self, validleaves, failedleaves, matching_words):
+    def test_agreement(self, validleaves, failedleaves,
+                       matching_words, conflicts):
         """ """
-        return validleaves, failedleaves
+        return validleaves, failedleaves, matching_words, conflicts
+
+    def test_order(self, validleaves, failedleaves,
+                   matching_words, conflicts):
+        """ """
+        return validleaves, failedleaves, matching_words, conflicts
 
     def before(self, prior, latter):
         """
         Return True if prior tuple comes before latter in their leaf.
         """
+        print(prior[1])
+        print(latter[1])
         if prior[1]['index'] < latter[1]['index']:
+            print('before')
             return True
         else:
             return False
@@ -343,7 +386,7 @@ class Parser(object):
         """
         Return True if latter tuple comes after prior in their leaf.
         """
-        if prior[1]['index'] < latter[1]['index']:
+        if prior[1]['index'] > latter[1]['index']:
             return False
         else:
             return True
@@ -362,7 +405,24 @@ class Parser(object):
         except KeyError:
             return False
 
-    def find_nonmod_between(self, modifier, modified, mw):
+    def find_article(self, modified, mw):
+        """
+        Return the tuple for the article modifying the supplied word.
+        """
+        try:
+            modindex = modified[1]['index']
+            print(modindex)
+            print(mw)
+            modified = [w for w in mw if 'modifies' in w[1].keys() and
+                        w[1]['modifies'] == modindex and
+                        w[1]['pos'] == 'Art']
+            print(modified)
+            return modified[0] if modified else False
+        except KeyError as e:
+            print(e)
+            return False
+
+    def find_nonmod_between(self, modifier, modified, leaf):
         """
         Return any extraneous words between modifier and modified.
 
@@ -371,25 +431,47 @@ class Parser(object):
         """
         moder_idx = modifier[1]['index']
         moded_idx = modified[1]['index']
-        nonmod_between = [w for w in mw if w[1]['index'] > moder_idx 
+        print([w for w in leaf if w[1]['index'] > moder_idx
+                          and w[1]['index'] < moded_idx])
+        nonmod_between = [w for w in leaf if w[1]['index'] > moder_idx
                           and w[1]['index'] < moded_idx
                           and ('modifies' not in w[1].keys()
                           or w[1]['modifies'] != moded_idx)]
         return nonmod_between
 
-    def between(self, p1, p2, match, allow=[], exclude=[], require=[]):
+    def between(self, p1, p2, mw, allow=[], exclude=[], require=[]):
         """
         Test whether any intervening structures are appropriate.
-        """
-        between = [m for m in match 
-                   if m[1]['index'] in range(p1[1]['index'] + 1,
-                                             p2[1]['index'] - 1)]
-        disallowed = [s for s in between
-                      if (s not in allow) or (s in exclude)]
-        missing = [s for s in require if s not in between]
-        fit = False if (disallowed or missing) else True
 
-        return fit
+        The keyword arguments allow, exclude, and require can be supplied with
+        either word tuples (specifying specific words) or Parser subclasses (specifying kinds of constructions)
+        """
+        between = [m for m in mw
+                   if m[1]['index'] in range(p1[1]['index'] + 1,
+                                             p2[1]['index'])]
+        # print('between:', between)
+        allow_wds = [a for a in allow if not isinstance(a, Parser)]
+        allow_tps = [a for a in allow if isinstance(a, Parser)]
+        exclude_wds = [a for a in exclude if not isinstance(a, Parser)]
+        exclude_tps = [a for a in exclude if isinstance(a, Parser)]
+        require_wds = [a for a in require if not isinstance(a, Parser)]
+        # print('require_wds:', require_wds)
+        require_tps = [a for a in require if isinstance(a, Parser)]
+
+        disallowed = [s for s in between
+                      if (allow_tps and not isinstance(s, allow_tps))
+                      or (allow_wds and s not in allow_wds)
+                      if (allow_tps and not isinstance(s, allow_tps))
+                      or (allow_wds and s not in allow_wds)
+                      ]
+        missing_wds = [s for s in require_wds if s not in between]
+        missing_tps = [t for t in require_tps
+                       if not [w for w in between if isinstance(w, t)]]
+        missing_wds.extend(missing_tps)
+
+        fit = False if (disallowed or missing_wds) else True
+
+        return fit, disallowed, missing_wds
 
     def agree(self, w1, w2, criteria):
         """
@@ -412,7 +494,7 @@ class Parser(object):
                 myconf = [c for c in criteria if p[0][c] != p[1][c]]
                 if myconf:
                     conflicts.append(myconf)
-                    print('conflict:', myconf)
+                    # print('conflict:', myconf)
             except KeyError:
                 conflicts.append('incompatible')
 
@@ -431,17 +513,17 @@ class Parser(object):
         db = current.db
         if pos == 'article':
             parsing = self.parseform(refword)[0]
-            print('parsing')
-            print(parsing)
+            # print('parsing')
+            # print(parsing)
             artlemid = db(db.lemmas.lemma == 'ὁ'
                           ).select(db.lemmas.id).first().id
-            print('artlemid', artlemid)
+            # print('artlemid', artlemid)
             argdict = {'source_lemma': artlemid,
                        'grammatical_case': parsing['grammatical_case'],
                        'gender': parsing['gender'],
                        'number': parsing['number']}
-            print('argdict')
-            print(argdict)
+            # print('argdict')
+            # print(argdict)
             myword = self.getform(argdict)
         return myword
 
@@ -470,22 +552,22 @@ class Parser(object):
         query = tbl.id > 0
         for k, v in kwargs.items():
             query &= tbl[k] == v
-        print('query in getform')
-        print(query)
+        # print('query in getform')
+        # print(query)
         myforms = db(query).select()
         forms = [row['word_form'] for row in myforms]
         if len(forms) == 1:
             forms = forms[0]
         elif not forms:
             forms = None
-        print(forms)
+        # print(forms)
         return forms
 
     def __exit__(self, type, value, traceback):
         """
         Necessary for use in 'with' condition.
         """
-        print('destroying Parser instance')
+        # print('destroying Parser instance')
 
 
 class Clause(Parser):
@@ -522,12 +604,11 @@ class NounPhrase(Parser):
 
         super(NounPhrase, self).__init__(*args)
 
-    def test_agreement(self, validlfs, failedlfs, mw):
+    def test_agreement(self, validlfs, failedlfs, mw, conflict_list):
         """
         """
         newvalids = {}
         newfaileds = failedlfs
-        conflict_list = {}
 
         for key, leaf in validlfs.items():
             match = mw[key]
@@ -560,7 +641,7 @@ class NounPhrase(Parser):
                                              ['grammatical_case',
                                               'gender', 'number'])
                     if agree:
-                        print(adj[1])
+                        # print(adj[1])
                         leaf, match = self.tag_token(adj[1]['index'],
                                                      'modifies',
                                                      nouns[0][1]['index'],
@@ -589,7 +670,10 @@ class NounPhrase(Parser):
             mw[key] = match
             if leaf_conflicts:
                 newfaileds[key] = leaf
-                conflict_list[key] = leaf_conflicts
+                if key not in conflict_list.keys():
+                    conflict_list[key] = leaf_conflicts
+                else:
+                    conflict_list[key].update(leaf_conflicts)
             else:
                 newvalids[key] = leaf
 
@@ -597,12 +681,11 @@ class NounPhrase(Parser):
 
         return newvalids, newfaileds, mw, conflict_list
 
-    def test_order(self, validlfs, failedlfs, mw):
+    def test_order(self, validlfs, failedlfs, mw, conflict_list):
         """
         """
         newvalids = {}
         newfaileds = failedlfs
-        conflict_list = {}
 
         def format_confkey(myterm):
             if isinstance(myterm, list):
@@ -625,55 +708,77 @@ class NounPhrase(Parser):
 
             # FIXME: what about optional article?
             for art in arts:
-                # Does each article have a unique substantive or adjective?
+                # print(art)
+                print('Does each article have a unique substantive or adjective?')
                 mymod = self.find_modified(art, match)
+                print('mymod:', mymod)
                 modpos = mymod[1]['pos'] if mymod else None
                 if not mymod:
+                    print('A')
                     leaf_conflicts[format_confkey(art)] = ('out of order',
-                        [['dangling article']], art, None) 
+                        [['dangling article']], art, None)
 
-                # Does each article precede its substantive or adjective? 
-                if not self.before(art, mymod):
-                    confstring = 'article follows its modified {}'.format(
-                        mymod[1]['pos'])
-                    leaf_conflicts[format_confkey(art)] = ('out of order',
-                        [[confstring]], art, mymod)
+                if mymod:
+                    print('Does each article precede its substantive or '
+                          'adjective?')
+                    if not self.before(art, mymod):
+                        confstring = 'article follows its modified {}'.format(
+                            mymod[1]['pos'])
+                        leaf_conflicts[format_confkey(art)] = ('out of order',
+                            [[confstring]], art, mymod)
 
-                # No extraneous words intervening between article and modified
-                # nominal/adj?
-                extrawords = self.find_nonmod_between(art, mymod, match)
-                if extrawords:
-                    leaf_conflicts[format_confkey(extrawords)] = (
-                        'out of order',
-                        [['extra words between article and modified']],
-                        extrawords, [art, mymod])
+                    # No extraneous words intervening between article and
+                    # modified nominal/adj?
+                    print('No extraneous words?')
+                    extrawords = self.find_nonmod_between(art, mymod, leaf)
+                    if extrawords:
+                        confstring = 'extra words between article and modified {}' \
+                                    ''.format(mymod[1]['pos'])
+                        leaf_conflicts[format_confkey(extrawords)] = (
+                            'out of order', [[confstring]], extrawords, [art, mymod])
 
-                # definite adjective in attributive position?
-                for adj in adjs:
-                    amoded = self.find_modified(adj, match)
-                    modedart = self.find_article(amoded, match)
-                    if self.before(adj, amoded):
-                        if not self.between(amoded, modedart, match,
-                                            exclude=[Art], require=[adj]):
-                            leaf_conflicts[format_confkey(adj)] = (
-                                'out of order',
+                    print('definite adjective in attributive position?')
+                    for adj in adjs:
+                        print(adj)
+                        amoded = self.find_modified(adj, match)
+                        print('amoded:', amoded)
+                        modedart = self.find_article(amoded, match)
+                        print('modedaart:', modedart)
+                        adjart = self.find_article(adj, match)
+                        print('adjart:', adjart)
+                        if modedart and self.before(adj, amoded):
+                            print('K')
+                            kwargs = {'exclude': adjart} if adjart else {}
+                            betwn, disal, miss = self.between(modedart, amoded,
+                                match, require=[adj], **kwargs)
+                            # print('disal:', disal)
+                            # print('miss:', miss)
+                            if not betwn:
+                                leaf_conflicts[format_confkey(adj)] = (
+                                    'out of order',
+                                    [['adjective not in attributive position 1']],
+                                    adj, [modedart, amoded])
+                        elif modedart and not adjart:
+                            print('J')
+                            leaf_conflicts[format_confkey(adj)] = ('out of order',
                                 [['adjective not in attributive position 1']],
                                 adj, [modedart, amoded])
-                    else:
-                        adjart = self.find_article(adj)
-                        if not self.before(adjart, adj) and self.after(adjart,
-                                                                       amoded):
-                            leaf_conflicts[format_confkey(adj)] = (
-                                'out of order',
+                        elif adjart and not (self.before(adjart, adj) and
+                                            self.after(adjart, amoded)):
+                            print('L')
+                            leaf_conflicts[format_confkey(adj)] = ('out of order',
                                 [['adjective not in attributive position 2']],
                                 adj, [modedart, amoded, adjart])
 
-                # definite attributive adjective follows nominal
+                    # definite attributive adjective follows nominal
 
             mw[key] = match
             if leaf_conflicts:
                 newfaileds[key] = leaf
-                conflict_list[key] = leaf_conflicts
+                if key not in conflict_list.keys():
+                    conflict_list[key] = leaf_conflicts
+                else:
+                    conflict_list[key].update(leaf_conflicts)
             else:
                 newvalids[key] = leaf
 
