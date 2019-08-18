@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#! /usr/bin/python 
 # -*- coding: UTF-8 -*-
 """
  Unit tests for the modulename module
@@ -452,20 +452,32 @@ class TestNounPhrase():
                             'modifies': 1,
                             'index': 0}),
                    ('ἀρτον', {'pos': 'Noun', 'index': 1}),
-                   ('τον', {'pos': 'Art', 'modifies': 1, 'index': 2}),
+                   ('τον', {'pos': 'Art', 'index': 2}),
+                   ('ὁ', {'index': 3}),
+                   ('ἀνηρ', {'index': 4}),
+                   ('πωλει', {'index': 5})],
+               1: [('Τον', {'index': 0, 'modifies': 1, 'pos': 'Art'}),
+                   ('ἀρτον', {'index': 1, 'pos': 'Noun'}),
+                   ('τον', {'index': 2, 'modifies': 1, 'pos': 'Art'}),
                    ('ὁ', {'index': 3}),
                    ('ἀνηρ', {'index': 4}),
                    ('πωλει', {'index': 5})]
                },
               {},  # -------------------------------------------failedout
-              {0: [('Τον', {'index': 0, 'pos': 'Art'}),
-                   ('ἀρτον', {'index': 1, 'pos': 'Noun'}),
-                   ('τον', {'index': 2, 'pos': 'Art'}),
-                   ]},  # match
               {0: [('Τον', {'index': 0, 'modifies': 1, 'pos': 'Art'}),
                    ('ἀρτον', {'index': 1, 'pos': 'Noun'}),
-                   ('τον', {'index': 2, 'modifies': 1, 'pos': 'Art'}),
-                   ]},  # matchout
+                   ('τον', {'index': 2, 'pos': 'Art'})],
+               1: [('Τον', {'index': 0, 'modifies': 1, 'pos': 'Art'}),
+                   ('ἀρτον', {'index': 1, 'pos': 'Noun'}),
+                   ('τον', {'index': 2, 'modifies': 1, 'pos': 'Art'})]
+               },  # match
+              {0: [('Τον', {'index': 0, 'modifies': 1, 'pos': 'Art'}),
+                   ('ἀρτον', {'index': 1, 'pos': 'Noun'}),
+                   ('τον', {'index': 2, 'pos': 'Art'})],
+               1: [('Τον', {'index': 0, 'modifies': 1, 'pos': 'Art'}),
+                   ('ἀρτον', {'index': 1, 'pos': 'Noun'}),
+                   ('τον', {'index': 2, 'modifies': 1, 'pos': 'Art'})]
+               },  # matchout
               {}  # conf
               ),  # pass, even though too many articles without adjective
              ('ἀρτον',  # --------------------------------nominal 3
@@ -543,8 +555,16 @@ class TestNounPhrase():
                             'index': 0,
                             'modifies': 1}),
                    ('ἀρτον', {'pos': 'Noun', 'index': 1}),
-                   ('τον', {'pos': 'Art', 'modifies': 1, 'index': 2}),
+                   ('τον', {'pos': 'Art', 'antecedent': 1, 'modifies': 3,
+                            'index': 2}),
                    ('καλον', {'pos': 'Adj', 'modifies': 1, 'index': 3}),
+                   ('ὁ', {'index': 4}),
+                   ('ἀνηρ', {'index': 5}),
+                   ('πωλει', {'index': 6})],
+               2: [('Τον', {'index': 0, 'modifies': 1, 'pos': 'Art'}),
+                   ('ἀρτον', {'index': 1, 'pos': 'Noun'}),
+                   ('τον', {'index': 2, 'modifies': 1, 'pos': 'Art'}),
+                   ('καλον', {'index': 3, 'modifies': 1, 'pos': 'Adj'}),
                    ('ὁ', {'index': 4}),
                    ('ἀνηρ', {'index': 5}),
                    ('πωλει', {'index': 6})]
@@ -557,9 +577,14 @@ class TestNounPhrase():
                    ]},  # match
               {0: [('Τον', {'index': 0, 'modifies': 1, 'pos': 'Art'}),
                    ('ἀρτον', {'index': 1, 'pos': 'Noun'}),
-                   ('τον', {'pos': 'Art', 'modifies': 1, 'index': 2}),
+                   ('τον', {'pos': 'Art', 'antecedent': 1, 'modifies': 3,
+                            'index': 2}),
                    ('καλον', {'pos': 'Adj', 'modifies': 1, 'index': 3}),
-                   ]},  # match
+                   ],
+               2: [('Τον', {'index': 0, 'modifies': 1, 'pos': 'Art'}),
+                   ('ἀρτον', {'index': 1, 'pos': 'Noun'}),
+                   ('τον', {'index': 2, 'modifies': 1, 'pos': 'Art'}),
+                   ('καλον', {'index': 3, 'modifies': 1, 'pos': 'Adj'})]},  # match
               {}  # conf
               ),  # second attributive adj position
              ('ἀρτον',  # --------------------------------nominal 6

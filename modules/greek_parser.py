@@ -1,14 +1,18 @@
-#! /usr/bin/python3.6
+#! python3.6
 # -*- coding:utf-8 -*-
 
-# import argparse
+import argparse
 from copy import deepcopy, copy
-from gluon import current
 from itertools import product, permutations
-from plugin_utils import clr
+import os
 from pprint import pprint
 import re
+import sys
 import traceback
+sys.path.append(os.path.abspath(
+    '../../../gluon'))
+from plugin_utils import clr
+from gluon import current
 
 """
 
@@ -129,10 +133,10 @@ class Parser(object):
             mynoms = [s for s in self.structures if isinstance(s, (Noun, Adj))]
             lendiff = len(mynoms) - len(myarts)
             if self.definite and not myarts:
-                self.structures = (Art('?'), *self.structures)
+                self.structures = list(Art('?'), *self.structures)
             if self.definite and lendiff:
                 for l in range(lendiff):
-                    self.structures = (Art('?', 'opt'), *self.structures)
+                    self.structures = list(Art('?', 'opt'), *self.structures)
             # validate constituent structures recursively
             for s in self.structures:
                 #  TODO: pass structures back up in case nested substructures
@@ -149,8 +153,8 @@ class Parser(object):
                 for k, wrd in match.items():
                     if k in mw.keys() and mw[k]:
                         mw[k].extend(wrd)
-                    elif isinstance(k, str):  # handle match for newly split 
-                        # leaf because need pre-existing matching words 
+                    elif isinstance(k, str):  # handle match for newly split
+                        # leaf because need pre-existing matching words
                         # from basis leaf too
                         k_new, k_old = k.split('-')
                         if int(k_old) in oldmw.keys() and oldmw[int(k_old)]:
@@ -306,7 +310,7 @@ class Parser(object):
 
         return leafcopy, matching
 
-    def match_string(self, validleaves, failedleaves, 
+    def match_string(self, validleaves, failedleaves,
                      restring=None, classname=None):
         '''
         Identify token strings that match the current construction.
@@ -358,7 +362,7 @@ class Parser(object):
         conflicts = {}
         # if structure optional, preserve valid leaves without match tagged
         if self.optional:
-            print(clr('optional: keeping leaves ', self.myc), end='')
+            print(clr('optional: keeping leaves ', self.myc), end=' ')
             for key, leaf in validleaves.items():
                 print(key)
                 newvalids[key] = leaf
@@ -481,7 +485,7 @@ class Parser(object):
                 return modified[0]
             else:
                 return False
-        except KeyError:
+        except (TypeError, KeyError):
             return False
 
     def find_article(self, modified, mw):
@@ -611,27 +615,27 @@ class Parser(object):
         """
         Check specified parts of speech for agreement in specified dimensions.
 
-        If only one part of speech is specified in `parts`, the members of that set are tested for global agreement among themselves. If two parts of speech are specified, the members of those two sets are tested for agreement across sets. This can be done in two ways. If `mode` is "pairwise", all possible cross-set pairs are checked for agreement. If `mode` is "setwise", this method looks at all combinations of pairings in which each member of set A is paired with a different member of set B. 
+        If only one part of speech is specified in `parts`, the members of that set are tested for global agreement among themselves. If two parts of speech are specified, the members of those two sets are tested for agreement across sets. This can be done in two ways. If `mode` is "pairwise", all possible cross-set pairs are checked for agreement. If `mode` is "setwise", this method looks at all combinations of pairings in which each member of set A is paired with a different member of set B.
 
         **For setwise comparison it's crucial that if one set will be shorter it is listed first in `parts`.**
-        
+
         In the process of checking for agreement, the leaves are also tagged with information about which words modify other words in the same construction.
-        
+
         Arguments:
             validlfs {dict} -- a dictionary of leaves that have passed prior
                               validation and are candidates for testing
                               agreement
             failedfs {dict} -- a dictionary of leaves that have aready failed
                                validation
-            dimensions {list} -- A list of strings corresponding to the 
+            dimensions {list} -- A list of strings corresponding to the
                                  grammatical features that should agree.
             parts {list} -- A list of strings corresponding to the parts of
                             speech to be tested for agreement.
             mw {dict} -- A dictionary of the words in each leaf that match the
                          currently validating structure.
             tagging {dict} --   A dictionary of tags to be added to words that
-                                agree. Keys are Parser types (str). Each value is a list of tuples, each of which includes a 
-                                tag string [0] and a part of speech that is the 
+                                agree. Keys are Parser types (str). Each value is a list of tuples, each of which includes a
+                                tag string [0] and a part of speech that is the
                                 target for the tagged relationship [1].
             conflict_list{dict} -- A dictionary containing the validation                              probems discovered so far in failed leaves.
 
@@ -666,8 +670,9 @@ class Parser(object):
                         del newvalids[mykey]
                 else:
                     newvalids[mykey] = myleaf
-        
+
         def makeleaf(newleaf, newmatch, splitlfs, splitmatches):
+            global LEAFINDEX
             LEAFINDEX += 1
             usekey = copy(LEAFINDEX)
             print('adding split leaf {}'.format(usekey), '++++++++++++++++++')
@@ -716,7 +721,7 @@ class Parser(object):
                 invalid_pairs = {}
                 for pair in myset:
                     word1, word2 = pair[0], pair[1]
-                    print(word1[0], word2[0], ': ', end="") 
+                    print(word1[0], word2[0], ': ', end="")
                     agree, conf = self.agree(word1[0], word2[0], dimensions)
                     if agree:
                         valid_pairs.append((word1, word2))
@@ -730,9 +735,9 @@ class Parser(object):
                     valid_sets.append(valid_pairs)
                 else:
                     invalid_sets[str(myset)] = invalid_pairs
-                
+
                 return valid_sets, invalid_sets
-                
+
             # ** make sure all the lists actually contain items **
             full_lists = [l for l in lists if l]
             if len(full_lists) > 1:
@@ -745,13 +750,17 @@ class Parser(object):
                 invalid_sets = {}
 
                 if mode == 'pairwise' or [l for l in full_lists if len(l) == 1]:
+                    print('using product')
                     myset = list(product(*full_lists))
+                    # print('product:', myset)
                     valid_sets, invalid_sets = check_set(myset, valid_sets,
                                                          invalid_sets)
                 else:
+                    print('using permutations')
                     sets = [list(zip(full_lists[0]))
                             for p in permutations(full_lists[1])]
-                    for myset in pairs:
+                    # print('permutations:', sets)
+                    for myset in sets:
                         valid_sets, invalid_sets = check_set(myset, valid_sets,
                                                              invalid_sets)
 
@@ -772,7 +781,8 @@ class Parser(object):
                                         print('t:', t)
                                         word2mod = self.find_modified(
                                             word2, newmatch)
-                                        if word2mod[1]['pos'] == t[1]:
+                                        if word2mod and \
+                                              word2mod[1]['pos'] == t[1]:
                                             newleaf, newmatch = self.tag_token(
                                                 word1[1]['index'],
                                                 t[0],
@@ -801,7 +811,7 @@ class Parser(object):
 
             handle_result(key, leaf, match, splitlfs, splitmatches,
                           leaf_conflicts)
-        
+
         return newvalids, newfaileds, mw, conflict_list
 
     def parseform(self, token):
@@ -884,7 +894,8 @@ class NounPhrase(Parser):
     def test_agreement(self, validlfs, failedlfs, mw, conflict_list):
         """
         """
-
+        newvalids = {}
+        newfaileds = deepcopy(failedlfs)
         mytests = [(['grammatical_case', 'gender', 'number'], 
                     ['Noun'],
                     'global',
@@ -908,7 +919,8 @@ class NounPhrase(Parser):
                    ]
 
         for test in mytests:
-            ret = self.check_and_tag_agreement(validlfs, failedlfs, *test, mw,
+            myvalids = newvalids if newvalids else validlfs
+            ret = self.check_and_tag_agreement(myvalids, failedlfs, *test, mw,
                                                conflict_list)
             newvalids = ret[0]
             newfaileds = ret[1]
@@ -1075,8 +1087,6 @@ class Adj(Parser):
     myc = 'lightpurple'
 
 
-
-'''
 def main(string, pattern):
     """Take the  strings in 'strings' variable and validate them."""
     result = None
@@ -1092,13 +1102,12 @@ def main(string, pattern):
             result = 'fail'
         myc = 'green' if validleaves else 'red'
         resp = 'Success!' if validleaves else 'Failed'
-        print clr([resp, '(', string ,')', '\n'], myc)
-    print '============================================================='
+        print(clr([resp, '(', string ,')', '\n'], myc))
+    print('=============================================================')
 
     return result
-'''
 
-'''
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('string', help='the string to be evaluated')
@@ -1106,4 +1115,3 @@ if __name__ == "__main__":
         'evaluate the string')
     args = parser.parse_args()
     main(args.string, args.pattern)
-'''
