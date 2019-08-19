@@ -95,7 +95,7 @@ ap.append(form) }}
         <!--# slides popup for prompt/reply=================================-->
         {{if 'slidedecks' in globals() and slidedecks:
             decklist = UL(_class='prompt_slides fa-ul')
-            for did, dname in slidedecks.iteritems():
+            for did, dname in slidedecks.items():
                 decklist.append(LI(I(_class='fa-li fa fa-video-camera'),
                                    A(dname, _href=URL('listing', 'slides.html',
                                      args=[did]))))
