@@ -5,11 +5,13 @@ from gluon import IMG, URL, SQLFORM, SPAN, UL, LI, Field, P, HTML
 from gluon import IS_NOT_EMPTY, IS_IN_SET
 # from pydal.objects import Rows
 
+import codecs
 from copy import copy
 import datetime
 from dateutil import parser
 from inspect import getargvalues, stack
 from itertools import chain
+from memory_profiler import profile
 import os
 from paideia_utils import Paideia_Debug, GreekNormalizer
 import pickle
@@ -95,7 +97,7 @@ class Map(object):
                                 orderby=db.locations.map_location).as_list()
         return {'map_image': map_image, 'locations': locations}
 
-
+# @profile(precision=4)
 class Walk(object):
     """
     Main interface class for the paideia module, intended to be called by
@@ -158,8 +160,11 @@ class Walk(object):
                 sd = db(db.session_data.name ==
                         auth.user_id).select().first()
                 if sd:
+                    print('HERE WE ARE')
+                    print(type(sd['other_data']))
                     sys.path.append(os.path.dirname(__file__))
-                    self.user = pickle.loads(sd['other_data'])
+                    mydata = sd['other_data'].encode('utf8')
+                    self.user = pickle.loads(mydata)
                 else:
                     self.user = None
                 assert self.user
@@ -730,7 +735,7 @@ class Walk(object):
         TODO: be sure not to log redirect and utility steps. (filter them out
         before calling _record_step())
         """
-        debug = True
+        debug = False
         mynow = datetime.datetime.utcnow() if not now else now
         db = current.db
         # TODO: Store and roll back db changes if impersonating
@@ -2401,7 +2406,7 @@ class PathChooser(object):
             [2] the category number for this new path (int in range 1-4)
         """
         db = current.db if not db else db
-        debug = True
+        debug = False
         new_material = False
         if set_review:  # select randomly from the supplied set
             myset = set_review
@@ -3312,7 +3317,7 @@ class Categorizer(object):
         TODO: Require that a certain number of successes are recent
         TODO: Look at secondary tags as well
         """
-        debug = True
+        debug = False
         db = db if db else current.db
         categories = {'rev1': [], 'rev2': [], 'rev3': [], 'rev4': []}
         tag_records = tag_records if tag_records else self.tag_records
