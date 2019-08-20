@@ -189,7 +189,6 @@ class Walk(object):
                 self.user = self._new_user(userdata, tag_records, tag_progress)
                 print('creating new user from data '
                       '------------Walk._get_user')
-        print('escaped loop======================================')
         if isinstance(self.user.quota, list):
             self.user.quota = self.user.quota[0]
         return self.user
@@ -231,7 +230,6 @@ class Walk(object):
                 current.paideia_debug.data)
         else:
             # TODO: strip off html tags
-            # print current.paideia_debug.data
             result['paideia_debug'] = ''
         return result
 
@@ -280,7 +278,6 @@ class Walk(object):
             if (promoted or new_tags or demoted):
                 assert self._record_cats(tag_progress, promoted,
                                          new_tags, demoted)
-            print('localias:', localias)
             loc = Location(localias)
             prev_loc = user.set_location(loc)
             prev_npc = user.get_prev_npc()
@@ -1640,11 +1637,7 @@ class StepText(Step):
         readable = self._get_readable()
         tips = self.data['hints']
         responses = {k: v for k, v in list(self.data.items())
-                     if k and (k in ['response1', 'response2', 'response3'])}
-        #  except TypeError:
-        #  tips = self.data['step'].data['hints']
-        #  responses = {k: v for k, v in self.data['step'].data.iteritems()
-        #               if k and (k in rkeys)}
+                     if k and (k[:-1] in ['response', 'outcome'])}
 
         if tips:
             tips_lst = db(db.step_hints.id.belongs(tips)
@@ -1671,8 +1664,6 @@ class StepText(Step):
                  'readable_long': readable['readable_long'],
                  'npc_image': npc.get_image(),
                  'audio': None,
-
-
                  'widget_img': None,
                  'instructions': self._get_instructions(),
                  'slidedecks': self._get_slides(),
@@ -1745,27 +1736,30 @@ class StepEvaluator(object):
         Special responses (and a score of 0.9) are also given if the only error
         is the presence or absence of appropriate final punctuation.
         """
+        debug = current.paideia_DEBUG_MODE
         if not user_response:
             request = current.request
             user_response = request.vars['response']
-        print('\n\nin get_eval user_response is', user_response)
+        if debug:
+            print('\n\nin get_eval user_response is', user_response)
         clean_user_response = GreekNormalizer().normalize(user_response)
-        print('\n\nin get_eval user_response is', clean_user_response)
+        if debug:
+            print('\n\nin get_eval user_response is', clean_user_response)
         responses = {k: r for k, r in list(self.responses.items())
-                     if r and r != 'null'}
+                     if r and r not in [None, 'null', '']}
         # Compare the student's response to the regular expressions
         times_wrong = 1
         times_right = 0
         score = 0
 
         try:
-            regex1 = re.compile(responses['response1'], re.I | re.U)
+            regex1 = re.compile(responses['response1'], re.I)
             if 'response2' in list(responses.keys()):
-                regex2 = re.compile(responses['response2'], re.I | re.U)
+                regex2 = re.compile(responses['response2'], re.I)
             else:
                 regex2 = None
             if 'response3' in list(responses.keys()):
-                regex3 = re.compile(responses['response3'], re.I | re.U)
+                regex3 = re.compile(responses['response3'], re.I)
             else:
                 regex3 = None
 
@@ -1792,21 +1786,19 @@ class StepEvaluator(object):
                         "it's not a complete clause"
             elif 'response2' in list(responses.keys()) and \
                     re.match(regex2, clean_user_response):
-                score = 0.5
-                #  TODO: Get this score value from the db instead of hard
-                #  coding it here.
+                score = float(responses['outcome2']) if 'outcome2' in responses.keys() else 0.5
                 reply = "Οὐ κάκον. You're close."
                 #  TODO: Vary the replies
 
             elif 'response3' in list(responses.keys()) and \
                     re.match(regex3, clean_user_response):
-                #  TODO: Get this score value from the db instead of hard
-                #  coding it here.
-                score = 0.3
+                score = float(responses['outcome3']) if 'outcome3' in responses.keys() else 0.3
                 reply = "Οὐ κάκον. You're close."
+                #  TODO: Vary the replies
             else:
                 score = 0
-                reply = "Incorrect. Try again!"
+                reply = "That's not it. Try again!"
+                #  TODO: Vary the replies
 
             # Set the increment value for times wrong, depending on score
             if score < 0.8:
@@ -2117,7 +2109,8 @@ class PathChooser(object):
         self.all_choices = self.all_choices % self.CYCLE_LENGTH
         if self.all_choices == 0:
             self.cat1_choices = 0
-        print('self.all_choices', self.all_choices)
+        if debug:
+            print('self.all_choices', self.all_choices)
 
         # cat1 choices still needed this cycle to make up quota
         cat1_still_needed = self.GUARANTEED_NEW - self.cat1_choices
@@ -2266,29 +2259,36 @@ class PathChooser(object):
         all paths that have steps with no locations
 
         """
+        debug = current.paideia_DEBUG_MODE
         path = None
         new_loc = None
         mode = None
         completed_list = [int(k) for k in list(self.completed['paths'].keys())]
 
-        # print 'in _choose_from_cat ---------------------------------'
+        if debug:
+            print('in _choose_from_cat ---------------------------------')
         while True:
             loc_id = self.loc_id
             db = current.db
             p_new = [p for p in cpaths if p['id'] not in completed_list]
-            # print 'p_new:', [p['id'] for p in p_new]
+            if debug:
+                print('p_new:', [p['id'] for p in p_new])
             p_here = [p for p in cpaths
                       if loc_id in db.steps[int(p['steps'][0])].locations]
-            # print 'p_here:', [p['id'] for p in p_here]
+            if debug:
+                print('p_here:', [p['id'] for p in p_here])
             p_here_new = [p for p in p_here if p in p_new]
-            print('p_here_new:', [p['id'] for p in p_here_new])
+            if debug:
+                print('p_here_new:', [p['id'] for p in p_here_new])
             p_all = [p for p in cpaths]
             p_tried_ids = list(set([p['id'] for p in cpaths]
                                    ).intersection(completed_list))
-            # print 'p_tried:', p_tried_ids
+            if debug:
+                print('p_tried:', p_tried_ids)
             p_tried = [p for p in cpaths if p['id'] in p_tried_ids]
 
-            # print 'self.completed:', self.completed['paths']
+            if debug:
+                print('self.completed:', self.completed['paths'])
             # untried path available here
             if p_here_new:
                 path = p_here_new[randrange(0, len(p_here_new))]
@@ -2462,8 +2462,9 @@ class PathChooser(object):
                     print('PathChooser::choose: checking in cat', cat)
                 catpaths, category, use_cat1, pathset_new = \
                     self._paths_by_category(cat, self.rank)
-                # print 'forcing cat1?', use_cat1
-                # print 'catpaths:', [c['id'] for c in catpaths]
+                if debug:
+                    print('forcing cat1?', use_cat1)
+                    print('catpaths:', [c['id'] for c in catpaths])
                 if catpaths and len(catpaths):
                     if debug:
                         print('PathChooser::choose: using category', category)
@@ -2809,14 +2810,14 @@ class User(object):
         if self.path:  # TODO: do I want this catch here?
             self.path = None
         if not self.tag_progress:  # in case User was badly initialized
-            # print 'no tag-progress, so getting categories'
+            if debug:
+                print('no tag-progress, so getting categories')
             self.get_categories()
 
         if 'cat1_choices' not in self.tag_progress:
             self.tag_progress['cat1_choices'] = 0
         if 'all_choices' not in self.tag_progress:
             self.tag_progress['all_choices'] = 0
-        print('loc:', loc)
         choice, redir, cat, mode, new_content, tag_progress = \
             PathChooser(self.tag_progress,
                         loc.get_id(),
@@ -2824,12 +2825,12 @@ class User(object):
         self.tag_progress = tag_progress  # to keep counts made in PathChooser
         if debug:
             print('User::_make_path_choice: mode is', mode)
-        # print 'in _make_path_choice ----------------------------------------'
-        # print 'choice:', choice
-        # print 'redir:', redir
-        # print 'cat:', cat
-        # print 'mode:', mode
-        # print '-------------------------------------------------------------'
+            print('in _make_path_choice --------------------------------')
+            print('choice:', choice)
+            print('redir:', redir)
+            print('cat:', cat)
+            print('mode:', mode)
+            print('-----------------------------------------------------')
         condition = {'name': self.get_id()}
         current.db.tag_progress.update_or_insert(condition,
                                                  **self.tag_progress)
@@ -2892,11 +2893,13 @@ class User(object):
             elif self.path and len(self.path.steps):  # unfinished in self.path
                 pass
             else:  # choosing a new path
-                print('get_path: loc is', loc)
-                print(loc.get_id())
+                if debug:
+                    print('get_path: loc is', loc)
+                    print(loc.get_id())
                 self.path, redir, cat, new_content = \
                     self._make_path_choice(loc, set_review=set_review)
-                # print 'path chosen:', self.path.get_id()
+                if debug:
+                    print('path chosen:', self.path.get_id())
                 if (not self.path):
                     break  # and return Nones
 
@@ -3267,7 +3270,6 @@ class Categorizer(object):
         Return the user's average score on a given tag over the past N days.
         Always returns a float, since scores are floats between 0 and 1.
         """
-        # print 'user', self.user_id
         db = current.db
         startdt = self.utcnow - datetime.timedelta(days=mydays)
         log_query = db((db.attempt_log.name == self.user_id) &
@@ -3379,7 +3381,6 @@ class Categorizer(object):
                   # avg score for week >= 0.7
                   (rdur.days <= 30)  # right in past 30 days
                   ))):
-                # print'************** got to cat2'
                 # cat3? ==================================================
                 if rwdur.days >= 14:
                     # cat4? ==============================================
