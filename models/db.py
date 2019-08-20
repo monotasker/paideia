@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""[summary]
+"""
 PAIDEIA GREEK LEARNING APP
 
 This is the base model file that bootstraps the web2py platform for the

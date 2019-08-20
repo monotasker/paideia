@@ -5,6 +5,7 @@ from gluon import IMG, URL, SQLFORM, SPAN, UL, LI, Field, P, HTML
 from gluon import IS_NOT_EMPTY, IS_IN_SET
 # from pydal.objects import Rows
 
+import base64
 import codecs
 from copy import copy
 import datetime
@@ -154,26 +155,34 @@ class Walk(object):
         auth = current.auth
         db = current.db
         try:  # look for user object already on this Walk or new_user flag set
-            assert (self.user) and new_user is None
+            assert (self.user) and (new_user is None)
         except (AttributeError, AssertionError):  # no user yet on this Walk
             try:
                 sd = db(db.session_data.name ==
                         auth.user_id).select().first()
                 if sd:
-                    print('HERE WE ARE')
-                    print(type(sd['other_data']))
                     sys.path.append(os.path.dirname(__file__))
-                    mydata = sd['other_data'].encode('utf8')
-                    self.user = pickle.loads(mydata)
+                    # base64 encoded in db for storage of py3 pickled bytes
+                    try:
+                        print('getting user now!!!!!!')
+                        userdata = base64.b64decode(sd['other_data'])
+                        self.user = pickle.loads(userdata)
+                        print('got user!!!!')
+                        print(self.user)
+                    except Exception:
+                        traceback.print_exc(5)
+                        self.user = None
                 else:
                     self.user = None
                 assert self.user
                 assert self.user.is_stale() is False
+                print('checked staleness********')
                 assert not new_user
                 # FIXME: temporary sanitization of pickled session data
                 # adjusting to new db field names - Apr 28, 2015
                 tp = self.user.tag_progress
                 tpkeys = list(tp.keys())
+                print('Atlanta')
                 for oldkey, newkey in list({'just_cats': 'cat1_choices',
                         'all_cats': 'all_choices'}.items()):
                     if oldkey in tpkeys:
@@ -183,10 +192,9 @@ class Walk(object):
                                                        'Walk.get_user')
                         tp[newkey] = copy(tp[oldkey])
                         del tp[oldkey]
+                print('SanFrancisco')
                 # FIXME: end of temporary sanitization
-                current.paideia_debug.do_print('re-using user from '
-                                               'db ------------',
-                                               'Walk.get_user')
+                print('New York')
 
             except (KeyError, TypeError):  # Problem with session data
                 print(traceback.format_exc(5))
@@ -195,6 +203,7 @@ class Walk(object):
                 self.user = self._new_user(userdata, tag_records, tag_progress)
                 print('creating new user from data '
                       '------------Walk._get_user')
+        print('escaped loop======================================')
         if isinstance(self.user.quota, list):
             self.user.quota = self.user.quota[0]
         return self.user
@@ -267,7 +276,7 @@ class Walk(object):
                 key: name of the blocking condition (str)
                 value: dictionary of kwargs to be passed to the Block
         """
-        debug = False
+        debug = True
         p = category = redir = pastquota = None
         loc = prev_loc = prev_npc = None
         s = newloc_id = error_string = None
@@ -285,6 +294,7 @@ class Walk(object):
             if (promoted or new_tags or demoted):
                 assert self._record_cats(tag_progress, promoted,
                                          new_tags, demoted)
+            print('localias:', localias)
             loc = Location(localias)
             prev_loc = user.set_location(loc)
             prev_npc = user.get_prev_npc()
@@ -356,6 +366,8 @@ class Walk(object):
                     print('Walk::ask: user didn\'t have repeating attribute')
             p.end_prompt(s.get_id())  # send id to tell whether a block step
             self._store_user(user)
+            if debug:
+                print('Walk::ask: Done storing user')
             break  # from utility while loop
 
         # propagating errors and alerting user instead of crashing
@@ -790,20 +802,24 @@ class Walk(object):
         If successful, returns an integer representing the successfully
         added/updated db row. If unsuccessful, returns False.
         """
+        debug = True
         db = current.db if not db else db
 
         try:
-            myuser = str(pickle.dumps(user))
-            print('MYUSER=======')
-            print(type(myuser))
+            # have to base64 encode data for storage with py3
+            myuser = base64.b64encode(pickle.dumps(user))
+            if debug:
+                print('Walk::_store_user: myuser is=======')
+                print(type(myuser))
+                print('user.get_id()=======')
+                print(user.get_id())
             condition = {'name': user.get_id()}
-            print('user.get_id()=======')
-            print(user.get_id())
             rownum = db.session_data.update_or_insert(condition,
                                                       name=user.get_id(),
                                                       other_data=myuser)
             db.commit()
-            print('rownum:', rownum)
+            if debug:
+                print('session row inserted/updated:', rownum)
             return rownum
         except Exception:
             print(traceback.format_exc(5))
@@ -827,6 +843,8 @@ class Location(object):
         db = current.db if not db else db
         self.data = db(db.locations.loc_alias == alias
                        ).select().first().as_dict()
+        print('Loc data')
+        pprint(self.data)
 
     def __str__(self):
         """Return string to represent a Location instance"""
@@ -2817,6 +2835,7 @@ class User(object):
             self.tag_progress['cat1_choices'] = 0
         if 'all_choices' not in self.tag_progress:
             self.tag_progress['all_choices'] = 0
+        print('loc:', loc)
         choice, redir, cat, mode, new_content, tag_progress = \
             PathChooser(self.tag_progress,
                         loc.get_id(),
@@ -2892,6 +2911,8 @@ class User(object):
             elif self.path and len(self.path.steps):  # unfinished in self.path
                 pass
             else:  # choosing a new path
+                print('get_path: loc is', loc)
+                print(loc.get_id())
                 self.path, redir, cat, new_content = \
                     self._make_path_choice(loc, set_review=set_review)
                 # print 'path chosen:', self.path.get_id()
