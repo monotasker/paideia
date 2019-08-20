@@ -109,11 +109,8 @@ class Walk(object):
                  response_string=None, userdata=None, db=None,
                  new_user=None):
         """Initialize a Walk object."""
-        # set DEBUG_MODE to True to see debugging info on the screen
-        # -----------------------------------------------
         self.DEBUG_MODE = False
         current.paideia_DEBUG_MODE = self.DEBUG_MODE
-        current.paideia_debug = Paideia_Debug()
         current.sequence_counter = 0
 
         db = current.db if not db else db
@@ -444,7 +441,7 @@ class Walk(object):
             'times_wrong':
             'user_response':
         """
-        debug = False
+        debug = current.paideia_DEBUG_MODE
         user = self._get_user()
         try:
             repeat = user.repeating
@@ -736,7 +733,7 @@ class Walk(object):
         TODO: be sure not to log redirect and utility steps. (filter them out
         before calling _record_step())
         """
-        debug = False
+        debug = current.paideia_DEBUG_MODE
         mynow = datetime.datetime.utcnow() if not now else now
         db = current.db
         # TODO: Store and roll back db changes if impersonating
@@ -791,7 +788,7 @@ class Walk(object):
         If successful, returns an integer representing the successfully
         added/updated db row. If unsuccessful, returns False.
         """
-        debug = True
+        debug = current.paideia_DEBUG_MODE
         db = current.db if not db else db
 
         try:
@@ -1010,7 +1007,7 @@ class BugReporter(object):
         web2py view template. This is meant to be embedded in the reply UI
         which presents the user with an evaluation of the step input.
         """
-        debug = False
+        debug = current.paideia_DEBUG_MODE
 
         vardict = {'answer': response_string,
                    'loc_id': loc_id,
@@ -1155,7 +1152,7 @@ class Step(object):
         The keys are deck ids, while the values are the deck names (as
         strings). If this step has no associated slides, returns None.
         """
-        debug = False
+        debug = current.paideia_DEBUG_MODE
         db = current.db
         tags = db(db.tags.id.belongs(self.data['tags'])).select()
         if debug:
@@ -1247,12 +1244,8 @@ class Step(object):
         Since user.set_block is ONLY called in Walk.ask(), these values are
         always set in that top-level method.
         """
-        # debug ... DONT FORGET TO TURN back on
         raw_prompt = self.data['prompt'] if not raw_prompt else raw_prompt
-        # debug
 
-        # raw_prompt = (self.data['prompt']  +  str(self.data['id']) + \
-        # self.data['readable_response'])  if not raw_prompt else raw_prompt
         prompt_text_dict = self._make_replacements(raw_prompt, username)
         prompt = {'sid': self.get_id(),
                   'prompt_text': prompt_text_dict['newstr']
@@ -1739,6 +1732,8 @@ class StepEvaluator(object):
         """Initializes a StepEvaluator object"""
         self.responses = responses
         self.tips = tips
+        print('responses: ====================')
+        print(self.responses)
 
     def get_eval(self, user_response=None):
         """
@@ -1959,7 +1954,7 @@ class Path(object):
         Return the last completed step to the self.steps list.
         Intended to prepare for repeating an already-completed step.
         """
-        debug = False
+        debug = current.paideia_DEBUG_MODE
         if self.completed_steps:
             laststep = self.completed_steps.pop()
             if debug:
@@ -1980,7 +1975,7 @@ class Path(object):
         If the selected step cannot be performed at this location, return a
         Block object instead.
         """
-        debug = False
+        debug = current.paideia_DEBUG_MODE
         if repeat:
             assert self._reset_steps()
 
@@ -2084,7 +2079,7 @@ class PathChooser(object):
         beginning with that number.
         Returns a list with four members including the integers one-four.
         """
-        debug = False
+        debug = current.paideia_DEBUG_MODE
         # TODO: Look at replacing this method with scipy.stats.rv_discrete()
 
         switch = randint(1, 100)
@@ -2117,7 +2112,7 @@ class PathChooser(object):
         Returns 'True' if we are forcing the choice of new
         material. Otherwise returns False.
         """
-        debug = False
+        debug = current.paideia_DEBUG_MODE
         # reset choice counter at end of each cycle
         self.all_choices = self.all_choices % self.CYCLE_LENGTH
         if self.all_choices == 0:
@@ -2154,7 +2149,7 @@ class PathChooser(object):
         forced
 
         """
-        debug = False
+        debug = current.paideia_DEBUG_MODE
         db = current.db
         pathset = None
         force_cat1 = False
@@ -2410,7 +2405,7 @@ class PathChooser(object):
             [2] the category number for this new path (int in range 1-4)
         """
         db = current.db if not db else db
-        debug = False
+        debug = current.paideia_DEBUG_MODE
         new_material = False
         if set_review:  # select randomly from the supplied set
             myset = set_review
@@ -2513,7 +2508,7 @@ class User(object):
         - tag_progress: rows.as_dict()
         - tag_records: rows.as_dict
         """
-        debug = False
+        debug = current.paideia_DEBUG_MODE
         db = db if db else current.db
         # TODO: this 'if' is for testing and not functionally necessary
         if 'sequence_counter' not in dir(current):
@@ -2702,7 +2697,7 @@ class User(object):
         - Returns None
         """
         # TODO make sure that current loc and npc get set for self.prev_loc etc
-        debug = False
+        debug = current.paideia_DEBUG_MODE
         if self.blocks:
             if debug:
                 print('User::check_for_blocks: blocks present')
@@ -2809,7 +2804,7 @@ class User(object):
         """
         Instantiate PathChooser and return the result of its choose() method.
         """
-        debug = False
+        debug = current.paideia_DEBUG_MODE
         choice = None
         if self.path:  # TODO: do I want this catch here?
             self.path = None
@@ -2864,7 +2859,7 @@ class User(object):
         dependency injection during testing (db and pathid) or for special
         selection modes (repeat, set_review).
         """
-        debug = False
+        debug = current.paideia_DEBUG_MODE
         db = current.db if not db else db
         redir = None
         cat = self.active_cat  # preserve previous val in multi-step paths
@@ -3323,7 +3318,7 @@ class Categorizer(object):
         TODO: Require that a certain number of successes are recent
         TODO: Look at secondary tags as well
         """
-        debug = False
+        debug = current.paideia_DEBUG_MODE
         db = db if db else current.db
         categories = {'rev1': [], 'rev2': [], 'rev3': [], 'rev4': []}
         tag_records = tag_records if tag_records else self.tag_records
