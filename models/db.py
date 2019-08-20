@@ -1,5 +1,16 @@
 # -*- coding: utf-8 -*-
-# this file is released under public domain and you can use without limitations
+"""[summary]
+PAIDEIA GREEK LEARNING APP
+
+This is the base model file that bootstraps the web2py platform for the
+Paideia web-app.
+
+Third-party python packages required for this app:
+    - pytz
+    - pyicu (icu)
+    - kitchen
+    - python-dateutil (dateutil, six)
+"""
 
 import logging
 import uuid  # or gluon.utils.web2py_uuid ?
