@@ -14,7 +14,7 @@ from inspect import getargvalues, stack
 from itertools import chain
 from memory_profiler import profile
 import os
-from paideia_utils import Paideia_Debug, GreekNormalizer
+from paideia_utils import GreekNormalizer
 import pickle
 from plugin_utils import flatten, ErrorReport
 from pprint import pprint
@@ -163,38 +163,27 @@ class Walk(object):
                 if sd:
                     sys.path.append(os.path.dirname(__file__))
                     # base64 encoded in db for storage of py3 pickled bytes
-                    try:
-                        print('getting user now!!!!!!')
-                        userdata = base64.b64decode(sd['other_data'])
-                        self.user = pickle.loads(userdata)
-                        print('got user!!!!')
-                        print(self.user)
-                    except Exception:
-                        traceback.print_exc(5)
-                        self.user = None
+                    userdata = base64.b64decode(sd['other_data'])
+                    self.user = pickle.loads(userdata)
                 else:
                     self.user = None
                 assert self.user
                 assert self.user.is_stale() is False
-                print('checked staleness********')
                 assert not new_user
                 # FIXME: temporary sanitization of pickled session data
                 # adjusting to new db field names - Apr 28, 2015
                 tp = self.user.tag_progress
                 tpkeys = list(tp.keys())
-                print('Atlanta')
                 for oldkey, newkey in list({'just_cats': 'cat1_choices',
                         'all_cats': 'all_choices'}.items()):
                     if oldkey in tpkeys:
-                        current.paideia_debug.do_print('removing {} from '
-                                                       'stored tag_progress'
-                                                       ''.format(oldkey),
-                                                       'Walk.get_user')
+                        print('removing {} from '
+                              'stored tag_progress'
+                              ''.format(oldkey),
+                              'Walk.get_user')
                         tp[newkey] = copy(tp[oldkey])
                         del tp[oldkey]
-                print('SanFrancisco')
                 # FIXME: end of temporary sanitization
-                print('New York')
 
             except (KeyError, TypeError):  # Problem with session data
                 print(traceback.format_exc(5))
@@ -1350,9 +1339,6 @@ class Step(object):
                 try:
                     pick = npc_here_list[randrange(len(npc_here_list))]
                 except ValueError:  # "empty range for randrange()" if no npcs
-                    # current.paideia_debug.do_print("randrange error "
-                    #                                "permitted",
-                    #                               'Step.get_npc')
                     mail = current.mail
                     msg = HTML(P('In selecting an npc there were none found '
                                  'for the combination:',
@@ -1368,9 +1354,9 @@ class Step(object):
                     try:
                         pick = npc_list[randrange(len(npc_list))]
                     except ValueError:
-                        current.paideia_debug.do_print("randrange error NOT "
-                                                       "permitted",
-                                                       'Step.get_npc')
+                        print("randrange error NOT "
+                              "permitted",
+                              'Step.get_npc')
                         print(traceback.format_exc(5))
                 assert pick
                 self.npc = Npc(pick)
@@ -2017,9 +2003,9 @@ class Path(object):
                 rawstring = 'Step: {} possible empty location - ' \
                     ' tag:philadelphia'
                 error_string = rawstring.format(this_step_id)
-                current.paideia_debug.do_print(error_string + "randrange "
-                                               "error NOT permitted",
-                                               'Path.get_step_for_prompt')
+                print(error_string + "randrange "
+                      "error NOT permitted",
+                      'Path.get_step_for_prompt')
                 print(traceback.format_exc(5))
         else:
             mystep.loc = loc  # update location on step
@@ -3164,10 +3150,9 @@ class Categorizer(object):
                 while True:
                     newlist = self._introduce_tags(rank=rank)
                     if not newlist:
-                        current.paideia_debug.do_print(
-                            "ERROR: failed to get tags for rank {}"
-                            "".format(rank),
-                            'Categorizer.categorize_tags')
+                        print("ERROR: failed to get tags for rank {}"
+                              "".format(rank),
+                              'Categorizer.categorize_tags')
                         break
                     curr_rev1 = tag_progress['rev1'] \
                         if ('rev1' in tag_progress and tag_progress['rev1']) \
