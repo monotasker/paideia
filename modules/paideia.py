@@ -160,8 +160,14 @@ class Walk(object):
                 if sd:
                     sys.path.append(os.path.dirname(__file__))
                     # base64 encoded in db for storage of py3 pickled bytes
-                    userdata = base64.b64decode(sd['other_data'])
-                    self.user = pickle.loads(userdata)
+                    # TODO: Remove this error handing once old user records are
+                    # all refreshed
+                    try:
+                        userdata = base64.b64decode(sd['other_data'])
+                        self.user = pickle.loads(userdata)
+                    except Exception:
+                        traceback.print_exc()
+                        self.user = None
                 else:
                     self.user = None
                 assert self.user
@@ -184,9 +190,9 @@ class Walk(object):
 
             except (KeyError, TypeError):  # Problem with session data
                 print(traceback.format_exc(5))
-                self.user = self._new_user(userdata, tag_records, tag_progress)
+                self.user = self._new_user(None, tag_records, tag_progress)
             except (AssertionError, AttributeError):  # user stale or block
-                self.user = self._new_user(userdata, tag_records, tag_progress)
+                self.user = self._new_user(None, tag_records, tag_progress)
                 print('creating new user from data '
                       '------------Walk._get_user')
         if isinstance(self.user.quota, list):
