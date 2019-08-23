@@ -1,0 +1,146 @@
+{{extend 'layout.html'}}
+{{if request.vars:}}
+    {{v = request.vars}}
+{{else:}}
+    {{v = ''}}
+{{pass}}
+{{mystate = '' if active_lesson else 'initial_state'}}
+
+<div class="panel-group lesson-list-wrapper {{=mystate}} col-sm-4" id="accordion" role="tablist" aria-multiselectable="true">
+    {{for n in range(20):}}
+        <div class="panel panel-default">
+            <div class="panel-heading" data-toggle="collapse" 
+                    data-target="#lesson-sublist{{=n}}" aria-controls="lesson-sublist{{=n}}"
+                    aria-expanded="false"
+                    role="tab" id="headingOne">
+                    Badge set {{=n}}
+            </div>
+            {{pstate = 'in' if n == active_set else 'out'}}
+            {{print('active set:', active_set)}}
+            <div id="lesson-sublist{{=n}}"
+                class="lesson-sublist panel-collapse collapse {{=pstate}}"
+                role="tabpanel" aria-labelledby="lesson-sublist{{=n}}"
+                >
+                <div class="panel-body">
+                    <ul>
+                    {{for lesson in [l for l in lessons
+                        if str(l['lesson_position'])[:-1] == str(n)]:}}
+                        <li id="lesson-sublist{{=n}}">
+                            {{popcontent = ''}}
+                            {{for badge in lesson['badges']:}}
+                                {{popcontent += "<span class='label label-info'>{}</span>".format(badge['badge_name'])}}
+                            {{pass}}
+                            <i class="fa fa-tags" role="button"
+                                data-toggle="popover"
+                                title="Related badges"
+                                data-content="{{=popcontent}} ">
+                            </i>
+                            <a href="{{=URL('default', 'download', args=[lesson['pdf']])}}" title="Download pdf" >
+                                <i class="fa fa-file-pdf-o"></i>
+                            </a>
+                            <span class="lessonlist-linkwrapper">
+                                <a class="vidlink" href="{{=lesson['video_url']}}">
+                                    {{=lesson['title']}}
+                                </a>
+                            </span>
+
+
+                        </li>
+                    {{pass}}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    {{pass}}
+</div>
+
+<div id='lesson-display' class='lesson-display col-sm-8'>
+    <div class="videoWrapper">
+        <h2 id="active-lesson-header">Choose a Lesson</h2>
+
+        <p>Pick a badge set from the list here to see the related video lessons Click on the icon beside each lesson title to see which badges are touched on in the video.</p>
+
+        <p>Beside each lesson title you will also find an icon to download a PDF file with all of the slides from that lesson. This can make a great reference later on. Just don't skip watching through the video first.</p>
+
+    </div>
+    <div class="videoMask">
+        <img class='spinner' src={{=URL('static', version_file('images/Rolling.gif'))}}
+            alt='loading' />
+    </div>
+</div>
+
+<script type="text/javascript">
+
+function ready(fn) {
+  if (document.readyState != 'loading'){
+    fn();
+  } else {
+    document.addEventListener('DOMContentLoaded', fn);
+  }
+}
+
+function show_vid_mask() {
+    $('.videoMask').velocity({opacity: "1"}, {display: "block"}, 200);
+}
+
+function show_spinner() {
+    $('.spinner').velocity({opacity: "1"}, {display: "block"}, 200);
+}
+function hide_vid_mask() {
+    $('.videoMask').velocity({opacity: "0"}, {display: "none"}, 700);
+}
+
+function hide_spinner() {
+    $('.spinner').velocity({opacity: "0"}, {display: "none"}, 700);
+}
+function bindlinks() {
+
+    var $mylinks = document.querySelectorAll('.lesson-sublist a.vidlink');
+    var linklength = $mylinks.length;
+    for (var i = 0; i < linklength; i++) {
+        $mylinks[i].addEventListener('click', function(event){
+            show_vid_mask();
+
+            $mylink = event.target;
+            $mylink.closest('.lesson-list-wrapper')
+                .classList.remove('initial-state');
+            var vidurl = $mylink.href.slice(17);
+            var vidframe = '<iframe id="ytframe" width="560" height="315" src="https://www.youtube.com/embed/' + vidurl + '" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
+
+            $displaydiv = document.getElementsByClassName('videoWrapper')[0];
+            $displaydiv.innerHTML = vidframe;
+            document.getElementById('ytframe')
+                .addEventListener('load', function(event) { 
+                    hide_vid_mask();
+            });
+            event.preventDefault();
+        });
+    }
+}
+
+function fit_to_height() {
+    // Handle page dimensions and spinner position
+    var headroom = $('.navbar').innerHeight();
+    var footroom = $('#footer').outerHeight();
+    var divheight = window.innerHeight - (headroom + footroom);
+    $('#page').height(divheight);
+    $('.lesson-list-wrapper').height(divheight);
+}
+
+function loadpops() {
+    $('[data-toggle="popover"]').each(function() {
+        $(this).popover({html: true,
+                         placement: 'auto bottom',
+                         viewport: '.lesson-list-wrapper'});
+    });
+}
+
+ready(loadpops);
+ready(bindlinks);
+ready(fit_to_height);
+
+window.addEventListener('resize', function(){
+    fit_to_height();
+});
+
+</script>

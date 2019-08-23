@@ -693,6 +693,26 @@ db.define_table('user_stats',
 # db.executesql('CREATE INDEX IF NOT EXISTS idx_userstats_1 '
 #              'ON user_stats (year, week, name);')
 
+db.define_table('lessons',
+                Field('title', 'string'),
+                Field('video_url', 'text'),
+                Field('pdf', 'upload', default='static/pdf-slides/'),
+                Field('lesson_tags', 'list:reference tags'),
+                Field('lesson_position', 'integer'),
+                Field('active', 'boolean'),
+                Field('uuid', length=64, default=lambda: str(uuid.uuid4())),
+                Field('modified_on', 'datetime', default=request.now),
+                format='%(title)s')
+# db.lessons.title.requires = IS_NOT_IN_DB(db, 'lessons.title')
+db.lessons.lesson_tags.widget = lambda field, value: AjaxSelect(field, value,
+                                                         indx=1,
+                                                         refresher=True,
+                                                         multi='basic',
+                                                         lister='simple',
+                                                         sortable=False,
+                                                         orderby='~id'
+                                                         ).widget()
+
 db.define_table('topics',
                 Field('topic', 'string'),
                 Field('uuid', length=64, default=lambda: str(uuid.uuid4())),

@@ -10,7 +10,7 @@ from copy import copy
 import datetime
 import traceback
 from paideia_stats import make_classlist, make_unregistered_list
-# from pprint import pprint
+from pprint import pprint
 # from dateutil.parser import parse
 # from operator import itemgetter
 if 0:
@@ -409,7 +409,7 @@ def news():
     return dict(newslist=newslist, button=button)
 
 
-def slides():
+def lessons():
     """
     Assemble a list of links to the slide sets and send to the view.
     """
@@ -417,4 +417,18 @@ def slides():
     #if auth.is_logged_in():
     #    if session.walk and 'view_slides' in session.walk:
     #        del session.walk['view_slides']
-    return dict()
+    active_lesson = int(request.args[0]) if request.args else None
+    if auth.is_logged_in():
+        active_set = db(db.tag_progress.name == auth.user_id
+                        ).select().first().latest_new
+    else:
+        active_set = None
+    lessons = db(db.lessons.active == True
+                 ).select(orderby=db.lessons.lesson_position
+                          ).as_list() 
+    for l in lessons:
+        mybadges = db(db.badges.tag.belongs(l['lesson_tags'])).select()
+        l['badges'] = mybadges.as_list()
+    return {'lessons': lessons,
+            'active_lesson': active_lesson,
+            'active_set': active_set}
