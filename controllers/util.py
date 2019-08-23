@@ -13,7 +13,7 @@ if 0:
     response = current.response
 from gluon import validators
 from paideia_utils import test_step_regex, GreekNormalizer
-from plugin_utils import flatten, makeutf8
+from plugin_utils import flatten, makeutf8, migrate_table
 import paideia_path_factory
 import re
 import traceback
@@ -283,19 +283,7 @@ def to_migrate_table():
 
     ===========================================================
     """
-    items = db(db.auth_membership.id > 0).select()
-    for i in items:
-        if i.group_id == 1:
-            pass
-        else:
-            cls = db((db.auth_group.id == i.group_id) &
-                     (db.auth_group.end_date == db.classes.end_date)
-                     ).select().first()
-            print(i.user_id, ':', cls.classes.id)
-            db.class_membership.update_or_insert(**{'name': i.user_id,
-                                                    'class_section': cls.classes.id})
-    cc = db(db.class_membership.id > 0).select().as_dict()
-    return {'result': pprint(cc)}
+    return migrate_table()
 
 
 @auth.requires_membership('administrators')

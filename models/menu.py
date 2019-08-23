@@ -110,7 +110,7 @@ response.menu = [(SPAN(I(_class='fa fa-home'),
                   False, URL('exploring', 'index'), []),
                  (SPAN(I(_class='fa fa-film'),
                        SPAN('Videos', _class='hidden-sm')),
-                  False, URL('listing', 'slides'), []),
+                  False, URL('listing', 'lessons'), []),
                  (SPAN(I(_class='fa fa-filter'),
                        SPAN('Vocabulary', _class='hidden-sm')),
                   False, URL('reporting', 'vocabulary.html'), [])

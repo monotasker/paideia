@@ -588,3 +588,34 @@ CREATE TABLE "plugin_slider_decks"(
 );
 success!
 success!
+timestamp: 2019-08-21T13:38:37.923039
+CREATE TABLE "lessons"(
+    "id" SERIAL PRIMARY KEY,
+    "title" VARCHAR(512) UNIQUE,
+    "video_url" VARCHAR(512),
+    "pdf" VARCHAR(512),
+    "lesson_tags" TEXT,
+    "lesson_position" INTEGER,
+    "uuid" VARCHAR(64),
+    "modified_on" TIMESTAMP
+);
+success!
+timestamp: 2019-08-21T13:48:23.740119
+ALTER TABLE "lessons" ADD "video_url__tmp" TEXT;
+UPDATE "lessons" SET "video_url__tmp"="video_url";
+ALTER TABLE "lessons" DROP COLUMN "video_url";
+ALTER TABLE "lessons" ADD "video_url" TEXT;
+UPDATE "lessons" SET "video_url"="video_url__tmp";
+ALTER TABLE "lessons" DROP COLUMN "video_url__tmp";
+success!
+timestamp: 2019-08-21T13:54:49.576642
+ALTER TABLE "lessons" ADD "title__tmp" VARCHAR(512);
+UPDATE "lessons" SET "title__tmp"="title";
+ALTER TABLE "lessons" DROP COLUMN "title";
+ALTER TABLE "lessons" ADD "title" VARCHAR(512);
+UPDATE "lessons" SET "title"="title__tmp";
+ALTER TABLE "lessons" DROP COLUMN "title__tmp";
+success!
+timestamp: 2019-08-21T15:43:13.649299
+ALTER TABLE "lessons" ADD "active" CHAR(1);
+success!
