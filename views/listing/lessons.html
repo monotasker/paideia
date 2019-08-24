@@ -4,10 +4,11 @@
 {{else:}}
     {{v = ''}}
 {{pass}}
-{{mystate = '' if active_lesson else 'initial_state'}}
+{{mystate = '' if active_video else 'initial_state'}}
 
 <div class="panel-group lesson-list-wrapper {{=mystate}} col-sm-4" id="accordion" role="tablist" aria-multiselectable="true">
     {{for n in range(20):}}
+        {{n = n+1}}
         <div class="panel panel-default">
             <div class="panel-heading" data-toggle="collapse" 
                     data-target="#lesson-sublist{{=n}}" aria-controls="lesson-sublist{{=n}}"
@@ -15,8 +16,7 @@
                     role="tab" id="headingOne">
                     Badge set {{=n}}
             </div>
-            {{pstate = 'in' if n == active_set else 'out'}}
-            {{print('active set:', active_set)}}
+            {{pstate = 'in' if str(n) == active_set else 'out'}}
             <div id="lesson-sublist{{=n}}"
                 class="lesson-sublist panel-collapse collapse {{=pstate}}"
                 role="tabpanel" aria-labelledby="lesson-sublist{{=n}}"
@@ -28,7 +28,7 @@
                         <li id="lesson-sublist{{=n}}">
                             {{popcontent = ''}}
                             {{for badge in lesson['badges']:}}
-                                {{popcontent += "<span class='label label-info'>{}</span>".format(badge['badge_name'])}}
+                                {{popcontent += "<span class='label label-info'>{}</span> ".format(badge['badge_name'])}}
                             {{pass}}
                             <i class="fa fa-tags" role="button"
                                 data-toggle="popover"
@@ -56,11 +56,16 @@
 
 <div id='lesson-display' class='lesson-display col-sm-8'>
     <div class="videoWrapper">
-        <h2 id="active-lesson-header">Choose a Lesson</h2>
+        {{if not active_video:}}
+            <h2 id="active-lesson-header">Choose a Lesson</h2>
 
-        <p>Pick a badge set from the list here to see the related video lessons Click on the icon beside each lesson title to see which badges are touched on in the video.</p>
+            <p>Pick a badge set from the list here to see the related video lessons Click on the icon beside each lesson title to see which badges are touched on in the video.</p>
 
-        <p>Beside each lesson title you will also find an icon to download a PDF file with all of the slides from that lesson. This can make a great reference later on. Just don't skip watching through the video first.</p>
+            <p>Beside each lesson title you will also find an icon to download a PDF file with all of the slides from that lesson. This can make a great reference later on. Just don't skip watching through the video first.</p>
+        {{else:}}
+            <iframe id="ytframe" width="560" height="315" src="https://www.youtube.com/embed/{{=active_video}}" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
+            </iframe>
+        {{pass}}
 
     </div>
     <div class="videoMask">
@@ -122,7 +127,7 @@ function fit_to_height() {
     // Handle page dimensions and spinner position
     var headroom = $('.navbar').innerHeight();
     var footroom = $('#footer').outerHeight();
-    var divheight = window.innerHeight - (headroom + footroom);
+    var divheight = window.innerHeight - (headroom + footroom) - 18;
     $('#page').height(divheight);
     $('.lesson-list-wrapper').height(divheight);
 }
