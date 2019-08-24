@@ -655,13 +655,19 @@ body.exploring                  {
                     border: 1px solid @accent2;
                     .arrow::after            {border-bottom-color: @accent2;
                     }
-                    a                        {color: @white;
-                                              text-decoration: none;
-                                              white-space: normal;  // to fix list item wrapping
-                    }
                     .popover-title           {background-color: transparent;
-                                              color: lighten(@warning, 20%);
-                                              border-bottom: 1px solid transparent;
+                                            color: lighten(@accent2, 40%);
+                                            border-bottom: 1px solid transparent;
+                                            padding: 14px 14px 0 14px;
+                    }
+                    li                      {color: @white;
+                        i                       {margin-top: 2px;
+                                                color: lighten(@accent2, 10%);
+                        }
+                        a                        {color: @white;
+                                                text-decoration: none;
+                                                white-space: normal;  // to fix list item wrapping
+                        }
                     }
                     .prompt_instructions,
                     .prompt_slides,

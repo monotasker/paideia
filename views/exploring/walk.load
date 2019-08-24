@@ -97,7 +97,7 @@ ap.append(form) }}
             decklist = UL(_class='prompt_slides fa-ul')
             for did, dname in slidedecks.items():
                 decklist.append(LI(I(_class='fa-li fa fa-video-camera'),
-                                   A(dname, _href=URL('listing', 'slides.html',
+                                   A(dname, _href=URL('listing', 'lessons.html',
                                      args=[did]))))
             pass
             slides_args = {'classnames': 'slides-popover text-warning',
