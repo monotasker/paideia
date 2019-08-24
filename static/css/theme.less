@@ -759,44 +759,67 @@ body.listing                        {
                                     padding:0;
                                     margin-bottom: 0px;
                                     position: static;
+                                    background-color: @accent2;
             @media (max-width: 767px) {margin-top:32%;
                                         padding-bottom: 32px;
             }
             .panel                  {margin-top: 0px;
-                                    border: 1px transparent solid;
-                                    border-right: 0px transparent solid;
+                                    border: 1px lighten(@accent2, 12%) solid;
+                                    border-right: 1px lighten(@accent2, 12%) solid;
                                     border-radius: 0px;
                                     width: 100%;
-                .panel-heading      {
-                    &:hover         {background-color: #ddd;
+                .panel-heading      {background-color: lighten(@accent2, 15%);
+                                     color: lighten(@accent2, 50%);
+                                    border-radius: 0px;
+                    &.collapsed     {
+                    }
+                    &:hover         {background-color: lighten(@accent2, 13%);
                                     transition: all .3s ease-in-out;
+                                    color: @white;
                                     cursor: pointer;
                     }
                 }
-                ul                      {margin: 0px;
-                    li                  {width: 100%;
-                        .lessonlist-linkwrapper     {width: 75%;
+                .panel-body         {background-color: lighten(@accent2, 5%);
+                                     border-color: lighten(@accent2, 10%);
+                    ul                      {margin: 0px;
+                        li                  {width: 100%;
+                            .lessonlist-linkwrapper     {width: 75%;
+                                                        white-space: normal;
+                                                        display: inline-block;
+                                                        word-wrap: break-word;
+                                                        text-indent: -1em;
+                                                        padding-left: 1em;
+                                a                   {word-wrap: break-word;
+                                                    color: lighten(@accent2, 40%);
                                                     white-space: normal;
-                                                    display: inline-block;
-                                                    word-wrap: break-word;
-                                                    text-indent: -1em;
-                                                    padding-left: 1em;
-                            a                   {word-wrap: break-word;
-                                                white-space: normal;
-                                                width: 100%;
+                                                    width: 100%;
+                                    &:hover,
+                                    &:active        {color: lighten(@accent2, 55%);
+                                    }
+                                    &:hover,
+                                    &:active,
+                                    &:visited       {text-decoration: none;
+                                    }
+                                }
                             }
-                        }
-                        i                   {color: darken(@pallette1, 20%);
-                                            margin-left: .5rem;
-                                            transition: all .3s ease-in-out;
-                                            float: right;
-                                            height: 1.5em;
-                                            line-height: 1.5em;
-                            &:hover         {color: darken(@pallette1, 40%);
-                                            transition: all .3s ease-in-out;
+                            i                   {color: darken(@pallette1, 10%);
+                                                margin-left: .5rem;
+                                                transition: all .3s ease-in-out;
+                                                float: right;
+                                                height: 1.5em;
+                                                line-height: 1.5em;
+                                &:hover         {color: darken(@pallette1, 5%);
+                                                transition: all .3s ease-in-out;
+                                }
+                                &.fa-file-pdf-o    {color: lighten(@accent1, 50%);
+                                    &:hover         {color: lighten(@accent1, 60%);
+                                    }
+                                }
                             }
-                        }
-                        .popover-content    {
+                            .popover-content    {
+                                .label          {margin-right: 0.5em;
+                                }
+                            }
                         }
                     }
                 }

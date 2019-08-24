@@ -418,9 +418,14 @@ def lessons():
     #    if session.walk and 'view_slides' in session.walk:
     #        del session.walk['view_slides']
     active_lesson = int(request.args[0]) if request.args else None
-    if auth.is_logged_in():
+    active_video = None
+    if active_lesson:
+        active_video = db.lessons(active_lesson).video_url[17:]
+        active_set = str(db.lessons(active_lesson).lesson_position)[:-1]
+    elif auth.is_logged_in():
         active_set = db(db.tag_progress.name == auth.user_id
                         ).select().first().latest_new
+        active_set = str(active_set)
     else:
         active_set = None
     lessons = db(db.lessons.active == True
@@ -430,5 +435,5 @@ def lessons():
         mybadges = db(db.badges.tag.belongs(l['lesson_tags'])).select()
         l['badges'] = mybadges.as_list()
     return {'lessons': lessons,
-            'active_lesson': active_lesson,
+            'active_video': active_video,
             'active_set': active_set}
