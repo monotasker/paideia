@@ -1155,7 +1155,7 @@ class Step(object):
         The keys are deck ids, while the values are the deck names (as
         strings). If this step has no associated slides, returns None.
         """
-        debug = current.paideia_DEBUG_MODE
+        debug = True  # current.paideia_DEBUG_MODE
         db = current.db
         tags = db(db.tags.id.belongs(self.data['tags'])).select()
         if debug:
@@ -1164,8 +1164,10 @@ class Step(object):
             if debug:
                 print('got some tags')
             try:
-                decks = {d.id: d.deck_name for t in tags for d in t.slides
-                         if t.slides}
+                lessons = db(db.lessons.lesson_tags.contains(
+                    [t['id'] for t in tags])
+                    ).select(db.lessons.id, db.lessons.title)
+                decks = {l.id: l.title for l in lessons if lessons}
                 if debug:
                     print('decks:', decks)
                 return decks
