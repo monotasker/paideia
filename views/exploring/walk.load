@@ -114,19 +114,28 @@ ap.append(form) }}
         {{if 'response_form' in locals() and response_form:}}
             {{=response_form}}
         {{pass
-
+        mytabindex = 1
         if 'continue' in response_buttons:}}
             {{=A("Continue", _href=URL('walk', args=['ask'], vars={'loc': loc}),
-            cid='walk_frame', _class='continue btn btn-success next_q')}}
+            cid='walk_frame', _class='continue btn btn-success next_q',
+            _tabindex=mytabindex)}}
+            {{mytabindex += 1}}
         {{pass}}
 
         {{if 'retry' in response_buttons:}}
             {{=A("Try again", _href=URL('walk', args=['repeat'], vars={'loc': loc}),
-                 cid='walk_frame', _class='btn btn-warning retry')}}
+                 cid='walk_frame',
+                 _class='btn btn-warning retry',
+                 _tabindex=mytabindex)}}
+            {{mytabindex += 1}}
         {{pass}}
 
         {{if 'map' in response_buttons:}}
-            <a href="#" class="btn btn-success back_to_map">Back to map</a>
+            <a href="#" class="btn btn-success back_to_map"
+                tabindex="{{=mytabindex}}">
+                Back to map
+            </a>
+            {{mytabindex += 1}}
         {{pass}}
         {{if sid and pid:}}
             {{stepedit = A('step {}'.format(sid),

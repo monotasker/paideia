@@ -13,11 +13,13 @@ from dateutil import parser
 from inspect import getargvalues, stack
 from itertools import chain
 from memory_profiler import profile
+from memprof import *
 import os
 from paideia_utils import GreekNormalizer
 import pickle
 from plugin_utils import flatten, ErrorReport
 from pprint import pprint
+from pympler import muppy, summary
 from pytz import timezone
 from random import randint, randrange
 import re
@@ -105,6 +107,7 @@ class Walk(object):
     the controller.
     """
 
+    # @profile
     def __init__(self, tag_records=None, tag_progress=None,
                  response_string=None, userdata=None, db=None,
                  new_user=None):
@@ -121,6 +124,7 @@ class Walk(object):
                                    new_user=new_user)
         self.record_id = None  # stores step log row id after db update
 
+    # @profile
     def _new_user(self, userdata, tag_records, tag_progress):
         '''Return a new User object for the currently logged in user.'''
         auth = current.auth
@@ -143,6 +147,7 @@ class Walk(object):
         return User(userdata, tag_records, tag_progress, blocks=[])
         # TODO: find out where the mysterious blocks are coming from
 
+    # @profile
     def _get_user(self, userdata=None, tag_records=None,
                   tag_progress=None, new_user=None):
         '''
@@ -199,6 +204,7 @@ class Walk(object):
             self.user.quota = self.user.quota[0]
         return self.user
 
+    # @profile
     def start(self, localias, response_string=None, path=None, repeat=None,
               step=None, set_blocks=None, recategorize=None,
               pre_bug_step_id=None, set_review=None):
@@ -247,6 +253,7 @@ class Walk(object):
         user.path = None
         self._store_user(user)
 
+    # @profile
     def ask(self, localias, path=None, repeat=None,
             step=None, set_blocks=None, recategorize=None, set_review=None):
         """
@@ -406,8 +413,14 @@ class Walk(object):
                       }
             return prompt
 
+
+        # all_objects = muppy.get_objects()
+        # sum1 = summary.summarize(all_objects)
+        # summary.print_(sum1)
+
         return prompt  # good prompt
 
+    # @profile
     def _set_blocks(self, user=None):
         """
         """
@@ -425,6 +438,7 @@ class Walk(object):
                                                'promoted': promoted})
         return tag_progress, promoted, new_tags, demoted
 
+    # @profile
     def reply(self, localias, response_string, path=None, step=None,
               pre_bug_step_id=None):
         """
@@ -507,6 +521,7 @@ class Walk(object):
 
         return prompt
 
+    # @profile
     def _record_promotions(self, promoted, user_id):
         """
         Record awarding of new or promoted badges in db.badges_begun
@@ -533,6 +548,7 @@ class Walk(object):
             print(traceback.format_exc(5))
             return False
 
+    # @profile
     def _record_demotions(self, demoted, user_id):
         """
         Delete demoted badges from  db.badges_begun
@@ -543,6 +559,7 @@ class Walk(object):
         """
         return True
 
+    # @profile
     def _record_cats(self, tag_progress, promoted, new_tags, demoted, db=None):
         """
         Record changes to the user's working tags and their categorization.
@@ -578,6 +595,7 @@ class Walk(object):
         else:  # auth.user_id != uid because shadowing another user
             return False
 
+    # @profile
     def _update_tag_secondary(self, tag, oldrec, user_id, now=None):
         """
         Update the 'secondary_right' field of a tag record.
@@ -605,6 +623,7 @@ class Walk(object):
         db.commit()
         return tagrec
 
+    # @profile
     def _add_from_logs(self, tag, user_id, newdata, tright, twrong, got_right):
         """
         Temporary fix for lost tag records counts.
@@ -637,6 +656,7 @@ class Walk(object):
                     pass
         return newdata
 
+    # @profile
     def _update_tag_record(self, tag, oldrec, user_id, tright, twrong,
                            got_right, score, step_id=None, now=None):
         """
@@ -716,6 +736,7 @@ class Walk(object):
 
         return tagrec.id
 
+    # @profile
     def _record_step(self, user_id, step_id, path_id, score, raw_tright,
                      raw_twrong, old_trecs, taglist, response_string, category,
                      new_content, now=None):
@@ -785,6 +806,7 @@ class Walk(object):
         self.user.complete_path(got_right)
         return log_record_id
 
+    # @profile
     def _store_user(self, user, db=None):
         """
         Store the current User object (from self.user) in session.user
@@ -2045,6 +2067,7 @@ class PathChooser(object):
     Select a new path to begin when the user begins another interaction.
     """
 
+    # @profile
     def __init__(self, tag_progress, loc_id, paths_completed, db=None):
         """Initialize a PathChooser object to select the user's next path."""
         self.categories = {k: v for k, v in list(tag_progress.items())
@@ -2139,11 +2162,11 @@ class PathChooser(object):
         self.tag_progress['all_choices'] = self.all_choices
         return rslt
 
+    @profile
     def _paths_by_category(self, cat, rank):
         """
         Assemble list of paths tagged with tags in the chosen category.
 
-        Return a dictionary with categories as keys and corresponding lists
         pathset :: list of dictionaries holding the data for selected paths
         cat :: integer representing the category from which choice was made
         force_cat1 :: boolean indicating whether or not cat1 selection was
@@ -2153,12 +2176,9 @@ class PathChooser(object):
         debug = current.paideia_DEBUG_MODE
         db = current.db
         pathset = None
+        pathset_new = None
         force_cat1 = False
         while True:
-            # TODO: set up computed field
-            # if not db(db.paths).select().first().path_tags:
-            # for row in db(db.paths.id > 0).select():
-            # db(db.paths.id == row.id).update(steps=row.steps)
             # TODO: include paths with tag as secondary, maybe in second list?
             # TODO: cache the select below and just re-order randomly
 
@@ -2168,9 +2188,15 @@ class PathChooser(object):
                 if debug:
                     print('PathChooser::_paths_by_cateogry: using taglist',
                           taglist)
-                myrows = db(db.steps.tags.contains(taglist)).select()
-                myrows = myrows.find(lambda row: row.status != 2)
-                mylist = [v.id for v in myrows]
+                deactivated = [row['id'] for row in 
+                               db(db.steps.status == 2
+                                  ).iterselect(db.steps.id)
+                               ]
+                mylist = list(set(row['step_id'] for row in
+                          db(db.step2tags.tag_id.belongs(taglist)
+                             ).iterselect(db.step2tags.step_id)
+                          if (not deactivated) or (row['id'] not in deactivated)
+                          ))
                 return mylist
 
             taglist = self.categories['rev{}'.format(cat)]
@@ -2189,59 +2215,25 @@ class PathChooser(object):
                 if not stepslist:  # In case no steps in db for cat1 tags
                     # FIXME: send an error report here?
                     stepslist = get_stepslist(taglist)
+                new_stepslist = stepslist
             else:
                 stepslist = get_stepslist(taglist)
                 # find out whether
                 if cat == 1:
                     new_stepslist = get_stepslist(taglist_cat1)
-
             if not stepslist:
                 break
 
-            """
-            TODO: Why did JOB do it this way?
-            # get id's for all steps marked with tags in taglist
-            #stepslist_unhashable = db(db.step2tags.tag_id.belongs(taglist)
-                                      #).select(db.step2tags.step_id).as_list()
-            #if not stepslist_unhashable:
-                #break
-            #stepslist = [v['step_id'] for v in stepslist_unhashable]
-
-            # remove steps with status 2 (deactivated)
-            #stepslist_unhashable = db((db.steps.id.belongs(stepslist)) &
-                                      #(db.steps.status != 2)
-                                      #).select(db.steps.id).as_list()
-            #stepslist = [v['id'] for v in stepslist_unhashable]
-            """
-
-            """
-            # find all paths with a step in steplist
-            # pathset_ids_unhashable = db(
-            #     db.path2steps.step_id.belongs(stepslist)
-            #     ).select(db.path2steps.path_id).as_list()
-            # pathset_ids = [v['path_id'] for v in pathset_ids_unhashable]
-            # if not pathset_ids:
-            #     break
-            """
-
-            # pathset = db(db.paths.steps.contains(stepslist)).select()
-            pathset_all = db(db.paths.id > 0).select()
-            pathset = pathset_all.find(lambda row: any(s for s in row.steps
-                                                       if s in stepslist))
-
-            # filter out any paths whose steps don't have a location
-            pathset = pathset.find(lambda row: all([Step(s).has_locations()
-                                                    for s in row.steps]))
-
+            pathset = list(set(row['path_id'] for row in
+                       db(db.path2steps.step_id.belongs(stepslist)
+                       ).iterselect(db.path2steps.path_id)
+                       ))
             # figure out whether actually new material
-            pathset_new = []
-            if cat == 1 and not force_cat1:
-                pathset_new = pathset_all.find(
-                    lambda row: any(s for s in row.steps
-                                    if s in new_stepslist))
-                pathset_new = pathset_new.as_list()
-
-            pathset = pathset.as_list()
+            if cat == 1 and new_stepslist:
+                pathset_new = list(set(row['path_id'] for row in
+                               db(db.path2steps.step_id.belongs(new_stepslist)
+                               ).iterselect(db.path2steps.path_id)
+                               ))
             break
         if debug:
             print('PathChooser::_paths_by_cateogry: returning pathset',
@@ -2249,6 +2241,7 @@ class PathChooser(object):
 
         return pathset, cat, force_cat1, pathset_new
 
+    # @profile
     def _choose_from_cat(self, cpaths, category):
         """
         Select a path from the category supplied as an argument.
@@ -2271,7 +2264,7 @@ class PathChooser(object):
         path = None
         new_loc = None
         mode = None
-        completed_list = [int(k) for k in list(self.completed['paths'].keys())]
+        completed_list = [int(k) for k in self.completed['paths'].keys()]
 
         if debug:
             print('in _choose_from_cat ---------------------------------')
@@ -2281,8 +2274,15 @@ class PathChooser(object):
             p_new = [p for p in cpaths if p['id'] not in completed_list]
             if debug:
                 print('p_new:', [p['id'] for p in p_new])
-            p_here = [p for p in cpaths
-                      if loc_id in db.steps[int(p['steps'][0])].locations]
+
+            pid_here = [p['path2steps']['path_id'] for p
+                         in db((db.path2steps.step_id == db.steps.id) &
+                               (db.steps.locations.contains(loc_id))
+                               ).iterselect(db.path2steps.path_id,
+                                            db.steps.locations)
+                         if loc_id in p['steps']['locations']
+                         ]
+            p_here = [p for p in cpaths if p['id'] in pid_here]
             if debug:
                 print('p_here:', [p['id'] for p in p_here])
             p_here_new = [p for p in p_here if p in p_new]
@@ -2398,6 +2398,7 @@ class PathChooser(object):
 
         return (path, new_loc, category, mode)
 
+    # @profile
     def choose(self, set_review=None, db=None):
         """
         Choose a path for the current user based on performance record.
@@ -2413,14 +2414,24 @@ class PathChooser(object):
             [2] the category number for this new path (int in range 1-4)
         """
         db = current.db if not db else db
-        debug = current.paideia_DEBUG_MODE
+        debug = True # current.paideia_DEBUG_MODE
         new_material = False
+
+        def chunks(l, n):
+            '''
+            Divides a list into new lists of a given length.
+            '''
+            # For item i in a range that is a length of l,
+            for i in range(0, len(l), n):
+                # Create an index range for l of n items:
+                yield l[i:i + n]
+
         if set_review:  # select randomly from the supplied set
             myset = set_review
             if debug:
                 print('myset', myset)
-            set_tags = db(db.tags.tag_position == myset).select()
-            taglist = [int(t['id']) for t in set_tags]
+            taglist = [t['id'] for t in
+                       db(db.tags.tag_position == myset).iterselect(db.tags.id)]
             if debug:
                 print('taglist', taglist)
             set_steps = [s.id for s in
@@ -2428,15 +2439,7 @@ class PathChooser(object):
             if debug:
                 print('set_steps', set_steps)
 
-            def chunks(l, n):
-                '''
-                Divides a list into new lists of a given length.
-                '''
-                # For item i in a range that is a length of l,
-                for i in range(0, len(l), n):
-                    # Create an index range for l of n items:
-                    yield l[i:i + n]
-
+            # FIXME: I don't think this works -- bitwise or operator
             set_paths = db(db.paths.steps.contains(set_steps[:20])).select()
             for steps_chunk in chunks(set_steps, 20):
                 set_paths |= db(db.paths.steps.contains(steps_chunk)).select()
@@ -2809,6 +2812,7 @@ class User(object):
         """
         return self.loc
 
+    # @profile
     def _make_path_choice(self, loc, set_review=None):
         """
         Instantiate PathChooser and return the result of its choose() method.
@@ -2860,6 +2864,7 @@ class User(object):
         else:
             return None, None, None, None
 
+    # @profile
     def get_path(self, loc, db=None, pathid=None,
                  repeat=None, set_review=None):
         """
