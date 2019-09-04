@@ -14,13 +14,16 @@ import datetime
 import os
 import traceback
 import uuid
-from applications.paideia.modules.paideia_utils import simple_obj_print
+from paideia_utils import simple_obj_print
 from plugin_widgets import SortedOptionsWidget
 # import re
 
 if 0:
-    from gluon import URL, current, Field, IS_IN_DB, IS_NOT_IN_DB, SQLFORM
-    from gluon import IS_EMPTY_OR, IS_IN_SET, SPAN, A, I
+    from web2py.gluon import URL, current, Field, IS_IN_DB, IS_NOT_IN_DB, SQLFORM
+    from web2py.gluon import IS_EMPTY_OR, IS_IN_SET, SPAN, A, I
+    from web2py.applications.paideia.modules.plugin_ajaxselect import AjaxSelect
+    from web2py.applications.paideia.modules.paideia_utils import simple_obj_print
+    from web2py.applications.paideia.modules.plugin_widgets import SortedOptionsWidget
     response = current.response
     request = current.request
     auth = current.auth

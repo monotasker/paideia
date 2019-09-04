@@ -15,6 +15,13 @@ from paideia import StepRedirect, StepViewSlides, StepAwardBadges
 from paideia import StepEvaluator, MultipleEvaluator, StepQuotaReached
 from paideia import Block, BugReporter, Map
 from gluon import current, IMG
+if 0:
+    from web2py.applications.paideia import Npc, Location, User, PathChooser, Path, Categorizer, Walk
+    from web2py.applications.paideia import StepFactory, StepText, StepMultiple, NpcChooser, Step
+    from web2py.applications.paideia import StepRedirect, StepViewSlides, StepAwardBadges
+    from web2py.applications.paideia import StepEvaluator, MultipleEvaluator, StepQuotaReached
+    from web2py.applications.paideia import Block, BugReporter, Map
+    from web2py.gluon import current, IMG
 
 from ast import literal_eval
 import base64
