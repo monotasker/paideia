@@ -51,6 +51,8 @@ watched when upgrading web2py:
 
 """
 
+current.paideia_DEBUG_MODE = False
+
 
 class MyPickler (pickle.Pickler):
     """Pickler subclass for debugging pickling problems."""
@@ -1827,7 +1829,11 @@ class StepEvaluator(object):
                 #  TODO: Vary the replies
             else:
                 score = 0
-                reply = "That's not it. Try again!"
+                replies = ["That's not it. Try again!", 
+                           "Hm. Give it another try!",
+                           "Good effort, but that's not right. Try again!"]
+                r_index = randrange(0, len(replies))
+                reply = replies[r_index]
                 #  TODO: Vary the replies
 
             # Set the increment value for times wrong, depending on score
@@ -2414,7 +2420,7 @@ class PathChooser(object):
             [2] the category number for this new path (int in range 1-4)
         """
         db = current.db if not db else db
-        debug = True # current.paideia_DEBUG_MODE
+        debug = current.paideia_DEBUG_MODE
         new_material = False
 
         def chunks(l, n):

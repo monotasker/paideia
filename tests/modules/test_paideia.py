@@ -17,6 +17,7 @@ from paideia import Block, BugReporter, Map
 from gluon import current, IMG
 
 from ast import literal_eval
+import base64
 from copy import copy
 import datetime
 # from dateutil import parser
@@ -3960,9 +3961,9 @@ class TestStep():
            'the *sounds* of the English word. Don\'t '
            'look for Greek "equivalents" for each '
            'English letter.'],
-          {1: 'Introduction',  # slides
-           2: 'The Alphabet',
-           6: 'Noun Basics'},
+          {16: 'Introduction',  # slides
+           21: 'The Alphabet',
+           18: 'Noun Basics'},
           None,  # tips
           ),
          (1,  # step1, incorrect
@@ -3979,9 +3980,9 @@ class TestStep():
            'the *sounds* of the English word. Don\'t '
            'look for Greek "equivalents" for each '
            'English letter.'],
-          {1: 'Introduction',  # slides
-           2: 'The Alphabet',
-           6: 'Noun Basics'},
+          {16: 'Introduction',  # slides
+           21: 'The Alphabet',
+           18: 'Noun Basics'},
           None,  # tips
           ),
          (2,  # step2, correct
@@ -3995,9 +3996,9 @@ class TestStep():
           '[[resp]]\nCorrect responses '
           'would include[[rdbl]]',
           None,  # instrs
-          {1: 'Introduction',  # slides
-           2: 'The Alphabet',
-           6: 'Noun Basics'},
+          {16: 'Introduction',  # slides
+           21: 'The Alphabet',
+           18: 'Noun Basics'},
           None,  # tips
           ),
          (2,  # step2, incorrect
@@ -4011,9 +4012,9 @@ class TestStep():
           'said\n- [[resp]]\nCorrect responses '
           'would include[[rdbl]]',
           None,  # instrs
-          {1: 'Introduction',  # slides
-           2: 'The Alphabet',
-           6: 'Noun Basics'},
+          {16: 'Introduction',  # slides
+           21: 'The Alphabet',
+           18: 'Noun Basics'},
           None,  # tips
           ),
          (101,  # step 101, correct
@@ -4025,7 +4026,7 @@ class TestStep():
           [],
           'Right. Κάλον.\nYou said\n- [[resp]]',
           None,  # instrs
-          {14: 'Clause Basics'},  # slides
+          {28: 'Clause Basics'},  # slides
           None,  # tips
           ),
          (101,  # step 101, incorrect
@@ -4039,7 +4040,7 @@ class TestStep():
           'said\n- [[resp]]\nThe correct '
           'response is[[rdbl]]',
           None,  # instrs
-          {14: 'Clause Basics'},  # slides
+          {28: 'Clause Basics'},  # slides
           None,  # tips
           ),
          ])  # only StepText and StepMultiple types
@@ -4064,10 +4065,17 @@ class TestStep():
         assert actual['sid'] == stepid
         assert actual['bg_image'] == loc.get_bg()
         print('EXPECTED\n')
-        pprint(replytext)
+        pprint(slides)
         print('ACTUAL\n')
-        pprint(actual['prompt_text'])
-        assert actual['prompt_text'] == replytext
+        pprint(actual['slidedecks'])
+        if replytext[:21] == "Incorrect. Try again!":
+            slugs = ["That's not it. Try again!", 
+                     "Hm. Give it another try!",
+                     "Good effort, but that's not right. Try again!"]
+            replytexts = ["{}{}".format(s, replytext[21:]) for s in slugs]
+            assert actual['prompt_text'] in replytexts
+        else:
+            assert actual['prompt_text'] == replytext
         assert actual['readable_long'] == rdbllong
         assert actual['npc_image']['_src'] == npc_data[npc.get_id()]['image']
         assert actual['audio'] is None
@@ -4150,7 +4158,13 @@ class TestStepEvaluator():
         """Unit tests for StepEvaluator.get_eval() method."""
         actual = StepEvaluator(responses=regex, tips=tips).get_eval(uresp)
         assert actual['score'] == score
-        assert actual['reply'] == rtext
+        if rtext == "Incorrect. Try again!":
+            slugs = ["That's not it. Try again!", 
+                     "Hm. Give it another try!",
+                     "Good effort, but that's not right. Try again!"]
+            assert actual['reply'] in slugs
+        else:
+            assert actual['reply'] == rtext
         assert actual['times_wrong'] == twrong
         assert actual['times_right'] == tright
         assert actual['user_response'] == uresp
@@ -4193,7 +4207,13 @@ class TestMultipleEvaluator():
         """Unit tests for multipleevaluator.get_eval() method."""
         actual = StepEvaluator(responses=regex, tips=tips).get_eval(uresp)
         assert actual['score'] == score
-        assert actual['reply'] == rtext
+        if rtext == "Incorrect. Try again!":
+            slugs = ["That's not it. Try again!", 
+                     "Hm. Give it another try!",
+                     "Good effort, but that's not right. Try again!"]
+            assert actual['reply'] in slugs
+        else:
+            assert actual['reply'] == rtext
         assert actual['times_wrong'] == twrong
         assert actual['times_right'] == tright
         assert actual['user_response'] == uresp
@@ -6136,7 +6156,11 @@ class TestWalk():
             assert rowid == storedrow.id
 
         # check data stored in db =============================================
-        dbuser = pickle.loads(literal_eval(storedrow['other_data']))
+
+        userdata = base64.b64decode(storedrow['other_data'])
+        dbuser = pickle.loads(userdata)
+
+        # dbuser = pickle.loads(literal_eval(storedrow['other_data']))
         assert dbuser.get_id() == user_login['id']
         # TODO: Make sure string data gets restored as strings, not bytes
 
@@ -6552,7 +6576,7 @@ class TestWalk():
           ['Focus on finding Greek letters that make the *sounds* '  # instr
            'of the English word. Don\'t look for Greek "equivalents" for each '
            'English letter.'],
-          {3: 'The Alphabet II'},  # --slide decks
+          {20: 'The Alphabet II'},  # --slide decks
           [],  # ---------------------------------------------response buttons
           ['πωλ'],  # ----------------------------------------readable short
           [],  # ---------------------------------------------readable long
@@ -6696,7 +6720,14 @@ class TestWalk():
 
         assert a['sid'] == stepid
         assert a['pid'] == pathid
-        assert a['prompt_text'] == reply_text
+        if reply_text[:21] == "Incorrect. Try again!":
+            slugs = ["That's not it. Try again!", 
+                     "Hm. Give it another try!",
+                     "Good effort, but that's not right. Try again!"]
+            replytexts = ["{}{}".format(s, reply_text[21:]) for s in slugs]
+            assert a['prompt_text'] in replytexts
+        else:
+            assert a['prompt_text'] == reply_text
         assert a['score'] == score
         assert a['times_right'] == times_right
         assert a['times_wrong'] == times_wrong
@@ -6931,7 +6962,7 @@ class TestPathChooser():
         Unit test for the paideia.Pathchooser._paths_by_category() method.
         """
         chooser = PathChooser(tpout, locid, completed)
-        cpaths, cat, forced, newcpaths = \
+        cpath_ids, cat, forced, newcpath_ids = \
             chooser._paths_by_category(mycat, tpout['latest_new'])
 
         exp_newpaths = []
@@ -6940,6 +6971,19 @@ class TestPathChooser():
             assert cat == 1
             exp_tags = tpout['cat{}'.format(cat)]
             print('cat:', cat, 'forced:', forced)
+            exp_newtags = tpout['rev{}'.format(cat)]
+            print('exp_newtags')
+            print(exp_newtags)
+            exp_newstepids = [s.id for s in
+                                db(db.steps.tags.contains(exp_newtags)
+                                    ).iterselect(db.steps.id)]
+            print('exp_newstepids')
+            print(exp_newstepids)
+            exp_newpaths = [row['id'] for row in
+                            db(db.paths.steps.contains(exp_newstepids)
+                                ).iterselect(db.paths.id)]
+            print('exp_newpaths')
+            print(exp_newpaths)
         else:
             assert forced is False
             assert cat == mycat
@@ -6947,30 +6991,40 @@ class TestPathChooser():
             print('cat:', cat, 'forced:', forced)
             if cat == 1:
                 exp_newtags = tpout['rev{}'.format(cat)]
-                exp_newsteps = db(db.steps.tags.contains(exp_newtags)).select()
-                exp_newstepids = [s.id for s in exp_newsteps]
-                exp_newpaths = db(db.paths.steps.contains(exp_newstepids)
-                                  ).select().as_list()
+                print('exp_newtags')
+                print(exp_newtags)
+                exp_newstepids = [s.id for s in
+                                  db(db.steps.tags.contains(exp_newtags)
+                                     ).iterselect(db.steps.id)]
+                print('exp_newstepids')
+                print(exp_newstepids)
+                exp_newpaths = [row['id'] for row in
+                                db(db.paths.steps.contains(exp_newstepids)
+                                   ).iterselect(db.paths.id)]
+                print('exp_newpaths')
+                print(exp_newpaths)
 
         print('cat:', cat)
         # get expected paths from db based on category actually used
-        exp_steps = db(db.steps.tags.contains(exp_tags)).select()
-        exp_stepids = [s.id for s in exp_steps]
-        exp_paths = db(db.paths.steps.contains(exp_stepids)).select()
-        expected = [r.id for r in exp_paths]
+        exp_stepids = [s.id for s in 
+                     db(db.steps.tags.contains(exp_tags)
+                        ).iterselect(db.steps.id)]
+        expected= [row['id'] for row in 
+                     db(db.paths.steps.contains(exp_stepids)
+                        ).iterselect(db.paths.id)]
         print('expected:', expected)
         print('forced:', forced)
 
-        cpath_ids = [row['id'] for row in cpaths]
         # print 'actual cpaths:', cpath_ids
         cpath_ids.sort()
-        extra_actual = [row['id'] for row in cpaths
-                        if row['id'] not in expected]
+        if newcpath_ids: newcpath_ids.sort()
+        extra_actual = [i for i in cpath_ids if i not in expected]
         print('extra actual cpaths:', extra_actual)
         print('extra expected:', [row for row in expected
                                   if row not in cpath_ids])
         assert cpath_ids == expected
-        assert newcpaths == exp_newpaths
+        if exp_newpaths == []: exp_newpaths = None
+        assert newcpath_ids == exp_newpaths
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize('locid,completed,tpout,expected,mode',
