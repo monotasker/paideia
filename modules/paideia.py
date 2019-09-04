@@ -1,5 +1,11 @@
 #! /usr/bin/python
 # -*- coding: utf-8-*-
+if 0:
+    from web2py.gluon import current, BEAUTIFY
+    from web2py.gluon import IMG, URL, SQLFORM, SPAN, UL, LI, Field, P, HTML
+    from web2py.gluon import IS_NOT_EMPTY, IS_IN_SET
+    from web2py.applications.paideia.modules.paideia_utils import GreekNormalizer
+    from web2py.applications.paideia.modules.plugin_utils import flatten, ErrorReport
 from gluon import current, BEAUTIFY
 from gluon import IMG, URL, SQLFORM, SPAN, UL, LI, Field, P, HTML
 from gluon import IS_NOT_EMPTY, IS_IN_SET
@@ -51,7 +57,7 @@ watched when upgrading web2py:
 
 """
 
-current.paideia_DEBUG_MODE = False
+# current.paideia_DEBUG_MODE = False
 
 
 class MyPickler (pickle.Pickler):
@@ -2168,7 +2174,7 @@ class PathChooser(object):
         self.tag_progress['all_choices'] = self.all_choices
         return rslt
 
-    @profile
+    # @profile
     def _paths_by_category(self, cat, rank):
         """
         Assemble list of paths tagged with tags in the chosen category.
@@ -2404,7 +2410,7 @@ class PathChooser(object):
 
         return (path, new_loc, category, mode)
 
-    # @profile
+    @profile
     def choose(self, set_review=None, db=None):
         """
         Choose a path for the current user based on performance record.
