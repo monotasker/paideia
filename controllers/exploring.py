@@ -1,11 +1,15 @@
 # coding: utf8
 from paideia import Walk, Map
 from ast import literal_eval
-# from applications.paideia.modules.paideia_utils import simple_obj_print
+from memory_profiler import profile
+from pprint import pprint
+# import sys
+from plugin_utils import print_sizes
 
 
 if 0:
     from gluon import current, SQLFORM, Field, URL, redirect
+    from web2py.applications.paideia.modules.plugin_utils import print_sizes
     session = current.session
     response = current.response
     auth = current.auth
@@ -34,6 +38,7 @@ Errors are sent (by routes.py) to default/oops
 
 
 @auth.requires_login()
+# @profile
 def index():
     """
     Present the frame for the game interface, which will then load via ajax
@@ -59,6 +64,7 @@ def index():
 
 
 @auth.requires_login()
+# @profile
 def walk():
     """
     Present the various stages of the game ui and handle user responses.
@@ -84,6 +90,8 @@ def walk():
     """
     debug = 0
     request = current.request
+
+    # print_sizes(globals(), mylimit=30)
 
     if debug:
         print("\n\nstarting walk controller================================")

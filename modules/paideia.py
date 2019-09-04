@@ -826,7 +826,15 @@ class Walk(object):
 
         try:
             # have to base64 encode data for storage with py3
-            myuser = base64.b64encode(pickle.dumps(user))
+            print('user////////////////////////////')
+            print(sys.getsizeof(user))
+            pprint(user)
+            mydump = pickle.dumps(user)
+            myuser = base64.b64encode(mydump)
+            print(sys.getsizeof(mydump))
+            print(sys.getsizeof(myuser))
+            print('user////////////////////////////')
+            pprint(user.__dict__.keys())
             if debug:
                 print('Walk::_store_user: myuser is=======')
                 print(type(myuser))
@@ -837,6 +845,9 @@ class Walk(object):
                                                       name=user.get_id(),
                                                       other_data=myuser)
             db.commit()
+            del mydump  # to free up memory
+            del myuser  # to free up memory
+
             if debug:
                 print('session row inserted/updated:', rownum)
             return rownum
@@ -2410,7 +2421,7 @@ class PathChooser(object):
 
         return (path, new_loc, category, mode)
 
-    @profile
+    # @profile
     def choose(self, set_review=None, db=None):
         """
         Choose a path for the current user based on performance record.

@@ -71,11 +71,6 @@ def _i_am_running_under_test():
 # -------------------------------------------------------------
 # define database storage
 # -------------------------------------------------------------
-"""
-test will now be using postgres instead of sqllite
-a new test database called paideia_test will be used for tests
-JOB ... jboakye@bwachi.com ... oct 5, 2014
-"""
 
 postgre = {}
 postgre['username'] = keydata['postgre_username']
@@ -84,7 +79,7 @@ postgre['host'] = keydata['postgre_host']
 postgre['db_name'] = keydata['postgre_dbname']
 
 
-# set the postgres dbase to the test dbase instead of using sqllite
+# set the postgres dbase to the test dbase 
 if _i_am_running_under_test():
     postgre['db_name'] = keydata['postgre_testdbname']
 print(('--- using dbase: ', postgre['db_name'], ' ---'))
@@ -98,13 +93,13 @@ if _i_am_running_under_test():
     db = DAL(connect_string, pool_size=1,
              check_reserved=['sqlite', 'postgres'],
              migrate=False, fake_migrate_all=False)
-    print(('--- adapter: ', db._adapter.driver.__name__))
-    print('--- TEST DATABASE ---')
+    # print(('--- adapter: ', db._adapter.driver.__name__))
+    # print('--- TEST DATABASE ---')
 else:
     db = DAL(connect_string, pool_size=1,
              check_reserved=['sqlite', 'postgres'],
              migrate=True, fake_migrate_all=False)
-    print(('--- adapter: ', db._adapter.driver.__name__))
+    # print(('--- adapter: ', db._adapter.driver.__name__))
 
 # -------------------------------------------------------------
 # Set up logging
@@ -166,7 +161,9 @@ auth.settings.extra_fields['auth_user'] = [
                   ),
     Field('uuid', length=64, default=lambda:str(uuid.uuid4())),
     Field('modified_on', 'datetime', default=request.now),
-    Field('hide_read_queries', 'boolean', default=False)
+    Field('hide_read_queries', 'boolean', default=False),
+    Field('blocks', 'string'),
+    Field('')
 ]
 
 # adding custom field for class info in groups
