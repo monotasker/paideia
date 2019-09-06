@@ -619,3 +619,126 @@ success!
 timestamp: 2019-08-21T15:43:13.649299
 ALTER TABLE "lessons" ADD "active" CHAR(1);
 success!
+timestamp: 2019-09-05T09:31:18.618223
+ALTER TABLE "auth_user" ADD "blocks" VARCHAR(512);
+timestamp: 2019-09-05T09:31:18.650686
+ALTER TABLE "auth_user" ADD "path" INTEGER;
+timestamp: 2019-09-05T09:31:18.652718
+ALTER TABLE "auth_user" ADD "completed_paths" VARCHAR(512);
+timestamp: 2019-09-05T09:31:18.654794
+ALTER TABLE "auth_user" ADD "cats_counter" INTEGER;
+timestamp: 2019-09-05T09:31:18.656476
+ALTER TABLE "auth_user" ADD "old_categories" VARCHAR(512);
+timestamp: 2019-09-05T09:31:18.658189
+ALTER TABLE "auth_user" ADD "promoted" VARCHAR(512);
+timestamp: 2019-09-05T09:31:18.659931
+ALTER TABLE "auth_user" ADD "new_tags" VARCHAR(512);
+timestamp: 2019-09-05T09:31:18.662992
+ALTER TABLE "auth_user" ADD "session_start" VARCHAR(512);
+timestamp: 2019-09-05T09:31:18.665358
+ALTER TABLE "auth_user" ADD "loc" VARCHAR(512);
+timestamp: 2019-09-05T09:31:18.672953
+ALTER TABLE "auth_user" ADD "prev_loc" VARCHAR(512);
+timestamp: 2019-09-05T09:31:18.675451
+ALTER TABLE "auth_user" ADD "npc" VARCHAR(512);
+timestamp: 2019-09-05T09:31:18.677339
+ALTER TABLE "auth_user" ADD "prev_npc" VARCHAR(512);
+success!
+timestamp: 2019-09-06T10:57:49.682782
+ALTER TABLE "auth_user" DROP COLUMN "blocks";
+timestamp: 2019-09-06T10:57:49.831758
+ALTER TABLE "auth_user" DROP COLUMN "path";
+timestamp: 2019-09-06T10:57:49.833902
+ALTER TABLE "auth_user" DROP COLUMN "completed_paths";
+timestamp: 2019-09-06T10:57:49.835576
+ALTER TABLE "auth_user" DROP COLUMN "cats_counter";
+timestamp: 2019-09-06T10:57:49.837558
+ALTER TABLE "auth_user" DROP COLUMN "old_categories";
+timestamp: 2019-09-06T10:57:49.839176
+ALTER TABLE "auth_user" DROP COLUMN "promoted";
+timestamp: 2019-09-06T10:57:49.840840
+ALTER TABLE "auth_user" DROP COLUMN "new_tags";
+timestamp: 2019-09-06T10:57:49.842692
+ALTER TABLE "auth_user" DROP COLUMN "session_start";
+timestamp: 2019-09-06T10:57:49.844728
+ALTER TABLE "auth_user" DROP COLUMN "loc";
+timestamp: 2019-09-06T10:57:49.846453
+ALTER TABLE "auth_user" DROP COLUMN "prev_loc";
+timestamp: 2019-09-06T10:57:49.848003
+ALTER TABLE "auth_user" DROP COLUMN "npc";
+timestamp: 2019-09-06T10:57:49.849713
+ALTER TABLE "auth_user" DROP COLUMN "prev_npc";
+success!
+timestamp: 2019-09-06T10:58:23.000127
+ALTER TABLE "session_data" ADD "blocks" TEXT;
+timestamp: 2019-09-06T10:58:23.042012
+ALTER TABLE "session_data" ADD "path" INTEGER REFERENCES "paths" ("id") ON DELETE CASCADE  ;
+timestamp: 2019-09-06T10:58:23.188688
+ALTER TABLE "session_data" ADD "remaining_steps" TEXT;
+timestamp: 2019-09-06T10:58:23.190254
+ALTER TABLE "session_data" ADD "step_for_reply" INTEGER;
+timestamp: 2019-09-06T10:58:23.191707
+ALTER TABLE "session_data" ADD "completed_paths" TEXT;
+timestamp: 2019-09-06T10:58:23.193392
+ALTER TABLE "session_data" ADD "cats_counter" INTEGER;
+timestamp: 2019-09-06T10:58:23.195227
+ALTER TABLE "session_data" ADD "old_categories" TEXT;
+timestamp: 2019-09-06T10:58:23.196785
+ALTER TABLE "session_data" ADD "tag_records" TEXT;
+timestamp: 2019-09-06T10:58:23.198352
+ALTER TABLE "session_data" ADD "tag_progress" TEXT;
+timestamp: 2019-09-06T10:58:23.200546
+ALTER TABLE "session_data" ADD "rank" INTEGER;
+timestamp: 2019-09-06T10:58:23.203943
+ALTER TABLE "session_data" ADD "promoted" VARCHAR(512);
+timestamp: 2019-09-06T10:58:23.208202
+ALTER TABLE "session_data" ADD "demoted" VARCHAR(512);
+timestamp: 2019-09-06T10:58:23.211451
+ALTER TABLE "session_data" ADD "new_tags" VARCHAR(512);
+timestamp: 2019-09-06T10:58:23.213410
+ALTER TABLE "session_data" ADD "loc" INTEGER REFERENCES "locations" ("id") ON DELETE CASCADE  ;
+timestamp: 2019-09-06T10:58:23.216435
+ALTER TABLE "session_data" ADD "prev_loc" INTEGER REFERENCES "locations" ("id") ON DELETE CASCADE  ;
+timestamp: 2019-09-06T10:58:23.235378
+ALTER TABLE "session_data" ADD "npc" INTEGER REFERENCES "npcs" ("id") ON DELETE CASCADE  ;
+timestamp: 2019-09-06T10:58:23.243135
+ALTER TABLE "session_data" ADD "prev_npc" INTEGER REFERENCES "npcs" ("id") ON DELETE CASCADE  ;
+timestamp: 2019-09-06T10:58:23.245927
+ALTER TABLE "session_data" ADD "past_quota" CHAR(1);
+timestamp: 2019-09-06T10:58:23.247468
+ALTER TABLE "session_data" ADD "viewed_slides" CHAR(1);
+timestamp: 2019-09-06T10:58:23.248955
+ALTER TABLE "session_data" ADD "reported_badges" CHAR(1);
+timestamp: 2019-09-06T10:58:23.252364
+ALTER TABLE "session_data" ADD "reported_promotions" CHAR(1);
+timestamp: 2019-09-06T10:58:23.256163
+ALTER TABLE "session_data" ADD "repeating" CHAR(1);
+timestamp: 2019-09-06T10:58:23.259376
+ALTER TABLE "session_data" ADD "new_content" CHAR(1);
+timestamp: 2019-09-06T10:58:23.261674
+ALTER TABLE "session_data" ADD "active_cat" INTEGER;
+timestamp: 2019-09-06T10:58:23.263361
+ALTER TABLE "session_data" ADD "quota" INTEGER;
+timestamp: 2019-09-06T10:58:23.264910
+ALTER TABLE "session_data" ADD "inventory" TEXT;
+timestamp: 2019-09-06T10:58:23.281255
+ALTER TABLE "session_data" DROP COLUMN "other_data";
+success!
+timestamp: 2019-09-06T11:54:32.164545
+ALTER TABLE "session_data" ADD "loc__tmp" VARCHAR(512);
+UPDATE "session_data" SET "loc__tmp"="loc";
+ALTER TABLE "session_data" DROP COLUMN "loc";
+ALTER TABLE "session_data" ADD "loc" VARCHAR(512);
+UPDATE "session_data" SET "loc"="loc__tmp";
+ALTER TABLE "session_data" DROP COLUMN "loc__tmp";
+timestamp: 2019-09-06T11:54:32.348994
+ALTER TABLE "session_data" ADD "prev_loc__tmp" VARCHAR(512);
+UPDATE "session_data" SET "prev_loc__tmp"="prev_loc";
+ALTER TABLE "session_data" DROP COLUMN "prev_loc";
+ALTER TABLE "session_data" ADD "prev_loc" VARCHAR(512);
+UPDATE "session_data" SET "prev_loc"="prev_loc__tmp";
+ALTER TABLE "session_data" DROP COLUMN "prev_loc__tmp";
+success!
+success!
+success!
+success!

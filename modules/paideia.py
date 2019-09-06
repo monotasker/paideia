@@ -5,12 +5,13 @@ if 0:
     from web2py.gluon import IMG, URL, SQLFORM, SPAN, UL, LI, Field, P, HTML
     from web2py.gluon import IS_NOT_EMPTY, IS_IN_SET
     from web2py.applications.paideia.modules.paideia_utils import GreekNormalizer
-    from web2py.applications.paideia.modules.plugin_utils import flatten, ErrorReport
+    from web2py.applications.paideia.modules.plugin_utils import flatten, ErrorReport, deep_getsizeof
 from gluon import current, BEAUTIFY
 from gluon import IMG, URL, SQLFORM, SPAN, UL, LI, Field, P, HTML
 from gluon import IS_NOT_EMPTY, IS_IN_SET
 # from pydal.objects import Rows
 
+import ast
 import base64
 import codecs
 from copy import copy
@@ -18,12 +19,13 @@ import datetime
 from dateutil import parser
 from inspect import getargvalues, stack
 from itertools import chain
+import json
 from memory_profiler import profile
 from memprof import *
 import os
 from paideia_utils import GreekNormalizer
 import pickle
-from plugin_utils import flatten, ErrorReport
+from plugin_utils import flatten, ErrorReport, deep_getsizeof
 from pprint import pprint
 from pympler import muppy, summary
 from pytz import timezone
@@ -133,83 +135,32 @@ class Walk(object):
         self.record_id = None  # stores step log row id after db update
 
     # @profile
-    def _new_user(self, userdata, tag_records, tag_progress):
-        '''Return a new User object for the currently logged in user.'''
+    def _get_user(self, userdata=None, tag_records=None,
+                  tag_progress=None, new_user=False):
+        '''
+        Initialize User object.
+
+        The new User object is returned and is also assigned to the "user" 
+        attribute of the current class instance.
+
+        All keyword arguments are optional and used only for testing.
+
+        :param dict userdata:
+        :param dict tag_records:
+        :param dict tag_progress:
+        :param bool new_user: a flag to force the creation of a fresh User object
+
+        :return: User object
+
+        '''
         auth = current.auth
         db = current.db
         uid = auth.user_id
         userdata = db.auth_user[uid].as_dict() if not userdata else userdata
-        if not tag_records:
-            tag_records = db(db.tag_records.name == uid).select()
-            if tag_records:
-                tag_records = tag_records.as_list()
-        if not tag_progress:
-            tag_progress = db(db.tag_progress.name == uid).select()
-            if tag_progress:
-                tag_progress = tag_progress.first()
-            else:
-                db.tag_progress.insert(latest_new=1)
-                db.commit()
-                tag_progress = db(db.tag_progress.name == uid).select().first()
-            tag_progress = tag_progress.as_dict()
-        return User(userdata, tag_records, tag_progress, blocks=[])
-        # TODO: find out where the mysterious blocks are coming from
-
-    # @profile
-    def _get_user(self, userdata=None, tag_records=None,
-                  tag_progress=None, new_user=None):
-        '''
-        Initialize or re-activate User object.
-        All named arguments are necessary.
-        '''
-        auth = current.auth
-        db = current.db
         try:  # look for user object already on this Walk or new_user flag set
             assert (self.user) and (new_user is None)
         except (AttributeError, AssertionError):  # no user yet on this Walk
-            try:
-                sd = db(db.session_data.name ==
-                        auth.user_id).select().first()
-                if sd:
-                    sys.path.append(os.path.dirname(__file__))
-                    # base64 encoded in db for storage of py3 pickled bytes
-                    # TODO: Remove this error handing once old user records are
-                    # all refreshed
-                    try:
-                        userdata = base64.b64decode(sd['other_data'])
-                        self.user = pickle.loads(userdata)
-                    except Exception:
-                        traceback.print_exc()
-                        self.user = None
-                else:
-                    self.user = None
-                assert self.user
-                assert self.user.is_stale() is False
-                assert not new_user
-                # FIXME: temporary sanitization of pickled session data
-                # adjusting to new db field names - Apr 28, 2015
-                tp = self.user.tag_progress
-                tpkeys = list(tp.keys())
-                for oldkey, newkey in list({'just_cats': 'cat1_choices',
-                        'all_cats': 'all_choices'}.items()):
-                    if oldkey in tpkeys:
-                        print('removing {} from '
-                              'stored tag_progress'
-                              ''.format(oldkey),
-                              'Walk.get_user')
-                        tp[newkey] = copy(tp[oldkey])
-                        del tp[oldkey]
-                # FIXME: end of temporary sanitization
-
-            except (KeyError, TypeError):  # Problem with session data
-                print(traceback.format_exc(5))
-                self.user = self._new_user(None, tag_records, tag_progress)
-            except (AssertionError, AttributeError):  # user stale or block
-                self.user = self._new_user(None, tag_records, tag_progress)
-                print('creating new user from data '
-                      '------------Walk._get_user')
-        if isinstance(self.user.quota, list):
-            self.user.quota = self.user.quota[0]
+            self.user = User(userdata, tag_records, tag_progress, blocks=[])
         return self.user
 
     # @profile
@@ -466,13 +417,13 @@ class Walk(object):
             'times_wrong':
             'user_response':
         """
-        debug = current.paideia_DEBUG_MODE
+        debug = True  # current.paideia_DEBUG_MODE
         user = self._get_user()
         try:
             repeat = user.repeating
         except AttributeError:  # because user was initialized without attr
             repeat = False
-        loc = user.get_location()
+        loc = user.get_location(localias)
         p, cat = user.get_path(loc)[:2]
         if not cat:
             cat = user.active_cat
@@ -484,13 +435,11 @@ class Walk(object):
         if (not response_string) or re.match(response_string, r'\s+'):
             # return self.ask()  # TODO: will this actually re-prompt the step?
             return None
-        prompt = s.get_reply(response_string)  # loc and npc stored on step
+        prompt = s.get_reply(user_response=response_string,
+                             loc=loc,
+                             npc=user.get_npc()
+                             )  # npc stored on step
 
-        """ save inside get_categories ..  JOB ... oct 23, 2014
-        assert self._record_cats(user.tag_progress,
-                                 user.promoted,
-                                 user.new_tags)
-        """
         if repeat:
             user.repeating = False  # remove repeating flag when step is over
             if debug:
@@ -814,54 +763,62 @@ class Walk(object):
         self.user.complete_path(got_right)
         return log_record_id
 
-    # @profile
+    @profile
     def _store_user(self, user, db=None):
         """
-        Store the current User object (from self.user) in session.user
+        Store the current User object (from self.user) in the database.
         If successful, returns an integer representing the successfully
         added/updated db row. If unsuccessful, returns False.
         """
-        debug = current.paideia_DEBUG_MODE
+        debug = True  # current.paideia_DEBUG_MODE
         db = current.db if not db else db
 
         try:
-            # have to base64 encode data for storage with py3
-            print('user////////////////////////////')
-            print(sys.getsizeof(user))
-            pprint(user)
-            mydump = pickle.dumps(user)
-            myuser = base64.b64encode(mydump)
-            print(sys.getsizeof(mydump))
-            print(sys.getsizeof(myuser))
-            print('user////////////////////////////')
-            pprint(user.__dict__.keys())
-            if debug:
-                print('Walk::_store_user: myuser is=======')
-                print(type(myuser))
-                print('user.get_id()=======')
-                print(user.get_id())
-            condition = {'name': user.get_id()}
-            rownum = db.session_data.update_or_insert(condition,
-                                                      name=user.get_id(),
-                                                      other_data=myuser)
+            blocksdict = {b.get_condition(): b.get_kwargs()
+                          for b in user.blocks}
+            userdict = {
+                'blocks': json.dumps(blocksdict),
+                'path': user.path.get_id(),
+                'remaining_steps': [s.get_id() for s in user.path.steps],
+                'step_for_reply': user.path.step_for_reply.get_id() \
+                    if user.path.step_for_reply else 0,
+                'completed_paths': json.dumps(user.completed_paths,
+                                              default=str),
+                'cats_counter': user.cats_counter,
+                'old_categories': json.dumps(user.old_categories),
+                'tag_records': [t['id'] for t in user.tag_records],
+                'tag_progress': json.dumps(user.tag_progress),
+                'promoted': json.dumps(user.promoted),
+                'demoted': json.dumps(user.demoted),
+                'new_tags': json.dumps(user.new_tags),
+                'cats_counter': user.cats_counter,
+                'rank': user.rank,
+                'session_start': user.session_start,
+                'loc': user.loc.get_alias(),
+                'prev_loc': user.prev_loc,
+                'npc': user.npc.get_id(),
+                'prev_npc': user.prev_npc,
+                'past_quota': user.past_quota,
+                'viewed_slides': user.viewed_slides,
+                'reported_badges': user.reported_badges, 
+                'reported_promotions': user.reported_promotions,
+                'repeating': user.repeating, 
+                'new_content': user.new_content, 
+                'active_cat': user.active_cat, 
+                'quota': user.quota
+            }
+
+            rownum = db.session_data.update_or_insert({'name': user.get_id()},
+                                                       name=user.get_id(),
+                                                       **userdict)
             db.commit()
-            del mydump  # to free up memory
-            del myuser  # to free up memory
 
             if debug:
                 print('session row inserted/updated:', rownum)
             return rownum
         except Exception:
             print(traceback.format_exc(5))
-            # try:
-            #    #with open('tempfile.txt', 'wb') as tempfile:
-            #        #myuser = MyPickler(tempfile).dump(user)
-            #        #os.remove('tempfile.txt')
-            # except Exception:
-            #    #print traceback.format_exc(5)
-            #    #return False
             return False
-
 
 class Location(object):
     """
@@ -1116,7 +1073,6 @@ class Step(object):
         db = current.db
         self.data = db.steps[step_id].as_dict() if not stepdata else stepdata
         self.repeating = False  # set to true if step already done today
-        self.npc = None  # must wait since all steps in path init at once
         self.redirect_loc_id = None  # TODO: is this used?
         self.kwargs = kwargs
         # JOB ...Nov 10,2014
@@ -1361,44 +1317,38 @@ class Step(object):
         db = current.db
         npc_list = self.get_npcs()
 
-        if self.npc:  # keep pre-chosen npc
-            if isinstance(self.npc, tuple):
-                self.npc = self.npc[0]
-            else:
-                pass
+        if prev_npc and (prev_loc == loc_id) \
+                and (prev_npc in npc_list):
+            # previous npc was in this loc and is valid for this step
+            self.npc = Npc(prev_npc)
         else:
-            if prev_npc and (prev_loc.get_id() == loc_id) \
-                    and (prev_npc.get_id() in npc_list):
-                # previous npc was in this loc and is valid for this step
-                self.npc = copy(prev_npc)
-            else:
-                npc_here_list = [n for n in npc_list
-                                 if loc_id in db.npcs[n]['map_location']]
+            npc_here_list = [n for n in npc_list
+                                if loc_id in db.npcs[n]['map_location']]
 
+            try:
+                pick = npc_here_list[randrange(len(npc_here_list))]
+            except ValueError:  # "empty range for randrange()" if no npcs
+                mail = current.mail
+                msg = HTML(P('In selecting an npc there were none found '
+                                'for the combination:',
+                                UL(LI('step =', self.get_id()),
+                                LI('location =', loc_id)),
+                                'The full list of npcs for the step is',
+                                self.get_npcs()
+                                )
+                            )
+                mail.send(mail.settings.sender,
+                            'No valid npc was available',
+                            msg.xml().decode('utf8'))
                 try:
-                    pick = npc_here_list[randrange(len(npc_here_list))]
-                except ValueError:  # "empty range for randrange()" if no npcs
-                    mail = current.mail
-                    msg = HTML(P('In selecting an npc there were none found '
-                                 'for the combination:',
-                                 UL(LI('step =', self.get_id()),
-                                    LI('location =', loc_id)),
-                                 'The full list of npcs for the step is',
-                                 self.get_npcs()
-                                 )
-                               )
-                    mail.send(mail.settings.sender,
-                              'No valid npc was available',
-                              msg.xml().decode('utf8'))
-                    try:
-                        pick = npc_list[randrange(len(npc_list))]
-                    except ValueError:
-                        print("randrange error NOT "
-                              "permitted",
-                              'Step.get_npc')
-                        print(traceback.format_exc(5))
-                assert pick
-                self.npc = Npc(pick)
+                    pick = npc_list[randrange(len(npc_list))]
+                except ValueError:
+                    print("randrange error NOT "
+                            "permitted",
+                            'Step.get_npc')
+                    print(traceback.format_exc(5))
+            assert pick
+            self.npc = Npc(pick)
         return self.npc
 
     def _get_instructions(self):
@@ -1676,12 +1626,10 @@ class StepText(Step):
                                _autocomplete='off')
         return form
 
-    def get_reply(self, user_response=None):
+    def get_reply(self, user_response=None, loc=None, npc=None):
         """
         Evaluate a user's response and return the resulting data and reply.
         """
-        loc = self.loc
-        npc = self.npc
         db = current.db
         readable = self._get_readable()
         tips = self.data['hints']
@@ -1924,6 +1872,7 @@ class Path(object):
         The others are for dependency injection in testing
         """
         db = current.db if not db else db
+        print('db:', type(db))
         self.path_dict = db(db.paths.id == path_id).select().first().as_dict()
 
         # for _reset_steps only
@@ -1943,6 +1892,25 @@ class Path(object):
     def get_id(self):
         """Return the id of the current Path object."""
         return self.path_dict['id']
+
+    def restore_position(self, remaining_steps, step_for_reply):
+        """
+        Restore a path to a particular point in the progress through its steps.
+        
+        :param list remaining_steps: A list of ints representing the ids of
+                        steps that should remain uncompleted in the restored
+                        state.
+        :param int step_for_reply: The id of the step that should be assigned 
+                        to self.step_for_reply if the restored state is mid-way 
+                        through completing a step.
+        """
+        self.completed_steps = [s for s in self.steps
+                                if s.get_id() not in remaining_steps]
+        if step_for_reply:
+            self.step_for_reply = [s for s in self.steps
+                                   if s.get_id() == step_for_reply][0]
+        self.steps = [s for s in self.steps if s not in self.completed_steps]
+        assert not self.step_for_prompt
 
     def _prepare_for_prompt(self):
         """ move next step in this path into the 'step_for_prompt' variable"""
@@ -2073,11 +2041,6 @@ class Path(object):
         """
         Return a list containing all the steps of this path as Step objects.
         """
-        """
-        steplist = [StepFactory().get_instance(step_id=i)
-                    for i in [446,448,451,452,453,454,455,456,457,459,445,447]]
-        """
-        # TODO dont forget to uncomment this
 
         steplist = [StepFactory().get_instance(step_id=i)
                     for i in self.path_dict['steps']]
@@ -2538,61 +2501,147 @@ class User(object):
                  blocks=[]):
         """
         Initialize a paideia.User object.
-        ## Argument types and structures
-        - userdata: {'first_name': str, 'id': int, ..}
-        - tag_progress: rows.as_dict()
-        - tag_records: rows.as_dict
+
+        :param dict userdata: {'first_name': str, 'id': int, ..}
+        :param dict tag_progress: rows.as_dict()
+        :param dict tag_records: rows.as_dict
+        :param DAL db:
+        :param list blocks:
+
+        :attr str time_zone:
+        :attr str name: First name of the currently logged-in user.
+        :attr int user_id: Id for the auth_user record of the currently
+                            logged-in user.
+        :attr list blocks: A list of Block objects. Stored in the db as a
+                            dictionary (json objects) whose keys are the
+                            "condition" strings and whose corresponding values
+                            are each a dictionary of kwargs for the blocking
+                            condition.
+        :attr list tag_records: A list of dictionaries, each representing a
+                            db.tag_records row. Each dictionary has the keys
+                            'tag' (int), tlast_right: (datetime), tlast_wrong 
+                            (datetime), times_right (float), 
+                            times_wrong (float).
+        :attr dict tag_progress: A dictionary representing the user's single
+                            db.tag_progress record. Includes the keys 'cat1' (list), 'rev1' (list), 'cat2' (list), 'rev2' (list),
+                            'cat3' (list), 'rev3' (list), 'cat4' (list), 
+                            'rev4' (list), 'latest_new' (int), 
+                            'cat1_choices' (int), 'all_choices' (int).
+        :attr dict old_categories: Keys are 'cat1', 'cat2', 'cat3', 'cat4'.
+        :attr dict promoted: Keys are 'cat1', 'cat2', 'cat3', 'cat4' 
+        :attr dict demoted: Keys are 'cat1', 'cat2', 'cat3', 'cat4'
+        :attr dict new_tags: Keys are 'rev1', 'rev2', 'rev3', 'rev4'
+        :attr dict completed_paths: A dictionary with the keys "latest" and
+                            "paths". The value for "latest" is an int. The
+                            value for "paths" is a list of dictionaries with
+                            the form {path_id: {'right': int, 'wrong': int}}
+        :attr Path path: Represented in the database as just the id (int) of
+                            the path.
+        :attr int cats_counter:
+        :attr int rank: The highest badge level currently reached by the user.
+        :attr datetime session_start: The datetime when the current session
+                            data began. Used for refreshing session data at the
+                            end of each day.
+        :attr Location loc: Stored in the db as just the id (int) of the
+                            location.
+        :attr int prev_loc: The id of the location for the previous step.
+        :attr Npc npc: Stored in the db as just the id (int) of the npc.
+        :attr int prev_npc: The id of the npc for the previous step.
+        :attr bool past_quota: A True/False flag indicating whether the user
+                            has currently completed more than their required
+                            quota of paths for the day.
+        :attr bool viewed_slides: A True/False flag indicating whether the user
+        :attr bool reported_badges: A True/False flag indicating whether the
+                            user
+        :attr bool reported_promotions: A True/False flag indicating whether
+                            the user
+        :attr bool repeating: A True/False flag indicating whether
+                            the user is currently repeating a step for which 
+                            they gave an incorrect answer.
+        :attr bool new_content:
+        :attr int active_cat: An integer representing the category of tags from
+                            which the user's current path was selected.
         """
         debug = current.paideia_DEBUG_MODE
         db = db if db else current.db
-        # TODO: this 'if' is for testing and not functionally necessary
-        if 'sequence_counter' not in dir(current):
-            current.sequence_counter = 0
+        auth = current.auth
+
+        self.time_zone = userdata['time_zone']
+        self.name = userdata['first_name']
+        self.user_id = userdata['id']
+        self.blocks = blocks
+        self.tag_records = tag_records
+        self.tag_progress = tag_progress
+
+        sd = db(db.session_data.name == auth.user_id).select().first()
         try:
-            self.time_zone = userdata['time_zone']
-            self.blocks = blocks
-            if debug:
-                print('User::init: self.blocks', self.blocks)
-            # FIXME: somehow pass previous day's blocks in user._is_stale()?
-            self.name = userdata['first_name']
-            self.user_id = userdata['id']
-
+            for condition, kwargs in json.loads(sd['blocks']).items():
+                self.set_block(condition, kwargs=kwargdict)
+            self.loc = Location(sd['loc'])
+            self.npc = Npc(sd['npc'])
+            self.path = Path(sd['path'])
+            self.path.restore_position(sd['remaining_steps'],
+                                       sd['step_for_reply'])
+            for k in ['completed_paths', 'old_categories', 'promoted',
+                      'demoted', 'new_tags']:
+                setattr(self, k, json.loads(sd[k]))
+            for k in ['cats_counter', 'rank', 
+                      'session_start', 'prev_loc', 'prev_npc', 'past_quota',
+                      'viewed_slides', 'reported_badges', 'reported_promotions',
+                      'repeating', 'new_content', 'active_cat', 'quota']:
+                setattr(self, k, sd[k])
+            if not tag_records:
+                try:
+                    rec_ids = json.loads(sd['tag_records'])
+                    self.tag_records = db(db.tag_records.id.belongs(rec_ids) 
+                                          ).select().as_list()
+                except ValueError:
+                    traceback.print_exc()
+                    self.tag_records = db(db.tag_records.name == self.user_id
+                                          ).select().as_list()
+            if not tag_progress:
+                self.tag_progress = json.loads(sd['tag_progress'])
+            assert not self.is_stale()  
+        except (TypeError, AttributeError):  # one of the JSON fields is None
             self.path = None
-            # each path in self.completed['paths'] will now be a hash
-            # {'path_id': {'right': int, 'wrong': int}}
             self.completed_paths = {'latest': None, 'paths': {}}
-
             self.cats_counter = 0  # timing re-cat in get_categories()
-
-            self.old_categories = {}
-            self.tag_records = tag_records
-            self._set_user_rank(tag_progress, 1)  # FIXME: return don't set in
-            # method?
+            self.old_categories = None
+            if not tag_records: 
+                tag_records = db(db.tag_records.name == self.user_id).select() 
+                tag_records = tag_records.as_list()
+            if not tag_progress:
+                try:
+                    tag_progress = db(db.tag_progress.name == self.user_id
+                                    ).select().first().as_dict()
+                except Exception as e:
+                    traceback.print_exc()
+                    db.tag_progress.insert(latest_new=1)
+                    db.commit()
+                    tag_progress = db(db.tag_progress.name == self.user_id
+                                      ).select().first().as_dict()
+            # FIXME: return don't set in method?
+            self._set_user_rank(self.tag_progress, 1)  
             # self.rank = tag_progress['latest_new'] if tag_progress else 1
-            self.tag_progress = tag_progress
             self.promoted = None
             self.demoted = None
             self.new_tags = None
-
             self.inventory = []
             self.session_start = datetime.datetime.utcnow()
-
             self.loc = None
             self.prev_loc = None
             self.npc = None
             self.prev_npc = None
-            self.quota = self._get_paths_quota(self.user_id)
-
             self.past_quota = False
             self.viewed_slides = False
             self.reported_badges = False
             self.reported_promotions = False
-
             self.repeating = False
             self.new_content = False
             self.active_cat = None
-        except Exception:
-            print(traceback.format_exc(5))
+            self.quota = self._get_paths_quota(self.user_id)
+            if isinstance(self.quota, list):
+                self.quota = self.quota[0]
 
     def __str__(self):
         strout = ['---------------------------------\n'
@@ -2717,6 +2766,10 @@ class User(object):
         """Return the first name (from db.auth_user) of the current user."""
         return self.name
 
+    def get_npc(self):
+        """Return an Npc object for the currently active Npc."""
+        return self.npc
+
     def get_prev_npc(self):
         """Return the id (from db.npcs) of the previously active npc."""
         return self.prev_npc
@@ -2811,7 +2864,7 @@ class User(object):
     def set_npc(self, npc):
         """
         """
-        self.prev_npc = copy(self.npc)
+        self.prev_npc = self.npc.get_id() if isinstance(self.npc, Npc) else None
         self.npc = npc
         return True
 
@@ -2822,18 +2875,18 @@ class User(object):
         of path.set_location().
         Returns a boolean indicating success/failure.
         """
-        if isinstance(self.prev_loc, int):
-            self.prev_loc = Location(self.prev_loc)
-        else:
-            self.prev_loc = copy(self.loc)
+        if isinstance(self.loc, Location):
+            self.prev_loc = self.loc.get_alias()
         self.loc = loc
         return self.prev_loc
 
-    def get_location(self):
+    def get_location(self, localias):
         """
         Return a Location object for the user's current location.
         """
-        return self.loc
+        if not self.loc:
+            self.loc = Location(localias)
+        return self.loc 
 
     # @profile
     def _make_path_choice(self, loc, set_review=None):
@@ -3341,8 +3394,7 @@ class Categorizer(object):
         Return dict of the user's active tags categorized by past performance.
         The tag_records argument should be a list of dictionaries, each of
         which includes the following keys and value types:
-            {'tag': <int>,
-             'tlast_right': <datetime>,
+            {'tag': <int>, 'tlast_right': <datetime>,
              'tlast_wrong': <datetime>,
              'times_right': <float>,
              'times_wrong': <float>}
@@ -3653,6 +3705,10 @@ class Block(object):
                                             kwargs=self.kwargs)
         current.sequence_counter += 1
         return mystep
+
+    def get_kwargs(self):
+        """Return a string representing the condition causing this block."""
+        return self.kwargs
 
     def get_condition(self):
         """Return a string representing the condition causing this block."""
