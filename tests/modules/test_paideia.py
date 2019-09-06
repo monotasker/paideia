@@ -4057,11 +4057,9 @@ class TestStep():
         """Unit tests for StepText._get_reply() method"""
         step = mystep(stepid)
         loc = Location(localias, db)
-        step.loc = loc
         npc = Npc(npcshere[0], db)
-        step.npc = npc
-
-        actual = step.get_reply(resptext)
+        actual = step.get_reply(user_response=resptext,
+                                loc=loc, npc=npc)
 
         replytext = replytext.replace('[[resp]]', resptext)
         rdblsub = ''
@@ -6130,7 +6128,9 @@ class TestWalk():
                     db=db)
         user = walk._get_user()  # initialized new user in Walk.__init__()
         if active_path:
-            user.path = mypath(active_path, db)
+            this_path, path_steps = mypath(active_path, db)
+            user.path = this_path
+            user.path.restore_position(path_steps, None)
         assert isinstance(user, User)
         assert user.get_id() == user_login['id']
 
@@ -6163,13 +6163,7 @@ class TestWalk():
             assert rowid == storedrow.id
 
         # check data stored in db =============================================
-
-        userdata = base64.b64decode(storedrow['other_data'])
-        dbuser = pickle.loads(userdata)
-
-        # dbuser = pickle.loads(literal_eval(storedrow['other_data']))
-        assert dbuser.get_id() == user_login['id']
-        # TODO: Make sure string data gets restored as strings, not bytes
+        assert storedrow.name == user_login['id']
 
     @pytest.mark.skipif(False, reason='just because')
     @pytest.mark.parametrize(

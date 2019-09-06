@@ -59,7 +59,7 @@ watched when upgrading web2py:
 
 """
 
-# current.paideia_DEBUG_MODE = False
+current.paideia_DEBUG_MODE = False
 
 
 class MyPickler (pickle.Pickler):
@@ -778,25 +778,28 @@ class Walk(object):
                           for b in user.blocks}
             userdict = {
                 'blocks': json.dumps(blocksdict),
-                'path': user.path.get_id(),
-                'remaining_steps': [s.get_id() for s in user.path.steps],
+                'path': user.path.get_id() if user.path else None,
+                'remaining_steps': [s.get_id() for s in user.path.steps] \
+                    if user.path else [],
                 'step_for_reply': user.path.step_for_reply.get_id() \
-                    if user.path.step_for_reply else 0,
+                    if user.path and user.path.step_for_reply else None,
                 'completed_paths': json.dumps(user.completed_paths,
                                               default=str),
                 'cats_counter': user.cats_counter,
                 'old_categories': json.dumps(user.old_categories),
-                'tag_records': [t['id'] for t in user.tag_records],
-                'tag_progress': json.dumps(user.tag_progress),
+                'tag_records': [t['id'] for t in user.tag_records] \
+                    if user.tag_records else [],
+                'tag_progress': json.dumps(user.tag_progress) \
+                    if user.tag_progress else None,
                 'promoted': json.dumps(user.promoted),
                 'demoted': json.dumps(user.demoted),
                 'new_tags': json.dumps(user.new_tags),
                 'cats_counter': user.cats_counter,
                 'rank': user.rank,
                 'session_start': user.session_start,
-                'loc': user.loc.get_alias(),
+                'loc': user.loc.get_alias() if user.loc else None,
                 'prev_loc': user.prev_loc,
-                'npc': user.npc.get_id(),
+                'npc': user.npc.get_id() if user.npc else None,
                 'prev_npc': user.prev_npc,
                 'past_quota': user.past_quota,
                 'viewed_slides': user.viewed_slides,
@@ -807,11 +810,11 @@ class Walk(object):
                 'active_cat': user.active_cat, 
                 'quota': user.quota
             }
-            db.session_data.update_or_insert({'name': user.get_id()},
-                                             name=user.get_id(),
-                                             **userdict)
+            myrow = db.session_data.update_or_insert({'name': user.get_id()},
+                                                     name=user.get_id(),
+                                                     **userdict)
             db.commit()
-            return True
+            return myrow
         except Exception:
             print(traceback.format_exc(5))
             return False
@@ -2807,7 +2810,10 @@ class User(object):
     def set_block(self, condition, kwargs=None):
         """ Set a blocking condition on this Path object. """
         myblocks = [b.get_condition() for b in self.blocks]
-        current.sequence_counter += 1
+        try:
+            current.sequence_counter += 1
+        except AttributeError:
+            current.sequence_counter = 1
 
         def _inner_set_block():
             if condition not in myblocks:
