@@ -807,15 +807,11 @@ class Walk(object):
                 'active_cat': user.active_cat, 
                 'quota': user.quota
             }
-
-            rownum = db.session_data.update_or_insert({'name': user.get_id()},
-                                                       name=user.get_id(),
-                                                       **userdict)
+            db.session_data.update_or_insert({'name': user.get_id()},
+                                             name=user.get_id(),
+                                             **userdict)
             db.commit()
-
-            if debug:
-                print('session row inserted/updated:', rownum)
-            return rownum
+            return True
         except Exception:
             print(traceback.format_exc(5))
             return False
