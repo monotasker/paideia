@@ -159,7 +159,11 @@ ap.append(form) }}
 
         <!--# path counter for prompt/reply=================================-->
         <small class='path-counter progress_text small muted'>
-            This will make {{=completed_count}} paths so far today.
+            {{if 'score' in globals():}}
+                You have now completed {{=completed_count}} paths today.
+            {{else:}}
+                You have already finished {{=completed_count}} paths so far today.
+            {{pass}}
         </small>
 
         <!--# debug                       =================================-->
