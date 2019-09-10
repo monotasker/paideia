@@ -7493,7 +7493,9 @@ class TestPathChooser():
         assert mytags
         # test randomness
         path_ids = []
+        print('test_pathchooser_choose_from_set: testing randomness')
         for n in range(0, 100):
+            print('iteration', n)
             actual, newloc, catnum, actualmode, new_material, \
                 tag_progress = chooser.choose(set_review=myset)
             if actual['id'] not in path_ids:
