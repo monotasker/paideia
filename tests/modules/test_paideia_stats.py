@@ -160,7 +160,7 @@ class TestStats():
                      3: [],
                      4: []
                      },
-                    {1: [],
+                    {1: [('the definite article', 72)],
                      2: [],
                      3: [],
                      4: []
@@ -412,6 +412,7 @@ class TestStats():
                 print('expected:', expected[0][k])
                 assert actual[0][k] == expected[0][k]
 
+    @pytest.mark.skipif(True, reason='just because')
     def test_monthcal(self, myStats):
         """docstring for test_monthcal"""
         expected = '<div class="paideia_monthcal" id="paideia_monthcal">' \
@@ -424,14 +425,14 @@ class TestStats():
                    'data-w2p_disable_with="&lt;i class=&quot;fa fa-spinner ' \
                    'fa-spin fa-fw&quot;&gt;&lt;/i&gt;" data-w2p_method="GET"' \
                    ' data-w2p_target="tab_calendar" ' \
-                   'href="/paideia/reporting/calendar.load/431/2013/12">' \
+                   'href="/paideia/reporting/calendar.load/461/2013/12">' \
                    '<span class="fa fa-chevron-left fa-fw"></span>' \
                    '</a>' \
                    '<a class="monthcal_nav_link next" ' \
                    'data-w2p_disable_with="&lt;i class=&quot;fa fa-spinner ' \
                    'fa-spin fa-fw&quot;&gt;&lt;/i&gt;" data-w2p_method="GET"' \
                    ' data-w2p_target="tab_calendar" ' \
-                   'href="/paideia/reporting/calendar.load/431/2014/2">' \
+                   'href="/paideia/reporting/calendar.load/461/2014/2">' \
                    '<span class="fa fa-chevron-right fa-fw"></span>' \
                    '</a>' \
                    '<span class="dropdown">' \
@@ -442,55 +443,179 @@ class TestStats():
                    '<ul aria-labelledby="month-label" ' \
                    'class="dropdown-menu" role="menu">' \
                    '<li><a class="monthpicker" href="/paideia/reporting/' \
-                   'calendar.load/431/2019/3" ' \
-                   'tabindex="-1"March 2019</a></li>' \
-                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2013/12" ' \
-                   'tabindex="-1">December 2013' \
-                   '</a></li>' \
-                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2013/11" ' \
-                   'tabindex="-1">November 2013' \
-                   '</a></li>' \
-                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2013/10" ' \
-                   'tabindex="-1">October 2013</a></li>' \
-                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2013/9" ' \
-                   'tabindex="-1">September 2013</a></li>' \
-                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2013/8" ' \
-                   'tabindex="-1">August 2013</a></li>' \
-                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2013/7" ' \
-                   'tabindex="-1">July 2013</a></li>' \
-                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2013/6" ' \
-                   'tabindex="-1">June 2013</a></li>' \
-                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2013/5" ' \
-                   'tabindex="-1">May 2013</a></li>' \
-                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2013/4" ' \
-                   'tabindex="-1">April 2013</a></li>' \
-                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2013/3" ' \
-                   'tabindex="-1">March 2013</a></li>' \
-                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2013/2" ' \
-                   'tabindex="-1">February 2013</a></li>' \
-                   '<li class="divider"></li>' \
-                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2012/12" ' \
-                   'tabindex="-1">December 2012</a></li>' \
-                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2012/11" ' \
-                   'tabindex="-1">November 2012</a></li>' \
-                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2012/10" ' \
-                   'tabindex="-1">October 2012</a></li>' \
-                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2012/9" ' \
-                   'tabindex="-1">September 2012</a></li>' \
-                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2012/8" ' \
-                   'tabindex="-1">August 2012</a></li>' \
-                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2012/7" ' \
-                   'tabindex="-1">July 2012</a></li>' \
-                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2012/6" ' \
-                   'tabindex="-1">June 2012</a></li>' \
-                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2012/5" ' \
-                   'tabindex="-1">May 2012</a></li>' \
-                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2012/4" ' \
-                   'tabindex="-1">April 2012</a></li>' \
-                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2012/3" ' \
-                   'tabindex="-1">March 2012</a></li>' \
-                   '<li><a data-w2p_disable_with="default" href="/paideia/reporting/calendar.load/139/2012/2" ' \
-                   'tabindex="-1">February 2012</a></li>' \
+                   'calendar.load/461/2019/9" ' \
+                   'tabindex="-1">September 2019</a></li>' \
+                   '<li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2019/8" ' \
+                   'tabindex="-1">August 2019</a></li><li>' \
+                   '<a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2019/7" ' \
+                   'tabindex="-1">July ' \
+                   '2019</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2019/6" tabindex="-1">June ' \
+                   '2019</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2019/5" tabindex="-1">May ' \
+                   '2019</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2019/4" tabindex="-1">April ' \
+                   '2019</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2019/3" tabindex="-1">March ' \
+                   '2019</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2019/2" tabindex="-1">February ' \
+                   '2019</a></li><li class="divider"></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2018/12" tabindex="-1">December ' \
+                   '2018</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2018/11" tabindex="-1">November ' \
+                   '2018</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2018/10" tabindex="-1">October ' \
+                   '2018</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2018/9" tabindex="-1">September ' \
+                   '2018</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2018/8" tabindex="-1">August ' \
+                   '2018</a></li>' \
+                   '<li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2018/7" tabindex="-1">July ' \
+                   '2018</a></li><li><a class="monthpicker" ' \
+                   '2018</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2018/5" tabindex="-1">May ' \
+                   '2018</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2018/4" tabindex="-1">April ' \
+                   '2018</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2018/3" tabindex="-1">March ' \
+                   '2018</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2018/2" tabindex="-1">February ' \
+                   '2018</a></li><li class="divider"></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2017/12" tabindex="-1">December ' \
+                   '2017</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2017/11" tabindex="-1">November ' \
+                   '2017</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2017/10" tabindex="-1">October ' \
+                   '2017</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2017/9" tabindex="-1">September ' \
+                   '2017</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2017/8" tabindex="-1">August ' \
+                   '2017</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2017/7" tabindex="-1">July ' \
+                   '2017</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2017/6" tabindex="-1">June ' \
+                   '2017</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2017/5" tabindex="-1">May ' \
+                   '2017</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2017/4" tabindex="-1">April ' \
+                   '2017</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2017/3" tabindex="-1">March ' \
+                   '2017</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2017/2" tabindex="-1">February ' \
+                   '2017</a></li><li class="divider"></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2016/12" tabindex="-1">December ' \
+                   '2016</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2016/11" tabindex="-1">November ' \
+                   '2016</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2016/10" tabindex="-1">October ' \
+                   '2016</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2016/9" tabindex="-1">September ' \
+                   '2016</a></li<li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2016/8" tabindex="-1">August ' \
+                   '2016</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2016/7" tabindex="-1">July ' \
+                   '2016</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2016/6" tabindex="-1">June ' \
+                   '2016</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2016/5" tabindex="-1">May ' \
+                   '2016</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2016/4" tabindex="-1">April ' \
+                   '2016</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2016/3" tabindex="-1">March ' \
+                   '2016</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2016/2" tabindex="-1">February ' \
+                   '2016</a></li><li class="divider"></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2015/12" tabindex="-1">December ' \
+                   '2015</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2015/11" tabindex="-1">November ' \
+                   '2015</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2015/10" tabindex="-1">October ' \
+                   '2015</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2015/9" tabindex="-1">September ' \
+                   '2015</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2015/8" tabindex="-1">August ' \
+                   '2015</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2015/7" tabindex="-1">July ' \
+                   '2015</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2015/6" tabindex="-1">June ' \
+                   '2015</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2015/5" tabindex="-1">May ' \
+                   '2015</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2015/4" tabindex="-1">April ' \
+                   '2015</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2015/3" tabindex="-1">March ' \
+                   '2015</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2015/2" tabindex="-1">February ' \
+                   '2015</a></li><li class="divider"></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2014/12" tabindex="-1">December ' \
+                   '2014</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2014/11" tabindex="-1">November ' \
+                   '2014</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2014/10" tabindex="-1">October ' \
+                   '2014</a></li><li><a class="monthpicker" '  \
+                   'href="/paideia/reporting/calendar.load/461/2014/9" tabindex="-1">September ' \
+                   '2014</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2014/8" tabindex="-1">August ' \
+                   '2014</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2014/7" tabindex="-1">July ' \
+                   '2014</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2014/6" tabindex="-1">June ' \
+                   '2014</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2014/5" tabindex="-1">May ' \
+                   '2014</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2014/4" tabindex="-1">April ' \
+                   '2014</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2014/3" tabindex="-1">March ' \
+                   '2014</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2014/2" tabindex="-1">February ' \
+                   '2014</a></li><li class="divider"></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2013/12" tabindex="-1">December ' \
+                   '2013</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2013/11" tabindex="-1">November ' \
+                   '2013</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2013/10" tabindex="-1">October ' \
+                   '2013</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2013/9" tabindex="-1">September ' \
+                   '2013</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2013/8" tabindex="-1">August ' \
+                   '2013</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2013/7" tabindex="-1">July ' \
+                   '2013</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2013/6" tabindex="-1">June ' \
+                   '2013</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2013/5" tabindex="-1">May ' \
+                   '2013</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2013/4" tabindex="-1">April ' \
+                   '2013</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2013/3" tabindex="-1">March ' \
+                   '2013</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2013/2" tabindex="-1">February ' \
+                   '2013</a></li><li class="divider"></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2012/12" tabindex="-1">December ' \
+                   '2012</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2012/11" tabindex="-1">November ' \
+                   '2012</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2012/10" tabindex="-1">October ' \
+                   '2012</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2012/9" tabindex="-1">September ' \
+                   '2012</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2012/8" tabindex="-1">August ' \
+                   '2012</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2012/7" tabindex="-1">July ' \
+                   '2012</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2012/6" tabindex="-1">June ' \
+                   '2012</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2012/5" tabindex="-1">May ' \
+                   '2012</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2012/4" tabindex="-1">April ' \
+                   '2012</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2012/3" tabindex="-1">March ' \
+                   '2012</a></li><li><a class="monthpicker" ' \
+                   'href="/paideia/reporting/calendar.load/461/2012/2" tabindex="-1">February ' \
+                   '2012</a>' \
                    '<li class="divider"></li>' \
                    '</ul>' \
                    '</span>' \
@@ -506,9 +631,9 @@ class TestStats():
                         '<th class="sat">Sat</th>' \
                     '</tr>\n' \
                     '<tr>' \
-                        '<td class="noday"><span class="cal_num">\xc2\xa0</span></td>' \
-                        '<td class="noday"><span class="cal_num">\xc2\xa0</span></td>' \
-                        '<td class="noday"><span class="cal_num">\xc2\xa0</span></td>' \
+                        '<td class="noday"><span class="cal_num">\xa0</span></td>' \
+                        '<td class="noday"><span class="cal_num">\xa0</span></td>' \
+                        '<td class="noday"><span class="cal_num">\xa0</span></td>' \
                         '<td class="wed"><span class="cal_num">1</span><span class="daycount">1</span></td>' \
                         '<td class="thu"><span class="cal_num">2</span></td>' \
                         '<td class="fri"><span class="cal_num">3</span></td>' \
@@ -554,7 +679,7 @@ class TestStats():
                     '<td class="fri"><span class="cal_num">31</span>' \
                                     '<span class="daycount">1</span>' \
                     '</td>' \
-                    '<td class="noday"><span class="cal_num">\xc2\xa0</span></td>' \
+                    '<td class="noday"><span class="cal_num">\xa0</span></td>' \
                     '</tr>\n' \
                     '</table>\n' \
                     '</div>'

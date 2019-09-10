@@ -3,21 +3,19 @@
 
 from copy import copy
 import datetime
-# from dateutil.parser import parse
-# import HTMLParser
+from memory_profiler import profile
 from paideia_stats import Stats, get_set_at_date, get_term_bounds
 from paideia_stats import get_current_class
 from paideia_bugs import Bug, trigger_bug_undo
-# import traceback
-# from paideia_utils import send_error
-# from plugin_utils import make_json
-# from pprint import pprint
-# from gluon.tools import prettydate
 from gluon.serializers import json
 if 0:
-    from gluon import current, URL, TABLE, TR, TD, TH
-    from gluon.tools import Auth
-    from gluon.dal import DAL
+    from web2py.applications.paideia.modules.paideia_stats import Stats, get_set_at_date, get_term_bounds
+    from web2py.applications.paideia.modules.paideia_stats import get_current_class
+    from web2py.applications.paideia.modules.paideia_bugs import Bug, trigger_bug_undo
+    from web2py.gluon.serializers import json
+    from web2py.gluon import current, URL, TABLE, TR, TD, TH
+    from web2py.gluon.tools import Auth
+    from web2py.gluon.dal import DAL
     db = DAL()
     auth = Auth()
     response, session = current.response, current.session
@@ -201,6 +199,7 @@ def update_bug():
     return 'false' if result is False else result
 
 
+# @profile
 def info():
     """
     Return data reporting on a user's performance record.
@@ -269,7 +268,7 @@ def info():
     email = user.email
     max_set = stats.get_max()
     badge_levels = stats.get_badge_levels()
-    badge_table_data = stats.active_tags()
+    badge_table_data = stats.active_tags()  # FIXME: 29Mi of memory use
 
     start_date, fmt_start, end_date, fmt_end = None, None, None, None
     if myc:
@@ -280,10 +279,12 @@ def info():
                 myc.classes.end_date)
         try:
             starting_set = int(myc.class_membership.starting_set)
-        except ValueError:
+        except (ValueError, TypeError):
             starting_set = None
         if not starting_set:
             starting_set = get_set_at_date(user.id, start_date)
+            print('starting_set++++++++++++++++++++++++++++++++++++++++++++++++')
+            print(starting_set)
         goal = myc.classes.a_target
 
         if myc.class_membership.custom_a_cap:  # allow personal targets
@@ -310,7 +311,7 @@ def info():
 
     # tab5
     mydata = get_chart1_data(user_id=user.id)
-    chart1_data = mydata['chart1_data']
+    chart1_data = mydata['chart1_data']  # FIXME: 3Mi of memory use
     badge_set_milestones = mydata['badge_set_milestones']
     answer_counts = mydata['answer_counts']
     badge_set_dict = {}
@@ -441,7 +442,7 @@ def set_review_mode():
     debug = False
     try:
         myset = int(request.args[0])
-    except ValueError:  # if passed a non-numeric value
+    except (ValueError, TypeError):  # if passed a non-numeric value
         myset = None
     session.set_review = myset
     if debug:
