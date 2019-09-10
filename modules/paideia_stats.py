@@ -376,7 +376,7 @@ class Stats(object):
             # FIXME: Will this not bring tags up too early?
         return avg_score
 
-    @profile
+    # @profile
     def active_tags(self, now=None, db=None):
         '''
         Find the tags that are currently active for this user, categorized 1-4.
