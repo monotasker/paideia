@@ -376,7 +376,7 @@ class Stats(object):
             # FIXME: Will this not bring tags up too early?
         return avg_score
 
-    # @profile
+    @profile
     def active_tags(self, now=None, db=None):
         '''
         Find the tags that are currently active for this user, categorized 1-4.
@@ -445,8 +445,8 @@ class Stats(object):
 
         # collect recent attempt logs
         # FIXME: unused: alltags = [r['tag'] for r in tr]
-        logs = db((db.attempt_log.name == self.user_id) &
-                  (db.attempt_log.step == db.steps.id)).select()
+        # logs = db((db.attempt_log.name == self.user_id) &
+        #           (db.attempt_log.step == db.steps.id)).select()
 
         # shorten keys for readability
         shortforms = {'tlast_right': 'tlr',
@@ -465,16 +465,34 @@ class Stats(object):
                        if k not in ['id', 'name', 'in_path', 'step',
                        'secondary_right']}
 
+            taglogs = [r for r in db((db.attempt_log.name == self.user_id) &
+                                     (db.attempt_log.step ==   db.step2tags.step_id)
+                                     ).iterselect(db.attempt_log.id,
+                                                  db.attempt_log.dt_attempted,
+                                                  db.attempt_log.score,
+                                                  db.step2tags.step_id,
+                                                  db.step2tags.tag_id)
+                       if (r['step2tags']['tag_id'] == t['tag'])
+                       and (r['attempt_log']['dt_attempted'] > recent_start)
+                        ]
+            todaylogs = [r for r in taglogs
+                         if r['attempt_log']['dt_attempted'] > daystart]
+            yestlogs = [r for r in taglogs
+                        if (r['attempt_log']['dt_attempted'] <= daystart)
+                        and (r['attempt_log']['dt_attempted'] > yest_start)
+                        ]
+            reclogs = taglogs
+
             # count logs for this tag (today and yesterday)
-            taglogs = logs.find(lambda r: any(tag for tag in r.steps.tags
-                                              if t['tag'] == tag))
-            todaylogs = taglogs.find(lambda r: r.attempt_log.dt_attempted >
-                                     daystart)
-            yestlogs = taglogs.find(lambda r: (r.attempt_log.dt_attempted <=
-                                    daystart) and (r.attempt_log.dt_attempted >
-                                    yest_start))
-            reclogs = taglogs.find(lambda r: r.attempt_log.dt_attempted >
-                                   recent_start)
+            # taglogs = logs.find(lambda r: any(tag for tag in r.steps.tags
+            #                                   if t['tag'] == tag))
+            # todaylogs = taglogs.find(lambda r: r.attempt_log.dt_attempted >
+            #                          daystart)
+            # yestlogs = taglogs.find(lambda r: (r.attempt_log.dt_attempted <=
+            #                         daystart) and (r.attempt_log.dt_attempted >
+            #                         yest_start))
+            # reclogs = taglogs.find(lambda r: r.attempt_log.dt_attempted >
+            #                        recent_start)
             tr[idx]['todaycount'] = len(todaylogs)
             tr[idx]['yestcount'] = len(yestlogs)
 
@@ -518,12 +536,12 @@ class Stats(object):
                 tr[idx][i] = (t[i], t[i].strftime(strf))
 
             # add level data
-            print('badge_levels--------------')
-            print(self.badge_levels)
-            print('review_levels--------------')
-            print(self.review_levels)
-            print('t["tag"]--------------------')
-            print(t['tag'])
+            # print('badge_levels--------------')
+            # print(self.badge_levels)
+            # print('review_levels--------------')
+            # print(self.review_levels)
+            # print('t["tag"]--------------------')
+            # print(t['tag'])
             try:
                 tr[idx]['curlev'] = [l for l, tgs in
                                      list(self.badge_levels.items())
