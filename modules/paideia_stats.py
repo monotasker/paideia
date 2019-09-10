@@ -4,6 +4,7 @@ from collections import defaultdict
 from dateutil.parser import parse
 import traceback
 from copy import copy
+from memory_profiler import profile
 from operator import itemgetter
 from pytz import timezone, utc
 from gluon import current, DIV, SPAN, A, URL, UL, LI, B, I
@@ -375,6 +376,7 @@ class Stats(object):
             # FIXME: Will this not bring tags up too early?
         return avg_score
 
+    # @profile
     def active_tags(self, now=None, db=None):
         '''
         Find the tags that are currently active for this user, categorized 1-4.
