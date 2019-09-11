@@ -1,6 +1,5 @@
 {{from plugin_widgets import MODAL}}
 {{
-print 'in view, classid =', classid
 submit_args = {'_type': 'submit',
                '_value': 'Add',
                '_data-dismiss': 'modal',
