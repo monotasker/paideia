@@ -688,7 +688,7 @@ db.define_table('session_data',
                 Field('modified_on', 'datetime', default=request.now),
                 format='%(name)s')
 
-db.define_table('user_stats',
+db.define_table('weekly_user_stats',
                 Field('name', 'reference auth_user', default=auth.user_id),
                 Field('year', 'integer'),
                 Field('month', 'integer'),
