@@ -742,3 +742,57 @@ success!
 success!
 success!
 success!
+timestamp: 2019-09-11T10:18:49.539666
+CREATE TABLE "weekly_user_stats"(
+    "id" SERIAL PRIMARY KEY,
+    "name" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE  ,
+    "year" INTEGER,
+    "month" INTEGER,
+    "week" INTEGER,
+    "updated" TIMESTAMP,
+    "day1" TIMESTAMP,
+    "day2" TIMESTAMP,
+    "day3" TIMESTAMP,
+    "day4" TIMESTAMP,
+    "day5" TIMESTAMP,
+    "day6" TIMESTAMP,
+    "day7" TIMESTAMP,
+    "count1" TEXT,
+    "count2" TEXT,
+    "count3" TEXT,
+    "count4" TEXT,
+    "count5" TEXT,
+    "count6" TEXT,
+    "count7" TEXT,
+    "logs_by_tag" TEXT,
+    "logs_right" TEXT,
+    "logs_wrong" TEXT,
+    "done" INTEGER,
+    "uuid" VARCHAR(64),
+    "modified_on" TIMESTAMP
+);
+success!
+timestamp: 2019-09-11T15:36:51.773961
+CREATE TABLE "tagged_attempts_by_week"(
+    "id" SERIAL PRIMARY KEY,
+    "name" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE  ,
+    "tag_id" INTEGER REFERENCES "tags" ("id") ON DELETE CASCADE  ,
+    "attempts" TEXT,
+    "weekstart" TIMESTAMP
+);
+success!
+timestamp: 2019-09-11T18:01:03.784110
+ALTER TABLE "session_data" ADD "promoted__tmp" TEXT;
+UPDATE "session_data" SET "promoted__tmp"="promoted";
+ALTER TABLE "session_data" DROP COLUMN "promoted";
+ALTER TABLE "session_data" ADD "promoted" TEXT;
+UPDATE "session_data" SET "promoted"="promoted__tmp";
+ALTER TABLE "session_data" DROP COLUMN "promoted__tmp";
+timestamp: 2019-09-11T18:01:03.868694
+ALTER TABLE "session_data" ADD "demoted__tmp" TEXT;
+UPDATE "session_data" SET "demoted__tmp"="demoted";
+ALTER TABLE "session_data" DROP COLUMN "demoted";
+ALTER TABLE "session_data" ADD "demoted" TEXT;
+UPDATE "session_data" SET "demoted"="demoted__tmp";
+ALTER TABLE "session_data" DROP COLUMN "demoted__tmp";
+success!

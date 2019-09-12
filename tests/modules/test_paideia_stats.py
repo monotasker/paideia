@@ -113,7 +113,7 @@ def myStats(user_login, web2py, db):  # request
     db.tag_records.insert(**trdata)
     db.commit()
 
-    usrows = db(db.user_stats.day1 == datetime.date(2014, 1, 26))
+    usrows = db(db.weekly_user_stats.day1 == datetime.date(2014, 1, 26))
     if not usrows.isempty():
         usrows.delete()
     usdata = {'name': user_login['id'],
@@ -139,7 +139,7 @@ def myStats(user_login, web2py, db):  # request
               'logs_right': [logs[0], logs[1], logs[5]],
               'logs_wrong': [logs[2], logs[3], logs[4]],
               'done': 6}
-    db.user_stats.insert(**usdata)
+    db.weekly_user_stats.insert(**usdata)
     db.commit()
 
     data = {'user_id': user_login['id'], 'auth': current.auth}
@@ -412,7 +412,7 @@ class TestStats():
                 print('expected:', expected[0][k])
                 assert actual[0][k] == expected[0][k]
 
-    @pytest.mark.skipif(True, reason='just because')
+    # @pytest.mark.skipif(True, reason='just because')
     def test_monthcal(self, myStats):
         """docstring for test_monthcal"""
         expected = '<div class="paideia_monthcal" id="paideia_monthcal">' \

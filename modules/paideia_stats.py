@@ -167,7 +167,7 @@ class Stats(object):
                         weeknum == list(weeks.keys())[0] and \
                         lastdt.isocalendar()[1] == list(weeks.keys())[0] and \
                         lastdt.isocalendar()[0] == year:
-                    openrow = db(db.user_stats.name == self.user_id
+                    openrow = db(db.weekly_user_stats.name == self.user_id
                                  ).select().last()
 
                     weekdata['updated'] = datetime.datetime.now()
@@ -376,6 +376,27 @@ class Stats(object):
             # FIXME: Will this not bring tags up too early?
         return avg_score
 
+    def _get_logs_for_tag(self, tag_id, recent_start):
+        '''
+
+        :param tag_id int:
+        :param datetime recentstart:
+        '''
+        db = current.db
+        
+        taglogs = [r for r in db((db.attempt_log.name == self.user_id) &
+                                 (db.attempt_log.step ==   db.step2tags.step_id)
+                                 ).iterselect(db.attempt_log.id,
+                                              db.attempt_log.dt_attempted,
+                                              db.attempt_log.score,
+                                              db.step2tags.step_id,
+                                              db.step2tags.tag_id)
+                    if (r['step2tags']['tag_id'] == tag_id)
+                    and (r['attempt_log']['dt_attempted'] > recent_start)
+                    ]
+
+        return taglogs
+
     # @profile
     def active_tags(self, now=None, db=None):
         '''
@@ -465,16 +486,7 @@ class Stats(object):
                        if k not in ['id', 'name', 'in_path', 'step',
                        'secondary_right']}
 
-            taglogs = [r for r in db((db.attempt_log.name == self.user_id) &
-                                     (db.attempt_log.step ==   db.step2tags.step_id)
-                                     ).iterselect(db.attempt_log.id,
-                                                  db.attempt_log.dt_attempted,
-                                                  db.attempt_log.score,
-                                                  db.step2tags.step_id,
-                                                  db.step2tags.tag_id)
-                       if (r['step2tags']['tag_id'] == t['tag'])
-                       and (r['attempt_log']['dt_attempted'] > recent_start)
-                        ]
+            taglogs = self._get_logs_for_tag(t['tag'], recent_start) 
             todaylogs = [r for r in taglogs
                          if r['attempt_log']['dt_attempted'] > daystart]
             yestlogs = [r for r in taglogs
@@ -483,16 +495,6 @@ class Stats(object):
                         ]
             reclogs = taglogs
 
-            # count logs for this tag (today and yesterday)
-            # taglogs = logs.find(lambda r: any(tag for tag in r.steps.tags
-            #                                   if t['tag'] == tag))
-            # todaylogs = taglogs.find(lambda r: r.attempt_log.dt_attempted >
-            #                          daystart)
-            # yestlogs = taglogs.find(lambda r: (r.attempt_log.dt_attempted <=
-            #                         daystart) and (r.attempt_log.dt_attempted >
-            #                         yest_start))
-            # reclogs = taglogs.find(lambda r: r.attempt_log.dt_attempted >
-            #                        recent_start)
             tr[idx]['todaycount'] = len(todaylogs)
             tr[idx]['yestcount'] = len(yestlogs)
 
@@ -509,6 +511,8 @@ class Stats(object):
             except (ZeroDivisionError, TypeError):
                 tr[idx]['rw_ratio'] = round(t['tright'], 2)
 
+            print('A')
+
             # parse last_right and last_wrong into readable form
             try:
                 t['tlw'] = tr[idx]['tlw'] = parse(t['tlw']) if not \
@@ -518,6 +522,7 @@ class Stats(object):
             except AttributeError:
                 pass
 
+            print('B')
             # get time deltas
             for i in ['r', 'w']:
                 try:
@@ -572,6 +577,7 @@ class Stats(object):
             tr = self._add_promotion_data(tr)
             # tr = self._add_log_data(tr)
             self.tagrecs_expanded = tr
+            print('D')
             return tr  # make_json(tr.as_list())
         except Exception:
             traceback.print_exc(5)
@@ -742,10 +748,12 @@ class Stats(object):
         ustart = startwtz.astimezone(utc)
 
         usdict = {}
-        usrows = db((db.user_stats.name == self.user_id) &
-                    (db.user_stats.day7 > ustart) &
-                    (db.user_stats.day7 < ustop)).select()
+        usrows = db((db.weekly_user_stats.name == self.user_id) &
+                    (db.weekly_user_stats.day7 > ustart) &
+                    (db.weekly_user_stats.day7 < ustop)).select()
         usrows = usrows.as_list()
+        if usrows:
+            pprint(usrows[0])
         if usrows:
             # weeks and days organized by user's local time
             # but datetimes themselves are still utc
@@ -1044,7 +1052,9 @@ class Stats(object):
         # Transform to a lightweight form
         counts = []
         for (date, scores_ids) in list(result.items()):
-            scores = [s[0] for s in scores_ids]
+            print('trying')
+            print(scores_ids)
+            scores = [(s[0] or 0) for s in scores_ids if s[0]]
             ids = [s[1] for s in scores_ids]
             total = len(scores)
             right = len([r for r in scores if r >= 1.0])
@@ -1059,6 +1069,7 @@ class Stats(object):
                            'ids': ids
                            })
 
+        print('G')
         return counts
 
     def get_tag_counts_over_time(self, start, end, uid=None):

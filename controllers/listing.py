@@ -33,6 +33,7 @@ def get_my_classes(classid=None):
     separate return value
 
     """
+    debug = False
     classid = None if classid == 'none' else classid
     if auth.has_membership('administrators'):
         myclasses = db(db.classes.instructor != None).select()
