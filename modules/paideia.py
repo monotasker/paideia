@@ -241,12 +241,15 @@ class Walk(object):
             user = self.user
             # allow artificial setting of blocks during interface testing
             if set_blocks:
+                print('BLOCK SET IS TRUE')
                 for c, v in list(set_blocks.items()):
                     myargs = {n: a for n, a in list(v.items())}
                     current.sequence_counter += 1
                     user.set_block(c, kwargs=myargs)
             username = user.get_name()
+            print([b.get_condition() for b in user.blocks])
             tag_progress, promoted, new_tags, demoted = self._set_blocks()
+            print([b.get_condition() for b in user.blocks])
             if (promoted or new_tags or demoted):
                 assert self._record_cats(tag_progress, promoted,
                                          new_tags, demoted)
@@ -292,6 +295,7 @@ class Walk(object):
             # TODO: make sure 'new_tags' is returned before 'view_slides'
             current.sequence_counter += 1
             block = user.check_for_blocks()
+            print('Walk::ask block is', block)
             if block:
                 s = block.get_step()
 
@@ -763,7 +767,7 @@ class Walk(object):
         self.user.complete_path(got_right)
         return log_record_id
 
-    @profile
+    # @profile
     def _store_user(self, user, db=None):
         """
         Store the current User object (from self.user) in the database.
@@ -810,6 +814,8 @@ class Walk(object):
                 'active_cat': user.active_cat, 
                 'quota': user.quota
             }
+            print('storing************************')
+            pprint(userdict['reported_promotions'])
             myrow = db.session_data.update_or_insert({'name': user.get_id()},
                                                      name=user.get_id(),
                                                      **userdict)
@@ -829,8 +835,6 @@ class Location(object):
         db = current.db if not db else db
         self.data = db(db.locations.loc_alias == alias
                        ).select().first().as_dict()
-        print('Loc data')
-        pprint(self.data)
 
     def __str__(self):
         """Return string to represent a Location instance"""
@@ -1151,7 +1155,7 @@ class Step(object):
         The keys are deck ids, while the values are the deck names (as
         strings). If this step has no associated slides, returns None.
         """
-        debug = True  # current.paideia_DEBUG_MODE
+        debug = current.paideia_DEBUG_MODE
         db = current.db
         tags = db(db.tags.id.belongs(self.data['tags'])).select()
         if debug:
@@ -1871,7 +1875,6 @@ class Path(object):
         The others are for dependency injection in testing
         """
         db = current.db if not db else db
-        print('db:', type(db))
         self.path_dict = db(db.paths.id == path_id).select().first().as_dict()
 
         # for _reset_steps only
@@ -2561,7 +2564,8 @@ class User(object):
         :attr int active_cat: An integer representing the category of tags from
                             which the user's current path was selected.
         """
-        debug = current.paideia_DEBUG_MODE
+        debug = True # current.paideia_DEBUG_MODE
+        if debug: print('initializing user')
         db = db if db else current.db
         auth = current.auth
 
@@ -2574,8 +2578,7 @@ class User(object):
 
         sd = db(db.session_data.name == auth.user_id).select().first()
         try:
-            for condition, kwargs in json.loads(sd['blocks']).items():
-                self.set_block(condition, kwargs=kwargdict)
+            if debug: print('A')
             self.loc = Location(sd['loc'])
             self.npc = Npc(sd['npc'])
             self.path = Path(sd['path'])
@@ -2589,6 +2592,16 @@ class User(object):
                       'viewed_slides', 'reported_badges', 'reported_promotions',
                       'repeating', 'new_content', 'active_cat', 'quota']:
                 setattr(self, k, sd[k])
+                print(k, sd[k], type(sd[k]))
+            # Blocks must be set after flags above are set
+            for condition, kwargs in json.loads(sd['blocks']).items():
+                print(sd['blocks'])
+                print('got blocks===================================')
+                print(condition) 
+                print(kwargs)
+                self.set_block(condition, kwargs=kwargs)
+            if debug: print('B')
+            if debug: print('D')
             if not tag_records:
                 try:
                     rec_ids = json.loads(sd['tag_records'])
@@ -2598,10 +2611,15 @@ class User(object):
                     traceback.print_exc()
                     self.tag_records = db(db.tag_records.name == self.user_id
                                           ).select().as_list()
+            if debug: print('F')
             if not tag_progress:
                 self.tag_progress = json.loads(sd['tag_progress'])
+            if debug: print('G')
             assert not self.is_stale()  
-        except (TypeError, AttributeError):  # one of the JSON fields is None
+            if debug: print('H')
+        except (TypeError, AttributeError, AssertionError):  # one of the JSON fields is None
+            traceback.print_exc()
+            if debug: print('L')
             self.path = None
             self.completed_paths = {'latest': None, 'paths': {}}
             self.cats_counter = 0  # timing re-cat in get_categories()
@@ -2622,6 +2640,8 @@ class User(object):
             # FIXME: return don't set in method?
             self._set_user_rank(self.tag_progress, 1)  
             # self.rank = tag_progress['latest_new'] if tag_progress else 1
+
+            if debug: print('Q')
             self.promoted = None
             self.demoted = None
             self.new_tags = None
@@ -2641,6 +2661,7 @@ class User(object):
             self.quota = self._get_paths_quota(self.user_id)
             if isinstance(self.quota, list):
                 self.quota = self.quota[0]
+            if debug: print('initialized user')
 
     def __str__(self):
         strout = ['---------------------------------\n'
@@ -2784,7 +2805,7 @@ class User(object):
         - Returns None
         """
         # TODO make sure that current loc and npc get set for self.prev_loc etc
-        debug = current.paideia_DEBUG_MODE
+        debug = True  # current.paideia_DEBUG_MODE
         if self.blocks:
             if debug:
                 print('User::check_for_blocks: blocks present')
@@ -2795,11 +2816,13 @@ class User(object):
                     blockset.append(b)
             self.blocks = blockset
             if debug:
-                print('User::check_for_blocks: blockset', blockset)
+                print('User::check_for_blocks: blockset', [b.get_condition() for b in blockset])
             current.sequence_counter += 1  # TODO: why increment twice here?
             myblock = self.blocks.pop(0)
             if debug:
-                print('User::check_for_blocks: myblock', blockset)
+                print('User::check_for_blocks: myblock', myblock.get_condition())
+            if debug:
+                print('User::check_for_blocks: blockset now', [b.get_condition() for b in blockset])
             current.sequence_counter += 1  # TODO: why increment twice here?
             return myblock
         else:
@@ -2814,10 +2837,14 @@ class User(object):
             current.sequence_counter += 1
         except AttributeError:
             current.sequence_counter = 1
+        print(current.sequence_counter)
 
         def _inner_set_block():
+            print('inner setting ', condition)
             if condition not in myblocks:
+                print('adding new condition')
                 self.blocks.append(Block(condition, kwargs=kwargs))
+
 
         if condition == 'view_slides':
             if not self.viewed_slides:
@@ -2847,20 +2874,27 @@ class User(object):
         The arguments 'now', 'start', and 'tzone' are only used for dependency
         injection in unit testing.
         """
+        print('T')
         db = current.db if not db else db
         now = datetime.datetime.utcnow() if not now else now
         time_zone = self.time_zone if not time_zone else time_zone
+        if not time_zone:
+            time_zone = 'America/Toronto'
         tz = timezone(time_zone)
         local_now = tz.fromutc(now)
         # adjust start for local time
+        print('U')
         start = self.session_start if not start else start
         lstart = tz.fromutc(start)
         daystart = local_now.replace(hour=0, minute=0, second=0, microsecond=0)
         if lstart < daystart:
+            print('X')
             return True
         elif lstart > local_now:
+            print('V')
             return False
         else:
+            print('W')
             return False
 
     def set_npc(self, npc):

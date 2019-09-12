@@ -311,6 +311,7 @@ def info():
 
     # tab5
     mydata = get_chart1_data(user_id=user.id)
+    print('E')
     chart1_data = mydata['chart1_data']  # FIXME: 3Mi of memory use
     badge_set_milestones = mydata['badge_set_milestones']
     answer_counts = mydata['answer_counts']
@@ -379,8 +380,8 @@ def get_chart1_data(user_id=None, set=None, tag=None):
     #     return (dt-datetime.datetime(1970,1,1)).total_seconds() * 1000
     user_id = user_id if user_id else auth.user_id
     stats = Stats(user_id)
-
     badge_set_milestones = stats.get_badge_set_milestones()
+    print('F')
     answer_counts = stats.get_answer_counts(set=set, tag=tag)
 
     chart1_data = {'badge_set_reached': [{'date': dict['my_date'],

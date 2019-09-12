@@ -667,8 +667,8 @@ db.define_table('session_data',
                 Field('tag_records', 'text'),
                 Field('tag_progress', 'text'),
                 Field('rank', 'integer'),
-                Field('promoted', 'string'),
-                Field('demoted', 'string'),
+                Field('promoted', 'text'),
+                Field('demoted', 'text'),
                 Field('new_tags', 'string'),
                 Field('session_start', 'datetime'),
                 Field('loc', 'string'),
@@ -777,6 +777,12 @@ db.define_table('path2steps',
                 Field('step_id', 'reference steps'),
                 Field('modified_on', 'datetime', default=request.now))
 
+db.define_table('tagged_attempts_by_week',
+                Field('name', 'reference auth_user', default=auth.user_id),
+                Field('tag_id', 'reference tags'),
+                Field('attempts', 'list:reference attempt_log'),
+                Field('weekstart', 'datetime')
+                )
 
 def insert_trigger_for_steps(f, given_step_id):
     # given_step_id is of <class 'gluon.dal.Reference'>
