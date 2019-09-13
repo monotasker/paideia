@@ -796,3 +796,24 @@ ALTER TABLE "session_data" ADD "demoted" TEXT;
 UPDATE "session_data" SET "demoted"="demoted__tmp";
 ALTER TABLE "session_data" DROP COLUMN "demoted__tmp";
 success!
+timestamp: 2019-09-13T11:42:09.656639
+ALTER TABLE "session_data" ADD "step_for_prompt" INTEGER;
+success!
+timestamp: 2019-09-13T14:44:33.042681
+ALTER TABLE "session_data" DROP COLUMN "step_for_prompt";
+faked!
+success!
+timestamp: 2019-09-13T14:45:23.727943
+ALTER TABLE "session_data" ADD "step_for_prompt" INTEGER;
+faked!
+success!
+timestamp: 2019-09-13T14:47:38.703329
+ALTER TABLE "session_data" DROP COLUMN "step_for_prompt";
+success!
+timestamp: 2019-09-13T14:49:00.615038
+ALTER TABLE "session_data" DROP COLUMN "step_for_prompt";
+faked!
+success!
+timestamp: 2019-09-13T14:50:00.404082
+ALTER TABLE "session_data" ADD "step_for_prompt" INTEGER;
+success!
