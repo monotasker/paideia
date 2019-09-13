@@ -239,6 +239,13 @@ class Walk(object):
         prompt = None
         while True:
             user = self.user
+
+            # assemble basic situation data
+            username = user.get_name()
+            loc = Location(localias)
+            prev_loc = user.set_location(loc)
+            prev_npc = user.get_prev_npc()
+
             # allow artificial setting of blocks during interface testing
             if set_blocks:
                 print('BLOCK SET IS TRUE')
@@ -246,70 +253,60 @@ class Walk(object):
                     myargs = {n: a for n, a in list(v.items())}
                     current.sequence_counter += 1
                     user.set_block(c, kwargs=myargs)
-            username = user.get_name()
-            print([b.get_condition() for b in user.blocks])
+
+            # get tag categories and note tag progress changes
             tag_progress, promoted, new_tags, demoted = self._set_blocks()
-            print([b.get_condition() for b in user.blocks])
             if (promoted or new_tags or demoted):
                 assert self._record_cats(tag_progress, promoted,
                                          new_tags, demoted)
-            loc = Location(localias)
-            prev_loc = user.set_location(loc)
-            prev_npc = user.get_prev_npc()
 
+            # get the current path and note other flag conditions
+            # choose a new path if the current one is finished
             p, category, redir, pastquota, new_content = \
                 user.get_path(loc, pathid=path,
                               repeat=repeat,
                               set_review=set_review)
             if repeat:
                 user.repeating = True  # so that information available in reply
-            if debug:
-                print('Walk::ask: path chosen is', p.get_id())
-                print('Walk::ask: redir is', redir)
-
+            if debug: print('Walk::ask: path chosen is', p.get_id())
             if (not p):
-                break  # no paths for this location for this category
-
+                # no paths for this location for this category
+                break  
             user.active_cat = category
             user.new_content = new_content
+
+            # set last-minute blocking conditions based on those flags
             if redir:
                 current.sequence_counter += 1
                 user.set_block('redirect', kwargs={'next_loc': redir})
             if pastquota:
                 current.sequence_counter += 1
                 user.set_block('quota_reached', kwargs={'quota': user.quota})
-            if debug:
-                print('Walk::ask: user.path.steps num is',
-                      len(user.path.steps))
 
+            # get the next step for the current path
+            # if necessary substitute with step to handle blocking condition
             s, newloc_id, error_string = p.get_step_for_prompt(loc,
                                                                repeat=repeat)
-            if debug:
-                print('Walk::ask: user.path.steps num is',
-                      len(user.path.steps))
-
             if newloc_id:
                 current.sequence_counter += 1
                 user.set_block('redirect', kwargs={'next_loc': newloc_id})
-
-            # TODO: make sure 'new_tags' is returned before 'view_slides'
             current.sequence_counter += 1
             block = user.check_for_blocks()
             print('Walk::ask block is', block)
             if block:
                 s = block.get_step()
 
+            # assign an Npc for the final step being activated
             npc = s.get_npc(loc, prev_npc, prev_loc)
             user.set_npc(npc)
 
+            # ensure that flags triggering blocking conditions are reset
             if not user.blocks:
                 user.clear_block_records()
+
+            # get the data for the prompt interface from the step
             prompt = s.get_prompt(loc, npc, username, user_blocks_left=True
                                   if user.blocks else False)
-
-            if debug:
-                print('Walk::ask: user.path.steps num is',
-                      len(user.path.steps))
             extra_fields = {'completed_count': user.get_completed_paths_len(),
                             'category': category,
                             'pid': p.get_id(),
@@ -317,16 +314,14 @@ class Walk(object):
                             }
             prompt.update(extra_fields)
 
-            try:
-                if debug:
-                    print('Walk::ask: repeating?', user.repeating)
-            except AttributeError:
-                if debug:
-                    print('Walk::ask: user didn\'t have repeating attribute')
+            # deactivate step from the role of prompt provider
+            # shift it to the role of reply provider
+            # NOTE: if the next request has no answer string, and ask is 
+            # run again directly, this reply provider will be ignored.
             p.end_prompt(s.get_id())  # send id to tell whether a block step
+
+            # store user data in db for persistence across http requests
             self._store_user(user)
-            if debug:
-                print('Walk::ask: Done storing user')
             break  # from utility while loop
 
         # propagating errors and alerting user instead of crashing
@@ -375,11 +370,6 @@ class Walk(object):
                       'new_content': new_content
                       }
             return prompt
-
-
-        # all_objects = muppy.get_objects()
-        # sum1 = summary.summarize(all_objects)
-        # summary.print_(sum1)
 
         return prompt  # good prompt
 
@@ -476,7 +466,7 @@ class Walk(object):
         prompt['loc'] = loc.get_alias()
         prompt['new_content'] = user.new_content
 
-        p.complete_step()  # removes path.step_for_reply; cf. (user.get_path)
+        p.end_reply()  # removes path.step_for_reply; cf. (user.get_path)
         user._reset_for_walk()
         self._store_user(user)
 
@@ -785,6 +775,8 @@ class Walk(object):
                 'path': user.path.get_id() if user.path else None,
                 'remaining_steps': [s.get_id() for s in user.path.steps] \
                     if user.path else [],
+                'step_for_prompt': user.path.step_for_prompt.get_id() \
+                    if user.path and user.path.step_for_prompt else None,
                 'step_for_reply': user.path.step_for_reply.get_id() \
                     if user.path and user.path.step_for_reply else None,
                 'completed_paths': json.dumps(user.completed_paths,
@@ -815,7 +807,9 @@ class Walk(object):
                 'quota': user.quota
             }
             print('storing************************')
-            pprint(userdict['reported_promotions'])
+            print('remaining_steps:', userdict['remaining_steps'])
+            print('step_for_reply:', userdict['step_for_reply'])
+            print('step_for_prompt:', userdict['step_for_prompt'])
             myrow = db.session_data.update_or_insert({'name': user.get_id()},
                                                      name=user.get_id(),
                                                      **userdict)
@@ -1895,7 +1889,8 @@ class Path(object):
         """Return the id of the current Path object."""
         return self.path_dict['id']
 
-    def restore_position(self, remaining_steps, step_for_reply):
+    def restore_position(self, remaining_steps,
+                         step_for_prompt, step_for_reply):
         """
         Restore a path to a particular point in the progress through its steps.
         
@@ -1906,24 +1901,41 @@ class Path(object):
                         to self.step_for_reply if the restored state is mid-way 
                         through completing a step.
         """
-        self.completed_steps = [s for s in self.steps
-                                if s.get_id() not in remaining_steps]
-        if step_for_reply:
+        print('restore_position: steps are', [s.get_id() for s in self.steps])
+        self.completed_steps = [s for s in self.steps if s.get_id() not in                              [*remaining_steps, step_for_prompt,
+                                 step_for_reply]]
+        print('restore_position: setting completed steps to',
+              [s.get_id() for s in self.completed_steps])
+        if step_for_prompt:
+            self.step_for_prompt = [s for s in self.steps
+                                   if s.get_id() == step_for_prompt][0]
+            print('restore_position: setting step for prompt to',
+                [self.step_for_prompt.get_id()])
+        elif step_for_reply:
             self.step_for_reply = [s for s in self.steps
                                    if s.get_id() == step_for_reply][0]
-        self.steps = [s for s in self.steps if s not in self.completed_steps]
-        assert not self.step_for_prompt
+            print('restore_position: setting step for reply to',
+                [self.step_for_reply.get_id()])
+        self.steps = [s for s in self.steps
+                      if s not in [*self.completed_steps, self.step_for_prompt,
+                                   self.step_for_reply]]
+        print('restore_position: steps are now', [s.get_id() for s
+                                                  in self.steps])
+        return True
 
     def _prepare_for_prompt(self):
         """ move next step in this path into the 'step_for_prompt' variable"""
         try:
             stepcount = len(self.steps)
-            if stepcount < 1:  # to bounce back after cleaning User
+            if self.step_for_prompt:  # because unasked due to block
+                return True
+            elif self.step_for_reply:  # previous prompt stil unanswered
+                self.step_for_prompt = copy(self.step_for_reply)
+                self.step_for_reply = None
+                return True
+            elif stepcount < 1:  # to bounce back after cleaning User
                 # TODO: Does this cause problems?
                 self._reset_steps()
-
-                # added by JOB ... sept 22, 2014, step_for_prompt needs to be
-                # set after reset
                 if self.steps:
                     next_step = self.steps.pop(0)
                     self.step_for_prompt = next_step
@@ -1945,14 +1957,17 @@ class Path(object):
         step = self.step_for_prompt
         # check if id is same so that block steps don't remove step_for_prompt
         if stepid == step.get_id():
-            # and isinstance(step, (StepText, StepMultiple)):
-            self.step_for_reply = copy(self.step_for_prompt)
+            if isinstance(step, (StepText, StepMultiple)):
+                self.step_for_reply = copy(self.step_for_prompt)
+            else:
+                self.completed_steps.append(copy(self.step_for_prompt))
+                self.step_for_reply = None
             self.step_for_prompt = None
         return True
 
-    def complete_step(self):
+    def end_reply(self):
         """
-        Deactivate current step.
+        Deactivate current step after a reply.
         """
         if self.step_for_reply:
             self.completed_steps.append(copy(self.step_for_reply))
@@ -1961,7 +1976,6 @@ class Path(object):
             assert not self.step_for_prompt
         else:
             self.step_for_prompt = None
-            assert not self.step_for_reply
         return True
 
     def _reset_steps(self):
@@ -2581,8 +2595,12 @@ class User(object):
             if debug: print('A')
             self.loc = Location(sd['loc'])
             self.npc = Npc(sd['npc'])
+            if debug: print('chosen path:', sd['path'])
             self.path = Path(sd['path'])
+            if debug: print('remaining steps:', sd['remaining_steps'])
+            if debug: print('step_for_reply:', sd['step_for_reply'])
             self.path.restore_position(sd['remaining_steps'],
+                                       sd['step_for_prompt'],
                                        sd['step_for_reply'])
             for k in ['completed_paths', 'old_categories', 'promoted',
                       'demoted', 'new_tags']:
@@ -2816,13 +2834,16 @@ class User(object):
                     blockset.append(b)
             self.blocks = blockset
             if debug:
-                print('User::check_for_blocks: blockset', [b.get_condition() for b in blockset])
+                print('User::check_for_blocks: blockset',
+                      [b.get_condition() for b in blockset])
             current.sequence_counter += 1  # TODO: why increment twice here?
             myblock = self.blocks.pop(0)
             if debug:
-                print('User::check_for_blocks: myblock', myblock.get_condition())
+                print('User::check_for_blocks: myblock',
+                      myblock.get_condition())
             if debug:
-                print('User::check_for_blocks: blockset now', [b.get_condition() for b in blockset])
+                print('User::check_for_blocks: blockset now',
+                      [b.get_condition() for b in blockset])
             current.sequence_counter += 1  # TODO: why increment twice here?
             return myblock
         else:
@@ -2844,7 +2865,6 @@ class User(object):
             if condition not in myblocks:
                 print('adding new condition')
                 self.blocks.append(Block(condition, kwargs=kwargs))
-
 
         if condition == 'view_slides':
             if not self.viewed_slides:
