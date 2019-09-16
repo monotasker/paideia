@@ -16,6 +16,10 @@ from pprint import pprint
 # from gluon.validators import IS_DATE
 from itertools import chain, groupby
 
+if 0:
+    from web2py.applications.paideia.controllers.plugin_utils import make_json, load_json
+    from web2py.gluon import current, DIV, SPAN, A, URL, UL, LI, B, I, TAG
+
 
 class Stats(object):
     '''
@@ -72,6 +76,7 @@ class Stats(object):
     '''
     Name = "paideia_stats"
 
+    # @profile
     def __init__(self, user_id=None, auth=None, cache=None, duration=None):
         """
         Initialize Stats object for tracking paideia user statistics.
@@ -110,8 +115,6 @@ class Stats(object):
             self.tag_progress = {}
         # print 'Stats.__init__:: tag_progress:', self.tag_progress
 
-        self.tag_recs = db(db.tag_records.name == self.user_id
-                           ).select().as_list()  # cacheable=True
         # TODO: find and notify re. duplicate tag_records rows
         self.badge_levels, self.review_levels = self._find_badge_levels()
         self.tags = list(set([tup[1] for v
@@ -131,12 +134,11 @@ class Stats(object):
 
     def store_stats(self, statsdict, lastdt):
         '''
-        Store aggregate user statistics provided by statsdict in db.user_stats.
+        Store aggregate user statistics provided by statsdict in db.weekly_user_stats.
 
         Argument lastdt is the updated datetime of the last user_stats row for
         the current user. This is used to determine whether that last row needs
         to be completed with data from statsdict.
-
         '''
         # TODO: Should there also be an annual aggregate?
         db = current.db
@@ -367,13 +369,11 @@ class Stats(object):
 
         Always returns a float, since scores are floats between 0 and 1.
         """
-        print('in _get_avg_score')
-        print(len(logs))
         try:
             avg_score = sum([l.attempt_log.score for l in logs]) / len(logs)
+            avg_score = round(avg_score, 2)
         except ZeroDivisionError:  # if tag not tried at all since startdt
-            avg_score = 0
-            # FIXME: Will this not bring tags up too early?
+            avg_score = 0.0
         return avg_score
 
     def _get_logs_for_tag(self, tag_id, recent_start):
@@ -410,38 +410,48 @@ class Stats(object):
             [tag]               int, tag row id
             [times_right]       double, total number of times right
             [times_wrong]       double, total number of times wrong
-            [tlw]               datetime
-            [tlr]               datetime
+            [tlw]               datetime, last wrong attempt
+            [tlr]               datetime, last right attempt
 
         ------calculated here -------------------------------------------------
-            [rw_ratio]          ratio of times_right to times_wrong as a
-                                double.
-            [delta_w]           length of time since last wrong answer
-            [delta_r]           length of time since last right answer
-            [delta_rw]          length of time between last right answer
-                                        and previous wrong answer (0 if last
-                                        answer was wrong).
+            [todaycount]        int, number of attempts for this tag by current
+                                user today
+            [yestcount]         int, number of attempts for this tag by current
+                                    user yesterday
+            [rw_ratio]          double, ratio of user's total right attempts to
+                                    wrong attempts with current tag
+            [delta_w]           timedelta, length of time since last wrong
+                                    answer
+            [delta_r]           timedelta, length of time since last right                              answer
+            [delta_rw]          timedelta, length of time between last right
+                                    answer and previous wrong answer (0 if last
+                                    answer was wrong).
 
         ------from self.badge_levels and self.review_levels -------------------
-            [curlev]                highest level attained for tag
-            [revlev]                current level used for path selection
+            [curlev]            int, highest level attained for tag
+            [revlev]            int, current level used for path selection
 
         ------from _add_tag_data() --------------------------------------------
         - from db.tags
-            [set]               the "position" in set progression, int
+            [set]               int, the tag's "position" in set sequence
         - from db.badges
-            [bname]
-            [bdesc]
+            [bname]             str, the name of the badge corresponding to                         this tag
+            [bdesc]             str, the description of the badge corresponding                     to this tag
 
         ------from _add_progress_data()----------------------------------------
         - from db.badges_begun
-            [cat1_reached]          a tuple of (datetime, prettydate string)
-            [cat2_reached]          a tuple of (datetime, prettydate string)
-            [cat3_reached]          a tuple of (datetime, prettydate string)
-            [cat4_reached]          a tuple of (datetime, prettydate string)
+            [cat1_reached]      a tuple of (datetime, prettydate string),
+                                    date when tag became active for user
+            [cat2_reached]      a tuple of (datetime, prettydate string),
+                                    date when tag first entered category 2 for
+                                    user.
+            [cat3_reached]      a tuple of (datetime, prettydate string),
+                                    same for category 3
+            [cat4_reached]      a tuple of (datetime, prettydate string),
+                                    same for category 4
 
         ------from ????--------------------------------------------------------
-        - from db.user_stats
+        - from db.weekly_user_stats
             [datecounts]            a dictionary of dates with the number of
                                         right and wrong attempts on each day.
         - from db.steps
@@ -452,40 +462,53 @@ class Stats(object):
                                         tags_ahead
 
         '''
+        print('A')
+        debug = True
         db = current.db if not db else db
-        start_date = self.utcnow.date() if not now else now.date()
-        tr = [r for r in self.tag_recs if r['tag'] in self.tags]
 
         # get bounds for today and yesterday
-        offset = get_offset(self.user)
+        start_date = self.utcnow.date() if not now else now.date()
         daystart = datetime.datetime.combine(start_date,
                                              datetime.time(0, 0, 0, 0))
-        daystart = daystart - offset
+        daystart = daystart - get_offset(self.user)
         recent_start = (daystart - datetime.timedelta(days=5))
         yest_start = (daystart - datetime.timedelta(days=1))
+        now = self.utcnow if not now else now
 
+        print('B')
         # collect recent attempt logs
         # FIXME: unused: alltags = [r['tag'] for r in tr]
         # logs = db((db.attempt_log.name == self.user_id) &
         #           (db.attempt_log.step == db.steps.id)).select()
 
+        tag_records = db((db.tag_records.name == self.user_id) &
+                         (db.tag_records.tag.belongs(self.tags))
+                          ).select().as_list()  # cacheable=True
         # shorten keys for readability
         shortforms = {'tlast_right': 'tlr',
                       'tlast_wrong': 'tlw',
                       'times_right': 'tright',
                       'times_wrong': 'twrong'}
         for k, alt in list(shortforms.items()):
-            for idx, row in enumerate(tr):
+            for idx, row in enumerate(tag_records):
                 if k in list(row.keys()):
-                    tr[idx][alt] = row[k]
-                    del tr[idx][k]
-        now = self.utcnow if not now else now
-        for idx, t in enumerate(tr):
-            # remove unnecessary keys
-            tr[idx] = {k: v for k, v in list(t.items())
-                       if k not in ['id', 'name', 'in_path', 'step',
-                       'secondary_right']}
+                    tag_records[idx][alt] = row[k]
+                    del tag_records[idx][k]
 
+        print('C')
+        # loop over tag_records entries
+        for idx, t in enumerate(tag_records):
+            print('D')
+            if debug: print('active_tags: tag', t['tag'])
+            # remove unnecessary keys
+            tag_records[idx] = {k: v for k, v in list(t.items())
+                if k not in ['id', 'name', 'in_path', 'step',
+                             'secondary_right']}
+
+            # Count attempt log rows for recent attempts (today, yesterday,
+            # and within last 5 days)
+            # log fields used below are dt_attempted, score
+            print('E')
             taglogs = self._get_logs_for_tag(t['tag'], recent_start) 
             todaylogs = [r for r in taglogs
                          if r['attempt_log']['dt_attempted'] > daystart]
@@ -494,91 +517,90 @@ class Stats(object):
                         and (r['attempt_log']['dt_attempted'] > yest_start)
                         ]
             reclogs = taglogs
+            tag_records[idx]['todaycount'] = len(todaylogs)
+            tag_records[idx]['yestcount'] = len(yestlogs)
 
-            tr[idx]['todaycount'] = len(todaylogs)
-            tr[idx]['yestcount'] = len(yestlogs)
-
+            print('F')
             # get average score over recent period
-            tr[idx]['avg_score'] = self._get_avg_score(t['tag'], logs=reclogs)
+            tag_records[idx]['avg_score'] = self._get_avg_score(
+                t['tag'], logs=reclogs)
 
-            # get right/wrong ratio
+            # get right/wrong ratio (from tag_records itself)
             try:
                 if not t['tright']:  # TODO: tests to sanitize bad data (None)
                     t['tright'] = 0
                 if not t['twrong']:
                     t['twrong'] = 0
-                tr[idx]['rw_ratio'] = round(t['tright'] / t['twrong'], 2)
+                tag_records[idx]['rw_ratio'] = round(
+                    t['tright'] / t['twrong'], 2)
             except (ZeroDivisionError, TypeError):
-                tr[idx]['rw_ratio'] = round(t['tright'], 2)
-
-            print('A')
+                tag_records[idx]['rw_ratio'] = round(t['tright'], 2)
 
             # parse last_right and last_wrong into readable form
             try:
-                t['tlw'] = tr[idx]['tlw'] = parse(t['tlw']) if not \
+                t['tlw'] = tag_records[idx]['tlw'] = parse(t['tlw']) if not \
                     isinstance(t['tlw'], datetime.datetime) else t['tlw']
-                t['tlr'] = tr[idx]['tlr'] = parse(t['tlr']) if not \
+                t['tlr'] = tag_records[idx]['tlr'] = parse(t['tlr']) if not \
                     isinstance(t['tlr'], datetime.datetime) else t['tlr']
             except AttributeError:
                 pass
 
-            print('B')
-            # get time deltas
+            print('G')
+            # get time deltas since last right and wrong
             for i in ['r', 'w']:
                 try:
-                    tr[idx]['delta_' + i] = now - t['tl' + i]
+                    tag_records[idx]['delta_' + i] = now - t['tl' + i]
                 except TypeError:  # record is timezone-aware, shouldn't be yet
                     t['tl' + i] = t['tl' + i].replace(tzinfo=None)
-                    tr[idx]['delta_' + i] = now - t['tl' + i]
-            tr[idx]['delta_rw'] = tr[idx]['tlr'] - tr[idx]['tlw'] \
-                if tr[idx]['tlr'] > tr[idx]['tlw'] \
-                else datetime.timedelta(days=0)
-
+                    tag_records[idx]['delta_' + i] = now - t['tl' + i]
+            if tag_records[idx]['tlr'] > tag_records[idx]['tlw']: 
+                tag_records[idx]['delta_rw'] = (
+                    tag_records[idx]['tlr'] - tag_records[idx]['tlw'])
+            else:
+                tag_records[idx]['delta_rw'] = datetime.timedelta(days=0)
             # localize datetimes and add readable string for display
             for i in ['tlr', 'tlw']:
                 t[i] = self._local(t[i])
                 strf = '%b %e' if t[i].year == now.year else '%b %e, %Y'
-                tr[idx][i] = (t[i], t[i].strftime(strf))
+                tag_records[idx][i] = (t[i], t[i].strftime(strf))
 
-            # add level data
-            # print('badge_levels--------------')
-            # print(self.badge_levels)
-            # print('review_levels--------------')
-            # print(self.review_levels)
-            # print('t["tag"]--------------------')
-            # print(t['tag'])
+            print('H')
+            # add user's historic maximum and current review levels for tag
             try:
-                tr[idx]['curlev'] = [l for l, tgs in
-                                     list(self.badge_levels.items())
-                                     if t['tag'] in [tg[1] for tg in tgs]
-                                     ][0]
+                tag_records[idx]['curlev'] = [l for l, tgs in
+                    list(self.badge_levels.items())
+                    if t['tag'] in [tg[1] for tg in tgs]
+                    ][0]
             except IndexError:
                 traceback.print_exc(5)
-                tr[idx]['curlev'] = 0
+                tag_records[idx]['curlev'] = 0
             try:
-                tr[idx]['revlev'] = [l for l, tgs in
-                                     list(self.review_levels.items())
-                                     if t['tag'] in [tg[1] for tg in tgs]
-                                     ][0]
+                tag_records[idx]['revlev'] = [l for l, tgs in
+                    list(self.review_levels.items())
+                    if t['tag'] in [tg[1] for tg in tgs]
+                    ][0]
             except IndexError:
                 traceback.print_exc(5)
-                tr[idx]['revlev'] = 0
+                tag_records[idx]['revlev'] = 0
 
-            # round tright and twrong to closest int for readability
+            print('I')
+            # round total right and wrong attempt counts to closest int for
+            # readability
             for i in ['right', 'wrong']:
                 try:
-                    tr[idx]['t' + i] = remove_trailing_0s(t['t' + i],
+                    tag_records[idx]['t' + i] = remove_trailing_0s(t['t' + i],
                                                           fmt='num')
                 except TypeError:  # because value is None
-                    tr[idx]['t' + i] = 0
+                    tag_records[idx]['t' + i] = 0
 
         try:
-            tr = self._add_tag_data(tr)
-            tr = self._add_promotion_data(tr)
+            print('J')
+            tag_records = self._add_tag_data(tag_records)
+            print('K')
+            tag_records = self._add_promotion_data(tag_records)
             # tr = self._add_log_data(tr)
-            self.tagrecs_expanded = tr
-            print('D')
-            return tr  # make_json(tr.as_list())
+            print('L')
+            return tag_records  
         except Exception:
             traceback.print_exc(5)
             return None
@@ -715,9 +737,68 @@ class Stats(object):
             weekstats[yr] = weeksdict
         return weekstats
 
-    def _get_logs_for_range(self, startdate=None, stopdate=None):
+    def _initialize_weekly_stats(self, user_id, tag):
+        """Process all of a user's past attempt logs and store the results.
+        """
+        db = current.db
+        offset = get_offset(user_id)
+
+        db(db.weekly_user_stats.name = user_id).delete()
+
+        for year in range(2011, datetime.datetime.utcnow().year+1):
+            print(year)
+            for week in range(1, 54):
+                print(week)
+                start = datetime.datetime.strptime('{} {} 1'.format(year, week),
+                                                   '%G %V %u')
+                start = start + offset
+                days = [start + datetime.timedelta(days=n) for n in range(0, 8)
+                        ] 
+
+                mylogs = db((db.attempt_log.name == user_id) &
+                            (db.attempt_log.dt_attempted >= start) &
+                            (db.attempt_log.dt_attempted < days[7])
+                            ).select().as_list()
+                weekdict = {'name': user_id,
+                            'tag': tag,
+                            'year': year,
+                            'month': start.month,
+                            'week': week,
+                            'week_start': start,
+                            'week_end': days[7],
+                            }
+                for n in range(1, 8):
+                    weekdict['day{}_right'.format(str(n))] = [
+                        r.id for r in mylogs if 
+                        r.dt_attempted >= days[n-1] and
+                        r.dt_attempted < days[n] and
+                        r.score - 1.0 < 0.01]
+                    weekdict['day{}_wrong'.format(str(n))] = [
+                        r.id for r in mylogs if 
+                        r.dt_attempted >= days[n-1] and
+                        r.dt_attempted < days[n] and
+                        r.score - 1.0 > 0.01]
+                # db.weekly_user_stats.insert(**weekdict)
+                pprint(weekdict)
+        # db.commit()
+        
+
+    def _get_logs_for_range(self, startdate=None, stopdate=None, tag=None):
         '''
-        Assemble and return a dictionary of weeks with log-data for each day.
+        Assemble and return aggregate log data on the user's step attempts.
+        
+        :param datetime startdate:  The beginning of the range for which attempt
+                                    log data is being requested.
+        :param datetime startdate:  The end of the range for which attempt
+                                    log data is being requested.
+        :param int tag:             The id of a tag. If provided, the returned
+                                    logs are restricted to attempts involving
+                                    steps with the provided tag.
+
+        Before returning the aggregate data, this method ensures that any fresh attempts not processed and stored in the "weekly_user_stats" table are 
+        stored.
+
+        Return value is a dictionary of weeks with log-data for each day.
 
         {year: {week#: ({datetime: [log ids],
                          datetime: [log ids],
@@ -733,6 +814,7 @@ class Stats(object):
                         ),
                 }
          }
+
         '''
         db = current.db
         # get utc equivalents of start and stop in user's time zone
@@ -763,23 +845,25 @@ class Stats(object):
                 myrows = [r for r in usrows if r['year'] == year]
                 usdict[year] = {}
                 for m in myrows:
-                    usdict[year][m['week']] = ({m['day1']: m['count1'],
-                                                m['day2']: m['count2'],
-                                                m['day3']: m['count3'],
-                                                m['day4']: m['count4'],
-                                                m['day5']: m['count5'],
-                                                m['day6']: m['count6'],
-                                                m['day7']: m['count7']
-                                                },
-                                               load_json(m['logs_by_tag']),
-                                               m['logs_right'],
-                                               m['logs_wrong'])
+                    start = m['week_start']
+                    weekdates = [start + datetime.timedelta(days=n) for 
+                                 n in range(0, 7)]
+                    usdict[year][m['week']] = ({
+                        weekdates[0]: m['day1_right'] + m['day1_wrong'],
+                        weekdates[1]: m['day2_right'] + m['day2_wrong'],
+                        weekdates[2]: m['day3_right'] + m['day3_wrong'],
+                        weekdates[3]: m['day4_right'] + m['day4_wrong'],
+                        weekdates[4]: m['day5_right'] + m['day5_wrong'],
+                        weekdates[5]: m['day6_right'] + m['day6_wrong'],
+                        weekdates[6]: m['day7_right'] + m['day7_wrong']
+                        })
         # add new logs without user_stats rows
         updated = usrows[-1]['updated'] if usrows else ustart
         newlogs = db((db.attempt_log.name == self.user_id) &
                      (db.attempt_log.dt_attempted < ustop) &
                      (db.attempt_log.dt_attempted > updated)).select()
         if newlogs:
+            print('newlogs:', len(newlogs))
             newus = self._make_logs_into_weekstats(logs=newlogs)
             # newstored = self.store_stats(newus)
             if usrows:
@@ -1052,8 +1136,6 @@ class Stats(object):
         # Transform to a lightweight form
         counts = []
         for (date, scores_ids) in list(result.items()):
-            print('trying')
-            print(scores_ids)
             scores = [(s[0] or 0) for s in scores_ids if s[0]]
             ids = [s[1] for s in scores_ids]
             total = len(scores)

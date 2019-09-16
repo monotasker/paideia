@@ -723,6 +723,17 @@ db.define_table('weekly_user_stats',
 # db.executesql('CREATE INDEX IF NOT EXISTS idx_userstats_1 '
 #              'ON user_stats (year, week, name);')
 
+db.define_table('tagged_attempts_by_week',
+                Field('name', 'reference auth_user', default=auth.user_id),
+                Field('year', 'integer'),
+                Field('month', 'integer'),
+                Field('week', 'integer'),
+                Field('tag_id', 'reference tags'),
+                Field('attempts_right', 'list:reference attempt_log'),
+                Field('attempts_wrong', 'list:reference attempt_log'),
+                Field('weekstart', 'datetime')
+                )
+
 db.define_table('lessons',
                 Field('title', 'string'),
                 Field('video_url', 'text'),
@@ -777,13 +788,6 @@ db.define_table('path2steps',
                 Field('path_id', 'reference paths'),
                 Field('step_id', 'reference steps'),
                 Field('modified_on', 'datetime', default=request.now))
-
-db.define_table('tagged_attempts_by_week',
-                Field('name', 'reference auth_user', default=auth.user_id),
-                Field('tag_id', 'reference tags'),
-                Field('attempts', 'list:reference attempt_log'),
-                Field('weekstart', 'datetime')
-                )
 
 def insert_trigger_for_steps(f, given_step_id):
     # given_step_id is of <class 'gluon.dal.Reference'>
