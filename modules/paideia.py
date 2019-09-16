@@ -771,7 +771,7 @@ class Walk(object):
             blocksdict = {b.get_condition(): b.get_kwargs()
                           for b in user.blocks}
             userdict = {
-                'blocks': json.dumps(blocksdict),
+                'blocks': json.dumps(blocksdict, default=str),
                 'path': user.path.get_id() if user.path else None,
                 'remaining_steps': [s.get_id() for s in user.path.steps] \
                     if user.path else [],
@@ -785,11 +785,11 @@ class Walk(object):
                 'old_categories': json.dumps(user.old_categories),
                 'tag_records': [t['id'] for t in user.tag_records] \
                     if user.tag_records else [],
-                'tag_progress': json.dumps(user.tag_progress) \
+                'tag_progress': json.dumps(user.tag_progress, default=str) \
                     if user.tag_progress else None,
-                'promoted': json.dumps(user.promoted),
-                'demoted': json.dumps(user.demoted),
-                'new_tags': json.dumps(user.new_tags),
+                'promoted': json.dumps(user.promoted, default=str),
+                'demoted': json.dumps(user.demoted, default=str),
+                'new_tags': json.dumps(user.new_tags, default=str),
                 'cats_counter': user.cats_counter,
                 'rank': user.rank,
                 'session_start': user.session_start,
@@ -2514,7 +2514,7 @@ class User(object):
     """
 
     def __init__(self, userdata, tag_records, tag_progress, db=None,
-                 blocks=[]):
+                 blocks=[], force_new=False):
         """
         Initialize a paideia.User object.
 
@@ -2590,71 +2590,25 @@ class User(object):
         self.tag_records = tag_records
         self.tag_progress = tag_progress
 
-        sd = db(db.session_data.name == auth.user_id).select().first()
-        try:
-            if debug: print('A')
-            self.loc = Location(sd['loc'])
-            self.npc = Npc(sd['npc'])
-            if debug: print('chosen path:', sd['path'])
-            self.path = Path(sd['path'])
-            if debug: print('remaining steps:', sd['remaining_steps'])
-            if debug: print('step_for_reply:', sd['step_for_reply'])
-            self.path.restore_position(sd['remaining_steps'],
-                                       sd['step_for_prompt'],
-                                       sd['step_for_reply'])
-            for k in ['completed_paths', 'old_categories', 'promoted',
-                      'demoted', 'new_tags']:
-                setattr(self, k, json.loads(sd[k]))
-            for k in ['cats_counter', 'rank', 
-                      'session_start', 'prev_loc', 'prev_npc', 'past_quota',
-                      'viewed_slides', 'reported_badges', 'reported_promotions',
-                      'repeating', 'new_content', 'active_cat', 'quota']:
-                setattr(self, k, sd[k])
-                print(k, sd[k], type(sd[k]))
-            # Blocks must be set after flags above are set
-            for condition, kwargs in json.loads(sd['blocks']).items():
-                print(sd['blocks'])
-                print('got blocks===================================')
-                print(condition) 
-                print(kwargs)
-                self.set_block(condition, kwargs=kwargs)
-            if debug: print('B')
-            if debug: print('D')
-            if not tag_records:
-                try:
-                    rec_ids = json.loads(sd['tag_records'])
-                    self.tag_records = db(db.tag_records.id.belongs(rec_ids) 
-                                          ).select().as_list()
-                except ValueError:
-                    traceback.print_exc()
-                    self.tag_records = db(db.tag_records.name == self.user_id
-                                          ).select().as_list()
-            if debug: print('F')
-            if not tag_progress:
-                self.tag_progress = json.loads(sd['tag_progress'])
-            if debug: print('G')
-            assert not self.is_stale()  
-            if debug: print('H')
-        except (TypeError, AttributeError, AssertionError):  # one of the JSON fields is None
-            traceback.print_exc()
+        def make_fresh_user():
             if debug: print('L')
             self.path = None
             self.completed_paths = {'latest': None, 'paths': {}}
             self.cats_counter = 0  # timing re-cat in get_categories()
             self.old_categories = None
-            if not tag_records: 
+            if not self.tag_records: 
                 tag_records = db(db.tag_records.name == self.user_id).select() 
-                tag_records = tag_records.as_list()
-            if not tag_progress:
+                self.tag_records = tag_records.as_list()
+            if not self.tag_progress:
                 try:
-                    tag_progress = db(db.tag_progress.name == self.user_id
-                                    ).select().first().as_dict()
+                    self.tag_progress = db(db.tag_progress.name == self.user_id
+                                           ).select().first().as_dict()
                 except Exception as e:
                     traceback.print_exc()
                     db.tag_progress.insert(latest_new=1)
                     db.commit()
-                    tag_progress = db(db.tag_progress.name == self.user_id
-                                      ).select().first().as_dict()
+                    self.tag_progress = db(db.tag_progress.name == self.user_id
+                                           ).select().first().as_dict()
             # FIXME: return don't set in method?
             self._set_user_rank(self.tag_progress, 1)  
             # self.rank = tag_progress['latest_new'] if tag_progress else 1
@@ -2680,6 +2634,58 @@ class User(object):
             if isinstance(self.quota, list):
                 self.quota = self.quota[0]
             if debug: print('initialized user')
+
+        if not force_new:
+            sd = db(db.session_data.name == auth.user_id).select().first()
+            try:
+                if debug: print('A')
+                self.loc = Location(sd['loc'])
+                self.npc = Npc(sd['npc'])
+                if debug: print('chosen path:', sd['path'])
+                self.path = Path(sd['path'])
+                if debug: print('remaining steps:', sd['remaining_steps'])
+                if debug: print('step_for_reply:', sd['step_for_reply'])
+                self.path.restore_position(sd['remaining_steps'],
+                                        sd['step_for_prompt'],
+                                        sd['step_for_reply'])
+                for k in ['completed_paths', 'old_categories', 'promoted',
+                        'demoted', 'new_tags']:
+                    setattr(self, k, json.loads(sd[k]))
+                for k in ['cats_counter', 'rank', 
+                        'session_start', 'prev_loc', 'prev_npc', 'past_quota',
+                        'viewed_slides', 'reported_badges', 'reported_promotions',
+                        'repeating', 'new_content', 'active_cat', 'quota']:
+                    setattr(self, k, sd[k])
+                    print(k, sd[k], type(sd[k]))
+                # Blocks must be set after flags above are set
+                for condition, kwargs in json.loads(sd['blocks']).items():
+                    print(sd['blocks'])
+                    print('got blocks===================================')
+                    print(condition) 
+                    print(kwargs)
+                    self.set_block(condition, kwargs=kwargs)
+                if debug: print('B')
+                if debug: print('D')
+                if not tag_records:
+                    try:
+                        rec_ids = json.loads(sd['tag_records'])
+                        self.tag_records = db(db.tag_records.id.belongs(rec_ids) 
+                                            ).select().as_list()
+                    except ValueError:
+                        traceback.print_exc()
+                        self.tag_records = db(db.tag_records.name == self.user_id
+                                            ).select().as_list()
+                if debug: print('F')
+                if not tag_progress:
+                    self.tag_progress = json.loads(sd['tag_progress'])
+                if debug: print('G')
+                assert not self.is_stale()  
+                if debug: print('H')
+            except (TypeError, AttributeError, AssertionError):  # one of the JSON fields is None
+                traceback.print_exc()
+                make_fresh_user()
+        else:
+            make_fresh_user()
 
     def __str__(self):
         strout = ['---------------------------------\n'

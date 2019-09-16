@@ -4751,7 +4751,7 @@ class TestUser(object):
         """
         Unit testing method for User.get_path().
         """
-        user = User(user_login, trecs, tpout)
+        user = User(user_login, trecs, tpout, force_new=True)
         user.completed_paths = completed
         if len(completed) > 20:
             user.past_quota = True
@@ -4798,7 +4798,7 @@ class TestUser(object):
         """
         Unit testing method for User.get_path().
         """
-        user = User(user_login, trecs, tpout)
+        user = User(user_login, trecs, tpout, force_new=True)
         user.completed_paths = {'latest': 1, 'paths': []}
         loc = Location(localias)
         actual, acat, aredir, apastq, \
@@ -4874,7 +4874,7 @@ class TestUser(object):
         Unit test for User._get_categories() method.
         """
         # set up mock user
-        user = User(user_login, trecs, tpin)
+        user = User(user_login, trecs, tpin, force_new=True)
         user.cats_counter = counter
 
         # set up tag records for user
@@ -6130,7 +6130,7 @@ class TestWalk():
         if active_path:
             this_path, path_steps = mypath(active_path, db)
             user.path = this_path
-            user.path.restore_position(path_steps, None)
+            user.path.restore_position(path_steps, None, None)
         assert isinstance(user, User)
         assert user.get_id() == user_login['id']
 

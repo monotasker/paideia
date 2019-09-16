@@ -139,11 +139,11 @@ ap.append(form) }}
         {{pass}}
         {{if sid and pid:}}
             {{stepedit = A('step {}'.format(sid),
-                        _href=URL('editing', 'listing', args=['steps', sid]),
+                        _href=URL('editing', 'listing.html', args=['steps', sid]),
                         _class='prompt-s-editlink'
                         )
             pathedit = A('path {}'.format(pid),
-                        _href=URL('editing', 'listing', args=['paths', pid]),
+                        _href=URL('editing', 'listing.html', args=['paths', pid]),
                         _class='prompt-p-editlink'
                         )
                         catnum = ' choosing from category {}, new content is {}'.format(category, new_content)}}
