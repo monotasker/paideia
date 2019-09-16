@@ -1456,3 +1456,16 @@ faked!
 timestamp: 2019-09-13T16:14:26.468944
 ALTER TABLE "session_data" ADD "step_for_prompt" INTEGER;
 success!
+timestamp: 2019-09-16T10:12:34.828895
+ALTER TABLE "tagged_attempts_by_week" ADD "year" INTEGER;
+timestamp: 2019-09-16T10:12:34.853045
+ALTER TABLE "tagged_attempts_by_week" ADD "month" INTEGER;
+timestamp: 2019-09-16T10:12:34.854731
+ALTER TABLE "tagged_attempts_by_week" ADD "week" INTEGER;
+timestamp: 2019-09-16T10:12:34.882129
+ALTER TABLE "tagged_attempts_by_week" ADD "attempts_right" TEXT;
+timestamp: 2019-09-16T10:12:34.884241
+ALTER TABLE "tagged_attempts_by_week" ADD "attempts_wrong" TEXT;
+timestamp: 2019-09-16T10:12:34.892701
+ALTER TABLE "tagged_attempts_by_week" DROP COLUMN "attempts";
+success!
